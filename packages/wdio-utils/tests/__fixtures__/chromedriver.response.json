@@ -1,0 +1,28 @@
+{
+  "status": 0,
+  "sessionId": "XXXXXXXX00000000XXXXXXXXXXXXXXXX",
+  "value": {
+    "acceptInsecureCerts": false,
+    "browserName": "chrome",
+    "browserVersion": "76.0.3809.36",
+    "chrome": {
+      "chromedriverVersion": "75.0.3770.90 (a6dcaf7e3ec6f70a194cc25e8149475c6590e025-refs/branch-heads/3770@{#1003})",
+      "userDataDir": "/var/folders/0q/l4qj1n6s2glggtljc87l6h540000gn/T/.com.google.Chrome.igmuw5"
+    },
+    "goog:chromeOptions": {
+      "debuggerAddress": "localhost:49290"
+    },
+    "networkConnectionEnabled": false,
+    "pageLoadStrategy": "normal",
+    "platformName": "mac os x",
+    "proxy": {},
+    "setWindowRect": true,
+    "strictFileInteractability": false,
+    "timeouts": {
+      "implicit": 0,
+      "pageLoad": 300000,
+      "script": 30000
+    },
+    "unhandledPromptBehavior": "dismiss and notify"
+  }
+}

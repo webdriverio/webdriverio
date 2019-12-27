@@ -1,17 +1,18 @@
-import path from 'path'
-import child from 'child_process'
-import EventEmitter from 'events'
+import logger from '@wdio/logger'
+import { WritableStreamBuffer } from 'stream-buffers'
 
-import logger from 'wdio-logger'
-import RunnerTransformStream from './transformStream'
+import WorkerInstance from './worker'
+import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants'
 
-const log = logger('wdio-local-runner')
+const log = logger('@wdio/local-runner')
 
-export default class LocalRunner extends EventEmitter {
+export default class LocalRunner {
     constructor (configFile, config) {
-        super()
         this.configFile = configFile
         this.config = config
+        this.workerPool = {}
+        this.stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
+        this.stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
     }
 
     /**
@@ -19,40 +20,68 @@ export default class LocalRunner extends EventEmitter {
      */
     initialise () {}
 
-    run ({ cid, command, configFile, argv, caps, processNumber, specs, server, isMultiremote }) {
-        const runnerEnv = Object.assign(process.env, this.config.runnerEnv, {
-            WDIO_LOG_LEVEL: this.config.logLevel
-        })
+    getWorkerCount () {
+        return Object.keys(this.workerPool).length
+    }
 
-        if (this.config.logDir) {
-            runnerEnv.WDIO_LOG_PATH = path.join(this.config.logDir, `wdio-${cid}.log`)
+    run ({ command, argv, ...options }) {
+        /**
+         * adjust max listeners on stdout/stderr when creating listeners
+         */
+        const workerCnt = this.getWorkerCount()
+        if (workerCnt >= process.stdout.getMaxListeners() - 2) {
+            process.stdout.setMaxListeners(workerCnt + 2)
+            process.stderr.setMaxListeners(workerCnt + 2)
         }
 
-        log.info(`Start worker ${cid} with arg: ${process.argv.slice(2)}`)
-        const childProcess = child.fork(path.join(__dirname, 'run.js'), process.argv.slice(2), {
-            cwd: process.cwd(),
-            env: runnerEnv,
-            execArgv: this.config.execArgv,
-            silent: true
+        const worker = new WorkerInstance(this.config, options, this.stdout, this.stderr)
+        this.workerPool[options.cid] = worker
+        worker.postMessage(command, argv)
+
+        return worker
+    }
+
+    /**
+     * shutdown all worker processes
+     *
+     * @return {Promise}  resolves when all worker have been shutdown or
+     *                    a timeout was reached
+     */
+    shutdown () {
+        log.info('Shutting down spawned worker')
+
+        for (const [cid, worker] of Object.entries(this.workerPool)) {
+            const { caps, server, sessionId, config, isMultiremote, instances } = worker
+            let payload = {}
+
+            /**
+             * put connection information to payload if in watch mode
+             * in order to attach to browser session and kill it
+             */
+            if (config && config.watch && (sessionId || isMultiremote)) {
+                payload = { config: { ...server, sessionId }, caps, watch: true, isMultiremote, instances }
+            } else if (!worker.isBusy) {
+                delete this.workerPool[cid]
+                continue
+            }
+
+            worker.postMessage('endSession', payload)
+        }
+
+        return new Promise((resolve) => {
+            const timeout = setTimeout(resolve, SHUTDOWN_TIMEOUT)
+            const interval = setInterval(() => {
+                const busyWorker = Object.entries(this.workerPool)
+                    .filter(([, worker]) => worker.isBusy).length
+
+                log.info(`Waiting for ${busyWorker} to shut down gracefully`)
+                if (busyWorker === 0) {
+                    clearTimeout(timeout)
+                    clearInterval(interval)
+                    log.info('shutting down')
+                    return resolve()
+                }
+            }, 250)
         })
-
-        childProcess.on('message',
-            (payload) => this.emit('message', Object.assign(payload, { cid })))
-
-        childProcess.on('exit', (code) => {
-            log.debug(`Runner ${cid} finished with exit code ${code}`)
-            this.emit('end', { cid, exitCode: code })
-        })
-
-        childProcess.send({
-            cid, command, configFile, argv, caps,
-            processNumber, specs, server, isMultiremote
-        })
-
-
-        childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(process.stdout)
-        childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(process.stderr)
-
-        return childProcess
     }
 }

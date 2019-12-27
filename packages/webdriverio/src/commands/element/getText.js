@@ -3,7 +3,7 @@
  * Get the text content from a DOM-element. Make sure the element
  * you want to request the text from [is interactable](http://www.w3.org/TR/webdriver/#interactable)
  * otherwise you will get an empty string as return value. If the element is disabled or not
- * visible and you still want to receive the text content use [getHTML](http://webdriver.io/docs/api/element/getHTML.html)
+ * visible and you still want to receive the text content use [getHTML](https://webdriver.io/docs/api/element/getHTML.html)
  * as a workaround.
  *
  * <example>
@@ -32,7 +32,7 @@
     });
  * </example>
  *
- * @alias browser.getText
+ * @alias element.getText
  * @return {String} content of selected element (all HTML tags are removed)
  * @uses protocol/elements, protocol/elementIdText
  * @type property

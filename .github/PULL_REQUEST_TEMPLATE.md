@@ -10,6 +10,7 @@
 - [ ] Bugfix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
 
 ## Checklist
 
@@ -18,6 +19,7 @@
 - [ ] I have read the [CONTRIBUTING](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md) doc
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] I have added necessary documentation (if appropriate)
+- [ ] I have added proper type definitions for new commands (if appropriate)
 
 ## Further comments
 

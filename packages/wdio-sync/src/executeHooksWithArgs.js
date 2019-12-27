@@ -1,7 +1,7 @@
-import Fiber from 'fibers'
-import logger from 'wdio-logger'
+import Fiber from './fibers'
+import logger from '@wdio/logger'
 
-const log = logger('wdio-sync')
+const log = logger('@wdio/sync')
 
 /**
  * Helper method to execute a row of hooks with certain parameters.
@@ -31,6 +31,8 @@ export default function executeHooksWithArgs (hooks = [], args) {
         let result
 
         const execHook = () => {
+            delete global.browser._NOT_FIBER
+
             try {
                 result = hook.apply(null, args)
             } catch (e) {
@@ -50,7 +52,7 @@ export default function executeHooksWithArgs (hooks = [], args) {
         /**
          * after command hooks require additional Fiber environment
          */
-        return Fiber(execHook).run()
+        return hook.constructor.name === 'AsyncFunction' ? execHook() : Fiber(execHook).run()
     }))
 
     return Promise.all(hooks)

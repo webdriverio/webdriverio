@@ -16,6 +16,7 @@
 // import components
 @import '_components/content';
 @import '_components/headings';
+@import '_components/labels';
 @import '_components/lists';
 @import '_components/tables';
 
@@ -45,8 +46,58 @@ body .onPageNav {
     top: 40px;
 }
 
-.mainContainer article p img[alt^="Support"] {
-    width: 20px;
-    margin-right: 5px;
-    display: inline-block;
+blockquote {
+    background: none;
+    padding-left: 15px;
+    border-left: 1px solid $footerFontColor;
+    margin: 15px;
+    font-weight: 300;
+}
+
+.blog iframe {
+    margin-left: 0;
+}
+
+.blog a img {
+    display: inline;
+}
+
+.mainContainer {
+    img {
+        &[alt^='Support'] {
+            width: 20px;
+            margin-right: 5px;
+            display: inline-block;
+        }
+    }
+}
+
+article .flowcharttogglelink {
+    text-align: center;
+    color: $orange;
+    cursor: pointer;
+}
+
+article .flowcharttogglemenu {
+    margin: 20px 0;
+
+    span {
+        padding: 0 5px;
+    }
+}
+
+article #flowChartGraphDiv .node rect,
+article #flowChartGraphDiv .node circle,
+article #flowChartGraphDiv .node ellipse,
+article #flowChartGraphDiv .node polygon {
+    stroke: $orange;
+    fill: $orangeLight;
+}
+
+.flowcharttogglemenu,
+#flowChartGraphDivContainer {
+    margin: auto;
+    padding-left: auto;
+    padding-right: auto;
+    text-align: center;
 }

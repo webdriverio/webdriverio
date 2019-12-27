@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should register eventlisteners for network monitor 1`] = `
+Array [
+  Array [
+    Object {
+      "method": "Network.requestWillBeSent",
+      "params": Object {
+        "some": "params",
+      },
+    },
+  ],
+  Array [
+    Object {
+      "method": "Network.requestServedFromCache",
+      "params": Object {
+        "some": "params",
+      },
+    },
+  ],
+  Array [
+    Object {
+      "method": "Network.responseReceived",
+      "params": Object {
+        "some": "params",
+      },
+    },
+  ],
+  Array [
+    Object {
+      "method": "Network.dataReceived",
+      "params": Object {
+        "some": "params",
+      },
+    },
+  ],
+  Array [
+    Object {
+      "method": "Network.loadingFinished",
+      "params": Object {
+        "some": "params",
+      },
+    },
+  ],
+  Array [
+    Object {
+      "method": "Network.loadingFailed",
+      "params": Object {
+        "some": "params",
+      },
+    },
+  ],
+  Array [
+    Object {
+      "method": "Network.resourceChangedPriority",
+      "params": Object {
+        "some": "params",
+      },
+    },
+  ],
+]
+`;

@@ -3,15 +3,16 @@
  *
  * <example>
     :getProperty.js
-    it('should demonstrate the getCssProperty command', () => {
+    it('should demonstrate the getProperty command', () => {
         var elem = $('body')
-        var color = elem.getProperty('tagName')
-        console.log(color) // outputs: "BODY"
+        var tag = elem.getProperty('tagName')
+        console.log(tag) // outputs: "BODY"
     })
  * </example>
  *
- * @alias browser.getProperty
+ * @alias element.getProperty
  * @param {String} property  name of the element property
+ * @return {Object|String|Boolean|Number|null} the value of the property of the selected element
  */
 
 import { getBrowserObject } from '../../utils'

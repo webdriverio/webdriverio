@@ -23,6 +23,44 @@ describe('constants', () => {
             expect(() => WDIO_DEFAULTS.reporters.type([{}])).toThrow()
 
         })
+
+        it('should validate capabilities correctly', () => {
+            WDIO_DEFAULTS.capabilities.type([{}])
+            WDIO_DEFAULTS.capabilities.type({})
+
+            expect(() => WDIO_DEFAULTS.capabilities.type('foobar')).toThrow()
+            expect(() => WDIO_DEFAULTS.capabilities.type(false)).toThrow()
+            expect(() => WDIO_DEFAULTS.capabilities.type([{}, 'foobar'])).toThrow()
+        })
+
+        it('should validate services correctly', () => {
+            WDIO_DEFAULTS.services.type(['foobar'])
+            WDIO_DEFAULTS.services.type([[]])
+            WDIO_DEFAULTS.services.type([['service', {}], 'foobar'])
+
+            expect(() => WDIO_DEFAULTS.services.type('foobar')).toThrow()
+            expect(() => WDIO_DEFAULTS.services.type(false)).toThrow()
+            expect(() => WDIO_DEFAULTS.services.type(['foobar', true])).toThrow()
+            expect(() => WDIO_DEFAULTS.services.type([[], {}])).toThrow()
+        })
+
+        it('should expect execArgv to be an array', () => {
+            WDIO_DEFAULTS.execArgv.type([])
+            expect(() => WDIO_DEFAULTS.execArgv.type('foobar')).toThrow()
+        })
+
+        it('should expect filesToWatch to be an array', () => {
+            WDIO_DEFAULTS.filesToWatch.type([])
+            expect(() => WDIO_DEFAULTS.filesToWatch.type('foobar')).toThrow()
+        })
+
+        it('should properly detect automation protocol', () => {
+            expect(() => WDIO_DEFAULTS.automationProtocol.type()).toThrow()
+            expect(() => WDIO_DEFAULTS.automationProtocol.type(123)).toThrow()
+            expect(() => WDIO_DEFAULTS.automationProtocol.type('foobar')).toThrow()
+            WDIO_DEFAULTS.automationProtocol.type('webdriver')
+            WDIO_DEFAULTS.automationProtocol.type('devtools')
+        })
     })
 
     describe('HOOK_DEFINITION', () => {

@@ -16,26 +16,29 @@ title: <?= method.command ?>
 ##### Usage
 
 ```js
-browser.<?= method.command ?>(<?= method.paramString ?>)
+<? if (method.isElementScope) {
+?>$(selector).<?= method.command ?>(<?= method.paramString ?>)<? } else {
+?><?= method.isMobile ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)<? } ?>
 ```
 
 <? if (method.paramTags.length) { ?>
 ##### Parameters
 
-| Param | Type | Details |
-| ----- | ---- | ------- |
+| Name | Type | Details |
+| ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
-    ?>| <?= paramTag.name ?><? if (!paramTag.required) { ?><br><span class="label label-warning">optional</span><? }
-    ?> | <?= paramTag.type
+    var paramKey = (paramTag.types && paramTag.typesDescription) ? paramTag.typesDescription : paramTag.type
+    ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br><span class="label labelWarning">optional</span><? }
+    ?> | <?= paramKey.split('|').join(', ').replace('(', '').replace(')', '')
     ?> | <?= paramTag.description ?> |
 <? }) ?>
 <? } ?>
 
 <? if (method.examples.length) { ?>
-##### Example
+##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
 <? method.examples.forEach(function(example) { ?>
-``` <?= example.format ?> <?= example.file ?>
-<?= example.code ?>
+```<?= example.format ?><? if (example.file) { ?> <?= example.file ?><? } ?>
+<?- example.code ?>
 ```
 <? }); ?>
 <? } ?>
@@ -43,7 +46,7 @@ browser.<?= method.command ?>(<?= method.paramString ?>)
 <? if (method.returns) { ?>
 ##### Returns
 
-- **&lt;<?= method.returns.type ?>&gt; <?= method.returns.name ?>:** <?= method.returns.description ?>
+- **&lt;<?= method.returns.type ?>&gt; <code><var><?= method.returns.name ?></var></code>:** <?= method.returns.description ?>
 <? } ?>
 
 <? if (method.throwsTags.length) { ?>

@@ -1,0 +1,10 @@
+{
+  env: {
+    mocha: true,
+    jasmine: true
+  },
+  globals: {
+    browser: true,
+    $: true
+  }
+}

@@ -38,7 +38,7 @@ describe('ConciseReporter', () => {
 
         it('should add to suiteUids', () => {
             expect(reporter.suiteUids.length).toBe(1)
-            expect(reporter.suiteUids[0]).toBe(`Foo test1`)
+            expect(reporter.suiteUids[0]).toBe('Foo test1')
         })
     })
 
@@ -108,15 +108,15 @@ describe('ConciseReporter', () => {
         it('should return failing count', () => {
             tmpReporter.stateCounts.failed = 0
             let result = tmpReporter.getCountDisplay()
-            expect(result).toBe(`All went well !!`)
+            expect(result).toBe('All went well !!')
 
             tmpReporter.stateCounts.failed = 1
             result = tmpReporter.getCountDisplay()
-            expect(result).toBe(`Test failed (1):`)
+            expect(result).toBe('Test failed (1):')
 
             tmpReporter.stateCounts.failed = 2
             result = tmpReporter.getCountDisplay()
-            expect(result).toBe(`Tests failed (2):`)
+            expect(result).toBe('Tests failed (2):')
         })
     })
 
@@ -129,7 +129,7 @@ describe('ConciseReporter', () => {
 
             expect(result.length).toBe(2)
             expect(result[0]).toBe('  Fail : red a failed test')
-            expect(result[1]).toBe(`    AssertionError [ERR_ASSERTION] : yellow 'Google' == 'Google2'`)
+            expect(result[1]).toBe('    AssertionError [ERR_ASSERTION] : yellow \'Google\' == \'Google2\'')
         })
 
         it('should return no results', () => {
@@ -144,7 +144,7 @@ describe('ConciseReporter', () => {
 
     describe('getOrderedSuites', () => {
         it('should return the suites in order based on uids', () => {
-            tmpReporter.foo = `hellooo`
+            tmpReporter.foo = 'hellooo'
             tmpReporter.suiteUids = [5, 3, 8]
             tmpReporter.suites = [{ uid : 3 }, { uid : 5 }]
 

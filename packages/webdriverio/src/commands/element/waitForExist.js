@@ -12,21 +12,30 @@
     it('should display a notification message after successful form submit', function () {
         const form = $('form');
         const notification = $('.notification');
-        form.submit();
-        notification.waitForExist(5000); // same as `browser.waitForExist('.notification', 5000)`
+        form.$(".send").click();
+        notification.waitForExist(5000);
         expect(notification.getText()).to.be.equal('Data transmitted successfully!')
+    });
+    it('should remove a message after successful form submit', function () {
+        const form = $('form');
+        const message = $('.message');
+        form.$(".send").click();
+        // passing 'undefined' allows us to keep the default timeout value without overwriting it
+        message.waitForExist(undefined, true);
     });
  * </example>
  *
- * @alias browser.waitForExist
+ * @alias element.waitForExist
  * @param {Number=}  ms       time in ms (default: 500)
  * @param {Boolean=} reverse  if true it instead waits for the selector to not match any elements (default: false)
+ * @param {String=}  error    if exists it overrides the default error message
+ * @return {Boolean} true     if element exists (or doesn't if flag is set)
  * @uses utility/waitUntil, state/isExisting
  * @type utility
  *
  */
 
-export default function waitForExist (ms, reverse = false) {
+export default function waitForExist (ms, reverse = false, error) {
     /*!
      * ensure that ms is set properly
      */
@@ -35,7 +44,7 @@ export default function waitForExist (ms, reverse = false) {
     }
 
     const isReversed = reverse ? '' : 'not '
-    const errorMsg = `element ("${this.selector}") still ${isReversed}existing after ${ms}ms`
+    const errorMsg = typeof error === 'string' ? error : `element ("${this.selector}") still ${isReversed}existing after ${ms}ms`
 
     return this.waitUntil(function async () {
         return this.isExisting().then((isExisting) => isExisting !== reverse)

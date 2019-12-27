@@ -9,12 +9,12 @@ __Note:__ this service currently only supports Chrome v63 and up!
 
 ## Installation
 
-The easiest way is to keep `wdio-devtools-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-devtools-service": "^0.1.2"
+    "@wdio/devtools-service": "^5.0.0"
   }
 }
 ```
@@ -22,10 +22,10 @@ The easiest way is to keep `wdio-devtools-service` as a devDependency in your `p
 You can simple do it by:
 
 ```bash
-npm install wdio-devtools-service --save-dev
+npm install @wdio/devtools-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
 
 ## Configuration
 
@@ -35,12 +35,181 @@ In order to use the service you just need to add the service to your service lis
 // wdio.conf.js
 export.config = {
   // ...
-  services: ['devtools'],
+  services: [['devtools', {
+      debuggerAddress: '10.0.0.3:9222'
+  }]],
   // ...
 };
 ```
+- `debuggerAddress` - optional parameter, you could set host and port.
 
 ## Usage
+
+The `@wdio/devtools-service` offers you a variety of features that helps you to automate Chrome beyond the WebDriver protocol. It gives you access to the Chrome DevTools protocol as well as to a [Puppeteer](https://pptr.dev/) instance that you can use to automate Chrome with the Puppeteer automation interface.
+
+### Performance Testing
+
+The DevTools service allows you to capture performance data from every page load or page transition that was caused by a click. To enable it call `browser.enablePerformanceAudits(<options>)`. After you are done capturing all necessary performance data disable it to revert the throttling settings, e.g.:
+
+```js
+const assert = require('assert')
+
+describe('JSON.org page', () => {
+    before(() => {
+        browser.enablePerformanceAudits()
+    })
+
+    it('should load within performance budget', () => {
+
+        browser.url('http://json.org')
+
+        let metrics = browser.getMetrics()
+        assert.ok(metrics.speedIndex < 1500) // check that speedIndex is below 1.5ms
+
+        let score = browser.getPerformanceScore() // get Lighthouse Performance score
+        assert.ok(score >= .99) // Lighthouse Performance score is at 99% or higher
+
+        $('=Esperanto').click()
+
+        metrics = browser.getMetrics()
+        assert.ok(metrics.speedIndex < 1500)
+        score = browser.getPerformanceScore()
+        assert.ok(score >= .99)
+    })
+
+    after(() => {
+        browser.disablePerformanceAudits()
+    })
+})
+```
+
+The following commands with their results are available:
+
+#### getMetrics
+
+Get most common used performance metrics.
+
+```js
+console.log(browser.getMetrics())
+/**
+ * { load: 355,
+ *   speedIndex: 281,
+ *   firstInteractive: 366,
+ *   firstVisualChange: 264,
+ *   lastVisualChange: 389,
+ *   firstMeaningfulPaint: 263,
+ *   firstCPUIdle: 366,
+ *   timeToFirstByte: 16,
+ *   firstPaint: 263,
+ *   estimatedInputLatency: 16,
+ *   firstContentfulPaint: 263,
+ *   score: 0.9999913442537731,
+ *   domContentLoaded: 346 }
+ */
+```
+
+#### getDiagnostics
+
+Get some useful diagnostics about the page load.
+
+```js
+console.log(browser.getDiagnostics())
+/**
+ * { numRequests: 8,
+ *   numScripts: 0,
+ *   numStylesheets: 0,
+ *   numFonts: 0,
+ *   numTasks: 237,
+ *   numTasksOver10ms: 5,
+ *   numTasksOver25ms: 2,
+ *   numTasksOver50ms: 2,
+ *   numTasksOver100ms: 0,
+ *   numTasksOver500ms: 0,
+ *   rtt: 147.20600000000002,
+ *   throughput: 47729.68474448835,
+ *   maxRtt: 176.085,
+ *   maxServerLatency: 1016.813,
+ *   totalByteWeight: 62929,
+ *   totalTaskTime: 254.07899999999978,
+ *   mainDocumentTransferSize: 8023 }
+ */
+```
+
+#### getMainThreadWorkBreakdown
+
+Returns a list with a breakdown of all main thread task and their total duration.
+
+```js
+console.log(browser.getMainThreadWorkBreakdown())
+/**
+ * [ { group: 'styleLayout', duration: 130.59099999999998 },
+ *   { group: 'other', duration: 44.819 },
+ *   { group: 'paintCompositeRender', duration: 13.732000000000005 },
+ *   { group: 'parseHTML', duration: 3.9080000000000004 },
+ *   { group: 'scriptEvaluation', duration: 2.437999999999999 },
+ *   { group: 'scriptParseCompile', duration: 0.20800000000000002 } ]
+ */
+```
+
+#### getPerformanceScore
+
+Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstMeaningfulPaint`, `firstCPUIdle`, `firstInteractive`, `speedIndex`, `estimatedInputLatency`.
+
+```js
+console.log(browser.getPerformanceScore())
+/**
+ * 0.897826278457836
+ */
+```
+
+#### enablePerformanceAudits
+
+Enables auto performance audits for all page loads that are cause by calling the `url` command or clicking on a link or anything that causes a page load. You can pass in a config object to determine some throttling options. The default throttling profile is `Good 3G` network with a 4x CPU trottling.
+
+```js
+browser.enablePerformanceAudits({
+    networkThrottling: 'Good 3G',
+    cpuThrottling: 4,
+    cacheEnabled: true
+})
+```
+
+The following network throttling profiles are available: `offline`, `GPRS`, `Regular 2G`, `Good 2G`, `Regular 3G`, `Good 3G`, `Regular 4G`, `DSL`, `Wifi` and `online` (no throttling).
+
+### Device Emulation
+
+The service allows you to emulate a specific device type. If set, the browser viewport will be modified to fit the device capabilities as well as the user agent will set according to the device user agent. To set a predefined device profile you can run:
+
+```js
+browser.emulateDevice('iPhone X')
+// or `browser.emulateDevice('iPhone X', true)` if you want to be in landscape mode
+```
+
+Available predefined device profiles are: `Blackberry PlayBook`, `BlackBerry Z30`, `Galaxy Note 3`, `Galaxy Note II`, `Galaxy S III`, `Galaxy S5`, `iPad`, `iPad Mini`, `iPad Pro`, `iPhone 4`, `iPhone 5`, `iPhone 6`, `iPhone 6 Plus`, `iPhone 7`, `iPhone 7 Plus`, `iPhone 8`, `iPhone 8 Plus`, `iPhone SE`, `iPhone X`, `JioPhone 2`,
+`Kindle Fire HDX`, `LG Optimus L70`, `Microsoft Lumia 550`, `Microsoft Lumia 950`, `Nexus 10`, `Nexus 4`, `Nexus 5`, `Nexus 5X`, `Nexus 6`, `Nexus 6P`, `Nexus 7`, `Nokia Lumia 520`, `Nokia N9`, `Pixel 2`, `Pixel 2 XL`
+
+You can also define your own device profile by providing an object as parameter like in the following example:
+
+```js
+browser.emulateDevice({
+    viewport: {
+        width: 550, // <number> page width in pixels.
+        height: 300, // <number> page height in pixels.
+        deviceScaleFactor: 1, //  <number> Specify device scale factor (can be thought of as dpr). Defaults to 1
+        isMobile: true, // <boolean> Whether the meta viewport tag is taken into account. Defaults to false
+        hasTouch: true, // <boolean> Specifies if viewport supports touch events. Defaults to false
+        isLandscape: true // <boolean> Specifies if viewport is in landscape mode. Defaults to false
+    },
+    userAgent: 'my custom user agent'
+})
+```
+
+#### Note
+
+This only works if you don't use `mobileEmulation` within `capabilities['goog:chromeOptions']`.
+If `mobileEmulation` is present the call to `browser.emulateDevice()` won't do anything.
+
+### Chrome DevTools Access
 
 For now the service allows two different ways to access the Chrome DevTools Protocol:
 
@@ -129,47 +298,13 @@ browser.endTracing()
 fs.writeFileSync('/path/to/tracelog.json', JSON.stringify(browser.getTraceLogs()))
 ```
 
-### `getSpeedIndex` Command
-
-Returns the [Speed Index](https://sites.google.com/a/webpagetest.org/docs/using-webpagetest/metrics/speed-index) and [Perceptual Speed Index](https://developers.google.com/web/tools/lighthouse/audits/speed-index) from the page load that happened between the tracing period.
-
-```js
-browser.startTracing()
-browser.url('http://json.org')
-browser.endTracing()
-
-console.log(browser.getSpeedIndex())
-// outputs
-// { speedIndex: 689.6634800064564,
-//   perceptualSpeedIndex: 785.0901860232523 }
-```
-
-### `getPerformanceMetrics` Command
-
-Returns an object with a variety of performance metrics.
-
-```js
-browser.startTracing()
-browser.url('http://json.org')
-browser.endTracing()
-
-console.log(browser.getPerformanceMetrics())
-// outputs:
-// { firstPaint: 621.432,
-//   firstContentfulPaint: 621.44,
-//   firstMeaningfulPaint: 621.442,
-//   domContentLoaded: 474.96,
-//   timeToFirstInteractive: 621.442,
-//   load: 1148.313 }
-```
-
 ### `getPageWeight` Command
 
 Returns page weight information of the last page load.
 
 ```js
 browser.startTracing()
-browser.url('http://webdriver.io')
+browser.url('https://webdriver.io')
 browser.endTracing()
 
 console.log(browser.getPageWeight())
@@ -188,6 +323,28 @@ console.log(browser.getPageWeight())
 // }
 ```
 
+### Access Puppeteer Instance
+
+The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the `getPuppeteer` command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
+
+```js
+describe('use Puppeteer', () => {
+    it('by wrapping commands with call', () => {
+        browser.url('http://json.org')
+
+        const puppeteer = browser.getPuppeteer()
+        const page = browser.call(() => puppeteer.browser.pages())[0]
+        console.log(browser.call(() => page.title()))
+    })
+
+    it('by using async/await', async () => {
+        const puppeteer = browser.getPuppeteer()
+        const page = (await puppeteer.browser.pages())[0]
+        console.log(await page.title())
+    })
+})
+```
+
 ### Event Listener
 
 In order to capture events in the browser you can register an event listener to a Chrome DevTools event like:
@@ -204,4 +361,4 @@ it('should listen on network events', () => {
 
 ----
 
-For more information on WebdriverIO see the [homepage](http://webdriver.io).
+For more information on WebdriverIO see the [homepage](https://webdriver.io).

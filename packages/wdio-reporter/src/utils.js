@@ -48,3 +48,17 @@ export function sanitizeCaps (caps) {
     result = result.filter(n => n !== undefined && n !== '')
     return result.join('.')
 }
+
+/**
+ * Takes a event emitted by a framework and extracts
+ * an array of errors representing test or hook failures.
+ * This exists to maintain compatibility between frameworks
+ * with have a soft assertion model (Jasmine) and those that
+ * have a hard assertion model (Mocha)
+ * @param {*} e  An event emitted by a framework adapter
+ */
+export function getErrorsFromEvent(e) {
+    if (e.errors) return e.errors
+    if (e.error) return [e.error]
+    return []
+}

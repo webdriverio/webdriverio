@@ -1,0 +1,30 @@
+{
+  "value": {
+    "capabilities": {
+      "webStorageEnabled": false,
+      "locationContextEnabled": false,
+      "browserName": "",
+      "platform": "MAC",
+      "javascriptEnabled": true,
+      "databaseEnabled": false,
+      "takesScreenshot": true,
+      "networkConnectionEnabled": false,
+      "platformName": "ios",
+      "server:CONFIG_UUID": "XXXXXXXX-0000-0000-XXXX-XXXXXXXXXXXX",
+      "app": "AppLocation/iosAppName.app",
+      "automationName": "XCUITest",
+      "deviceName": "iPhone Simulator",
+      "newCommandTimeout": 3000,
+      "noReset": true,
+      "platformVersion": "12.1",
+      "resetOnSessionStartOnly": false,
+      "simpleIsVisibleCheck": true,
+      "updatedWDABundleId": "com.yamsafer.driverAgent",
+      "wdaLocalPort": 8102,
+      "xcodeOrgId": "YUC5LW8F44",
+      "xcodeSigningId": "iPhone Developer",
+      "udid": "XXXXXXXX-0000-0000-XXXX-XXXXXXXXXXXX"
+    },
+    "sessionId": "XXXXXXXX-0000-0000-XXXX-XXXXXXXXXXXX"
+  }
+}

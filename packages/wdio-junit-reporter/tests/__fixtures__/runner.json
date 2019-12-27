@@ -35,15 +35,13 @@
     "config": {
         "hostname": "127.0.0.1",
         "port": 4444,
-        "sync": true,
         "specs": [
             "./specs/sync.spec.js"
         ],
         "suites": {},
         "exclude": [],
-        "logDir": "/path/to/project/test",
+        "outputDir": "/path/to/project/test",
         "logLevel": "trace",
-        "deprecationWarnings": true,
         "baseUrl": "http://localhost",
         "bail": 0,
         "waitforInterval": 500,
@@ -58,7 +56,6 @@
         "maxInstancesPerCapability": 100,
         "connectionRetryTimeout": 90000,
         "connectionRetryCount": 3,
-        "debug": false,
         "execArgv": [],
         "runnerEnv": {},
         "runner": "local",
@@ -85,7 +82,6 @@
         "afterSuite": [],
         "afterSession": [],
         "after": [],
-        "onError": [],
         "onReload": [],
         "beforeFeature": [],
         "beforeScenario": [],
@@ -93,7 +89,6 @@
         "afterFeature": [],
         "afterScenario": [],
         "afterStep": [],
-        "coloredLogs": true,
         "_": [
             "wdio.conf.js"
         ],

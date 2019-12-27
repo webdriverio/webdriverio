@@ -1,3 +1,6 @@
+import logger from '@wdio/logger'
+const log = logger('webdriverio')
+
 /**
  *
  * Creates a new Selenium session with your current capabilities. This is useful if you
@@ -8,44 +11,40 @@
  *
  * <example>
     :reloadSync.js
-    it('should reload my session', () => {
+    it('should reload my session with current capabilities', () => {
         console.log(browser.sessionId) // outputs: e042b3f3cd5a479da4e171825e96e655
-        browser.reload()
+        browser.reloadSession()
         console.log(browser.sessionId) // outputs: 9a0d9bf9d4864160aa982c50cf18a573
     })
  * </example>
  *
- * @alias browser.reload
+ * @alias browser.reloadSession
  * @type utility
  *
  */
-
-import WebDriverRequest from 'webdriver/build/request'
-
 export default async function reloadSession () {
     const oldSessionId = this.sessionId
 
     /**
-     * end current running session
+     * end current running session, if session already gone suppress exceptions
      */
-    await this.deleteSession()
-
-    const sessionRequest = new WebDriverRequest(
-        'POST',
-        '/session',
-        {
-            capabilities: this.options.requestedCapabilities, // W3C compliant
-            desiredCapabilities: this.options.requestedCapabilities // JSONWP compliant
-        }
-    )
-
-    const response = await sessionRequest.makeRequest(this.options)
-    const newSessionId = response.sessionId
-    this.sessionId = newSessionId
-
-    if (Array.isArray(this.options.onReload) && this.options.onReload.length) {
-        await Promise.all(this.options.onReload.map((hook) => hook(oldSessionId, newSessionId)))
+    try {
+        await this.deleteSession()
+    } catch (err) {
+        /**
+         * ignoring all exceptions that could be caused by browser.deleteSession()
+         * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)
+         * this can be worked around in code but requires a lot of overhead
+         */
+        log.warn(`Suppressing error closing the session: ${err.stack}`)
     }
 
-    return newSessionId
+    const ProtocolDriver = require(this.options.automationProtocol).default
+    await ProtocolDriver.reloadSession(this)
+
+    if (Array.isArray(this.options.onReload) && this.options.onReload.length) {
+        await Promise.all(this.options.onReload.map((hook) => hook(oldSessionId, this.sessionId)))
+    }
+
+    return this.sessionId
 }

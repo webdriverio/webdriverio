@@ -1,18 +1,18 @@
 {
-  "name": "wdio-mocha-framework",
-  "version": "5.0.0-beta.3",
+  "name": "@wdio/mocha-framework",
+  "version": "6.0.0-alpha.0",
   "description": "A WebdriverIO plugin. Adapter for Mocha testing framework.",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-mocha-framework",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-mocha-framework",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 4.8.5"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile",
-    "clean": "rm -rf ./build",
-    "compile": "babel src/ -d build/",
+    "clean": "rimraf ./build",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
@@ -30,11 +30,18 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "mocha": "^5.0.0",
-    "wdio-config": "^5.0.0-beta.3",
-    "wdio-logger": "^5.0.0-beta.3"
+    "@wdio/logger": "6.0.0-alpha.0",
+    "@wdio/utils": "6.0.0-alpha.0",
+    "mocha": "^6.1.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^5.2.5"
   },
   "peerDependencies": {
     "webdriverio": "^5.0.0"
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "types": "mocha-framework.d.ts"
 }

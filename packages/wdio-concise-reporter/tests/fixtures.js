@@ -44,7 +44,7 @@ export const SUITES = [
                 title : 'a failed test',
                 state : 'failed',
                 error : {
-                    message : `'Google' == 'Google2'`,
+                    message : '\'Google\' == \'Google2\'',
                     stack : 'Failed test stack trace',
                     type: 'AssertionError [ERR_ASSERTION]'
                 }

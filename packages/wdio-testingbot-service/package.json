@@ -1,18 +1,18 @@
 {
-  "name": "wdio-testingbot-service",
-  "version": "5.0.0-beta.3",
+  "name": "@wdio/testingbot-service",
+  "version": "6.0.0-alpha.0",
   "description": "A WebdriverIO service that provides a better integration into TestingBot",
   "author": "Jochen Delabie <info@testingbot.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-testingbot-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service",
   "license": "MIT",
-  "main": "launcher",
+  "main": "./build",
   "engines": {
-    "node": ">= 4.8.5"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile",
-    "clean": "rm -rf ./build",
-    "compile": "babel src/ -d build/",
+    "clean": "rimraf ./build",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
@@ -31,7 +31,14 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@wdio/logger": "6.0.0-alpha.0",
     "request": "^2.85.0",
-    "testingbot-tunnel-launcher": "^1.1.6"
+    "testingbot-tunnel-launcher": "^1.1.7"
+  },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

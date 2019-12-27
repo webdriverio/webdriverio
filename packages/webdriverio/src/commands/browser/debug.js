@@ -7,7 +7,7 @@
  * interface that will allow you to try out certain commands, find elements and test actions on
  * them.
  *
- * [![WebdriverIO REPL](http://webdriver.io/images/repl.gif)](http://webdriver.io/images/repl.gif)
+ * [![WebdriverIO REPL](https://webdriver.io/img/repl.gif)](https://webdriver.io/img/repl.gif)
  *
  * If you run the WDIO testrunner make sure you increase the timeout property of the test framework
  * you are using (e.g. Mocha or Jasmine) in order to prevent test termination due to a test timeout.
@@ -30,83 +30,82 @@
  *
  */
 
-import vm from 'vm'
-import repl from 'repl'
-
-import logger from 'wdio-logger'
-import { runFnInFiberContext, hasWdioSyncSupport } from 'wdio-config'
+import serializeError from 'serialize-error'
+import WDIORepl from '@wdio/repl'
 
 export default function debug(commandTimeout = 5000) {
-    const log = logger('debug')
-    logger.setLevel('debug', 1)
+    const repl = new WDIORepl()
+    const { introMessage } = WDIORepl
 
-    log.debug(`The execution has stopped!`)
-    log.debug(`You can now go into the browser or use the command line as REPL`)
-    log.debug(`(To exit, press ^C again or type .exit)\n`)
+    /**
+     * run repl in standalone mode
+     */
+    if (!process.env.WDIO_WORKER) {
+        // eslint-disable-next-line
+        console.log(WDIORepl.introMessage)
+        const context = {
+            browser: this,
+            driver: this,
+            $: ::this.$,
+            $$: ::this.$$
+        }
+        return repl.start(context)
+    }
 
-    let commandIsRunning = false
+    /**
+     * register worker process as debugger target
+     */
+    process._debugProcess(process.pid)
 
-    /* istanbul ignore next */
-    const myEval = (cmd, context, filename, callback) => {
-        if (commandIsRunning) {
+    /**
+     * initialise repl in testrunner
+     */
+    process.send({
+        origin: 'debugger',
+        name: 'start',
+        params: { commandTimeout, introMessage }
+    })
+
+    let commandResolve = /* istanbul ignore next */ () => {}
+    process.on('message', (m) => {
+        if (m.origin !== 'debugger') {
             return
         }
 
-        if (cmd === 'browser\n') {
-            return callback(null, '[WebdriverIO REPL client]')
+        if (m.name === 'stop') {
+            process._debugEnd(process.pid)
+            return commandResolve()
         }
 
-        commandIsRunning = true
-        let result
-        if (hasWdioSyncSupport) {
-            return runFnInFiberContext(() => {
-                try {
-                    result = vm.runInThisContext(cmd)
-                } catch (e) {
-                    commandIsRunning = false
-                    return callback(e)
+        /* istanbul ignore if */
+        if (m.name === 'eval') {
+            repl.eval(m.content.cmd, global, null, (e, result) => {
+                if (e) {
+                    process.send({
+                        origin: 'debugger',
+                        name: 'result',
+                        params: {
+                            error: true,
+                            ...serializeError(e)
+                        }
+                    })
                 }
 
-                callback(null, result)
-                commandIsRunning = false
-            })()
+                /**
+                 * try to do some smart serializations
+                 */
+                if (typeof result === 'function') {
+                    result = `[Function: ${result.name}]`
+                }
+
+                process.send({
+                    origin: 'debugger',
+                    name: 'result',
+                    params: { result }
+                })
+            })
         }
-
-        context.browser = this
-        try {
-            result = vm.runInThisContext(cmd)
-        } catch (e) {
-            commandIsRunning = false
-            return callback(e)
-        }
-
-        if (!result || typeof result.then !== 'function') {
-            commandIsRunning = false
-            return callback(null, result)
-        }
-
-        const timeout = setTimeout(() => callback(new Error('Command execution timed out')), commandTimeout)
-        result.then((res) => {
-            commandIsRunning = false
-            clearTimeout(timeout)
-            return callback(null, res)
-        }, (e) => {
-            commandIsRunning = false
-            clearTimeout(timeout)
-            const commandError = new Error(e.message)
-            delete commandError.stack
-            return callback(commandError)
-        })
-    }
-
-    const replServer = repl.start({
-        prompt: '> ',
-        eval: myEval,
-        input: process.stdin,
-        output: process.stdout,
-        useGlobal: true,
-        ignoreUndefined: true
     })
 
-    return new Promise((resolve) => replServer.on('exit', resolve))
+    return new Promise((resolve) => (commandResolve = resolve))
 }

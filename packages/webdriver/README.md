@@ -5,6 +5,14 @@ WebDriver
 
 There are [tons](https://github.com/christian-bromann/awesome-selenium#javascript) of Selenium and WebDriver binding implementations in the Node.js world. Every one of them have an opinionated API and recommended way to use. This binding is the most non-opinionated you will find as it just represents the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and doesn't come with any extra or higher level abstraction. It is lightweight and comes with support for the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and Appiums [Mobile JSONWire Protocol](https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md).
 
+## Install
+
+To install this package from NPM run:
+
+```sh
+$ npm i webdriver
+```
+
 ## Example
 
 The following example demonstrates a simple Google Search scenario:
@@ -54,13 +62,7 @@ Level of logging verbosity.
 
 Type: `String`<br>
 Default: *info*<br>
-Options: *trace* | *debug* | *info* | *warn* | *error*
-
-### logOutput
-Pipe logs into a file.
-
-Type: `String|Writable`<br>
-Default: *null*
+Options: *trace* | *debug* | *info* | *warn* | *error* | *silent*
 
 ### protocol
 Protocol to use when communicating with the Selenium standalone server (or driver).
@@ -69,11 +71,11 @@ Type: `String`<br>
 Default: *http*
 Options: *http* | *https*
 
-### host
+### hostname
 Host of your WebDriver server.
 
 Type: `String`<br>
-Default: *0.0.0.0*
+Default: *localhost*
 
 ### port
 Port your WebDriver server is on.
@@ -94,7 +96,7 @@ Type: `String`<br>
 Default: *null*
 
 ### connectionRetryTimeout
-Timeout for any request to the Selenium server.
+Timeout for any WebDriver request to a driver or grid.
 
 Type: `Number`<br>
 Default: *90000*

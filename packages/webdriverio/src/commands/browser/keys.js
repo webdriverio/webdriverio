@@ -5,6 +5,8 @@
  * characters. You’ll find all supported characters [here](https://w3c.github.io/webdriver/webdriver-spec.html#keyboard-actions).
  * To do that, the value has to correspond to a key from the table.
  *
+ * Modifier like Ctrl, Shift, Alt and Meta will stay pressed so you need to trigger them again to release them.
+ *
  * <example>
     :keys.js
     it('copies text out of active element', () => {
@@ -37,7 +39,7 @@ export default function keys (value) {
             keySequence = keySequence.concat(checkUnicode(charSet))
         }
     } else {
-        throw new Error(`"keys" command requires a string or array of strings as parameter`)
+        throw new Error('"keys" command requires a string or array of strings as parameter')
     }
 
     /**

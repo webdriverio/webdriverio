@@ -1,40 +1,51 @@
-import Runner from 'wdio-runner'
-import logger from 'wdio-logger'
+import exitHook from 'async-exit-hook'
 
-const log = logger('wdio-local-runner')
+import Runner from '@wdio/runner'
+import logger from '@wdio/logger'
 
-let forceKillingProcess = false
+import { SHUTDOWN_TIMEOUT } from './constants'
+
+const log = logger('@wdio/local-runner')
 
 const runner = new Runner()
-process.on('message', (m) => {
-    runner[m.command](m).catch((e) => {
-        log.error(`Failed launching test session:`, e)
-        process.exit(1)
-    })
+runner.on('exit', ::process.exit)
+runner.on('error', ({ name, message, stack }) => process.send({
+    origin: 'worker',
+    name: 'error',
+    content: { name, message, stack }
+}))
 
-    runner.on('exit', ::process.exit)
+process.on('message', (m) => {
+    if (!m || !m.command) {
+        return log.info('Ignore message for worker:', m)
+    }
+
+    log.info(`Run worker command: ${m.command}`)
+    runner[m.command](m).then(
+        (result) => process.send({
+            origin: 'worker',
+            name: 'finisedCommand',
+            content: {
+                command: m.command,
+                result
+            }
+        }),
+        (e) => {
+            log.error(`Failed launching test session: ${e.stack}`)
+            process.exit(1)
+        }
+    )
 })
 
 /**
- * catches ctrl+c event
+ * catch sigint messages as they are handled by main process
  */
-process.on('SIGINT', () => {
-    /**
-     * force killing process when 2nd SIGINT comes in
-     */
-    if (forceKillingProcess) {
-        return process.exit(1)
-    }
-
-    forceKillingProcess = true
-    runner.sigintWasCalled = true
-
-    /**
-     * if session is currently in booting process don't do anythign
-     */
-    if (!global.browser) {
+exitHook((callback) => {
+    if (!callback) {
         return
     }
 
-    return runner.kill()
+    runner.sigintWasCalled = true
+    log.info(`Received SIGINT, giving process ${SHUTDOWN_TIMEOUT}ms to shutdown gracefully`)
+    setTimeout(callback, SHUTDOWN_TIMEOUT)
 })

@@ -24,7 +24,7 @@
     });
  * </example>
  *
- * @alias browser.isEnabled
+ * @alias element.isEnabled
  * @return {Boolean} true if element(s)* (is|are) enabled
  * @uses protocol/elements, protocol/elementIdEnabled
  * @type state
@@ -32,5 +32,5 @@
  */
 
 export default function isEnabled() {
-    return this.getElementEnabled(this.elementId)
+    return this.isElementEnabled(this.elementId)
 }

@@ -5,12 +5,12 @@ WDIO Jasmine Framework Adapter
 
 ## Installation
 
-The easiest way is to keep `wdio-jasmine-framework` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/jasmine-framework` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-jasmine-framework": "~1.0.0"
+    "@wdio/jasmine-framework": "^5.0.0"
   }
 }
 ```
@@ -18,10 +18,10 @@ The easiest way is to keep `wdio-jasmine-framework` as a devDependency in your `
 You can simple do it by:
 
 ```bash
-npm install wdio-jasmine-framework --save-dev
+npm install @wdio/jasmine-framework --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
 
 ## Configuration
 
@@ -61,24 +61,48 @@ Optional pattern to selectively select it/describe cases to run from spec files.
 Type: `RegExp | string`<br>
 Default: undefined
 
-## invertGrep
+### invertGrep
 Inverts 'grep' matches.
 
 Type: `Boolean`<br>
 Default: false
 
-## cleanStack
+### cleanStack
 Clean up stack trace and remove all traces of node module packages.
 
 Type: `Boolean`<br>
 Default: true
 
-## random
+### random
 Run specs in semi-random order.
 
 Type: `Boolean`<br>
 Default: `false`
 
+### stopOnSpecFailure
+Stops test suite (`describe`) execution on first spec (`it`) failure (other suites continue running)
+
+Type: `Boolean`<br>
+Default: `false`
+
+### stopSpecOnExpectationFailure
+Stops a spec (`it`) execution on a first expectation failure (other specs continue running)
+
+Type: `Boolean`<br>
+Default: `false`
+
+### requires
+Require modules prior to requiring any helper or spec files.
+
+Type: `String[]`<br>
+Default: `[]`
+
+### helpers
+Require helper files prior to requiring any spec files.
+
+Type: `String[]`<br>
+Default: `[]`
+
 ----
 
-For more information on WebdriverIO see the [homepage](http://webdriver.io).
+For more information on WebdriverIO see the [homepage](https://webdriver.io).

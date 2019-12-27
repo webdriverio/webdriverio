@@ -5,62 +5,62 @@ const config = require('../../website/siteConfig')
 module.exports = function (docfile) {
     const javadoc = docfile.javadoc[0]
 
-    let type = (javadoc.ctx && javadoc.ctx.type);
+    let type = (javadoc.ctx && javadoc.ctx.type)
     const name = path.basename(docfile.filename, '.js')
-    const scope = docfile.filename.split('/').slice(-2, -1)
+    const scope = docfile.filename.split('/').slice(-2, -1)[0]
 
-    let description = '';
-    let paramStr = [];
-    let propertyTags = [];
-    let paramTags = [];
-    let returnTags = [];
-    let throwsTags = [];
-    let fires = [];
-    let listens = [];
-    let tagDeprecated = false;
-    let tagSee = '';
-    let tagVersion = '';
-    let tagAuthor = '';
-    let tagType = '';
+    let description = ''
+    let paramStr = []
+    let propertyTags = []
+    let paramTags = []
+    let returnTags = []
+    let throwsTags = []
+    let fires = []
+    let listens = []
+    let tagDeprecated = false
+    let tagSee = ''
+    let tagVersion = ''
+    let tagAuthor = ''
+    let tagType = ''
 
     for (const tag of javadoc.tags) {
         if (tag.type == 'param') {
-            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
-            paramTags.push(tag);
-            paramStr.push(tag.name);
+            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            paramTags.push(tag)
+            paramStr.push(tag.name)
         } else if (tag.type == 'property') {
-            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
-            propertyTags.push(tag);
+            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            propertyTags.push(tag)
         } else if (tag.type == 'return' || tag.type == 'returns') {
-            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
-            returnTags.push(tag);
+            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            returnTags.push(tag)
         } else if (tag.type == 'throws') {
-            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
-            throwsTags.push(tag);
+            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            throwsTags.push(tag)
         } else if (tag.type == 'fires') {
-            fires.push(tag.string);
+            fires.push(tag.string)
         } else if (tag.type == 'listens') {
-            listens.push(tag.string);
+            listens.push(tag.string)
         } else if (tag.type == 'namespace') {
-            type = 'namespace';
+            type = 'namespace'
         } else if (tag.type == 'method') {
-            type = 'method';
+            type = 'method'
         } else if (tag.type == 'class') {
-            type = 'class';
+            type = 'class'
         } else if (tag.type == 'function') {
-            type = 'function';
+            type = 'function'
         } else if (tag.type == 'event') {
-            type = 'event';
+            type = 'event'
         } else if (tag.type == 'see') {
-            tagSee = tag.url ? tag.url : tag.local;
+            tagSee = tag.url ? tag.url : tag.local
         } else if (tag.type == 'version') {
-            tagVersion = tag.string;
+            tagVersion = tag.string
         } else if (tag.type == 'deprecated') {
-            tagDeprecated = true;
+            tagDeprecated = true
         } else if (tag.type == 'author') {
-            tagAuthor = tag.string;
+            tagAuthor = tag.string
         } else if (tag.type == 'type') {
-            tagType = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
+            tagType = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
         }
     }
 
@@ -82,17 +82,17 @@ module.exports = function (docfile) {
     let exampleCodeLine = []
     let example = description.match(/<example>((.|\n)*)<\/example>/g)
     let exampleFilename = ''
-    let currentLine = 0;
+    let currentLine = 0
 
     if (example && example[0]) {
         // eslint-disable-next-line no-console
         console.log('parse example section for', docfile.filename)
 
-        example = example[0].replace(/<(\/)*example>/g,'').split(/\n/g);
+        example = example[0].replace(/<(\/)*example>/g, '').split(/\n/g)
         example.forEach(function(line) {
-            ++currentLine;
+            ++currentLine
 
-            var checkForFilenameExpression = line.match(/\s\s\s\s(:(\S)*\.(\S)*)/g);
+            var checkForFilenameExpression = line.match(/\s\s\s\s(:(\S)*\.(\S)*)/g)
             if((checkForFilenameExpression && checkForFilenameExpression.length) || (currentLine === example.length)) {
 
                 if(exampleCodeLine.length) {
@@ -100,8 +100,8 @@ module.exports = function (docfile) {
                     /**
                      * remove filename expression in first line
                      */
-                    exampleFilename = exampleCodeLine.shift().trim().substr(1);
-                    var code = exampleCodeLine.join('\n');
+                    exampleFilename = exampleCodeLine.shift().trim().substr(1)
+                    var code = exampleCodeLine.join('\n')
 
                     /**
                      * add example
@@ -111,31 +111,31 @@ module.exports = function (docfile) {
                             file: exampleFilename,
                             format: exampleFilename.split(/\./)[1],
                             code: code
-                        });
+                        })
                     }
 
                     /**
                      * reset loop conditions
                      */
-                    exampleCodeLine = [];
+                    exampleCodeLine = []
                 }
 
                 /**
                  * if this is the last line of code dont proceed
                  */
                 if(currentLine === example.length) {
-                    return;
+                    return
                 }
 
             }
 
-            exampleCodeLine.push(line.substr(4));
-        });
+            exampleCodeLine.push(line.substr(4))
+        })
 
         /**
          * remove example section from description
          */
-        description = description.substr(0, description.indexOf('<example>'));
+        description = description.substr(0, description.indexOf('<example>'))
     }
 
     const commandDescription = {
@@ -164,8 +164,9 @@ module.exports = function (docfile) {
         examples: files,
         customEditUrl: `${config.repoUrl}/edit/master/packages/webdriverio/src/commands/${scope}/${name}.js`,
         hasDocusaurusHeader: true,
-        originalId: `api/${scope}/${name}`
+        originalId: `api/${scope}/${name}`,
+        isElementScope : scope === 'element',
     }
 
     return commandDescription
-};
+}

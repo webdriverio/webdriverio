@@ -13,23 +13,26 @@
 
         const xLocation = logo.getLocation('x')
         console.log(xLocation); // outputs: 150
-        
+
         const yLocation = logo.getLocation('.octicon-mark-github', 'y')
         console.log(yLocation); // outputs: 20
     });
  * </example>
  *
- * @alias browser.getLocation
- * @param {String} property    can be "x" or "y" to get a result value directly for easier assertions
+ * @alias element.getLocation
+ * @param {String} prop    can be "x" or "y" to get a result value directly for easier assertions
  * @return {Object|Number}  The X and Y coordinates for the element on the page (`{x:number, y:number}`)
  * @uses protocol/elementIdLocation
  * @type property
  */
+
+import { getElementRect } from '../../utils'
+
 export default async function getLocation (prop) {
     let location = {}
 
     if (this.isW3C) {
-        location = await this.getElementRect(this.elementId)
+        location = await getElementRect(this)
         delete location.width
         delete location.height
     } else {

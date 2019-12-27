@@ -17,9 +17,8 @@
     });
  * </example>
  *
- * @alias browser.setValue
- * @param {String} selector   Input element
- * @param {*}      values    Value to be added
+ * @alias element.setValue
+ * @param {string | number | boolean | object | Array<any>}      value    Value to be added
  * @uses protocol/elements, protocol/elementIdClear, protocol/elementIdValue
  * @type action
  *
@@ -27,6 +26,5 @@
 
 export default async function setValue (value) {
     await this.clearValue()
-
     return this.addValue(value)
 }

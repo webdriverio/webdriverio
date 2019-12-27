@@ -1,11 +1,11 @@
 const path = require('path')
-const CustomReporter = require('./reporter/my.custom.reporter');
+const CustomReporter = require('./reporter/my.custom.reporter')
 
 exports.config = {
     /**
      * server configurations
      */
-    hostname: '0.0.0.0',
+    hostname: 'localhost',
     port: 4444,
 
     /**
@@ -24,7 +24,7 @@ exports.config = {
      * test configurations
      */
     logLevel: 'trace',
-    logDir: __dirname,
+    outputDir: __dirname,
     framework: 'mocha',
 
     reporters: [[CustomReporter, {

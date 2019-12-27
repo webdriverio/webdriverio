@@ -1,9 +1,6 @@
 import EventEmitter from 'events'
 import CommandHandler from '../src/commands'
 
-import traceEvents from './__fixtures__/traceEvents.json'
-
-
 class MyEmitter extends EventEmitter {}
 
 jest.mock('../src/utils', () => ({
@@ -15,7 +12,7 @@ test('initialization', () => {
     const clientMock = { on: jest.fn() }
     const browserMock = { addCommand: jest.fn(), emit: jest.fn() }
     new CommandHandler(clientMock, browserMock)
-    expect(browserMock.addCommand.mock.calls).toHaveLength(10)
+    expect(browserMock.addCommand.mock.calls).toHaveLength(8)
     expect(clientMock.on).toBeCalled()
 
     const event = { method: 'foobar.bar', params: 123 }
@@ -61,7 +58,7 @@ test('getNodeId', async () => {
         .mockReturnValueOnce({ root: { nodeId: 123 } })
         .mockReturnValueOnce({ nodeId: 42 })
     expect(await handler.getNodeId('selector')).toBe(42)
-    expect(handler.cdp.mock.calls[0]).toEqual([ 'DOM', 'getDocument' ])
+    expect(handler.cdp.mock.calls[0]).toEqual(['DOM', 'getDocument'])
     expect(handler.cdp.mock.calls[1]).toEqual(
         ['DOM', 'querySelector', { nodeId: 123, selector: 'selector' }])
 })
@@ -73,9 +70,9 @@ test('getNodeIds', async () => {
 
     handler.cdp = jest.fn()
         .mockReturnValueOnce({ root: { nodeId: 123 } })
-        .mockReturnValueOnce({ nodeIds: [ 1, 2, 3 ] })
-    expect(await handler.getNodeIds('selector')).toEqual([ 1, 2, 3 ])
-    expect(handler.cdp.mock.calls[0]).toEqual([ 'DOM', 'getDocument' ])
+        .mockReturnValueOnce({ nodeIds: [1, 2, 3] })
+    expect(await handler.getNodeIds('selector')).toEqual([1, 2, 3])
+    expect(handler.cdp.mock.calls[0]).toEqual(['DOM', 'getDocument'])
     expect(handler.cdp.mock.calls[1]).toEqual(
         ['DOM', 'querySelectorAll', { nodeId: 123, selector: 'selector' }])
 })
@@ -117,37 +114,6 @@ test('endTracing throws if not tracing', async () => {
 
     const handler = new CommandHandler(clientMock, browserMock)
     await expect(handler.endTracing()).rejects.toBeInstanceOf(Error)
-})
-
-test('getTraceLogs', () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
-    handler.traceEvents = 'foobar'
-    expect(handler.getTraceLogs()).toBe('foobar')
-})
-
-test('getSpeedIndex', async () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
-    const speedIndex = await handler.getSpeedIndex()
-    expect(speedIndex).toEqual({ speedIndex: 1234, perceptualSpeedIndex: 4321 })
-})
-
-test('getPerformanceMetrics', () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
-    handler.traceEvents = traceEvents
-    expect(handler.getPerformanceMetrics()).toEqual({
-        firstPaint: 735.666,
-        firstContentfulPaint: 735.669,
-        firstMeaningfulPaint: 735.671,
-        domContentLoaded: 574.546,
-        timeToFirstInteractive: null,
-        load: 1379.895
-    });
 })
 
 test('getPageWeight', () => {

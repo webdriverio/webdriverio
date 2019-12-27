@@ -21,7 +21,7 @@
     });
  * </example>
  *
- * @alias browser.isSelected
+ * @alias element.isSelected
  * @return {Boolean} true if element is selected
  * @uses protocol/elements, protocol/elementIdSelected
  * @type state

@@ -1,14 +1,12 @@
-import speedline from 'speedline'
-import logger from 'wdio-logger'
+import 'core-js/modules/web.url'
+import logger from '@wdio/logger'
 
-import FirstInteractiveAudit from './lighthouse/firstInteractive'
-import TraceOfTab from './lighthouse/tabTraces'
 import NetworkHandler from './handler/network'
 
 import { DEFAULT_TRACING_CATEGORIES } from './constants'
 import { readIOStream, sumByKey } from './utils'
 
-const log = logger('wdio-devtools-service:CommandHandler')
+const log = logger('@wdio/devtools-service:CommandHandler')
 
 export default class CommandHandler {
     constructor (client, browser) {
@@ -70,7 +68,7 @@ export default class CommandHandler {
      * get nodeId to use for other commands
      */
     async getNodeId (selector) {
-        const document = await this.cdp('DOM', 'getDocument');
+        const document = await this.cdp('DOM', 'getDocument')
         const { nodeId } = await this.cdp(
             'DOM', 'querySelector',
             { nodeId: document.root.nodeId, selector }
@@ -82,7 +80,7 @@ export default class CommandHandler {
      * get nodeIds to use for other commands
      */
     async getNodeIds (selector) {
-        const document = await this.cdp('DOM', 'getDocument');
+        const document = await this.cdp('DOM', 'getDocument')
         const { nodeIds } = await this.cdp(
             'DOM', 'querySelectorAll',
             { nodeId: document.root.nodeId, selector }
@@ -142,44 +140,6 @@ export default class CommandHandler {
      */
     getTraceLogs () {
         return this.traceEvents
-    }
-
-    /**
-     * get speedindex metrics using speedline package
-     */
-    async getSpeedIndex () {
-        const { speedIndex, perceptualSpeedIndex } = await speedline(this.traceEvents)
-        return { speedIndex, perceptualSpeedIndex }
-    }
-
-    /**
-     * get performance metrics
-     */
-    getPerformanceMetrics () {
-        const traces = TraceOfTab.compute(this.traceEvents)
-        const audit = new FirstInteractiveAudit()
-        let ttfi = null
-
-        /**
-         * There are cases where TTFI can't be computed as the tracing window is not long enough.
-         * In order to always be able to capture TTFI we would need to wait around 5 seconds after
-         * the page has been loaded to have high enough chances there is a quite window in that
-         * time frame.
-         */
-        try {
-            ttfi = audit.computeWithArtifacts(traces).timeInMs
-        } catch (e) {
-            log.warn(`Couldn't compute timeToFirstInteractive due to "${e.friendlyMessage}"`)
-        }
-
-        return {
-            firstPaint: traces.timings.firstPaint,
-            firstContentfulPaint: traces.timings.firstContentfulPaint,
-            firstMeaningfulPaint: traces.timings.firstMeaningfulPaint,
-            domContentLoaded: traces.timings.domContentLoaded,
-            timeToFirstInteractive: ttfi,
-            load: traces.timings.load
-        }
     }
 
     /**

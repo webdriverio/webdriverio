@@ -1,18 +1,18 @@
 {
-  "name": "wdio-firefox-profile-service",
-  "version": "5.0.0-beta.3",
+  "name": "@wdio/firefox-profile-service",
+  "version": "6.0.0-alpha.0",
   "description": "WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-firefox-profile-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-firefox-profile-service",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 4.8.5"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile",
-    "clean": "rm -rf ./build",
-    "compile": "babel src/ -d build/",
+    "clean": "rimraf ./build",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
@@ -38,5 +38,11 @@
   },
   "dependencies": {
     "firefox-profile": "^1.1.0"
+  },
+  "peerDependencies": {
+    "@wdio/cli": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,9 +1,13 @@
-import Selenium from 'selenium-standalone'
+import logger from '@wdio/logger'
+
+import { promisify } from 'util'
 import fs from 'fs-extra'
+import SeleniumStandalone from 'selenium-standalone'
+
 import getFilePath from './utils/getFilePath'
-import { promisify } from 'util';
 
 const DEFAULT_LOG_FILENAME = 'selenium-standalone.txt'
+const log = logger('@wdio/selenium-standalone-service')
 
 export default class SeleniumStandaloneLauncher {
     constructor () {
@@ -11,25 +15,37 @@ export default class SeleniumStandaloneLauncher {
         this.seleniumArgs = {}
         this.seleniumInstallArgs = {}
 
-        return this;
+        return this
     }
 
     async onPrepare (config) {
         this.seleniumArgs = config.seleniumArgs || {}
         this.seleniumInstallArgs = config.seleniumInstallArgs || {}
         this.seleniumLogs = config.seleniumLogs
+        this.skipSeleniumInstall = !!config.skipSeleniumInstall
+        this.watchMode = !!config.watch
 
-        await promisify(Selenium.install)(this.seleniumInstallArgs);
-        this.process = await promisify(Selenium.start)(this.seleniumArgs)
+        if (!this.skipSeleniumInstall) {
+            await promisify(SeleniumStandalone.install)(this.seleniumInstallArgs)
+        }
+
+        this.process = await promisify(SeleniumStandalone.start)(this.seleniumArgs)
 
         if (typeof this.seleniumLogs === 'string') {
             this._redirectLogStream()
         }
+
+        if (this.watchMode) {
+            process.on('SIGINT', this._stopProcess)
+            process.on('exit', this._stopProcess)
+            process.on('uncaughtException', this._stopProcess)
+        }
     }
 
     onComplete () {
-        if(this.process) {
-            this.process.kill()
+        // selenium should not be killed in watch mode
+        if (!this.watchMode) {
+            this._stopProcess()
         }
     }
 
@@ -42,5 +58,12 @@ export default class SeleniumStandaloneLauncher {
         const logStream = fs.createWriteStream(logFile, { flags: 'w' })
         this.process.stdout.pipe(logStream)
         this.process.stderr.pipe(logStream)
+    }
+
+    _stopProcess = () => {
+        if (this.process) {
+            log.info('shutting down all browsers')
+            this.process.kill()
+        }
     }
 }

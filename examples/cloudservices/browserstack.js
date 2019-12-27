@@ -16,7 +16,7 @@ import { remote } from '../../packages/webdriverio/build'
         logLevel: 'trace'
     })
 
-    await browser.url('http://webdriver.io')
+    await browser.url('https://webdriver.io')
 
     const searchInput = await browser.$('.ds-input')
     await searchInput.addValue('click')

@@ -1,18 +1,18 @@
 {
-  "name": "wdio-runner",
-  "version": "5.0.0-beta.3",
+  "name": "@wdio/runner",
+  "version": "6.0.0-alpha.0",
   "description": "A WebdriverIO service that runs tests in arbitrary environments",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-runner",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-runner",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 4.8.5"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile",
-    "clean": "rm -rf ./build",
-    "compile": "babel src/ -d build/",
+    "clean": "rimraf ./build",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
@@ -30,10 +30,14 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "deepmerge": "^2.0.1",
+    "@wdio/config": "6.0.0-alpha.0",
+    "@wdio/logger": "6.0.0-alpha.0",
+    "@wdio/utils": "6.0.0-alpha.0",
+    "deepmerge": "^4.0.0",
     "gaze": "^1.1.2",
-    "wdio-config": "^5.0.0-beta.3",
-    "wdio-logger": "^5.0.0-beta.3",
-    "webdriverio": "^5.0.0-beta.3"
+    "webdriverio": "6.0.0-alpha.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

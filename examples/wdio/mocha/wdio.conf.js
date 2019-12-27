@@ -4,7 +4,7 @@ exports.config = {
     /**
      * server configurations
      */
-    hostname: '0.0.0.0',
+    hostname: 'localhost',
     port: 4444,
 
     /**
@@ -23,11 +23,10 @@ exports.config = {
      * test configurations
      */
     logLevel: 'trace',
-    coloredLogs: true,
     framework: 'mocha',
-    logDir: __dirname,
+    outputDir: __dirname,
 
-    reporters: ['spec'],
+    reporters: ['spec', 'dot', 'junit'],
 
     mochaOpts: {
         ui: 'bdd',

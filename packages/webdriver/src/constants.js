@@ -1,6 +1,4 @@
-import { Writable } from 'stream'
-
-const DEFAULTS = {
+export const DEFAULTS = {
     /**
      * protocol of automation driver
      */
@@ -14,7 +12,7 @@ const DEFAULTS = {
      */
     hostname: {
         type: 'string',
-        default: '0.0.0.0'
+        default: 'localhost'
     },
     /**
      * port of automation driver
@@ -49,22 +47,10 @@ const DEFAULTS = {
     logLevel: {
         type: 'string',
         default: 'info',
-        match: /(trace|debug|info|warn|error)/
+        match: /(trace|debug|info|warn|error|silent)/
     },
     /**
-     * logOutput as file path or writeable stream
-     */
-    logOutput: {
-        type: (param) => {
-            if (typeof param === 'string' || param instanceof Writable) {
-                return
-            }
-
-            throw new Error(`logOutput needs to be a string or a writeable stream`)
-        }
-    },
-    /**
-     * Timeout for any request to the Selenium server
+     * Timeout for any WebDriver request to a driver or grid
      */
     connectionRetryTimeout: {
         type: 'number',
@@ -75,7 +61,7 @@ const DEFAULTS = {
      */
     connectionRetryCount: {
         type: 'number',
-        default: 2
+        default: 3
     },
     /**
      * cloud user if applicable
@@ -88,7 +74,24 @@ const DEFAULTS = {
      */
     key: {
         type: 'string'
+    },
+    /**
+     * Override default agent
+     */
+    agent: {
+        type: 'object'
+    },
+    /**
+     * Pass custom headers
+     */
+    headers: {
+        type: 'object'
+    },
+    /**
+     * Whether to allow direct connect caps to adjust endpoint details (Appium only)
+     */
+    enableDirectConnect: {
+        type: 'boolean',
+        default: false
     }
 }
-
-export { DEFAULTS }

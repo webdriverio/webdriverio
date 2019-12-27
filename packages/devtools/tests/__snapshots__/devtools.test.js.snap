@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`newSession 1`] = `
+Object {
+  "browserName": "Chrome",
+  "browserVersion": "78.0.3881.0",
+  "goog:chromeOptions": Object {
+    "debuggerAddress": "localhost:49375",
+  },
+}
+`;
+
+exports[`newSession 2`] = `
+Object {
+  "jsonwpCaps": Object {
+    "browserName": "Chrome",
+    "browserVersion": "78.0.3881.0",
+    "goog:chromeOptions": Object {
+      "debuggerAddress": "localhost:49375",
+    },
+  },
+  "w3cCaps": Object {
+    "browserName": "Chrome",
+    "browserVersion": "78.0.3881.0",
+    "goog:chromeOptions": Object {
+      "debuggerAddress": "localhost:49375",
+    },
+  },
+}
+`;

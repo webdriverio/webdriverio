@@ -1,6 +1,7 @@
-import WDIOReporter from 'wdio-reporter'
+import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
+import { buildTableData, printTable, getFormattedRows } from './utils'
 
 class SpecReporter extends WDIOReporter {
     constructor (options) {
@@ -36,6 +37,12 @@ class SpecReporter extends WDIOReporter {
         this.suites.push(suite)
     }
 
+    onHookEnd (hook) {
+        if (hook.error) {
+            this.stateCounts.failed++
+        }
+    }
+
     onTestPass () {
         this.stateCounts.passed++
     }
@@ -68,11 +75,27 @@ class SpecReporter extends WDIOReporter {
             return
         }
 
+        const testLinks = runner.isMultiremote
+            ? Object.entries(runner.capabilities).map(([instanceName, capabilities]) => this.getTestLink({
+                config: { ...runner.config, ...{ capabilities } },
+                sessionId: capabilities.sessionId,
+                isMultiremote: runner.isMultiremote,
+                instanceName
+            }))
+            : this.getTestLink(runner)
         const output = [
             ...this.getHeaderDisplay(runner),
+            '',
             ...results,
             ...this.getCountDisplay(duration),
             ...this.getFailureDisplay(),
+            ...(testLinks.length
+                /**
+                 * if we have test links add an empty line
+                 */
+                ? ['', ...testLinks]
+                : []
+            )
         ]
 
         // Prefix all values with the browser information
@@ -81,7 +104,33 @@ class SpecReporter extends WDIOReporter {
         })
 
         // Output the results
-        this.write(`${divider}\n${prefacedOutput.join(`\n`)}\n`)
+        this.write(`${divider}\n${prefacedOutput.join('\n')}\n`)
+    }
+
+    /**
+     * get link to saucelabs job
+     */
+    getTestLink ({ config, sessionId, isMultiremote, instanceName }) {
+        const isSauceJob = (
+            config.hostname.includes('saucelabs') ||
+            // only show if multiremote is not used
+            config.capabilities && (
+                // check w3c caps
+                config.capabilities['sauce:options'] ||
+                // check jsonwp caps
+                config.capabilities.tunnelIdentifier
+            )
+        )
+
+        if (isSauceJob) {
+            const dc = config.headless
+                ? '.us-east-1'
+                : ['eu', 'eu-central-1'].includes(config.region) ? '.eu-central-1' : ''
+            const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
+            return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}`]
+        }
+
+        return []
     }
 
     /**
@@ -90,16 +139,39 @@ class SpecReporter extends WDIOReporter {
      * @return {Array}         Header data
      */
     getHeaderDisplay(runner) {
-        const combo = this.getEnviromentCombo(runner.capabilities).trim()
+        const combo = this.getEnviromentCombo(runner.capabilities, undefined, runner.isMultiremote).trim()
 
         // Spec file name and enviroment information
         const output = [
             `Spec: ${runner.specs[0]}`,
-            `Running: ${combo}`,
-            '',
+            `Running: ${combo}`
         ]
 
+        /**
+         * print session ID if not multiremote
+         */
+        if (runner.capabilities.sessionId) {
+            output.push(`Session ID: ${runner.capabilities.sessionId}`)
+        }
+
         return output
+    }
+
+    /**
+     * returns everything worth reporting from a suite
+     * @param  {Object}    suite  test suite containing tests and hooks
+     * @return {Object[]}         list of events to report
+     */
+    getEventsToReport (suite) {
+        return [
+            /**
+             * report all tests and only hooks that failed
+             */
+            ...suite.hooksAndTests
+                .filter((item) => {
+                    return item.type === 'test' || Boolean(item.error)
+                })
+        ]
     }
 
     /**
@@ -113,7 +185,7 @@ class SpecReporter extends WDIOReporter {
 
         for (const suite of suites) {
             // Don't do anything if a suite has no tests or sub suites
-            if (suite.tests.length === 0 && suite.suites.length === 0) {
+            if (suite.tests.length === 0 && suite.suites.length === 0 && suite.hooks.length === 0) {
                 continue
             }
 
@@ -123,17 +195,26 @@ class SpecReporter extends WDIOReporter {
             // Display the title of the suite
             output.push(`${suiteIndent}${suite.title}`)
 
-            for (const test of suite.tests) {
-                const test_title = test.title
+            const eventsToReport = this.getEventsToReport(suite)
+            for (const test of eventsToReport) {
+                const testTitle = test.title
                 const state = test.state
-                const test_indent = `${this.defaultTestIndent}${suiteIndent}`
+                const testIndent = `${this.defaultTestIndent}${suiteIndent}`
 
                 // Output for a single test
-                output.push(`${test_indent}${this.chalk[this.getColor(state)](this.getSymbol(state))} ${test_title}`)
+                output.push(`${testIndent}${this.chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
+
+                // print cucumber data table cells
+                if (test.argument && test.argument.rows && test.argument.rows.length) {
+                    const data = buildTableData(test.argument.rows)
+                    const rawTable = printTable(data)
+                    const table = getFormattedRows(rawTable, testIndent)
+                    output.push(...table)
+                }
             }
 
             // Put a line break after each suite (only if tests exist in that suite)
-            if (suite.tests.length) {
+            if (eventsToReport.length) {
                 output.push('')
             }
         }
@@ -152,21 +233,21 @@ class SpecReporter extends WDIOReporter {
         // Get the passes
         if(this.stateCounts.passed > 0) {
             const text = `${this.stateCounts.passed} passing ${duration}`
-            output.push(this.chalk[this.getColor(`passed`)](text))
+            output.push(this.chalk[this.getColor('passed')](text))
             duration = ''
         }
 
         // Get the failures
         if(this.stateCounts.failed > 0) {
             const text = `${this.stateCounts.failed} failing ${duration}`.trim()
-            output.push(this.chalk[this.getColor(`failed`)](text))
+            output.push(this.chalk[this.getColor('failed')](text))
             duration = ''
         }
 
         // Get the skipped tests
         if(this.stateCounts.skipped > 0) {
             const text = `${this.stateCounts.skipped} skipped ${duration}`.trim()
-            output.push(this.chalk[this.getColor(`skipped`)](text))
+            output.push(this.chalk[this.getColor('skipped')](text))
         }
 
         return output
@@ -183,21 +264,26 @@ class SpecReporter extends WDIOReporter {
 
         for (const suite of suites) {
             const suiteTitle = suite.title
-
-            for (const test of suite.tests) {
+            const eventsToReport = this.getEventsToReport(suite)
+            for (const test of eventsToReport) {
                 if(test.state !== 'failed') {
                     continue
                 }
 
                 const testTitle = test.title
-
+                const errors = test.errors || [test.error]
                 // If we get here then there is a failed test
                 output.push(
                     '',
                     `${++failureLength}) ${suiteTitle} ${testTitle}`,
-                    this.chalk.red(test.error.message),
-                    ...test.error.stack.split(/\n/g).map(value => this.chalk.gray(value))
+
                 )
+                for (let error of errors) {
+                    output.push(this.chalk.red(error.message))
+                    if (error.stack) {
+                        output.push(...error.stack.split(/\n/g).map(value => this.chalk.gray(value)))
+                    }
+                }
             }
         }
 

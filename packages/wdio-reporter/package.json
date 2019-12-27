@@ -1,18 +1,18 @@
 {
-  "name": "wdio-reporter",
-  "version": "5.0.0-beta.3",
+  "name": "@wdio/reporter",
+  "version": "6.0.0-alpha.0",
   "description": "A WebdriverIO utility to help reporting all events",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/packages/wdio-reporter",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-reporter",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">= 4.8.5"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile",
-    "clean": "rm -rf ./build",
-    "compile": "babel src/ -d build/",
+    "clean": "rimraf ./build",
+    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
     "test": "run-s test:*",
     "test:eslint": "eslint src test",
     "test:unit": "jest"
@@ -30,6 +30,13 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
-    "tmp": "^0.0.33"
-  }
+    "tmp": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "fs-extra": "^8.0.1"
+  },
+  "types": "reporter.d.ts"
 }

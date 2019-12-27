@@ -32,7 +32,6 @@ describe('Dot Reporter', () => {
             logFile: logFile.name,
             stdout: false
         })
-        reporter.outputStream = { write: jest.fn() }
         reporter.write(1)
         expect(reporter.outputStream.write.mock.calls[0]).toEqual([1])
     })

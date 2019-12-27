@@ -18,8 +18,8 @@ The WebdriverIO Community is also active on Stack Overflow, you can post your qu
 
 ## User Documentation
 
-* [User Documentation](http://webdriver.io/docs/gettingstarted.html)
-* [API Documentation](http://webdriver.io/docs/api.html)
+* [User Documentation](https://webdriver.io/guide/getstarted/install.html)
+* [API Documentation](https://webdriver.io/docs/api.html)
 
 ## Contributing
 

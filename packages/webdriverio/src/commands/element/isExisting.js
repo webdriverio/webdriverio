@@ -33,14 +33,15 @@
     });
  * </example>
  *
- * @alias browser.isExisting
- * @param   {String}             selector  DOM-element
- * @return {Boolean|Boolean[]}            true if element(s)* [is|are] existing
+ * @alias element.isExisting
+ * @return {Boolean}            true if element(s)* [is|are] existing
  * @uses protocol/elements
  * @type state
  *
  */
 
 export default function isExisting () {
-    return this.parent.$$(this.selector).then((res) => res.length > 0)
+    const method = this.isReactElement ? 'react$$' : '$$'
+
+    return this.parent[method](this.selector).then((res) => res.length > 0)
 }

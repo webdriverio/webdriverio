@@ -5,12 +5,12 @@ WDIO Concise Reporter
 
 ## Installation
 
-The easiest way is to keep `wdio-concise-reporter` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/concise-reporter` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-concise-reporter": "~0.0.1"
+    "@wdio/concise-reporter": "^5.0.0"
   }
 }
 ```
@@ -18,10 +18,10 @@ The easiest way is to keep `wdio-concise-reporter` as a devDependency in your `p
 You can simple do it by:
 
 ```sh
-$ npm install wdio-concise-reporter --save-dev
+$ npm install @wdio/concise-reporter --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here](http://webdriver.io/docs/gettingstarted.html).
+Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted.html).
 
 ## Configuration
 

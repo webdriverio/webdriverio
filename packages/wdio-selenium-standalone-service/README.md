@@ -1,16 +1,18 @@
 WebdriverIO Selenium Standalone Service
 =======================================
 
-Handling the Selenium server is out of scope of the actual WebdriverIO project. This service helps you to run Selenium seamlessly when running tests with the [WDIO testrunner](http://webdriver.io/docs/gettingstarted.html). It uses the well know [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) NPM package that automatically sets up the standalone server and all required driver for you.
+Handling the Selenium server is out of scope of the actual WebdriverIO project. This service helps you to run Selenium seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/guide/testrunner/gettingstarted.html). It uses the well know [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) NPM package that automatically sets up the standalone server and all required driver for you.
 
 ## Installation
 
-The easiest way is to keep `wdio-selenium-standalone-service` as a devDependency in your `package.json`.
+Before starting make sure you have JDK installed.
+
+The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "wdio-selenium-standalone-service": "^5.0.0"
+    "@wdio/selenium-standalone-service": "^5.0.0"
   }
 }
 ```
@@ -18,20 +20,33 @@ The easiest way is to keep `wdio-selenium-standalone-service` as a devDependency
 You can simple do it by:
 
 ```bash
-npm install wdio-selenium-standalone-service --save-dev
+npm install @wdio/selenium-standalone-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
 
 ## Configuration
 
-By default, Google Chrome, Firefox and PhantomJS are available when installed on the host system. In order to use the service you need to add `selenium-standalone` to your service array:
+By default, Google Chrome and Firefox are available when installed on the host system. In order to use the service you need to add `selenium-standalone` to your service array:
 
 ```js
 // wdio.conf.js
 export.config = {
   // ...
   services: ['selenium-standalone'],
+  seleniumLogs: 'logs',
+  seleniumInstallArgs: {
+    drivers: {
+      chrome: { version: '77.0.3865.40' },
+      firefox: { version: '0.25.0' },
+    }
+  },
+  seleniumArgs: {
+    drivers: {
+      chrome: { version: '77.0.3865.40' },
+      firefox: { version: '0.25.0' },
+    }
+  },
   // ...
 };
 ```
@@ -54,6 +69,7 @@ seleniumLogs : "./",
 
 ### seleniumArgs
 Map of arguments for the Selenium server, passed directly to `Selenium.start()`.
+Please note that latest drivers have to be installed, see `seleniumInstallArgs`.
 
 Type: `Object`
 
@@ -62,10 +78,10 @@ Default: `{}`
 Example:
 ```js
 seleniumArgs: {
-  version : "3.9.1",
+  version : "3.141.59",
   drivers : {
     chrome : {
-      version : "2.38",
+      version : "77.0.3865.40",
       arch    : process.arch,
     }
   }
@@ -84,11 +100,11 @@ Default: `{}`
 Example:
 ```js
 seleniumInstallArgs: {
-  version : "3.9.1",
+  version : "3.141.59",
   baseURL : "https://selenium-release.storage.googleapis.com",
   drivers : {
     chrome : {
-      version : "2.38",
+      version : "77.0.3865.40",
       arch    : process.arch,
       baseURL : "https://chromedriver.storage.googleapis.com",
     }
@@ -96,6 +112,13 @@ seleniumInstallArgs: {
 },
 ```
 
+### skipSeleniumInstall
+Boolean for skipping `selenium-standalone` server install.
+
+Type: `Boolean`
+
+Default: `false`
+
 ----
 
-For more information on WebdriverIO see the [homepage](http://webdriver.io).
+For more information on WebdriverIO see the [homepage](https://webdriver.io).

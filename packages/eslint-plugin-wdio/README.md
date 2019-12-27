@@ -1,10 +1,10 @@
 # eslint-plugin-wdio
 
-ESLint rules for [WebdriverIO](http://webdriver.io)
+ESLint rules for [WebdriverIO](https://webdriver.io)
 
 ## Installation
 
-You'll first need to install [ESLint](http://eslint.org):
+You'll first need to install [ESLint](https://eslint.org):
 
 ```
 $ npm i eslint --save-dev
@@ -32,4 +32,4 @@ To enable this configuration use the extends property in your .eslintrc config f
 }
 ```
 
-See [ESLint documentation](http://eslint.org/docs/user-guide/configuring#extending-configuration-files) for more information about extending configuration files.
+See [ESLint documentation](https://eslint.org/docs/user-guide/configuring#extending-configuration-files) for more information about extending configuration files.
