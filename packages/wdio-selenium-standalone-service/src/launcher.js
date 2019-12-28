@@ -4,26 +4,21 @@ import { promisify } from 'util'
 import fs from 'fs-extra'
 import SeleniumStandalone from 'selenium-standalone'
 
-import getFilePath from './utils/getFilePath'
+import { getFilePath } from './utils'
 
 const DEFAULT_LOG_FILENAME = 'selenium-standalone.txt'
 const log = logger('@wdio/selenium-standalone-service')
 
 export default class SeleniumStandaloneLauncher {
-    constructor () {
-        this.seleniumLogs = null
-        this.seleniumArgs = {}
-        this.seleniumInstallArgs = {}
-
-        return this
+    constructor (options) {
+        this.seleniumLogs = options.seleniumLogs
+        this.seleniumArgs = options.seleniumArgs
+        this.seleniumInstallArgs = options.seleniumInstallArgs
+        this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
     }
 
     async onPrepare (config) {
-        this.seleniumArgs = config.seleniumArgs || {}
-        this.seleniumInstallArgs = config.seleniumInstallArgs || {}
-        this.seleniumLogs = config.seleniumLogs
-        this.skipSeleniumInstall = !!config.skipSeleniumInstall
-        this.watchMode = !!config.watch
+        this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
             await promisify(SeleniumStandalone.install)(this.seleniumInstallArgs)
