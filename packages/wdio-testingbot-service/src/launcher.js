@@ -7,15 +7,19 @@ import logger from '@wdio/logger'
 const log = logger('@wdio/sauce-service')
 
 export default class TestingBotLauncher {
-    async onPrepare (options, caps, config) {
-        if (!options.tbTunnel || !config.user || !config.key) {
+    constructor (options) {
+        this.options = options
+    }
+
+    async onPrepare (config) {
+        if (!this.options.tbTunnel || !config.user || !config.key) {
             return
         }
 
         this.tbTunnelOpts = Object.assign({
             apiKey: config.user,
             apiSecret: config.key
-        }, options.tbTunnelOpts)
+        }, this.options.tbTunnelOpts)
 
         config.protocol = 'http'
         config.hostname = 'localhost'
@@ -26,7 +30,7 @@ export default class TestingBotLauncher {
          */
         const obs = new PerformanceObserver((list) => {
             const entry = list.getEntries()[0]
-            log.info(`Sauce Connect successfully started after ${entry.duration}ms`)
+            log.info(`TestingBot tunnel successfully started after ${entry.duration}ms`)
         })
         obs.observe({ entryTypes: ['measure'], buffered: false })
 

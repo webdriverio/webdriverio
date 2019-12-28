@@ -1,7 +1,10 @@
+import logger from '@wdio/logger'
+
 import TestingBotLauncher from '../src/launcher'
 
+const log = logger()
+
 describe('wdio-testingbot-service', () => {
-    const tbLauncher = new TestingBotLauncher({})
     const execute = jest.fn()
     global.browser = {
         execute,
@@ -16,37 +19,41 @@ describe('wdio-testingbot-service', () => {
 
     afterEach(() => execute.mockReset())
 
-    it('onPrepare: tbTunnel is undefined', () => {
-        const config = {
-            tbTunnel: undefined
-        }
+    it('onPrepare: tbTunnel is undefined', async () => {
+        const options = { tbTunnel: undefined }
+        const tbLauncher = new TestingBotLauncher(options)
 
-        tbLauncher.onPrepare(config)
+        await tbLauncher.onPrepare({})
         expect(tbLauncher.tbTunnelOpts).toBeUndefined()
         expect(tbLauncher.tunnel).toBeUndefined()
-        expect(config.protocol).toBeUndefined()
-        expect(config.hostname).toBeUndefined()
-        expect(config.port).toBeUndefined()
+        expect(options.protocol).toBeUndefined()
+        expect(options.hostname).toBeUndefined()
+        expect(options.port).toBeUndefined()
     })
 
-    it('onPrepare', () => {
-        const config = {
+    it('onPrepare', async () => {
+        const options = {
             tbTunnel: {},
             tbTunnelOpts: {
                 options: 'some options'
-            },
+            }
+        }
+        const config = {
             user: 'user',
             key: 'key'
         }
+        const tbLauncher = new TestingBotLauncher(options, [], config)
 
-        tbLauncher.onPrepare(config)
+        await tbLauncher.onPrepare(config)
         expect(tbLauncher.tbTunnelOpts).toEqual({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
         expect(config.protocol).toEqual('http')
         expect(config.hostname).toEqual('localhost')
         expect(config.port).toEqual(4445)
+        expect(log.info.mock.calls[0][0]).toContain('TestingBot tunnel successfully started after')
     })
 
     it('onComplete', () => {
+        const tbLauncher = new TestingBotLauncher({})
         tbLauncher.tunnel = {
             close: resolve => resolve('tunnel closed')
         }
@@ -55,6 +62,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('onComplete: no tunnel', () => {
+        const tbLauncher = new TestingBotLauncher({})
         tbLauncher.tunnel = undefined
         expect(tbLauncher.onComplete()).toBeUndefined()
     })
