@@ -4,16 +4,21 @@ import logger from '@wdio/logger'
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackLauncherService {
-    onPrepare(options, capabilities, config) {
-        if (!options.browserstackLocal) {
+    constructor (options, capabilities, config) {
+        this.options = options
+        this.config = config
+    }
+
+    onPrepare (config, capabilities) {
+        if (!this.options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
 
         const opts = {
-            key: config.key,
+            key: this.config.key,
             forcelocal: true,
             onlyAutomate: true,
-            ...options.browserstackOpts
+            ...this.options.browserstackOpts
         }
 
         this.browserstackLocal = new BrowserstackLocalLauncher.Local()
@@ -53,7 +58,7 @@ export default class BrowserstackLauncherService {
         })
     }
 
-    onComplete() {
+    onComplete () {
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
