@@ -1,4 +1,4 @@
-import getFilePath from '../../src/utils/getFilePath'
+import { getFilePath, getAppiumCommand, cliArgsFromKeyValue } from '../src/utils'
 import path from 'path'
 
 describe('getFilePath', () => {
@@ -146,5 +146,38 @@ describe('getFilePath', () => {
         const filePath = getFilePath(file, defaultFilename)
 
         expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)appium-log\.txt/)
+    })
+})
+
+describe('_getAppiumCommand', () => {
+    test('should return path to dependency', () => {
+        expect(getAppiumCommand('fs-extra')).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/fs-extra/lib/index.js'))
+    })
+    test('should be appium by default', () => {
+        expect(() => getAppiumCommand()).toThrow("Cannot find module 'appium' from 'utils.js'")
+    })
+})
+
+describe('argument formatting', () => {
+    test('should format arguments correctly', () => {
+        const args = cliArgsFromKeyValue({
+            address: '127.0.0.1',
+            commandTimeout: '7200',
+            showIosLog: false,
+            sessionOverride: true,
+            app: '/Users/frodo/My Projects/the-ring/the-ring.app'
+        })
+
+        expect(args[0]).toBe('--address')
+        expect(args[1]).toBe('127.0.0.1')
+        expect(args[2]).toBe('--command-timeout')
+        expect(args[3]).toBe('7200')
+        expect(args[4]).toBe('--session-override')
+    })
+    test('should not format arguments if array passed', () => {
+        const argsArray = ['-p', 4723]
+        const args = cliArgsFromKeyValue(argsArray)
+
+        expect(args).toBe(argsArray)
     })
 })

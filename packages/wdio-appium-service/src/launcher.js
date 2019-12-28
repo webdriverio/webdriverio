@@ -40,8 +40,7 @@ export default class AppiumLauncher {
             this.command = 'cmd'
         }
 
-        const asyncStartAppium = promisify(this._startAppium)
-        this.process = await asyncStartAppium(this.command, this.appiumArgs)
+        this.process = await promisify(this._startAppium)(this.command, this.appiumArgs)
 
         if (typeof this.logPath === 'string') {
             this._redirectLogStream(this.logPath)
