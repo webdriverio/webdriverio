@@ -38,7 +38,7 @@ export.config = {
 
 ## Options
 
-### `staticServerFolders` (required)
+### `folders` (required)
 
 Array of folder paths and mount points.
 
@@ -53,7 +53,7 @@ Props:
     // ...
     services: [
         ['static-server', {
-            staticServerFolders: [
+            folders: [
                 { mount: '/fixtures', path: './tests/fixtures' },
                 { mount: '/dist', path: './dist' },
             ]
@@ -63,7 +63,7 @@ Props:
  };
 ```
 
-### `staticServerPort`
+### `port`
 
 Port to bind the server.
 
@@ -71,13 +71,7 @@ Type: `Number`
 
 Default: `4567`
 
-### `staticServerLog`
-
-Debugging logs, will print mount points and requests. When `staticServerLogs` is set to `true`, it will print to the console. Otherwise, a string is treated as the log folder.
-
-Type: `Boolean` or `String`
-
-### `staticServerMiddleware`
+### `middleware`
 
 Array of middleware objects. Load and instatiate these in the config, and pass them in for the static server to use.
 
@@ -96,7 +90,7 @@ export.config = {
     // ...
     services: [
         ['static-server', {
-            staticServerMiddleware: [{
+            middleware: [{
                 mount: '/',
                 middleware: middleware(/* middleware options */),
             }],
