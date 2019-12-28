@@ -68,6 +68,8 @@ capabilities = [
 
 ## Sauce Service Options
 
+In order to authorize to the Sauce Labs service your config needs to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
+
 ### sauceConnect
 If true it runs Sauce Connect and opens a secure connection between a Sauce Labs virtual machine running your browser tests.
 

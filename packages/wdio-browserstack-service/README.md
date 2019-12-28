@@ -46,7 +46,7 @@ export.config = {
 
 ## Options
 
-In order to authorize to the BrowserStack service your config need to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
+In order to authorize to the BrowserStack service your config needs to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
 
 ### browserstackLocal
 Set this to true to enable routing connections from Browserstack cloud through your computer. You will also need to set `browserstack.local` to true in browser capabilities.

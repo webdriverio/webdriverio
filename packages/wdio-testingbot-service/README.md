@@ -45,15 +45,7 @@ export.config = {
 
 ## Options
 
-### user
-Your TestingBot API KEY.
-
-Type: `String`
-
-### key
-Your TestingBot API SECRET.
-
-Type: `String`
+In order to authorize to the TestingBot service your config needs to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
 
 ### tbTunnel
 If true it runs the TestingBot Tunnel and opens a secure connection between a TestingBot Virtual Machine running your browser tests.

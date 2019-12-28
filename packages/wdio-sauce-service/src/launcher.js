@@ -62,7 +62,7 @@ export default class SauceLauncher {
          */
         const obs = new PerformanceObserver((list) => {
             const entry = list.getEntries()[0]
-            log.info(`Time for Sauce Connect ${entry.name}: ${entry.duration}`)
+            log.info(`Sauce Connect successfully started after ${entry.duration}ms`)
         })
         obs.observe({ entryTypes: ['measure'], buffered: false })
 
