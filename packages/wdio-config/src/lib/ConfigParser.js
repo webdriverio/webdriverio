@@ -14,7 +14,8 @@ const MERGE_OPTIONS = { clone: false }
 
 export default class ConfigParser {
     constructor () {
-        this._config = DEFAULT_CONFIGS
+        this._config = DEFAULT_CONFIGS()
+
         this._capabilities = []
     }
 
