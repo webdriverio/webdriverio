@@ -5,6 +5,10 @@ import logger from '@wdio/logger'
 const log = logger('test')
 const error = new Error('I\'m an error!')
 
+beforeEach(() => {
+    log.info.mockClear()
+})
+
 describe('onPrepare', () => {
     const options = { browserstackLocal: true }
     const caps = [{}]
@@ -87,6 +91,7 @@ describe('onPrepare', () => {
 
         await service.onPrepare(config, caps)
         expect(service.browserstackLocal.start).toHaveBeenCalled()
+        expect(log.info.mock.calls[0][0]).toContain('Browserstack Local successfully started after')
     })
 })
 

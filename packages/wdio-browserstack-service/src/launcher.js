@@ -1,3 +1,6 @@
+import { promisify } from 'util'
+import { performance, PerformanceObserver } from 'perf_hooks'
+
 import BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 
@@ -33,16 +36,19 @@ export default class BrowserstackLauncherService {
             throw TypeError('Capabilities should be an object or Array!')
         }
 
+        /**
+         * measure TestingBot tunnel boot time
+         */
+        const obs = new PerformanceObserver((list) => {
+            const entry = list.getEntries()[0]
+            log.info(`Browserstack Local successfully started after ${entry.duration}ms`)
+        })
+        obs.observe({ entryTypes: ['measure'], buffered: false })
+
         let timer
+        performance.mark('tbTunnelStart')
         return Promise.race([
-            new Promise((resolve, reject) => {
-                this.browserstackLocal.start(opts, err => {
-                    if (err) {
-                        return reject(err)
-                    }
-                    resolve()
-                })
-            }),
+            promisify(this.browserstackLocal.start)(opts),
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
                 timer = setTimeout(function () {
@@ -51,6 +57,8 @@ export default class BrowserstackLauncherService {
             })]
         ).then(function (result) {
             clearTimeout(timer)
+            performance.mark('tbTunnelEnd')
+            performance.measure('bootTime', 'tbTunnelStart', 'tbTunnelEnd')
             return Promise.resolve(result)
         }, function (err) {
             clearTimeout(timer)

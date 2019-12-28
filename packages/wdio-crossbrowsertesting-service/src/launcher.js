@@ -1,24 +1,42 @@
+import { promisify } from 'util'
+import { performance, PerformanceObserver } from 'perf_hooks'
+
 import cbt from 'cbt_tunnels'
+import logger from '@wdio/logger'
+
+const log = logger('@wdio/crossbrowsertesting-service')
 
 export default class CrossBrowserTestingLauncher {
-    onPrepare (options, caps, config) {
-        if (!options.cbtTunnel) {
+    constructor (options, caps, config) {
+        this.options = options
+        this.config = config
+    }
+
+    async onPrepare () {
+        if (!this.options.cbtTunnel) {
             return
         }
 
         this.cbtTunnelOpts = Object.assign({
-            username: config.user,
-            authkey: config.key,
+            username: this.config.user,
+            authkey: this.config.key,
             nokill: true
-        }, options.cbtTunnelOpts)
+        }, this.options.cbtTunnelOpts)
 
-        return new Promise((resolve, reject) => cbt.start(this.cbtTunnelOpts, (err) => {
-            if (err) {
-                return reject(err)
-            }
-            this.tunnel = true
-            return resolve('connected')
-        }))
+        /**
+         * measure TestingBot tunnel boot time
+         */
+        const obs = new PerformanceObserver((list) => {
+            const entry = list.getEntries()[0]
+            log.info(`CrossBrowserTesting tunnel successfully started after ${entry.duration}ms`)
+        })
+        obs.observe({ entryTypes: ['measure'], buffered: false })
+
+        performance.mark('tbTunnelStart')
+        await promisify(cbt.start)(this.cbtTunnelOpts)
+        this.tunnel = true
+        performance.mark('tbTunnelEnd')
+        performance.measure('bootTime', 'tbTunnelStart', 'tbTunnelEnd')
     }
 
     onComplete () {
