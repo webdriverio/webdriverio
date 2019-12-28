@@ -11,14 +11,18 @@ const log = logger('@wdio/static-server-service')
 const DEFAULT_LOG_NAME = 'wdio-static-server-service.log'
 
 export default class StaticServerLauncher {
-    async onPrepare({ folders, port = 4567, middleware = [] }, caps, { outputDir }) {
-        if (!folders) {
+    constructor ({ folders, port = 4567, middleware = [] }) {
+        this.folders = folders ? Array.isArray(folders) ? folders : [folders] : null
+        this.port = port
+        this.middleware = middleware
+    }
+
+    async onPrepare ({ outputDir }) {
+        if (!this.folders) {
             return
         }
 
         this.server = express()
-        this.folders = Array.isArray(folders) ? folders : [folders]
-        this.port = port
 
         if (outputDir) {
             const file = path.join(outputDir, DEFAULT_LOG_NAME)
@@ -32,7 +36,7 @@ export default class StaticServerLauncher {
             this.server.use(folder.mount, express.static(folder.path))
         })
 
-        middleware.forEach(
+        this.middleware.forEach(
             (ware) => this.server.use(ware.mount, ware.middleware))
 
         await promisify(this.server.listen)(this.port)
