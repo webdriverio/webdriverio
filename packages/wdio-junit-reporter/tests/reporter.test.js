@@ -1,5 +1,3 @@
-import fs from 'fs'
-import path from 'path'
 import WDIOJunitReporter from '../src'
 
 import mochaRunnerLog from './__fixtures__/mocha-runner.json'
@@ -13,17 +11,6 @@ import featuresWithErrorStepAndNoErrorObjectLog from './__fixtures__/cucumber-fe
 import suitesHooksLog from './__fixtures__/suites-hooks.json'
 import suitesMultipleLog from './__fixtures__/suites-multiple.json'
 
-const testLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter.txt'))
-const testWithNoErrorObjectLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-with-no-error-object.txt'))
-const testCucumberLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter.txt'))
-const testHooksLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-hooks.txt'))
-const testMultipleLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-multiple-suites.txt'))
-const testErrorOptionsSetLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-error-options-used.txt'))
-const testCucumberErrorOptionsSetLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter-error-options-used.txt'))
-const testCucumberFailingThenSkippedStep = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter-with-failed-then-skipped-step.txt'))
-const testCucumberWithPendingStep = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter-with-pending-step.txt'))
-const testCucumberWithErrorStepAndNoErrorObject = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter-with-error-step-and-no-error-object.txt'))
-
 describe('wdio-junit-reporter', () => {
     let reporter
 
@@ -32,33 +19,29 @@ describe('wdio-junit-reporter', () => {
     })
 
     it('should write to output stream on runnerEnd', () => {
-        reporter.buildJunitXml = jest.fn().mockReturnValue('foobar')
+        reporter.buildJunitXml = jest.fn().mockReturnValue()
         reporter.write = jest.fn()
         reporter.onRunnerEnd()
-        expect(reporter.write.mock.calls[0][0]).toMatchSnapshot('foobar')
+        expect(reporter.write.mock.calls[0][0]).toMatchSnapshot()
     })
 
     it('should prepare name', () => {
-        expect(reporter.prepareName()).toMatchSnapshot('Skipped_test')
-        expect(reporter.prepareName('Chrome something_odd.foobar')).toMatchSnapshot('Chrome_something_odd_foobar')
+        expect(reporter.prepareName()).toMatchSnapshot()
+        expect(reporter.prepareName('Chrome something_odd.foobar')).toMatchSnapshot()
     })
 
     it('has a suiteNameFormat option for setting names manually', () => {
         reporter = new WDIOJunitReporter({ stdout: true, suiteNameFormat: /foobar/ })
-        expect(reporter.prepareName('Skipped_foobar_test')).toMatchSnapshot('Skipped___test')
+        expect(reporter.prepareName('Skipped_foobar_test')).toMatchSnapshot()
     })
 
     it('can format output', () => {
-        expect(reporter.format()).toMatchSnapshot(undefined)
-        expect(reporter.format(1)).toMatchSnapshot('1')
-        expect(reporter.format({ a: 'foo', b: 'bar' })).toMatchSnapshot(
-            '{"a":"foo","b":"bar"}')
-        expect(reporter.format({ a: 'foobar'.repeat(100) })).toMatchSnapshot(
-            '{"a":"[base64] 600 bytes"}')
-        expect(reporter.format({ a: '@'.repeat(10000) })).toMatchSnapshot(
-            `{"a":"${'@'.repeat(200)} ... (9800 more bytes)"}`)
-        expect(reporter.format({ a: '@'.repeat(100).split('') })).toMatchSnapshot(
-            '{"a":["@","@","@","@","@","@","@","@","@","@","(90 more items)"]}')
+        expect(reporter.format()).toMatchSnapshot()
+        expect(reporter.format(1)).toMatchSnapshot()
+        expect(reporter.format({ a: 'foo', b: 'bar' })).toMatchSnapshot()
+        expect(reporter.format({ a: 'foobar'.repeat(100) })).toMatchSnapshot()
+        expect(reporter.format({ a: '@'.repeat(10000) })).toMatchSnapshot()
+        expect(reporter.format({ a: '@'.repeat(100).split('') })).toMatchSnapshot()
         expect(reporter.format([...Array(11)].map((item, i) => i).reduce((a, b) => {
             a['entry' + b] = 'foobar'
             return a
@@ -84,56 +67,56 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suitesLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output (Cucumber-style)', () => {
         reporter.suites = featuresLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testCucumberLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('scenario will be marked failed if a single scenario step fails (Cucumber-style)', () => {
         reporter.suites = featuresWithFailingThenSkipStepLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testCucumberFailingThenSkippedStep.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('scenario will be marked failed if a single scenario step throws an error but there is no error object in JSON', () => {
         reporter.suites = suitesWithNoErrorObjectLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testWithNoErrorObjectLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('scenario will be marked failed if a single scenario step throws an error but there is no error object in JSON (Cucumber-style)', () => {
         reporter.suites = featuresWithErrorStepAndNoErrorObjectLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testCucumberWithErrorStepAndNoErrorObject.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('scenario will be marked skipped if a single scenario step is pending (Cucumber-style)', () => {
         reporter.suites = featuresWithPendingStepLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testCucumberWithPendingStep.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output if before all hook failed', () => {
         reporter.suites = suitesHooksLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testHooksLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output for multiple describe blocks', () => {
         reporter.suites = suitesMultipleLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testMultipleLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when error options are set', () => {
@@ -147,7 +130,7 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = suitesLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testErrorOptionsSetLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output correctly when error options are set (Cucumber-style)', () => {
@@ -161,6 +144,6 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testCucumberErrorOptionsSetLog.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 })
