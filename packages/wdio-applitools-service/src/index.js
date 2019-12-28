@@ -39,7 +39,7 @@ export default class ApplitoolsService {
             this.eyes.setProxy(this.options.proxy)
         }
 
-        this.viewport = Object.assign(DEFAULT_VIEWPORT, this.options.viewport)
+        this.viewport = Object.assign({ ...DEFAULT_VIEWPORT }, this.options.viewport)
     }
 
     /**
