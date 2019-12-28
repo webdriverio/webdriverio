@@ -59,6 +59,8 @@ jest.mock('../src/utils', () => ({
 }))
 
 describe('Appium launcher', () => {
+    const originalPlatform = process.platform
+
     beforeEach(() => {
         childProcess.spawn.mockClear()
         childProcess.spawn.mockReturnValue(new MockProcess())
@@ -81,31 +83,24 @@ describe('Appium launcher', () => {
         })
 
         test('should set correct config properties for Windows', async () => {
-            const originalPlatform = process.platform
             Object.defineProperty(process, 'platform', {
                 value: 'win32'
             })
 
-            const config = {
-                appium: {
-                    logPath: './',
-                    command: 'path/to/my_custom_appium',
-                    args: { foo: 'bar' }
-                }
-            }
-            await launcher.onPrepare(config)
+            const launcher = new AppiumLauncher({
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar' }
+            }, [], {})
+            await launcher.onPrepare()
 
             expect(launcher.command).toBe('cmd')
-            expect(launcher.appiumArgs).toEqual(['/c', config.appium.command, '--foo', 'bar'])
-
-            Object.defineProperty(process, 'platform', {
-                value: originalPlatform
-            })
+            expect(launcher.appiumArgs).toEqual(['/c', 'path/to/my_custom_appium', '--foo', 'bar'])
         })
 
         test('should set correct config properties when empty', async () => {
             const launcher = new AppiumLauncher({}, [], {})
-            await launcher.onPrepare({}, [], {})
+            await launcher.onPrepare()
 
             expect(launcher.logPath).toBe(undefined)
             expect(launcher.command).toBe('node')
@@ -197,6 +192,12 @@ describe('Appium launcher', () => {
             expect(fs.createWriteStream.mock.calls[0][0]).toBe('/some/file/path')
             expect(launcher.process.stdout.pipe).toBeCalled()
             expect(launcher.process.stderr.pipe).toBeCalled()
+        })
+    })
+
+    afterEach(() => {
+        Object.defineProperty(process, 'platform', {
+            value: originalPlatform
         })
     })
 })
