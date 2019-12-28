@@ -5,14 +5,16 @@ import WDIOJunitReporter from '../src'
 import mochaRunnerLog from './__fixtures__/mocha-runner.json'
 import cucumberRunnerLog from './__fixtures__/cucumber-runner.json'
 import suitesLog from './__fixtures__/suites.json'
+import suitesWithNoErrorObjectLog from './__fixtures__/suites-with-no-error-object.json'
 import featuresLog from './__fixtures__/cucumber-features.json'
 import featuresWithFailingThenSkipStepLog from './__fixtures__/cucumber-features-with-failed-then-skipped-steps.json'
 import featuresWithPendingStepLog from './__fixtures__/cucumber-features-with-pending-step.json'
-import featuresWithErrorStepLog from './__fixtures__/cucumber-features-with-error-step-with-no-error.json'
+import featuresWithErrorStepAndNoErrorObjectLog from './__fixtures__/cucumber-features-with-error-step-and-no-error-object.json'
 import suitesHooksLog from './__fixtures__/suites-hooks.json'
 import suitesMultipleLog from './__fixtures__/suites-multiple.json'
 
 const testLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter.txt'))
+const testWithNoErrorObjectLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-with-no-error-object.txt'))
 const testCucumberLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter.txt'))
 const testHooksLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-hooks.txt'))
 const testMultipleLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-junit-reporter-multiple-suites.txt'))
@@ -20,7 +22,7 @@ const testErrorOptionsSetLog = fs.readFileSync(path.join(__dirname, '__fixtures_
 const testCucumberErrorOptionsSetLog = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter-error-options-used.txt'))
 const testCucumberFailingThenSkippedStep = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter-with-failed-then-skipped-step.txt'))
 const testCucumberWithPendingStep = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter-with-pending-step.txt'))
-const testCucumberWithErrorStep = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter-with-error-step.txt'))
+const testCucumberWithErrorStepAndNoErrorObject = fs.readFileSync(path.join(__dirname, '__fixtures__', 'wdio-0-0-cucumber-junit-reporter-with-error-step-and-no-error-object.txt'))
 
 describe('wdio-junit-reporter', () => {
     let reporter
@@ -99,11 +101,18 @@ describe('wdio-junit-reporter', () => {
         expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testCucumberFailingThenSkippedStep.toString().replace(/\s/g, ''))
     })
 
-    it('scenario will be marked failed if a single scenario step throws and error (Cucumber-style)', () => {
-        reporter.suites = featuresWithErrorStepLog
+    it('scenario will be marked failed if a single scenario step throws an error but there is no error object in JSON', () => {
+        reporter.suites = suitesWithNoErrorObjectLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testCucumberWithErrorStep.toString().replace(/\s/g, ''))
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testWithNoErrorObjectLog.toString().replace(/\s/g, ''))
+    })
+
+    it('scenario will be marked failed if a single scenario step throws an error but there is no error object in JSON (Cucumber-style)', () => {
+        reporter.suites = featuresWithErrorStepAndNoErrorObjectLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot(testCucumberWithErrorStepAndNoErrorObject.toString().replace(/\s/g, ''))
     })
 
     it('scenario will be marked skipped if a single scenario step is pending (Cucumber-style)', () => {
