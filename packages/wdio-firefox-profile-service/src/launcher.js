@@ -2,10 +2,11 @@ import Profile from 'firefox-profile'
 import { promisify } from 'util'
 
 export default class FirefoxProfileLauncher {
-    async onPrepare (options, capabilities) {
+    constructor (options) {
         this.options = options
-        this.capabilities = capabilities
+    }
 
+    async onPrepare (config, capabilities) {
         /**
          * Return if no profile options were specified
          */
@@ -23,12 +24,12 @@ export default class FirefoxProfileLauncher {
         this._setPreferences()
 
         if (!Array.isArray(this.options.extensions)) {
-            return this._buildExtension()
+            return this._buildExtension(capabilities)
         }
 
         // Add the extension
         await promisify(::this.profile.addExtensions)(this.options.extensions)
-        return this._buildExtension()
+        return this._buildExtension(capabilities)
     }
 
     /**
@@ -50,11 +51,11 @@ export default class FirefoxProfileLauncher {
         this.profile.updatePreferences()
     }
 
-    async _buildExtension () {
+    async _buildExtension (capabilities) {
         const zippedProfile = await promisify(::this.profile.encoded)()
 
-        if (Array.isArray(this.capabilities)) {
-            this.capabilities
+        if (Array.isArray(capabilities)) {
+            capabilities
                 .filter((capability) => capability.browserName === 'firefox')
                 .forEach((capability) => {
                     this._setProfile(capability, zippedProfile)
@@ -63,8 +64,8 @@ export default class FirefoxProfileLauncher {
             return
         }
 
-        for (const browser in this.capabilities) {
-            const capability = this.capabilities[browser].capabilities
+        for (const browser in capabilities) {
+            const capability = capabilities[browser].capabilities
 
             if (!capability || capability.browserName !== 'firefox') {
                 continue
