@@ -11,9 +11,9 @@ const log = logger('@wdio/selenium-standalone-service')
 
 export default class SeleniumStandaloneLauncher {
     constructor (options) {
-        this.seleniumLogs = options.seleniumLogs
-        this.seleniumArgs = options.seleniumArgs
-        this.seleniumInstallArgs = options.seleniumInstallArgs
+        this.logPath = options.logPath
+        this.args = options.args
+        this.installArgs = options.installArgs
         this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
     }
 
@@ -21,12 +21,12 @@ export default class SeleniumStandaloneLauncher {
         this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
-            await promisify(SeleniumStandalone.install)(this.seleniumInstallArgs)
+            await promisify(SeleniumStandalone.install)(this.installArgs)
         }
 
-        this.process = await promisify(SeleniumStandalone.start)(this.seleniumArgs)
+        this.process = await promisify(SeleniumStandalone.start)(this.args)
 
-        if (typeof this.seleniumLogs === 'string') {
+        if (typeof this.logPath === 'string') {
             this._redirectLogStream()
         }
 
@@ -45,7 +45,7 @@ export default class SeleniumStandaloneLauncher {
     }
 
     _redirectLogStream () {
-        const logFile = getFilePath(this.seleniumLogs, DEFAULT_LOG_FILENAME)
+        const logFile = getFilePath(this.logPath, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
         fs.ensureFileSync(logFile)
