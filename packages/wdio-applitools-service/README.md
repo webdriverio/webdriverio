@@ -18,7 +18,7 @@ And then you'll get something like:
 ```json
 {
   "devDependencies": {
-    "@applitools/eyes-webdriverio5-service": "^1.2.4"
+    "@applitools/eyes-webdriverio5-service": "^1.3.0"
   }
 }
 ```
