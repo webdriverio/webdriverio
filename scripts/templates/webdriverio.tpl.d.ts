@@ -96,6 +96,14 @@ declare namespace WebdriverIO {
             capabilities: WebDriver.DesiredCapabilities[]
         ): void;
 
+        onWorkerStart?(
+            cid: string,
+            caps: WebDriver.DesiredCapabilities,
+            specs: string[],
+            args: Config,
+            execArgv: string[]
+        ): void;
+
         onComplete?(exitCode: number, config: Config, capabilities: WebDriver.DesiredCapabilities, results: Results): void;
 
         onReload?(oldSessionId: string, newSessionId: string): void;
@@ -157,9 +165,9 @@ declare namespace WebdriverIO {
         }): void;
     }
     type _HooksArray = {
-        [K in keyof Pick<HookFunctions, "onPrepare" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
+        [K in keyof Pick<HookFunctions, "onPrepare" | "onWorkerStart" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
     };
-    type _Hooks = Omit<HookFunctions, "onPrepare" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">;
+    type _Hooks = Omit<HookFunctions, "onPrepare" | "onWorkerStart" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">;
     interface Hooks extends _HooksArray, _Hooks { }
 
     type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';

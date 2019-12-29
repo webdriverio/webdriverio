@@ -10,6 +10,9 @@ module.exports = class CustomService {
     onPrepare () {
         console.log('execute onPrepare(config, capabilities)')
     }
+    onWorkerStart () {
+        console.log('execute onWorkerStart(cid, caps, specs, argv, execArgv)')
+    }
     beforeSession () {
         console.log('execute beforeSession(config, capabilities, specs)')
     }

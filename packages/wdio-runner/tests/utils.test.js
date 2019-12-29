@@ -1,7 +1,7 @@
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 
-import { runHook, initialiseInstance, sanitizeCaps, sendFailureMessage, getInstancesData, attachToMultiremote } from '../src/utils'
+import { runHook, initialiseInstance, sanitizeCaps, sendFailureMessage, getInstancesData } from '../src/utils'
 
 process.send = jest.fn()
 
@@ -184,35 +184,6 @@ describe('utils', () => {
 
         it('isMultiremote = false', () => {
             expect(getInstancesData(null, false)).toEqual(undefined)
-        })
-    })
-
-    describe('attachToMultiremote', () => {
-        it('should build browser object', async () => {
-            const browser = await attachToMultiremote({
-                foo: { sessionId: 'foo' },
-                bar: { sessionId: 'bar' }
-            }, {
-                foo: { capabilities: { browserName: 'chrome' } },
-                bar: { capabilities: { browserName: 'firefox' } }
-            })
-
-            expect(attach.mock.calls[0][0]).toEqual({
-                sessionId: 'foo',
-                capabilities: { browserName: 'chrome' }
-            })
-            expect(attach.mock.calls[1][0]).toEqual({
-                sessionId: 'bar',
-                capabilities: { browserName: 'firefox' }
-            })
-
-            expect(typeof browser.deleteSession).toEqual('function')
-            expect(typeof browser.foo.deleteSession).toEqual('function')
-            expect(typeof browser.bar.deleteSession).toEqual('function')
-            expect(browser.foo.sessionId).toBeTruthy()
-            expect(browser.bar.sessionId).toBeTruthy()
-
-            expect(await browser.deleteSession()).toHaveLength(2)
         })
     })
 })

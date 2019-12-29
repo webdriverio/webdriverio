@@ -236,13 +236,24 @@ exports.config = {
     // methods. If one of them returns with a promise, WebdriverIO will wait until that promise is
     // resolved to continue.
     //
-
     /**
      * Gets executed once before all workers get launched.
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      */
     onPrepare: function (config, capabilities) {
+    },
+    /**
+     * Gets executed before a worker process is spawned and can be used to initialise specific service
+     * for that worker as well as modify runtime environments in an async fashion.
+     * @param  {String} cid      capability id (e.g 0-0)
+     * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
+     * @param  {[type]} specs    specs to be run in the worker process
+     * @param  {[type]} argv     object that allows you to overwrite configurations like framework
+     *                           options or connection details
+     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     */
+    onWorkerStart: function (cid, caps, specs, argv, execArgv) {
     },
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you

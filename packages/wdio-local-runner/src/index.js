@@ -24,7 +24,7 @@ export default class LocalRunner {
         return Object.keys(this.workerPool).length
     }
 
-    run ({ command, argv, ...options }) {
+    run ({ command, args, ...options }) {
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */
@@ -36,7 +36,7 @@ export default class LocalRunner {
 
         const worker = new WorkerInstance(this.config, options, this.stdout, this.stderr)
         this.workerPool[options.cid] = worker
-        worker.postMessage(command, argv)
+        worker.postMessage(command, args)
 
         return worker
     }
