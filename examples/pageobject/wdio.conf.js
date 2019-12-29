@@ -92,7 +92,7 @@ exports.config = {
     //
     // Gets executed before a worker process is spawned and can be used to initialise specific service
     // for that worker as well as modify runtime environments in an async fashion.
-    // onWorkerStart: function (cid, caps, specs, argv, execArgv) {
+    // onWorkerStart: function (cid, caps, specs, args, execArgv) {
     // },
     //
     // Gets executed before test execution begins. At this point you can access to all global

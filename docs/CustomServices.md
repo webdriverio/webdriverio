@@ -15,7 +15,7 @@ export default class CustomService {
         // TODO: something before all workers launch
     }
 
-    onWorkerStart(cid, caps, specs, argv, execArgv) {
+    onWorkerStart(cid, caps, specs, args, execArgv) {
         // TODO: something before specific worker launch
     }
 

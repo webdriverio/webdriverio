@@ -249,11 +249,10 @@ exports.config = {
      * @param  {String} cid      capability id (e.g 0-0)
      * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
      * @param  {[type]} specs    specs to be run in the worker process
-     * @param  {[type]} argv     object that allows you to overwrite configurations like framework
-     *                           options or connection details
+     * @param  {[type]} args     object that will be merged with the main configuration once worker is initialised
      * @param  {[type]} execArgv list of string arguments passed to the worker process
      */
-    onWorkerStart: function (cid, caps, specs, argv, execArgv) {
+    onWorkerStart: function (cid, caps, specs, args, execArgv) {
     },
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
