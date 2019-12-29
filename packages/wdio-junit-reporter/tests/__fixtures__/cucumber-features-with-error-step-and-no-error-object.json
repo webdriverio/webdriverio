@@ -1,0 +1,447 @@
+{
+  "Sample feature2": {
+    "type": "feature",
+    "start": "2019-12-13T20:05:44.955Z",
+    "_duration": 14862,
+    "uid": "Sample feature2",
+    "cid": "0-1",
+    "title": "Sample feature",
+    "tags": [
+      { "type": "Tag", "location": { "line": 1, "column": 1 }, "name": "@run" }
+    ],
+    "tests": [],
+    "hooks": [],
+    "suites": [
+      {
+        "type": "scenario",
+        "start": "2019-12-13T20:05:58.620Z",
+        "_duration": 1182,
+        "uid": "Sample scenario4",
+        "cid": "0-1",
+        "title": "Sample scenario",
+        "fullTitle": "Sample feature2: Sample scenario",
+        "tags": [{ "name": "@run", "location": { "line": 1, "column": 1 } }],
+        "tests": [
+          {
+            "type": "test",
+            "start": "2019-12-13T20:05:59.423Z",
+            "_duration": 15,
+            "uid": "step has passed6",
+            "cid": "0-1",
+            "title": "Given step has passed",
+            "fullTitle": "Sample feature: Sample scenario: Given step has passed",
+            "output": [],
+            "state": "passed",
+            "end": "2019-12-13T20:05:59.438Z"
+          },
+          {
+            "type": "test",
+            "start": "2019-12-13T20:05:59.452Z",
+            "_duration": 19,
+            "uid": "step has passed7",
+            "cid": "0-1",
+            "title": "When step has passed",
+            "fullTitle": "Sample feature: Sample scenario: When step has passed",
+            "output": [],
+            "state": "passed",
+            "end": "2019-12-13T20:05:59.471Z"
+          },
+          {
+            "type": "test",
+            "start": "2019-12-13T20:05:59.494Z",
+            "_duration": 19,
+            "uid": "step is causing error8",
+            "cid": "0-1",
+            "title": "Then step is causing error",
+            "fullTitle": "Sample feature: Sample scenario: Then step is causing error",
+            "output": [],
+            "state": "failed",
+            "end": "2019-12-13T20:05:59.513Z",
+            "errors": [
+              {
+                "name": "Error",
+                "message": "",
+                "stack": "Error: \n    at World.<anonymous> (./step_definitions/steps.js:650:11)"
+              }
+            ]
+          }
+        ],
+        "hooks": [
+          {
+            "type": "hook",
+            "start": "2019-12-13T20:05:58.657Z",
+            "_duration": 4,
+            "uid": "index.js160",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T20:05:58.661Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T20:05:58.686Z",
+            "_duration": 720,
+            "uid": "hooks.js7",
+            "cid": "0-1",
+            "title": "Hook step has passed",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T20:05:59.406Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T20:05:59.525Z",
+            "_duration": 1,
+            "uid": "jwdplayer.js6",
+            "cid": "0-1",
+            "title": "Hook step has passed",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T20:05:59.526Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T20:05:59.548Z",
+            "_duration": 228,
+            "uid": "hooks.js55",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T20:05:59.776Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T20:05:59.794Z",
+            "_duration": 6,
+            "uid": "index.js170",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T20:05:59.800Z"
+          }
+        ],
+        "suites": [],
+        "hooksAndTests": [
+          {
+            "type": "hook",
+            "start": "2019-12-13T20:05:58.657Z",
+            "_duration": 4,
+            "uid": "index.js160",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T20:05:58.661Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T20:05:58.686Z",
+            "_duration": 720,
+            "uid": "hooks.js7",
+            "cid": "0-1",
+            "title": "Hook step has passed",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T20:05:59.406Z"
+          },
+          {
+            "type": "test",
+            "start": "2019-12-13T20:05:59.423Z",
+            "_duration": 15,
+            "uid": "step has passed6",
+            "cid": "0-1",
+            "title": "Given step has passed",
+            "fullTitle": "Sample feature: Sample scenario: Given step has passed",
+            "output": [],
+            "state": "passed",
+            "end": "2019-12-13T20:05:59.438Z"
+          },
+          {
+            "type": "test",
+            "start": "2019-12-13T20:05:59.452Z",
+            "_duration": 19,
+            "uid": "step has passed7",
+            "cid": "0-1",
+            "title": "When step has passed",
+            "fullTitle": "Sample feature: Sample scenario: When step has passed",
+            "output": [],
+            "state": "passed",
+            "end": "2019-12-13T20:05:59.471Z"
+          },
+          {
+            "type": "test",
+            "start": "2019-12-13T20:05:59.494Z",
+            "_duration": 19,
+            "uid": "step is causing error8",
+            "cid": "0-1",
+            "title": "Then step is causing error",
+            "fullTitle": "Sample feature: Sample scenario: Then step is causing error",
+            "output": [],
+            "state": "failed",
+            "end": "2019-12-13T20:05:59.513Z",
+            "errors": [
+              {
+                "name": "Error",
+                "message": "",
+                "stack": "Error: \n    at World.<anonymous> (./step_definitions/steps.js:650:11)"
+              }
+            ]
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T20:05:59.525Z",
+            "_duration": 1,
+            "uid": "jwdplayer.js6",
+            "cid": "0-1",
+            "title": "Hook step has passed",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T20:05:59.526Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T20:05:59.548Z",
+            "_duration": 228,
+            "uid": "hooks.js55",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T20:05:59.776Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T20:05:59.794Z",
+            "_duration": 6,
+            "uid": "index.js170",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T20:05:59.800Z"
+          }
+        ],
+        "end": "2019-12-13T20:05:59.802Z"
+      }
+    ],
+    "hooksAndTests": [],
+    "end": "2019-12-13T20:05:59.817Z"
+  },
+  "Sample scenario4": {
+    "type": "scenario",
+    "start": "2019-12-13T20:05:58.620Z",
+    "_duration": 1182,
+    "uid": "Sample scenario4",
+    "cid": "0-1",
+    "title": "Sample scenario",
+    "fullTitle": "Sample feature2: Sample scenario",
+    "tags": [{ "name": "@run", "location": { "line": 1, "column": 1 } }],
+    "tests": [
+      {
+        "type": "test",
+        "start": "2019-12-13T20:05:59.423Z",
+        "_duration": 15,
+        "uid": "step has passed6",
+        "cid": "0-1",
+        "title": "Given step has passed",
+        "fullTitle": "Sample feature: Sample scenario: Given step has passed",
+        "output": [],
+        "state": "passed",
+        "end": "2019-12-13T20:05:59.438Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T20:05:59.452Z",
+        "_duration": 19,
+        "uid": "step has passed7",
+        "cid": "0-1",
+        "title": "When step has passed",
+        "fullTitle": "Sample feature: Sample scenario: When step has passed",
+        "output": [],
+        "state": "passed",
+        "end": "2019-12-13T20:05:59.471Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T20:05:59.494Z",
+        "_duration": 19,
+        "uid": "step is causing error8",
+        "cid": "0-1",
+        "title": "Then step is causing error",
+        "fullTitle": "Sample feature: Sample scenario: Then step is causing error",
+        "output": [],
+        "state": "failed",
+        "end": "2019-12-13T20:05:59.513Z",
+        "errors": [
+          {
+            "name": "Error",
+            "message": "",
+            "stack": "Error: \n    at World.<anonymous> (./step_definitions/steps.js:650:11)"
+          }
+        ]
+      }
+    ],
+    "hooks": [
+      {
+        "type": "hook",
+        "start": "2019-12-13T20:05:58.657Z",
+        "_duration": 4,
+        "uid": "index.js160",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T20:05:58.661Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T20:05:58.686Z",
+        "_duration": 720,
+        "uid": "hooks.js7",
+        "cid": "0-1",
+        "title": "Hook step has passed",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T20:05:59.406Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T20:05:59.525Z",
+        "_duration": 1,
+        "uid": "jwdplayer.js6",
+        "cid": "0-1",
+        "title": "Hook step has passed",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T20:05:59.526Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T20:05:59.548Z",
+        "_duration": 228,
+        "uid": "hooks.js55",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T20:05:59.776Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T20:05:59.794Z",
+        "_duration": 6,
+        "uid": "index.js170",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T20:05:59.800Z"
+      }
+    ],
+    "suites": [],
+    "hooksAndTests": [
+      {
+        "type": "hook",
+        "start": "2019-12-13T20:05:58.657Z",
+        "_duration": 4,
+        "uid": "index.js160",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T20:05:58.661Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T20:05:58.686Z",
+        "_duration": 720,
+        "uid": "hooks.js7",
+        "cid": "0-1",
+        "title": "Hook step has passed",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T20:05:59.406Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T20:05:59.423Z",
+        "_duration": 15,
+        "uid": "step has passed6",
+        "cid": "0-1",
+        "title": "Given s[0-1] tep has passed",
+        "fullTitle": "Sample feature: Sample scenario: Given step has passed",
+        "output": [],
+        "state": "passed",
+        "end": "2019-12-13T20:05:59.438Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T20:05:59.452Z",
+        "_duration": 19,
+        "uid": "step has passed7",
+        "cid": "0-1",
+        "title": "When step has passed",
+        "fullTitle": "Sample feature: Sample scenario: When step has passed",
+        "output": [],
+        "state": "passed",
+        "end": "2019-12-13T20:05:59.471Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T20:05:59.494Z",
+        "_duration": 19,
+        "uid": "step is causing error8",
+        "cid": "0-1",
+        "title": "Then step is causing error",
+        "fullTitle": "Sample feature: Sample scenario: Then step is causing error",
+        "output": [],
+        "state": "failed",
+        "end": "2019-12-13T20:05:59.513Z",
+        "errors": [
+          {
+            "name": "Error",
+            "message": "",
+            "stack": "Error: \n    at World.<anonymous> (./step_definitions/steps.js:650:11)"
+          }
+        ]
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T20:05:59.525Z",
+        "_duration": 1,
+        "uid": "jwdplayer.js6",
+        "cid": "0-1",
+        "title": "Hook step has passed",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T20:05:59.526Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T20:05:59.548Z",
+        "_duration": 228,
+        "uid": "hooks.js55",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T20:05:59.776Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T20:05:59.794Z",
+        "_duration": 6,
+        "uid": "index.js170",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T20:05:59.800Z"
+      }
+    ],
+    "end": "2019-12-13T20:05:59.802Z"
+  }
+}
