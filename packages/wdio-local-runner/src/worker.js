@@ -153,7 +153,7 @@ export default class WorkerInstance extends EventEmitter {
      * @param  {object} argv     arguments for functions to call
      * @return null
      */
-    postMessage (command, argv) {
+    postMessage (command, args) {
         const { cid, configFile, caps, specs, retries, isBusy } = this
 
         if (isBusy && command !== 'endSession') {
@@ -168,7 +168,7 @@ export default class WorkerInstance extends EventEmitter {
             this.childProcess = this.startProcess()
         }
 
-        this.childProcess.send({ cid, command, configFile, argv, caps, specs, retries })
+        this.childProcess.send({ cid, command, configFile, args, caps, specs, retries })
         this.isBusy = true
     }
 }

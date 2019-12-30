@@ -126,8 +126,8 @@ export default class Watcher {
          */
         for (const [, worker] of Object.entries(workers)) {
             const { cid, caps, specs, sessionId } = worker
-            const argv = Object.assign({ sessionId }, params)
-            worker.postMessage('run', argv)
+            const args = Object.assign({ sessionId }, params)
+            worker.postMessage('run', args)
             this.launcher.interface.emit('job:start', { cid, caps, specs })
         }
     }
