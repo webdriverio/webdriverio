@@ -185,6 +185,11 @@ declare namespace WebdriverIO {
         reverse?: boolean,
     }
 
+    type ReactSelectorOptions = {
+        props?: object,
+        state?: any[] | number | string | object | boolean
+    }
+
     interface Element {
         selector: string;
         elementId: string;
@@ -431,8 +436,7 @@ declare namespace WebdriverIO {
          */
         react$$(
             selector: string,
-            props?: object,
-            state?: any[] | number | string | object | boolean
+            options?: ReactSelectorOptions
         ): Promise<ElementArray>;
 
         /**
@@ -441,8 +445,7 @@ declare namespace WebdriverIO {
          */
         react$(
             selector: string,
-            props?: object,
-            state?: any[] | number | string | object | boolean
+            options?: ReactSelectorOptions
         ): Promise<Element>;
 
         /**
@@ -702,8 +705,7 @@ declare namespace WebdriverIO {
          */
         react$$(
             selector: string,
-            props?: object,
-            state?: any[] | number | string | object | boolean
+            options?: ReactSelectorOptions
         ): Promise<ElementArray>;
 
         /**
@@ -712,8 +714,7 @@ declare namespace WebdriverIO {
          */
         react$(
             selector: string,
-            props?: object,
-            state?: any[] | number | string | object | boolean
+            options?: ReactSelectorOptions
         ): Promise<Element>;
 
         /**

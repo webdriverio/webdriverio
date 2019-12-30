@@ -13,7 +13,7 @@
         const form = $('form');
         const notification = $('.notification');
         form.$(".send").click();
-        notification.waitForExist(5000);
+        notification.waitForExist({ timeout: 5000 });
         expect(notification.getText()).to.be.equal('Data transmitted successfully!')
     });
     it('should remove a message after successful form submit', function () {
@@ -21,7 +21,7 @@
         const message = $('.message');
         form.$(".send").click();
         // passing 'undefined' allows us to keep the default timeout value without overwriting it
-        message.waitForExist(undefined, true);
+        message.waitForExist({ reverse: true });
     });
  * </example>
  *
@@ -35,18 +35,14 @@
  *
  */
 
-export default function waitForExist (ms, reverse = false, error) {
-    /*!
-     * ensure that ms is set properly
-     */
-    if (typeof ms !== 'number') {
-        ms = this.options.waitforTimeout
-    }
-
-    const isReversed = reverse ? '' : 'not '
-    const errorMsg = typeof error === 'string' ? error : `element ("${this.selector}") still ${isReversed}existing after ${ms}ms`
-
-    return this.waitUntil(function async () {
-        return this.isExisting().then((isExisting) => isExisting !== reverse)
-    }, ms, errorMsg)
+export default function waitForExist ({
+    timeout = this.options.waitforTimeout,
+    interval = this.options.waitforInterval,
+    reverse = false,
+    timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}existing after ${timeout}ms`
+} = {}) {
+    return this.waitUntil(
+        async () => reverse !== await this.isExisting(),
+        { timeout, interval, timeoutMsg }
+    )
 }

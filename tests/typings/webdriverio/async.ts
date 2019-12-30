@@ -102,9 +102,21 @@ async function bar() {
 
     // react$ react$$
     const reactWrapper = await browser.react$('')
+    const reactWrapper = await browser.react$('', {
+        props: {},
+        state: true
+    })
     const reactElement = await reactWrapper.react$('')
+    const reactElement = await reactWrapper.react$('', {
+        props: {},
+        state: true
+    })
     await reactElement.click()
     const reactElements = await reactWrapper.react$$('')
+    const reactElements = await reactWrapper.react$$('', {
+        props: {},
+        state: true
+    })
     await reactElements[0].click()
 
     // touchAction

@@ -72,9 +72,21 @@ const shadowElems = el6.shadow$$('')
 shadowElems[0].click()
 // react$ react$$
 const reactWrapper = browser.react$('')
+const reactWrapper = browser.react$('', {
+    props: {},
+    state: true
+})
 const reactElement = reactWrapper.react$('')
+const reactElement = reactWrapper.react$('', {
+    props: {},
+    state: true
+})
 reactElement.click()
 const reactElements = reactWrapper.react$$('')
+const reactElements = reactWrapper.react$$('', {
+    props: {},
+    state: true
+})
 reactElements[0].click()
 
 // touchAction

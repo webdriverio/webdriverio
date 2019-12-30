@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`waitForExists should allow to set custom error 1`] = `
+Array [
+  Array [
+    [Function],
+    Object {
+      "interval": 5,
+      "timeout": 1000,
+      "timeoutMsg": "my custom error",
+    },
+  ],
+]
+`;
+
+exports[`waitForExists should use default waitFor options 1`] = `
+Array [
+  Array [
+    [Function],
+    Object {
+      "interval": 5,
+      "timeout": 1000,
+      "timeoutMsg": "element (\\"undefined\\") still not existing after 1000ms",
+    },
+  ],
+]
+`;

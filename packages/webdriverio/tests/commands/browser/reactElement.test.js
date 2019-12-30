@@ -10,11 +10,11 @@ describe('react$', () => {
             }
         })
 
-        const elem = await browser.react$(
-            'myComp',
-            { some: 'props' },
-            { some: 'state' }
-        )
+        const options = {
+            props: { some: 'props' },
+            state: { some: 'state' }
+        }
+        const elem = await browser.react$('myComp', options)
 
         expect(elem.elementId).toBe('some-elem-123')
         expect(got).toBeCalledTimes(4)
