@@ -9,7 +9,18 @@ declare module "@wdio/sync" {
 
 // browser
 browser.pause(1)
-const waitUntil: boolean = browser.waitUntil(() => true, 1, '', 1)
+browser.newWindow('https://webdriver.io', {
+    windowName: 'some name',
+    windowFeatures: 'some features'
+})
+const waitUntil: boolean = browser.waitUntil(
+    () => true,
+    {
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1
+    }
+)
 browser.getCookies()
 
 const executeResult = browser.execute(function (x: number) {
@@ -50,6 +61,31 @@ const el2 = el1.$('')
 const el3 = el2.$('')
 el1.getCSSProperty('style')
 el2.click()
+el1.moveTo({ xOffset: 0, yOffset: 0 })
+const elementExists: boolean = el2.waitForExist({
+    timeout: 1,
+    timeoutMsg: '',
+    interval: 1,
+    reverse: true
+})
+const elementDisplayed: boolean = el2.waitForDisplayed({
+    timeout: 1,
+    timeoutMsg: '',
+    interval: 1,
+    reverse: true
+})
+const elementEnabled: boolean = el2.waitForEnabled({
+    timeout: 1,
+    timeoutMsg: '',
+    interval: 1,
+    reverse: true
+})
+const elementClickable: boolean = el2.waitForClickable({
+    timeout: 1,
+    timeoutMsg: '',
+    interval: 1,
+    reverse: true
+})
 // element custom command
 const el2result = el3.elementCustomCommand(4)
 el2result.toFixed(2)
@@ -72,18 +108,18 @@ const shadowElems = el6.shadow$$('')
 shadowElems[0].click()
 // react$ react$$
 const reactWrapper = browser.react$('')
-const reactWrapper = browser.react$('', {
+const reactWrapperWithOptions = browser.react$('', {
     props: {},
     state: true
 })
 const reactElement = reactWrapper.react$('')
-const reactElement = reactWrapper.react$('', {
+const reactElementWithOptions = reactWrapper.react$('', {
     props: {},
     state: true
 })
 reactElement.click()
 const reactElements = reactWrapper.react$$('')
-const reactElements = reactWrapper.react$$('', {
+const reactElementsWithOptions = reactWrapper.react$$('', {
     props: {},
     state: true
 })
@@ -102,7 +138,7 @@ ele.touchAction(touchAction)
 browser.touchAction(touchAction)
 
 // dragAndDrop
-ele.dragAndDrop(ele, 0)
+ele.dragAndDrop(ele, { duration: 0 })
 
 // addLocatorStrategy
 browser.addLocatorStrategy('myStrat', () => {})

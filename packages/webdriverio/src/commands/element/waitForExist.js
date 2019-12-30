@@ -26,9 +26,11 @@
  * </example>
  *
  * @alias element.waitForExist
- * @param {Number=}  ms       time in ms (default: 500)
- * @param {Boolean=} reverse  if true it instead waits for the selector to not match any elements (default: false)
- * @param {String=}  error    if exists it overrides the default error message
+ * @param {WaitForOptions=}  options             waitForEnabled options (optional)
+ * @param {Number=}          options.timeout     time in ms (default: 500)
+ * @param {Boolean=}         options.reverse     if true it waits for the opposite (default: false)
+ * @param {String=}          options.timeoutMsg  if exists it overrides the default error message
+ * @param {Number=}          options.interval    interval between checks (default: `waitforInterval`)
  * @return {Boolean} true     if element exists (or doesn't if flag is set)
  * @uses utility/waitUntil, state/isExisting
  * @type utility

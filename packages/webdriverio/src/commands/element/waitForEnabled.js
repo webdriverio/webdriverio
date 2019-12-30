@@ -24,11 +24,11 @@
  * </example>
  *
  * @alias element.waitForEnabled
- * @param {Object=}  options             waitForEnabled options (optional)
- * @param {Number=}  options.timeout     time in ms (default: 500)
- * @param {Boolean=} options.reverse     if true it waits for the opposite (default: false)
- * @param {String=}  options.timeoutMsg  if exists it overrides the default error message
- * @param {Number=}  options.interval    interval between checks (default: `waitforInterval`)
+ * @param {WaitForOptions=}  options             waitForEnabled options (optional)
+ * @param {Number=}          options.timeout     time in ms (default: 500)
+ * @param {Boolean=}         options.reverse     if true it waits for the opposite (default: false)
+ * @param {String=}          options.timeoutMsg  if exists it overrides the default error message
+ * @param {Number=}          options.interval    interval between checks (default: `waitforInterval`)
  * @return {Boolean} true     if element is (dis/en)abled
  * @uses utility/waitUntil, state/isEnabled
  * @type utility

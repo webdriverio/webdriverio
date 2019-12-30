@@ -38,6 +38,10 @@ async function bar() {
 
     // browser
     await browser.pause(1)
+    await browser.newWindow('https://webdriver.io', {
+        windowName: 'some name',
+        windowFeatures: 'some features'
+    })
     const waitUntil: boolean = await browser.waitUntil(() => Promise.resolve(true), 1, '', 1)
     await browser.getCookies()
 
@@ -79,6 +83,31 @@ async function bar() {
     const el3 = await el2.$('')
     await el1.getCSSProperty('style')
     await el2.click()
+    await el1.moveTo({ xOffset: 0, yOffset: 0 })
+    const elementExists: boolean = await el2.waitForExist({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
+    const elementDisplayed: boolean = await el2.waitForDisplayed({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
+    const elementEnabled: boolean = await el2.waitForEnabled({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
+    const elementClickable: boolean = await el2.waitForClickable({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
     // element custom command
     const el2result = await el3.elementCustomCommand(4)
     el2result.toFixed(2)
@@ -102,18 +131,18 @@ async function bar() {
 
     // react$ react$$
     const reactWrapper = await browser.react$('')
-    const reactWrapper = await browser.react$('', {
+    const reactWrapperWithOptions = await browser.react$('', {
         props: {},
         state: true
     })
     const reactElement = await reactWrapper.react$('')
-    const reactElement = await reactWrapper.react$('', {
+    const reactElementWithOptions = await reactWrapper.react$('', {
         props: {},
         state: true
     })
     await reactElement.click()
     const reactElements = await reactWrapper.react$$('')
-    const reactElements = await reactWrapper.react$$('', {
+    const reactElementsWithOptions = await reactWrapper.react$$('', {
         props: {},
         state: true
     })
@@ -132,7 +161,7 @@ async function bar() {
     await browser.touchAction(touchAction)
 
     // dragAndDrop
-    await ele.dragAndDrop(ele, 0)
+    await ele.dragAndDrop(ele, { duration: 0 })
 
     // addLocatorStrategy
     browser.addLocatorStrategy('myStrat', () => {})

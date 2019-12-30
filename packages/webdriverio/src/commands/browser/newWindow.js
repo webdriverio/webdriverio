@@ -21,9 +21,10 @@
  * </example>
  *
  * @param {String}  url      website URL to open
- * @param {Object=} options  newWindow command options
- * @param {String=} options.windowName     name of the new window
- * @param {String=} options.windowFeatures features of opened window (e.g. size, position, scrollbars, etc.)
+ * @param {NewWindowOptions=} options                newWindow command options
+ * @param {String=}           options.windowName     name of the new window
+ * @param {String=}           options.windowFeatures features of opened window (e.g. size, position, scrollbars, etc.)
+ *
  * @return {String}          id of window handle of new tab
  *
  * @uses browser/execute, protocol/getWindowHandles, protocol/switchToWindow

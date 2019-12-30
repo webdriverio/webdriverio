@@ -19,8 +19,8 @@
  *
  * @alias browser.react$$
  * @param {String}  selector        of React component
- * @param {Object=} options         React selector options
- * @param {Object=} options.props   React props the element should contain
+ * @param {ReactSelectorOptions=}                    options         React selector options
+ * @param {Object=}                                  options.props   React props the element should contain
  * @param {Array<any>|number|string|object|boolean=} options.state  React state the element should be in
  * @return {ElementArray}
  *

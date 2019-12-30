@@ -190,6 +190,20 @@ declare namespace WebdriverIO {
         state?: any[] | number | string | object | boolean
     }
 
+    type MoveToOptions = {
+        xOffset?: number,
+        yOffset?: number
+    }
+
+    type DragAndDropOptions = {
+        duration?: number
+    }
+
+    type NewWindowOptions = {
+        windowName?: string,
+        windowFeatures?: string
+    }
+
     interface Element {
         selector: string;
         elementId: string;
@@ -294,7 +308,7 @@ declare namespace WebdriverIO {
          */
         dragAndDrop(
             target: Element,
-            duration?: number
+            options?: DragAndDropOptions
         ): void;
 
         /**
@@ -426,8 +440,7 @@ declare namespace WebdriverIO {
          * is not visible, it will be scrolled into view.
          */
         moveTo(
-            xoffset?: number,
-            yoffset?: number
+            options?: MoveToOptions
         ): void;
 
         /**
@@ -456,8 +469,7 @@ declare namespace WebdriverIO {
         ): Buffer;
 
         /**
-         * Scroll element into viewport.
-         * https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+         * Scroll element into viewport ([MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView)).
          */
         scrollIntoView(
             scrollIntoViewOptions?: object | boolean
@@ -531,9 +543,7 @@ declare namespace WebdriverIO {
          * milliseconds to be displayed or not displayed.
          */
         waitForDisplayed(
-            ms?: number,
-            reverse?: boolean,
-            error?: string
+            options?: WaitForOptions
         ): boolean;
 
         /**
@@ -542,9 +552,7 @@ declare namespace WebdriverIO {
          * selector, it returns true if at least one element is (dis/en)abled.
          */
         waitForEnabled(
-            ms?: number,
-            reverse?: boolean,
-            error?: string
+            options?: WaitForOptions
         ): boolean;
 
         /**
@@ -555,9 +563,7 @@ declare namespace WebdriverIO {
          * if the selector does not match any elements.
          */
         waitForExist(
-            ms?: number,
-            reverse?: boolean,
-            error?: string
+            options?: WaitForOptions
         ): boolean;
     }
 
@@ -686,8 +692,7 @@ declare namespace WebdriverIO {
          */
         newWindow(
             url: string,
-            windowName?: string,
-            windowFeatures?: string
+            options?: NewWindowOptions
         ): string;
 
         /**
