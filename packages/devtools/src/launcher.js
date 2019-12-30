@@ -57,7 +57,7 @@ async function launchChrome (capabilities) {
 }
 
 function launchFirefox (capabilities) {
-    puppeteerFirefox = require('puppeteer-firefox');
+    const puppeteerFirefox = require('puppeteer-firefox')
     const firefoxOptions = capabilities['moz:firefoxOptions'] || {}
     return puppeteerFirefox.launch({
         args: firefoxOptions.args || [],
