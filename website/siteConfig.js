@@ -10,6 +10,7 @@ module.exports = {
         { doc: 'gettingstarted', label: 'Guide' },
         { doc: 'api', label: 'API' },
         { page: 'help', label: 'Help' },
+        { doc: 'versions', label: 'Versions' },
         { blog: true, label: 'Blog' },
         { page: 'docs/contribute', label: 'Contribute' },
         { languages: true },

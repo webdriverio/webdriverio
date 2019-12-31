@@ -446,6 +446,9 @@
       "typescript": {
         "title": "TypeScript Setup"
       },
+      "versions": {
+        "title": "WebdriverIO Versions"
+      },
       "watcher": {
         "title": "Watch Test Files"
       }
@@ -456,6 +459,7 @@
       "Help": "Help",
       "Blog": "Blog",
       "Contribute": "Contribute",
+      "Versions": "Versions",
       "GitHub": "GitHub"
     },
     "categories": {
