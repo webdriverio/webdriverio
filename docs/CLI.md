@@ -217,5 +217,13 @@ wdio.run().then((code) => {
 })
 ```
 
+By default the launcher will merge the capabilities object, if you want to overwrite these capabilities instead you will have to pass an `overwriteCaps` option.
+
+```js
+const wdio = new Launcher('/path/to/my/wdio.conf.js', {
+    capabilities: [{ browserName: 'firefox' }]),
+    overwriteCaps: true,
+})
+```
 The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
 It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
