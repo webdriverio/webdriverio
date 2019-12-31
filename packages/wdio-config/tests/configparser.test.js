@@ -280,6 +280,20 @@ describe('ConfigParser', () => {
             expect(typeof configParser.getConfig().after).toBe('function')
             expect(typeof configParser.getConfig().onComplete).toBe('function')
         })
+
+        it('should overwrite capabilities if flag is passed', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'chrome' }])
+            configParser.merge({
+                capabilities: [{ browserName: 'safari' }],
+                overwriteCaps: true,
+            })
+
+            // expect(configParser.getConfig().capabilities[1]).toMatchObject({ browserName: 'foobar' })
+            // expect(configParser.getConfig().overwriteCaps).toBeUndefined()
+            expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'safari' }])
+        })
     })
 
     describe('addService', () => {

@@ -82,6 +82,7 @@ export default class ConfigParser {
      * @param  {Object} object  desired object to merge into the config object
      */
     merge (object = {}) {
+        const { overwriteCaps } = object
         this._config = merge(this._config, object, MERGE_OPTIONS)
         let spec = Array.isArray(object.spec) ? object.spec : []
         let exclude = Array.isArray(object.exclude) ? object.exclude : []
@@ -98,9 +99,12 @@ export default class ConfigParser {
         /**
          * merge capabilities
          */
-        const defaultTo = Array.isArray(this._capabilities) ? [] : {}
-        this._capabilities = merge(this._capabilities, this._config.capabilities || defaultTo, MERGE_OPTIONS)
-
+        if (overwriteCaps) {
+            this._capabilities = this._config.capabilities
+        } else {
+            const defaultTo = Array.isArray(this._capabilities) ? [] : {}
+            this._capabilities = merge(this._capabilities, this._config.capabilities || defaultTo, MERGE_OPTIONS)
+        }
         /**
          * save original specs if Cucumber's feature line number is provided
          */
