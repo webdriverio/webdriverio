@@ -290,8 +290,6 @@ describe('ConfigParser', () => {
                 overwriteCaps: true,
             })
 
-            // expect(configParser.getConfig().capabilities[1]).toMatchObject({ browserName: 'foobar' })
-            // expect(configParser.getConfig().overwriteCaps).toBeUndefined()
             expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'safari' }])
         })
     })
