@@ -15,6 +15,33 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.18.2 (2019-12-31)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#4923](https://github.com/webdriverio/webdriverio/pull/4923) fix default configs being exported as a singleton ([@naorzr](https://github.com/naorzr))
+* `webdriverio`
+  * [#4918](https://github.com/webdriverio/webdriverio/pull/4918) Fix selection of h1 using tag name selector strategy ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`
+  * [#4915](https://github.com/webdriverio/webdriverio/pull/4915) fix: fix spawning Appium on Windows ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `devtools`
+  * [#4927](https://github.com/webdriverio/webdriverio/pull/4927) Remove ff dependency ([@pmerwin](https://github.com/pmerwin))
+  * [#4924](https://github.com/webdriverio/webdriverio/pull/4924) Remove ff dependency ([@pmerwin](https://github.com/pmerwin))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#4920](https://github.com/webdriverio/webdriverio/pull/4920) Add markdown Reporter ([@carmenmitru](https://github.com/carmenmitru))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mitru Carmen ([@carmenmitru](https://github.com/carmenmitru))
+- Phil Merwin ([@pmerwin](https://github.com/pmerwin))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@naorzr](https://github.com/naorzr)
+
+
 ## v5.18.1 (2019-12-23)
 
 #### :nail_care: Polish
