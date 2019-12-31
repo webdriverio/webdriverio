@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.18.3 (2019-12-31)
+
+#### :nail_care: Polish
+* `wdio-junit-reporter`
+  * [#4878](https://github.com/webdriverio/webdriverio/pull/4878) 💥🚀 Cucumber-style JUnit reports in @wdio/junit-reporter ([@mikesalvia](https://github.com/mikesalvia))
+
+#### Committers: 1
+- Mike Salvia ([@mikesalvia](https://github.com/mikesalvia))
+
+
 ## v5.18.2 (2019-12-31)
 
 #### :bug: Bug Fix
