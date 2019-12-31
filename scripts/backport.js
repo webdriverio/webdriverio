@@ -54,7 +54,8 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
         repo: 'webdriverio',
         state: 'closed',
         sort: 'created',
-        direction: 'desc'
+        direction: 'desc',
+        per_page: 100
     })
     const prsToBackport = prs.data.filter(
         (pr) => pr.labels.find(
