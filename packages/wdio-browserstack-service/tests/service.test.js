@@ -6,6 +6,8 @@ const log = logger('test')
 let service
 
 beforeEach(() => {
+    got.mockClear()
+    got.put.mockClear()
     got.mockReturnValue(Promise.resolve({
         body: JSON.stringify({
             automation_session: {
@@ -25,7 +27,7 @@ beforeEach(() => {
         }
     }
     global.browser.sessionId = 12
-    service = new BrowserstackService({})
+    service = new BrowserstackService({ user: 'foo', key: 'bar' })
 })
 
 it('should initialize correctly', () => {
@@ -47,6 +49,23 @@ describe('onReload()', () => {
         await service.onReload(1, 2)
         expect(updateSpy).toHaveBeenCalled()
         expect(service.failures).toEqual(0)
+    })
+})
+
+describe('beforeSession', () => {
+    it('should set some default to make missing user and key parameter apparent', () => {
+        service.beforeSession({})
+        expect(service.config).toEqual({ user: 'NotSetUser', key: 'NotSetKey' })
+    })
+
+    it('should set username default to make missing user parameter apparent', () => {
+        service.beforeSession({ user: 'foo' })
+        expect(service.config).toEqual({ user: 'foo', key: 'NotSetKey' })
+    })
+
+    it('should set key default to make missing key parameter apparent', () => {
+        service.beforeSession({ key: 'bar' })
+        expect(service.config).toEqual({ user: 'NotSetUser', key: 'bar' })
     })
 })
 
@@ -73,7 +92,12 @@ describe('_printSessionURL', () => {
     it('should get and log session details', async () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
 
+        service.sessionId = 'session123'
         await service._printSessionURL()
+        expect(got).toHaveBeenCalledWith(
+            'https://api.browserstack.com/automate/sessions/session123.json',
+            { username: 'foo', password: 'bar' }
+        )
         expect(logInfoSpy).toHaveBeenCalled()
         expect(logInfoSpy).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2'
@@ -179,7 +203,6 @@ describe('before', () => {
 
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
-        expect(service.auth).toEqual('foo:bar')
         expect(service.sessionBaseUrl).toEqual('https://api.browserstack.com/automate/sessions')
     })
 
@@ -203,7 +226,6 @@ describe('before', () => {
 
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
-        expect(service.auth).toEqual('foo:bar')
         expect(service.sessionBaseUrl).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
     })
 
@@ -273,10 +295,20 @@ describe('afterScenario', () => {
 })
 
 describe('after', () => {
-    it('should call _update', () => {
+    it('should call _update', async () => {
         const updateSpy = jest.spyOn(service, '_update')
 
-        service.after()
+        service.sessionId = 'session123'
+        await service.after()
+
+        const json = {
+            name: undefined,
+            reason: undefined,
+            status: 'completed',
+        }
+        expect(got.put).toHaveBeenCalledWith(
+            'https://api.browserstack.com/automate/sessions/session123.json',
+            { json, username: 'foo', password: 'bar' })
         expect(service.failures).toBe(0)
         expect(updateSpy).toHaveBeenCalled()
     })

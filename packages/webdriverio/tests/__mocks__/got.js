@@ -157,9 +157,9 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
             } else {
                 result = null
             }
-        } else if (params.body.script.includes('testLocatorStrategy')) {
+        } else if (params.json.script.includes('testLocatorStrategy')) {
             result = { [ELEMENT_KEY]: genericElementId }
-        } else if (params.body.script.includes('testLocatorStrategiesMultiple')) {
+        } else if (params.json.script.includes('testLocatorStrategiesMultiple')) {
             result = [
                 { [ELEMENT_KEY]: genericElementId },
                 { [ELEMENT_KEY]: 'some-elem-456' },

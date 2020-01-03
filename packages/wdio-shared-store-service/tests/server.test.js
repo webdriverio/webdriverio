@@ -15,34 +15,32 @@ describe('WdioSharedStoreService exports', () => {
     })
 
     it('should not fail if payload has no key/value', async () => {
-        await post(setUrl, { json: true, body: {} })
-        await post(getUrl, { json: true, body: {} })
+        await post(setUrl, { json: {} })
+        await post(getUrl, { json: {} })
         expect(__store).toEqual({})
     })
 
     it('should handle non json type', async () => {
-        let error
-        await post(getUrl, { body: 'foobar' }).catch((err) => { error = err })
-        expect(error.statusCode).toBe(422)
-        expect(error.statusMessage).toBe('Unprocessable Entity')
-        expect(error.url).toContain('/get')
-        expect(error.body).toBe('Invalid JSON')
+        const response = await post(getUrl, { body: 'foobar', throwHttpErrors: false })
+        expect(response.statusCode).toBe(422)
+        expect(response.statusMessage).toBe('Unprocessable Entity')
+        expect(response.url).toContain('/get')
+        expect(response.body).toBe('Invalid JSON')
     })
 
     it('should handle 404', async () => {
-        let error
-        await post(getUrl + 'foobar', { json: true }).catch((err) => { error = err })
-        expect(error.statusCode).toBe(404)
+        const response = await post(getUrl + 'foobar', { throwHttpErrors: false })
+        expect(response.statusCode).toBe(404)
     })
 
     it('should set entry', async () => {
-        await post(setUrl, { json: true, body: { key: 'foo', value: 'bar' } })
+        await post(setUrl, { json: { key: 'foo', value: 'bar' } })
         expect(__store).toEqual({ foo: 'bar' })
     })
 
     it('should get entry', async () => {
         __store.foobar = 'barfoo'
-        const res = await post(getUrl, { json: true, body: { key: 'foobar' } })
+        const res = await post(getUrl, { json: { key: 'foobar' }, responseType: 'json' })
         expect(res.body.value).toEqual('barfoo')
     })
 
