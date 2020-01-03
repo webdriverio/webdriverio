@@ -96,8 +96,7 @@ describe('_printSessionURL', () => {
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
             'https://api.browserstack.com/automate/sessions/session123.json',
-            { username: 'foo', password: 'bar' }
-        )
+            { auth: 'foo:bar' })
         expect(logInfoSpy).toHaveBeenCalled()
         expect(logInfoSpy).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2'
@@ -308,7 +307,7 @@ describe('after', () => {
         }
         expect(got.put).toHaveBeenCalledWith(
             'https://api.browserstack.com/automate/sessions/session123.json',
-            { json, username: 'foo', password: 'bar' })
+            { json, auth: 'foo:bar' })
         expect(service.failures).toBe(0)
         expect(updateSpy).toHaveBeenCalled()
     })

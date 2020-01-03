@@ -1,10 +1,9 @@
-import url from 'url'
-import http from 'http'
 import path from 'path'
+import http from 'http'
 import https from 'https'
-import got from 'got'
 import EventEmitter from 'events'
 
+import got from 'got'
 import logger from '@wdio/logger'
 
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
@@ -73,7 +72,7 @@ export default class WebDriverRequest extends EventEmitter {
             throw new Error('A sessionId is required for this command')
         }
 
-        requestOptions.uri = url.parse(
+        requestOptions.uri = new URL(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
             (this.isHubCommand
@@ -85,8 +84,7 @@ export default class WebDriverRequest extends EventEmitter {
          * send authentication credentials only when creating new session
          */
         if (this.endpoint === '/session' && options.user && options.key) {
-            requestOptions.username = options.user
-            requestOptions.password = options.key
+            requestOptions.auth = `${options.user}:${options.key}`
         }
 
         /**
@@ -131,9 +129,8 @@ export default class WebDriverRequest extends EventEmitter {
                 return { value: JSON.parse(response.body) || null }
             }
 
-            const body = JSON.parse(response.body)
-            this.emit('response', { result: body })
-            return body
+            this.emit('response', { result: response.body })
+            return response.body
         } catch (err) {
             if (typeof err.body === 'undefined') {
                 throw err

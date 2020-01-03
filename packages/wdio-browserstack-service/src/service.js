@@ -80,8 +80,7 @@ export default class BrowserstackService {
     _update(sessionId, requestBody) {
         return got.put(`${this.sessionBaseUrl}/${sessionId}.json`, {
             json: requestBody,
-            username: this.config.user,
-            password: this.config.key
+            auth: `${this.config.user}:${this.config.key}`
         })
     }
 
@@ -98,8 +97,7 @@ export default class BrowserstackService {
 
         try {
             const response = await got(`${this.sessionBaseUrl}/${this.sessionId}.json`, {
-                username: this.config.user,
-                password: this.config.key
+                auth: `${this.config.user}:${this.config.key}`
             })
 
             /**
