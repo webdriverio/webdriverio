@@ -13,7 +13,9 @@ import { ELEMENT_KEY } from '../constants'
  */
 export const getElement = function findElement (selector, res, isReactElement = false) {
     const browser = getBrowserObject(this)
-    const prototype = { ...clone(browser.__propertiesObject__), ...getWDIOPrototype('element'), scope: 'element' }
+    const customCommandPrototype = clone(browser.__propertiesObject__)
+    const elementPrototype = getWDIOPrototype('element')
+    const propertiesObject = { ...customCommandPrototype, ...elementPrototype, scope: 'element' }
 
     const element = webdriverMonad(this.options, (client) => {
         const elementId = getElementFromResponse(res)
@@ -42,7 +44,7 @@ export const getElement = function findElement (selector, res, isReactElement = 
         client.isReactElement = isReactElement
 
         return client
-    }, prototype)
+    }, propertiesObject)
 
     const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
 
@@ -61,10 +63,15 @@ export const getElement = function findElement (selector, res, isReactElement = 
  * @param  {Object} res       findElement response
  * @return {Object}           WDIO element object
  */
-export const getElements = function getElements (selector, res, isReactElement = false) {
+export const getElements = function getElements (selector, elemResponse, isReactElement = false) {
     const browser = getBrowserObject(this)
+    const propertiesObject = {
+        ...clone(browser.__propertiesObject__),
+        ...getWDIOPrototype('element'),
+        scope: 'element'
+    }
 
-    const elements = res.map((res, i) => {
+    const elements = elemResponse.map((res, i) => {
         const element = webdriverMonad(this.options, (client) => {
             const elementId = getElementFromResponse(res)
 
@@ -93,7 +100,7 @@ export const getElements = function getElements (selector, res, isReactElement =
             client.isReactElement = isReactElement
 
             return client
-        }, { ...clone(browser.__propertiesObject__), ...getWDIOPrototype('element'), scope: 'element' })
+        }, propertiesObject)
 
         const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
 
