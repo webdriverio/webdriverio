@@ -61,10 +61,7 @@ export default class WebDriverRequest extends EventEmitter {
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
             requestOptions.json = this.body
-            requestOptions.headers = {
-                ...requestOptions.headers,
-                ...({ 'Content-Length': contentLength })
-            }
+            requestOptions.headers['Content-Length'] = contentLength
         }
 
         /**
@@ -88,7 +85,8 @@ export default class WebDriverRequest extends EventEmitter {
          * send authentication credentials only when creating new session
          */
         if (this.endpoint === '/session' && options.user && options.key) {
-            requestOptions.auth = `${options.user}:${options.key}`
+            requestOptions.username = options.user
+            requestOptions.password = options.key
         }
 
         /**
