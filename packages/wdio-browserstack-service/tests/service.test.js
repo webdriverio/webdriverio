@@ -6,6 +6,7 @@ const log = logger('test')
 let service
 
 beforeEach(() => {
+    log.info.mockClear()
     got.mockClear()
     got.put.mockClear()
     got.mockReturnValue(Promise.resolve({
@@ -70,25 +71,6 @@ describe('beforeSession', () => {
 })
 
 describe('_printSessionURL', () => {
-    beforeAll(() => {
-        got.mockReturnValue(Promise.resolve({
-            body: JSON.stringify({
-                automation_session: {
-                    name: 'Smoke Test',
-                    duration: 65,
-                    os: 'OS X',
-                    os_version: 'Sierra',
-                    browser_version: '61.0',
-                    browser: 'chrome',
-                    device: null,
-                    status: 'failed',
-                    reason: 'CLIENT_STOPPED_SESSION',
-                    browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
-                }
-            })
-        }))
-    })
-
     it('should get and log session details', async () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
 
@@ -132,10 +114,9 @@ describe('_printSessionURL Appium', () => {
     })
 
     it('should get and log session details', async () => {
-        const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
         await service._printSessionURL()
-        expect(logInfoSpy).toHaveBeenCalled()
-        expect(logInfoSpy).toHaveBeenCalledWith(
+        expect(log.info).toHaveBeenCalled()
+        expect(log.info).toHaveBeenCalledWith(
             'iPhone XS iOS 12.1 session: https://app-automate.browserstack.com/builds/1/sessions/2'
         )
     })
@@ -212,11 +193,12 @@ describe('before', () => {
     })
 
     it('should log the url', async () => {
-        const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
         const service = new BrowserstackService({}, [{}], { capabilities: {} })
 
         await service.before()
-        expect(logInfoSpy).toHaveBeenCalled()
+        expect(log.info).toHaveBeenCalled()
+        expect(log.info).toHaveBeenCalledWith(
+            'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2')
     })
 })
 
