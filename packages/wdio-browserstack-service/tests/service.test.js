@@ -9,11 +9,11 @@ beforeEach(() => {
     got.mockClear()
     got.put.mockClear()
     got.mockReturnValue(Promise.resolve({
-        body: JSON.stringify({
+        body: {
             automation_session: {
                 browser_url: 'https://www.browserstack.com/automate/builds/1/sessions/2'
             }
-        })
+        }
     }))
     got.put.mockReturnValue(Promise.resolve({}))
 
@@ -96,27 +96,18 @@ describe('_printSessionURL', () => {
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
             'https://api.browserstack.com/automate/sessions/session123.json',
-            { auth: 'foo:bar' })
+            { auth: 'foo:bar', responseType: 'json' })
         expect(logInfoSpy).toHaveBeenCalled()
         expect(logInfoSpy).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2'
         )
-    })
-
-    it('should throw an error if it recieves a non 200 status code', async () => {
-        const response = new Error('Not Found')
-        response.statusCode = 404
-        got.mockReturnValue(Promise.reject(response))
-
-        expect(service._printSessionURL())
-            .rejects.toThrow(Error('Bad response code: Expected (200), Received (404)!'))
     })
 })
 
 describe('_printSessionURL Appium', () => {
     beforeEach(() => {
         got.mockReturnValue(Promise.resolve({
-            body: JSON.stringify({
+            body: {
                 automation_session: {
                     name: 'Smoke Test',
                     duration: 65,
@@ -129,7 +120,7 @@ describe('_printSessionURL Appium', () => {
                     reason: 'CLIENT_STOPPED_SESSION',
                     browser_url: 'https://app-automate.browserstack.com/builds/1/sessions/2'
                 }
-            })
+            }
         }))
 
         global.browser.capabilities = {
@@ -147,14 +138,6 @@ describe('_printSessionURL Appium', () => {
         expect(logInfoSpy).toHaveBeenCalledWith(
             'iPhone XS iOS 12.1 session: https://app-automate.browserstack.com/builds/1/sessions/2'
         )
-    })
-
-    it('should throw an error if it recieves a non 200 status code', () => {
-        const response = new Error('Not Found')
-        response.statusCode = 404
-        got.mockReturnValue(Promise.reject(response))
-        expect(service._printSessionURL())
-            .rejects.toThrow(Error('Bad response code: Expected (200), Received (404)!'))
     })
 })
 

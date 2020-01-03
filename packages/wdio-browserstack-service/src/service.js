@@ -95,24 +95,20 @@ export default class BrowserstackService {
     async _printSessionURL() {
         const capabilities = global.browser.capabilities
 
-        try {
-            const response = await got(`${this.sessionBaseUrl}/${this.sessionId}.json`, {
-                auth: `${this.config.user}:${this.config.key}`
-            })
+        const response = await got(`${this.sessionBaseUrl}/${this.sessionId}.json`, {
+            auth: `${this.config.user}:${this.config.key}`,
+            responseType: 'json'
+        })
 
-            /**
-             * These keys describe the browser the test was run on
-             */
-            const browserString = BROWSER_DESCRIPTION
-                .map(k => capabilities[k])
-                .filter(v => !!v)
-                .join(' ')
+        /**
+         * These keys describe the browser the test was run on
+         */
+        const browserString = BROWSER_DESCRIPTION
+            .map(k => capabilities[k])
+            .filter(v => !!v)
+            .join(' ')
 
-            const body = JSON.parse(response.body)
-            log.info(`${browserString} session: ${body.automation_session.browser_url}`)
-            return body
-        } catch (err) {
-            throw new Error(`Bad response code: Expected (200), Received (${err.statusCode})!`)
-        }
+        log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
+        return response.body
     }
 }
