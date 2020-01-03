@@ -34,7 +34,7 @@
     "@wdio/logger": "6.0.0-alpha.0",
     "@wdio/protocols": "6.0.0-alpha.0",
     "@wdio/utils": "6.0.0-alpha.0",
-    "got": "^9.6.0",
+    "got": "^10.2.1",
     "lodash.merge": "^4.6.1"
   }
 }

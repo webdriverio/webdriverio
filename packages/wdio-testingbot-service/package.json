@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@wdio/logger": "6.0.0-alpha.0",
-    "got": "^9.6.0",
+    "got": "^10.2.1",
     "testingbot-tunnel-launcher": "^1.1.7"
   },
   "peerDependencies": {
