@@ -151,12 +151,12 @@ export default class CrossBrowserTestingService {
         this.failures = 0
         const response = await got.put(this.getRestUrl(sessionId), {
             json,
+            responseType: 'json',
             auth: `${this.cbtUsername}:this.cbtAuthkey`
         })
 
-        const body = JSON.parse(response.body)
-        global.browser.jobData = body
-        return body
+        global.browser.jobData = response.body
+        return response.body
     }
 
     /**

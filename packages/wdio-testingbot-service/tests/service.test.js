@@ -387,12 +387,8 @@ describe('wdio-testingbot-service', () => {
         const service = new TestingBotService()
         service.beforeSession({ user: 'foobar', key: '123' }, {})
         service.suiteTitle = 'my test'
-        try {
-            await service.updateJob('12345', 23, true)
-            expect(true).toBe(false)
-        } catch (e) {
-            expect(e.message).toBe('Failure')
-        }
+        const err = await service.updateJob('12345', 23, true).catch((err) => err)
+        expect(err.message).toBe('Failure')
 
         expect(got.put).toHaveBeenCalled()
         expect(service.failures).toBe(0)

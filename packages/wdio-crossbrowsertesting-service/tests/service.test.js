@@ -379,11 +379,8 @@ describe('wdio-crossbrowsertesting-service', () => {
         const service = new CrossBrowserTestingService()
         service.beforeSession({ user: 'test', key: 'testy' }, {})
         service.suiteTitle = 'my test'
-        try {
-            await service.updateJob('12345', 23, true)
-        } catch (e) {
-            expect(e.message).toBe('Failure')
-        }
+        const err = await service.updateJob('12345', 23, true).catch((err) => err)
+        expect(err.message).toBe('Failure')
 
         expect(service.failures).toBe(0)
     })
