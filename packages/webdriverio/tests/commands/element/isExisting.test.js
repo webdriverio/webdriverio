@@ -17,7 +17,7 @@ describe('isExisting test', () => {
 
     it('should allow to check if an element is enabled', async () => {
         await elem.isExisting()
-        expect(got.mock.calls[2][1].uri.path)
+        expect(got.mock.calls[2][1].uri.pathname)
             .toBe('/session/foobar-123/elements')
     })
 

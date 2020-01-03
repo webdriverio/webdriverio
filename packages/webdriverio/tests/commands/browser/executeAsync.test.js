@@ -11,7 +11,7 @@ describe('isEnabled test', () => {
         })
 
         await browser.executeAsync(() => 'foobar', 1, 2, 3)
-        expect(got.mock.calls[1][1].uri.path)
+        expect(got.mock.calls[1][1].uri.pathname)
             .toBe('/session/foobar-123/execute/async')
         expect(got.mock.calls[1][1].json.script)
             .toBe('return (() => \'foobar\').apply(null, arguments)')

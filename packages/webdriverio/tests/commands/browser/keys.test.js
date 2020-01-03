@@ -11,12 +11,18 @@ describe('keys', () => {
         })
 
         await browser.keys('foobar')
-        expect(got.mock.calls[1][1].uri.path).toContain('/actions')
-        expect(got.mock.calls[1][1].json.actions).toHaveLength(1)
-        expect(got.mock.calls[1][1].json.actions[0].type).toBe('key')
-        expect(got.mock.calls[1][1].json.actions[0].actions).toHaveLength('foobar'.length * 2)
-        expect(got.mock.calls[1][1].json.actions[0].actions[0]).toEqual({ type: 'keyDown', value: 'f' })
-        expect(got.mock.calls[1][1].json.actions[0].actions[11]).toEqual({ type: 'keyUp', value: 'r' })
+        expect(got.mock.calls[1][1].uri.pathname)
+            .toContain('/actions')
+        expect(got.mock.calls[1][1].json.actions)
+            .toHaveLength(1)
+        expect(got.mock.calls[1][1].json.actions[0].type)
+            .toBe('key')
+        expect(got.mock.calls[1][1].json.actions[0].actions)
+            .toHaveLength('foobar'.length * 2)
+        expect(got.mock.calls[1][1].json.actions[0].actions[0])
+            .toEqual({ type: 'keyDown', value: 'f' })
+        expect(got.mock.calls[1][1].json.actions[0].actions[11])
+            .toEqual({ type: 'keyUp', value: 'r' })
     })
 
     it('should send keys (no w3c)', async () => {
@@ -28,11 +34,11 @@ describe('keys', () => {
         })
 
         await browser.keys('foobar')
-        expect(got.mock.calls[1][1].uri.path).toContain('/keys')
+        expect(got.mock.calls[1][1].uri.pathname).toContain('/keys')
         expect(got.mock.calls[1][1].json.value).toEqual(['f', 'o', 'o', 'b', 'a', 'r'])
 
         await browser.keys('Enter')
-        expect(got.mock.calls[2][1].uri.path).toContain('/keys')
+        expect(got.mock.calls[2][1].uri.pathname).toContain('/keys')
         expect(got.mock.calls[2][1].json.value).toEqual(['\uE007'])
     })
 
@@ -45,11 +51,11 @@ describe('keys', () => {
         })
 
         await browser.keys(['f', 'o', 'Enter', 'b', 'a', 'r'])
-        expect(got.mock.calls[1][1].uri.path).toContain('/keys')
+        expect(got.mock.calls[1][1].uri.pathname).toContain('/keys')
         expect(got.mock.calls[1][1].json.value).toEqual(['f', 'o', '\uE007', 'b', 'a', 'r'])
 
         await browser.keys('Enter')
-        expect(got.mock.calls[2][1].uri.path).toContain('/keys')
+        expect(got.mock.calls[2][1].uri.pathname).toContain('/keys')
         expect(got.mock.calls[2][1].json.value).toEqual(['\uE007'])
     })
 

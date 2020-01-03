@@ -23,7 +23,7 @@ describe('isDisplayed test', () => {
     it('should allow to check if element is displayed', async () => {
         expect(await elem.isDisplayed()).toBe(true)
         expect(got).toBeCalledTimes(1)
-        expect(got.mock.calls[0][1].uri.path)
+        expect(got.mock.calls[0][1].uri.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
@@ -39,7 +39,7 @@ describe('isDisplayed test', () => {
         got.mockClear()
         expect(await elem.isDisplayed()).toBe(true)
         expect(got).toBeCalledTimes(1)
-        expect(got.mock.calls[0][1].uri.path)
+        expect(got.mock.calls[0][1].uri.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
@@ -47,9 +47,9 @@ describe('isDisplayed test', () => {
         delete elem.elementId
         expect(await elem.isDisplayed()).toBe(true)
         expect(got).toBeCalledTimes(2)
-        expect(got.mock.calls[0][1].uri.path)
+        expect(got.mock.calls[0][1].uri.pathname)
             .toBe('/session/foobar-123/element')
-        expect(got.mock.calls[1][1].uri.path)
+        expect(got.mock.calls[1][1].uri.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
@@ -99,7 +99,7 @@ describe('isDisplayed test', () => {
 
             expect(await elem.isDisplayed()).toBe(true)
             expect(got).toBeCalledTimes(1)
-            expect(got.mock.calls[0][1].uri.path)
+            expect(got.mock.calls[0][1].uri.pathname)
                 .toBe('/session/foobar-123/execute/sync')
             expect(got.mock.calls[0][1].json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
@@ -119,7 +119,7 @@ describe('isDisplayed test', () => {
 
             expect(await elem.isDisplayed()).toBe(true)
             expect(got).toBeCalledTimes(1)
-            expect(got.mock.calls[0][1].uri.path)
+            expect(got.mock.calls[0][1].uri.pathname)
                 .toBe('/session/foobar-123/execute/sync')
             expect(got.mock.calls[0][1].json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
@@ -139,7 +139,7 @@ describe('isDisplayed test', () => {
 
             expect(await elem.isDisplayed()).toBe(true)
             expect(got).toBeCalledTimes(1)
-            expect(got.mock.calls[0][1].uri.path)
+            expect(got.mock.calls[0][1].uri.pathname)
                 .toBe('/session/foobar-123/execute/sync')
             expect(got.mock.calls[0][1].json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
@@ -161,7 +161,7 @@ describe('isDisplayed test', () => {
 
             expect(await elem.isDisplayed()).toBe(true)
             expect(got).toBeCalledTimes(1)
-            expect(got.mock.calls[0][1].uri.path)
+            expect(got.mock.calls[0][1].uri.pathname)
                 .toBe('/session/foobar-123/execute/sync')
             expect(got.mock.calls[0][1].json.args[0]).toEqual({
                 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',

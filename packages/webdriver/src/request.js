@@ -33,7 +33,8 @@ export default class WebDriverRequest extends EventEmitter {
             method,
             retry: 0, // we have our own retry mechanism
             followRedirect: true,
-            responseType: 'json'
+            responseType: 'json',
+            throwHttpErrors: false
         }
     }
 
@@ -98,80 +99,61 @@ export default class WebDriverRequest extends EventEmitter {
     async _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0) {
         log.info(`[${fullRequestOptions.method}] ${fullRequestOptions.uri.href}`)
 
-        if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', fullRequestOptions.body)
+        if (fullRequestOptions.json && Object.keys(fullRequestOptions.json).length) {
+            log.info('DATA', fullRequestOptions.json)
         }
 
-        try {
-            const response = await got(fullRequestOptions.uri, fullRequestOptions)
+        const response = await got(fullRequestOptions.uri, fullRequestOptions)
+        const error = getErrorFromResponseBody(response.body)
 
-            if (typeof body === 'string' && body.includes('Whoops! The URL specified routes to this help page.')) {
-                const fixedPath = fullRequestOptions.uri.path.startsWith('/wd/hub') ? '/' : '/wd/hub'
-                const pathError = new Error(`Wrong path set! Please set path to "${fixedPath}".`)
-                log.error('Request failed due to', pathError)
-                this.emit('response', { error: pathError })
-                return reject(pathError)
-            }
-
+        /**
+         * hub commands don't follow standard response formats
+         * and can have empty bodies
+         */
+        if (this.isHubCommand) {
             /**
-             * hub commands don't follow standard response formats
-             * and can have empty bodies
+             * if body contains HTML the command was called on a node
+             * directly without using a hub, therefor throw
              */
-            if (this.isHubCommand) {
-                /**
-                 * if body contains HTML the command was called on a node
-                 * directly without using a hub, therefor throw
-                 */
-                if (response.body.startsWith('<!DOCTYPE html>')) {
-                    return Promise.reject(new Error('Command can only be called to a Selenium Hub'))
-                }
-
-                return { value: JSON.parse(response.body) || null }
+            if (typeof response.body === 'string' && response.body.startsWith('<!DOCTYPE html>')) {
+                return Promise.reject(new Error('Command can only be called to a Selenium Hub'))
             }
 
+            return { value: response.body || null }
+        }
+
+        /**
+         * Resolve only if successful response
+         */
+        if (isSuccessfulResponse(response.statusCode, response.body)) {
             this.emit('response', { result: response.body })
             return response.body
-        } catch (err) {
-            if (typeof err.body === 'undefined') {
-                throw err
-            }
-
-            const body = err.body ? JSON.parse(err.body) : err.body
-            const error = getErrorFromResponseBody(body)
-
-            /**
-             * Resolve only if successful response
-             */
-            if (isSuccessfulResponse(err.statusCode, body)) {
-                this.emit('response', { result: body })
-                return body
-            }
-
-            /**
-             *  stop retrying as this will never be successful.
-             *  we will handle this at the elementErrorHandler
-             */
-            if(error.name === 'stale element reference') {
-                log.warn('Request encountered a stale element - terminating request')
-                this.emit('response', { error })
-                return Promise.reject(error)
-            }
-
-            /**
-             * stop retrying if totalRetryCount was exceeded or there is no reason to
-             * retry, e.g. if sessionId is invalid
-             */
-            if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
-                log.error('Request failed due to', error)
-                this.emit('response', { error })
-                return Promise.reject(error)
-            }
-
-            ++retryCount
-            this.emit('retry', { error, retryCount })
-            log.warn('Request failed due to', error.message)
-            log.info(`Retrying ${retryCount}/${totalRetryCount}`)
-            return this._request(fullRequestOptions, totalRetryCount, retryCount)
         }
+
+        /**
+         *  stop retrying as this will never be successful.
+         *  we will handle this at the elementErrorHandler
+         */
+        if(error.name === 'stale element reference') {
+            log.warn('Request encountered a stale element - terminating request')
+            this.emit('response', { error })
+            throw error
+        }
+
+        /**
+         * stop retrying if totalRetryCount was exceeded or there is no reason to
+         * retry, e.g. if sessionId is invalid
+         */
+        if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
+            log.error('Request failed due to', error)
+            this.emit('response', { error })
+            throw error
+        }
+
+        ++retryCount
+        this.emit('retry', { error, retryCount })
+        log.warn('Request failed due to', error.message)
+        log.info(`Retrying ${retryCount}/${totalRetryCount}`)
+        return this._request(fullRequestOptions, totalRetryCount, retryCount)
     }
 }

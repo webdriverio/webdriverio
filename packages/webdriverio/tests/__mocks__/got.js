@@ -229,7 +229,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
             return Promise.resolve({
                 headers: { foo: 'bar' },
                 statusCode: 200,
-                body: JSON.stringify(response)
+                body: response
             })
         }
 
@@ -241,10 +241,10 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
             }
         }
 
-        return Promise.reject({
+        return Promise.resolve({
             headers: { foo: 'bar' },
             statusCode: 404,
-            body: JSON.stringify(error)
+            body: error
         }, error)
     }
 
@@ -252,7 +252,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
      * empty response
      */
     if (uri.pathname === '/empty') {
-        return Promise.reject({
+        return Promise.resolve({
             headers: { foo: 'bar' },
             statusCode: 500,
             body: ''
@@ -263,7 +263,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
      * session error due to wrong path
      */
     if (params.uri.path === '/wrong/path') {
-        return cb(null, {
+        return Promise.resolve({
             headers: { foo: 'bar' },
             statusCode: 404
         }, '<!DOCTYPE html><p>Whoops! The URL specified routes to this help page.</p>')
@@ -283,14 +283,14 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
             return Promise.resolve({
                 headers: { foo: 'bar' },
                 statusCode: 200,
-                body: JSON.stringify(response)
+                body: response
             })
         }
 
-        return Promise.reject({
+        return Promise.resolve({
             headers: { foo: 'bar' },
             statusCode: 400,
-            body: '{}'
+            body: {}
         })
     }
 
@@ -325,7 +325,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
     return Promise.resolve({
         headers: { foo: 'bar' },
         statusCode,
-        body: typeof response === 'object' ? JSON.stringify(response) : response
+        body: response
     })
 })
 

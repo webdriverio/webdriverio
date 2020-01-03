@@ -7,6 +7,11 @@ import WebDriverRequest from '../src/request'
 const { warn, error } = logger()
 
 const path = '/session'
+const defaultOptions = {
+    protocol: 'http',
+    hostname: 'localhost',
+    port: 4444
+}
 
 describe('webdriver request', () => {
     it('should have some default options', () => {
@@ -84,6 +89,7 @@ describe('webdriver request', () => {
         it('should add auth if user and key is given', () => {
             const req = new WebDriverRequest('POST', path, { some: 'body' })
             const options = req._createOptions({
+                ...defaultOptions,
                 user: 'foo',
                 key: 'bar',
                 path: '/'
@@ -94,25 +100,25 @@ describe('webdriver request', () => {
 
         it('sets request body to "undefined" when request object is empty and DELETE is used', () => {
             const req = new WebDriverRequest('DELETE', path, {})
-            const options = req._createOptions({ path: '/' })
+            const options = req._createOptions({ ...defaultOptions, path: '/' })
             expect(Boolean(options.json)).toEqual(false)
         })
 
         it('sets request body to "undefined" when request object is empty and GET is used', () => {
             const req = new WebDriverRequest('GET', `${path}/title`, {})
-            const options = req._createOptions({ path: '/' })
+            const options = req._createOptions({ ...defaultOptions, path: '/' })
             expect(Boolean(options.json)).toEqual(false)
         })
 
         it('should attach an empty object body when POST is used', () => {
             const req = new WebDriverRequest('POST', '/status', {})
-            const options = req._createOptions({ path: '/' })
+            const options = req._createOptions({ ...defaultOptions, path: '/' })
             expect(options.json).toEqual({})
         })
 
         it('should add the Content-Length header when a request object has a body', () => {
             const req = new WebDriverRequest('POST', path, { foo: 'bar' })
-            const options = req._createOptions({ path: '/' })
+            const options = req._createOptions({ ...defaultOptions, path: '/' })
             expect(Object.keys(options.headers))
                 .toEqual(['Connection', 'Accept', 'User-Agent', 'Content-Length'])
             expect(options.headers['Content-Length']).toBe(13)
@@ -120,7 +126,7 @@ describe('webdriver request', () => {
 
         it('should add Content-Length as well any other header provided in the request options if there is body in the request object', () => {
             const req = new WebDriverRequest('POST', path, { foo: 'bar' })
-            const options = req._createOptions({ path: '/', headers: { foo: 'bar' } })
+            const options = req._createOptions({ ...defaultOptions, path: '/', headers: { foo: 'bar' } })
             expect(Object.keys(options.headers)).toContain('Content-Length')
             expect(options.headers.foo).toContain('bar')
             expect(options.headers['Content-Length']).toBe(13)
@@ -128,12 +134,18 @@ describe('webdriver request', () => {
 
         it('should add only the headers provided if the request body is empty', () => {
             const req = new WebDriverRequest('POST', path)
-            const options = req._createOptions({ path: '/', headers: { foo: 'bar' } })
+            const options = req._createOptions({ ...defaultOptions, path: '/', headers: { foo: 'bar' } })
             expect(Object.keys(options.headers)).not.toContain('Content-Length')
             expect(options.headers.foo).toContain('bar')
         })
 
         describe('rejectUnauthorized', () => {
+            const defaults = {
+                ...defaultOptions,
+                path: '/',
+                headers: { foo: 'bar' }
+            }
+
             beforeEach(function() {
                 delete process.env.STRICT_SSL
                 delete process.env.strict_ssl
@@ -142,48 +154,48 @@ describe('webdriver request', () => {
             it('should contain key "rejectUnauthorized" with value "false" when environment variable "STRICT_SSL" is defined with value "false"', () => {
                 process.env['STRICT_SSL'] = 'false'
                 const req = new WebDriverRequest('POST', path)
-                const options = req._createOptions({ path: '/', headers: { foo: 'bar' } })
+                const options = req._createOptions(defaults)
                 expect(options.rejectUnauthorized).toEqual(false)
             })
 
             it('should contain key "rejectUnauthorized" with value "false" when environment variable "strict_ssl" is defined with value "false"', () => {
                 process.env['strict_ssl'] = 'false'
                 const req = new WebDriverRequest('POST', path)
-                const options = req._createOptions({ path: '/', headers: { foo: 'bar' } })
+                const options = req._createOptions(defaults)
                 expect(options.rejectUnauthorized).toEqual(false)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "STRICT_SSL" is defined with value "true"', () => {
                 process.env['STRICT_SSL'] = 'true'
                 const req = new WebDriverRequest('POST', path)
-                const options = req._createOptions({ path: '/', headers: { foo: 'bar' } })
+                const options = req._createOptions(defaults)
                 expect(options.rejectUnauthorized).toEqual(true)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "strict_ssl" is defined with value "true"', () => {
                 process.env['strict_ssl'] = 'true'
                 const req = new WebDriverRequest('POST', path)
-                const options = req._createOptions({ path: '/', headers: { foo: 'bar' } })
+                const options = req._createOptions(defaults)
                 expect(options.rejectUnauthorized).toEqual(true)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "STRICT_SSL" / "strict_ssl" is not defined', () => {
                 const req = new WebDriverRequest('POST', path)
-                const options = req._createOptions({ path: '/', headers: { foo: 'bar' } })
+                const options = req._createOptions(defaults)
                 expect(options.rejectUnauthorized).toEqual(true)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "STRICT_SSL" is defined with any other value than "false"', () => {
                 process.env['STRICT_SSL'] = 'foo'
                 const req = new WebDriverRequest('POST', path)
-                const options = req._createOptions({ path: '/', headers: { foo: 'bar' } })
+                const options = req._createOptions(defaults)
                 expect(options.rejectUnauthorized).toEqual(true)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "strict_ssl" is defined with any other value than "false"', () => {
                 process.env['strict_ssl'] = 'foo'
                 const req = new WebDriverRequest('POST', path)
-                const options = req._createOptions({ path: '/', headers: { foo: 'bar' } })
+                const options = req._createOptions(defaults)
                 expect(options.rejectUnauthorized).toEqual(true)
             })
         })

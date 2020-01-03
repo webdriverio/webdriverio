@@ -17,7 +17,7 @@ describe('isEnabled test', () => {
 
     it('should allow to check if an element is enabled', async () => {
         await elem.isEnabled()
-        expect(got.mock.calls[2][1].uri.path)
+        expect(got.mock.calls[2][1].uri.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/enabled')
     })
 

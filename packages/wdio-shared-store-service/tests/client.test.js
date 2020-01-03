@@ -3,7 +3,7 @@ import { getValue, setValue, setPort } from '../src/client'
 
 jest.mock('got', () => ({
     post: jest.fn().mockImplementation((url, options) => new Promise((resolve, reject) => {
-        if (options.body.key === 'fail') {
+        if (options.json.key === 'fail') {
             return reject({
                 message: 'Response code 404 (Not Found)',
                 statusCode: 404,
@@ -12,7 +12,7 @@ jest.mock('got', () => ({
                 url
             })
         }
-        if (typeof options.body.key === 'undefined') {
+        if (typeof options.json.key === 'undefined') {
             return resolve({})
         }
         return resolve({ body: { value: 'store value' } })
@@ -29,18 +29,18 @@ describe('client', () => {
 
     it('should set value', async () => {
         await setValue('foo', 'bar')
-        expect(post).toBeCalledWith(`${baseUrl}/set`, { json: true, body: { key: 'foo', value: 'bar' } })
+        expect(post).toBeCalledWith(`${baseUrl}/set`, { json: { key: 'foo', value: 'bar' } })
     })
 
     it('should get value', async () => {
         const result = await getValue('foo')
-        expect(post).toBeCalledWith(`${baseUrl}/get`, { json: true, body: { key: 'foo' } })
+        expect(post).toBeCalledWith(`${baseUrl}/get`, { json: { key: 'foo' }, responseType: 'json' })
         expect(result).toBe('store value')
     })
 
     it('should not fail if key is not in store', async () => {
         const result = await getValue()
-        expect(post).toBeCalledWith(`${baseUrl}/get`, { json: true, body: { key: undefined } })
+        expect(post).toBeCalledWith(`${baseUrl}/get`, { json: { key: undefined }, responseType: 'json' })
         expect(result).toBeUndefined()
     })
 

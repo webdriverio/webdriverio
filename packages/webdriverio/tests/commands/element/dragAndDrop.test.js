@@ -44,9 +44,9 @@ describe('dragAndDrop', () => {
         await elem.dragAndDrop(subElem)
 
         // move to
-        expect(got.mock.calls[4][1].uri.path).toContain('/element/some-elem-123/rect')
-        expect(got.mock.calls[5][1].uri.path).toContain('/element/some-sub-elem-321/rect')
-        expect(got.mock.calls[6][1].uri.path).toContain('/foobar-123/actions')
+        expect(got.mock.calls[4][1].uri.pathname).toContain('/element/some-elem-123/rect')
+        expect(got.mock.calls[5][1].uri.pathname).toContain('/element/some-sub-elem-321/rect')
+        expect(got.mock.calls[6][1].uri.pathname).toContain('/foobar-123/actions')
         expect(got.mock.calls[6][1].json.actions).toHaveLength(1)
         expect(got.mock.calls[6][1].json.actions[0].type).toBe('pointer')
         expect(got.mock.calls[6][1].json.actions[0].actions).toHaveLength(5)
@@ -57,7 +57,7 @@ describe('dragAndDrop', () => {
             { type: 'pointerMove', duration: 100, origin: 'pointer', x: 135, y: 225 },
             { type: 'pointerUp', button: 0 }
         ])
-        expect(got.mock.calls[7][1].uri.path).toContain('/foobar-123/actions')
+        expect(got.mock.calls[7][1].uri.pathname).toContain('/foobar-123/actions')
         expect(got.mock.calls[7][1].method).toContain('DELETE')
     })
 
@@ -73,11 +73,11 @@ describe('dragAndDrop', () => {
         const subElem = await elem.$('#subfoo')
         await elem.dragAndDrop(subElem)
 
-        expect(got.mock.calls[3][1].uri.path).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[3][1].uri.pathname).toContain('/foobar-123/moveto')
         expect(got.mock.calls[3][1].json).toEqual({ element: 'some-elem-123' })
-        expect(got.mock.calls[4][1].uri.path).toContain('/foobar-123/buttondown')
-        expect(got.mock.calls[5][1].uri.path).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[4][1].uri.pathname).toContain('/foobar-123/buttondown')
+        expect(got.mock.calls[5][1].uri.pathname).toContain('/foobar-123/moveto')
         expect(got.mock.calls[5][1].json).toEqual({ element: 'some-sub-elem-321' })
-        expect(got.mock.calls[6][1].uri.path).toContain('/foobar-123/buttonup')
+        expect(got.mock.calls[6][1].uri.pathname).toContain('/foobar-123/buttonup')
     })
 })
