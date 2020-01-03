@@ -29,11 +29,12 @@ export function runHook (hookName, config, caps, specs) {
  * @return {Object}       sanitized caps
  */
 export function sanitizeCaps (caps) {
+    const defaultConfigs = DEFAULT_CONFIGS()
     return Object.keys(caps).filter(key => (
         /**
          * filter out all wdio config keys
          */
-        !Object.keys(DEFAULT_CONFIGS).includes(key)
+        !Object.keys(defaultConfigs).includes(key)
     )).reduce((obj, key) => {
         obj[key] = caps[key]
         return obj
