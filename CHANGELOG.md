@@ -15,6 +15,20 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.18.4 (2020-01-03)
+
+#### :bug: Bug Fix
+* `wdio-config`, `wdio-runner`
+  * [#4938](https://github.com/webdriverio/webdriverio/pull/4938) Fix sanitization of capabilities object (due to DEFAULT_CONFIGS now being a function) ([@mehibbs](https://github.com/mehibbs))
+
+#### :memo: Documentation
+* [#4935](https://github.com/webdriverio/webdriverio/pull/4935) Add storybook-wdio boilerplate to document ([@davidnguyen179](https://github.com/davidnguyen179))
+
+#### Committers: 2
+- David Nguyen ([@davidnguyen179](https://github.com/davidnguyen179))
+- [@mehibbs](https://github.com/mehibbs)
+
+
 ## v5.18.3 (2019-12-31)
 
 #### :nail_care: Polish
