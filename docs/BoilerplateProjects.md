@@ -7,6 +7,28 @@ Over time, our community has developed several boilerplate projects that you can
 
 ## v5 Boilerplate Projects
 
+### [davidnguyen179/storybook-wdio](https://github.com/davidnguyen179/storybook-wdio)
+
+The project creates the powerful component base boilerplate using Storybook, React, Typescript, Mocha, WebdriverIO and Selenium.
+
+- Frameworks:
+    - Storybook (v5.x)
+    - React (v16.x)
+    - WebdriverIO (v5.x)
+    - TypeScript(v3.x)
+    - @Types/Mocha (v5.x)
+- Features:
+    - Generate the stories of component via configurations
+    - TypeScript [Page Object](PageObjects.md) Models
+    - TypesScript Models
+    - Code Prettier
+    - Eslint
+    - Git hook using `husky` and `lint-staged`
+    - Support TravisCI, CircleCI and Github Actions
+    - Allow running visual regression test in single component or all components
+    - Support `Dockerfile` to deploy the `storybook`
+    - Support `docker-compose.yml` to start the selenium chrome, firefox
+
 ### [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: Cucumber (v5.x)
