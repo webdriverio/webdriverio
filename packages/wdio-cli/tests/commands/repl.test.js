@@ -1,19 +1,7 @@
 import yargs from 'yargs'
 import { remote } from 'webdriverio'
-import { setSyncSupport } from '@wdio/utils'
 
 import { handler, builder } from './../../src/commands/repl'
-
-jest.mock('@wdio/utils', () => {
-    let syncSupport = false
-
-    return {
-        setSyncSupport: (val) => (syncSupport = val),
-        get hasWdioSyncSupport () {
-            return syncSupport
-        }
-    }
-})
 
 jest.mock('repl')
 
@@ -54,7 +42,6 @@ describe('Command: repl', () => {
     })
 
     it('should set runner if @wdio/sync is installed', async () => {
-        setSyncSupport(true)
         await handler({ option: 'foobar' })
         expect(remote).toHaveBeenCalledWith({
             option: 'foobar',

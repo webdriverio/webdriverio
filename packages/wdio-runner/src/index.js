@@ -234,7 +234,6 @@ export default class Runner extends EventEmitter {
 
         try {
             browser = global.browser = global.driver = await initialiseInstance(config, caps, this.isMultiremote)
-            process.env.WDIO_SYNC_ENABLED = true
         } catch (e) {
             log.error(e)
             this.emit('error', e)
@@ -377,7 +376,6 @@ export default class Runner extends EventEmitter {
         }
 
         await global.browser.deleteSession()
-        process.env.WDIO_SYNC_ENABLED = false
 
         /**
          * delete session(s)

@@ -1,7 +1,7 @@
 import deasync from 'deasync'
 
 export default function waitForPromise (promise) {
-    if (!(promise instanceof Promise) || !process.env.WDIO_SYNC_ENABLED) {
+    if (!(promise instanceof Promise)) {
         return promise
     }
 

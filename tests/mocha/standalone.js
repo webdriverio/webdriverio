@@ -1,8 +1,5 @@
 import assert from 'assert'
 import { remote } from '../../packages/webdriverio'
-import { hasWdioSyncSupport } from '../../packages/wdio-utils'
-
-console.log(hasWdioSyncSupport)
 
 function sleep (ms) {
     return new Promise((resolve) => setTimeout(resolve, ms))
