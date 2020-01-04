@@ -6,6 +6,10 @@ jest.mock('deasync', () => ({
     loopWhile: jest.fn().mockImplementation((fn) => fn())
 }))
 
+beforeEach(() => {
+    deasync.loopWhile.mockClear()
+})
+
 test('should return result if not a promise', () => {
     expect(waitForPromise('foobar')).toBe('foobar')
     expect(deasync.loopWhile).toHaveBeenCalledTimes(0)
