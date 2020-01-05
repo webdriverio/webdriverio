@@ -184,4 +184,30 @@ describe('addValue test', () => {
             expect(request.mock.calls[2][0].body.value).toEqual(['1', '2', 't', 'r', 'u', 'e', '[', '1', ',', '2', ']'])
         })
     })
+
+    describe('should allow to add value to an input element as workaround for /webdriverio/issues/4936', () => {
+        let browser
+
+        beforeEach(async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'foobar'
+                }
+            })
+        })
+
+        afterEach(() => {
+            request.mockClear()
+        })
+
+        it('add string', async () => {
+            const elem = await browser.$('#foo')
+
+            await elem.addValue('Delete', { translateToUnicode: false })
+            expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/value')
+            expect(request.mock.calls[2][0].body.text).toEqual('Delete')
+            expect(request.mock.calls[2][0].body.value).toEqual(['D', 'e', 'l', 'e', 't', 'e'])
+        })
+    })
 })

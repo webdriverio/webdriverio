@@ -44,3 +44,29 @@ describe('setValue', () => {
         expect(request.mock.calls[3][0].body.text).toEqual('12true[1,2]')
     })
 })
+
+describe('should allow to add value to an input element as workaround for /webdriverio/issues/4936', () => {
+    let browser
+
+    beforeEach(async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+    })
+
+    afterEach(() => {
+        request.mockClear()
+    })
+
+    test('should set the value clearning the element first', async () => {
+        const elem = await browser.$('#foo')
+
+        await elem.setValue('Delete', { translateToUnicode: false })
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/clear')
+        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/value')
+        expect(request.mock.calls[3][0].body.text).toEqual('Delete')
+    })
+})

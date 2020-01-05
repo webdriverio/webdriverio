@@ -90,6 +90,17 @@ describe('utils', () => {
             expect(transformToCharString('Backspace')).toEqual(['\uE003'])
             expect(transformToCharString('Pageup')).toEqual(['\uE00E'])
         })
+
+        it('should transform string without converting to unicode', () => {
+            expect(transformToCharString('Delete', { translateToUnicode: false })).toEqual(
+                ['D', 'e', 'l', 'e', 't', 'e'])
+            expect(transformToCharString('Back space', { translateToUnicode: false })).toEqual(
+                ['B', 'a', 'c', 'k', ' ', 's', 'p', 'a', 'c', 'e'])
+            expect(transformToCharString('Backspace', { translateToUnicode: false })).toEqual(
+                ['B', 'a', 'c', 'k', 's', 'p', 'a', 'c', 'e'])
+            expect(transformToCharString('Pageup', { translateToUnicode: false })).toEqual(
+                ['P', 'a', 'g', 'e', 'u', 'p'])
+        })
     })
 
     describe('parseCSS', () => {
