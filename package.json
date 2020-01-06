@@ -135,11 +135,5 @@
       "outOfRangeUpdatesOnly": true
     }
   },
-  "dependencies": {
-    "@wdio/logger": "^5.16.10",
-    "css-value": "0.0.1",
-    "grapheme-splitter": "^1.0.4",
-    "lodash.isobject": "^3.0.2",
-    "rgb2hex": "^0.1.10"
-  }
+  "dependencies": {}
 }
