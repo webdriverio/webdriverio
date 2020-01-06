@@ -201,8 +201,8 @@ export default class Runner extends EventEmitter {
         /**
          * register global helper method to fetch elements
          */
-        global.$ = (selector) => browser.$(selector)
-        global.$$ = (selector) => browser.$$(selector)
+        global.$ = ::browser.$
+        global.$$ = ::browser.$$
 
         /**
          * register command event

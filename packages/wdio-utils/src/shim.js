@@ -46,8 +46,9 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks, args)
     return Promise.all(hooks)
 }
 
+global.WDIO_CALL_STACK = []
 function wrapCommandFactory (syncWrapper) {
-    return function wrapCommand (commandName, fn) {
+    return function wrapCommand (commandName, fn, isCustomCommand) {
         async function wrapCommandFn (...args) {
             const beforeHookArgs = [commandName, args]
             if (!inCommandHook && this.options.beforeCommand) {
@@ -83,7 +84,34 @@ function wrapCommandFactory (syncWrapper) {
         }
 
         return function callFn (...args) {
-            return syncWrapper(wrapCommandFn.call(this, ...args))
+            const lastCall = global.WDIO_CALL_STACK[global.WDIO_CALL_STACK.length - 1]
+            const runSync = (
+                global.WDIO_CALL_STACK.length === 0 ||
+                (
+                    Array.isArray(lastCall) &&
+                    lastCall.length === 0
+                )
+            )
+
+            if (!runSync) {
+                return wrapCommandFn.call(this, ...args)
+            }
+
+            const requiresNewStack = ['call', 'waitUntil'].includes(commandName) || isCustomCommand
+            const callStackItem = requiresNewStack ? [] : commandName
+            let result
+            try {
+                (Array.isArray(lastCall) && !requiresNewStack ? lastCall : global.WDIO_CALL_STACK).push(callStackItem)
+                result = syncWrapper(wrapCommandFn.call(this, ...args))
+            } finally {
+                if (Array.isArray(lastCall) && !requiresNewStack) {
+                    lastCall.pop()
+                } else {
+                    global.WDIO_CALL_STACK.pop()
+                }
+            }
+
+            return result
         }
     }
 }

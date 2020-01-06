@@ -71,7 +71,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
 
         client.addCommand = function (name, func, attachToElement = false, proto, instances) {
             const customCommand = typeof commandWrapper === 'function'
-                ? commandWrapper(name, func)
+                ? commandWrapper(name, func, true)
                 : func
             if (attachToElement) {
                 /**
@@ -102,7 +102,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
          */
         client.overwriteCommand = function (name, func, attachToElement = false, proto, instances) {
             let customCommand = typeof commandWrapper === 'function'
-                ? commandWrapper(name, func)
+                ? commandWrapper(name, func, true)
                 : func
             if (attachToElement) {
                 if (instances) {

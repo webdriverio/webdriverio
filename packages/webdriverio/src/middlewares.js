@@ -7,14 +7,14 @@ import implicitWait from './utils/implicitWait'
  *
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
  */
-export const elementErrorHandler = (fn) => (commandName, commandFn) => {
+export const elementErrorHandler = (fn) => (commandName, commandFn, isCustomCommand) => {
     return function elementErrorHandlerCallback (...args) {
         return fn(commandName, async function elementErrorHandlerCallbackFn () {
             const element = await implicitWait(this, commandName)
             this.elementId = element.elementId
 
             try {
-                const result = await fn(commandName, commandFn).apply(this, args)
+                const result = await commandFn.apply(this, args)
 
                 /**
                  * assume Safari responses like { error: 'no such element', message: '', stacktrace: '' }
@@ -33,11 +33,11 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
                     this.elementId = element.elementId
                     this.parent = element.parent
 
-                    return await fn(commandName, commandFn).apply(this, args)
+                    return await commandFn.apply(this, args)
                 }
                 throw error
             }
-        }).apply(this)
+        }, isCustomCommand).apply(this)
     }
 }
 

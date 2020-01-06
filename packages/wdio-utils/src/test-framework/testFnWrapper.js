@@ -87,6 +87,8 @@ export const testFnWrapper = async function (
     if (error) {
         throw error
     }
+
+    global.WDIO_CALL_STACK = []
     return result
 }
 

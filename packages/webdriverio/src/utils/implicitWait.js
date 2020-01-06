@@ -22,7 +22,7 @@ export default async function implicitWait (currentElement, commandName) {
             /**
              * if waitForExist was successful requery element and assign elementId to the scope
              */
-            return await currentElement.parent.$(currentElement.selector)
+            return currentElement.parent.$(currentElement.selector)
         } catch {
             throw new Error(
                 `Can't call ${commandName} on element with selector "${currentElement.selector}" because element wasn't found`)

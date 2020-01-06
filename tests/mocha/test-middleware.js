@@ -5,7 +5,8 @@ describe('Mocha smoke test', () => {
         it('should wait for elements if not found immediately', () => {
             browser.waitForElementScenario()
             const elem = $('elem')
-            //Element will be found
+
+            // Element will be found
             assert.doesNotThrow(() => elem.click())
         })
 
