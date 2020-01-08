@@ -16,7 +16,7 @@ describe('getHTML test', () => {
         }
 
         let result = await elem.getHTML()
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/execute/sync')
         expect(result).toBe('<some>outer html</some>')
 
         result = await elem.getHTML(false)

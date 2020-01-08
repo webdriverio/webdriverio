@@ -17,7 +17,7 @@ describe('getAttribute test', () => {
 
     it('should allow to get attribute from element', async () => {
         await elem.getAttribute('foo')
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/attribute/foo')
+        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/element/some-elem-123/attribute/foo')
     })
 
     afterEach(() => {

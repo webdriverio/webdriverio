@@ -138,14 +138,14 @@ describe('utils', () => {
                     directConnectProtocol: 'https',
                     directConnectHost: 'bar',
                     directConnectPort: 4321,
-                    directConnectPath: '/wd/hub'
+                    directConnectPath: '/'
                 }
             }
             setupDirectConnect(params)
             expect(params.protocol).toBe('https')
             expect(params.hostname).toBe('bar')
             expect(params.port).toBe(4321)
-            expect(params.path).toBe('/wd/hub')
+            expect(params.path).toBe('/')
         })
 
         it('should update connection params even if path is empty string', function () {
@@ -153,7 +153,7 @@ describe('utils', () => {
                 protocol: 'http',
                 hostname: 'foo',
                 port: 1234,
-                path: '/wd/hub',
+                path: '/',
                 capabilities: {
                     directConnectProtocol: 'https',
                     directConnectHost: 'bar',

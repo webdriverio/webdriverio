@@ -53,13 +53,13 @@ describe('wdio-junit-reporter', () => {
             type: 'command',
             method: 'POST',
             sessionId: 'foobar',
-            endpoint: '/wd/hub/sessionId/click',
+            endpoint: '/sessionId/click',
             body: { elementId: 'foobar' }
         }, {
             type: 'result',
             body: { value: 'foobar' }
         }]
-        expect(reporter.getStandardOutput({ output })).toContain('COMMAND: POST /wd/hub/sessionId/click - {"elementId":"foobar"}')
+        expect(reporter.getStandardOutput({ output })).toContain('COMMAND: POST /sessionId/click - {"elementId":"foobar"}')
         expect(reporter.getStandardOutput({ output })).toContain('RESULT: {"value":"foobar"}')
     })
 

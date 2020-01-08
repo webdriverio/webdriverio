@@ -167,8 +167,8 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'input',
     name: 'path',
-    message: 'What is the path to your Selenium standalone or grid server?',
-    default: '/wd/hub',
+    message: 'What is the path to your browser driver or grid server?',
+    default: '/',
     when: /* istanbul ignore next */ (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'list',

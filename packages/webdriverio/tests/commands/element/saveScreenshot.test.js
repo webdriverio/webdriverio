@@ -41,7 +41,7 @@ describe('saveScreenshot', () => {
 
         // request
         expect(request.mock.calls[2][0].method).toBe('GET')
-        expect(request.mock.calls[2][0].uri.pathname).toBe('/wd/hub/session/foobar-123/element/some-elem-123/screenshot')
+        expect(request.mock.calls[2][0].uri.pathname).toBe('/session/foobar-123/element/some-elem-123/screenshot')
         expect(screenshot.toString()).toBe('some element screenshot')
 
         // write to file

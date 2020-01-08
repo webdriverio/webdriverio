@@ -38,7 +38,7 @@ describe('waitForDisplayed', () => {
         const result = await elem.waitForDisplayed(duration)
 
         expect(result).toBe(true)
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/displayed')
+        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
     test('should call isDisplayed and return true if eventually true', async () => {

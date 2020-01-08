@@ -16,7 +16,7 @@ describe('getWindowSize', () => {
     it('should get size of W3C browser window', async () => {
         await browser.getWindowSize()
         expect(request.mock.calls[1][0].method).toBe('GET')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/window/rect')
+        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/window/rect')
     })
 
     it('should get size of NO-W3C browser window', async () => {
@@ -29,7 +29,7 @@ describe('getWindowSize', () => {
 
         await browser.getWindowSize()
         expect(request.mock.calls[1][0].method).toBe('GET')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/window/current/size')
+        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/window/current/size')
     })
 
     afterEach(() => {

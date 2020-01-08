@@ -45,9 +45,9 @@ describe('reloadSession test', () => {
             await browser.reloadSession()
 
             expect(request.mock.calls[1][0].method).toBe('DELETE')
-            expect(request.mock.calls[1][0].uri.pathname).toBe(`/wd/hub/session/${oldSessionId}`)
+            expect(request.mock.calls[1][0].uri.pathname).toBe(`/session/${oldSessionId}`)
             expect(request.mock.calls[2][0].method).toBe('POST')
-            expect(request.mock.calls[2][0].uri.pathname).toBe('/wd/hub/session')
+            expect(request.mock.calls[2][0].uri.pathname).toBe('/session')
             expect(hook).toBeCalledWith(oldSessionId, scenario.newSessionId)
         })
     })
@@ -77,9 +77,9 @@ describe('reloadSession test', () => {
 
         await browser.reloadSession()
 
-        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in request.mock.calls as it will not complete
+        // INFO: DELETE to /session/${oldSessionId} in not expected to be found in request.mock.calls as it will not complete
         expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.pathname).toBe('/wd/hub/session')
+        expect(request.mock.calls[1][0].uri.pathname).toBe('/session')
         expect(hook).toBeCalledWith(null, scenario.newSessionId)
     })
 
@@ -108,9 +108,9 @@ describe('reloadSession test', () => {
 
         await browser.reloadSession()
 
-        // INFO: DELETE to /wd/hub/session/${oldSessionId} in not expected to be found in request.mock.calls as it will not complete
+        // INFO: DELETE to /session/${oldSessionId} in not expected to be found in request.mock.calls as it will not complete
         expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.pathname).toBe('/wd/hub/session')
+        expect(request.mock.calls[1][0].uri.pathname).toBe('/session')
         expect(hook).toBeCalledWith(null, scenario.newSessionId)
     })
 
