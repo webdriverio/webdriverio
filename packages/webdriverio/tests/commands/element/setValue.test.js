@@ -43,4 +43,13 @@ describe('setValue', () => {
         await elem.setValue([1, '2', true, [1, 2]])
         expect(request.mock.calls[3][0].body.text).toEqual('12true[1,2]')
     })
+
+    test('should set the value clearning the element first', async () => {
+        const elem = await browser.$('#foo')
+
+        await elem.setValue('Delete', { translateToUnicode: false })
+        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/clear')
+        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/value')
+        expect(request.mock.calls[3][0].body.text).toEqual('Delete')
+    })
 })
