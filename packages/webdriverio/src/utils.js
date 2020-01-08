@@ -82,7 +82,7 @@ export function getBrowserObject (elem) {
 /**
  * transform whatever value is into an array of char strings
  */
-export function transformToCharString (value, translateToUnicode) {
+export function transformToCharString (value, translateToUnicode = true) {
     const ret = []
 
     if (!Array.isArray(value)) {

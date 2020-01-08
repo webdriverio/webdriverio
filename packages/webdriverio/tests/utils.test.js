@@ -103,14 +103,10 @@ describe('utils', () => {
         })
 
         it('should transform string with converting to unicode', () => {
-            expect(transformToCharString('Delete', true)).toEqual(
-                ['D', 'e', 'l', 'e', 't', 'e'])
-            expect(transformToCharString('Back space', true)).toEqual(
-                ['B', 'a', 'c', 'k', ' ', 's', 'p', 'a', 'c', 'e'])
-            expect(transformToCharString('Backspace', true)).toEqual(
-                ['B', 'a', 'c', 'k', 's', 'p', 'a', 'c', 'e'])
-            expect(transformToCharString('Pageup', true)).toEqual(
-                ['P', 'a', 'g', 'e', 'u', 'p'])
+            expect(transformToCharString('Delete', true)).toEqual(['\uE017'])
+            expect(transformToCharString('Back space', true)).toEqual(['\uE003'])
+            expect(transformToCharString('Backspace', true)).toEqual(['\uE003'])
+            expect(transformToCharString('Pageup', true)).toEqual(['\uE00E'])
         })
     })
 

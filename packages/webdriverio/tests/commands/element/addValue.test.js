@@ -207,7 +207,6 @@ describe('addValue test', () => {
             await elem.addValue('Delete', { translateToUnicode: false })
             expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/value')
             expect(request.mock.calls[2][0].body.text).toEqual('Delete')
-            expect(request.mock.calls[2][0].body.value).toEqual(['D', 'e', 'l', 'e', 't', 'e'])
         })
     })
 })
