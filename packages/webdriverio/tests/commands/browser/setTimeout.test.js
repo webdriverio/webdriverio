@@ -14,19 +14,19 @@ describe('setTimeout', () => {
         await browser.setTimeout({ implicit: 5000 })
         expect(request.mock.calls.length).toBe(2)
         expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[1][0].body).toEqual({ 'implicit': 5000 })
 
         await browser.setTimeout({ pageLoad: 10000 })
         expect(request.mock.calls.length).toBe(3)
         expect(request.mock.calls[2][0].method).toBe('POST')
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[2][0].body).toEqual({ 'pageLoad': 10000 })
 
         await browser.setTimeout({ script: 60000 })
         expect(request.mock.calls.length).toBe(4)
         expect(request.mock.calls[3][0].method).toBe('POST')
-        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[3][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[3][0].body).toEqual({ 'script': 60000 })
 
         await browser.setTimeout({
@@ -36,7 +36,7 @@ describe('setTimeout', () => {
         })
         expect(request.mock.calls.length).toBe(5)
         expect(request.mock.calls[4][0].method).toBe('POST')
-        expect(request.mock.calls[4][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[4][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[4][0].body).toEqual({
             'implicit': 0,
             'pageLoad': 300000,
@@ -46,7 +46,7 @@ describe('setTimeout', () => {
         await browser.setTimeout({})
         expect(request.mock.calls.length).toBe(6)
         expect(request.mock.calls[5][0].method).toBe('POST')
-        expect(request.mock.calls[5][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[5][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[5][0].body).toEqual({})
     })
 
@@ -61,19 +61,19 @@ describe('setTimeout', () => {
         await browser.setTimeout({ implicit: 5000 })
         expect(request.mock.calls.length).toBe(2)
         expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[1][0].body).toEqual({ 'type': 'implicit', 'ms': 5000 })
 
         await browser.setTimeout({ 'page load': 10000 })
         expect(request.mock.calls.length).toBe(3)
         expect(request.mock.calls[2][0].method).toBe('POST')
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[2][0].body).toEqual({ 'type': 'page load', 'ms': 10000 })
 
         await browser.setTimeout({ script: 60000 })
         expect(request.mock.calls.length).toBe(4)
         expect(request.mock.calls[3][0].method).toBe('POST')
-        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[3][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[3][0].body).toEqual({ 'type': 'script', 'ms': 60000 })
 
         await browser.setTimeout({
@@ -83,13 +83,13 @@ describe('setTimeout', () => {
         })
         expect(request.mock.calls.length).toBe(7)
         expect(request.mock.calls[4][0].method).toBe('POST')
-        expect(request.mock.calls[4][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[4][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[4][0].body).toEqual({ 'type': 'implicit', 'ms': 0 })
         expect(request.mock.calls[5][0].method).toBe('POST')
-        expect(request.mock.calls[5][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[5][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[5][0].body).toEqual({ 'type': 'page load', 'ms': 300000 })
         expect(request.mock.calls[6][0].method).toBe('POST')
-        expect(request.mock.calls[6][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
+        expect(request.mock.calls[6][0].uri.path).toBe('/session/foobar-123/timeouts')
         expect(request.mock.calls[6][0].body).toEqual({ 'type': 'script', 'ms': 30000 })
 
         await browser.setTimeout({})

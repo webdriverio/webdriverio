@@ -27,13 +27,13 @@ test('should run command on all instances', async () => {
     const result = await browser.execute(() => 'foobar')
     expect(result).toEqual(['foobar', 'foobar'])
 
-    expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session')
+    expect(request.mock.calls[0][0].uri.path).toBe('/session')
     expect(request.mock.calls[0][0].method).toBe('POST')
-    expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session')
+    expect(request.mock.calls[1][0].uri.path).toBe('/session')
     expect(request.mock.calls[1][0].method).toBe('POST')
-    expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+    expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/execute/sync')
     expect(request.mock.calls[2][0].method).toBe('POST')
-    expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+    expect(request.mock.calls[3][0].uri.path).toBe('/session/foobar-123/execute/sync')
     expect(request.mock.calls[3][0].method).toBe('POST')
 })
 
@@ -66,10 +66,10 @@ test('should allow to call on elements', async () => {
     const result = await elem.getSize()
     expect(result).toEqual([{ width: 50, height: 30 }, { width: 50, height: 30 }])
 
-    expect(request.mock.calls[2][0].uri.path).toEqual('/wd/hub/session/foobar-123/element')
-    expect(request.mock.calls[3][0].uri.path).toEqual('/wd/hub/session/foobar-123/element')
-    expect(request.mock.calls[4][0].uri.path).toEqual('/wd/hub/session/foobar-123/element/some-elem-123/rect')
-    expect(request.mock.calls[5][0].uri.path).toEqual('/wd/hub/session/foobar-123/element/some-elem-123/rect')
+    expect(request.mock.calls[2][0].uri.path).toEqual('/session/foobar-123/element')
+    expect(request.mock.calls[3][0].uri.path).toEqual('/session/foobar-123/element')
+    expect(request.mock.calls[4][0].uri.path).toEqual('/session/foobar-123/element/some-elem-123/rect')
+    expect(request.mock.calls[5][0].uri.path).toEqual('/session/foobar-123/element/some-elem-123/rect')
 })
 
 test('should be able to fetch multiple elements', async () => {

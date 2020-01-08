@@ -2,6 +2,8 @@ import { ELEMENT_KEY } from '../../src/constants'
 
 let manualMockResponse
 
+const path = '/session'
+
 const defaultSessionId = 'foobar-123'
 let sessionId = defaultSessionId
 const genericElementId = 'some-elem-123'
@@ -49,7 +51,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     }
 
     switch (params.uri.path) {
-    case '/wd/hub/session':
+    case path:
         value = sessionResponse
 
         if (params.body.capabilities.alwaysMatch.browserName && params.body.capabilities.alwaysMatch.browserName.includes('noW3C')) {
@@ -58,7 +60,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         }
 
         break
-    case `/wd/hub/session/${sessionId}/element`:
+    case `${path}/${sessionId}/element`:
         if (params.body && params.body.value === '#nonexisting') {
             value = { elementId: null }
             break
@@ -77,17 +79,17 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         }
 
         break
-    case `/wd/hub/session/${sessionId}/element/some-elem-123/element`:
+    case `${path}/${sessionId}/element/some-elem-123/element`:
         value = {
             [ELEMENT_KEY]: genericSubElementId
         }
         break
-    case `/wd/hub/session/${sessionId}/element/${genericSubElementId}/element`:
+    case `${path}/${sessionId}/element/${genericSubElementId}/element`:
         value = {
             [ELEMENT_KEY]: genericSubSubElementId
         }
         break
-    case `/wd/hub/session/${sessionId}/element/${genericElementId}/rect`:
+    case `${path}/${sessionId}/element/${genericElementId}/rect`:
         value = {
             x: 15,
             y: 20,
@@ -95,7 +97,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             width: 50
         }
         break
-    case `/wd/hub/session/${sessionId}/element/${genericSubElementId}/rect`:
+    case `${path}/${sessionId}/element/${genericSubElementId}/rect`:
         value = {
             x: 100,
             y: 200,
@@ -103,36 +105,36 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             width: 150
         }
         break
-    case `/wd/hub/session/${sessionId}/element/${genericElementId}/size`:
+    case `${path}/${sessionId}/element/${genericElementId}/size`:
         value = {
             height: 30,
             width: 50
         }
         break
-    case `/wd/hub/session/${sessionId}/element/${genericElementId}/location`:
+    case `${path}/${sessionId}/element/${genericElementId}/location`:
         value = {
             x: 15,
             y: 20
         }
         break
-    case `/wd/hub/session/${sessionId}/element/${genericElementId}/displayed`:
+    case `${path}/${sessionId}/element/${genericElementId}/displayed`:
         value = true
         break
-    case `/wd/hub/session/${sessionId}/elements`:
+    case `${path}/${sessionId}/elements`:
         value = [
             { [ELEMENT_KEY]: genericElementId },
             { [ELEMENT_KEY]: 'some-elem-456' },
             { [ELEMENT_KEY]: 'some-elem-789' },
         ]
         break
-    case `/wd/hub/session/${sessionId}/element/${genericElementId}/css/width`:
+    case `${path}/${sessionId}/element/${genericElementId}/css/width`:
         value = '1250px'
         break
-    case `/wd/hub/session/${sessionId}/element/${genericElementId}/property/tagName`:
+    case `${path}/${sessionId}/element/${genericElementId}/property/tagName`:
         value = 'BODY'
         break
-    case `/wd/hub/session/${sessionId}/execute`:
-    case `/wd/hub/session/${sessionId}/execute/sync`: {
+    case `${path}/${sessionId}/execute`:
+    case `${path}/${sessionId}/execute/sync`: {
         const script = Function(params.body.script)
         const args = params.body.args.map(arg => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
 
@@ -166,34 +168,34 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         //false and 0 are valid results
         value = Boolean(result) || result === false || result === 0 || result === null ? result : {}
         break
-    } case `/wd/hub/session/${sessionId}/element/${genericElementId}/elements`:
+    } case `${path}/${sessionId}/element/${genericElementId}/elements`:
         value = [
             { [ELEMENT_KEY]: genericSubElementId },
             { [ELEMENT_KEY]: 'some-elem-456' },
             { [ELEMENT_KEY]: 'some-elem-789' },
         ]
         break
-    case `/wd/hub/session/${sessionId}/cookie`:
+    case `${path}/${sessionId}/cookie`:
         value = [
             { name: 'cookie1', value: 'dummy-value-1' },
             { name: 'cookie2', value: 'dummy-value-2' },
             { name: 'cookie3', value: 'dummy-value-3' },
         ]
         break
-    case `/wd/hub/session/${sessionId}/window/handles`:
+    case `${path}/${sessionId}/window/handles`:
         value = ['window-handle-1', 'window-handle-2', 'window-handle-3']
         break
-    case `/wd/hub/session/${sessionId}/url`:
+    case `${path}/${sessionId}/url`:
         value = 'https://webdriver.io/?foo=bar'
         break
-    case `/wd/hub/session/${sessionId}/title`:
+    case `${path}/${sessionId}/title`:
         value = 'WebdriverIO · Next-gen WebDriver test framework for Node.js'
         break
-    case `/wd/hub/session/${sessionId}/screenshot`:
-    case `/wd/hub/session/${sessionId}/appium/stop_recording_screen`:
+    case `${path}/${sessionId}/screenshot`:
+    case `${path}/${sessionId}/appium/stop_recording_screen`:
         value = Buffer.from('some screenshot').toString('base64')
         break
-    case `/wd/hub/session/${sessionId}/element/${genericElementId}/screenshot`:
+    case `${path}/${sessionId}/element/${genericElementId}/screenshot`:
         value = Buffer.from('some element screenshot').toString('base64')
         break
     case '/grid/api/hub':
@@ -204,7 +206,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
         break
     }
 
-    if (params.uri.path && params.uri.path.startsWith(`/wd/hub/session/${sessionId}/element/`) && params.uri.path.includes('/attribute/')) {
+    if (params.uri.path && params.uri.path.startsWith(`${path}/${sessionId}/element/`) && params.uri.path.includes('/attribute/')) {
         value = `${params.uri.path.substring(params.uri.path.lastIndexOf('/') + 1)}-value`
     }
 
@@ -212,7 +214,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
      * Simulate a stale element
      */
 
-    if (params.uri.path === `/wd/hub/session/${sessionId}/element/${genericSubSubElementId}/click`) {
+    if (params.uri.path === `${path}/${sessionId}/element/${genericSubSubElementId}/click`) {
         ++requestMock.retryCnt
 
         if (requestMock.retryCnt > 1) {
@@ -242,7 +244,7 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     /**
      * empty response
      */
-    if (params.uri.path === '/wd/hub/empty') {
+    if (params.uri.path === '/empty') {
         return cb(null, {
             headers: { foo: 'bar' },
             statusCode: 500,
@@ -251,9 +253,19 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
     }
 
     /**
+     * session error due to wrong path
+     */
+    if (params.uri.path === '/wrong/path') {
+        return cb(null, {
+            headers: { foo: 'bar' },
+            statusCode: 404
+        }, '<!DOCTYPE html><p>Whoops! The URL specified routes to this help page.</p>')
+    }
+
+    /**
      * simulate failing response
      */
-    if (params.uri.path === '/wd/hub/failing') {
+    if (params.uri.path === '/failing') {
         ++requestMock.retryCnt
 
         /**

@@ -17,7 +17,7 @@ describe('setCookies', () => {
         await browser.setCookies([{ name: 'cookie1', value: 'dummy-value-1' }])
         expect(request.mock.calls.length).toBe(2)
         expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/cookie')
+        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/cookie')
         expect(request.mock.calls[1][0].body).toEqual({ 'cookie': { name: 'cookie1', value: 'dummy-value-1' } })
     })
 
@@ -25,7 +25,7 @@ describe('setCookies', () => {
         await browser.setCookies({ name: 'cookie1', value: 'dummy-value-1' })
         expect(request.mock.calls.length).toBe(1)
         expect(request.mock.calls[0][0].method).toBe('POST')
-        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/cookie')
+        expect(request.mock.calls[0][0].uri.path).toBe('/session/foobar-123/cookie')
         expect(request.mock.calls[0][0].body).toEqual({ 'cookie': { name: 'cookie1', value: 'dummy-value-1' } })
     })
 
@@ -34,10 +34,10 @@ describe('setCookies', () => {
         await browser.setCookies({ name: 'cookie2', value: 'dummy-value-1' })
         expect(request.mock.calls.length).toBe(2)
         expect(request.mock.calls[0][0].method).toBe('POST')
-        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/cookie')
+        expect(request.mock.calls[0][0].uri.path).toBe('/session/foobar-123/cookie')
         expect(request.mock.calls[0][0].body).toEqual({ 'cookie': { name: 'cookie1', value: 'dummy-value-1' } })
         expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/cookie')
+        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/cookie')
         expect(request.mock.calls[1][0].body).toEqual({ 'cookie': { name: 'cookie2', value: 'dummy-value-1' } })
     })
 
@@ -52,7 +52,7 @@ describe('setCookies', () => {
 
         cookies.forEach((cookie, i) => {
             expect(request.mock.calls[i][0].method).toBe('POST')
-            expect(request.mock.calls[i][0].uri.path).toBe('/wd/hub/session/foobar-123/cookie')
+            expect(request.mock.calls[i][0].uri.path).toBe('/session/foobar-123/cookie')
             expect(request.mock.calls[i][0].body).toEqual({ 'cookie': cookie })
         })
     })

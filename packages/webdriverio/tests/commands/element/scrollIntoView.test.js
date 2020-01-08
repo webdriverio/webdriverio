@@ -19,7 +19,7 @@ describe('scrollIntoView test', () => {
         elem.elementId = { scrollIntoView: jest.fn() }
         await elem.scrollIntoView()
         const executeCall = request.mock.calls[2][0]
-        expect(executeCall.uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+        expect(executeCall.uri.path).toBe('/session/foobar-123/execute/sync')
         expect(Object.keys(executeCall.body.args[0])).toHaveLength(2)
         expect(elem.elementId.scrollIntoView.mock.calls).toHaveLength(1)
     })
