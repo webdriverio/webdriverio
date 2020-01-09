@@ -21,7 +21,8 @@
  *
  * @alias element.addValue
  * @param {string | number | boolean | object | Array<any>}      value     value to be added
- * @param {boolean} translateToUnicode enable translation string to unicode value automatically
+ * @param {AddValueOptions} options                    command options (optional)
+ * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
  * @uses protocol/elements, protocol/elementIdValue
  * @type action
  *

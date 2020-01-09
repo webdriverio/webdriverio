@@ -20,7 +20,8 @@
  *
  * @alias element.setValue
  * @param {string | number | boolean | object | Array<any>}      value    Value to be added
- * @param {boolean} translateToUnicode enable translation string to unicode value automatically
+ * @param {AddValueOptions} options                    command options (optional)
+ * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
  * @uses protocol/elements, protocol/elementIdClear, protocol/elementIdValue
  * @type action
  *
