@@ -84,39 +84,39 @@ const { remote } = require('webdriverio');
 
 ### 테스트 파일 실행하기
 
-Node.js가 최소한 v8.11.2 또는 그 이상의 버전이 설치되어 있는지 확인하십시오. 당신의 Node.js를 최신 버전으로 업데이트하기 위해서는 [npm](https://github.com/creationix/nvm)를 설치하고 안내를 따르십시오. Once that is done run the test script by calling:
+Node.js가 최소한 v8.11.2 또는 그 이상의 버전이 설치되어 있는지 확인하십시오. 당신의 Node.js를 최신 버전으로 업데이트하기 위해서는 [npm](https://github.com/creationix/nvm)를 설치하고 안내를 따르십시오. 위 상태가 만족 되었다면, 테스트 스크립트를 실행합니다:
 
 ```sh
 $ node test.js
 ```
 
-this should output the following:
+결과는 다음과 같아야 합니다:
 
 ```sh
 Title was: WebdriverIO · Next-gen WebDriver test framework for Node.js
 ```
 
-Yay, Congratulations! You've just run your first automation script with WebdriverIO. Let's step it up a notch and create a real test.
+오예! 축하합니다! WebdriverIO를 활용한 첫 자동화 스크립트를 실행했습니다. 다음 단계로 나아가 실제 테스트를 만들어 봅시다.
 
-## Let's get serious
+## 진지해지기
 
-*(If you haven't already, navigate back to the project root directory)*
+*(root 디렉토리로 되돌아 갑시다)*
 
-This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up the testrunner has moved into the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package. To get started, we need to install this first:
+이제까지는 몸풀기였습니다. 이제 테스트 러너를 사용해 WebdriverIO를 실행시켜 봅시다. 만약 당신이 WebdriverIO를 통합 테스트용으로 사용하길 원한다면, 테스트 러너를 사용하길 추천합니다. 왜냐하면 그것이 여러분의 인생을 더 편하게 해줄 다양한 기능들 제공합니다. WebdriverIO v5와 그 테스트 러너는 [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM 패키지에 있습니다. 시작하려면, 먼저 다음에 나오는 것을 설치해야 합니다:
 
 ```sh
 $ npm i --save-dev @wdio/cli
 ```
 
-### Generate Configuration File
+### 설정파일 생성하기
 
-To do that just run the configuration utility:
+설정파일을 만드려면, 다음 설정 유틸리티를 실행하세요:
 
 ```sh
 $ ./node_modules/.bin/wdio config
 ```
 
-A question interface pops up. It will help to create the config easy and fast. If you are not sure what to answer follow this answers:
+실행하면 질문 인터페이스가 나올 것입니다. It will help to create the config easy and fast. If you are not sure what to answer follow this answers:
 
 __Q: Where should your tests be launched?__  
 A: *local_  
