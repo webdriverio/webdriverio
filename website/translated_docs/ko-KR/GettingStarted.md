@@ -47,19 +47,19 @@ Geckodriver를 실행합시다:
 $ /path/to/binary/geckodriver --port 4444
 ```
 
-위 명령어는 `localhost:4444`를 Geckodriver 웹드라이버 엔드포인트 `/`로 설정합니다. Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
+위 명령어는 `localhost:4444`를 Geckodriver 웹드라이버 엔드포인트 `/`로 설정합니다. 위 프로세스를 백그라운드로 실행되도록 두고, 새로운 터미널 윈도우를 생성합니다. 다음은 NPM을 통해 WebdriverIO를 다운로드 합니다:
 
-### Download WebdriverIO
+### WebdriverIO 다운로드
 
-By calling:
+명령어 실행:
 
 ```sh
 $ npm install webdriverio
 ```
 
-### Create Test File
+### 테스트 파일 생성하기
 
-Create a test file (e.g. `test.js`) with the following content:
+다음과 같은 내용의 테스트 파일 (예 `test.js`)를 생성:
 
 ```js
 const { remote } = require('webdriverio');
@@ -82,9 +82,9 @@ const { remote } = require('webdriverio');
 })().catch((e) => console.error(e));
 ```
 
-### Run your test file
+### 테스트 파일 실행하기
 
-Make sure you have at least Node.js v8.11.2 or higher installed. To update your current running Node.js version install [nvm](https://github.com/creationix/nvm) and follow their instructions. Once that is done run the test script by calling:
+Node.js가 최소한 v8.11.2 또는 그 이상의 버전이 설치되어 있는지 확인하십시오. 당신의 Node.js를 최신 버전으로 업데이트하기 위해서는 [npm](https://github.com/creationix/nvm)를 설치하고 안내를 따르십시오. Once that is done run the test script by calling:
 
 ```sh
 $ node test.js
