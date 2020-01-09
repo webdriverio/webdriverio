@@ -3,13 +3,13 @@ id: gettingstarted
 title: 시작하기
 ---
 
-WebdriverIO 문서에 오신 것을 환영합니다. 이 문서는 여러분이 빠르게 시작할 수 있도록 도와줄 것입니다. 만약 당신이 문제를 만났을 때, [Gitter 채널](https://gitter.im/webdriverio/webdriverio)에서 질문하고 답을 얻을 수 있으실 것입니다. 아니면 제 [트위터 계정](https://twitter.com/webdriverio)으로 연락할 수도 있습니다. Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
+WebdriverIO 문서에 오신 것을 환영합니다. 이 문서는 여러분이 빠르게 시작할 수 있도록 도와줄 것입니다. 만약 당신이 문제를 만났을 때, [Gitter 채널](https://gitter.im/webdriverio/webdriverio)에서 질문하고 답을 얻을 수 있으실 것입니다. 아니면 제 [트위터 계정](https://twitter.com/webdriverio)으로 연락할 수도 있습니다. 또한, 만약 당신이 서버를 작동시키거나 튜토리얼을 따라하는 테스트를 실행하는데 문제를 겪는다면, 서버와 geckodriver가 당신의 프로젝트 디렉토리에 있는지 확인하십시오. 만약 아니라면, 스텝2와 3을 따라서 다시 다운로드 하세요.
 
-> **Note:** These are the docs for the latest version (v5.0.0) of WebdriverIO. If you are still using v4 or older please us the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
+> **참고:** 이 문서들은 가장 최근버전 (v5.0.0) 의 WebdriverIO를 다루고 있습니다. 만약 당신이 여전히 v4나 그 이전의 버전을 사용하신다면, 예전 [문서](http://v4.webdriver.io)를 사용 해주세요.
 
-The following will give you a short step by step introduction to get your first WebdriverIO script up and running.
+다음은 당신의 첫번째 WebdriverIO 스크립트를 작성하고 실행하기 위한 목차 입니다.
 
-## Taking the first step
+## 첫 걸음
 
 Let's suppose you have [Node.js](http://nodejs.org/) already installed. First thing we need to do is to download a browser driver that helps us automate the browser. To do so we create an example folder first:
 
