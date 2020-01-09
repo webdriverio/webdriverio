@@ -11,19 +11,19 @@ WebdriverIO 문서에 오신 것을 환영합니다. 이 문서는 여러분이 
 
 ## 첫 걸음
 
-Let's suppose you have [Node.js](http://nodejs.org/) already installed. First thing we need to do is to download a browser driver that helps us automate the browser. To do so we create an example folder first:
+당신이 이미 [Node.js](http://nodejs.org/)를 설치했다고 가정합니다. 첫번째로 해야할 것은, 브라우저 자동화를 도와줄 브라우저 드라이버를 다운로드 하는 것 입니다. 먼저 예제 폴더를 생성합시다:
 
-### Create a simple test folder
+### 간단한 테스트 폴더를 생성하기
 
 ```sh
 $ mkdir webdriverio-test && cd webdriverio-test
 ```
 
-*While still in this test folder:*
+*테스트 폴더 위치로 이동한 상태에서:*
 
-### Download Geckodriver
+### Geckodriver 다운로드하기
 
-Download the latest version of geckodriver for your environment and unpack it in your project directory:
+당신의 환경에 맞는 가장 최신의 geckodriver를 다운로드 하고, 프로젝트 디렉토리에 가져다 놓읍시다.
 
 Linux 64 bit
 
@@ -37,17 +37,17 @@ OSX
 $ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-macos.tar.gz | tar xz
 ```
 
-Note: Other geckodriver releases are available [here](https://github.com/mozilla/geckodriver/releases). In order to automate other browser you need to run different drivers. You can find a list with all drivers in the [awesome-selenium](https://github.com/christian-bromann/awesome-selenium#driver) readme.
+참고: 다른 geckodriver 릴리즈 버전들은 [여기](https://github.com/mozilla/geckodriver/releases)에서 받을 수 있습니다. 다른 브라우저를 자동화하기 위해서는 다른 드라이버를 실행해야 합니다. 다른 브라우저들은 [awesome-selenium](https://github.com/christian-bromann/awesome-selenium#driver)의 readme 에서 찾을 수 있습니다.
 
-### Start Browser Driver
+### 브라우저 드라이버 실행하기
 
-Start Geckodriver by running:
+Geckodriver를 실행합시다:
 
 ```sh
 $ /path/to/binary/geckodriver --port 4444
 ```
 
-This will start Geckodriver on `localhost:4444` with the WebDriver endpoint set to `/`. Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
+위 명령어는 `localhost:4444`를 Geckodriver 웹드라이버 엔드포인트 `/`로 설정합니다. Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
 
 ### Download WebdriverIO
 
