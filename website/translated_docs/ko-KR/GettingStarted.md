@@ -3,7 +3,7 @@ id: gettingstarted
 title: 시작하기
 ---
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio). Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
+WebdriverIO 문서에 오신 것을 환영합니다. 이 문서는 여러분이 빠르게 시작할 수 있도록 도와줄 것입니다. 만약 당신이 문제를 만났을 때, [Gitter 채널](https://gitter.im/webdriverio/webdriverio)에서 질문하고 답을 얻을 수 있으실 것입니다. 아니면 제 [트위터 계정](https://twitter.com/webdriverio)으로 연락할 수도 있습니다. Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
 
 > **Note:** These are the docs for the latest version (v5.0.0) of WebdriverIO. If you are still using v4 or older please us the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
 
