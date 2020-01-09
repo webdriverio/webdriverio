@@ -116,7 +116,7 @@ $ npm i --save-dev @wdio/cli
 $ ./node_modules/.bin/wdio config
 ```
 
-실행하면 질문 인터페이스가 나올 것입니다. It will help to create the config easy and fast. If you are not sure what to answer follow this answers:
+실행하면 질문 인터페이스가 나올 것입니다. 그것이 설정을 쉽고 빠르게 할 수 있도록 도와줍니다. 만악 어떻게 답해야할지 모르겠다면 다음 답변들을 따라하세요:
 
 __Q: Where should your tests be launched?__  
 A: *local_  
@@ -146,17 +146,17 @@ A: *./errorShots/* (just press enter)
 A: *http://localhost* (just press enter)  
 
 
-That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. Next step is to create your first spec file (test file).
+끝났습니다! 설정 도우미가 모든 필요한 패키지들을 설치하고, `wdio.conf.js`이름의 설정 파일을 생성해줄 것입니다. 다음 스텝은 당신의 첫 spec 파일을 생성하는 것 입니다 (테스트 파일).
 
-### Create Spec Files
+### Spec 파일들 생성하기
 
-For that create a test folder like this:
+테스트 폴더를 생성하려면:
 
 ```sh
 $ mkdir -p ./test/specs
 ```
 
-Now let's create a simple spec file in that new folder:
+이제, 새 폴더 안에 간단한 spec 파일을 생성해봅시다:
 
 ```js
 const assert = require('assert');
@@ -170,12 +170,12 @@ describe('webdriver.io page', () => {
 });
 ```
 
-### Kick Off Testrunner
+### 테스트러너 시작
 
-The last step is to execute the test runner. To do so just run:
+테스트러너를 실행하기 위한 마지막 스텝입니다. 명령어창에 실행:
 
 ```sh
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio). Also our community has collected a lot of [boilerplate projects](BoilerplateProjects.md) that can help you to get started.
+오~예! 테스트는 성공해야 하고, 이제 당신은 WebdriverIO를 사용해 통합 테스트 작성을 시작할 수 있습니다. 만약 더 깊이있는 비디오 튜토리얼에 관심이 있으시다면, 우리가 만든 코스 [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio)에 방문해주세요. 또한 우리 커뮤니티는 다양한 [boilerplate projects](BoilerplateProjects.md) 모음이 있어서 당신이 시작하기 좋게 도와줄 수 있습니다.
