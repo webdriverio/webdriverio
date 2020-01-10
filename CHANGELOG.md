@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.18.5 (2020-01-10)
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#4946](https://github.com/webdriverio/webdriverio/pull/4946) Added possibility to disable automatic strings to unicode translation ([@IgorSasovets](https://github.com/IgorSasovets))
+
+#### Committers: 1
+- [@IgorSasovets](https://github.com/IgorSasovets)
+
+
 ## v5.18.4 (2020-01-03)
 
 #### :bug: Bug Fix
