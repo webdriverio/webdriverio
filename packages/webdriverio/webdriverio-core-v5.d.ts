@@ -242,10 +242,12 @@ declare namespace WebdriverIO {
          * characters like Left arrow or Back space. WebdriverIO will take care of
          * translating them into unicode characters. You’ll find all supported characters
          * [here](https://w3c.github.io/webdriver/webdriver-spec.html#keyboard-actions).
-         * To do that, the value has to correspond to a key from the table.
+         * To do that, the value has to correspond to a key from the table. It can be disabled
+         * by setting `translateToUnicode` optional parameter to false.
          */
         addValue(
-            value: string | number | boolean | object | any[]
+            value: string | number | boolean | object | any[],
+            options?: AddValueOptions
         ): void;
 
         /**
@@ -487,10 +489,12 @@ declare namespace WebdriverIO {
          * unicode characters like Left arrow or Back space. WebdriverIO will take care of
          * translating them into unicode characters. You’ll find all supported characters
          * [here](https://w3c.github.io/webdriver/webdriver-spec.html#keyboard-actions).
-         * To do that, the value has to correspond to a key from the table.
+         * To do that, the value has to correspond to a key from the table. It can be disabled
+         * by setting `translateToUnicode` optional parameter to false.
          */
         setValue(
-            value: string | number | boolean | object | any[]
+            value: string | number | boolean | object | any[],
+            options?: AddValueOptions
         ): void;
 
         /**
@@ -790,4 +794,8 @@ declare namespace WebdriverIO {
     }
 
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
+
+    interface AddValueOptions {
+        translateToUnicode: boolean
+    }
 }
