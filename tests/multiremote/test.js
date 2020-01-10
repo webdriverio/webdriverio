@@ -21,7 +21,6 @@ describe('smoke test multiremote', () => {
             })
 
             const results = browser.customFn()
-
             assert.strictEqual(results[0] >= 30, true, `First of [${results}] is less than 30`)
         })
 
@@ -82,7 +81,7 @@ describe('smoke test multiremote', () => {
             assert.equal(global.browserB.getTitle(), 'Mock Page Title')
         })
 
-        it('should allow to overwrite element commands', () => {
+        it.skip('should allow to overwrite element commands', () => {
             browser.customCommandScenario(Object.keys(browser.instances).length)
             browser.overwriteCommand('getSize', function (origCommand, ratio = 1) {
                 const { width, height } = origCommand()
@@ -117,7 +116,7 @@ describe('smoke test multiremote', () => {
             assert.equal(browser.getUrl('/foobar'), 'https://mymockpage.com/foobar,https://mymockpage.com/foobar')
         })
 
-        it('should respect promises - element', () => {
+        it.skip('should respect promises - element', () => {
             browser.customCommandScenario(Object.keys(browser.instances).length)
             browser.overwriteCommand('getHTML', function (origCommand) {
                 return Promise.resolve('' + origCommand())

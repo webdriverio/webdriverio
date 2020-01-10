@@ -35,12 +35,12 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
          * e.g. in wdio-cli to make them synchronous
          */
         if (typeof commandWrapper === 'function') {
-            for (const [commandName, { value }] of Object.entries(propertiesObject)) {
+            for (const [commandName, { value, isCustomCommand }] of Object.entries(propertiesObject)) {
                 if (typeof value !== 'function') {
                     continue
                 }
 
-                propertiesObject[commandName].value = commandWrapper(commandName, value)
+                propertiesObject[commandName].value = commandWrapper(commandName, value, isCustomCommand)
                 propertiesObject[commandName].configurable = true
             }
         }
@@ -80,12 +80,16 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                 if (instances) {
                     Object.values(instances).forEach(instance => {
                         instance.__propertiesObject__[name] = {
-                            value: customCommand
+                            value: customCommand,
+                            isCustomCommand: true
                         }
                     })
                 }
 
-                this.__propertiesObject__[name] = { value: customCommand }
+                this.__propertiesObject__[name] = {
+                    value: customCommand,
+                    isCustomCommand: true
+                }
             } else {
                 unit.lift(name, customCommand, proto)
             }
@@ -109,22 +113,23 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
                     /**
                      * add command to every multiremote instance
                      */
-                    Object.values(instances).forEach(instance => {
+                    return Object.values(instances).forEach(instance => {
                         instance.__propertiesObject__.__elementOverrides__.value[name] = customCommand
                     })
-                } else {
-                    /**
-                     * regular mode
-                     */
-                    this.__propertiesObject__.__elementOverrides__.value[name] = customCommand
                 }
+
+                /**
+                 * regular mode
+                 */
+                this.__propertiesObject__.__elementOverrides__.value[name] = customCommand
+                return
             } else if (client[name]) {
                 const origCommand = client[name]
                 delete client[name]
-                unit.lift(name, customCommand, proto, (...args) => origCommand.apply(this, args))
-            } else {
-                throw new Error('overwriteCommand: no command to be overwritten: ' + name)
+                return unit.lift(name, customCommand, proto, (...args) => origCommand.apply(this, args))
             }
+
+            throw new Error('overwriteCommand: no command to be overwritten: ' + name)
         }
 
         return client

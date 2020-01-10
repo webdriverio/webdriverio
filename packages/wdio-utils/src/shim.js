@@ -97,7 +97,37 @@ function wrapCommandFactory (syncWrapper) {
                 return wrapCommandFn.call(this, ...args)
             }
 
-            const requiresNewStack = ['call', 'waitUntil'].includes(commandName) || isCustomCommand
+            /**
+             * we need a new sub stack when running commands in a new
+             * event loop, e.g.
+             */
+            const requiresNewStack = (
+                /**
+                 * - call or waitUntil:
+                 * ```
+                 * // waitUntil needs to be executed synchronously
+                 * browser.waitUntil(() => {
+                 *     // getTitle needs to be executed synchronously
+                 *     const result = browser.getTitle()
+                 *     return title.includes('foobar')
+                 * })
+                 * ```
+                 */
+                ['call', 'waitUntil'].includes(commandName) ||
+                /**
+                 * - a custom command:
+                 * ```
+                 * browser.addCommand('foobar', () => {
+                 *     // getTitle needs to be executed synchronously
+                 *     return 'custom-' + browser.getTitle()
+                 * })
+                 *
+                 * // custom command needs to be executed synchronously
+                 * browser.foobar()
+                 * ```
+                 */
+                isCustomCommand
+            )
             const callStackItem = requiresNewStack ? [] : commandName
             let result
             try {

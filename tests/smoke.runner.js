@@ -227,22 +227,22 @@ const wdioHooks = async () => {
 /**
  * multiremote wdio testrunner tests
  */
-// const multiremote = async () => {
-//     await launch(
-//         path.resolve(__dirname, 'helpers', 'config.js'),
-//         {
-//             specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
-//             capabilities: {
-//                 browserA: {
-//                     capabilities: { browserName: 'chrome' }
-//                 },
-//                 browserB: {
-//                     capabilities: { browserName: 'chrome' }
-//                 }
-//             }
-//         }
-//     )
-// }
+const multiremote = async () => {
+    await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
+            capabilities: {
+                browserA: {
+                    capabilities: { browserName: 'chrome' }
+                },
+                browserB: {
+                    capabilities: { browserName: 'chrome' }
+                }
+            }
+        }
+    )
+}
 
 /**
  * specfile-level retries (fail)
@@ -366,7 +366,7 @@ const standaloneTest = async () => {
         customService,
         customReporterString,
         customReporterObject,
-        // multiremote,
+        multiremote,
         retryFail,
         retryPass,
         wdioHooks,
