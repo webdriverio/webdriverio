@@ -252,4 +252,8 @@ declare namespace WebdriverIO {
     }
 
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
+
+    interface AddValueOptions {
+        translateToUnicode: boolean
+    }
 }

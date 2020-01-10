@@ -5,7 +5,8 @@
  * unicode characters like Left arrow or Back space. WebdriverIO will take care of
  * translating them into unicode characters. You’ll find all supported characters
  * [here](https://w3c.github.io/webdriver/webdriver-spec.html#keyboard-actions).
- * To do that, the value has to correspond to a key from the table.
+ * To do that, the value has to correspond to a key from the table. It can be disabled
+ * by setting `translateToUnicode` optional parameter to false.
  *
  * <example>
     :setValue.js
@@ -19,12 +20,14 @@
  *
  * @alias element.setValue
  * @param {string | number | boolean | object | Array<any>}      value    Value to be added
+ * @param {AddValueOptions} options                    command options (optional)
+ * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
  * @uses protocol/elements, protocol/elementIdClear, protocol/elementIdValue
  * @type action
  *
  */
 
-export default async function setValue (value) {
+export default async function setValue (value, { translateToUnicode = true } = {}) {
     await this.clearValue()
-    return this.addValue(value)
+    return this.addValue(value, { translateToUnicode: translateToUnicode })
 }

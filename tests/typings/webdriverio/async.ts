@@ -90,6 +90,16 @@ async function bar() {
     await el4.getAttribute('class')
     await el5.scrollIntoView(false)
 
+    // An examples of addValue command with enabled/disabled translation to Unicode
+    const elem = await $('')
+    await elem.addValue('Delete', { translateToUnicode: true })
+    await elem.addValue('Delete', { translateToUnicode: false })
+
+    // An examples of setValue command with enabled/disabled translation to Unicode
+    const elem1 = await $('')
+    elem1.setValue('Delete', { translateToUnicode: true })
+    elem1.setValue('Delete', { translateToUnicode: false })
+
     const selector$$: string | Function = elems.selector
     const parent$$: WebdriverIOAsync.Element | WebdriverIOAsync.BrowserObject = elems.parent
 
