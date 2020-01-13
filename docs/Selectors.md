@@ -46,6 +46,14 @@ const link = $('*=driver')
 console.log(link.getText()) // outputs: "WebdriverIO"
 ```
 
+__Note:__ You can't mix multiple selector stratgies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+
+```js
+const elem = $('header h1*=Welcome') // doesn't work!!!
+// use instead
+const elem = $('header').$('*=driver')
+```
+
 ## Element with certain text
 
 The same technique can be applied to elements as well.
