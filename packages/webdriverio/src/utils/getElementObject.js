@@ -13,9 +13,11 @@ import { ELEMENT_KEY } from '../constants'
  */
 export const getElement = function findElement (selector, res, isReactElement = false) {
     const browser = getBrowserObject(this)
-    const customCommandPrototype = clone(browser.__propertiesObject__)
-    const elementPrototype = getWDIOPrototype('element')
-    const propertiesObject = { ...customCommandPrototype, ...elementPrototype, scope: 'element' }
+    const propertiesObject = {
+        ...clone(browser.__propertiesObject__),
+        ...getWDIOPrototype('element'),
+        scope: 'element'
+    }
 
     const element = webdriverMonad(this.options, (client) => {
         const elementId = getElementFromResponse(res)
