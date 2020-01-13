@@ -1,21 +1,4 @@
-import DevTools from '../packages/devtools/src/index'
 import { ELEMENT_KEY } from '../packages/devtools/src/constants'
-
-jest.setTimeout(30000)
-
-let browser
-
-beforeAll(async () => {
-    browser = await DevTools.newSession({
-        outputDir: __dirname,
-        capabilities: {
-            browserName: 'chrome',
-            'goog:chromeOptions': {
-                headless: true
-            }
-        }
-    })
-})
 
 test('can handle navigation through clicks', async () => {
     await browser.navigateTo('http://guinea-pig.webdriver.io')

@@ -1,23 +1,6 @@
-import DevTools from '../packages/devtools/src/index'
 import { ELEMENT_KEY } from '../packages/devtools/src/constants'
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
-let browser
-
-jest.setTimeout(30000)
-
-beforeAll(async () => {
-    browser = await DevTools.newSession({
-        outputDir: __dirname,
-        capabilities: {
-            browserName: 'chrome',
-            'goog:chromeOptions': {
-                headless: true
-            }
-        }
-    })
-})
 
 it('should navigate to a page and get page info', async () => {
     await browser.navigateTo('http://guinea-pig.webdriver.io')
