@@ -3,7 +3,7 @@ id: selectors
 title: Selectors
 ---
 
-The JSON Wire Protocol provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. The following selector types are supported:
+The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle). The following selector types are supported:
 
 ## CSS Query Selector
 
@@ -32,7 +32,7 @@ console.log(link.getAttribute('href')) // outputs: "https://webdriver.io"
 
 ## Partial Link Text
 
-To find a anchor element whose visible text partially matches your search value, 
+To find a anchor element whose visible text partially matches your search value,
 query it by using `*=` in front of the query string (e.g. `*=driver`).
 
 ```html
@@ -46,9 +46,17 @@ const link = $('*=driver')
 console.log(link.getText()) // outputs: "WebdriverIO"
 ```
 
+__Note:__ You can't mix multiple selector stratgies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+
+```js
+const elem = $('header h1*=Welcome') // doesn't work!!!
+// use instead
+const elem = $('header').$('*=driver')
+```
+
 ## Element with certain text
 
-The same technique can be applied to elements as well. 
+The same technique can be applied to elements as well.
 
 For example, here's a query for a level 1 heading with the text "Welcome to my Page":
 
@@ -93,6 +101,14 @@ const idAndPartialText = $('#elem*=WebdriverIO')
 console.log(idAndPartialText.getText()) // outputs: "WebdriverIO is the best"
 ```
 
+__Note:__ You can't mix multiple selector stratgies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+
+```js
+const elem = $('header h1*=Welcome') // doesn't work!!!
+// use instead
+const elem = $('header').$('h1*=Welcome')
+```
+
 ## Tag Name
 
 To query an element with a specific tag name, use `<tag>` or `<tag />`.
@@ -110,7 +126,7 @@ console.log(classNameAndText.getText()) // outputs: "WebdriverIO is the best"
 
 ## xPath
 
-It is also possible to query elements via a specific [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath). 
+It is also possible to query elements via a specific [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath).
 
 An xPath selector has a format like `//body/div[6]/div[1]/span[1]`.
 
@@ -138,14 +154,13 @@ console.log(parent.getTagName()) // outputs: "body"
 ```
 ## id
 
-Finding element by id has no specific syntax in WebDriver and one should use either CSS selectors (`#<my element ID>`) or xPath (`//*[@id="<my element ID>"]`). 
-    
+Finding element by id has no specific syntax in WebDriver and one should use either CSS selectors (`#<my element ID>`) or xPath (`//*[@id="<my element ID>"]`).
+
 However some drivers (e.g. [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) might still [support](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) this selector.
 
 ## JS Function
 
-You can also use Javascript functions to fetch elements using web native APIs. 
-Of course, you can only do this inside a web context (e.g., `browser`, or web context in mobile). 
+You can also use Javascript functions to fetch elements using web native APIs. Of course, you can only do this inside a web context (e.g., `browser`, or web context in mobile).
 
 Given the following HTML structure:
 
@@ -195,7 +210,7 @@ menuItem.click()
 
 ### iOS UIAutomation
 
-When automating an iOS application, Apple’s [UI Automation framework](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) can be used to find elements. 
+When automating an iOS application, Apple’s [UI Automation framework](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) can be used to find elements.
 
 This JavaScript [API](https://developer.apple.com/library/ios/documentation/DeveloperTools/Reference/UIAutomationRef/index.html#//apple_ref/doc/uid/TP40009771) has methods to access to the view and everything on it.
 
@@ -259,7 +274,7 @@ $('CYIPushButtonView').click()
 ## Chain Selectors
 
 If you want to be more specific in your query, you can chain selectors until you've found the right
-element. If you call `element` before your actual command, WebdriverIO starts the query from that element. 
+element. If you call `element` before your actual command, WebdriverIO starts the query from that element.
 
 For example, if you have a DOM structure like:
 
@@ -293,7 +308,7 @@ $('.row .entry:nth-child(2)').$('button*=Add').click()
 
 ## React Selectors
 
-WebdriverIO provides a way to select React components based on the component name. To do this, you have a choice of two commands: `react$` and `react$$`. 
+WebdriverIO provides a way to select React components based on the component name. To do this, you have a choice of two commands: `react$` and `react$$`.
 
 These commands allow you to select components off the [React VirtualDOM](https://reactjs.org/docs/faq-internals.html) and return either a single WebdriverIO Element or an array of elements (depending on which function is used).
 
@@ -321,7 +336,7 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-In the above code there is a simple `MyComponent` instance inside the application, which React is rendering inside a HTML element with `id="root"`. 
+In the above code there is a simple `MyComponent` instance inside the application, which React is rendering inside a HTML element with `id="root"`.
 
 With the `browser.react$` command, you can select an instance of `MyComponent`:
 
