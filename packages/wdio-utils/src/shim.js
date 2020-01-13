@@ -90,7 +90,8 @@ function wrapCommandFactory (syncWrapper) {
                 (
                     Array.isArray(lastCall) &&
                     lastCall.length === 0
-                )
+                ) ||
+                isCustomCommand
             )
 
             if (!runSync) {
@@ -101,7 +102,7 @@ function wrapCommandFactory (syncWrapper) {
              * we need a new sub stack when running commands in a new
              * event loop, e.g.
              */
-            const requiresNewStack = (
+            const requiresNewStack = Boolean(
                 /**
                  * - call or waitUntil:
                  * ```
