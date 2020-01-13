@@ -42,7 +42,14 @@
 
 import Timer from '../../utils/Timer'
 
-export default function (condition, { timeout, timeoutMsg, interval } = {}) {
+export default function (
+    condition,
+    {
+        timeout = this.options.waitforTimeout,
+        interval = this.options.waitforInterval,
+        timeoutMsg
+    } = {}
+) {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
     }
