@@ -262,7 +262,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
     /**
      * session error due to wrong path
      */
-    if (params.uri.path === '/wrong/path') {
+    if (uri.pathname === '/wrong/path') {
         return Promise.resolve({
             headers: { foo: 'bar' },
             statusCode: 404

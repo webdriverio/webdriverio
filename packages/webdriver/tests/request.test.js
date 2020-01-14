@@ -299,9 +299,6 @@ describe('webdriver request', () => {
         })
 
         afterEach(() => {
-            request.retryCnt = 0
-            warn.mockClear()
-            request.mockClear()
             warn.mockClear()
             error.mockClear()
         })

@@ -33,15 +33,17 @@ describe('WdioSharedStoreService exports', () => {
         expect(response.statusCode).toBe(404)
     })
 
-    it('should set entry', async () => {
-        await post(setUrl, { json: { key: 'foo', value: 'bar' } })
-        expect(__store).toEqual({ foo: 'bar' })
-    })
+    describe('setting/getting entries', () => {
+        it('should set entry', async () => {
+            await post(setUrl, { json: { key: 'foo', value: 'bar' }, responseType: 'json' })
+            expect(__store).toEqual({ foo: 'bar' })
+        })
 
-    it('should get entry', async () => {
-        __store.foobar = 'barfoo'
-        const res = await post(getUrl, { json: { key: 'foobar' }, responseType: 'json' })
-        expect(res.body.value).toEqual('barfoo')
+        it('should get entry', async () => {
+            __store.foobar = 'barfoo'
+            const res = await post(getUrl, { json: { key: 'foobar' }, responseType: 'json' })
+            expect(res.body.value).toEqual('barfoo')
+        })
     })
 
     afterEach(() => {
