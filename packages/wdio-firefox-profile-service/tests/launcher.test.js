@@ -6,9 +6,8 @@ describe('Firefox profile service', () => {
         test('should return when no firefoxProfile set in the config', async () => {
             const options = {}
             const capabilities = [{}]
-            const config = {}
 
-            const service = new Launcher(options, capabilities, config)
+            const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
 
             expect(capabilities).toEqual([{}])

@@ -18,7 +18,7 @@ test('onPrepare', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options, caps, config)
+    const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
@@ -36,7 +36,7 @@ test('onPrepare w/o identifier', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options, caps, config)
+    const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
@@ -56,7 +56,7 @@ test('onPrepare w/ SauceConnect w/o scRelay', async () => {
         key: '12345',
         sauceConnect: true
     }
-    const service = new SauceServiceLauncher(options, caps, config)
+    const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
@@ -87,7 +87,7 @@ test('onPrepare multiremote', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options, caps, config)
+    const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
@@ -117,7 +117,7 @@ test('onPrepare if sauceTunnel is not set', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options, caps, config)
+    const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
@@ -157,7 +157,7 @@ test('onPrepare multiremote with tunnel identifier and with w3c caps ', async ()
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options, caps, config)
+    const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
@@ -206,7 +206,7 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options, caps, config)
+    const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
@@ -237,7 +237,7 @@ test('onPrepare without tunnel identifier and without w3c caps ', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options, caps, config)
+    const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
@@ -270,7 +270,7 @@ test('onPrepare without tunnel identifier and with w3c caps ', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options, caps, config)
+    const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
@@ -314,7 +314,7 @@ test('onPrepare with tunnel identifier and with w3c caps ', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options, caps, config)
+    const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 

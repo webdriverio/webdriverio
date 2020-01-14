@@ -18,7 +18,7 @@ export default class SauceLauncher {
             return
         }
 
-        const sauceConnectOpts = Object.assign({ noAutodetect: true }, this.options.sauceConnectOpts)
+        const sauceConnectOpts = this.options.sauceConnectOpts || {}
         const sauceConnectTunnelIdentifier = (
             sauceConnectOpts.tunnelIdentifier ||
             /**
@@ -26,12 +26,14 @@ export default class SauceLauncher {
              */
             `SC-tunnel-${Math.random().toString().slice(2)}`)
 
-        this.sauceConnectOpts = Object.assign({
+        this.sauceConnectOpts = {
+            noAutodetect: true,
             username: config.user,
             accessKey: config.key,
             logger: log.debug,
-            tunnelIdentifier: sauceConnectTunnelIdentifier
-        }, sauceConnectOpts)
+            tunnelIdentifier: sauceConnectTunnelIdentifier,
+            ...sauceConnectOpts
+        }
 
         if (this.options.scRelay) {
             config.protocol = 'http'
@@ -40,21 +42,27 @@ export default class SauceLauncher {
         }
 
         if (Array.isArray(capabilities)) {
-            capabilities.forEach(capability => {
+            for (const capability of capabilities) {
                 if (capability['sauce:options'] === undefined) {
                     capability.tunnelIdentifier = capability.tunnelIdentifier || sauceConnectTunnelIdentifier
                 } else {
                     capability['sauce:options'].tunnelIdentifier = capability['sauce:options'].tunnelIdentifier || sauceConnectTunnelIdentifier
                 }
-            })
+            }
         } else {
-            Object.keys(capabilities).forEach(browser => {
-                if (capabilities[browser].capabilities['sauce:options'] === undefined) {
-                    capabilities[browser].capabilities.tunnelIdentifier = capabilities[browser].capabilities.tunnelIdentifier || sauceConnectTunnelIdentifier
+            for (const browserName of Object.keys(capabilities)) {
+                if (capabilities[browserName].capabilities['sauce:options'] === undefined) {
+                    capabilities[browserName].capabilities.tunnelIdentifier = (
+                        capabilities[browserName].capabilities.tunnelIdentifier ||
+                        sauceConnectTunnelIdentifier
+                    )
                 } else {
-                    capabilities[browser].capabilities['sauce:options'].tunnelIdentifier = capabilities[browser].capabilities['sauce:options'].tunnelIdentifier || sauceConnectTunnelIdentifier
+                    capabilities[browserName].capabilities['sauce:options'].tunnelIdentifier = (
+                        capabilities[browserName].capabilities['sauce:options'].tunnelIdentifier ||
+                        sauceConnectTunnelIdentifier
+                    )
                 }
-            })
+            }
         }
 
         /**
