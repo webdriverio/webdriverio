@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('moveTo', () => {
@@ -11,14 +11,14 @@ describe('moveTo', () => {
         })
 
         const elem = await browser.$('#elem')
-        request.setMockResponse([undefined, { scrollX: 0, scrollY: 20 }])
+        got.setMockResponse([undefined, { scrollX: 0, scrollY: 20 }])
         await elem.moveTo()
 
-        expect(request.mock.calls[4][0].uri.path).toContain('/foobar-123/actions')
-        expect(request.mock.calls[4][0].body.actions).toHaveLength(1)
-        expect(request.mock.calls[4][0].body.actions[0].type).toBe('pointer')
-        expect(request.mock.calls[4][0].body.actions[0].actions).toHaveLength(1)
-        expect(request.mock.calls[4][0].body.actions[0].actions[0])
+        expect(got.mock.calls[4][1].uri.pathname).toContain('/foobar-123/actions')
+        expect(got.mock.calls[4][1].json.actions).toHaveLength(1)
+        expect(got.mock.calls[4][1].json.actions[0].type).toBe('pointer')
+        expect(got.mock.calls[4][1].json.actions[0].actions).toHaveLength(1)
+        expect(got.mock.calls[4][1].json.actions[0].actions[0])
             .toEqual({ type: 'pointerMove', duration: 0, x: 40, y: 15 })
     })
 
@@ -31,9 +31,9 @@ describe('moveTo', () => {
         })
 
         const elem = await browser.$('#elem')
-        request.setMockResponse([undefined, { scrollX: 19, scrollY: 0 }])
+        got.setMockResponse([undefined, { scrollX: 19, scrollY: 0 }])
         await elem.moveTo(5, 10)
-        expect(request.mock.calls[4][0].body.actions[0].actions[0])
+        expect(got.mock.calls[4][1].json.actions[0].actions[0])
             .toEqual({ type: 'pointerMove', duration: 0, x: 1, y: 30 })
     })
 
@@ -46,9 +46,9 @@ describe('moveTo', () => {
         })
 
         const elem = await browser.$('#elem')
-        request.setMockResponse([{}, { x: 5, y: 10, height: 33, width: 44 }, { scrollX: 0, scrollY: 0 }])
+        got.setMockResponse([{}, { x: 5, y: 10, height: 33, width: 44 }, { scrollX: 0, scrollY: 0 }])
         await elem.moveTo(5, 10)
-        expect(request.mock.calls[5][0].body.actions[0].actions[0])
+        expect(got.mock.calls[5][1].json.actions[0].actions[0])
             .toEqual({ type: 'pointerMove', duration: 0, x: 10, y: 20 })
     })
 
@@ -61,7 +61,7 @@ describe('moveTo', () => {
         })
 
         const elem = await browser.$('#elem')
-        request.setMockResponse([{}, {}])
+        got.setMockResponse([{}, {}])
         await expect(elem.moveTo(5, 10)).rejects.toThrow('Failed to receive element rects via execute command')
     })
 
@@ -75,15 +75,15 @@ describe('moveTo', () => {
 
         const elem = await browser.$('#elem')
         await elem.moveTo()
-        expect(request.mock.calls[2][0].uri.path).toContain('/foobar-123/moveto')
-        expect(request.mock.calls[2][0].body).toEqual({ element: 'some-elem-123' })
+        expect(got.mock.calls[2][1].uri.pathname).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[2][1].json).toEqual({ element: 'some-elem-123' })
 
         await elem.moveTo(5, 10)
-        expect(request.mock.calls[3][0].uri.path).toContain('/foobar-123/moveto')
-        expect(request.mock.calls[3][0].body).toEqual({ element: 'some-elem-123', xoffset: 5, yoffset: 10 })
+        expect(got.mock.calls[3][1].uri.pathname).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[3][1].json).toEqual({ element: 'some-elem-123', xoffset: 5, yoffset: 10 })
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

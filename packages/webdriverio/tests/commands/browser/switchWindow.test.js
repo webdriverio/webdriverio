@@ -1,11 +1,11 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('switchWindow', () => {
     let browser
 
     beforeEach(async () => {
-        request.setMockResponse()
+        got.setMockResponse()
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -20,20 +20,20 @@ describe('switchWindow', () => {
     })
 
     it('should iterate over all available handles to find the right window', async () => {
-        request.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
+        got.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
         const tabId = await browser.switchWindow('so')
         expect(tabId).toBe('window-handle-3')
-        request.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
+        got.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
         const otherTabId = await browser.switchWindow(/h(e|a)llo/)
         expect(otherTabId).toBe('window-handle-2')
-        request.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
+        got.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
         const anotherTabId = await browser.switchWindow('world')
         expect(anotherTabId).toBe('window-handle-2')
     })
 
     it('should fail if no window was found', async () => {
         expect.hasAssertions()
-        request.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
+        got.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
 
         try {
             await browser.switchWindow('foobar')

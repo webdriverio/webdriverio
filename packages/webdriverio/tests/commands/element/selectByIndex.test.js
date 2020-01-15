@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
 import * as utils from '../../../src/utils'
@@ -19,15 +19,18 @@ describe('selectByIndex test', () => {
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 
     it('should select by index', async () => {
         await elem.selectByIndex(1)
 
-        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/element')
-        expect(request.mock.calls[2][0].uri.path).toBe('/session/foobar-123/element/some-elem-123/elements')
-        expect(request.mock.calls[3][0].uri.path).toBe('/session/foobar-123/element/some-elem-456/click')
+        expect(got.mock.calls[1][1].uri.pathname)
+            .toBe('/session/foobar-123/element')
+        expect(got.mock.calls[2][1].uri.pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/elements')
+        expect(got.mock.calls[3][1].uri.pathname)
+            .toBe('/session/foobar-123/element/some-elem-456/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-elem-456'
         })

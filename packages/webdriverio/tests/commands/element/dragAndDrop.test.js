@@ -1,9 +1,9 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('dragAndDrop', () => {
     beforeEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 
     it('should throw when parameter are invalid', async () => {
@@ -40,25 +40,25 @@ describe('dragAndDrop', () => {
 
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
-        request.setMockResponse([{ scrollX: 0, scrollY: 20 }])
+        got.setMockResponse([{ scrollX: 0, scrollY: 20 }])
         await elem.dragAndDrop(subElem)
 
         // move to
-        expect(request.mock.calls[4][0].uri.path).toContain('/element/some-elem-123/rect')
-        expect(request.mock.calls[5][0].uri.path).toContain('/element/some-sub-elem-321/rect')
-        expect(request.mock.calls[6][0].uri.path).toContain('/foobar-123/actions')
-        expect(request.mock.calls[6][0].body.actions).toHaveLength(1)
-        expect(request.mock.calls[6][0].body.actions[0].type).toBe('pointer')
-        expect(request.mock.calls[6][0].body.actions[0].actions).toHaveLength(5)
-        expect(request.mock.calls[6][0].body.actions[0].actions).toEqual([
+        expect(got.mock.calls[4][1].uri.pathname).toContain('/element/some-elem-123/rect')
+        expect(got.mock.calls[5][1].uri.pathname).toContain('/element/some-sub-elem-321/rect')
+        expect(got.mock.calls[6][1].uri.pathname).toContain('/foobar-123/actions')
+        expect(got.mock.calls[6][1].json.actions).toHaveLength(1)
+        expect(got.mock.calls[6][1].json.actions[0].type).toBe('pointer')
+        expect(got.mock.calls[6][1].json.actions[0].actions).toHaveLength(5)
+        expect(got.mock.calls[6][1].json.actions[0].actions).toEqual([
             { type: 'pointerMove', duration: 0, x: 40, y: 15 },
             { type: 'pointerDown', button: 0 },
             { type: 'pause', duration: 10 },
             { type: 'pointerMove', duration: 100, origin: 'pointer', x: 135, y: 225 },
             { type: 'pointerUp', button: 0 }
         ])
-        expect(request.mock.calls[7][0].uri.path).toContain('/foobar-123/actions')
-        expect(request.mock.calls[7][0].method).toContain('DELETE')
+        expect(got.mock.calls[7][1].uri.pathname).toContain('/foobar-123/actions')
+        expect(got.mock.calls[7][1].method).toContain('DELETE')
     })
 
     it('should do a dragAndDrop (no w3c)', async () => {
@@ -73,11 +73,11 @@ describe('dragAndDrop', () => {
         const subElem = await elem.$('#subfoo')
         await elem.dragAndDrop(subElem)
 
-        expect(request.mock.calls[3][0].uri.path).toContain('/foobar-123/moveto')
-        expect(request.mock.calls[3][0].body).toEqual({ element: 'some-elem-123' })
-        expect(request.mock.calls[4][0].uri.path).toContain('/foobar-123/buttondown')
-        expect(request.mock.calls[5][0].uri.path).toContain('/foobar-123/moveto')
-        expect(request.mock.calls[5][0].body).toEqual({ element: 'some-sub-elem-321' })
-        expect(request.mock.calls[6][0].uri.path).toContain('/foobar-123/buttonup')
+        expect(got.mock.calls[3][1].uri.pathname).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[3][1].json).toEqual({ element: 'some-elem-123' })
+        expect(got.mock.calls[4][1].uri.pathname).toContain('/foobar-123/buttondown')
+        expect(got.mock.calls[5][1].uri.pathname).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[5][1].json).toEqual({ element: 'some-sub-elem-321' })
+        expect(got.mock.calls[6][1].uri.pathname).toContain('/foobar-123/buttonup')
     })
 })
