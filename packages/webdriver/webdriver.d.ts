@@ -2009,7 +2009,7 @@ declare namespace WebDriver {
         /**
          * [chromium]
          * Whether a simple dialog is currently open.
-         * https://github.com/bayandin/chromedriver/blob/2.45/alert_commands.cc#L42-L49
+         * https://github.com/bayandin/chromedriver/blob/v2.45/alert_commands.cc#L42-L49
          */
         isAlertOpen(): boolean;
 
@@ -2030,14 +2030,14 @@ declare namespace WebDriver {
         /**
          * [chromium]
          * Determines load status for active window handle.
-         * https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L783-L802
+         * https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L783-L802
          */
         isLoading(): boolean;
 
         /**
          * [chromium]
          * Takes a heap snapshot of the current execution context.
-         * https://github.com/bayandin/chromedriver/blob/2.45/chrome/web_view.h#L198-L202
+         * https://github.com/bayandin/chromedriver/blob/v2.45/chrome/web_view.h#L198-L202
          */
         takeHeapSnapshot(): ProtocolCommandResponse;
 
@@ -2058,35 +2058,35 @@ declare namespace WebDriver {
         /**
          * [chromium]
          * Get current network conditions used for emulation.
-         * https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L839-L859
+         * https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L839-L859
          */
         getNetworkConditions(): ProtocolCommandResponse;
 
         /**
          * [chromium]
          * Set network conditions used for emulation by throttling connection.
-         * https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1663-L1722
+         * https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1663-L1722
          */
         setNetworkConditions(network_conditions: object, network_name?: string): void;
 
         /**
          * [chromium]
          * Disable any network throttling which might have been set. Equivalent of setting the `No throttling` preset.
-         * https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1724-L1745
+         * https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1724-L1745
          */
         deleteNetworkConditions(): void;
 
         /**
          * [chromium]
          * Send a command to the DevTools debugger.<br>For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).
-         * https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1290-L1304
+         * https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1290-L1304
          */
         sendCommand(cmd: string, params: object): void;
 
         /**
          * [chromium]
          * Send a command to the DevTools debugger and wait for the result.<br>For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).
-         * https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1306-L1320
+         * https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1306-L1320
          */
         sendCommandAndGetResult(cmd: string, params: object): any;
 
@@ -2100,56 +2100,56 @@ declare namespace WebDriver {
         /**
          * [chromium]
          * Upload a file to remote machine on which the browser is running.
-         * https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L1037-L1065
+         * https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L1037-L1065
          */
         file(file: string): string;
 
         /**
          * [chromium]
          * Launches a Chrome app by specified id.
-         * https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L521-L539
+         * https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L521-L539
          */
-        launchApp(id: string): void;
+        launchChromeApp(id: string): void;
 
         /**
          * [chromium]
          * Retrieves the value of a given form control element.
-         * https://github.com/bayandin/chromedriver/blob/2.45/element_commands.cc#L431-L443
+         * https://github.com/bayandin/chromedriver/blob/v2.45/element_commands.cc#L431-L443
          */
         getElementValue(elementId: string): string|null;
 
         /**
          * [chromium]
          * Enable hover state for an element, which is reset upon next interaction.
-         * https://github.com/bayandin/chromedriver/blob/2.45/element_commands.cc#L126-L146
+         * https://github.com/bayandin/chromedriver/blob/v2.45/element_commands.cc#L126-L146
          */
         elementHover(elementId: string): void;
 
         /**
          * [chromium]
          * Trigger a pinch zoom effect.
-         * https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L813-L827
+         * https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L813-L827
          */
         touchPinch(x: number, y: number, scale: number): void;
 
         /**
          * [chromium]
          * Freeze the current page. Extension for [Page Lifecycle API](https://developers.google.com/web/updates/2018/07/page-lifecycle-api).
-         * https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L625-L633
+         * https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L625-L633
          */
         freeze(): void;
 
         /**
          * [chromium]
          * Resume the current page. Extension for [Page Lifecycle API](https://developers.google.com/web/updates/2018/07/page-lifecycle-api).
-         * https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L635-L645
+         * https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L635-L645
          */
         resume(): void;
 
         /**
          * [chromium]
          * Shutdown ChromeDriver process and consequently terminating all active sessions.
-         * https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L489-L498
+         * https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L489-L498
          */
         shutdown(): void;
 
