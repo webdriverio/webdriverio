@@ -28,11 +28,11 @@ beforeEach(() => {
         }
     }
     global.browser.sessionId = 12
-    service = new BrowserstackService({ user: 'foo', key: 'bar' })
+    service = new BrowserstackService({}, [], { user: 'foo', key: 'bar' })
 })
 
 it('should initialize correctly', () => {
-    service = new BrowserstackService({})
+    service = new BrowserstackService({}, [], {})
     expect(service.failures).toEqual(0)
 })
 
@@ -131,7 +131,8 @@ describe('before', () => {
 
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
-        expect(service.auth).toEqual('NotSetUser:NotSetKey')
+        expect(service.config.user).toEqual('NotSetUser')
+        expect(service.config.key).toEqual('NotSetKey')
 
         service = new BrowserstackService({}, [{}], { capabilities: {} })
         service.beforeSession({ user: 'blah' })
@@ -140,20 +141,16 @@ describe('before', () => {
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
 
-        expect(service.auth).toEqual({
-            user: 'blah',
-            pass: 'NotSetKey'
-        })
+        expect(service.config.user).toEqual('blah')
+        expect(service.config.key).toEqual('NotSetKey')
         service = new BrowserstackService({}, [{}], { capabilities: {} })
         service.beforeSession({ key: 'blah' })
         await service.before()
 
         expect(service.sessionId).toEqual(12)
         expect(service.failures).toEqual(0)
-        expect(service.auth).toEqual({
-            user: 'NotSetUser',
-            pass: 'blah'
-        })
+        expect(service.config.user).toEqual('NotSetUser')
+        expect(service.config.key).toEqual('blah')
     })
 
     it('should initialize correctly', () => {
