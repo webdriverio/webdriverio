@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('isDisplayedInViewport test', () => {
@@ -13,14 +13,16 @@ describe('isDisplayedInViewport test', () => {
             }
         })
         elem = await browser.$('#foo')
-        request.mockClear()
+        got.mockClear()
     })
 
     it('should allow to check if element is displayed', async () => {
         await elem.isDisplayedInViewport()
-        expect(request.mock.calls[0][0].uri.path).toBe('/session/foobar-123/element/some-elem-123/displayed')
-        expect(request.mock.calls[1][0].uri.path).toBe('/session/foobar-123/execute/sync')
-        expect(request.mock.calls[1][0].body.args[0]).toEqual({
+        expect(got.mock.calls[0][1].uri.pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/displayed')
+        expect(got.mock.calls[1][1].uri.pathname)
+            .toBe('/session/foobar-123/execute/sync')
+        expect(got.mock.calls[1][1].json.args[0]).toEqual({
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
             ELEMENT: 'some-elem-123'
         })
@@ -29,10 +31,10 @@ describe('isDisplayedInViewport test', () => {
     it('should return false if element can\'t be found after refetching it', async () => {
         const elem = await browser.$('#nonexisting')
         expect(await elem.isDisplayedInViewport()).toBe(false)
-        expect(request).toBeCalledTimes(2)
+        expect(got).toBeCalledTimes(2)
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

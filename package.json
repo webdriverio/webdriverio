@@ -82,7 +82,7 @@
     "inquirer": "^7.0.0",
     "jest": "^24.9.0",
     "lerna": "^3.16.4",
-    "lerna-changelog": "^0.8.2",
+    "lerna-changelog": "^1.0.0",
     "markdox": "^0.1.10",
     "mime-types": "^2.1.24",
     "np": "^5.1.0",

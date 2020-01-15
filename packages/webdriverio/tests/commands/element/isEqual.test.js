@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('isEqual test', () => {
@@ -14,7 +14,7 @@ describe('isEqual test', () => {
                 }
             })
             elem = await browser.$('#foo')
-            request.mockClear()
+            got.mockClear()
         })
 
         it('should return true if elements are equal', async () => {
@@ -44,22 +44,22 @@ describe('isEqual test', () => {
                 }
             })
             elem = await browser.$('#foo')
-            request.mockClear()
+            got.mockClear()
         })
 
         it('should return true if elements are equal', async () => {
-            request.setMockResponse(['NATIVE_APP'])
+            got.setMockResponse(['NATIVE_APP'])
             expect(await elem.isEqual(elem)).toBe(true)
         })
 
         it('should return false if elements are NOT equal', async () => {
             const elements = await browser.$$('#bar')
-            request.setMockResponse(['NATIVE_APP'])
+            got.setMockResponse(['NATIVE_APP'])
             expect(await elem.isEqual(elements[1])).toBe(false)
         })
 
         it('should call execute if in webview', async () => {
-            request.setMockResponse(['WEBVIEW'])
+            got.setMockResponse(['WEBVIEW'])
             const execute = browser.execute
             delete browser.execute
             browser.execute = jest.fn().mockReturnValue(true)
@@ -73,6 +73,6 @@ describe('isEqual test', () => {
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

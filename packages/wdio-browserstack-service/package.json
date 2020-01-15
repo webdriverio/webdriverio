@@ -32,8 +32,8 @@
   },
   "dependencies": {
     "@wdio/logger": "6.0.0-alpha.0",
-    "browserstack-local": "1.4.3",
-    "request": "^2.85.0"
+    "browserstack-local": "^1.4.3",
+    "got": "^10.2.1"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"

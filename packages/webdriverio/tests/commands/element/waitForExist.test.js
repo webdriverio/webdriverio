@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('waitForExists', () => {
@@ -6,7 +6,7 @@ describe('waitForExists', () => {
     let browser
 
     beforeEach(async () => {
-        request.mockClear()
+        got.mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',

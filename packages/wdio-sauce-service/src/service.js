@@ -36,11 +36,6 @@ export default class SauceService {
             this.isServiceEnabled = false
             config.key = 'unknown_key'
         }
-
-        this.config.user = config.user
-        this.config.key = config.key
-        this.sauceUser = this.config.user
-        this.sauceKey = this.config.key
     }
 
     beforeSuite (suite) {
@@ -163,7 +158,7 @@ export default class SauceService {
         }
 
         const body = this.getBody(failures, calledOnReload, browserName)
-        await this.api.updateJob(this.sauceUser, sessionId, body)
+        await this.api.updateJob(this.config.user, sessionId, body)
         this.failures = 0
     }
 

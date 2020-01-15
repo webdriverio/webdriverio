@@ -1,10 +1,9 @@
-import url from 'url'
-import http from 'http'
 import path from 'path'
+import http from 'http'
 import https from 'https'
-import request from 'request'
 import EventEmitter from 'events'
 
+import got from 'got'
 import logger from '@wdio/logger'
 
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
@@ -32,8 +31,10 @@ export default class WebDriverRequest extends EventEmitter {
         this.requiresSessionId = this.endpoint.match(/:sessionId/)
         this.defaultOptions = {
             method,
-            followAllRedirects: true,
-            json: true
+            retry: 0, // we have our own retry mechanism
+            followRedirect: true,
+            responseType: 'json',
+            throwHttpErrors: false
         }
     }
 
@@ -50,7 +51,7 @@ export default class WebDriverRequest extends EventEmitter {
                 ...DEFAULT_HEADERS,
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
-            qs: typeof options.queryParams === 'object' ? options.queryParams : {},
+            searchParams: typeof options.queryParams === 'object' ? options.queryParams : {},
             timeout: options.connectionRetryTimeout
         }
 
@@ -59,11 +60,8 @@ export default class WebDriverRequest extends EventEmitter {
          */
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
-            requestOptions.body = this.body
-            requestOptions.headers = {
-                ...requestOptions.headers,
-                ...({ 'Content-Length': contentLength })
-            }
+            requestOptions.json = this.body
+            requestOptions.headers['Content-Length'] = contentLength
         }
 
         /**
@@ -75,7 +73,7 @@ export default class WebDriverRequest extends EventEmitter {
             throw new Error('A sessionId is required for this command')
         }
 
-        requestOptions.uri = url.parse(
+        requestOptions.uri = new URL(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
             (this.isHubCommand
@@ -87,87 +85,75 @@ export default class WebDriverRequest extends EventEmitter {
          * send authentication credentials only when creating new session
          */
         if (this.endpoint === '/session' && options.user && options.key) {
-            requestOptions.auth = {
-                user: options.user,
-                pass: options.key
-            }
+            requestOptions.auth = `${options.user}:${options.key}`
         }
 
         /**
          * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
          */
-        requestOptions.strictSSL = !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
+        requestOptions.rejectUnauthorized = !(process.env.STRICT_SSL === 'false' || process.env.strict_ssl === 'false')
 
         return requestOptions
     }
 
-    _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0) {
+    async _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0) {
         log.info(`[${fullRequestOptions.method}] ${fullRequestOptions.uri.href}`)
 
-        if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
-            log.info('DATA', fullRequestOptions.body)
+        if (fullRequestOptions.json && Object.keys(fullRequestOptions.json).length) {
+            log.info('DATA', fullRequestOptions.json)
         }
 
-        return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
-            const error = err || getErrorFromResponseBody(body)
+        const response = await got(fullRequestOptions.uri, fullRequestOptions)
+        const error = getErrorFromResponseBody(response.body)
 
-            if (typeof body === 'string' && body.includes('Whoops! The URL specified routes to this help page.')) {
-                const fixedPath = fullRequestOptions.uri.path.startsWith('/wd/hub') ? '/' : '/wd/hub'
-                const pathError = new Error(`Wrong path set! Please set path to "${fixedPath}".`)
-                log.error('Request failed due to', pathError)
-                this.emit('response', { error: pathError })
-                return reject(pathError)
-            }
-
+        /**
+         * hub commands don't follow standard response formats
+         * and can have empty bodies
+         */
+        if (this.isHubCommand) {
             /**
-             * hub commands don't follow standard response formats
-             * and can have empty bodies
+             * if body contains HTML the command was called on a node
+             * directly without using a hub, therefor throw
              */
-            if (this.isHubCommand) {
-                /**
-                 * if body contains HTML the command was called on a node
-                 * directly without using a hub, therefor throw
-                 */
-                if (typeof body === 'string' && body.startsWith('<!DOCTYPE html>')) {
-                    return reject(new Error('Command can only be called to a Selenium Hub'))
-                }
-
-                body = { value: body || null }
+            if (typeof response.body === 'string' && response.body.startsWith('<!DOCTYPE html>')) {
+                return Promise.reject(new Error('Command can only be called to a Selenium Hub'))
             }
 
-            /**
-             * Resolve only if successful response
-             */
-            if (!err && isSuccessfulResponse(response.statusCode, body)) {
-                this.emit('response', { result: body })
-                return resolve(body)
-            }
+            return { value: response.body || null }
+        }
 
-            /**
-             *  stop retrying as this will never be successful.
-             *  we will handle this at the elementErrorHandler
-             */
-            if(error.name === 'stale element reference') {
-                log.warn('Request encountered a stale element - terminating request')
-                this.emit('response', { error })
-                return reject(error)
-            }
+        /**
+         * Resolve only if successful response
+         */
+        if (isSuccessfulResponse(response.statusCode, response.body)) {
+            this.emit('response', { result: response.body })
+            return response.body
+        }
 
-            /**
-             * stop retrying if totalRetryCount was exceeded or there is no reason to
-             * retry, e.g. if sessionId is invalid
-             */
-            if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
-                log.error('Request failed due to', error)
-                this.emit('response', { error })
-                return reject(error)
-            }
+        /**
+         *  stop retrying as this will never be successful.
+         *  we will handle this at the elementErrorHandler
+         */
+        if(error.name === 'stale element reference') {
+            log.warn('Request encountered a stale element - terminating request')
+            this.emit('response', { error })
+            throw error
+        }
 
-            ++retryCount
-            this.emit('retry', { error, retryCount })
-            log.warn('Request failed due to', error.message)
-            log.info(`Retrying ${retryCount}/${totalRetryCount}`)
-            this._request(fullRequestOptions, totalRetryCount, retryCount).then(resolve, reject)
-        }))
+        /**
+         * stop retrying if totalRetryCount was exceeded or there is no reason to
+         * retry, e.g. if sessionId is invalid
+         */
+        if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
+            log.error('Request failed due to', error)
+            this.emit('response', { error })
+            throw error
+        }
+
+        ++retryCount
+        this.emit('retry', { error, retryCount })
+        log.warn('Request failed due to', error.message)
+        log.info(`Retrying ${retryCount}/${totalRetryCount}`)
+        return this._request(fullRequestOptions, totalRetryCount, retryCount)
     }
 }
