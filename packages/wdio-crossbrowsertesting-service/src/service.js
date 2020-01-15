@@ -152,7 +152,7 @@ export default class CrossBrowserTestingService {
         const response = await got.put(this.getRestUrl(sessionId), {
             json,
             responseType: 'json',
-            auth: `${this.cbtUsername}:this.cbtAuthkey`
+            auth: `${this.cbtUsername}:${this.cbtAuthkey}`
         })
 
         global.browser.jobData = response.body
