@@ -592,6 +592,14 @@ declare namespace WebdriverIO {
             func: (origCommand: Function, ...args: any[]) => any,
             attachToElement?: boolean
         ): void;
+
+        /**
+         * create custom selector
+         */
+        addLocatorStrategy(
+            name: string,
+            func: (elementFetchingMethod: (selector: string) => any) => void
+        ): void
         
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order

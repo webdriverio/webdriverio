@@ -248,6 +248,14 @@ declare namespace WebdriverIO {
             func: (origCommand: Function, ...args: any[]) => any,
             attachToElement?: boolean
         ): void;
+
+        /**
+         * create custom selector
+         */
+        addLocatorStrategy(
+            name: string,
+            func: (elementFetchingMethod: (selector: string) => any) => void
+        ): void
         // ... browser commands ...
     }
 

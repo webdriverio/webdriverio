@@ -92,6 +92,9 @@ browser.touchAction(touchAction)
 // dragAndDrop
 ele.dragAndDrop(ele, 0)
 
+// addLocatorStrategy
+browser.addLocatorStrategy('myStrat', () => {})
+
 // selenium-standalone-service
 const config: WebdriverIO.Config = {
     skipSeleniumInstall: true

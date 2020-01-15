@@ -424,3 +424,23 @@ browser.react$$('MyComponent') // returns the WebdriverIO Elements for the array
 ```
 
 **Note:** If you have multiple instances of `MyComponent` and you use `react$$` to select these fragment components, you will be returned an one-dimensional array of all the nodes. In other words, if you have 3 `<MyComponent />` instances, you will be returned an array with six WebdriverIO elements.
+
+## Custom Selector Strategies
+
+If your app requires a specific way to fetch elements you can define yourself a custom selector strategy that you can use with `custom$` and `custom$$`. For that register your strategy once in the beginning of the test:
+
+```js
+browser.addLocatorStrategy('myCustomStrategy', (selector) => {
+    return document.querySelectorAll(selector)
+})
+```
+
+The use it by calling:
+
+```js
+browser.url('https://webdriver.io')
+const pluginWrapper = browser.custom$$('myStrat', '.pluginWrapper')
+console.log(pluginWrapper.length) // 4
+```
+
+**Note:** this only works in an web environment in which the [`execute`](/docs/api/browser/execute.html) command can be run.

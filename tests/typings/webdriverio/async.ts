@@ -121,6 +121,9 @@ async function bar() {
 
     // dragAndDrop
     await ele.dragAndDrop(ele, 0)
+
+    // addLocatorStrategy
+    browser.addLocatorStrategy('myStrat', () => {})
 }
 
 // selenium-standalone-service
