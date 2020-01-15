@@ -42,7 +42,7 @@ exports.config = {
         /**
          * use absolute path to service
          */
-        ['./path/to/service.js', {
+        ['/path/to/service.js', {
             someOption: true
         }]
     ],

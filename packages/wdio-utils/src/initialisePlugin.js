@@ -11,7 +11,7 @@ export default function initialisePlugin (name, type, target = 'default') {
     /**
      * directly import packages that are scoped or start with an absolute path
      */
-    if (name[0] === '@' || name[0] === path.sep) {
+    if (name[0] === '@' || path.isAbsolute(name)) {
         const service = safeRequire(name)
         return service[target]
     }
