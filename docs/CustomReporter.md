@@ -37,9 +37,20 @@ const CustomReporter = require('./reporter/my.custom.reporter')
 
 exports.config = {
     // ...
-    reporters: [[CustomReporter, {
-        someOption: 'foobar'
-    }]],
+    reporters: [
+        /**
+         * use imported reporter class
+         */
+        [CustomReporter, {
+            someOption: 'foobar'
+        }]
+        /**
+         * use absolute path to reporter
+         */
+        ['/path/to/reporter.js', {
+            someOption: 'foobar'
+        }]
+    ],
     // ...
 }
 ```
