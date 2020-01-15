@@ -111,7 +111,7 @@ This will run the scripts in the directory shown above and generate the typings 
 
 Whenever you change the types in these packages, make sure you re-generate the types with the command shown above. In order to ensure that packages where type definitions have changed are released we keep the generated type definition in source control.
 
-### Adding Types for webdriverIO
+### Adding Types for WebdriverIO
 
 If you add a new command or extend an existing with a special option, follow this guide to ensure that types are generated properly. As mentioned above every WebdriverIO command contains a comment section that is used to generate the documentation and type definition. For example the `newWindow` command:
 
