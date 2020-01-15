@@ -94,6 +94,107 @@ cd your-main-test-code
 npm link @wdio/cli
 ```
 
+## TypeScript definitions
+
+WebdriverIO provides their own type definitions for project that use TypeScript. Given the large amount of commands it would make it unmaintainable to __not__ automate the process of generating these. However there are certain edge cases where manual work is required. You can find all files responsible for the generating the typings here: https://github.com/webdriverio/webdriverio/tree/master/scripts/type-generation. You can trigger the process by calling:
+
+```sh
+$ npm run generate:typings
+```
+
+This will run the scripts in the directory shown above and generate the typings various packages located in `/packages/*`. Each package defines its typings differently:
+
+- the `webdriver` package defines all commands and their respective types in the json file of the `@wdio/protocols` package
+- the `webdriverio` package has the types defined in the comments above every command in `/packages/webdriverio/src/commands/**/*`
+- the `@wdio/allure-reporter` has its interface defined in comments within the service (`/packages/wdio-allure-reporter/src/index.js`)
+- all other packages have their type definitions directly in the `*.d.ts` in the root directory of that package (e.g. `/packages/wdio-cucumber-framework/cucumber-framework.d.ts`)
+
+Whenever you change the types in these packages, make sure you re-generate the types with the command shown above. In order to ensure that packages where type definitions have changed are released we keep the generated type definition in source control.
+
+### Adding Types for webdriverIO
+
+If you add a new command or extend an existing with a special option, follow this guide to ensure that types are generated properly. As mentioned above every WebdriverIO command contains a comment section that is used to generate the documentation and type definition. For example the `newWindow` command:
+
+```js
+/**
+ *
+ * Open new window in browser. This command is the equivalent function to `window.open()`. This command does not
+ * work in mobile environments.
+ *
+ * __Note:__ When calling this command you automatically switch to the new window.
+ *
+ * <example>
+    :newWindowSync.js
+    it('should open a new tab', () => {
+        browser.url('http://google.com')
+        console.log(browser.getTitle()) // outputs: "Google"
+        browser.newWindow('https://webdriver.io', 'WebdriverIO window', 'width=420,height=230,resizable,scrollbars=yes,status=1')
+        console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen WebDriver test framework for Node.js"
+        browser.closeWindow()
+        console.log(browser.getTitle()) // outputs: "Google"
+    });
+ * </example>
+ *
+ * @param {String}  url      website URL to open
+ * @param {NewWindowOptions=} options                newWindow command options
+ * @param {String=}           options.windowName     name of the new window
+ * @param {String=}           options.windowFeatures features of opened window (e.g. size, position, scrollbars, etc.)
+ *
+ * @return {String}          id of window handle of new tab
+ *
+ * @uses browser/execute, protocol/getWindowHandles, protocol/switchToWindow
+ * @alias browser.newWindow
+ * @type window
+ */
+```
+
+WebdriverIO follows the pattern that every command property that is required for the command execution (e.g. in the example above the `url` parameter) is a parameter of the command. Every optional parameter that just modifies the way the command is being executed is being attached as a command option object (e.g. in the example above `windowName` and `windowFeatures`). To properly create typings for the options object we need to give this interface a new name (e.g. `NewWindowOptions`) and:
+
+- define this new interface in the [type definition template](/scripts/templates/webdriverio.tpl.d.ts)
+- add custom interfaces to the list of [`CUSTOM_INTERFACES`](/scripts/type-generation/constants.js)
+- write some type tests
+
+### Testing Type Definitions
+
+To make sure that we don't accidently change the types and cause users test to break we run some simple typescript checks. You can run all type definition tests by running:
+
+```sh
+$ npm run test:typings
+```
+
+This will run all tests for all type definitions WebdriverIO provides. These tests just check if TypeScript can compile them according to the generated type definitions. All type checks are located in `/webdriverio/tests/typings`. If you extend a WebdriverIO command or interfaces for other type definitions please ensure that you have used it in these files. The directory contains tests for the asynchronous usage of WebdriverIO as well as for using it synchronously with `@wdio/sync`.
+
+For example to test the `touchActions` properties we have it tested in `/tests/typings/webdriverio/async.ts`:
+
+```ts
+// touchAction
+const ele = await $('')
+const touchAction: WebdriverIO.TouchAction = {
+    action: "longPress",
+    element: await $(''),
+    ms: 0,
+    x: 0,
+    y: 0
+}
+await ele.touchAction(touchAction)
+await browser.touchAction(touchAction)
+```
+
+as well as in `/tests/typings/sync/sync.ts`:
+
+```ts
+const ele = $('')
+const touchAction: WebdriverIO.TouchAction = {
+    action: "longPress",
+    element: $(''),
+    ms: 0,
+    x: 0,
+    y: 0
+}
+ele.touchAction(touchAction)
+browser.touchAction(touchAction)
+```
+
 ## Test Your Changes
 
 In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/examples`. You find all necessary information [in there](https://github.com/webdriverio/webdriverio/tree/master/examples/README.md).
