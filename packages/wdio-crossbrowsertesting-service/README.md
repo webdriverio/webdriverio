@@ -9,9 +9,9 @@ The easiest way is to keep `@wdio/crossbrowsertesting-service` as a devDependenc
 
 ```json
 {
-  "devDependencies": {
-    "@wdio/crossbrowsertesting-service": "^5.0.0"
-  }
+    "devDependencies": {
+        "@wdio/crossbrowsertesting-service": "^5.0.0"
+    }
 }
 ```
 
@@ -30,34 +30,27 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 In order to use the service you need to set `user` and `key` in your `wdio.conf.js` file, and set the `host` option to `hub.crossbrowsertesting.com`. If you want to use [CrossBrowserTesting Tunnel](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/)
 you just need to set `cbtTunnel: true`.
 
-
-
 ```js
 // wdio.conf.js
 export.config = {
-  // ...
-  services: ['crossbrowsertesting'],
-  user: process.env.CBT_USERNAME,
-  key: process.env.CBT_AUTHKEY,
-  cbtTunnel: true,
-  cbtTunnelOpts: {
-    // any additional options from cbt_tunnels
-  },
-  // ...
+    // ...
+    user: process.env.CBT_USERNAME,
+    key: process.env.CBT_AUTHKEY,
+    services: [
+        ['crossbrowsertesting', {
+            cbtTunnel: true,
+            cbtTunnelOpts: {
+                // any additional options from cbt_tunnels
+            },
+        }]
+    ],
+    // ...
 };
 ```
 
 ## Options
 
-### user
-Your CBT username.
-
-Type: `String`
-
-### key
-Your CBT authkey.
-
-Type: `String`
+In order to authorize to the CrossBrowserTesting service your config needs to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
 
 ### cbtTunnel
 If true secure CBT local connection is started.
@@ -71,5 +64,6 @@ Any additional options to pass along to the `start()` function of [cbt_tunnels](
 Type: `Object`<br>
 Default: `{}`
 
+---
 
 For more information on WebdriverIO see the [homepage](http://webdriver.io).

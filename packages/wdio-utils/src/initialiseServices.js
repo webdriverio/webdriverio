@@ -1,4 +1,3 @@
-import merge from 'deepmerge'
 import logger from '@wdio/logger'
 
 import initialisePlugin from './initialisePlugin'
@@ -20,13 +19,13 @@ export default function initialiseServices (config, caps, type) {
     }
 
     for (let serviceName of config.services) {
-        let serviceConfig = config
+        let serviceConfig = {}
 
         /**
          * allow custom services with custom options
          */
         if (Array.isArray(serviceName)) {
-            serviceConfig = merge(config, serviceName[1] || {})
+            serviceConfig = Object.assign({}, serviceName[1] || {})
             serviceName = serviceName[0]
         }
 
@@ -45,7 +44,7 @@ export default function initialiseServices (config, caps, type) {
              */
             if (typeof serviceName === 'function') {
                 log.debug(`initialise custom service "${serviceName.name}"`)
-                initialisedServices.push(new serviceName(serviceConfig, caps))
+                initialisedServices.push(new serviceName(serviceConfig, caps, config))
                 continue
             }
 
@@ -59,7 +58,7 @@ export default function initialiseServices (config, caps, type) {
                 continue
             }
 
-            initialisedServices.push(new Service(serviceConfig, caps))
+            initialisedServices.push(new Service(serviceConfig, caps, config))
         } catch(e) {
             log.error(e)
         }

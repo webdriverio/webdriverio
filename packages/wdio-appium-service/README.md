@@ -9,9 +9,9 @@ The easiest way is to keep `@wdio/appium-service` as a devDependency in your `pa
 
 ```json
 {
-  "devDependencies": {
-    "@wdio/appium-service": "^5.0.0"
-  }
+    "devDependencies": {
+        "@wdio/appium-service": "^5.0.0"
+    }
 }
 ```
 
@@ -30,16 +30,31 @@ In order to use the service you need to add `appium` to your service array:
 ```js
 // wdio.conf.js
 export.config = {
-  // ...
-  port: 4723, // default appium port
-  services: ['appium'],
-  // ...
+    // ...
+    port: 4723, // default appium port
+    services: ['appium'],
+    // ...
 };
 ```
 
 ## Options
 
-The following options can be added to the wdio.conf.js file.
+The following options can be added to the wdio.conf.js file. To define options for the service you need to add the service to the `services` list in the following way:
+
+```js
+// wdio.conf.js
+export.config = {
+    // ...
+    port: 4723, // default appium port
+    services: [
+        ['appium', {
+            // Appium service options here
+            // ...
+        }]
+    ],
+    // ...
+};
+```
 
 ### logPath
 Path where all logs from the Appium server should be stored.
@@ -51,9 +66,13 @@ Default: `{}`
 Example:
 ```js
 export.config = {
-    appium: {
-        logPath : "./",
-    }
+    // ...
+    services: [
+        ['appium', {
+            logPath : './'
+        }]
+    ],
+    // ...
 }
 ```
 
@@ -67,10 +86,13 @@ Default: `{}`
 Example:
 ```js
 export.config = {
-    appium: {
-        // for globally installed Appium just pass appium
-        command: "appium",
-    }
+    // ...
+    services: [
+        ['appium', {
+            command : 'appium'
+        }]
+    ],
+    // ...
 }
 ```
 
@@ -87,17 +109,21 @@ Default: `{}`
 Example:
 ```js
 export.config = {
-  appium: {
-    args: {
-      // ...
-      debugLogSpacing: true,
-      platformName: 'iOS',
-      // ...
-    }
-    // or
-    // args: ['-p', '4722', '--relaxed-security', '--log-level', 'info:info']
-  }
-},
+    // ...
+    services: [
+        ['appium', {
+            args: {
+                // ...
+                debugLogSpacing: true,
+                platformName: 'iOS',
+                // ...
+            }
+            // or
+            // args: ['-p', '4722', '--relaxed-security', '--log-level', 'info:info']
+        }]
+    ],
+    // ...
+}
 ```
 
 ----
