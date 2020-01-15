@@ -166,7 +166,7 @@ describe('_printSessionURL Appium', () => {
 
 describe('before', () => {
     it('should set auth to default values if not provided', () => {
-        let service = new BrowserstackService({ capabilities: {} })
+        let service = new BrowserstackService({}, [{}], { capabilities: {} })
 
         service.beforeSession({})
         service.before()
@@ -178,7 +178,7 @@ describe('before', () => {
             pass: 'NotSetKey'
         })
 
-        service = new BrowserstackService({ capabilities: {} })
+        service = new BrowserstackService({}, [{}], { capabilities: {} })
         service.beforeSession({ user: 'blah' })
         service.before()
 
@@ -189,7 +189,7 @@ describe('before', () => {
             user: 'blah',
             pass: 'NotSetKey'
         })
-        service = new BrowserstackService({ capabilities: {} })
+        service = new BrowserstackService({}, [{}], { capabilities: {} })
         service.beforeSession({ key: 'blah' })
         service.before()
 
@@ -202,7 +202,7 @@ describe('before', () => {
     })
 
     it('should initialize correctly', () => {
-        const service = new BrowserstackService({
+        const service = new BrowserstackService({}, [{}], {
             user: 'foo',
             key: 'bar',
             capabilities: {}
@@ -225,7 +225,9 @@ describe('before', () => {
             os_version: '12.1',
             browserName: '',
         }
-        const service = new BrowserstackService({
+        const service = new BrowserstackService({}, [{
+            app: 'test-app'
+        }], {
             user: 'foo',
             key: 'bar',
             capabilities: {
@@ -245,7 +247,7 @@ describe('before', () => {
 
     it('should log the url', () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
-        const service = new BrowserstackService({ capabilities: {} })
+        const service = new BrowserstackService({}, [{}], { capabilities: {} })
 
         service.before()
         expect(logInfoSpy).toHaveBeenCalled()

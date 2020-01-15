@@ -6,14 +6,14 @@ import { BROWSER_DESCRIPTION } from './constants'
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService {
-    constructor (config) {
+    constructor (options, caps, config) {
         this.config = config
         this.failures = 0
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
     }
 
     /**
-     * if no user and key is specified even though a sauce service was
+     * if no user and key is specified even though a browserstack service was
      * provided set user and key with values so that the session request
      * will fail
      */
