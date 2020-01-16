@@ -436,10 +436,28 @@ describe('launcher', () => {
                 ]))
             })
 
+            it('should be able to handle a negative config value', async () => {
+                await launcher.runMode({
+                    maxSpecsPerSuite: -1
+                }, capabilities)
+                expect(launcher.schedule).toHaveLength(1)
+                expect(launcher.schedule[0].specs).toEqual(expect.arrayContaining([
+                    {
+                        files: ['1.feature']
+                    },
+                    {
+                        files: ['2.feature']
+                    },
+                    {
+                        files: ['3.feature']
+                    }
+                ]))
+            })
+
             it('should chunk specs based on the maxSpecsPerSuite config option', async () => {
                 await launcher.runMode({
                     maxSpecsPerSuite: 2
-                }, [{ browserName: 'chrome' }])
+                }, capabilities)
                 expect(launcher.schedule).toHaveLength(1)
                 expect(launcher.schedule[0].specs).toEqual(expect.arrayContaining([
                     {
@@ -447,6 +465,18 @@ describe('launcher', () => {
                     },
                     {
                         files: ['3.feature']
+                    }
+                ]))
+            })
+
+            it('should be able to ensure one suite only', async () => {
+                await launcher.runMode({
+                    maxSpecsPerSuite: Infinity
+                }, capabilities)
+                expect(launcher.schedule).toHaveLength(1)
+                expect(launcher.schedule[0].specs).toEqual(expect.arrayContaining([
+                    {
+                        files: ['1.feature', '2.feature', '3.feature']
                     }
                 ]))
             })
