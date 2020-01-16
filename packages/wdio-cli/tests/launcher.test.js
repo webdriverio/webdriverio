@@ -402,6 +402,55 @@ describe('launcher', () => {
             expect(launcher.getNumberOfRunningInstances()).toBe(0)
             expect(launcher.getNumberOfSpecsLeft()).toBe(0)
         })
+
+        describe('spec chunking', () => {
+            const capabilities = [{ browserName: 'chrome' }]
+            beforeEach(() => {
+                launcher.configParser = {
+                    getConfig: jest.fn().mockReturnValue({
+                        maxSpecsPerSuite: 2
+                    }),
+                    getSpecs: jest.fn().mockReturnValue([
+                        '1.feature',
+                        '2.feature',
+                        '3.feature'
+                    ])
+                }
+                launcher.runSpecs = jest.fn().mockReturnValue(1)
+                expect(launcher.schedule).toHaveLength(0)
+            })
+
+            it('should have one specs per suite by default', async () => {
+                await launcher.runMode({}, capabilities)
+                expect(launcher.schedule).toHaveLength(1)
+                expect(launcher.schedule[0].specs).toEqual(expect.arrayContaining([
+                    {
+                        files: ['1.feature']
+                    },
+                    {
+                        files: ['2.feature']
+                    },
+                    {
+                        files: ['3.feature']
+                    }
+                ]))
+            })
+
+            it('should chunk specs based on the maxSpecsPerSuite config option', async () => {
+                await launcher.runMode({
+                    maxSpecsPerSuite: 2
+                }, [{ browserName: 'chrome' }])
+                expect(launcher.schedule).toHaveLength(1)
+                expect(launcher.schedule[0].specs).toEqual(expect.arrayContaining([
+                    {
+                        files: ['1.feature', '2.feature']
+                    },
+                    {
+                        files: ['3.feature']
+                    }
+                ]))
+            })
+        })
     })
 
     describe('startInstance', () => {

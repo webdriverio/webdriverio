@@ -88,6 +88,11 @@ exports.config = {
     //
     // Or set a limit to run tests with a specific capability.
     maxInstancesPerCapability: 10,
+    // You can increase the number of specs that are run per Suite. By default `maxSpecsPerSuite` is
+    // set to 1 which ensures maximum parallelization. In some cases (e.g. when the bootstrap for running
+    // a test worker is expensive; for example with a transpiled language like TypeScript) it can be beneficial
+    // to allow more than one spec file to be run in each Suite. That way the bootstrap overhead is reduced.
+    maxSpecsPerSuite: 1,
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:

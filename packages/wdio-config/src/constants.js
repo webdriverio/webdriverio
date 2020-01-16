@@ -18,6 +18,7 @@ export const DEFAULT_CONFIGS = () => ({
     reporters: [],
     maxInstances: 100,
     maxInstancesPerCapability: 100,
+    maxSpecsPerSuite: 1,
     filesToWatch: [],
     connectionRetryTimeout: 90000,
     connectionRetryCount: 3,

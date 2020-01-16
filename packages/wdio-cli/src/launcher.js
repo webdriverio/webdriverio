@@ -1,6 +1,7 @@
 import path from 'path'
 import fs from 'fs-extra'
 import exitHook from 'async-exit-hook'
+import chunk from 'lodash.chunk'
 
 import logger from '@wdio/logger'
 import { ConfigParser } from '@wdio/config'
@@ -135,6 +136,12 @@ class Launcher {
          */
         const specFileRetries = this.isWatchMode ? 0 : config.specFileRetries
 
+        const getSpecs = (capabilities) => {
+            const specs = this.configParser.getSpecs(capabilities.specs, capabilities.exclude)
+            const maxSpecsPerSuite = Math.max(config.maxSpecsPerSuite || 1, 1) // clamp between 1 and Infinity
+            return chunk(specs, maxSpecsPerSuite).map(files => ({ files, retries: specFileRetries }))
+        }
+
         /**
          * schedule test runs
          */
@@ -146,7 +153,7 @@ class Launcher {
             this.schedule.push({
                 cid: cid++,
                 caps,
-                specs: this.configParser.getSpecs(caps.specs, caps.exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                specs: getSpecs(caps),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
@@ -158,7 +165,7 @@ class Launcher {
                 this.schedule.push({
                     cid: cid++,
                     caps: capabilities,
-                    specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                    specs: getSpecs(capabilities),
                     availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
                     runningInstances: 0,
                     seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }

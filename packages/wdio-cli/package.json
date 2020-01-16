@@ -45,6 +45,7 @@
     "ejs": "^3.0.1",
     "fs-extra": "^8.0.1",
     "inquirer": "^7.0.0",
+    "lodash.chunk": "^4.2.0",
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
