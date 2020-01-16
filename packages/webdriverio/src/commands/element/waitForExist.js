@@ -38,8 +38,8 @@
  */
 
 export default function waitForExist ({
-    timeout, // defaults defined in waitUntil command
-    interval, // defaults defined in waitUntil command
+    timeout = this.options.waitforTimeout,
+    interval = this.options.waitforInterval,
     reverse = false,
     timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}existing after ${timeout}ms`
 } = {}) {
