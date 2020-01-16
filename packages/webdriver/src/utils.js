@@ -51,7 +51,7 @@ export async function startWebDriverSession (params) {
         response = await sessionRequest.makeRequest(params)
     } catch (err) {
         log.error(err)
-        const message = getSessionError(err)
+        const message = getSessionError(err, params)
         throw new Error('Failed to create session.\n' + message)
     }
     const sessionId = response.value.sessionId || response.sessionId
@@ -255,10 +255,10 @@ export function setupDirectConnect(params) {
  * get human readable message from response error
  * @param {Error} err response error
  */
-export const getSessionError = (err) => {
+export const getSessionError = (err, params) => {
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
-        return `Unable to connect to "${err.address}:${err.port}", make sure browser driver is running on that address.` +
+        return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +
             '\nIf you use services like chromedriver see initialiseServices logs above or in wdio.log file.'
     }
 
