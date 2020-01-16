@@ -11,13 +11,13 @@ exports.config = Object.assign({}, config, {
         browser.pause(30)
         browser.Cucumber_Test = 1
     },
-    beforeStep: async function (fileName, doc, step, world) {
+    beforeStep: async function ({ step }, world) {
         await browser.pause(20)
         browser.Cucumber_Test += 2
         browser.Cucumber_CurrentStepText = step.step.text
         browser.Cucumber_CurrentWorld = world
     },
-    afterStep: function (fileName, doc, step, world) {
+    afterStep: function ({ step }, world) {
         browser.pause(25)
         if (
             browser.Cucumber_CurrentStepText !== step.step.text ||
