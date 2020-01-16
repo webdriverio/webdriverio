@@ -184,7 +184,12 @@ describe('utils', () => {
                 address: '127.0.0.1',
                 port: 4444,
                 message: 'ECONNREFUSED 127.0.0.1:4444'
-            })).toContain('Unable to connect to "127.0.0.1:4444"')
+            }, {
+                protocol: 'http',
+                hostname: 'localhost',
+                port: 1234,
+                path: '/'
+            })).toContain('Unable to connect to "http://localhost:1234/"')
         })
 
         it('path: selenium-standalone path', () => {
