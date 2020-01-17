@@ -11,11 +11,11 @@ describe('react$', () => {
             }
         })
 
-        const elems = await browser.react$$(
-            'myComp',
-            { some: 'props' },
-            { some: 'state' }
-        )
+        const options = {
+            props: { some: 'props' },
+            state: { some: 'state' }
+        }
+        const elems = await browser.react$$('myComp', options)
 
         expect(elems.length).toBe(3)
         expect(elems[0].elementId).toBe('some-elem-123')

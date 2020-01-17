@@ -378,13 +378,17 @@ ReactDOM.render(<App />, document.querySelector('#root'))
 If you want to select the instance of `MyComponent` that has a prop `name` as `WebdriverIO`, you can execute the command like so:
 
 ```js
-const myCmp = browser.react$('MyComponent', { name: 'WebdriverIO' })
+const myCmp = browser.react$('MyComponent', {
+    props: { name: 'WebdriverIO' }
+})
 ```
 
 If you wanted to filter our selection by state, the `browser` command would looks something like so:
 
 ```js
-const myCmp = browser.react$('MyComponent', undefined, { myState: 'some value' })
+const myCmp = browser.react$('MyComponent', {
+    state: { myState: 'some value' }
+})
 ```
 
 #### Dealing with `React.Fragment`
