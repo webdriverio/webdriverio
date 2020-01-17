@@ -169,6 +169,19 @@ describe('launcher', () => {
             launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
             expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }] }])
         })
+
+        it('should requeue retried specfiles at beginning of queue', () => {
+            launcher.configParser.getConfig = jest.fn().mockReturnValue({ specFileRetriesDeferred: false })
+            launcher.schedule = [{ cid: 0, specs: [{ files: ['b.js'] }] }]
+            launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
+            expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }, { files: ['b.js'] }] }])
+        })
+
+        it('should requeue retried specfiles at end of queue', () => {
+            launcher.schedule = [{ cid: 0, specs: [{ files: ['b.js'] }] }]
+            launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
+            expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ files: ['b.js'] }, { rid: '0-5', files: ['a.js'], retries: 0 }] }])
+        })
     })
 
     describe('exitHandler', () => {

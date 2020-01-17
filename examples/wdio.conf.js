@@ -122,6 +122,9 @@ exports.config = {
     // The number of times to retry the entire specfile when it fails as a whole
     specFileRetries: 1,
     //
+    // Retried specfiles are inserted at the beginning of the queue and retried immediately
+    specFileRetriesDeferred: false,
+    //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter.html
