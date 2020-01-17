@@ -219,6 +219,15 @@ Designed to be quick to get you started without getting terribly complex.
     - An alternative component-specific (rather than page-specific) approach, allowing for a split E2E and integration test writing approach
     - Introduces config file extensions for readability and flexibility, in the event that you have multiple teams/projects working out of the same project repository
 
+### [PerfectoMobileSA/webdriverio5-cucumber-perfecto-sample](https://github.com/PerfectoMobileSA/webdriverio5-cucumber-perfecto-sample)
+
+This project is useful not only as an example of WebdriverIO v5 and integration with perfecto cloud (https://www.perfecto.io/), but it includes examples of the PageObject pattern, different locators files to run the same script on Android and iOS devices, and some practical examples for using WebdriverIO to build an automated test suite with Cucumber (v 5.x) BDD framework.
+
+- Framework: Cucumber (v5.x)
+- Features:
+    - Cloud integration with [Perfecto](https://www.perfecto.io/)
+    - Uses [Page Objects](PageObjects.md)
+    - Examples of using Page Locators to run same script on Multiple Mobile Devices
 
 ----
 
