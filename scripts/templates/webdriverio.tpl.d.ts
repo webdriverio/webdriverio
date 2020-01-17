@@ -179,6 +179,25 @@ declare namespace WebdriverIO {
         reverse?: boolean,
     }
 
+    type ReactSelectorOptions = {
+        props?: object,
+        state?: any[] | number | string | object | boolean
+    }
+
+    type MoveToOptions = {
+        xOffset?: number,
+        yOffset?: number
+    }
+
+    type DragAndDropOptions = {
+        duration?: number
+    }
+
+    type NewWindowOptions = {
+        windowName?: string,
+        windowFeatures?: string
+    }
+
     interface Element {
         selector: string;
         elementId: string;

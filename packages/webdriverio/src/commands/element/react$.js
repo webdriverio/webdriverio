@@ -11,19 +11,28 @@
         browser.url('https://ahfarmer.github.io/calculator/');
         const appWrapper = browser.$('div#root')
 
-        appWrapper.react$('t', { name: '7' }).click()
-        appWrapper.react$('t', { name: 'x' }).click()
-        appWrapper.react$('t', { name: '6' }).click()
-        appWrapper.react$('t', { name: '=' }).click()
+        browser.react$('t', {
+            props: { name: '7' }
+        }).click()
+        browser.react$('t', {
+            props: { name: 'x' }
+        }).click()
+        browser.react$('t', {
+            props: { name: '6' }
+        }).click()
+        browser.react$('t', {
+            props: { name: '=' }
+        }).click()
 
         console.log($('.component-display').getText()); // prints "42"
     });
  * </example>
  *
  * @alias react$
- * @param {String} selector of React component
- * @param {Object=} props  React props the element should contain
- * @param {Array<any>|number|string|object|boolean=} state  React state the element should be in
+ * @param {String}  selector        of React component
+ * @param {ReactSelectorOptions=}                    options         React selector options
+ * @param {Object=}                                  options.props   React props the element should contain
+ * @param {Array<any>|number|string|object|boolean=} options.state  React state the element should be in
  * @return {Element}
  *
  */
@@ -33,7 +42,7 @@ import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
 
 const resqScript = fs.readFileSync(require.resolve('resq'))
 
-export default async function react$(selector, props = {}, state = {}) {
+export default async function react$(selector, { props = {}, state = {} } = {}) {
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(react$Script, selector, props, state, this)

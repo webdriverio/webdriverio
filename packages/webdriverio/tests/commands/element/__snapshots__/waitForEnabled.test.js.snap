@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`waitForEnabled should call waitUntil 1`] = `
+Array [
+  Array [
+    [Function],
+    Object {
+      "interval": 5,
+      "timeout": 1000,
+      "timeoutMsg": "element (\\"#foo\\") still not enabled after 1000ms",
+    },
+  ],
+]
+`;
+
+exports[`waitForEnabled should do reverse 1`] = `
+Array [
+  Array [
+    [Function],
+    Object {
+      "interval": 50,
+      "timeout": 500,
+      "timeoutMsg": "element (\\"#foo\\") still enabled after 500ms",
+    },
+  ],
+]
+`;

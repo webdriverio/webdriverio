@@ -67,7 +67,7 @@ describe('Mocha smoke test', () => {
             browser.waitUntil(() => {
                 elem.click()
                 return false
-            }, 1000)
+            }, { timeout: 1000 })
         } catch (err) {
             // ignored
         }

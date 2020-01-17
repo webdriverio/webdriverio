@@ -1,8 +1,42 @@
 /**
- * Nothing to see here!
- * The original implementation is in [the browser scope](https://webdriver.io/docs/api/browser/waitUntil.html). Since the element
- * scope should be able to query sub elements of itself this command is
- * just a placeholder so it gets picked up as regular command.
+ *
+ * This wait command is your universal weapon if you want to wait on something. It expects a condition
+ * and waits until that condition is fulfilled with a truthy value. If you use the WDIO testrunner the
+ * commands within the condition are getting executed synchronously like in your test.
+ *
+ * A common example is to wait until a certain element contains a certain text (see example).
+ *
+ * <example>
+    :example.html
+    <div id="someText">I am some text</div>
+    <script>
+      setTimeout(() => {
+        $('#someText').html('I am now different');
+      }, 1000);
+    </script>
+
+    :waitUntil.js
+    it('should wait until text has changed', () => {
+        const elem = $('#someText')
+        elem.waitUntil(function () {
+            return this.getText() === 'I am now different',
+        }, {
+            timeout: 5000,
+            timeoutMsg: 'expected text to be different after 5s'
+        });
+    });
+ * </example>
+ *
+ *
+ * @alias element.waitUntil
+ * @param {Function} condition  condition to wait on
+ * @param {Object}   options    command options
+ * @param {Number=}  options.timeout     timeout in ms (default: 5000)
+ * @param {String=}  options.timeoutMsg  error message to throw when waitUntil times out
+ * @param {Number=}  options.interval    interval between condition checks (default: 500)
+ * @return {Boolean} true if condition is fulfilled
+ * @type utility
+ *
  */
 import waitUntil from '../browser/waitUntil'
 export default waitUntil
