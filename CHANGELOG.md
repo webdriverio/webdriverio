@@ -15,6 +15,26 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.18.6 (2020-01-17)
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#4959](https://github.com/webdriverio/webdriverio/pull/4959) Support fully qualified paths to plugins ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#4940](https://github.com/webdriverio/webdriverio/pull/4940) Performance improvements on element creation ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#4965](https://github.com/webdriverio/webdriverio/pull/4965) WebDriverIO V5, Cucumber, Perfecto project example ([@eyalyovelperfecto](https://github.com/eyalyovelperfecto))
+  * [#4939](https://github.com/webdriverio/webdriverio/pull/4939) Fix some wording issues in the selector docs ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-reporter`, `wdio-runner`, `wdio-sync`, `webdriverio`
+  * [#4960](https://github.com/webdriverio/webdriverio/pull/4960) Add docs for addLocatorStrategy ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@eyalyovelperfecto](https://github.com/eyalyovelperfecto)
+
+
 ## v5.18.5 (2020-01-10)
 
 #### :nail_care: Polish
