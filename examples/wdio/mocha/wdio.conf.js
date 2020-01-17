@@ -4,9 +4,8 @@ exports.config = {
     /**
      * server configurations
      */
-    // hostname: 'localhost',
-    // port: 4444,
-    // path: '/wd/hub',
+    hostname: 'localhost',
+    port: 4444,
 
     /**
      * specify test files
