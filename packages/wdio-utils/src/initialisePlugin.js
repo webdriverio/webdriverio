@@ -9,22 +9,17 @@ import { safeRequire } from './utils'
  */
 export default function initialisePlugin (name, type, target = 'default') {
     /**
-     * check plugin for launcher export
-     */
-    const targetCheck = target === 'launcher' && target
-
-    /**
      * directly import packages that are scoped or start with an absolute path
      */
     if (name[0] === '@' || path.isAbsolute(name)) {
-        const service = safeRequire(name, targetCheck)
+        const service = safeRequire(name)
         return service[target]
     }
 
     /**
      * check for scoped version of plugin first (e.g. @wdio/sauce-service)
      */
-    const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`, targetCheck)
+    const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`)
     if (scopedPlugin) {
         return scopedPlugin[target]
     }
@@ -32,7 +27,7 @@ export default function initialisePlugin (name, type, target = 'default') {
     /**
      * check for old type of
      */
-    const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`, targetCheck)
+    const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`)
     if (plugin) {
         return plugin[target]
     }

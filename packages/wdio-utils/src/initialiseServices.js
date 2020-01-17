@@ -12,6 +12,7 @@ const log = logger('@wdio/utils:initialiseServices')
  * @return {Object[]}          list of service classes that got initialised
  */
 export default function initialiseServices (config, caps, type) {
+    config.workerServices = []
     const initialisedServices = []
 
     if (!Array.isArray(config.services)) {
@@ -50,6 +51,14 @@ export default function initialiseServices (config, caps, type) {
 
             log.debug(`initialise wdio service "${serviceName}"`)
             const Service = initialisePlugin(serviceName, 'service', type)
+
+            /**
+             * check if service also exports a default class which would be initiated in the
+             * worker. If not, we can skip importing the service there.
+             */
+            if (initialisePlugin(serviceName, 'service')) {
+                config.workerServices.push(serviceName)
+            }
 
             /**
              * service only contains a launcher

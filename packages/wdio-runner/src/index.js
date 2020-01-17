@@ -50,17 +50,9 @@ export default class Runner extends EventEmitter {
          */
         this.configParser.merge(args)
 
-        /**
-         * remove services that has nothing to do in worker
-         */
-        this.configParser.filterWorkerServices()
-
         this.config = this.configParser.getConfig()
-
         this.config.specFileRetryAttempts = (this.config.specFileRetries || 0) - (retries || 0)
-
         logger.setLogLevelsConfig(this.config.logLevels, this.config.logLevel)
-
         const isMultiremote = this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
 
         /**

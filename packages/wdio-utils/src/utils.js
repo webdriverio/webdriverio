@@ -1,7 +1,3 @@
-import fs from 'fs'
-
-const EXPORT_REGEX = /(exports\.launcher|export\s(const|let|var)\slauncher)\s*=/g
-
 /**
  * overwrite native element commands with user defined
  * @param {object} propertiesObject propertiesObject
@@ -124,7 +120,7 @@ export function getArgumentType (arg) {
  * @param  {string} name  of package
  * @return {object}       package content
  */
-export function safeRequire (name, targetCheck) {
+export function safeRequire (name) {
     let requirePath
     try {
         /**
@@ -153,22 +149,6 @@ export function safeRequire (name, targetCheck) {
         }
     } catch (e) {
         return null
-    }
-
-    /**
-     * allow to check if a specific target is being exported without importing
-     * the whole service. It checks if the following exports are being made:
-     *
-     * exports.launcher = launcher;
-     * export const launcher = AppiumLauncher
-     * export let launcher = AppiumLauncher
-     * export var launcher = AppiumLauncher
-     */
-    if (targetCheck) {
-        const fileContent = fs.readFileSync(requirePath)
-        if (!fileContent.match(EXPORT_REGEX)) {
-            return {}
-        }
     }
 
     try {
