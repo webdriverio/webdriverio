@@ -17,7 +17,7 @@ describe('pause test', () => {
         await browser.pause(500) // expect 500ms pause
         const end = Date.now()
 
-        expect(end - start).toBeGreaterThan(499)
+        expect(end - start).toBeGreaterThan(490)
         expect(end - start).toBeLessThan(600)
         expect(got.mock.calls).toHaveLength(1)
     })
@@ -27,7 +27,7 @@ describe('pause test', () => {
         await browser.pause() // expect 1s pause
         const end = Date.now()
 
-        expect(end - start).toBeGreaterThan(999)
+        expect(end - start).toBeGreaterThan(990)
         expect(end - start).toBeLessThan(1100)
         expect(got.mock.calls).toHaveLength(1)
     })
