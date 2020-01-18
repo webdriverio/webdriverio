@@ -240,9 +240,15 @@ describe('wrapStep', () => {
         expect(testFnWrapper).toBeCalledWith(...fnWrapperArgs('Step', 3))
 
         const beforeFnArgs = testFnWrapper.mock.calls[0][2].beforeFnArgs
-        expect(beforeFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
+        expect(beforeFnArgs('context')).toEqual([
+            { uri: 'uri', feature: 'feature', step: 'getCurrentStep' },
+            'context']
+        )
         const afterFnArgs = testFnWrapper.mock.calls[0][3].afterFnArgs
-        expect(afterFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
+        expect(afterFnArgs('context')).toEqual([
+            { uri: 'uri', feature: 'feature', step: 'getCurrentStep' },
+            'context']
+        )
     })
 
     test('should be proper type for Hook', () => {
@@ -254,9 +260,15 @@ describe('wrapStep', () => {
         expect(testFnWrapper).toBeCalledWith(...fnWrapperArgs('Hook', 0))
 
         const beforeFnArgs = testFnWrapper.mock.calls[0][2].beforeFnArgs
-        expect(beforeFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
+        expect(beforeFnArgs('context')).toEqual([
+            { uri: 'uri', feature: 'feature', step: 'getCurrentStep' },
+            'context']
+        )
         const afterFnArgs = testFnWrapper.mock.calls[0][3].afterFnArgs
-        expect(afterFnArgs('context')).toEqual(['uri', 'feature', 'getCurrentStep', 'context'])
+        expect(afterFnArgs('context')).toEqual([
+            { uri: 'uri', feature: 'feature', step: 'getCurrentStep' },
+            'context']
+        )
     })
 })
 
