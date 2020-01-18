@@ -7,18 +7,18 @@ import { ConfigParser } from '@wdio/config'
 import { initialisePlugin, initialiseServices } from '@wdio/utils'
 
 import CLInterface from './interface'
-import { runOnPrepareHook, runOnCompleteHook, runServiceHook } from './utils'
+import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils'
 
 const log = logger('@wdio/cli:launcher')
 
 class Launcher {
-    constructor (configFilePath, argv = {}, isWatchMode = false) {
-        this.argv = argv
+    constructor (configFilePath, args = {}, isWatchMode = false) {
+        this.args = args
         this.configFilePath = configFilePath
 
         this.configParser = new ConfigParser()
         this.configParser.addConfigFile(configFilePath)
-        this.configParser.merge(argv)
+        this.configParser.merge(args)
 
         const config = this.configParser.getConfig()
         const capabilities = this.configParser.getCapabilities()
@@ -69,7 +69,7 @@ class Launcher {
         try {
             const config = this.configParser.getConfig()
             const caps = this.configParser.getCapabilities()
-            const launcher = initialiseServices(config, caps, 'launcher')
+            this.launcher = initialiseServices(config, caps, 'launcher')
 
             /**
              * run pre test tasks for runner plugins
@@ -81,8 +81,8 @@ class Launcher {
              * run onPrepare hook
              */
             log.info('Run onPrepare hook')
-            await runOnPrepareHook(config.onPrepare, config, caps)
-            await runServiceHook(launcher, 'onPrepare', config, caps)
+            await runLauncherHook(config.onPrepare, config, caps)
+            await runServiceHook(this.launcher, 'onPrepare', config, caps)
 
             exitCode = await this.runMode(config, caps)
 
@@ -91,8 +91,7 @@ class Launcher {
              * even if it fails we still want to see result and end logger stream
              */
             log.info('Run onComplete hook')
-            await runServiceHook(launcher, 'onComplete', exitCode, config, caps)
-
+            await runServiceHook(this.launcher, 'onComplete', exitCode, config, caps)
             const onCompleteResults = await runOnCompleteHook(config.onComplete, config, caps, exitCode, this.interface.result)
 
             // if any of the onComplete hooks failed, update the exit code
@@ -160,8 +159,7 @@ class Launcher {
                     caps: capabilities,
                     specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: specFileRetries })),
                     availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
-                    runningInstances: 0,
-                    seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
+                    runningInstances: 0
                 })
             }
         }
@@ -247,7 +245,6 @@ class Launcher {
                 specs.files,
                 schedulableCaps[0].caps,
                 schedulableCaps[0].cid,
-                schedulableCaps[0].seleniumServer,
                 specs.rid,
                 specs.retries
             )
@@ -281,7 +278,7 @@ class Launcher {
      * @param  {String} rid  Runner ID override
      * @param  {Number} retries  Number of retries remaining
      */
-    startInstance (specs, caps, cid, server, rid, retries) {
+    async startInstance (specs, caps, cid, rid, retries) {
         let config = this.configParser.getConfig()
         // Retried tests receive the cid of the failing test as rid
         // so they can run with the same cid of the failing test.
@@ -324,23 +321,28 @@ class Launcher {
         // If an arg appears multiple times the last occurrence is used
         let execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
 
+        // bump up worker count
+        this.runnerStarted++
+
+        // run worker hook to allow modify runtime and capabilities of a specific worker
+        log.info('Run onWorkerStart hook')
+        await runLauncherHook(config.onWorkerStart, cid, caps, specs, this.args, execArgv)
+        await runServiceHook(this.launcher, 'onWorkerStart', cid, caps, specs, this.args, execArgv)
+
         // prefer launcher settings in capabilities over general launcher
         const worker = this.runner.run({
             cid,
             command: 'run',
             configFile: this.configFilePath,
-            argv: this.argv,
+            args: this.args,
             caps,
             specs,
-            server,
             execArgv,
             retries
         })
         worker.on('message', ::this.interface.onMessage)
         worker.on('error', ::this.interface.onMessage)
         worker.on('exit', ::this.endHandler)
-
-        this.runnerStarted++
     }
 
     /**

@@ -11,15 +11,19 @@ The basic construction of a custom service should look like this:
 
 ```js
 export default class CustomService {
-  onPrepare(config, capabilities) {
-    // TODO: something before the workers launch
-  }
+    onPrepare(config, capabilities) {
+        // TODO: something before all workers launch
+    }
 
-  onComplete(exitCode, config, capabilities) {
-    // TODO: something after the workers shutdown
-  },
+    onWorkerStart(cid, caps, specs, args, execArgv) {
+        // TODO: something before specific worker launch
+    }
 
-  // ...
+    onComplete(exitCode, config, capabilities) {
+        // TODO: something after the workers shutdown
+    },
+
+    // custom service methods ...
 }
 ```
 
@@ -70,7 +74,7 @@ exports.config = {
 }
 ```
 
-> **Note:** Services that are added by name behave slightly differently compared to your own imported services. Instead of the service handling all the hooks, as in the example above, the service needs to export a launcher that handles `onPrepare` and `onComplete`. The rest of the hooks will be handled by the service (the default export), as normal.
+> **Note:** Services that are added by name behave slightly differently compared to your own imported services. Instead of the service handling all the hooks, as in the example above, the service needs to export a launcher that handles `onPrepare`, `onWorkerStart` and `onComplete`. The rest of the hooks will be handled by the service (the default export), as normal.
 >
 > Example:
 >

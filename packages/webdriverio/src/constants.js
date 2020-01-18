@@ -275,6 +275,7 @@ export const WDIO_DEFAULTS = {
      * hooks
      */
     onPrepare: HOOK_DEFINITION,
+    onWorkerStart: HOOK_DEFINITION,
     before: HOOK_DEFINITION,
     beforeSession: HOOK_DEFINITION,
     beforeSuite: HOOK_DEFINITION,

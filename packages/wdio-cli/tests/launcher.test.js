@@ -5,20 +5,20 @@ import fs from 'fs-extra'
 const caps = { maxInstances: 1, browserName: 'chrome' }
 
 jest.mock('fs-extra')
-global.console.log = jest.fn()
 
 describe('launcher', () => {
     const emitSpy = jest.spyOn(process, 'emit')
     let launcher
 
     beforeEach(() => {
+        global.console.log = jest.fn()
         emitSpy.mockClear()
         launcher = new Launcher('./')
     })
 
     describe('defaults', () => {
         it('should have default for the argv parameter', () => {
-            expect(launcher.argv).toEqual({})
+            expect(launcher.args).toEqual({})
         })
     })
 
@@ -423,10 +423,34 @@ describe('launcher', () => {
             launcher.interface.emit = jest.fn()
         })
 
-        it('should allow override of runner id', () => {
-            launcher.startInstance([], { browserName: 'chrome' }, 0, undefined, '0-5')
+        it('should start an instance', async () => {
+            const onWorkerStartMock = jest.fn()
+            const caps = {
+                browserName: 'chrome',
+                execArgv: ['--foo', 'bar']
+            }
+            launcher.configParser.getConfig = () => ({ onWorkerStart: onWorkerStartMock })
+            launcher.args.hostname = '127.0.0.2'
+
+            expect(launcher.runnerStarted).toBe(0)
+            await launcher.startInstance(
+                ['/foo.test.js'],
+                caps,
+                0,
+                '0-5',
+                0
+            )
+
+            expect(launcher.runnerStarted).toBe(1)
             expect(launcher.runner.run.mock.calls[0][0]).toHaveProperty('cid', '0-5')
             expect(launcher.getRunnerId(0)).toBe('0-0')
+            expect(onWorkerStartMock).toHaveBeenCalledWith(
+                '0-5',
+                caps,
+                ['/foo.test.js'],
+                { hostname: '127.0.0.2' },
+                ['--foo', 'bar']
+            )
         })
     })
 
@@ -502,5 +526,9 @@ describe('launcher', () => {
             expect(launcher.runner.shutdown).toBeCalled()
             expect(error).toBeInstanceOf(Error)
         })
+    })
+
+    afterEach(() => {
+        global.console.log.mockReset()
     })
 })

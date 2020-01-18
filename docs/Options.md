@@ -270,7 +270,7 @@ This allows custom actions (e.g., take screenshot if a test fails).
 
 Every hook has as parameter specific information about the lifecycle (i.e. information about the test suite or test).
 
-The following hooks are available: `onPrepare`, `beforeSession`, `before`, `beforeSuite`, `beforeHook`, `afterHook`, `beforeTest`, `beforeCommand`, `afterCommand`, `afterTest`, `afterSuite`, `after`, `afterSession`, `onComplete`, `onReload`, `beforeFeature`, `beforeScenario`, `beforeStep`, `afterStep`, `afterScenario`, `afterFeature`.
+The following hooks are available: `onPrepare`, `onWorkerStart`, `beforeSession`, `before`, `beforeSuite`, `beforeHook`, `afterHook`, `beforeTest`, `beforeCommand`, `afterCommand`, `afterTest`, `afterSuite`, `after`, `afterSession`, `onComplete`, `onReload`, `beforeFeature`, `beforeScenario`, `beforeStep`, `afterStep`, `afterScenario`, `afterFeature`.
 
 Type: `Function`<br>
 Default: `null`

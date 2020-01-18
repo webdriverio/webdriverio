@@ -21,7 +21,7 @@ test('should fork a new process', () => {
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
-        argv: {},
+        args: {},
         caps: {},
         processNumber: 123,
         specs: ['/foo/bar.test.js']
@@ -38,12 +38,11 @@ test('should fork a new process', () => {
     expect(childProcess.on).toBeCalled()
 
     expect(childProcess.send).toBeCalledWith({
-        argv: {},
+        args: {},
         caps: {},
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
-        server: {},
         specs: ['/foo/bar.test.js']
     })
 
@@ -59,7 +58,7 @@ test('should shut down worker processes', async () => {
         cid: '0-4',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
-        argv: {},
+        args: {},
         caps: {},
         processNumber: 124,
         specs: ['/foo/bar2.test.js']
@@ -68,7 +67,7 @@ test('should shut down worker processes', async () => {
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
-        argv: {},
+        args: {},
         caps: {},
         processNumber: 123,
         specs: ['/foo/bar.test.js']
@@ -103,7 +102,7 @@ test('should avoid shutting down if worker is not busy', async () => {
         cid: '0-8',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
-        argv: { sessionId: 'abc' },
+        args: { sessionId: 'abc' },
         caps: {},
         processNumber: 231,
         specs: ['/foo/bar2.test.js'],
@@ -126,7 +125,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
         cid: '0-6',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
-        argv: { sessionId: 'abc' },
+        args: { sessionId: 'abc' },
         caps: {},
         processNumber: 231,
         specs: ['/foo/bar2.test.js'],
@@ -148,11 +147,11 @@ test('should shut down worker processes in watch mode - regular', async () => {
     const call2 = worker.childProcess.send.mock.calls.pop()[0]
     expect(call2.cid).toBe('0-6')
     expect(call2.command).toBe('endSession')
-    expect(call2.argv.watch).toBe(true)
-    expect(call2.argv.isMultiremote).toBeFalsy()
-    expect(call2.argv.config.sessionId).toBe('abc')
-    expect(call2.argv.config.host).toEqual('foo')
-    expect(call2.argv.caps).toEqual({ browser: 'chrome' })
+    expect(call2.args.watch).toBe(true)
+    expect(call2.args.isMultiremote).toBeFalsy()
+    expect(call2.args.config.sessionId).toBe('abc')
+    expect(call2.args.config.host).toEqual('foo')
+    expect(call2.args.caps).toEqual({ browser: 'chrome' })
 })
 
 test('should shut down worker processes in watch mode - mutliremote', async () => {
@@ -166,7 +165,7 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
         cid: '0-7',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
-        argv: {},
+        args: {},
         caps: {},
         processNumber: 232,
         specs: ['/foo/bar.test.js'],
@@ -188,10 +187,10 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
     const call1 = worker.childProcess.send.mock.calls.pop()[0]
     expect(call1.cid).toBe('0-7')
     expect(call1.command).toBe('endSession')
-    expect(call1.argv.watch).toBe(true)
-    expect(call1.argv.isMultiremote).toBe(true)
-    expect(call1.argv.instances).toEqual({ foo: {} })
-    expect(call1.argv.caps).toEqual({ foo: { capabilities: { browser: 'chrome' } } })
+    expect(call1.args.watch).toBe(true)
+    expect(call1.args.isMultiremote).toBe(true)
+    expect(call1.args.instances).toEqual({ foo: {} })
+    expect(call1.args.caps).toEqual({ foo: { capabilities: { browser: 'chrome' } } })
 })
 
 test('should avoid shutting down if worker is not busy', async () => {

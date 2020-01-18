@@ -3,7 +3,7 @@ import ejs from 'ejs'
 import childProcess from 'child_process'
 
 import {
-    runOnPrepareHook,
+    runLauncherHook,
     runOnCompleteHook,
     runServiceHook,
     getRunnerName,
@@ -52,28 +52,31 @@ test('runServiceHook', () => {
     expect(hookFailing).toBeCalledTimes(1)
 })
 
-test('runOnPrepareHook handles array of functions', () => {
+test('runLauncherHook handles array of functions', () => {
     const hookSuccess = jest.fn()
     const hookFailing = jest.fn().mockImplementation(() => { throw new Error('buhh') })
 
-    runOnPrepareHook([hookSuccess, hookFailing], {}, {})
+    runLauncherHook([hookSuccess, hookFailing], 1, 2, 3, 4, 5, 6)
     expect(hookSuccess).toBeCalledTimes(1)
+    expect(hookSuccess).toHaveBeenCalledWith(1, 2, 3, 4, 5, 6)
     expect(hookFailing).toBeCalledTimes(1)
+    expect(hookFailing).toHaveBeenCalledWith(1, 2, 3, 4, 5, 6)
 })
 
-test('runOnPrepareHook handles async functions', async () => {
+test('runLauncherHook handles async functions', async () => {
     const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 31))
 
     const start = Date.now()
-    await runOnPrepareHook([hookSuccess], {}, {})
+    await runLauncherHook([hookSuccess], {}, {})
     expect(Date.now() - start).toBeGreaterThanOrEqual(30)
 })
 
-test('runOnPrepareHook handles a single function', () => {
+test('runLauncherHook handles a single function', () => {
     const hookSuccess = jest.fn()
 
-    runOnPrepareHook(hookSuccess, {}, {})
+    runLauncherHook(hookSuccess, 1, 2, 3, 4, 5, 6)
     expect(hookSuccess).toBeCalledTimes(1)
+    expect(hookSuccess).toHaveBeenCalledWith(1, 2, 3, 4, 5, 6)
 })
 
 test('runOnCompleteHook handles array of functions', () => {
