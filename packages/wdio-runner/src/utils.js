@@ -139,30 +139,3 @@ export function getInstancesData(browser, isMultiremote) {
 
     return instances
 }
-
-/**
- * Attach to Multiremote
- * @param {object} instances mutliremote instances object
- * @param {object} caps multiremote capabilities
- * @return {object}
- */
-export async function attachToMultiremote(instances, caps) {
-    // emulate multiremote browser object
-    const browser = {
-        instances: Object.keys(instances),
-        deleteSession () {
-            return Promise.all(Object.keys(instances).map(name => browser[name].deleteSession()))
-        }
-    }
-
-    /**
-     * attach to every multiremote instance
-     */
-    await Promise.all(
-        Object.keys(instances).map(async name => {
-            browser[name] = await initialiseInstance(instances[name], caps[name].capabilities, false)
-        })
-    )
-
-    return browser
-}

@@ -8,7 +8,7 @@ import { initialiseServices, initialisePlugin, executeHooksWithArgs } from '@wdi
 import { ConfigParser } from '@wdio/config'
 
 import BaseReporter from './reporter'
-import { runHook, initialiseInstance, filterLogTypes, getInstancesData, attachToMultiremote } from './utils'
+import { runHook, initialiseInstance, filterLogTypes, getInstancesData } from './utils'
 
 const log = logger('@wdio/runner')
 
@@ -22,15 +22,14 @@ export default class Runner extends EventEmitter {
     /**
      * run test suite
      * @param  {String}    cid            worker id (e.g. `0-0`)
-     * @param  {Object}    argv           cli arguments passed into wdio command
+     * @param  {Object}    args           config arguments passed into worker process
      * @param  {String[]}  specs          list of spec files to run
      * @param  {Object}    caps           capabilities to run session with
      * @param  {String}    configFile     path to config file to get config from
-     * @param  {Object}    server         modified WebDriver target
      * @param  {Number}    retries        number of retries remaining
      * @return {Promise}                  resolves in number of failures for testrun
      */
-    async run ({ cid, argv, specs, caps, configFile, server, retries }) {
+    async run ({ cid, args, specs, caps, configFile, retries }) {
         this.cid = cid
         this.specs = specs
         this.caps = caps
@@ -47,12 +46,7 @@ export default class Runner extends EventEmitter {
         /**
          * merge cli arguments into config
          */
-        this.configParser.merge(argv)
-
-        /**
-         * merge host/port changes by service launcher into config
-         */
-        this.configParser.merge(server)
+        this.configParser.merge(args)
 
         /**
          * remove services that has nothing to do in worker
@@ -163,7 +157,7 @@ export default class Runner extends EventEmitter {
         /**
          * in watch mode we don't close the session and leave current page opened
          */
-        if (!argv.watch) {
+        if (!args.watch) {
             await this.endSession()
         }
 
@@ -330,19 +324,7 @@ export default class Runner extends EventEmitter {
      * end WebDriver session, a config object can be applied if object has changed
      * within a hook by the user
      */
-    async endSession (payload) {
-        /**
-         * Attach to browser session before killing it in Multiremote
-         */
-        if (!global.browser && payload && payload.argv && payload.argv.watch) {
-            if (payload.argv.isMultiremote) {
-                this.isMultiremote = true
-                global.browser = await attachToMultiremote(payload.argv.instances, payload.argv.caps)
-            } else {
-                global.browser = await initialiseInstance(payload.argv.config, payload.argv.caps, false)
-            }
-        }
-
+    async endSession () {
         /**
          * make sure instance(s) exist and have `sessionId`
          */
@@ -360,17 +342,8 @@ export default class Runner extends EventEmitter {
          * don't do anything if test framework returns after SIGINT
          * if endSession is called without payload we expect a session id
          */
-        if (!payload && !hasSessionId) {
+        if (!hasSessionId) {
             return
-        }
-
-        /**
-         * if payload was called but no session was created, wait until it was
-         * and try to end it
-         */
-        if (payload && !hasSessionId) {
-            await new Promise((resolve) => setTimeout(resolve, 250))
-            return this.endSession(payload)
         }
 
         /**
@@ -393,9 +366,5 @@ export default class Runner extends EventEmitter {
         }
 
         await runHook('afterSession', global.browser.config, capabilities, this.specs)
-
-        if (payload) {
-            return this._shutdown()
-        }
     }
 }

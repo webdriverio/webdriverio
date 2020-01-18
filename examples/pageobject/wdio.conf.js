@@ -90,6 +90,11 @@ exports.config = {
     // onPrepare: function (config, capabilities) {
     // },
     //
+    // Gets executed before a worker process is spawned and can be used to initialise specific service
+    // for that worker as well as modify runtime environments in an async fashion.
+    // onWorkerStart: function (cid, caps, specs, args, execArgv) {
+    // },
+    //
     // Gets executed before test execution begins. At this point you can access to all global
     // variables like `browser`. It is the perfect place to define custom commands.
     // before: function (capabilities, specs) {
