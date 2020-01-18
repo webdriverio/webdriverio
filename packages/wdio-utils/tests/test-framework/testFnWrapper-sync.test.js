@@ -30,22 +30,8 @@ describe('testFnWrapper', () => {
         const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar', description: 'foo' }, 'context'])
         const result = await testFnWrapper.call({ test: { fullTitle: () => 'full title' } }, ...args)
 
-        const expectedResults = { duration: expect.any(Number), error: undefined, passed: true }
         expect(result).toBe('@wdio/sync: FooBar 0 0')
-        expect(executeHooksWithArgs).toBeCalledTimes(2)
-        expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
-        expect(executeHooksWithArgs).toBeCalledWith('afterFn', [
-            { ...expectedResults, foo: 'bar', fullTitle: 'full title', title: 'foo', description: 'foo' },
-            'context',
-            {
-                ...expectedResults,
-                result: '@wdio/sync: FooBar 0 0',
-                retries: {
-                    attempts: 0,
-                    limit: 0
-                }
-            }
-        ])
+        expect(executeHooksWithArgs.mock.calls).toMatchSnapshot()
     })
 
     it('should propagate jasmine failed expecations as errors', async () => {
@@ -68,24 +54,7 @@ describe('testFnWrapper', () => {
         const result = await testFnWrapper(...args)
 
         expect(result).toBe('@wdio/sync: FooBar 0 0')
-        expect(executeHooksWithArgs).toBeCalledTimes(2)
-        expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
-        expect(executeHooksWithArgs).toBeCalledWith('afterFn', [
-            { foo: 'bar' },
-            2,
-            {
-                duration: expect.any(Number),
-                error: undefined,
-                passed: true,
-                result: '@wdio/sync: FooBar 0 0',
-                retries: {
-                    attempts: 0,
-                    limit: 0
-                }
-            },
-            3,
-            4
-        ])
+        expect(executeHooksWithArgs.mock.calls).toMatchSnapshot()
     })
 
     afterEach(() => {

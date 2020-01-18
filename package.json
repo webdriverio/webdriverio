@@ -16,7 +16,7 @@
     "clean:tgz": "rimraf ./packages/*/*.tgz",
     "clean:node_modules": "rimraf ./packages/node_modules",
     "clean:website": "rimraf docs/_*.md docs/api/*.md docs/api/**/*.md website/sidebars.json",
-    "clean:tests": "rimraf tests/typings/**/node_modules",
+    "clean:tests": "rimraf tests/typings/**/node_modules && rimraf tests/typings/**/dist",
     "clean:cache": "rimraf .eslintcache",
     "clean-full:package_modules": "rimraf ./packages/*/node_modules",
     "generate:typings": "node ./scripts/type-generation/generate-all-typings.js",
