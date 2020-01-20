@@ -175,7 +175,7 @@ describe('utils', () => {
         })
 
         it('should return "more info" if no message', () => {
-            expect(getSessionError({}, {})).toEqual('See logs for more information.')
+            expect(getSessionError({}, {})).toEqual('See wdio.* logs for more information.')
         })
 
         it('should handle not properly set paths', () => {
