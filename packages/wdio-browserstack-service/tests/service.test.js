@@ -265,7 +265,7 @@ describe('after', () => {
         const json = {
             name: undefined,
             reason: undefined,
-            status: 'completed',
+            status: 'passed',
         }
         expect(got.put).toHaveBeenCalledWith(
             'https://api.browserstack.com/automate/sessions/session123.json',
@@ -276,17 +276,17 @@ describe('after', () => {
 })
 
 describe('_getBody', () => {
-    it('should return "error" if failures', () => {
+    it('should return "failed" if failures', () => {
         service.failures = 1
         service.failReason = 'error message'
         service.fullTitle = 'foo - bar'
-        expect(service._getBody()).toEqual({ status: 'error', reason: 'error message', name: 'foo - bar' })
+        expect(service._getBody()).toEqual({ status: 'failed', reason: 'error message', name: 'foo - bar' })
     })
 
-    it('should return "completed" if no errors', () => {
+    it('should return "passed" if no errors', () => {
         service.failures = 0
         service.fullTitle = 'foo - bar'
 
-        expect(service._getBody()).toEqual({ status: 'completed', name: 'foo - bar', reason: undefined })
+        expect(service._getBody()).toEqual({ status: 'passed', name: 'foo - bar', reason: undefined })
     })
 })
