@@ -14,21 +14,21 @@ describe('pause test', () => {
 
     it('should pause for value provided as arg', async () => {
         const start = Date.now()
-        await browser.pause(500)
+        await browser.pause(500) // expect 500ms pause
         const end = Date.now()
 
-        expect((end - start) > 490).toBe(true)
-        expect((end - start) < 590).toBe(true)
+        expect(end - start).toBeGreaterThan(490)
+        expect(end - start).toBeLessThan(600)
         expect(got.mock.calls).toHaveLength(1)
     })
 
     it('should pause for default value', async () => {
         const start = Date.now()
-        await browser.pause()
+        await browser.pause() // expect 1s pause
         const end = Date.now()
 
-        expect((end - start) > 990).toBe(true)
-        expect((end - start) < 1090).toBe(true)
+        expect(end - start).toBeGreaterThan(990)
+        expect(end - start).toBeLessThan(1100)
         expect(got.mock.calls).toHaveLength(1)
     })
 

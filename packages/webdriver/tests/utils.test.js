@@ -171,11 +171,16 @@ describe('utils', () => {
 
     describe('getSessionError', () => {
         it('should return unchanged message', () => {
-            expect(getSessionError({ message: 'foobar' })).toEqual('foobar')
+            expect(getSessionError({ message: 'foobar' }, {})).toEqual('foobar')
         })
 
         it('should return "more info" if no message', () => {
-            expect(getSessionError({})).toEqual('See logs for more information.')
+            expect(getSessionError({}, {})).toEqual('See wdio.* logs for more information.')
+        })
+
+        it('should handle not properly set paths', () => {
+            expect(getSessionError({ message: 'unhandled request' }, {}))
+                .toContain('Make sure you have set the "path" correctly!')
         })
 
         it('ECONNREFUSED', () => {
@@ -185,17 +190,17 @@ describe('utils', () => {
                 port: 4444,
                 message: 'ECONNREFUSED 127.0.0.1:4444'
             }, {
-                protocol: 'http',
-                hostname: 'localhost',
+                protocol: 'https',
+                hostname: 'foobar',
                 port: 1234,
-                path: '/'
-            })).toContain('Unable to connect to "http://localhost:1234/"')
+                path: '/foo/bar'
+            })).toContain('Unable to connect to "https://foobar:1234/foo/bar"')
         })
 
         it('path: selenium-standalone path', () => {
             expect(getSessionError({
                 message: 'Whoops! The URL specified routes to this help page.'
-            })).toContain("set `path: '/wd/hub'` in")
+            }, {})).toContain("set `path: '/wd/hub'` in")
         })
 
         it('path: chromedriver, geckodriver, etc', () => {
@@ -207,13 +212,13 @@ describe('utils', () => {
         it('edge driver localhost issue', () => {
             expect(getSessionError({
                 message: 'Bad Request - Invalid Hostname 400 <br> HTTP Error 400'
-            })).toContain('127.0.0.1 instead of localhost')
+            }, {})).toContain('127.0.0.1 instead of localhost')
         })
 
         it('illegal w3c cap passed to selenium standalone', () => {
             const message = getSessionError({
                 message: 'Illegal key values seen in w3c capabilities: [chromeOptions]'
-            })
+            }, {})
             expect(message).toContain('[chromeOptions]')
             expect(message).toContain('add vendor prefix')
         })
