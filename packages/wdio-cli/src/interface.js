@@ -119,7 +119,7 @@ export default class WDIOCLInterface extends EventEmitter {
         if (hasTests) {
             this.onSpecRunning(cid)
         } else {
-            this.skippedSpecs++
+            this.skippedSpecs += specs.length
         }
     }
 
@@ -133,7 +133,7 @@ export default class WDIOCLInterface extends EventEmitter {
         const retryAttempts = this.specFileRetries - retries
         const retry = !passed && retries > 0
         if (!retry) {
-            this.result.finished++
+            this.result.finished += job.specs.length
         }
 
         if (job && job.hasTests === false) {
