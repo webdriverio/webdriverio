@@ -4,7 +4,7 @@ import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
 import { ConfigParser } from '@wdio/config'
-import { initialisePlugin, initialiseServices } from '@wdio/utils'
+import { initialisePlugin, initialiseLauncherService } from '@wdio/utils'
 
 import CLInterface from './interface'
 import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils'
@@ -69,7 +69,9 @@ class Launcher {
         try {
             const config = this.configParser.getConfig()
             const caps = this.configParser.getCapabilities()
-            this.launcher = initialiseServices(config, caps, 'launcher')
+            const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps)
+            this.launcher = launcherServices
+            this.args.ignoredWorkerServices = ignoredWorkerServices
 
             /**
              * run pre test tasks for runner plugins

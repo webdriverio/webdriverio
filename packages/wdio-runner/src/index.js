@@ -6,7 +6,7 @@ import EventEmitter from 'events'
 import { setOptions } from 'expect-webdriverio'
 
 import logger from '@wdio/logger'
-import { initialiseServices, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
+import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 
 import BaseReporter from './reporter'
@@ -75,7 +75,8 @@ export default class Runner extends EventEmitter {
             return this._shutdown(0)
         }
 
-        initialiseServices(this.config, caps).map(::this.configParser.addService)
+        initialiseWorkerService(this.config, caps, args.ignoredWorkerServices)
+            .map(::this.configParser.addService)
 
         /**
          * set options for `expect-webdriverio` assertion lib
