@@ -66,7 +66,7 @@ exports.generateProtocolDocs = (sidebars) => {
             }
         }
 
-        const docPath = path.join(__dirname, '..', '..', 'docs', 'api', `${protocolName}.md`)
+        const docPath = path.join(__dirname, '..', '..', 'docs', 'api', `_${protocolName}.md`)
         fs.writeFileSync(docPath, protocolDocs[protocolName].join('\n---\n'), { encoding: 'utf-8' })
 
         // eslint-disable-next-line no-console

@@ -25,7 +25,7 @@ exports.config = {
     logLevel: 'error',
     framework: 'cucumber',
 
-    reporters: ['dot'],
+    reporters: ['spec'],
 
     cucumberOpts: {
         require: [__dirname + '/step-definitions.js']

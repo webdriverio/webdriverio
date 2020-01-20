@@ -38,7 +38,7 @@
   {
     "packageName": "wdio-slack-service",
     "title": "Slack",
-    "githubUrl": "http://github.com/carmenmitru/wdio-slack-service",
+    "githubUrl": "https://github.com/carmenmitru/wdio-slack-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-slack-service"
   }
 ]

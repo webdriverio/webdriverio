@@ -1,5 +1,6 @@
 import fs from 'fs'
 
+import { setOptions } from 'expect-webdriverio'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { attach } from 'webdriverio'
 import WDIORunner from '../src'
@@ -9,6 +10,10 @@ jest.mock('fs')
 jest.mock('util', () => ({ promisify: (fn) => fn }))
 
 describe('wdio-runner', () => {
+    it('comes with own assertion lib', () => {
+        expect(process.env.WDIO_ASSERTION_LIB_ACTIVATED).toBe('1')
+    })
+
     describe('_fetchDriverLogs', () => {
         let runner
         beforeEach(() => {
@@ -203,6 +208,7 @@ describe('wdio-runner', () => {
                 specs
             })
 
+            expect(setOptions).toBeCalledTimes(1)
             expect(runner._shutdown).toBeCalledWith(123)
             expect(beforeSession).toBeCalledWith(config, caps, specs)
             expect(executeHooksWithArgs).toBeCalledWith(config.before, [caps, specs])
