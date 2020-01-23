@@ -281,13 +281,12 @@ describe('ConfigParser', () => {
             expect(typeof configParser.getConfig().onComplete).toBe('function')
         })
 
-        it('should overwrite capabilities if flag is passed', () => {
+        it('should overwrite capabilities', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
             expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'chrome' }])
             configParser.merge({
                 capabilities: [{ browserName: 'safari' }],
-                overwriteCaps: true,
             })
 
             expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'safari' }])

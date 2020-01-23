@@ -11,6 +11,9 @@ const REGION_MAPPING = {
     'us-east-1': 'us-east-1.'
 }
 
+export const validObjectOrArray = (object) => (Array.isArray(object) && object.length > 0) ||
+    (typeof object === 'object' && Object.keys(object).length > 0)
+
 export function getSauceEndpoint (region, isRDC) {
     const shortRegion = REGION_MAPPING[region] ? region : 'us'
     if (isRDC){

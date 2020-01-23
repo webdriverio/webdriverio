@@ -5,7 +5,7 @@ import merge from 'deepmerge'
 
 import logger from '@wdio/logger'
 
-import { detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber } from '../utils'
+import { detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray } from '../utils'
 
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
 
@@ -28,13 +28,13 @@ export default class ConfigParser {
             throw new Error('addConfigFile requires filepath')
         }
 
-        var filePath = path.resolve(process.cwd(), filename)
+        const filePath = path.resolve(process.cwd(), filename)
 
         try {
             /**
              * clone the original config
              */
-            var fileConfig = merge(require(filePath).config, {}, MERGE_OPTIONS)
+            const fileConfig = merge(require(filePath).config, {}, MERGE_OPTIONS)
 
             /**
              * merge capabilities
@@ -82,11 +82,10 @@ export default class ConfigParser {
      * @param  {Object} object  desired object to merge into the config object
      */
     merge (object = {}) {
-        const { overwriteCaps } = object
-        this._config = merge(this._config, object, MERGE_OPTIONS)
-        let spec = Array.isArray(object.spec) ? object.spec : []
-        let exclude = Array.isArray(object.exclude) ? object.exclude : []
+        const spec = Array.isArray(object.spec) ? object.spec : []
+        const exclude = Array.isArray(object.exclude) ? object.exclude : []
 
+        this._config = merge(this._config, object, MERGE_OPTIONS)
         /**
          * overwrite config specs that got piped into the wdio command
          */
@@ -97,14 +96,9 @@ export default class ConfigParser {
         }
 
         /**
-         * merge capabilities
+         * overwrite capabilities
          */
-        if (overwriteCaps) {
-            this._capabilities = this._config.capabilities
-        } else {
-            const defaultTo = Array.isArray(this._capabilities) ? [] : {}
-            this._capabilities = merge(this._capabilities, this._config.capabilities || defaultTo, MERGE_OPTIONS)
-        }
+        this._capabilities = validObjectOrArray(this._config.capabilities) ? this._config.capabilities : this._capabilities
         /**
          * save original specs if Cucumber's feature line number is provided
          */
