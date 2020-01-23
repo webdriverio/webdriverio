@@ -2,6 +2,7 @@
 id: browserobject
 title: El objeto del navegador
 ---
+
 Si utiliza el gestor de pruebas de wdio, puede acceder a la instancia del controlador web a través del `browser` global o el objeto del `driver`. La sesión está inicializada por el 'testrunner'. Lo mismo ocurre para terminar la sesión. Esto también lo hace el proceso del 'testrunner'.
 
 Además de todos los comandos del [api](API.md) el objeto del navegador proporciona más información en la que podría estar interesado durante su ejecución de prueba:
