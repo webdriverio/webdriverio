@@ -1,6 +1,6 @@
 ---
 id: typescript
-title: TypeScript Setup
+title: Configurar TypeScript
 ---
 
 Similar a la configuración de Babel, puede registrar [TypeScript](http://www.typescriptlang.org/) para compilar sus archivos .ts en el "before" hook de su archivo de configuración. Necesitará [ts-node](https://github.com/TypeStrong/ts-node) y [tsconfig-paths](https://github.com/dividab/tsconfig-paths) como devDependencies instaladas.
@@ -28,13 +28,13 @@ y:
 ```json
     //tsconfig.json
     "compilerOptions": {
-    "baseUrl": ".",
+    "baseUrl": ". ,
     "paths": {
-            "*": [ "./*" ],
-            "src/*": ["./src/*"]
+            "*": [ ". *" ],
+            "src/*": [". src/*"]
         }
     },
     "include": [
-        "./src/**/*.ts"
+        ". src/**/*.ts"
     ]
 ```
