@@ -179,83 +179,83 @@ exports.config = {
     },
     //
     // Si estas usando Cucumber necesitas especificar donde estan ubicados tus definiciones de pasos.
-    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
+    // Ver también: https://github. om/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
-        require: [],        // <string[]> (file/dir) require files before executing features
-        backtrace: false,   // <boolean> show full backtrace for errors
-        compiler: [],       // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        dryRun: false,      // <boolean> invoke formatters without executing steps
-        failFast: false,    // <boolean> abort the run on first failure
-        format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
-        colors: true,       // <boolean> disable colors in formatter output
-        snippets: true,     // <boolean> hide step definition snippets for pending steps
-        source: true,       // <boolean> hide source URIs
-        profile: [],        // <string[]> (name) specify the profile to use
-        strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 20000,      // <number> timeout for step definitions
-        ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
+        require: [], // <string[]> (file/dir) requiere archivos antes de ejecutar funciones
+        backtrace: false, // <boolean> mostrar backtrace completo para errores
+        compilador: [], // <string[]> ("extension:module") requiere archivos con la EXTENSION dada después de requerir MODULE (repetible)
+        dryRun: false, // <boolean> invoca formateadores sin ejecutar pasos
+        failFast: false, // <boolean> abortar la ejecución en primer fallo
+        formato: ['monety'], // <string[]> (type[:path]) especificar el formato de salida, proporciona PATH opcionalmente para redirigir la salida del formateador (repetible)
+        colores: verdadero, // <boolean> deshabilita los colores en la salida del formateador
+        snippets: true, // <boolean> ocultar fragmentos de definición de paso para pasos pendientes
+        origen: true, // <boolean> ocultar URIs fuente
+        perfil: [], // <string[]> (nombre) especifica el perfil a usar
+        strict: false, // <boolean> fallar si hay algún paso indefinido o pendiente
+        etiquetas: [], // <string[]> (expresión) sólo ejecuta las características o escenarios con etiquetas que coincidan con la expresión
+        timeout: 20000, // <number> timeout para definiciones de pasos
+        ignoreUndefinedDefinitions: false, // <boolean> Habilitar esta configuración para tratar definiciones no definidas como advertencias.
     },
     //
     // =====
     // Hooks
     // =====
-    // WebdriverIO provides a several hooks you can use to interfere the test process in order to enhance
-    // it and build services around it. You can either apply a single function to it or an array of
-    // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
-    // resolved to continue.
+    // WebdriverIO proporciona varios hooks que puedes usar para interferir el proceso de prueba con el fin de mejorar
+    // él y construir servicios a su alrededor. Puede aplicar una única función o un array de
+    // métodos. Si uno de ellos regresa con una promesa, WebdriverIO esperará hasta que esa promesa tenga
+    // resuelta para continuar.
     //
 
     /**
-     * Gets executed once before all workers get launched.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
+     * Se ejecuta una vez antes de que todos los trabajadores sean lanzados.
+     * @param {Object} config wdio objeto de configuración
+     * @param {Array.<Object>} lista de capacidades de detalles
      */
-    onPrepare: function (config, capabilities) {
+    onPrepare: function (config, capacidades) {
     },
     /**
-     * Gets executed just before initialising the webdriver session and test framework. It allows you
-     * to manipulate configurations depending on the capability or spec.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * Se ejecuta justo antes de inicializar la sesión del controlador web y el framework de pruebas. Le permite
+     * manipular configuraciones dependiendo de la capacidad o especificación.
+     * @param {Object} config wdio objeto de configuración
+     * @param {Array.<Object>} lista de capacidades de detalles
+     * @param {Array.<String>} especifica Lista de rutas de archivos especificados que se van a ejecutar
      */
-    beforeSession: function (config, capabilities, specs) {
+    beforeSession: función (configuración, capacidades, especificaciones) {
     },
     /**
-     * Gets executed before test execution begins. At this point you can access to all global
-     * variables like `browser`. It is the perfect place to define custom commands.
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * Se ejecuta antes de que comience la ejecución de la prueba. En este punto puedes acceder a todas las variables globales
+     * como `browser`. Es el lugar perfecto para definir comandos personalizados.
+     * @param {Array.<Object>} lista de capacidades de detalles de capacidades
+     * @param {Array.<String>} especifica Lista de rutas de archivos especificados que se van a ejecutar
      */
-    before: function (capabilities, specs) {
+    before: function (capacidades, especificaciones) {
     },
     /**
-     * Hook that gets executed before the suite starts
-     * @param {Object} suite suite details
+     * Gancho que se ejecuta antes de que la suite comience
+     * @param {Object} suite detalles de la suite
      */
     beforeSuite: function (suite) {
     },
     /**
-     * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
-     * beforeEach in Mocha)
+     * Hook que es ejecutado _before_ un gancho dentro de la suite comienza (e. . ejecuta antes de llamar
+     * beforeEach en Mocha)
      */
     beforeHook: function () {
     },
     /**
-     * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
-     * afterEach in Mocha)
+     * Hook que es ejecutado _después_ de un gancho dentro de la suite final (ej. se ejecuta después de llamar
+     * después de cada una en Mocha)
      */
     afterHook: function () {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
+     * Función a ser ejecutada antes de una prueba (en Mocha/Jasmine) o un paso (en Cupeber) comienza.
+     * @param {Object} test details
      */
     beforeTest: function (test) {
     },
     /**
-     * Runs before a WebdriverIO command gets executed.
+     * Ejecuta antes de que un comando WebdriverIO sea ejecutado.
      * @param {String} commandName hook command name
      * @param {Array} args arguments that command would receive
      */
