@@ -57,9 +57,12 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
         direction: 'desc',
         per_page: 100
     })
-    const prsToBackport = prs.data.filter(
-        (pr) => pr.labels.find(
-            (label) => label.name === 'backport-requested')).reverse()
+    const prsToBackport = prs.data.filter((pr) => (
+        pr.labels.find(
+            (label) => label.name === 'backport-requested'
+        ) &&
+        Boolean(pr.merged_at)
+    )).reverse()
 
     if (prsToBackport.length === 0) {
         console.log('Nothing to backport!')
