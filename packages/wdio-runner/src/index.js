@@ -13,10 +13,11 @@ import { runHook, initialiseInstance, filterLogTypes, getInstancesData, attachTo
 const log = logger('@wdio/runner')
 
 export default class Runner extends EventEmitter {
-    constructor () {
+    constructor (target) {
         super()
         this.configParser = new ConfigParser()
         this.sigintWasCalled = false
+        this.target = target || process
     }
 
     /**
@@ -76,13 +77,13 @@ export default class Runner extends EventEmitter {
             automationProtocol: './protocol-stub'
         }, caps) : undefined
 
-        this.reporter = new BaseReporter(this.config, this.cid, { ...caps })
+        this.reporter = new BaseReporter(this.config, this.cid, { ...caps }, this.target)
         /**
          * initialise framework
          */
         this.framework = initialisePlugin(this.config.framework, 'framework')
         this.framework = await this.framework.init(cid, this.config, specs, caps, this.reporter)
-        process.send({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this.framework.hasTests() } })
+        this.target.send({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this.framework.hasTests() } })
         if (!this.framework.hasTests()) {
             return this._shutdown(0)
         }
@@ -141,7 +142,7 @@ export default class Runner extends EventEmitter {
          */
         const { protocol, hostname, port, path, queryParams } = browser.options
         const { isW3C, sessionId } = browser
-        process.send({
+        this.target.send({
             origin: 'worker',
             name: 'sessionStarted',
             content: { sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances }

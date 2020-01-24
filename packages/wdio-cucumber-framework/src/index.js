@@ -73,9 +73,14 @@ class CucumberAdapter {
         let result
 
         try {
+            // we need tp ensure that we don't run the registration code
+            // multiple times, otherwise we will get duplicated transpilations
+            // we also need to make sure that we only require spec files once
+            // otherwise they will be transpiled each time they are required
+            if(!global.supportCodeLibrary) {
+                // indentation is deliberately off so the diff is minimal
             this.registerRequiredModules()
             Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
-
             /**
              * wdio hooks should be added before spec files are loaded
              */
@@ -89,7 +94,8 @@ class CucumberAdapter {
              */
             setUserHookNames(Cucumber.supportCodeLibraryBuilder.options)
             Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
-            const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
+            global.supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
+            }
 
             /**
              * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
@@ -102,7 +108,7 @@ class CucumberAdapter {
             const runtime = new Cucumber.Runtime({
                 eventBroadcaster: this.eventBroadcaster,
                 options: this.cucumberOpts,
-                supportCodeLibrary,
+                supportCodeLibrary: global.supportCodeLibrary,
                 testCases: this.testCases
             })
 

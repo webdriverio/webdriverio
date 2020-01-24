@@ -1,10 +1,9 @@
 import path from 'path'
-import child from 'child_process'
 import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
+import Runner from '@wdio/runner'
 
-import RunnerTransformStream from './transformStream'
 import ReplQueue from './replQueue'
 import RunnerStream from './stdStream'
 
@@ -52,7 +51,7 @@ export default class WorkerInstance extends EventEmitter {
      * spawns process to kick of wdio-runner
      */
     startProcess () {
-        const { cid, execArgv } = this
+        const { cid } = this
         const argv = process.argv.slice(2)
 
         const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
@@ -63,23 +62,49 @@ export default class WorkerInstance extends EventEmitter {
             runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
         }
 
-        log.info(`Start worker ${cid} with arg: ${argv}`)
-        const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
-            cwd: process.cwd(),
-            env: runnerEnv,
-            execArgv,
-            stdio: ['inherit', 'pipe', 'pipe', 'ipc']
-        })
+        // This class emulates a child process. This is not here to stay;
+        // I did this in order to test my assumption that I can get rid of the multiple transpilations
+        // by using the same process. Unfortunately the whole of webdriverio is architected in a way that
+        // it uses inter-process communication via `process.send`. As I wanted to get a changeset for
+        // discussion up first, I decided to minimize the changes and just inject the fake child process
+        // into components that assume to be executed in a child process.
+        class FakeChildProcess {
+            constructor(worker) {
+                this.runner = new Runner(this)
+                this.worker = worker
+                this.runner.on('error', ({ name, message, stack }) => this.worker._handleError({
+                    origin: 'worker',
+                    name: 'error',
+                    content: { name, message, stack }
+                }))
+                this.runner.on('exit', ::this.worker._handleExit)
+            }
+            send(m) {
+                if (!m || !m.command) {
+                    this.worker._handleMessage(m)
+                    return
+                }
 
-        childProcess.on('message', ::this._handleMessage)
-        childProcess.on('error', ::this._handleError)
-        childProcess.on('exit', ::this._handleExit)
-
-        /* istanbul ignore if */
-        if (!process.env.JEST_WORKER_ID) {
-            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(stdOutStream)
-            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(stdErrStream)
+                log.info(`Run worker command: ${m.command}`)
+                this.runner[m.command](m).then(
+                    (result) => this.worker._handleMessage({
+                        origin: 'worker',
+                        name: 'finisedCommand',
+                        content: {
+                            command: m.command,
+                            result
+                        }
+                    }),
+                    (e) => {
+                        log.error(`Failed launching test session: ${e.stack}`)
+                        process.exit(1)
+                    }
+                )
+            }
         }
+
+        log.info(`Start worker ${cid} with arg: ${argv}`)
+        const childProcess = this.childProcess = new FakeChildProcess(this)
 
         return childProcess
     }
@@ -137,17 +162,11 @@ export default class WorkerInstance extends EventEmitter {
     }
 
     _handleExit (exitCode) {
-        const { cid, childProcess, specs, retries } = this
-
-        /**
-         * delete process of worker
-         */
-        delete this.childProcess
+        const { cid, specs, retries } = this
         this.isBusy = false
 
         log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
         this.emit('exit', { cid, exitCode, specs, retries })
-        childProcess.kill('SIGTERM')
     }
 
     /**

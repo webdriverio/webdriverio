@@ -108,9 +108,9 @@ export function filterLogTypes(excludeDriverLogs, driverLogTypes) {
  * @param {string} e        event
  * @param {object} payload  payload
  */
-export function sendFailureMessage(e, payload) {
+export function sendFailureMessage(e, payload, target) {
     if (e === 'test:fail' || (e === 'hook:end' && payload.error && mochaAllHooks.some(hook => payload.title.startsWith(hook)))) {
-        process.send({
+        target.send({
             origin: 'reporter',
             name: 'printFailureMessage',
             content: payload

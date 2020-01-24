@@ -15,10 +15,11 @@ const DEFAULT_SYNC_INTERVAL = 100 // 100ms
  * to all these reporters
  */
 export default class BaseReporter {
-    constructor (config, cid, caps) {
+    constructor (config, cid, caps, target) {
         this.config = config
         this.cid = cid
         this.caps = caps
+        this.target = target
 
         /**
          * these configurations are not publicly documented as there should be no desire for it
@@ -43,7 +44,7 @@ export default class BaseReporter {
         /**
          * Send failure message (only once) in case of test or hook failure
          */
-        sendFailureMessage(e, payload)
+        sendFailureMessage(e, payload, this.target)
 
         this.reporters.forEach((reporter) => reporter.emit(e, payload))
     }
@@ -88,7 +89,7 @@ export default class BaseReporter {
      */
     getWriteStreamObject (reporter) {
         return {
-            write: /* istanbul ignore next */ (content) => process.send({
+            write: /* istanbul ignore next */ (content) => this.target.send({
                 origin: 'reporter',
                 name: reporter,
                 content
