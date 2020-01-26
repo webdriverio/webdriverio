@@ -303,7 +303,7 @@ describe('click test', () => {
         })
         const elem = await browser.$('#foo')
 
-        expect(elem.click([])).rejects.toThrow('Options must be an oject')
+        expect(elem.click([])).rejects.toThrow('Options must be an object')
     })
 
     it('should throw an error if no valid coördicates are passed', async () => {
