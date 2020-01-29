@@ -35,7 +35,7 @@
     "mocha": "^7.0.1"
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.5"
+    "@types/mocha": "^7.0.0"
   },
   "peerDependencies": {
     "webdriverio": "^5.0.0"
