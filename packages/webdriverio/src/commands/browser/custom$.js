@@ -7,7 +7,7 @@
     it('should fetch the project title', () => {
         browser.url('https://webdriver.io')
         browser.addLocatorStrategy('myStrat', (selector) => {
-            return document.querySelectorAll(selector)
+            return document.querySelector(selector)
         })
 
         const projectTitle = browser.custom$('myStrat', '.projectTitle')
