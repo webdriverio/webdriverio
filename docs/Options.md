@@ -147,6 +147,13 @@ If you want your test run to stop after a specific number of test failures, use 
 Type: `Number`<br>
 Default: `0` (don't bail; run all tests)
 
+### `maxSpecsPerSuite`
+By default all specs run in their own suite, each in its own subprocess, sharing nothing. In some cases, this is not ideal, for example when the work to bootstrap a test run is expensive as it would be in a bigger project using a transpiled language. In such a case you can set `maxSpecsPerSuite` to `Infinity` and it would run all specs sequentially in a single suite. There is a implicit connection between the ability to parallelize and the number of specs per suite.
+Exaggerated: If the bootstrap cost is cheap, make the specs per suite as small as possible (`1`) to allow maximum parallelisation. If the bootstrap cost is infinitely expensive, make the specs per suite `Infinity`, to avoid bootstrapping between test runs. In reality there would usually be a sweet spot of the maximum specs per suite that you'd run, somewhere between `1` and `Infinity`.
+
+Type: `Number`<br>
+Default: `1` (one spec per suite)
+
 ### `specFileRetries`
 The number of times to retry an entire specfile when it fails as a whole.
 
