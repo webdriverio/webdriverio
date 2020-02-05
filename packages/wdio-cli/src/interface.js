@@ -133,7 +133,7 @@ export default class WDIOCLInterface extends EventEmitter {
         const retryAttempts = this.specFileRetries - retries
         const retry = !passed && retries > 0
         if (!retry) {
-            this.result.finished += job.specs.length
+            this.result.finished++
         }
 
         if (job && job.hasTests === false) {
