@@ -103,7 +103,7 @@ export default class WebDriverRequest extends EventEmitter {
             log.info('DATA', fullRequestOptions.json)
         }
 
-        const response = await got(fullRequestOptions.uri, fullRequestOptions)
+        const response = await got(fullRequestOptions.uri, { ...fullRequestOptions })
         const error = getErrorFromResponseBody(response.body)
 
         /**
@@ -147,6 +147,8 @@ export default class WebDriverRequest extends EventEmitter {
         if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
             log.error('Request failed due to', error)
             this.emit('response', { error })
+            error.statusCode = response.statusCode
+            error.statusMessage = response.statusMessage
             throw error
         }
 

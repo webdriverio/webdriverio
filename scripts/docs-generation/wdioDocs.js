@@ -30,7 +30,7 @@ exports.generateWdioDocs = (sidebars) => {
             }
 
             const filepath = path.join(COMMAND_DIR, scope, file)
-            const output = path.join(docDir, file.replace('js', 'md'))
+            const output = path.join(docDir, `_${file.replace('js', 'md')}`)
             const options = Object.assign({}, MARKDOX_OPTIONS, { output })
             markdox.process(
                 filepath,

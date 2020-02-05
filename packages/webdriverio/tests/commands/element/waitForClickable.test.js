@@ -24,14 +24,13 @@ describe('waitForClickable', () => {
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
             waitUntil : jest.fn(((cb))),
-            options : { waitforInterval: 5, waitforTimeout: duration },
+            options : { waitforInterval: 5, waitforTimeout: duration }
         }
 
         await elem.waitForClickable()
 
         expect(cb).toBeCalled()
-        expect(elem.waitUntil.mock.calls[0][1]).toBe(duration)
-        expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still not clickable after ${duration}ms`)
+        expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
     test('should call isClickable and return true immediately if true', async () => {
@@ -70,7 +69,7 @@ describe('waitForClickable', () => {
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
             isClickable : jest.fn(() => false),
-            options : { waitforTimeout : 500 },
+            options : { waitforTimeout : 500, waitforInterval: 50 },
         }
 
         try {
@@ -89,7 +88,7 @@ describe('waitForClickable', () => {
             waitUntil : tmpElem.waitUntil,
             isDisplayed : tmpElem.isDisplayed,
             isClickable : tmpElem.isClickable,
-            options : { waitforTimeout : 500 },
+            options : { waitforTimeout : 500, waitforInterval: 50 },
         }
 
         try {
@@ -108,13 +107,12 @@ describe('waitForClickable', () => {
             elementId : 123,
             waitUntil : jest.fn(((cb))),
             isClickable : jest.fn(() => true),
-            options : { waitforTimeout : 500 },
+            options : { waitforTimeout : 500, waitforInterval: 50 },
         }
 
         await elem.waitForClickable({ reverse: true })
 
-        expect(elem.waitUntil.mock.calls[0][1]).toBe(elem.options.waitforTimeout)
-        expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still clickable after ${elem.options.waitforTimeout}ms`)
+        expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
     test('should call isClickable and return false with custom error', async () => {
@@ -126,7 +124,7 @@ describe('waitForClickable', () => {
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
             isClickable : jest.fn(() => false),
-            options : { waitforTimeout : 500 },
+            options : { waitforTimeout : 500, waitforInterval: 50 },
         }
 
         try {

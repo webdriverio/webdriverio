@@ -83,6 +83,9 @@
       "wdio-reportportal-service": {
         "title": "Report Portal Service"
       },
+      "wdio-slack-service": {
+        "title": "Slack Service"
+      },
       "wdio-timeline-reporter": {
         "title": "Timeline Reporter"
       },
@@ -100,6 +103,24 @@
       },
       "api/appium": {
         "title": "Appium"
+      },
+      "api/chromium": {
+        "title": "Chromium"
+      },
+      "api/jsonwp": {
+        "title": "JSON Wire Protocol"
+      },
+      "api/mjsonwp": {
+        "title": "Mobile JSON Wire Protocol"
+      },
+      "api/saucelabs": {
+        "title": "Sauce Labs"
+      },
+      "api/selenium": {
+        "title": "Selenium Standalone"
+      },
+      "api/webdriver": {
+        "title": "Webdriver Protocol"
       },
       "api/browser/$": {
         "title": "$"
@@ -182,9 +203,6 @@
       "api/browser/waitUntil": {
         "title": "waitUntil"
       },
-      "api/chromium": {
-        "title": "Chromium"
-      },
       "api/element/$": {
         "title": "$"
       },
@@ -251,6 +269,9 @@
       "api/element/isEnabled": {
         "title": "isEnabled"
       },
+      "api/element/isEqual": {
+        "title": "isEqual"
+      },
       "api/element/isExisting": {
         "title": "isExisting"
       },
@@ -311,20 +332,11 @@
       "api/element/waitUntil": {
         "title": "waitUntil"
       },
-      "api/jsonwp": {
-        "title": "JSON Wire Protocol"
+      "api/expect": {
+        "title": "Expect"
       },
-      "api/mjsonwp": {
-        "title": "Mobile JSON Wire Protocol"
-      },
-      "api/saucelabs": {
-        "title": "Sauce Labs"
-      },
-      "api/selenium": {
-        "title": "Selenium Standalone"
-      },
-      "api/webdriver": {
-        "title": "Webdriver Protocol"
+      "assertion": {
+        "title": "Assertion"
       },
       "autocompletion": {
         "title": "Autocompletion"

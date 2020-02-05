@@ -255,11 +255,12 @@ class CucumberAdapter {
             const { uri, feature } = getDataFromResult(global.result)
             const beforeFn = isStep ? config.beforeStep : config.beforeHook
             const afterFn = isStep ? config.afterStep : config.afterHook
+            const hookParams = { uri, feature, step: getCurrentStep() }
             return testFnWrapper.call(this,
                 isStep ? 'Step' : 'Hook',
                 { specFn: code, specFnArgs: args },
-                { beforeFn, beforeFnArgs: (context) => [uri, feature, getCurrentStep(), context] },
-                { afterFn, afterFnArgs: (context) => [uri, feature, getCurrentStep(), context] },
+                { beforeFn, beforeFnArgs: (context) => [hookParams, context] },
+                { afterFn, afterFnArgs: (context) => [hookParams, context] },
                 cid,
                 retryTest)
         }

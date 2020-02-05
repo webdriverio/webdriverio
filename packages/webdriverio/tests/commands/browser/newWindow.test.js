@@ -8,6 +8,10 @@ import got from 'got'
 import { remote } from '../../../src'
 
 describe('newWindow', () => {
+    beforeEach(() => {
+        got.mockClear()
+    })
+
     it('should allow to create a new window handle', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -16,7 +20,10 @@ describe('newWindow', () => {
             }
         })
 
-        await browser.newWindow('https://webdriver.io', 'some name', 'some params')
+        await browser.newWindow('https://webdriver.io', {
+            windowName: 'some name',
+            windowFeatures: 'some params'
+        })
         expect(got.mock.calls).toHaveLength(4)
         expect(got.mock.calls[1][1].json.args)
             .toEqual(['https://webdriver.io', 'some name', 'some params'])
@@ -24,6 +31,20 @@ describe('newWindow', () => {
             .toContain('/window/handles')
         expect(got.mock.calls[3][1].json.handle)
             .toBe('window-handle-3')
+    })
+
+    it('should apply default args', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        await browser.newWindow('https://webdriver.io')
+        expect(got.mock.calls).toHaveLength(4)
+        expect(got.mock.calls[1][1].json.args)
+            .toEqual(['https://webdriver.io', 'New Window', ''])
     })
 
     it('should fail if url is invalid', async () => {

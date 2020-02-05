@@ -9,10 +9,10 @@ import Launcher from './launcher.js'
 const log = logger('@wdio/cli:watch')
 
 export default class Watcher {
-    constructor (configFile, argv) {
+    constructor (configFile, args) {
         log.info('Starting launcher in watch mode')
-        this.launcher = new Launcher(configFile, argv, true)
-        this.argv = argv
+        this.launcher = new Launcher(configFile, args, true)
+        this.args = args
 
         const specs = this.launcher.configParser.getSpecs()
         const capSpecs = this.launcher.isMultiremote ? [] : union(flattenDeep(
@@ -68,7 +68,7 @@ export default class Watcher {
      */
     getFileListener (passOnFile = true) {
         return (spec) => this.run(
-            Object.assign({}, this.argv, passOnFile ? { spec } : {})
+            Object.assign({}, this.args, passOnFile ? { spec } : {})
         )
     }
 
@@ -126,8 +126,8 @@ export default class Watcher {
          */
         for (const [, worker] of Object.entries(workers)) {
             const { cid, caps, specs, sessionId } = worker
-            const argv = Object.assign({ sessionId }, params)
-            worker.postMessage('run', argv)
+            const args = Object.assign({ sessionId }, params)
+            worker.postMessage('run', args)
             this.launcher.interface.emit('job:start', { cid, caps, specs })
         }
     }

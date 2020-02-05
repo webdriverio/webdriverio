@@ -1,5 +1,6 @@
 import fs from 'fs'
 
+import { setOptions } from 'expect-webdriverio'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { attach } from 'webdriverio'
 import WDIORunner from '../src'
@@ -9,6 +10,10 @@ jest.mock('fs')
 jest.mock('util', () => ({ promisify: (fn) => fn }))
 
 describe('wdio-runner', () => {
+    it('comes with own assertion lib', () => {
+        expect(process.env.WDIO_ASSERTION_LIB_ACTIVATED).toBe('1')
+    })
+
     describe('_fetchDriverLogs', () => {
         let runner
         beforeEach(() => {
@@ -131,46 +136,6 @@ describe('wdio-runner', () => {
             expect(hook).toBeCalledTimes(0)
         })
 
-        it('should wait for session to be created until shutting down', async () => {
-            const hook = jest.fn()
-            const runner = new WDIORunner()
-            runner._shutdown = jest.fn()
-            global.browser = {
-                deleteSession: jest.fn(),
-                config: { afterSession: [hook] }
-            }
-            setTimeout(() => {
-                global.browser.sessionId = 123
-            }, 200)
-
-            const start = Date.now()
-            await runner.endSession(true)
-            const end = Date.now()
-            expect(hook).toBeCalledTimes(1)
-            expect(global.browser.deleteSession).toBeCalledTimes(1)
-            expect(!global.browser.sessionId).toBe(true)
-            expect(runner._shutdown).toBeCalledTimes(1)
-            expect(end - start).toBeGreaterThanOrEqual(200)
-        })
-
-        it('should attach to session in watch mode', async () => {
-            const runner = new WDIORunner()
-            runner._shutdown = jest.fn()
-            await runner.endSession({ argv: {
-                watch: true,
-                config: { sessionId: 'foo' },
-                caps: { browserName: 'chrome' }
-            } })
-
-            expect(attach).toBeCalledWith({
-                sessionId: 'foo',
-                capabilities: { browserName: 'chrome' }
-            })
-            expect(global.browser.deleteSession).toBeCalledTimes(1)
-            expect(!global.browser.sessionId).toBe(true)
-            expect(runner._shutdown).toBeCalledTimes(1)
-        })
-
         it('should work normally when called after framework run in multiremote', async () => {
             const hook = jest.fn()
             const runner = new WDIORunner()
@@ -202,66 +167,6 @@ describe('wdio-runner', () => {
             runner._shutdown = jest.fn()
             await runner.endSession()
             expect(hook).toBeCalledTimes(0)
-        })
-
-        it('should wait for all sessions to be created until shutting down in multiremote', async () => {
-            const hook = jest.fn()
-            const runner = new WDIORunner()
-            runner.isMultiremote = true
-            runner._shutdown = jest.fn()
-            global.browser = {
-                deleteSession: jest.fn(),
-                config: { afterSession: [hook] },
-                instances: ['foo', 'bar', 'foobar'],
-                foo: {
-                    sessionId: '123',
-                },
-                bar: {},
-            }
-            setTimeout(() => {
-                global.browser.bar.sessionId = 456
-                global.browser.foobar = { sessionId: 789 }
-            }, 200)
-
-            const start = Date.now()
-            await runner.endSession(true)
-            const end = Date.now()
-            expect(hook).toBeCalledTimes(1)
-            expect(global.browser.deleteSession).toBeCalledTimes(1)
-            expect(!global.browser.foo.sessionId).toBe(true)
-            expect(!global.browser.bar.sessionId).toBe(true)
-            expect(!global.browser.foobar.sessionId).toBe(true)
-            expect(runner._shutdown).toBeCalledTimes(1)
-            expect(end - start).toBeGreaterThanOrEqual(200)
-        })
-
-        it('should attach to session in watch mode in multiremote', async () => {
-            const runner = new WDIORunner()
-            runner._shutdown = jest.fn()
-            await runner.endSession({ argv: {
-                watch: true,
-                isMultiremote: true,
-                instances: {
-                    foo: { sessionId: 'foo' },
-                    bar: { sessionId: 'bar' }
-                },
-                caps: {
-                    foo: { capabilities: { browserName: 'chrome' } },
-                    bar: { capabilities: { browserName: 'firefox' } }
-                }
-            } })
-
-            expect(attach.mock.calls[0][0]).toEqual({
-                sessionId: 'foo',
-                capabilities: { browserName: 'chrome' }
-            })
-            expect(attach.mock.calls[1][0]).toEqual({
-                sessionId: 'bar',
-                capabilities: { browserName: 'firefox' }
-            })
-            expect(!global.browser.foo.sessionId).toBe(true)
-            expect(!global.browser.bar.sessionId).toBe(true)
-            expect(runner._shutdown).toBeCalledTimes(1)
         })
     })
 
@@ -297,12 +202,13 @@ describe('wdio-runner', () => {
                 options: {}
             })
             await runner.run({
-                argv: { reporters: [] },
+                args: { reporters: [] },
                 cid: '0-0',
                 caps,
                 specs
             })
 
+            expect(setOptions).toBeCalledTimes(1)
             expect(runner._shutdown).toBeCalledWith(123)
             expect(beforeSession).toBeCalledWith(config, caps, specs)
             expect(executeHooksWithArgs).toBeCalledWith(config.before, [caps, specs])
@@ -322,7 +228,7 @@ describe('wdio-runner', () => {
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner.configParser.filterWorkerServices = jest.fn()
             runner._initSession = jest.fn().mockReturnValue({ options: { capabilities: {} } })
-            const failures = await runner.run({ argv: {}, caps: {} })
+            const failures = await runner.run({ args: {}, caps: {} })
 
             expect(failures).toBe(0)
         })
@@ -340,7 +246,7 @@ describe('wdio-runner', () => {
             global.browser = { url: jest.fn(url => url) }
             runner._startSession = jest.fn().mockReturnValue({ })
             runner._initSession = jest.fn().mockReturnValue({ options: { capabilities: {} } })
-            const failures = await runner.run({ argv: { watch: true }, caps: {} })
+            const failures = await runner.run({ args: { watch: true }, caps: {} })
 
             expect(failures).toBe(0)
             expect(global.browser.url).not.toBeCalled()
@@ -358,7 +264,7 @@ describe('wdio-runner', () => {
             runner.configParser.filterWorkerServices = jest.fn()
             runner._initSession = jest.fn().mockReturnValue({ options: { capabilities: {} } })
             runner.emit = jest.fn()
-            const failures = await runner.run({ argv: {}, caps: {} })
+            const failures = await runner.run({ args: {}, caps: {} })
 
             expect(failures).toBe(1)
             expect(runner.emit.mock.calls[0]).toEqual(['error', new Error('framework testThrows failed')])
@@ -381,7 +287,7 @@ describe('wdio-runner', () => {
             runner._initSession = jest.fn().mockReturnValue({})
             runner.sigintWasCalled = true
             await runner.run({
-                argv: { reporters: [] },
+                args: { reporters: [] },
                 cid: '0-0',
                 caps,
                 specs
@@ -405,7 +311,7 @@ describe('wdio-runner', () => {
             runner._shutdown = jest.fn().mockImplementation((arg) => arg)
             runner._initSession = jest.fn()
 
-            expect(await runner.run({ argv: {}, caps: {} })).toBe(0)
+            expect(await runner.run({ args: {}, caps: {} })).toBe(0)
             expect(runner._shutdown).toBeCalledWith(0)
             expect(runner._initSession).not.toBeCalled()
         })
@@ -426,7 +332,7 @@ describe('wdio-runner', () => {
             runner.endSession = jest.fn()
             runner._initSession = jest.fn().mockReturnValue(null)
             expect(await runner.run({
-                argv: { reporters: [] },
+                args: { reporters: [] },
                 cid: '0-0',
                 caps,
                 specs

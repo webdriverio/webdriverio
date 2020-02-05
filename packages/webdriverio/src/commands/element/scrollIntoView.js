@@ -1,7 +1,6 @@
 /**
  *
- * Scroll element into viewport.
- * https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
+ * Scroll element into viewport ([MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView)).
  *
  * <example>
     :scrollIntoView.js
@@ -13,7 +12,7 @@
  * </example>
  *
  * @alias element.scrollIntoView
- * @param {object|boolean=} scrollIntoViewOptions  boolean alignToTop or scrollIntoViewOptions object
+ * @param {object|boolean=} scrollIntoViewOptions  options for `Element.scrollIntoView()` (default: `true`)
  * @uses protocol/execute
  * @type utility
  *

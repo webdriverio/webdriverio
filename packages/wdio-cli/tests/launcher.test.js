@@ -5,20 +5,20 @@ import fs from 'fs-extra'
 const caps = { maxInstances: 1, browserName: 'chrome' }
 
 jest.mock('fs-extra')
-global.console.log = jest.fn()
 
 describe('launcher', () => {
     const emitSpy = jest.spyOn(process, 'emit')
     let launcher
 
     beforeEach(() => {
+        global.console.log = jest.fn()
         emitSpy.mockClear()
         launcher = new Launcher('./')
     })
 
     describe('defaults', () => {
         it('should have default for the argv parameter', () => {
-            expect(launcher.argv).toEqual({})
+            expect(launcher.args).toEqual({})
         })
     })
 
@@ -168,6 +168,19 @@ describe('launcher', () => {
             launcher.schedule = [{ cid: 0, specs: [] }]
             launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
             expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }] }])
+        })
+
+        it('should requeue retried specfiles at beginning of queue', () => {
+            launcher.configParser.getConfig = jest.fn().mockReturnValue({ specFileRetriesDeferred: false })
+            launcher.schedule = [{ cid: 0, specs: [{ files: ['b.js'] }] }]
+            launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
+            expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }, { files: ['b.js'] }] }])
+        })
+
+        it('should requeue retried specfiles at end of queue', () => {
+            launcher.schedule = [{ cid: 0, specs: [{ files: ['b.js'] }] }]
+            launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
+            expect(launcher.schedule).toMatchObject([{ cid: 0, specs: [{ files: ['b.js'] }, { rid: '0-5', files: ['a.js'], retries: 0 }] }])
         })
     })
 
@@ -489,10 +502,34 @@ describe('launcher', () => {
             launcher.interface.emit = jest.fn()
         })
 
-        it('should allow override of runner id', () => {
-            launcher.startInstance([], { browserName: 'chrome' }, 0, undefined, '0-5')
+        it('should start an instance', async () => {
+            const onWorkerStartMock = jest.fn()
+            const caps = {
+                browserName: 'chrome',
+                execArgv: ['--foo', 'bar']
+            }
+            launcher.configParser.getConfig = () => ({ onWorkerStart: onWorkerStartMock })
+            launcher.args.hostname = '127.0.0.2'
+
+            expect(launcher.runnerStarted).toBe(0)
+            await launcher.startInstance(
+                ['/foo.test.js'],
+                caps,
+                0,
+                '0-5',
+                0
+            )
+
+            expect(launcher.runnerStarted).toBe(1)
             expect(launcher.runner.run.mock.calls[0][0]).toHaveProperty('cid', '0-5')
             expect(launcher.getRunnerId(0)).toBe('0-0')
+            expect(onWorkerStartMock).toHaveBeenCalledWith(
+                '0-5',
+                caps,
+                ['/foo.test.js'],
+                { hostname: '127.0.0.2' },
+                ['--foo', 'bar']
+            )
         })
     })
 
@@ -568,5 +605,9 @@ describe('launcher', () => {
             expect(launcher.runner.shutdown).toBeCalled()
             expect(error).toBeInstanceOf(Error)
         })
+    })
+
+    afterEach(() => {
+        global.console.log.mockReset()
     })
 })

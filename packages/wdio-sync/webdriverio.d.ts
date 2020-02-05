@@ -1,15 +1,19 @@
 /// <reference types="@wdio/sync/webdriverio-core"/>
 
 declare namespace WebdriverIO {
+    type WaitUntilOptions = {
+        timeout?: number,
+        timeoutMsg?: string,
+        interval?: number
+    }
+
     interface Browser {
         /**
          * waits until the condition is fulfilled with a truthy value
          */
         waitUntil(
             condition: () => boolean,
-            timeout?: number,
-            timeoutMsg?: string,
-            interval?: number
+            options?: WaitUntilOptions
         ): boolean
 
         /**

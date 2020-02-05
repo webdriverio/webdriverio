@@ -175,6 +175,8 @@ exports.config = {
     //
     // The number of times to retry the entire specfile when it fails as a whole
     specFileRetries: 1,
+    // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+    specFileRetriesDeferred: false,
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
@@ -241,13 +243,23 @@ exports.config = {
     // methods. If one of them returns with a promise, WebdriverIO will wait until that promise is
     // resolved to continue.
     //
-
     /**
      * Gets executed once before all workers get launched.
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      */
     onPrepare: function (config, capabilities) {
+    },
+    /**
+     * Gets executed before a worker process is spawned and can be used to initialise specific service
+     * for that worker as well as modify runtime environments in an async fashion.
+     * @param  {String} cid      capability id (e.g 0-0)
+     * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
+     * @param  {[type]} specs    specs to be run in the worker process
+     * @param  {[type]} args     object that will be merged with the main configuration once worker is initialised
+     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     */
+    onWorkerStart: function (cid, caps, specs, args, execArgv) {
     },
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
@@ -362,9 +374,9 @@ exports.config = {
     },
     beforeScenario: function (uri, feature, scenario, sourceLocation) {
     },
-    beforeStep: function (uri, feature, stepData, context) {
+    beforeStep: function ({ uri, feature, step }, context) {
     },
-    afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
+    afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed }) {
     },
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },

@@ -46,6 +46,7 @@ export const DEFAULT_CONFIGS = () => ({
      * hooks
      */
     onPrepare: [],
+    onWorkerStart: [],
     before: [],
     beforeSession: [],
     beforeSuite: [],
@@ -76,7 +77,7 @@ export const SUPPORTED_HOOKS = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
-    'onReload', 'onPrepare', 'onComplete'
+    'onReload', 'onPrepare', 'onWorkerStart', 'onComplete'
 ]
 
 /**
