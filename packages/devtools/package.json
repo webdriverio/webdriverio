@@ -35,7 +35,7 @@
     "@wdio/protocols": "6.0.0-alpha.0",
     "@wdio/utils": "6.0.0-alpha.0",
     "chrome-launcher": "^0.11.1",
-    "puppeteer-core": "^1.18.1",
+    "puppeteer-core": "^2.1.1",
     "puppeteer-firefox": "^0.5.0"
   },
   "devDependencies": {
