@@ -3,9 +3,7 @@ id: autocompletion
 title: Autocompletion
 ---
 
-If you have been writing program code for a while, you probably like autocompletion.
-Autocomplete is available out of the box in many code editors.
-
+If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors.
 
 ![Autocompletion](/img/autocompletion/0.png)
 

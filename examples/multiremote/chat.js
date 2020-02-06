@@ -9,7 +9,7 @@
  * ```
  */
 
-import { multiremote } from '../../packages/webdriverio/build'
+const { multiremote } = require('../../packages/webdriverio/build')
 
 let matrix, browserA, browserB
 
@@ -17,7 +17,7 @@ describe('multiremote example', () => {
     before(async () => {
         matrix = await multiremote({
             browserA: { capabilities: { browserName: 'chrome' } },
-            browserB: { capabilities: { browserName: 'chrome' } }
+            browserB: { capabilities: { browserName: 'chrome' }, port: 4445 }
         })
         browserA = matrix.browserA
         browserB = matrix.browserB
@@ -30,7 +30,8 @@ describe('multiremote example', () => {
     it('should login the browser', async () => {
         const nameInput = await matrix.$('.usernameInput')
 
-        await nameInput.addValue('Browser A')
+        await nameInput.browserA.addValue('Browser A')
+        await nameInput.browserB.addValue('Browser B')
         await matrix.keys('Enter')
     })
 
@@ -47,7 +48,7 @@ describe('multiremote example', () => {
     })
 
     it('should read the message in browserB', async () => {
-        const msgElemBrowserB = await browserA.$('.inputMessage')
+        const msgElemBrowserB = await browserB.$('.inputMessage')
         const chatLineBrowserB = await browserB.$('.messageBody*=My name is')
         const message = await chatLineBrowserB.getText()
         const name = message.slice(11)
@@ -56,4 +57,6 @@ describe('multiremote example', () => {
         await browserB.keys('Enter')
         await matrix.pause(5000)
     })
+
+    after(() => matrix.deleteSession())
 })

@@ -24,8 +24,7 @@ describe('handleMessage', () => {
         const worker = new Worker(
             {},
             {
-                cid: '0-3',
-                server: { foo: 'bar' }
+                cid: '0-3'
             }
         )
         worker.emit = jest.fn()
@@ -39,10 +38,6 @@ describe('handleMessage', () => {
         worker._handleMessage(payload)
         expect(worker.sessionId).toEqual('abc123')
         expect(payload.sessionId).toBe(undefined)
-        expect(worker.server).toEqual({
-            foo: 'bar',
-            bar: 'foo'
-        })
         expect(worker.emit).not.toBeCalled()
     })
 

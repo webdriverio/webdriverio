@@ -9,7 +9,6 @@
  * $ cucumber.js
  */
 
-var assert = require('assert')
 const { Given, When, Then } = require('cucumber')
 
 Given(/^I go on the website "([^"]*)"$/, (url) => {
@@ -30,16 +29,14 @@ When(/^I add the following grocieries$/, (table) => {
 
 Then(/^should the element "([^"]*)" be (\d+)px wide and (\d+)px high$/, (selector, width, height) => {
     var elemSize = $(selector).getSize()
-    assert.equal(elemSize.width, width, `width of element is ${elemSize.width} but should be ${width}`)
-    assert.equal(elemSize.height, height, `height of element is ${elemSize.height} but should be ${height}`)
+    expect(elemSize.width).toBe(width)
+    expect(elemSize.height).toBe(height)
 })
 
 Then(/^should the title of the page be "([^"]*)"$/, (expectedTitle) => {
-    var title = browser.getTitle()
-    assert.equal(title, expectedTitle, `Title is "${title}" but should be "${expectedTitle}"`)
+    expect(browser).toHaveTitle(expectedTitle)
 })
 
 Then(/^I should have a list of (\d+) items$/, (items) => {
-    const listAmount = $$('.todo-list li').length
-    assert.equal(items, listAmount, `Didn't found expected amount of items (${items}) in the list`)
+    expect($$('.todo-list li')).toBeElementsArrayOfSize(items)
 })

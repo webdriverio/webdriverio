@@ -1,4 +1,4 @@
-import getFilePath from '../../src/utils/getFilePath'
+import { getFilePath } from '../src/utils'
 import path from 'path'
 
 describe('getFilePath', () => {

@@ -42,15 +42,10 @@ test('beforeSuite', () => {
 
 test('beforeSession should set to unknown creds if no sauce user and key are found', () => {
     const service = new SauceService()
-    service.beforeSession({}, {})
-    expect(service.sauceUser).toBe('unknown_user')
-    expect(service.sauceKey).toBe('unknown_key')
-
-    // not for RDC tho
-    const rdcService = new SauceService()
-    rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
-    expect(rdcService.sauceUser).toBe(undefined)
-    expect(rdcService.sauceKey).toBe(undefined)
+    const config = {}
+    service.beforeSession(config, {})
+    expect(config.user).toBe('unknown_user')
+    expect(config.key).toBe('unknown_key')
 })
 
 test('beforeTest should set context for test', () => {

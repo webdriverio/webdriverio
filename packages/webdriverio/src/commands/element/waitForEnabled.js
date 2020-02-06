@@ -14,41 +14,42 @@
     </script>
     :waitForEnabledExample.js
     it('should detect when element is enabled', () => {
-        $('#username').waitForEnabled(3000);
+        $('#username').waitForEnabled({ timeout: 3000 });
     });
 
     it('should detect when element is disabled', () => {
         elem = $('#username');
-        elem.waitForEnabled(3000, true)
+        elem.waitForEnabled({ reverse: true })
     });
  * </example>
  *
  * @alias element.waitForEnabled
- * @param {Number=}  ms       time in ms (default: 500)
- * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
- * @param {String=}  error    if exists it overrides the default error message
+ * @param {WaitForOptions=}  options             waitForEnabled options (optional)
+ * @param {Number=}          options.timeout     time in ms (default: 500)
+ * @param {Boolean=}         options.reverse     if true it waits for the opposite (default: false)
+ * @param {String=}          options.timeoutMsg  if exists it overrides the default error message
+ * @param {Number=}          options.interval    interval between checks (default: `waitforInterval`)
  * @return {Boolean} true     if element is (dis/en)abled
  * @uses utility/waitUntil, state/isEnabled
  * @type utility
  *
  */
 
-export default async function waitForEnabled(ms, reverse = false, error) {
-    // If the element doesn't already exist, wait for it to exist
+export default async function waitForEnabled({
+    timeout = this.options.waitforTimeout,
+    interval = this.options.waitforInterval,
+    reverse = false,
+    timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}enabled after ${timeout}ms`
+} = {}) {
+    /**
+     * if the element doesn't already exist, wait for it to exist
+     */
     if (!this.elementId && !reverse) {
-        await this.waitForExist(ms, false, error)
+        await this.waitForExist({ timeout, interval, timeoutMsg })
     }
 
-    if (typeof ms !== 'number') {
-        ms = this.options.waitforTimeout
-    }
-
-    const isReversed = reverse ? '' : 'not '
-    const errorMessage = typeof error === 'string' ? error : `element ("${this.selector}") still ${isReversed}enabled after ${ms}ms`
-
-    return this.waitUntil(async () => {
-        const isEnabled = await this.isEnabled()
-
-        return isEnabled !== reverse
-    }, ms, errorMessage)
+    return this.waitUntil(
+        async () => reverse !== await this.isEnabled(),
+        { timeout, interval, timeoutMsg }
+    )
 }

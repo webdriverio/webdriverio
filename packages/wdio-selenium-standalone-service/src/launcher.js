@@ -4,34 +4,29 @@ import { promisify } from 'util'
 import fs from 'fs-extra'
 import SeleniumStandalone from 'selenium-standalone'
 
-import getFilePath from './utils/getFilePath'
+import { getFilePath } from './utils'
 
 const DEFAULT_LOG_FILENAME = 'selenium-standalone.txt'
 const log = logger('@wdio/selenium-standalone-service')
 
 export default class SeleniumStandaloneLauncher {
-    constructor () {
-        this.seleniumLogs = null
-        this.seleniumArgs = {}
-        this.seleniumInstallArgs = {}
-
-        return this
+    constructor (options) {
+        this.logPath = options.logPath
+        this.args = options.args
+        this.installArgs = options.installArgs
+        this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
     }
 
     async onPrepare (config) {
-        this.seleniumArgs = config.seleniumArgs || {}
-        this.seleniumInstallArgs = config.seleniumInstallArgs || {}
-        this.seleniumLogs = config.seleniumLogs
-        this.skipSeleniumInstall = !!config.skipSeleniumInstall
-        this.watchMode = !!config.watch
+        this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
-            await promisify(SeleniumStandalone.install)(this.seleniumInstallArgs)
+            await promisify(SeleniumStandalone.install)(this.installArgs)
         }
 
-        this.process = await promisify(SeleniumStandalone.start)(this.seleniumArgs)
+        this.process = await promisify(SeleniumStandalone.start)(this.args)
 
-        if (typeof this.seleniumLogs === 'string') {
+        if (typeof this.logPath === 'string') {
             this._redirectLogStream()
         }
 
@@ -50,7 +45,7 @@ export default class SeleniumStandaloneLauncher {
     }
 
     _redirectLogStream () {
-        const logFile = getFilePath(this.seleniumLogs, DEFAULT_LOG_FILENAME)
+        const logFile = getFilePath(this.logPath, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
         fs.ensureFileSync(logFile)

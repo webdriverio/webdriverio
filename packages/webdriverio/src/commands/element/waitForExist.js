@@ -13,7 +13,7 @@
         const form = $('form');
         const notification = $('.notification');
         form.$(".send").click();
-        notification.waitForExist(5000);
+        notification.waitForExist({ timeout: 5000 });
         expect(notification.getText()).to.be.equal('Data transmitted successfully!')
     });
     it('should remove a message after successful form submit', function () {
@@ -21,32 +21,30 @@
         const message = $('.message');
         form.$(".send").click();
         // passing 'undefined' allows us to keep the default timeout value without overwriting it
-        message.waitForExist(undefined, true);
+        message.waitForExist({ reverse: true });
     });
  * </example>
  *
  * @alias element.waitForExist
- * @param {Number=}  ms       time in ms (default: 500)
- * @param {Boolean=} reverse  if true it instead waits for the selector to not match any elements (default: false)
- * @param {String=}  error    if exists it overrides the default error message
+ * @param {WaitForOptions=}  options             waitForEnabled options (optional)
+ * @param {Number=}          options.timeout     time in ms (default: 500)
+ * @param {Boolean=}         options.reverse     if true it waits for the opposite (default: false)
+ * @param {String=}          options.timeoutMsg  if exists it overrides the default error message
+ * @param {Number=}          options.interval    interval between checks (default: `waitforInterval`)
  * @return {Boolean} true     if element exists (or doesn't if flag is set)
  * @uses utility/waitUntil, state/isExisting
  * @type utility
  *
  */
 
-export default function waitForExist (ms, reverse = false, error) {
-    /*!
-     * ensure that ms is set properly
-     */
-    if (typeof ms !== 'number') {
-        ms = this.options.waitforTimeout
-    }
-
-    const isReversed = reverse ? '' : 'not '
-    const errorMsg = typeof error === 'string' ? error : `element ("${this.selector}") still ${isReversed}existing after ${ms}ms`
-
-    return this.waitUntil(function async () {
-        return this.isExisting().then((isExisting) => isExisting !== reverse)
-    }, ms, errorMsg)
+export default function waitForExist ({
+    timeout = this.options.waitforTimeout,
+    interval = this.options.waitforInterval,
+    reverse = false,
+    timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}existing after ${timeout}ms`
+} = {}) {
+    return this.waitUntil(
+        async () => reverse !== await this.isExisting(),
+        { timeout, interval, timeoutMsg }
+    )
 }

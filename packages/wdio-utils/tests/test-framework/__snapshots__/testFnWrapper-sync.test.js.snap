@@ -4,17 +4,6 @@ exports[`testFnWrapper should propagate jasmine failed expecations as errors 1`]
 Array [
   Object {
     "description": "foo",
-    "duration": 0,
-    "error": Object {
-      "actual": true,
-      "expected": false,
-      "matcherName": "toEqual",
-      "message": "Expected true to equal false.",
-      "passed": false,
-      "stack": "Error: Expected true to equal false.
-    at <Jasmine>
-    at UserContext.it",
-    },
     "failedExpectations": Array [
       Object {
         "actual": true,
@@ -28,9 +17,6 @@ Array [
       },
     ],
     "foo": "bar",
-    "fullTitle": "full title",
-    "passed": false,
-    "title": "foo",
   },
   "context",
   Object {
@@ -66,4 +52,67 @@ Object {
     at <Jasmine>
     at UserContext.it",
 }
+`;
+
+exports[`testFnWrapper should run fn in sync mode with cucumber 1`] = `
+Array [
+  Array [
+    "beforeFn",
+    Array [
+      "beforeFnArgs",
+    ],
+  ],
+  Array [
+    "afterFn",
+    Array [
+      Object {
+        "foo": "bar",
+      },
+      2,
+      3,
+      4,
+      Object {
+        "duration": 0,
+        "error": undefined,
+        "passed": true,
+        "result": "@wdio/sync: FooBar 0 0",
+        "retries": Object {
+          "attempts": 0,
+          "limit": 0,
+        },
+      },
+    ],
+  ],
+]
+`;
+
+exports[`testFnWrapper should run fn in sync mode with mocha or jasmine 1`] = `
+Array [
+  Array [
+    "beforeFn",
+    Array [
+      "beforeFnArgs",
+    ],
+  ],
+  Array [
+    "afterFn",
+    Array [
+      Object {
+        "description": "foo",
+        "foo": "bar",
+      },
+      "context",
+      Object {
+        "duration": 0,
+        "error": undefined,
+        "passed": true,
+        "result": "@wdio/sync: FooBar 0 0",
+        "retries": Object {
+          "attempts": 0,
+          "limit": 0,
+        },
+      },
+    ],
+  ],
+]
 `;

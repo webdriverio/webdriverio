@@ -2,7 +2,7 @@ const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
 
-export const DEFAULT_CONFIGS = {
+export const DEFAULT_CONFIGS = () => ({
     specs: [],
     suites: {},
     exclude: [],
@@ -45,6 +45,7 @@ export const DEFAULT_CONFIGS = {
      * hooks
      */
     onPrepare: [],
+    onWorkerStart: [],
     before: [],
     beforeSession: [],
     beforeSuite: [],
@@ -69,13 +70,13 @@ export const DEFAULT_CONFIGS = {
     afterStep: [],
     afterScenario: [],
     afterFeature: [],
-}
+})
 
 export const SUPPORTED_HOOKS = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
-    'onReload', 'onPrepare', 'onComplete'
+    'onReload', 'onPrepare', 'onWorkerStart', 'onComplete'
 ]
 
 /**

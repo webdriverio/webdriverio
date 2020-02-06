@@ -17,25 +17,26 @@ describe('wdio-applitools-service', () => {
     })
 
     it('throws if key does not exist in config', () => {
-        const service = new ApplitoolsService()
+        let service = new ApplitoolsService({})
+        expect(() => service.beforeSession()).toThrow()
 
-        expect(() => service.beforeSession({})).toThrow()
-        expect(() => service.beforeSession({ applitools: { serverUrl: 'foobar' } })).toThrow()
-        expect(() => service.beforeSession({ applitoolsServerUrl: 'foobar' })).toThrow()
+        service = new ApplitoolsService({ serverUrl: 'foobar' })
+        expect(() => service.beforeSession()).toThrow()
 
-        expect(() => service.beforeSession({ applitools: { key: 'foobar' } })).not.toThrow()
-        expect(() => service.beforeSession({ applitoolsKey: 'foobar' })).not.toThrow()
-        expect(() => service.beforeSession({ applitools: { key: 'foobar', serverUrl: 'foobar' } })).not.toThrow()
-        expect(() => service.beforeSession({ applitoolsKey: 'foobar', applitoolsServerUrl: 'foobar' })).not.toThrow()
+        service = new ApplitoolsService({ key: 'foobar' })
+        expect(() => service.beforeSession()).not.toThrow()
+
+        service = new ApplitoolsService({ serverUrl: 'foobar', key: 'foobar' })
+        expect(() => service.beforeSession()).not.toThrow()
     })
 
     it('throws if key does not exist in environment', () => {
-        const service = new ApplitoolsService()
+        const service = new ApplitoolsService({ viewport: { height: 123 } })
 
-        expect(() => service.beforeSession({})).toThrow()
+        expect(() => service.beforeSession()).toThrow()
         process.env.APPLITOOLS_KEY = 'foobarenv'
         process.env.APPLITOOLS_SERVER_URL = 'foobarenvserver'
-        expect(() => service.beforeSession({ applitools: { viewport: { height: 123 } } })).not.toThrow()
+        expect(() => service.beforeSession()).not.toThrow()
 
         expect(service.isConfigured).toBe(true)
         expect(service.eyes.setApiKey).toBeCalledWith('foobarenv')
@@ -44,62 +45,44 @@ describe('wdio-applitools-service', () => {
     })
 
     it('should prefer options before environment variable', () => {
-        const service = new ApplitoolsService()
+        const service = new ApplitoolsService({
+            key: 'foobar',
+            serverUrl: 'foobarserver'
+        })
         process.env.APPLITOOLS_KEY = 'foobarenv'
         process.env.APPLITOOLS_SERVER_URL = 'foobarenvserver'
-        service.beforeSession({
-            applitoolsKey: 'foobar',
-            applitoolsServerUrl: 'foobarserver'
-        })
+        service.beforeSession()
         expect(service.eyes.setApiKey).toBeCalledWith('foobar')
         expect(service.eyes.setServerUrl).toBeCalledWith('foobarserver')
     })
 
-    it('should prefer applitools object before deprecated applitoolsKey/applitoolsServerUrl', () => {
-        const service = new ApplitoolsService()
-        process.env.APPLITOOLS_KEY = 'foobarenv'
-        process.env.APPLITOOLS_SERVER_URL = 'foobarenvserver'
-        service.beforeSession({
-            applitoolsKey: 'foobar2',
-            applitoolsServerUrl: 'foobarserver2',
-            applitools: {
-                key: 'foobar1',
-                serverUrl: 'foobarserver1'
-            }
-        })
-        expect(service.eyes.setApiKey).toBeCalledWith('foobar1')
-        expect(service.eyes.setServerUrl).toBeCalledWith('foobarserver1')
-    })
-
     it('should set proxy config if set in options', () => {
-        const service = new ApplitoolsService()
-        const options = {
-            applitools: {
-                key: 'foobar',
-                proxy: {
-                    url: 'http://foobarproxy.com:8080',
-                    username: 'abc',
-                    password: 'def',
-                    isHttpOnly: true
-                }
-            }
+        const proxyOptions = {
+            url: 'http://foobarproxy.com:8080',
+            username: 'abc',
+            password: 'def',
+            isHttpOnly: true
         }
+        const service = new ApplitoolsService({
+            key: 'foobar',
+            proxy: proxyOptions
+        })
 
-        service.beforeSession(options)
-        expect(service.eyes.setProxy).toBeCalledWith(options.applitools.proxy)
+        service.beforeSession()
+        expect(service.eyes.setProxy).toBeCalledWith(proxyOptions)
     })
 
     it('should not set proxy config if not set in options', () => {
-        const service = new ApplitoolsService()
+        const service = new ApplitoolsService({})
         process.env.APPLITOOLS_KEY = 'foobarenv'
 
-        expect(() => service.beforeSession({})).not.toThrow()
+        expect(() => service.beforeSession()).not.toThrow()
         expect(service.eyes.setProxy).not.toBeCalled()
     })
 
     describe('before hook', () => {
         it('should do nothing if key was not applied', () => {
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
             service.before()
@@ -108,10 +91,10 @@ describe('wdio-applitools-service', () => {
 
         it('should register takeSnapshot command', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
@@ -121,10 +104,10 @@ describe('wdio-applitools-service', () => {
 
         it('should throw if takeSnapshot command is used without title', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
@@ -134,10 +117,10 @@ describe('wdio-applitools-service', () => {
 
         it('should register takeRegionSnapshot command', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
@@ -147,10 +130,10 @@ describe('wdio-applitools-service', () => {
 
         it('should register takeRegionSnapshot command with frame', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
@@ -160,10 +143,10 @@ describe('wdio-applitools-service', () => {
 
         it('should register if takeRegionSnapshot command is used with null frame', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
@@ -173,10 +156,10 @@ describe('wdio-applitools-service', () => {
 
         it('should throw if takeRegionSnapshot command is used without title', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
@@ -186,10 +169,10 @@ describe('wdio-applitools-service', () => {
 
         it('should throw if takeRegionSnapshot command is used without region', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
@@ -199,10 +182,10 @@ describe('wdio-applitools-service', () => {
 
         it('should throw if takeRegionSnapshot command is used with null region', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.before()
             expect(global.browser.addCommand).toBeCalled()
 
@@ -213,7 +196,7 @@ describe('wdio-applitools-service', () => {
 
     describe('beforeTest hook', () => {
         it('should do nothing if key was not applied', () => {
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
             service.beforeTest()
@@ -222,21 +205,21 @@ describe('wdio-applitools-service', () => {
 
         it('should open eyes', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.beforeTest({ title: 'some title', parent: 'some parent' })
 
             expect(global.browser.call).toBeCalled()
             expect(service.eyes.open)
-                .toBeCalledWith(global.browser, 'some title', 'some parent', { height: 123, width: 1440 })
+                .toBeCalledWith(global.browser, 'some title', 'some parent', { height: 900, width: 1440 })
         })
     })
 
     describe('afterTest hook', () => {
         it('should do nothing if key was not applied', () => {
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
             service.afterTest()
@@ -245,10 +228,10 @@ describe('wdio-applitools-service', () => {
 
         it('should close eyes', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.afterTest()
 
             expect(global.browser.call).toBeCalled()
@@ -258,7 +241,7 @@ describe('wdio-applitools-service', () => {
 
     describe('after hook', () => {
         it('should do nothing if key was not applied', () => {
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
             service.after()
@@ -267,10 +250,10 @@ describe('wdio-applitools-service', () => {
 
         it('should abortIfNotClosed eyes', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
-            const service = new ApplitoolsService()
+            const service = new ApplitoolsService({})
             global.browser = new BrowserMock()
 
-            service.beforeSession({})
+            service.beforeSession()
             service.after()
 
             expect(global.browser.call).toBeCalled()

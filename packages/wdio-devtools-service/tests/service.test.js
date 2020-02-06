@@ -52,8 +52,14 @@ jest.mock('../src/utils', () => {
     }
 })
 
+const log = logger()
+
+beforeEach(() => {
+    log.error.mockClear()
+})
+
 test('beforeSession', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     expect(service.isSupported).toBe(false)
 
     service.beforeSession(null, { browserName: 'firefox' })
@@ -68,7 +74,7 @@ test('beforeSession', () => {
 test('if not supported by browser', async () => {
     global.browser = { addCommand: jest.fn() }
 
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service.isSupported = false
 
     await service.before()
@@ -79,7 +85,7 @@ test('if not supported by browser', async () => {
 
 test('if supported by browser', async () => {
     global.browser = { addCommand: jest.fn() }
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service.isSupported = true
     await service.before()
     expect(service.client.Network.enable).toBeCalledTimes(1)
@@ -120,16 +126,16 @@ test('initialised with the debuggerAddress as option', async () => {
 test('initialization fails', async () => {
     global.browser = { addCommand: jest.fn() }
 
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service.isSupported = true
     await service.before()
 
     expect(service.commandHandler).toBe(undefined)
-    expect(logger().error.mock.calls.pop()[0]).toContain('Couldn\'t connect to chrome: Error: boom')
+    expect(log.error.mock.calls.pop()[0]).toContain('Couldn\'t connect to chrome: Error: boom')
 })
 
 test('beforeCommand', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service.traceGatherer = { startTracing: jest.fn() }
     service._setThrottlingProfile = jest.fn()
 
@@ -163,7 +169,7 @@ test('beforeCommand', () => {
 })
 
 test('afterCommand', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service.traceGatherer = { once: jest.fn() }
 
     service.afterCommand()
@@ -187,7 +193,7 @@ test('afterCommand', () => {
 })
 
 test('afterCommand: should create a new auditor instance and should update the browser commands', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service.traceGatherer = new EventEmitter()
     service.traceGatherer.isTracing = true
     service.devtoolsGatherer = { getLogs: jest.fn() }
@@ -201,7 +207,7 @@ test('afterCommand: should create a new auditor instance and should update the b
 })
 
 test('afterCommand: should update browser commands even if failed', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service.traceGatherer = new EventEmitter()
     service.traceGatherer.isTracing = true
     service.devtoolsGatherer = { getLogs: jest.fn() }
@@ -215,7 +221,7 @@ test('afterCommand: should update browser commands even if failed', () => {
 })
 
 test('afterCommand: should continue with command after tracingFinished was emitted', async () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service.traceGatherer = new EventEmitter()
     service.traceGatherer.isTracing = true
     service._setThrottlingProfile = jest.fn()
@@ -229,7 +235,7 @@ test('afterCommand: should continue with command after tracingFinished was emitt
 })
 
 test('_enablePerformanceAudits: throws if network or cpu properties have wrong types', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     expect(
         () => service._enablePerformanceAudits({ networkThrottling: 'super fast 3g' })
     ).toThrow()
@@ -239,7 +245,7 @@ test('_enablePerformanceAudits: throws if network or cpu properties have wrong t
 })
 
 test('_enablePerformanceAudits: applies some default values', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service._enablePerformanceAudits()
 
     expect(service.networkThrottling).toBe('Good 3G')
@@ -248,7 +254,7 @@ test('_enablePerformanceAudits: applies some default values', () => {
 })
 
 test('_enablePerformanceAudits: applies some custom values', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service._enablePerformanceAudits({
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
@@ -261,7 +267,7 @@ test('_enablePerformanceAudits: applies some custom values', () => {
 })
 
 test('_disablePerformanceAudits', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service._enablePerformanceAudits({
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
@@ -273,7 +279,7 @@ test('_disablePerformanceAudits', () => {
 
 test('_setThrottlingProfile', async () => {
     const pageMock = { setCacheEnabled: jest.fn() }
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service.devtoolsDriver = {
         getActivePage: jest.fn().mockReturnValue(Promise.resolve(pageMock)),
         send: jest.fn()
@@ -291,7 +297,7 @@ test('_setThrottlingProfile', async () => {
 })
 
 test('_emulateDevice', async () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({}, [{}], {})
     service.devtoolsDriver = await puppeteer.connect()
     service.devtoolsDriver.devices = puppeteer.devices
     await service._emulateDevice('Nexus 6P')

@@ -9,9 +9,9 @@ The easiest way is to keep `@wdio/testingbot-service` as a devDependency in your
 
 ```json
 {
-  "devDependencies": {
-    "@wdio/testingbot-service": "^5.0.0"
-  }
+    "devDependencies": {
+        "@wdio/testingbot-service": "^5.0.0"
+    }
 }
 ```
 
@@ -31,26 +31,21 @@ you just need to set `tbTunnel: true`.
 ```js
 // wdio.conf.js
 export.config = {
-  // ...
-  services: ['testingbot'],
-  user: process.env.TB_KEY,
-  key: process.env.TB_SECRET,
-  tbTunnel: true,
-  // ...
+    // ...
+    user: process.env.TB_KEY,
+    key: process.env.TB_SECRET,
+    services: [
+        ['testingbot', {
+            tbTunnel: true
+        }]
+    ],
+    // ...
 };
 ```
 
 ## Options
 
-### user
-Your TestingBot API KEY.
-
-Type: `String`
-
-### key
-Your TestingBot API SECRET.
-
-Type: `String`
+In order to authorize to the TestingBot service your config needs to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
 
 ### tbTunnel
 If true it runs the TestingBot Tunnel and opens a secure connection between a TestingBot Virtual Machine running your browser tests.

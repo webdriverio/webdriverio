@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('deleteCookies', () => {
@@ -16,22 +16,25 @@ describe('deleteCookies', () => {
     it('should delete all cookies', async () => {
         await browser.deleteCookies()
 
-        expect(request.mock.calls[1][0].method).toBe('DELETE')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/cookie')
+        expect(got.mock.calls[1][1].method).toBe('DELETE')
+        expect(got.mock.calls[1][1].uri.pathname)
+            .toBe('/session/foobar-123/cookie')
     })
 
     it('should support passing a string', async () => {
         await browser.deleteCookies('cookie1')
 
-        expect(request.mock.calls[0][0].method).toBe('DELETE')
-        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/cookie/cookie1')
+        expect(got.mock.calls[0][1].method).toBe('DELETE')
+        expect(got.mock.calls[0][1].uri.pathname)
+            .toBe('/session/foobar-123/cookie/cookie1')
     })
 
     it('should support passing a array with a string', async () => {
         await browser.deleteCookies(['cookie1'])
 
-        expect(request.mock.calls[0][0].method).toBe('DELETE')
-        expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session/foobar-123/cookie/cookie1')
+        expect(got.mock.calls[0][1].method).toBe('DELETE')
+        expect(got.mock.calls[0][1].uri.pathname)
+            .toBe('/session/foobar-123/cookie/cookie1')
     })
 
     it('should delete cookies that match by name', async () => {
@@ -39,8 +42,9 @@ describe('deleteCookies', () => {
         await browser.deleteCookies(cookieNames)
 
         cookieNames.forEach((name, i) => {
-            expect(request.mock.calls[i][0].method).toBe('DELETE')
-            expect(request.mock.calls[i][0].uri.path).toBe(`/wd/hub/session/foobar-123/cookie/${name}`)
+            expect(got.mock.calls[i][1].method).toBe('DELETE')
+            expect(got.mock.calls[i][1].uri.pathname)
+                .toBe(`/session/foobar-123/cookie/${name}`)
         })
     })
 
@@ -51,6 +55,6 @@ describe('deleteCookies', () => {
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

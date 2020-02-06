@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('setWindowSize', () => {
@@ -15,9 +15,11 @@ describe('setWindowSize', () => {
 
     it('should resize W3C browser window', async () => {
         await browser.setWindowSize(777, 888)
-        expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/window/rect')
-        expect(request.mock.calls[1][0].body).toEqual({ x: null, y: null, width: 777, height: 888 })
+        expect(got.mock.calls[1][1].method).toBe('POST')
+        expect(got.mock.calls[1][1].uri.pathname)
+            .toBe('/session/foobar-123/window/rect')
+        expect(got.mock.calls[1][1].json)
+            .toEqual({ x: null, y: null, width: 777, height: 888 })
     })
 
     it('should resize NO-W3C browser window', async () => {
@@ -29,9 +31,11 @@ describe('setWindowSize', () => {
         })
 
         await browser.setWindowSize(999, 1111)
-        expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/window/current/size')
-        expect(request.mock.calls[1][0].body).toEqual({ width: 999, height: 1111 })
+        expect(got.mock.calls[1][1].method).toBe('POST')
+        expect(got.mock.calls[1][1].uri.pathname)
+            .toBe('/session/foobar-123/window/current/size')
+        expect(got.mock.calls[1][1].json)
+            .toEqual({ width: 999, height: 1111 })
     })
 
     describe('input checks', () => {
@@ -59,6 +63,6 @@ describe('setWindowSize', () => {
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

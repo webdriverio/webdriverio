@@ -1,0 +1,111 @@
+{
+    "type": "runner",
+    "start": "2018-04-17T09:09:27.771Z",
+    "_duration": 907,
+    "cid": "0-0",
+    "capabilities": {
+        "acceptSslCerts": true,
+        "applicationCacheEnabled": false,
+        "browserConnectionEnabled": false,
+        "browserName": "iphone",
+        "platformName": "ios",
+        "cssSelectorsEnabled": true,
+        "databaseEnabled": false,
+        "handlesAlerts": true,
+        "hasTouchScreen": false,
+        "javascriptEnabled": true,
+        "locationContextEnabled": true,
+        "mobileEmulationEnabled": false,
+        "nativeEvents": true,
+        "networkConnectionEnabled": false,
+        "pageLoadStrategy": "normal",
+        "platform": "Mac OS X",
+        "rotatable": false,
+        "setWindowRect": true,
+        "takesHeapSnapshot": true,
+        "takesScreenshot": true,
+        "unexpectedAlertBehaviour": "",
+        "version": "65.0.3325.181",
+        "webStorageEnabled": true
+    },
+    "sanitizedCapabilities": "iphone.ios.12_1",
+    "config": {
+        "hostname": "127.0.0.1",
+        "port": 4444,
+        "specs": [
+            "./specs/sync.spec.js"
+        ],
+        "suites": {},
+        "exclude": [],
+        "outputDir": "/path/to/project/test",
+        "logLevel": "trace",
+        "baseUrl": "http://localhost",
+        "bail": 0,
+        "waitforInterval": 500,
+        "waitforTimeout": 10000,
+        "framework": "cucumber",
+        "reporters": [
+            "dot",
+            "junit",
+            "spec"
+        ],
+        "maxInstances": 1,
+        "maxInstancesPerCapability": 100,
+        "connectionRetryCount": 3,
+        "execArgv": [],
+        "runnerEnv": {},
+        "runner": "local",
+        "cucumberOpts": {
+            "require": ["./features/step_definitions/**/*.js"],
+            "backtrace": true,
+            "compiler": ["js:babel-core/register"],
+            "dryRun": false,
+            "failFast": false,
+            "failAmbiguousDefinitions": true,
+            "format": ["pretty"],
+            "colors": true,
+            "snippets": true,
+            "source": true,
+            "profile": [],
+            "strict": true,
+            "timeout": 360000,
+            "tagsInTitle": false,
+            "tagExpression": "@run",
+            "ignoreUndefinedDefinitions": false
+        },
+        "jasmineNodeOpts": {
+            "defaultTimeoutInterval": 10000
+        },
+        "before": [],
+        "beforeSession": [],
+        "beforeSuite": [],
+        "beforeHook": [],
+        "beforeTest": [],
+        "beforeCommand": [],
+        "afterCommand": [],
+        "afterTest": [],
+        "afterHook": [],
+        "afterSuite": [],
+        "afterSession": [],
+        "after": [],
+        "onReload": [],
+        "beforeFeature": [],
+        "beforeScenario": [],
+        "beforeStep": [],
+        "afterFeature": [],
+        "afterScenario": [],
+        "afterStep": [],
+        "_": [
+            "wdio.conf.js"
+        ],
+        "$0": "../packages/wdio-cli/bin/wdio",
+        "capabilities": {
+            "browserName": "chrome"
+        }
+    },
+    "specs": [
+        "./features/sample_feature.feature"
+    ],
+    "failures": 1,
+    "end": "2018-04-17T09:09:28.678Z"
+}

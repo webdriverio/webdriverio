@@ -15,35 +15,35 @@
     :waitForVisibleExample.js
     it('should detect when element is visible', () => {
         const elem = $('#elem')
-        elem.waitForDisplayed(3000);
+        elem.waitForDisplayed({ timeout: 3000 });
     });
     it('should detect when element is no longer visible', () => {
         const elem = $('#elem')
         // passing 'undefined' allows us to keep the default timeout value without overwriting it
-        elem.waitForDisplayed(undefined, true);
+        elem.waitForDisplayed({ reverse: true });
     });
  * </example>
  *
  * @alias element.waitForDisplayed
- * @param {Number=}  ms       time in ms (default: 500)
- * @param {Boolean=} reverse  if true it waits for the opposite (default: false)
- * @param {String=}  error    if exists it overrides the default error message
+ * @param {WaitForOptions=}  options             waitForEnabled options (optional)
+ * @param {Number=}          options.timeout     time in ms (default: 500)
+ * @param {Boolean=}         options.reverse     if true it waits for the opposite (default: false)
+ * @param {String=}          options.timeoutMsg  if exists it overrides the default error message
+ * @param {Number=}          options.interval    interval between checks (default: `waitforInterval`)
  * @return {Boolean} true     if element is displayed (or doesn't if flag is set)
  * @uses utility/waitUntil, state/isDisplayed
  * @type utility
  *
  */
 
-export default async function waitForDisplayed (ms, reverse = false, error) {
-    /*
-     * ensure that ms is set properly
-     */
-    if (typeof ms !== 'number') {
-        ms = this.options.waitforTimeout
-    }
-
-    const isReversed = reverse ? '' : 'not '
-    const errorMsg = typeof error === 'string' ? error : `element ("${this.selector}") still ${isReversed}displayed after ${ms}ms`
-
-    return this.waitUntil(async () => reverse !== await this.isDisplayed(), ms, errorMsg)
+export default async function waitForDisplayed ({
+    timeout = this.options.waitforTimeout,
+    interval = this.options.waitforInterval,
+    reverse = false,
+    timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}displayed after ${timeout}ms`
+} = {}) {
+    return this.waitUntil(
+        async () => reverse !== await this.isDisplayed(),
+        { timeout, interval, timeoutMsg }
+    )
 }

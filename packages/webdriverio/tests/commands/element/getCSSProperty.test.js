@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('getCSSProperty test', () => {
@@ -12,12 +12,13 @@ describe('getCSSProperty test', () => {
         const elem = await browser.$('#foo')
         const property = await elem.getCSSProperty('width')
 
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/css/width')
+        expect(got.mock.calls[2][1].uri.pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/css/width')
         expect(property.value).toBe('1250px')
         expect(property.parsed.value).toBe(1250)
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

@@ -75,7 +75,7 @@ export default async function click(options) {
     }
 
     if (typeof options !== 'object' || Array.isArray(options)) {
-        throw new TypeError('Options must be an oject')
+        throw new TypeError('Options must be an object')
     }
 
     let {

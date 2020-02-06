@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
 
@@ -13,13 +13,17 @@ describe('element', () => {
 
         const elem = await browser.$('#foo')
         const elems = await elem.$$('#subfoo')
-        expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/element')
-        expect(request.mock.calls[1][0].body).toEqual({ using: 'css selector', value: '#foo' })
+        expect(got.mock.calls[1][1].method).toBe('POST')
+        expect(got.mock.calls[1][1].uri.pathname)
+            .toBe('/session/foobar-123/element')
+        expect(got.mock.calls[1][1].json)
+            .toEqual({ using: 'css selector', value: '#foo' })
         expect(elem.elementId).toBe('some-elem-123')
-        expect(request.mock.calls[2][0].method).toBe('POST')
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/element/some-elem-123/elements')
-        expect(request.mock.calls[2][0].body).toEqual({ using: 'css selector', value: '#subfoo' })
+        expect(got.mock.calls[2][1].method).toBe('POST')
+        expect(got.mock.calls[2][1].uri.pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/elements')
+        expect(got.mock.calls[2][1].json)
+            .toEqual({ using: 'css selector', value: '#subfoo' })
         expect(elems).toHaveLength(3)
 
         expect(elems[0].elementId).toBe('some-sub-elem-321')
@@ -76,6 +80,6 @@ describe('element', () => {
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

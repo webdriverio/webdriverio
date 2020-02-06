@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test:chat": "../../packages/wdio-mocha-framework/node_modules/.bin/mocha -t 9999999 ./chat.js --require @babel/register",
-    "test:webrtc": "../../node_modules/.bin/babel-node webrtc.js"
+    "test:chat": "../../packages/wdio-mocha-framework/node_modules/.bin/mocha -t 9999999 ./chat.js",
+    "test:webrtc": "node webrtc.js"
   }
 }
