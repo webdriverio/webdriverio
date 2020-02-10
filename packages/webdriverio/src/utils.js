@@ -1,4 +1,5 @@
 import fs from 'fs'
+import http from 'http'
 import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
@@ -414,3 +415,33 @@ export const enhanceElementsArray = (elements, parent, selector, foundWith = '$$
  * @param {string} automationProtocol
  */
 export const isStub = (automationProtocol) => automationProtocol === './protocol-stub'
+
+export const getAutomationProtocol = async (config) => {
+    /**
+     * don't modify automation protocol if hostname is set as it is very likely
+     * that "webdriver" will be used
+     */
+    if (config.hostname || (config.user && config.key)) {
+        return config.automationProtocol
+    }
+
+    /**
+     * make a head request to check if a driver is available
+     */
+    const driverEndpointHeaders = await new Promise((resolve) => {
+        const req = http.request({
+            method: 'GET',
+            host: 'localhost',
+            port: config.port || 4444,
+            path: '/status'
+        }, resolve)
+        req.on('error', resolve)
+        req.end()
+    })
+
+    if (driverEndpointHeaders && driverEndpointHeaders.statusCode === '200') {
+        return config.automationProtocol
+    }
+
+    return 'devtools'
+}

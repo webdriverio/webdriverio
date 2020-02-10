@@ -1,3 +1,4 @@
+import fs from 'fs'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
@@ -230,4 +231,40 @@ export async function getPages (browser, retryInterval = 100) {
     }
 
     return pages
+}
+
+export function sort(installations, priorities) {
+    const defaultPriority = 10
+    return installations
+        // assign priorities
+        .map((inst) => {
+            for (const pair of priorities) {
+                if (pair.regex.test(inst)) {
+                    return { path: inst, weight: pair.weight }
+                }
+            }
+
+            return { path: inst, weight: defaultPriority }
+        })
+        // sort based on priorities
+        .sort((a, b) => (b.weight - a.weight))
+        // remove priority flag
+        .map(pair => pair.path)
+}
+
+export function canAccess(file) {
+    if (!file) {
+        return false
+    }
+
+    try {
+        fs.accessSync(file)
+        return true
+    } catch (e) {
+        return false
+    }
+}
+
+export function uniq(arr) {
+    return Array.from(new Set(arr))
 }

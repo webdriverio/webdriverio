@@ -62,6 +62,7 @@
     "@wdio/utils": "6.0.0-alpha.1",
     "archiver": "^3.0.0",
     "css-value": "^0.0.1",
+    "devtools": "^6.0.0-alpha.1",
     "grapheme-splitter": "^1.0.2",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isobject": "^3.0.2",

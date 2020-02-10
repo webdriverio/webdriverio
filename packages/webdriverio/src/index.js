@@ -6,7 +6,7 @@ import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
-import { getPrototype, addLocatorStrategyHandler, isStub } from './utils'
+import { getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol } from './utils'
 
 const log = logger('webdriverio')
 
@@ -38,9 +38,10 @@ export const remote = async function (params = {}, remoteModifier) {
         process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
     }
 
+    const automationProtocol = await getAutomationProtocol(config)
     const prototype = getPrototype('browser')
-    log.info(`Initiate new session using the ${config.automationProtocol} protocol`)
-    const ProtocolDriver = require(config.automationProtocol).default
+    log.info(`Initiate new session using the ${automationProtocol} protocol`)
+    const ProtocolDriver = require(automationProtocol).default
     const instance = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**
