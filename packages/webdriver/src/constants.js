@@ -25,8 +25,18 @@ export const DEFAULTS = {
      * path to WebDriver endpoints
      */
     path: {
-        type: 'string',
-        default: '/'
+        type: (path) => {
+            if (typeof path !== 'string') {
+                throw new Error('The option "path" needs to be from type "string"')
+            }
+
+            if (path[0] !== '/') {
+                throw new Error('The option "path" needs to start with a "/"')
+            }
+
+            return true
+        },
+        default: '/',
     },
     /**
      * A key-value store of query parameters to be added to every selenium request
