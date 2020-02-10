@@ -36,7 +36,7 @@ export const DEFAULTS = {
 
             return true
         },
-        default: '/',
+        default: '/'
     },
     /**
      * A key-value store of query parameters to be added to every selenium request
