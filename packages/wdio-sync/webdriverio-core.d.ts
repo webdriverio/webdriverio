@@ -216,7 +216,7 @@ declare namespace WebdriverIO {
             name: string,
             func: Function
         ): void;
-        
+
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
@@ -261,7 +261,7 @@ declare namespace WebdriverIO {
          * Click on an element.
          */
         click(
-            options?: object
+            options?: ClickOptions
         ): void;
 
         /**
@@ -603,7 +603,7 @@ declare namespace WebdriverIO {
             name: string,
             func: (elementFetchingMethod: (selector: string) => any) => void
         ): void
-        
+
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page. It returns an array with element results that will have an

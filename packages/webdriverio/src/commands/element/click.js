@@ -63,10 +63,10 @@
  * @alias element.click
  * @uses protocol/element, protocol/elementIdClick, protocol/performActions, protocol/positionClick
  * @type action
- * @param {object=} options Object (optional)
+ * @param {ClickOptions=}     options        click options (optional)
  * @param {string= | number=} options.button can be one of [0, "left", 1, "middle", 2, "right"] (optional)
- * @param {number=} options.x Number (optional)
- * @param {number=} options.y Number (optional)
+ * @param {number=}           options.x      Number (optional)
+ * @param {number=}           options.y      Number (optional)
  */
 
 export default async function click(options) {
