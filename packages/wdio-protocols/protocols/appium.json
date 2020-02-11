@@ -1311,6 +1311,10 @@
       "examples": [
         [
           "// do a horizontal swipe by percentage",
+          "const startPercentage = 10;",
+          "const endPercentage = 90;",
+          "const anchorPercentage = 50;",
+          "",
           "const { width, height } = driver.getWindowSize();",
           "const anchor = height * anchorPercentage / 100;",
           "const startPoint = width * startPercentage / 100;",
@@ -1326,7 +1330,7 @@
           "  {",
           "    action: 'wait',",
           "    options: {",
-          "      ms: 1000,",
+          "      ms: 100,",
           "    },",
           "  },",
           "  {",
