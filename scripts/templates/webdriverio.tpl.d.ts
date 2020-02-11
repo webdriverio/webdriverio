@@ -206,6 +206,12 @@ declare namespace WebdriverIO {
         windowFeatures?: string
     }
 
+    type ClickOptions = {
+        button?: number | string,
+        x?: number,
+        y?: number
+    }
+
     interface Element {
         selector: string;
         elementId: string;
