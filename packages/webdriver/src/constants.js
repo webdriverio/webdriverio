@@ -27,11 +27,11 @@ export const DEFAULTS = {
     path: {
         type: (path) => {
             if (typeof path !== 'string') {
-                throw new Error('The option "path" needs to be from type "string"')
+                throw new TypeError('The option "path" needs to be from type "string"')
             }
 
-            if (path[0] !== '/') {
-                throw new Error('The option "path" needs to start with a "/"')
+            if (!path.startsWith('/')) {
+                throw new TypeError('The option "path" needs to start with a "/"')
             }
 
             return true
