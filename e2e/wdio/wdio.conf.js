@@ -22,8 +22,6 @@ exports.config = {
      */
     logLevel: 'trace',
     framework: 'mocha',
-    outputDir: __dirname,
-
     reporters: ['spec'],
 
     mochaOpts: {
