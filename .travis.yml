@@ -1,16 +1,24 @@
 dist: xenial
 language: node_js
 
+base_setup: &base_setup
+  before_script:
+    - npx lerna bootstrap --no-ci
+    - npx run-s build-full
+
+node_js:
+  - 10
+  - 12
+
 matrix:
   fast_finish: true
   include:
-    - name: 'CI Tests'
+    - <<: *base_setup
+      name: 'CI Tests'
       os: linux
-      node_js:
-        - 10
-        - 12
       script: npm run ci
-    - name: 'e2e Tests'
+    - <<: *base_setup
+      name: 'e2e Tests'
       os:
         - linux
         - osx
