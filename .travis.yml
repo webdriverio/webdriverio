@@ -52,25 +52,40 @@ base_setup: &base_setup
     - npx lerna bootstrap --no-ci
     - npx run-s build-full link
 
+e2e_setup: &e2e_setup
+  addons:
+    chrome: stable
+    firefox: latest
+  services:
+    - xvfb
+  script: npx run-s test:e2e
+
 matrix:
   fast_finish: true
   include:
     - <<: *base_setup
-      name: 'CI Tests'
+      name: 'CI Tests (Node v10)'
       os: linux
+      node_js: 10
       script: npm run ci
     - <<: *base_setup
-      name: 'e2e Tests'
-      os:
-        - linux
-        - osx
-        - windows
-      addons:
-        chrome: stable
-        firefox: latest
-      services:
-        - xvfb
-      script: npx run-s test:e2e
+      name: 'CI Tests (Node v12)'
+      os: linux
+      node_js: 12
+      script: npm run ci
+    - <<: *base_setup
+      <<: *e2e_setup
+      name: 'e2e Tests (Linux)'
+      os: linux
+    - <<: *base_setup
+      <<: *e2e_setup
+      name: 'e2e Tests (OSX)'
+      os: osx
+    - <<: *base_setup
+      <<: *e2e_setup
+      name: 'e2e Tests (Windows)'
+      os: windows
+
 
 deploy:
   provider: script
