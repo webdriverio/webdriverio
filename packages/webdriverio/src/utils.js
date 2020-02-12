@@ -8,7 +8,7 @@ import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
 import { URL } from 'url'
 
-import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
+import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT } from './constants'
 import { findStrategy } from './utils/findStrategy'
 
 const browserCommands = require('./commands/browser')
@@ -418,10 +418,10 @@ export const isStub = (automationProtocol) => automationProtocol === './protocol
 
 export const getAutomationProtocol = async (config) => {
     /**
-     * don't modify automation protocol if hostname is set as it is very likely
-     * that "webdriver" will be used
+     * don't modify automation protocol if hostname or port is set as
+     * it is very likely that "webdriver" will be used
      */
-    if (config.hostname || (config.user && config.key)) {
+    if (config.hostname || config.port || (config.user && config.key)) {
         return config.automationProtocol
     }
 
@@ -429,18 +429,13 @@ export const getAutomationProtocol = async (config) => {
      * make a head request to check if a driver is available
      */
     const driverEndpointHeaders = await new Promise((resolve) => {
-        const req = http.request({
-            method: 'GET',
-            host: 'localhost',
-            port: config.port || 4444,
-            path: '/status'
-        }, resolve)
+        const req = http.request(DRIVER_DEFAULT_ENDPOINT, resolve)
         req.on('error', resolve)
         req.end()
     })
 
     if (driverEndpointHeaders && driverEndpointHeaders.statusCode === '200') {
-        return config.automationProtocol
+        return config.automationProtocol // option defaults to 'webdriver'
     }
 
     return 'devtools'
