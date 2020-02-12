@@ -1,13 +1,17 @@
 dist: xenial
 language: node_js
 
+cache:
+  directories:
+    - node_modules
+
 base_setup: &base_setup
   node_js:
     - 10
     - 12
   before_script:
     - npx lerna bootstrap --no-ci
-    - npx run-s build-full
+    - npx run-s build-full link
 
 matrix:
   fast_finish: true
