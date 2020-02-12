@@ -2,13 +2,12 @@ dist: xenial
 language: node_js
 
 base_setup: &base_setup
+  node_js:
+    - 10
+    - 12
   before_script:
     - npx lerna bootstrap --no-ci
     - npx run-s build-full
-
-node_js:
-  - 10
-  - 12
 
 matrix:
   fast_finish: true
