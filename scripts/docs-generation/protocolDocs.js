@@ -34,7 +34,7 @@ exports.generateProtocolDocs = (sidebars) => {
                 description.returnTags = [] // tbd
                 description.throwsTags = [] // tbd
                 description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
-                description.customEditUrl = `${config.repoUrl}/edit/master/packages/wdio-protocols/protocol/${protocolName}.json`
+                description.customEditUrl = `${config.repoUrl}/edit/master/packages/wdio-protocols/protocols/${protocolName}.json`
 
                 let protocolNote
                 if (VENDOR_PROTOCOLS.includes(protocolName)) {
