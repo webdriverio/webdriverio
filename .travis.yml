@@ -1,25 +1,15 @@
 dist: xenial
 language: node_js
 
-node_js:
-  - 10
-  - 12
-
 matrix:
   fast_finish: true
   include:
-    - name: 'Linter'
+    - name: 'CI Tests'
       os: linux
-      script: npx run-s test:eslint test:typings
-    - name: 'Unit Tests'
-      os: linux
-      script: echo "Run unit tests" # npx run-s test:coverage
-      after_script:
-        - ./node_modules/.bin/codecov
-    - name: 'Integration Tests'
-      os: linux
-      before_script: npm run link
-      script: echo "Run integration tests" # npx run-s test:smoke
+      node_js:
+        - 10
+        - 12
+      script: npm run ci
     - name: 'e2e Tests'
       os:
         - linux
