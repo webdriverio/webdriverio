@@ -32,7 +32,7 @@ async function launchChrome (capabilities) {
         ...(chromeOptions.args || [])
     ]
 
-    log.info(`Launch Chrome with flags: ${chromeFlags.join(' ')}`)
+    log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
         chromeFlags
@@ -74,11 +74,13 @@ function launchBrowser (capabilities, executablePath, vendorCapKey, config = {})
 
 function launchFirefox (capabilities) {
     const executablePath = firefoxFinder[process.platform]()[0]
+    log.info(`Launch Firefox from path: ${executablePath}`)
     return launchBrowser(capabilities, executablePath, 'moz:firefoxOptions', { product: 'firefox' })
 }
 
 function launchEdge (capabilities) {
     const executablePath = edgeFinder[process.platform]()[0]
+    log.info(`Launch MS Edge (Chromium) from path: ${executablePath}`)
     return launchBrowser(capabilities, executablePath, 'ms:edgeOptions')
 }
 

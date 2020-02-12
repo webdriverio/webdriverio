@@ -74,11 +74,11 @@ function linux() {
 
     executables.forEach((executable) => {
         try {
-            const edgePath =
+            const firefoxPath =
                 execFileSync('which', [executable], { stdio: 'pipe' }).toString().split(newLineRegex)[0]
 
-            if (canAccess(edgePath)) {
-                installations.push(edgePath)
+            if (canAccess(firefoxPath)) {
+                installations.push(firefoxPath)
             }
         } catch (e) {
             // Not installed.
@@ -103,9 +103,9 @@ function win32() {
     ].filter(Boolean)
 
     prefixes.forEach(prefix => suffixes.forEach(suffix => {
-        const edgePath = path.join(prefix, suffix)
-        if (canAccess(edgePath)) {
-            installations.push(edgePath)
+        const firefoxPath = path.join(prefix, suffix)
+        if (canAccess(firefoxPath)) {
+            installations.push(firefoxPath)
         }
     }))
 
