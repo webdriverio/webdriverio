@@ -1308,6 +1308,45 @@
         "description": "The type of action to perform (e.g. moveTo, release, press, tap, wait)",
         "required": true
       }],
+      "examples": [
+        [
+          "// do a horizontal swipe by percentage",
+          "const startPercentage = 10;",
+          "const endPercentage = 90;",
+          "const anchorPercentage = 50;",
+          "",
+          "const { width, height } = driver.getWindowSize();",
+          "const anchor = height * anchorPercentage / 100;",
+          "const startPoint = width * startPercentage / 100;",
+          "const endPoint = width * endPercentage / 100;",
+          "driver.touchPerform([",
+          "  {",
+          "    action: 'press',",
+          "    options: {",
+          "      x: startPoint,",
+          "      y: anchor,",
+          "    },",
+          "  },",
+          "  {",
+          "    action: 'wait',",
+          "    options: {",
+          "      ms: 100,",
+          "    },",
+          "  },",
+          "  {",
+          "    action: 'moveTo',",
+          "    options: {",
+          "      x: endPoint,",
+          "      y: anchor,",
+          "    },",
+          "  },",
+          "  {",
+          "    action: 'release',",
+          "    options: {},",
+          "  },",
+          "]);"
+        ]
+      ],
       "support": {
         "android": {
           "UiAutomator": "4.2+"
