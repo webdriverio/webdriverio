@@ -68,9 +68,8 @@ matrix:
       addons:
         chrome: stable
         firefox: latest
-      before_install:
-        - "export DISPLAY=:99.0"
-        - "sh -e /etc/init.d/xvfb start"
+      services:
+        - xvfb
       script: npx run-s test:e2e
 
 deploy:
