@@ -5,20 +5,30 @@ node_js:
   - 10
   - 12
 
-os:
-  - linux
-  - osx
-  - windows
-
-addons:
-  chrome: stable
-  firefox: latest
-
-script:
-  - npm run ci
-
-after_script:
-  - ./node_modules/.bin/codecov
+matrix:
+  fast_finish: true
+  include:
+    - name: 'Linter'
+      os: linux
+      script: npx run-s test:eslint test:typings
+    - name: 'Unit Tests'
+      os: linux
+      script: echo "Run unit tests" # npx run-s test:coverage
+      after_script:
+        - ./node_modules/.bin/codecov
+    - name: 'Integration Tests'
+      os: linux
+      before_script: npm run link
+      script: echo "Run integration tests" # npx run-s test:smoke
+    - name: 'e2e Tests'
+      os:
+        - linux
+        - osx
+        - windows
+      addons:
+        chrome: stable
+        firefox: latest
+      script: npx run-s test:e2e
 
 deploy:
   provider: script
