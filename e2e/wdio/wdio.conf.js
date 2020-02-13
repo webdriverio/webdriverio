@@ -13,7 +13,7 @@ exports.config = {
         browserName: 'chrome',
         'goog:chromeOptions': { headless: true }
     }, {
-        browserName: 'firefox',
+        browserName: 'chrome',
         'goog:chromeOptions': { headless: true }
     }],
 
@@ -22,6 +22,8 @@ exports.config = {
      */
     logLevel: 'trace',
     framework: 'mocha',
+    outputDir: __dirname,
+
     reporters: ['spec'],
 
     mochaOpts: {
