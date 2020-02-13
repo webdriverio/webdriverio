@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import CrossBrowserTestingLauncher from './launcher'
 import CrossBrowserTestingService from './service'
 

@@ -38,13 +38,11 @@ matrix:
       <<: *e2e_setup
       name: 'e2e Tests (OSX)'
       os: osx
-    - <<: *base_setup
-      <<: *e2e_setup
-      name: 'e2e Tests (Windows)'
-      os: windows
-
-allow_failures:
-    - name: 'e2e Tests (Windows)'
+    # Windows on Travis is not stable enough yet
+    # - <<: *base_setup
+    #   <<: *e2e_setup
+    #   name: 'e2e Tests (Windows)'
+    #   os: windows
 
 deploy:
   provider: script

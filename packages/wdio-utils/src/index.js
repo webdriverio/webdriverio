@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import initialisePlugin from './initialisePlugin'
 import initialiseServices from './initialiseServices'
 import webdriverMonad from './monad'

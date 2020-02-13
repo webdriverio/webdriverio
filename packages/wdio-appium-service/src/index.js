@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import AppiumLauncher from './launcher'
 
 export default class AppiumService {}

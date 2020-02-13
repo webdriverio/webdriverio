@@ -113,10 +113,10 @@
     "collectCoverage": true,
     "coverageThreshold": {
       "global": {
-        "branches": 96,
-        "functions": 99,
-        "lines": 99,
-        "statements": 99
+        "branches": 95,
+        "functions": 98,
+        "lines": 98,
+        "statements": 98
       }
     },
     "testEnvironment": "node",
@@ -128,7 +128,11 @@
       "packages/webdriverio/build",
       "packages/webdriver/build",
       "packages/wdio-cucumber-framework/tests/fixtures",
-      "packages/wdio-logger/build"
+      "packages/wdio-logger/build",
+      "packages/wdio-webdriver-mock-service",
+      "packages/wdio-lambda-runner",
+      "packages/wdio-smoke-test-reporter",
+      "packages/wdio-smoke-test-service"
     ]
   },
   "greenkeeper": {
