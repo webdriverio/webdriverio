@@ -1,3 +1,4 @@
+import http from 'http'
 import path from 'path'
 import { ELEMENT_KEY } from '../src/constants'
 import {
@@ -12,8 +13,23 @@ import {
     getElementRect,
     getAbsoluteFilepath,
     assertDirectoryExists,
-    validateUrl
+    validateUrl,
+    getAutomationProtocol
 } from '../src/utils'
+
+jest.mock('http', () => {
+    const req = { on: jest.fn(), end: jest.fn() }
+    let response = { statusCode: 200 }
+    return {
+        setResponse: (data) => {
+            response = data
+        },
+        request: jest.fn((url, cb) => {
+            cb(response)
+            return req
+        })
+    }
+})
 
 describe('utils', () => {
 
@@ -451,6 +467,30 @@ describe('utils', () => {
                 .toEqual('data:text/html, <html contenteditable>')
             expect(() => validateUrl('_I.am.I:nvalid'))
                 .toThrowError('Invalid URL: _I.am.I:nvalid')
+        })
+    })
+
+    describe('getAutomationProtocol', () => {
+        it('should not default to devtools if there is an indication not to', async () => {
+            expect(await getAutomationProtocol({ hostname: 'foobar', automationProtocol: 'webdriver' }))
+                .toBe('webdriver')
+            expect(await getAutomationProtocol({ port: 1234, automationProtocol: 'webdriver' }))
+                .toBe('webdriver')
+            expect(await getAutomationProtocol({ user: 'a', key: 'b', automationProtocol: 'webdriver' }))
+                .toBe('webdriver')
+        })
+
+        it('should switch if /status returns with 200', async () => {
+            expect(await getAutomationProtocol({ automationProtocol: 'webdriver' }))
+                .toBe('webdriver')
+            expect(await getAutomationProtocol({ automationProtocol: 'devtools' }))
+                .toBe('devtools')
+        })
+
+        it('should default to devtools if /status request fails', async () => {
+            http.setResponse({ statusCode: 404 })
+            expect(await getAutomationProtocol({ automationProtocol: 'webdriver' }))
+                .toBe('devtools')
         })
     })
 })

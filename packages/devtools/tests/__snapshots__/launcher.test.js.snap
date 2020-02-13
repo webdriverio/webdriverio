@@ -1,5 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`launch Edge with custom arguments 1`] = `
+Array [
+  Array [
+    Object {
+      "args": Array [
+        "foobar",
+      ],
+      "defaultViewport": Object {
+        "height": 456,
+        "width": 123,
+      },
+      "executablePath": "/path/to/edge",
+      "headless": true,
+    },
+  ],
+]
+`;
+
+exports[`launch Edge with default values 1`] = `
+Array [
+  Array [
+    Object {
+      "args": Array [],
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "executablePath": "/path/to/edge",
+      "headless": false,
+    },
+  ],
+]
+`;
+
 exports[`launch Firefox with custom arguments 1`] = `
 Array [
   Array [
@@ -11,7 +45,9 @@ Array [
         "height": 456,
         "width": 123,
       },
+      "executablePath": "/path/to/firefox",
       "headless": true,
+      "product": "firefox",
     },
   ],
 ]
@@ -26,7 +62,9 @@ Array [
         "height": 900,
         "width": 1200,
       },
+      "executablePath": "/path/to/firefox",
       "headless": false,
+      "product": "firefox",
     },
   ],
 ]

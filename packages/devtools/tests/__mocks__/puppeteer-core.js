@@ -77,6 +77,8 @@ export default {
     sendMock,
     listenerMock,
     devices,
+    launch: jest.fn().mockImplementation(
+        () => Promise.resolve(new PuppeteerMock())),
     connect: jest.fn().mockImplementation(
         () => Promise.resolve(new PuppeteerMock()))
 }

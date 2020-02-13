@@ -20,6 +20,7 @@ const puppeteerDebugPkg = path.resolve(
     path.dirname(require.resolve('puppeteer-core')),
     'node_modules',
     'debug')
+/* istanbul ignore next */
 require(puppeteerDebugPkg).log = (msg) => {
     if (msg.includes('puppeteer:protocol')) {
         msg = msg.slice(msg.indexOf(PREFIX) + PREFIX.length).trim()

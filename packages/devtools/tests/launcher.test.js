@@ -3,9 +3,22 @@ import { launch as launchChromeBrowser } from 'chrome-launcher'
 
 import launch from '../src/launcher'
 
+jest.mock('../src/finder/firefox', () => ({
+    darwin: jest.fn().mockReturnValue(['/path/to/firefox']),
+    linux: jest.fn().mockReturnValue(['/path/to/firefox']),
+    win32: jest.fn().mockReturnValue(['/path/to/firefox'])
+}))
+
+jest.mock('../src/finder/edge', () => ({
+    darwin: jest.fn().mockReturnValue(['/path/to/edge']),
+    linux: jest.fn().mockReturnValue(['/path/to/edge']),
+    win32: jest.fn().mockReturnValue(['/path/to/edge'])
+}))
+
 beforeEach(() => {
     puppeteer.connect.mockClear()
     launchChromeBrowser.mockClear()
+    puppeteer.launch.mockClear()
 })
 
 test('launch chrome with default values', async () => {
@@ -44,6 +57,26 @@ test('launch Firefox with custom arguments', async () => {
     await launch({
         browserName: 'firefox',
         'moz:firefoxOptions': {
+            args: ['foobar'],
+            headless: true,
+            width: 123,
+            height: 456
+        }
+    })
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+})
+
+test('launch Edge with default values', async () => {
+    await launch({
+        browserName: 'edge'
+    })
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+})
+
+test('launch Edge with custom arguments', async () => {
+    await launch({
+        browserName: 'edge',
+        'ms:edgeOptions': {
             args: ['foobar'],
             headless: true,
             width: 123,

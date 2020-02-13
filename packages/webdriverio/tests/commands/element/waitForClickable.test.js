@@ -1,4 +1,3 @@
-import request from 'request'
 import { remote } from '../../../src'
 
 describe('waitForClickable', () => {
@@ -6,8 +5,6 @@ describe('waitForClickable', () => {
     let browser
 
     beforeEach(async () => {
-        request.mockClear()
-
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {

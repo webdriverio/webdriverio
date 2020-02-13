@@ -434,7 +434,7 @@ export const getAutomationProtocol = async (config) => {
         req.end()
     })
 
-    if (driverEndpointHeaders && driverEndpointHeaders.statusCode === '200') {
+    if (driverEndpointHeaders && parseInt(driverEndpointHeaders.statusCode, 10) === 200) {
         return config.automationProtocol // option defaults to 'webdriver'
     }
 

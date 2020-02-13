@@ -233,6 +233,11 @@ export async function getPages (browser, retryInterval = 100) {
     return pages
 }
 
+/**
+ * all the next utils are copied form `chrome-launcher` and don't need
+ * to be tested
+ */
+/* istanbul ignore next */
 export function sort(installations, priorities) {
     const defaultPriority = 10
     return installations
@@ -252,6 +257,7 @@ export function sort(installations, priorities) {
         .map(pair => pair.path)
 }
 
+/* istanbul ignore next */
 export function canAccess(file) {
     if (!file) {
         return false
@@ -265,6 +271,7 @@ export function canAccess(file) {
     }
 }
 
+/* istanbul ignore next */
 export function uniq(arr) {
     return Array.from(new Set(arr))
 }
