@@ -86,6 +86,8 @@ matrix:
       name: 'e2e Tests (Windows)'
       os: windows
 
+allow_failures:
+    - name: 'e2e Tests (Windows)'
 
 deploy:
   provider: script
