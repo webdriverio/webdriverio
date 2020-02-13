@@ -108,6 +108,7 @@
       "<rootDir>/tests/",
       "<rootDir>/node_modules/"
     ],
+    "collectCoverageFrom": [ "packages/**/src/*.js"],
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
     "coverageThreshold": {
