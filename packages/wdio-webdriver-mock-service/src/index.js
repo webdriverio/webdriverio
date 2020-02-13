@@ -19,6 +19,7 @@ export default class WebdriverMockService {
         this.command = this.mock.command
 
         // define required responses
+        this.command.status().reply(200, { value: {} })
         this.command.newSession().times(2).reply(200, newSession)
         this.command.deleteSession().times(2).reply(200, deleteSession)
         this.command.getTitle().times(10).reply(200, { value: 'Mock Page Title' })

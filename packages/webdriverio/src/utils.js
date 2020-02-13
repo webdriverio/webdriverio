@@ -430,7 +430,7 @@ export const getAutomationProtocol = async (config) => {
      */
     const driverEndpointHeaders = await new Promise((resolve) => {
         const req = http.request(DRIVER_DEFAULT_ENDPOINT, resolve)
-        req.on('error', resolve)
+        req.on('error', (error) => resolve({ error }))
         req.end()
     })
 

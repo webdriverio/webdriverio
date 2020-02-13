@@ -1,6 +1,49 @@
 dist: xenial
 language: node_js
 
+cache:
+  directories:
+    - node_modules
+    - packages/devtools/node_modules
+    - packages/eslint-plugin-wdio/node_modules
+    - packages/node_modules/node_modules
+    - packages/wdio-allure-reporter/node_modules
+    - packages/wdio-appium-service/node_modules
+    - packages/wdio-applitools-service/node_modules
+    - packages/wdio-browserstack-service/node_modules
+    - packages/wdio-cli/node_modules
+    - packages/wdio-concise-reporter/node_modules
+    - packages/wdio-config/node_modules
+    - packages/wdio-crossbrowsertesting-service/node_modules
+    - packages/wdio-cucumber-framework/node_modules
+    - packages/wdio-devtools-service/node_modules
+    - packages/wdio-dot-reporter/node_modules
+    - packages/wdio-firefox-profile-service/node_modules
+    - packages/wdio-jasmine-framework/node_modules
+    - packages/wdio-junit-reporter/node_modules
+    - packages/wdio-lambda-runner/node_modules
+    - packages/wdio-local-runner/node_modules
+    - packages/wdio-logger/node_modules
+    - packages/wdio-mocha-framework/node_modules
+    - packages/wdio-protocols/node_modules
+    - packages/wdio-repl/node_modules
+    - packages/wdio-reporter/node_modules
+    - packages/wdio-runner/node_modules
+    - packages/wdio-sauce-service/node_modules
+    - packages/wdio-selenium-standalone-service/node_modules
+    - packages/wdio-shared-store-service/node_modules
+    - packages/wdio-smoke-test-reporter/node_modules
+    - packages/wdio-smoke-test-service/node_modules
+    - packages/wdio-spec-reporter/node_modules
+    - packages/wdio-static-server-service/node_modules
+    - packages/wdio-sumologic-reporter/node_modules
+    - packages/wdio-sync/node_modules
+    - packages/wdio-testingbot-service/node_modules
+    - packages/wdio-utils/node_modules
+    - packages/wdio-webdriver-mock-service/node_modules
+    - packages/webdriver/node_modules
+    - packages/webdriverio/node_modules
+
 base_setup: &base_setup
   node_js:
     - 10
