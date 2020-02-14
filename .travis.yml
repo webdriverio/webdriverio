@@ -55,9 +55,9 @@ base_setup: &base_setup
 e2e_setup: &e2e_setup
   addons:
     chrome: stable
-    firefox: latest
   services:
     - xvfb
+  before_script: apt install firefox
   script: npx run-s test:e2e
 
 matrix:
