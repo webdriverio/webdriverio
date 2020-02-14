@@ -494,5 +494,11 @@ describe('utils', () => {
             expect(await getAutomationProtocol({ automationProtocol: 'webdriver' }))
                 .toBe('webdriver')
         })
+
+        it('should default to webdriver if browserName is not supported with DevTools automation protocol', async () => {
+            http.setResponse({ statusCode: 404 })
+            expect(await getAutomationProtocol({ capabilities: { browserName: 'foobar' } }))
+                .toBe('webdriver')
+        })
     })
 })

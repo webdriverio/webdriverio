@@ -7,7 +7,7 @@ import { validateConfig } from '@wdio/config'
 
 import DevToolsDriver from './devtoolsdriver'
 import launch from './launcher'
-import { DEFAULTS } from './constants'
+import { DEFAULTS, SUPPORTED_BROWSER } from './constants'
 import { getPrototype } from './utils'
 
 const log = logger('devtools:puppeteer')
@@ -105,3 +105,5 @@ export default class DevTools {
         throw new Error('not yet implemented')
     }
 }
+
+export { SUPPORTED_BROWSER }

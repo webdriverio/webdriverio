@@ -7,6 +7,7 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
 import { URL } from 'url'
+import { SUPPORTED_BROWSER } from 'devtools'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT } from './constants'
 import { findStrategy } from './utils/findStrategy'
@@ -425,10 +426,20 @@ export const getAutomationProtocol = async (config) => {
     }
 
     /**
-     * don't modify automation protocol if hostname or port is set as
-     * it is very likely that "webdriver" will be used
+     * run WebDriver if hostname or port is set
      */
     if (config.hostname || config.port || (config.user && config.key)) {
+        return 'webdriver'
+    }
+
+    /**
+     * only run DevTools protocol if capabilities match supported platforms
+     */
+    if (
+        config.capabilities &&
+        typeof config.capabilities.browserName === 'string' &&
+        !SUPPORTED_BROWSER.includes(config.capabilities.browserName.toLowerCase())
+    ) {
         return 'webdriver'
     }
 
