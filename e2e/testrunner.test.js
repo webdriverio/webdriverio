@@ -11,7 +11,8 @@ test('should allow to run multiple browser at once', async () => {
      * print log files for debugging if test fails
      */
     if (!hasPassed) {
-        const logFiles = fs.readdirSync(path.join(__dirname, 'wdio')).filter((file) => (
+        const rootPath = path.join(__dirname, 'wdio')
+        const logFiles = fs.readdirSync(rootPath).filter((file) => (
             // only log files
             file.endsWith('.log')
         ))
@@ -19,7 +20,7 @@ test('should allow to run multiple browser at once', async () => {
             // eslint-disable-next-line no-console
             console.log(`\n========== LOG OUPUT ${fileName}`)
             // eslint-disable-next-line no-console
-            console.log(fs.readFileSync(path.resolve(__dirname, fileName)).toString())
+            console.log(fs.readFileSync(path.resolve(rootPath, fileName)).toString())
         }
     }
 
