@@ -184,6 +184,12 @@ declare namespace WebdriverIO {
         reverse?: boolean,
     }
 
+    type ClickOptions = {
+        button?: number | string,
+        x?: number,
+        y?: number
+    }
+
     interface Element {
         selector: string;
         elementId: string;
