@@ -33,7 +33,6 @@ export const WDIO_DEFAULTS = {
      * allows to specify automation protocol
      */
     automationProtocol: {
-        default: 'devtools',
         type: (param) => {
             if (typeof param !== 'string') {
                 throw new Error('the "automationProtocol" option needs to from type strings')

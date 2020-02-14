@@ -418,11 +418,18 @@ export const isStub = (automationProtocol) => automationProtocol === './protocol
 
 export const getAutomationProtocol = async (config) => {
     /**
+     * if automation protocol is set by user prefer this
+     */
+    if (config.automationProtocol) {
+        return config.automationProtocol
+    }
+
+    /**
      * don't modify automation protocol if hostname or port is set as
      * it is very likely that "webdriver" will be used
      */
-    if (config.automationProtocol || config.hostname || config.port || (config.user && config.key)) {
-        return config.automationProtocol
+    if (config.hostname || config.port || (config.user && config.key)) {
+        return 'webdriver'
     }
 
     /**
@@ -435,7 +442,7 @@ export const getAutomationProtocol = async (config) => {
     })
 
     if (driverEndpointHeaders && parseInt(driverEndpointHeaders.statusCode, 10) === 200) {
-        return config.automationProtocol // option defaults to 'webdriver'
+        return 'webdriver'
     }
 
     return 'devtools'

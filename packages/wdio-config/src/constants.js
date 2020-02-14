@@ -10,7 +10,6 @@ export const DEFAULT_CONFIGS = () => ({
     logLevel: 'info',
     logLevels: {},
     excludeDriverLogs: [],
-    baseUrl: undefined,
     bail: 0,
     waitforInterval: 500,
     waitforTimeout: 5000,
@@ -24,7 +23,6 @@ export const DEFAULT_CONFIGS = () => ({
     execArgv: [],
     runnerEnv: {},
     runner: 'local',
-    automationProtocol: 'devtools',
     featureFlags: {
         specFiltering: undefined
     },
