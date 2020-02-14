@@ -1,4 +1,5 @@
 const returnTypeMap = require('./webdriver-return-types.json')
+const { CUSTOM_INTERFACES } = require('./constants')
 
 const changeType = (text) => {
     if (text.indexOf('Array.') > -1) {
@@ -6,21 +7,10 @@ const changeType = (text) => {
         text = text.substring(arrayText.length, text.length - 1) + '[]'
     }
 
-    switch (text) {
-    case 'Buffer':
-    case 'Function':
-    case 'RegExp':
-    case 'AddValueOptions':
-    case 'WaitForOptions':
-    case 'Element':
-    case 'ElementArray': {
-        break
-    }
-    default: {
+    if (!CUSTOM_INTERFACES.includes(text)) {
         text = text.toLowerCase()
     }
 
-    }
     return text
 }
 
