@@ -24,6 +24,7 @@ export const DEFAULT_CONFIGS = () => ({
     execArgv: [],
     runnerEnv: {},
     runner: 'local',
+    automationProtocol: 'devtools',
     featureFlags: {
         specFiltering: undefined
     },

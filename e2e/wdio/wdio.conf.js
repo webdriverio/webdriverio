@@ -13,8 +13,8 @@ exports.config = {
         browserName: 'chrome',
         'goog:chromeOptions': { headless: true }
     }, {
-        browserName: 'chrome',
-        'goog:chromeOptions': { headless: true }
+        browserName: 'firefox',
+        'moz:firefoxOptions': { headless: true }
     }],
 
     /**
