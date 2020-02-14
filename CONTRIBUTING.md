@@ -17,6 +17,8 @@ In order to set up this project and start contributing follow this step by step 
     $ git clone git@github.com:<your-username>/webdriverio.git
     ```
 
+* If you need to update your fork you can do so following the steps [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
+
 * Switch to Node v8 (you should be able to use older/newer versions of Node but we recommend to use v8 so all developers are on the same side)
 
 * Setup project:
