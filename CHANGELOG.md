@@ -15,6 +15,39 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.18.7 (2020-02-14)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#4967](https://github.com/webdriverio/webdriverio/pull/4967) wdio-browserstack-service: fix test session status ([@benmacs](https://github.com/benmacs))
+
+#### :nail_care: Polish
+* `devtools`
+  * [#4993](https://github.com/webdriverio/webdriverio/pull/4993) Devtools: Make puppeteer-firefox optional in status.js ([@jordanjwatkins](https://github.com/jordanjwatkins))
+* `webdriver`
+  * [#5002](https://github.com/webdriverio/webdriverio/pull/5002) Add check that path starts with "/" ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-sync`, `webdriverio`
+  * [#5005](https://github.com/webdriverio/webdriverio/pull/5005) Add click options ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-protocols`
+  * [#5004](https://github.com/webdriverio/webdriverio/pull/5004) Add example for touchPerform ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#4990](https://github.com/webdriverio/webdriverio/pull/4990) Fix for Chrome refs type (#4989) ([@lamkovod](https://github.com/lamkovod))
+* `webdriverio`
+  * [#4977](https://github.com/webdriverio/webdriverio/pull/4977) webdriverio: Fix 'oject' typo in click command ([@IgorVodka](https://github.com/IgorVodka))
+* `wdio-cli`
+  * [#4976](https://github.com/webdriverio/webdriverio/pull/4976) Add intercept service to wdio ([@chmanie](https://github.com/chmanie))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Christian Maniewski ([@chmanie](https://github.com/chmanie))
+- Igor Vodka ([@IgorVodka](https://github.com/IgorVodka))
+- Jordan Watkins ([@jordanjwatkins](https://github.com/jordanjwatkins))
+- [@benmacs](https://github.com/benmacs)
+- [@lamkovod](https://github.com/lamkovod)
+
+
 ## v5.18.6 (2020-01-17)
 
 #### :nail_care: Polish

@@ -1,6 +1,6 @@
 {
   "name": "@wdio/concise-reporter",
-  "version": "5.18.6",
+  "version": "5.18.7",
   "description": "A concise reporter for WebdriverIO",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-concise-reporter",
