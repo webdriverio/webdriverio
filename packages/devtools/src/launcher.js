@@ -40,6 +40,7 @@ async function launchChrome (capabilities) {
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
     const browser = await puppeteer.connect({
+        ...chromeOptions,
         browserURL: `http://localhost:${chrome.port}`,
         defaultViewport: null
     })
@@ -58,24 +59,28 @@ async function launchChrome (capabilities) {
     return browser
 }
 
-function launchBrowser (capabilities, executablePath, vendorCapKey, config = {}) {
-    const edgeOptions = capabilities[vendorCapKey] || {}
-    return puppeteer.launch({
-        ...config,
+function launchBrowser (capabilities, executablePath, vendorCapKey) {
+    const puppeteerOptions = Object.assign({
         executablePath,
-        args: edgeOptions.args || [],
-        headless: Boolean(edgeOptions.headless),
         defaultViewport: {
-            width: edgeOptions.width || DEFAULT_WIDTH,
-            height: edgeOptions.height || DEFAULT_HEIGHT
+            width: DEFAULT_WIDTH,
+            height: DEFAULT_HEIGHT
         }
-    })
+    }, capabilities[vendorCapKey] || {})
+    return puppeteer.launch(puppeteerOptions)
 }
 
 function launchFirefox (capabilities) {
     const executablePath = firefoxFinder[process.platform]()[0]
     log.info(`Launch Firefox from path: ${executablePath}`)
-    return launchBrowser(capabilities, executablePath, 'moz:firefoxOptions', { product: 'firefox' })
+
+    const vendorPrefix = 'moz:firefoxOptions'
+    if (!capabilities[vendorPrefix]) {
+        capabilities[vendorPrefix] = {}
+    }
+
+    capabilities[vendorPrefix].product = 'firefox'
+    return launchBrowser(capabilities, executablePath, vendorPrefix, { product: 'firefox' })
 }
 
 function launchEdge (capabilities) {

@@ -59,8 +59,10 @@ test('launch Firefox with custom arguments', async () => {
         'moz:firefoxOptions': {
             args: ['foobar'],
             headless: true,
-            width: 123,
-            height: 456
+            defaultViewport: {
+                width: 123,
+                height: 456
+            }
         }
     })
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()
@@ -79,8 +81,10 @@ test('launch Edge with custom arguments', async () => {
         'ms:edgeOptions': {
             args: ['foobar'],
             headless: true,
-            width: 123,
-            height: 456
+            defaultViewport: {
+                width: 123,
+                height: 456
+            }
         }
     })
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()

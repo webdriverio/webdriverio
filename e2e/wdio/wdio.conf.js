@@ -11,10 +11,10 @@ exports.config = {
      */
     capabilities: [{
         browserName: 'chrome',
-        'goog:chromeOptions': { headless: true }
+        'goog:chromeOptions': { headless: true, dumpio: true }
     }, {
         browserName: 'firefox',
-        'moz:firefoxOptions': { headless: true }
+        'moz:firefoxOptions': { headless: true, dumpio: true }
     }],
 
     /**
