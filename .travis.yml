@@ -57,7 +57,9 @@ e2e_setup: &e2e_setup
     chrome: stable
   services:
     - xvfb
-  before_script: apt install firefox
+  before_script:
+    - sudo apt install firefox
+    - firefox --version
   script: npx run-s test:e2e
 
 matrix:
