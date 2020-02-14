@@ -421,7 +421,7 @@ export const getAutomationProtocol = async (config) => {
      * don't modify automation protocol if hostname or port is set as
      * it is very likely that "webdriver" will be used
      */
-    if (config.hostname || config.port || (config.user && config.key)) {
+    if (config.automationProtocol || config.hostname || config.port || (config.user && config.key)) {
         return config.automationProtocol
     }
 

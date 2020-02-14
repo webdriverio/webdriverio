@@ -489,8 +489,10 @@ describe('utils', () => {
 
         it('should default to devtools if /status request fails', async () => {
             http.setResponse({ statusCode: 404 })
-            expect(await getAutomationProtocol({ automationProtocol: 'webdriver' }))
+            expect(await getAutomationProtocol({}))
                 .toBe('devtools')
+            expect(await getAutomationProtocol({ automationProtocol: 'webdriver' }))
+                .toBe('webdriver')
         })
     })
 })
