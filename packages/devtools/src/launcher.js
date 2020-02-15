@@ -67,6 +67,11 @@ function launchBrowser (capabilities, executablePath, vendorCapKey) {
             height: DEFAULT_HEIGHT
         }
     }, capabilities[vendorCapKey] || {})
+
+    if (!executablePath) {
+        throw new Error('Couldn\'t find executeable for browser')
+    }
+
     log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
     return puppeteer.launch(puppeteerOptions)
 }

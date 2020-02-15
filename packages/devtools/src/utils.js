@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { execFileSync } from 'child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
@@ -274,4 +275,28 @@ export function canAccess(file) {
 /* istanbul ignore next */
 export function uniq(arr) {
     return Array.from(new Set(arr))
+}
+
+/**
+ * Look for edge executables by using the which command
+ */
+export function findByWhich (executables, priorities) {
+    const installations = []
+    executables.forEach((executable) => {
+        try {
+            const browserPath = execFileSync(
+                'which',
+                [executable],
+                { stdio: 'pipe' }
+            ).toString().split(/\r?\n/)[0]
+
+            if (canAccess(browserPath)) {
+                installations.push(browserPath)
+            }
+        } catch (e) {
+            // Not installed.
+        }
+    })
+
+    return sort(uniq(installations.filter(Boolean)), priorities)
 }
