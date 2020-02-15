@@ -17,7 +17,7 @@ In order to set up this project and start contributing follow this step by step 
     $ git clone git@github.com:<your-username>/webdriverio.git
     ```
 
-* Switch to Node v8 (you should be able to use older/newer versions of Node but we recommend to use v8 so all developers are on the same side)
+* Switch to Node v10 LTS (you should be able to use older/newer versions of Node but we recommend to use v10 LTS so all developers are on the same side)
 
 * Setup project:
 
