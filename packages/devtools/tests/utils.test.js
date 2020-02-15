@@ -1,6 +1,9 @@
+import fs from 'fs'
+import childProcess from 'child_process'
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
-    sanitizeError, transformExecuteArgs, transformExecuteResult, getPages
+    sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
+    canAccess, uniq, findByWhich
 } from '../src/utils'
 
 const command = {
@@ -38,6 +41,31 @@ let pageMock = {
     $x: jest.fn(),
     $: jest.fn()
 }
+
+jest.mock('fs', () => {
+    let expectedThrow = false
+    return {
+        accessSync: jest.fn().mockImplementation(() => {
+            if (expectedThrow) {
+                throw new Error('Not accessible')
+            }
+        }),
+        shouldThrow: (value) => (expectedThrow = value)
+    }
+})
+
+jest.mock('child_process', () => {
+    let returnValue = false
+    return {
+        execFileSync: jest.fn().mockImplementation(() => {
+            if (!returnValue) {
+                throw new Error('foo not found')
+            }
+            return returnValue
+        }),
+        shouldReturn: (value) => (returnValue = value)
+    }
+})
 
 describe('validate', () => {
     it('should fail if wrong arguments are passed in', () => {
@@ -305,4 +333,32 @@ test('getStaleElementError', () => {
     const err = getStaleElementError('foobar')
     expect(err instanceof Error).toBe(true)
     expect(err.name).toContain('stale element reference')
+})
+
+test('canAccess', () => {
+    expect(canAccess()).toBe(false)
+    expect(canAccess('/some/file')).toBe(true)
+
+    fs.shouldThrow(true)
+    expect(canAccess('/some/file')).toBe(false)
+})
+
+test('uniq', () => {
+    const listA = [1, 2, 3]
+    expect(listA).toBe(listA)
+    expect(listA).not.toBe(uniq(listA))
+})
+
+test('findByWhich', () => {
+    fs.shouldThrow(false)
+    expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
+        .toEqual([])
+
+    childProcess.shouldReturn('/path/to/other/firefox\n')
+    expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
+        .toEqual(['/path/to/other/firefox'])
+
+    fs.shouldThrow(true)
+    expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
+        .toEqual([])
 })

@@ -6,11 +6,13 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 import path from 'path'
-import { execSync, execFileSync } from 'child_process'
+import { execSync } from 'child_process'
 
-import { sort, canAccess, uniq } from '../utils'
+import { sort, canAccess, findByWhich } from '../utils'
 
 const newLineRegex = /\r?\n/
+const EDGE_BINARY_NAMES = ['edge', 'msedge', 'microsoftedge']
+const EDGE_REGEX = /((ms|microsoft))?edge/g
 
 function darwin() {
     const suffixes = [
@@ -47,8 +49,12 @@ function darwin() {
         { regex: /^\/Volumes\/.*Microsoft Edge.app/, weight: -2 }
     ]
 
-    // clang-format on
-    return sort(installations, priorities)
+    const whichFinds = findByWhich(
+        EDGE_BINARY_NAMES,
+        [{ regex: EDGE_REGEX, weight: 51 }]
+    )
+    const installFinds = sort(installations, priorities)
+    return [...installFinds, ...whichFinds]
 }
 
 /**
@@ -68,30 +74,10 @@ function linux() {
         installations = installations.concat(findEdgeExecutables(folder))
     })
 
-    // 2. Look for edge executables by
-    // using the which command
-    const executables = [
-        'edge',
-    ]
-
-    executables.forEach((executable) => {
-        try {
-            const edgePath =
-                execFileSync('which', [executable], { stdio: 'pipe' }).toString().split(newLineRegex)[0]
-
-            if (canAccess(edgePath)) {
-                installations.push(edgePath)
-            }
-        } catch (e) {
-            // Not installed.
-        }
-    })
-
-    const priorities = [
-        { regex: /edge/, weight: 51 }
-    ]
-
-    return sort(uniq(installations.filter(Boolean)), priorities)
+    return findByWhich(
+        EDGE_BINARY_NAMES,
+        [{ regex: EDGE_REGEX, weight: 51 }]
+    )
 }
 
 function win32() {
