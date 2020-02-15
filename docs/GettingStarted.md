@@ -11,7 +11,7 @@ The following short step-by-step introduction will help you get your first Webdr
 
 ## Taking the first step
 
-You’ll need [Node.js](http://nodejs.org) installed (at least v8.11.2 or higher). If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions.
+You’ll need [Node.js](http://nodejs.org) installed (at least v10.13.0 or higher as this is the oldest active LTS version). If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions.
 
 ### Setup your project
 
