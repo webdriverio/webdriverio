@@ -260,7 +260,7 @@ export const QUESTIONNAIRE = [{
         /* istanbul ignore next */
         ({ name }) => name === 'chromedriver').value
     ],
-    validate: validateServiceAnswers
+    validate: answers  => validateServiceAnswers(answers)
 }, {
     type: 'input',
     name: 'outputDir',
