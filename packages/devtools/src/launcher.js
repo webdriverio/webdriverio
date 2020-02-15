@@ -67,13 +67,12 @@ function launchBrowser (capabilities, executablePath, vendorCapKey) {
             height: DEFAULT_HEIGHT
         }
     }, capabilities[vendorCapKey] || {})
+    log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
     return puppeteer.launch(puppeteerOptions)
 }
 
 function launchFirefox (capabilities) {
     const executablePath = firefoxFinder[process.platform]()[0]
-    log.info(`Launch Firefox from path: ${executablePath}`)
-
     const vendorPrefix = 'moz:firefoxOptions'
     if (!capabilities[vendorPrefix]) {
         capabilities[vendorPrefix] = {}
@@ -85,7 +84,6 @@ function launchFirefox (capabilities) {
 
 function launchEdge (capabilities) {
     const executablePath = edgeFinder[process.platform]()[0]
-    log.info(`Launch MS Edge (Chromium) from path: ${executablePath}`)
     return launchBrowser(capabilities, executablePath, 'ms:edgeOptions')
 }
 
