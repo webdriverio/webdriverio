@@ -35,11 +35,5 @@ export default function addValue (value, { translateToUnicode = true } = {}) {
         return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode))
     }
 
-    // Workaround https://github.com/appium/appium/issues/12085
-    if (this.isMobile) {
-        return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode).join(''),
-            transformToCharString(value, translateToUnicode))
-    }
-
     return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode).join(''))
 }
