@@ -11,6 +11,7 @@ module.exports = {
         { doc: 'api', label: 'API' },
         { page: 'help', label: 'Help' },
         { blog: true, label: 'Blog' },
+        { page: 'contribute', label: 'Contribute' },
         { languages: true },
         { search: true },
         { href: repoUrl, label: 'GitHub' }
