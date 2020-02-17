@@ -5,11 +5,15 @@ import { promisify } from 'util'
 import { getFilePath, getAppiumCommand, cliArgsFromKeyValue } from './utils'
 
 const log = logger('@wdio/appium-service')
-const DEFAULT_LOG_FILENAME = 'appium.txt'
+const DEFAULT_LOG_FILENAME = 'wdio-appium.log'
 
 export default class AppiumLauncher {
     constructor(options, caps, config) {
         this.options = options
+        this.args = {
+            basePath: '/',
+            ...(options.args || {})
+        }
         this.logPath = options.logPath || config.outputDir
         this.command = options.command
         this.appiumArgs = []
@@ -30,7 +34,7 @@ export default class AppiumLauncher {
         /**
          * Append remaining arguments
          */
-        this.appiumArgs.push(...cliArgsFromKeyValue(this.options.args || {}))
+        this.appiumArgs.push(...cliArgsFromKeyValue(this.args))
 
         /**
          * Windows needs to be started through `cmd` and the command needs to be an arg
