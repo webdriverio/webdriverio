@@ -29,6 +29,7 @@ describe('wdio-testingbot-service', () => {
         expect(options.protocol).toBeUndefined()
         expect(options.hostname).toBeUndefined()
         expect(options.port).toBeUndefined()
+        expect(options.path).toBeUndefined()
     })
 
     it('onPrepare', async () => {
@@ -49,6 +50,7 @@ describe('wdio-testingbot-service', () => {
         expect(config.protocol).toEqual('http')
         expect(config.hostname).toEqual('localhost')
         expect(config.port).toEqual(4445)
+        expect(config.path).toEqual('/wd/hub')
         expect(log.info.mock.calls[0][0]).toContain('TestingBot tunnel successfully started after')
     })
 
