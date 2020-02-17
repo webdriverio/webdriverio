@@ -84,21 +84,23 @@ export function initialiseLauncherService (config, caps) {
     const ignoredWorkerServices = []
     const launcherServices = []
 
-    const services = initialiseServices(config.services.map(sanitizeServiceArray))
-    for (const [service, serviceConfig, serviceName] of services) {
-        /**
-         * add object service
-         */
-        if (typeof service === 'object') {
-            return launcherServices.push(service)
-        }
+    try {
+        const services = initialiseServices(config.services.map(sanitizeServiceArray))
+        for (const [service, serviceConfig, serviceName] of services) {
+            /**
+             * add custom services as object or function
+             */
+            if (typeof service === 'object' && !serviceName) {
+                launcherServices.push(service)
+                continue
+            }
 
-        try {
             /**
              * add class service
              */
-            if (service.launcher === 'function') {
-                launcherServices.push(new service.launcher(serviceConfig, caps, config))
+            const Launcher = service.launcher || service
+            if (typeof Launcher === 'function') {
+                launcherServices.push(new Launcher(serviceConfig, caps, config))
             }
 
             /**
@@ -111,12 +113,12 @@ export function initialiseLauncherService (config, caps) {
             ) {
                 ignoredWorkerServices.push(serviceName)
             }
-        } catch (err) {
-            /**
-             * don't break if service can't be initiated
-             */
-            log.error(err)
         }
+    } catch (err) {
+        /**
+         * don't break if service can't be initiated
+         */
+        log.error(err)
     }
 
     return { ignoredWorkerServices, launcherServices }
@@ -135,23 +137,26 @@ export function initialiseWorkerService (config, caps, ignoredWorkerServices = [
         .map(sanitizeServiceArray)
         .filter(([serviceName]) => !ignoredWorkerServices.includes(serviceName))
 
-    const services = initialiseServices(workerServices)
-    return services.map(([service, serviceConfig]) => {
-        /**
-         * add object service
-         */
-        if (typeof service === 'object') {
-            return service
-        }
-
-        try {
-            const Service = service.default || service
-            return new Service(serviceConfig, caps, config)
-        } catch (err) {
+    try {
+        const services = initialiseServices(workerServices)
+        return services.map(([service, serviceConfig, serviceName]) => {
             /**
-             * don't break if service can't be initiated
+             * add object service
              */
-            log.error(err)
-        }
-    })
+            if (typeof service === 'object' && !serviceName) {
+                return service
+            }
+
+            const Service = service.default || service
+            if (typeof Service === 'function') {
+                return new Service(serviceConfig, caps, config)
+            }
+        }).filter(Boolean)
+    } catch (err) {
+        /**
+         * don't break if service can't be initiated
+         */
+        log.error(err)
+        return []
+    }
 }
