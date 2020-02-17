@@ -403,22 +403,4 @@ describe('ConfigParser', () => {
             expect(config.key).toBe('50fa142c-3121-4gb0-9p07-8q326vvbq7b0')
         })
     })
-
-    describe('filterWorkerServices', () => {
-        const configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_CONF)
-        const config = configParser.getConfig()
-
-        it('should do nothing if services is not an array', () => {
-            config.services = null
-            configParser.filterWorkerServices()
-            expect(config.services).toBeNull()
-        })
-
-        it('should remove non worker services', () => {
-            config.services = ['sauce', 'selenium-standalone']
-            configParser.filterWorkerServices()
-            expect(config.services).toEqual(['sauce'])
-        })
-    })
 })
