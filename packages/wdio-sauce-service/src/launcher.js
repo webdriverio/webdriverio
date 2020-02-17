@@ -4,6 +4,12 @@ import { performance, PerformanceObserver } from 'perf_hooks'
 import logger from '@wdio/logger'
 import SauceConnectLauncher from 'sauce-connect-launcher'
 
+function modifyObject (root, propertiesObject) {
+    for (const [k, v] of Object.entries(propertiesObject)) {
+        root[k] = v
+    }
+}
+
 const log = logger('@wdio/sauce-service')
 export default class SauceLauncher {
     constructor (options) {
@@ -35,33 +41,41 @@ export default class SauceLauncher {
             ...sauceConnectOpts
         }
 
+        let endpointConfigurations = {}
         if (this.options.scRelay) {
-            config.protocol = 'http'
-            config.hostname = 'localhost'
-            config.port = this.sauceConnectOpts.port || 4445
+            endpointConfigurations = {
+                protocol: 'http',
+                hostname: 'localhost',
+                port: this.sauceConnectOpts.port || 4445
+            }
         }
 
         if (Array.isArray(capabilities)) {
             for (const capability of capabilities) {
-                if (capability['sauce:options'] === undefined) {
-                    capability.tunnelIdentifier = capability.tunnelIdentifier || sauceConnectTunnelIdentifier
-                } else {
-                    capability['sauce:options'].tunnelIdentifier = capability['sauce:options'].tunnelIdentifier || sauceConnectTunnelIdentifier
+                if (!capability['sauce:options']) {
+                    capability['sauce:options'] = {}
                 }
+
+                modifyObject(capability, endpointConfigurations)
+                capability['sauce:options'].tunnelIdentifier = (
+                    capability.tunnelIdentifier ||
+                    capability['sauce:options'].tunnelIdentifier ||
+                    sauceConnectTunnelIdentifier
+                )
+                delete capability.tunnelIdentifier
             }
         } else {
             for (const browserName of Object.keys(capabilities)) {
-                if (capabilities[browserName].capabilities['sauce:options'] === undefined) {
-                    capabilities[browserName].capabilities.tunnelIdentifier = (
-                        capabilities[browserName].capabilities.tunnelIdentifier ||
-                        sauceConnectTunnelIdentifier
-                    )
-                } else {
-                    capabilities[browserName].capabilities['sauce:options'].tunnelIdentifier = (
-                        capabilities[browserName].capabilities['sauce:options'].tunnelIdentifier ||
-                        sauceConnectTunnelIdentifier
-                    )
+                if (!capabilities[browserName].capabilities['sauce:options']) {
+                    capabilities[browserName].capabilities['sauce:options'] = {}
                 }
+                modifyObject(capabilities[browserName].capabilities, endpointConfigurations)
+                capabilities[browserName].capabilities['sauce:options'].tunnelIdentifier = (
+                    capabilities[browserName].capabilities.tunnelIdentifier ||
+                    capabilities[browserName].capabilities['sauce:options'].tunnelIdentifier ||
+                    sauceConnectTunnelIdentifier
+                )
+                delete capabilities[browserName].capabilities.tunnelIdentifier
             }
         }
 
