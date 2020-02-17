@@ -83,6 +83,15 @@ describe('initialiseLauncherService', () => {
         expect(ignoredWorkerServices).toEqual(['launcher-only'])
     })
 
+    it('should ignore worker services', () => {
+        const {
+            launcherServices,
+            ignoredWorkerServices
+        } = initialiseLauncherService({ services: ['scoped'] })
+        expect(launcherServices).toHaveLength(0)
+        expect(ignoredWorkerServices).toHaveLength(0)
+    })
+
     it('should not fail if service is borked', () => {
         const {
             launcherServices,
