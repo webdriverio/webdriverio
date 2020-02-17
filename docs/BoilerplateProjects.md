@@ -182,7 +182,38 @@ This boilerplate includes the following:
         - Forms
         - Swipe
         - Browsers
+        
+### [Schveitzer/webdriverio-appium-cucumber-boilerplate](/https://github.com/Schveitzer/webdriverio-appium-cucumber-boilerplate)
 
+Boilerplate project to run Appium tests together with WebdriverIO and BDD with Cucumber for:
+
+- iOS/Android Native Apps
+- iOS/Android Hybrid Apps
+
+This boilerplate includes the following:
+
+- Frameworks:
+    - WebdriverIO (v5.x)
+    - Chai (v5.x)
+    - @Wdio/Allure (v5.x)
+    - Appium (1.16.x)
+    - Cucumber (v5.x)
+    
+- Features:
+    - Configs for:
+        - iOS and Android app
+    - Tests examples in english and portuguese for:
+        - WebView
+        - Login
+        - Forms
+        - Swipe
+    - [Page Object](PageObjects.md) Pattern
+    - ES6 style class-based approach, and full ES6–ES8 support through Babel
+    - Chai
+    - Reports with Allure (Print screen on fail)
+    - Code formatter (ESlint, Prettier)
+    - Git hook using `husky`
+        
 ### [blueimp/wdio](https://github.com/blueimp/wdio)
 
 Docker setup for WebdriverIO with automatic screenshots, image diffing, and screen recording support for containerized versions of Chrome and Firefox. Also includes macOS host configs to test an app running in Docker with Safari Desktop, as well as Safari Mobile and Chrome Mobile via Appium.
