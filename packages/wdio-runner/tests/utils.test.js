@@ -88,6 +88,27 @@ describe('utils', () => {
             expect(multiremote).toHaveBeenCalledTimes(0)
             expect(remote).toBeCalledWith({
                 foo: 'bar',
+                maxInstances: 123,
+                capabilities: { browserName: 'chrome' }
+            })
+        })
+
+        it('should overwrite connection properties if set in capabilities', () => {
+            initialiseInstance({
+                hostname: 'foobar',
+                port: 1234,
+                path: '/some/path'
+            },
+            {
+                browserName: 'chrome',
+                hostname: 'barfoo',
+                port: 4321,
+                path: '/'
+            })
+            expect(remote).toBeCalledWith({
+                hostname: 'barfoo',
+                port: 4321,
+                path: '/',
                 capabilities: { browserName: 'chrome' }
             })
         })

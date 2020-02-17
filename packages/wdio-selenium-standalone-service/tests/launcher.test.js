@@ -21,7 +21,8 @@ describe('Selenium standalone launcher', () => {
                 args : { foo : 'foo' },
                 installArgs : { bar : 'bar' },
             }
-            const launcher = new SeleniumStandaloneLauncher(options, [])
+            const capabilities = [{}]
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true })
 
@@ -30,6 +31,7 @@ describe('Selenium standalone launcher', () => {
             expect(launcher.args).toBe(options.args)
             expect(launcher.skipSeleniumInstall).toBe(false)
             expect(launcher.watchMode).toEqual(true)
+            expect(capabilities[0].path).toBe('/wd/hub')
         })
 
         test('should call selenium install and start', async () => {
@@ -55,7 +57,7 @@ describe('Selenium standalone launcher', () => {
                     }
                 }
             }
-            const launcher = new SeleniumStandaloneLauncher(options)
+            const launcher = new SeleniumStandaloneLauncher(options, [], {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({})
 
@@ -77,7 +79,7 @@ describe('Selenium standalone launcher', () => {
                 },
                 skipSeleniumInstall: true
             }
-            const launcher = new SeleniumStandaloneLauncher(options)
+            const launcher = new SeleniumStandaloneLauncher(options, [], {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({})
 
@@ -90,7 +92,7 @@ describe('Selenium standalone launcher', () => {
             const launcher = new SeleniumStandaloneLauncher({
                 installArgs : {},
                 args : {},
-            })
+            }, [], {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({})
 
@@ -103,7 +105,7 @@ describe('Selenium standalone launcher', () => {
             const launcher = new SeleniumStandaloneLauncher({
                 installArgs : {},
                 args : {}
-            })
+            }, [], {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true })
 
@@ -118,7 +120,7 @@ describe('Selenium standalone launcher', () => {
             const launcher = new SeleniumStandaloneLauncher({
                 installArgs : {},
                 args : {},
-            })
+            }, [], {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({})
             launcher.onComplete()
@@ -127,7 +129,7 @@ describe('Selenium standalone launcher', () => {
         })
 
         test('should not call process.kill', () => {
-            const launcher = new SeleniumStandaloneLauncher({})
+            const launcher = new SeleniumStandaloneLauncher({}, [], {})
             launcher.onComplete()
 
             expect(launcher.process).toBeFalsy()
@@ -137,7 +139,7 @@ describe('Selenium standalone launcher', () => {
             const launcher = new SeleniumStandaloneLauncher({
                 installArgs : {},
                 args : {}
-            })
+            }, [], {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true })
             launcher.onComplete()
@@ -152,10 +154,11 @@ describe('Selenium standalone launcher', () => {
                 logPath : './',
                 installArgs : {},
                 args : {},
-            })
+            }, [], {})
             await launcher.onPrepare({})
 
-            expect(fs.createWriteStream.mock.calls[0][0]).toBe(path.join(process.cwd(), 'selenium-standalone.txt'))
+            expect(fs.createWriteStream.mock.calls[0][0])
+                .toBe(path.join(process.cwd(), 'wdio-selenium-standalone.log'))
             expect(launcher.process.stdout.pipe).toBeCalled()
             expect(launcher.process.stderr.pipe).toBeCalled()
         })

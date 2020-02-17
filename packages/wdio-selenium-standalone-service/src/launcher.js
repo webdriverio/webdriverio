@@ -6,14 +6,15 @@ import SeleniumStandalone from 'selenium-standalone'
 
 import { getFilePath } from './utils'
 
-const DEFAULT_LOG_FILENAME = 'selenium-standalone.txt'
+const DEFAULT_LOG_FILENAME = 'wdio-selenium-standalone.log'
 const log = logger('@wdio/selenium-standalone-service')
 
 export default class SeleniumStandaloneLauncher {
-    constructor (options) {
-        this.logPath = options.logPath
-        this.args = options.args
-        this.installArgs = options.installArgs
+    constructor (options, capabilities, config) {
+        this.capabilities = capabilities
+        this.logPath = options.logPath || config.outputDir
+        this.args = options.args || {}
+        this.installArgs = options.installArgs || {}
         this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
     }
 
@@ -24,6 +25,11 @@ export default class SeleniumStandaloneLauncher {
             await promisify(SeleniumStandalone.install)(this.installArgs)
         }
 
+        /**
+         * update capability connection options to connect
+         * to standalone server
+         */
+        this.capabilities.forEach((cap) => !cap.path && (cap.path = '/wd/hub'))
         this.process = await promisify(SeleniumStandalone.start)(this.args)
 
         if (typeof this.logPath === 'string') {
