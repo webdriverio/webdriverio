@@ -151,8 +151,9 @@ describe('elements', () => {
             }]
         }])
 
-        const elem = await browser.$('.searchinput')
-        expect(await browser.getElementProperty(elem[ELEMENT_KEY])).toBe('Dropped!')
+        const elem = await browser.findElement('css selector', '.searchinput')
+        expect(await browser.getElementProperty(elem[ELEMENT_KEY], 'value'))
+            .toBe('Dropped!')
     })
 
     it('should be able to use keys command', async () => {
@@ -176,7 +177,8 @@ describe('elements', () => {
                 { type: 'keyUp', value: 'r' }
             ]
         }])
-        expect(await browser.getElementProperty(textarea[ELEMENT_KEY])).toBe('foobar')
+        expect(await browser.getElementProperty(textarea[ELEMENT_KEY], 'value'))
+            .toBe('foobar')
     })
 })
 
