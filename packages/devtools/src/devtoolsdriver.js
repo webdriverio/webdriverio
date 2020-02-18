@@ -104,9 +104,12 @@ export default class DevToolsDriver {
 
             this.emit('result', { command, params, retries, result })
             if (typeof result !== 'undefined') {
-                log.info('RESULT', command.toLowerCase().includes('screenshot')
-                    && typeof result === 'string' && result.length > 64
-                    ? `${result.substr(0, 61)}...` : result)
+                const isScreenshot = (
+                    command.toLowerCase().includes('screenshot') &&
+                    typeof result === 'string' &&
+                    result.length > 64
+                )
+                log.info('RESULT', isScreenshot ? `${result.substr(0, 61)}...` : result)
             }
 
             return result

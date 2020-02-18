@@ -170,16 +170,18 @@ describe('elements', () => {
                 { type: 'keyDown', value: 'b' },
                 { type: 'keyDown', value: 'a' },
                 { type: 'keyDown', value: 'r' },
+                { type: 'keyDown', value: '😉' },
                 { type: 'keyUp', value: 'f' },
                 { type: 'keyUp', value: 'o' },
                 { type: 'keyUp', value: 'o' },
                 { type: 'keyUp', value: 'b' },
                 { type: 'keyUp', value: 'a' },
-                { type: 'keyUp', value: 'r' }
+                { type: 'keyUp', value: 'r' },
+                { type: 'keyUp', value: '😉' }
             ]
         }])
         expect(await browser.getElementProperty(textarea[ELEMENT_KEY], 'value'))
-            .toBe('foobar')
+            .toBe('foobar😉')
     })
 })
 

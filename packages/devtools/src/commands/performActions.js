@@ -1,3 +1,5 @@
+import USKeyboardLayout from 'puppeteer-core/lib/USKeyboardLayout'
+
 const sleep = (time = 0) => new Promise(
     (resolve) => setTimeout(resolve, time))
 
@@ -18,6 +20,7 @@ export default async function performActions ({ actions }) {
         }
 
         if (action.type === 'key') {
+            const skipChars = []
             for (const singleAction of action.actions) {
                 if (singleAction.type === 'pause') {
                     await sleep(singleAction.duration)
@@ -26,7 +29,27 @@ export default async function performActions ({ actions }) {
 
                 const cmd = singleAction.type.slice(3).toLowerCase()
                 const keyboardFn = ::page.keyboard[cmd]
-                await keyboardFn(singleAction.value, { text: singleAction.value })
+
+                /**
+                 * skip up event as we had to use sendCharacter for non unicode
+                 * characters which includes the up event already
+                 */
+                if (cmd === 'up' && skipChars[0] === singleAction.value) {
+                    skipChars.shift()
+                    continue
+                }
+
+                /**
+                 * for special characters like emojies 😉 we need to
+                 * send in the value as text because it is not unicode
+                 */
+                if (!USKeyboardLayout[singleAction.value]) {
+                    await page.keyboard.sendCharacter(singleAction.value)
+                    skipChars.push(singleAction.value)
+                    continue
+                }
+
+                await keyboardFn(singleAction.value)
                 continue
             }
             continue
@@ -61,9 +84,13 @@ export default async function performActions ({ actions }) {
                     await keyboardFn(x, y, { steps: 10 })
                     continue
                 } else {
+                    /**
+                     * "left" is default button
+                     * "1": middle, "2": right
+                     */
                     const pptrButton = (
-                        button === 0 ? 'left' : (
-                            button === 1 ? 'middle' : 'right'
+                        button === 1 ? 'middle' : (
+                            button === 2 ? 'right' : 'left'
                         )
                     )
                     await keyboardFn({ button: pptrButton })
