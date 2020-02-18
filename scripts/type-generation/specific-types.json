@@ -25,15 +25,6 @@
         }
       ]
     },
-    "getCSSProperty": {
-      "description": "Get a css property from a DOM-element selected by given selector.",
-      "properties": [
-        {
-            "parameters": [{"name": "cssProperty", "type": "string"}],
-            "return": "CSSProperty"
-        }
-      ]
-    },
     "touchAction": {
       "description": "[appium] The Touch Action API provides the basis of all gestures that can be automated in Appium.",
       "properties": [
