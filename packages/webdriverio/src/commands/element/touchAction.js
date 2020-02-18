@@ -43,12 +43,10 @@
     });
  * </example>
  *
- * @param {String|Object[]} action    action to execute
+ * @param {TouchActions} action    action to execute
  *
  * @see https://saucelabs.com/blog/appium-sauce-labs-bootcamp-chapter-2-touch-actions
- * @type mobile
  * @for android, ios
- * @uses mobile/performTouchAction, mobile/performMultiAction
  *
  */
 

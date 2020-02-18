@@ -547,7 +547,10 @@ declare namespace WebdriverIO {
         ): Element;
 
         /**
-         * [appium] The Touch Action API provides the basis of all gestures that can be automated in Appium.
+         * The Touch Action API provides the basis of all gestures that can be automated in Appium.
+         * It is currently only available to native apps and can not be used to interact with webapps.
+         * At its core is the ability to chain together _ad hoc_ individual actions, which will then be
+         * applied to an element in the application on the device. The basic actions that can be used are:
          */
         touchAction(
             action: TouchActions
@@ -817,7 +820,10 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
-         * [appium] The Touch Action API provides the basis of all gestures that can be automated in Appium.
+         * The Touch Action API provides the basis of all gestures that can be automated in Appium.
+         * It is currently only available to native apps and can not be used to interact with webapps.
+         * At its core is the ability to chain together _ad hoc_ individual actions, which will then be
+         * applied to an element in the application on the device. The basic actions that can be used are:
          */
         touchAction(
             action: TouchActions

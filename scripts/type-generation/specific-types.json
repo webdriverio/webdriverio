@@ -24,14 +24,5 @@
             "return": "SizeReturn"
         }
       ]
-    },
-    "touchAction": {
-      "description": "[appium] The Touch Action API provides the basis of all gestures that can be automated in Appium.",
-      "properties": [
-        {
-            "parameters": [{"name": "action", "type": "TouchActions"}],
-            "return": "void"
-        }
-      ]
     }
 }
