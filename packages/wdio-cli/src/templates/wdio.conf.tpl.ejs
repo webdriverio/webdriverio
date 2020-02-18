@@ -11,7 +11,7 @@ exports.config = {
     if(answers.expEnvAccessKey){ %>
     hostname: '<%= answers.expEnvHostname %>',
     <% if (answers.expEnvPort === '443'){%>protocol: 'https',
-    <%} else if (answers.expEnvPort === '80'){%>protocol: http,
+    <%} else if (answers.expEnvPort === '80'){%>protocol: 'http',
     <%} else { %>protocol: '<%= answers.expEnvProtocol %>',<%}%>
     port: <%= answers.expEnvPort %>,
     path: '/wd/hub',
