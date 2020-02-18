@@ -122,6 +122,7 @@ describe('elements', () => {
     })
 
     it('should be able to do a drag&drop', async () => {
+        await browser.executeScript('window.scrollTo(0, 0)', [])
         await browser.performActions([{
             type: 'pointer',
             id: 'finger1',
