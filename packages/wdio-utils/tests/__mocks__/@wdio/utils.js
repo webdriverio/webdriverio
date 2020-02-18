@@ -58,7 +58,7 @@ const pluginMocks = {
 }
 
 export const initialisePlugin = jest.fn().mockImplementation(
-    (name, type) => pluginMocks[type][name])
+    (name, type) => ({ default: pluginMocks[type][name] }))
 export const initialiseWorkerService = jest.fn().mockReturnValue([])
 export const initialiseLauncherService = jest.fn().mockReturnValue({
     launcherServices: [],

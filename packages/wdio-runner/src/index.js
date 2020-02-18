@@ -68,7 +68,7 @@ export default class Runner extends EventEmitter {
         /**
          * initialise framework
          */
-        this.framework = initialisePlugin(this.config.framework, 'framework')
+        this.framework = initialisePlugin(this.config.framework, 'framework').default
         this.framework = await this.framework.init(cid, this.config, specs, caps, this.reporter)
         process.send({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this.framework.hasTests() } })
         if (!this.framework.hasTests()) {

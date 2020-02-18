@@ -38,7 +38,7 @@ class Launcher {
                 .reduce((a, b) => a + b, 0)
             : 1
 
-        const Runner = initialisePlugin(config.runner, 'runner')
+        const Runner = initialisePlugin(config.runner, 'runner').default
         this.runner = new Runner(configFilePath, config)
 
         this.interface = new CLInterface(config, totalWorkerCnt, this.isWatchMode)
