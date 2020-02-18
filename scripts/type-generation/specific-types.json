@@ -1,28 +1,28 @@
 {
-    "getLocation": {
-      "description": "Determine an element’s location on the page.",
-      "properties": [
-        {
-            "parameters": [{"name": "prop", "type": "LocationParam"}],
-            "return": "number"
-        },
-        {
-            "parameters": [],
-            "return": "LocationReturn"
-        }
-      ]
-    },
-    "getSize": {
-      "description": "Get the width and height for an DOM-element.",
-      "properties": [
-        {
-            "parameters": [{"name": "prop", "type": "SizeParam"}],
-            "return": "number"
-        },
-        {
-            "parameters": [],
-            "return": "SizeReturn"
-        }
-      ]
-    }
+  "getLocation": {
+    "description": "Determine an element’s location on the page.",
+    "properties": [
+      {
+        "parameters": [{"name": "prop", "type": "LocationParam"}],
+        "return": "number"
+      },
+      {
+        "parameters": [],
+        "return": "LocationReturn"
+      }
+    ]
+  },
+  "getSize": {
+    "description": "Get the width and height for an DOM-element.",
+    "properties": [
+      {
+        "parameters": [{"name": "prop", "type": "SizeParam"}],
+        "return": "number"
+      },
+      {
+        "parameters": [],
+        "return": "SizeReturn"
+      }
+    ]
+  }
 }
