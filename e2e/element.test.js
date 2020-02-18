@@ -176,7 +176,7 @@ describe('elements', () => {
                 { type: 'keyUp', value: 'r' }
             ]
         }])
-        expect(await browser.getElementProperty(textarea[ELEMENT_KEY])).toBe('Dropped!')
+        expect(await browser.getElementProperty(textarea[ELEMENT_KEY])).toBe('foobar')
     })
 })
 
