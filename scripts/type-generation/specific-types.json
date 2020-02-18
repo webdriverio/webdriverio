@@ -25,24 +25,6 @@
         }
       ]
     },
-    "setCookies": {
-      "description": "Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page.",
-      "properties": [
-        {
-            "parameters": [{"name": "cookie", "type": "Cookie"}],
-            "return": "void"
-        }
-      ]
-    },
-    "getCookies": {
-      "description": "Retrieve a [cookie](https://w3c.github.io/webdriver/webdriver-spec.html#cookies)",
-      "properties": [
-        {
-            "parameters": [{"name": "names?", "type": "string[]"}],
-            "return": "Cookie[]"
-        }
-      ]
-    },
     "getCSSProperty": {
       "description": "Get a css property from a DOM-element selected by given selector.",
       "properties": [

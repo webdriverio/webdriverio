@@ -7,7 +7,7 @@ const changeType = (text) => {
         text = text.substring(arrayText.length, text.length - 1) + '[]'
     }
 
-    if (!CUSTOM_INTERFACES.includes(text)) {
+    if (!CUSTOM_INTERFACES.includes(text) && !CUSTOM_INTERFACES.includes(text.replace('[]', ''))) {
         text = text.toLowerCase()
     }
 

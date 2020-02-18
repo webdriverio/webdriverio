@@ -20,8 +20,6 @@
  *
  * @alias element.addValue
  * @param {string | number | boolean | object | Array<any>}      value     value to be added
- * @uses protocol/elements, protocol/elementIdValue
- * @type action
  *
  */
 

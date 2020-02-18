@@ -14,7 +14,7 @@ const elementCommands = fs.readdirSync(elementDir)
 const browserDir = path.resolve(__dirname + '../../../packages/webdriverio/src/commands/browser')
 const browserCommands = fs.readdirSync(browserDir)
 
-const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'waitUntil', 'call']
+const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'call']
 const INDENTATION = ' '.repeat(8)
 
 const jsDocTemplate = `

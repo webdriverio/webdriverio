@@ -28,6 +28,7 @@ declare namespace WebdriverIO {
         domain?: string,
         path?: string,
         expiry?: number,
+        sameSite?: boolean,
         isSecure?: boolean,
         isHttpOnly?: boolean
     }
@@ -216,6 +217,12 @@ declare namespace WebdriverIO {
         button?: number | string,
         x?: number,
         y?: number
+    }
+
+    type WaitUntilOptions = {
+        timeout?: number,
+        timeoutMsg?: string,
+        interval?: number
     }
 
     interface Element {
@@ -579,6 +586,16 @@ declare namespace WebdriverIO {
         waitForExist(
             options?: WaitForOptions
         ): Promise<boolean>;
+
+        /**
+         * This wait command is your universal weapon if you want to wait on something. It expects a condition
+         * and waits until that condition is fulfilled with a truthy value. If you use the WDIO testrunner the
+         * commands within the condition are getting executed synchronously like in your test.
+         */
+        waitUntil(
+            condition: Function,
+            options?: WaitUntilOptions
+        ): Promise<boolean>;
     }
 
     interface ElementArray extends Array<Element> {
@@ -680,6 +697,8 @@ declare namespace WebdriverIO {
 
         /**
          * Retrieve a [cookie](https://w3c.github.io/webdriver/webdriver-spec.html#cookies)
+         * visible to the current page. You can query a specific cookie by providing the cookie name or
+         * retrieve all.
          */
         getCookies(
             names?: string[]
@@ -763,10 +782,12 @@ declare namespace WebdriverIO {
         ): Promise<Buffer>;
 
         /**
-         * Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page.
+         * Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page. Make sure you are
+         * on the page that should receive the cookie. You can't set a cookie for an arbitrary page without
+         * being on that page.
          */
         setCookies(
-            cookie: Cookie
+            cookie: Cookie[]
         ): Promise<void>;
 
         /**
@@ -816,6 +837,16 @@ declare namespace WebdriverIO {
         url(
             url?: string
         ): Promise<void>;
+
+        /**
+         * This wait command is your universal weapon if you want to wait on something. It expects a condition
+         * and waits until that condition is fulfilled with a truthy value. If you use the WDIO testrunner the
+         * commands within the condition are getting executed synchronously like in your test.
+         */
+        waitUntil(
+            condition: Function,
+            options?: WaitUntilOptions
+        ): Promise<boolean>;
     }
 
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
