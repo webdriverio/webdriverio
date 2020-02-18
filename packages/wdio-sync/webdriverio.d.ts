@@ -1,12 +1,6 @@
 /// <reference types="@wdio/sync/webdriverio-core"/>
 
 declare namespace WebdriverIO {
-    type WaitUntilOptions = {
-        timeout?: number,
-        timeoutMsg?: string,
-        interval?: number
-    }
-
     interface Browser {
         /**
          * execute any async action within your test spec

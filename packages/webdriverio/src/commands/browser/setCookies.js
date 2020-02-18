@@ -39,7 +39,7 @@
  * </example>
  *
  * @alias browser.setCookies
- * @param {Array<Cookie>} cookie          cookie object or object array.
+ * @param {Array<Cookie>|Cookie} cookie          cookie object or object array.
  * @param {String=}       cookie.name     The name of the cookie.
  * @param {String=}       cookie.value    The cookie value.
  * @param {String=}       cookie.path     The cookie path. Defaults to "/" if omitted when adding a cookie.

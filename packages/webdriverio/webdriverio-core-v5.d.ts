@@ -706,7 +706,7 @@ declare namespace WebdriverIO {
          * retrieve all.
          */
         getCookies(
-            names?: string[]
+            names?: string[] | string
         ): Cookie[];
 
         /**
@@ -792,7 +792,7 @@ declare namespace WebdriverIO {
          * being on that page.
          */
         setCookies(
-            cookie: Cookie[]
+            cookie: Cookie[] | Cookie
         ): void;
 
         /**
