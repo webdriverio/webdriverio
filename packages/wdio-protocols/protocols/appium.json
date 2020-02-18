@@ -1431,7 +1431,7 @@
     "POST": {
       "command": "getEvents",
       "description": "Get events stored in appium server.",
-      "ref": "https://github.com/appium/appium-base-driver/pull/365",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/session/events/get-events.md",
       "parameters": [{
         "name": "type",
         "type": "string[]",
@@ -1449,7 +1449,7 @@
     "POST": {
       "command": "logEvent",
       "description": "Store a custom event.",
-      "ref": "https://github.com/appium/appium-base-driver/pull/364",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/session/events/log-event.md",
       "parameters": [{
         "name": "vendor",
         "type": "string",
