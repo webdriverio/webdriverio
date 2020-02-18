@@ -227,7 +227,7 @@ class AllureReporter extends WDIOReporter {
         }
 
         // add beforeEach / afterEach hook as step to test
-        if (this.options.disableMochaHooks && isMochaEachHooks(hook.title)) {
+        if (isMochaEachHooks(hook.title)) {
             if (this.allure.getCurrentTest()) {
                 this.allure.startStep(hook.title)
             }
@@ -245,12 +245,12 @@ class AllureReporter extends WDIOReporter {
 
     onHookEnd(hook) {
         // ignore global hooks
-        if (!hook.parent || !this.allure.getCurrentSuite() || (this.options.disableMochaHooks && !isMochaAllHooks(hook.title) && !this.allure.getCurrentTest())) {
+        if (!hook.parent || !this.allure.getCurrentSuite() || (!isMochaAllHooks(hook.title) && !this.allure.getCurrentTest())) {
             return false
         }
 
         // set beforeEach / afterEach hook (step) status
-        if (this.options.disableMochaHooks && isMochaEachHooks(hook.title)) {
+        if (isMochaEachHooks(hook.title)) {
             if (hook.error) {
                 this.allure.endStep(stepStatuses.FAILED)
             } else {

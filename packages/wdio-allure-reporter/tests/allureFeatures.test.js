@@ -525,20 +525,20 @@ describe('hooks handling default', () => {
         endStep = jest.fn(result => result)
     })
 
-    it('should capture mocha each hooks', () => {
+    it('should not capture mocha each hooks', () => {
         reporter.allure = allureInstance()
         reporter.onHookStart({ title: '"before each" hook', parent: 'foo' })
 
-        expect(startStep).toHaveBeenCalledTimes(0)
-        expect(startCase).toHaveBeenCalledTimes(1)
+        expect(startStep).toHaveBeenCalledTimes(1)
+        expect(startCase).toHaveBeenCalledTimes(0)
     })
 
-    it('should not ignore mocha each hooks if no test', () => {
+    it('should ignore mocha each hooks if no test', () => {
         reporter.allure = allureInstance({ test: null })
         reporter.onHookStart({ title: '"after each" hook', parent: 'foo' })
 
         expect(startStep).toHaveBeenCalledTimes(0)
-        expect(startCase).toHaveBeenCalledTimes(1)
+        expect(startCase).toHaveBeenCalledTimes(0)
     })
 
     it('should keep passed hooks if there are no steps (before/after)', () => {
