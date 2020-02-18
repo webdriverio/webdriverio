@@ -8,10 +8,12 @@ exports.config = {
     // on a remote machine).
     runner: '<%= answers.runner %>',<%
 
-    if(answers.exp_env_access_key){ %>
-    hostname: '<%= answers.exp_env_hostname %>',
-    protocol: '<%= answers.exp_env_protocol %>',
-    port: <%= answers.exp_env_port %>,
+    if(answers.expEnvAccessKey){ %>
+    hostname: '<%= answers.expEnvHostname %>',
+    <% if (answers.expEnvPort === '443'){%>protocol: https,
+    <%} else if (answers.expEnvPort === '80'){%>protocol: http,
+    <%} else { %>protocol: '<%= answers.expEnvProtocol %>',<%}%>
+    port: <%= answers.expEnvPort %>,
     path: '/wd/hub',
     <% } else if(answers.hostname && answers.port) { %>
     //
@@ -90,7 +92,7 @@ exports.config = {
     // https://docs.saucelabs.com/reference/platforms-configurator
     //
     capabilities: [{
-    <%if(answers.exp_env_access_key){%> accessKey: '<%= answers.exp_env_access_key %>',<%}%>
+    <%if(answers.expEnvAccessKey){%> 'experitest:accessKey': '<%= answers.expEnvAccessKey %>',<%}%>
         // maxInstances can get overwritten per capability. So if you have an in-house Selenium
         // grid with only 5 firefox instances available you can make sure that not more than
         // 5 instances get started at a time.
