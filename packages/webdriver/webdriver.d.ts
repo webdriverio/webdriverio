@@ -1060,13 +1060,6 @@ declare namespace WebDriver {
 
         /**
          * [appium]
-         * Set network speed (Emulator only)
-         * http://appium.io/docs/en/commands/device/network/network-speed/
-         */
-        toggleNetworkSpeed(): void;
-
-        /**
-         * [appium]
          * Open Android notifications (Emulator only).
          * http://appium.io/docs/en/commands/device/system/open-notifications/
          */
@@ -1274,20 +1267,6 @@ declare namespace WebDriver {
          * https://github.com/appium/appium/blob/master/docs/en/commands/session/execute-driver.md
          */
         driverScript(script: string, type?: string, timeout?: number): ProtocolCommandResponse;
-
-        /**
-         * [appium]
-         * Get events stored in appium server.
-         * https://github.com/appium/appium/blob/master/docs/en/commands/session/events/get-events.md
-         */
-        getEvents(type: string[]): ProtocolCommandResponse;
-
-        /**
-         * [appium]
-         * Store a custom event.
-         * https://github.com/appium/appium/blob/master/docs/en/commands/session/events/log-event.md
-         */
-        logEvent(vendor: string, event: string): void;
     }
 
     // jsonwp types

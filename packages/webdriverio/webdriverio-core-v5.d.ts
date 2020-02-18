@@ -791,7 +791,9 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
-         * Sets the timeouts (implicit, pageLoad, script) associated with the current session.
+         * Sets the timeouts associated with the current session, timeout durations control such
+         * behaviour as timeouts on script injection, document navigation, and element retrieval.
+         * For more information and examples, see [timeouts guide](https://webdriver.io/docs/timeouts.html#selenium-timeouts).
          */
         setTimeout(
             timeouts: Timeouts

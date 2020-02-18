@@ -34,15 +34,6 @@
         }
       ]
     },
-    "setTimeout": {
-      "description": "Sets the timeouts (implicit, pageLoad, script) associated with the current session.",
-      "properties": [
-        {
-            "parameters": [{"name": "timeouts", "type": "Timeouts"}],
-            "return": "void"
-        }
-      ]
-    },
     "touchAction": {
       "description": "[appium] The Touch Action API provides the basis of all gestures that can be automated in Appium.",
       "properties": [
