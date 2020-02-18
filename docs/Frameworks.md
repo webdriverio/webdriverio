@@ -3,7 +3,7 @@ id: frameworks
 title: Frameworks
 ---
 
-The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/). 
+The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/).
 
 To integrate each framework with WebdriverIO, there are adapter packages on NPM which must be installed. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
 
@@ -17,7 +17,7 @@ First, install the adapter package from NPM:
 npm install @wdio/mocha-framework --save-dev
 ```
 
-If you like to use Mocha, you'll want to install an assertion library for more expressive tests. [Chai](http://chaijs.com) is a good choice. 
+If you like to use Mocha, you'll want to install an assertion library for more expressive tests. [Chai](http://chaijs.com) is a good choice.
 
 Initialise it (or whatever assertion library you like) in the `before` hook of your configuration file:
 
@@ -40,7 +40,7 @@ describe('my awesome website', () => {
 })
 ```
 
-WebdriverIO supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces). 
+WebdriverIO supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces).
 
 If you like to write your specs in TDD style, set the `ui` property in your `mochaOpts` config to `tdd`. Now your test files should be written like this:
 
@@ -63,7 +63,7 @@ it('should test something', () => {
 })
 ```
 
-If you want to run something asynchronously, you can either use the [`browser.call`](api/browser/call.md) command or [custom commands](CustomCommands.md).
+If you want to run something asynchronously, you can either use the [`browser.call`](/api/browser/call.md) command or [custom commands](CustomCommands.md).
 
 ## Using Jasmine
 
@@ -73,14 +73,14 @@ First, install the adapter package from NPM:
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-Jasmine already provides assertion methods you can use with WebdriverIO. 
+Jasmine already provides assertion methods you can use with WebdriverIO.
 No need to add another one.
 
 ### Intercept Assertion
 
-The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result. 
+The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result.
 
-For example, it is pretty handy to take a screenshot everytime an assertion fails. In your `jasmineNodeOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion. 
+For example, it is pretty handy to take a screenshot everytime an assertion fails. In your `jasmineNodeOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
 
 The following example demonstrates how to take a screenshot if an assertion fails:
 
