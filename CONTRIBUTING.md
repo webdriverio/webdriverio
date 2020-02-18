@@ -47,15 +47,23 @@ In order to set up this project and start contributing follow this step by step 
 
     It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
 
-## Create New Package
+## Link changes to your current project
 
-All WebdriverIO sub packages require a certain structure to work within the wdio ecosystem. To simplify the process of creating a new sub package we build a NPM script that does all the boilerplate work for you. Just run:
+When modifying core WebdriverIO packages you can link those changes to your current project to test the changes that you made.
 
-```sh
-$ npm run create
+If you are working on a package, lets say the @wdio/cli package, you can link this in the following way from the WebdriverIO repositority.
+
+```
+cd packages/wdio-cli
+npm link
 ```
 
-It will ask you about the type and name of the new package and creates all the files for you.
+Then in your current project you can link your changes from the the @wdio/cli package to your current project.
+
+```
+cd your-main-test-code
+npm link @wdio/cli
+```
 
 ## Work On Packages
 
@@ -78,6 +86,16 @@ It is also a good idea to run jest in watch mode while developing on a single pa
 $ ./node_modules/.bin/jest ./packages/<package-name>/tests --watch
 ```
 
+## Create New Package
+
+All WebdriverIO sub packages require a certain structure to work within the wdio ecosystem. To simplify the process of creating a new sub package we build a NPM script that does all the boilerplate work for you. Just run:
+
+```sh
+$ npm run create
+```
+
+It will ask you about the type and name of the new package and creates all the files for you.
+
 ## Run e2e Experience With Smoke Tests
 
 WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is setup in a way so it doesn't require an actual browser driver since all requests are mocked using the `@wdio/webdriver-mock-service`. This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
@@ -93,24 +111,6 @@ $ npm run test:smoke mochaTestrunner
 ```
 
 You can define your own scenario of mock responses in the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-webdriver-mock-service/src/index.js#L142-L149).
-
-## Link changes to your current project
-
-When modifying core WebdriverIO packages you can link those changes to your current project to test the changes that you made.
-
-If you are working on a package, lets say the @wdio/cli package, you can link this in the following way from the WebdriverIO repositority.
-
-```
-cd packages/wdio-cli
-npm link
-```
-
-Then in your current project you can link your changes from the the @wdio/cli package to your current project.
-
-```
-cd your-main-test-code
-npm link @wdio/cli
-```
 
 ## TypeScript definitions
 
@@ -269,17 +269,6 @@ Please now push them to master and make a new v5.x release!
 ```
 
 You can always reach out to the `webdriverio/ProjectCommitters` channel on Gitter for questions.
-
-## Commit Messages Convention
-
-In order to better identify which changes have been made to which package please add the package name in front of every commit, e.g.:
-
-```sh
-# e.g. `$ git commit -m "wdio-runner: some changes"`
-git commit -m "<package-name>: some changes"
-```
-
-Commits that affect all packages or are not related to any (e.g. changes to NPM scripts or docs) don't need to follow this convention.
 
 ## Release New Version
 
