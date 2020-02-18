@@ -5,12 +5,11 @@ export default async function performActions ({ actions }) {
     const page = this.getPageHandle()
     const lastPointer = {}
 
+    /**
+     * see https://github.com/jlipps/simple-wd-spec#input-sources-and-corresponding-actions
+     * for details on the `actions` format
+     */
     for (const action of actions) {
-        /**
-         * Used with an integer argument to specify the duration of a tick,
-         * or as a placeholder to indicate that an input source does nothing
-         * during a particular tick.
-         */
         if (action.type === null || action.type === 'null') {
             for (const singleAction of action.actions) {
                 await sleep(singleAction.duration)
