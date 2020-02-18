@@ -9,14 +9,6 @@ declare namespace WebdriverIO {
 
     interface Browser {
         /**
-         * waits until the condition is fulfilled with a truthy value
-         */
-        waitUntil(
-            condition: () => boolean,
-            options?: WaitUntilOptions
-        ): boolean
-
-        /**
          * execute any async action within your test spec
          */
         call: <T>(callback: (...args: any[]) => Promise<T>) => T;
