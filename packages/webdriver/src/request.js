@@ -39,9 +39,13 @@ export default class WebDriverRequest extends EventEmitter {
     }
 
     makeRequest (options, sessionId) {
-        const fullRequestOptions = Object.assign({}, this.defaultOptions, this._createOptions(options, sessionId))
+        let fullRequestOptions = Object.assign({}, this.defaultOptions, this._createOptions(options, sessionId))
+        if (options.transformRequest) {
+            fullRequestOptions = options.transformRequest(fullRequestOptions)
+        }
+
         this.emit('request', fullRequestOptions)
-        return this._request(fullRequestOptions, options.connectionRetryCount)
+        return this._request(fullRequestOptions, options.connectionRetryCount, 0, options.transformResponse)
     }
 
     _createOptions (options, sessionId) {
@@ -96,14 +100,18 @@ export default class WebDriverRequest extends EventEmitter {
         return requestOptions
     }
 
-    async _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0) {
+    async _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0, transformResponse) {
         log.info(`[${fullRequestOptions.method}] ${fullRequestOptions.uri.href}`)
 
         if (fullRequestOptions.json && Object.keys(fullRequestOptions.json).length) {
             log.info('DATA', fullRequestOptions.json)
         }
 
-        const response = await got(fullRequestOptions.uri, { ...fullRequestOptions })
+        let response = await got(fullRequestOptions.uri, { ...fullRequestOptions })
+        if (transformResponse) {
+            response = transformResponse(response)
+        }
+
         const error = getErrorFromResponseBody(response.body)
 
         /**
@@ -156,6 +164,6 @@ export default class WebDriverRequest extends EventEmitter {
         this.emit('retry', { error, retryCount })
         log.warn('Request failed due to', error.message)
         log.info(`Retrying ${retryCount}/${totalRetryCount}`)
-        return this._request(fullRequestOptions, totalRetryCount, retryCount)
+        return this._request(fullRequestOptions, totalRetryCount, retryCount, transformResponse)
     }
 }
