@@ -19,6 +19,7 @@
 @import '_components/labels';
 @import '_components/lists';
 @import '_components/tables';
+@import '_components/navigation';
 
 html,
 body {
@@ -27,9 +28,11 @@ body {
     padding: 0;
     background: $bodyBackground;
     font-family: $fontRegular;
-    font-size: 16px;
+    font-size: 18px;
     color: $textColor;
     line-height: 1.3em;
+    -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
 }
 
 strong {
