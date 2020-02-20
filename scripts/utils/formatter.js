@@ -22,10 +22,17 @@ module.exports = function (docfile) {
     let tagVersion = ''
     let tagAuthor = ''
     let tagType = ''
+    let isTypeObject = false
 
     for (const tag of javadoc.tags) {
         if (tag.type == 'param') {
             tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+            if (tag.typesDescription.includes('|<code>undefined</code>')) {
+                tag.typesDescription = `<code>${tag.joinedTypes}</code>`
+                isTypeObject = true
+            }
+
             paramTags.push(tag)
             paramStr.push(tag.name)
         } else if (tag.type == 'property') {
@@ -136,6 +143,20 @@ module.exports = function (docfile) {
          * remove example section from description
          */
         description = description.substr(0, description.indexOf('<example>'))
+    }
+
+    /**
+     * format param strings, from
+     * ```
+     * $(selector).waitForDisplayed(options, options.timeout, options.reverse, options.timeoutMsg, options.interval)
+     * ```
+     * to
+     * ```
+     * $(selector).waitForDisplayed({ timeout, reverse, timeoutMsg, interval })
+     * ```
+     */
+    if (isTypeObject) {
+        paramStr = [`{ ${paramStr.slice(1).map((p) => p.slice(p.indexOf('.') + 1)).join(', ')} }`]
     }
 
     const commandDescription = {
