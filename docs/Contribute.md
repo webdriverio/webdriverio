@@ -28,9 +28,9 @@ The project offers a variety of ways to contribute. You can participate by:
 - create bugs if you discover them while using WebdriverIO
 - make feature requests if you are missing something in the project
 
-The maintainers of the project try to organize all issues in the way that should allow anyone to have enough context to start working on it. If this is not the case please mention it in the issue thread so that either the issue creator or a maintainer can provide for information.
+The maintainers of the project try to organize all [issues](https://github.com/webdriverio/webdriverio/issues) in the way that should allow anyone to have enough context to start working on it. If this is not the case please mention it in the issue thread so that either the issue creator or a maintainer can provide more information.
 
-If you want to contribute code, a general good first way to find a task to work on is to look into all tickets with the label [`help wanted`](https://github.com/webdriverio/webdriverio/labels/help%20wanted) and/or [`good first pick`](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+label%3A%22good+first+pick%22+sort%3Aupdated-desc). All these tickets are up for grab if they haven't a user assigned to them. If you find something that interests you, ensure to let us in the issue thread know that you have the intend to work on it.
+If you want to contribute code, a general good first way to find a task to work on is to look into all tickets with the label [`help wanted`](https://github.com/webdriverio/webdriverio/labels/help%20wanted) and/or [`good first pick`](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+label%3A%22good+first+pick%22+sort%3Aupdated-desc). All these tickets are up for grab if they haven't a user assigned to them. If you find something that interests you, ensure to let us know in the issue thread that you have the intend to work on it.
 
 Often issues require some amount of context to the problem which makes it difficult to get an idea about what needs to be done. Depending on your expirience using / working with the project this context can be missing. Often it helps to start with tasks around missing documentation or just increase test coverage of some parts in the code. After some time you will get more familiar with the codebase which allows you to pick up more difficult tasks.
 
@@ -54,6 +54,6 @@ Once you have a fix implemented or finished a feature implementation you can mak
 
 We already provide a template for you to fill out. There are not many rules to follow here. just try to explain your change with as much detail as possible. Make sure that you have written enough unit tests for your changes otherwise the code coverage check will let the build fail.
 
-Like in many Open Source projects we ask you to sign a __CLA__ which is a __C__ontributor __L__icense __A__greement that ensures that all contributions to the project are licensed under the project's respective open source license, which is MIT.
+Like in many Open Source projects we ask you to sign a __CLA__ which is a Contributor License Agreement that ensures that all contributions to the project are licensed under the project's respective open source license, which is MIT. It regulates the legal implications of you providing us (as the OpenJS Foundation) code changes.
 
 The WebdriverIO maintainer will review your pull request as soon as possible. They will then either approve and merge your changes, request modifications or close with an explanation.
