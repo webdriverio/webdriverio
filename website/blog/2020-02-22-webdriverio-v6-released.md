@@ -5,30 +5,30 @@ authorURL: http://twitter.com/bromann
 authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
 ---
 
-If you read this and are already about to freak out because you just spend a lot of time migrating to v5, don't worry! This major update is far less "breaking" than the one last year. While all the architectural changes last year left us no choice to break a lot of things, we were very careful this time and made sure that upgrading the framework won't become a big task.
+If you read this and are already about to freak out because you just spent a lot of time migrating to v5, don't worry! This major update is far less "breaking" than the one last year. While all the architectural changes last year left us no choice to break a lot of things, we were very careful this time and made sure that upgrading the framework won't become a big task.
 
-This major update is much more reasonable and contains subtle changes that will help the project to further grow while running performant at the same time. This blog post will go into details about all major changes and will explain what you need to do to transition from v5 to the v6.
+This major update is much more reasonable and contains subtle changes that will help the project further grow while remaining performant at the same time. This blog post will go into details about all major changes and will explain what you need to do to transition from v5 to the v6.
 
 ## Drop Node v8 Support
 
-We dropped support for Node v8 which has been depcrecated by the Node.js team in the beginning of 2020. It is not recommended to run any systems using that version anymore. We strongly advise to switch to Node v12 which will be supported until April 2022.
+We've dropped support for Node v8, which was deprecated by the Node.js team at the start of 2020. It is not recommended to run any systems using that version anymore. We strongly advise to switch to Node v12 which will be supported until April 2022.
 
 ### How to Update?
 
-To update Node.js it is important to know how it was installed in the first place. If you are in a Docker environment you can just upgrade the base image like:
+To update Node.js, it is important to know how it was installed in the first place. If you are in a Docker environment, you can just upgrade the base image like:
 
 ```git
 - FROM mhart/alpine-node:8
 + FROM mhart/alpine-node:12
 ```
 
-We recommend to use [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager) to install and manage Node.js versions. You can find a detailed description on how to install NVM and update Node in their [project readme](https://github.com/nvm-sh/nvm#installing-and-updating).
+We recommend using [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager) to install and manage Node.js versions. You can find a detailed description on how to install NVM and update Node in their [project readme](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ## `devtools` Automation Protocol is now Default
 
 Because of the great success of automation tools like [Puppeteer](https://pptr.dev/) and [Cypress.io](https://www.cypress.io/) it became obvious that the [WebDriver](https://w3c.github.io/webdriver/) protocol in its current shape and form doesn't meet the requirements of todays developer and automation engineers. Members of the WebdriverIO project are part of the [W3C Working Group](https://www.w3.org/testing/browser/) that defines the WebDriver specification and they work together with browser vendors on solutions to improve the current state of the art. Thanks to folks from Microsoft there already proposals about a new [bidirectional connection](https://github.com/MicrosoftEdge/MSEdgeExplainers/tree/master/WebDriverRPC) similar to other automation protocols like [Chrome Devtools](https://chromedevtools.github.io/devtools-protocol/).
 
-Until we have reached consenus between all browser vendors on the new WebDriver architecture the project wants to offer alternative solutions. This is why we start with v6 to support Puppeteer natively using the same APIs. We already announced support for it [last year](https://webdriver.io/blog/2019/09/16/devtools.html) and have now fully embed it into the project. This means that to run a local test script you won't need to download a browser driver anymore. WebdriverIO checks if a browser driver is running and accessible at `localhost:4444/` and uses Puppeteer as fallback if not. If you use the WebdriverIO API the expirience using WebDriver vs Puppeteer should be the same, running commands on Puppeteer might even be a little faster.
+Until we have reached consensus between all browser vendors on the new WebDriver architecture, the project wants to offer alternative solutions. This is why we've started to support Puppeteer natively using the same APIs. We already announced support for it [last year](https://webdriver.io/blog/2019/09/16/devtools.html) and have now fully embed it into the project. This means that to run a local test script you won't need to download a browser driver anymore. WebdriverIO checks if a browser driver is running and accessible at `localhost:4444/` and uses Puppeteer as fallback if not. If you use the WebdriverIO API the experience using WebDriver vs Puppeteer should be the same, running commands on Puppeteer might even be a little faster.
 
 > __Note:__ using Puppeteer instead of WebDriver is only supported if running tests locally and if the browser is located on the same machine as the tests.
 
@@ -94,7 +94,7 @@ These improvements come for free and you don't need to do anything to better per
 
 ## Service Configurations
 
-We are very proud about the amount of different [services](https://www.npmjs.com/search?q=wdio-service) and [reporters](https://www.npmjs.com/search?q=wdio-reporter) that have been build by the community. All these additional plugins require specific configurations in your `wdio.conf.js` and we want to make sure that all these settings are being made standardised structure. Until v5 of WebdriverIO specific options to services and reporters could be defined anywhere in the `wdio.conf.js`, e.g. the Sauce service:
+We are very proud about the amount of different [services](https://www.npmjs.com/search?q=wdio-service) and [reporters](https://www.npmjs.com/search?q=wdio-reporter) that the community built. All these additional plugins require specific configurations in your `wdio.conf.js` and we want to make sure that all these settings are being made standardised structure. Until v5 of WebdriverIO specific options to services and reporters could be defined anywhere in the `wdio.conf.js`, e.g. the Sauce service:
 
 ```js
 // wdio.conf.js
@@ -166,7 +166,7 @@ We have changed the structure of the following commands:
     - [waitForExist](https://webdriver.io/docs/api/element/waitForExist.html)
     - [waitUntil](https://webdriver.io/docs/api/element/waitUntil.html)
 
-If you use TypeScript in your project it should automatically tell you to all places that needs to be updated. If you don't use TypeScript which recommend to just search for every command in your code base and modify it accordingly. It should be a pretty mechanical and straight forward task.
+If you use TypeScript in your project it should automatically tell you to all places that needs to be updated. If you don't use TypeScript which recommend to just search for every command in your code base and modify it accordingly. It should be a pretty mechanical and straightforward task.
 
 ## New Assertion Library
 
@@ -197,7 +197,7 @@ If you already use an assertion library like [Chai](https://www.chaijs.com/) you
 Next to all major updates that were described above there are also some minor changes that are worth mentioning:
 
 - __TypeScript Support:__ we improved the typings for WebdriverIO and WebDriver to include better descriptions and more detail
-- __WebDriver Default Path:__ we changeed default WebDriver path to from `/wd/hub` to `/` as most of the browser drivers now default to this, this should have now affect for you - however if you have trouble connecting to a WebDriver endpoint after the upgrade, this could be a reason for that issue
+- __WebDriver Default Path:__ we changed default WebDriver path to from `/wd/hub` to `/` as most of the browser drivers now default to this, this should have now affect for you - however if you have trouble connecting to a WebDriver endpoint after the upgrade, this could be a reason for that issue
 - __Command Renaming:__ we renamed command `launchApp` to `launchChromeApp` for Chrome WebDriver sessions
 - __New Hook:__ we added a new hook to the testrunner called `onWorkerStart` which will be executed right before we launch the worker process
 - __Cucumber Update:__ we have updated the `@wdio/cucumber-framework` adapter to use v6 of Cucumber
