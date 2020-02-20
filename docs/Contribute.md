@@ -50,6 +50,10 @@ Another way to test changes in WebdriverIO is by using its [example directory](h
 
 ## Make a Pull Request
 
-Once you have a fix implemented or finished a feature implementation you can make a pull request. There are not many rules to follow here. Just raise a PR on GitHub and describe your changes as good as possible. The PR template will usually guide you which information you need to provide. Make sure that you have written enough unit tests for your changes otherwise the code coverage check will let the build fail.
+Once you have a fix implemented or finished a feature implementation you can make a pull request. Your changes needs to be pushed on your WebdriverIO fork. In the GitHub UI you should see a button popping up that allows you to raise a PR to the main repository.
+
+We already provide a template for you to fill out. There are not many rules to follow here. just try to explain your change with as much detail as possible. Make sure that you have written enough unit tests for your changes otherwise the code coverage check will let the build fail.
+
+Like in many Open Source projects we ask you to sign a __CLA__ which is a __C__ontributor __L__icense __A__greement that ensures that all contributions to the project are licensed under the project's respective open source license, which is MIT.
 
 The WebdriverIO maintainer will review your pull request as soon as possible. They will then either approve and merge your changes, request modifications or close with an explanation.
