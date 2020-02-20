@@ -1,6 +1,7 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
+import WebDriver from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 
 const log = logger('@wdio/local-runner:utils')
@@ -28,13 +29,18 @@ export function runHook (hookName, config, caps, specs) {
  * @param  {Object} caps  desired session capabilities
  * @return {Object}       sanitized caps
  */
-export function sanitizeCaps (caps) {
-    const defaultConfigs = DEFAULT_CONFIGS()
+export function sanitizeCaps (caps, filterOut) {
+    const defaultConfigsKeys = [
+        // WDIO config keys
+        ...Object.keys(DEFAULT_CONFIGS()),
+        // WebDriver config keys
+        ...Object.keys(WebDriver.DEFAULTS)
+    ]
     return Object.keys(caps).filter(key => (
         /**
          * filter out all wdio config keys
          */
-        !Object.keys(defaultConfigs).includes(key)
+        !defaultConfigsKeys.includes(key) === !filterOut
     )).reduce((obj, key) => {
         obj[key] = caps[key]
         return obj
@@ -60,8 +66,9 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
 
     if (!isMultiremote) {
         log.debug('init remote session')
-        config.capabilities = sanitizeCaps(capabilities)
-        return remote(config)
+        const sessionConfig = { ...config, ...sanitizeCaps(capabilities, true) }
+        sessionConfig.capabilities = sanitizeCaps(capabilities)
+        return remote(sessionConfig)
     }
 
     const options = {}

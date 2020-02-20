@@ -24,6 +24,7 @@ export default class TestingBotLauncher {
         config.protocol = 'http'
         config.hostname = 'localhost'
         config.port = 4445
+        config.path = '/wd/hub'
 
         /**
          * measure TestingBot tunnel boot time

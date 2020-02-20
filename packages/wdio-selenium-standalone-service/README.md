@@ -70,7 +70,7 @@ Example:
 logPath : './',
 ```
 
-### args
+### [`args`](https://www.npmjs.com/package/selenium-standalone#seleniumstartopts-cb)
 Map of arguments for the Selenium server, passed directly to `Selenium.start()`.
 Please note that latest drivers have to be installed, see `installArgs`.
 
@@ -91,7 +91,7 @@ args: {
 },
 ```
 
-### installArgs
+### [`installArgs`](https://www.npmjs.com/package/selenium-standalone#seleniuminstallopts-cb)
 Map of arguments for the Selenium server, passed directly to `Selenium.install()`.
 
 By default, versions will be installed based on what is set in the selenium-standalone package. The defaults can be overridden by specifying the versions.
