@@ -38,6 +38,8 @@ browser.setCookies([{
     isSecure: true,
     isHttpOnly: true
 }])
+browser.deleteCookies('foobar')
+browser.deleteCookies(['foobar'])
 
 const executeResult = browser.execute(function (x: number) {
     return x

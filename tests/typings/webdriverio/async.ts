@@ -67,6 +67,8 @@ async function bar() {
         isSecure: true,
         isHttpOnly: true
     }])
+    await browser.deleteCookies('foobar')
+    await browser.deleteCookies(['foobar'])
 
     const executeResult = await browser.execute(function (x: number) {
         return x
