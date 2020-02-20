@@ -697,7 +697,7 @@ declare namespace WebdriverIO {
          * Delete cookies visible to the current page. By providing a cookie name it just removes the single cookie or more when multiple names are passed.
          */
         deleteCookies(
-            names?: string[]
+            names?: string | string[]
         ): Promise<void>;
 
         /**
