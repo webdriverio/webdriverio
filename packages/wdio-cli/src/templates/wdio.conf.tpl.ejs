@@ -7,7 +7,15 @@ exports.config = {
     // WebdriverIO allows it to run your tests in arbitrary locations (e.g. locally or
     // on a remote machine).
     runner: '<%= answers.runner %>',<%
-    if(answers.hostname && answers.port) { %>
+
+    if(answers.expEnvAccessKey){ %>
+    hostname: '<%= answers.expEnvHostname %>',
+    <% if (answers.expEnvPort === '443'){%>protocol: 'https',
+    <%} else if (answers.expEnvPort === '80'){%>protocol: 'http',
+    <%} else { %>protocol: '<%= answers.expEnvProtocol %>',<%}%>
+    port: <%= answers.expEnvPort %>,
+    path: '/wd/hub',
+    <% } else if(answers.hostname && answers.port) { %>
     //
     // =====================
     // Server Configurations
@@ -94,6 +102,7 @@ exports.config = {
     // https://docs.saucelabs.com/reference/platforms-configurator
     //
     capabilities: [{
+    <%if(answers.expEnvAccessKey){%> 'experitest:accessKey': '<%= answers.expEnvAccessKey %>',<%}%>
         // maxInstances can get overwritten per capability. So if you have an in-house Selenium
         // grid with only 5 firefox instances available you can make sure that not more than
         // 5 instances get started at a time.
