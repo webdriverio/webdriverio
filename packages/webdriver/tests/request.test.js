@@ -28,6 +28,45 @@ describe('webdriver request', () => {
         expect(req._request.mock.calls[0][1]).toBe(43)
     })
 
+    it('should pick up the fullRequestOptions returned by transformRequest', () => {
+        const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
+        const transformRequest = jest.fn().mockImplementation((requestOptions) => ({
+            ...requestOptions,
+            body: { foo: 'baz' }
+        }))
+
+        request.mockClear()
+        req.makeRequest({
+            transformRequest,
+            path: '/wd/hub'
+        }, 'some_id')
+
+        expect(request.mock.calls[0][0].body).toEqual({ foo: 'baz' })
+    })
+
+    it('should resolve with the body returned by transformResponse', async () => {
+        const req = new WebDriverRequest('POST', 'session/:sessionId/element', { foo: 'requestBody' })
+
+        const transformResponse = jest.fn().mockImplementation((response) => ({
+            ...response,
+            body: { value: { foo: 'transformedResponse' } },
+        }))
+
+        request.mockClear()
+        const responsePromise = req.makeRequest({
+            transformResponse,
+            protocol: 'https',
+            hostname: 'localhost',
+            port: 4445,
+            path: '/wd/hub/',
+        }, 'foobar-123')
+
+        expect(transformResponse.mock.calls[0][0]).toHaveProperty('body')
+        expect(transformResponse.mock.calls[0][1].body).toEqual({ foo: 'requestBody' })
+        await expect(responsePromise).resolves.toEqual({ value: { foo: 'transformedResponse' } })
+        request.mockClear()
+    })
+
     describe('createOptions', () => {
         it('fails if command requires sessionId but none given', () => {
             const req = new WebDriverRequest('POST', '/wd/hub/session/:sessionId/element')
