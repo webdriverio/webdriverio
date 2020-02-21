@@ -98,7 +98,6 @@ WebdriverIO is a test automation framework that allows you to run tests based on
 
 This project is maintained by [awesome people](/AUTHORS.md) following a common [set of rules](/GOVERNANCE.md) and treating each other with [respect and appreciation](/CODE_OF_CONDUCT.md).
 
-=======
 ## License
 
 [MIT](/LICENSE-MIT)
@@ -117,4 +116,3 @@ Show the world you're using webdriver.io → [![tested with webdriverio](https:/
 ```
 [![tested with webdriver.io](https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906)](https://webdriver.io/)
 ```
-
