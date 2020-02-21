@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`waitForDisplayed should call waitUntil 1`] = `
+Array [
+  Array [
+    [Function],
+    Object {
+      "interval": 5,
+      "timeout": 1000,
+      "timeoutMsg": "element (\\"#foo\\") still not displayed after 1000ms",
+    },
+  ],
+]
+`;
+
+exports[`waitForDisplayed should do reverse 1`] = `
+Array [
+  Array [
+    [Function],
+    Object {
+      "interval": 50,
+      "timeout": 500,
+      "timeoutMsg": "element (\\"#foo\\") still displayed after 500ms",
+    },
+  ],
+]
+`;

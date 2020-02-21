@@ -11,16 +11,18 @@ exports.config = Object.assign({}, config, {
         browser.pause(30)
         browser.Cucumber_Test = 1
     },
-    beforeStep: async function (uri, feature, stepData, context) {
+    beforeStep: async function ({ step }, world) {
         await browser.pause(20)
         browser.Cucumber_Test += 2
-        browser.Cucumber_CurrentStepText = stepData.step.text
-        browser.Cucumber_CurrentStepContext = context
+        browser.Cucumber_CurrentStepText = step.step.text
+        browser.Cucumber_CurrentWorld = world
     },
-    afterStep: function (uri, feature, result, stepData, context) {
+    afterStep: function ({ step }, world) {
         browser.pause(25)
-        if (browser.Cucumber_CurrentStepText !== stepData.step.text ||
-            browser.Cucumber_CurrentStepContext !== context) {
+        if (
+            browser.Cucumber_CurrentStepText !== step.step.text ||
+            browser.Cucumber_CurrentWorld !== world
+        ) {
             throw new Error("step data doesn't match")
         }
         browser.Cucumber_Test = 1

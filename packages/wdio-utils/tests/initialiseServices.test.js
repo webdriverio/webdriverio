@@ -3,7 +3,8 @@ import { logMock } from '@wdio/logger'
 import initialiseServices from '../src/initialiseServices'
 
 class CustomService {
-    constructor (config, caps) {
+    constructor (options, caps, config) {
+        this.options = options
         this.config = config
         this.caps = caps
     }
@@ -41,7 +42,8 @@ describe('initialiseServices', () => {
             ['./spec.js']
         )
         expect(services).toHaveLength(1)
-        expect(services[0].config.foo).toBe('foo')
+        expect(services[0].options.foo).toBe('foo')
+        expect(services[0].config.foo).toBe('bar')
     })
 
     it('should allow custom services with empty options', () => {

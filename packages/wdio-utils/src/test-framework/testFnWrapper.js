@@ -37,7 +37,7 @@ export const testFrameworkFnWrapper = async function (
     { afterFn, afterFnArgs },
     cid, repeatTest = 0) {
     const retries = { attempts: 0, limit: repeatTest }
-    const beforeArgs = mochaJasmineCompatibility(beforeFnArgs(this), this)
+    const beforeArgs = beforeFnArgs(this)
     await logHookError(`Before${type}`, await executeHooksWithArgs(beforeFn, beforeArgs), cid)
 
     let promise
@@ -78,72 +78,10 @@ export const testFrameworkFnWrapper = async function (
         passed: !error
     })
 
-    /**
-     * avoid breaking changes in hook function signatures
-     */
-    afterArgs = mochaJasmineCompatibility(afterArgs, this)
-    afterArgs = mochaJasmineResultCompatibility(afterArgs, error, duration)
-    afterArgs = cucumberCompatibility(afterArgs)
-
     await logHookError(`After${type}`, await executeHooksWithArgs(afterFn, [...afterArgs]), cid)
 
     if (error) {
         throw error
     }
     return result
-}
-
-/**
- * avoid breaking signature changes for existing mocha and jasmine users
- * @param {Array}   hookArgs args array
- * @param {object=} context mocha context
- */
-const mochaJasmineCompatibility = (hookArgs, { test = {} } = {}) => {
-    let args = hookArgs
-    if (hookArgs.length < 4 && hookArgs[0] && typeof hookArgs[0] === 'object') {
-        // jasmine's title
-        if (!args[0].title) {
-            args[0].title = args[0].description
-        }
-
-        args[0].fullTitle =
-            // mocha fullTitle
-            test.fullTitle ? test.fullTitle() :
-                // jasmine fullName
-                hookArgs[0].fullName ? hookArgs[0].fullName :
-                    // no fullTitle
-                    undefined
-    }
-    return args
-}
-
-/**
- * avoid breaking signature changes for existing mocha and jasmine users
- * @param {Array} afterArgs args array
- * @param {Error|undefined} error error
- * @param {number} duration duration
- */
-const mochaJasmineResultCompatibility = (afterArgs, error, duration) => {
-    let args = afterArgs
-    if (afterArgs.length === 3 && afterArgs[0] && typeof afterArgs[0] === 'object') {
-        args = [{
-            ...afterArgs[0],
-            error,
-            duration,
-            passed: !error,
-        }, ...afterArgs.slice(1)]
-    }
-    return args
-}
-
-/**
- * avoid breaking signature changes for existing cucumber users
- * @param {Array} afterArgs args array
- */
-const cucumberCompatibility = (afterArgs) => {
-    let args = afterArgs
-    if (afterArgs.length === 5) {
-        args = [...afterArgs.slice(0, 2), afterArgs[4], ...afterArgs.slice(2, 4)]
-    }
-    return args
 }

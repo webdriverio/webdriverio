@@ -66,7 +66,9 @@ declare namespace WebDriver {
         perfLoggingPrefs?: {
             [name: string]: any;
         };
-        prefs?: string[];
+        prefs?: {
+            [name: string]: string | number | boolean;
+        };
         windowTypes?: string[];
     }
 
@@ -356,6 +358,7 @@ declare namespace WebDriver {
         capabilities?: DesiredCapabilities;
         logLevel?: WebDriverLogTypes;
         logOutput?: string | NodeJS.WritableStream
+        connectionRetryTimeout?: number;
         connectionRetryCount?: number;
         user?: string;
         key?: string;

@@ -27,21 +27,21 @@ export async function runServiceHook (launcher, hookName, ...args) {
 }
 
 /**
- * Run onPrepareHook in Launcher
- * @param {Array|Function} onPrepareHook - can be array of functions or single function
+ * Run hook in service launcher
+ * @param {Array|Function} hook - can be array of functions or single function
  * @param {Object} config
  * @param {Object} capabilities
  */
-export async function runOnPrepareHook(onPrepareHook, config, capabilities) {
-    const catchFn = (e) => log.error(`Error in onPrepareHook: ${e.stack}`)
+export async function runLauncherHook(hook, ...args) {
+    const catchFn = (e) => log.error(`Error in hook: ${e.stack}`)
 
-    if (typeof onPrepareHook === 'function') {
-        onPrepareHook = [onPrepareHook]
+    if (typeof hook === 'function') {
+        hook = [hook]
     }
 
-    return Promise.all(onPrepareHook.map((hook) => {
+    return Promise.all(hook.map((hook) => {
         try {
-            return hook(config, capabilities)
+            return hook(...args)
         } catch (e) {
             return catchFn(e)
         }

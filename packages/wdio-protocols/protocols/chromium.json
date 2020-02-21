@@ -3,7 +3,7 @@
     "GET": {
       "command": "isAlertOpen",
       "description": "Whether a simple dialog is currently open.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/alert_commands.cc#L42-L49",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/alert_commands.cc#L42-L49",
       "examples": [
         [
           "console.log(browser.isAlertOpen()); // outputs: false",
@@ -68,7 +68,7 @@
     "GET": {
       "command": "isLoading",
       "description": "Determines load status for active window handle.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L783-L802",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L783-L802",
       "examples": [
         [
           "console.log(browser.isLoading()); // outputs: false",
@@ -88,7 +88,7 @@
     "GET": {
       "command": "takeHeapSnapshot",
       "description": "Takes a heap snapshot of the current execution context.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/chrome/web_view.h#L198-L202",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/chrome/web_view.h#L198-L202",
       "parameters": [],
       "returns": {
         "type": "Object",
@@ -122,7 +122,7 @@
       "returns": {
         "type": "Number",
         "name": "connectionType",
-        "description": "A bitmask to represent the network connection type. Airplane Mode (`1`), Wi-Fi only (`2`), Wi-Fi and data (`6`), 4G (`8`), 3G (`10`), 2G (`20`). By default [Wi-Fi and data are enabled](https://github.com/bayandin/chromedriver/blob/2.45/chrome/chrome_desktop_impl.cc#L36-L37)."
+        "description": "A bitmask to represent the network connection type. Airplane Mode (`1`), Wi-Fi only (`2`), Wi-Fi and data (`6`), 4G (`8`), 3G (`10`), 2G (`20`). By default [Wi-Fi and data are enabled](https://github.com/bayandin/chromedriver/blob/v2.45/chrome/chrome_desktop_impl.cc#L36-L37)."
       }
     },
     "POST": {
@@ -162,7 +162,7 @@
     "GET": {
       "command": "getNetworkConditions",
       "description": "Get current network conditions used for emulation.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L839-L859",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L839-L859",
       "parameters": [],
       "returns": {
         "type": "Object",
@@ -173,7 +173,7 @@
     "POST": {
       "command": "setNetworkConditions",
       "description": "Set network conditions used for emulation by throttling connection.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1663-L1722",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1663-L1722",
       "examples": [
         [
           "// Use different download (25kb/s) and upload (50kb/s) throughput values for throttling with a latency of 1000ms",
@@ -200,14 +200,14 @@
       }, {
         "name": "network_name",
         "type": "string",
-        "description": "Name of [network throttling preset](https://github.com/bayandin/chromedriver/blob/2.45/chrome/network_list.cc#L12-L25). `GPRS`, `Regular 2G`, `Good 2G`, `Regular 3G`, `Good 3G`, `Regular 4G`, `DSL`, `WiFi` or `No throttling` to disable. When preset is specified values passed in first argument are not respected.",
+        "description": "Name of [network throttling preset](https://github.com/bayandin/chromedriver/blob/v2.45/chrome/network_list.cc#L12-L25). `GPRS`, `Regular 2G`, `Good 2G`, `Regular 3G`, `Good 3G`, `Regular 4G`, `DSL`, `WiFi` or `No throttling` to disable. When preset is specified values passed in first argument are not respected.",
         "required": false
       }]
     },
     "DELETE": {
       "command": "deleteNetworkConditions",
       "description": "Disable any network throttling which might have been set. Equivalent of setting the `No throttling` preset.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1724-L1745",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1724-L1745",
       "parameters": []
     }
   },
@@ -215,7 +215,7 @@
     "POST": {
       "command": "sendCommand",
       "description": "Send a command to the DevTools debugger.<br>For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1290-L1304",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1290-L1304",
       "parameters": [{
         "name": "cmd",
         "type": "string",
@@ -233,7 +233,7 @@
     "POST": {
       "command": "sendCommandAndGetResult",
       "description": "Send a command to the DevTools debugger and wait for the result.<br>For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L1306-L1320",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1306-L1320",
       "parameters": [{
         "name": "cmd",
         "type": "string",
@@ -273,7 +273,7 @@
     "POST": {
       "command": "file",
       "description": "Upload a file to remote machine on which the browser is running.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L1037-L1065",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L1037-L1065",
       "parameters": [{
         "name": "file",
         "type": "string",
@@ -289,9 +289,9 @@
   },
   "/session/:sessionId/chromium/launch_app": {
     "POST": {
-      "command": "launchApp",
+      "command": "launchChromeApp",
       "description": "Launches a Chrome app by specified id.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L521-L539",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L521-L539",
       "examples": [
         [
           "const browser = remote({",
@@ -306,7 +306,7 @@
           "        }",
           "    }",
           "});",
-          "browser.launchApp('aohghmighlieiainnegkcijnfilokake')); // Google Docs (https://chrome.google.com/webstore/detail/docs/aohghmighlieiainnegkcijnfilokake)"
+          "browser.launchChromeApp('aohghmighlieiainnegkcijnfilokake')); // Google Docs (https://chrome.google.com/webstore/detail/docs/aohghmighlieiainnegkcijnfilokake)"
         ]
       ],
       "parameters": [{
@@ -321,7 +321,7 @@
     "GET": {
       "command": "getElementValue",
       "description": "Retrieves the value of a given form control element.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/element_commands.cc#L431-L443",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/element_commands.cc#L431-L443",
       "variables": [{
         "name": "elementId",
         "description": "id of element to get value from"
@@ -338,7 +338,7 @@
     "POST": {
       "command": "elementHover",
       "description": "Enable hover state for an element, which is reset upon next interaction.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/element_commands.cc#L126-L146",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/element_commands.cc#L126-L146",
       "variables": [{
         "name": "elementId",
         "description": "id of element to hover over to"
@@ -350,7 +350,7 @@
     "POST": {
       "command": "touchPinch",
       "description": "Trigger a pinch zoom effect.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L813-L827",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L813-L827",
       "parameters": [{
         "name": "x",
         "type": "number",
@@ -373,7 +373,7 @@
     "POST": {
       "command": "freeze",
       "description": "Freeze the current page. Extension for [Page Lifecycle API](https://developers.google.com/web/updates/2018/07/page-lifecycle-api).",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L625-L633",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L625-L633",
       "parameters": []
     }
   },
@@ -381,7 +381,7 @@
     "POST": {
       "command": "resume",
       "description": "Resume the current page. Extension for [Page Lifecycle API](https://developers.google.com/web/updates/2018/07/page-lifecycle-api).",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/window_commands.cc#L635-L645",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L635-L645",
       "parameters": []
     }
   },
@@ -389,7 +389,7 @@
     "POST": {
       "command": "shutdown",
       "description": "Shutdown ChromeDriver process and consequently terminating all active sessions.",
-      "ref": "https://github.com/bayandin/chromedriver/blob/2.45/session_commands.cc#L489-L498",
+      "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L489-L498",
       "parameters": []
     }
   },

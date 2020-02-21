@@ -5,7 +5,8 @@ module.exports = {
                 $: false,
                 $$: false,
                 browser: false,
-                driver: false
+                driver: false,
+                expect: false
             }
         }
     }

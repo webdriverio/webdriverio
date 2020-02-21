@@ -1,6 +1,5 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
-import puppeteerFirefox from 'puppeteer-firefox'
 import logger from '@wdio/logger'
 
 import { getPages } from './utils'
@@ -58,6 +57,7 @@ async function launchChrome (capabilities) {
 }
 
 function launchFirefox (capabilities) {
+    const puppeteerFirefox = require('puppeteer-firefox')
     const firefoxOptions = capabilities['moz:firefoxOptions'] || {}
     return puppeteerFirefox.launch({
         args: firefoxOptions.args || [],

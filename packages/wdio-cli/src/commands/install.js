@@ -31,7 +31,11 @@ export const cmdArgs = {
         desc: 'Install packages using yarn',
         type: 'boolean',
         default: false
-    }
+    },
+    config: {
+        desc: 'Location of your WDIO configuration',
+        default: './wdio.conf.js',
+    },
 }
 
 export const builder = (yargs) => {
@@ -55,7 +59,7 @@ export async function handler(argv) {
      * name = names for the supported service or reporter
      * yarn = optional flag to install package using yarn instead of default yarn
      */
-    const { type, name, yarn } = argv
+    const { type, name, yarn, config } = argv
 
     /**
      * verify for supported types via `supportedInstallations` keys
@@ -75,7 +79,7 @@ export async function handler(argv) {
         return
     }
 
-    const localConfPath = path.join(process.cwd(), 'wdio.conf.js')
+    const localConfPath = path.join(process.cwd(), config)
     if (!fs.existsSync(localConfPath)) {
         try {
             const promptMessage = `Cannot install packages without a WebdriverIO configuration.

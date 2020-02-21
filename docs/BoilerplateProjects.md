@@ -7,6 +7,28 @@ Over time, our community has developed several boilerplate projects that you can
 
 ## v5 Boilerplate Projects
 
+### [davidnguyen179/storybook-wdio](https://github.com/davidnguyen179/storybook-wdio)
+
+The project creates the powerful component base boilerplate using Storybook, React, Typescript, Mocha, WebdriverIO and Selenium.
+
+- Frameworks:
+    - Storybook (v5.x)
+    - React (v16.x)
+    - WebdriverIO (v5.x)
+    - TypeScript(v3.x)
+    - @Types/Mocha (v5.x)
+- Features:
+    - Generate the stories of component via configurations
+    - TypeScript [Page Object](PageObjects.md) Models
+    - TypesScript Models
+    - Code Prettier
+    - Eslint
+    - Git hook using `husky` and `lint-staged`
+    - Support TravisCI, CircleCI and Github Actions
+    - Allow running visual regression test in single component or all components
+    - Support `Dockerfile` to deploy the `storybook`
+    - Support `docker-compose.yml` to start the selenium chrome, firefox
+
 ### [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: Cucumber (v5.x)
@@ -160,7 +182,38 @@ This boilerplate includes the following:
         - Forms
         - Swipe
         - Browsers
+        
+### [Schveitzer/webdriverio-appium-cucumber-boilerplate](/https://github.com/Schveitzer/webdriverio-appium-cucumber-boilerplate)
 
+Boilerplate project to run Appium tests together with WebdriverIO and BDD with Cucumber for:
+
+- iOS/Android Native Apps
+- iOS/Android Hybrid Apps
+
+This boilerplate includes the following:
+
+- Frameworks:
+    - WebdriverIO (v5.x)
+    - Chai (v5.x)
+    - @Wdio/Allure (v5.x)
+    - Appium (1.16.x)
+    - Cucumber (v5.x)
+    
+- Features:
+    - Configs for:
+        - iOS and Android app
+    - Tests examples in english and portuguese for:
+        - WebView
+        - Login
+        - Forms
+        - Swipe
+    - [Page Object](PageObjects.md) Pattern
+    - ES6 style class-based approach, and full ES6–ES8 support through Babel
+    - Chai
+    - Reports with Allure (Print screen on fail)
+    - Code formatter (ESlint, Prettier)
+    - Git hook using `husky`
+        
 ### [blueimp/wdio](https://github.com/blueimp/wdio)
 
 Docker setup for WebdriverIO with automatic screenshots, image diffing, and screen recording support for containerized versions of Chrome and Firefox. Also includes macOS host configs to test an app running in Docker with Safari Desktop, as well as Safari Mobile and Chrome Mobile via Appium.
@@ -197,6 +250,15 @@ Designed to be quick to get you started without getting terribly complex.
     - An alternative component-specific (rather than page-specific) approach, allowing for a split E2E and integration test writing approach
     - Introduces config file extensions for readability and flexibility, in the event that you have multiple teams/projects working out of the same project repository
 
+### [PerfectoMobileSA/webdriverio5-cucumber-perfecto-sample](https://github.com/PerfectoMobileSA/webdriverio5-cucumber-perfecto-sample)
+
+This project is useful not only as an example of WebdriverIO v5 and integration with perfecto cloud (https://www.perfecto.io/), but it includes examples of the PageObject pattern, different locators files to run the same script on Android and iOS devices, and some practical examples for using WebdriverIO to build an automated test suite with Cucumber (v 5.x) BDD framework.
+
+- Framework: Cucumber (v5.x)
+- Features:
+    - Cloud integration with [Perfecto](https://www.perfecto.io/)
+    - Uses [Page Objects](PageObjects.md)
+    - Examples of using Page Locators to run same script on Multiple Mobile Devices
 
 ----
 

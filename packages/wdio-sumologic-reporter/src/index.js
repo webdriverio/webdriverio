@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import dateFormat from 'dateformat'
 import stringify from 'json-stringify-safe'
 
@@ -116,7 +116,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    sync () {
+    async sync () {
         /**
          * don't synchronise logs if
          *  - we've already send out a request and are waiting for the successful response
@@ -135,17 +135,11 @@ export default class SumoLogicReporter extends WDIOReporter {
         this.isSynchronising = true
         log.debug('start synchronization')
 
-        request({
-            method: 'POST',
-            uri: this.options.sourceAddress,
-            body: logLines
-        }, (err, resp) => {
-            const failed = Boolean(err) || resp.statusCode < 200 || resp.statusCode >= 400
-
-            /* istanbul ignore if  */
-            if (failed) {
-                return log.error('failed send data to Sumo Logic:\n', err.stack ? err.stack : err)
-            }
+        try {
+            const resp = await got(this.options.sourceAddress, {
+                method: 'POST',
+                json: logLines
+            })
 
             /**
              * remove transfered logs from log bucket
@@ -155,8 +149,10 @@ export default class SumoLogicReporter extends WDIOReporter {
             /**
              * reset sync flag so we can sync again
              */
-            log.debug(`synchronised collector data, server status: ${resp.statusCode}`)
             this.isSynchronising = false
-        })
+            return log.debug(`synchronised collector data, server status: ${resp.statusCode}`)
+        } catch (err) {
+            return log.error('failed send data to Sumo Logic:\n', err.stack ? err.stack : err)
+        }
     }
 }

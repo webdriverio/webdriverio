@@ -25,8 +25,18 @@ export const DEFAULTS = {
      * path to WebDriver endpoints
      */
     path: {
-        type: 'string',
-        default: '/wd/hub'
+        type: (path) => {
+            if (typeof path !== 'string') {
+                throw new TypeError('The option "path" needs to be from type "string"')
+            }
+
+            if (!path.startsWith('/')) {
+                throw new TypeError('The option "path" needs to start with a "/"')
+            }
+
+            return true
+        },
+        default: '/'
     },
     /**
      * A key-value store of query parameters to be added to every selenium request
@@ -48,6 +58,13 @@ export const DEFAULTS = {
         type: 'string',
         default: 'info',
         match: /(trace|debug|info|warn|error|silent)/
+    },
+    /**
+     * Timeout for any WebDriver request to a driver or grid
+     */
+    connectionRetryTimeout: {
+        type: 'number',
+        default: 90000
     },
     /**
      * Count of request retries to the Selenium server

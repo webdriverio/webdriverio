@@ -11,9 +11,9 @@ The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependenc
 
 ```json
 {
-  "devDependencies": {
-    "@wdio/selenium-standalone-service": "^5.0.0"
-  }
+    "devDependencies": {
+        "@wdio/selenium-standalone-service": "^5.0.0"
+    }
 }
 ```
 
@@ -32,22 +32,25 @@ By default, Google Chrome and Firefox are available when installed on the host s
 ```js
 // wdio.conf.js
 export.config = {
-  // ...
-  services: ['selenium-standalone'],
-  seleniumLogs: 'logs',
-  seleniumInstallArgs: {
-    drivers: {
-      chrome: { version: '77.0.3865.40' },
-      firefox: { version: '0.25.0' },
-    }
-  },
-  seleniumArgs: {
-    drivers: {
-      chrome: { version: '77.0.3865.40' },
-      firefox: { version: '0.25.0' },
-    }
-  },
-  // ...
+    // ...
+    services: [
+        ['selenium-standalone', {
+            logPath: 'logs',
+            installArgs: {
+                drivers: {
+                    chrome: { version: '79.0.3945.88' },
+                    firefox: { version: '0.26.0' }
+                }
+            },
+            args: {
+                drivers: {
+                    chrome: { version: '79.0.3945.88' },
+                    firefox: { version: '0.26.0' }
+                }
+            },
+        }]
+    ],
+    // ...
 };
 ```
 
@@ -55,7 +58,7 @@ export.config = {
 
 The following options can be added to the wdio.conf.js file.
 
-### seleniumLogs
+### logPath
 Path where all logs from the Selenium server should be stored.
 
 Type: `String`
@@ -64,12 +67,12 @@ Default: `{}`
 
 Example:
 ```js
-seleniumLogs : "./",
+logPath : './',
 ```
 
-### seleniumArgs
+### [`args`](https://www.npmjs.com/package/selenium-standalone#seleniumstartopts-cb)
 Map of arguments for the Selenium server, passed directly to `Selenium.start()`.
-Please note that latest drivers have to be installed, see `seleniumInstallArgs`.
+Please note that latest drivers have to be installed, see `installArgs`.
 
 Type: `Object`
 
@@ -77,18 +80,18 @@ Default: `{}`
 
 Example:
 ```js
-seleniumArgs: {
-  version : "3.141.59",
-  drivers : {
-    chrome : {
-      version : "77.0.3865.40",
-      arch    : process.arch,
+args: {
+    version : "3.141.59",
+    drivers : {
+        chrome : {
+            version : "79.0.3945.88",
+            arch    : process.arch,
+        }
     }
-  }
 },
 ```
 
-### seleniumInstallArgs
+### [`installArgs`](https://www.npmjs.com/package/selenium-standalone#seleniuminstallopts-cb)
 Map of arguments for the Selenium server, passed directly to `Selenium.install()`.
 
 By default, versions will be installed based on what is set in the selenium-standalone package. The defaults can be overridden by specifying the versions.
@@ -99,16 +102,16 @@ Default: `{}`
 
 Example:
 ```js
-seleniumInstallArgs: {
-  version : "3.141.59",
-  baseURL : "https://selenium-release.storage.googleapis.com",
-  drivers : {
-    chrome : {
-      version : "77.0.3865.40",
-      arch    : process.arch,
-      baseURL : "https://chromedriver.storage.googleapis.com",
+installArgs: {
+    version : "3.141.59",
+    baseURL : "https://selenium-release.storage.googleapis.com",
+    drivers : {
+        chrome : {
+            version : "77.0.3865.40",
+            arch    : process.arch,
+            baseURL : "https://chromedriver.storage.googleapis.com",
+        }
     }
-  }
 },
 ```
 

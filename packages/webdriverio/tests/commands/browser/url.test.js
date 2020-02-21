@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('url', () => {
@@ -15,13 +15,16 @@ describe('url', () => {
 
     it('should accept a full url', async () => {
         await browser.url('http://google.com')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/url')
-        expect(request.mock.calls[1][0].body).toEqual({ url: 'http://google.com/' })
+        expect(got.mock.calls[1][1].uri.pathname)
+            .toBe('/session/foobar-123/url')
+        expect(got.mock.calls[1][1].json)
+            .toEqual({ url: 'http://google.com/' })
     })
 
     it('should accept a relative url', async () => {
         await browser.url('/foobar')
-        expect(request.mock.calls[0][0].body).toEqual({ url: 'http://foobar.com/foobar' })
+        expect(got.mock.calls[0][1].json)
+            .toEqual({ url: 'http://foobar.com/foobar' })
     })
 
     it('should throw an exception when a non-string value passed in', async () => {
@@ -33,6 +36,6 @@ describe('url', () => {
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

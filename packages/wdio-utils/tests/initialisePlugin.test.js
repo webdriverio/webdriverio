@@ -25,6 +25,12 @@ describe('initialisePlugin', () => {
         expect(service.foo).toBe('barfoo')
     })
 
+    it('should allow to load service referenced with an absolute path', () => {
+        const Service = initialisePlugin(require.resolve(__dirname + '/__mocks__/@saucelabs/wdio-foobar-reporter'))
+        const service = new Service()
+        expect(service.foo).toBe('barfoo')
+    })
+
     it('should prefer scoped over unscoped packages', () => {
         const Service = initialisePlugin('scoped', 'service')
         const service = new Service()

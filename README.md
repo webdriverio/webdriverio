@@ -12,6 +12,9 @@
     <a href="https://travis-ci.org/webdriverio/webdriverio">
         <img alt="Build Status" src="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master">
     </a>
+    <a href="https://travis-ci.org/webdriverio/webdriverio/branches">
+        <img alt="LTS v5 Build Status" src="https://img.shields.io/travis/webdriverio/webdriverio/v5.svg?label=LTS%20v5%20build">
+    </a>
     <a href="https://codecov.io/gh/webdriverio/webdriverio">
         <img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg">
     </a>
@@ -94,6 +97,13 @@ WebdriverIO is a test automation framework that allows you to run tests based on
 ## Project Governance
 
 This project is maintained by [awesome people](/AUTHORS.md) following a common [set of rules](/GOVERNANCE.md) and treating each other with [respect and appreciation](/CODE_OF_CONDUCT.md).
+
+=======
+## License
+
+[MIT](/LICENSE-MIT)
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio?ref=badge_large)
 
 ## Contributing
 

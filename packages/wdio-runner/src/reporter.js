@@ -149,12 +149,12 @@ export default class BaseReporter {
          * check if reporter was passed in from a file, e.g.
          *
          * ```js
-         * const MyCustomeReporter = require('/some/path/MyCustomeReporter.js')
+         * const MyCustomReporter = require('/some/path/MyCustomReporter.js')
          * export.config = {
          *     //...
          *     reporters: [
-         *         MyCustomeReporter, // or
-         *         [MyCustomeReporter, { custom: 'option' }]
+         *         MyCustomReporter, // or
+         *         [MyCustomReporter, { custom: 'option' }]
          *     ]
          *     //...
          * }

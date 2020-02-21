@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import SumoLogicReporter from '../src'
 
 import logger from '@wdio/logger'
@@ -9,6 +9,7 @@ describe('wdio-sumologic-reporter', () => {
     let reporter
 
     beforeEach(() => {
+        got.mockClear()
         logger().error.mockClear()
         reporter = new SumoLogicReporter()
     })
@@ -63,54 +64,54 @@ describe('wdio-sumologic-reporter', () => {
     })
 
     describe('should not sync if it', () => {
-        it('is currently syncing data', () => {
+        it('is currently syncing data', async () => {
             reporter.inSync = true
-            reporter.sync()
-            expect(request.mock.calls).toHaveLength(0)
+            await reporter.sync()
+            expect(got.mock.calls).toHaveLength(0)
         })
 
-        it('has no data to sync', () => {
-            reporter.sync()
-            expect(request.mock.calls).toHaveLength(0)
+        it('has no data to sync', async () => {
+            await reporter.sync()
+            expect(got.mock.calls).toHaveLength(0)
         })
 
-        it('has no source address set up', () => {
+        it('has no source address set up', async () => {
             reporter.onRunnerStart('onRunnerStart')
-            reporter.sync()
-            expect(request.mock.calls).toHaveLength(0)
+            await reporter.sync()
+            expect(got.mock.calls).toHaveLength(0)
         })
     })
 
-    it('should sync', () => {
+    it('should sync', async () => {
         reporter.options.sourceAddress = 'http://localhost:1234'
         reporter.onRunnerStart('onRunnerStart')
-        reporter.sync()
+        await reporter.sync()
 
-        expect(request.mock.calls).toHaveLength(1)
-        expect(request.mock.calls[0][0].method).toBe('POST')
-        expect(request.mock.calls[0][0].uri).toBe('http://localhost:1234')
-        expect(request.mock.calls[0][0].body).toContain('"event":"runner:start","data":"onRunnerStart"')
+        expect(got.mock.calls).toHaveLength(1)
+        expect(got.mock.calls[0][1].method).toBe('POST')
+        expect(got.mock.calls[0][0]).toBe('http://localhost:1234')
+        expect(got.mock.calls[0][1].json).toContain('"event":"runner:start","data":"onRunnerStart"')
 
         expect(reporter.unsynced).toHaveLength(0)
     })
 
-    it('should log if it fails syncing', () => {
+    it('should log if it fails syncing', async () => {
         logger().error.mockClear()
 
-        reporter.options.sourceAddress = 'http://localhost:1234'
+        reporter.options.sourceAddress = 'http://localhost:1234/sumoerror'
         reporter.onRunnerStart('onRunnerStart')
-        reporter.sync()
 
-        request.mock.calls[0][1](new Error('ups'))
+        await reporter.sync()
+
         expect(logger().error.mock.calls).toHaveLength(1)
         expect(logger().error.mock.calls[0][0]).toContain('failed send data to Sumo Logic')
     })
 
-    it('should be synchronised when no unsynced messages', () => {
-        reporter = new SumoLogicReporter({ sourceAddress: 'foobar' })
+    it('should be synchronised when no unsynced messages', async () => {
+        reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
         reporter.onRunnerStart('onRunnerStart')
         expect(reporter.isSynchronised).toBe(false)
-        reporter.sync()
+        await reporter.sync()
         expect(reporter.isSynchronised).toBe(true)
     })
 })

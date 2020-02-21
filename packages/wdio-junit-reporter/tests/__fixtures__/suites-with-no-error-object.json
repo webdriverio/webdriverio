@@ -1,0 +1,245 @@
+{
+    "My awesome feature2": {
+        "type": "suite",
+        "start": "2018-04-17T09:10:10.255Z",
+        "_duration": 745,
+        "uid": "My awesome feature2",
+        "cid": "0-0",
+        "title": "My awesome feature",
+        "fullTitle": "My awesome feature",
+        "tests": [
+            {
+                "type": "test",
+                "start": "2018-04-17T09:10:10.256Z",
+                "_duration": 727,
+                "uid": "should can do something3",
+                "cid": "0-0",
+                "title": "should can do something",
+                "fullTitle": "My awesome feature should can do something",
+                "output": [
+                    {
+                        "method": "POST",
+                        "endpoint": "/session/:sessionId/url",
+                        "body": {
+                            "url": "http://google.com/"
+                        },
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "command"
+                    },
+                    {
+                        "method": "POST",
+                        "endpoint": "/session/:sessionId/url",
+                        "body": {
+                            "url": "http://google.com/"
+                        },
+                        "result": {
+                            "sessionId": "4875944f97c944d80e944a399b682656",
+                            "status": 0,
+                            "value": null
+                        },
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "result"
+                    },
+                    {
+                        "method": "GET",
+                        "endpoint": "/session/:sessionId/title",
+                        "body": {},
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "command"
+                    },
+                    {
+                        "method": "GET",
+                        "endpoint": "/session/:sessionId/title",
+                        "body": {},
+                        "result": {
+                            "sessionId": "4875944f97c944d80e944a399b682656",
+                            "status": 0,
+                            "value": "Google"
+                        },
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "result"
+                    }
+                ],
+                "state": "passed",
+                "end": "2018-04-17T09:10:10.983Z"
+            },
+            {
+                "type": "test",
+                "start": "2018-04-17T09:10:10.984Z",
+                "_duration": 0,
+                "uid": "should skip a test6",
+                "cid": "0-0",
+                "title": "should skip a test",
+                "fullTitle": "My awesome feature should skip a test",
+                "output": [],
+                "state": "skipped"
+            },
+            {
+                "type": "test",
+                "start": "2018-04-17T09:10:10.985Z",
+                "_duration": 14,
+                "uid": "should fail a test7",
+                "cid": "0-0",
+                "title": "should fail a test",
+                "fullTitle": "My awesome feature should fail a test",
+                "output": [
+                    {
+                        "method": "GET",
+                        "endpoint": "/session/:sessionId/log/types",
+                        "body": {},
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "command"
+                    },
+                    {
+                        "method": "GET",
+                        "endpoint": "/session/:sessionId/log/types",
+                        "body": {},
+                        "result": {
+                            "sessionId": "4875944f97c944d80e944a399b682656",
+                            "status": 0,
+                            "value": [
+                                "browser",
+                                "driver"
+                            ]
+                        },
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "result"
+                    },
+                    {
+                        "method": "POST",
+                        "endpoint": "/session/:sessionId/log",
+                        "body": {
+                            "type": "browser"
+                        },
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "command"
+                    },
+                    {
+                        "method": "POST",
+                        "endpoint": "/session/:sessionId/log",
+                        "body": {
+                            "type": "driver"
+                        },
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "command"
+                    },
+                    {
+                        "method": "POST",
+                        "endpoint": "/session/:sessionId/log",
+                        "body": {
+                            "type": "driver"
+                        },
+                        "result": {
+                            "sessionId": "4875944f97c944d80e944a399b682656",
+                            "status": 0,
+                            "value": []
+                        },
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "result"
+                    },
+                    {
+                        "method": "POST",
+                        "endpoint": "/session/:sessionId/log",
+                        "body": {
+                            "type": "browser"
+                        },
+                        "result": {
+                            "sessionId": "4875944f97c944d80e944a399b682656",
+                            "status": 0,
+                            "value": []
+                        },
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "result"
+                    },
+                    {
+                        "method": "DELETE",
+                        "endpoint": "/session/:sessionId",
+                        "body": {},
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "command"
+                    },
+                    {
+                        "method": "DELETE",
+                        "endpoint": "/session/:sessionId",
+                        "body": {},
+                        "result": {
+                            "sessionId": "4875944f97c944d80e944a399b682656",
+                            "status": 0,
+                            "value": null
+                        },
+                        "sessionId": "4875944f97c944d80e944a399b682656",
+                        "cid": "0-0",
+                        "type": "result"
+                    }
+                ],
+                "state": "failed",
+                "end": "2018-04-17T09:10:10.999Z"
+            }
+        ],
+        "hooks": [
+            {
+                "type": "hook",
+                "start": "2018-04-17T09:10:10.256Z",
+                "_duration": 1,
+                "uid": "\"before each\" hook4",
+                "cid": "0-0",
+                "title": "\"before each\" hook",
+                "parent": "My awesome feature",
+                "end": "2018-04-17T09:10:10.257Z"
+            },
+            {
+                "type": "hook",
+                "start": "2018-04-17T09:10:10.984Z",
+                "_duration": 0,
+                "uid": "\"after each\" hook5",
+                "cid": "0-0",
+                "title": "\"after each\" hook",
+                "parent": "My awesome feature",
+                "end": "2018-04-17T09:10:10.984Z"
+            },
+            {
+                "type": "hook",
+                "start": "2018-04-17T09:10:10.985Z",
+                "_duration": 0,
+                "uid": "\"before each\" hook8",
+                "cid": "0-0",
+                "title": "\"before each\" hook",
+                "parent": "My awesome feature",
+                "end": "2018-04-17T09:10:10.985Z"
+            },
+            {
+                "type": "hook",
+                "start": "2018-04-17T09:10:11.000Z",
+                "_duration": 0,
+                "uid": "\"after each\" hook9",
+                "cid": "0-0",
+                "title": "\"after each\" hook",
+                "parent": "My awesome feature",
+                "end": "2018-04-17T09:10:11.000Z"
+            },
+            {
+                "type": "hook",
+                "start": "2018-04-17T09:10:11.001Z",
+                "_duration": 0,
+                "uid": "\"after all\" hook10",
+                "cid": "0-0",
+                "title": "\"after all\" hook",
+                "parent": "My awesome feature",
+                "end": "2018-04-17T09:10:11.001Z"
+            }
+        ],
+        "suites": [],
+        "end": "2018-04-17T09:10:11.000Z"
+    }
+}

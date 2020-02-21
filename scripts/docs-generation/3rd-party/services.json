@@ -34,5 +34,17 @@
     "title": "WireMock",
     "githubUrl": "https://github.com/erwinheitzman/wdio-wiremock-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-wiremock-service"
+  },
+  {
+    "packageName": "wdio-slack-service",
+    "title": "Slack",
+    "githubUrl": "https://github.com/carmenmitru/wdio-slack-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-slack-service"
+  },
+  {
+    "packageName": "wdio-intercept-service",
+    "title": "Intercept",
+    "githubUrl": "https://github.com/chmanie/wdio-intercept-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-intercept-service"
   }
 ]

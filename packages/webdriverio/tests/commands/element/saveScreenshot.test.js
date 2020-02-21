@@ -1,5 +1,5 @@
 import fs from 'fs'
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 import * as utils from '../../../src/utils'
 
@@ -40,8 +40,9 @@ describe('saveScreenshot', () => {
         expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
 
         // request
-        expect(request.mock.calls[2][0].method).toBe('GET')
-        expect(request.mock.calls[2][0].uri.pathname).toBe('/wd/hub/session/foobar-123/element/some-elem-123/screenshot')
+        expect(got.mock.calls[2][1].method).toBe('GET')
+        expect(got.mock.calls[2][1].uri.pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/screenshot')
         expect(screenshot.toString()).toBe('some element screenshot')
 
         // write to file

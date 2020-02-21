@@ -1,13 +1,13 @@
 {
   "name": "@wdio/testingbot-service",
-  "version": "5.16.10",
+  "version": "6.0.0-alpha.1",
   "description": "A WebdriverIO service that provides a better integration into TestingBot",
   "author": "Jochen Delabie <info@testingbot.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service",
   "license": "MIT",
   "main": "./build",
   "engines": {
-    "node": ">= 8.11.0"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile",
@@ -31,8 +31,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "5.16.10",
-    "request": "^2.85.0",
+    "@wdio/logger": "6.0.0-alpha.0",
+    "got": "^10.2.1",
     "testingbot-tunnel-launcher": "^1.1.7"
   },
   "peerDependencies": {

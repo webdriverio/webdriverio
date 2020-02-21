@@ -13,7 +13,7 @@ const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only sup
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
 export default class DevToolsService {
-    constructor (options = {}) {
+    constructor (options) {
         this.options = options
         this.isSupported = false
         this.shouldRunPerformanceAudits = false

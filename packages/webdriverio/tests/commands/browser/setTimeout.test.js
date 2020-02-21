@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('setTimeout', () => {
@@ -12,42 +12,47 @@ describe('setTimeout', () => {
         })
 
         await browser.setTimeout({ implicit: 5000 })
-        expect(request.mock.calls.length).toBe(2)
-        expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[1][0].body).toEqual({ 'implicit': 5000 })
+        expect(got.mock.calls).toHaveLength(2)
+        expect(got.mock.calls[1][1].method).toBe('POST')
+        expect(got.mock.calls[1][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[1][1].json).toEqual({ 'implicit': 5000 })
 
         await browser.setTimeout({ pageLoad: 10000 })
-        expect(request.mock.calls.length).toBe(3)
-        expect(request.mock.calls[2][0].method).toBe('POST')
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[2][0].body).toEqual({ 'pageLoad': 10000 })
+        expect(got.mock.calls).toHaveLength(3)
+        expect(got.mock.calls[2][1].method).toBe('POST')
+        expect(got.mock.calls[2][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[2][1].json).toEqual({ 'pageLoad': 10000 })
 
         await browser.setTimeout({ script: 60000 })
-        expect(request.mock.calls.length).toBe(4)
-        expect(request.mock.calls[3][0].method).toBe('POST')
-        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[3][0].body).toEqual({ 'script': 60000 })
+        expect(got.mock.calls).toHaveLength(4)
+        expect(got.mock.calls[3][1].method).toBe('POST')
+        expect(got.mock.calls[3][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[3][1].json).toEqual({ 'script': 60000 })
 
         await browser.setTimeout({
             implicit: 0,
             pageLoad: 300000,
             script: 30000,
         })
-        expect(request.mock.calls.length).toBe(5)
-        expect(request.mock.calls[4][0].method).toBe('POST')
-        expect(request.mock.calls[4][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[4][0].body).toEqual({
+        expect(got.mock.calls).toHaveLength(5)
+        expect(got.mock.calls[4][1].method).toBe('POST')
+        expect(got.mock.calls[4][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[4][1].json).toEqual({
             'implicit': 0,
             'pageLoad': 300000,
             'script': 30000,
         })
 
         await browser.setTimeout({})
-        expect(request.mock.calls.length).toBe(6)
-        expect(request.mock.calls[5][0].method).toBe('POST')
-        expect(request.mock.calls[5][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[5][0].body).toEqual({})
+        expect(got.mock.calls).toHaveLength(6)
+        expect(got.mock.calls[5][1].method).toBe('POST')
+        expect(got.mock.calls[5][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[5][1].json).toEqual({})
     })
 
     it('should set timeout (no w3c)', async () => {
@@ -59,41 +64,53 @@ describe('setTimeout', () => {
         })
 
         await browser.setTimeout({ implicit: 5000 })
-        expect(request.mock.calls.length).toBe(2)
-        expect(request.mock.calls[1][0].method).toBe('POST')
-        expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[1][0].body).toEqual({ 'type': 'implicit', 'ms': 5000 })
+        expect(got.mock.calls).toHaveLength(2)
+        expect(got.mock.calls[1][1].method).toBe('POST')
+        expect(got.mock.calls[1][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[1][1].json)
+            .toEqual({ 'type': 'implicit', 'ms': 5000 })
 
         await browser.setTimeout({ 'page load': 10000 })
-        expect(request.mock.calls.length).toBe(3)
-        expect(request.mock.calls[2][0].method).toBe('POST')
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[2][0].body).toEqual({ 'type': 'page load', 'ms': 10000 })
+        expect(got.mock.calls).toHaveLength(3)
+        expect(got.mock.calls[2][1].method).toBe('POST')
+        expect(got.mock.calls[2][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[2][1].json)
+            .toEqual({ 'type': 'page load', 'ms': 10000 })
 
         await browser.setTimeout({ script: 60000 })
-        expect(request.mock.calls.length).toBe(4)
-        expect(request.mock.calls[3][0].method).toBe('POST')
-        expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[3][0].body).toEqual({ 'type': 'script', 'ms': 60000 })
+        expect(got.mock.calls).toHaveLength(4)
+        expect(got.mock.calls[3][1].method).toBe('POST')
+        expect(got.mock.calls[3][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[3][1].json)
+            .toEqual({ 'type': 'script', 'ms': 60000 })
 
         await browser.setTimeout({
             implicit: 0,
             pageLoad: 300000,
             script: 30000,
         })
-        expect(request.mock.calls.length).toBe(7)
-        expect(request.mock.calls[4][0].method).toBe('POST')
-        expect(request.mock.calls[4][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[4][0].body).toEqual({ 'type': 'implicit', 'ms': 0 })
-        expect(request.mock.calls[5][0].method).toBe('POST')
-        expect(request.mock.calls[5][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[5][0].body).toEqual({ 'type': 'page load', 'ms': 300000 })
-        expect(request.mock.calls[6][0].method).toBe('POST')
-        expect(request.mock.calls[6][0].uri.path).toBe('/wd/hub/session/foobar-123/timeouts')
-        expect(request.mock.calls[6][0].body).toEqual({ 'type': 'script', 'ms': 30000 })
+        expect(got.mock.calls).toHaveLength(7)
+        expect(got.mock.calls[4][1].method).toBe('POST')
+        expect(got.mock.calls[4][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[4][1].json)
+            .toEqual({ 'type': 'implicit', 'ms': 0 })
+        expect(got.mock.calls[5][1].method).toBe('POST')
+        expect(got.mock.calls[5][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[5][1].json)
+            .toEqual({ 'type': 'page load', 'ms': 300000 })
+        expect(got.mock.calls[6][1].method).toBe('POST')
+        expect(got.mock.calls[6][1].uri.pathname)
+            .toBe('/session/foobar-123/timeouts')
+        expect(got.mock.calls[6][1].json)
+            .toEqual({ 'type': 'script', 'ms': 30000 })
 
         await browser.setTimeout({})
-        expect(request.mock.calls.length).toBe(7)
+        expect(got.mock.calls).toHaveLength(7)
     })
 
     it('should throw error on setting invalid timeout', async () => {
@@ -131,6 +148,6 @@ describe('setTimeout', () => {
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

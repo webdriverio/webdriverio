@@ -1,3 +1,7 @@
+/**
+ * even though we replaced 'request' with 'got' within the library, there are 3rd party libs
+ * that might still rely on this lib
+ */
 import { ELEMENT_KEY } from '../../src/constants'
 
 let manualMockResponse
@@ -151,14 +155,6 @@ const requestMock = jest.fn().mockImplementation((params, cb) => {
             } else {
                 result = null
             }
-        } else if (params.body.script.includes('testLocatorStrategy')) {
-            result = { [ELEMENT_KEY]: genericElementId }
-        } else if (params.body.script.includes('testLocatorStrategiesMultiple')) {
-            result = [
-                { [ELEMENT_KEY]: genericElementId },
-                { [ELEMENT_KEY]: 'some-elem-456' },
-                { [ELEMENT_KEY]: 'some-elem-789' },
-            ]
         } else {
             result = script.apply(this, args)
         }

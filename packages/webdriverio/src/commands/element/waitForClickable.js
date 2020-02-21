@@ -16,11 +16,11 @@
  * </example>
  *
  * @alias element.waitForClickable
- * @param {WaitForOptions=}  options            Object (optional)
- * @param {Number=}  options.timeout    time in ms (default: `waitforTimeout`)
- * @param {Boolean=} options.reverse    if true it waits for the opposite (default: false)
- * @param {String=}  options.timeoutMsg error message to throw when waitUntil times out
- * @param {Number=}  options.interval   interval between checks (default: `waitforInterval`)
+ * @param {WaitForOptions=}  options             waitForEnabled options (optional)
+ * @param {Number=}          options.timeout     time in ms (default: 500)
+ * @param {Boolean=}         options.reverse     if true it waits for the opposite (default: false)
+ * @param {String=}          options.timeoutMsg  if exists it overrides the default error message
+ * @param {Number=}          options.interval    interval between checks (default: `waitforInterval`)
  * @return {Boolean} `true` if element is clickable (or doesn't if flag is set)
  *
  */
@@ -31,5 +31,8 @@ export default async function waitForClickable ({
     reverse = false,
     timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}clickable after ${timeout}ms`
 } = {}) {
-    return this.waitUntil(async () => reverse !== await this.isClickable(), timeout, timeoutMsg, interval)
+    return this.waitUntil(
+        async () => reverse !== await this.isClickable(),
+        { timeout, timeoutMsg, interval }
+    )
 }

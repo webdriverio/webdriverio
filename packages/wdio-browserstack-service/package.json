@@ -1,13 +1,13 @@
 {
   "name": "@wdio/browserstack-service",
-  "version": "5.16.10",
+  "version": "6.0.0-alpha.1",
   "description": "WebdriverIO service for better Browserstack integration",
   "author": "Adam Bjerstedt <abjerstedt@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service",
   "license": "MIT",
   "main": "./build",
   "engines": {
-    "node": ">= 8.11.0"
+    "node": ">=10.0.0"
   },
   "scripts": {
     "build": "run-s clean compile",
@@ -31,9 +31,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "5.16.10",
-    "browserstack-local": "1.4.2",
-    "request": "^2.85.0"
+    "@wdio/logger": "6.0.0-alpha.0",
+    "browserstack-local": "^1.4.3",
+    "got": "^10.2.1"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"

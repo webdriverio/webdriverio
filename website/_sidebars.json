@@ -25,6 +25,7 @@
       "clioptions",
       "configurationfile",
       "frameworks",
+      "assertion",
       "customreporter",
       "customservices"
     ],
@@ -38,13 +39,25 @@
       "watcher",
       "jenkins",
       "runprogrammatically",
-      "driverbinaries"
+      "driverbinaries",
+      "flowchartsoverview"
     ]
   },
   "api": {
     "Introduction": [
       "api"
     ],
-    "Protocols": []
+    "Protocols": [],
+    "Testrunner": [
+      "api/expect"
+    ]
+  },
+  "flowcharts": {
+      "Flowcharts": [
+        "flowcharts/wdiocommands",
+        "flowcharts/createlocalworkerprocess",
+        "flowcharts/testexecution",
+        "flowcharts/highleveloverview"
+      ]
   }
 }

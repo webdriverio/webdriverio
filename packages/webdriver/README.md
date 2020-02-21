@@ -84,16 +84,22 @@ Type: `Number`<br>
 Default: *4444*
 
 ### path
-Path to WebDriver server.
+Path to WebDriver endpoint or grid server.
 
 Type: `String`<br>
-Default: */wd/hub*
+Default: */*
 
 ### baseUrl
 Shorten `url` command calls by setting a base url.
 
 Type: `String`<br>
 Default: *null*
+
+### connectionRetryTimeout
+Timeout for any WebDriver request to a driver or grid.
+
+Type: `Number`<br>
+Default: *90000*
 
 ### connectionRetryCount
 Count of request retries to the Selenium server.

@@ -1,9 +1,11 @@
-import CrossBrowserTestingLauncher from '../src/launcher'
 import cbtTunnels from 'cbt_tunnels'
+import logger from '@wdio/logger'
+
+import CrossBrowserTestingLauncher from '../src/launcher'
+
+const error = new Error('Error!')
 
 describe('wdio-crossbrowsertesting-service', () => {
-    const cbtLauncher = new CrossBrowserTestingLauncher({})
-    const error = new Error('Error!')
     const execute = jest.fn()
     global.browser = {
         execute,
@@ -18,52 +20,57 @@ describe('wdio-crossbrowsertesting-service', () => {
 
     afterEach(() => execute.mockReset())
 
-    it('onPrepare: cbtTunnel is undefined', () => {
-        const config = {
+    it('onPrepare: cbtTunnel is undefined', async () => {
+        const cbtLauncher = new CrossBrowserTestingLauncher({
             cbtTunnel: undefined
-        }
+        })
 
-        cbtLauncher.onPrepare(config)
+        await cbtLauncher.onPrepare()
         expect(cbtLauncher.cbtTunnelOpts).toBeUndefined()
         expect(cbtLauncher.cbtTunnel).toBeUndefined()
     })
 
     it('onPrepare: cbtTunnel.start successful', async () => {
-        const config = {
+        const cbtLauncher = new CrossBrowserTestingLauncher({
             cbtTunnel: {},
             cbtTunnelOpts: {
                 options: 'some options'
-            },
+            }
+        }, [{}], {
             user: 'test',
             key: 'testy'
-        }
-        await expect(cbtLauncher.onPrepare(config)).resolves.toBe('connected')
+        })
+        await cbtLauncher.onPrepare()
         expect(cbtTunnels.start).toHaveBeenCalledWith({ username: 'test', authkey: 'testy', nokill: true, options: 'some options' }, expect.any(Function))
         expect(cbtLauncher.cbtTunnelOpts).toEqual({ username: 'test', authkey: 'testy', nokill: true, options: 'some options' })
+        expect(logger().info.mock.calls[0][0]).toContain('CrossBrowserTesting tunnel successfully started after')
 
     })
 
     it('onPrepare: cbtTunnel.start throws an error', () => {
-        const config = {
+        const cbtLauncher = new CrossBrowserTestingLauncher({
             cbtTunnel: {},
             cbtTunnelOpts: {
                 options: 'some options'
-            },
+            }
+        }, [{}], {
             user: 'test',
             key: 'testy'
-        }
+        })
         cbtTunnels.start.mockImplementationOnce((options, cb) => cb(error))
-        expect(cbtLauncher.onPrepare(config)).rejects.toThrow(error)
+        expect(cbtLauncher.onPrepare()).rejects.toThrow(error)
             .then(() => expect(cbtTunnels.start).toHaveBeenCalled())
 
     })
 
     it('onComplete: no tunnel', () => {
+        const cbtLauncher = new CrossBrowserTestingLauncher({}, [{}], {})
         cbtLauncher.tunnel = undefined
         expect(cbtLauncher.onComplete()).toBeUndefined()
     })
 
     it('onComplete: cbtTunnel.stop throws an error', () => {
+        const cbtLauncher = new CrossBrowserTestingLauncher({}, [{}], {})
         cbtLauncher.tunnel = true
         cbtTunnels.stop.mockImplementationOnce((cb) => cb(error))
         expect(cbtLauncher.onComplete()).rejects.toThrow(error)
@@ -71,6 +78,7 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('onComplete: cbtTunnel.stop successful', async () => {
+        const cbtLauncher = new CrossBrowserTestingLauncher({}, [{}], {})
         cbtLauncher.tunnel = true
         expect(cbtLauncher.onComplete()).resolves.toBe('stopped')
             .then(() => expect(cbtTunnels.stop).toHaveBeenCalled())
