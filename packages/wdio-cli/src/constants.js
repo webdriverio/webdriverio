@@ -99,6 +99,7 @@ export const QUESTIONNAIRE = [{
     message: 'Where is your automation backend located?',
     choices: [
         'On my local machine',
+        'In the cloud using Experitest',
         'In the cloud using Sauce Labs',
         'In the cloud using Browserstack or Testingbot or a different service',
         'I have my own Selenium cloud'
@@ -114,6 +115,45 @@ export const QUESTIONNAIRE = [{
     message: 'What is the port on which that service is running?',
     default: '80',
     when: /* istanbul ignore next */ (answers) => answers.backend.indexOf('different service') > -1
+}, {
+    type: 'input',
+    name: 'expEnvAccessKey',
+    message: 'Access key from Experitest Cloud',
+    default: 'EXPERITEST_ACCESS_KEY',
+    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Experitest'
+}, {
+    type: 'input',
+    name: 'expEnvHostname',
+    message: 'Environment variable for cloud url',
+    default: 'example.experitest.com',
+    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Experitest'
+}, {
+    type: 'list',
+    name: 'expEnvPort',
+    message: 'Choose a port for environment variable',
+    default: 443,
+    choices: [
+        '443',
+        '80',
+        'Other'
+    ],
+    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Experitest'
+}, {
+    type: 'input',
+    name: 'expEnvPort',
+    message: 'Environment variable for other port',
+    default: 'OTHER_PORT',
+    when: /* istanbul ignore next */ (answers) => answers.expEnvPort === 'Other'
+}, {
+    type: 'list',
+    name: 'expEnvProtocol',
+    message: 'Choose a protocol for environment variable',
+    default: 'https',
+    choices: [
+        'https',
+        'http'
+    ],
+    when: /* istanbul ignore next */ (answers) => answers.expEnvPort && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
 }, {
     type: 'input',
     name: 'env_user',
