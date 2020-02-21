@@ -109,7 +109,7 @@ export default class WebDriverRequest extends EventEmitter {
 
         let response = await got(fullRequestOptions.uri, { ...fullRequestOptions })
         if (transformResponse) {
-            response = transformResponse(response)
+            response = transformResponse(response, fullRequestOptions)
         }
 
         const error = getErrorFromResponseBody(response.body)
