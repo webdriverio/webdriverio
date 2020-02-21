@@ -39,7 +39,7 @@ WebdriverIO is a test automation framework that allows you to run tests based on
 
 Show the world you're using webdriver.io → [![tested with webdriverio](https://img.shields.io/badge/tested%20with-webdriver.io-orange)](https://webdriver.io/)
 ```
-[![tested with webdriverio](https://img.shields.io/badge/tested%20with-webdriver.io-orange)](https://webdriver.io/)
+[![tested with webdriver.io](https://img.shields.io/badge/tested%20with-webdriver.io-orange)](https://webdriver.io/)
 ```
 
 ## Contributing
