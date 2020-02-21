@@ -17,25 +17,13 @@ First, install the adapter package from NPM:
 npm install @wdio/mocha-framework --save-dev
 ```
 
-If you like to use Mocha, you'll want to install an assertion library for more expressive tests. [Chai](http://chaijs.com) is a good choice.
-
-Initialise it (or whatever assertion library you like) in the `before` hook of your configuration file:
-
-```js
-before: function() {
-    const chai = require('chai')
-    global.expect = chai.expect
-    chai.Should()
-}
-```
-
-Once that is done, you can write beautiful assertions like:
+By default WebdriverIO provides an [assertion library](Assertion.md) that is built-in which you can start right away:
 
 ```js
 describe('my awesome website', () => {
-    it('should do some chai assertions', () => {
+    it('should do some assertions', () => {
         browser.url('https://webdriver.io')
-        browser.getTitle().should.be.equal('WebdriverIO · Next-gen WebDriver test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen WebDriver test framework for Node.js')
     })
 })
 ```
@@ -46,9 +34,9 @@ If you like to write your specs in TDD style, set the `ui` property in your `moc
 
 ```js
 suite('my awesome website', () => {
-    test('should do some chai assertions', () => {
+    test('should do some assertions', () => {
         browser.url('https://webdriver.io')
-        browser.getTitle().should.be.equal('WebdriverIO · Next-gen WebDriver test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen WebDriver test framework for Node.js')
     })
 })
 ```
@@ -73,8 +61,7 @@ First, install the adapter package from NPM:
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-Jasmine already provides assertion methods you can use with WebdriverIO.
-No need to add another one.
+You can then configure your Jasmine environment by setting a `jasmineNodeOpts` property in your config.
 
 ### Intercept Assertion
 
