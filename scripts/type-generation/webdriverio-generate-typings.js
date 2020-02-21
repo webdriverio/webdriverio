@@ -84,5 +84,4 @@ const generateTypes = (packageName, promisify, fileName = 'webdriverio-core.d.ts
 }
 
 generateTypes('webdriverio', true) // to be used in v6
-generateTypes('webdriverio', false, 'webdriverio-core-v5.d.ts') // remove in v6
 generateTypes('wdio-sync', false)
