@@ -35,19 +35,6 @@
 
 WebdriverIO is a test automation framework that allows you to run tests based on the [Webdriver](https://w3c.github.io/webdriver/webdriver-spec.html) protocol and [Appium](http://appium.io/) automation technology. It provides support for your favorite BDD/TDD test framework and will run your tests locally or in the cloud using Sauce Labs, BrowserStack or TestingBot.
 
-## Badge
-
-Show the world you're using webdriver.io → [![tested with webdriverio](https://img.shields.io/badge/tested%20with-webdriver.io-orange)](https://webdriver.io/)
-```
-[![tested with webdriver.io](https://img.shields.io/badge/tested%20with-webdriver.io-orange)](https://webdriver.io/)
-```
-
-## Contributing
-
-Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to get started with setting up the repo.
-
-If you're looking for issues to help out with, check out [the issues labelled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out in our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) if you have question on where to start contributing.
-
 ## Packages
 
 ### Core
@@ -107,3 +94,17 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 ## Project Governance
 
 This project is maintained by [awesome people](/AUTHORS.md) following a common [set of rules](/GOVERNANCE.md) and treating each other with [respect and appreciation](/CODE_OF_CONDUCT.md).
+
+## Contributing
+
+Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to get started with setting up the repo.
+
+If you're looking for issues to help out with, check out [the issues labelled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out in our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) if you have question on where to start contributing.
+
+## Badge
+
+Show the world you're using webdriver.io → [![tested with webdriverio](https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906)](https://webdriver.io/)
+```
+[![tested with webdriver.io](https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906)](https://webdriver.io/)
+```
+
