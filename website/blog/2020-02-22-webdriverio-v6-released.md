@@ -200,6 +200,7 @@ Next to all major updates that were described above there are also some minor ch
 - __WebDriver Default Path:__ we changed default WebDriver path to from `/wd/hub` to `/` as most of the browser drivers now default to this, this should have now affect for you - however if you have trouble connecting to a WebDriver endpoint after the upgrade, this could be a reason for that issue
 - __Command Renaming:__ we renamed command `launchApp` to `launchChromeApp` for Chrome WebDriver sessions
 - __New Hook:__ we added a new hook to the testrunner called `onWorkerStart` which will be executed right before we launch the worker process
+- __Modified Hook Signature:__ we modified the signature of our before/after test/hook hooks to allow you to access the frameworks native event objects - please have a look into the config file [documentation](ConfigurationFile.md) and update your hooks accordingly
 - __Cucumber Update:__ we have updated the `@wdio/cucumber-framework` adapter to use v6 of Cucumber
 
 ## LTS Support
