@@ -28,6 +28,7 @@ declare namespace WebdriverIO {
         domain?: string,
         path?: string,
         expiry?: number,
+        sameSite?: boolean,
         isSecure?: boolean,
         isHttpOnly?: boolean
     }
@@ -218,6 +219,12 @@ declare namespace WebdriverIO {
         y?: number
     }
 
+    type WaitUntilOptions = {
+        timeout?: number,
+        timeoutMsg?: string,
+        interval?: number
+    }
+
     interface Element {
         selector: string;
         elementId: string;
@@ -333,7 +340,9 @@ declare namespace WebdriverIO {
         ): Promise<string>;
 
         /**
-         * Get a css property from a DOM-element selected by given selector.
+         * Get a css property from a DOM-element selected by given selector. The return value
+         * is formatted to be testable. Colors gets parsed via [rgb2hex](https://www.npmjs.org/package/rgb2hex)
+         * and all other properties get parsed via [css-value](https://www.npmjs.org/package/css-value).
          */
         getCSSProperty(
             cssProperty: string
@@ -538,7 +547,10 @@ declare namespace WebdriverIO {
         ): Promise<Element>;
 
         /**
-         * [appium] The Touch Action API provides the basis of all gestures that can be automated in Appium.
+         * The Touch Action API provides the basis of all gestures that can be automated in Appium.
+         * It is currently only available to native apps and can not be used to interact with webapps.
+         * At its core is the ability to chain together _ad hoc_ individual actions, which will then be
+         * applied to an element in the application on the device. The basic actions that can be used are:
          */
         touchAction(
             action: TouchActions
@@ -578,6 +590,16 @@ declare namespace WebdriverIO {
          */
         waitForExist(
             options?: WaitForOptions
+        ): Promise<boolean>;
+
+        /**
+         * This wait command is your universal weapon if you want to wait on something. It expects a condition
+         * and waits until that condition is fulfilled with a truthy value. If you use the WDIO testrunner the
+         * commands within the condition are getting executed synchronously like in your test.
+         */
+        waitUntil(
+            condition: () => Promise<Boolean>,
+            options?: WaitUntilOptions
         ): Promise<boolean>;
     }
 
@@ -675,14 +697,16 @@ declare namespace WebdriverIO {
          * Delete cookies visible to the current page. By providing a cookie name it just removes the single cookie or more when multiple names are passed.
          */
         deleteCookies(
-            names?: string[]
+            names?: string | string[]
         ): Promise<void>;
 
         /**
          * Retrieve a [cookie](https://w3c.github.io/webdriver/webdriver-spec.html#cookies)
+         * visible to the current page. You can query a specific cookie by providing the cookie name or
+         * retrieve all.
          */
         getCookies(
-            names?: string[]
+            names?: string[] | string
         ): Promise<Cookie[]>;
 
         /**
@@ -763,14 +787,18 @@ declare namespace WebdriverIO {
         ): Promise<Buffer>;
 
         /**
-         * Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page.
+         * Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page. Make sure you are
+         * on the page that should receive the cookie. You can't set a cookie for an arbitrary page without
+         * being on that page.
          */
         setCookies(
-            cookie: Cookie
+            cookie: Cookie[] | Cookie
         ): Promise<void>;
 
         /**
-         * Sets the timeouts (implicit, pageLoad, script) associated with the current session.
+         * Sets the timeouts associated with the current session, timeout durations control such
+         * behaviour as timeouts on script injection, document navigation, and element retrieval.
+         * For more information and examples, see [timeouts guide](https://webdriver.io/docs/timeouts.html#selenium-timeouts).
          */
         setTimeout(
             timeouts: Timeouts
@@ -792,7 +820,10 @@ declare namespace WebdriverIO {
         ): Promise<void>;
 
         /**
-         * [appium] The Touch Action API provides the basis of all gestures that can be automated in Appium.
+         * The Touch Action API provides the basis of all gestures that can be automated in Appium.
+         * It is currently only available to native apps and can not be used to interact with webapps.
+         * At its core is the ability to chain together _ad hoc_ individual actions, which will then be
+         * applied to an element in the application on the device. The basic actions that can be used are:
          */
         touchAction(
             action: TouchActions
@@ -816,6 +847,16 @@ declare namespace WebdriverIO {
         url(
             url?: string
         ): Promise<void>;
+
+        /**
+         * This wait command is your universal weapon if you want to wait on something. It expects a condition
+         * and waits until that condition is fulfilled with a truthy value. If you use the WDIO testrunner the
+         * commands within the condition are getting executed synchronously like in your test.
+         */
+        waitUntil(
+            condition: () => Promise<Boolean>,
+            options?: WaitUntilOptions
+        ): Promise<boolean>;
     }
 
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}

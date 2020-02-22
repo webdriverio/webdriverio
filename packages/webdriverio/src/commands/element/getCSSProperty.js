@@ -58,10 +58,8 @@
  * </example>
  *
  * @alias element.getCSSProperty
- * @param {String} cssProperty css property name
- * @return {Object} The specified css of the element
- * @uses protocol/elements, protocol/elementIdCssProperty
- * @type property
+ * @param  {String}      cssProperty css property name
+ * @return {CSSProperty}             The specified css of the element
  *
  */
 

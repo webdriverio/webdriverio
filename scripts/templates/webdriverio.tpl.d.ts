@@ -22,6 +22,7 @@ declare namespace WebdriverIO {
         domain?: string,
         path?: string,
         expiry?: number,
+        sameSite?: boolean,
         isSecure?: boolean,
         isHttpOnly?: boolean
     }
@@ -210,6 +211,12 @@ declare namespace WebdriverIO {
         button?: number | string,
         x?: number,
         y?: number
+    }
+
+    type WaitUntilOptions = {
+        timeout?: number,
+        timeoutMsg?: string,
+        interval?: number
     }
 
     interface Element {

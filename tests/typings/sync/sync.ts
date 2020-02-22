@@ -22,6 +22,24 @@ const waitUntil: boolean = browser.waitUntil(
     }
 )
 browser.getCookies()
+browser.getCookies('foobar')
+browser.getCookies(['foobar'])
+browser.setCookies({
+    name: '',
+    value: ''
+})
+browser.setCookies([{
+    name: '',
+    value: '',
+    domain: '',
+    path: '',
+    expiry: 1,
+    sameSite: true,
+    isSecure: true,
+    isHttpOnly: true
+}])
+browser.deleteCookies('foobar')
+browser.deleteCookies(['foobar'])
 
 const executeResult = browser.execute(function (x: number) {
     return x

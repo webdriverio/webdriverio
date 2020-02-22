@@ -36,7 +36,7 @@
  * </example>
  *
  * @alias browser.deleteCookies
- * @param {String[]=} names  names of cookies to be deleted
+ * @param {String=|String[]=} names  names of cookies to be deleted
  * @uses webdriver/deleteAllCookies,webdriver/deleteCookie
  * @type cookie
  *

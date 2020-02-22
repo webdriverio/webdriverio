@@ -29,11 +29,11 @@
  *
  *
  * @alias browser.waitUntil
- * @param {Function} condition  condition to wait on
- * @param {Object}   options    command options
- * @param {Number=}  options.timeout     timeout in ms (default: 5000)
- * @param {String=}  options.timeoutMsg  error message to throw when waitUntil times out
- * @param {Number=}  options.interval    interval between condition checks (default: 500)
+ * @param {Function#Boolean}  condition  condition to wait on
+ * @param {WaitUntilOptions=} options    command options
+ * @param {Number=}           options.timeout     timeout in ms (default: 5000)
+ * @param {String=}           options.timeoutMsg  error message to throw when waitUntil times out
+ * @param {Number=}           options.interval    interval between condition checks (default: 500)
  * @return {Boolean} true if condition is fulfilled
  * @uses utility/pause
  * @type utility

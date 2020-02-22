@@ -42,8 +42,33 @@ async function bar() {
         windowName: 'some name',
         windowFeatures: 'some features'
     })
-    const waitUntil: boolean = await browser.waitUntil(() => Promise.resolve(true), 1, '', 1)
+    const waitUntil: boolean = await browser.waitUntil(
+        () => Promise.resolve(true),
+        {
+            timeout: 1,
+            timeoutMsg: '',
+            interval: 1
+        }
+    )
     await browser.getCookies()
+    await browser.getCookies('foobar')
+    await browser.getCookies(['foobar'])
+    await browser.setCookies({
+        name: '',
+        value: ''
+    })
+    await browser.setCookies([{
+        name: '',
+        value: '',
+        domain: '',
+        path: '',
+        expiry: 1,
+        sameSite: true,
+        isSecure: true,
+        isHttpOnly: true
+    }])
+    await browser.deleteCookies('foobar')
+    await browser.deleteCookies(['foobar'])
 
     const executeResult = await browser.execute(function (x: number) {
         return x
