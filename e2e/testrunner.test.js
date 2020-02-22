@@ -12,10 +12,10 @@ test('should allow to run multiple browser at once', async () => {
      */
     if (!hasPassed) {
         const rootPath = path.join(__dirname, 'wdio')
-        const logFiles = fs.readdirSync(rootPath).filter((file) => (
+        const logFiles = fs.readdirSync(rootPath)
             // only log files
-            file.endsWith('.log')
-        ))
+            .filter((file) => file.endsWith('.log'))
+
         for (const fileName of logFiles) {
             // eslint-disable-next-line no-console
             console.log(`\n========== LOG OUPUT ${fileName}`)

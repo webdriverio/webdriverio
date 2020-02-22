@@ -428,7 +428,7 @@ export const getAutomationProtocol = async (config) => {
     /**
      * run WebDriver if hostname or port is set
      */
-    if (config.hostname || config.port || (config.user && config.key)) {
+    if (config.hostname || config.port || config.path || (config.user && config.key)) {
         return 'webdriver'
     }
 

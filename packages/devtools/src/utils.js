@@ -259,10 +259,6 @@ export function sort(installations, priorities) {
  * @return {Boolean}       true if browser is accessible
  */
 export function canAccess(file) {
-    if (!file) {
-        return false
-    }
-
     try {
         fs.accessSync(file)
         return true

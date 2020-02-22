@@ -336,7 +336,10 @@ test('getStaleElementError', () => {
 })
 
 test('canAccess', () => {
+    fs.shouldThrow(true)
     expect(canAccess()).toBe(false)
+
+    fs.shouldThrow(false)
     expect(canAccess('/some/file')).toBe(true)
 
     fs.shouldThrow(true)
