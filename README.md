@@ -38,6 +38,12 @@
 
 WebdriverIO is a test automation framework that allows you to run tests based on the [Webdriver](https://w3c.github.io/webdriver/webdriver-spec.html) protocol and [Appium](http://appium.io/) automation technology. It provides support for your favorite BDD/TDD test framework and will run your tests locally or in the cloud using Sauce Labs, BrowserStack or TestingBot.
 
+## Contributing
+
+Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to get started with setting up the repo.
+
+If you're looking for issues to help out with, check out [the issues labelled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out in our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) if you have question on where to start contributing.
+
 ## Packages
 
 ### Core
@@ -103,12 +109,6 @@ This project is maintained by [awesome people](/AUTHORS.md) following a common [
 [MIT](/LICENSE-MIT)
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio?ref=badge_large)
-
-## Contributing
-
-Check out our [CONTRIBUTING.md](CONTRIBUTING.md) to get started with setting up the repo.
-
-If you're looking for issues to help out with, check out [the issues labelled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out in our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) if you have question on where to start contributing.
 
 ## Badge
 
