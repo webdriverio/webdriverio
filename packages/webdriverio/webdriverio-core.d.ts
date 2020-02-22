@@ -598,7 +598,7 @@ declare namespace WebdriverIO {
          * commands within the condition are getting executed synchronously like in your test.
          */
         waitUntil(
-            condition: Function,
+            condition: () => Promise<Boolean>,
             options?: WaitUntilOptions
         ): Promise<boolean>;
     }
@@ -854,7 +854,7 @@ declare namespace WebdriverIO {
          * commands within the condition are getting executed synchronously like in your test.
          */
         waitUntil(
-            condition: Function,
+            condition: () => Promise<Boolean>,
             options?: WaitUntilOptions
         ): Promise<boolean>;
     }

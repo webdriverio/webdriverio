@@ -29,7 +29,7 @@
  *
  *
  * @alias browser.waitUntil
- * @param {Function}          condition  condition to wait on
+ * @param {Function#Boolean}  condition  condition to wait on
  * @param {WaitUntilOptions=} options    command options
  * @param {Number=}           options.timeout     timeout in ms (default: 5000)
  * @param {String=}           options.timeoutMsg  error message to throw when waitUntil times out

@@ -39,11 +39,19 @@ const buildCommand = (commandName, commandTags, indentation = 0, promisify = fal
         }
         if (type === 'param') {
             let commandTypes = getTypes(types, true)
+            const paramName = `${name.split('[').pop().split('=')[0]}${optional ? '?' : ''}`
+
+            if (name === 'condition') {
+                const paramDesc = string.slice(1).split('}')[0]
+                const returnType = paramDesc.includes('#') ? paramDesc.split('#')[1] : 'void'
+                allParameters.push(`${paramName}: () => ${promisify ? `Promise<${returnType}>` : returnType}`)
+                continue
+            }
 
             // skipping param with dot in name that stands for Object properties description, ex: attachmentObject.name
             if (name.indexOf('.') < 0) {
                 // get rid from default values from param name, ex: [paramName='someString'] will become paramName
-                allParameters.push(`${name.split('[').pop().split('=')[0]}${optional ? '?' : ''}: ${commandTypes}`)
+                allParameters.push(`${paramName}: ${commandTypes}`)
             }
         }
 
