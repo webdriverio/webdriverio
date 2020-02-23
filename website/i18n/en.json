@@ -74,6 +74,9 @@
       "wdio-json-reporter": {
         "title": "JSON Reporter"
       },
+      "wdio-markdown-reporter": {
+        "title": "Markdown Reporter"
+      },
       "wdio-mochawesome-reporter": {
         "title": "Mochawesome Reporter"
       },
@@ -362,6 +365,9 @@
       "configurationfile": {
         "title": "Testrunner Configuration"
       },
+      "contribute": {
+        "title": "Contribute"
+      },
       "customcommands": {
         "title": "Custom Commands"
       },
@@ -449,6 +455,7 @@
       "API": "API",
       "Help": "Help",
       "Blog": "Blog",
+      "Contribute": "Contribute",
       "GitHub": "GitHub"
     },
     "categories": {

@@ -3,11 +3,11 @@ id: customcommands
 title: Custom Commands
 ---
 
-### Adding custom commands
+## Adding custom commands
 
 If you want to extend the `browser` instance with your own set of commands, the browser method  `addCommand` is here for you.
 
-You can write your command in a synchronous way (default), just as in your specs&mdash;or, you can write it in an asynchronous way (like when using WebdriverIO in standalone mode). 
+You can write your command in a synchronous way (default), just as in your specs&mdash;or, you can write it in an asynchronous way (like when using WebdriverIO in standalone mode).
 
 This example shows how to add a new command that returns the current URL and title as one result, using only synchronous commands:
 
@@ -22,7 +22,7 @@ browser.addCommand('getUrlAndTitle', function (customVar) {
 })
 ```
 
-Additionally, you can extend the element instance with your own set of commands, by passing `true` as the final argument. 
+Additionally, you can extend the element instance with your own set of commands, by passing `true` as the final argument.
 
 By default, element is expected to exist in `waitforTimeout` milliseconds, or an exception will be thrown.
 
@@ -34,7 +34,7 @@ browser.addCommand("waitAndClick", function () {
 }, true)
 ```
 
-Custom commands give you the opportunity to bundle a specific sequence of commands you use frequently as a single call. You can define custom commands at any point in your test suite; just make sure that the command is defined *before* its first use. (The `before` hook in your `wdio.conf.js` is one good place to create them.) 
+Custom commands give you the opportunity to bundle a specific sequence of commands you use frequently as a single call. You can define custom commands at any point in your test suite; just make sure that the command is defined *before* its first use. (The `before` hook in your `wdio.conf.js` is one good place to create them.)
 
 Once defined, you can use them as follows:
 
@@ -84,13 +84,13 @@ console.log(typeof browser.myCustomElementCommand2) // outputs "undefined"
 console.log(elem3.myCustomElementCommand2('foobar')) // outputs "function"
 ```
 
-Be careful to not overload the `browser` scope with too many custom commands. 
+Be careful to not overload the `browser` scope with too many custom commands.
 
 We recommend defining custom logic in [page objects](PageObjects.md), so they are bound to a specific page.
 
 ## Integrate 3rd party libraries
 
-If you use external libraries (e.g., to do database calls) that support promises, a nice approach to integrate them is to wrap certain API methods with a custom command. 
+If you use external libraries (e.g., to do database calls) that support promises, a nice approach to integrate them is to wrap certain API methods with a custom command.
 
 When returning the promise, WebdriverIO ensures that it doesn't continue with the next command until the promise is resolved. If the promise gets rejected, the command will throw an error.
 
@@ -116,9 +116,9 @@ it('execute external library in a sync way', () => {
 
 ### Overwriting native commands
 
-You can also overwrite native commands with `overwriteCommand`. 
+You can also overwrite native commands with `overwriteCommand`.
 
-It is not recommended to do this, because it may lead to unpredictable behavior of the framework! 
+It is not recommended to do this, because it may lead to unpredictable behavior of the framework!
 
 The overall approach is similar to `addCommand`, the only difference is that the first argument in the command function is the original function that you are about to overwrite. Please see some examples below.
 
