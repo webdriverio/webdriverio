@@ -117,7 +117,7 @@ export default class WebDriverRequest extends EventEmitter {
                 response = transformResponse(response, fullRequestOptions)
             }
 
-            let { body } = response
+            let body = response && response.body
             const error = err || getErrorFromResponseBody(body)
 
             /**
