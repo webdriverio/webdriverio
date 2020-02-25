@@ -1,6 +1,6 @@
 # Cloudservices
 
-Shows you how to use WebdriverIO using Sauce Labs, Browserstack, Testingbot or Kobiton. To run those tests make sure you have your credentials stored in your environment. Then change directory to the example folder:
+Shows you how to use WebdriverIO using Sauce Labs, Browserstack, Testingbot Kobiton or LambdaTest. To run those tests make sure you have your credentials stored in your environment. Then change directory to the example folder:
 
 ```sh
 $ cd ./examples/cloudservices
@@ -45,4 +45,11 @@ npm run test:kobiton
 export CBT_USERNAME="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export CBT_AUTHKEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 npm run test:crossbrowsertesting
+```
+## lambdatest.js
+
+```sh
+export LT_USERNAME="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+export LT_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+npm run test:lambdatest
 ```

@@ -78,6 +78,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
+        { name: 'lambdatest', value: '@wdio/lambdatest-service$--$lambdatest' },
         // external
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
@@ -100,6 +101,7 @@ export const QUESTIONNAIRE = [{
     choices: [
         'On my local machine',
         'In the cloud using Sauce Labs',
+        'In the cloud using LambdaTest',
         'In the cloud using Browserstack or Testingbot or a different service',
         'I have my own Selenium cloud'
     ]
@@ -138,6 +140,18 @@ export const QUESTIONNAIRE = [{
     message: 'Environment variable for access key',
     default: 'SAUCE_ACCESS_KEY',
     when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Sauce Labs'
+}, {
+    type: 'input',
+    name: 'env_user',
+    message: 'Environment variable for username',
+    default: 'LT_USERNAME',
+    when: /* istanbul ignore next */ (answers) => answers.backend.startsWith('In the cloud using LambdaTest')
+}, {
+    type: 'input',
+    name: 'env_key',
+    message: 'Environment variable for access key',
+    default: 'LT_ACCESS_KEY',
+    when: /* istanbul ignore next */ (answers) => answers.backend.startsWith('In the cloud using LambdaTest')
 }, {
     type: 'confirm',
     name: 'headless',

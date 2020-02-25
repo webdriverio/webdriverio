@@ -159,6 +159,17 @@ describe('detectBackend', () => {
         expect(caps.protocol).toBe('https')
     })
 
+    it('should detect lambdatest user', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: 'dUBeseT1dtWMSraUEdfDVEf5ZL0CTDqfFzrZAvIPEzjfAhKosV'
+        })
+        expect(caps.hostname).toBe('hub.lambdatest.com')
+        expect(caps.port).toBe(443)
+        expect(caps.path).toBe('/wd/hub')
+        expect(caps.protocol).toBe('https')
+    })
+
     it('should throw if user and key are given but can not be connected to a cloud', () => {
         expect(() => detectBackend({
             user: 'foobar',
