@@ -370,6 +370,8 @@ declare namespace WebDriver {
         headers?: {
             [name: string]: string;
         };
+        transformRequest?: (requestOptions: any) => any;
+        transformResponse?: (requestOptions: any, response: any) => any;
     }
 
     interface AttachSessionOptions extends Options {
