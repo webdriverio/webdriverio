@@ -17,8 +17,7 @@ export default class LambdaRestService {
             username: this.config.user,
             accessKey: this.config.key
         }
-        this.isServiceEnabled =
-            lambdaCredentials.username && lambdaCredentials.accessKey
+        this.isServiceEnabled = lambdaCredentials.username && lambdaCredentials.accessKey
         try {
             this.api = LambdaRestClient.AutomationClient(lambdaCredentials)
         } catch (_) {

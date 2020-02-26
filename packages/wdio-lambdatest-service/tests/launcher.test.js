@@ -43,7 +43,7 @@ describe('onPrepare', () => {
         } catch (e) {
             expect(capabilities).toEqual({ tunnel: true })
         }
-        expect(capabilities).toEqual({ tunnel: true })
+        expect(capabilities).toMatchObject({ tunnel: true })
     }, 40000)
 })
 

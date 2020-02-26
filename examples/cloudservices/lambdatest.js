@@ -8,8 +8,9 @@ import { remote } from '../../packages/webdriverio/build'
             version : '79.0',
             resolution : '1024x768'
         },
+        protocol: 'https',
+        port: 443,
         hostname: 'hub.lambdatest.com',
-        port: 80,
         user : process.env.LT_USERNAME,
         key: process.env.LT_ACCESS_KEY
     })

@@ -1,7 +1,7 @@
 import request from 'request'
 
 import LambdaTestService from '../src'
-
+const uri = '/some/uri'
 global.browser = {
     config: {},
     execute: jest.fn(),
@@ -23,6 +23,7 @@ test('beforeSession should set to unknown creds if no lambdatest user and key ar
     service.beforeSession(config, {})
     expect(service.isServiceEnabled).toBe(false)
 })
+
 test('afterSuite', () => {
     const service = new LambdaTestService()
     service.beforeSession({}, {})
@@ -31,6 +32,16 @@ test('afterSuite', () => {
 
     service.afterSuite({})
     expect(service.failures).toBe(0)
+})
+
+test('beforeTest', () => {
+    const service = new LambdaTestService()
+    service.beforeSession({ user: 'foobar', key: '123' }, {})
+    service.beforeTest({
+        fullName: 'foobar',
+        parent: 'Jasmine__TopLevel__Suite'
+    })
+    expect(service.suiteTitle).toBeUndefined()
 })
 
 test('afterTest', () => {
@@ -57,6 +68,25 @@ test('after', () => {
     service.after()
 
     expect(service.updateJob).toBeCalledWith('foobar', 5)
+})
+
+test('afterScenario', () => {
+    const service = new LambdaTestService()
+    service.beforeSession({}, {})
+
+    expect(service.failures).toBe(0)
+
+    service.afterScenario(uri, {}, {}, { status: 'passed' })
+    expect(service.failures).toBe(0)
+
+    service.afterScenario(uri, {}, {}, { status: 'failed' })
+    expect(service.failures).toBe(1)
+
+    service.afterScenario(uri, {}, {}, { status: 'passed' })
+    expect(service.failures).toBe(1)
+
+    service.afterScenario(uri, {}, {}, { status: 'failed' })
+    expect(service.failures).toBe(2)
 })
 
 test('after with bail set', () => {

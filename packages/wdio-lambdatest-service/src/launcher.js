@@ -1,8 +1,7 @@
 import { performance, PerformanceObserver } from 'perf_hooks'
-
 import logger from '@wdio/logger'
 import LambdaTestTunnelLauncher from '@lambdatest/node-tunnel'
-
+import { TUNNEL_START_FAILED, TUNNEL_STOP_FAILED, TUNNEL_STOP_TIMEOUT } from './constants'
 const log = logger('@wdio/lambdatest-service')
 export default class LambdaTestLauncher {
     constructor(options) {
@@ -44,9 +43,7 @@ export default class LambdaTestLauncher {
         return Promise.race([
             new Promise((resolve, reject) => {
                 this.lambdatestTunnelProcess.start(tunnelArguments, err => {
-                    if (err) {
-                        return reject(err)
-                    }
+                    if (err) return reject(err)
                     this.lambdatestTunnelProcess.getTunnelName(tunnelName => {
                         if (Array.isArray(capabilities)) {
                             capabilities.forEach(capability => {
@@ -60,20 +57,16 @@ export default class LambdaTestLauncher {
                 })
             }),
             new Promise((resolve, reject) => {
-                timer = setTimeout(function() {
-                    reject(
-                        'LambdaTest Tunnel failed to start within 60 seconds!'
-                    )
-                }, 60000)
+                timer = setTimeout(() => { reject( new Error(TUNNEL_START_FAILED)) }, TUNNEL_STOP_TIMEOUT)
             })
         ]).then(
-            function(result) {
+            (result) => {
                 clearTimeout(timer)
                 performance.mark('ltTunnelEnd')
                 performance.measure('bootTime', 'ltTunnelStart', 'ltTunnelEnd')
                 return Promise.resolve(result)
             },
-            function(err) {
+            (err) => {
                 clearTimeout(timer)
                 return Promise.reject(err)
             }
@@ -93,29 +86,19 @@ export default class LambdaTestLauncher {
         return Promise.race([
             new Promise((resolve, reject) => {
                 this.lambdatestTunnelProcess.stop(err => {
-                    if (err) {
-                        return reject(err)
-                    }
+                    if (err) return reject(err)
                     resolve()
                 })
             }),
             new Promise((resolve, reject) => {
-                timer = setTimeout(
-                    () =>
-                        reject(
-                            new Error(
-                                'LambdaTest Tunnel failed to stop within 60 seconds!'
-                            )
-                        ),
-                    60000
-                )
+                timer = setTimeout(() => reject( new Error(TUNNEL_STOP_FAILED)), TUNNEL_STOP_TIMEOUT)
             })
         ]).then(
-            function() {
+            () => {
                 clearTimeout(timer)
                 return Promise.resolve()
             },
-            function(err) {
+            (err) => {
                 clearTimeout(timer)
                 return Promise.reject(err)
             }
