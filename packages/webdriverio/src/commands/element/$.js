@@ -43,7 +43,7 @@
  * </example>
  *
  * @alias $
- * @param {String|Function} selector  selector or JS Function to fetch a certain element
+ * @param {String|Function|Object} selector  selector or JS Function to fetch a certain element
  * @return {Element}
  * @type utility
  *

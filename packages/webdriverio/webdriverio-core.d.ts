@@ -264,7 +264,7 @@ declare namespace WebdriverIO {
          * it from an element scope is that the driver will look within the children of that element.
          */
         $$(
-            selector: string | Function
+            selector: string | Function | object
         ): Promise<ElementArray>;
 
         /**
@@ -275,7 +275,7 @@ declare namespace WebdriverIO {
          * to an element. The command will then transform the reference to an extended WebdriverIO element.
          */
         $(
-            selector: string | Function
+            selector: string | Function | object
         ): Promise<Element>;
 
         /**
