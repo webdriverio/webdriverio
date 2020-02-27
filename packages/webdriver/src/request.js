@@ -40,7 +40,7 @@ export default class WebDriverRequest extends EventEmitter {
 
     makeRequest (options, sessionId) {
         let fullRequestOptions = Object.assign({}, this.defaultOptions, this._createOptions(options, sessionId))
-        if (options.transformRequest) {
+        if (typeof options.transformRequest === 'function') {
             fullRequestOptions = options.transformRequest(fullRequestOptions)
         }
 
@@ -108,7 +108,7 @@ export default class WebDriverRequest extends EventEmitter {
         }
 
         let response = await got(fullRequestOptions.uri, { ...fullRequestOptions })
-        if (transformResponse) {
+        if (typeof transformResponse === 'function') {
             response = transformResponse(response, fullRequestOptions)
         }
 
