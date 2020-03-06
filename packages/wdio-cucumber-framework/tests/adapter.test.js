@@ -23,7 +23,7 @@ const wdioReporter = {
     on: jest.fn()
 }
 
-const adapterFactory = (cucumberOpts = {}, featureFlags = {}) => new CucumberAdapter(
+const adapterFactory = (cucumberOpts = {}, featureFlags = {}, capabilities = {}) => new CucumberAdapter(
     '0-2',
     {
         cucumberOpts,
@@ -34,7 +34,7 @@ const adapterFactory = (cucumberOpts = {}, featureFlags = {}) => new CucumberAda
         afterHook: 'afterHook'
     },
     ['/foo/bar.feature'],
-    { browserName: 'chrome' },
+    { browserName: 'chrome', ...capabilities },
     wdioReporter
 )
 
@@ -307,6 +307,109 @@ describe('addHooks', () => {
         afterFeature()
         expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterFeature, ['uri', 'feature', ['scenario1', 'scenario2']])
     })
+})
+
+describe('skip filters', () => {
+
+    const CHROME = { browserName:'Chrome', platformName:'linux' }
+    const FIREFOX = { browserName:'firefox', platformName:'linux' }
+
+    test('should skip using single capabilities', () => {
+        const adapter = adapterFactory({}, {}, CHROME)
+        expect(adapter.filter({
+            pickle: {
+                tags: [{
+                    name: '@skip(browserName="chrome")'
+                }]
+            }
+        })).toBeFalsy()
+        expect(adapter.filter({
+            pickle: {
+                tags: [{
+                    name: '@skip(browserName="firefox")'
+                }]
+            }
+        })).toBeTruthy()
+        expect(adapter.filter({
+            pickle: {
+                tags: []
+            }
+        })).toBeTruthy()
+    })
+
+    test('should skip using multiple properties', () => {
+        const adapter = adapterFactory({}, {}, CHROME)
+        expect(adapter.filter({
+            pickle: {
+                tags: [{
+                    name: '@skip(browserName="chrome";platformName="linux")'
+                }]
+            }
+        })).toBeFalsy()
+        expect(adapter.filter({
+            pickle: {
+                tags: [{
+                    name: '@skip(browserName="chrome";platformName="windows")'
+                }]
+            }
+        })).toBeTruthy()
+        expect(adapter.filter({
+            pickle: {
+                tags: [{
+                    name: '@skip(browserName="firefox")'
+                }]
+            }
+        })).toBeTruthy()
+    })
+
+    test('should skip with lists', () => {
+        const adapter = adapterFactory({}, {}, CHROME)
+        expect(adapter.filter({
+            pickle: {
+                tags: [{
+                    name: '@skip(browserName=["Chrome","Firefox"])'
+                }]
+            }
+        })).toBeFalsy()
+    })
+
+    test('should skip all specs if empty', () => {
+        const adapter = adapterFactory({}, {}, CHROME)
+        expect(adapter.filter({
+            pickle: {
+                tags: [{
+                    name: '@skip()'
+                }]
+            }
+        })).toBeFalsy()
+    })
+
+    test('should skip with regexp', () => {
+        const chromeAdapter = adapterFactory({}, {}, CHROME)
+        const ffAdapter = adapterFactory({}, {}, FIREFOX)
+        expect(chromeAdapter.filter({
+            pickle: {
+                tags: [{
+                    name: '@skip(browserName=/C.*e/)'
+                }]
+            }
+        })).toBeFalsy()
+        expect(ffAdapter.filter({
+            pickle: {
+                tags: [{
+                    name: '@skip(browserName=/c.*e/)'
+                }]
+            }
+        })).toBeTruthy()
+
+    })
+
+    test('should not cause failures if no pickles or tags are provided', () => {
+        const adapter = adapterFactory({}, {}, CHROME)
+        expect(adapter.filter({})).toBeTruthy()
+        expect(adapter.filter({ pickle: {} })).toBeTruthy()
+    })
+
 })
 
 afterEach(() => {
