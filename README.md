@@ -21,6 +21,12 @@
     <a href="https://gitter.im/webdriverio/webdriverio">
         <img alt="Gitter" src="https://badges.gitter.im/webdriverio/webdriverio.svg">
     </a>
+    <a href="https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
+        <img alt="Issue Resolution time" src="http://isitmaintained.com/badge/resolution/webdriverio/webdriverio.svg">
+    </a>
+    <a href="https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
+        <img alt="Open issues" src="http://isitmaintained.com/badge/open/webdriverio/webdriverio.svg">
+    </a>
 </p>
 
 ***
@@ -118,7 +124,7 @@ Show the world you're using webdriver.io → [![tested with webdriverio](https:/
 ```
 [![tested with webdriver.io](https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906)](https://webdriver.io/)
 ```
-###### HTML 
+###### HTML
 ```
 <a href="https://webdriver.io/">
     <img alt="WebdriverIO" src="https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906">
