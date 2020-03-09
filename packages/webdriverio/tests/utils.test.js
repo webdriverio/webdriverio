@@ -171,6 +171,13 @@ describe('utils', () => {
             expect(result[0]).toEqual('\uE011')
         })
 
+        it('should not convert unicode if devtools is used', () => {
+            const result = checkUnicode('Home', true)
+
+            expect(Array.isArray(result)).toBe(false)
+            expect(result).toEqual('Home')
+        })
+
         it('should return an array without unicode', () => {
             const result = checkUnicode('foo')
 
