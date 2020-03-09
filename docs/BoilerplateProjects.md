@@ -26,7 +26,6 @@ BDD tests with Cucumber, WebdriverIO and Docker Selenium.
   - CI integration samples
   - ESLint
   
-
 ### [davidnguyen179/storybook-wdio](https://github.com/davidnguyen179/storybook-wdio)
 
 The project creates the powerful component base boilerplate using Storybook, React, Typescript, Mocha, WebdriverIO and Selenium.
