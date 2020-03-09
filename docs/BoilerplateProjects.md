@@ -7,6 +7,25 @@ Over time, our community has developed several boilerplate projects that you can
 
 ## v5 Boilerplate Projects
 
+### [labs42io/web-automation](https://github.com/labs42io/web-automation)
+BDD tests with Cucumber, WebdriverIO and Docker Selenium.
+
+- Frameworks
+  - WebdriverIO (v5.x)
+  - docker-selenium (v3.x)
+  - TypeScript (v3.x)
+  - Cucumber
+- Features
+  - Dockerized selenium grid and browsers
+  - Configurable selenium and browser versions 
+  - Over 150 predefined snippets for [Cucumber Gherkin Syntax](https://cucumber.io/docs/gherkin/)
+  - Write custom snippets with TypeScript
+  - Visually debug tests with *VNC viewier*
+  - Detailed report generation
+  - Automatic screenshots attached for failing tests
+  - CI integration samples
+  - ESLint
+  
 ### [davidnguyen179/storybook-wdio](https://github.com/davidnguyen179/storybook-wdio)
 
 The project creates the powerful component base boilerplate using Storybook, React, Typescript, Mocha, WebdriverIO and Selenium.
