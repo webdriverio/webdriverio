@@ -6,7 +6,7 @@ import EventEmitter from 'events'
 import { setOptions } from 'expect-webdriverio'
 
 import logger from '@wdio/logger'
-import { initialiseServices, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
+import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 
 import BaseReporter from './reporter'
@@ -50,17 +50,9 @@ export default class Runner extends EventEmitter {
          */
         this.configParser.merge(args)
 
-        /**
-         * remove services that has nothing to do in worker
-         */
-        this.configParser.filterWorkerServices()
-
         this.config = this.configParser.getConfig()
-
         this.config.specFileRetryAttempts = (this.config.specFileRetries || 0) - (retries || 0)
-
         logger.setLogLevelsConfig(this.config.logLevels, this.config.logLevel)
-
         const isMultiremote = this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
 
         /**
@@ -76,14 +68,15 @@ export default class Runner extends EventEmitter {
         /**
          * initialise framework
          */
-        this.framework = initialisePlugin(this.config.framework, 'framework')
+        this.framework = initialisePlugin(this.config.framework, 'framework').default
         this.framework = await this.framework.init(cid, this.config, specs, caps, this.reporter)
         process.send({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this.framework.hasTests() } })
         if (!this.framework.hasTests()) {
             return this._shutdown(0)
         }
 
-        initialiseServices(this.config, caps).map(::this.configParser.addService)
+        initialiseWorkerService(this.config, caps, args.ignoredWorkerServices)
+            .map(::this.configParser.addService)
 
         /**
          * set options for `expect-webdriverio` assertion lib

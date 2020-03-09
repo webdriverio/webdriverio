@@ -58,8 +58,12 @@ const pluginMocks = {
 }
 
 export const initialisePlugin = jest.fn().mockImplementation(
-    (name, type) => pluginMocks[type][name])
-export const initialiseServices = jest.fn().mockReturnValue([])
+    (name, type) => ({ default: pluginMocks[type][name] }))
+export const initialiseWorkerService = jest.fn().mockReturnValue([])
+export const initialiseLauncherService = jest.fn().mockReturnValue({
+    launcherServices: [],
+    ignoredWorkerServices: []
+})
 export const isValidParameter = isValidParameterOrig
 export const commandCallStructure = commandCallStructureOrig
 export const isFunctionAsync = isFnAsync

@@ -183,7 +183,7 @@ export default class BaseReporter {
          * ```
          */
         if (typeof reporter === 'string') {
-            ReporterClass = initialisePlugin(reporter, 'reporter')
+            ReporterClass = initialisePlugin(reporter, 'reporter').default
             const customLogFile = options.setLogFile(this.cid, reporter)
             options.logFile = customLogFile || this.getLogFile(reporter)
             options.writeStream = this.getWriteStreamObject(reporter)

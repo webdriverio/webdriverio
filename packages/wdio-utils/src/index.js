@@ -1,5 +1,5 @@
 import initialisePlugin from './initialisePlugin'
-import initialiseServices from './initialiseServices'
+import { initialiseWorkerService, initialiseLauncherService } from './initialiseServices'
 import webdriverMonad from './monad'
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeRequire,
@@ -14,7 +14,8 @@ import { capabilitiesEnvironmentDetector, sessionEnvironmentDetector, devtoolsEn
 
 export {
     initialisePlugin,
-    initialiseServices,
+    initialiseLauncherService,
+    initialiseWorkerService,
     isFunctionAsync,
     webdriverMonad,
     commandCallStructure,

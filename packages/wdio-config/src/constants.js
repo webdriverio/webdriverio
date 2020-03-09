@@ -16,6 +16,7 @@ export const DEFAULT_CONFIGS = () => ({
     waitforTimeout: 5000,
     framework: 'mocha',
     reporters: [],
+    services: [],
     maxInstances: 100,
     maxInstancesPerCapability: 100,
     filesToWatch: [],
@@ -77,11 +78,4 @@ export const SUPPORTED_HOOKS = [
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
     'onReload', 'onPrepare', 'onWorkerStart', 'onComplete'
-]
-
-/**
- * these services should not be started in worker process
- */
-export const NON_WORKER_SERVICES = [
-    'chromedriver', 'selenium-standalone', 'appium', 'reportportal', 'firefox-profile'
 ]
