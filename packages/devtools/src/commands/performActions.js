@@ -1,5 +1,8 @@
 import USKeyboardLayout from 'puppeteer-core/lib/USKeyboardLayout'
 
+const KEY = 'key'
+const POINTER = 'pointer'
+
 const sleep = (time = 0) => new Promise(
     (resolve) => setTimeout(resolve, time))
 
@@ -27,7 +30,7 @@ export default async function performActions ({ actions }) {
                     continue
                 }
 
-                const cmd = singleAction.type.slice(3).toLowerCase()
+                const cmd = singleAction.type.slice(KEY.length).toLowerCase()
                 const keyboardFn = ::page.keyboard[cmd]
 
                 /**
@@ -66,7 +69,7 @@ export default async function performActions ({ actions }) {
                     continue
                 }
 
-                const cmd = singleAction.type.slice(7).toLowerCase()
+                const cmd = singleAction.type.slice(POINTER.length).toLowerCase()
                 const keyboardFn = ::page.mouse[cmd]
                 let { x, y, duration, button, origin } = singleAction
 
