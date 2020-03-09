@@ -33,7 +33,6 @@ export const WDIO_DEFAULTS = {
      * allows to specify automation protocol
      */
     automationProtocol: {
-        default: 'webdriver',
         type: (param) => {
             if (typeof param !== 'string') {
                 throw new Error('the "automationProtocol" option needs to from type strings')
@@ -422,3 +421,9 @@ export const APPIUM_CAPABILITES = [
     ...APPIUM_ANDROID_CAPABILITIES,
     ...APPIUM_IOS_CAPABILITIES
 ]
+export const DRIVER_DEFAULT_ENDPOINT = {
+    method: 'GET',
+    host: 'localhost',
+    port: 4444,
+    path: '/status'
+}

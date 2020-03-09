@@ -30,6 +30,7 @@ export default class DevToolsDriver {
         for (const page of pages) {
             const pageId = uuidv4()
             this.windows.set(pageId, page)
+            this.currentFrame = page
             this.currentWindowHandle = pageId
         }
 

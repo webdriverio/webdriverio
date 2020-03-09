@@ -52,13 +52,20 @@ describe('WebdriverIO module interface', () => {
 
     describe('remote function', () => {
         it('creates a webdriver session', async () => {
-            const browser = await remote({ capabilities: {}, logLevel: 'trace' })
+            const browser = await remote({
+                automationProtocol: 'webdriver',
+                capabilities: {},
+                logLevel: 'trace'
+            })
             expect(browser.sessionId).toBe('foobar-123')
             expect(logger.setLogLevelsConfig).toBeCalledWith(undefined, 'trace')
         })
 
         it('allows to propagate a modifier', async () => {
-            const browser = await remote({ capabilities: {} }, (client) => {
+            const browser = await remote({
+                automationProtocol: 'webdriver',
+                capabilities: {}
+            }, (client) => {
                 client.foobar = 'barfoo'
                 return client
             })
@@ -67,18 +74,29 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('should try to detect the backend', async () => {
-            await remote({ user: 'foo', key: 'bar', capabilities: {} })
+            await remote({
+                user: 'foo',
+                key: 'bar',
+                capabilities: {}
+            })
             expect(detectBackend).toBeCalled()
         })
 
         it('should set process.env.WDIO_LOG_PATH if outputDir is set in the options', async()=>{
             let testDirPath = './logs'
-            await remote({ outputDir: testDirPath, capabilities: { browserName: 'firefox' } })
+            await remote({
+                automationProtocol: 'webdriver',
+                outputDir: testDirPath,
+                capabilities: { browserName: 'firefox' }
+            })
             expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
         })
 
         it('should not wrap custom commands into fiber context if used as standalone', async () => {
-            const browser = await remote({ capabilities: {} })
+            const browser = await remote({
+                automationProtocol: 'webdriver',
+                capabilities: {}
+            })
             const customCommand = jest.fn()
             browser.addCommand('someCommand', customCommand)
             expect(runFnInFiberContext).toBeCalledTimes(0)
@@ -88,7 +106,11 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('should wrap custom commands into fiber context', async () => {
-            const browser = await remote({ capabilities: {}, runner: 'local' })
+            const browser = await remote({
+                automationProtocol: 'webdriver',
+                capabilities: {},
+                runner: 'local'
+            })
             const customCommand = jest.fn()
             browser.addCommand('someCommand', customCommand)
             expect(runFnInFiberContext).toBeCalledTimes(1)
@@ -98,17 +120,22 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('should attach custom locators to the strategies', async () => {
-            const browser = await remote({ capabilities: {} })
+            const browser = await remote({
+                automationProtocol: 'webdriver',
+                capabilities: {}
+            })
             const fakeFn = () => { return 'test'}
 
             browser.addLocatorStrategy('test-strat', fakeFn)
-
             expect(browser.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
         })
 
         it('throws error if trying to overwrite locator strategy', async () => {
             expect.assertions(1)
-            const browser = await remote({ capabilities: {} })
+            const browser = await remote({
+                automationProtocol: 'webdriver',
+                capabilities: {}
+            })
 
             try {
                 const fakeFn = () => { return 'test'}
@@ -120,7 +147,9 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('should properly create stub instance', async () => {
-            validateConfig.mockReturnValueOnce({ automationProtocol: './protocol-stub' })
+            validateConfig.mockReturnValueOnce({
+                automationProtocol: './protocol-stub'
+            })
             const browser = await remote({ capabilities: { browserName: 'chrome' } })
 
             expect(browser.sessionId).toBeUndefined()

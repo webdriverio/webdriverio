@@ -9,7 +9,7 @@
     "build-full": "lerna run --parallel build",
     "build": "npm run clean:build && lerna run --parallel compile && lerna run --parallel copy",
     "changelog": "node ./scripts/changelog.js",
-    "ci": "lerna bootstrap --no-ci && run-s build-full test:eslint test:typings test:coverage link test:smoke test:e2e",
+    "ci": "lerna bootstrap --no-ci && run-s build-full test:eslint test:typings test:coverage test:smoke",
     "clean": "run-p clean-full:* clean:*",
     "clean:build": "rimraf ./packages/*/build",
     "clean:pkglock": "rimraf ./packages/*/package-lock.json",
@@ -83,6 +83,7 @@
     "husky": "^3.0.7",
     "inquirer": "^7.0.0",
     "jest": "^24.9.0",
+    "jest-circus": "^25.1.0",
     "lerna": "^3.16.4",
     "lerna-changelog": "^1.0.0",
     "markdox": "^0.1.10",
@@ -110,14 +111,17 @@
       "<rootDir>/tests/",
       "<rootDir>/node_modules/"
     ],
+    "collectCoverageFrom": [
+      "packages/**/src/*.js"
+    ],
     "coverageDirectory": "./coverage/",
     "collectCoverage": true,
     "coverageThreshold": {
       "global": {
-        "branches": 96,
-        "functions": 99,
-        "lines": 99,
-        "statements": 99
+        "branches": 95,
+        "functions": 98,
+        "lines": 98,
+        "statements": 98
       }
     },
     "testEnvironment": "node",
@@ -129,7 +133,11 @@
       "packages/webdriverio/build",
       "packages/webdriver/build",
       "packages/wdio-cucumber-framework/tests/fixtures",
-      "packages/wdio-logger/build"
+      "packages/wdio-logger/build",
+      "packages/wdio-webdriver-mock-service",
+      "packages/wdio-lambda-runner",
+      "packages/wdio-smoke-test-reporter",
+      "packages/wdio-smoke-test-service"
     ]
   },
   "greenkeeper": {

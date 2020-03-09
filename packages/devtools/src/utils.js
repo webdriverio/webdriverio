@@ -1,3 +1,5 @@
+import fs from 'fs'
+import { execFileSync } from 'child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
@@ -230,4 +232,70 @@ export async function getPages (browser, retryInterval = 100) {
     }
 
     return pages
+}
+
+export function sort(installations, priorities) {
+    const defaultPriority = 10
+    return installations
+        // assign priorities
+        .map((inst) => {
+            for (const pair of priorities) {
+                if (pair.regex.test(inst)) {
+                    return { path: inst, weight: pair.weight }
+                }
+            }
+
+            return { path: inst, weight: defaultPriority }
+        })
+        // sort based on priorities
+        .sort((a, b) => (b.weight - a.weight))
+        // remove priority flag
+        .map(pair => pair.path)
+}
+
+/**
+ * helper utility to check if binary is accessible
+ * @param  {String}  file  path to browser binary
+ * @return {Boolean}       true if browser is accessible
+ */
+export function canAccess(file) {
+    try {
+        fs.accessSync(file)
+        return true
+    } catch (e) {
+        return false
+    }
+}
+
+/**
+ * helper utitlity to clone a list
+ * @param  {Any[]} arr  list of things
+ * @return {Any[]}      new list of same things
+ */
+export function uniq(arr) {
+    return Array.from(new Set(arr))
+}
+
+/**
+ * Look for edge executables by using the which command
+ */
+export function findByWhich (executables, priorities) {
+    const installations = []
+    executables.forEach((executable) => {
+        try {
+            const browserPath = execFileSync(
+                'which',
+                [executable],
+                { stdio: 'pipe' }
+            ).toString().split(/\r?\n/)[0]
+
+            if (canAccess(browserPath)) {
+                installations.push(browserPath)
+            }
+        } catch (e) {
+            // Not installed.
+        }
+    })
+
+    return sort(uniq(installations.filter(Boolean)), priorities)
 }

@@ -1,4 +1,5 @@
 import os from 'os'
+import path from 'path'
 import uuidv4 from 'uuid/v4'
 import logger from '@wdio/logger'
 import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
@@ -6,8 +7,26 @@ import { validateConfig } from '@wdio/config'
 
 import DevToolsDriver from './devtoolsdriver'
 import launch from './launcher'
-import { DEFAULTS } from './constants'
+import { DEFAULTS, SUPPORTED_BROWSER } from './constants'
 import { getPrototype } from './utils'
+
+const log = logger('devtools:puppeteer')
+
+/**
+ * log puppeteer messages
+ */
+const PREFIX = 'puppeteer:protocol'
+const puppeteerDebugPkg = path.resolve(
+    path.dirname(require.resolve('puppeteer-core')),
+    'node_modules',
+    'debug')
+/* istanbul ignore next */
+require(puppeteerDebugPkg).log = (msg) => {
+    if (msg.includes('puppeteer:protocol')) {
+        msg = msg.slice(msg.indexOf(PREFIX) + PREFIX.length).trim()
+    }
+    log.debug(msg)
+}
 
 export const sessionMap = new Map()
 
@@ -86,3 +105,5 @@ export default class DevTools {
         throw new Error('not yet implemented')
     }
 }
+
+export { SUPPORTED_BROWSER }

@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 /**
  * environment check to allow to use this package in a web context
  */

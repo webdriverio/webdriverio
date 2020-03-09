@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 export default function getLogger (component) {
     return ['error', 'warn', 'info', 'debug', 'trace', 'silent'].reduce((acc, cur) => {
         // check if the method is available on console (web doesn't have

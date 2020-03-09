@@ -10,7 +10,6 @@ export const DEFAULT_CONFIGS = () => ({
     logLevel: 'info',
     logLevels: {},
     excludeDriverLogs: [],
-    baseUrl: undefined,
     bail: 0,
     waitforInterval: 500,
     waitforTimeout: 5000,

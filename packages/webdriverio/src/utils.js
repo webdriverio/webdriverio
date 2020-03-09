@@ -1,4 +1,5 @@
 import fs from 'fs'
+import http from 'http'
 import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
@@ -6,8 +7,9 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
 import { URL } from 'url'
+import { SUPPORTED_BROWSER } from 'devtools'
 
-import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
+import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT } from './constants'
 import { findStrategy } from './utils/findStrategy'
 
 const browserCommands = require('./commands/browser')
@@ -414,3 +416,45 @@ export const enhanceElementsArray = (elements, parent, selector, foundWith = '$$
  * @param {string} automationProtocol
  */
 export const isStub = (automationProtocol) => automationProtocol === './protocol-stub'
+
+export const getAutomationProtocol = async (config) => {
+    /**
+     * if automation protocol is set by user prefer this
+     */
+    if (config.automationProtocol) {
+        return config.automationProtocol
+    }
+
+    /**
+     * run WebDriver if hostname or port is set
+     */
+    if (config.hostname || config.port || config.path || (config.user && config.key)) {
+        return 'webdriver'
+    }
+
+    /**
+     * only run DevTools protocol if capabilities match supported platforms
+     */
+    if (
+        config.capabilities &&
+        typeof config.capabilities.browserName === 'string' &&
+        !SUPPORTED_BROWSER.includes(config.capabilities.browserName.toLowerCase())
+    ) {
+        return 'webdriver'
+    }
+
+    /**
+     * make a head request to check if a driver is available
+     */
+    const driverEndpointHeaders = await new Promise((resolve) => {
+        const req = http.request(DRIVER_DEFAULT_ENDPOINT, resolve)
+        req.on('error', (error) => resolve({ error }))
+        req.end()
+    })
+
+    if (driverEndpointHeaders && parseInt(driverEndpointHeaders.statusCode, 10) === 200) {
+        return 'webdriver'
+    }
+
+    return 'devtools'
+}
