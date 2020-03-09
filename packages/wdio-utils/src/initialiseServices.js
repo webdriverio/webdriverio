@@ -17,9 +17,10 @@ function initialiseServices (services) {
          * allow custom services that are already initialised, e.g.
          *
          * ```
-         * services: [{
-         *     beforeTest: () => { ... }
-         * }]
+         * services: [
+         *     [{ beforeTest: () => { ... } }]
+         * ]
+         * ```
          */
         if (typeof serviceName === 'object') {
             log.debug('initialise custom initiated service')

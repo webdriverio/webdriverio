@@ -16,6 +16,7 @@ export const DEFAULT_CONFIGS = () => ({
     waitforTimeout: 5000,
     framework: 'mocha',
     reporters: [],
+    services: [],
     maxInstances: 100,
     maxInstancesPerCapability: 100,
     filesToWatch: [],
