@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "types": [
+      "webdriverio",
+      "@wdio/browserstack-service"
+    ]
+  }
+}
