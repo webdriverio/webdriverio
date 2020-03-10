@@ -124,6 +124,11 @@ To do so, just run:
 ```sh
 ./node_modules/.bin/wdio wdio.conf.js
 ```
+Windows:
+
+```sh
+."/node_modules/.bin/wdio" wdio.conf.js
+```
 
 Hurray! The test should pass, and you can start writing integration tests with WebdriverIO.
 
