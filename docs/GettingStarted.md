@@ -52,6 +52,11 @@ To do that, just run the configuration utility:
 ```sh
 ./node_modules/.bin/wdio config -y
 ```
+In Windows, you may have to escape the dot in ".bin" by running this instead:
+
+```sh
+."/node_modules/.bin/wdio" config -y
+```
 
 That's it! The configurator will install all required packages for you and create a config file called `wdio.conf.js`.
 
