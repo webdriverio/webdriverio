@@ -2,6 +2,7 @@
 id: autocompletion
 title: Autovervollständigung
 ---
+
 Wenn Sie bereits seit einiger Zeit als Entwickler arbeiten, mögen Sie sicherlich auch das Feature der Autovervollständigung. Diese ist oft verfügbar in den gängigen IDEs und Code Editoren. Dennoch kommt es oft vor das Pakete, die nicht in den üblichen Installationsordner installiert sind vom Indexing ignoriert werden und daher extra Konfigurationsänderungen benötigen.
 
 ![Autovervollständigung](/img/autocompletion/0.png)
