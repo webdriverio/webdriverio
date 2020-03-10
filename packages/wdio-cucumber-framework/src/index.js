@@ -23,12 +23,11 @@ class CucumberAdapter {
         this.cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
         this._hasTests = true
         this.cucumberFeaturesWithLineNumbers = this.config.cucumberFeaturesWithLineNumbers || []
+        this.eventBroadcaster = new EventEmitter()
     }
 
     async init () {
         try {
-            this.eventBroadcaster = new EventEmitter()
-
             const reporterOptions = {
                 capabilities: this.capabilities,
                 ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
@@ -44,9 +43,14 @@ class CucumberAdapter {
                 tagExpression: this.cucumberOpts.tagExpression
             })
 
+            const eventBroadcasterProxyFilter = new EventEmitter()
+            this.eventBroadcaster.eventNames()
+                .forEach(n => eventBroadcasterProxyFilter.addListener(n, (...args) =>
+                    (n !== 'pickle-accepted' || this.filter(args[0])) && this.eventBroadcaster.emit(n, ...args)))
+
             this.testCases = (await Cucumber.getTestCasesFromFilesystem({
                 cwd: this.cwd,
-                eventBroadcaster: this.eventBroadcaster,
+                eventBroadcaster: eventBroadcasterProxyFilter,
                 featurePaths: this.specs,
                 order: this.cucumberOpts.order,
                 pickleFilter

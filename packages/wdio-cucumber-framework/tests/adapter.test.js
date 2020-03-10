@@ -410,6 +410,25 @@ describe('skip filters', () => {
         expect(adapter.filter({ pickle: {} })).toBeTruthy()
     })
 
+    test('should also filter triggered events', async () => {
+        const events = {
+            'pickle-accepted': [],
+            'other-event': []
+        }
+        const adapter = adapterFactory({ ignoreUndefinedDefinitions: true })
+        Object.keys(events).forEach(n => adapter.eventBroadcaster.addListener(n, param => events[n].push(param)))
+        Cucumber.getTestCasesFromFilesystem.mockImplementation(({ eventBroadcaster }) => {
+            eventBroadcaster.emit('pickle-accepted', { pickle: { name: 'skipped', tags: [{ name: '@skip()' }] } })
+            eventBroadcaster.emit('pickle-accepted', { pickle: { name: 'should reach', tags: [] } })
+            eventBroadcaster.emit('other-event', {})
+            return []
+        })
+        await adapter.init()
+        expect(events['pickle-accepted'].length).toBe(1)
+        expect(events['other-event'].length).toBe(1)
+        expect(events['pickle-accepted'][0].pickle.name).toBe('should reach')
+    })
+
 })
 
 afterEach(() => {
