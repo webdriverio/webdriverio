@@ -2,6 +2,7 @@
 id: boilerplate
 title: Beispiel Projekte
 ---
+
 Im Laufe der Zeit hat unsere Community eine Reihe von Beispiel-Projekten entwickelt, die als Inspiration zur Einrichtung Ihrer eigenen Test-Suite genutzt werden können.
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
