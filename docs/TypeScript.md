@@ -7,27 +7,34 @@ Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.
 
 The minimum TypeScript version is 3.7.3.
 
-```js
-// wdio.conf.js
-before: function() {
-    // not needed for Cucumber
-    require('ts-node').register({ files: true })
-},
-```
+## Framework Setup
 
-Similarly for Mocha:
+The following framework configurations need to be applied to set up TypeScript properly with WebdriverIO.
+
+### Mocha
 
 ```js
 // wdio.conf.js
 mochaOpts: {
     ui: 'bdd',
-    require: [
+    require: 'ts-node/register',
+    compilers: [
+        // optional
         'tsconfig-paths/register'
     ]
 },
 ```
 
-And Cucumber:
+### Jasmine
+
+```js
+// wdio.conf.js
+jasmineNodeOpts: {
+    requires: ['ts-node/register']
+},
+```
+
+### Cucumber
 
 ```js
 // wdio.conf.js
@@ -71,7 +78,7 @@ For sync mode (`@wdio/sync`), `webdriverio` types must be replaced with `@wdio/s
 Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
 `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`.
 
-### Typed Configuration
+## Typed Configuration
 
 You can even use a typed configuration if you desire.
 All you have to do is create a plain JS config file that registers TypeScript and requires the typed config:
@@ -91,7 +98,7 @@ const config: WebdriverIO.Config = {
 export { config }
 ```
 
-### Framework types
+## Framework types
 
 Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property.
 
@@ -123,42 +130,42 @@ Instead of having all type definitions globally available, you can also `import`
 import { Suite, Test } from '@wdio/mocha-framework'
 ```
 
-### Adding custom commands
+## Adding custom commands
 
 With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [custom commands](CustomCommands.md) like this:
 
 1. Create types definition file (e.g., `./types/wdio.d.ts`)
 2. Specify path to types in `tsconfig.json`
 
-```json
-{
-    "compilerOptions": {
-        "typeRoots": ["./types"]
+    ```json
+    {
+        "compilerOptions": {
+            "typeRoots": ["./types"]
+        }
     }
-}
-```
+    ```
 
 3. Add defintions for your commands according to your execution mode.
 
-**Sync mode**
+    **Sync mode**
 
-```typescript
-declare module WebdriverIO {
-    // adding command to `browser`
-    interface Browser {
-        browserCustomCommand: (arg) => void
+    ```typescript
+    declare module WebdriverIO {
+        // adding command to `browser`
+        interface Browser {
+            browserCustomCommand: (arg) => void
+        }
     }
-}
-```
+    ```
 
-**Async mode**
+    **Async mode**
 
-```typescript
-declare module WebdriverIO {
-    // adding command to `$()`
-    interface Element {
-        // don't forget to wrap return values with Promise
-        elementCustomCommand: (arg) => Promise<number>
+    ```typescript
+    declare module WebdriverIO {
+        // adding command to `$()`
+        interface Element {
+            // don't forget to wrap return values with Promise
+            elementCustomCommand: (arg) => Promise<number>
+        }
     }
-}
-```
+    ```
