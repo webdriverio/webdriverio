@@ -2,6 +2,7 @@
 id: api
 title: API Dokumentation
 ---
+
 Willkommen zur WebdriverIO API Dokumentation. Diese Seiten enthalten Referenzmaterialien für alle implementierten WebDriver Protokoll Befehle. WebdriverIO hat ebenfalls alle [JSONWire Protokoll](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) Befehle implementiert und unterstützt auch besondere Befehle speziell für [Appium](http://appium.io) oder andere Umgebungen wie Chrome oder Sauce Labs.
 
 > **Hinweis:** Dies ist die Dokumentation für die neueste Version (v5.0.0) von WebdriverIO. Wenn Sie noch v4 oder ältere Versionen verwenden, nutzen Sie bitte die alte Dokumentationsseite auf [v4.webdriver.io](http://v4.webdriver.io)!
