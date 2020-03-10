@@ -2,6 +2,7 @@
 id: babel
 title: Babel-Setup
 ---
+
 Um Ihre Tests mit all den letzten JavaScript Funktionen schreiben zu können, verwenden Sie [Babel](https://babeljs.io/) als Compiler. Dafür installieren Sie zuerst alle benötigten Babel Module:
 
     npm install --save-dev @babel/cli @babel/preset-env @babel/register
