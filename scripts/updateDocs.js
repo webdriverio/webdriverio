@@ -23,7 +23,7 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
     const { stdout } = shell.exec('git rev-parse --abbrev-ref HEAD', { silent: true })
     const currentBranch = stdout.trim()
 
-    if (currentBranch === 'master') {
+    if (currentBranch === 'master' || currentBranch.startsWith('v')) {
         return console.log('No documentation update until v6 is released')
     }
 
