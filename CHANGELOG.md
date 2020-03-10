@@ -15,6 +15,42 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.19.0 (2020-03-10)
+
+#### :rocket: New Feature
+* `wdio-protocols`, `webdriver`
+  * [#5034](https://github.com/webdriverio/webdriverio/pull/5034) add new Appium commands ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#5026](https://github.com/webdriverio/webdriverio/pull/5026) Fix cli answer validation ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#5029](https://github.com/webdriverio/webdriverio/pull/5029) Remove appium bug workaround ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-cli`
+  * [#5016](https://github.com/webdriverio/webdriverio/pull/5016) wdio-cli: Add Experitest Cloud to configuration utility ([@ArielExperitest](https://github.com/ArielExperitest))
+
+#### :memo: Documentation
+* Other
+  * [#5080](https://github.com/webdriverio/webdriverio/pull/5080) Fix docs for TS setup with Mocha ([@christian-bromann](https://github.com/christian-bromann))
+  * [#5078](https://github.com/webdriverio/webdriverio/pull/5078) docs: add reference to boilerplate ([@dimadeveatii](https://github.com/dimadeveatii))
+  * [#5065](https://github.com/webdriverio/webdriverio/pull/5065) Fix typo on conf name ([@webOS101](https://github.com/webOS101))
+  * [#5046](https://github.com/webdriverio/webdriverio/pull/5046) Fix documentation formatter ([@christian-bromann](https://github.com/christian-bromann))
+  * [#5031](https://github.com/webdriverio/webdriverio/pull/5031) adds boilerplate with appium And cucumber on docs ([@Schveitzer](https://github.com/Schveitzer))
+* `wdio-browserstack-service`
+  * [#5067](https://github.com/webdriverio/webdriverio/pull/5067) browserstack-service: add typings ([@ablok](https://github.com/ablok))
+
+#### Committers: 7
+- Alan Schveitzer ([@Schveitzer](https://github.com/Schveitzer))
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dumitru ([@dimadeveatii](https://github.com/dimadeveatii))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Roy Sutton ([@webOS101](https://github.com/webOS101))
+- [@ArielExperitest](https://github.com/ArielExperitest)
+
+
 ## v5.18.7 (2020-02-14)
 
 #### :bug: Bug Fix
