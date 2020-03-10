@@ -108,7 +108,7 @@ Type: `Number`<br>
 Default: *2*
 
 ### transformRequest
-Function intercepting [HTTP request options](https://github.com/request/request#requestoptions-callback) before a WebDriver request is made
+Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made
 
 Type: `(RequestOptions) => RequestOptions`<br>
 Default: *none*
