@@ -10,6 +10,9 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 /// <reference types="node"/>
 
+declare type HTTPRequestOptions = import('got').GotOptions<unknown>;
+declare type HTTPResponse = import('got').Response<unknown>;
+
 declare namespace WebDriver {
     type PageLoadingStrategy = 'none' | 'eager' | 'normal';
     type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual';
@@ -371,6 +374,8 @@ declare namespace WebDriver {
         headers?: {
             [name: string]: string;
         };
+        transformRequest?: (requestOptions: HTTPRequestOptions) => HTTPRequestOptions;
+        transformResponse?: (response: HTTPResponse, requestOptions: HTTPRequestOptions) => HTTPResponse;
     }
 
     interface AttachSessionOptions extends Options {

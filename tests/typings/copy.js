@@ -23,6 +23,9 @@ const packages = {
     'browserstack-local': 'packages/wdio-browserstack-service/node_modules/browserstack-local',
     '@wdio/browserstack-service': 'packages/wdio-browserstack-service',
 
+    '@types/got': 'packages/webdriver/node_modules/@types/got',
+    '@types/tough-cookie': 'packages/webdriver/node_modules/@types/tough-cookie',
+
     '@types/mocha': 'packages/wdio-mocha-framework/node_modules/@types/mocha',
     '@wdio/mocha-framework': 'packages/wdio-mocha-framework',
 
