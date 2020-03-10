@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.20.0 (2020-03-10)
+
+#### :rocket: New Feature
+* `wdio-cucumber-framework`
+  * [#5076](https://github.com/webdriverio/webdriverio/pull/5076) feature(cucumber-framework): add skip tags support ([@alfonso-presa](https://github.com/alfonso-presa))
+
+#### Committers: 1
+- Alfonso Presa ([@alfonso-presa](https://github.com/alfonso-presa))
+
+
 ## v5.19.0 (2020-03-10)
 
 #### :rocket: New Feature
