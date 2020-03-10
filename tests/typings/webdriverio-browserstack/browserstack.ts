@@ -1,4 +1,4 @@
-const config: WebdriverIO.Config = {
+const config: WebdriverIOAsync.Config = {
     browserstackLocal: true,
     browserstackLocalForcedStop: false,
     browserstackOpts: {

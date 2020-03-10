@@ -1,10 +1,10 @@
 import { Options } from "browserstack-local";
 
-declare module "webdriverio" {
+declare module WebdriverIOAsync {
     interface Config extends BrowserstackConfig {}
 }
 
-declare module "@wdio/sync" {
+declare module WebdriverIO {
     interface Config extends BrowserstackConfig {}
 }
 
