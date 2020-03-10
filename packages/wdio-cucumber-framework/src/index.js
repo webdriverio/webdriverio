@@ -23,12 +23,11 @@ class CucumberAdapter {
         this.cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
         this._hasTests = true
         this.cucumberFeaturesWithLineNumbers = this.config.cucumberFeaturesWithLineNumbers || []
+        this.eventBroadcaster = new EventEmitter()
     }
 
     async init () {
         try {
-            this.eventBroadcaster = new EventEmitter()
-
             const reporterOptions = {
                 capabilities: this.capabilities,
                 ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
@@ -44,13 +43,18 @@ class CucumberAdapter {
                 tagExpression: this.cucumberOpts.tagExpression
             })
 
-            this.testCases = await Cucumber.getTestCasesFromFilesystem({
+            const eventBroadcasterProxyFilter = new EventEmitter()
+            this.eventBroadcaster.eventNames()
+                .forEach(n => eventBroadcasterProxyFilter.addListener(n, (...args) =>
+                    (n !== 'pickle-accepted' || this.filter(args[0])) && this.eventBroadcaster.emit(n, ...args)))
+
+            this.testCases = (await Cucumber.getTestCasesFromFilesystem({
                 cwd: this.cwd,
-                eventBroadcaster: this.eventBroadcaster,
+                eventBroadcaster: eventBroadcasterProxyFilter,
                 featurePaths: this.specs,
                 order: this.cucumberOpts.order,
                 pickleFilter
-            })
+            })).filter(testCase => this.filter(testCase))
             this._hasTests = this.testCases.length > 0
         } catch (runtimeError) {
             await executeHooksWithArgs(this.config.after, [runtimeError, this.capabilities, this.specs])
@@ -130,6 +134,40 @@ class CucumberAdapter {
         }
 
         return result
+    }
+
+    /**
+     * Returns true/false if testCase should be kept for current capabilities
+     * according to tag in the syntax  @skip([conditions])
+     * For example "@skip(browserName=firefox)" or "@skip(browserName=chrome,platform=/.+n?x/)"
+     * @param {*} testCase
+     */
+    filter(testCase) {
+        const skipTag = /^@skip\((.*)\)$/
+
+        const match = (value, expr) => {
+            if(Array.isArray(expr)) {
+                return expr.indexOf(value) >= 0
+            } else if(expr instanceof RegExp) {
+                return expr.test(value)
+            }
+            return (expr && ('' + expr).toLowerCase()) === (value && ('' + value).toLowerCase())
+        }
+
+        const parse = (skipExpr) =>
+            skipExpr.split(';').reduce((acc, splitItem) => {
+                const pos = splitItem.indexOf('=')
+                if(pos > 0) {
+                    acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
+                }
+                return acc
+            }, {})
+
+        return !(testCase.pickle && testCase.pickle.tags && testCase.pickle.tags
+            .map(p => p.name.match(skipTag))
+            .filter(m => m).map(m => parse(m[1]))
+            .find(filter => Object.keys(filter)
+                .every(key => match(this.capabilities[key], filter[key]))))
     }
 
     /**
