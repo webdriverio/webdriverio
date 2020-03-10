@@ -82,6 +82,8 @@ Create a new file in that folder (we'll call it `basic.js`):
 touch ./test/specs/basic.js
 ```
 
+On Windows, `touch` will not work so you can simply go to the folder and create a plain text file and name is as 'basic.js'
+
 Open that file, and write the following code in it:
 
 ```js
