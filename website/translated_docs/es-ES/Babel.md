@@ -2,6 +2,7 @@
 id: babel
 title: Configuración de Babel
 ---
+
 Para escribir pruebas usando las funciones JavaScript de la próxima generación puedes añadir [Babel](https://babeljs.io/) como compilador para tus archivos de prueba. Primero debe instalar las dependencias necesarias de Babel:
 
     npm install --save-dev @babel/cli @babel/preset-env @babel/register
