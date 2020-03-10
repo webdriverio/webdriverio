@@ -70,6 +70,12 @@ Create the test folder like this:
 mkdir -p ./test/specs
 ```
 
+Windows:
+
+```sh
+mkdir .\test\specs
+```
+
 Create a new file in that folder (we'll call it `basic.js`):
 
 ```sh
