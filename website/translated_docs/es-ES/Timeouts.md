@@ -2,6 +2,7 @@
 id: timeouts
 title: Timeouts
 ---
+
 Each command in WebdriverIO is an asynchronous operation where a request is fired to the Selenium server (or a cloud service like [Sauce Labs](https://saucelabs.com/)), and its response contains the result once the action has completed or failed. Therefore time is a crucial component in the whole testing process. When a certain action depends on the state of a different action, you need to make sure that they get executed in the right order. Timeouts play an important role when dealing with these issues.
 
 ## Selenium timeouts
