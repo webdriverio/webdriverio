@@ -2,6 +2,7 @@
 id: cloudservices
 title: Cloud-Dienste
 ---
+
 Die Verwendung von Cloud Diensten, wie Sauce Labs, Browserstack oder Testingbot, ist mit WebdriverIO ziemlich einfach. Alles, was Sie tun müssen, ist `user` und `key` Informationen in den Optionen festlegen, die von dem Cloud-Anbieter bereitgestellt wird. Optional können sie auch Ihren Tests mit Cloud spezifischen Capabilities parametrisieren. Wenn Sie einen Cloud Dienst nur in einer CI Umgebung nutzten wollen, können Sie die `CI` Umgebungsvariable verwenden, um die Konfiguration zu modifizieren.
 
 ```js
