@@ -43,6 +43,7 @@ declare namespace WebdriverIO {
 }
 
 declare var browser: WebdriverIO.BrowserObject;
+declare var driver: WebdriverIO.BrowserObject;
 
 /**
  * find a single element on the page.
