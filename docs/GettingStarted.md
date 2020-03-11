@@ -52,6 +52,11 @@ To do that, just run the configuration utility:
 ```sh
 ./node_modules/.bin/wdio config -y
 ```
+In Windows, you may have to escape the dot in ".bin" by running this instead:
+
+```sh
+."/node_modules/.bin/wdio" config -y
+```
 
 That's it! The configurator will install all required packages for you and create a config file called `wdio.conf.js`.
 
@@ -65,11 +70,19 @@ Create the test folder like this:
 mkdir -p ./test/specs
 ```
 
+Windows:
+
+```sh
+mkdir .\test\specs
+```
+
 Create a new file in that folder (we'll call it `basic.js`):
 
 ```sh
 touch ./test/specs/basic.js
 ```
+
+On Windows, `touch` will not work so you can simply go to the folder and create a plain text file and name is as 'basic.js'
 
 Open that file, and write the following code in it:
 
@@ -110,6 +123,11 @@ To do so, just run:
 
 ```sh
 ./node_modules/.bin/wdio wdio.conf.js
+```
+Windows:
+
+```sh
+."/node_modules/.bin/wdio" wdio.conf.js
 ```
 
 Hurray! The test should pass, and you can start writing integration tests with WebdriverIO.
