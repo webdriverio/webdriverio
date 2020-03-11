@@ -2,6 +2,7 @@
 id: timeouts
 title: Timeouts
 ---
+
 Jeder Befehl in WebdriverIO ist ein asynchroner Vorgang, wo eine Anfrage an einem WebDriver-Server (oder einen Cloud-Dienst wie [Sauce Labs](https://saucelabs.com/)) geschickt wird und dessen Antwort das Ergebnis enthält, sobald die Aktion wie z.B. ein klick abgeschlossen oder fehlgeschlagen ist. Daher ist Zeit eine entscheidende Komponente im gesamten Test Prozess. Wenn eine bestimmte Aktion vom Ergebnis einer anderen Aktion abhängt, müssen Sie sicherstellen, dass diese in der richtigen Reihenfolge ausgeführt werden. Timeouts spielen eine wichtige Rolle beim Umgang mit diesen Fragen.
 
 ## WebDriver Timeouts
