@@ -2,6 +2,7 @@
 id: watcher
 title: Test Dateien Überwachen
 ---
+
 Mit dem WDIO Testrunner können Sie Dateien beobachten lassen, während Sie an ihnen arbeiten. Sie werden dann automatisch ausgeführt, wenn Sie entweder etwas in Ihrer App oder in Ihren Testdateien ändern. Durch das Hinzufügen eines `--watch` Flag beim Aufruf des `wdio` Befehls, wird der Tester nach dem Ausführen aller Tests auf Dateiänderungen warten, z.B.:
 
 ```sh
