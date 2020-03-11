@@ -179,6 +179,11 @@ declare namespace WebdriverIO {
         reverse?: boolean,
     }
 
+    type DataMatcher = {
+        name: string,
+        args: Array<string>
+    }
+
     type ClickOptions = {
         button?: number | string,
         x?: number,

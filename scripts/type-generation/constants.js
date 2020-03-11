@@ -1,7 +1,7 @@
 const CUSTOM_INTERFACES = [
     'Buffer', 'Function', 'RegExp', 'WaitForOptions', 'ReactSelectorOptions',
     'MoveToOptions', 'DragAndDropOptions', 'NewWindowOptions', 'Element',
-    'ElementArray', 'ClickOptions', 'AddValueOptions'
+    'ElementArray', 'ClickOptions', 'AddValueOptions', 'DataMatcher'
 ]
 
 module.exports = {

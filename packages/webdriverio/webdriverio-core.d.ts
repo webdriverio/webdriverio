@@ -184,6 +184,11 @@ declare namespace WebdriverIO {
         reverse?: boolean,
     }
 
+    type DataMatcher = {
+        name: string,
+        args: Array<string>
+    }
+
     type ClickOptions = {
         button?: number | string,
         x?: number,
@@ -229,7 +234,7 @@ declare namespace WebdriverIO {
          * it from an element scope is that the driver will look within the children of that element.
          */
         $$(
-            selector: string | Function
+            selector: string | Function | DataMatcher
         ): Promise<ElementArray>;
 
         /**
@@ -240,7 +245,7 @@ declare namespace WebdriverIO {
          * to an element. The command will then transform the reference to an extended WebdriverIO element.
          */
         $(
-            selector: string | Function
+            selector: string | Function | DataMatcher
         ): Promise<Element>;
 
         /**
