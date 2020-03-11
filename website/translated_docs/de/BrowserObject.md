@@ -2,6 +2,7 @@
 id: browserobject
 title: Das Browser-Objekt
 ---
+
 Wenn Sie den WDIO Testrunner verwenden, können Sie über die globalen `browser` oder `driver` Variablen direkt auf die WebDriver Instanz zugreifen. Die Session wird vom Testrunner initialisiert und die Instanz im globalen Scope registriert. Das Beenden der Session wird ebenfalls vom Testrunner übernommen. Damit brauchen Sie sich nicht um jegweiliges Session Management kümmern.
 
 Neben allen Befehlen, die in der [api](API.md) dokumentiert sind, bietet das Browser-Objekt einige weitere Informationen, die Sie während Ihres Testlaufs interessieren könnten:
