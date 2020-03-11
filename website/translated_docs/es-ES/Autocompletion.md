@@ -2,6 +2,7 @@
 id: autocompletar
 title: Autocompletar
 ---
+
 Si tienes experiencia escribiendo código, probablemente te guste la función de autocompletado. La función de autocompletado está disponible fuera de la caja en muchos editores de código. Sin embargo, si se requiere la función de autocompletado para paquetes que no estén instalados en las ubicaciones habituales o que estén excluidos de la indexación por alguna razón, también se podrían añadir mediante cambios a la configuración.
 
 ![Autocompletado](/img/autocompletion/0.png)
