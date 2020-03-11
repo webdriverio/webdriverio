@@ -2,6 +2,7 @@
 id: customcommands
 title: Benutzerdefinierte Befehle
 ---
+
 Sie können `addCommand` verwenden, wenn Sie die Browserinstanz mit Ihren eigenen Befehlen erweitern möchten. Die Befehle können dabei synchron or asynchron geschrieben abhängig davon in welchem Modus Sie WebdriverIO verwenden. Das folgende Beispiel zeigt, wie ein neuer Befehl hinzugefügt werden kann, der die aktuelle URL und den Titel als Ergebnis zurückliefert:
 
 ```js
