@@ -2,6 +2,7 @@
 id: configurationfile
 title: Testrunner Konfiguration
 ---
+
 Die Konfigurationsdatei enthält alle notwendigen Informationen, um Ihre Testsuite auszuführen. Es ist ein einfaches Node.js Modul, welches ein JSON Objekt exportiert. Hier ist eine Beispielkonfiguration mit allen unterstützten Eigenschaften und zusätzlichen Informationen:
 
 ```js
