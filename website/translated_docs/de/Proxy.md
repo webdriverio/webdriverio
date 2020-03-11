@@ -2,6 +2,7 @@
 id: proxy
 title: Proxy Setup
 ---
+
 Sie können zwei verschiedene Arten von Anfragen über einen Proxy tunneln:
 
 - Verbindungen zwischen Ihrem Testskript und dem Browser-Treiber (oder WebDriver-Server)
