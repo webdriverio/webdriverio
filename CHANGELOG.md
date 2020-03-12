@@ -15,7 +15,14 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
-## v5.20.2 
+## v5.20.2
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * Revert changes from [#5026](https://github.com/webdriverio/webdriverio/pull/5026) ([@bromann](https://github.com/bromann))
+
+#### Committers: 4
+- Christian Bromann ([@bromann](https://github.com/bromann))
 
 
 ## v5.20.1 (2020-03-12)
