@@ -2,6 +2,7 @@
 id: organizingsuites
 title: Organizing Test Suite
 ---
+
 While your project is growing you will inevitably add more and more integration tests. This will increase your build time and will also slow down your productivity. To prevent this you should start to run your tests in parallel. You might have already recognised that WebdriverIO creates for each spec (or feature file in cucumber) a single WebDriver session. In general, you should try to test a single feature in your app in one spec file. Try to not have too many or too few tests in one file. However, there is no golden rule about that.
 
 Once you get more and more spec files you should start running them concurrently. To do so you can adjust the `maxInstances` property in your config file. WebdriverIO allows you to run your tests with maximum concurrency meaning that no matter how many files and tests you have, they could run all in parallel. Though there are certain limits (computer CPU, concurrency restrictions).
