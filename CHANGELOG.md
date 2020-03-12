@@ -15,6 +15,27 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.20.1 (2020-03-12)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#5089](https://github.com/webdriverio/webdriverio/pull/5089) webdriverIO - Experitest Cli - Simplify the flow ([@ArielExperitest](https://github.com/ArielExperitest))
+
+#### :memo: Documentation
+* Other
+  * [#5084](https://github.com/webdriverio/webdriverio/pull/5084) Update GettingStarted.md ([@p2635](https://github.com/p2635))
+* `wdio-sync`, `webdriverio`
+  * [#5064](https://github.com/webdriverio/webdriverio/pull/5064) Fix selector typing ([@Kignuf](https://github.com/Kignuf))
+* `wdio-browserstack-service`
+  * [#5091](https://github.com/webdriverio/webdriverio/pull/5091) Fix v5 tests for browserstack typings ([@ablok](https://github.com/ablok))
+
+#### Committers: 4
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Kevin Roulleau ([@Kignuf](https://github.com/Kignuf))
+- Philip Wong ([@p2635](https://github.com/p2635))
+- [@ArielExperitest](https://github.com/ArielExperitest)
+
+
 ## v5.20.0 (2020-03-10)
 
 #### :rocket: New Feature
