@@ -2,6 +2,7 @@
 id: configurationfile
 title: Testrunner Configuration
 ---
+
 The configuration file contains all necessary information to run your test suite. It is a node module that exports a JSON. Here is an example configuration with all supported properties and additional information:
 
 ```js
