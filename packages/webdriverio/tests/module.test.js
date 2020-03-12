@@ -10,7 +10,8 @@ jest.mock('webdriver', () => {
         sessionId: 'foobar-123',
         addCommand: jest.fn(),
         overwriteCommand: jest.fn(),
-        strategies: new Map()
+        strategies: new Map(),
+        isWebDriver: true
     }
     const newSessionMock = jest.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
@@ -32,10 +33,33 @@ jest.mock('webdriver', () => {
         default: module
     }
 })
+jest.mock('devtools', () => {
+    const client = { sessionId: 'foobar-123', isDevtools: true }
+    const newSessionMock = jest.fn()
+    newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
+    newSessionMock.mockImplementation((params, cb) => {
+        let result = cb(client, params)
+        if (params.test_multiremote) {
+            result.options = { logLevel: 'error' }
+        }
+        return result
+    })
+
+    const module = {
+        newSession: newSessionMock,
+        attachToSession: jest.fn().mockReturnValue(client),
+        SUPPORTED_BROWSER: ['chrome']
+    }
+
+    return {
+        ...module,
+        default: module
+    }
+})
 
 jest.mock('@wdio/config', () => {
     const validateConfigMock = {
-        validateConfig: jest.fn().mockReturnValue({ automationProtocol: 'webdriver' }),
+        validateConfig: jest.fn((_, args) => args),
         detectBackend: jest.fn(),
     }
     return validateConfigMock
@@ -44,6 +68,10 @@ jest.mock('@wdio/config', () => {
 const WebDriver = require('webdriver').default
 
 describe('WebdriverIO module interface', () => {
+    beforeEach(() => {
+        WebDriver.newSession.mockClear()
+    })
+
     it('should provide remote and multiremote access', () => {
         expect(typeof remote).toBe('function')
         expect(typeof attach).toBe('function')
@@ -80,6 +108,16 @@ describe('WebdriverIO module interface', () => {
                 capabilities: {}
             })
             expect(detectBackend).toBeCalled()
+        })
+
+        it('should properly detect automation protocol', async () => {
+            const devtoolsBrowser = await remote({ capabilities: { browserName: 'chrome' } })
+            expect(devtoolsBrowser.isDevtools).toBe(true)
+            const webdriverBrowser = await remote({
+                path: '/',
+                capabilities: { browserName: 'chrome' }
+            })
+            expect(webdriverBrowser.isWebDriver).toBe(true)
         })
 
         it('should set process.env.WDIO_LOG_PATH if outputDir is set in the options', async()=>{
@@ -176,8 +214,16 @@ describe('WebdriverIO module interface', () => {
     describe('multiremote', () => {
         it('register multiple clients', async () => {
             await multiremote({
-                browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
-                browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
+                browserA: {
+                    test_multiremote: true,
+                    automationProtocol: 'webdriver',
+                    capabilities: { browserName: 'chrome' }
+                },
+                browserB: {
+                    test_multiremote: true,
+                    automationProtocol: 'webdriver',
+                    capabilities: { browserName: 'firefox' }
+                }
             })
             expect(WebDriver.attachToSession).toBeCalled()
             expect(WebDriver.newSession.mock.calls).toHaveLength(2)

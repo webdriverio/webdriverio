@@ -131,7 +131,7 @@ export function detectBackend (options = {}, isRDC = false) {
  * @param  {Object} options   option to check against
  * @return {Object}           validated config enriched with default values
  */
-export function validateConfig (defaults, options) {
+export function validateConfig (defaults, options, keysToKeep = []) {
     const params = {}
 
     for (const [name, expectedOption] of Object.entries(defaults)) {
@@ -164,6 +164,15 @@ export function validateConfig (defaults, options) {
             }
 
             params[name] = options[name]
+        }
+    }
+
+    for (const [name, option] of Object.entries(options)) {
+        /**
+         * keep keys from source object if desired
+         */
+        if (keysToKeep.includes(name)) {
+            params[name] = option
         }
     }
 
