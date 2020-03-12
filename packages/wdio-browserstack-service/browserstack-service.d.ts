@@ -1,5 +1,3 @@
-import { Options } from "browserstack-local";
-
 declare module "webdriverio" {
     interface ServiceOption extends BrowserstackConfig {}
 }
@@ -11,5 +9,6 @@ declare module "@wdio/sync" {
 interface BrowserstackConfig {
     browserstackLocal?: boolean;
     forcedStop?: boolean;
-    opts?: Partial<Options>
+    // https://stackoverflow.com/questions/39040108/import-class-in-definition-file-d-ts
+    opts?: Partial<import('browserstack-local').Options>
 }
