@@ -2,6 +2,7 @@
 id: babel
 title: Настройка Babel
 ---
+
 Чтобы писать тесты, используя функции JavaScript следующего поколения, вы можете добавить [Babel](https://babeljs.io/) в качестве компилятора для ваших тестовых файлов. Для этого во-первых установите необходимые зависимости Babel:
 
     npm install --save-dev @babel/cli @babel/preset-env @babel/register
