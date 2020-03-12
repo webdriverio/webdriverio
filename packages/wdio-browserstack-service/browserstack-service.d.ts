@@ -1,9 +1,3 @@
-import { Options } from "browserstack-local";
-
-declare module WebdriverIOAsync {
-    interface Config extends BrowserstackConfig {}
-}
-
 declare module WebdriverIO {
     interface Config extends BrowserstackConfig {}
 }
@@ -11,5 +5,6 @@ declare module WebdriverIO {
 interface BrowserstackConfig {
     browserstackLocal?: boolean;
     browserstackLocalForcedStop?: boolean;
-    browserstackOpts?: Partial<Options>
+    // https://stackoverflow.com/questions/39040108/import-class-in-definition-file-d-ts
+    browserstackOpts?: Partial<import('browserstack-local').Options>
 }

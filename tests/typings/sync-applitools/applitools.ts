@@ -1,4 +1,5 @@
 const config: WebdriverIO.Config = {
+    specs: [],
     applitools: {
         key: '',
         serverUrl: '',
@@ -9,12 +10,12 @@ const config: WebdriverIO.Config = {
     }
 }
 
-browser.takeSnapshot('title');
+browser.takeSnapshot('title')
 browser.takeRegionSnapshot('title', {
     top: 1,
     left: 1,
     width: 1,
     height: 1
-  });
+})
 
 export default {}
