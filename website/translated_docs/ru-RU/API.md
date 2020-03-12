@@ -2,6 +2,7 @@
 id: api
 title: Документация API
 ---
+
 Добро пожаловать на страницу документации по WebdriverIO. Эта документация содержит справочные материалы для всех реализованных привязок (bindings) и команд для Selenium. WebdriverIO содержит все команды [JSONWire protocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol), а также поддерживает специальные [Appium](http://appium.io) привязки.
 
 > **Примечание:** Эта документация для последней версии (v5.0.0) WebdriverIO. Если вы все еще используете v4 или более раннюю версию, пожалуйста, используйте сайт документации [v4.webdriver.io](http://v4.webdriver.io)!
