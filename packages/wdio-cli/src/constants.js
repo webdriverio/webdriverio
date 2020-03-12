@@ -128,22 +128,11 @@ export const QUESTIONNAIRE = [{
     default: 'example.experitest.com',
     when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Experitest'
 }, {
-    type: 'list',
-    name: 'expEnvPort',
-    message: 'Choose a port for environment variable',
-    default: 443,
-    choices: [
-        '443',
-        '80',
-        'Other'
-    ],
-    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Experitest'
-}, {
     type: 'input',
     name: 'expEnvPort',
-    message: 'Environment variable for other port',
-    default: 'OTHER_PORT',
-    when: /* istanbul ignore next */ (answers) => answers.expEnvPort === 'Other'
+    message: 'Environment variable for port',
+    default: '443',
+    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Experitest'
 }, {
     type: 'list',
     name: 'expEnvProtocol',
@@ -153,7 +142,9 @@ export const QUESTIONNAIRE = [{
         'https',
         'http'
     ],
-    when: /* istanbul ignore next */ (answers) => answers.expEnvPort && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
+    when: /* istanbul ignore next */ (answers) => {
+        return answers.backend === 'In the cloud using Experitest' && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
+    }
 }, {
     type: 'input',
     name: 'env_user',
