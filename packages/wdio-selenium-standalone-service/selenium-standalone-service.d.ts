@@ -9,8 +9,8 @@ declare module "@wdio/sync" {
 }
 
 interface BaseConfig {
-    seleniumLogs?: string;
-    seleniumInstallArgs?: InstallOpts;
-    seleniumArgs?: StartOpts;
+    logs?: string;
+    installArgs?: InstallOpts;
+    args?: StartOpts;
     skipSeleniumInstall?: boolean;
 }

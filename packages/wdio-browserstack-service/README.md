@@ -54,13 +54,13 @@ Set this to true to enable routing connections from Browserstack cloud through y
 Type: `Boolean`<br>
 Default: `false`
 
-### browserstackLocalForcedStop
+### forcedStop
 Set this to true to kill the browserstack process on complete, without waiting for the browserstack stop callback to be called. This is experimental and should not be used by all. Mostly necessary as a workaraound for [this issue](https://github.com/browserstack/browserstack-local-nodejs/issues/41).
 
 Type: `Boolean`<br>
 Default: `false`
 
-### browserstackOpts
+### opts
 Specified optional will be passed down to BrowserstackLocal. See [this list](https://www.browserstack.com/local-testing#modifiers) for details.
 
 Type: `Object`<br>

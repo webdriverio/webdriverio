@@ -163,7 +163,18 @@ browser.addLocatorStrategy('myStrat', () => {})
 
 // selenium-standalone-service
 const config: WebdriverIO.Config = {
-    skipSeleniumInstall: true
+    services: [
+        ['selenium-standalone', {
+            logs: 'string',
+            installArgs: {
+                version: ''
+            },
+            args: {
+                basePath: ''
+            },
+            skipSeleniumInstall: true
+        }]
+    ]
 }
 
 // shared-store-service

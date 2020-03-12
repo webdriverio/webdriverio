@@ -21,7 +21,7 @@ export default class BrowserstackLauncherService {
             key: this.config.key,
             forcelocal: true,
             onlyAutomate: true,
-            ...this.options.browserstackOpts
+            ...this.options.opts
         }
 
         this.browserstackLocal = new BrowserstackLocalLauncher.Local()
@@ -71,7 +71,7 @@ export default class BrowserstackLauncherService {
             return
         }
 
-        if (this.options.browserstackLocalForcedStop) {
+        if (this.options.forcedStop) {
             return process.kill(this.browserstackLocal.pid)
         }
 

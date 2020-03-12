@@ -1,26 +1,27 @@
 /// <reference types="@applitools/visual-grid-client"/>
 
-declare module WebdriverIO {
-    interface Config extends ApplitoolsConfig {}
+declare module "webdriverio" {
+    interface ServiceOption extends ApplitoolsConfig {}
+    interface Browser extends ApplitoolsBrowser {}
+}
+
+declare module "@wdio/sync" {
+    interface ServiceOption extends ApplitoolsConfig {}
     interface Browser extends ApplitoolsBrowser {}
 }
 
 interface ApplitoolsConfig {
-    applitoolsKey?: string;
-    applitoolsServerUrl?: string;
-    applitools?: {
-        key?: string;
-        serverUrl?: string;
-        viewport?: {
-            width: number;
-            height: number;
-        };
-        proxy?: {
-            url: string;
-            username?: string;
-            password?: string;
-            isHttpOnly?: boolean;
-        }
+    key?: string;
+    serverUrl?: string;
+    viewport?: {
+        width: number;
+        height: number;
+    };
+    proxy?: {
+        url: string;
+        username?: string;
+        password?: string;
+        isHttpOnly?: boolean;
     };
 }
 

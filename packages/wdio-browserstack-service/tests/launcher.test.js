@@ -104,8 +104,8 @@ describe('onComplete', () => {
         expect(service.browserstackLocal.stop).not.toHaveBeenCalled()
     })
 
-    it('should kill the process if browserstackLocalForcedStop is true', () => {
-        const service = new BrowserstackLauncher({ browserstackLocalForcedStop: true }, [{}], {})
+    it('should kill the process if forcedStop is true', () => {
+        const service = new BrowserstackLauncher({ forcedStop: true }, [{}], {})
         service.browserstackLocal = new Browserstack.Local()
         service.browserstackLocal.pid = 102
 

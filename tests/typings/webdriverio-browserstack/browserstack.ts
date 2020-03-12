@@ -1,7 +1,7 @@
 const config: WebdriverIO.Config = {
     browserstackLocal: true,
-    browserstackLocalForcedStop: false,
-    browserstackOpts: {
+    forcedStop: false,
+    opts: {
         folder: 'foo',
         forceLocal: true,
         logFile: 'bar',

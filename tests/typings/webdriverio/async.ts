@@ -194,8 +194,18 @@ async function bar() {
 
 // selenium-standalone-service
 const config: WebdriverIO.Config = {
-    skipSeleniumInstall: true,
-    seleniumLogs: ''
+    services: [
+        ['selenium-standalone', {
+            logs: 'string',
+            installArgs: {
+                version: ''
+            },
+            args: {
+                basePath: ''
+            },
+            skipSeleniumInstall: true
+        }]
+    ]
 }
 
 // chrome configuration

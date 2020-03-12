@@ -50,6 +50,9 @@ declare namespace WebdriverIO {
         };
     }
 
+    interface ServiceOption {}
+    type ServiceEntry = string | HookFunctions | [string, ServiceOption]
+
     interface Options {
         runner?: string,
         specs?: string[],
@@ -69,7 +72,7 @@ declare namespace WebdriverIO {
         mochaOpts?: object,
         jasmineNodeOpts?: object,
         reporters?: (string | object)[],
-        services?: (string | object)[],
+        services?: ServiceEntry[],
         execArgv?: string[],
         featureFlags?: {
             specFiltering?: boolean,
