@@ -15,6 +15,9 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.20.2 
+
+
 ## v5.20.1 (2020-03-12)
 
 #### :nail_care: Polish
