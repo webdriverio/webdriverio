@@ -25,7 +25,46 @@ describe('webdriver request', () => {
         req.makeRequest({ connectionRetryCount: 43 }, 'some_id')
         expect(req._request.mock.calls[0][0].foo).toBe('bar')
         expect(req._request.mock.calls[0][0].sessionId).toBe('some_id')
-        expect(req._request.mock.calls[0][1]).toBe(43)
+        expect(req._request.mock.calls[0][2]).toBe(43)
+    })
+
+    it('should pick up the fullRequestOptions returned by transformRequest', () => {
+        const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
+        const transformRequest = jest.fn().mockImplementation((requestOptions) => ({
+            ...requestOptions,
+            body: { foo: 'baz' }
+        }))
+
+        request.mockClear()
+        req.makeRequest({
+            transformRequest,
+            path: '/wd/hub'
+        }, 'some_id')
+
+        expect(request.mock.calls[0][0].body).toEqual({ foo: 'baz' })
+    })
+
+    it('should resolve with the body returned by transformResponse', async () => {
+        const req = new WebDriverRequest('POST', 'session/:sessionId/element', { foo: 'requestBody' })
+
+        const transformResponse = jest.fn().mockImplementation((response) => ({
+            ...response,
+            body: { value: { foo: 'transformedResponse' } },
+        }))
+
+        request.mockClear()
+        const responsePromise = req.makeRequest({
+            transformResponse,
+            protocol: 'https',
+            hostname: 'localhost',
+            port: 4445,
+            path: '/wd/hub/',
+        }, 'foobar-123')
+
+        expect(transformResponse.mock.calls[0][0]).toHaveProperty('body')
+        expect(transformResponse.mock.calls[0][1].body).toEqual({ foo: 'requestBody' })
+        await expect(responsePromise).resolves.toEqual({ value: { foo: 'transformedResponse' } })
+        request.mockClear()
     })
 
     describe('createOptions', () => {
@@ -244,7 +283,7 @@ describe('webdriver request', () => {
             req.emit = jest.fn()
 
             const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/failing' } })
-            await expect(req._request(opts, 2)).rejects.toEqual(new Error('Could not send request'))
+            await expect(req._request(opts, null, 2)).rejects.toEqual(new Error('Could not send request'))
             expect(req.emit.mock.calls).toHaveLength(3)
             expect(warn.mock.calls).toHaveLength(2)
             expect(error.mock.calls).toHaveLength(1)
@@ -260,7 +299,7 @@ describe('webdriver request', () => {
 
             request.mockClear()
             const opts = Object.assign(req.defaultOptions, { uri: { path: '/wd/hub/failing' }, body: { foo: 'bar' } })
-            expect(await req._request(opts, 3)).toEqual({ value: 'caught' })
+            expect(await req._request(opts, null, 3)).toEqual({ value: 'caught' })
             expect(req.emit.mock.calls).toHaveLength(4)
             expect(logger().warn.mock.calls).toHaveLength(3)
             expect(logger().error.mock.calls).toHaveLength(0)

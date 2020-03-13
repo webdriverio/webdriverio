@@ -33,6 +33,11 @@ const packages = {
     '@types/jasmine/ts3.1': 'packages/wdio-jasmine-framework/node_modules/@types/jasmine/ts3.1',
     '@wdio/jasmine-framework': 'packages/wdio-jasmine-framework',
 
+    '@types/request': 'packages/webdriver/node_modules/@types/request',
+    '@types/caseless': 'packages/webdriver/node_modules/@types/caseless',
+    '@types/tough-cookie': 'packages/webdriver/node_modules/@types/tough-cookie',
+    'form-data': 'packages/webdriver/node_modules/@types/request/node_modules/form-data',
+
     '@types/selenium-standalone': 'packages/wdio-selenium-standalone-service/node_modules/@types/selenium-standalone',
     '@wdio/selenium-standalone-service': 'packages/wdio-selenium-standalone-service',
 

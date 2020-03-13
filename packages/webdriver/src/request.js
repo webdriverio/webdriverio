@@ -38,9 +38,13 @@ export default class WebDriverRequest extends EventEmitter {
     }
 
     makeRequest (options, sessionId) {
-        const fullRequestOptions = Object.assign({}, this.defaultOptions, this._createOptions(options, sessionId))
+        let fullRequestOptions = Object.assign({}, this.defaultOptions, this._createOptions(options, sessionId))
+        if (typeof options.transformRequest === 'function') {
+            fullRequestOptions = options.transformRequest(fullRequestOptions)
+        }
+
         this.emit('request', fullRequestOptions)
-        return this._request(fullRequestOptions, options.connectionRetryCount)
+        return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount)
     }
 
     _createOptions (options, sessionId) {
@@ -101,14 +105,19 @@ export default class WebDriverRequest extends EventEmitter {
         return requestOptions
     }
 
-    _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0) {
+    _request (fullRequestOptions, transformResponse, totalRetryCount = 0, retryCount = 0) {
         log.info(`[${fullRequestOptions.method}] ${fullRequestOptions.uri.href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
             log.info('DATA', fullRequestOptions.body)
         }
 
-        return new Promise((resolve, reject) => request(fullRequestOptions, (err, response, body) => {
+        return new Promise((resolve, reject) => request(fullRequestOptions, (err, response) => {
+            if (typeof transformResponse === 'function') {
+                response = transformResponse(response, fullRequestOptions)
+            }
+
+            let body = response && response.body
             const error = err || getErrorFromResponseBody(body)
 
             /**
@@ -159,7 +168,7 @@ export default class WebDriverRequest extends EventEmitter {
             this.emit('retry', { error, retryCount })
             log.warn('Request failed due to', error.message)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
-            this._request(fullRequestOptions, totalRetryCount, retryCount).then(resolve, reject)
+            this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount).then(resolve, reject)
         }))
     }
 }
