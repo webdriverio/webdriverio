@@ -168,7 +168,7 @@ export default class WebDriverRequest extends EventEmitter {
             this.emit('retry', { error, retryCount })
             log.warn('Request failed due to', error.message)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
-            this._request(fullRequestOptions, totalRetryCount, retryCount, transformResponse).then(resolve, reject)
+            this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount).then(resolve, reject)
         }))
     }
 }
