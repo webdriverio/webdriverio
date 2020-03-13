@@ -36,5 +36,8 @@
     "@wdio/utils": "6.0.0-beta.0",
     "got": "^10.2.1",
     "lodash.merge": "^4.6.1"
+  },
+  "devDependencies": {
+    "@types/got": "^9.6.9"
   }
 }

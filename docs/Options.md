@@ -102,6 +102,18 @@ Specify custom `headers` to pass into every request.
 Type: `Object`<br>
 Default: `{}`
 
+### `transformRequest`
+Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made
+
+Type: `(RequestOptions) => RequestOptions`<br>
+Default: *none*
+
+### `transformResponse`
+Function intercepting HTTP response objects after a WebDriver response has arrived. The function is passed the original response object as the first and the corresponding `RequestOptions` as the second argument.
+
+Type: `(Response, RequestOptions) => Response`<br>
+Default: *none*
+
 ---
 
 ## WDIO Options

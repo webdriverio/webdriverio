@@ -103,5 +103,13 @@ export const DEFAULTS = {
     enableDirectConnect: {
         type: 'boolean',
         default: false
-    }
+    },
+    /**
+     * Function transforming the request options before the request is made
+     */
+    transformRequest: requestOptions => requestOptions,
+    /**
+     * Function transforming the response object after it is received
+     */
+    transformResponse: response => response,
 }
