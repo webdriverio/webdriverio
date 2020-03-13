@@ -10,8 +10,8 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 /// <reference types="node"/>
 
-declare type HTTPRequestOptions = import('got').GotOptions<unknown>;
-declare type HTTPResponse = import('got').Response<unknown>;
+declare type HTTPRequestOptions = import('got').GotOptions<any>;
+declare type HTTPResponse = import('got').Response<any>;
 
 declare namespace WebDriver {
     type PageLoadingStrategy = 'none' | 'eager' | 'normal';
