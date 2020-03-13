@@ -15,6 +15,16 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.21.0 (2020-03-13)
+
+#### :rocket: New Feature
+* `webdriver`
+  * [#5062](https://github.com/webdriverio/webdriverio/pull/5062) webdriver: Add interceptors for HTTP requests and responses [v5] ([@janizde](https://github.com/janizde))
+
+#### Committers: 1
+- Jannik Portz ([@janizde](https://github.com/janizde))
+
+
 ## v5.20.2
 
 #### :bug: Bug Fix
