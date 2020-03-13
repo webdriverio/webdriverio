@@ -369,7 +369,7 @@ declare namespace WebDriver {
             [name: string]: string;
         };
         transformRequest?: (requestOptions: HTTPRequestOptions) => HTTPRequestOptions;
-        transformResponse?: (requestOptions: HTTPRequestOptions, response: HTTPResponse) => HTTPResponse;
+        transformResponse?: (response: HTTPResponse, requestOptions: HTTPRequestOptions) => HTTPResponse;
     }
 
     interface AttachSessionOptions extends Options {

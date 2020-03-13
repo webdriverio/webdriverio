@@ -7,4 +7,16 @@ const conf: WebdriverIO.Config = {
 
     // can be function only
     afterSuite: () => {},
+
+    transformRequest: (requestOptions) => {
+        requestOptions.headers['X-Custom-Auth'] = 'custom_header_value'
+        return requestOptions
+    },
+    transformResponse: (response, requestOptions) => {
+        if (requestOptions.method === 'DELETE' && response.statusCode === 200) {
+            response.body.deleted = true
+        }
+
+        return response
+    }
 }
