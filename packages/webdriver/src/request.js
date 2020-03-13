@@ -44,7 +44,7 @@ export default class WebDriverRequest extends EventEmitter {
         }
 
         this.emit('request', fullRequestOptions)
-        return this._request(fullRequestOptions, options.connectionRetryCount, 0, options.transformResponse)
+        return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount)
     }
 
     _createOptions (options, sessionId) {
