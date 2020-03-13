@@ -21,7 +21,7 @@ exports.config = {
     // =====================
     // Host address of the running Selenium server. This information is usually obsolete, as
     // WebdriverIO automatically connects to localhost. Also if you are using one of the
-    // supported cloud services like Sauce Labs, Browserstack, or Testing Bot, you also don't
+    // supported cloud services like Sauce Labs, Browserstack, Testing Bot or LambdaTest, you also don't
     // need to define host and port information (because WebdriverIO can figure that out
     // from your user and key information). However, if you are using a private Selenium
     // backend, you should define the `hostname`, `port`, and `path` here.
@@ -35,7 +35,7 @@ exports.config = {
     // =================
     // Service Providers
     // =================
-    // WebdriverIO supports Sauce Labs, Browserstack, and Testing Bot. (Other cloud providers
+    // WebdriverIO supports Sauce Labs, Browserstack, Testing Bot and LambdaTest. (Other cloud providers
     // should work, too.) These services define specific `user` and `key` (or access key)
     // values you must put here, in order to connect to these services.
     //

@@ -163,6 +163,7 @@ zafira-listener
 reportportal
 docker
 wiremock
+lambdatest
 ```
 
 #### List of supported reporters
