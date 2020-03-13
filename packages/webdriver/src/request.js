@@ -105,7 +105,7 @@ export default class WebDriverRequest extends EventEmitter {
         return requestOptions
     }
 
-    _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0, transformResponse) {
+    _request (fullRequestOptions, transformResponse, totalRetryCount = 0, retryCount = 0) {
         log.info(`[${fullRequestOptions.method}] ${fullRequestOptions.uri.href}`)
 
         if (fullRequestOptions.body && Object.keys(fullRequestOptions.body).length) {
