@@ -4,7 +4,7 @@
     "noImplicitAny": true,
     "types": [
       "@wdio/sync",
-      "@wdio/saucelabs-service"
+      "@wdio/sauce-service"
     ]
   }
 }

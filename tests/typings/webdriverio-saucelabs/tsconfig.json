@@ -4,7 +4,7 @@
     "noImplicitAny": true,
     "types": [
       "webdriverio",
-      "@wdio/saucelabs-service"
+      "@wdio/sauce-service"
     ]
   }
 }

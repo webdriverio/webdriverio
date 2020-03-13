@@ -22,7 +22,7 @@ const packages = {
 
     'browserstack-local': 'packages/wdio-browserstack-service/node_modules/browserstack-local',
     '@wdio/browserstack-service': 'packages/wdio-browserstack-service',
-    '@wdio/saucelabs-service': 'packages/wdio-saucelabs-service',
+    '@wdio/sauce-service': 'packages/wdio-sauce-service',
 
     '@types/got': 'packages/webdriver/node_modules/@types/got',
     '@types/tough-cookie': 'packages/webdriver/node_modules/@types/tough-cookie',
