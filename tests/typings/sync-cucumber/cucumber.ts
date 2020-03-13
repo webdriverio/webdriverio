@@ -11,7 +11,7 @@ const hook: WebdriverIO.HookFunctions = {
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
     afterFeature: function (uri, feature, scenarios) {
-    },
+    }
 }
 
 export default {}

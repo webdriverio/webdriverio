@@ -2,7 +2,8 @@ const config: WebdriverIO.Config = {
     services: [
         ['sauce', {
             sauceConnect: true,
-            sauceConnectOpts: {}
+            sauceConnectOpts: {},
+            scRelay: true
         }]
     ]
 }
