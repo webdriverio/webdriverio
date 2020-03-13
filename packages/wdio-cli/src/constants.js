@@ -79,6 +79,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         // external
+        { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
@@ -100,7 +101,7 @@ export const QUESTIONNAIRE = [{
     choices: [
         'On my local machine',
         'In the cloud using Sauce Labs',
-        'In the cloud using Browserstack or Testingbot or a different service',
+        'In the cloud using Browserstack or Testingbot or LambdaTest or a different service',
         'I have my own Selenium cloud'
     ]
 }, {

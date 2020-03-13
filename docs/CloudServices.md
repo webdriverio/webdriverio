@@ -3,7 +3,7 @@ id: cloudservices
 title: Using Cloud Services
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, or CrossBrowserTesting with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options. 
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting or LambdaTest with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options. 
 
 Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 
@@ -130,3 +130,47 @@ You can also pass in any optional [supported capabilities](https://help.crossbro
 If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing. CrossBrowserTesting provides a tunnel to allow you to test websites not accessible from the internet.
 
 If you are using the WDIO testrunner, download and configure the [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-crossbrowsertesting-service) in your `wdio.conf.js`. It helps get CrossBrowserTesting running and comes with additional features that better integrate your tests into the CrossBrowserTesting service.
+
+## [LambdaTest](https://www.lambdatest.com)
+
+LambdaTest is also supported easily.
+
+The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your LambdaTest account username and access key.
+
+You can also pass in any optional [supported capabilities](https://www.lambdatest.com/capabilities-generator/) as a key/value in the capabilities for any browser. If you set `visual` to `true` it will record a screencast of the session, which might be helpful.
+
+### [Tunnel for local testing](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/)
+
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing.
+
+It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+
+If you do use local, you should set `tunnel` to `true` in your capabilities.
+
+If you are using the WDIO testrunner, download and configure the [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in your `wdio.conf.js`. It helps get LambdaTest running, and comes with additional features that better integrate your tests into the LambdaTest service.
+
+### With Travis CI
+
+If you want to add Local Testing in Travis, you have to start it by yourself.
+
+The following script will download and start it in the background. You should run this in Travis before starting the tests.
+
+```bash
+wget http://downloads.lambdatest.com/tunnel/linux/64bit/LT_Linux.zip
+unzip LT_Linux.zip
+./LT -user $LT_USERNAME -key $LT_ACCESS_KEY -cui &
+sleep 3
+```
+
+Also, you might wish set the `build` to the Travis build number.
+
+Example `capabilities`:
+
+```javascript
+platform: 'Windows 10',
+browserName: 'chrome',
+version: '79.0',
+build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBER}`,
+'tunnel': 'true',
+'visual': 'true'
+```
