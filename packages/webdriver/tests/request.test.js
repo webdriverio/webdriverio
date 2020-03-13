@@ -32,7 +32,7 @@ describe('webdriver request', () => {
         req.makeRequest({ connectionRetryCount: 43 }, 'some_id')
         expect(req._request.mock.calls[0][0].foo).toBe('bar')
         expect(req._request.mock.calls[0][0].sessionId).toBe('some_id')
-        expect(req._request.mock.calls[0][1]).toBe(43)
+        expect(req._request.mock.calls[0][2]).toBe(43)
     })
 
     it('should pick up the fullRequestOptions returned by transformRequest', async () => {
@@ -297,7 +297,7 @@ describe('webdriver request', () => {
             req.emit = jest.fn()
 
             const opts = Object.assign(req.defaultOptions, { uri: { pathname: '/failing' } })
-            await expect(req._request(opts, 2)).rejects.toEqual(new Error('unknown error'))
+            await expect(req._request(opts, null, 2)).rejects.toEqual(new Error('unknown error'))
             expect(req.emit.mock.calls).toHaveLength(3)
             expect(warn.mock.calls).toHaveLength(2)
             expect(error.mock.calls).toHaveLength(1)
@@ -308,7 +308,7 @@ describe('webdriver request', () => {
             req.emit = jest.fn()
 
             const opts = Object.assign(req.defaultOptions, { uri: { pathname: '/failing' }, json: { foo: 'bar' } })
-            expect(await req._request(opts, 3)).toEqual({ value: 'caught' })
+            expect(await req._request(opts, null, 3)).toEqual({ value: 'caught' })
             expect(req.emit.mock.calls).toHaveLength(4)
             expect(logger().warn.mock.calls).toHaveLength(3)
             expect(logger().error.mock.calls).toHaveLength(0)

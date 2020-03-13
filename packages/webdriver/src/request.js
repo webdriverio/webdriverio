@@ -45,7 +45,7 @@ export default class WebDriverRequest extends EventEmitter {
         }
 
         this.emit('request', fullRequestOptions)
-        return this._request(fullRequestOptions, options.connectionRetryCount, 0, options.transformResponse)
+        return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
     _createOptions (options, sessionId) {
@@ -100,7 +100,7 @@ export default class WebDriverRequest extends EventEmitter {
         return requestOptions
     }
 
-    async _request (fullRequestOptions, totalRetryCount = 0, retryCount = 0, transformResponse) {
+    async _request (fullRequestOptions, transformResponse, totalRetryCount = 0, retryCount = 0) {
         log.info(`[${fullRequestOptions.method}] ${fullRequestOptions.uri.href}`)
 
         if (fullRequestOptions.json && Object.keys(fullRequestOptions.json).length) {
@@ -164,6 +164,6 @@ export default class WebDriverRequest extends EventEmitter {
         this.emit('retry', { error, retryCount })
         log.warn('Request failed due to', error.message)
         log.info(`Retrying ${retryCount}/${totalRetryCount}`)
-        return this._request(fullRequestOptions, totalRetryCount, retryCount, transformResponse)
+        return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
     }
 }
