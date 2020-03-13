@@ -243,13 +243,13 @@ Type: `String[]`
 Default: `null`
 
 ### `user`
-Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), or [CrossBrowserTesting](https://crossbrowsertesting.com) accounts). If set, WebdriverIO will automatically set connection options for you.
+Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)  or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you.
 
 Type: `String`
 Default: `null`
 
 ### `key`
-Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), or [CrossBrowserTesting](https://crossbrowsertesting.com) accounts). If set, WebdriverIO will automatically set connection options for you.
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)  or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you.
 
 Type: `String`
 Default: `null`
