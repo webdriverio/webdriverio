@@ -15,6 +15,21 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.22.0 (2020-03-14)
+
+#### :rocket: New Feature
+* `wdio-allure-reporter`
+  * [#5099](https://github.com/webdriverio/webdriverio/pull/5099) Allure: add issue and tms links patterns ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#5097](https://github.com/webdriverio/webdriverio/pull/5097) wdio-lambdatest-service: Updated docs for New service Lambdatest #5057 ([@kanhaiya15](https://github.com/kanhaiya15))
+
+#### Committers: 2
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Kanhaiya Lal Singh ([@kanhaiya15](https://github.com/kanhaiya15))
+
+
 ## v5.21.0 (2020-03-13)
 
 #### :rocket: New Feature
