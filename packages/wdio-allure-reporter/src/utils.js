@@ -79,7 +79,7 @@ export const getErrorFromFailedTest = (test) => {
  * @private
  */
 export const getLinkByTemplate = (template, id) => {
-    if (!template || typeof template !== 'string') {
+    if (typeof template !== 'string') {
         return id
     }
     if(!template.includes(linkPlaceholder)) {
