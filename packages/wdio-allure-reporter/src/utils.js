@@ -1,6 +1,6 @@
 import process from 'process'
 import CompoundError from './compoundError'
-import { testStatuses, mochaEachHooks, mochaAllHooks } from './constants'
+import { testStatuses, mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants'
 
 /**
  * Get allure test status by TestStat object
@@ -69,4 +69,21 @@ export const getErrorFromFailedTest = (test) => {
         return test.errors.length === 1 ? test.errors[0] : new CompoundError(...test.errors)
     }
     return test.error
+}
+
+/**
+ * Substitute task id to link template
+ * @param {string} template - link template
+ * @param {string} id - task id
+ * @returns {string} - link after substitution
+ * @private
+ */
+export const getLinkByTemplate = (template, id) => {
+    if (typeof template !== 'string') {
+        return id
+    }
+    if(!template.includes(linkPlaceholder)) {
+        throw Error(`The link template "${template}" must contain ${linkPlaceholder} substring.`)
+    }
+    return template.replace(linkPlaceholder, id)
 }

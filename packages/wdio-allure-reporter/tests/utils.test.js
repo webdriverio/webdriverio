@@ -1,7 +1,7 @@
 import process from 'process'
 import CompoundError from '../src/compoundError'
-import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks } from '../src/utils'
-import { testStatuses } from '../src/constants'
+import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate } from '../src/utils'
+import { linkPlaceholder, testStatuses } from '../src/constants'
 
 describe('utils', () => {
     let processEmit
@@ -123,6 +123,26 @@ describe('utils', () => {
             }
             expect(getErrorFromFailedTest(testStat) instanceof CompoundError).toBe(true)
             expect(getErrorFromFailedTest(testStat).innerErrors).toEqual(testStat.errors)
+        })
+    })
+
+    describe('getLinkByTemplate', () => {
+        const template = 'https://youtrack.jetbrains.com/issue/{}'
+        const id = 'JIRA-42'
+        it('should return link with task id', () => {
+            const link = getLinkByTemplate(template, id)
+            expect(link).toEqual('https://youtrack.jetbrains.com/issue/JIRA-42')
+        })
+
+        it('should return id if template is not a string', () => {
+            expect(getLinkByTemplate(undefined, id)).toEqual(id)
+            expect(getLinkByTemplate({}, id)).toEqual(id)
+        })
+
+        it('should throw error if template is invalid', () => {
+            const template = 'foo'
+            expect(() => getLinkByTemplate(template, id))
+                .toThrow(`The link template "${template}" must contain ${linkPlaceholder} substring.`)
         })
     })
 })

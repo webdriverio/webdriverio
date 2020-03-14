@@ -38,5 +38,6 @@ const events = {
 
 const mochaEachHooks = ['"before each" hook', '"after each" hook']
 const mochaAllHooks = ['"before all" hook', '"after all" hook']
+const linkPlaceholder = '{}'
 
-export { testStatuses, stepStatuses, events, mochaEachHooks, mochaAllHooks }
+export { testStatuses, stepStatuses, events, mochaEachHooks, mochaAllHooks, linkPlaceholder }
