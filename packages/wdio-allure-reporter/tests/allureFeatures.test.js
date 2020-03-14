@@ -1,4 +1,5 @@
 import AllureReporter from '../src'
+import { linkPlaceholder } from '../src/constants'
 
 let processOn
 beforeAll(() => {
@@ -91,6 +92,22 @@ describe('reporter runtime implementation', () => {
         expect(addLabel).toHaveBeenCalledWith('issue', '1')
     })
 
+    it('should correctly add issue label with link', () => {
+        const reporter = new AllureReporter({ stdout: true, issueLinkTemplate: `http://example.com/${linkPlaceholder}` })
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return { addLabel }
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.addIssue({ issue: '1' })
+        expect(addLabel).toHaveBeenCalledTimes(1)
+        expect(addLabel).toHaveBeenCalledWith('issue', 'http://example.com/1')
+    })
+
     it('should correctly add test id label', () => {
         const reporter = new AllureReporter({ stdout: true })
         const addLabel = jest.fn()
@@ -105,6 +122,22 @@ describe('reporter runtime implementation', () => {
         reporter.addTestId({ testId: '2' })
         expect(addLabel).toHaveBeenCalledTimes(1)
         expect(addLabel).toHaveBeenCalledWith('testId', '2')
+    })
+
+    it('should correctly add test id label with link', () => {
+        const reporter = new AllureReporter({ stdout: true, tmsLinkTemplate: `https://webdriver.io/${linkPlaceholder}` })
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return { addLabel }
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.addTestId({ testId: '2' })
+        expect(addLabel).toHaveBeenCalledTimes(1)
+        expect(addLabel).toHaveBeenCalledWith('testId', 'https://webdriver.io/2')
     })
 
     it('should correct add environment', () => {

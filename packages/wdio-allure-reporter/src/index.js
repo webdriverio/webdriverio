@@ -1,7 +1,7 @@
 import WDIOReporter from '@wdio/reporter'
 import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
-import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks } from './utils'
+import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate } from './utils'
 import { events, stepStatuses, testStatuses } from './constants'
 
 class AllureReporter extends WDIOReporter {
@@ -329,7 +329,8 @@ class AllureReporter extends WDIOReporter {
         }
 
         const test = this.allure.getCurrentTest()
-        test.addLabel('issue', issue)
+        const issueLink = getLinkByTemplate(this.options.issueLinkTemplate, issue)
+        test.addLabel('issue', issueLink)
     }
 
     addTestId({ testId }) {
@@ -338,7 +339,8 @@ class AllureReporter extends WDIOReporter {
         }
 
         const test = this.allure.getCurrentTest()
-        test.addLabel('testId', testId)
+        const tmsLink = getLinkByTemplate(this.options.tmsLinkTemplate, testId)
+        test.addLabel('testId', tmsLink)
     }
 
     addEnvironment({ name, value }) {
