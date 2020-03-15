@@ -185,7 +185,7 @@ export function parseCSS (cssPropertyValue, cssProperty) {
  */
 export function checkUnicode (value, isDevTools) {
     return Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)
-        ? isDevTools ? value : [UNICODE_CHARACTERS[value]]
+        ? isDevTools ? [value] : [UNICODE_CHARACTERS[value]]
         : new GraphemeSplitter().splitGraphemes(value)
 }
 
