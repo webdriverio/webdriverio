@@ -3,6 +3,7 @@ const hook: WebdriverIO.HookFunctions = {
     beforeFeature: function (uri, feature, scenarios) {
     },
     beforeScenario: function (uri, feature, scenario, sourceLocation) {
+        console.log(sourceLocation.line)
     },
     beforeStep: function ({ uri, feature, step }, context) {
     },
@@ -14,4 +15,8 @@ const hook: WebdriverIO.HookFunctions = {
     }
 }
 
-export default {}
+const config: WebdriverIO.Config = {
+    cucumberOpts: {
+        colors: true
+    }
+}
