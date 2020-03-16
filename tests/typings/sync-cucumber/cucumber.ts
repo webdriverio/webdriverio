@@ -3,7 +3,8 @@ const hook: WebdriverIO.HookFunctions = {
     beforeFeature: function (uri, feature, scenarios) {
     },
     beforeScenario: function (uri, feature, scenario, sourceLocation) {
-        console.log(sourceLocation.line)
+        // test if line is properly referenced to `SourceLocation.line`
+        sourceLocation.line = 123
     },
     beforeStep: function ({ uri, feature, step }, context) {
     },
