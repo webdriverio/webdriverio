@@ -192,54 +192,6 @@ async function bar() {
     browser.addLocatorStrategy('myStrat', () => {})
 }
 
-// selenium-standalone-service
-const config: WebdriverIO.Config = {
-    services: [
-        ['selenium-standalone', {
-            logs: 'string',
-            installArgs: {
-                version: ''
-            },
-            args: {
-                basePath: ''
-            },
-            skipSeleniumInstall: true
-        }]
-    ]
-}
-
-// chrome configuration
-const chromeConfig: WebdriverIO.Config = {
-    capabilities: [{
-        browserName: 'chrome',
-        'goog:chromeOptions': {
-            binary: 'path/to/chrome',
-            args: ['--no-first-run', '--enable-automation'],
-            prefs: {
-                'profile.managed_default_content_settings.popups': 1,
-                'profile.managed_default_content_settings.notifications': 1,
-            }
-        }
-    }]
-}
-
-// firefox configuration
-const firefoxConfig: WebdriverIO.Config = {
-    capabilities: [{
-        browserName: 'firefox',
-        'moz:firefoxOptions': {
-            binary: 'path/to/firefox',
-            profile: 'path/to/profile',
-            args: ['-headless'],
-            prefs: {
-                'browser.tabs.remote.autostart': false,
-                'toolkit.telemetry.reportingpolicy.firstRun': false,
-            },
-            log: { level: 'error' }
-        }
-    }]
-}
-
 // allure-reporter
 allure.addFeature('')
 

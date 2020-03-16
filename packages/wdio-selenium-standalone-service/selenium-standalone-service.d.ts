@@ -1,10 +1,8 @@
-import { InstallOpts, StartOpts } from "selenium-standalone";
-
 declare module WebdriverIO {
-    interface Config extends BaseConfig {}
+    interface ServiceOption extends SeleniumStandaloneOptions {}
 }
 
-interface BaseConfig {
+interface SeleniumStandaloneOptions {
     /**
      * Path where all logs from the Selenium server should be stored.
      */
@@ -13,14 +11,14 @@ interface BaseConfig {
      * Map of arguments for the Selenium server, passed directly to `Selenium.start()`.
      * Please note that latest drivers have to be installed, see `seleniumInstallArgs`.
      */
-    installArgs?: InstallOpts;
+    installArgs?: Partial<import('selenium-standalone').InstallOpts>;
     /**
      * Map of arguments for the Selenium server, passed directly to `Selenium.install()`.
      *
      * By default, versions will be installed based on what is set in the selenium-standalone
      * package. The defaults can be overridden by specifying the versions.
      */
-    args?: StartOpts;
+    args?: Partial<import('selenium-standalone').StartOpts>;
     /**
      * Boolean for skipping `selenium-standalone` server install.
      */

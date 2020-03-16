@@ -161,22 +161,6 @@ ele.dragAndDrop(ele, { duration: 0 })
 // addLocatorStrategy
 browser.addLocatorStrategy('myStrat', () => {})
 
-// selenium-standalone-service
-const config: WebdriverIO.Config = {
-    services: [
-        ['selenium-standalone', {
-            logs: 'string',
-            installArgs: {
-                version: ''
-            },
-            args: {
-                basePath: ''
-            },
-            skipSeleniumInstall: true
-        }]
-    ]
-}
-
 // shared-store-service
 browser.sharedStore.get('foo')
 browser.sharedStore.set('foo', ['q', 1, true, null, {'w' : {}, 'e': [] }, [{}]])
