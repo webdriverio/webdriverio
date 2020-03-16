@@ -64,8 +64,6 @@ exports.config = {
     // files and you set maxInstances to 10; all spec files will get tested at the same time
     // and 30 processes will get spawned. The property handles how many capabilities
     // from the same test should run tests.
-    //
-    //
     maxInstances: 10,
     //
     // If you have trouble getting all important capabilities together, check out the
@@ -253,13 +251,13 @@ exports.config = {
     //
     /**
      * Runs before a WebdriverIO command gets executed.
-     * @param {String} commandName hook command name
+     * @param {String} commandName command name
      * @param {Array} args arguments that command would receive
      */
     beforeCommand: function (commandName, args) {
     },
     /**
-     * Runs after a WebdriverIO command gets executed
+     * Runs after a WebdriverIO command gets executed.
      * @param {String} commandName hook command name
      * @param {Array} args arguments that command would receive
      * @param {Number} result 0 - command success, 1 - command error

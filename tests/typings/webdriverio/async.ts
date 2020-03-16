@@ -63,9 +63,9 @@ async function bar() {
         domain: '',
         path: '',
         expiry: 1,
-        sameSite: true,
-        isSecure: true,
-        isHttpOnly: true
+        sameSite: 'Lax',
+        secure: true,
+        httpOnly: true
     }])
     await browser.deleteCookies('foobar')
     await browser.deleteCookies(['foobar'])

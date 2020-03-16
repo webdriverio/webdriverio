@@ -34,9 +34,9 @@ browser.setCookies([{
     domain: '',
     path: '',
     expiry: 1,
-    sameSite: true,
-    isSecure: true,
-    isHttpOnly: true
+    sameSite: 'Strict',
+    secure: true,
+    httpOnly: true
 }])
 browser.deleteCookies('foobar')
 browser.deleteCookies(['foobar'])

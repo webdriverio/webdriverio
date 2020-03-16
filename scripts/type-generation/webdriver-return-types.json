@@ -9,7 +9,7 @@
     "minimizeWindow": "RectReturn",
     "fullscreenWindow": "RectReturn",
     "getElementRect": "RectReturn",
-    "getNamedCookie": "Cookie",
+    "getNamedCookie": "WebDriver.Cookie",
     "getStrings": "StringsReturn",
     "getSettings": "SettingsReturn",
     "getWindowSize": "WebDriver.RectReturn"
