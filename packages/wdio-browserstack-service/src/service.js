@@ -46,7 +46,7 @@ export default class BrowserstackService {
     }
 
     afterTest(test) {
-        this.fullTitle = test.parent + ' - ' + test.title
+        this.fullTitle = test.fullTitle
 
         if (!test.passed) {
             this.failures++
