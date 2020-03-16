@@ -63,9 +63,9 @@ async function bar() {
         domain: '',
         path: '',
         expiry: 1,
-        sameSite: true,
-        isSecure: true,
-        isHttpOnly: true
+        sameSite: 'Lax',
+        secure: true,
+        httpOnly: true
     }])
     await browser.deleteCookies('foobar')
     await browser.deleteCookies(['foobar'])
@@ -190,44 +190,6 @@ async function bar() {
 
     // addLocatorStrategy
     browser.addLocatorStrategy('myStrat', () => {})
-}
-
-// selenium-standalone-service
-const config: WebdriverIO.Config = {
-    skipSeleniumInstall: true,
-    seleniumLogs: ''
-}
-
-// chrome configuration
-const chromeConfig: WebdriverIO.Config = {
-    capabilities: [{
-        browserName: 'chrome',
-        'goog:chromeOptions': {
-            binary: 'path/to/chrome',
-            args: ['--no-first-run', '--enable-automation'],
-            prefs: {
-                'profile.managed_default_content_settings.popups': 1,
-                'profile.managed_default_content_settings.notifications': 1,
-            }
-        }
-    }]
-}
-
-// firefox configuration
-const firefoxConfig: WebdriverIO.Config = {
-    capabilities: [{
-        browserName: 'firefox',
-        'moz:firefoxOptions': {
-            binary: 'path/to/firefox',
-            profile: 'path/to/profile',
-            args: ['-headless'],
-            prefs: {
-                'browser.tabs.remote.autostart': false,
-                'toolkit.telemetry.reportingpolicy.firstRun': false,
-            },
-            log: { level: 'error' }
-        }
-    }]
 }
 
 // allure-reporter

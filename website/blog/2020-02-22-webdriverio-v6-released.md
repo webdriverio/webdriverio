@@ -130,9 +130,11 @@ export.config = {
 };
 ```
 
+As part of this effort we also looked into the service option names and renamed to be more short and precise.
+
 ### How to Update?
 
-Walk through your WDIO configuration files and look for configurations that are not specifically defined by as WebDriver or WDIO [options](https://webdriver.io/docs/options.html). These needs to be moved into the service list according to the example above.
+Walk through your WDIO configuration files and look for configurations that are not specifically defined by as WebDriver or WDIO [options](https://webdriver.io/docs/options.html). These needs to be moved into the service list according to the example above. In addition to that have a look if option names have changed and update them accordingly.
 
 ## Command Interface Changes
 

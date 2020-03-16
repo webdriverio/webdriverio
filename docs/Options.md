@@ -152,6 +152,18 @@ Shorten `url` command calls by setting a base URL.
 Type: `String`<br>
 Default: `null`
 
+### `maxInstances`
+Maximum number of total parallel running workers.
+
+Type: `Number`<br>
+Default: `100`
+
+### `maxInstancesPerCapability`
+Maximum number of total parallel running workers per capability.
+
+Type: `Number`<br>
+Default: `100`
+
 ### `bail`
 If you want your test run to stop after a specific number of test failures, use `bail`.
 (It defaults to `0`, which runs all tests no matter what.) **Note:** Please be aware that when using a third party test runner (such as Mocha), additional configuration might be required.
@@ -187,8 +199,6 @@ Default: `500`
 
 ### `services`
 Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
-
-Unlike plugins, they don't add new commands. Instead, they hook into the test process.
 
 Type: `String[]|Object[]`<br>
 Default: `[]`

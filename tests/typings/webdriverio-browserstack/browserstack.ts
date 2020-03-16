@@ -1,12 +1,15 @@
 const config: WebdriverIO.Config = {
-    browserstackLocal: true,
-    browserstackLocalForcedStop: false,
-    browserstackOpts: {
-        folder: 'foo',
-        forceLocal: true,
-        logFile: 'bar',
-        'foo': 'bar'
-    }
+    services: [
+        ['browserstack', {
+            browserstackLocal: true,
+            forcedStop: false,
+            opts: {
+                folder: 'foo',
+                forceLocal: true,
+                logFile: 'bar'
+            }
+        }]
+    ]
 }
 
 export default {}

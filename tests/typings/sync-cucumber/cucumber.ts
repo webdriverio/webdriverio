@@ -3,6 +3,8 @@ const hook: WebdriverIO.HookFunctions = {
     beforeFeature: function (uri, feature, scenarios) {
     },
     beforeScenario: function (uri, feature, scenario, sourceLocation) {
+        // test if line is properly referenced to `SourceLocation.line`
+        sourceLocation.line = 123
     },
     beforeStep: function ({ uri, feature, step }, context) {
     },
@@ -11,7 +13,11 @@ const hook: WebdriverIO.HookFunctions = {
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
     afterFeature: function (uri, feature, scenarios) {
-    },
+    }
 }
 
-export default {}
+const config: WebdriverIO.Config = {
+    cucumberOpts: {
+        colors: true
+    }
+}

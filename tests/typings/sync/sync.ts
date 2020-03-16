@@ -34,9 +34,9 @@ browser.setCookies([{
     domain: '',
     path: '',
     expiry: 1,
-    sameSite: true,
-    isSecure: true,
-    isHttpOnly: true
+    sameSite: 'Strict',
+    secure: true,
+    httpOnly: true
 }])
 browser.deleteCookies('foobar')
 browser.deleteCookies(['foobar'])
@@ -160,11 +160,6 @@ ele.dragAndDrop(ele, { duration: 0 })
 
 // addLocatorStrategy
 browser.addLocatorStrategy('myStrat', () => {})
-
-// selenium-standalone-service
-const config: WebdriverIO.Config = {
-    skipSeleniumInstall: true
-}
 
 // shared-store-service
 browser.sharedStore.get('foo')

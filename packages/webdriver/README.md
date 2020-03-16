@@ -89,11 +89,11 @@ Path to WebDriver endpoint or grid server.
 Type: `String`<br>
 Default: */*
 
-### baseUrl
-Shorten `url` command calls by setting a base url.
+### queryParams
+Query paramaters that are propagated to the driver server.
 
-Type: `String`<br>
-Default: *null*
+Type: `Object`
+Default: `null`
 
 ### connectionRetryTimeout
 Timeout for any WebDriver request to a driver or grid.

@@ -1,26 +1,35 @@
 /// <reference types="@applitools/visual-grid-client"/>
 
 declare module WebdriverIO {
-    interface Config extends ApplitoolsConfig {}
+    interface ServiceOption extends ApplitoolsConfig {}
     interface Browser extends ApplitoolsBrowser {}
 }
 
 interface ApplitoolsConfig {
-    applitoolsKey?: string;
-    applitoolsServerUrl?: string;
-    applitools?: {
-        key?: string;
-        serverUrl?: string;
-        viewport?: {
-            width: number;
-            height: number;
-        };
-        proxy?: {
-            url: string;
-            username?: string;
-            password?: string;
-            isHttpOnly?: boolean;
-        }
+    /**
+     * Applitools API key to be used. Can be passed via wdio config or via environment
+     * variable `APPLITOOLS_KEY`
+     */
+    key?: string;
+    /**
+     * Applitools server URL to be used.
+     */
+    serverUrl?: string;
+    /**
+     * Viewport with which the screenshots should be taken.
+     */
+    viewport?: {
+        width: number;
+        height: number;
+    };
+    /**
+     * Use proxy for http/https connections with Applitools.
+     */
+    proxy?: {
+        url: string;
+        username?: string;
+        password?: string;
+        isHttpOnly?: boolean;
     };
 }
 
