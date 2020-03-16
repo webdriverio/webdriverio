@@ -6,6 +6,7 @@ import { runFnInFiberContext } from '@wdio/utils'
 import { remote, multiremote, attach } from '../src'
 
 jest.mock('webdriver', () => {
+    const WebDriver = jest.requireActual('webdriver').default
     const client = {
         sessionId: 'foobar-123',
         addCommand: jest.fn(),
@@ -25,7 +26,8 @@ jest.mock('webdriver', () => {
 
     const module = {
         newSession: newSessionMock,
-        attachToSession: jest.fn().mockReturnValue(client)
+        attachToSession: jest.fn().mockReturnValue(client),
+        DEFAULTS: WebDriver.DEFAULTS
     }
 
     return {
@@ -34,6 +36,7 @@ jest.mock('webdriver', () => {
     }
 })
 jest.mock('devtools', () => {
+    const DevTools = jest.requireActual('devtools').default
     const client = { sessionId: 'foobar-123', isDevtools: true }
     const newSessionMock = jest.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
@@ -48,7 +51,8 @@ jest.mock('devtools', () => {
     const module = {
         newSession: newSessionMock,
         attachToSession: jest.fn().mockReturnValue(client),
-        SUPPORTED_BROWSER: ['chrome']
+        SUPPORTED_BROWSER: ['chrome'],
+        DEFAULTS: DevTools.DEFAULTS
     }
 
     return {
