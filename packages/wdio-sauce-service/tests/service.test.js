@@ -52,16 +52,9 @@ test('beforeTest should set context for test', () => {
     const service = new SauceService()
     service.beforeSession({ user: 'foobar', key: '123' }, {})
     service.beforeTest({
-        parent: 'my test',
-        title: 'can do something'
+        fullTitle: 'my test can do something'
     })
-    expect(global.browser.execute).toBeCalledWith('sauce:context=my test - can do something')
-
-    service.beforeTest({
-        fullName: 'foobar',
-        parent: 'Jasmine__TopLevel__Suite'
-    })
-    expect(global.browser.execute).toBeCalledWith('sauce:context=foobar')
+    expect(global.browser.execute).toBeCalledWith('sauce:context=my test can do something')
 })
 
 test('beforeTest should not set context for RDC test', () => {
@@ -70,14 +63,7 @@ test('beforeTest should not set context for RDC test', () => {
     const rdcService = new SauceService()
     rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
     rdcService.beforeTest({
-        parent: 'my test',
-        title: 'can do something'
-    })
-    expect(global.browser.execute).not.toBeCalled()
-
-    rdcService.beforeTest({
-        fullName: 'foobar',
-        parent: 'Jasmine__TopLevel__Suite'
+        fullTitle: 'my test can do something'
     })
     expect(global.browser.execute).not.toBeCalled()
 })
@@ -86,8 +72,7 @@ test('beforeTest should not set context if user does not use sauce', () => {
     const service = new SauceService()
     service.beforeSession({}, {})
     service.beforeTest({
-        parent: 'my test',
-        title: 'can do something'
+        fullTitle: 'my test can do something'
     })
     expect(global.browser.execute).not.toBeCalled()
 })
