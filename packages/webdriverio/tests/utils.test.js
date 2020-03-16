@@ -184,20 +184,23 @@ describe('utils', () => {
             const result = checkUnicode('Home')
 
             expect(Array.isArray(result)).toBe(true)
+            expect(result).toHaveLength(1)
             expect(result[0]).toEqual('\uE011')
         })
 
         it('should not convert unicode if devtools is used', () => {
             const result = checkUnicode('Home', true)
 
-            expect(Array.isArray(result)).toBe(false)
-            expect(result).toEqual('Home')
+            expect(Array.isArray(result)).toBe(true)
+            expect(result).toHaveLength(1)
+            expect(result[0]).toEqual('Home')
         })
 
         it('should return an array without unicode', () => {
             const result = checkUnicode('foo')
 
             expect(Array.isArray(result)).toBe(true)
+            expect(result).toHaveLength(3)
             expect(result[0]).toBe('f')
             expect(result[1]).toBe('o')
             expect(result[2]).toBe('o')
