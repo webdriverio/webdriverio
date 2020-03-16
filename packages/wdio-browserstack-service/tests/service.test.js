@@ -217,9 +217,9 @@ describe('afterTest', () => {
         service.fullTitle = ''
         service.failReason = ''
 
-        service.afterTest({ passed: false, parent: 'foo', title: 'bar', error: { message: 'error message' } })
+        service.afterTest({ passed: false, fullTitle: 'foo bar', error: { message: 'error message' } })
         expect(service.failures).toBe(1)
-        expect(service.fullTitle).toBe('foo - bar')
+        expect(service.fullTitle).toBe('foo bar')
         expect(service.failReason).toBe('error message')
     })
 
@@ -228,9 +228,9 @@ describe('afterTest', () => {
         service.fullTitle = ''
         service.failReason = ''
 
-        service.afterTest({ passed: true, parent: 'foo', title: 'bar' })
+        service.afterTest({ passed: true, fullTitle: 'foo bar' })
         expect(service.failures).toBe(0)
-        expect(service.fullTitle).toBe('foo - bar')
+        expect(service.fullTitle).toBe('foo bar')
     })
 })
 
