@@ -13,30 +13,30 @@ describe('detectBackend', () => {
 
     it('should default to local selenium server', () => {
         const caps = detectBackend({})
-        expect(caps.hostname).toBe('127.0.0.1')
-        expect(caps.port).toBe(4444)
-        expect(caps.path).toBe('/')
+        expect(typeof caps.hostname).toBe('undefined')
+        expect(typeof caps.port).toBe('undefined')
+        expect(typeof caps.path).toBe('undefined')
 
         const otherCaps = detectBackend()
-        expect(otherCaps.hostname).toBe('127.0.0.1')
-        expect(otherCaps.port).toBe(4444)
-        expect(otherCaps.path).toBe('/')
+        expect(typeof otherCaps.hostname).toBe('undefined')
+        expect(typeof otherCaps.port).toBe('undefined')
+        expect(typeof otherCaps.path).toBe('undefined')
     })
 
     it('should default if host or port is not given', () => {
         let caps = detectBackend({ port: 1234 })
-        expect(caps.hostname).toBe('127.0.0.1')
+        expect(typeof caps.hostname).toBe('undefined')
         expect(caps.port).toBe(1234)
-        expect(caps.path).toBe('/')
+        expect(typeof caps.path).toBe('undefined')
 
         caps = detectBackend({ hostname: 'foobar' })
         expect(caps.hostname).toBe('foobar')
-        expect(caps.port).toBe(4444)
-        expect(caps.path).toBe('/')
+        expect(typeof caps.port).toBe('undefined')
+        expect(typeof caps.path).toBe('undefined')
 
         caps = detectBackend({ path: '/foo/bar' })
-        expect(caps.hostname).toBe('127.0.0.1')
-        expect(caps.port).toBe(4444)
+        expect(typeof caps.hostname).toBe('undefined')
+        expect(typeof caps.port).toBe('undefined')
         expect(caps.path).toBe('/foo/bar')
     })
 
@@ -173,8 +173,8 @@ describe('detectBackend', () => {
             hostname: 'foobar.com'
         })
         expect(caps.hostname).toBe('foobar.com')
-        expect(caps.port).toBe(4444)
-        expect(caps.path).toBe('/')
+        expect(typeof caps.port).toBe('undefined')
+        expect(typeof caps.path).toBe('undefined')
     })
 
     it('should detect browserstack user but keep custom properties if set', () => {

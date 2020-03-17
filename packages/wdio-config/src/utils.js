@@ -1,7 +1,3 @@
-const DEFAULT_HOSTNAME = '127.0.0.1'
-const DEFAULT_PORT = 4444
-const DEFAULT_PROTOCOL = 'http'
-const DEFAULT_PATH = '/'
 const LEGACY_PATH = '/wd/hub'
 
 const REGION_MAPPING = {
@@ -115,14 +111,10 @@ export function detectBackend (options = {}, isRDC = false) {
     }
 
     /**
-     * no cloud provider detected, fallback to local browser driver
+     * no cloud provider detected, pass on provided params and eventually
+     * fallback to DevTools protocol
      */
-    return {
-        hostname: hostname || DEFAULT_HOSTNAME,
-        port: port || DEFAULT_PORT,
-        protocol: protocol || DEFAULT_PROTOCOL,
-        path: path || DEFAULT_PATH
-    }
+    return { hostname, port, protocol, path }
 }
 
 /**
