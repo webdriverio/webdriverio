@@ -3,8 +3,6 @@ import logger from '@wdio/logger'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 
-const jasmineTopLevelSuite = 'Jasmine__TopLevel__Suite'
-
 const log = logger('@wdio/sauce-service')
 
 export default class SauceService {
@@ -62,9 +60,7 @@ export default class SauceService {
             this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
         }
 
-        const context = test.parent === jasmineTopLevelSuite ? test.fullName : test.parent + ' - ' + test.title
-
-        global.browser.execute('sauce:context=' + context)
+        global.browser.execute('sauce:context=' + test.fullTitle)
     }
 
     afterSuite (suite) {
