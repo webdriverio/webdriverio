@@ -25,18 +25,18 @@ describe('detectBackend', () => {
 
     it('should default if host or port is not given', () => {
         let caps = detectBackend({ port: 1234 })
-        expect(typeof caps.hostname).toBe('undefined')
+        expect(caps.hostname).toBe('127.0.0.1')
         expect(caps.port).toBe(1234)
-        expect(typeof caps.path).toBe('undefined')
+        expect(caps.path).toBe('/')
 
         caps = detectBackend({ hostname: 'foobar' })
         expect(caps.hostname).toBe('foobar')
-        expect(typeof caps.port).toBe('undefined')
-        expect(typeof caps.path).toBe('undefined')
+        expect(caps.port).toBe(4444)
+        expect(caps.path).toBe('/')
 
         caps = detectBackend({ path: '/foo/bar' })
-        expect(typeof caps.hostname).toBe('undefined')
-        expect(typeof caps.port).toBe('undefined')
+        expect(caps.hostname).toBe('127.0.0.1')
+        expect(caps.port).toBe(4444)
         expect(caps.path).toBe('/foo/bar')
     })
 
@@ -173,8 +173,8 @@ describe('detectBackend', () => {
             hostname: 'foobar.com'
         })
         expect(caps.hostname).toBe('foobar.com')
-        expect(typeof caps.port).toBe('undefined')
-        expect(typeof caps.path).toBe('undefined')
+        expect(caps.port).toBe(4444)
+        expect(caps.path).toBe('/')
     })
 
     it('should detect browserstack user but keep custom properties if set', () => {

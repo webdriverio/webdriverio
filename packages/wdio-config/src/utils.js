@@ -1,3 +1,7 @@
+const DEFAULT_HOSTNAME = '127.0.0.1'
+const DEFAULT_PORT = 4444
+const DEFAULT_PROTOCOL = 'http'
+const DEFAULT_PATH = '/'
 const LEGACY_PATH = '/wd/hub'
 
 const REGION_MAPPING = {
@@ -108,6 +112,18 @@ export function detectBackend (options = {}, isRDC = false) {
             'known cloud service (SauceLabs, Browerstack or Testingbot). ' +
             'Please check if given user and key properties are correct!'
         )
+    }
+
+    /**
+     * default values if on of the WebDriver criticial options is set
+     */
+    if (hostname || port || protocol || path) {
+        return {
+            hostname: hostname || DEFAULT_HOSTNAME,
+            port: port || DEFAULT_PORT,
+            protocol: protocol || DEFAULT_PROTOCOL,
+            path: path || DEFAULT_PATH
+        }
     }
 
     /**
