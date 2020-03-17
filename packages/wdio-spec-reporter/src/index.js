@@ -112,7 +112,7 @@ class SpecReporter extends WDIOReporter {
      */
     getTestLink ({ config, sessionId, isMultiremote, instanceName }) {
         const isSauceJob = (
-            config.hostname.includes('saucelabs') ||
+            (config.hostname && config.hostname.includes('saucelabs')) ||
             // only show if multiremote is not used
             config.capabilities && (
                 // check w3c caps
