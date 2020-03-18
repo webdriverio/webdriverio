@@ -74,6 +74,9 @@
       "wdio-json-reporter": {
         "title": "JSON Reporter"
       },
+      "wdio-lambdatest-service": {
+        "title": "LambdaTest Service"
+      },
       "wdio-markdown-reporter": {
         "title": "Markdown Reporter"
       },
@@ -100,6 +103,9 @@
       },
       "wdio-zafira-listener-service": {
         "title": "Zafira Listener Service"
+      },
+      "webdriver-mock-service": {
+        "title": "Webdriver Mock Service"
       },
       "api": {
         "title": "API Docs"
@@ -457,9 +463,9 @@
       "Guide": "Guide",
       "API": "API",
       "Help": "Help",
+      "Versions": "Versions",
       "Blog": "Blog",
       "Contribute": "Contribute",
-      "Versions": "Versions",
       "GitHub": "GitHub"
     },
     "categories": {
