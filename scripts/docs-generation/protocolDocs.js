@@ -58,7 +58,7 @@ exports.generateProtocolDocs = (sidebars) => {
                         '---',
                         `id: ${protocolName}`,
                         `title: ${protocol}`,
-                        `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/master/packages/wdio-protocols/protocol/${protocolName}.json`,
+                        `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/master/packages/wdio-protocols/protocols/${protocolName}.json`,
                         '---\n'
                     ].join('\n')]
                 }
