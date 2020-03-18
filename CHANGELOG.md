@@ -15,6 +15,21 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.22.1 (2020-03-18)
+
+#### :bug: Bug Fix
+* `wdio-protocols`
+  * [#5109](https://github.com/webdriverio/webdriverio/pull/5109) update switchToFrame docs ([@kellyselden](https://github.com/kellyselden))
+* Other
+  * [#5108](https://github.com/webdriverio/webdriverio/pull/5108) fix the edit button on protocol docs again ([@kellyselden](https://github.com/kellyselden))
+* `wdio-browserstack-service`, `wdio-sauce-service`
+  * [#5106](https://github.com/webdriverio/webdriverio/pull/5106) fix(browserstack, sauce): update test title ([@stezu](https://github.com/stezu))
+
+#### Committers: 2
+- Kelly Selden ([@kellyselden](https://github.com/kellyselden))
+- Stephen Zuniga ([@stezu](https://github.com/stezu))
+
+
 ## v5.22.0 (2020-03-14)
 
 #### :rocket: New Feature
