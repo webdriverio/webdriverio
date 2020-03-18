@@ -729,7 +729,7 @@ declare namespace WebDriver {
          * The Switch To Frame command is used to select the current top-level browsing context or a child browsing context of the current browsing context to use as the current browsing context for subsequent commands.
          * https://w3c.github.io/webdriver/#dfn-switch-to-frame
          */
-        switchToFrame(id: (number|string|object|null)): void;
+        switchToFrame(id: (number|object|null)): void;
 
         /**
          * [webdriver]
