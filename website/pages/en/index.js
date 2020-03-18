@@ -175,7 +175,7 @@ const Talks = () => (
                 <iframe
                     width="560"
                     height="315"
-                    src="https://www.youtube.com/embed/fex2NlN-soQ?start=3204"
+                    src="https://www.youtube.com/embed/jOmvPpzLMf8?start=3204"
                     frameBorder="0"
                     allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -196,10 +196,10 @@ const Talks = () => (
                         <translate>
                             The community around WebdriverIO is actively speaking on various user groups or
                             conferences about specific topics around automated testing with WebdriverIO. Check out
-                            this talk from the latest "This.JavaScript: State of Frontend Testing" event about [The State of WebdriverIO v5](https://www.youtube.com/watch?v=fex2NlN-soQ&feature=youtu.be&t=3204)
-                            by [@klamping](https://twitter.com/klamping). There is also a whole
+                            this talk on [The Nuts and Bolts of WebdriverIO](https://www.youtube.com/watch?v=jOmvPpzLMf8&feature=youtu.be&t=3204)
+                            by [@bromann](https://twitter.com/klamping) at [Selenium Camp 2020](https://seleniumcamp.com/). There is also a whole
                             [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0)
-                            about different topics around WebdriverIO created by [him as well](https://twitter.com/klamping).
+                            about different topics around WebdriverIO created by on of our community members [Kevin Klamping](https://twitter.com/klamping).
                         </translate>
                     </MarkdownBlock>
                 </div>
@@ -254,19 +254,6 @@ const ApplitoolsSupport = () => (
     </Container>
 )
 
-const TryIt = () => (
-    <Block background="light">
-        {[
-            {
-                content: 'You can try WebdriverIO using [try.webdriver.io](http://try.webdriver.io) that provides you with an interface to write a sample test and share it. You can also use it for debugging purposes.',
-                image: imgUrl('try.png'),
-                imageAlign: 'right',
-                title: 'Try it out!',
-            },
-        ]}
-    </Block>
-)
-
 class Index extends React.Component {
     render() {
         let language = this.props.language || ''
@@ -291,8 +278,8 @@ class Index extends React.Component {
                             }, {
                                 content: (
                                     <translate>
-                                        WebdriverIO has 1st class support for the __WebDriver specification__
-                                        as well as to __Appium__ and allows to run tests on desktop and mobile.
+                                        WebdriverIO can be run on the __WebDriver__ as well as __Chrome DevTools
+                                        Protocol__ and is deep integrated with [Puppeteer](https://pptr.dev/).
                                     </translate>
                                 ),
                                 image: imgUrl('teaser/compatible.png'),
@@ -301,8 +288,8 @@ class Index extends React.Component {
                             }, {
                                 content: (
                                     <translate>
-                                        It implements all Webdriver protocol commands and provides useful
-                                        integrations with other tools.
+                                        The huge of variety of community plugins allows you to easily integrate
+                                        and extend your setup to fulfill your requirements.
                                     </translate>
                                 ),
                                 image: imgUrl('teaser/featurerich.png'),
@@ -315,7 +302,6 @@ class Index extends React.Component {
                     <TestSetup />
                     <Talks />
                     <ApplitoolsSupport />
-                    <TryIt />
                 </div>
             </div>
         )
