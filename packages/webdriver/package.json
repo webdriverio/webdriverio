@@ -1,6 +1,6 @@
 {
   "name": "webdriver",
-  "version": "6.0.0-beta.0",
+  "version": "6.0.0-beta.1",
   "description": "A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/webdriver",
@@ -30,9 +30,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/config": "6.0.0-beta.0",
+    "@wdio/config": "6.0.0-beta.1",
     "@wdio/logger": "6.0.0-beta.0",
-    "@wdio/protocols": "6.0.0-beta.0",
+    "@wdio/protocols": "6.0.0-beta.1",
     "@wdio/utils": "6.0.0-beta.0",
     "got": "^10.2.1",
     "lodash.merge": "^4.6.1"
