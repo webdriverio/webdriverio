@@ -5,7 +5,7 @@ title: Getting Started
 
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
-> __Note:__ These are the docs for the latest version (>=5.x) of WebdriverIO. If you are still using v4 or older, please [use the legacy docs website](http://v4.webdriver.io)!
+> __Note:__ These are the docs for the latest version (>=6.x) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](versions)!
 
 The following short step-by-step introduction will help you get your first WebdriverIO script up and running.
 
@@ -13,7 +13,7 @@ The following short step-by-step introduction will help you get your first Webdr
 
 You’ll need [Node.js](http://nodejs.org) installed.
 
-- Install at least v10.13.0 or higher as this is the oldest active LTS version
+- Install at least v12.16.1 or higher as this is the oldest active LTS version
 - Only releases that are or will become an LTS release are officially supported
 
 If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions.

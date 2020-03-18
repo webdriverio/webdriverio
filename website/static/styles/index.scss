@@ -53,8 +53,9 @@ blockquote {
     background: none;
     padding-left: 15px;
     border-left: 1px solid $footerFontColor;
-    margin: 15px;
+    margin: 30px 15px;
     font-weight: 300;
+    color: $headerBackgroundColor
 }
 
 .blog iframe {
