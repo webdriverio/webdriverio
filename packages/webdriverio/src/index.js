@@ -20,7 +20,7 @@ const log = logger('webdriverio')
 export const remote = async function (params = {}, remoteModifier) {
     logger.setLogLevelsConfig(params.logLevels, params.logLevel)
 
-    const config = validateConfig(WDIO_DEFAULTS, params)
+    const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(WebDriver.DEFAULTS))
     const modifier = (client, options) => {
         if (typeof remoteModifier === 'function') {
             client = remoteModifier(client, Object.assign(options, config))

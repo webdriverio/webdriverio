@@ -144,7 +144,7 @@ describe('cli interface', () => {
         })
 
         expect(wdioClInterface.log).toBeCalledTimes(1)
-        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'Error:', 'foo')
+        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'bold  Error: ', 'foo')
     })
 
     it('should print message on worker error', () => {
@@ -157,7 +157,7 @@ describe('cli interface', () => {
         })
 
         expect(wdioClInterface.log).toBeCalledTimes(1)
-        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'Error:', 'bar')
+        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'bold  Error: ', 'bar')
     })
 
     it('should ignore messages that do not contain a proper origin', () => {

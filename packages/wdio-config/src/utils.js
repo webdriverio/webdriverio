@@ -115,14 +115,22 @@ export function detectBackend (options = {}, isRDC = false) {
     }
 
     /**
-     * no cloud provider detected, fallback to local browser driver
+     * default values if on of the WebDriver criticial options is set
      */
-    return {
-        hostname: hostname || DEFAULT_HOSTNAME,
-        port: port || DEFAULT_PORT,
-        protocol: protocol || DEFAULT_PROTOCOL,
-        path: path || DEFAULT_PATH
+    if (hostname || port || protocol || path) {
+        return {
+            hostname: hostname || DEFAULT_HOSTNAME,
+            port: port || DEFAULT_PORT,
+            protocol: protocol || DEFAULT_PROTOCOL,
+            path: path || DEFAULT_PATH
+        }
     }
+
+    /**
+     * no cloud provider detected, pass on provided params and eventually
+     * fallback to DevTools protocol
+     */
+    return { hostname, port, protocol, path }
 }
 
 /**
@@ -131,7 +139,7 @@ export function detectBackend (options = {}, isRDC = false) {
  * @param  {Object} options   option to check against
  * @return {Object}           validated config enriched with default values
  */
-export function validateConfig (defaults, options) {
+export function validateConfig (defaults, options, keysToKeep = []) {
     const params = {}
 
     for (const [name, expectedOption] of Object.entries(defaults)) {
@@ -164,6 +172,15 @@ export function validateConfig (defaults, options) {
             }
 
             params[name] = options[name]
+        }
+    }
+
+    for (const [name, option] of Object.entries(options)) {
+        /**
+         * keep keys from source object if desired
+         */
+        if (keysToKeep.includes(name)) {
+            params[name] = option
         }
     }
 

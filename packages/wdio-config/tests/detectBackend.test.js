@@ -13,14 +13,14 @@ describe('detectBackend', () => {
 
     it('should default to local selenium server', () => {
         const caps = detectBackend({})
-        expect(caps.hostname).toBe('127.0.0.1')
-        expect(caps.port).toBe(4444)
-        expect(caps.path).toBe('/')
+        expect(typeof caps.hostname).toBe('undefined')
+        expect(typeof caps.port).toBe('undefined')
+        expect(typeof caps.path).toBe('undefined')
 
         const otherCaps = detectBackend()
-        expect(otherCaps.hostname).toBe('127.0.0.1')
-        expect(otherCaps.port).toBe(4444)
-        expect(otherCaps.path).toBe('/')
+        expect(typeof otherCaps.hostname).toBe('undefined')
+        expect(typeof otherCaps.port).toBe('undefined')
+        expect(typeof otherCaps.path).toBe('undefined')
     })
 
     it('should default if host or port is not given', () => {

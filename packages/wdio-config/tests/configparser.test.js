@@ -186,8 +186,8 @@ describe('ConfigParser', () => {
             configParser.merge({ user: 'barfoo', key: '50fa1411-3121-4gb0-9p07-8q326vvbq7b0' })
 
             const config = configParser.getConfig()
-            expect(config.hostname).toBe('ondemand.saucelabs.com')
-            expect(config.port).toBe(443)
+            expect(config.hostname).toBe('127.0.0.1')
+            expect(config.port).toBe(4444)
         })
 
         it('should allow specifying a exclude file', () => {

@@ -186,7 +186,7 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         if (event.origin === 'worker' && event.name === 'error') {
-            return this.log(`[${event.cid}]`, 'Error:', event.content.message || event.content.stack || event.content)
+            return this.log(`[${event.cid}]`, chalk.white.bgRed.bold(' Error: '), event.content.message || event.content.stack || event.content)
         }
 
         if (event.origin !== 'reporter') {
