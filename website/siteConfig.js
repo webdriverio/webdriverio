@@ -7,7 +7,7 @@ module.exports = {
     url: 'https://webdriver.io',
     baseUrl: '/',
     headerLinks: [
-        { doc: 'gettingstarted', label: 'Guide' },
+        { doc: 'gettingstarted', label: 'Docs' },
         { doc: 'api', label: 'API' },
         { page: 'help', label: 'Help' },
         { doc: 'versions', label: 'Versions' },
