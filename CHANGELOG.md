@@ -15,6 +15,9 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.22.2 
+
+
 ## v5.22.1 (2020-03-18)
 
 #### :bug: Bug Fix
