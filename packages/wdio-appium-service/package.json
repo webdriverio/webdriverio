@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@wdio/logger": "5.16.10",
-    "fs-extra": "^8.0.1",
+    "fs-extra": "^9.0.0",
     "param-case": "^3.0.0"
   },
   "peerDependencies": {
