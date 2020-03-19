@@ -15,10 +15,11 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
-## v5.22.3 
+## v5.22.3
 
-
-## v5.22.2 
+#### :bug: Bug Fix
+* `webdriver`
+  * Move `@types/request` to dependency section
 
 
 ## v5.22.1 (2020-03-18)
