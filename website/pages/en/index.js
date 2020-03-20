@@ -157,7 +157,7 @@ const TestSetup = () => (
                     'The WebdriverIO testrunner comes with a command line interface that provides a nice configuration utility that ' +
                     'helps you to create your config file in less than a minute. It also gives an overview of all available 3rd party ' +
                     'packages like framework adaptions, reporter and services and installs them for you!' +
-                    '<img src="/img/install.png" alt="Install WebdriverIO Command" />',
+                    '<img class="install" src="/img/install.png" alt="Install WebdriverIO Command" />',
                 image: imgUrl('config-utility.gif'),
                 imageAlign: 'right',
                 title: 'Get Started With WebdriverIO within Minutes',
@@ -373,6 +373,7 @@ class Index extends React.Component {
                     <CompanyUsage />
                     <Talks />
                     <TestSetup />
+                    <SauceSupport />
                     <ApplitoolsSupport />
                 </div>
             </div>
