@@ -153,10 +153,14 @@ const TestSetup = () => (
     <Block>
         {[
             {
-                content: 'The wdio command line interface comes with a nice configuration utility that helps you to create your config file in less than a minute. It also gives an overview of all available 3rd party packages like framework adaptions, reporter and services and installs them for you.',
+                content: '' +
+                    'The WebdriverIO testrunner comes with a command line interface that provides a nice configuration utility that ' +
+                    'helps you to create your config file in less than a minute. It also gives an overview of all available 3rd party ' +
+                    'packages like framework adaptions, reporter and services and installs them for you!' +
+                    '<img src="/img/install.png" alt="Install WebdriverIO Command" />',
                 image: imgUrl('config-utility.gif'),
                 imageAlign: 'right',
-                title: 'Easy Test Setup',
+                title: 'Get Started With WebdriverIO within Minutes',
             },
         ]}
     </Block>
@@ -222,7 +226,7 @@ Talks.propTypes = {
 }
 
 const ApplitoolsSupport = () => (
-    <Container padding={['bottom', 'top']} id="applitools">
+    <Container background="light" padding={['bottom', 'top']} id="applitools">
         <div className="blockElement imageAlignSide imageAlignRight twoByGridBlock">
             <div className="blockContent">
                 <h2>
@@ -302,7 +306,7 @@ const LOGOS = [{
 
 const CompanyUsage = () => {
     return (
-        <Container background="light" padding={['bottom', 'top']} id="companyUsage">
+        <Container padding={['bottom', 'top']} id="companyUsage">
             <h3>Who is using WebdriverIO?</h3>
             <div>
                 <ul>
@@ -366,10 +370,10 @@ class Index extends React.Component {
                             layout="fourColumn"
                         />
                     </Container>
-                    <TestSetup />
-                    <Talks />
-                    <ApplitoolsSupport />
                     <CompanyUsage />
+                    <Talks />
+                    <TestSetup />
+                    <ApplitoolsSupport />
                 </div>
             </div>
         )

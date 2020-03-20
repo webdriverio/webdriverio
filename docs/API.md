@@ -9,7 +9,7 @@ Welcome to the WebdriverIO docs page. These pages contain reference materials fo
 
 ## Examples
 
-Each command documentation usually comes with an example that demonstrates its usage in WebdriverIO's testrunner (in sync mode). 
+Each command documentation usually comes with an example that demonstrates its usage in WebdriverIO's testrunner (in sync mode).
 
 If you run WebdriverIO in standalone mode, you can still use all commands, but you'll need to make sure that the execution order is handled properly by chaining the commands and resolving the promise chain. So, instead of assigning the value directly to a variable, as the WDIO testrunner allows it...
 
