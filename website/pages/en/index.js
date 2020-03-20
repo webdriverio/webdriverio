@@ -27,10 +27,6 @@ function docUrl(doc, language) {
     return siteConfig.baseUrl + 'docs/' + (language ? language + '/' : '') + doc
 }
 
-// function pageUrl(page, language) {
-//     return siteConfig.baseUrl + (language ? language + '/' : '') + page
-// }
-
 class Button extends React.Component {
     render() {
         return (
@@ -254,6 +250,77 @@ const ApplitoolsSupport = () => (
     </Container>
 )
 
+const LOGOS = [{
+    img: 'hilton.png',
+    alt: 'Hilton',
+    url: 'https://www.hilton.com/'
+}, {
+    img: 'netflix.png',
+    alt: 'Netflix',
+    url: 'https://netflix.com/'
+}, {
+    img: 'oxford.png',
+    alt: 'Oxford University Press',
+    url: 'https://global.oup.com/'
+}, {
+    img: 'bbva.png',
+    alt: 'BBVA',
+    url: 'https://www.bbva.com/'
+}, {
+    img: 'gopro.png',
+    alt: 'GoPro',
+    url: 'https://gopro.com/'
+}, {
+    img: 'sap.png',
+    alt: 'SAP',
+    url: 'https://www.sap.com/'
+}, {
+    img: 'financialtimes.png',
+    alt: 'Financial Times',
+    url: 'https://www.ft.com/'
+}, {
+    img: 'zendesk.png',
+    alt: 'Zendesk',
+    url: 'https://www.zendesk.com/'
+}, {
+    img: '1und1.png',
+    alt: '1&1',
+    url: 'https://www.1und1.de/'
+}, {
+    img: 'avira.png',
+    alt: 'Avira',
+    url: 'https://www.avira.com/'
+}, {
+    img: 'deloitte.jpg',
+    alt: 'Deloitte',
+    url: 'https://deloitte.com'
+}, {
+    img: 'rabobank.png',
+    alt: 'Rabobank',
+    url: 'https://www.rabobank.com/'
+}]
+
+const CompanyUsage = () => {
+    return (
+        <Container background="light" padding={['bottom', 'top']} id="companyUsage">
+            <h3>Who is using WebdriverIO?</h3>
+            <div>
+                <ul>
+                    {LOGOS.map((value, index) => (
+                        <li key={index}><a href={value.url} target="_blank"><img src={"/img/logos/" + value.img} alt={value.alt} /></a></li>
+                    ))}
+                </ul>
+                <div className="logoNavigation">
+                    {[...Array(Math.ceil(LOGOS.length / 6))].map((_, index) => (
+                        <button key={index} className={index === 0 ? 'active' : ''}>{index + 1}</button>
+                    ))}
+                </div>
+            </div>
+            <script src="/js/carousel.js"></script>
+        </Container>
+    )
+}
+
 class Index extends React.Component {
     render() {
         let language = this.props.language || ''
@@ -302,6 +369,7 @@ class Index extends React.Component {
                     <TestSetup />
                     <Talks />
                     <ApplitoolsSupport />
+                    <CompanyUsage />
                 </div>
             </div>
         )

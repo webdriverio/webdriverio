@@ -67,6 +67,8 @@ blockquote {
 }
 
 .mainContainer {
+    padding-bottom: 0;
+
     img {
         &[alt^='Support'] {
             width: 20px;
