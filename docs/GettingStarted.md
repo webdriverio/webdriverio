@@ -119,8 +119,7 @@ describe('webdriver.io page', () => {
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-
-Now save the file and return to your terminal.
+Now save the file and return to your terminal. If you want to learn more about the differences between Sync and Async Mode please checkout our docs [here](sync-vs-async).
 
 ### Start the Testrunner
 
