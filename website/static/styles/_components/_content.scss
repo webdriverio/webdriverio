@@ -141,3 +141,31 @@ img.install {
         }
     }
 }
+
+.imageAlignLeft .blockContent {
+    h2, p {
+        text-align: left;
+    }
+}
+
+.lightBackground {
+    background: #fAfAfA;
+}
+
+.tabs {
+    margin-top: 20px;
+
+    .nav-link {
+        padding: 8px 16px;
+    }
+
+    .nav-tabs {
+        border-bottom-width: 2px;
+    }
+
+    .tab-content code {
+        margin-top: 0;
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+    }
+}

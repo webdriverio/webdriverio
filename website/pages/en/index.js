@@ -150,7 +150,7 @@ Block.propTypes = {
 }
 
 const TestSetup = () => (
-    <Block>
+    <Block background="light">
         {[
             {
                 content: '' +
@@ -159,8 +159,26 @@ const TestSetup = () => (
                     'packages like framework adaptions, reporter and services and installs them for you!' +
                     '<img class="install" src="/img/install.png" alt="Install WebdriverIO Command" />',
                 image: imgUrl('config-utility.gif'),
-                imageAlign: 'right',
+                imageAlign: 'left',
                 title: 'Get Started With WebdriverIO within Minutes',
+            },
+        ]}
+    </Block>
+)
+
+const AutomationProtocolSupport = () => (
+    <Block>
+        {[
+            {
+                content: '' +
+                    'WebdriverIO is always up to date with the latest automation frameworks and therefor supports not only capabilities ' +
+                    'of the <a href="https://w3c.github.io/webdriver/">WebDriver</a> but also commands of the <a href="https://chromedevtools.github.io/devtools-protocol/">Chrome DevTools</a> ' +
+                    'protocol using tools like <a href="https://pptr.dev/">Puppeteer</a>. The framework allows you to freely switch between ' +
+                    'running remote WebDriver commands as well stubbing and mocking features of Puppeteer. Have a look into the <a href="https://github.com/webdriverio/webdriverio/blob/cb-docs-improvements/examples/devtools/intercept.js">examples</a> ' +
+                    'directory.',
+                image: imgUrl('w3c-wdio-pptr.png'),
+                imageAlign: 'right',
+                title: '1st Class WebDriver and Puppeteer Support',
             },
         ]}
     </Block>
@@ -226,7 +244,7 @@ Talks.propTypes = {
 }
 
 const ApplitoolsSupport = () => (
-    <Container background="light" padding={['bottom', 'top']} id="applitools">
+    <Container padding={['bottom', 'top']} id="applitools">
         <div className="blockElement imageAlignSide imageAlignRight twoByGridBlock">
             <div className="blockContent">
                 <h2>
@@ -372,8 +390,8 @@ class Index extends React.Component {
                     </Container>
                     <CompanyUsage />
                     <Talks />
+                    <AutomationProtocolSupport />
                     <TestSetup />
-                    <SauceSupport />
                     <ApplitoolsSupport />
                 </div>
             </div>
