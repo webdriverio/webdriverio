@@ -49,14 +49,18 @@ Next, you’ll generate a configuration file to store your WebdriverIO settings.
 
 To do that, just run the configuration utility:
 
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Linux/Mac-->
+
 ```sh
 ./node_modules/.bin/wdio config -y
 ```
-In Windows, you may have to escape the dot in ".bin" by running this instead:
 
+<!--Windows-->
 ```sh
 ."/node_modules/.bin/wdio" config -y
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 That's it! The configurator will install all required packages for you and create a config file called `wdio.conf.js`.
 
@@ -66,15 +70,17 @@ Now it's time to create your test file. You’re going to store all of your test
 
 Create the test folder like this:
 
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Linux/Mac-->
 ```sh
 mkdir -p ./test/specs
 ```
 
-Windows:
-
+<!--Windows-->
 ```sh
 mkdir .\test\specs
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 Create a new file in that folder (we'll call it `basic.js`):
 
@@ -86,6 +92,8 @@ On Windows, `touch` will not work so you can simply go to the folder and create 
 
 Open that file, and write the following code in it:
 
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Sync Mode-->
 ```js
 const assert = require('assert')
 
@@ -97,9 +105,7 @@ describe('webdriver.io page', () => {
     })
 })
 ```
-
-**NOTE:** If you decided to use _async_ instead of _sync_ mode, don't forget to add `async`/`await` keywords, like this:
-
+<!--Async Mode-->
 ```js
 const assert = require('assert')
 
@@ -111,6 +117,7 @@ describe('webdriver.io page', () => {
     })
 })
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 
 Now save the file and return to your terminal.
@@ -121,14 +128,16 @@ Now, time to run your tests!
 
 To do so, just run:
 
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Linux/Mac-->
 ```sh
 ./node_modules/.bin/wdio wdio.conf.js
 ```
-Windows:
-
+<!--Windows-->
 ```sh
 ."/node_modules/.bin/wdio" wdio.conf.js
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 Hurray! The test should pass, and you can start writing integration tests with WebdriverIO.
 

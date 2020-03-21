@@ -13,34 +13,24 @@ Here’s an example with `geckodriver`.
 
 Download the latest version of `geckodriver` for your environment and unpack it in your project directory:
 
-#### Linux (64 bit)
-
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Linux (64 bit)-->
 ```sh
-curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz | tar xz
+$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz | tar xz
 ```
-
-#### macOS
-
+<!--MacOS (curl)-->
 ```sh
-curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-macos.tar.gz | tar xz
+$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-macos.tar.gz | tar xz
 ```
-
-Or with [`brew`](https://brew.sh)
-
+<!--MacOS (brew)-->
 ```sh
-brew install geckodriver
+$ brew install geckodriver
 ```
-
-#### Windows 64 bit
-
-Simple setup: ([Chocolatey](https://chocolatey.org))
-
+<!--Windows (64 bit / Chocolatey)-->
 ```sh
-choco install selenium-gecko-driver
+$ choco install selenium-gecko-driver
 ```
-
-For advanced users (Powershell):
-
+<!--Windows (64 bit / Powershell)-->
 ```sh
 # Run as privileged session. Right-click and set 'Run as Administrator'
 # Use geckodriver-v0.24.0-win32.zip for 32 bit Windows
@@ -61,6 +51,7 @@ cd $unzipped_file
 # Globally Set Geckodriver to PATH
 [System.Environment]::SetEnvironmentVariable("PATH", "$Env:Path;$pwd\geckodriver.exe", [System.EnvironmentVariableTarget]::Machine)
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 **Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). In order to automate other browsers, you need different drivers. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
 

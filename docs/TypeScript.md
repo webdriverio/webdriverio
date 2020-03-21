@@ -11,41 +11,50 @@ The minimum TypeScript version is 3.7.3.
 
 The following framework configurations need to be applied to set up TypeScript properly with WebdriverIO.
 
-### Mocha
-
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Mocha-->
 ```js
 // wdio.conf.js
-mochaOpts: {
-    ui: 'bdd',
-    require: 'ts-node/register',
-    compilers: [
-        // optional
-        'tsconfig-paths/register'
-    ]
-},
+exports.config = {
+    // ...
+    mochaOpts: {
+        ui: 'bdd',
+        require: 'ts-node/register',
+        compilers: [
+            // optional
+            'tsconfig-paths/register'
+        ]
+    },
+    // ...
+}
 ```
-
-### Jasmine
-
+<!--Jasmine-->
 ```js
 // wdio.conf.js
-jasmineNodeOpts: {
-    requires: ['ts-node/register']
-},
+exports.config = {
+    // ...
+    jasmineNodeOpts: {
+        requires: ['ts-node/register']
+    },
+    // ...
+}
 ```
-
-### Cucumber
-
+<!--Cucumber-->
 ```js
 // wdio.conf.js
-cucumberOpts: {
-    requireModule: [
-        'tsconfig-paths/register',
-        () => { require('ts-node').register({ files: true }) },
-    ],
-    require: [/* support and step definitions files here */],
-},
+exports.config = {
+    // ...
+    cucumberOpts: {
+        requireModule: [
+            'tsconfig-paths/register',
+            () => { require('ts-node').register({ files: true }) },
+        ],
+        require: [/* support and step definitions files here */],
+    },
+    // ...
+}
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 And your `tsconfig.json` needs the following:
 
@@ -137,35 +146,34 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 1. Create types definition file (e.g., `./types/wdio.d.ts`)
 2. Specify path to types in `tsconfig.json`
 
-    ```json
-    {
-        "compilerOptions": {
-            "typeRoots": ["./types"]
-        }
+```json
+{
+    "compilerOptions": {
+        "typeRoots": ["./types"]
     }
-    ```
+}
+```
 
 3. Add defintions for your commands according to your execution mode.
 
-    **Sync mode**
-
-    ```typescript
-    declare module WebdriverIO {
-        // adding command to `browser`
-        interface Browser {
-            browserCustomCommand: (arg) => void
-        }
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Sync Mode-->
+```typescript
+declare module WebdriverIO {
+    // adding command to `browser`
+    interface Browser {
+        browserCustomCommand: (arg) => void
     }
-    ```
-
-    **Async mode**
-
-    ```typescript
-    declare module WebdriverIO {
-        // adding command to `$()`
-        interface Element {
-            // don't forget to wrap return values with Promise
-            elementCustomCommand: (arg) => Promise<number>
-        }
+}
+```
+<!--Async Mode-->
+```typescript
+declare module WebdriverIO {
+    // adding command to `$()`
+    interface Element {
+        // don't forget to wrap return values with Promise
+        elementCustomCommand: (arg) => Promise<number>
     }
-    ```
+}
+```
+<!--END_DOCUSAURUS_CODE_TABS-->

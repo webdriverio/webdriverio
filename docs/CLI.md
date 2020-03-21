@@ -186,6 +186,7 @@ timeline
 ```
 mocha
 jasmine
+cucumber
 ```
 
 ## Run the test runner programmatically
@@ -193,15 +194,16 @@ jasmine
 Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment.
 For that, you'll need to require the `@wdio/cli` package as module, like this:
 
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Using EcmaScript Modules-->
 ```js
 import Launcher from '@wdio/cli'
 ```
-
-Or, for ES5:
-
+<!--Using CommonJS-->
 ```js
 const Launcher = require('@wdio/cli').default
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 After that, create an instance of the launcher, and run the test.
 

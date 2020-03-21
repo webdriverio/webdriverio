@@ -36,7 +36,7 @@ In `wdio.conf`:
 
 ```js
 jasmineNodeOpts: {
-  defaultTimeoutInterval: (24 * 60 * 60 * 1000)
+    defaultTimeoutInterval: (24 * 60 * 60 * 1000)
 }
 ```
 
