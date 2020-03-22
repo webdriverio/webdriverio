@@ -7,7 +7,7 @@ import logger from '@wdio/logger'
 
 import { detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber } from '../utils'
 
-import { DEFAULT_CONFIGS, SUPPORTED_HOOKS } from '../constants'
+import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS } from '../constants'
 
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
@@ -291,13 +291,9 @@ export default class ConfigParser {
         for (let pattern of patterns) {
             let filenames = glob.sync(pattern)
 
-            filenames = filenames.filter(filename =>
-                filename.slice(-3) === '.js' ||
-                filename.slice(-4) === '.mjs' ||
-                filename.slice(-4) === '.es6' ||
-                filename.slice(-3) === '.ts' ||
-                filename.slice(-8) === '.feature' ||
-                filename.slice(-7) === '.coffee')
+            filenames = filenames.filter(
+                (filename) => SUPPORTED_FILE_EXTENSIONS.find(
+                    (ext) => filename.endsWith(ext)))
 
             filenames = filenames.map(filename =>
                 path.isAbsolute(filename) ? path.normalize(filename) : path.resolve(process.cwd(), filename))

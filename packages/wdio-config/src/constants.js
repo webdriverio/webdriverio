@@ -78,3 +78,7 @@ export const SUPPORTED_HOOKS = [
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
     'onReload', 'onPrepare', 'onWorkerStart', 'onComplete'
 ]
+
+export const SUPPORTED_FILE_EXTENSIONS = [
+    '.js', '.mjs', '.es6', '.ts', '.feature', '.coffee', '.cjs'
+]
