@@ -49,18 +49,9 @@ Next, you’ll generate a configuration file to store your WebdriverIO settings.
 
 To do that, just run the configuration utility:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Linux/Mac-->
-
 ```sh
 $ npx wdio config -y
 ```
-
-<!--Windows-->
-```sh
-."/node_modules/.bin/wdio" config -y
-```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
 That's it! The configurator will install all required packages for you and create a config file called `wdio.conf.js`.
 
