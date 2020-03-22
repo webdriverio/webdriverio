@@ -122,7 +122,7 @@ img.install {
         text-align: center;
 
         button {
-            :focus {
+            &:focus {
                 outline: none;
             }
 
