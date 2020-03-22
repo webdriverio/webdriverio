@@ -18,7 +18,7 @@ npm install @wdio/cli
 To see the command line interface help, just type the following command in your terminal:
 
 ```sh
-./node_modules/.bin/wdio --help
+$ npx wdio --help
 
 wdio <command>
 
@@ -42,7 +42,7 @@ Switch over to the [Configuration File](ConfigurationFile.md) section to see wha
 With the `wdio` configuration helper, it is super easy to generate your config file. Just run:
 
 ```sh
-./node_modules/.bin/wdio config
+$ npx wdio config
 ```
 
 ...and it launches the helper utility.
@@ -54,10 +54,10 @@ It will ask you questions and generate a config file for you in less than a minu
 Once you have your configuration file set up, you can start your tests by running:
 
 ```sh
-./node_modules/.bin/wdio run wdio.conf.js
+$ npx wdio run wdio.conf.js
 
 # you can also initalize your configuration without the `run` command
-./node_modules/.bin/wdio wdio.conf.js
+$ npx wdio wdio.conf.js
 ```
 
 

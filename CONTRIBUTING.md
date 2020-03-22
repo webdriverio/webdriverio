@@ -42,7 +42,7 @@ In order to set up this project and start contributing follow this step by step 
     $ npm run test
 
     # run test for a specific sub project (e.g. webdriver)
-    $ ./node_modules/.bin/jest ./packages/webdriver/tests
+    $ npx jest ./packages/webdriver/tests
     ```
 
     It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
@@ -54,15 +54,15 @@ When modifying core WebdriverIO packages you can link those changes to your curr
 If you are working on a package, lets say the @wdio/cli package, you can link this in the following way from the WebdriverIO repositority.
 
 ```
-cd packages/wdio-cli
-npm link
+$ cd packages/wdio-cli
+$ npm link
 ```
 
 Then in your current project you can link your changes from the the @wdio/cli package to your current project.
 
 ```
-cd your-main-test-code
-npm link @wdio/cli
+$ cd your-main-test-code
+$ npm link @wdio/cli
 ```
 
 ## Work On Packages
@@ -83,7 +83,7 @@ $ npm run watch:pkg <package-name>
 It is also a good idea to run jest in watch mode while developing on a single package to see if changes affect any tests:
 
 ```sh
-$ ./node_modules/.bin/jest ./packages/<package-name>/tests --watch
+$ npx jest ./packages/<package-name>/tests --watch
 ```
 
 ## Create New Package
@@ -275,7 +275,7 @@ You can always reach out to the `webdriverio/ProjectCommitters` channel on Gitte
 Package releases are made using Lerna's release capabilities and executed by the [technical steering committee](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md#the-technical-committee) only. Before you can start please export an `GITHUB_AUTH` token into your environment in order to allow [`lerna-changelog`](https://www.npmjs.com/package/lerna-changelog#github-token) to gather data about the upcoming release and autogenerate the [CHANGELOG.md](/CHANGELOG.md). Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such token with only having the `public_repo` field enabled. Then export it into your environment:
 
 ```sh
-export GITHUB_AUTH=...
+$ export GITHUB_AUTH=...
 ```
 
 You are now all set and just need to call:

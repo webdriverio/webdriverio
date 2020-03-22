@@ -25,8 +25,8 @@ Before installing dependencies, you’ll need to initialize a new NPM project. T
 To do this, run:
 
 ```sh
-mkdir webdriverio-test && cd webdriverio-test
-npm init -y
+$ mkdir webdriverio-test && cd webdriverio-test
+$ npm init -y
 ```
 
 The `-y` will answer 'yes' to all the prompts, giving you a standard NPM project. Feel free to omit the `-y` if you'd like to specify your own project details.
@@ -40,7 +40,7 @@ Since WebdriverIO version 5, the testrunner is in the [`@wdio/cli`](https://www.
 Now, install the CLI:
 
 ```sh
-npm i --save-dev @wdio/cli
+$ npm i --save-dev @wdio/cli
 ```
 
 ### Generate Configuration File
@@ -53,7 +53,7 @@ To do that, just run the configuration utility:
 <!--Linux/Mac-->
 
 ```sh
-./node_modules/.bin/wdio config -y
+$ npx wdio config -y
 ```
 
 <!--Windows-->
@@ -73,19 +73,19 @@ Create the test folder like this:
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Linux/Mac-->
 ```sh
-mkdir -p ./test/specs
+$ mkdir -p ./test/specs
 ```
 
 <!--Windows-->
 ```sh
-mkdir .\test\specs
+$ mkdir .\test\specs
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 Create a new file in that folder (we'll call it `basic.js`):
 
 ```sh
-touch ./test/specs/basic.js
+$ touch ./test/specs/basic.js
 ```
 
 On Windows, `touch` will not work so you can simply go to the folder and create a plain text file and name is as 'basic.js'
@@ -127,16 +127,9 @@ Now, time to run your tests!
 
 To do so, just run:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Linux/Mac-->
 ```sh
-./node_modules/.bin/wdio wdio.conf.js
+$ npx wdio wdio.conf.js
 ```
-<!--Windows-->
-```sh
-."/node_modules/.bin/wdio" wdio.conf.js
-```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
 Hurray! The test should pass, and you can start writing integration tests with WebdriverIO.
 

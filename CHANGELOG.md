@@ -3631,19 +3631,19 @@ This version comes with a variety of technical changes that might affect the fun
 * spec and suite cli arguments are now passed as an array, e.g.
   ```js
   // v4
-  ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/foobar.js,./tests/baz.js
+  $ npx wdio wdio.conf.js --spec ./tests/foobar.js,./tests/baz.js
 
-  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar,BarBaz
+  $ npx wdio wdio.conf.js --suite FooBar,BarBaz
 
-  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar
+  $ npx wdio wdio.conf.js --suite FooBar
   ```
   ```js
   // v5
-  ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/foobar.js ./tests/baz.js
+  $ npx wdio wdio.conf.js --spec ./tests/foobar.js ./tests/baz.js
 
-  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar BarBaz
+  $ npx wdio wdio.conf.js --suite FooBar BarBaz
 
-  ./node_modules/.bin/wdio wdio.conf.js --suite FooBar
+  $ npx wdio wdio.conf.js --suite FooBar
   ```
 
 * custom configuration for services or reporters are now directly applied to the config list, e.g.

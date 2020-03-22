@@ -4,7 +4,7 @@
  * If not try to run: `$ npm install @babel/node`
  *
  * To execute it just run it as a spec with a fair amount of timeout:
- * $ ./node_modules/.bin/babel-node ./examples/multiremote/webrtc.js
+ * $ npx babel-node ./examples/multiremote/webrtc.js
  */
 
 const { multiremote } = require('../../packages/webdriverio/build')
