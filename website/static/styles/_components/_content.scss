@@ -122,6 +122,10 @@ img.install {
         text-align: center;
 
         button {
+            :focus {
+                outline: none;
+            }
+
             &:before {
                 content: "\2022";
                 color: black;
