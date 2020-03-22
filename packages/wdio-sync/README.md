@@ -60,7 +60,7 @@ describe('webdriver.io page', () => {
     it('should have the right title', async () => {
         await browser.url('https://webdriver.io')
         await expect(browser)
-            .toHaveTitle('WebdriverIO · Next-gen WebDriver test framework for Node.js')
+            .toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
     })
 })
 ```
@@ -71,7 +71,7 @@ easier to read and write like this:
 describe('webdriver.io page', () => {
     it('should have the right title', () => {
         browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen WebDriver test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
     })
 })
 ```

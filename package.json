@@ -29,7 +29,6 @@
     "docs:setup": "cd ./website && npm install && cd ..",
     "docs:generate": "npm run clean:website && ./scripts/docs-generation/generateDocs.js",
     "docs:build": "cd ./website && npm run build && cd ..",
-    "docs:deploy": "./scripts/updateDocs.js",
     "test": "run-s test:eslint test:typings test:coverage test:smoke",
     "test:eslint": "eslint --cache packages examples scripts tests",
     "test:typings": "npm run generate:typings && node tests/typings/copy && npm run ts && npm run clean:tests",

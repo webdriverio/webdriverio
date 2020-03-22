@@ -193,7 +193,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
         value = 'https://webdriver.io/?foo=bar'
         break
     case `${path}/${sessionId}/title`:
-        value = 'WebdriverIO · Next-gen WebDriver test framework for Node.js'
+        value = 'WebdriverIO · Next-gen browser automation test framework for Node.js'
         break
     case `${path}/${sessionId}/screenshot`:
     case `${path}/${sessionId}/appium/stop_recording_screen`:
