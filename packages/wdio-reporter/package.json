@@ -1,6 +1,6 @@
 {
   "name": "@wdio/reporter",
-  "version": "5.18.6",
+  "version": "5.22.4",
   "description": "A WebdriverIO utility to help reporting all events",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-reporter",

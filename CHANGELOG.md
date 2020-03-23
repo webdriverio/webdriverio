@@ -15,6 +15,21 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.22.4 (2020-03-23)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#5123](https://github.com/webdriverio/webdriverio/pull/5123) Add support for .cjs files ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-reporter`
+  * [#5137](https://github.com/webdriverio/webdriverio/pull/5137) added write method to typings ([@dpoetzsch](https://github.com/dpoetzsch))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Poetzsch-Heffter ([@dpoetzsch](https://github.com/dpoetzsch))
+
+
 ## v5.22.3
 
 #### :bug: Bug Fix
