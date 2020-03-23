@@ -204,6 +204,7 @@ Next to all major updates that were described above there are also some minor ch
 - __New Hook:__ we added a new hook to the testrunner called `onWorkerStart` which will be executed right before we launch the worker process
 - __Modified Hook Signature:__ we modified the signature of our before/after test/hook hooks to allow you to access the frameworks native event objects - please have a look into the config file [documentation](ConfigurationFile.md) and update your hooks accordingly
 - __Cucumber Update:__ we have updated the `@wdio/cucumber-framework` adapter to use v6 of Cucumber
+- __Overwrite Capabilities:__ By default the launcher will overwrite the capabilities instead of merging them when using the launcher
 
 ## LTS Support
 
