@@ -1,25 +1,14 @@
 ---
-name: "\U0001F4ACQuestion"
-about: Ask questions.
+name: 💬 Questions / Help
+about: If you have questions, please reach out in our Gitter support channel.
 
 ---
 
-**Describe your question with as much detail as possible**
-A clear and concise question that doesn't require too much conversation. Need more help? [Find us on Gitter](https://gitter.im/webdriverio/webdriverio)
+## 💬 Questions and Help
 
-**If it's about a specific piece of code, try and include some of it to support your question.**
-[...]
+### Please note that this issue tracker is not a help form and this issue will be closed.
 
-**Environment (please complete the following information):**
- - **WebdriverIO version:** [e.g. 4.13.2]
- - **Mode:** [Standalone mode or WDIO Testrunner]
- - **If WDIO Testrunner, running sync/async:** [e.g. sync/async]
- - **Node.js version:** [e.g. 8.9.1]
- - **NPM version:** [e.g. 5.8.0]
- - **Browser name and version:** [e.g. Chrome 68]
- - **Platform name and version:** [e.g. Windows 10]
- - **Additional wdio packages used (if applicable):** [e.g. @wdio/spec reporter, @wdio/selenium-standalone service]
+For questions or help please see:
 
-
-**Additional context**
-Add any other context about the problem here.
+- [WebdriverIO Gitter Support Channel](https://gitter.im/webdriverio/webdriverio)
+- [#webdriverio channel om SeleniumHQ Slack](https://seleniumhq.slack.com/join/shared_invite/enQtODAwOTUzOTM5OTEwLTZjZjgzN2ExOTBmZGE0NjkwYzA2Nzc0MjczMGYwYjdiNGQ5YjI0ZjdjYjFhMjVlMjFkZWJmNDYyMmU1OTYyM2Y)

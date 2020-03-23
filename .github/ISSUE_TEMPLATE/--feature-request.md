@@ -1,5 +1,5 @@
 ---
-name: "\U0001F4A1Feature request"
+name: 💡 Feature request
 about: Suggest an idea for WebdriverIO.
 
 ---
