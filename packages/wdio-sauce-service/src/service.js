@@ -55,7 +55,17 @@ export default class SauceService {
             this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
         }
 
-        global.browser.execute('sauce:context=' + test.fullTitle)
+        const fullTitle = (
+            /**
+             * Jasmine
+             */
+            test.fullName ||
+            /**
+             * Mocha
+             */
+            `${test.parent} - ${test.title}`
+        )
+        global.browser.execute('sauce:context=' + fullTitle)
     }
 
     afterSuite (suite) {

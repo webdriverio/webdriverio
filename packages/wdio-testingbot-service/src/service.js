@@ -51,8 +51,16 @@ export default class TestingBotService {
             this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
         }
 
-        const context = test.parent === 'Jasmine__TopLevel__Suite' ? test.fullName : test.parent + ' - ' + test.title
-
+        const context = (
+            /**
+             * Jasmine
+             */
+            test.fullName ||
+            /**
+             * Mocha
+             */
+            `${test.parent} - ${test.title}`
+        )
         global.browser.execute('tb:test-context=' + context)
     }
 

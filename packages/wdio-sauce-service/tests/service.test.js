@@ -52,7 +52,7 @@ test('beforeTest should set context for jasmine test', () => {
     const service = new SauceService()
     service.beforeSession({ user: 'foobar', key: '123' }, {})
     service.beforeTest({
-        fullTitle: 'my test can do something',
+        fullName: 'my test can do something',
         title: 'foobar'
     })
     expect(global.browser.execute).toBeCalledWith('sauce:context=my test can do something')
