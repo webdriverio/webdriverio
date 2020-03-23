@@ -1,4 +1,5 @@
 import path from 'path'
+import http from 'http'
 import logger from '@wdio/logger'
 import { detectBackend, validateConfig } from '@wdio/config'
 import { runFnInFiberContext } from '@wdio/utils'
@@ -35,6 +36,7 @@ jest.mock('webdriver', () => {
         default: module
     }
 })
+
 jest.mock('devtools', () => {
     const DevTools = jest.requireActual('devtools').default
     const client = { sessionId: 'foobar-123', isDevtools: true }
@@ -67,6 +69,19 @@ jest.mock('@wdio/config', () => {
         detectBackend: jest.fn(),
     }
     return validateConfigMock
+})
+
+jest.mock('http', () => {
+    let response = { statusCode: 404 }
+    const reqCall = { on: jest.fn(), end: jest.fn() }
+    return {
+        request: jest.fn().mockImplementation((url, cb) => {
+            cb(response)
+            return reqCall
+        }),
+        setResonse: (res) => (response = res),
+        Agent: jest.fn()
+    }
 })
 
 const WebDriver = require('webdriver').default
@@ -117,11 +132,17 @@ describe('WebdriverIO module interface', () => {
         it('should properly detect automation protocol', async () => {
             const devtoolsBrowser = await remote({ capabilities: { browserName: 'chrome' } })
             expect(devtoolsBrowser.isDevtools).toBe(true)
-            const webdriverBrowser = await remote({
+
+            http.setResonse({ statusCode: 200 })
+            const webdriverBrowser = await remote({ capabilities: { browserName: 'chrome' } })
+            expect(webdriverBrowser.isWebDriver).toBe(true)
+
+            const anotherWebdriverBrowser = await remote({
                 path: '/',
                 capabilities: { browserName: 'chrome' }
             })
-            expect(webdriverBrowser.isWebDriver).toBe(true)
+
+            expect(anotherWebdriverBrowser.isWebDriver).toBe(true)
         })
 
         it('should set process.env.WDIO_LOG_PATH if outputDir is set in the options', async()=>{

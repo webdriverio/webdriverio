@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 
 import SauceService from '../src'
 
@@ -48,13 +48,24 @@ test('beforeSession should set to unknown creds if no sauce user and key are fou
     expect(config.key).toBe('unknown_key')
 })
 
-test('beforeTest should set context for test', () => {
+test('beforeTest should set context for jasmine test', () => {
     const service = new SauceService()
     service.beforeSession({ user: 'foobar', key: '123' }, {})
     service.beforeTest({
-        fullTitle: 'my test can do something'
+        fullName: 'my test can do something',
+        title: 'foobar'
     })
     expect(global.browser.execute).toBeCalledWith('sauce:context=my test can do something')
+})
+
+test('beforeTest should set context for mocha test', () => {
+    const service = new SauceService()
+    service.beforeSession({ user: 'foobar', key: '123' }, {})
+    service.beforeTest({
+        parent: 'foo',
+        title: 'bar'
+    })
+    expect(global.browser.execute).toBeCalledWith('sauce:context=foo - bar')
 })
 
 test('beforeTest should not set context for RDC test', () => {
@@ -298,10 +309,11 @@ test('updateJob for VMs', () => {
 
     service.updateJob('12345', 23, true)
 
-    const reqCall = request.mock.calls[0][0]
-    expect(reqCall.uri).toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
+    const reqUri = got.put.mock.calls[0][0]
+    const reqCall = got.put.mock.calls[0][1]
+    expect(reqUri).toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
     expect(reqCall.body).toEqual({ name: 'my test (1)', passed: false })
-    expect(reqCall.auth).toEqual({ user: 'foobar', pass: '123' })
+    expect(reqCall.auth).toEqual('foobar:123')
     expect(service.failures).toBe(0)
 })
 
@@ -310,8 +322,10 @@ test('updateJob for RDC', () => {
     service.beforeSession({}, { testobject_api_key: 1 })
 
     service.updateJob('12345', 23)
-    const reqCall = request.mock.calls[0][0]
-    expect(reqCall.uri).toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
+
+    const reqUri = got.put.mock.calls[0][0]
+    const reqCall = got.put.mock.calls[0][1]
+    expect(reqUri).toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
     expect(reqCall.body).toEqual({ passed: false })
     expect(service.failures).toBe(0)
 })
@@ -385,5 +399,5 @@ test('getBody without multiremote', () => {
 
 afterEach(() => {
     global.browser.execute.mockClear()
-    request.mockClear()
+    got.put.mockClear()
 })

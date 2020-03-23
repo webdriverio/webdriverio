@@ -105,11 +105,11 @@ describe('wdio-testingbot-service', () => {
         tbService.beforeSuite({ title: 'Test suite' })
         tbService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
+        expect(execute).toBeCalledWith('tb:test-context=Test #1')
         expect(tbService.suiteTitle).toEqual('Test suite')
     })
 
-    it('beforeTest: execute called', () => {
+    it('beforeTest: execute called for Jasmine tests', () => {
         const tbService = new TestingBotService()
         const test = {
             name: 'Test name',
@@ -125,8 +125,26 @@ describe('wdio-testingbot-service', () => {
         tbService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' })
         tbService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
+        expect(execute).toBeCalledWith('tb:test-context=Test #1')
         expect(tbService.suiteTitle).toEqual('Test ')
+    })
+
+    it('beforeTest: execute called for Mocha test', () => {
+        const tbService = new TestingBotService()
+        const test = {
+            name: 'Test name',
+            title: 'Test title',
+            parent: 'Test parent'
+        }
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
+
+        tbService.beforeSuite({})
+        tbService.beforeTest(test)
+
+        expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
     })
 
     it('afterTest: failed test', () => {

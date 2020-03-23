@@ -2,7 +2,7 @@ import { promisify } from 'util'
 import { performance, PerformanceObserver } from 'perf_hooks'
 
 import logger from '@wdio/logger'
-import SauceConnectLauncher from 'sauce-connect-launcher'
+import SauceConnectLauncher from 'sauce-connect-launcher-update'
 
 function modifyObject (root, propertiesObject) {
     for (const [k, v] of Object.entries(propertiesObject)) {
