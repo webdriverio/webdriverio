@@ -6,7 +6,7 @@ Welcome to WebdriverIO! We use GitHub for tracking bugs and feature requests. Th
 ## Real-time Chat
 
 * [Gitter](https://gitter.im/webdriverio/webdriverio) - our biggest support chat with more than 2.5k people helping each other out on daily basis
-* [Slack Channel](https://seleniumhq.herokuapp.com/) - we also maintain a channel is the Selenium Slack organization
+* [Slack Channel](https://seleniumhq.herokuapp.com/) - we also maintain a channel in the Selenium Slack organization
 
 ## Stack Overflow
 
