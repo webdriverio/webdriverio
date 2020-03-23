@@ -280,6 +280,17 @@ describe('ConfigParser', () => {
             expect(typeof configParser.getConfig().after).toBe('function')
             expect(typeof configParser.getConfig().onComplete).toBe('function')
         })
+
+        it('should overwrite capabilities', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'chrome' }])
+            configParser.merge({
+                capabilities: [{ browserName: 'safari' }],
+            })
+
+            expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'safari' }])
+        })
     })
 
     describe('addService', () => {
