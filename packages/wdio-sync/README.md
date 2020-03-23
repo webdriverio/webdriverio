@@ -7,6 +7,33 @@ A WebdriverIO plugin. Helper module to run WebdriverIO commands synchronously. I
 
 ## Usage
 
+### Using WDIO Testrunner
+
+If you are using the WDIO testrunner all you need to make all your specs run synchronous is to have `@wdio/sync` installed in your project. The testrunner automatically will detect it and transform the commands to make a test like this:
+
+```js
+describe('webdriver.io page', () => {
+    it('should have the right title', async () => {
+        await browser.url('https://webdriver.io')
+        await expect(browser)
+            .toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
+    })
+})
+```
+
+easier to read and write like this:
+
+```js
+describe('webdriver.io page', () => {
+    it('should have the right title', () => {
+        browser.url('https://webdriver.io')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
+    })
+})
+```
+
+### Using WebdriverIO as standalone package
+
 Given you have a simple standalone WebdriverIO script like this:
 
 ```js
@@ -49,31 +76,6 @@ remote({
     console.log(browser.getTitle())
     browser.deleteSession()
 }))
-```
-
-### Using WDIO Testrunner
-
-If you are using the WDIO testrunner all you need to make all your specs run synchronous is to have `@wdio/sync` installed in your project. The testrunner automatically will detect it and transform the commands to make a test like this:
-
-```js
-describe('webdriver.io page', () => {
-    it('should have the right title', async () => {
-        await browser.url('https://webdriver.io')
-        await expect(browser)
-            .toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
-    })
-})
-```
-
-easier to read and write like this:
-
-```js
-describe('webdriver.io page', () => {
-    it('should have the right title', () => {
-        browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
-    })
-})
 ```
 
 ## Switching Between Sync And Async
