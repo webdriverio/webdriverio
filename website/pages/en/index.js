@@ -215,9 +215,9 @@ const Talks = () => (
                             The community around WebdriverIO is actively speaking on various user groups or
                             conferences about specific topics around automated testing with WebdriverIO. Check out
                             this talk on [The Nuts and Bolts of WebdriverIO](https://www.youtube.com/watch?v=jOmvPpzLMf8&feature=youtu.be&t=3204)
-                            by [@bromann](https://twitter.com/klamping) at [Selenium Camp 2020](https://seleniumcamp.com/). There is also a whole
+                            by [@bromann](https://twitter.com/bromann) at [Selenium Camp 2020](https://seleniumcamp.com/). There is also a whole
                             [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0)
-                            about different topics around WebdriverIO created by on of our community members [Kevin Klamping](https://twitter.com/klamping).
+                            about different topics around WebdriverIO created by on of our community members [Klamping](https://twitter.com/klamping).
                         </translate>
                     </MarkdownBlock>
                 </div>
