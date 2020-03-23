@@ -21,6 +21,8 @@ declare namespace WDIOReporter {
         onRunnerEnd(): void;
 
         isSynchronised: boolean;
+
+        write(content: any): void;
     }
 
     interface Options {
