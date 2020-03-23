@@ -84,3 +84,7 @@ export const SUPPORTED_HOOKS = [
 export const NON_WORKER_SERVICES = [
     'chromedriver', 'selenium-standalone', 'appium', 'reportportal', 'firefox-profile'
 ]
+
+export const SUPPORTED_FILE_EXTENSIONS = [
+    '.js', '.mjs', '.es6', '.ts', '.feature', '.coffee', '.cjs'
+]
