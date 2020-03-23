@@ -60,10 +60,120 @@
     width: 93%;
 }
 
+img.install {
+    width: 300px;
+    margin-top: 15px;
+    display: block;
+}
+
 .docMainWrapper {
     background: $white;
 
     .post article p {
         margin: 10px 0;
+    }
+}
+
+#companyUsage {
+    padding: 20px 0;
+
+    img {
+        width: 100px;
+    }
+
+    h3 {
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .wrapper {
+        max-width: 1100px;
+    }
+
+    div {
+        overflow: hidden;
+
+        ul {
+            display: flex;
+            justify-content: space-around;
+            width: 2150px;
+            margin: 0;
+            transition: transform 1000ms ease;
+
+            li {
+                display: flex;
+                width: 200px;
+                justify-content: center;
+                align-items: center;
+
+                img {
+                    filter: grayscale(100%);
+                    transition: filter 200ms;
+                }
+
+                a:hover img {
+                    filter: grayscale(0%);
+                }
+            }
+        }
+    }
+
+    .logoNavigation {
+        text-align: center;
+
+        button {
+            &:focus {
+                outline: none;
+            }
+
+            &:before {
+                content: "\2022";
+                color: black;
+                font-size: 25px;
+                opacity: .25;
+            }
+
+            &.active::before {
+                opacity: 1;
+            }
+
+            transition: opacity 200ms ease;
+            color: transparent;
+            border: 0;
+            background: 0;
+            cursor: pointer;
+            padding: 10px 10px 0 10px;
+            width: 30px;
+            line-height: 10px;
+            margin: 0 5px;
+        }
+    }
+}
+
+.imageAlignLeft .blockContent {
+    h2, p {
+        text-align: left;
+    }
+}
+
+.lightBackground {
+    background: #fAfAfA;
+}
+
+.tabs {
+    margin-top: 20px;
+
+    .nav-link {
+        padding: 8px 16px;
+    }
+
+    .nav-tabs {
+        border-bottom-width: 2px;
+    }
+
+    .tab-content code {
+        margin-top: 0;
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
     }
 }

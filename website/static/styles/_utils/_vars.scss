@@ -1,14 +1,22 @@
 // colors
-$headerBackground: #222;
+$headerBackgroundColor: #222;
 $headerFontColor: #fff;
 $footerFontColor: #bbb;
 
 $white: #fff;
 $black: #000;
 
+$primary: #ea5906;
+$primary-dark: #d35005;
+$primary-darker: #c74c05;
+$primary-darkest: #a43e04;
+$primary-light: #f9640f;
+$primary-lighter: #f96c1b;
+$primary-lightest: #fa823e;
+
 $orange: #ea5906;
 $orangeLight: #ea590617;
-$textColor: #626262;
+$textColor: #3d3d3d;
 $borderColor: #cdcdcd;
 $tHeadColor: #ddd;
 
@@ -60,9 +68,10 @@ $naviHeight: 45px;
 $socialHeight: 60px;
 
 $h1Size: 50px;
-$h2Size: 24px;
-$h3Size: 18px;
+$h2Size: 26px;
+$h3Size: 22px;
 $h4Size: 20px;
+$h5Size: 20px;
 
 // images
 $headerBackground: url('data:image/gif;base64,R0lGODlhBAAEAJEAABERESIiIgcHBwAAACH5BAAAAAAALAAAAAAEAAQAAAIHBCQRiIZaAAA7') repeat;

@@ -23,7 +23,7 @@ By default WebdriverIO provides an [assertion library](Assertion.md) that is bui
 describe('my awesome website', () => {
     it('should do some assertions', () => {
         browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen WebDriver test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
     })
 })
 ```
@@ -36,7 +36,7 @@ If you like to write your specs in TDD style, set the `ui` property in your `moc
 suite('my awesome website', () => {
     test('should do some assertions', () => {
         browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen WebDriver test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
     })
 })
 ```
@@ -51,7 +51,7 @@ it('should test something', () => {
 })
 ```
 
-If you want to run something asynchronously, you can either use the [`browser.call`](/api/browser/call.md) command or [custom commands](CustomCommands.md).
+If you want to run something asynchronously, you can either use the [`browser.call`](call) command or [custom commands](CustomCommands.md).
 
 ## Using Jasmine
 

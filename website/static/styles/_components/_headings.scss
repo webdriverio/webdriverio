@@ -1,10 +1,10 @@
 h1 {
     font-size: $h1Size;
-    color: $black;
+    color: #444;
     font-variant: small-caps;
-    font-weight: 100;
+    font-weight: bold;
     padding: 0 0 40px;
-    line-height: 40px;
+    line-height: 1.2em;
 }
 
 h2 {
@@ -21,12 +21,12 @@ h3 {
 }
 
 h4 {
-    color: $orange;
     font-size: $h4Size;
-    margin-bottom: 10px;
+    margin: 20px 0 10px;
+    font-weight: 600;
 }
 
 h5 {
-    font-size: 18px;
+    font-size: $h5Size;
     margin: 20px 0;
 }

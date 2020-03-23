@@ -36,7 +36,7 @@ In `wdio.conf`:
 
 ```js
 jasmineNodeOpts: {
-  defaultTimeoutInterval: (24 * 60 * 60 * 1000)
+    defaultTimeoutInterval: (24 * 60 * 60 * 1000)
 }
 ```
 
@@ -70,7 +70,7 @@ exports.config = {
 You can then prefix the `wdio` command with the `debug` flag:
 
 ```
-DEBUG=true ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
+$ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 ```
 
 ...and debug your spec file with the DevTools!

@@ -18,6 +18,7 @@
         bottom: 11px;
         padding: 0 5px 0 3px;
         left: 10px;
+        -webkit-font-smoothing: subpixel-antialiased;
     }
 }
 
@@ -58,4 +59,8 @@
     color: inherit;
     margin-bottom: 10px;
     display: block;
+}
+
+.hash-link-icon path {
+    fill: $orange
 }

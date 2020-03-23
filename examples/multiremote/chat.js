@@ -5,7 +5,7 @@
  *
  * To execute it just run it as a spec with a fair amount of timeout:
  * ```sh
- * $ ./node_modules/.bin/mocha examples/multiremote/chat.js -t 9999999 --require @babel/register
+ * $ npx mocha examples/multiremote/chat.js -t 9999999 --require @babel/register
  * ```
  */
 

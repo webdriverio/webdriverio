@@ -59,7 +59,7 @@ Checks if website has a specific title.
 
 ```js
 browser.url('https://webdriver.io/')
-expect(browser).toHaveTitle('WebdriverIO · Next-gen WebDriver test framework for Node.js')
+expect(browser).toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
 ```
 
 ## Element Matchers
@@ -353,7 +353,7 @@ Checks if element has a specific text.
 ```js
 browser.url('https://webdriver.io/')
 const elem = $('.tagline')
-expect(elem).toHaveText('Next-gen WebDriver test framework for Node.js')
+expect(elem).toHaveText('Next-gen browser automation test framework for Node.js')
 ```
 
 ### toHaveTextContaining
@@ -365,7 +365,7 @@ Checks if element contains a specific text.
 ```js
 browser.url('https://webdriver.io/')
 const elem = $('.tagline')
-expect(elem).toHaveTextContaining('WebDriver test framework')
+expect(elem).toHaveTextContaining('browser automation test framework')
 ```
 
 ### toBeDisplayedInViewport

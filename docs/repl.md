@@ -17,13 +17,18 @@ This would open a Chrome browser that you can control with the REPL interface. M
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
+Or if you want to run local mobile tests using Appium:
+
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Android-->
 ```sh
 wdio repl android
 ```
-OR
+<!--iOS-->
 ```sh
 wdio repl ios
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 This would open Chrome/Safari session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
 
@@ -38,14 +43,18 @@ Capabilities for iOS device can be passed with arguments:
 * `-d`      - `deviceName`: name of mobile device
 * `-u`      - `udid`: udid for real devices
 
-USAGE:
+Usage:
+
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Long Parameter Names-->
 ```sh
 wdio repl ios --platformVersion 11.3 --deviceName 'iPhone 7' --udid 123432abc
 ```
-OR
+<!--Short Parameter Names-->
 ```sh
 wdio repl ios -v 11.3 -d 'iPhone 7' -u 123432abc
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 You can apply any options (see `wdio repl --help`) available for your REPL session.
 
