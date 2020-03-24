@@ -1,4 +1,4 @@
-import { post } from 'got'
+import got from 'got'
 import logger from '@wdio/logger'
 
 const log = logger('@wdio/shared-store-service')
@@ -12,7 +12,7 @@ export const setPort = (port) => { baseUrl = `http://localhost:${port}` }
  * @returns {*}
  */
 export const getValue = async (key) => {
-    const res = await post(`${baseUrl}/get`, { json: true, body: { key } }).catch(errHandler)
+    const res = await got.post(`${baseUrl}/get`, { json: true, body: { key } }).catch(errHandler)
     return (res && res.body) ? res.body.value : undefined
 }
 
@@ -22,7 +22,7 @@ export const getValue = async (key) => {
  * @param {*}       value `store[key]` value (plain object)
  */
 export const setValue = async (key, value) => {
-    await post(`${baseUrl}/set`, { json: true, body: { key, value } }).catch(errHandler)
+    await got.post(`${baseUrl}/set`, { json: true, body: { key, value } }).catch(errHandler)
 }
 
 const errHandler = err => {

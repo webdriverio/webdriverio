@@ -1,4 +1,8 @@
-export const post = jest.fn().mockImplementation((url, options) => new Promise((resolve, reject) => {
+const gotMock = jest.fn()
+gotMock.extend = jest.fn().mockReturnValue(gotMock)
+gotMock.get = jest.fn().mockReturnValue(Promise.resolve({})),
+gotMock.put = jest.fn().mockReturnValue(Promise.resolve({}))
+gotMock.post = jest.fn().mockImplementation((url, options) => new Promise((resolve, reject) => {
     if (options.body.key === 'fail') {
         return reject({
             message: 'Response code 404 (Not Found)',
@@ -13,3 +17,5 @@ export const post = jest.fn().mockImplementation((url, options) => new Promise((
     }
     return resolve({ body: { value: 'store value' } })
 }))
+
+export default gotMock
