@@ -15,7 +15,11 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
-## v5.22.5 
+## v5.22.5
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * Update SauceLabs package to latest ([@christian-bromann](https://github.com/christian-bromann))
 
 
 ## v5.22.4 (2020-03-23)
