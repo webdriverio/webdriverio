@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import SauceConnectLauncher from 'sauce-connect-launcher'
+import SauceConnectLauncher from 'sauce-connect-launcher-update'
 
 const log = logger('@wdio/sauce-service')
 export default class SauceLauncher {

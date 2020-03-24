@@ -1,4 +1,4 @@
-import SauceConnectLauncher from 'sauce-connect-launcher'
+import SauceConnectLauncher from 'sauce-connect-launcher-update'
 
 import SauceServiceLauncher from '../src/launcher'
 
