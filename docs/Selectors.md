@@ -46,7 +46,7 @@ const link = $('*=driver')
 console.log(link.getText()) // outputs: "WebdriverIO"
 ```
 
-__Note:__ You can't mix multiple selector stratgies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+__Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
 
 ```js
 const elem = $('header h1*=Welcome') // doesn't work!!!
@@ -101,7 +101,7 @@ const idAndPartialText = $('#elem*=WebdriverIO')
 console.log(idAndPartialText.getText()) // outputs: "WebdriverIO is the best"
 ```
 
-__Note:__ You can't mix multiple selector stratgies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+__Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
 
 ```js
 const elem = $('header h1*=Welcome') // doesn't work!!!
@@ -312,7 +312,7 @@ WebdriverIO provides a way to select React components based on the component nam
 
 These commands allow you to select components off the [React VirtualDOM](https://reactjs.org/docs/faq-internals.html) and return either a single WebdriverIO Element or an array of elements (depending on which function is used).
 
-**Note**: The commands `react$` and `react$$` are similar in fuctionality, except that `react$$` will return *all* matching instances as an array of WebdriverIO elements, and `react$` will return the first found instance.
+**Note**: The commands `react$` and `react$$` are similar in functionality, except that `react$$` will return *all* matching instances as an array of WebdriverIO elements, and `react$` will return the first found instance.
 
 #### Basic example
 
