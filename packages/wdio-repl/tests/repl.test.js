@@ -1,7 +1,7 @@
 import vm from 'vm'
 import replMock from 'repl'
 
-import WDIORepl from '../src/index'
+import WDIORepl from '../src/repl'
 
 jest.mock('vm', () => {
     class VMMock {
