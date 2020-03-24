@@ -60,7 +60,7 @@ The project creates the powerful component base boilerplate using Storybook, Rea
     - Database support for any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing queries, fetching result sets, and so on. Includes examples of E2E testing.
     - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of JUnit report(`.html`) format
     - Task manage through Grunt
-    - Examples with demo app https://search.yahoo.com and http://www.phptravels.net, Chai assertion liberary (`expect`, `assert`, `should`)
+    - Examples with demo app https://search.yahoo.com and http://www.phptravels.net, Chai assertion library (`expect`, `assert`, `should`)
     - Appium-specific `.config` file for playback on mobile device. For one-click Appium setup, refer to: [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 
@@ -73,7 +73,7 @@ The project creates the powerful component base boilerplate using Storybook, Rea
     - Multiple reporting (Spec, Junit, Allure), plus local view of JUnit report (`.html`) format
     - Jasmine Spec examples with assert module and Jasmine-specific assertions using demo app http://www.phptravels.net
     - Examples of headless browser execution using Chrome and Firefox and Integration with BrowserStack and SauceLabs
-    - Examples of reading and writing from MS-Excel documentsfor easy test data management from external data sources
+    - Examples of reading and writing from MS-Excel documents for easy test data management from external data sources
     - Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), query execution, and fetching result sets
 
 
@@ -202,7 +202,7 @@ This boilerplate includes the following:
         - Swipe
         - Browsers
         
-### [Schveitzer/webdriverio-appium-cucumber-boilerplate](/https://github.com/Schveitzer/webdriverio-appium-cucumber-boilerplate)
+### [Schveitzer/webdriverio-appium-cucumber-boilerplate](https://github.com/Schveitzer/webdriverio-appium-cucumber-boilerplate)
 
 Boilerplate project to run Appium tests together with WebdriverIO and BDD with Cucumber for:
 

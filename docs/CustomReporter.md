@@ -153,7 +153,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }, (err, resp) => {
             // ...
             /**
-             * remove transfered logs from log bucket
+             * remove transferred logs from log bucket
              */
             this.unsynced.splice(0, MAX_LINES)
             // ...

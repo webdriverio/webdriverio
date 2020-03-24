@@ -67,7 +67,7 @@ You can then configure your Jasmine environment by setting a `jasmineNodeOpts` p
 
 The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result.
 
-For example, it is pretty handy to take a screenshot everytime an assertion fails. In your `jasmineNodeOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
+For example, it is pretty handy to take a screenshot every time an assertion fails. In your `jasmineNodeOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
 
 The following example demonstrates how to take a screenshot if an assertion fails:
 

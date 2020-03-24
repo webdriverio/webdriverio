@@ -56,7 +56,7 @@ Once you have your configuration file set up, you can start your tests by runnin
 ```sh
 $ npx wdio run wdio.conf.js
 
-# you can also initalize your configuration without the `run` command
+# you can also initialize your configuration without the `run` command
 $ npx wdio wdio.conf.js
 ```
 

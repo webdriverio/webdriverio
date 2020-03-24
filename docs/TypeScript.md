@@ -154,7 +154,7 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 }
 ```
 
-3. Add defintions for your commands according to your execution mode.
+3. Add definitions for your commands according to your execution mode.
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync Mode-->
