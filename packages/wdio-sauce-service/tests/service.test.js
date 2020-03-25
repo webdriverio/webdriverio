@@ -309,11 +309,9 @@ test('updateJob for VMs', () => {
 
     service.updateJob('12345', 23, true)
 
-    const reqUri = got.put.mock.calls[0][0]
-    const reqCall = got.put.mock.calls[0][1]
+    const [reqUri, reqCall] = got.put.mock.calls[0]
     expect(reqUri).toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
-    expect(reqCall.body).toEqual({ name: 'my test (1)', passed: false })
-    expect(reqCall.auth).toEqual('foobar:123')
+    expect(reqCall.json).toEqual({ name: 'my test (1)', passed: false })
     expect(service.failures).toBe(0)
 })
 
@@ -323,10 +321,9 @@ test('updateJob for RDC', () => {
 
     service.updateJob('12345', 23)
 
-    const reqUri = got.put.mock.calls[0][0]
-    const reqCall = got.put.mock.calls[0][1]
+    const [reqUri, reqCall] = got.put.mock.calls[0]
     expect(reqUri).toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
-    expect(reqCall.body).toEqual({ passed: false })
+    expect(reqCall.json).toEqual({ passed: false })
     expect(service.failures).toBe(0)
 })
 

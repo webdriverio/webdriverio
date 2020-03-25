@@ -23,11 +23,10 @@ const wdioReporter = {
     on: jest.fn()
 }
 
-const adapterFactory = (cucumberOpts = {}, featureFlags = {}, capabilities = {}) => new CucumberAdapter(
+const adapterFactory = (cucumberOpts = {}, capabilities = {}) => new CucumberAdapter(
     '0-2',
     {
         cucumberOpts,
-        featureFlags,
         beforeStep: 'beforeStep',
         afterStep: 'afterStep',
         beforeHook: 'beforeHook',
@@ -157,13 +156,6 @@ describe('hasTests', () => {
         adapter.loadSpecFiles = jest.fn()
         await adapter.init()
         expect(adapter.hasTests()).toBe(false)
-    })
-
-    test('should return true if the feature is disabled', async () => {
-        const adapter = adapterFactory(undefined, { specFiltering: false })
-        adapter.loadSpecFiles = jest.fn()
-        await adapter.init()
-        expect(adapter.hasTests()).toBe(true)
     })
 
     test('should return true if there are tests', async () => {
@@ -310,12 +302,11 @@ describe('addHooks', () => {
 })
 
 describe('skip filters', () => {
-
     const CHROME = { browserName:'Chrome', platformName:'linux' }
     const FIREFOX = { browserName:'firefox', platformName:'linux' }
 
     test('should skip using single capabilities', () => {
-        const adapter = adapterFactory({}, {}, CHROME)
+        const adapter = adapterFactory({}, CHROME)
         expect(adapter.filter({
             pickle: {
                 tags: [{
@@ -338,7 +329,7 @@ describe('skip filters', () => {
     })
 
     test('should skip using multiple properties', () => {
-        const adapter = adapterFactory({}, {}, CHROME)
+        const adapter = adapterFactory({}, CHROME)
         expect(adapter.filter({
             pickle: {
                 tags: [{
@@ -363,7 +354,7 @@ describe('skip filters', () => {
     })
 
     test('should skip with lists', () => {
-        const adapter = adapterFactory({}, {}, CHROME)
+        const adapter = adapterFactory({}, CHROME)
         expect(adapter.filter({
             pickle: {
                 tags: [{
@@ -374,7 +365,7 @@ describe('skip filters', () => {
     })
 
     test('should skip all specs if empty', () => {
-        const adapter = adapterFactory({}, {}, CHROME)
+        const adapter = adapterFactory({}, CHROME)
         expect(adapter.filter({
             pickle: {
                 tags: [{
@@ -385,8 +376,8 @@ describe('skip filters', () => {
     })
 
     test('should skip with regexp', () => {
-        const chromeAdapter = adapterFactory({}, {}, CHROME)
-        const ffAdapter = adapterFactory({}, {}, FIREFOX)
+        const chromeAdapter = adapterFactory({}, CHROME)
+        const ffAdapter = adapterFactory({}, FIREFOX)
         expect(chromeAdapter.filter({
             pickle: {
                 tags: [{
@@ -405,7 +396,7 @@ describe('skip filters', () => {
     })
 
     test('should not cause failures if no pickles or tags are provided', () => {
-        const adapter = adapterFactory({}, {}, CHROME)
+        const adapter = adapterFactory({}, CHROME)
         expect(adapter.filter({})).toBeTruthy()
         expect(adapter.filter({ pickle: {} })).toBeTruthy()
     })

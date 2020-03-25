@@ -55,7 +55,7 @@ const mochaTestrunner = async () => {
                 path.resolve(__dirname, 'mocha', 'test-skipped.js')
             ]
         })
-    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(skippedSpecs, 1)
 }
 
 /**
@@ -79,10 +79,13 @@ const jasmineTestrunner = async () => {
     const { skippedSpecs } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
-            specs: [path.resolve(__dirname, 'jasmine', 'test.js'), path.resolve(__dirname, 'jasmine', 'test-skipped.js')],
+            specs: [
+                path.resolve(__dirname, 'jasmine', 'test.js'),
+                path.resolve(__dirname, 'jasmine', 'test-skipped.js')
+            ],
             framework: 'jasmine'
         })
-    assert.strictEqual(skippedSpecs, 0)
+    assert.strictEqual(skippedSpecs, 1)
 }
 
 /**
@@ -317,8 +320,7 @@ const mochaSpecFiltering = async () => {
                 path.resolve(__dirname, 'mocha', 'test-empty.js'),
                 path.resolve(__dirname, 'mocha', 'test-skipped.js'),
                 path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
-            ],
-            featureFlags: { specFiltering: true }
+            ]
         })
     assert.strictEqual(skippedSpecs, 2)
 }
@@ -335,8 +337,7 @@ const jasmineSpecFiltering = async () => {
                 path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
                 path.resolve(__dirname, 'jasmine', 'test-skipped-grep.js')
             ],
-            framework: 'jasmine',
-            featureFlags: { specFiltering: true }
+            framework: 'jasmine'
         })
     assert.strictEqual(skippedSpecs, 2)
 }

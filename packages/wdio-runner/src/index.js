@@ -58,11 +58,11 @@ export default class Runner extends EventEmitter {
         /**
          * create `browser` stub only if `specFiltering` feature is enabled
          */
-        let browser = this.config.featureFlags.specFiltering === true ? await this._startSession({
+        let browser = await this._startSession({
             ...this.config,
             _automationProtocol: this.config.automationProtocol,
             automationProtocol: './protocol-stub'
-        }, caps) : undefined
+        }, caps)
 
         this.reporter = new BaseReporter(this.config, this.cid, { ...caps })
         /**

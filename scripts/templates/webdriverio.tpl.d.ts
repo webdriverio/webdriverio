@@ -152,9 +152,6 @@ declare namespace WebdriverIO {
          * Node arguments to specify when launching child processes.
          */
         execArgv?: string[];
-        featureFlags?: {
-            specFiltering?: boolean
-        },
     }
 
     interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }

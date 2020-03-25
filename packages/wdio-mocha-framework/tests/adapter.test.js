@@ -18,7 +18,7 @@ const wdioReporter = {
 }
 const adapterFactory = (config) => new MochaAdapter(
     '0-2',
-    { featureFlags: {}, ...config },
+    { ...config },
     ['/foo/bar.test.js'],
     { browserName: 'chrome' },
     wdioReporter
@@ -34,7 +34,7 @@ test('comes with a factory', async () => {
     expect(typeof MochaAdapterFactory.init).toBe('function')
     const instance = await MochaAdapterFactory.init(
         '0-2',
-        { featureFlags: {} },
+        {},
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
         wdioReporter
@@ -320,15 +320,8 @@ test('getUID', () => {
 })
 
 describe('loadFiles', () => {
-    test('should do nothing if feature is not enabled', () => {
-        const adapter = adapterFactory()
-        adapter._hasTests = null
-        expect(adapter._loadFiles({})).toBe(false)
-        expect(adapter._hasTests).toBe(null)
-    })
-
     test('should set _hasTests to true if there are tests to run', () => {
-        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        const adapter = adapterFactory({})
         adapter._hasTests = null
         adapter.mocha = {
             loadFiles: jest.fn(),
@@ -339,7 +332,7 @@ describe('loadFiles', () => {
     })
 
     test('should set _hasTests to false if there no tests to run', () => {
-        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        const adapter = adapterFactory({})
         adapter._hasTests = null
         adapter.mocha = {
             loadFiles: jest.fn(),
@@ -352,7 +345,7 @@ describe('loadFiles', () => {
     })
 
     test('should not fail on exception', () => {
-        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
+        const adapter = adapterFactory({})
         adapter._hasTests = null
         adapter.mocha = {
             loadFiles: jest.fn().mockImplementation(() => { throw new Error('foo') }),
@@ -366,13 +359,10 @@ describe('loadFiles', () => {
 describe('hasTests', () => {
     test('should return true if feature is not enabled', () => {
         const adapter = adapterFactory()
-        adapter._hasTests = 'foobar'
+        adapter._hasTests = true
         expect(adapter.hasTests()).toBe(true)
-    })
-    test('should return _hasTests if feature is enabled', () => {
-        const adapter = adapterFactory({ featureFlags: { specFiltering: true } })
-        adapter._hasTests = 'foobar'
-        expect(adapter.hasTests()).toBe('foobar')
+        adapter._hasTests = false
+        expect(adapter.hasTests()).toBe(false)
     })
 })
 
