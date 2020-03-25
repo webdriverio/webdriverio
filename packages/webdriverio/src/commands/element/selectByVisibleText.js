@@ -14,10 +14,9 @@
     </select>
     :selectByVisibleText.js
     it('demonstrate the selectByVisibleText command', () => {
-        const selectBox = $('#selectbox');
-        console.log(selectBox.getText('option:checked')); // returns "uno"
-        selectBox.selectByVisibleText('cuatro');
-        console.log(selectBox.getText('option:checked')); // returns "cuatro"
+        console.log($('#selectbox option:checked').getText()); // returns "uno"
+        $('#selectbox').selectByVisibleText('cuatro');
+        console.log($('#selectbox option:checked').getText()); // returns "cuatro"
     })
  * </example>
  *
