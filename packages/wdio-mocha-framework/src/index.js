@@ -57,9 +57,6 @@ class MochaAdapter {
     }
 
     _loadFiles (mochaOpts) {
-        if (this.config.featureFlags.specFiltering !== true) {
-            return false
-        }
         try {
             this.mocha.loadFiles()
 
@@ -84,11 +81,7 @@ class MochaAdapter {
     }
 
     hasTests () {
-        /**
-         * filter specs only if feature enabled explicitly to avoid breaking changes.
-         * If the feature is enabled user should avoid interacting with `browser` object before session is started
-         */
-        return this.config.featureFlags.specFiltering !== true || this._hasTests
+        return this._hasTests
     }
 
     async run () {

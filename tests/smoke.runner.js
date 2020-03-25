@@ -317,8 +317,7 @@ const mochaSpecFiltering = async () => {
                 path.resolve(__dirname, 'mocha', 'test-empty.js'),
                 path.resolve(__dirname, 'mocha', 'test-skipped.js'),
                 path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
-            ],
-            featureFlags: { specFiltering: true }
+            ]
         })
     assert.strictEqual(skippedSpecs, 2)
 }
@@ -335,8 +334,7 @@ const jasmineSpecFiltering = async () => {
                 path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
                 path.resolve(__dirname, 'jasmine', 'test-skipped-grep.js')
             ],
-            framework: 'jasmine',
-            featureFlags: { specFiltering: true }
+            framework: 'jasmine'
         })
     assert.strictEqual(skippedSpecs, 2)
 }

@@ -191,8 +191,7 @@ describe('wdio-runner', () => {
                 reporters: [],
                 before: [before],
                 beforeSession: [beforeSession],
-                framework: 'testWithFailures',
-                featureFlags: {}
+                framework: 'testWithFailures'
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner._shutdown = jest.fn()
@@ -221,8 +220,7 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testNoFailures',
                 reporters: [],
-                beforeSession: [],
-                featureFlags: {}
+                beforeSession: []
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner._initSession = jest.fn().mockReturnValue({ options: { capabilities: {} } })
@@ -236,8 +234,7 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testNoFailures',
                 reporters: [],
-                beforeSession: [],
-                featureFlags: {}
+                beforeSession: []
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             global.browser = { url: jest.fn(url => url) }
@@ -254,8 +251,7 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testThrows',
                 reporters: [],
-                beforeSession: [],
-                featureFlags: {}
+                beforeSession: []
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner._initSession = jest.fn().mockReturnValue({ options: { capabilities: {} } })
@@ -273,8 +269,7 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testThrows',
                 reporters: [],
-                beforeSession: [],
-                featureFlags: {}
+                beforeSession: []
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner._shutdown = jest.fn()
@@ -297,8 +292,7 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testNoTests',
                 reporters: [],
-                beforeSession: [],
-                featureFlags: {}
+                beforeSession: []
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner._shutdown = jest.fn().mockImplementation((arg) => arg)
@@ -316,8 +310,7 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testNoFailures',
                 reporters: [],
-                beforeSession: [],
-                featureFlags: {}
+                beforeSession: []
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner._shutdown = jest.fn().mockReturnValue('_shutdown')

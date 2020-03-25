@@ -147,9 +147,6 @@ class JasmineAdapter {
     }
 
     _loadFiles () {
-        if (this.config.featureFlags.specFiltering !== true) {
-            return false
-        }
         try {
             if (Array.isArray(this.jasmineNodeOpts.requires)) {
                 this.jrunner.addRequires(this.jasmineNodeOpts.requires)
@@ -185,11 +182,7 @@ class JasmineAdapter {
     }
 
     hasTests () {
-        /**
-         * filter specs only if feature enabled explicitly to avoid breaking changes.
-         * If the feature is enabled user should avoid interacting with `browser` object before session is started
-         */
-        return this.config.featureFlags.specFiltering !== true || this._hasTests
+        return this._hasTests
     }
 
     async run () {

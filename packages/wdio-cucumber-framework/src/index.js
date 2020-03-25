@@ -65,11 +65,7 @@ class CucumberAdapter {
     }
 
     hasTests () {
-        /**
-         * Avoid spec filtering only if the feature is disabled explicitly
-         * The feature has no impact on how framework/browser session is initialised.
-         */
-        return this.config.featureFlags.specFiltering === false || this._hasTests
+        return this._hasTests
     }
 
     async run () {
