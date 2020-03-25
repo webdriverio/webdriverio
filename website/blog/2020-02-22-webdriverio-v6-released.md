@@ -201,7 +201,7 @@ Next to all major updates that were described above there are also some minor ch
 - __TypeScript Support:__ we improved the typings for WebdriverIO and WebDriver to include better descriptions and more detail
 - __WebDriver Default Path:__ we changed default WebDriver path to from `/wd/hub` to `/` as most of the browser drivers now default to this, this should have now affect for you - however if you have trouble connecting to a WebDriver endpoint after the upgrade, this could be a reason for that issue
 - __Command Renaming:__ we renamed command `launchApp` to `launchChromeApp` for Chrome WebDriver sessions
-- __Spec Filtering:__ the [Spec Filtering](https://webdriver.io/blog/2019/11/01/spec-filtering.html) feature is no enabled by default so that browser sessions aren't started if the framework can't find a test to run in the file (this can not be disabled anymore)
+- __Spec Filtering:__ the [Spec Filtering](https://webdriver.io/blog/2019/11/01/spec-filtering.html) feature is now enabled by default so that browser sessions aren't started if the framework can't find a test to run in the file (this can not be disabled anymore)
 - __New Hook:__ we added a new hook to the testrunner called `onWorkerStart` which will be executed right before we launch the worker process
 - __Modified Hook Signature:__ we modified the signature of our before/after test/hook hooks to allow you to access the frameworks native event objects - please have a look into the config file [documentation](ConfigurationFile.md) and update your hooks accordingly
 - __Cucumber Update:__ we have updated the `@wdio/cucumber-framework` adapter to use v6 of Cucumber
