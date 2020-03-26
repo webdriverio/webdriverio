@@ -161,7 +161,7 @@ class Launcher {
                     specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: specFileRetries })),
                     availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
                     runningInstances: 0,
-                    seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol }
+                    seleniumServer: { hostname: config.hostname, port: config.port, protocol: config.protocol, path: config.path }
                 })
             }
         }
