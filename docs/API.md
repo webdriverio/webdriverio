@@ -5,7 +5,7 @@ title: API Docs
 
 Welcome to the WebdriverIO docs page. These pages contain reference materials for all implemented selenium bindings and commands. WebdriverIO has all [JSONWire protocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) commands implemented and also supports special bindings for [Appium](http://appium.io).
 
-> __Note:__ These are the docs for the latest version (v5.0.0) of WebdriverIO. If you are still using v4 or older please use the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
+> __Note:__ These are the docs for the latest version ([v6](https://webdriver.io/blog/2020/03/26/webdriverio-v6-released.html)) of WebdriverIO. If you are still using v5 or older please use the [legacy docs websites](versions)!
 
 ## Examples
 
