@@ -57,10 +57,11 @@ jobs:
     #   os: windows
     - name: 'Release WebdriverIO Docs'
       script: skip
+      stage: deploy
+      node_js: 12
       deploy:
         provider: script
         script: "gem install compass && npm run docs"
         cleanup: true
         on:
           tags: true
-          node_js: 12
