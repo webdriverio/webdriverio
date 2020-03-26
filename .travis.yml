@@ -44,15 +44,11 @@ jobs:
       stage: test
       node_js: 10
       script:
-        - rm -r node_modules
-        - npm install
         - npm run test
     - name: 'CI Tests (Node v12)'
       stage: test
       node_js: 12
       script:
-        - rm -r node_modules
-        - npm install
         - npm run test
     - <<: *e2e_setup
       name: 'e2e Tests (Linux)'
