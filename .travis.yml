@@ -44,14 +44,6 @@ cache:
     - packages/webdriver/node_modules
     - packages/webdriverio/node_modules
 
-base_setup: &base_setup
-  node_js:
-    - 10
-    - 12
-  before_script:
-    - npx lerna bootstrap --no-ci
-    - npx run-s build-full link
-
 e2e_setup: &e2e_setup
   addons:
     chrome: stable
@@ -60,27 +52,41 @@ e2e_setup: &e2e_setup
     - xvfb
   script: npx run-s test:e2e
 
-matrix:
+stages:
+  - name: build
+  - name: test
+
+jobs:
   fast_finish: true
   include:
-    - <<: *base_setup
-      name: 'CI Tests (Node v10)'
+    - stage: build
+      name: 'Build'
+      node_js:
+        - 10
+        - 12
+      script:
+        - npx lerna bootstrap --no-ci
+        - npx run-s build-full link
+    - name: 'CI Tests (Node v10)'
       os: linux
+      stage: test
       node_js: 10
-      script: npm run ci
-    - <<: *base_setup
-      name: 'CI Tests (Node v12)'
+      script:
+        - npm run ci
+    - name: 'CI Tests (Node v12)'
       os: linux
+      stage: test
       node_js: 12
-      script: npm run ci
-    - <<: *base_setup
-      <<: *e2e_setup
-      name: 'e2e Tests (Linux)'
-      os: linux
-    - <<: *base_setup
-      <<: *e2e_setup
-      name: 'e2e Tests (OSX)'
-      os: osx
+      script:
+        - npm run ci
+    # - <<: *base_setup
+    #   <<: *e2e_setup
+    #   name: 'e2e Tests (Linux)'
+    #   os: linux
+    # - <<: *base_setup
+    #   <<: *e2e_setup
+    #   name: 'e2e Tests (OSX)'
+    #   os: osx
     # Windows on Travis is not stable enough yet
     # - <<: *base_setup
     #   <<: *e2e_setup
@@ -90,6 +96,7 @@ matrix:
 deploy:
   provider: script
   script: "gem install compass && npm run docs"
-  skip_cleanup: true
+  cleanup: true
   on:
     tags: true
+    node_js: 12
