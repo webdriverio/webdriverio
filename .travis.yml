@@ -1,21 +1,19 @@
+os: linux
 dist: xenial
 language: node_js
-node_js:
-  - 10
-  - 12
 
 cache:
   directories:
     - node_modules
     - packages
 
-e2e_setup: &e2e_setup
-  addons:
-    chrome: stable
-    firefox: latest-nightly
-  services:
-    - xvfb
-  script: npx run-s test:e2e
+# e2e_setup: &e2e_setup
+#   addons:
+#     chrome: stable
+#     firefox: latest-nightly
+#   services:
+#     - xvfb
+#   script: npx run-s test:e2e
 
 stages:
   - name: build
@@ -30,14 +28,15 @@ jobs:
       script:
         - npx lerna bootstrap --no-ci
         - npx run-s build-full link
+      node_js:
+        - 10
+        - 12
     - name: 'CI Tests (Node v10)'
-      os: linux
       stage: test
       node_js: 10
       script:
         - npm run test
     - name: 'CI Tests (Node v12)'
-      os: linux
       stage: test
       node_js: 12
       script:
@@ -45,7 +44,6 @@ jobs:
     # - <<: *base_setup
     #   <<: *e2e_setup
     #   name: 'e2e Tests (Linux)'
-    #   os: linux
     # - <<: *base_setup
     #   <<: *e2e_setup
     #   name: 'e2e Tests (OSX)'
