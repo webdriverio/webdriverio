@@ -15,6 +15,9 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v6.0.2 
+
+
 ## v6.0.1 
 
 
