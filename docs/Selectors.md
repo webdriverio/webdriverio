@@ -124,6 +124,21 @@ const classNameAndText = $('<my-element />')
 console.log(classNameAndText.getText()) // outputs: "WebdriverIO is the best"
 ```
 
+## Name Attribute
+
+For querying elements with a specific name attribute you can either use a normal CSS3 selector or the provided name strategy from the [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) by passing something like [name="some-name"] as selector parameter:
+
+```html
+<input name="username" value="foobar" />
+```
+
+```js
+const classNameAndText = $('[name="username"]')
+console.log(classNameAndText.getValue()) // outputs: "foobar"
+```
+
+__Note:__ This selector strategy it depcrecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
+
 ## xPath
 
 It is also possible to query elements via a specific [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath).
