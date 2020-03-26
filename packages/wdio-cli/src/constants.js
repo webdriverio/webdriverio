@@ -253,7 +253,7 @@ export const QUESTIONNAIRE = [{
         /* istanbul ignore next */
         ({ name }) => name === 'chromedriver').value
     ],
-    validate: answers  => validateServiceAnswers(answers)
+    validate: /* istanbul ignore next */ (answers) => validateServiceAnswers(answers)
 }, {
     type: 'input',
     name: 'outputDir',

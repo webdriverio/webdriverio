@@ -120,10 +120,10 @@
     "collectCoverage": true,
     "coverageThreshold": {
       "global": {
-        "branches": 95,
+        "branches": 96,
         "functions": 98,
-        "lines": 98,
-        "statements": 98
+        "lines": 99,
+        "statements": 99
       }
     },
     "testEnvironment": "node",
