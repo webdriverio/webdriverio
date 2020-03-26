@@ -2,10 +2,11 @@ import exitHook from 'async-exit-hook'
 import logger from '@wdio/logger'
 import { instances } from '@wdio/runner'
 
-jest.spyOn(process, 'on')
-jest.spyOn(process, 'send')
-
-beforeAll(() => require('../src/run.js'))
+beforeAll(() => {
+    jest.spyOn(process, 'on')
+    jest.spyOn(process, 'send')
+    require('../src/run.js')
+})
 
 test('should register exitHook', () => {
     expect(exitHook).toHaveBeenCalled()
@@ -40,4 +41,9 @@ test('should call runner command on process message', async () => {
         name: 'finisedCommand',
         content: { command: 'run', result: { foo: 'bar' } }
     })
+})
+
+afterAll(() => {
+    process.on.mockRestore()
+    process.send.mockRestore()
 })
