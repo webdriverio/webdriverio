@@ -15,6 +15,9 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v6.0.1 
+
+
 ## v6.0.0-beta.1 (2020-03-18)
 
 #### :boom: Breaking Change
