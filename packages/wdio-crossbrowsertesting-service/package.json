@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@wdio/logger": "6.0.1",
-    "cbt_tunnels": "^0.9.12"
+    "cbt_tunnels": "^1.2.2"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"
