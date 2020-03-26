@@ -33,7 +33,7 @@
     "test": "run-s test:eslint test:typings test:coverage test:smoke",
     "test:eslint": "eslint --cache packages examples scripts tests",
     "test:typings": "npm run generate:typings && node tests/typings/copy && npm run ts && npm run clean:tests",
-    "test:coverage": "jest --coverage",
+    "test:coverage": "jest --coverage --no-cache",
     "test:smoke": "babel-node ./tests/smoke.runner.js",
     "test:e2e": "jest --config e2e/jest.config.js",
     "ts": "run-p ts:*",
