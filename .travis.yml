@@ -72,13 +72,13 @@ jobs:
       stage: test
       node_js: 10
       script:
-        - npm run ci
+        - npm run test
     - name: 'CI Tests (Node v12)'
       os: linux
       stage: test
       node_js: 12
       script:
-        - npm run ci
+        - npm run test
     # - <<: *base_setup
     #   <<: *e2e_setup
     #   name: 'e2e Tests (Linux)'
