@@ -7,39 +7,30 @@ cache:
     - node_modules
     - packages
 
-e2e_setup: &e2e_setup
-  addons:
-    chrome: stable
-    firefox: latest-nightly
-  services:
-    - xvfb
-  script: npx run-s test:e2e
+# e2e_setup: &e2e_setup
+#   addons:
+#     chrome: stable
+#     firefox: latest-nightly
+#   services:
+#     - xvfb
+#   script: npx run-s test:e2e
 
 stages:
   - name: build
   - name: test
-  - name: e2e
   - name: deploy
 
 jobs:
   fast_finish: true
   include:
     - stage: build
-      name: 'Build (Node v10)'
-      node_js: 12
+      name: 'Build'
       script:
-        - npm run setup-full
-    - stage: build
-      name: 'Build (Node v12)'
-      node_js: 12
-      script:
-        - npm run setup-full
-    - stage: build
-      name: 'Build (Node v12)'
-      node_js: 12
-      os: osx
-      script:
-        - npm run setup-full
+        - npx lerna bootstrap --no-ci
+        - npx run-s build-full link
+      node_js:
+        - 10
+        - 12
     - name: 'CI Tests (Node v10)'
       stage: test
       node_js: 10
@@ -54,15 +45,13 @@ jobs:
         - rm -r node_modules
         - npm install
         - npm run test
-    - <<: *e2e_setup
-      name: 'e2e Tests (Linux)'
-      stage: e2e
-      node_js: 12
-    - <<: *e2e_setup
-      name: 'e2e Tests (OSX)'
-      stage: e2e
-      node_js: 12
-      os: osx
+    # - <<: *base_setup
+    #   <<: *e2e_setup
+    #   name: 'e2e Tests (Linux)'
+    # - <<: *base_setup
+    #   <<: *e2e_setup
+    #   name: 'e2e Tests (OSX)'
+    #   os: osx
     # Windows on Travis is not stable enough yet
     # - <<: *base_setup
     #   <<: *e2e_setup
