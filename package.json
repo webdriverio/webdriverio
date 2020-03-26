@@ -72,7 +72,7 @@
     "aws-sdk": "^2.539.0",
     "babel-core": "^6.26.3",
     "babel-eslint": "^10.0.3",
-    "babel-jest": "^24.9.0",
+    "babel-jest": "^25.2.1",
     "babel-plugin-source-map-support": "^2.1.1",
     "cheerio": "^1.0.0-rc.3",
     "codecov": "^3.6.1",
