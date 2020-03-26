@@ -34,7 +34,7 @@
     "@wdio/logger": "6.0.1",
     "@wdio/utils": "6.0.1",
     "deepmerge": "^4.0.0",
-    "expect-webdriverio": "^0.2.0",
+    "expect-webdriverio": "^1.0.0",
     "gaze": "^1.1.2",
     "webdriver": "6.0.1",
     "webdriverio": "6.0.2"
