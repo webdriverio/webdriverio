@@ -38,7 +38,7 @@
     "mockery": "~2.1.0"
   },
   "devDependencies": {
-    "@types/cucumber": "^4.0.6"
+    "@types/cucumber": "^6.0.1"
   },
   "peerDependencies": {
     "@wdio/cli": "^5.0.0"
