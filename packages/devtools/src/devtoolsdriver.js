@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import uuidv4 from 'uuid/v4'
+import { v4 as uuidv4 } from 'uuid'
 
 import logger from '@wdio/logger'
 import { safeRequire } from '@wdio/utils'
