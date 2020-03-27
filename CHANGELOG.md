@@ -19,6 +19,21 @@ If versions are skipped that means that the release didn't had any substantial o
 
 ---
 
+## v6.0.4 (2020-03-27)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`, `wdio-sumologic-reporter`, `wdio-testingbot-service`, `webdriver`
+  * [#5160](https://github.com/webdriverio/webdriverio/pull/5160) Fix typings for got and its tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `devtools`, `wdio-crossbrowsertesting-service`, `wdio-utils`
+  * [#5159](https://github.com/webdriverio/webdriverio/pull/5159) Add dependency check to test pipeline ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.0.0 (2020-03-26)
 
 #### :boom: Breaking Change
