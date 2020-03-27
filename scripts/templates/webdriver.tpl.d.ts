@@ -4,8 +4,8 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 /// <reference types="node"/>
 
-declare type HTTPRequestOptions = import('got').GotOptions<any>;
-declare type HTTPResponse = import('got').Response<any>;
+declare type HTTPRequestOptions = import('got').GotOptions;
+declare type HTTPResponse = import('got').Response;
 
 declare namespace WebDriver {
     type PageLoadingStrategy = 'none' | 'eager' | 'normal';
