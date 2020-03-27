@@ -34,7 +34,7 @@
     "@wdio/logger": "6.0.1",
     "@wdio/protocols": "6.0.1",
     "@wdio/utils": "6.0.1",
-    "got": "^10.2.1",
+    "got": "^10.7.0",
     "lodash.merge": "^4.6.1"
   },
   "devDependencies": {
