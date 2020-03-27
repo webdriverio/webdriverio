@@ -1,5 +1,7 @@
+/* istanbul ignore file */
+
 import initialisePlugin from './initialisePlugin'
-import initialiseServices from './initialiseServices'
+import { initialiseWorkerService, initialiseLauncherService } from './initialiseServices'
 import webdriverMonad from './monad'
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeRequire,
@@ -10,10 +12,12 @@ import {
     hasWdioSyncSupport, executeSync, executeAsync,
 } from './shim'
 import { testFnWrapper, runTestInFiberContext } from './test-framework'
+import { capabilitiesEnvironmentDetector, sessionEnvironmentDetector, devtoolsEnvironmentDetector } from './envDetector'
 
 export {
     initialisePlugin,
-    initialiseServices,
+    initialiseLauncherService,
+    initialiseWorkerService,
     isFunctionAsync,
     webdriverMonad,
     commandCallStructure,
@@ -31,5 +35,12 @@ export {
     runTestInFiberContext,
     testFnWrapper,
     executeHooksWithArgs,
-    hasWdioSyncSupport
+    hasWdioSyncSupport,
+
+    /**
+     * environmentDetector
+     */
+    sessionEnvironmentDetector,
+    capabilitiesEnvironmentDetector,
+    devtoolsEnvironmentDetector
 }

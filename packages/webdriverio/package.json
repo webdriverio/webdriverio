@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
-  "description": "Next-gen WebDriver test automation framework for Node.js",
-  "version": "5.15.3",
+  "description": "Next-gen browser automation test automation framework for Node.js",
+  "version": "6.0.2",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -14,7 +14,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "engines": {
-    "node": ">= 8.11.0"
+    "node": ">=10.0.0"
   },
   "tags": [
     "webdriver",
@@ -38,7 +38,6 @@
     "buster",
     "devtools",
     "puppeteer",
-    "chai",
     "vows",
     "jasmine",
     "assert",
@@ -46,7 +45,7 @@
     "testingbot"
   ],
   "types": "./webdriverio.d.ts",
-  "typeScriptVersion": "3.5.1",
+  "typeScriptVersion": "3.7.3",
   "scripts": {
     "build": "run-s clean compile",
     "clean": "rimraf ./build",
@@ -56,12 +55,13 @@
     "test:unit": "jest"
   },
   "dependencies": {
-    "@wdio/config": "5.15.3",
-    "@wdio/logger": "5.13.2",
-    "@wdio/repl": "5.15.1",
-    "@wdio/utils": "5.15.1",
+    "@wdio/config": "6.0.1",
+    "@wdio/logger": "6.0.1",
+    "@wdio/repl": "6.0.1",
+    "@wdio/utils": "6.0.1",
     "archiver": "^3.0.0",
     "css-value": "^0.0.1",
+    "devtools": "6.0.2",
     "grapheme-splitter": "^1.0.2",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isobject": "^3.0.2",
@@ -69,7 +69,7 @@
     "lodash.zip": "^4.2.0",
     "resq": "^1.6.0",
     "rgb2hex": "^0.1.0",
-    "serialize-error": "^5.0.0",
-    "webdriver": "5.15.3"
+    "serialize-error": "^6.0.0",
+    "webdriver": "6.0.1"
   }
 }

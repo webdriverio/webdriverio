@@ -15,7 +15,7 @@
  */
 export default (_, script, dataProperty, dataFlag, ...args) => {
     window.arguments = args
-    const result = eval(script.slice(7))
+    const result = eval(script)
     let tmpResult = result instanceof NodeList ? Array.from(result) : result
     const isResultArray = Array.isArray(tmpResult)
     tmpResult = isResultArray ? tmpResult : [tmpResult]

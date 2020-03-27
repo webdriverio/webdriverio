@@ -46,7 +46,7 @@ node test.js
 This should output the following:
 
 ```sh
-Title was: WebdriverIO · Next-gen WebDriver test framework for Node.js
+Title was: WebdriverIO · Next-gen browser automation test framework for Node.js
 ```
 
 Yay, Congratulations! You’ve just run your automation script with WebdriverIO.

@@ -3,7 +3,7 @@ id: configurationfile
 title: Testrunner Configuration
 ---
 
-The configuration file contains all necessary information to run your test suite. It’s just a NodeJS module that exports a JSON. 
+The configuration file contains all necessary information to run your test suite. It’s just a NodeJS module that exports a JSON.
 
 Here is an example configuration with all supported properties and additional information:
 
@@ -21,21 +21,21 @@ exports.config = {
     // =====================
     // Host address of the running Selenium server. This information is usually obsolete, as
     // WebdriverIO automatically connects to localhost. Also if you are using one of the
-    // supported cloud services like Sauce Labs, Browserstack, or Testing Bot, you also don't
+    // supported cloud services like Sauce Labs, Browserstack, Testing Bot or LambdaTest, you also don't
     // need to define host and port information (because WebdriverIO can figure that out
     // from your user and key information). However, if you are using a private Selenium
     // backend, you should define the `hostname`, `port`, and `path` here.
     //
     hostname: 'localhost',
     port: 4444,
-    path: '/wd/hub',
+    path: '/',
     // Protocol: http | https
     // protocol: 'http',
     //
     // =================
     // Service Providers
     // =================
-    // WebdriverIO supports Sauce Labs, Browserstack, and Testing Bot. (Other cloud providers
+    // WebdriverIO supports Sauce Labs, Browserstack, Testing Bot and LambdaTest. (Other cloud providers
     // should work, too.) These services define specific `user` and `key` (or access key)
     // values you must put here, in order to connect to these services.
     //
@@ -52,10 +52,10 @@ exports.config = {
     // Specify Test Files
     // ==================
     // Define which test specs should run. The pattern is relative to the directory
-    // from which `wdio` was called. 
+    // from which `wdio` was called.
     //
     // If you are calling `wdio` from an NPM script (see https://docs.npmjs.com/cli/run-script),
-    // then the current working directory is where your `package.json` resides, so `wdio` 
+    // then the current working directory is where your `package.json` resides, so `wdio`
     // will be called from there.
     //
     specs: [
@@ -72,15 +72,15 @@ exports.config = {
     // ============
     // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
     // time. Depending on the number of capabilities, WebdriverIO launches several test
-    // sessions. Within your `capabilities`, you can overwrite the `spec` and `exclude` 
+    // sessions. Within your `capabilities`, you can overwrite the `spec` and `exclude`
     // options in order to group specific specs to a specific capability.
     //
     // First, you can define how many instances should be started at the same time. Let's
     // say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have
-    // set `maxInstances` to 1. wdio will spawn 3 processes. 
+    // set `maxInstances` to 1. wdio will spawn 3 processes.
     //
-    // Therefore, if you have 10 spec files and you set `maxInstances` to 10, all spec files 
-    // will be tested at the same time and 30 processes will be spawned. 
+    // Therefore, if you have 10 spec files and you set `maxInstances` to 10, all spec files
+    // will be tested at the same time and 30 processes will be spawned.
     //
     // The property basically handles how many capabilities from the same test should run tests.
     //
@@ -170,6 +170,8 @@ exports.config = {
     //
     // The number of times to retry the entire specfile when it fails as a whole
     specFileRetries: 1,
+    // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+    specFileRetriesDeferred: false,
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
@@ -236,7 +238,6 @@ exports.config = {
     // methods. If one of them returns with a promise, WebdriverIO will wait until that promise is
     // resolved to continue.
     //
-
     /**
      * Gets executed once before all workers get launched.
      * @param {Object} config wdio configuration object
@@ -245,7 +246,18 @@ exports.config = {
     onPrepare: function (config, capabilities) {
     },
     /**
-     * Gets executed just before initialising the webdriver session and test framework. It allows you
+     * Gets executed before a worker process is spawned and can be used to initialize specific service
+     * for that worker as well as modify runtime environments in an async fashion.
+     * @param  {String} cid      capability id (e.g 0-0)
+     * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
+     * @param  {[type]} specs    specs to be run in the worker process
+     * @param  {[type]} args     object that will be merged with the main configuration once worker is initialized
+     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     */
+    onWorkerStart: function (cid, caps, specs, args, execArgv) {
+    },
+    /**
+     * Gets executed just before initializing the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
@@ -282,7 +294,7 @@ exports.config = {
      *
      * (`stepData` and `world` are Cucumber-specific.)
      */
-    afterHook: function (test, context, { error, result, duration, passed }/*, stepData, world*/) {
+    afterHook: function (test, context, { error, result, duration, passed, retries }/*, stepData, world*/) {
     },
     /**
      * Function to be executed before a test (in Mocha/Jasmine) starts.
@@ -308,7 +320,7 @@ exports.config = {
     /**
      * Function to be executed after a test (in Mocha/Jasmine)
      */
-    afterTest: function (test, context, { error, result, duration, passed }) {
+    afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
      * Hook that gets executed after the suite has ended.
@@ -334,7 +346,7 @@ exports.config = {
     afterSession: function (config, capabilities, specs) {
     },
     /**
-     * Gets executed after all workers have shut down and the process is about to exit. 
+     * Gets executed after all workers have shut down and the process is about to exit.
      * An error thrown in the `onComplete` hook will result in the test run failing.
      * @param {Object} exitCode 0 - success, 1 - fail
      * @param {Object} config wdio configuration object
@@ -357,9 +369,9 @@ exports.config = {
     },
     beforeScenario: function (uri, feature, scenario, sourceLocation) {
     },
-    beforeStep: function (uri, feature, stepData, context) {
+    beforeStep: function ({ uri, feature, step }, context) {
     },
-    afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
+    afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed }) {
     },
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },

@@ -45,7 +45,7 @@ exports.config = {
     waitforTimeout: 150000,
     //
     // Default timeout in milliseconds for request
-    // if Selenium Grid doesn't send response
+    // if browser driver or grid doesn't send response
     connectionRetryTimeout: 90000,
     //
     // Default request retries count
@@ -90,6 +90,11 @@ exports.config = {
     // onPrepare: function (config, capabilities) {
     // },
     //
+    // Gets executed before a worker process is spawned and can be used to initialise specific service
+    // for that worker as well as modify runtime environments in an async fashion.
+    // onWorkerStart: function (cid, caps, specs, args, execArgv) {
+    // },
+    //
     // Gets executed before test execution begins. At this point you can access to all global
     // variables like `browser`. It is the perfect place to define custom commands.
     // before: function (capabilities, specs) {
@@ -108,7 +113,7 @@ exports.config = {
     // Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
     // afterEach in Mocha)
     // stepData and world are Cucumber framework specific
-    // afterHook: function (test, context, { error, result, duration, passed }, stepData, world) {
+    // afterHook: function (test, context, { error, result, duration, passed, retries }, stepData, world) {
     // },
     //
     // Function to be executed before a test (in Mocha/Jasmine) starts.
@@ -124,7 +129,7 @@ exports.config = {
     // },
     //
     // Function to be executed after a test (in Mocha/Jasmine) ends.
-    // afterTest: function (test, context, { error, result, duration, passed }) {
+    // afterTest: function (test, context, { error, result, duration, passed, retries }) {
     // },
     //
     // Hook that gets executed after the suite has ended
@@ -148,11 +153,11 @@ exports.config = {
     // },
     //
     // Runs before a Cucumber Step
-    // beforeStep: function (uri, feature, stepData, context) {
+    // beforeStep: function ({ uri, feature, step }, context) {
     // },
     //
     // Runs after a Cucumber Step
-    // afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
+    // afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
     // },
     //
     // Gets executed after all tests are done. You still have access to all global variables from

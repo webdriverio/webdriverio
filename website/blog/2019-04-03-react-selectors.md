@@ -20,7 +20,10 @@ const selector = 'MyComponent'
 const propFilter = { someProp: true }
 const stateFilter = 'this is my state'
 
-browser.react$(selector, propFilter, stateFilter)
+browser.react$(selector, {
+    props: propFilter,
+    state: stateFilter
+})
 ```
 
 In the examples we will cover basic usages for all three parameters.
@@ -77,7 +80,9 @@ Simple, no? But what if we want to select the component that says `Hello Webdriv
 // spec/mycomponent.test.js
 
 test('it should correctly display "Hello WebdriverIO"', () => {
-    const myComponent = browser.react$('MyComponent', { name: 'WebdriverIO' })
+    const myComponent = browser.react$('MyComponent', {
+        props: { name: 'WebdriverIO' }
+    })
 
     expect(myComponent.getText()).toBe('Hello WebdriverIO') // pass
 })
@@ -90,7 +95,9 @@ You might've noticed that in our component we have a state that adds extra text 
 // spec/mycomponent.test.js
 
 test('it should correctly display "Hello WebdriverIO"', () => {
-    const myComponent = browser.react$('MyComponent', {}, ', how are you?')
+    const myComponent = browser.react$('MyComponent', {
+        state: ', how are you?'
+    })
 
     expect(myComponent.getText()).toBe('Hello there, how are you?') // pass
 })
@@ -104,3 +111,5 @@ By now you might be wondering why we are using `browser.react$` in all the examp
 ## Final Words
 
 We are very pleased with this addition and we hope you can take full advantage of it. We suggest you use [React Dev Tools](https://github.com/facebook/react-devtools), using this tool will help you see how the components in the application are called, which props they have, and which state they are currently in. Once you know this information, using WebdriverIO's React API will be a lot easier.
+
+> __Note:__ This blog post was updated after the v6 release to reflect changes to the command interface.

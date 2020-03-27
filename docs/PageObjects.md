@@ -3,7 +3,7 @@ id: pageobjects
 title: Page Object Pattern
 ---
 
-Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle, it is now possible to build up large test suites using this pattern. 
+Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle, it is now possible to build up large test suites using this pattern.
 
 There are no additional packages required to create page objects. It turns out that clean, modern classes provide all necessary features we need:
 
@@ -15,7 +15,7 @@ The goal of using page objects is to abstract any page information away from the
 
 ## Making A Page Object
 
-First off, we need a main page object that we call `Page`. It will contain general selectors or methods which all page objects will inherit from. 
+First off, we need a main page object that we call `Page`. It will contain general selectors or methods which all page objects will inherit from.
 
 ```js
 export default class Page {
@@ -33,7 +33,7 @@ We will always `export` an instance of a page object, and never create that inst
 
 Sure, the browser can carry session information and therefore can display different pages based on different sessions, but this shouldn't be reflected within a page object. These sorts of state changes should live in your actual tests.
 
-Let's start testing the first page. For demo purposes, we use [The Internet](http://the-internet.herokuapp.com) website by [Elemental Selenium](http://elementalselenium.com) as guinea pig. Let's try to build a page object example for the [login page](http://the-internet.herokuapp.com/login). 
+Let's start testing the first page. For demo purposes, we use [The Internet](http://the-internet.herokuapp.com) website by [Elemental Selenium](http://elementalselenium.com) as guinea pig. Let's try to build a page object example for the [login page](http://the-internet.herokuapp.com/login).
 
 ### `Get` -ing Your Selectors
 
@@ -89,15 +89,14 @@ $('#username').setValue('Max Mustermann')
 
 ## Using Page Objects In Your Tests
 
-After you've defined the necessary elements and methods for the page, you can start to write the test for it. All you need to do to use the page object is to `import` (or `require`) it. That's it! 
+After you've defined the necessary elements and methods for the page, you can start to write the test for it. All you need to do to use the page object is to `import` (or `require`) it. That's it!
 
-Since you exported an already-created instance of the page object, importing it lets you start using it right away. 
+Since you exported an already-created instance of the page object, importing it lets you start using it right away.
 
 If you use an assertion framework, your tests can be even more expressive:
 
 ```js
 // login.spec.js
-import { expect } from 'chai'
 import LoginPage from '../pageobjects/login.page'
 
 describe('login form', () => {
@@ -107,7 +106,7 @@ describe('login form', () => {
         LoginPage.password.setValue('bar')
         LoginPage.submit()
 
-        expect(LoginPage.flash.getText()).to.contain('Your username is invalid!')
+        expect(LoginPage.flash).toHaveText('Your username is invalid!')
     })
 
     it('should allow access with correct creds', () => {
@@ -116,7 +115,7 @@ describe('login form', () => {
         LoginPage.password.setValue('SuperSecretPassword!')
         LoginPage.submit()
 
-        expect(LoginPage.flash.getText()).to.contain('You logged into a secure area!')
+        expect(LoginPage.flash).toHaveText('You logged into a secure area!')
     })
 })
 ```

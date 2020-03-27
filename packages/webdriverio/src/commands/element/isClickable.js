@@ -2,7 +2,6 @@
 /**
  *
  * Return true if the selected DOM-element:
- *
  * - exists;
  * - is visible;
  * - is within viewport (if not try scroll to it);
@@ -18,7 +17,7 @@
     it('should detect if an element is clickable', () => {
         const el = $('#el')
         let clickable = el.isClickable();
-        console.log(clickable); // outputs: true or flase
+        console.log(clickable); // outputs: true or false
 
         // wait for element to be clickable
         browser.waitUntil(() => el.isClickable())

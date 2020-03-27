@@ -13,7 +13,7 @@ exports.config = {
     //
     hostname: 'localhost',
     port: 4444,
-    path: '/wd/hub',
+    path: '/',
     // Protocol: http | https
     // protocol: 'http',
     //
@@ -64,8 +64,6 @@ exports.config = {
     // files and you set maxInstances to 10; all spec files will get tested at the same time
     // and 30 processes will get spawned. The property handles how many capabilities
     // from the same test should run tests.
-    //
-    //
     maxInstances: 10,
     //
     // If you have trouble getting all important capabilities together, check out the
@@ -121,6 +119,9 @@ exports.config = {
     //
     // The number of times to retry the entire specfile when it fails as a whole
     specFileRetries: 1,
+    //
+    // Retried specfiles are inserted at the beginning of the queue and retried immediately
+    specFileRetriesDeferred: false,
     //
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
@@ -195,6 +196,17 @@ exports.config = {
     onPrepare: function (config, capabilities) {
     },
     /**
+     * Gets executed before a worker process is spawned and can be used to initialise specific service
+     * for that worker as well as modify runtime environments in an async fashion.
+     * @param  {String} cid      capability id (e.g 0-0)
+     * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
+     * @param  {[type]} specs    specs to be run in the worker process
+     * @param  {[type]} args     object that will be merged with the main configuration once worker is initialised
+     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     */
+    onWorkerStart: function (cid, caps, specs, args, execArgv) {
+    },
+    /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.
      * @param {Object} config wdio configuration object
@@ -229,7 +241,7 @@ exports.config = {
      * afterEach in Mocha)
      * stepData and world are Cucumber framework specific
      */
-    afterHook: function (test, context, { error, result, duration, passed }/*, stepData, world*/) {
+    afterHook: function (test, context, { error, result, duration, passed, retries }/*, stepData, world*/) {
     },
     /**
      * Function to be executed before a test (in Mocha/Jasmine) starts.
@@ -239,13 +251,13 @@ exports.config = {
     //
     /**
      * Runs before a WebdriverIO command gets executed.
-     * @param {String} commandName hook command name
+     * @param {String} commandName command name
      * @param {Array} args arguments that command would receive
      */
     beforeCommand: function (commandName, args) {
     },
     /**
-     * Runs after a WebdriverIO command gets executed
+     * Runs after a WebdriverIO command gets executed.
      * @param {String} commandName hook command name
      * @param {Array} args arguments that command would receive
      * @param {Number} result 0 - command success, 1 - command error
@@ -256,7 +268,7 @@ exports.config = {
     /**
      * Function to be executed after a test (in Mocha/Jasmine) ends.
      */
-    afterTest: function (test, context, { error, result, duration, passed }) {
+    afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
      * Hook that gets executed after the suite has ended
@@ -304,9 +316,9 @@ exports.config = {
     },
     beforeScenario: function (uri, feature, scenario, sourceLocation) {
     },
-    beforeStep: function (uri, feature, stepData, context) {
+    beforeStep: function ({ uri, feature, step }, context) {
     },
-    afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
+    afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
     },
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },

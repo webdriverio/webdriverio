@@ -37,6 +37,7 @@ class Footer extends React.Component {
                         <h5>Docs</h5>
                         <a href="/docs/gettingstarted.html">Getting Started</a>
                         <a href="/docs/api.html">API Reference</a>
+                        <a href="/docs/contribute.html">Contribute</a>
                         <a href="/help.html">Help</a>
                     </div>
                     <div>
@@ -48,6 +49,7 @@ class Footer extends React.Component {
                             Stack Overflow
                         </a>
                         <a href="https://gitter.im/webdriverio/webdriverio">Support Chat</a>
+                        <a href="https://seleniumhq.slack.com/join/shared_invite/enQtODAwOTUzOTM5OTEwLTZjZjgzN2ExOTBmZGE0NjkwYzA2Nzc0MjczMGYwYjdiNGQ5YjI0ZjdjYjFhMjVlMjFkZWJmNDYyMmU1OTYyM2Y">Slack</a>
                         <a
                             href="https://twitter.com/webdriverio"
                             target="_blank"

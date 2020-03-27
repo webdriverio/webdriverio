@@ -1,12 +1,12 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('waitForEnabled', () => {
-    const duration = 1000
+    const timeout = 1000
     let browser
 
     beforeAll(async () => {
-        request.mockClear()
+        got.mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -23,10 +23,10 @@ describe('waitForEnabled', () => {
             waitForExist : jest.fn(),
             elementId : null,
             waitUntil : jest.fn(),
-            isEnabled : jest.fn(() => Promise.resolve())
+            options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
-        await elem.waitForEnabled(duration)
+        await elem.waitForEnabled({ timeout })
         expect(elem.waitForExist).toBeCalled()
     })
 
@@ -37,10 +37,11 @@ describe('waitForEnabled', () => {
             waitForExist : jest.fn(),
             elementId : 123,
             waitUntil : jest.fn(),
-            isEnabled : jest.fn(() => Promise.resolve())
+            isEnabled : jest.fn(() => Promise.resolve()),
+            options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
-        await elem.waitForEnabled(duration)
+        await elem.waitForEnabled({ timeout })
         expect(elem.waitForExist).not.toBeCalled()
     })
 
@@ -53,14 +54,14 @@ describe('waitForEnabled', () => {
             waitForExist : jest.fn(),
             elementId : 123,
             waitUntil : jest.fn(((cb))),
-            isEnabled : jest.fn(() => Promise.resolve())
+            isEnabled : jest.fn(() => Promise.resolve()),
+            options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
-        await elem.waitForEnabled(duration)
+        await elem.waitForEnabled({ timeout })
 
         expect(cb).toBeCalled()
-        expect(elem.waitUntil.mock.calls[0][1]).toBe(duration)
-        expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still not enabled after ${duration}ms`)
+        expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
     test('should call isEnabled and return true', async () => {
@@ -72,10 +73,10 @@ describe('waitForEnabled', () => {
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
             isEnabled : jest.fn(() => true),
-            options : { waitforTimeout : 500 },
+            options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
-        const result = await elem.waitForEnabled(duration)
+        const result = await elem.waitForEnabled({ timeout })
         expect(result).toBe(true)
     })
 
@@ -88,13 +89,13 @@ describe('waitForEnabled', () => {
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
             isEnabled : jest.fn(() => false),
-            options : { waitforTimeout : 500 },
+            options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
         try {
-            await elem.waitForEnabled(duration)
+            await elem.waitForEnabled({ timeout })
         } catch (e) {
-            expect(e.message).toBe(`element ("#foo") still not enabled after ${duration}ms`)
+            expect(e.message).toBe(`element ("#foo") still not enabled after ${timeout}ms`)
         }
     })
 
@@ -108,13 +109,11 @@ describe('waitForEnabled', () => {
             elementId : 123,
             waitUntil : jest.fn(((cb))),
             isEnabled : jest.fn(() => Promise.resolve()),
-            options : { waitforTimeout : 500 },
+            options : { waitforInterval: 50, waitforTimeout: 500 }
         }
 
-        await elem.waitForEnabled(null, true)
-
-        expect(elem.waitUntil.mock.calls[0][1]).toBe(elem.options.waitforTimeout)
-        expect(elem.waitUntil.mock.calls[0][2]).toBe(`element ("#foo") still enabled after ${elem.options.waitforTimeout}ms`)
+        await elem.waitForEnabled({ reverse: true })
+        expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
     test('should call isEnabled and return false with custom error', async () => {
@@ -130,7 +129,11 @@ describe('waitForEnabled', () => {
         }
 
         try {
-            await elem.waitForEnabled(duration, false, 'Element foo never enabled')
+            await elem.waitForEnabled({
+                timeout,
+                reverse: false,
+                timeoutMsg: 'Element foo never enabled'
+            })
         } catch (e) {
             expect(e.message).toBe('Element foo never enabled')
         }

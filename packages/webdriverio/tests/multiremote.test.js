@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 
 import { multiremote } from '../src'
 
@@ -27,14 +27,33 @@ test('should run command on all instances', async () => {
     const result = await browser.execute(() => 'foobar')
     expect(result).toEqual(['foobar', 'foobar'])
 
-    expect(request.mock.calls[0][0].uri.path).toBe('/wd/hub/session')
-    expect(request.mock.calls[0][0].method).toBe('POST')
-    expect(request.mock.calls[1][0].uri.path).toBe('/wd/hub/session')
-    expect(request.mock.calls[1][0].method).toBe('POST')
-    expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-    expect(request.mock.calls[2][0].method).toBe('POST')
-    expect(request.mock.calls[3][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
-    expect(request.mock.calls[3][0].method).toBe('POST')
+    expect(got.mock.calls[0][1].uri.pathname).toBe('/session')
+    expect(got.mock.calls[0][1].method).toBe('POST')
+    expect(got.mock.calls[1][1].uri.pathname).toBe('/session')
+    expect(got.mock.calls[1][1].method).toBe('POST')
+    expect(got.mock.calls[2][1].uri.pathname)
+        .toBe('/session/foobar-123/execute/sync')
+    expect(got.mock.calls[2][1].method).toBe('POST')
+    expect(got.mock.calls[3][1].uri.pathname)
+        .toBe('/session/foobar-123/execute/sync')
+    expect(got.mock.calls[3][1].method).toBe('POST')
+})
+
+test('should properly create stub instance', async () => {
+    const params = caps()
+    Object.values(params).forEach(cap => { cap.automationProtocol = './protocol-stub' })
+    const browser = await multiremote(params, { automationProtocol: './protocol-stub' })
+    expect(browser.$).toBeUndefined()
+    expect(browser.options).toBeUndefined()
+    expect(browser.commandList).toHaveLength(0)
+    expect(browser.browserA).toBeDefined()
+    expect(browser.browserB).toBeDefined()
+    expect(browser.browserA.$).toBeUndefined()
+    expect(browser.browserA.$).toBeUndefined()
+
+    expect(() => browser.addCommand()).toThrow()
+    expect(() => browser.browserA.addCommand()).toThrow()
+    expect(() => browser.browserB.overwriteCommand()).toThrow()
 })
 
 test('should allow to call on elements', async () => {
@@ -49,10 +68,14 @@ test('should allow to call on elements', async () => {
     const result = await elem.getSize()
     expect(result).toEqual([{ width: 50, height: 30 }, { width: 50, height: 30 }])
 
-    expect(request.mock.calls[2][0].uri.path).toEqual('/wd/hub/session/foobar-123/element')
-    expect(request.mock.calls[3][0].uri.path).toEqual('/wd/hub/session/foobar-123/element')
-    expect(request.mock.calls[4][0].uri.path).toEqual('/wd/hub/session/foobar-123/element/some-elem-123/rect')
-    expect(request.mock.calls[5][0].uri.path).toEqual('/wd/hub/session/foobar-123/element/some-elem-123/rect')
+    expect(got.mock.calls[2][1].uri.pathname)
+        .toEqual('/session/foobar-123/element')
+    expect(got.mock.calls[3][1].uri.pathname)
+        .toEqual('/session/foobar-123/element')
+    expect(got.mock.calls[4][1].uri.pathname)
+        .toEqual('/session/foobar-123/element/some-elem-123/rect')
+    expect(got.mock.calls[5][1].uri.pathname)
+        .toEqual('/session/foobar-123/element/some-elem-123/rect')
 })
 
 test('should be able to fetch multiple elements', async () => {
@@ -101,5 +124,5 @@ test('should be able to overwrite command to and element in multiremote', async 
 })
 
 afterEach(() => {
-    request.mockClear()
+    got.mockClear()
 })

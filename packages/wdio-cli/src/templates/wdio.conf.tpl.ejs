@@ -7,7 +7,15 @@ exports.config = {
     // WebdriverIO allows it to run your tests in arbitrary locations (e.g. locally or
     // on a remote machine).
     runner: '<%= answers.runner %>',<%
-    if(answers.hostname && answers.port) { %>
+
+    if(answers.expEnvAccessKey){ %>
+    hostname: '<%= answers.expEnvHostname %>',
+    <% if (answers.expEnvPort === '443'){%>protocol: 'https',
+    <%} else if (answers.expEnvPort === '80'){%>protocol: 'http',
+    <%} else { %>protocol: '<%= answers.expEnvProtocol %>',<%}%>
+    port: <%= answers.expEnvPort %>,
+    path: '/wd/hub',
+    <% } else if(answers.hostname && answers.port) { %>
     //
     // =====================
     // Server Configurations
@@ -23,16 +31,6 @@ exports.config = {
     port: <%= answers.port %>,
     path: '<%= answers.path %>',<% } else if (answers.services.includes('appium')) { %>
     port: 4723,<% }
-
-    if(answers.services.includes('chromedriver')) { %>
-    //
-    // Override default path ('/wd/hub') for chromedriver service.
-    path: '/',<% }
-
-    if(answers.services.length === 0) { %>
-    //
-    // Uncomment line below to override default path ('/wd/hub') for usage of driver binary directly, ex: chromedriver or geckodriver.
-    // path: '/',<% }
 
     // Protocol: http | https
     // protocol: 'http',
@@ -94,6 +92,7 @@ exports.config = {
     // https://docs.saucelabs.com/reference/platforms-configurator
     //
     capabilities: [{
+    <%if(answers.expEnvAccessKey){%> 'experitest:accessKey': '<%= answers.expEnvAccessKey %>',<%}%>
         // maxInstances can get overwritten per capability. So if you have an in-house Selenium
         // grid with only 5 firefox instances available you can make sure that not more than
         // 5 instances get started at a time.
@@ -142,7 +141,7 @@ exports.config = {
     waitforTimeout: 10000,
     //
     // Default timeout in milliseconds for request
-    // if Selenium Grid doesn't send response
+    // if browser driver or grid doesn't send response
     connectionRetryTimeout: 90000,
     //
     // Default request retries count
@@ -175,6 +174,9 @@ exports.config = {
     //
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
+    //
+    // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+    // specFileRetriesDeferred: false,
     //
     <%- include('reporters', { reporters: answers.reporters }) %> <%
     if(answers.framework === 'mocha') { %>
@@ -236,6 +238,17 @@ exports.config = {
     // onPrepare: function (config, capabilities) {
     // },
     /**
+     * Gets executed before a worker process is spawned and can be used to initialise specific service
+     * for that worker as well as modify runtime environments in an async fashion.
+     * @param  {String} cid      capability id (e.g 0-0)
+     * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
+     * @param  {[type]} specs    specs to be run in the worker process
+     * @param  {[type]} args     object that will be merged with the main configuration once worker is initialised
+     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     */
+    // onWorkerStart: function (cid, caps, specs, args, execArgv) {
+    // },
+    /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.
      * @param {Object} config wdio configuration object
@@ -281,7 +294,7 @@ exports.config = {
      * Hook that gets executed _after_ a hook within the suite starts (e.g. runs after calling
      * afterEach in Mocha)
      */
-    // afterHook: function (test, context, { error, result, duration, passed }) {
+    // afterHook: function (test, context, { error, result, duration, passed, retries }) {
     // },
     <%- include('afterTest', { reporters: answers.reporters }) %>
     /**
@@ -304,12 +317,12 @@ exports.config = {
     /**
      * Runs before a Cucumber step
      */
-    // beforeStep: function (uri, feature, stepData, context) {
+    // beforeStep: function ({ uri, feature, step }, context) {
     // },
     /**
      * Runs after a Cucumber step
      */
-    // afterStep: function (uri, feature, { error, result, duration, passed }, stepData, context) {
+    // afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
     // },
     /**
      * Runs after a Cucumber scenario

@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 
 import SauceService from '../src'
 
@@ -42,31 +42,30 @@ test('beforeSuite', () => {
 
 test('beforeSession should set to unknown creds if no sauce user and key are found', () => {
     const service = new SauceService()
-    service.beforeSession({}, {})
-    expect(service.sauceUser).toBe('unknown_user')
-    expect(service.sauceKey).toBe('unknown_key')
-
-    // not for RDC tho
-    const rdcService = new SauceService()
-    rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
-    expect(rdcService.sauceUser).toBe(undefined)
-    expect(rdcService.sauceKey).toBe(undefined)
+    const config = {}
+    service.beforeSession(config, {})
+    expect(config.user).toBe('unknown_user')
+    expect(config.key).toBe('unknown_key')
 })
 
-test('beforeTest should set context for test', () => {
+test('beforeTest should set context for jasmine test', () => {
     const service = new SauceService()
     service.beforeSession({ user: 'foobar', key: '123' }, {})
     service.beforeTest({
-        parent: 'my test',
-        title: 'can do something'
+        fullName: 'my test can do something',
+        title: 'foobar'
     })
-    expect(global.browser.execute).toBeCalledWith('sauce:context=my test - can do something')
+    expect(global.browser.execute).toBeCalledWith('sauce:context=my test can do something')
+})
 
+test('beforeTest should set context for mocha test', () => {
+    const service = new SauceService()
+    service.beforeSession({ user: 'foobar', key: '123' }, {})
     service.beforeTest({
-        fullName: 'foobar',
-        parent: 'Jasmine__TopLevel__Suite'
+        parent: 'foo',
+        title: 'bar'
     })
-    expect(global.browser.execute).toBeCalledWith('sauce:context=foobar')
+    expect(global.browser.execute).toBeCalledWith('sauce:context=foo - bar')
 })
 
 test('beforeTest should not set context for RDC test', () => {
@@ -75,14 +74,7 @@ test('beforeTest should not set context for RDC test', () => {
     const rdcService = new SauceService()
     rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
     rdcService.beforeTest({
-        parent: 'my test',
-        title: 'can do something'
-    })
-    expect(global.browser.execute).not.toBeCalled()
-
-    rdcService.beforeTest({
-        fullName: 'foobar',
-        parent: 'Jasmine__TopLevel__Suite'
+        fullTitle: 'my test can do something'
     })
     expect(global.browser.execute).not.toBeCalled()
 })
@@ -91,8 +83,7 @@ test('beforeTest should not set context if user does not use sauce', () => {
     const service = new SauceService()
     service.beforeSession({}, {})
     service.beforeTest({
-        parent: 'my test',
-        title: 'can do something'
+        fullTitle: 'my test can do something'
     })
     expect(global.browser.execute).not.toBeCalled()
 })
@@ -318,10 +309,9 @@ test('updateJob for VMs', () => {
 
     service.updateJob('12345', 23, true)
 
-    const reqCall = request.mock.calls[0][0]
-    expect(reqCall.uri).toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
-    expect(reqCall.body).toEqual({ name: 'my test (1)', passed: false })
-    expect(reqCall.auth).toEqual({ user: 'foobar', pass: '123' })
+    const [reqUri, reqCall] = got.put.mock.calls[0]
+    expect(reqUri).toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
+    expect(reqCall.json).toEqual({ name: 'my test (1)', passed: false })
     expect(service.failures).toBe(0)
 })
 
@@ -330,9 +320,10 @@ test('updateJob for RDC', () => {
     service.beforeSession({}, { testobject_api_key: 1 })
 
     service.updateJob('12345', 23)
-    const reqCall = request.mock.calls[0][0]
-    expect(reqCall.uri).toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
-    expect(reqCall.body).toEqual({ passed: false })
+
+    const [reqUri, reqCall] = got.put.mock.calls[0]
+    expect(reqUri).toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
+    expect(reqCall.json).toEqual({ passed: false })
     expect(service.failures).toBe(0)
 })
 
@@ -405,5 +396,5 @@ test('getBody without multiremote', () => {
 
 afterEach(() => {
     global.browser.execute.mockClear()
-    request.mockClear()
+    got.put.mockClear()
 })

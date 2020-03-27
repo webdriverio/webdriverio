@@ -1,8 +1,9 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
-import puppeteerFirefox from 'puppeteer-firefox'
 import logger from '@wdio/logger'
 
+import edgeFinder from './finder/edge'
+import firefoxFinder from './finder/firefox'
 import { getPages } from './utils'
 import {
     CHROME_NAMES, FIREFOX_NAMES, EDGE_NAMES, DEFAULT_FLAGS, DEFAULT_WIDTH,
@@ -31,7 +32,7 @@ async function launchChrome (capabilities) {
         ...(chromeOptions.args || [])
     ]
 
-    log.info(`Launch Chrome with flags: ${chromeFlags.join(' ')}`)
+    log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
         chromeFlags
@@ -39,6 +40,7 @@ async function launchChrome (capabilities) {
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
     const browser = await puppeteer.connect({
+        ...chromeOptions,
         browserURL: `http://localhost:${chrome.port}`,
         defaultViewport: null
     })
@@ -57,21 +59,37 @@ async function launchChrome (capabilities) {
     return browser
 }
 
-function launchFirefox (capabilities) {
-    const firefoxOptions = capabilities['moz:firefoxOptions'] || {}
-    return puppeteerFirefox.launch({
-        args: firefoxOptions.args || [],
-        headless: Boolean(firefoxOptions.headless),
+function launchBrowser (capabilities, executablePath, vendorCapKey) {
+    const puppeteerOptions = Object.assign({
+        executablePath,
         defaultViewport: {
-            width: firefoxOptions.width || DEFAULT_WIDTH,
-            height: firefoxOptions.height || DEFAULT_HEIGHT
+            width: DEFAULT_WIDTH,
+            height: DEFAULT_HEIGHT
         }
-    })
+    }, capabilities[vendorCapKey] || {})
+
+    if (!executablePath) {
+        throw new Error('Couldn\'t find executeable for browser')
+    }
+
+    log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
+    return puppeteer.launch(puppeteerOptions)
 }
 
-/* istanbul ignore next */
-function launchEdge () {
-    throw new Error('not yet implemented')
+function launchFirefox (capabilities) {
+    const executablePath = firefoxFinder[process.platform]()[0]
+    const vendorPrefix = 'moz:firefoxOptions'
+    if (!capabilities[vendorPrefix]) {
+        capabilities[vendorPrefix] = {}
+    }
+
+    capabilities[vendorPrefix].product = 'firefox'
+    return launchBrowser(capabilities, executablePath, vendorPrefix, { product: 'firefox' })
+}
+
+function launchEdge (capabilities) {
+    const executablePath = edgeFinder[process.platform]()[0]
+    return launchBrowser(capabilities, executablePath, 'ms:edgeOptions')
 }
 
 export default function launch (capabilities) {

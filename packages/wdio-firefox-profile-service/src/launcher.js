@@ -2,16 +2,20 @@ import Profile from 'firefox-profile'
 import { promisify } from 'util'
 
 export default class FirefoxProfileLauncher {
+    constructor (options) {
+        this.options = options
+    }
+
     async onPrepare (config, capabilities) {
-        this.config = config
-        this.capabilities = capabilities
-        // Return if no profile options were specified
-        if (!this.config.firefoxProfile) {
+        /**
+         * Return if no profile options were specified
+         */
+        if (Object.keys(this.options).length === 0) {
             return
         }
 
-        if(this.config.firefoxProfile.profileDirectory) {
-            this.profile = await promisify(Profile.copy)(this.config.firefoxProfile.profileDirectory)
+        if(this.options.profileDirectory) {
+            this.profile = await promisify(Profile.copy)(this.options.profileDirectory)
         } else {
             this.profile = new Profile()
         }
@@ -19,40 +23,39 @@ export default class FirefoxProfileLauncher {
         // Set preferences and proxy
         this._setPreferences()
 
-        if (!Array.isArray(this.config.firefoxProfile.extensions)) {
-            return this._buildExtension()
+        if (!Array.isArray(this.options.extensions)) {
+            return this._buildExtension(capabilities)
         }
 
         // Add the extension
-        await promisify(::this.profile.addExtensions)(this.config.firefoxProfile.extensions)
-
-        return this._buildExtension()
+        await promisify(::this.profile.addExtensions)(this.options.extensions)
+        return this._buildExtension(capabilities)
     }
 
     /**
      * Sets any preferences and proxy
      */
     _setPreferences () {
-        for (const [preference, value] of Object.entries(this.config.firefoxProfile)) {
-            if (['extensions', 'proxy', 'legacy'].includes(preference)) {
+        for (const [preference, value] of Object.entries(this.options)) {
+            if (['extensions', 'proxy', 'legacy', 'profileDirectory'].includes(preference)) {
                 continue
             }
 
             this.profile.setPreference(preference, value)
         }
 
-        if (this.config.firefoxProfile.proxy) {
-            this.profile.setProxy(this.config.firefoxProfile.proxy)
+        if (this.options.proxy) {
+            this.profile.setProxy(this.options.proxy)
         }
 
         this.profile.updatePreferences()
     }
 
-    async _buildExtension () {
+    async _buildExtension (capabilities) {
         const zippedProfile = await promisify(::this.profile.encoded)()
 
-        if (Array.isArray(this.capabilities)) {
-            this.capabilities
+        if (Array.isArray(capabilities)) {
+            capabilities
                 .filter((capability) => capability.browserName === 'firefox')
                 .forEach((capability) => {
                     this._setProfile(capability, zippedProfile)
@@ -61,8 +64,8 @@ export default class FirefoxProfileLauncher {
             return
         }
 
-        for (const browser in this.capabilities) {
-            const capability = this.capabilities[browser].capabilities
+        for (const browser in capabilities) {
+            const capability = capabilities[browser].capabilities
 
             if (!capability || capability.browserName !== 'firefox') {
                 continue
@@ -73,7 +76,7 @@ export default class FirefoxProfileLauncher {
     }
 
     _setProfile(capability, zippedProfile) {
-        if(this.config.firefoxProfile.legacy) {
+        if(this.options.legacy) {
             // for older firefox and geckodriver versions
             capability.firefox_profile = zippedProfile
         } else {

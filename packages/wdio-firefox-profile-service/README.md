@@ -11,9 +11,9 @@ The easiest way is to keep `@wdio/firefox-profile-service` as a devDependency in
 
 ```json
 {
-  "devDependencies": {
-    "@wdio/firefox-profile-service": "^5.0.0"
-  }
+    "devDependencies": {
+        "@wdio/firefox-profile-service": "^5.0.0"
+    }
 }
 ```
 
@@ -32,23 +32,114 @@ Setup your profile by adding the `firefox-profile` service to your service list.
 ```js
 // wdio.conf.js
 export.config = {
-  // ...
-  services: ['firefox-profile'],
-  firefoxProfile: {
-    extensions: [
-      '/path/to/extensionA.xpi', // path to .xpi file
-      '/path/to/extensionB' // or path to unpacked Firefox extension
+    // ...
+    services: [
+        ['firefox-profile', {
+            extensions: [
+                '/path/to/extensionA.xpi', // path to .xpi file
+                '/path/to/extensionB' // or path to unpacked Firefox extension
+            ],
+            'xpinstall.signatures.required': false,
+            'browser.startup.homepage': 'https://webdriver.io',
+            legacy: true // only use for firefox <= 55
+        }]
     ],
-    'browser.startup.homepage': 'https://webdriver.io',
-    legacy: true // used for firefox <= 55
-  },
-  // ...
+    // ...
 };
 ```
 
+If you have build a custom Firefox extension that you want to install in the browser make sure to set `'xpinstall.signatures.required': false` as profile flag since Firefox extensions are required to be [signed by Mozilla](https://wiki.mozilla.org/Add-ons/Extension_Signing).
+
 ## Options
 
-### firefoxProfile
-Contains all settings as key value pair. If you want to add an extension, use the `extensions` key with an array of string paths to the extensions you want to use. If you are running a version of firefox older before 56 use `legacy: true`.
+Contains all settings as key value pair. You can find all available settings on the `about:config` page.
 
-Type: `Object`
+### extensions
+
+Add one or multiple extensions to the browser session. All entries can be either an absolute path to the `.xpi` file or the path to an unpacked Firefox extension directory.
+
+Type: `String[]`<br>
+Default: `[]`
+
+### profileDirectory
+
+Create Firefox profile based on an existing one by setting an absolute path to that profile.
+
+Type: `String`<br>
+Default: `null`
+
+### proxy
+
+Set network proxy settings. The parameter `proxy` is a hash which structure depends on the value of mandatory `proxyType` key, which takes one of the following string values:
+
+ * `direct` - direct connection (no proxy)
+ * `system` - use operating system proxy settings
+ * `pac` - use automatic proxy configuration set based on the value of `autoconfigUrl` key
+ * `manual` - manual proxy settings defined separately for different protocols using values from following keys: `ftpProxy`, `httpProxy`, `sslProxy`, `socksProxy`
+
+Type: `Object`<br>
+Default: `null`<br>
+Example:
+
+- Automatic Proxy:
+    ```js
+    // wdio.conf.js
+    export.config = {
+        // ...
+        services: [
+            ['firefox-profile', {
+                proxy: {
+                    proxyType: 'pac',
+                    autoconfigUrl: 'http://myserver/proxy.pac'
+                }
+            }]
+        ],
+        // ...
+    };
+    ```
+
+- Manual HTTP Proxy:
+    ```js
+    // wdio.conf.js
+    export.config = {
+        // ...
+        services: [
+            ['firefox-profile', {
+                proxy: {
+                    proxyType: 'manual',
+                    httpProxy: '127.0.0.1:8080'
+                }
+            }]
+        ],
+        // ...
+    };
+    ```
+
+- Manual HTTP and HTTPS Proxy:
+    ```js
+    // wdio.conf.js
+    export.config = {
+        // ...
+        services: [
+            ['firefox-profile', {
+                proxy: {
+                    proxyType: 'manual',
+                    httpProxy: '127.0.0.1:8080',
+                    sslProxy: '127.0.0.1:8080'
+                }
+            }]
+        ],
+        // ...
+    };
+    ```
+
+### legacy
+
+Please set this flag to `true` if you use Firefox v55 or lower.
+
+Type: `Boolean`<br>
+Default: `false`
+
+----
+
+For more information on WebdriverIO see the [homepage](https://webdriver.io).

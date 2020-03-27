@@ -45,6 +45,7 @@ export const DEFAULT_FLAGS = [
 export const CHROME_NAMES = ['chrome', 'googlechrome', 'headlesschrome', 'google-chrome', 'chromium']
 export const FIREFOX_NAMES = ['firefox', 'ff', 'mozilla', 'mozillafirefox', 'headless firefox', 'headlessfirefox']
 export const EDGE_NAMES = ['edge', 'msedge', 'microsoft-edge', 'microsoftedge']
+export const SUPPORTED_BROWSER = [...CHROME_NAMES, ...FIREFOX_NAMES, ...EDGE_NAMES]
 
 export const DEFAULTS = {
     capabilities: {

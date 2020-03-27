@@ -704,6 +704,19 @@
       }
     }
   },
+  "/session/:sessionId/appium/device/network_speed": {
+    "POST": {
+      "command": "toggleNetworkSpeed",
+      "description": "Set network speed (Emulator only)",
+      "ref": "http://appium.io/docs/en/commands/device/network/network-speed/",
+      "parameters": [],
+      "support": {
+        "android": {
+          "UiAutomator": "4.2+"
+        }
+      }
+    }
+  },
   "/session/:sessionId/appium/device/open_notifications": {
     "POST": {
       "command": "openNotifications",
@@ -1308,6 +1321,45 @@
         "description": "The type of action to perform (e.g. moveTo, release, press, tap, wait)",
         "required": true
       }],
+      "examples": [
+        [
+          "// do a horizontal swipe by percentage",
+          "const startPercentage = 10;",
+          "const endPercentage = 90;",
+          "const anchorPercentage = 50;",
+          "",
+          "const { width, height } = driver.getWindowSize();",
+          "const anchor = height * anchorPercentage / 100;",
+          "const startPoint = width * startPercentage / 100;",
+          "const endPoint = width * endPercentage / 100;",
+          "driver.touchPerform([",
+          "  {",
+          "    action: 'press',",
+          "    options: {",
+          "      x: startPoint,",
+          "      y: anchor,",
+          "    },",
+          "  },",
+          "  {",
+          "    action: 'wait',",
+          "    options: {",
+          "      ms: 100,",
+          "    },",
+          "  },",
+          "  {",
+          "    action: 'moveTo',",
+          "    options: {",
+          "      x: endPoint,",
+          "      y: anchor,",
+          "    },",
+          "  },",
+          "  {",
+          "    action: 'release',",
+          "    options: {},",
+          "  },",
+          "]);"
+        ]
+      ],
       "support": {
         "android": {
           "UiAutomator": "4.2+"
@@ -1373,6 +1425,42 @@
         "name": "result",
         "description": "An object containing two fields: 'result', which is the return value of the script itself, and 'logs', which contains 3 inner fields, 'log', 'warn', and 'error', which hold an array of strings logged by console.log, console.warn, and console.error in the script's execution."
       }
+    }
+  },
+  "/session/:sessionId/appium/events": {
+    "POST": {
+      "command": "getEvents",
+      "description": "Get events stored in appium server.",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/session/events/get-events.md",
+      "parameters": [{
+        "name": "type",
+        "type": "string[]",
+        "description": "Get events which are filtered with the type if the type is provided.",
+        "required": true
+      }],
+      "returns": {
+        "type": "object",
+        "name": "result",
+        "description": "A JSON hash of events like `{'commands' => [{'cmd' => 123455, ....}], 'startTime' => 1572954894127, }`."
+      }
+    }
+  },
+  "/session/:sessionId/appium/log_event": {
+    "POST": {
+      "command": "logEvent",
+      "description": "Store a custom event.",
+      "ref": "https://github.com/appium/appium/blob/master/docs/en/commands/session/events/log-event.md",
+      "parameters": [{
+        "name": "vendor",
+        "type": "string",
+        "description": "The name of vendor. It will be `vendor` in `vendor:event`.",
+        "required": true
+      }, {
+        "name": "event",
+        "type": "string",
+        "description": "The name of event. It will be `event` in `vendor:event`.",
+        "required": true
+      }]
     }
   }
 }

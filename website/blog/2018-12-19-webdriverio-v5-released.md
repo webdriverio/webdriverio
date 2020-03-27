@@ -71,11 +71,11 @@ Every project is different, so it is impossible to have one single guide for eve
 - install the latest version of webdriverio: `$ npm install webdriverio@latest`
 - install the new wdio testrunner: `$ npm install @wdio/cli --save-dev`
 - if you have a `wdio.conf.js` in your root directory, create a backup: `$ cp wdio.conf.js wdio_backup.conf.js`
-- rerun the configuration wizard: `$ ./node_modules/.bin/wdio config`
+- rerun the configuration wizard: `$ npx wdio config`
 - merge custom modifications of your old `wdio_backup.conf.js` into your new config file. Don't merge everything at once - just begin with the basic setup using no services and just the e.g. spec reporter to run tests locally and work torwards a full migration
 - take the simplest test in your suite and rename the commands according to the changelog
 - have your log directory set in your config (e.g. `outputDir: __dirname`) to ensure you can see everything that is going on including errors (you can later set it to a proper log directory)
-- attempt to run the the test suite you modified `$ ./node_modules/.bin/wdio wdio.config.js --spec ./path/to/modified/test.js`
+- attempt to run the the test suite you modified `$ npx wdio wdio.conf.js --spec ./path/to/modified/test.js`
 - repeat on your remaining test files
 - add reporters and services back into your `wdio.conf.js`, and see if they work as expected (__Note:__ it is possible that services or reporters that you have used aren't ported to v5 yet, if so, please raise an issue in the repository of that community package or try to port it)
 

@@ -149,12 +149,12 @@ export default class BaseReporter {
          * check if reporter was passed in from a file, e.g.
          *
          * ```js
-         * const MyCustomeReporter = require('/some/path/MyCustomeReporter.js')
+         * const MyCustomReporter = require('/some/path/MyCustomReporter.js')
          * export.config = {
          *     //...
          *     reporters: [
-         *         MyCustomeReporter, // or
-         *         [MyCustomeReporter, { custom: 'option' }]
+         *         MyCustomReporter, // or
+         *         [MyCustomReporter, { custom: 'option' }]
          *     ]
          *     //...
          * }
@@ -183,7 +183,7 @@ export default class BaseReporter {
          * ```
          */
         if (typeof reporter === 'string') {
-            ReporterClass = initialisePlugin(reporter, 'reporter')
+            ReporterClass = initialisePlugin(reporter, 'reporter').default
             const customLogFile = options.setLogFile(this.cid, reporter)
             options.logFile = customLogFile || this.getLogFile(reporter)
             options.writeStream = this.getWriteStreamObject(reporter)

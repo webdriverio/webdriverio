@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('getHTML test', () => {
@@ -16,7 +16,8 @@ describe('getHTML test', () => {
         }
 
         let result = await elem.getHTML()
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/execute/sync')
+        expect(got.mock.calls[2][1].uri.pathname)
+            .toBe('/session/foobar-123/execute/sync')
         expect(result).toBe('<some>outer html</some>')
 
         result = await elem.getHTML(false)
@@ -24,6 +25,6 @@ describe('getHTML test', () => {
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

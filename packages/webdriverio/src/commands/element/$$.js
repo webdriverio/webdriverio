@@ -32,15 +32,10 @@
  * </example>
  *
  * @alias $$
- * @param {String|Function} selector  selector or JS Function to fetch multiple elements
- * @return {Element[]}
+ * @param {String|Function|DataMatcher} selector  selector, JS Function or DataMatcher object to fetch multiple elements
+ * @return {ElementArray}
  * @type utility
  *
  */
-import { findElements } from '../../utils'
-import { getElements } from '../../utils/getElementObject'
-
-export default async function $$ (selector) {
-    const res = await findElements.call(this, selector)
-    return getElements.call(this, selector, res)
-}
+import $$ from '../browser/$$'
+export default $$

@@ -36,27 +36,13 @@ In `wdio.conf`:
 
 ```js
 jasmineNodeOpts: {
-  defaultTimeoutInterval: (24 * 60 * 60 * 1000)
+    defaultTimeoutInterval: (24 * 60 * 60 * 1000)
 }
 ```
 
 See [timeouts](Timeouts.md) for more information on how to do that using other frameworks.
 
-
-## Debugging in Chrome DevTools
-
-To get it working, you need to pass the `--inspect` flag down to the `wdio` command running tests like this:
-
-```sh
-wdio wdio.conf.js --inspect
-```
-
-This will start the runner process with the `inspect` flag enabled. Now, you can open the DevTools and connect to the runner process. (Just remember to set a `debugger` statement somewhere in order to start fiddling around with commands in the console!)
-
-Tests will pause at `debugger` statements, but ONLY once DevTools has been opened and the debugger attached. If you prefer to break on the first line, you can use `--inspect-brk` instead.
-
-Once execution has finished, the test doesn't actually finish until the DevTools is closed. You'll need to do that yourself.
-
+To proceed with the tests after debugging, in the shell use `^C` shortcut or the `.exit` command.
 ## Dynamic configuration
 
 Note that `wdio.conf.js` can contain Javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable.
@@ -84,7 +70,7 @@ exports.config = {
 You can then prefix the `wdio` command with the `debug` flag:
 
 ```
-DEBUG=true ./node_modules/.bin/wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
+$ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 ```
 
 ...and debug your spec file with the DevTools!

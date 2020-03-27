@@ -1,9 +1,8 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('isExisting test', () => {
     let browser
-    let elem
 
     beforeAll(async () => {
         browser = await remote({
@@ -12,15 +11,23 @@ describe('isExisting test', () => {
                 browserName: 'foobar'
             }
         })
-        elem = await browser.$('#foo')
     })
 
     it('should allow to check if an element is enabled', async () => {
+        const elem = await browser.$('#foo')
         await elem.isExisting()
-        expect(request.mock.calls[2][0].uri.path).toBe('/wd/hub/session/foobar-123/elements')
+        expect(got.mock.calls[2][1].uri.pathname)
+            .toBe('/session/foobar-123/elements')
+    })
+
+    it('should allow to check an react element', async () => {
+        const elem = await browser.react$('#foo')
+        await elem.isExisting()
+        expect(got.mock.calls[2][1].uri.pathname)
+            .toBe('/session/foobar-123/execute/sync')
     })
 
     afterEach(() => {
-        request.mockClear()
+        got.mockClear()
     })
 })

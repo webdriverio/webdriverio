@@ -22,6 +22,14 @@ it('should navigate to a page and get page info', async () => {
     expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
     expect(await browser.getUrl()).toContain('http://guinea-pig.webdriver.io')
     expect(await browser.getPageSource()).toContain('WebdriverJS Testpage')
+
+    const elem = await browser.findElement('css selector', '#t')
+    expect(await browser.getElementText(elem[ELEMENT_KEY])).toBe('lions, tigers')
+})
+
+it('should include the hash', async () => {
+    await browser.navigateTo('http://guinea-pig.webdriver.io#hash=hello')
+    expect(await browser.getUrl()).toBe('http://guinea-pig.webdriver.io/#hash=hello')
 })
 
 describe('timeouts', () => {
@@ -191,7 +199,7 @@ describe('window handling', () => {
     it('should switch to window created by DOM interaction', async () => {
         const newWindowLink = await browser.findElement('css selector', '#newWindow')
         await browser.elementClick(newWindowLink[ELEMENT_KEY])
-        await sleep(500)
+        await sleep(1000)
         expect(await browser.getWindowHandles()).toHaveLength(2)
 
         const handles = await browser.getWindowHandles()
@@ -293,6 +301,14 @@ describe('executeScript', () => {
         const script = 'return (function () { return this.document.querySelector("body") }).apply(null, arguments)'
         const elem = await browser.executeScript(script, [])
         expect(typeof elem[ELEMENT_KEY]).toBe('string')
+    })
+
+    it('can handle various of script formats', async () => {
+        expect(await browser.executeScript('console.log("hello")')).toBe(undefined)
+        expect(await browser.executeScript(' return "string";')).toBe('string')
+        expect(await browser.executeScript('/* test */ console.log("test")')).toBe(undefined)
+        expect(await browser.executeScript('return { foo: "bar" }')).toEqual({ foo: 'bar' })
+        expect(await browser.executeScript('return ({ foo: "bar" })')).toEqual({ foo: 'bar' })
     })
 })
 

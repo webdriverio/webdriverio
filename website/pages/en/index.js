@@ -27,10 +27,6 @@ function docUrl(doc, language) {
     return siteConfig.baseUrl + 'docs/' + (language ? language + '/' : '') + doc
 }
 
-// function pageUrl(page, language) {
-//     return siteConfig.baseUrl + (language ? language + '/' : '') + page
-// }
-
 class Button extends React.Component {
     render() {
         return (
@@ -79,7 +75,7 @@ const Badges = () => (
     <section>
         <div className="badges">
             <a href="https://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" className="retina-badge" /></a>
-            <a href="https://travis-ci.org/webdriverio/webdriverio"><img src="https://travis-ci.org/webdriverio/webdriverio.svg" alt="Build Status" /></a>
+            <a href="https://travis-ci.org/webdriverio/webdriverio"><img src="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master" alt="Build Status" /></a>
             <a href="https://codecov.io/gh/webdriverio/webdriverio"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg" /></a>
         </div>
         <div>
@@ -124,7 +120,7 @@ class HomeSplash extends React.Component {
                     <PromoSection>
                         <Button href={docUrl('gettingstarted.html', language)}>Get Started</Button>
                         <Button href="#watch">Watch Talks</Button>
-                        <Button href="https://learn.webdriver.io">Online Course</Button>
+                        <Button href="https://leanpub.com/webapp-testing-guidebook">Read the Book</Button>
                         <Button href="https://gitter.im/webdriverio/webdriverio">Support</Button>
                     </PromoSection>
                 </div>
@@ -154,13 +150,35 @@ Block.propTypes = {
 }
 
 const TestSetup = () => (
+    <Block background="light">
+        {[
+            {
+                content: '' +
+                    'The WebdriverIO testrunner comes with a command line interface that provides a nice configuration utility that ' +
+                    'helps you to create your config file in less than a minute. It also gives an overview of all available 3rd party ' +
+                    'packages like framework adaptions, reporter and services and installs them for you!' +
+                    '<img class="install" src="/img/install.png" alt="Install WebdriverIO Command" />',
+                image: imgUrl('config-utility.gif'),
+                imageAlign: 'left',
+                title: 'Get Started With WebdriverIO within Minutes',
+            },
+        ]}
+    </Block>
+)
+
+const AutomationProtocolSupport = () => (
     <Block>
         {[
             {
-                content: 'The wdio command line interface comes with a nice configuration utility that helps you to create your config file in less than a minute. It also gives an overview of all available 3rd party packages like framework adaptions, reporter and services and installs them for you.',
-                image: imgUrl('config-utility.gif'),
+                content: '' +
+                    'WebdriverIO is always up to date with the latest automation frameworks and therefor supports not only capabilities ' +
+                    'of the <a href="https://w3c.github.io/webdriver/">WebDriver</a> but also commands of the <a href="https://chromedevtools.github.io/devtools-protocol/">Chrome DevTools</a> ' +
+                    'protocol using tools like <a href="https://pptr.dev/">Puppeteer</a>. The framework allows you to freely switch between ' +
+                    'running remote WebDriver commands as well stubbing and mocking features of Puppeteer. Have a look into the <a href="https://github.com/webdriverio/webdriverio/blob/cb-docs-improvements/examples/devtools/intercept.js">examples</a> ' +
+                    'directory.',
+                image: imgUrl('w3c-wdio-pptr.png'),
                 imageAlign: 'right',
-                title: 'Easy Test Setup',
+                title: '1st Class WebDriver and Puppeteer Support',
             },
         ]}
     </Block>
@@ -175,7 +193,7 @@ const Talks = () => (
                 <iframe
                     width="560"
                     height="315"
-                    src="https://www.youtube.com/embed/fex2NlN-soQ?start=3204"
+                    src="https://www.youtube.com/embed/jOmvPpzLMf8?start=3204"
                     frameBorder="0"
                     allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -196,10 +214,10 @@ const Talks = () => (
                         <translate>
                             The community around WebdriverIO is actively speaking on various user groups or
                             conferences about specific topics around automated testing with WebdriverIO. Check out
-                            this talk from the latest "This.JavaScript: State of Frontend Testing" event about [The State of WebdriverIO v5](https://www.youtube.com/watch?v=fex2NlN-soQ&feature=youtu.be&t=3204)
-                            by [@klamping](https://twitter.com/klamping). There is also a whole
+                            this talk on [The Nuts and Bolts of WebdriverIO](https://www.youtube.com/watch?v=jOmvPpzLMf8&feature=youtu.be&t=3204)
+                            by [@bromann](https://twitter.com/bromann) at [Selenium Camp 2020](https://seleniumcamp.com/). There is also a whole
                             [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0)
-                            about different topics around WebdriverIO created by [him as well](https://twitter.com/klamping).
+                            about different topics around WebdriverIO created by on of our community members [Klamping](https://twitter.com/klamping).
                         </translate>
                     </MarkdownBlock>
                 </div>
@@ -254,18 +272,76 @@ const ApplitoolsSupport = () => (
     </Container>
 )
 
-const TryIt = () => (
-    <Block background="light">
-        {[
-            {
-                content: 'You can try WebdriverIO using [try.webdriver.io](http://try.webdriver.io) that provides you with an interface to write a sample test and share it. You can also use it for debugging purposes.',
-                image: imgUrl('try.png'),
-                imageAlign: 'right',
-                title: 'Try it out!',
-            },
-        ]}
-    </Block>
-)
+const LOGOS = [{
+    img: 'hilton.png',
+    alt: 'Hilton',
+    url: 'https://www.hilton.com/'
+}, {
+    img: 'netflix.png',
+    alt: 'Netflix',
+    url: 'https://netflix.com/'
+}, {
+    img: 'oxford.png',
+    alt: 'Oxford University Press',
+    url: 'https://global.oup.com/'
+}, {
+    img: 'bbva.png',
+    alt: 'BBVA',
+    url: 'https://www.bbva.com/'
+}, {
+    img: 'gopro.png',
+    alt: 'GoPro',
+    url: 'https://gopro.com/'
+}, {
+    img: 'sap.png',
+    alt: 'SAP',
+    url: 'https://www.sap.com/'
+}, {
+    img: 'financialtimes.png',
+    alt: 'Financial Times',
+    url: 'https://www.ft.com/'
+}, {
+    img: 'zendesk.png',
+    alt: 'Zendesk',
+    url: 'https://www.zendesk.com/'
+}, {
+    img: '1und1.png',
+    alt: '1&1',
+    url: 'https://www.1und1.de/'
+}, {
+    img: 'avira.png',
+    alt: 'Avira',
+    url: 'https://www.avira.com/'
+}, {
+    img: 'deloitte.jpg',
+    alt: 'Deloitte',
+    url: 'https://deloitte.com'
+}, {
+    img: 'rabobank.png',
+    alt: 'Rabobank',
+    url: 'https://www.rabobank.com/'
+}]
+
+const CompanyUsage = () => {
+    return (
+        <Container padding={['bottom', 'top']} id="companyUsage">
+            <h3>Who is using WebdriverIO?</h3>
+            <div>
+                <ul>
+                    {LOGOS.map((value, index) => (
+                        <li key={index}><a href={value.url} target="_blank"><img src={"/img/logos/" + value.img} alt={value.alt} /></a></li>
+                    ))}
+                </ul>
+                <div className="logoNavigation">
+                    {[...Array(Math.ceil(LOGOS.length / 6))].map((_, index) => (
+                        <button key={index} className={index === 0 ? 'active' : ''}>{index + 1}</button>
+                    ))}
+                </div>
+            </div>
+            <script src="/js/carousel.js"></script>
+        </Container>
+    )
+}
 
 class Index extends React.Component {
     render() {
@@ -291,8 +367,8 @@ class Index extends React.Component {
                             }, {
                                 content: (
                                     <translate>
-                                        WebdriverIO has 1st class support for the __WebDriver specification__
-                                        as well as to __Appium__ and allows to run tests on desktop and mobile.
+                                        WebdriverIO can be run on the __WebDriver__ as well as __Chrome DevTools
+                                        Protocol__ and is deep integrated with [Puppeteer](https://pptr.dev/).
                                     </translate>
                                 ),
                                 image: imgUrl('teaser/compatible.png'),
@@ -301,8 +377,8 @@ class Index extends React.Component {
                             }, {
                                 content: (
                                     <translate>
-                                        It implements all Webdriver protocol commands and provides useful
-                                        integrations with other tools.
+                                        The huge of variety of community plugins allows you to easily integrate
+                                        and extend your setup to fulfill your requirements.
                                     </translate>
                                 ),
                                 image: imgUrl('teaser/featurerich.png'),
@@ -312,10 +388,11 @@ class Index extends React.Component {
                             layout="fourColumn"
                         />
                     </Container>
-                    <TestSetup />
+                    <CompanyUsage />
                     <Talks />
+                    <AutomationProtocolSupport />
+                    <TestSetup />
                     <ApplitoolsSupport />
-                    <TryIt />
                 </div>
             </div>
         )

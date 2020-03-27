@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import logger from '@wdio/logger'
 
 import WebDriver from '../src'
@@ -13,15 +13,15 @@ const sessionOptions = {
 
 describe('WebDriver', () => {
     describe('newSession', () => {
-        test('should allow to create a new session using jsonwire caps', async () => {
+        it('should allow to create a new session using jsonwire caps', async () => {
             await WebDriver.newSession({
                 path: '/',
                 capabilities: { browserName: 'firefox' }
             })
 
-            const req = request.mock.calls[0][0]
+            const req = got.mock.calls[0][1]
             expect(req.uri.pathname).toBe('/session')
-            expect(req.body).toEqual({
+            expect(req.json).toEqual({
                 capabilities: {
                     alwaysMatch: { browserName: 'firefox' },
                     firstMatch: [{}]
@@ -30,7 +30,7 @@ describe('WebDriver', () => {
             })
         })
 
-        test('should allow to create a new session using w3c compliant caps', async () => {
+        it('should allow to create a new session using w3c compliant caps', async () => {
             await WebDriver.newSession({
                 path: '/',
                 capabilities: {
@@ -39,9 +39,9 @@ describe('WebDriver', () => {
                 }
             })
 
-            const req = request.mock.calls[0][0]
+            const req = got.mock.calls[0][1]
             expect(req.uri.pathname).toBe('/session')
-            expect(req.body).toEqual({
+            expect(req.json).toEqual({
                 capabilities: {
                     alwaysMatch: { browserName: 'firefox' },
                     firstMatch: [{}]
@@ -50,7 +50,7 @@ describe('WebDriver', () => {
             })
         })
 
-        test('should be possible to skip setting logLevel', async () => {
+        it('should be possible to skip setting logLevel', async () => {
             await WebDriver.newSession({
                 capabilities: { browserName: 'chrome' },
                 logLevel: 'info',
@@ -60,7 +60,7 @@ describe('WebDriver', () => {
             expect(logger.setLevel).not.toBeCalled()
         })
 
-        test('should be possible to set logLevel', async () => {
+        it('should be possible to set logLevel', async () => {
             await WebDriver.newSession({
                 capabilities: { browserName: 'chrome' },
                 logLevel: 'info'
@@ -71,23 +71,23 @@ describe('WebDriver', () => {
     })
 
     describe('attachToSession', () => {
-        test('should allow to attach to existing session', async () => {
+        it('should allow to attach to existing session', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'info' })
             await client.getUrl()
-            const req = request.mock.calls[0][0]
+            const req = got.mock.calls[0][1]
             expect(req.uri.href).toBe('http://localhost:4444/session/foobar/url')
             expect(logger.setLevel).toBeCalled()
         })
 
-        test('should allow to attach to existing session2', async () => {
+        it('should allow to attach to existing session2', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions })
             await client.getUrl()
-            const req = request.mock.calls[0][0]
+            const req = got.mock.calls[0][1]
             expect(req.uri.href).toBe('http://localhost:4444/session/foobar/url')
             expect(logger.setLevel).not.toBeCalled()
         })
 
-        test('should allow to attach to existing session - W3C', async () => {
+        it('should allow to attach to existing session - W3C', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions })
             await client.getUrl()
 
@@ -99,7 +99,7 @@ describe('WebDriver', () => {
             expect(client.getDeviceTime).toBeFalsy()
         })
 
-        test('should allow to attach to existing session - non W3C', async () => {
+        it('should allow to attach to existing session - non W3C', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
                 isW3C: false,
                 isSauce: true,
@@ -113,7 +113,7 @@ describe('WebDriver', () => {
             expect(client.getDeviceTime).toBeFalsy()
         })
 
-        test('should allow to attach to existing session - mobile', async () => {
+        it('should allow to attach to existing session - mobile', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
                 isChrome: true,
                 isMobile: true
@@ -128,7 +128,7 @@ describe('WebDriver', () => {
             expect(client.getDeviceTime).toBeTruthy()
         })
 
-        test('it should propagate all environment flags', () => {
+        it('it should propagate all environment flags', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
                 isW3C: false,
                 isMobile: false,
@@ -160,7 +160,7 @@ describe('WebDriver', () => {
             expect(anotherClient.isSauce).toBe(true)
         })
 
-        test('should fail attaching to session if sessionId is not given', () => {
+        it('should fail attaching to session if sessionId is not given', () => {
             expect(() => WebDriver.attachToSession({})).toThrow(/sessionId is required/)
         })
     })
@@ -172,17 +172,17 @@ describe('WebDriver', () => {
                 capabilities: { browserName: 'firefox' }
             })
             await WebDriver.reloadSession(session)
-            expect(request.mock.calls).toHaveLength(2)
+            expect(got.mock.calls).toHaveLength(2)
         })
     })
 
-    test('ensure that WebDriver interface exports protocols and other objects', () => {
+    it('ensure that WebDriver interface exports protocols and other objects', () => {
         expect(WebDriver.WebDriver).not.toBe(undefined)
         expect(WebDriver.DEFAULTS).not.toBe(undefined)
     })
 
     afterEach(() => {
         logger.setLevel.mockClear()
-        request.mockClear()
+        got.mockClear()
     })
 })

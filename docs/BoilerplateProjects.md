@@ -7,6 +7,47 @@ Over time, our community has developed several boilerplate projects that you can
 
 ## v5 Boilerplate Projects
 
+### [labs42io/web-automation](https://github.com/labs42io/web-automation)
+BDD tests with Cucumber, WebdriverIO and Docker Selenium.
+
+- Frameworks
+  - WebdriverIO (v5.x)
+  - docker-selenium (v3.x)
+  - TypeScript (v3.x)
+  - Cucumber
+- Features
+  - Dockerized selenium grid and browsers
+  - Configurable selenium and browser versions 
+  - Over 150 predefined snippets for [Cucumber Gherkin Syntax](https://cucumber.io/docs/gherkin/)
+  - Write custom snippets with TypeScript
+  - Visually debug tests with *VNC viewier*
+  - Detailed report generation
+  - Automatic screenshots attached for failing tests
+  - CI integration samples
+  - ESLint
+  
+### [davidnguyen179/storybook-wdio](https://github.com/davidnguyen179/storybook-wdio)
+
+The project creates the powerful component base boilerplate using Storybook, React, Typescript, Mocha, WebdriverIO and Selenium.
+
+- Frameworks:
+    - Storybook (v5.x)
+    - React (v16.x)
+    - WebdriverIO (v5.x)
+    - TypeScript(v3.x)
+    - @Types/Mocha (v5.x)
+- Features:
+    - Generate the stories of component via configurations
+    - TypeScript [Page Object](PageObjects.md) Models
+    - TypesScript Models
+    - Code Prettier
+    - Eslint
+    - Git hook using `husky` and `lint-staged`
+    - Support TravisCI, CircleCI and Github Actions
+    - Allow running visual regression test in single component or all components
+    - Support `Dockerfile` to deploy the `storybook`
+    - Support `docker-compose.yml` to start the selenium chrome, firefox
+
 ### [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: Cucumber (v5.x)
@@ -19,7 +60,7 @@ Over time, our community has developed several boilerplate projects that you can
     - Database support for any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing queries, fetching result sets, and so on. Includes examples of E2E testing.
     - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of JUnit report(`.html`) format
     - Task manage through Grunt
-    - Examples with demo app https://search.yahoo.com and http://www.phptravels.net, Chai assertion liberary (`expect`, `assert`, `should`)
+    - Examples with demo app https://search.yahoo.com and http://www.phptravels.net, Chai assertion library (`expect`, `assert`, `should`)
     - Appium-specific `.config` file for playback on mobile device. For one-click Appium setup, refer to: [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 
@@ -32,7 +73,7 @@ Over time, our community has developed several boilerplate projects that you can
     - Multiple reporting (Spec, Junit, Allure), plus local view of JUnit report (`.html`) format
     - Jasmine Spec examples with assert module and Jasmine-specific assertions using demo app http://www.phptravels.net
     - Examples of headless browser execution using Chrome and Firefox and Integration with BrowserStack and SauceLabs
-    - Examples of reading and writing from MS-Excel documentsfor easy test data management from external data sources
+    - Examples of reading and writing from MS-Excel documents for easy test data management from external data sources
     - Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), query execution, and fetching result sets
 
 
@@ -79,7 +120,7 @@ This project creates a powerful boilerplate for UI Automation Testing with Webdr
     - Code Prettier
     - HTML report with Allure
     - Single test case for development purposes
-    
+
 ### [ssehmi/WebdriverIO-TypeScript-Cucumber-Boilerplate](https://github.com/ssehmi/e2e)
 
 This is a boilerplate project to run E2E tests with CucumberJS tests with chai assertions written in typescript.
@@ -100,11 +141,12 @@ A boilerplate to run E2E tests with Mocha and generate test reports gracefully.
 
 - Framework: Mocha(v5.x)
 - Features:
-    - [Page Object](PageObjects.md) Pattern with Closure Functions
-    - Fake data generator
+    - [Page Object](PageObjects.md) Pattern with Closure Functions (Factory Pattern)
+    - Fake data generator (Faker.js)
     - Multiple Reports (Allure, Report Portal)
     - Docker compose to run your test suite on Selenium Grid
     - Dotenv module to hide your personal information
+    - ESLint
 
 ### [WarleyGabriel/demo-webdriverio-mocha](https://github.com/WarleyGabriel/demo-webdriverio-mocha)
 
@@ -159,7 +201,38 @@ This boilerplate includes the following:
         - Forms
         - Swipe
         - Browsers
+        
+### [Schveitzer/webdriverio-appium-cucumber-boilerplate](https://github.com/Schveitzer/webdriverio-appium-cucumber-boilerplate)
 
+Boilerplate project to run Appium tests together with WebdriverIO and BDD with Cucumber for:
+
+- iOS/Android Native Apps
+- iOS/Android Hybrid Apps
+
+This boilerplate includes the following:
+
+- Frameworks:
+    - WebdriverIO (v5.x)
+    - Chai (v5.x)
+    - @Wdio/Allure (v5.x)
+    - Appium (1.16.x)
+    - Cucumber (v5.x)
+    
+- Features:
+    - Configs for:
+        - iOS and Android app
+    - Tests examples in english and portuguese for:
+        - WebView
+        - Login
+        - Forms
+        - Swipe
+    - [Page Object](PageObjects.md) Pattern
+    - ES6 style class-based approach, and full ES6–ES8 support through Babel
+    - Chai
+    - Reports with Allure (Print screen on fail)
+    - Code formatter (ESlint, Prettier)
+    - Git hook using `husky`
+        
 ### [blueimp/wdio](https://github.com/blueimp/wdio)
 
 Docker setup for WebdriverIO with automatic screenshots, image diffing, and screen recording support for containerized versions of Chrome and Firefox. Also includes macOS host configs to test an app running in Docker with Safari Desktop, as well as Safari Mobile and Chrome Mobile via Appium.
@@ -196,6 +269,15 @@ Designed to be quick to get you started without getting terribly complex.
     - An alternative component-specific (rather than page-specific) approach, allowing for a split E2E and integration test writing approach
     - Introduces config file extensions for readability and flexibility, in the event that you have multiple teams/projects working out of the same project repository
 
+### [PerfectoMobileSA/webdriverio5-cucumber-perfecto-sample](https://github.com/PerfectoMobileSA/webdriverio5-cucumber-perfecto-sample)
+
+This project is useful not only as an example of WebdriverIO v5 and integration with perfecto cloud (https://www.perfecto.io/), but it includes examples of the PageObject pattern, different locators files to run the same script on Android and iOS devices, and some practical examples for using WebdriverIO to build an automated test suite with Cucumber (v 5.x) BDD framework.
+
+- Framework: Cucumber (v5.x)
+- Features:
+    - Cloud integration with [Perfecto](https://www.perfecto.io/)
+    - Uses [Page Objects](PageObjects.md)
+    - Examples of using Page Locators to run same script on Multiple Mobile Devices
 
 ----
 

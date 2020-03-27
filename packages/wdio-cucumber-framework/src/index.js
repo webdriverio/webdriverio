@@ -21,6 +21,51 @@ class CucumberAdapter {
         this.capabilities = capabilities
         this.config = config
         this.cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
+        this._hasTests = true
+        this.cucumberFeaturesWithLineNumbers = this.config.cucumberFeaturesWithLineNumbers || []
+        this.eventBroadcaster = new EventEmitter()
+    }
+
+    async init () {
+        try {
+            const reporterOptions = {
+                capabilities: this.capabilities,
+                ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
+                failAmbiguousDefinitions: Boolean(this.cucumberOpts.failAmbiguousDefinitions),
+                tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle)
+            }
+            this.cucumberReporter = new CucumberReporter(this.eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
+
+            const featurePathsToRun = this.cucumberFeaturesWithLineNumbers.length > 0 ? this.cucumberFeaturesWithLineNumbers : this.specs
+            const pickleFilter = new Cucumber.PickleFilter({
+                featurePaths: featurePathsToRun,
+                names: this.cucumberOpts.name,
+                tagExpression: this.cucumberOpts.tagExpression
+            })
+
+            const eventBroadcasterProxyFilter = new EventEmitter()
+            this.eventBroadcaster.eventNames()
+                .forEach(n => eventBroadcasterProxyFilter.addListener(n, (...args) =>
+                    (n !== 'pickle-accepted' || this.filter(args[0])) && this.eventBroadcaster.emit(n, ...args)))
+
+            this.testCases = (await Cucumber.getTestCasesFromFilesystem({
+                cwd: this.cwd,
+                eventBroadcaster: eventBroadcasterProxyFilter,
+                featurePaths: this.specs,
+                order: this.cucumberOpts.order,
+                pickleFilter
+            })).filter(testCase => this.filter(testCase))
+            this._hasTests = this.testCases.length > 0
+        } catch (runtimeError) {
+            await executeHooksWithArgs(this.config.after, [runtimeError, this.capabilities, this.specs])
+            throw runtimeError
+        }
+
+        return this
+    }
+
+    hasTests () {
+        return this._hasTests
     }
 
     async run () {
@@ -46,16 +91,6 @@ class CucumberAdapter {
             Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
             const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
 
-            const eventBroadcaster = new EventEmitter()
-            const reporterOptions = {
-                capabilities: this.capabilities,
-                ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
-                failAmbiguousDefinitions: Boolean(this.cucumberOpts.failAmbiguousDefinitions),
-                tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle)
-            }
-
-            this.cucumberReporter = new CucumberReporter(eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
-
             /**
              * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
              * or `null` for some hooks.
@@ -64,26 +99,13 @@ class CucumberAdapter {
              */
             this.getCurrentStep = ::this.cucumberReporter.eventListener.getCurrentStep
 
-            const pickleFilter = new Cucumber.PickleFilter({
-                featurePaths: this.specs,
-                names: this.cucumberOpts.name,
-                tagExpression: this.cucumberOpts.tagExpression
-            })
-            const testCases = await Cucumber.getTestCasesFromFilesystem({
-                cwd: this.cwd,
-                eventBroadcaster,
-                featurePaths: this.specs,
-                order: this.cucumberOpts.order,
-                pickleFilter
-            })
             const runtime = new Cucumber.Runtime({
-                eventBroadcaster,
+                eventBroadcaster: this.eventBroadcaster,
                 options: this.cucumberOpts,
                 supportCodeLibrary,
-                testCases
+                testCases: this.testCases
             })
 
-            await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
             result = await runtime.start() ? 0 : 1
 
             /**
@@ -108,6 +130,40 @@ class CucumberAdapter {
         }
 
         return result
+    }
+
+    /**
+     * Returns true/false if testCase should be kept for current capabilities
+     * according to tag in the syntax  @skip([conditions])
+     * For example "@skip(browserName=firefox)" or "@skip(browserName=chrome,platform=/.+n?x/)"
+     * @param {*} testCase
+     */
+    filter(testCase) {
+        const skipTag = /^@skip\((.*)\)$/
+
+        const match = (value, expr) => {
+            if(Array.isArray(expr)) {
+                return expr.indexOf(value) >= 0
+            } else if(expr instanceof RegExp) {
+                return expr.test(value)
+            }
+            return (expr && ('' + expr).toLowerCase()) === (value && ('' + value).toLowerCase())
+        }
+
+        const parse = (skipExpr) =>
+            skipExpr.split(';').reduce((acc, splitItem) => {
+                const pos = splitItem.indexOf('=')
+                if(pos > 0) {
+                    acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
+                }
+                return acc
+            }, {})
+
+        return !(testCase.pickle && testCase.pickle.tags && testCase.pickle.tags
+            .map(p => p.name.match(skipTag))
+            .filter(m => m).map(m => parse(m[1]))
+            .find(filter => Object.keys(filter)
+                .every(key => match(this.capabilities[key], filter[key]))))
     }
 
     /**
@@ -217,13 +273,13 @@ class CucumberAdapter {
 
     /**
      * wrap step definition to enable retry ability
-     * @param   {Function}  code            step definitoon
+     * @param   {Function}  code            step definition
      * @param   {Number}    retryTest       amount of allowed repeats is case of a failure
      * @param   {boolean}   isStep
      * @param   {object}    config
      * @param   {string}    cid             cid
-     * @param   {Function}  getCurrentStep  step definitoon
-     * @return  {Function}                  wrapped step definiton for sync WebdriverIO code
+     * @param   {Function}  getCurrentStep  step definition
+     * @return  {Function}                  wrapped step definition for sync WebdriverIO code
      */
     wrapStep (code, retryTest = 0, isStep, config, cid, getCurrentStep) {
         return function (...args) {
@@ -233,11 +289,12 @@ class CucumberAdapter {
             const { uri, feature } = getDataFromResult(global.result)
             const beforeFn = isStep ? config.beforeStep : config.beforeHook
             const afterFn = isStep ? config.afterStep : config.afterHook
+            const hookParams = { uri, feature, step: getCurrentStep() }
             return testFnWrapper.call(this,
                 isStep ? 'Step' : 'Hook',
                 { specFn: code, specFnArgs: args },
-                { beforeFn, beforeFnArgs: (context) => [uri, feature, getCurrentStep(), context] },
-                { afterFn, afterFnArgs: (context) => [uri, feature, getCurrentStep(), context] },
+                { beforeFn, beforeFnArgs: (context) => [hookParams, context] },
+                { afterFn, afterFnArgs: (context) => [hookParams, context] },
                 cid,
                 retryTest)
         }
@@ -251,10 +308,10 @@ const adapterFactory = {}
  * tested by smoke tests
  */
 /* istanbul ignore next */
-adapterFactory.run = async function (...args) {
+adapterFactory.init = async function (...args) {
     const adapter = new _CucumberAdapter(...args)
-    const result = await adapter.run()
-    return result
+    const instance = await adapter.init()
+    return instance
 }
 
 export default adapterFactory

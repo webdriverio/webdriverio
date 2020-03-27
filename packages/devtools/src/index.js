@@ -1,13 +1,32 @@
 import os from 'os'
+import path from 'path'
 import uuidv4 from 'uuid/v4'
 import logger from '@wdio/logger'
-import { webdriverMonad } from '@wdio/utils'
+import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
 import DevToolsDriver from './devtoolsdriver'
 import launch from './launcher'
-import { DEFAULTS } from './constants'
+import { DEFAULTS, SUPPORTED_BROWSER } from './constants'
 import { getPrototype } from './utils'
+
+const log = logger('devtools:puppeteer')
+
+/**
+ * log puppeteer messages
+ */
+const PREFIX = 'puppeteer:protocol'
+const puppeteerDebugPkg = path.resolve(
+    path.dirname(require.resolve('puppeteer-core')),
+    'node_modules',
+    'debug')
+/* istanbul ignore next */
+require(puppeteerDebugPkg).log = (msg) => {
+    if (msg.includes('puppeteer:protocol')) {
+        msg = msg.slice(msg.indexOf(PREFIX) + PREFIX.length).trim()
+    }
+    log.debug(msg)
+}
 
 export const sessionMap = new Map()
 
@@ -46,17 +65,10 @@ export default class DevTools {
         }
 
         sessionMap.set(sessionId, { browser, session: driver })
-        const environmentPrototype = {
-            isDevTools: { value: true },
-            isW3C: { value: true },
-            isMobile: { value: false },
-            isIOS: { value: false },
-            isAndroid: { value: false },
-            isChrome: { value: browserName === 'chrome' },
-            isSauce: { value: false },
-            isSeleniumStandalone: { value: false },
-            getPuppeteer: { value: /* istanbul ignore next */ () => browser }
-        }
+        const environmentPrototype = { getPuppeteer: { value: /* istanbul ignore next */ () => browser } }
+        Object.entries(devtoolsEnvironmentDetector({ browserName })).forEach(([name, value]) => {
+            environmentPrototype[name] = { value }
+        })
         const commandWrapper = (_, __, commandInfo) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
@@ -93,3 +105,5 @@ export default class DevTools {
         throw new Error('not yet implemented')
     }
 }
+
+export { SUPPORTED_BROWSER }

@@ -1,10 +1,5 @@
 import TestingBotService from '../src/service'
-import request from 'request'
-
-jest.mock('request', () => ({
-    put: jest.fn(),
-    get: jest.fn()
-}))
+import got from 'got'
 
 const uri = '/some/uri'
 const featureObject = {
@@ -27,6 +22,8 @@ const featureObject = {
             comments: []
         }
 }
+
+got.put.mockReturnValue(Promise.resolve({ body: '{}' }))
 
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
@@ -108,11 +105,11 @@ describe('wdio-testingbot-service', () => {
         tbService.beforeSuite({ title: 'Test suite' })
         tbService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
+        expect(execute).toBeCalledWith('tb:test-context=Test #1')
         expect(tbService.suiteTitle).toEqual('Test suite')
     })
 
-    it('beforeTest: execute called', () => {
+    it('beforeTest: execute called for Jasmine tests', () => {
         const tbService = new TestingBotService()
         const test = {
             name: 'Test name',
@@ -128,8 +125,26 @@ describe('wdio-testingbot-service', () => {
         tbService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' })
         tbService.beforeTest(test)
 
-        expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
+        expect(execute).toBeCalledWith('tb:test-context=Test #1')
         expect(tbService.suiteTitle).toEqual('Test ')
+    })
+
+    it('beforeTest: execute called for Mocha test', () => {
+        const tbService = new TestingBotService()
+        const test = {
+            name: 'Test name',
+            title: 'Test title',
+            parent: 'Test parent'
+        }
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
+
+        tbService.beforeSuite({})
+        tbService.beforeTest(test)
+
+        expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
     })
 
     it('afterTest: failed test', () => {
@@ -216,19 +231,19 @@ describe('wdio-testingbot-service', () => {
         expect(execute).toBeCalledWith('tb:test-context=Scenario: Scenario name')
     })
 
-    it('after: updatedJob not called', () => {
+    it('after: updatedJob not called', async () => {
         const tbService = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
         tbService.beforeSession({
             user: undefined,
             key: undefined
         }, {})
-        tbService.after()
+        await tbService.after()
 
         expect(updateJobSpy).not.toBeCalled()
     })
 
-    it('after: updatedJob called with passed params', () => {
+    it('after: updatedJob called with passed params', async () => {
         const tbService = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
 
@@ -241,12 +256,12 @@ describe('wdio-testingbot-service', () => {
         }, {})
 
         tbService.failures = 2
-        tbService.after()
+        await tbService.after()
 
         expect(updateJobSpy).toBeCalledWith('sessionId', 2)
     })
 
-    it('after: with multi-remote: updatedJob called with passed params', () => {
+    it('after: with multi-remote: updatedJob called with passed params', async () => {
         const tbService = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
         tbService.beforeSession({
@@ -257,14 +272,14 @@ describe('wdio-testingbot-service', () => {
         global.browser.isMultiremote = true
         global.browser.sessionId = 'sessionId'
         tbService.failures = 2
-        tbService.after()
+        await tbService.after()
 
         expect(updateJobSpy).toBeCalledWith('sessionChromeA', 2, false, 'chromeA')
         expect(updateJobSpy).toBeCalledWith('sessionChromeB', 2, false, 'chromeB')
         expect(updateJobSpy).toBeCalledWith('sessionChromeC', 2, false, 'chromeC')
     })
 
-    it('onReload: updatedJob not called', () => {
+    it('onReload: updatedJob not called', async () => {
         const tbService = new TestingBotService()
         const tbService2 = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService2, 'updateJob')
@@ -274,12 +289,12 @@ describe('wdio-testingbot-service', () => {
         }, {})
 
         global.browser.sessionId = 'sessionId'
-        tbService.onReload('oldSessionId', 'newSessionId')
+        await tbService.onReload('oldSessionId', 'newSessionId')
 
         expect(updateJobSpy).not.toBeCalled()
     })
 
-    it('onReload: updatedJob called with passed params', () => {
+    it('onReload: updatedJob called with passed params', async () => {
         const tbService = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
         tbService.beforeSession({
@@ -289,13 +304,13 @@ describe('wdio-testingbot-service', () => {
 
         global.browser.sessionId = 'sessionId'
         tbService.failures = 2
-        tbService.onReload('oldSessionId', 'newSessionId')
+        await tbService.onReload('oldSessionId', 'newSessionId')
 
         expect(updateJobSpy).toBeCalledWith('oldSessionId', 2, true)
-        expect(request.put).toHaveBeenCalled()
+        expect(got.put).toHaveBeenCalled()
     })
 
-    it('onReload with multi-remote: updatedJob called with passed params', () => {
+    it('onReload with multi-remote: updatedJob called with passed params', async () => {
         const tbService = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
         tbService.beforeSession({
@@ -306,10 +321,10 @@ describe('wdio-testingbot-service', () => {
         global.browser.isMultiremote = true
         global.browser.sessionId = 'sessionId'
         tbService.failures = 2
-        tbService.onReload('oldSessionId', 'sessionChromeA')
+        await tbService.onReload('oldSessionId', 'sessionChromeA')
 
         expect(updateJobSpy).toBeCalledWith('oldSessionId', 2, true, 'chromeA')
-        expect(request.put).toHaveBeenCalled()
+        expect(got.put).toHaveBeenCalled()
     })
 
     it('getRestUrl', () => {
@@ -372,36 +387,28 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('updateJob success', async () => {
-        request.put.mockImplementation((url, opts, cb) => {
-            cb(null, { statusCode: 200 }, {})
-        })
-
         const service = new TestingBotService()
         service.beforeSession({ user: 'foobar', key: '123' }, {})
         service.suiteTitle = 'my test'
 
         await service.updateJob('12345', 23, true)
 
-        expect(request.put).toHaveBeenCalled()
+        expect(got.put).toHaveBeenCalled()
         expect(service.failures).toBe(0)
     })
 
     it('updateJob failure', async () => {
-        request.put.mockImplementation((url, opts, cb) => {
-            cb(new Error('Failure'), { statusCode: 500 }, {})
-        })
+        const response = new Error('Failure')
+        response.statusCode = 500
+        got.put.mockReturnValue(Promise.reject(response))
 
         const service = new TestingBotService()
         service.beforeSession({ user: 'foobar', key: '123' }, {})
         service.suiteTitle = 'my test'
-        try {
-            await service.updateJob('12345', 23, true)
-            expect(true).toBe(false)
-        } catch (e) {
-            expect(e.message).toBe('Failure')
-        }
+        const err = await service.updateJob('12345', 23, true).catch((err) => err)
+        expect(err.message).toBe('Failure')
 
-        expect(request.put).toHaveBeenCalled()
+        expect(got.put).toHaveBeenCalled()
         expect(service.failures).toBe(0)
     })
 

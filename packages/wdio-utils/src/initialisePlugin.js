@@ -1,3 +1,4 @@
+import path from 'path'
 import { safeRequire } from './utils'
 
 /**
@@ -6,13 +7,13 @@ import { safeRequire } from './utils'
  * 2. otherwise try to require "@wdio/<name>-<type>"
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
-export default function initialisePlugin (name, type, target = 'default') {
+export default function initialisePlugin (name, type) {
     /**
-     * directly import packages that are scoped
+     * directly import packages that are scoped or start with an absolute path
      */
-    if (name[0] === '@') {
+    if (name[0] === '@' || path.isAbsolute(name)) {
         const service = safeRequire(name)
-        return service[target]
+        return service
     }
 
     /**
@@ -20,7 +21,7 @@ export default function initialisePlugin (name, type, target = 'default') {
      */
     const scopedPlugin = safeRequire(`@wdio/${name.toLowerCase()}-${type}`)
     if (scopedPlugin) {
-        return scopedPlugin[target]
+        return scopedPlugin
     }
 
     /**
@@ -28,7 +29,7 @@ export default function initialisePlugin (name, type, target = 'default') {
      */
     const plugin = safeRequire(`wdio-${name.toLowerCase()}-${type}`)
     if (plugin) {
-        return plugin[target]
+        return plugin
     }
 
     throw new Error(

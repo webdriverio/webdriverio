@@ -1,0 +1,467 @@
+{
+  "Sample feature2": {
+    "type": "feature",
+    "start": "2019-12-13T19:10:04.659Z",
+    "_duration": 15907,
+    "uid": "Sample feature2",
+    "cid": "0-1",
+    "title": "Sample feature",
+    "tags": [
+      { "type": "Tag", "location": { "line": 1, "column": 1 }, "name": "@run" }
+    ],
+    "tests": [],
+    "hooks": [],
+    "suites": [
+      {
+        "type": "scenario",
+        "start": "2019-12-13T19:10:18.800Z",
+        "_duration": 1755,
+        "uid": "Sample scenario4",
+        "cid": "0-1",
+        "title": "Sample scenario",
+        "fullTitle": "Sample feature2: Sample scenario",
+        "tags": [{ "name": "@run", "location": { "line": 1, "column": 1 } }],
+        "tests": [
+          {
+            "type": "test",
+            "start": "2019-12-13T19:10:20.016Z",
+            "_duration": 24,
+            "uid": "step has passed6",
+            "cid": "0-1",
+            "title": "Given step has passed",
+            "fullTitle": "Sample feature: Sample scenario: Given step has passed",
+            "output": [],
+            "state": "passed",
+            "end": "2019-12-13T19:10:20.040Z"
+          },
+          {
+            "type": "test",
+            "start": "2019-12-13T19:10:20.066Z",
+            "_duration": 55,
+            "uid": "step has passed7",
+            "cid": "0-1",
+            "title": "When step has passed",
+            "fullTitle": "Sample feature: Sample scenario: When step has passed",
+            "output": [],
+            "state": "passed",
+            "end": "2019-12-13T19:10:20.121Z"
+          },
+          {
+            "type": "test",
+            "start": "2019-12-13T19:10:20.139Z",
+            "_duration": 38,
+            "uid": "step has failed8",
+            "cid": "0-1",
+            "title": "Then step has failed",
+            "fullTitle": "Sample feature: Sample scenario: Then step has failed",
+            "output": [],
+            "state": "failed",
+            "end": "2019-12-13T19:10:20.177Z",
+            "errors": [
+              {
+                "name": "AssertionError",
+                "message": "expected true to equal false",
+                "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+              }
+            ],
+            "error": {
+              "name": "AssertionError",
+              "message": "expected true to equal false",
+              "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+            }
+          }
+        ],
+        "hooks": [
+          {
+            "type": "hook",
+            "start": "2019-12-13T19:10:18.873Z",
+            "_duration": 6,
+            "uid": "index.js160",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T19:10:18.879Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T19:10:18.897Z",
+            "_duration": 1082,
+            "uid": "hooks.js7",
+            "cid": "0-1",
+            "title": "Hook step has passed",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T19:10:19.979Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T19:10:20.194Z",
+            "_duration": 1,
+            "uid": "jwdplayer.js6",
+            "cid": "0-1",
+            "title": "Hook step has passed",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T19:10:20.195Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T19:10:20.221Z",
+            "_duration": 312,
+            "uid": "hooks.js55",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T19:10:20.533Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T19:10:20.546Z",
+            "_duration": 8,
+            "uid": "index.js170",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T19:10:20.554Z"
+          }
+        ],
+        "suites": [],
+        "hooksAndTests": [
+          {
+            "type": "hook",
+            "start": "2019-12-13T19:10:18.873Z",
+            "_duration": 6,
+            "uid": "index.js160",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T19:10:18.879Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T19:10:18.897Z",
+            "_duration": 1082,
+            "uid": "hooks.js7",
+            "cid": "0-1",
+            "title": "Hook step has passed",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T19:10:19.979Z"
+          },
+          {
+            "type": "test",
+            "start": "2019-12-13T19:10:20.016Z",
+            "_duration": 24,
+            "uid": "step has passed6",
+            "cid": "0-1",
+            "title": "Given step has passed",
+            "fullTitle": "Sample feature: Sample scenario: Given step has passed",
+            "output": [],
+            "state": "passed",
+            "end": "2019-12-13T19:10:20.040Z"
+          },
+          {
+            "type": "test",
+            "start": "2019-12-13T19:10:20.066Z",
+            "_duration": 55,
+            "uid": "step has passed7",
+            "cid": "0-1",
+            "title": "When step has passed",
+            "fullTitle": "Sample feature: Sample scenario: When step has passed",
+            "output": [],
+            "state": "passed",
+            "end": "2019-12-13T19:10:20.121Z"
+          },
+          {
+            "type": "test",
+            "start": "2019-12-13T19:10:20.139Z",
+            "_duration": 38,
+            "uid": "step has failed8",
+            "cid": "0-1",
+            "title": "Then step has failed",
+            "fullTitle": "Sample feature: Sample scenario: Then step has failed",
+            "output": [],
+            "state": "failed",
+            "end": "2019-12-13T19:10:20.177Z",
+            "errors": [
+              {
+                "name": "AssertionError",
+                "message": "expected true to equal false",
+                "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+              }
+            ],
+            "error": {
+              "name": "AssertionError",
+              "message": "expected true to equal false",
+              "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+            }
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T19:10:20.194Z",
+            "_duration": 1,
+            "uid": "jwdplayer.js6",
+            "cid": "0-1",
+            "title": "Hook step has passed",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T19:10:20.195Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T19:10:20.221Z",
+            "_duration": 312,
+            "uid": "hooks.js55",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T19:10:20.533Z"
+          },
+          {
+            "type": "hook",
+            "start": "2019-12-13T19:10:20.546Z",
+            "_duration": 8,
+            "uid": "index.js170",
+            "cid": "0-1",
+            "title": "Hook",
+            "parent": "Sample feature: Sample scenario",
+            "errors": [],
+            "end": "2019-12-13T19:10:20.554Z"
+          }
+        ],
+        "end": "2019-12-13T19:10:20.555Z"
+      }
+    ],
+    "hooksAndTests": [],
+    "end": "2019-12-13T19:10:20.566Z"
+  },
+  "Sample scenario4": {
+    "type": "scenario",
+    "start": "2019-12-13T19:10:18.800Z",
+    "_duration": 1755,
+    "uid": "Sample scenario4",
+    "cid": "0-1",
+    "title": "Sample scenario",
+    "fullTitle": "Sample feature2: Sample scenario",
+    "tags": [{ "name": "@run", "location": { "line": 1, "column": 1 } }],
+    "tests": [
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:20.016Z",
+        "_duration": 24,
+        "uid": "step has passed6",
+        "cid": "0-1",
+        "title": "Given step has passed",
+        "fullTitle": "Sample feature: Sample scenario: Given step has passed",
+        "output": [],
+        "state": "passed",
+        "end": "2019-12-13T19:10:20.040Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:20.066Z",
+        "_duration": 55,
+        "uid": "step has passed7",
+        "cid": "0-1",
+        "title": "When step has passed",
+        "fullTitle": "Sample feature: Sample scenario: When step has passed",
+        "output": [],
+        "state": "passed",
+        "end": "2019-12-13T19:10:20.121Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:20.139Z",
+        "_duration": 38,
+        "uid": "step has failed8",
+        "cid": "0-1",
+        "title": "Then step has failed",
+        "fullTitle": "Sample feature: Sample scenario: Then step has failed",
+        "output": [],
+        "state": "failed",
+        "end": "2019-12-13T19:10:20.177Z",
+        "errors": [
+          {
+            "name": "AssertionError",
+            "message": "expected true to equal false",
+            "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+          }
+        ],
+        "error": {
+          "name": "AssertionError",
+          "message": "expected true to equal false",
+          "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+        }
+      }
+    ],
+    "hooks": [
+      {
+        "type": "hook",
+        "start": "2019-12-13T19:10:18.873Z",
+        "_duration": 6,
+        "uid": "index.js160",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T19:10:18.879Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T19:10:18.897Z",
+        "_duration": 1082,
+        "uid": "hooks.js7",
+        "cid": "0-1",
+        "title": "Hook step has passed",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T19:10:19.979Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T19:10:20.194Z",
+        "_duration": 1,
+        "uid": "jwdplayer.js6",
+        "cid": "0-1",
+        "title": "Hook step has passed",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T19:10:20.195Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T19:10:20.221Z",
+        "_duration": 312,
+        "uid": "hooks.js55",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T19:10:20.533Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T19:10:20.546Z",
+        "_duration": 8,
+        "uid": "index.js170",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T19:10:20.554Z"
+      }
+    ],
+    "suites": [],
+    "hooksAndTests": [
+      {
+        "type": "hook",
+        "start": "2019-12-13T19:10:18.873Z",
+        "_duration": 6,
+        "uid": "index.js160",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Samp[0-1] le scenario",
+        "errors": [],
+        "end": "2019-12-13T19:10:18.879Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T19:10:18.897Z",
+        "_duration": 1082,
+        "uid": "hooks.js7",
+        "cid": "0-1",
+        "title": "Hook step has passed",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T19:10:19.979Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:20.016Z",
+        "_duration": 24,
+        "uid": "step has passed6",
+        "cid": "0-1",
+        "title": "Given step has passed",
+        "fullTitle": "Sample feature: Sample scenario: Given step has passed",
+        "output": [],
+        "state": "passed",
+        "end": "2019-12-13T19:10:20.040Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:20.066Z",
+        "_duration": 55,
+        "uid": "step has passed7",
+        "cid": "0-1",
+        "title": "When step has passed",
+        "fullTitle": "Sample feature: Sample scenario: When step has passed",
+        "output": [],
+        "state": "passed",
+        "end": "2019-12-13T19:10:20.121Z"
+      },
+      {
+        "type": "test",
+        "start": "2019-12-13T19:10:20.139Z",
+        "_duration": 38,
+        "uid": "step has failed8",
+        "cid": "0-1",
+        "title": "Then step has failed",
+        "fullTitle": "Sample feature: Sample scenario: Then step has failed",
+        "output": [],
+        "state": "failed",
+        "end": "2019-12-13T19:10:20.177Z",
+        "errors": [
+          {
+            "name": "AssertionError",
+            "message": "expected true to equal false",
+            "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+          }
+        ],
+        "error": {
+          "name": "AssertionError",
+          "message": "expected true to equal false",
+          "stack": "AssertionError: expected true to equal false\n    at World.<anonymous> (./step_definitions/steps.js:642:21)"
+        }
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T19:10:20.194Z",
+        "_duration": 1,
+        "uid": "jwdplayer.js6",
+        "cid": "0-1",
+        "title": "Hook step has passed",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T19:10:20.195Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T19:10:20.221Z",
+        "_duration": 312,
+        "uid": "hooks.js55",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T19:10:20.533Z"
+      },
+      {
+        "type": "hook",
+        "start": "2019-12-13T19:10:20.546Z",
+        "_duration": 8,
+        "uid": "index.js170",
+        "cid": "0-1",
+        "title": "Hook",
+        "parent": "Sample feature: Sample scenario",
+        "errors": [],
+        "end": "2019-12-13T19:10:20.554Z"
+      }
+    ],
+    "end": "2019-12-13T19:10:20.555Z"
+  }
+}

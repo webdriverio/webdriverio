@@ -7,11 +7,11 @@ jest.mock('../src/launcher', () => {
     const { ConfigParser } = require('@wdio/config')
 
     class LauncherMock {
-        constructor (configFile, argv) {
+        constructor (configFile, args) {
             this.configParser = new ConfigParser()
             this.configParser.addConfigFile(configFile)
-            this.configParser.merge(argv)
-            this.isMultiremote = argv.isMultiremote
+            this.configParser.merge(args)
+            this.isMultiremote = args.isMultiremote
             this.runner = {}
             this.interface = {
                 emit: jest.fn(),

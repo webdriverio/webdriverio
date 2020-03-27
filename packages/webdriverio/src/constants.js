@@ -33,11 +33,10 @@ export const WDIO_DEFAULTS = {
      * allows to specify automation protocol
      */
     automationProtocol: {
-        default: 'webdriver',
         type: (param) => {
             if (typeof param !== 'string') {
                 throw new Error('the "automationProtocol" option needs to from type strings')
-            } else if (!['webdriver', 'devtools'].includes(param.toLowerCase())) {
+            } else if (!['webdriver', 'devtools', './protocol-stub'].includes(param.toLowerCase())) {
                 throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
             }
 
@@ -275,6 +274,7 @@ export const WDIO_DEFAULTS = {
      * hooks
      */
     onPrepare: HOOK_DEFINITION,
+    onWorkerStart: HOOK_DEFINITION,
     before: HOOK_DEFINITION,
     beforeSession: HOOK_DEFINITION,
     beforeSuite: HOOK_DEFINITION,
@@ -421,3 +421,9 @@ export const APPIUM_CAPABILITES = [
     ...APPIUM_ANDROID_CAPABILITIES,
     ...APPIUM_IOS_CAPABILITIES
 ]
+export const DRIVER_DEFAULT_ENDPOINT = {
+    method: 'GET',
+    host: 'localhost',
+    port: 4444,
+    path: '/status'
+}

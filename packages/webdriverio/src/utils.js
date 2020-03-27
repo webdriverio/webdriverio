@@ -1,4 +1,5 @@
 import fs from 'fs'
+import http from 'http'
 import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
@@ -6,8 +7,9 @@ import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
 import { URL } from 'url'
+import { SUPPORTED_BROWSER } from 'devtools'
 
-import { ELEMENT_KEY, UNICODE_CHARACTERS } from './constants'
+import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT } from './constants'
 import { findStrategy } from './utils/findStrategy'
 
 const browserCommands = require('./commands/browser')
@@ -37,6 +39,8 @@ export const getPrototype = (scope) => {
      * register action commands
      */
     applyScopePrototype(prototype, scope)
+    prototype.strategies = { value: new Map() }
+
     return prototype
 }
 
@@ -179,9 +183,9 @@ export function parseCSS (cssPropertyValue, cssProperty) {
  * @param  {String} value  text
  * @return {Array}         set of characters or unicode symbols
  */
-export function checkUnicode (value) {
+export function checkUnicode (value, isDevTools) {
     return Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)
-        ? [UNICODE_CHARACTERS[value]]
+        ? isDevTools ? [value] : [UNICODE_CHARACTERS[value]]
         : new GraphemeSplitter().splitGraphemes(value)
 }
 
@@ -378,4 +382,79 @@ export async function hasElementId (element) {
         return false
     }
     return true
+}
+
+export function addLocatorStrategyHandler(scope) {
+    return (name, script) => {
+        if (scope.strategies.get(name)) {
+            throw new Error(`Strategy ${name} already exists`)
+        }
+
+        scope.strategies.set(name, script)
+    }
+}
+
+/**
+ * Enhance elements array with data required to refetch it
+ * @param   {object[]}          elements    elements
+ * @param   {object}            parent      element or browser
+ * @param   {string|Function}   selector    string or function, or strategy name for `custom$$`
+ * @param   {string}            foundWith   name of the command elements were found with, ex `$$`, `react$$`, etc
+ * @param   {Array}             props       additional properties required to fetch elements again
+ * @returns {object[]}  elements
+ */
+export const enhanceElementsArray = (elements, parent, selector, foundWith = '$$', props = []) => {
+    elements.parent = parent
+    elements.selector = selector
+    elements.foundWith = foundWith
+    elements.props = props
+    return elements
+}
+
+/**
+ * is protocol stub
+ * @param {string} automationProtocol
+ */
+export const isStub = (automationProtocol) => automationProtocol === './protocol-stub'
+
+export const getAutomationProtocol = async (config) => {
+    /**
+     * if automation protocol is set by user prefer this
+     */
+    if (config.automationProtocol) {
+        return config.automationProtocol
+    }
+
+    /**
+     * run WebDriver if hostname or port is set
+     */
+    if (config.hostname || config.port || config.path || (config.user && config.key)) {
+        return 'webdriver'
+    }
+
+    /**
+     * only run DevTools protocol if capabilities match supported platforms
+     */
+    if (
+        config.capabilities &&
+        typeof config.capabilities.browserName === 'string' &&
+        !SUPPORTED_BROWSER.includes(config.capabilities.browserName.toLowerCase())
+    ) {
+        return 'webdriver'
+    }
+
+    /**
+     * make a head request to check if a driver is available
+     */
+    const driverEndpointHeaders = await new Promise((resolve) => {
+        const req = http.request(DRIVER_DEFAULT_ENDPOINT, resolve)
+        req.on('error', (error) => resolve({ error }))
+        req.end()
+    })
+
+    if (driverEndpointHeaders && parseInt(driverEndpointHeaders.statusCode, 10) === 200) {
+        return 'webdriver'
+    }
+
+    return 'devtools'
 }

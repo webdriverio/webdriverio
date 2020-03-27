@@ -1,12 +1,12 @@
-import request from 'request'
+import got from 'got'
 import { remote } from '../../../src'
 
 describe('waitForExists', () => {
-    const duration = 1000
+    const timeout = 1000
     let browser
 
     beforeEach(async () => {
-        request.mockClear()
+        got.mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -16,56 +16,31 @@ describe('waitForExists', () => {
         })
     })
 
-    test('should wait for the element to exist', async () => {
+    test('should use default waitFor options', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
-            selector: 'foobar',
-            waitForExist : tmpElem.waitForExist,
-            isExisting: jest.fn().mockReturnValueOnce(Promise.resolve(true)),
-            elementId : null,
-            waitUntil : jest.fn().mockImplementation(
-                (condition) => condition.call(elem)),
-            isElementDisplayed : jest.fn(() => Promise.resolve())
-        }
-
-        await elem.waitForExist(duration)
-        expect(elem.isExisting).toBeCalled()
-        expect(elem.waitUntil.mock.calls[0][1]).toBe(1000)
-        expect(elem.waitUntil.mock.calls[0][2]).toBe('element ("foobar") still not existing after 1000ms')
-    })
-
-    test('should use default waitFor duration', async () => {
-        const tmpElem = await browser.$('#foo')
-        const elem = {
-            options: { waitforTimeout: 1234 },
-            waitForExist : tmpElem.waitForExist,
-            isExisting: jest.fn().mockReturnValueOnce(Promise.resolve(true)),
-            elementId : null,
-            waitUntil : jest.fn().mockImplementation(
-                (condition) => condition.call(elem)),
-            isElementDisplayed : jest.fn(() => Promise.resolve())
+            waitForExist: tmpElem.waitForExist,
+            waitUntil: jest.fn(),
+            options: { waitforInterval: 5, waitforTimeout: timeout }
         }
 
         await elem.waitForExist()
-        expect(elem.isExisting).toBeCalled()
-        expect(elem.waitUntil.mock.calls[0][1]).toBe(1234)
+        expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
     test('should allow to set custom error', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
-            selector: 'barfoo',
-            options: { waitforTimeout: 1234 },
-            waitForExist : tmpElem.waitForExist,
-            isExisting: jest.fn().mockReturnValueOnce(Promise.resolve(true)),
-            elementId : null,
-            waitUntil : jest.fn().mockImplementation(
-                (condition) => condition.call(elem)),
-            isElementDisplayed : jest.fn(() => Promise.resolve())
+            waitForExist: tmpElem.waitForExist,
+            waitUntil: jest.fn(),
+            options: { waitforInterval: 5, waitforTimeout: timeout }
         }
 
-        await elem.waitForExist(duration, true, 'my custom error')
-        expect(elem.isExisting).toBeCalled()
-        expect(elem.waitUntil.mock.calls[0][2]).toBe('my custom error')
+        await elem.waitForExist({
+            timeout,
+            reverse: true,
+            timeoutMsg: 'my custom error'
+        })
+        expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 })

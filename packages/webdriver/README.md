@@ -84,19 +84,19 @@ Type: `Number`<br>
 Default: *4444*
 
 ### path
-Path to WebDriver server.
+Path to WebDriver endpoint or grid server.
 
 Type: `String`<br>
-Default: */wd/hub*
+Default: */*
 
-### baseUrl
-Shorten `url` command calls by setting a base url.
+### queryParams
+Query paramaters that are propagated to the driver server.
 
-Type: `String`<br>
-Default: *null*
+Type: `Object`
+Default: `null`
 
 ### connectionRetryTimeout
-Timeout for any request to the Selenium server.
+Timeout for any WebDriver request to a driver or grid.
 
 Type: `Number`<br>
 Default: *90000*
@@ -106,3 +106,15 @@ Count of request retries to the Selenium server.
 
 Type: `Number`<br>
 Default: *2*
+
+### transformRequest
+Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made
+
+Type: `(RequestOptions) => RequestOptions`<br>
+Default: *none*
+
+### transformResponse
+Function intercepting HTTP response objects after a WebDriver response has arrived
+
+Type: `(Response, RequestOptions) => Response`<br>
+Default: *none*

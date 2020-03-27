@@ -25,8 +25,18 @@ export const DEFAULTS = {
      * path to WebDriver endpoints
      */
     path: {
-        type: 'string',
-        default: '/wd/hub'
+        type: (path) => {
+            if (typeof path !== 'string') {
+                throw new TypeError('The option "path" needs to be from type "string"')
+            }
+
+            if (!path.startsWith('/')) {
+                throw new TypeError('The option "path" needs to start with a "/"')
+            }
+
+            return true
+        },
+        default: '/'
     },
     /**
      * A key-value store of query parameters to be added to every selenium request
@@ -50,7 +60,7 @@ export const DEFAULTS = {
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
-     * Timeout for any request to the Selenium server
+     * Timeout for any WebDriver request to a driver or grid
      */
     connectionRetryTimeout: {
         type: 'number',
@@ -93,5 +103,13 @@ export const DEFAULTS = {
     enableDirectConnect: {
         type: 'boolean',
         default: false
-    }
+    },
+    /**
+     * Function transforming the request options before the request is made
+     */
+    transformRequest: requestOptions => requestOptions,
+    /**
+     * Function transforming the response object after it is received
+     */
+    transformResponse: response => response,
 }

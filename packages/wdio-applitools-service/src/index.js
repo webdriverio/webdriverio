@@ -9,30 +9,37 @@ const DEFAULT_VIEWPORT = {
 }
 
 export default class ApplitoolsService {
-    constructor () {
+    constructor (options) {
+        this.options = options
         this.eyes = new Eyes()
     }
 
     /**
      * set API key in onPrepare hook and start test
      */
-    beforeSession (config) {
-        const key = config.applitoolsKey || process.env.APPLITOOLS_KEY
-        const serverUrl = config.applitoolsServerUrl || process.env.APPLITOOLS_SERVER_URL
-        const applitoolsConfig = config.applitools || {}
+    beforeSession () {
+        const key = this.options.key || process.env.APPLITOOLS_KEY
+        const serverUrl = this.options.serverUrl || process.env.APPLITOOLS_SERVER_URL
 
         if (!key) {
-            throw new Error('Couldn\'t find an Applitools "applitoolsKey" in config nor "APPLITOOLS_KEY" in the environment')
+            throw new Error('Couldn\'t find an Applitools "applitools.key" in config nor "APPLITOOLS_KEY" in the environment')
         }
 
-        // Optionally set a specific server url
+        /**
+         * Optionally set a specific server url
+         */
         if (serverUrl) {
             this.eyes.setServerUrl(serverUrl)
         }
 
         this.isConfigured = true
         this.eyes.setApiKey(key)
-        this.viewport = Object.assign(DEFAULT_VIEWPORT, applitoolsConfig.viewport)
+
+        if (this.options.proxy) {
+            this.eyes.setProxy(this.options.proxy)
+        }
+
+        this.viewport = Object.assign({ ...DEFAULT_VIEWPORT }, this.options.viewport)
     }
 
     /**
@@ -51,14 +58,17 @@ export default class ApplitoolsService {
             return this.eyes.check(title, Target.window())
         })
 
-        global.browser.addCommand('takeRegionSnapshot', (title, region) => {
+        global.browser.addCommand('takeRegionSnapshot', (title, region, frame) => {
             if (!title) {
                 throw new Error('A title for the Applitools snapshot is missing')
             }
             if (!region || region === null) {
                 throw new Error('A region for the Applitools snapshot is missing')
             }
-            return this.eyes.check(title, Target.region(region))
+            if (!frame) {
+                return this.eyes.check(title, Target.region(region))
+            }
+            return this.eyes.check(title, Target.region(region, frame))
         })
     }
 

@@ -23,3 +23,91 @@ Map {
   "script" => 30000,
 }
 `;
+
+exports[`should rerun command if it was executed within navigation 1`] = `
+Array [
+  Array [
+    "command",
+    Object {
+      "command": "elementClick",
+      "params": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "retries": 0,
+    },
+  ],
+  Array [
+    "command",
+    Object {
+      "command": "elementClick",
+      "params": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "retries": 1,
+    },
+  ],
+  Array [
+    "result",
+    Object {
+      "command": "elementClick",
+      "params": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "result": null,
+      "retries": 1,
+    },
+  ],
+]
+`;
+
+exports[`should return proper result 1`] = `
+Array [
+  Array [
+    "command",
+    Object {
+      "command": "elementClick",
+      "params": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "retries": 0,
+    },
+  ],
+  Array [
+    "result",
+    Object {
+      "command": "elementClick",
+      "params": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "result": Object {
+        "elementId": "123",
+        "text": "some text",
+        "value": Array [
+          "some value",
+        ],
+      },
+      "retries": 0,
+    },
+  ],
+]
+`;

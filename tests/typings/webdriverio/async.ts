@@ -1,7 +1,7 @@
 import allure from '@wdio/allure-reporter'
 import { remote, multiremote } from 'webdriverio'
 
-// An example of adding command withing ts file to WebdriverIOAsync
+// An example of adding command withing ts file to WebdriverIO (async)
 declare module "webdriverio" {
     interface Browser {
         browserCustomCommand: (arg: unknown) => Promise<void>
@@ -38,8 +38,37 @@ async function bar() {
 
     // browser
     await browser.pause(1)
-    const waitUntil: boolean = await browser.waitUntil(() => Promise.resolve(true), 1, '', 1)
+    await browser.newWindow('https://webdriver.io', {
+        windowName: 'some name',
+        windowFeatures: 'some features'
+    })
+    const waitUntil: boolean = await browser.waitUntil(
+        () => Promise.resolve(true),
+        {
+            timeout: 1,
+            timeoutMsg: '',
+            interval: 1
+        }
+    )
     await browser.getCookies()
+    await browser.getCookies('foobar')
+    await browser.getCookies(['foobar'])
+    await browser.setCookies({
+        name: '',
+        value: ''
+    })
+    await browser.setCookies([{
+        name: '',
+        value: '',
+        domain: '',
+        path: '',
+        expiry: 1,
+        sameSite: 'Lax',
+        secure: true,
+        httpOnly: true
+    }])
+    await browser.deleteCookies('foobar')
+    await browser.deleteCookies(['foobar'])
 
     const executeResult = await browser.execute(function (x: number) {
         return x
@@ -79,6 +108,31 @@ async function bar() {
     const el3 = await el2.$('')
     await el1.getCSSProperty('style')
     await el2.click()
+    await el1.moveTo({ xOffset: 0, yOffset: 0 })
+    const elementExists: boolean = await el2.waitForExist({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
+    const elementDisplayed: boolean = await el2.waitForDisplayed({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
+    const elementEnabled: boolean = await el2.waitForEnabled({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
+    const elementClickable: boolean = await el2.waitForClickable({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
     // element custom command
     const el2result = await el3.elementCustomCommand(4)
     el2result.toFixed(2)
@@ -90,6 +144,9 @@ async function bar() {
     await el4.getAttribute('class')
     await el5.scrollIntoView(false)
 
+    const selector$$: string | Function = elems.selector
+    const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
+
     // shadow$ shadow$$
     const el6 = await $('')
     const shadowElem = await el6.shadow$('')
@@ -99,14 +156,26 @@ async function bar() {
 
     // react$ react$$
     const reactWrapper = await browser.react$('')
+    const reactWrapperWithOptions = await browser.react$('', {
+        props: {},
+        state: true
+    })
     const reactElement = await reactWrapper.react$('')
+    const reactElementWithOptions = await reactWrapper.react$('', {
+        props: {},
+        state: true
+    })
     await reactElement.click()
     const reactElements = await reactWrapper.react$$('')
+    const reactElementsWithOptions = await reactWrapper.react$$('', {
+        props: {},
+        state: true
+    })
     await reactElements[0].click()
 
     // touchAction
     const ele = await $('')
-    const touchAction: WebdriverIOAsync.TouchAction = {
+    const touchAction: WebdriverIO.TouchAction = {
         action: "longPress",
         element: await $(''),
         ms: 0,
@@ -115,15 +184,12 @@ async function bar() {
     }
     await ele.touchAction(touchAction)
     await browser.touchAction(touchAction)
-    
-    // dragAndDrop
-    await ele.dragAndDrop(ele, 0)
-}
 
-// selenium-standalone-service
-const config: WebdriverIOAsync.Config = {
-    skipSeleniumInstall: true,
-    seleniumLogs: ''
+    // dragAndDrop
+    await ele.dragAndDrop(ele, { duration: 0 })
+
+    // addLocatorStrategy
+    browser.addLocatorStrategy('myStrat', () => {})
 }
 
 // allure-reporter

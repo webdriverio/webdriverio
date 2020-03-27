@@ -13,7 +13,7 @@ describe('reporter reporter api', () => {
     it('should pass correct data from addLabel', () => {
         reporter.addLabel('customLabel', 'Label')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
-        expect(utils.tellReporter).toHaveBeenCalledWith(events.addLabel, 'customLabel', 'Label')
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addLabel, { name: 'customLabel', value: 'Label' })
     })
 
     it('should pass correct data from addStory', () => {

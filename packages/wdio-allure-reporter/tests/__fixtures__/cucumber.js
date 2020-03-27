@@ -6,6 +6,11 @@ const suite = (type = 'feature') => ({
     cid: '0-0',
     title: type === 'feature' ? 'MyFeature': 'MyScenario',
     fullTitle: type === 'feature' ? undefined: 'MyFeature1: My Scenario',
+    tags: [{
+        type: 'Tag',
+        location: { line: 5, column: 3 },
+        name: '@severity=critical'
+    }],
     tests: [],
     hooks: [],
     suites: []

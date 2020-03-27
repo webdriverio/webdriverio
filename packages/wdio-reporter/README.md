@@ -20,7 +20,7 @@ Then you need to extend your reporter with the main `@wdio/reporter` class:
 ```js
 import Reporter from '@wdio/reporter'
 
-export default MyCustomeReporter extends Reporter {
+export default MyCustomReporter extends Reporter {
     constructor () {
         super()
         // your custom logic if necessary

@@ -2,7 +2,7 @@ const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
 
-export const DEFAULT_CONFIGS = {
+export const DEFAULT_CONFIGS = () => ({
     specs: [],
     suites: {},
     exclude: [],
@@ -10,12 +10,12 @@ export const DEFAULT_CONFIGS = {
     logLevel: 'info',
     logLevels: {},
     excludeDriverLogs: [],
-    baseUrl: undefined,
     bail: 0,
     waitforInterval: 500,
     waitforTimeout: 5000,
     framework: 'mocha',
     reporters: [],
+    services: [],
     maxInstances: 100,
     maxInstancesPerCapability: 100,
     filesToWatch: [],
@@ -42,6 +42,7 @@ export const DEFAULT_CONFIGS = {
      * hooks
      */
     onPrepare: [],
+    onWorkerStart: [],
     before: [],
     beforeSession: [],
     beforeSuite: [],
@@ -66,18 +67,15 @@ export const DEFAULT_CONFIGS = {
     afterStep: [],
     afterScenario: [],
     afterFeature: [],
-}
+})
 
 export const SUPPORTED_HOOKS = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
-    'onReload', 'onPrepare', 'onComplete'
+    'onReload', 'onPrepare', 'onWorkerStart', 'onComplete'
 ]
 
-/**
- * these services should not be started in worker process
- */
-export const NON_WORKER_SERVICES = [
-    'chromedriver', 'selenium-standalone', 'appium', 'reportportal', 'firefox-profile'
+export const SUPPORTED_FILE_EXTENSIONS = [
+    '.js', '.mjs', '.es6', '.ts', '.feature', '.coffee', '.cjs'
 ]

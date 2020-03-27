@@ -17,18 +17,23 @@
 
     :waitUntil.js
     it('should wait until text has changed', () => {
-        browser.waitUntil(() => {
-          return $('#someText').getText() === 'I am now different'
-        }, 5000, 'expected text to be different after 5s');
+        browser.waitUntil(
+            () => $('#someText').getText() === 'I am now different',
+            {
+                timeout: 5000,
+                timeoutMsg: 'expected text to be different after 5s'
+            }
+        );
     });
  * </example>
  *
  *
  * @alias browser.waitUntil
- * @param {Function} condition  condition to wait on
- * @param {Number=}  timeout    timeout in ms (default: 5000)
- * @param {String=}  timeoutMsg error message to throw when waitUntil times out
- * @param {Number=}  interval   interval between condition checks (default: 500)
+ * @param {Function#Boolean}  condition  condition to wait on
+ * @param {WaitUntilOptions=} options    command options
+ * @param {Number=}           options.timeout     timeout in ms (default: 5000)
+ * @param {String=}           options.timeoutMsg  error message to throw when waitUntil times out
+ * @param {Number=}           options.interval    interval between condition checks (default: 500)
  * @return {Boolean} true if condition is fulfilled
  * @uses utility/pause
  * @type utility
@@ -37,7 +42,14 @@
 
 import Timer from '../../utils/Timer'
 
-export default function (condition, timeout, timeoutMsg, interval) {
+export default function (
+    condition,
+    {
+        timeout = this.options.waitforTimeout,
+        interval = this.options.waitforInterval,
+        timeoutMsg
+    } = {}
+) {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
     }

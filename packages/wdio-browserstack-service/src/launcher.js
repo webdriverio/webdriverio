@@ -1,19 +1,27 @@
+import { promisify } from 'util'
+import { performance, PerformanceObserver } from 'perf_hooks'
+
 import BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackLauncherService {
-    onPrepare(config, capabilities) {
-        if (!config.browserstackLocal) {
+    constructor (options, capabilities, config) {
+        this.options = options
+        this.config = config
+    }
+
+    onPrepare (config, capabilities) {
+        if (!this.options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
 
         const opts = {
-            key: config.key,
+            key: this.config.key,
             forcelocal: true,
             onlyAutomate: true,
-            ...config.browserstackOpts
+            ...this.options.opts
         }
 
         this.browserstackLocal = new BrowserstackLocalLauncher.Local()
@@ -28,16 +36,19 @@ export default class BrowserstackLauncherService {
             throw TypeError('Capabilities should be an object or Array!')
         }
 
+        /**
+         * measure TestingBot tunnel boot time
+         */
+        const obs = new PerformanceObserver((list) => {
+            const entry = list.getEntries()[0]
+            log.info(`Browserstack Local successfully started after ${entry.duration}ms`)
+        })
+        obs.observe({ entryTypes: ['measure'], buffered: false })
+
         let timer
+        performance.mark('tbTunnelStart')
         return Promise.race([
-            new Promise((resolve, reject) => {
-                this.browserstackLocal.start(opts, err => {
-                    if (err) {
-                        return reject(err)
-                    }
-                    resolve()
-                })
-            }),
+            promisify(this.browserstackLocal.start)(opts),
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
                 timer = setTimeout(function () {
@@ -46,6 +57,8 @@ export default class BrowserstackLauncherService {
             })]
         ).then(function (result) {
             clearTimeout(timer)
+            performance.mark('tbTunnelEnd')
+            performance.measure('bootTime', 'tbTunnelStart', 'tbTunnelEnd')
             return Promise.resolve(result)
         }, function (err) {
             clearTimeout(timer)
@@ -53,19 +66,19 @@ export default class BrowserstackLauncherService {
         })
     }
 
-    onComplete(exitCode, config) {
+    onComplete () {
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
 
-        if (config.browserstackLocalForcedStop) {
+        if (this.options.forcedStop) {
             return process.kill(this.browserstackLocal.pid)
         }
 
         let timer
         return Promise.race([
             new Promise((resolve, reject) => {
-                this.browserstackLocal.stop(err => {
+                this.browserstackLocal.stop((err) => {
                     if (err) {
                         return reject(err)
                     }
@@ -74,9 +87,10 @@ export default class BrowserstackLauncherService {
             }),
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
-                timer = setTimeout(function () {
-                    reject('Browserstack Local failed to stop within 60 seconds!')
-                }, 60000)
+                timer = setTimeout(
+                    () => reject(new Error('Browserstack Local failed to stop within 60 seconds!')),
+                    60000
+                )
             })]
         ).then(function (result) {
             clearTimeout(timer)

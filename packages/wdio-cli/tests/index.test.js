@@ -2,6 +2,7 @@ import yargs from 'yargs'
 
 import { run } from './../src/index'
 import { handler } from './../src/commands/run'
+import { join, resolve } from 'path'
 
 jest.mock('./../src/commands/run', () => ({
     ...jest.requireActual('./../src/commands/run'),
@@ -24,12 +25,12 @@ describe('index', () => {
 
         expect(handler).toHaveBeenCalledWith({
             _: ['wdio.conf.js'],
-            configPath: `${process.cwd()}/wdio.conf.js`
+            configPath: join(`${process.cwd()}`, 'wdio.conf.js')
         })
     })
 
     it('should work properly with absolute paths', async () => {
-        const expectedPath = '/some/absolute/path/here/wdio.conf.js'
+        const expectedPath = resolve('/some/absolute/path/here/wdio.conf.js')
         yargs.argv._[0] = expectedPath
 
         await run({ spec: './foobar.js' }).catch()

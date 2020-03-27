@@ -39,9 +39,10 @@ class MochaAdapter {
         this.hookCnt = new Map()
         this.testCnt = new Map()
         this.suiteIds = ['0']
+        this._hasTests = true
     }
 
-    async run () {
+    async init () {
         const { mochaOpts } = this.config
         const mocha = this.mocha = new Mocha(mochaOpts)
         mocha.loadFiles()
@@ -50,9 +51,42 @@ class MochaAdapter {
 
         this.specs.forEach((spec) => mocha.addFile(spec))
         mocha.suite.on('pre-require', ::this.preRequire)
+        this._loadFiles(mochaOpts)
 
+        return this
+    }
+
+    _loadFiles (mochaOpts) {
+        try {
+            this.mocha.loadFiles()
+
+            /**
+             * grep
+             */
+            const mochaRunner = new Mocha.Runner(this.mocha.suite)
+            if (mochaOpts.grep) {
+                mochaRunner.grep(this.mocha.options.grep, mochaOpts.invert)
+            }
+
+            this._hasTests = mochaRunner.total > 0
+        } catch (err) {
+            log.warn(
+                'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
+                '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
+                'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
+                `Spec file(s): ${this.specs.join(',')}\n`,
+                'Error: ', err
+            )
+        }
+    }
+
+    hasTests () {
+        return this._hasTests
+    }
+
+    async run () {
+        const mocha = this.mocha
         let runtimeError
-        await executeHooksWithArgs(this.config.before, [this.capabilities, this.specs])
         const result = await new Promise((resolve) => {
             try {
                 this.runner = mocha.run(resolve)
@@ -164,7 +198,7 @@ class MochaAdapter {
             /**
              * hook failures are emitted as "test:fail"
              */
-            if (params.payload && params.payload.title && params.payload.title.match(/^"(before|after)( all)*" hook/g)) {
+            if (params.payload && params.payload.title && params.payload.title.match(/^"(before|after)( all| each)?" hook/)) {
                 message.type = 'hook:end'
             }
         }
@@ -293,10 +327,10 @@ class MochaAdapter {
 
 const adapterFactory = {}
 
-adapterFactory.run = async function (...args) {
+adapterFactory.init = async function (...args) {
     const adapter = new MochaAdapter(...args)
-    const result = await adapter.run()
-    return result
+    const instance = await adapter.init()
+    return instance
 }
 
 export default adapterFactory

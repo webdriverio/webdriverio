@@ -39,7 +39,15 @@
  * </example>
  *
  * @alias browser.setCookies
- * @param {Object} cookie cookie object or object array
+ * @param {Array<WebDriver.Cookie>|WebDriver.Cookie} cookie   cookie object or object array.
+ * @param {String=}       cookie.name     The name of the cookie.
+ * @param {String=}       cookie.value    The cookie value.
+ * @param {String=}       cookie.path     The cookie path. Defaults to "/" if omitted when adding a cookie.
+ * @param {String=}       cookie.domain   The domain the cookie is visible to. Defaults to the current browsing context’s active document’s URL domain if omitted when adding a cookie.
+ * @param {Boolean=}      cookie.secure   Whether the cookie is a secure cookie. Defaults to false if omitted when adding a cookie.
+ * @param {Boolean=}      cookie.httpOnly Whether the cookie is an HTTP only cookie. Defaults to false if omitted when adding a cookie.
+ * @param {Number=}       cookie.expiry   When the cookie expires, specified in seconds since Unix Epoch. Must not be set if omitted when adding a cookie.
+ * @param {String=}       cookie.sameSite Whether the cookie applies to a SameSite policy. Defaults to None if omitted when adding a cookie. Can be set to either "Lax" or "Strict".
  * @uses protocol/addCookie
  * @type cookie
  *

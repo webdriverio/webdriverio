@@ -3,7 +3,7 @@ id: driverbinaries
 title: Driver Binaries
 ---
 
-WebdriverIO allows using driver binaries directly instead of services. 
+WebdriverIO allows using driver binaries directly instead of services.
 
 Here’s an example with `geckodriver`.
 
@@ -13,34 +13,24 @@ Here’s an example with `geckodriver`.
 
 Download the latest version of `geckodriver` for your environment and unpack it in your project directory:
 
-#### Linux (64 bit)
-
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Linux (64 bit)-->
 ```sh
-curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz | tar xz
+$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz | tar xz
 ```
-
-#### macOS
-
+<!--MacOS (curl)-->
 ```sh
-curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-macos.tar.gz | tar xz
+$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-macos.tar.gz | tar xz
 ```
-
-Or with [`brew`](https://brew.sh)
-
+<!--MacOS (brew)-->
 ```sh
-brew install geckodriver
+$ brew install geckodriver
 ```
-
-#### Windows 64 bit
-
-Simple setup: ([Chocolatey](https://chocolatey.org))
-
+<!--Windows (64 bit / Chocolatey)-->
 ```sh
-choco install selenium-gecko-driver
+$ choco install selenium-gecko-driver
 ```
-
-For advanced users (Powershell):
-
+<!--Windows (64 bit / Powershell)-->
 ```sh
 # Run as privileged session. Right-click and set 'Run as Administrator'
 # Use geckodriver-v0.24.0-win32.zip for 32 bit Windows
@@ -61,6 +51,7 @@ cd $unzipped_file
 # Globally Set Geckodriver to PATH
 [System.Environment]::SetEnvironmentVariable("PATH", "$Env:Path;$pwd\geckodriver.exe", [System.EnvironmentVariableTarget]::Machine)
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 **Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). In order to automate other browsers, you need different drivers. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
 
@@ -72,7 +63,7 @@ Start Geckodriver by running:
 /path/to/binary/geckodriver --port 4444
 ```
 
-For example, if you ran the `curl` command from above, you should have a `geckodriver` binary available in the current folder. 
+For example, if you ran the `curl` command from above, you should have a `geckodriver` binary available in the current folder.
 
 Start it like this:
 
@@ -84,28 +75,3 @@ Start it like this:
 This will start Geckodriver on `localhost:4444` with the WebDriver endpoint set to `/`.
 
 Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
-
-### Configure the `path`
-
-If you are using driver’s binary directly (like `geckodriver` or `chromedriver`), the `path` to it is different from the expected default (which is `/wd/hub`). 
-
-To change that, we need to edit the `wdio.conf.js` file. 
-
-Add a section to specify the `path`:
-
-```json
-    path: '/',
-```
-
-So the top of your file should look like:
-
-```json
-exports.config = {
-    runner: 'local',
-    //
-    // Uncomment line below to override default path ('/wd/hub') for usage of driver binary directly, ex: chromedriver or geckodriver.
-    path: '/',
-}
-```
-
-Be sure to save the file after your edits.

@@ -3,9 +3,9 @@ import { testFnWrapper } from '../../src/test-framework/testFnWrapper'
 
 jest.mock('../../src/shim', () => ({
     executeHooksWithArgs: jest.fn(),
-    runSync: (fn, repeatTest, args = []) => async (resolve, reject) => {
+    runSync: (fn, { attempts, limit }, args = []) => async (resolve, reject) => {
         try {
-            return resolve(await fn('@wdio/sync', repeatTest, ...args))
+            return resolve(await fn('@wdio/sync', attempts, limit, ...args))
         } catch (err) {
             reject(err)
         }
@@ -16,7 +16,7 @@ jest.mock('../../src/shim', () => ({
 const executeHooksWithArgs = shim.executeHooksWithArgs
 
 describe('testFnWrapper', () => {
-    const origFn = (mode, repeatTest, arg) => `${mode}: Foo${arg} ${repeatTest}`
+    const origFn = (mode, attempts, limit, arg) => `${mode}: Foo${arg} ${attempts} ${limit}`
     const buildArgs = (specFn, retries, beforeFnArgs, afterFnArgs) => [
         'Foo',
         { specFn, specFnArgs: ['Bar'] },
@@ -30,31 +30,31 @@ describe('testFnWrapper', () => {
         const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar', description: 'foo' }, 'context'])
         const result = await testFnWrapper.call({ test: { fullTitle: () => 'full title' } }, ...args)
 
-        const expectedResults = { duration: expect.any(Number), error: undefined, passed: true }
-        expect(result).toBe('@wdio/sync: FooBar 0')
-        expect(executeHooksWithArgs).toBeCalledTimes(2)
-        expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
-        expect(executeHooksWithArgs).toBeCalledWith('afterFn', [
-            { ...expectedResults, foo: 'bar', fullTitle: 'full title', title: 'foo', description: 'foo' },
-            'context',
-            { ...expectedResults, result: '@wdio/sync: FooBar 0' }
-        ])
+        expect(result).toBe('@wdio/sync: FooBar 0 0')
+        expect(executeHooksWithArgs.mock.calls).toMatchSnapshot()
+    })
+
+    it('should propagate jasmine failed expecations as errors', async () => {
+        const failedExpectation = {
+            matcherName: 'toEqual',
+            message: 'Expected true to equal false.',
+            stack: 'Error: Expected true to equal false.\n    at <Jasmine>\n    at UserContext.it',
+            passed: false,
+            expected: false,
+            actual: true
+        }
+        const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar', description: 'foo', failedExpectations: [failedExpectation] }, 'context'])
+        const error = await testFnWrapper.call({ test: { fullTitle: () => 'full title' } }, ...args).catch((err) => err)
+        expect(executeHooksWithArgs.mock.calls[1][1]).toMatchSnapshot()
+        expect(error).toMatchSnapshot()
     })
 
     it('should run fn in sync mode with cucumber', async () => {
         const args = buildArgs(origFn, undefined, () => ['beforeFnArgs'], () => [{ foo: 'bar' }, 2, 3, 4])
         const result = await testFnWrapper(...args)
 
-        expect(result).toBe('@wdio/sync: FooBar 0')
-        expect(executeHooksWithArgs).toBeCalledTimes(2)
-        expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
-        expect(executeHooksWithArgs).toBeCalledWith('afterFn', [
-            { foo: 'bar' },
-            2,
-            { duration: expect.any(Number), error: undefined, passed: true, result: '@wdio/sync: FooBar 0' },
-            3,
-            4
-        ])
+        expect(result).toBe('@wdio/sync: FooBar 0 0')
+        expect(executeHooksWithArgs.mock.calls).toMatchSnapshot()
     })
 
     afterEach(() => {

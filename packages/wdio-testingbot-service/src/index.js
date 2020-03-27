@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import TestingBotLauncher from './launcher'
 import TestingBotService from './service'
 

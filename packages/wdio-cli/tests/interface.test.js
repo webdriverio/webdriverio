@@ -2,25 +2,24 @@ import WDIOCLInterface from '../src/interface'
 import chalk from 'chalk'
 
 const config = {}
-const specs = ['/some/path/to/test.js']
 global.console.log = jest.fn()
 
 describe('cli interface', () => {
     let wdioClInterface
 
     beforeEach(() => {
-        wdioClInterface = new WDIOCLInterface(config, specs, 5)
+        wdioClInterface = new WDIOCLInterface(config, 5)
         wdioClInterface.log = jest.fn().mockImplementation((...args) => args)
     })
 
     it('should add jobs', () => {
-        wdioClInterface.emit('job:start', { cid: '0-0' })
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: true })
         expect(wdioClInterface.jobs.size).toBe(1)
     })
 
     it('should mark jobs as pass or failed', () => {
-        wdioClInterface.emit('job:start', { cid: '0-0' })
-        wdioClInterface.emit('job:start', { cid: '0-1' })
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: true })
+        wdioClInterface.emit('job:start', { cid: '0-1', hasTests: true })
         expect(wdioClInterface.result.finished).toBe(0)
         expect(wdioClInterface.result.passed).toBe(0)
         expect(wdioClInterface.result.failed).toBe(0)
@@ -35,8 +34,8 @@ describe('cli interface', () => {
     })
 
     it('should mark jobs as retried when failing', () => {
-        wdioClInterface.emit('job:start', { cid: '0-0' })
-        wdioClInterface.emit('job:start', { cid: '0-1' })
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: true })
+        wdioClInterface.emit('job:start', { cid: '0-1', hasTests: true })
         expect(wdioClInterface.result.finished).toBe(0)
         expect(wdioClInterface.result.passed).toBe(0)
         expect(wdioClInterface.result.retries).toBe(0)
@@ -61,6 +60,16 @@ describe('cli interface', () => {
         expect(wdioClInterface.result.passed).toBe(1)
         expect(wdioClInterface.result.retries).toBe(2)
         expect(wdioClInterface.result.failed).toBe(1)
+    })
+
+    it('should mark jobs as skipped', () => {
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: false })
+        expect(wdioClInterface.result.finished).toBe(0)
+        wdioClInterface.emit('job:end', { cid: '0-0' })
+        expect(wdioClInterface.result.finished).toBe(1)
+        expect(wdioClInterface.result.passed).toBe(0)
+        expect(wdioClInterface.result.failed).toBe(0)
+        expect(wdioClInterface.result.retries).toBe(0)
     })
 
     it('should allow to store reporter messages', () => {
@@ -88,6 +97,15 @@ describe('cli interface', () => {
         expect(wdioClInterface.messages).toEqual({ reporter: {} })
     })
 
+    it('should trigger job:start event on testFrameworkInit', () => {
+        wdioClInterface.emit = jest.fn()
+        wdioClInterface.onMessage({
+            name: 'testFrameworkInit',
+            content: 'content'
+        })
+        expect(wdioClInterface.emit).toBeCalledWith('job:start', 'content')
+    })
+
     it('should print reporter messages in watch mode', () => {
         wdioClInterface.isWatchMode = true
         wdioClInterface.printReporters = jest.fn()
@@ -106,13 +124,40 @@ describe('cli interface', () => {
         wdioClInterface.printReporters = jest.fn()
 
         expect(wdioClInterface.onMessage({
+            cid: '0-0',
             origin: 'worker',
-            name: 'error',
+            name: 'barfoo',
             content: 'foobar'
-        })).toEqual([undefined, 'worker', 'error', 'foobar'])
+        })).toEqual(['0-0', 'worker', 'barfoo', 'foobar'])
 
         expect(wdioClInterface.messages).toEqual({ reporter: {} })
         expect(wdioClInterface.printReporters).not.toBeCalled()
+    })
+
+    it('should print error message on worker error', () => {
+        const err = { message: 'foo', stack: 'bar' }
+        wdioClInterface.onMessage({
+            cid: '0-0',
+            origin: 'worker',
+            name: 'error',
+            content: err
+        })
+
+        expect(wdioClInterface.log).toBeCalledTimes(1)
+        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'bold  Error: ', 'foo')
+    })
+
+    it('should print message on worker error', () => {
+        const err = 'bar'
+        wdioClInterface.onMessage({
+            cid: '0-0',
+            origin: 'worker',
+            name: 'error',
+            content: err
+        })
+
+        expect(wdioClInterface.log).toBeCalledTimes(1)
+        expect(wdioClInterface.log).toBeCalledWith('[0-0]', 'bold  Error: ', 'bar')
     })
 
     it('should ignore messages that do not contain a proper origin', () => {
@@ -257,6 +302,13 @@ describe('cli interface', () => {
                 expect(wdioClInterface.onJobComplete).toBeCalledWith(scenario.cid, scenario.job, scenario.retries, scenario.message)
             })
         })
+
+        it('onSpecSkip', () => {
+            wdioClInterface.onJobComplete = jest.fn()
+            wdioClInterface.jobs.set('cid', job)
+            wdioClInterface.onSpecSkip(cid, job)
+            expect(wdioClInterface.onJobComplete).toBeCalledWith(cid, job, 0, 'SKIPPED', expect.any(Function))
+        })
     })
 
     describe('sigintTrigger', () => {
@@ -313,12 +365,17 @@ describe('cli interface', () => {
         it('retries', () => {
             wdioClInterface.totalWorkerCnt = 2
             wdioClInterface.result.retries = 33
-            expect(wdioClInterface.printSummary().some(x => x.includes(33))).toBe(true)
+            expect(wdioClInterface.printSummary().some(x => x.includes('yellow 33 retries'))).toBe(true)
         })
 
         it('failed', () => {
             wdioClInterface.result.failed = 44
-            expect(wdioClInterface.printSummary().some(x => x.includes(44))).toBe(true)
+            expect(wdioClInterface.printSummary().some(x => x.includes('red 44 failed'))).toBe(true)
+        })
+
+        it('skipped', () => {
+            wdioClInterface.skippedSpecs = 55
+            expect(wdioClInterface.printSummary().some(x => x.includes('gray 55 skipped'))).toBe(true)
         })
 
         it('percentCompleted', () => {
@@ -358,7 +415,7 @@ describe('cli interface', () => {
             })
 
             expect(result[1]).toContain('Error')
-            expect(result[1]).toContain('Uknown error.')
+            expect(result[1]).toContain('Unknown error.')
         })
 
         it('string error', () => {

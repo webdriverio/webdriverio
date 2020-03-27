@@ -1,4 +1,5 @@
 import AllureReporter from '../src'
+import { linkPlaceholder } from '../src/constants'
 
 let processOn
 beforeAll(() => {
@@ -22,7 +23,7 @@ describe('reporter runtime implementation', () => {
             getCurrentTest: mock,
         }
 
-        reporter.addLabel('customLabel', 'Label')
+        reporter.addLabel({ name: 'customLabel', value: 'Label' })
         expect(addLabel).toHaveBeenCalledTimes(1)
         expect(addLabel).toHaveBeenCalledWith('customLabel', 'Label')
     })
@@ -91,6 +92,22 @@ describe('reporter runtime implementation', () => {
         expect(addLabel).toHaveBeenCalledWith('issue', '1')
     })
 
+    it('should correctly add issue label with link', () => {
+        const reporter = new AllureReporter({ stdout: true, issueLinkTemplate: `http://example.com/${linkPlaceholder}` })
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return { addLabel }
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.addIssue({ issue: '1' })
+        expect(addLabel).toHaveBeenCalledTimes(1)
+        expect(addLabel).toHaveBeenCalledWith('issue', 'http://example.com/1')
+    })
+
     it('should correctly add test id label', () => {
         const reporter = new AllureReporter({ stdout: true })
         const addLabel = jest.fn()
@@ -105,6 +122,22 @@ describe('reporter runtime implementation', () => {
         reporter.addTestId({ testId: '2' })
         expect(addLabel).toHaveBeenCalledTimes(1)
         expect(addLabel).toHaveBeenCalledWith('testId', '2')
+    })
+
+    it('should correctly add test id label with link', () => {
+        const reporter = new AllureReporter({ stdout: true, tmsLinkTemplate: `https://webdriver.io/${linkPlaceholder}` })
+        const addLabel = jest.fn()
+        const mock = jest.fn(() => {
+            return { addLabel }
+        })
+        reporter.allure = {
+            getCurrentSuite: mock,
+            getCurrentTest: mock,
+        }
+
+        reporter.addTestId({ testId: '2' })
+        expect(addLabel).toHaveBeenCalledTimes(1)
+        expect(addLabel).toHaveBeenCalledWith('testId', 'https://webdriver.io/2')
     })
 
     it('should correct add environment', () => {
@@ -259,7 +292,7 @@ describe('reporter runtime implementation', () => {
 
     it('should do nothing if no tests run', () => {
         const reporter = new AllureReporter({ stdout: true })
-        expect(reporter.addLabel()).toEqual(false)
+        expect(reporter.addLabel({})).toEqual(false)
         expect(reporter.addStory({})).toEqual(false)
         expect(reporter.addFeature({})).toEqual(false)
         expect(reporter.addSeverity({})).toEqual(false)
@@ -337,7 +370,7 @@ describe('auxiliary methods', () => {
     })
 })
 
-describe('hooks handling', () => {
+describe('hooks handling disabbled Mocha Hooks', () => {
     let reporter, startCase, endCase, startStep, endStep
     const allureInstance = ({ suite = true, test = { steps: [1] } } = {}) => ({
         getCurrentSuite: jest.fn(() => suite),
@@ -349,7 +382,7 @@ describe('hooks handling', () => {
     })
 
     beforeEach(() => {
-        reporter = new AllureReporter({ stdout: true })
+        reporter = new AllureReporter({ stdout: true, disableMochaHooks: true })
         reporter.onTestStart = jest.fn(test => startCase(test.title))
         startCase = jest.fn()
         endCase = jest.fn(result => result)
@@ -421,13 +454,22 @@ describe('hooks handling', () => {
         expect(startCase).toHaveBeenCalledTimes(0)
     })
 
-    it('should remove passed hooks if there are no steps', () => {
+    it('should not pop test case if no steps and before hook', () => {
         const testcases = [1]
         reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [] } })
         reporter.onHookEnd({ title: '"before all" hook', parent: 'foo' })
 
         expect(endCase).toHaveBeenCalledTimes(0)
         expect(testcases).toHaveLength(1)
+    })
+
+    it('should pop test case if no steps and custom hook', () => {
+        const testcases = [1]
+        reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [] } })
+        reporter.onHookEnd({ title: 'bar', parent: 'foo' })
+
+        expect(endCase).toHaveBeenCalledTimes(1)
+        expect(testcases).toHaveLength(0)
     })
 
     it('should keep passed hooks if there are some steps', () => {
@@ -493,6 +535,61 @@ describe('hooks handling', () => {
         expect(startCase).toHaveBeenCalledTimes(1)
         expect(endCase).toHaveBeenCalledTimes(1)
         expect(endCase.mock.results[0].value).toBe('broken')
+    })
+})
+
+describe('hooks handling default', () => {
+    let reporter, startCase, endCase, startStep, endStep
+    const allureInstance = ({ suite = true, test = { steps: [1] } } = {}) => ({
+        getCurrentSuite: jest.fn(() => suite),
+        getCurrentTest: jest.fn(() => {return test}),
+        startCase,
+        endCase,
+        startStep,
+        endStep
+    })
+
+    beforeEach(() => {
+        reporter = new AllureReporter({ stdout: true, disableMochaHooks: false })
+        reporter.onTestStart = jest.fn(test => startCase(test.title))
+        startCase = jest.fn()
+        endCase = jest.fn(result => result)
+        startStep = jest.fn()
+        endStep = jest.fn(result => result)
+    })
+
+    it('should capture mocha each hooks', () => {
+        reporter.allure = allureInstance()
+        reporter.onHookStart({ title: '"before each" hook', parent: 'foo' })
+
+        expect(startStep).toHaveBeenCalledTimes(0)
+        expect(startCase).toHaveBeenCalledTimes(1)
+    })
+
+    it('should not ignore mocha each hooks if no test', () => {
+        reporter.allure = allureInstance({ test: null })
+        reporter.onHookStart({ title: '"after each" hook', parent: 'foo' })
+
+        expect(startStep).toHaveBeenCalledTimes(0)
+        expect(startCase).toHaveBeenCalledTimes(1)
+    })
+
+    it('should keep passed hooks if there are no steps (before/after)', () => {
+        const testcases = [1]
+        reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [] } })
+        reporter.onHookEnd({ title: '"before all" hook', parent: 'foo' })
+
+        expect(endCase).toHaveBeenCalledTimes(1)
+        expect(testcases).toHaveLength(1)
+    })
+
+    it('should keep passed hooks if there are some steps', () => {
+        const testcases = [1]
+        reporter.allure = allureInstance({ suite: { testcases }, test: { steps: [1] } })
+        reporter.onHookEnd({ title: 'foo', parent: 'bar' })
+
+        expect(endCase).toHaveBeenCalledTimes(1)
+        expect(testcases).toHaveLength(1)
     })
 })
 

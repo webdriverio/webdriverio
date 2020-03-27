@@ -1,19 +1,19 @@
 import logger from '@wdio/logger'
-import request from 'request'
+import got from 'got'
 
 import { BROWSER_DESCRIPTION } from './constants'
 
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService {
-    constructor (config) {
+    constructor (options, caps, config) {
         this.config = config
         this.failures = 0
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
     }
 
     /**
-     * if no user and key is specified even though a sauce service was
+     * if no user and key is specified even though a browserstack service was
      * provided set user and key with values so that the session request
      * will fail
      */
@@ -31,13 +31,11 @@ export default class BrowserstackService {
 
     before() {
         this.sessionId = global.browser.sessionId
-        this.auth = {
-            user: this.config.user,
-            pass: this.config.key
-        }
+
         if (this.config.capabilities.app) {
             this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
+
         return this._printSessionURL()
     }
 
@@ -48,7 +46,16 @@ export default class BrowserstackService {
     }
 
     afterTest(test) {
-        this.fullTitle = test.parent + ' - ' + test.title
+        this.fullTitle = (
+            /**
+             * Jasmine
+             */
+            test.fullName ||
+            /**
+             * Mocha
+             */
+            `${test.parent} - ${test.title}`
+        )
 
         if (!test.passed) {
             this.failures++
@@ -80,55 +87,37 @@ export default class BrowserstackService {
     }
 
     _update(sessionId, requestBody) {
-        return new Promise((resolve, reject) => {
-            request.put(`${this.sessionBaseUrl}/${sessionId}.json`, {
-                json: true,
-                auth: this.auth,
-                body: requestBody
-            }, (error, response, body) => {
-                /* istanbul ignore if */
-                if (error) {
-                    return reject(error)
-                }
-                return resolve(body)
-            })
+        return got.put(`${this.sessionBaseUrl}/${sessionId}.json`, {
+            json: requestBody,
+            auth: `${this.config.user}:${this.config.key}`
         })
     }
 
     _getBody() {
         return {
-            status: this.failures === 0 ? 'completed' : 'error',
+            status: this.failures === 0 ? 'passed' : 'failed',
             name: this.fullTitle,
             reason: this.failReason
         }
     }
 
-    _printSessionURL() {
+    async _printSessionURL() {
         const capabilities = global.browser.capabilities
-        return new Promise((resolve, reject) => request.get(
-            `${this.sessionBaseUrl}/${this.sessionId}.json`,
-            {
-                json: true,
-                auth: this.auth
-            },
-            (error, response, body) => {
-                if (error) {
-                    return reject(error)
-                }
 
-                if (response.statusCode !== 200) {
-                    return reject(new Error(`Bad response code: Expected (200), Received (${response.statusCode})!`))
-                }
+        const response = await got(`${this.sessionBaseUrl}/${this.sessionId}.json`, {
+            auth: `${this.config.user}:${this.config.key}`,
+            responseType: 'json'
+        })
 
-                // These keys describe the browser the test was run on
-                const browserString = BROWSER_DESCRIPTION
-                    .map(k => capabilities[k])
-                    .filter(v => !!v)
-                    .join(' ')
+        /**
+         * These keys describe the browser the test was run on
+         */
+        const browserString = BROWSER_DESCRIPTION
+            .map(k => capabilities[k])
+            .filter(v => !!v)
+            .join(' ')
 
-                log.info(`${browserString} session: ${body.automation_session.browser_url}`)
-                return resolve(body)
-            }
-        ))
+        log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
+        return response.body
     }
 }

@@ -5,15 +5,15 @@ authorURL: http://github.com/wswebcreation
 authorImageURL: https://avatars2.githubusercontent.com/u/11979740?s=460&v=4
 ---
 
-We are pleased to announce that we now have support for CucumberJS in WebdriverIO V5!!!! 
+We are pleased to announce that we now have support for CucumberJS in WebdriverIO V5!!!!
 This has been a great challenge for the project committers so we're all very thankful for the time and effort they put into this.
 So normally we would say
 
 ```sh
 npm install @wdio/cucumber-framework --save-dev
 ```
-    
-and go with the flow, but this time it is different. When you upgrade to the latest version of the Cucumber framework you also need to upgrade to the **latest version of WebdriverIO**. 
+
+and go with the flow, but this time it is different. When you upgrade to the latest version of the Cucumber framework you also need to upgrade to the **latest version of WebdriverIO**.
 In this blog post we want to give you some guidelines on how to do that.
 
 ## Where to start
@@ -53,7 +53,7 @@ When creating a better product and thus releasing a major version, you will alwa
 **Don't only read the changes in the V5.0.0 release, but also read the rest of the changes!**
 
 ### It's not only WebdriverIO who evolved!
-When you are going to use the lastest version of the `@wdio/cucumer-framework`, you'll also get the latest version of Cucumber. **This means you also need to look at the breaking changes between CucumberJS 2 and CucumberJS 5.**
+When you are going to use the lastest version of the `@wdio/cucumber-framework`, you'll also get the latest version of Cucumber. **This means you also need to look at the breaking changes between CucumberJS 2 and CucumberJS 5.**
 Please check the [changelog of CucumberJS](https://github.com/cucumber/cucumber-js/blob/master/CHANGELOG.md#300-2017-08-08) from version 3 till 5 to see what changed in CucumberJS.
 
 ### Migration steps
@@ -68,8 +68,8 @@ Before installing dependencies, we need to initialize an empty NPM project (this
 To do this, run:
 
 ```sh
-mkdir webdriverio-test && cd webdriverio-test
-npm init -y
+$ mkdir webdriverio-test && cd webdriverio-test
+$ npm init -y
 ```
 
 The `-y` will answer 'yes' to all the prompts, giving us a standard NPM project. Feel free to omit the `-y` if you'd like to specify your own project details.
@@ -80,14 +80,14 @@ We recommend using the test runner because it comes with a lot of useful feature
 Now we need to install the cli. Do that by running:
 
 ```sh
-npm i --save-dev @wdio/cli
+$ npm i --save-dev @wdio/cli
 ```
 
 #### 3. Generate Configuration File
 We'll next want to generate a configuration file that stores all of our WebdriverIO settings. To do that just run the configuration utility:
 
 ```sh
-./node_modules/.bin/wdio config
+$ npx wdio config
 ```
 
 A question interface pops up. It will help to create the config easy and fast and install all needed dependencies.

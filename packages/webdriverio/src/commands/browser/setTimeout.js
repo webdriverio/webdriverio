@@ -19,10 +19,10 @@
     });
  * </example>
  *
- * @param {Object} timeouts  Object containing session timeout values
- * @param {Number} timeouts.implicit  (Optional) Time in milliseconds to retry the element location strategy when finding an element.
- * @param {Number} timeouts.pageLoad  (Optional) Time in milliseconds to wait for the document to finish loading.
- * @param {Number} timeouts.script  (Optional) Scripts injected with [`execute`](https://webdriver.io/docs/api/browser/execute.html) or [`executeAsync`](https://webdriver.io/docs/api/browser/executeAsync.html) will run until they hit the script timeout duration, which is also given in milliseconds.
+ * @param {Timeouts}  timeouts            Object containing session timeout values
+ * @param {Number=}   timeouts.implicit  Time in milliseconds to retry the element location strategy when finding an element.
+ * @param {Number=}   timeouts.pageLoad  Time in milliseconds to wait for the document to finish loading.
+ * @param {Number=}   timeouts.script    Scripts injected with [`execute`](https://webdriver.io/docs/api/browser/execute.html) or [`executeAsync`](https://webdriver.io/docs/api/browser/executeAsync.html) will run until they hit the script timeout duration, which is also given in milliseconds.
  * @see https://w3c.github.io/webdriver/#set-timeouts
  *
  */

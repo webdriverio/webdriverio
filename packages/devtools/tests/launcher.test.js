@@ -1,13 +1,24 @@
 import puppeteer from 'puppeteer-core'
-import puppeteerFirefox from 'puppeteer-firefox'
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 
 import launch from '../src/launcher'
 
+jest.mock('../src/finder/firefox', () => ({
+    darwin: jest.fn().mockReturnValue(['/path/to/firefox']),
+    linux: jest.fn().mockReturnValue(['/path/to/firefox']),
+    win32: jest.fn().mockReturnValue(['/path/to/firefox'])
+}))
+
+jest.mock('../src/finder/edge', () => ({
+    darwin: jest.fn().mockReturnValue(['/path/to/edge']),
+    linux: jest.fn().mockReturnValue(['/path/to/edge']),
+    win32: jest.fn().mockReturnValue(['/path/to/edge'])
+}))
+
 beforeEach(() => {
     puppeteer.connect.mockClear()
-    puppeteerFirefox.launch.mockClear()
     launchChromeBrowser.mockClear()
+    puppeteer.launch.mockClear()
 })
 
 test('launch chrome with default values', async () => {
@@ -16,7 +27,6 @@ test('launch chrome with default values', async () => {
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
     expect(puppeteer.connect.mock.calls).toMatchSnapshot()
-    expect(puppeteerFirefox.launch).toBeCalledTimes(0)
 
     const pages = await browser.pages()
     expect(pages[0].close).toBeCalledTimes(1)
@@ -33,14 +43,14 @@ test('launch chrome with chrome arguments', async () => {
         }
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
-    expect(puppeteerFirefox.launch).toBeCalledTimes(0)
+    expect(puppeteer.launch).toBeCalledTimes(0)
 })
 
 test('launch Firefox with default values', async () => {
     await launch({
         browserName: 'firefox'
     })
-    expect(puppeteerFirefox.launch.mock.calls).toMatchSnapshot()
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })
 
 test('launch Firefox with custom arguments', async () => {
@@ -49,11 +59,35 @@ test('launch Firefox with custom arguments', async () => {
         'moz:firefoxOptions': {
             args: ['foobar'],
             headless: true,
-            width: 123,
-            height: 456
+            defaultViewport: {
+                width: 123,
+                height: 456
+            }
         }
     })
-    expect(puppeteerFirefox.launch.mock.calls).toMatchSnapshot()
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+})
+
+test('launch Edge with default values', async () => {
+    await launch({
+        browserName: 'edge'
+    })
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+})
+
+test('launch Edge with custom arguments', async () => {
+    await launch({
+        browserName: 'edge',
+        'ms:edgeOptions': {
+            args: ['foobar'],
+            headless: true,
+            defaultViewport: {
+                width: 123,
+                height: 456
+            }
+        }
+    })
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })
 
 test('throws if browser is unknown', async () => {

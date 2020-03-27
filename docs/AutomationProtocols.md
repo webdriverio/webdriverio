@@ -22,7 +22,7 @@ For browser automation, the proxy server is usually the browser driver. There ar
 - Chrome ▶︎ [ChromeDriver](http://chromedriver.chromium.org/downloads)
 - Firefox ▶︎ [Geckodriver](https://github.com/mozilla/geckodriver/releases)
 - Microsoft Edge ▶︎ [Edge Driver](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/)
-- Internet Explorter ▶︎ [InternetExplorerDriver](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver)
+- Internet Explorer ▶︎ [InternetExplorerDriver](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver)
 - Safari ▶︎ [SafariDriver](https://developer.apple.com/documentation/webkit/testing_with_webdriver_in_safari)
 
 For any kind of mobile automation, you’ll need to install and setup [Appium](http://appium.io). It will allow you to automate mobile (iOS/Android) or even desktop (macOS/Windows) applications using the same WebdriverIO setup. 

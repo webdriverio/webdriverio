@@ -1,22 +1,76 @@
+os: linux
 dist: xenial
 language: node_js
 
-node_js:
-  - 8
-  - 10
+cache:
+  directories:
+    - node_modules
+    - packages
 
-addons:
-  chrome: stable
+e2e_setup: &e2e_setup
+  addons:
+    chrome: stable
+    firefox: latest-nightly
+  services:
+    - xvfb
+  script: npx run-s test:e2e
 
-script:
-  - npm run ci
+stages:
+  - name: build
+  - name: test
+  - name: e2e
+  - name: deploy
 
-after_script:
-  - ./node_modules/.bin/codecov
-
-deploy:
-  provider: script
-  script: "gem install compass && npm run docs"
-  skip_cleanup: true
-  on:
-    tags: true
+jobs:
+  fast_finish: true
+  include:
+    - stage: build
+      name: 'Build (Node v10)'
+      node_js: 12
+      script:
+        - npm run setup-full
+    - stage: build
+      name: 'Build (Node v12)'
+      node_js: 12
+      script:
+        - npm run setup-full
+    - stage: build
+      name: 'Build (Node v12)'
+      node_js: 12
+      os: osx
+      script:
+        - npm run setup-full
+    - name: 'CI Tests (Node v10)'
+      stage: test
+      node_js: 10
+      script:
+        - npm run test
+    - name: 'CI Tests (Node v12)'
+      stage: test
+      node_js: 12
+      script:
+        - npm run test
+    - <<: *e2e_setup
+      name: 'e2e Tests (Linux)'
+      stage: e2e
+      node_js: 12
+    - <<: *e2e_setup
+      name: 'e2e Tests (OSX)'
+      stage: e2e
+      node_js: 12
+      os: osx
+    # Windows on Travis is not stable enough yet
+    # - <<: *base_setup
+    #   <<: *e2e_setup
+    #   name: 'e2e Tests (Windows)'
+    #   os: windows
+    - name: 'Release WebdriverIO Docs'
+      script: skip
+      stage: deploy
+      node_js: 12
+      deploy:
+        provider: script
+        script: "gem install compass && npm run docs"
+        cleanup: true
+        on:
+          tags: true

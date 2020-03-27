@@ -1,4 +1,4 @@
-import request from 'request'
+import got from 'got'
 import logger from '@wdio/logger'
 
 const log = logger('@wdio/testingbot-service')
@@ -51,8 +51,16 @@ export default class TestingBotService {
             this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
         }
 
-        const context = test.parent === 'Jasmine__TopLevel__Suite' ? test.fullName : test.parent + ' - ' + test.title
-
+        const context = (
+            /**
+             * Jasmine
+             */
+            test.fullName ||
+            /**
+             * Mocha
+             */
+            `${test.parent} - ${test.title}`
+        )
         global.browser.execute('tb:test-context=' + context)
     }
 
@@ -166,23 +174,17 @@ export default class TestingBotService {
         return this.updateJob(oldSessionId, this.failures, true, browserName)
     }
 
-    updateJob (sessionId, failures, calledOnReload = false, browserName) {
-        return new Promise((resolve, reject) => request.put(this.getRestUrl(sessionId), {
-            json: true,
-            auth: {
-                user: this.tbUser,
-                pass: this.tbSecret
-            },
-            body: this.getBody(failures, calledOnReload, browserName)
-        }, (e, res, body) => {
-            /* istanbul ignore if */
-            this.failures = 0
-            if (e) {
-                return reject(e)
-            }
-            global.browser.jobData = body
-            return resolve(body)
-        }))
+    async updateJob (sessionId, failures, calledOnReload = false, browserName) {
+        const json = this.getBody(failures, calledOnReload, browserName)
+        this.failures = 0
+        const response = await got.put(this.getRestUrl(sessionId), {
+            json,
+            responseType: 'json',
+            auth: `${this.tbUser}:${this.tbSecret}`
+        })
+
+        global.browser.jobData = response.body
+        return response.body
     }
 
     /**

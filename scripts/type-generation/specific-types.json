@@ -1,52 +1,28 @@
 {
-    "getLocation": [
-        {
-            "parameters": [{"name": "prop", "type": "LocationParam"}],
-            "return": "number"
-        },
-        {
-            "parameters": [],
-            "return": "LocationReturn"
-        }
-    ],
-    "getSize": [
-        {
-            "parameters": [{"name": "prop", "type": "SizeParam"}],
-            "return": "number"
-        },
-        {
-            "parameters": [],
-            "return": "SizeReturn"
-        }
-    ],
-    "setCookies": [
-        {
-            "parameters": [{"name": "cookie", "type": "Cookie"}],
-            "return": "void"
-        }
-    ],
-    "getCookies": [
-        {
-            "parameters": [{"name": "names?", "type": "string[]"}],
-            "return": "Cookie[]"
-        }
-    ],
-    "getCSSProperty": [
-        {
-            "parameters": [{"name": "cssProperty", "type": "string"}],
-            "return": "CSSProperty"
-        }
-    ],
-    "setTimeout": [
-        {
-            "parameters": [{"name": "timeouts", "type": "Timeouts"}],
-            "return": "void"
-        }
-    ],
-    "touchAction": [
-        {
-            "parameters": [{"name": "action", "type": "TouchActions"}],
-            "return": "void"
-        }
+  "getLocation": {
+    "description": "Determine an element’s location on the page.",
+    "properties": [
+      {
+        "parameters": [{"name": "prop", "type": "LocationParam"}],
+        "return": "number"
+      },
+      {
+        "parameters": [],
+        "return": "LocationReturn"
+      }
     ]
+  },
+  "getSize": {
+    "description": "Get the width and height for an DOM-element.",
+    "properties": [
+      {
+        "parameters": [{"name": "prop", "type": "SizeParam"}],
+        "return": "number"
+      },
+      {
+        "parameters": [],
+        "return": "SizeReturn"
+      }
+    ]
+  }
 }

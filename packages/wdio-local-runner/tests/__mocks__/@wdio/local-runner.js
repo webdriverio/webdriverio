@@ -7,9 +7,9 @@ export default class LocalRunnerMock {
         this.run = jest.fn()
     }
 
-    run ({ command, argv, ...options }) {
+    run ({ command, args, ...options }) {
         this.workerPool[options.cid] = { postMessage: jest.fn() }
-        this.workerPool[options.cid].postMessage(command, argv)
+        this.workerPool[options.cid].postMessage(command, args)
         return this.workerPool[options.cid]
     }
 }

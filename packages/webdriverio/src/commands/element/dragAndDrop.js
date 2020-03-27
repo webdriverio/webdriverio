@@ -2,9 +2,19 @@
  *
  * Drag an item to a destination element.
  *
+ * <example>
+    :example.test.js
+    it('should demonstrate the doubleClick command', () => {
+        const elem = $('#someElem')
+        const target = $('#someTarget')
+        elem.dragAndDrop(target)
+    })
+ * </example>
+ *
  * @alias element.dragAndDrop
  * @param {Element} target    destination selector
- * @param {Number=}  duration  how long the drag should take place
+ * @param {DragAndDropOptions=} options           dragAndDrop command options
+ * @param {Number=}             options.duration  how long the drag should take place
  * @uses action/moveToObject, protocol/buttonDown, protocol/buttonUp, property/getLocation, protocol/touchDown, protocol/touchMove, protocol/touchUp
  * @type action
  *
@@ -14,7 +24,7 @@ import { getElementRect, getScrollPosition } from '../../utils'
 
 const ACTION_BUTTON = 0
 
-export default async function dragAndDrop (target, duration = 100) {
+export default async function dragAndDrop (target, { duration = 100 } = {}) {
     if (!target || target.constructor.name !== 'Element') {
         throw new Error('command dragAndDrop requires an WebdriverIO Element as first parameter')
     }

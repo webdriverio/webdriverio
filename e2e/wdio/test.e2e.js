@@ -1,8 +1,7 @@
-const assert = require('assert')
-
 describe('main suite 1', () => {
     it('foobar test', () => {
-        browser.url('http://guinea-pig.webdriver.io')
-        assert.equal(browser.getTitle(), 'WebdriverJS Testpage')
+        const browserName = browser.capabilities.browserName.replace('Headless', '').trim()
+        browser.url('http://guinea-pig.webdriver.io/')
+        expect($('#useragent')).toHaveTextContaining(browserName)
     })
 })

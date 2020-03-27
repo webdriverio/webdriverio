@@ -18,7 +18,7 @@ npm install @wdio/cli
 To see the command line interface help, just type the following command in your terminal:
 
 ```sh
-./node_modules/.bin/wdio --help
+$ npx wdio --help
 
 wdio <command>
 
@@ -42,7 +42,7 @@ Switch over to the [Configuration File](ConfigurationFile.md) section to see wha
 With the `wdio` configuration helper, it is super easy to generate your config file. Just run:
 
 ```sh
-./node_modules/.bin/wdio config
+$ npx wdio config
 ```
 
 ...and it launches the helper utility.
@@ -54,10 +54,10 @@ It will ask you questions and generate a config file for you in less than a minu
 Once you have your configuration file set up, you can start your tests by running:
 
 ```sh
-./node_modules/.bin/wdio run wdio.conf.js
+$ npx wdio run wdio.conf.js
 
-# you can also initalize your configuration without the `run` command
-./node_modules/.bin/wdio wdio.conf.js
+# you can also initialize your configuration without the `run` command
+$ npx wdio wdio.conf.js
 ```
 
 
@@ -135,10 +135,16 @@ wdio install reporter dot # installs @wdio/dot-reporter
 wdio install framework mocha # installs @wdio/mocha-framework
 ```
 
-If your project is using `package-lock.json` instead of `yarn.lock`, you can pass a `--npm` flag to make sure the packages are installed via NPM.
+If you want to install the packages using `yarn` instead, you can pass the `--yarn` flag to the command:
 
 ```bash
-wdio install service sauce --npm
+wdio install service sauce --yarn
+```
+
+You could also pass a custom configuration path if your WDIO config file is not in the same folder you're working on:
+
+```bash
+wdio install service sauce --config="./path/to/wdio.conf.js"
 ```
 
 #### List of supported services
@@ -156,6 +162,8 @@ intercept
 zafira-listener
 reportportal
 docker
+wiremock
+lambdatest
 ```
 
 #### List of supported reporters
@@ -178,6 +186,7 @@ timeline
 ```
 mocha
 jasmine
+cucumber
 ```
 
 ## Run the test runner programmatically
@@ -185,15 +194,16 @@ jasmine
 Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment.
 For that, you'll need to require the `@wdio/cli` package as module, like this:
 
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Using EcmaScript Modules-->
 ```js
 import Launcher from '@wdio/cli'
 ```
-
-Or, for ES5:
-
+<!--Using CommonJS-->
 ```js
 const Launcher = require('@wdio/cli').default
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 After that, create an instance of the launcher, and run the test.
 

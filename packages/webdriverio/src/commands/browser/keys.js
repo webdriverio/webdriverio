@@ -33,10 +33,10 @@ export default function keys (value) {
      * replace key with corresponding unicode character
      */
     if (typeof value === 'string') {
-        keySequence = checkUnicode(value)
+        keySequence = checkUnicode(value, this.isDevTools)
     } else if (value instanceof Array) {
         for (const charSet of value) {
-            keySequence = keySequence.concat(checkUnicode(charSet))
+            keySequence = keySequence.concat(checkUnicode(charSet, this.isDevTools))
         }
     } else {
         throw new Error('"keys" command requires a string or array of strings as parameter')

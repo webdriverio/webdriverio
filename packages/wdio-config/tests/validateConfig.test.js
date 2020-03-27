@@ -72,4 +72,21 @@ describe('validateConfig', () => {
             logLevel: 'info'
         }), 'logLevel')).toBe(true)
     })
+
+    it('should keep certain keys if desired', () => {
+        expect(validateConfig({
+            logLevel: {
+                type: 'string',
+                default: 'trace',
+                match: /(trace|debug|info|warn|error|silent)/
+            }
+        }, {
+            logLevel: 'info',
+            foo: 'bar',
+            bar: 'foo'
+        }, ['foo'])).toEqual({
+            logLevel: 'info',
+            foo: 'bar'
+        })
+    })
 })

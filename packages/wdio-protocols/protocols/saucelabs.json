@@ -6,32 +6,6 @@
       "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands#CustomSauceLabsWebDriverExtensionsforNetworkandLogCommands-ExtendedDebuggingTools",
       "examples": [
         [
-          "// Get Application Metrics Logs",
-          "console.log(browser.getPageLogs('sauce:metrics'));",
-          "/**",
-          " * outputs:",
-          " * {",
-          " *   \"firstMeaningfulPaint\": 35036.03356,",
-          " *   \"domContentLoaded\": 35036.122972,",
-          " *   \"navigationStart\": 35035.833805,",
-          " *   ...",
-          " * }",
-          " */"
-        ],
-        [
-          "// Get Network Timing Logs",
-          "console.log(browser.getPageLogs('sauce:timing'));",
-          "/**",
-          " * outputs:",
-          " * {",
-          " *   \"loadEventStart\": 622,",
-          " *   \"loadEventEnd\": 622,",
-          " *   \"domInteractive\": 359,",
-          " *   ...",
-          " * }",
-          " */"
-        ],
-        [
           "// Get Network Logs",
           "console.log(browser.getPageLogs('sauce:network'));",
           "/**",
@@ -55,7 +29,7 @@
           " */"
         ],
         [
-          "// Get Performance Logs (coming soon)",
+          "// Get Performance Logs (needs capturePerformance capability see: https://wiki.saucelabs.com/display/DOCS/Measure+Page+Load+Performance+Using+Test+Automation#MeasurePageLoadPerformanceUsingTestAutomation-EnableYourScript)",
           "console.log(browser.getPageLogs('sauce:performance'));",
           "/**",
           " * outputs:",
@@ -71,7 +45,7 @@
       "parameters": [{
         "name": "type",
         "type": "string",
-        "description": "log type (e.g. 'sauce:timing', 'sauce:metrics', 'sauce:network', 'sauce:performance')",
+        "description": "log type (e.g. sauce:network', 'sauce:performance')",
         "required": true
       }],
       "returns": {
@@ -180,7 +154,7 @@
   "/session/:sessionId/sauce/ondemand/performance": {
     "POST": {
       "command": "assertPerformance",
-      "description": "Assert against the performance baseline of your app (private beta service, not yet available to the public).",
+      "description": "Assert against the performance baseline of your app.",
       "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands",
       "examples": [
         [
@@ -204,9 +178,9 @@
         "required": false
       }],
       "returns": {
-        "type": "Boolean",
+        "type": "Object",
         "name": "hasRegression",
-        "description": "Returns true if any metrics have a regression."
+        "description": "An object containing the result as well as metrics about the result."
       }
     }
   },

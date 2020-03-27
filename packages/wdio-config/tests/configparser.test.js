@@ -6,6 +6,9 @@ const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.js')
 const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.js')
 const FIXTURES_CONF_MULTIREMOTE_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.js')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.js')
+const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
+const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
+const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.feature:7')
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.js')
 
 describe('ConfigParser', () => {
@@ -52,10 +55,44 @@ describe('ConfigParser', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [INDEX_PATH] })
-
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
             expect(specs).toContain(INDEX_PATH)
+        })
+
+        it('should allow specifying a spec file which is Cucumber feature file with line number', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+            let featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0]
+            expect(specs).toContain(featureFileWithoutLine)
+        })
+
+        it('should allow specifying a spec file which is Cucumber feature file with line numbers', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(1)
+            let featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[0]
+            expect(specs).toContain(featureFileWithoutLine)
+        })
+
+        it('should allow specifying a spec file which is Cucumber feature files with line number', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2, FIXTURES_CUCUMBER_FEATURE_B_LINE_7] })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(2)
+            let featureFileA = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0]
+            expect(specs).toContain(featureFileA)
+            let featureFileB = FIXTURES_CUCUMBER_FEATURE_B_LINE_7.split(':')[0]
+            expect(specs).toContain(featureFileB)
         })
 
         it('should allow specifying mutliple single spec file', () => {
@@ -149,8 +186,8 @@ describe('ConfigParser', () => {
             configParser.merge({ user: 'barfoo', key: '50fa1411-3121-4gb0-9p07-8q326vvbq7b0' })
 
             const config = configParser.getConfig()
-            expect(config.hostname).toBe('ondemand.saucelabs.com')
-            expect(config.port).toBe(443)
+            expect(config.hostname).toBe('127.0.0.1')
+            expect(config.port).toBe(4444)
         })
 
         it('should allow specifying a exclude file', () => {
@@ -192,7 +229,29 @@ describe('ConfigParser', () => {
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ exclude: [INDEX_PATH] })
             const specs = configParser.getSpecs()
-            expect(specs).toHaveLength(3)
+            expect(specs).toHaveLength(4)
+        })
+
+        it('should overwrite exclude if piped into cli command with params', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({})
+
+            const utilsPath = path.join(__dirname, '..', 'src', 'utils.js')
+            const indexPath = path.join(__dirname, '..', 'src', 'index.js')
+            const specs = configParser.getSpecs([indexPath, utilsPath], [utilsPath])
+            expect(specs).toEqual([indexPath])
+        })
+
+        it('should overwrite exclude if piped into cli command with params in suite', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ suite: ['mobile'] })
+
+            const utilsPath = path.join(__dirname, '..', 'src', 'utils.js')
+            const indexPath = path.join(__dirname, '..', 'src', 'index.js')
+            const specs = configParser.getSpecs([indexPath, utilsPath], [utilsPath])
+            expect(specs).toEqual([indexPath])
         })
 
         it('should set hooks to empty arrays as default', () => {
@@ -220,6 +279,17 @@ describe('ConfigParser', () => {
             expect(typeof configParser.getConfig().before).toBe('function')
             expect(typeof configParser.getConfig().after).toBe('function')
             expect(typeof configParser.getConfig().onComplete).toBe('function')
+        })
+
+        it('should overwrite capabilities', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+            expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'chrome' }])
+            configParser.merge({
+                capabilities: [{ browserName: 'safari' }],
+            })
+
+            expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'safari' }])
         })
     })
 
@@ -311,6 +381,15 @@ describe('ConfigParser', () => {
             expect(specs).toContain(path.resolve(FIXTURES_PATH, 'test.mjs'))
         })
 
+        it('should include cjs files', () => {
+            const configParser = new ConfigParser()
+            configParser.addConfigFile(FIXTURES_CONF)
+
+            const cjsFile = path.resolve(FIXTURES_PATH, '*.cjs')
+            const specs = configParser.getSpecs([cjsFile])
+            expect(specs).toContain(path.resolve(FIXTURES_PATH, 'test.cjs'))
+        })
+
         it('should not include other file types', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
@@ -342,24 +421,6 @@ describe('ConfigParser', () => {
             expect(config.port).toBe(443)
             expect(config.user).toBe('foobar')
             expect(config.key).toBe('50fa142c-3121-4gb0-9p07-8q326vvbq7b0')
-        })
-    })
-
-    describe('filterWorkerServices', () => {
-        const configParser = new ConfigParser()
-        configParser.addConfigFile(FIXTURES_CONF)
-        const config = configParser.getConfig()
-
-        it('should do nothing if services is not an array', () => {
-            config.services = null
-            configParser.filterWorkerServices()
-            expect(config.services).toBeNull()
-        })
-
-        it('should remove non worker services', () => {
-            config.services = ['sauce', 'selenium-standalone']
-            configParser.filterWorkerServices()
-            expect(config.services).toEqual(['sauce'])
         })
     })
 })

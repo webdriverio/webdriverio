@@ -62,6 +62,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
         { name: 'html', value: '@rpii/wdio-html-reporter$--$html' },
+        { name: 'markdown', value: 'carmenmitru/wdio-markdown-reporter' }
     ],
     service: [
         // inquirerjs shows list as its orderer in array
@@ -78,10 +79,15 @@ export const SUPPORTED_PACKAGES = {
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         // external
+        { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
-    ],
+        { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
+        { name: 'slack', value: 'wdio-slack-service$--$slack' },
+        { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
+        { name: 'docker', value: 'wdio-docker-service$--$docker' }
+    ]
 }
 
 export const QUESTIONNAIRE = [{
@@ -95,8 +101,9 @@ export const QUESTIONNAIRE = [{
     message: 'Where is your automation backend located?',
     choices: [
         'On my local machine',
+        'In the cloud using Experitest',
         'In the cloud using Sauce Labs',
-        'In the cloud using Browserstack or Testingbot or a different service',
+        'In the cloud using Browserstack or Testingbot or LambdaTest or a different service',
         'I have my own Selenium cloud'
     ]
 }, {
@@ -110,6 +117,36 @@ export const QUESTIONNAIRE = [{
     message: 'What is the port on which that service is running?',
     default: '80',
     when: /* istanbul ignore next */ (answers) => answers.backend.indexOf('different service') > -1
+}, {
+    type: 'input',
+    name: 'expEnvAccessKey',
+    message: 'Access key from Experitest Cloud',
+    default: 'EXPERITEST_ACCESS_KEY',
+    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Experitest'
+}, {
+    type: 'input',
+    name: 'expEnvHostname',
+    message: 'Environment variable for cloud url',
+    default: 'example.experitest.com',
+    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Experitest'
+}, {
+    type: 'input',
+    name: 'expEnvPort',
+    message: 'Environment variable for port',
+    default: '443',
+    when: /* istanbul ignore next */ (answers) => answers.backend === 'In the cloud using Experitest'
+}, {
+    type: 'list',
+    name: 'expEnvProtocol',
+    message: 'Choose a protocol for environment variable',
+    default: 'https',
+    choices: [
+        'https',
+        'http'
+    ],
+    when: /* istanbul ignore next */ (answers) => {
+        return answers.backend === 'In the cloud using Experitest' && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
+    }
 }, {
     type: 'input',
     name: 'env_user',
@@ -164,8 +201,8 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'input',
     name: 'path',
-    message: 'What is the path to your Selenium standalone or grid server?',
-    default: '/wd/hub',
+    message: 'What is the path to your browser driver or grid server?',
+    default: '/',
     when: /* istanbul ignore next */ (answers) => answers.backend.indexOf('own Selenium cloud') > -1
 }, {
     type: 'list',
@@ -216,7 +253,7 @@ export const QUESTIONNAIRE = [{
         /* istanbul ignore next */
         ({ name }) => name === 'chromedriver').value
     ],
-    validate: validateServiceAnswers
+    validate: /* istanbul ignore next */ (answers) => validateServiceAnswers(answers)
 }, {
     type: 'input',
     name: 'outputDir',

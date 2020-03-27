@@ -1,6 +1,8 @@
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
 const DEFAULT_PROTOCOL = 'http'
+const DEFAULT_PATH = '/'
+const LEGACY_PATH = '/wd/hub'
 
 const REGION_MAPPING = {
     'us': '', // default endpoint
@@ -8,6 +10,9 @@ const REGION_MAPPING = {
     'eu-central-1': 'eu-central-1.',
     'us-east-1': 'us-east-1.'
 }
+
+export const validObjectOrArray = (object) => (Array.isArray(object) && object.length > 0) ||
+    (typeof object === 'object' && Object.keys(object).length > 0)
 
 export function getSauceEndpoint (region, isRDC) {
     const shortRegion = REGION_MAPPING[region] ? region : 'us'
@@ -19,10 +24,34 @@ export function getSauceEndpoint (region, isRDC) {
 }
 
 /**
+ * remove line numbers from file path, ex:
+ * `/foo:9` or `c:\bar:14:5`
+ * @param   {string} filePath path to spec file
+ * @returns {string}
+ */
+export function removeLineNumbers(filePath) {
+    const matcher = filePath.match(/:\d+(:\d+$|$)/)
+    if (matcher) {
+        filePath = filePath.substring(0, matcher.index)
+    }
+    return filePath
+}
+
+/**
+ * does spec file path contain Cucumber's line number, ex
+ * `/foo/bar:9` or `c:\bar\foo:14:5`
+ * @param {string|string[]} spec
+ */
+export function isCucumberFeatureWithLineNumber(spec) {
+    const specs = Array.isArray(spec) ? spec : [spec]
+    return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
+}
+
+/**
  * helper to detect the Selenium backend according to given capabilities
  */
 export function detectBackend (options = {}, isRDC = false) {
-    let { port, hostname, user, key, protocol, region, headless } = options
+    let { port, hostname, user, key, protocol, region, headless, path } = options
 
     /**
      * browserstack
@@ -30,9 +59,10 @@ export function detectBackend (options = {}, isRDC = false) {
      */
     if (typeof user === 'string' && typeof key === 'string' && key.length === 20) {
         return {
-            protocol: 'https',
-            hostname: 'hub-cloud.browserstack.com',
-            port: 443
+            protocol: protocol || 'https',
+            hostname: hostname || 'hub-cloud.browserstack.com',
+            port: port || 443,
+            path: path || LEGACY_PATH
         }
     }
 
@@ -42,8 +72,10 @@ export function detectBackend (options = {}, isRDC = false) {
      */
     if (typeof user === 'string' && typeof key === 'string' && key.length === 32) {
         return {
-            hostname: 'hub.testingbot.com',
-            port: 80
+            protocol: protocol || 'https',
+            hostname: hostname || 'hub.testingbot.com',
+            port: port || 443,
+            path: path || LEGACY_PATH
         }
     }
 
@@ -63,7 +95,8 @@ export function detectBackend (options = {}, isRDC = false) {
         return {
             protocol: protocol || 'https',
             hostname: hostname || getSauceEndpoint(sauceRegion, isRDC),
-            port: port || 443
+            port: port || 443,
+            path: path || LEGACY_PATH
         }
     }
 
@@ -85,22 +118,31 @@ export function detectBackend (options = {}, isRDC = false) {
     }
 
     /**
-     * no cloud provider detected, fallback to local browser driver
+     * default values if on of the WebDriver criticial options is set
      */
-    return {
-        hostname: hostname || DEFAULT_HOSTNAME,
-        port: port || DEFAULT_PORT,
-        protocol: protocol || DEFAULT_PROTOCOL
+    if (hostname || port || protocol || path) {
+        return {
+            hostname: hostname || DEFAULT_HOSTNAME,
+            port: port || DEFAULT_PORT,
+            protocol: protocol || DEFAULT_PROTOCOL,
+            path: path || DEFAULT_PATH
+        }
     }
+
+    /**
+     * no cloud provider detected, pass on provided params and eventually
+     * fallback to DevTools protocol
+     */
+    return { hostname, port, protocol, path }
 }
 
 /**
  * validates configurations based on default values
  * @param  {Object} defaults  object describing all allowed properties
- * @param  {Object} options   option to check agains
+ * @param  {Object} options   option to check against
  * @return {Object}           validated config enriched with default values
  */
-export function validateConfig (defaults, options) {
+export function validateConfig (defaults, options, keysToKeep = []) {
     const params = {}
 
     for (const [name, expectedOption] of Object.entries(defaults)) {
@@ -133,6 +175,15 @@ export function validateConfig (defaults, options) {
             }
 
             params[name] = options[name]
+        }
+    }
+
+    for (const [name, option] of Object.entries(options)) {
+        /**
+         * keep keys from source object if desired
+         */
+        if (keysToKeep.includes(name)) {
+            params[name] = option
         }
     }
 
