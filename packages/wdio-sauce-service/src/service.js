@@ -38,7 +38,6 @@ export default class SauceService {
 
     beforeSuite (suite) {
         this.suiteTitle = suite.title
-        global.browser.execute('sauce:job-name=' + this.suiteTitle)
     }
 
     beforeTest (test) {
