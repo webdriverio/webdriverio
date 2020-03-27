@@ -217,7 +217,50 @@ browser.touchAction(touchAction)
 
 ## Test Your Changes
 
-In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/examples`. You find all necessary information [in there](https://github.com/webdriverio/webdriverio/tree/master/examples/README.md).
+In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/examples`. You find all necessary information [in there](https://github.com/webdriverio/webdriverio/tree/master/examples/README.md). When submitting a PR, WebdriverIO runs the following checks:
+
+- *Dependency Checks*
+  We automatically check if every sub-package has all dependencies installed in the package.json.
+  You can manually trigger this check by calling:
+  ```sh
+  $ npm run test:depcheck
+  ```
+- *EsLint*
+  Common EsLint test to align code styles and detecting syntax errors early.
+  You can manually trigger this check by calling:
+  ```sh
+  $ npm run test:eslint
+  ```
+- *TypeScript Definition Tests*
+  As we generate our type definitions we want to be cautious that the generated definitions actually define the interface as expected. Read more
+  on that at [Testing Type Definitions](#testing-type-definitions).
+  You can manually trigger this check by calling:
+  ```sh
+  $ npm run test:typings
+  ```
+- *Unit Tests*
+  Like every project we unit test our code and ensure that new patches are properly tested. The coverage treshold is pretty high so ensure that
+  your changes cover all necessary code paths. We are using [Jest](https://jestjs.io/) as unit test framework here.
+  You can manually trigger this check by calling:
+  ```sh
+  $ npm run test:coverage
+  ```
+- *Smoke Tests*
+  While unit tests already cover a lot cases, we run in addition to that smoke tests that simulate test scenarios which are difficult to test
+  on a unit level as they include functionality of dependencies that are stubbed out in unit tests. Such scenarios are for example: proper
+  test retries or failure handling. Smoke test run actual e2e test where the driver is being stubbed (via [`@wdio/smoke-test-service`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-smoke-test-service/package.json)) to return fake results.
+  You can manually trigger this check by calling:
+  ```sh
+  $ npm run test:smoke
+  ```
+- *e2e Tests*
+  Last but not least we run actual e2e tests with real browser to ensure that our WebDriver DevTools implementation is working as expected. These
+  test spin up headless Chrome and Firefox browser to test the commands implemented in the `devtools` package. Given that WebDriver functionality
+  is already tested with [WPT](https://github.com/web-platform-tests/wpt) we don't need to do it there.
+  You can manually trigger this check by calling:
+  ```sh
+  $ npm run test:e2e
+  ```
 
 ## Back-Porting Bug Fixes
 
