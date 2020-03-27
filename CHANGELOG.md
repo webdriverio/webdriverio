@@ -19,6 +19,17 @@ If versions are skipped that means that the release didn't had any substantial o
 
 ---
 
+## v6.0.5 (2020-03-27)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5166](https://github.com/webdriverio/webdriverio/pull/5166) Fix usage of uuid package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.0.4 (2020-03-27)
 
 #### :bug: Bug Fix
