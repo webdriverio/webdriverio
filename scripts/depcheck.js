@@ -50,6 +50,7 @@ const EXEC_OPTIONS = { silent: true, async: true }
         process.exit(1)
     }
 
+    console.log('Depcheck passed!')
     process.exit(0)
 })().catch((err) => {
     console.error('Depcheck failed:', err.stack)
