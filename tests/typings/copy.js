@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const { promisify } = require('util')
 
 const { ln, mkdir } = require('shelljs')
 const rimraf = require('rimraf')
@@ -30,6 +31,8 @@ const packages = {
     '@wdio/shared-store-service': 'packages/wdio-shared-store-service'
 }
 
+const artifactDirs = ['node_modules', 'dist']
+
 /**
  * copy package.json and typings from package to type-generation/test/.../node_modules
  */
@@ -49,9 +52,27 @@ async function copy() {
     }
 }
 
-rimraf('tests/typings/**/node_modules/', error => {
-    if (!error) {
-        return copy()
+/**
+ * delete eventual artifacts from test folders
+ */
+Promise.all(
+    artifactDirs.map(
+        (dir) => Promise.all(
+            outDirs.map(
+                (testDir) => promisify(rimraf)(path.join(__dirname, testDir, dir))
+            )
+        )
+    )
+).then(
+    /**
+     * if successful, start test
+     */
+    () => copy(),
+    /**
+     * on failure, error out
+     */
+    (err) => {
+        console.error(err.stack)
+        process.exit(1)
     }
-    throw new Error(error)
-})
+)
