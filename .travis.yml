@@ -19,18 +19,18 @@ jobs:
   include:
     - stage: test
       name: 'Test (Linux Node v10)'
-      node_js: 12
+      node_js: 10
       script:
         - npm run setup-full
         - npm run test
-        - npm run e2e
+        - npm run test:e2e
     - stage: test
       name: 'Test (Linux Node v12)'
       node_js: 12
       script:
         - npm run setup-full
         - npm run test
-        - npm run e2e
+        - npm run test:e2e
     - stage: test
       name: 'Test (MacOS Node v12)'
       node_js: 12
@@ -38,7 +38,7 @@ jobs:
       script:
         - npm run setup-full
         - npm run test
-        - npm run e2e
+        - npm run test:e2e
     # Windows on Travis is not stable enough yet
     # - <<: *base_setup
     #   <<: *e2e_setup
