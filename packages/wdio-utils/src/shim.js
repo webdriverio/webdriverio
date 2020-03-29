@@ -154,7 +154,8 @@ try {
     /* istanbul ignore if */
     if (!process.env.WDIO_NO_SYNC_SUPPORT) {
         // eslint-disable-next-line import/no-unresolved
-        const wdioSync = require('@wdio/sync')
+        const packageName = '@wdio/sync'
+        const wdioSync = require(packageName)
         hasWdioSyncSupport = true
         runFnInFiberContext = wdioSync.runFnInFiberContext
         wrapCommand = wdioSync.wrapCommand
