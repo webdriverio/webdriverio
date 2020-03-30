@@ -17,17 +17,20 @@ stages:
 jobs:
   fast_finish: true
   include:
-    - stage: test
+    - <<: *e2e_setup
+      stage: test
       name: 'Test (Linux Node v10)'
       node_js: 10
       script:
         - npm run ci
-    - stage: test
+    - <<: *e2e_setup
+      stage: test
       name: 'Test (Linux Node v12)'
       node_js: 12
       script:
         - npm run ci
-    - stage: test
+    - <<: *e2e_setup
+      stage: test
       name: 'Test (MacOS Node v12)'
       node_js: 12
       os: osx
