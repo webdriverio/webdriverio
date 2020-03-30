@@ -157,7 +157,7 @@ describe('wdio-testingbot-service', () => {
         const test = {
             passed: true
         }
-        tbService.afterTest(test)
+        tbService.afterTest({}, {}, test)
 
         expect(tbService.failures).toEqual(0)
     })
@@ -168,7 +168,7 @@ describe('wdio-testingbot-service', () => {
         const test = {
             passed: false
         }
-        tbService.afterTest(test)
+        tbService.afterTest({}, {}, test)
 
         expect(tbService.failures).toEqual(1)
     })
