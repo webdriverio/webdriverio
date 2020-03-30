@@ -57,7 +57,14 @@ const BANNER = `
 // eslint-disable-next-line no-console
 console.log('Start generating changelog...')
 changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) => {
-    newChangelog = `\n\n## v${version} ` + newChangelog.slice(newChangelog.indexOf('(')) + '\n'
+    const changes = newChangelog.slice(newChangelog.indexOf('('))
+
+    if (changes.trim().length === 0) {
+        console.log('No changelog detected, skipping!')
+        return
+    }
+
+    newChangelog = `\n\n## v${version} ${changes}\n`
     let changelogContent = fs.readFileSync(changelogPath, 'utf8')
     changelogContent = changelogContent.replace('---', '---' + newChangelog)
     fs.writeFileSync(changelogPath, changelogContent, 'utf8')
