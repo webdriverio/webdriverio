@@ -18,7 +18,7 @@ describe('pause test', () => {
         const end = Date.now()
 
         expect(end - start).toBeGreaterThan(490)
-        expect(end - start).toBeLessThan(600)
+        expect(end - start).toBeLessThan(700)
         expect(got.mock.calls).toHaveLength(1)
     })
 
