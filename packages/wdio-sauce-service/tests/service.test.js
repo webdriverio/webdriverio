@@ -105,14 +105,14 @@ test('afterSuite', () => {
 
 test('afterTest', () => {
     const service = new SauceService()
-    service.beforeSession({}, {})
+    service.beforeSession({}, {}, {})
 
     expect(service.failures).toBe(0)
 
-    service.afterTest({ passed: true })
+    service.afterTest({}, {}, { passed: true })
     expect(service.failures).toBe(0)
 
-    service.afterTest({ passed: false })
+    service.afterTest({}, {}, { passed: false })
     expect(service.failures).toBe(1)
 })
 

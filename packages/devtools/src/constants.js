@@ -84,6 +84,8 @@ export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name', 'xpath
 export const SERIALIZE_PROPERTY = 'data-devtoolsdriver-fetchedElement'
 export const SERIALIZE_FLAG = '__executeElement'
 
+export const PPTR_LOG_PREFIX = 'puppeteer:protocol'
+
 export const ERROR_MESSAGES = {
     staleElement: {
         name: 'stale element reference',

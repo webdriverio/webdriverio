@@ -148,8 +148,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const cbtService = new CrossBrowserTestingService()
         cbtService.failures = 0
 
-        cbtService.afterTest({ passed: true })
-
+        cbtService.afterTest({}, {}, { passed: true })
         expect(cbtService.failures).toEqual(0)
     })
 
@@ -157,7 +156,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const cbtService = new CrossBrowserTestingService()
         cbtService.failures = 0
 
-        cbtService.afterTest({ passed: false })
+        cbtService.afterTest({}, {}, { passed: false })
 
         expect(cbtService.failures).toEqual(1)
     })

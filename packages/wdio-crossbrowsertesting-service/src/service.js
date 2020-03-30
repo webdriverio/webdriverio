@@ -62,8 +62,8 @@ export default class CrossBrowserTestingService {
      * After test
      * @param {Object} test Test
      */
-    afterTest (test) {
-        if (!test.passed) {
+    afterTest (test, context, results) {
+        if (!results.passed) {
             ++this.failures
         }
     }
