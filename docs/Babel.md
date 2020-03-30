@@ -37,7 +37,8 @@ exports.config = {
     // ...
     mochaOpts: {
         ui: 'bdd',
-        require: ['@babel/register', './test/helpers/common.js']
+        require: ['@babel/register', './test/helpers/common.js'],
+        // ...
     },
     // ...
 }
@@ -47,8 +48,10 @@ exports.config = {
 // wdio.conf.js
 exports.config = {
     // ...
-    before: function() {
-        require('@babel/register')
+    jasmineNodeOpts: {
+        // Jasmine default timeout
+	    helpers: [require.resolve('@babel/register')],
+        // ...
     },
     // ...
 }
@@ -60,7 +63,8 @@ exports.config = {
     // ...
     cucumberOpts: {
         requireModule: ['@babel/register'],
-        require: ['./test/helpers/common.js']
+        require: ['./test/helpers/common.js'],
+        // ...
     },
     // ...
 }
