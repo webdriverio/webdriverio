@@ -107,10 +107,10 @@ test('afterTest', () => {
 
     expect(service.failures).toBe(0)
 
-    service.afterTest({ passed: true })
+    service.afterTest(undefined, undefined, { passed: true })
     expect(service.failures).toBe(0)
 
-    service.afterTest({ passed: false })
+    service.afterTest(undefined, undefined, { passed: false })
     expect(service.failures).toBe(1)
 })
 
