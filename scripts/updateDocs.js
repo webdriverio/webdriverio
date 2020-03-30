@@ -23,7 +23,7 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
     const { stdout } = shell.exec('git rev-parse --abbrev-ref HEAD', { silent: true })
     const currentBranch = stdout.trim()
 
-    const bucketName = currentBranch === 'master' ? BUCKET_NAME : `${currentBranch}.${BUCKET_NAME}`
+    const bucketName = currentBranch === 'HEAD' ? BUCKET_NAME : `${currentBranch}.${BUCKET_NAME}`
 
     console.log(`Uploading ${BUILD_DIR} to S3 bucket ${bucketName}`)
     await Promise.all(files.map((file) => new Promise((resolve, reject) => s3.upload({
