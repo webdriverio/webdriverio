@@ -249,7 +249,7 @@ describe('wdio-logger node', () => {
                 expect(await nodeLogger.waitForBuffer()).toBe(undefined)
                 const end = Date.now()
                 expect(end - start).toBeGreaterThanOrEqual(200)
-                expect(end - start).toBeLessThanOrEqual(300)
+                expect(end - start).toBeLessThanOrEqual(400)
             })
         })
 

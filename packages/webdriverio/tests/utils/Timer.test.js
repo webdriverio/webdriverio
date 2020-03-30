@@ -75,7 +75,7 @@ describe('timer', () => {
                 await new Timer(100, 200, () => new Promise((resolve, reject) =>
                     setTimeout(() => {
                         return reject()
-                    }, 50)
+                    }, 20)
                 ))
             } catch (err) {
                 // ignored
