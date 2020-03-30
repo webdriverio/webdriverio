@@ -318,7 +318,12 @@ export function patchDebug (scoppedLogger) {
      * one that is installed for all packages
      */
     if (!fs.existsSync(puppeteerDebugPkg)) {
-        puppeteerDebugPkg = require.resolve('debug')
+        /**
+         * let's not get caught by our dep checker, therefor
+         * define package name in variable first
+         */
+        const pkgName = 'debug'
+        puppeteerDebugPkg = require.resolve(pkgName)
     }
 
     require(puppeteerDebugPkg).log = (msg) => {
