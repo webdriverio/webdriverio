@@ -1,7 +1,9 @@
 WebdriverIO Selenium Standalone Service
 =======================================
 
-Handling the Selenium server is out of scope of the actual WebdriverIO project. This service helps you to run Selenium seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/guide/testrunner/gettingstarted.html). It uses the well know [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) NPM package that automatically sets up the standalone server and all required driver for you.
+Handling the Selenium server is out of scope of the actual WebdriverIO project. This service helps you to run Selenium seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/guide/testrunner/gettingstarted.html). It uses the well known [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) NPM package that automatically sets up the standalone server and all required driver for you.
+
+__Note:__ If you use this service you don't need any other driver services (e.g. [wdio-chromedriver-service](https://www.npmjs.com/package/wdio-chromedriver-service)) anymore. All local browser can be started using this service.
 
 ## Installation
 

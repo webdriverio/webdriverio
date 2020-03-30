@@ -21,7 +21,7 @@ describe('Selenium standalone launcher', () => {
                 args : { foo : 'foo' },
                 installArgs : { bar : 'bar' },
             }
-            const capabilities = [{}]
+            const capabilities = [{ port: 1234 }]
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true })
@@ -31,6 +31,9 @@ describe('Selenium standalone launcher', () => {
             expect(launcher.args).toBe(options.args)
             expect(launcher.skipSeleniumInstall).toBe(false)
             expect(launcher.watchMode).toEqual(true)
+            expect(capabilities[0].protocol).toBe('http')
+            expect(capabilities[0].hostname).toBe('localhost')
+            expect(capabilities[0].port).toBe(4444)
             expect(capabilities[0].path).toBe('/wd/hub')
         })
 
