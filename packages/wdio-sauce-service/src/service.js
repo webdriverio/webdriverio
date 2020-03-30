@@ -74,7 +74,7 @@ export default class SauceService {
         }
     }
 
-    afterTest (test, passed) {
+    afterTest (passed) {
         if (!passed) {
             ++this.failures
         }
