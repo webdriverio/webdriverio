@@ -1,3 +1,4 @@
+import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
@@ -16,10 +17,19 @@ const log = logger('devtools:puppeteer')
  * log puppeteer messages
  */
 const PREFIX = 'puppeteer:protocol'
-const puppeteerDebugPkg = path.resolve(
+let puppeteerDebugPkg = path.resolve(
     path.dirname(require.resolve('puppeteer-core')),
     'node_modules',
     'debug')
+
+/**
+ * check if Puppeteer has its own version of debug, if not use the
+ * one that is installed for all packages
+ */
+if (!fs.existsSync(puppeteerDebugPkg)) {
+    puppeteerDebugPkg = require.resolve('debug')
+}
+
 /* istanbul ignore next */
 require(puppeteerDebugPkg).log = (msg) => {
     if (msg.includes('puppeteer:protocol')) {
