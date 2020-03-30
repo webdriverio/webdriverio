@@ -47,7 +47,7 @@ jobs:
       node_js: 12
       deploy:
         provider: script
-        script: "gem install compass && npm run docs"
+        script: "gem install compass && npm install && npm run docs"
         cleanup: true
         on:
           tags: true
