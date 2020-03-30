@@ -17,9 +17,6 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
-## v6.0.8 
-
-
 ## v6.0.6 (2020-03-30)
 
 #### :bug: Bug Fix
