@@ -19,6 +19,9 @@ If versions are skipped that means that the release didn't had any substantial o
 
 ---
 
+## v6.0.7 
+
+
 ## v6.0.6 (2020-03-30)
 
 #### :bug: Bug Fix
