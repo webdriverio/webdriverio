@@ -1,5 +1,5 @@
-import * as debug from 'debug'
 import os from 'os'
+import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import logger from '@wdio/logger'
 import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
@@ -16,8 +16,19 @@ const log = logger('devtools:puppeteer')
  * log puppeteer messages
  */
 const PREFIX = 'puppeteer:protocol'
+const puppeteerDebugPkgPath = path.resolve(
+    path.dirname(require.resolve('puppeteer-core')),
+    'node_modules',
+    'debug')
+let importedPuppeteerDebugPkg = null
+try {
+    importedPuppeteerDebugPkg = require(puppeteerDebugPkgPath)
+} catch (err) {
+    // See issue #5167
+    importedPuppeteerDebugPkg = require('debug')
+}
 /* istanbul ignore next */
-debug.log = (msg) => {
+importedPuppeteerDebugPkg.log = (msg) => {
     if (msg.includes('puppeteer:protocol')) {
         msg = msg.slice(msg.indexOf(PREFIX) + PREFIX.length).trim()
     }
