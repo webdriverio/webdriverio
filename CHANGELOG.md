@@ -19,6 +19,22 @@ If versions are skipped that means that the release didn't had any substantial o
 
 ---
 
+## v6.0.6 (2020-03-30)
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-crossbrowsertesting-service`, `wdio-sauce-service`, `wdio-testingbot-service`
+  * [#5175](https://github.com/webdriverio/webdriverio/pull/5175) v6 release bug fixes ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-config`, `wdio-selenium-standalone-service`
+  * [#5173](https://github.com/webdriverio/webdriverio/pull/5173) Set connection details in selenium-standalone properly ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#5168](https://github.com/webdriverio/webdriverio/pull/5168) Allow API descriptions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.0.5 (2020-03-27)
 
 #### :bug: Bug Fix
