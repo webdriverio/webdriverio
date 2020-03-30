@@ -84,7 +84,7 @@
     "dox": "^0.9.0",
     "eslint": "^6.5.1",
     "eslint-plugin-import": "^2.18.2",
-    "husky": "^3.0.7",
+    "husky": "^4.2.3",
     "inquirer": "^7.0.0",
     "jest": "^25.1.0",
     "jest-circus": "^25.1.0",
