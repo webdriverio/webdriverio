@@ -15,12 +15,7 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELOG.md).
 
-If versions are skipped that means that the release didn't had any substantial or noteable changes.
-
 ---
-
-## v6.0.7 
-
 
 ## v6.0.6 (2020-03-30)
 
