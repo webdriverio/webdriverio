@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
+const ejs = require('ejs')
 
-const ejs = require('../../packages/wdio-cli/node_modules/ejs')
 const config = require('../../website/siteConfig')
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
 const {
