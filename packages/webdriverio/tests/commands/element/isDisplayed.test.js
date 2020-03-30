@@ -1,5 +1,6 @@
 import got from 'got'
 import { remote } from '../../../src'
+
 jest.mock('../../../src/scripts/isElementDisplayed', () => ({
     __esModule: true,
     default: function () { return true }

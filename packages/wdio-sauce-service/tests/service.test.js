@@ -2,15 +2,6 @@ import got from 'got'
 
 import SauceService from '../src'
 
-global.browser = {
-    config: {},
-    execute: jest.fn(),
-    chromeA: { sessionId: 'sessionChromeA' },
-    chromeB: { sessionId: 'sessionChromeB' },
-    chromeC: { sessionId: 'sessionChromeC' },
-    instances: ['chromeA', 'chromeB', 'chromeC'],
-}
-
 const uri = '/some/uri'
 const featureObject = {
     type: 'gherkin-document',
@@ -32,6 +23,17 @@ const featureObject = {
             comments: []
         }
 }
+
+beforeEach(() => {
+    global.browser = {
+        config: {},
+        execute: jest.fn(),
+        chromeA: { sessionId: 'sessionChromeA' },
+        chromeB: { sessionId: 'sessionChromeB' },
+        chromeC: { sessionId: 'sessionChromeC' },
+        instances: ['chromeA', 'chromeB', 'chromeC'],
+    }
+})
 
 test('beforeSuite', () => {
     const service = new SauceService()
@@ -395,6 +397,6 @@ test('getBody without multiremote', () => {
 })
 
 afterEach(() => {
-    global.browser.execute.mockClear()
+    delete global.browser
     got.put.mockClear()
 })

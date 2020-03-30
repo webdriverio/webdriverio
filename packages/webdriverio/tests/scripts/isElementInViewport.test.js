@@ -98,4 +98,8 @@ describe('isElementInViewport script', () => {
 
         expect(isElementInViewport(elemMock)).toBe(false)
     })
+
+    afterAll(() => {
+        delete global.window
+    })
 })

@@ -475,9 +475,10 @@ describe('launcher', () => {
 
     describe('run', () => {
         let config = {}
-        global.console.error = () => {}
 
         beforeEach(() => {
+            global.console.error = jest.fn()
+
             config = {
                 // ConfigParser.addFileConfig() will return onPrepare and onComplete as arrays of functions
                 onPrepare: [jest.fn()],
@@ -531,9 +532,13 @@ describe('launcher', () => {
             expect(launcher.runner.shutdown).toBeCalled()
             expect(error).toBeInstanceOf(Error)
         })
+
+        afterEach(() => {
+            global.console.error.mockRestore()
+        })
     })
 
     afterEach(() => {
-        global.console.log.mockReset()
+        global.console.log.mockRestore()
     })
 })

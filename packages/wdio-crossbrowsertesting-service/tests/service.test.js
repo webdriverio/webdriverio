@@ -27,23 +27,28 @@ const featureObject = {
 
 describe('wdio-crossbrowsertesting-service', () => {
     const execute = jest.fn()
-    global.browser = {
-        execute,
-        sessionId: 'globalSessionId',
-        requestHandler: {
-            auth: {
-                user: 'test',
-                pass: 'testy'
-            }
-        },
-        chromeA: { sessionId: 'sessionChromeA' },
-        chromeB: { sessionId: 'sessionChromeB' },
-        chromeC: { sessionId: 'sessionChromeC' },
-        instances: ['chromeA', 'chromeB', 'chromeC'],
-    }
+
+    beforeEach(() => {
+        global.browser = {
+            execute,
+            sessionId: 'globalSessionId',
+            requestHandler: {
+                auth: {
+                    user: 'test',
+                    pass: 'testy'
+                }
+            },
+            config: {},
+            chromeA: { sessionId: 'sessionChromeA' },
+            chromeB: { sessionId: 'sessionChromeB' },
+            chromeC: { sessionId: 'sessionChromeC' },
+            instances: ['chromeA', 'chromeB', 'chromeC'],
+            isMultiremote: false
+        }
+    })
 
     afterEach(() => {
-        global.browser.isMultiremote = false
+        delete global.browser
         execute.mockReset()
     })
 

@@ -27,23 +27,27 @@ got.put.mockReturnValue(Promise.resolve({ body: '{}' }))
 
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
-    global.browser = {
-        execute,
-        sessionId: 'globalSessionId',
-        requestHandler: {
-            auth: {
-                user: 'user',
-                pass: 'pass'
-            }
-        },
-        chromeA: { sessionId: 'sessionChromeA' },
-        chromeB: { sessionId: 'sessionChromeB' },
-        chromeC: { sessionId: 'sessionChromeC' },
-        instances: ['chromeA', 'chromeB', 'chromeC'],
-    }
+
+    beforeEach(() => {
+        global.browser = {
+            execute,
+            sessionId: 'globalSessionId',
+            requestHandler: {
+                auth: {
+                    user: 'user',
+                    pass: 'pass'
+                }
+            },
+            config: {},
+            chromeA: { sessionId: 'sessionChromeA' },
+            chromeB: { sessionId: 'sessionChromeB' },
+            chromeC: { sessionId: 'sessionChromeC' },
+            instances: ['chromeA', 'chromeB', 'chromeC'],
+        }
+    })
 
     afterEach(() => {
-        global.browser.isMultiremote = false
+        delete global.browser
         execute.mockReset()
     })
 

@@ -9,7 +9,6 @@ jest.mock('fs-extra', () => ({
     createWriteStream: jest.fn(),
     ensureFileSync: jest.fn(),
 }))
-global.console.error = jest.fn()
 
 class eventHandler {
     registered = {};
@@ -62,6 +61,7 @@ describe('Appium launcher', () => {
     const originalPlatform = process.platform
 
     beforeEach(() => {
+        global.console.error = jest.fn()
         childProcess.spawn.mockClear()
         childProcess.spawn.mockReturnValue(new MockProcess())
     })
@@ -196,6 +196,7 @@ describe('Appium launcher', () => {
     })
 
     afterEach(() => {
+        global.console.error.mockRestore()
         Object.defineProperty(process, 'platform', {
             value: originalPlatform
         })

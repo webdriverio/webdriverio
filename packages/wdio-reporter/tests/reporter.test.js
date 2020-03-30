@@ -91,6 +91,6 @@ describe('WDIOReporter', () => {
     })
 
     afterAll(() => {
-        eventsOnSpy.mockClear()
+        eventsOnSpy.mockRestore()
     })
 })

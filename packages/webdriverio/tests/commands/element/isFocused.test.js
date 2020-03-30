@@ -30,6 +30,10 @@ describe('isFocused test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        got.mockReset()
+    })
+
+    afterAll(() => {
+        got.mockRestore()
     })
 })

@@ -2,12 +2,12 @@ import WDIOCLInterface from '../src/interface'
 import chalk from 'chalk'
 
 const config = {}
-global.console.log = jest.fn()
 
 describe('cli interface', () => {
     let wdioClInterface
 
     beforeEach(() => {
+        global.console.log = jest.fn()
         wdioClInterface = new WDIOCLInterface(config, 5)
         wdioClInterface.log = jest.fn().mockImplementation((...args) => args)
     })
@@ -428,5 +428,9 @@ describe('cli interface', () => {
             expect(result[1]).toContain('Error')
             expect(result[1]).toContain('STRING_ERROR')
         })
+    })
+
+    afterEach(() => {
+        global.console.log.mockRestore()
     })
 })

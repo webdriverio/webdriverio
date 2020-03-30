@@ -9,7 +9,7 @@
     "build-full": "lerna run --parallel build",
     "build": "npm run clean:build && lerna run --parallel compile && lerna run --parallel copy",
     "changelog": "node ./scripts/changelog.js",
-    "ci": "lerna bootstrap --no-ci && run-s build-full test:eslint test:typings test:coverage test:smoke",
+    "ci": "run-s setup-full test test:e2e",
     "clean": "run-p clean-full:* clean:*",
     "clean:build": "rimraf ./packages/*/build",
     "clean:pkglock": "rimraf ./packages/*/package-lock.json",

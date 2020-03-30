@@ -29,3 +29,7 @@ test('should throw error if package can not be installed', () => {
     expect(() => require('../src/fibers'))
         .toThrow(/No proper `fibers` package could be loaded/)
 })
+
+afterEach(() => {
+    delete global.requireFibers
+})

@@ -115,3 +115,7 @@ describe('resq script', () => {
         expect(global.window.resq.waitToLoadReact).toBeCalledTimes(1)
     })
 })
+
+afterEach(() => {
+    delete global.window.resq
+})

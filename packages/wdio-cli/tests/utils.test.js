@@ -319,9 +319,6 @@ test('validateServiceAnswers', () => {
         .toBe(true)
 })
 
-afterEach(() => {
-    global.console.log.mockReset()
-})
 describe('getCapabilities', () => {
     it('should return driver with capabilities for android', () => {
         expect(getCapabilities({ option: 'foo.apk' })).toMatchSnapshot()
@@ -336,4 +333,8 @@ describe('getCapabilities', () => {
     it('should return driver with capabilities for desktop', () => {
         expect(getCapabilities({ option: 'chrome' })).toMatchSnapshot()
     })
+})
+
+afterEach(() => {
+    console.log.mockRestore()
 })
