@@ -1,4 +1,3 @@
-export const SESSION_ID = '59788b0f158bea28fabd4dd25c8fb2d4'
 export const NO_SUCH_ELEMENT = {
     value: {
         error: 'no such element',
