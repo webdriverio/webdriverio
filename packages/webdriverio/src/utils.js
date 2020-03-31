@@ -8,6 +8,7 @@ import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
+import isPlainObject from 'lodash.isplainobject'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT } from './constants'
 import { findStrategy } from './utils/findStrategy'
@@ -207,7 +208,7 @@ export async function findElement(selector) {
     /**
      * fetch element using regular protocol command
      */
-    if (typeof selector === 'string') {
+    if (typeof selector === 'string' || isPlainObject(selector)) {
         const { using, value } = findStrategy(selector, this.isW3C, this.isMobile)
         return this.elementId
             ? this.findElementFromElement(this.elementId, using, value)
@@ -234,7 +235,7 @@ export async function findElements(selector) {
     /**
      * fetch element using regular protocol command
      */
-    if (typeof selector === 'string') {
+    if (typeof selector === 'string' || isPlainObject(selector)) {
         const { using, value } = findStrategy(selector, this.isW3C, this.isMobile)
         return this.elementId
             ? this.findElementsFromElement(this.elementId, using, value)
