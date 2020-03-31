@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.0.9 (2020-03-31)
+
+#### :bug: Bug Fix
+* `wdio-webdriver-mock-service`, `webdriverio`
+  * [#5182](https://github.com/webdriverio/webdriverio/pull/5182) Fix `onReload` bug ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v6.0.6 (2020-03-30)
 
 #### :bug: Bug Fix
