@@ -39,11 +39,12 @@ Array [
       "args": Array [
         "foobar",
       ],
+      "binary": "/foo/bar",
       "defaultViewport": Object {
         "height": 456,
         "width": 123,
       },
-      "executablePath": "/path/to/firefox",
+      "executablePath": "/foo/bar",
       "headless": true,
       "product": "firefox",
     },
