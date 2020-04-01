@@ -50,6 +50,7 @@ describe('wdio-crossbrowsertesting-service', () => {
     afterEach(() => {
         delete global.browser
         execute.mockReset()
+        got.put.mockClear()
     })
 
     it('before', () => {
@@ -373,6 +374,9 @@ describe('wdio-crossbrowsertesting-service', () => {
 
         await service.updateJob('12345', 23, true)
         expect(service.failures).toBe(0)
+        expect(got.put).toHaveBeenCalled()
+        expect(got.put.mock.calls[0][1].username).toBe('test')
+        expect(got.put.mock.calls[0][1].password).toBe('testy')
     })
 
     it('updateJob failure', async () => {

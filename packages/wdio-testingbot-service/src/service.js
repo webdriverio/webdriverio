@@ -180,7 +180,8 @@ export default class TestingBotService {
         const response = await got.put(this.getRestUrl(sessionId), {
             json,
             responseType: 'json',
-            auth: `${this.tbUser}:${this.tbSecret}`
+            username: this.tbUser,
+            password: this.tbSecret
         })
 
         global.browser.jobData = response.body
