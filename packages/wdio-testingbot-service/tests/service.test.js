@@ -49,6 +49,7 @@ describe('wdio-testingbot-service', () => {
     afterEach(() => {
         delete global.browser
         execute.mockReset()
+        got.put.mockClear()
     })
 
     it('before', () => {
@@ -397,8 +398,10 @@ describe('wdio-testingbot-service', () => {
 
         await service.updateJob('12345', 23, true)
 
-        expect(got.put).toHaveBeenCalled()
         expect(service.failures).toBe(0)
+        expect(got.put).toHaveBeenCalled()
+        expect(got.put.mock.calls[0][1].username).toBe('foobar')
+        expect(got.put.mock.calls[0][1].password).toBe('123')
     })
 
     it('updateJob failure', async () => {
