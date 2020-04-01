@@ -2,6 +2,8 @@ import fs from 'fs'
 import nodeLogger from '../src/node'
 import nodeLogger2 from '../build/node'
 
+jest.useFakeTimers()
+
 describe('wdio-logger node', () => {
     describe('log level', () => {
         const log = nodeLogger('test:setLevel')
@@ -220,10 +222,11 @@ describe('wdio-logger node', () => {
                 writableBuffer: [],
                 logPath: 'wdio.test.log'
             }, {
-                name: 'should f buffer is not defined',
+                name: 'should flush if buffer is not defined',
                 writableBuffer: undefined,
                 logPath: 'wdio.test.log'
             }]
+
             scenarios.forEach((scenario, idx) => {
                 it(scenario.name, async () => {
                     process.env.WDIO_LOG_PATH = scenario.logPath
@@ -242,14 +245,11 @@ describe('wdio-logger node', () => {
                 log.info('foo')
                 writableBuffer = ['bar']
 
-                const start = Date.now()
-                setTimeout(() => {
-                    writableBuffer = []
-                }, 200)
-                expect(await nodeLogger.waitForBuffer()).toBe(undefined)
-                const end = Date.now()
-                expect(end - start).toBeGreaterThanOrEqual(200)
-                expect(end - start).toBeLessThanOrEqual(400)
+                const waitPromise = nodeLogger.waitForBuffer()
+                jest.advanceTimersByTime(30)
+                writableBuffer = []
+                jest.advanceTimersByTime(30)
+                expect(await waitPromise).toBe(undefined)
             })
         })
 
