@@ -168,6 +168,7 @@ describe('before', () => {
 
     it('should initialize correctly for appium', () => {
         global.browser.capabilities = {
+            app: 'test-app',
             device: 'iPhone XS',
             os: 'iOS',
             os_version: '12.1',
