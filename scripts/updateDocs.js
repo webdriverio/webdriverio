@@ -4,11 +4,11 @@ const fs = require('fs')
 const path = require('path')
 const { promisify } = require('util')
 
-const shell = require('shelljs')
 const mime = require('mime-types')
 const readDir = require('recursive-readdir')
 const { S3, CloudFront } = require('aws-sdk')
 
+const PRODUCTION_VERSION = 'v6'
 const DISTRIBUTION_ID = process.env.DISTRIBUTION_ID
 const BUCKET_NAME = 'webdriver.io'
 const BUILD_DIR = path.resolve(__dirname, '..', 'website', 'build', 'webdriver.io')
@@ -17,13 +17,15 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
 
 /* eslint-disable no-console */
 ;(async () => {
+    if (!process.env.TRAVIS_TAG) {
+        return console.log('Don\'t deploy, as this is not a tagged release')
+    }
+
     const s3 = new S3()
     const files = await readDir(BUILD_DIR, IGNORE_FILE_SUFFIX)
 
-    const { stdout } = shell.exec('git rev-parse --abbrev-ref HEAD', { silent: true })
-    const currentBranch = stdout.trim()
-
-    const bucketName = currentBranch === 'HEAD' ? BUCKET_NAME : `${currentBranch}.${BUCKET_NAME}`
+    const version = process.env.TRAVIS_TAG.split('.')[0]
+    const bucketName = version === PRODUCTION_VERSION ? BUCKET_NAME : `${version}.${BUCKET_NAME}`
 
     console.log(`Uploading ${BUILD_DIR} to S3 bucket ${bucketName}`)
     await Promise.all(files.map((file) => new Promise((resolve, reject) => s3.upload({
@@ -42,9 +44,9 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
         return resolve(res)
     }))))
 
-    const distributionId = currentBranch === 'master'
+    const distributionId = version === PRODUCTION_VERSION
         ? DISTRIBUTION_ID
-        : process.env[`DISTRIBUTION_ID_${currentBranch.toUpperCase()}`]
+        : process.env[`DISTRIBUTION_ID_${version.toUpperCase()}`]
     console.log(`Invalidate objects from distribution ${distributionId}`)
     const cloudfront = new CloudFront()
     const { Invalidation } = await promisify(cloudfront.createInvalidation)({
