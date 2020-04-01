@@ -400,8 +400,8 @@ describe('wdio-testingbot-service', () => {
 
         expect(service.failures).toBe(0)
         expect(got.put).toHaveBeenCalled()
-        expect(got.put.mock.calls[0][1].username).toBe('test')
-        expect(got.put.mock.calls[0][1].password).toBe('testy')
+        expect(got.put.mock.calls[0][1].username).toBe('foobar')
+        expect(got.put.mock.calls[0][1].password).toBe('123')
     })
 
     it('updateJob failure', async () => {
