@@ -17,6 +17,31 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.0.10 (2020-04-01)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#5188](https://github.com/webdriverio/webdriverio/pull/5188) [Browserstack Service] Forward to correct URL for App Automate, resolve warning about 'auth' Got function ([@esaari](https://github.com/esaari))
+  * [#5187](https://github.com/webdriverio/webdriverio/pull/5187) Correctly bind browserstackLocal this-context ([@ctavan](https://github.com/ctavan))
+* `webdriverio`
+  * [#5194](https://github.com/webdriverio/webdriverio/pull/5194) fix(webdriverio): isDisplayed not working in Safari STP ([@alfonso-presa](https://github.com/alfonso-presa))
+* `devtools`
+  * [#5193](https://github.com/webdriverio/webdriverio/pull/5193) Recognise element origin in actions ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-crossbrowsertesting-service`, `wdio-testingbot-service`
+  * [#5192](https://github.com/webdriverio/webdriverio/pull/5192) fix got auth in testingbot and crossbrowsertesting service ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-allure-reporter`
+  * [#5191](https://github.com/webdriverio/webdriverio/pull/5191) Add addStep and endStep to Allure docs ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Alfonso Presa ([@alfonso-presa](https://github.com/alfonso-presa))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Christoph Tavan ([@ctavan](https://github.com/ctavan))
+- Eric Saari ([@esaari](https://github.com/esaari))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.0.9 (2020-03-31)
 
 #### :bug: Bug Fix
