@@ -48,7 +48,7 @@ export default class BrowserstackLauncherService {
         let timer
         performance.mark('tbTunnelStart')
         return Promise.race([
-            promisify(this.browserstackLocal.start)(opts),
+            promisify(this.browserstackLocal.start.bind(this.browserstackLocal))(opts),
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
                 timer = setTimeout(function () {

@@ -93,6 +93,21 @@ describe('onPrepare', () => {
         expect(service.browserstackLocal.start).toHaveBeenCalled()
         expect(log.info.mock.calls[0][0]).toContain('Browserstack Local successfully started after')
     })
+
+    it('should correctly set up this-binding for local.start', async () => {
+        const service = new BrowserstackLauncher(options, caps, config)
+        Browserstack.Local.mockImplementationOnce(function () {
+            this.start = jest.fn().mockImplementationOnce(function (options, cb) {
+                this.addArgs(options)
+                cb()
+            })
+            this.addArgs = jest.fn().mockImplementationOnce(() => undefined)
+        })
+
+        await service.onPrepare(config, caps)
+        expect(service.browserstackLocal.start).toHaveBeenCalled()
+        expect(service.browserstackLocal.addArgs).toHaveBeenCalled()
+    })
 })
 
 describe('onComplete', () => {
