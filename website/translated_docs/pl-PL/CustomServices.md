@@ -2,6 +2,7 @@
 id: customservices
 title: Custom Services
 ---
+
 You can write your own custom service for the wdio test runner that fits your needs. Services are addons to be created for reusable logic to simplify tests, manage your test suite and integrate results. Services have access to all the same [before/after hooks](ConfigurationFile.md) available in the `wdio.conf.js`. The basic construction of service should look like this:
 
 ```js
