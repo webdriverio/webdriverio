@@ -196,14 +196,14 @@ export default class SauceService {
             body.name += ` (${testCnt})`
         }
 
-        let capabilities = this.capabilities['sauce:options'] || this.capabilities
+        let caps = this.capabilities['sauce:options'] || this.capabilities
 
         for (let prop of jobDataProperties) {
-            if (capabilities[prop]) {
+            if (!caps[prop]) {
                 continue
             }
 
-            body[prop] = capabilities[prop]
+            body[prop] = caps[prop]
         }
 
         body.passed = failures === 0
