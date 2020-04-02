@@ -69,7 +69,7 @@ function launchBrowser (capabilities, executablePath, vendorCapKey) {
     }, capabilities[vendorCapKey] || {})
 
     if (!executablePath) {
-        throw new Error('Couldn\'t find executeable for browser')
+        throw new Error('Couldn\'t find executable for browser')
     }
 
     log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
@@ -77,13 +77,16 @@ function launchBrowser (capabilities, executablePath, vendorCapKey) {
 }
 
 function launchFirefox (capabilities) {
-    const executablePath = firefoxFinder[process.platform]()[0]
     const vendorPrefix = 'moz:firefoxOptions'
+
     if (!capabilities[vendorPrefix]) {
         capabilities[vendorPrefix] = {}
     }
 
+    const executablePath = capabilities[vendorPrefix].binary || firefoxFinder[process.platform]()[0]
+
     capabilities[vendorPrefix].product = 'firefox'
+
     return launchBrowser(capabilities, executablePath, vendorPrefix, { product: 'firefox' })
 }
 
