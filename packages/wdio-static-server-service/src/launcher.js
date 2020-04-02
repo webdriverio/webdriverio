@@ -39,7 +39,7 @@ export default class StaticServerLauncher {
         this.middleware.forEach(
             (ware) => this.server.use(ware.mount, ware.middleware))
 
-        await promisify(this.server.listen)(this.port)
+        await promisify(this.server.listen.bind(this.server))(this.port)
         log.info(`Static server running at http://localhost:${this.port}`)
     }
 }
