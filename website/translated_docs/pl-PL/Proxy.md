@@ -2,6 +2,7 @@
 id: proxy
 title: Proxy Setup
 ---
+
 You can tunnel two different types of request through a proxy:
 
 - connection between your test script and the browser driver (or WebDriver endpoint)
