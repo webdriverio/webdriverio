@@ -199,7 +199,9 @@ If you already use an assertion library like [Chai](https://www.chaijs.com/) you
 Next to all major updates that were described above there are also some minor changes that are worth mentioning:
 
 - __TypeScript Support:__ we improved the typings for WebdriverIO and WebDriver to include better descriptions and more detail
-- __WebDriver Default Path:__ we changed default WebDriver path to from `/wd/hub` to `/` as most of the browser drivers now default to this, this should have now affect for you - however if you have trouble connecting to a WebDriver endpoint after the upgrade, this could be a reason for that issue
+- __WebDriver Default Path:__ we changed default WebDriver path to from `/wd/hub` to `/` as most of the browser drivers now default to this, this should have now affect for you - however if you have trouble connecting to a WebDriver endpoint after the upgrade, this could be a reason for that issue.\
+__Note for Appium users:__ If you are using a local or global install of Appium and you start Appium through the command line, you should also provide the cli argument `--base-path /`. This will prevent Appium not finding a matching local emulator/simulator/real device and start using the default `path: '/'` that WebdriverIO uses.\
+If you are using the `@wdio/appium-service` you don't need to do anything.
 - __Command Renaming:__ we renamed command `launchApp` to `launchChromeApp` for Chrome WebDriver sessions
 - __Spec Filtering:__ the [Spec Filtering](https://webdriver.io/blog/2019/11/01/spec-filtering.html) feature is now enabled by default so that browser sessions aren't started if the framework can't find a test to run in the file (this can not be disabled anymore)
 - __New Hook:__ we added a new hook to the testrunner called `onWorkerStart` which will be executed right before we launch the worker process
