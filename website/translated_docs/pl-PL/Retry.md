@@ -2,6 +2,7 @@
 id: retry
 title: Retry Flaky Tests
 ---
+
 You can rerun certain tests with the WebdriverIO testrunner that turn out to be unstable due to e.g. flaky network or race conditions. However it is not recommended to just increase the rerun rate if tests become unstable.
 
 ## Rerun suites in MochaJS
