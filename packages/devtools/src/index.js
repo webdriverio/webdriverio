@@ -1,12 +1,14 @@
 import os from 'os'
+import uaParserJs from 'ua-parser-js'
 import { v4 as uuidv4 } from 'uuid'
+
 import logger from '@wdio/logger'
 import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
 import DevToolsDriver from './devtoolsdriver'
 import launch from './launcher'
-import { DEFAULTS, SUPPORTED_BROWSER } from './constants'
+import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants'
 import { getPrototype, patchDebug } from './utils'
 
 const log = logger('devtools:puppeteer')
@@ -30,16 +32,23 @@ export default class DevTools {
         const pages = await browser.pages()
         const driver = new DevToolsDriver(browser, pages)
         const sessionId = uuidv4()
-        const [browserName, browserVersion] = (await browser.version()).split('/')
+        const userAgent = uaParserJs(await browser.userAgent())
+
+        /**
+         * find vendor key in capabilities
+         */
+        const availableVendorPrefixes = Object.values(VENDOR_PREFIX)
+        const vendorCapPrefix = Object.keys(params.capabilities).find(
+            (capKey) => availableVendorPrefixes.includes(capKey))
 
         params.capabilities = {
-            browserName,
-            browserVersion,
+            browserName: userAgent.browser.name,
+            browserVersion: userAgent.browser.version,
             platformName: os.platform(),
             platformVersion: os.release(),
-            'goog:chromeOptions': Object.assign(
+            [vendorCapPrefix]: Object.assign(
                 { debuggerAddress: browser._connection.url().split('/')[2] },
-                params.capabilities['goog:chromeOptions']
+                params.capabilities[vendorCapPrefix]
             )
         }
 
@@ -54,7 +63,7 @@ export default class DevTools {
 
         sessionMap.set(sessionId, { browser, session: driver })
         const environmentPrototype = { getPuppeteer: { value: /* istanbul ignore next */ () => browser } }
-        Object.entries(devtoolsEnvironmentDetector({ browserName })).forEach(([name, value]) => {
+        Object.entries(devtoolsEnvironmentDetector({ browserName: userAgent.browser.name.toLowerCase() })).forEach(([name, value]) => {
             environmentPrototype[name] = { value }
         })
         const commandWrapper = (_, __, commandInfo) => driver.register(commandInfo)
