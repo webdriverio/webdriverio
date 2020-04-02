@@ -1,5 +1,7 @@
 import isBase64 from 'is-base64'
 
+const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
+
 /**
  * overwrite native element commands with user defined
  * @param {object} propertiesObject propertiesObject
@@ -53,7 +55,7 @@ export function commandCallStructure (commandName, args) {
         if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function'))) {
             arg = '<fn>'
         } else if (typeof arg === 'string' && isBase64(arg)) {
-            arg = '"<Screenshot[base64]>"'
+            arg = SCREENSHOT_REPLACEMENT
         } else if (typeof arg === 'string') {
             arg = `"${arg}"`
         } else if (typeof arg === 'function') {
@@ -79,7 +81,7 @@ export function commandCallStructure (commandName, args) {
  */
 export function transformCommandLogResult (result) {
     if (typeof result.file === 'string' && isBase64(result.file)) {
-        return '"<Screenshot[base64]>"'
+        return SCREENSHOT_REPLACEMENT
     }
 
     return result
