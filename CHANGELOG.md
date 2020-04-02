@@ -17,6 +17,35 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.0.13 (2020-04-02)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5198](https://github.com/webdriverio/webdriverio/pull/5198) Closes [#5197](https://github.com/webdriverio/webdriverio/issues/5197) - Devtools' launcher should respect "binary" field from moz:firefoxOptions ([@Writhe](https://github.com/Writhe))
+* `wdio-static-server-service`
+  * [#5196](https://github.com/webdriverio/webdriverio/pull/5196) Correctly bind this when promisifying static server listen method ([@ctavan](https://github.com/ctavan))
+
+#### :nail_care: Polish
+* `wdio-utils`, `webdriver`
+  * [#5202](https://github.com/webdriverio/webdriverio/pull/5202) Shorten screenshot base64 strings from logs ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`
+  * [#5201](https://github.com/webdriverio/webdriverio/pull/5201) Refactor devtools launcher to streamline behavior ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sauce-service`
+  * [#5200](https://github.com/webdriverio/webdriverio/pull/5200) W3C sauce metadata ([@DylanLacey](https://github.com/DylanLacey))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#5204](https://github.com/webdriverio/webdriverio/pull/5204) Update dragAndDrop.js ([@hakubo](https://github.com/hakubo))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Christoph Tavan ([@ctavan](https://github.com/ctavan))
+- Dylan Lacey ([@DylanLacey](https://github.com/DylanLacey))
+- Filip Moroz ([@Writhe](https://github.com/Writhe))
+- Jakub Olek ([@hakubo](https://github.com/hakubo))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.0.10 (2020-04-01)
 
 #### :bug: Bug Fix
