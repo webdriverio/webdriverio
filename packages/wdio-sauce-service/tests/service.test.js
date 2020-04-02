@@ -458,7 +458,7 @@ test('getBody with name Capability (W3C)', () => {
             name: 'bizarre'
         }
     })
-    
+
     expect(service.getBody(1)).toEqual({
         name: 'bizarre',
         passed: false
