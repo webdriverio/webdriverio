@@ -13,6 +13,7 @@ Array [
       },
       "executablePath": "/path/to/edge",
       "headless": true,
+      "product": "edge",
     },
   ],
 ]
@@ -27,6 +28,7 @@ Array [
         "width": 1200,
       },
       "executablePath": "/path/to/edge",
+      "product": "edge",
     },
   ],
 ]
