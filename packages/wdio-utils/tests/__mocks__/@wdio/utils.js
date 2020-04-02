@@ -90,3 +90,4 @@ export const testFnWrapper = jest.fn()
 export const sessionEnvironmentDetector = sessionEnvDetector
 export const capabilitiesEnvironmentDetector = capabilitiesEnvDetector
 export const devtoolsEnvironmentDetector = devtoolsEnvDetector
+export const transformCommandLogResult = jest.fn().mockImplementation((data) => data)
