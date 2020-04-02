@@ -5,7 +5,7 @@ import { initialiseWorkerService, initialiseLauncherService } from './initialise
 import webdriverMonad from './monad'
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeRequire,
-    isFunctionAsync
+    isFunctionAsync, transformCommandLogResult
 } from './utils'
 import {
     wrapCommand, runFnInFiberContext, executeHooksWithArgs,
@@ -19,6 +19,7 @@ export {
     initialiseLauncherService,
     initialiseWorkerService,
     isFunctionAsync,
+    transformCommandLogResult,
     webdriverMonad,
     commandCallStructure,
     isValidParameter,

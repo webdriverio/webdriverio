@@ -1,6 +1,6 @@
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter,
-    getArgumentType, isFunctionAsync, filterSpecArgs
+    getArgumentType, isFunctionAsync, filterSpecArgs, transformCommandLogResult
 } from '../src/utils'
 
 describe('utils', () => {
@@ -18,9 +18,16 @@ describe('utils', () => {
                 stringFunction,
                 anotherStringFunction,
                 null,
-                undefined
+                undefined,
+                (Buffer.from('some screenshot')).toString('base64')
             ]
-        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, null, undefined)')
+        )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
+    })
+
+    it('transformCommandLogResult', () => {
+        expect(transformCommandLogResult({ foo: 'bar' })).toEqual({ foo: 'bar' })
+        expect(transformCommandLogResult({ file: (Buffer.from('some screenshot')).toString('base64') }))
+            .toBe('"<Screenshot[base64]>"')
     })
 
     describe('overwriteElementCommands', () => {
