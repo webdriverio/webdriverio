@@ -1,3 +1,7 @@
+import isBase64 from 'is-base64'
+
+const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
+
 /**
  * overwrite native element commands with user defined
  * @param {object} propertiesObject propertiesObject
@@ -50,6 +54,8 @@ export function commandCallStructure (commandName, args) {
     const callArgs = args.map((arg) => {
         if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function'))) {
             arg = '<fn>'
+        } else if (typeof arg === 'string' && isBase64(arg)) {
+            arg = SCREENSHOT_REPLACEMENT
         } else if (typeof arg === 'string') {
             arg = `"${arg}"`
         } else if (typeof arg === 'function') {
@@ -66,6 +72,19 @@ export function commandCallStructure (commandName, args) {
     }).join(', ')
 
     return `${commandName}(${callArgs})`
+}
+
+/**
+ * transforms WebDriver result for log stream to avoid unnecessary long
+ * result strings e.g. if it contains a screenshot
+ * @param {Object} result WebDriver response body
+ */
+export function transformCommandLogResult (result) {
+    if (typeof result.file === 'string' && isBase64(result.file)) {
+        return SCREENSHOT_REPLACEMENT
+    }
+
+    return result
 }
 
 /**

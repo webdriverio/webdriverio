@@ -31,6 +31,9 @@ describe('testFnWrapper', () => {
         const result = await testFnWrapper.call({ test: { fullTitle: () => 'full title' } }, ...args)
 
         expect(result).toBe('@wdio/sync: FooBar 0 0')
+        expect(executeHooksWithArgs).toBeCalledTimes(2)
+
+        delete executeHooksWithArgs.mock.calls[1][1][2].duration
         expect(executeHooksWithArgs.mock.calls).toMatchSnapshot()
     })
 
@@ -54,6 +57,9 @@ describe('testFnWrapper', () => {
         const result = await testFnWrapper(...args)
 
         expect(result).toBe('@wdio/sync: FooBar 0 0')
+        expect(executeHooksWithArgs).toBeCalledTimes(2)
+
+        delete executeHooksWithArgs.mock.calls[1][1][2].duration
         expect(executeHooksWithArgs.mock.calls).toMatchSnapshot()
     })
 

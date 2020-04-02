@@ -5,6 +5,7 @@ import EventEmitter from 'events'
 
 import got from 'got'
 import logger from '@wdio/logger'
+import { transformCommandLogResult } from '@wdio/utils'
 
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 import pkg from '../package.json'
@@ -104,7 +105,7 @@ export default class WebDriverRequest extends EventEmitter {
         log.info(`[${fullRequestOptions.method}] ${fullRequestOptions.uri.href}`)
 
         if (fullRequestOptions.json && Object.keys(fullRequestOptions.json).length) {
-            log.info('DATA', fullRequestOptions.json)
+            log.info('DATA', transformCommandLogResult(fullRequestOptions.json))
         }
 
         let response = await got(fullRequestOptions.uri, { ...fullRequestOptions })
