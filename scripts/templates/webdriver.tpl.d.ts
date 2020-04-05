@@ -292,6 +292,9 @@ declare namespace WebDriver {
         'ie.usePerProcessProxy'?: boolean;
         'ie.ensureCleanSession'?: boolean;
         'ie.setProxyByServer'?: boolean;
+        'ie.fileUploadDialogTimeout'?: number;
+        'ie.edgechromium'?: boolean;
+        'ie.edgepath'?: string;
         ignoreProtectedModeSettings?: boolean;
         ignoreZoomSetting?: boolean;
         initialBrowserUrl?: string;
