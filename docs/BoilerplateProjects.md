@@ -7,6 +7,20 @@ Over time, our community has developed several boilerplate projects that you can
 
 ## v6 Boilerplate Projects
 
+### [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
+ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
+
+- Frameworks
+  - WebdriverIO (v6)
+  - Mocha
+- Features
+  - [Page Object](PageObjects.md) Model
+  - Sauce Labs integration with [Sauce Service](../packages/wdio-sauce-service/README.md)
+  - Allure Report
+  - Automatic screenshots capture for failing tests
+  - CircleCI example
+  - ESLint
+
 ### [webdriverio/jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate)
 Boilerplate project to run WebdriverIO tests with Jasmine using Babel features and the page objects pattern.
 
