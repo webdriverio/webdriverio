@@ -154,7 +154,7 @@ export default class WebDriverRequest extends EventEmitter {
          * retry, e.g. if sessionId is invalid
          */
         if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
-            log.error('Request failed due to', error)
+            log.error(`Request failed with status ${response.statusCode} due to ${error}`)
             this.emit('response', { error })
             error.statusCode = response.statusCode
             error.statusMessage = response.statusMessage
@@ -163,7 +163,7 @@ export default class WebDriverRequest extends EventEmitter {
 
         ++retryCount
         this.emit('retry', { error, retryCount })
-        log.warn('Request failed due to', error.message)
+        log.warn(`Request failed with status ${response.statusCode} due to ${error.message}`)
         log.info(`Retrying ${retryCount}/${totalRetryCount}`)
         return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
     }
