@@ -2,6 +2,10 @@ import WDIOCLInterface from '../src/interface'
 import chalk from 'chalk'
 
 const config = {}
+const EMPTY_INTERFACE_MESSAGE_OBJECT = {
+    reporter: {},
+    debugger: {}
+}
 
 describe('cli interface', () => {
     let wdioClInterface
@@ -83,7 +87,10 @@ describe('cli interface', () => {
             name: 'foo',
             content: '456'
         })
-        expect(wdioClInterface.messages).toEqual({ reporter: { foo: ['123', '456'] } })
+        expect(wdioClInterface.messages).toEqual({
+            ...EMPTY_INTERFACE_MESSAGE_OBJECT,
+            reporter: { foo: ['123', '456'] }
+        })
     })
 
     it('should print test error', () => {
@@ -94,7 +101,7 @@ describe('cli interface', () => {
             content: 'printFailureMessage'
         })
         expect(wdioClInterface.onTestError).toBeCalledWith('printFailureMessage')
-        expect(wdioClInterface.messages).toEqual({ reporter: {} })
+        expect(wdioClInterface.messages).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
     })
 
     it('should trigger job:start event on testFrameworkInit', () => {
@@ -117,7 +124,10 @@ describe('cli interface', () => {
         })
 
         expect(wdioClInterface.printReporters).toBeCalledTimes(1)
-        expect(wdioClInterface.messages).toEqual({ reporter: { foo: ['bar'] } })
+        expect(wdioClInterface.messages).toEqual({
+            ...EMPTY_INTERFACE_MESSAGE_OBJECT,
+            reporter: { foo: ['bar'] }
+        })
     })
 
     it('should not store any other messages', () => {
@@ -130,7 +140,7 @@ describe('cli interface', () => {
             content: 'foobar'
         })).toEqual(['0-0', 'worker', 'barfoo', 'foobar'])
 
-        expect(wdioClInterface.messages).toEqual({ reporter: {} })
+        expect(wdioClInterface.messages).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
         expect(wdioClInterface.printReporters).not.toBeCalled()
     })
 
@@ -162,7 +172,7 @@ describe('cli interface', () => {
 
     it('should ignore messages that do not contain a proper origin', () => {
         wdioClInterface.onMessage({ foo: 'bar' })
-        expect(wdioClInterface.messages).toEqual({ reporter: {} })
+        expect(wdioClInterface.messages).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
     })
 
     it('should render a debug screen when command was called', () => {
@@ -192,7 +202,7 @@ describe('cli interface', () => {
                 retries: 0,
                 failed: 0
             })
-            expect(wdioClInterface.messages).toEqual({ reporter: {} })
+            expect(wdioClInterface.messages).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
         })
 
         it('called explicitly', () => {
@@ -206,7 +216,7 @@ describe('cli interface', () => {
                 retries: 0,
                 failed: 0
             })
-            expect(wdioClInterface.messages).toEqual({ reporter: {} })
+            expect(wdioClInterface.messages).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
         })
     })
 
