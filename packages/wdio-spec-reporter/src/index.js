@@ -51,7 +51,7 @@ class SpecReporter extends WDIOReporter {
 
     onTestFail () {
         this.stateCounts.failed++
-        if (this.stateCounts.prevPassed == this.stateCounts.passed - 1) {
+        if (this.stateCounts.prevPassed === this.stateCounts.passed - 1) {
             this.stateCounts.passed--
         }
     }
