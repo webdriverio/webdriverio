@@ -18,5 +18,10 @@ export default class SuiteStats extends RunnableStats {
          * an array of hooks and tests stored in order as they happen
          */
         this.hooksAndTests = []
+
+        /**
+         * only Cucumber
+         */
+        this.description = suite.description
     }
 }

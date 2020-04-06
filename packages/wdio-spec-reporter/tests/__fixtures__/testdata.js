@@ -75,6 +75,7 @@ SUITES.forEach(suite => {
 export const SUITES_WITH_DATA_TABLE = [{
     uid: SUITE_UIDS[0],
     title: SUITE_UIDS[0].slice(0, -1),
+    description: '\tSome important\ndescription to read!',
     hooks: [],
     tests: [{
         uid: 'foo1',
