@@ -154,32 +154,32 @@ declare namespace WebdriverIO {
          * Since Jasmine v3.5.0
          * @default false
          */
-        failSpecWithNoExpectations: boolean;
+        failSpecWithNoExpectations?: boolean;
         /**
          * Whether to cause specs to only have one expectation failure.
          * Since Jasmine v3.3.0
          * @default false
          */
-        oneFailurePerSpec: boolean;
+        oneFailurePerSpec?: boolean;
         /**
          * Whether to randomize spec execution order.
          * Since Jasmine v3.3.0
          * @default false
          */
-        random: boolean;
+        random?: boolean;
         /**
          * Seed to use as the basis of randomization. Null causes the seed to be
          * determined randomly at the start of execution.
          * Since Jasmine v3.3.0
          * @default null
          */
-        seed: Function;
+        seed?: Function;
         /**
          * Function to use to filter specs.
          * Since Jasmine v3.3.0
          * @default true
          */
-        specFilter: Function;
+        specFilter?: Function;
     }
 
     interface CucumberOpts {
