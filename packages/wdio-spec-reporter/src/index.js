@@ -19,6 +19,7 @@ class SpecReporter extends WDIOReporter {
         this.suiteIndents = {}
         this.defaultTestIndent = '   '
         this.stateCounts = {
+            prevPassed : 0,
             passed : 0,
             failed : 0,
             skipped : 0
@@ -44,11 +45,15 @@ class SpecReporter extends WDIOReporter {
     }
 
     onTestPass () {
+        this.stateCounts.prevPassed = this.stateCounts.passed
         this.stateCounts.passed++
     }
 
     onTestFail () {
         this.stateCounts.failed++
+        if (this.stateCounts.prevPassed == this.stateCounts.passed - 1) {
+            this.stateCounts.passed--
+        }
     }
 
     onTestSkip () {

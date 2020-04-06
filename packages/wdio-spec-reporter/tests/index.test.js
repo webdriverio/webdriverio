@@ -41,6 +41,7 @@ describe('SpecReporter', () => {
             expect(reporter.suiteIndents).toEqual({})
             expect(reporter.defaultTestIndent).toBe('   ')
             expect(reporter.stateCounts).toEqual({
+                prevPassed : 0,
                 passed : 0,
                 skipped : 0,
                 failed : 0,
