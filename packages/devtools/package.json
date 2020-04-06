@@ -34,7 +34,7 @@
     "@wdio/logger": "6.0.12",
     "@wdio/protocols": "6.0.12",
     "@wdio/utils": "6.0.13",
-    "chrome-launcher": "^0.11.1",
+    "chrome-launcher": "^0.13.1",
     "puppeteer-core": "^2.1.1",
     "ua-parser-js": "^0.7.21",
     "uuid": "^7.0.2"
