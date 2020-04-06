@@ -5,4 +5,11 @@ const suite: WebdriverIO.Suite = {
     fullName: ''
 }
 
+const config: WebdriverIO.Config = {
+    jasmineNodeOpts: {
+        oneFailurePerSpec: true,
+        specFilter: () => {}
+    }
+}
+
 export default {}

@@ -31,17 +31,5 @@ const conf: WebdriverIO.Config = {
         }
 
         return response
-    },
-    mochaOpts: {
-        timeout: 3000,
-        slow: 123
-    },
-    jasmineNodeOpts: {
-        oneFailurePerSpec: true,
-        specFilter: () => {}
-    },
-    cucumberOpts: {
-        timeout: 123,
-        require: ['123']
     }
 }
