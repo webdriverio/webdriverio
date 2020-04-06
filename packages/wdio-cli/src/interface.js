@@ -48,7 +48,11 @@ export default class WDIOCLInterface extends EventEmitter {
             /**
              * messages from worker reporters
              */
-            reporter: {}
+            reporter: {},
+            /**
+             * messages from debugger handler
+             */
+            debugger: {}
         }
     }
 
@@ -189,7 +193,7 @@ export default class WDIOCLInterface extends EventEmitter {
             return this.log(`[${event.cid}]`, chalk.white.bgRed.bold(' Error: '), event.content.message || event.content.stack || event.content)
         }
 
-        if (event.origin !== 'reporter') {
+        if (event.origin !== 'reporter' && event.origin !== 'debugger') {
             return this.log(event.cid, event.origin, event.name, event.content)
         }
 
