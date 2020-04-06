@@ -41,7 +41,7 @@ suite('my awesome website', () => {
 })
 ```
 
-If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](http://mochajs.org).
+If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
 
 __Note:__ Since all commands are running synchronously, there is no need to have async mode in Mocha enabled. Therefore, you can't use the `done` callback:
 
@@ -61,7 +61,7 @@ First, install the adapter package from NPM:
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-You can then configure your Jasmine environment by setting a `jasmineNodeOpts` property in your config.
+You can then configure your Jasmine environment by setting a `jasmineNodeOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
 
 ### Intercept Assertion
 
