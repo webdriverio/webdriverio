@@ -9,5 +9,6 @@ test('should get initialised', () => {
         tags: ['foo', 'bar']
     })
 
+    delete suite.start
     expect(suite).toMatchSnapshot()
 })

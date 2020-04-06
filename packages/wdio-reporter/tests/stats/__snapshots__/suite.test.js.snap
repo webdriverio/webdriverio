@@ -8,7 +8,6 @@ SuiteStats {
   "fullTitle": "barfoo",
   "hooks": Array [],
   "hooksAndTests": Array [],
-  "start": 2020-04-06T12:13:43.748Z,
   "suites": Array [],
   "tags": Array [
     "foo",
