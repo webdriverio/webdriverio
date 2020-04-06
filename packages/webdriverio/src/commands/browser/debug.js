@@ -30,7 +30,7 @@
  *
  */
 
-import serializeError from 'serialize-error'
+import { serializeError } from 'serialize-error'
 import WDIORepl from '@wdio/repl'
 
 export default function debug(commandTimeout = 5000) {
