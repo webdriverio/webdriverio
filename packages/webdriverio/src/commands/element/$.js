@@ -43,7 +43,7 @@
  * </example>
  *
  * @alias $
- * @param {String|Function|DataMatcher} selector  selector, JS Function or DataMatcher object to fetch a certain element
+ * @param {String|Function|Matcher} selector  selector, JS Function, or Matcher object to fetch a certain element
  * @return {Element}
  * @type utility
  *

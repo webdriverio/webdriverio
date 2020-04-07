@@ -378,9 +378,10 @@ declare namespace WebdriverIO {
         reverse?: boolean,
     }
 
-    type DataMatcher = {
+    type Matcher = {
         name: string,
-        args: Array<string>
+        args: Array<string | object>
+        class?: string
     }
 
     type ReactSelectorOptions = {

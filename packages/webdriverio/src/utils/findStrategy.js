@@ -2,7 +2,7 @@ import { W3C_SELECTOR_STRATEGIES } from '../constants'
 import isPlainObject from 'lodash.isplainobject'
 
 const DEFAULT_STRATEGY = 'css selector'
-const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
+const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const XPATH_SELECTORS_START = [
     '/', '(', '../', './', '*/'
 ]
@@ -24,9 +24,11 @@ const defineStrategy = function (selector) {
     // Condition with checking isPlainObject(selector) should be first because
     // in case of "selector" argument is a plain object then .match() will cause
     // an error like "selector.match is not a function"
-    // Use '-android datamatcher' strategy if selector is a plain object (Android only)
+    // Use '-android datamatcher' or '-android viewmatcher' strategy if selector is a plain object (Android only)
     if (isPlainObject(selector)) {
-        return '-android datamatcher'
+        if (JSON.stringify(selector).indexOf('test.espresso.matcher.ViewMatchers') < 0)
+            return '-android datamatcher'
+        return '-android viewmatcher'
     }
     // Check if user has specified locator strategy directly
     if (selector.match(DIRECT_SELECTOR_REGEXP)) {
@@ -128,6 +130,11 @@ export const findStrategy = function (selector, isW3C, isMobile) {
     }
     case '-android datamatcher': {
         using = '-android datamatcher'
+        value = JSON.stringify(value)
+        break
+    }
+    case '-android viewmatcher': {
+        using = '-android viewmatcher'
         value = JSON.stringify(value)
         break
     }
