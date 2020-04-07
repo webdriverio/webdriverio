@@ -7,6 +7,33 @@ Over time, our community has developed several boilerplate projects that you can
 
 ## v6 Boilerplate Projects
 
+### [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
+
+Boilerplate project to run Appium tests with WebdriverIO for:
+
+- iOS/Android Native Apps
+- iOS/Android Hybrid Apps
+- Android Chrome and iOS Safari browser
+
+This boilerplate includes the following:
+
+- Framework: Jasmine
+- Features:
+    - Configs for:
+        - iOS and Android app
+        - iOS and Android browsers
+    - Helpers for:
+        - WebView
+        - Gestures
+        - Native alerts
+        - Pickers
+     - Tests examples for:
+        - WebView
+        - Login
+        - Forms
+        - Swipe
+        - Browsers
+
 ### [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
 ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
 
@@ -202,33 +229,6 @@ A powerful boilerplate project to run E2E tests with Cucumber.
     - Multiple reports (Spec, Dot, Allure, Timeline)
     - Code formatter (ESlint, Prettier)
     - Husky
-
-### [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
-
-Boilerplate project to run Appium tests with WebdriverIO for:
-
-- iOS/Android Native Apps
-- iOS/Android Hybrid Apps
-- Android Chrome and iOS Safari browser
-
-This boilerplate includes the following:
-
-- Framework: Jasmine
-- Features:
-    - Configs for:
-        - iOS and Android app
-        - iOS and Android browsers
-    - Helpers for:
-        - WebView
-        - Gestures
-        - Native alerts
-        - Pickers
-     - Tests examples for:
-        - WebView
-        - Login
-        - Forms
-        - Swipe
-        - Browsers
 
 ### [Schveitzer/webdriverio-appium-cucumber-boilerplate](https://github.com/Schveitzer/webdriverio-appium-cucumber-boilerplate)
 
