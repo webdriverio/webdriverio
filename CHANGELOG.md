@@ -17,6 +17,42 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.0.14 (2020-04-07)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriverio`
+  * [#5180](https://github.com/webdriverio/webdriverio/pull/5180) webdriverio: Add Espresso ViewMatcher strategy ([@ccharnkij](https://github.com/ccharnkij))
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-local-runner`, `webdriverio`
+  * [#5215](https://github.com/webdriverio/webdriverio/pull/5215) Debugger output fix ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriver`
+  * [#5219](https://github.com/webdriverio/webdriverio/pull/5219) Fix/better error logging ([@alfonso-presa](https://github.com/alfonso-presa))
+* `wdio-cli`, `wdio-reporter`, `wdio-spec-reporter`
+  * [#5218](https://github.com/webdriverio/webdriverio/pull/5218) Add support for feature description in reporters ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#5226](https://github.com/webdriverio/webdriverio/pull/5226) Fix homepage documentation link ([@klamping](https://github.com/klamping))
+  * [#5209](https://github.com/webdriverio/webdriverio/pull/5209) docs: Fix simple typo, specifc -> specific ([@timgates42](https://github.com/timgates42))
+  * [#5205](https://github.com/webdriverio/webdriverio/pull/5205) chore(docs): update blogpost for Appium users ([@wswebcreation](https://github.com/wswebcreation))
+* `webdriver`
+  * [#5210](https://github.com/webdriverio/webdriverio/pull/5210) Add: Adding IE capabilities ([@Harsha509](https://github.com/Harsha509))
+
+#### Committers: 9
+- Alfonso Presa ([@alfonso-presa](https://github.com/alfonso-presa))
+- Chanatan Charnkijtawarush ([@ccharnkij](https://github.com/ccharnkij))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Serhat Bolsu ([@serhatbolsu](https://github.com/serhatbolsu))
+- Sri Harsha ([@Harsha509](https://github.com/Harsha509))
+- Tim Gates ([@timgates42](https://github.com/timgates42))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.0.13 (2020-04-02)
 
 #### :bug: Bug Fix
