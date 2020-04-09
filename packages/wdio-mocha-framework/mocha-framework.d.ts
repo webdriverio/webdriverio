@@ -1,7 +1,7 @@
 /// <reference types="mocha"/>
 
 declare module WebdriverIO {
-    interface Config extends MochaOpts {}
+    interface Config extends MochaOptsConfig {}
 
     interface Suite {
         file: string;
@@ -23,6 +23,10 @@ declare module WebdriverIO {
             type: string;
         }
     }
+}
+
+interface MochaOptsConfig {
+    mochaOpts?: MochaOpts
 }
 
 interface MochaOpts {

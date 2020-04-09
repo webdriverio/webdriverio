@@ -1,7 +1,7 @@
 /// <reference types="jasmine"/>
 
 declare module WebdriverIO {
-    interface Config extends JasmineNodeOpts {}
+    interface Config extends JasmineNodeOptsConfig {}
 
     interface Suite {
         title: string;
@@ -13,6 +13,10 @@ declare module WebdriverIO {
         parent: string;
         passed: boolean;
     }
+}
+
+interface JasmineNodeOptsConfig {
+    jasmineNodeOpts?: JasmineNodeOpts
 }
 
 interface JasmineNodeOpts {

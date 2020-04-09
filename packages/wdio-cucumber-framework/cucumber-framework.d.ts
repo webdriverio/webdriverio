@@ -1,11 +1,13 @@
 import { SourceLocation, ScenarioResult } from "cucumber";
 
-declare module WebdriverIO {
-    interface Config extends CucumberOpts {}
+declare module "webdriverio" {
     interface HookFunctions extends CucumberHookFunctions {}
-    interface Options {
-        cucumberOpts?: CucumberOpts;
-    }
+    interface Config extends CucumberOptsConfig {}
+}
+
+declare module "@wdio/sync" {
+    interface HookFunctions extends CucumberHookFunctions {}
+    interface Config extends CucumberOptsConfig {}
 }
 
 interface CucumberHookResult extends ScenarioResult {
@@ -28,6 +30,10 @@ interface CucumberHookFunctions {
     afterStep?(step: StepData, context: any, result: { error?: any, result?: any, passed: boolean, duration: number }): void;
     afterScenario?(uri: string, feature: CucumberHookObject, scenario: CucumberHookObject, result: CucumberHookResult, sourceLocation: SourceLocation): void;
     afterFeature?(uri: string, feature: CucumberHookObject, scenarios: CucumberHookObject[]): void;
+}
+
+interface CucumberOptsConfig {
+    cucumberOpts?: CucumberOpts
 }
 
 interface CucumberOpts {
