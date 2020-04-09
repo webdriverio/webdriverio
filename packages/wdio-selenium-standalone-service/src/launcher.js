@@ -36,7 +36,15 @@ export default class SeleniumStandaloneLauncher {
          * update capability connection options to connect
          * to standalone server
          */
-        this.capabilities.forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION))
+        (
+            Array.isArray(this.capabilities)
+                ? this.capabilities
+                : Object.values(this.capabilities)
+        ).forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+
+        /**
+         * start Selenium Standalone server
+         */
         this.process = await promisify(SeleniumStandalone.start)(this.args)
 
         if (typeof this.logPath === 'string') {

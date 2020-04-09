@@ -68,11 +68,13 @@ describe('Appium launcher', () => {
 
     describe('onPrepare', () => {
         test('should set correct config properties', async () => {
-            const launcher = new AppiumLauncher({
+            const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { foo: 'bar' }
-            }, [], {})
+            }
+            const capabilities = [{ port: 1234 }]
+            const launcher = new AppiumLauncher(options, capabilities, {})
             launcher._startAppium = jest.fn().mockImplementation((cmd, args, cb) => cb(null, new MockProcess()))
             await launcher.onPrepare()
 
@@ -80,6 +82,33 @@ describe('Appium launcher', () => {
             expect(launcher.logPath).toBe('./')
             expect(launcher.command).toBe('path/to/my_custom_appium')
             expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
+            expect(capabilities[0].protocol).toBe('http')
+            expect(capabilities[0].hostname).toBe('localhost')
+            expect(capabilities[0].port).toBe(1234)
+            expect(capabilities[0].path).toBe('/')
+        })
+
+        test('should set correct config properties using multiremote', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar' }
+            }
+            const capabilities = {
+                browserA: { port: 1234 },
+                browserB: {}
+            }
+            const launcher = new AppiumLauncher(options, capabilities, {})
+            launcher._startAppium = jest.fn().mockImplementation((cmd, args, cb) => cb(null, new MockProcess()))
+            await launcher.onPrepare()
+            expect(capabilities.browserA.protocol).toBe('http')
+            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.port).toBe(1234)
+            expect(capabilities.browserA.path).toBe('/')
+            expect(capabilities.browserB.protocol).toBe('http')
+            expect(capabilities.browserB.hostname).toBe('localhost')
+            expect(capabilities.browserB.port).toBe(4723)
+            expect(capabilities.browserB.path).toBe('/')
         })
 
         test('should set correct config properties for Windows', async () => {

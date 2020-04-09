@@ -7,9 +7,17 @@ import { getFilePath, getAppiumCommand, cliArgsFromKeyValue } from './utils'
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'wdio-appium.log'
 
+const DEFAULT_CONNECTION = {
+    protocol: 'http',
+    hostname: 'localhost',
+    port: 4723,
+    path: '/'
+}
+
 export default class AppiumLauncher {
-    constructor(options, caps, config) {
+    constructor(options, capabilities, config) {
         this.options = options
+        this.capabilities = capabilities
         this.args = {
             basePath: '/',
             ...(options.args || {})
@@ -44,6 +52,19 @@ export default class AppiumLauncher {
             this.command = 'cmd'
         }
 
+        /**
+         * update capability connection options to connect
+         * to Appium server
+         */
+        (
+            Array.isArray(this.capabilities)
+                ? this.capabilities
+                : Object.values(this.capabilities)
+        ).forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+
+        /**
+         * start Appium
+         */
         this.process = await promisify(this._startAppium)(this.command, this.appiumArgs)
 
         if (typeof this.logPath === 'string') {

@@ -33,8 +33,31 @@ describe('Selenium standalone launcher', () => {
             expect(launcher.watchMode).toEqual(true)
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
-            expect(capabilities[0].port).toBe(4444)
+            expect(capabilities[0].port).toBe(1234)
             expect(capabilities[0].path).toBe('/wd/hub')
+        })
+
+        test('should set correct config properties using multiremote', async () => {
+            const options = {
+                logPath : './',
+                args : { foo : 'foo' },
+                installArgs : { bar : 'bar' },
+            }
+            const capabilities = {
+                browserA: { port: 1234 },
+                browserB: { port: 4321 }
+            }
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+            launcher._redirectLogStream = jest.fn()
+            await launcher.onPrepare({ watch: true })
+            expect(capabilities.browserA.protocol).toBe('http')
+            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.port).toBe(1234)
+            expect(capabilities.browserA.path).toBe('/wd/hub')
+            expect(capabilities.browserB.protocol).toBe('http')
+            expect(capabilities.browserB.hostname).toBe('localhost')
+            expect(capabilities.browserB.port).toBe(4321)
+            expect(capabilities.browserB.path).toBe('/wd/hub')
         })
 
         test('should call selenium install and start', async () => {
