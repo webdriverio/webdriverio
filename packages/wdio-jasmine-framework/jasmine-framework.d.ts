@@ -59,4 +59,10 @@ interface JasmineNodeOpts {
      * @default true
      */
     specFilter?: Function;
+    /**
+     * Array of filepaths (and globs) relative to spec_dir to include before
+     * jasmine specs.
+     * @default `[]`
+     */
+    helpers: string[]
 }

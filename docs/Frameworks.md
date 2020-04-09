@@ -57,79 +57,79 @@ If you want to run something asynchronously, you can either use the [`browser.ca
 
 The following options can be applied in your `wdio.conf.js` to configure your Mocha environment:
 
-### `allowUncaught`
+### allowUncaught
 Propagate uncaught errors.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `bail`
+### bail
 Bail after first test failure.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `checkLeaks`
+### checkLeaks
 Check for global variable leaks.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `delay`
+### delay
 Delay root suite execution.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `fgrep`
+### fgrep
 Test filter given string.
 
 Type: `string`<br>
 Default: `null`
 
-### `forbidOnly`
+### forbidOnly
 Tests marked `only` fail the suite.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `forbidPending`
+### forbidPending
 Pending tests fail the suite.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `fullTrace`
+### fullTrace
 Full stacktrace upon failure.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `global`
+### global
 Variables expected in global scope.
 
 Type: `string[]`<br>
 Default: `[]`
 
-### `grep`
+### grep
 Test filter given regular expression.
 
 Type: `RegExp|string`<br>
 Default: `null`
 
-### `invert`
+### invert
 Invert test filter matches.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `retries`
+### retries
 Number of times to retry failed tests.
 
 Type: `number`<br>
 Default: `0`
 
-### `timeout`
+### timeout
 Timeout threshold value (in ms).
 
 Type: `number`<br>
@@ -177,53 +177,59 @@ commands the screenshot is taken anyway, which still gives _some_ valuable infor
 
 The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineNodeOpts` property:
 
-### `random`
+### random
 Whether to randomize spec execution order.
 
 Type: `boolean`<br>
 Default: `true`
 
-### `seed`
+### seed
 Seed to use as the basis of randomization. Null causes the seed to be determined randomly at the start of execution.
 
 Type: `Function`<br>
 Default: `null`
 
-### `failFast`
+### failFast
 Whether to stop execution of the suite after the first spec failure.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `failSpecWithNoExpectations`
+### failSpecWithNoExpectations
 Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `oneFailurePerSpec`
+### oneFailurePerSpec
 Whether to cause specs to only have one expectation failure.
 
 Type: `boolean`<br>
 Default: `false`
 
-### `specFilter`
+### specFilter
 Function to use to filter specs.
 
 Type: `Function`<br>
 Default: `() => true`
 
-### `grep`
+### grep
 Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set)
 
 Type: `string|Regexp`<br>
 Default: `null`
 
-### `invertGrep`
+### invertGrep
 If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set)
 
 Type: `boolean`<br>
 Default: `false`
+
+### helpers
+Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
+
+Type: `string[]`<br>
+Default: `[]`
 
 ## Using Cucumber
 
