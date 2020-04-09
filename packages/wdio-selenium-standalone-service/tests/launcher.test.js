@@ -33,7 +33,7 @@ describe('Selenium standalone launcher', () => {
             expect(launcher.watchMode).toEqual(true)
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
-            expect(capabilities[0].port).toBe(4444)
+            expect(capabilities[0].port).toBe(1234)
             expect(capabilities[0].path).toBe('/wd/hub')
         })
 
