@@ -17,6 +17,26 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.0.15 (2020-04-09)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-selenium-standalone-service`
+  * [#5238](https://github.com/webdriverio/webdriverio/pull/5238) Allow to customise connection in driver services ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#5237](https://github.com/webdriverio/webdriverio/pull/5237) Ensure that default connection is not overwritten ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`, `wdio-cucumber-framework`, `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-sync`, `webdriver`, `webdriverio`
+  * [#5214](https://github.com/webdriverio/webdriverio/pull/5214) Framework options TypeScript improvements ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#5234](https://github.com/webdriverio/webdriverio/pull/5234) docs: clarify Mocha TypeScript setup ([@erickzhao](https://github.com/erickzhao))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erick Zhao ([@erickzhao](https://github.com/erickzhao))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.0.14 (2020-04-07)
 
 #### :rocket: New Feature
