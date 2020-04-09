@@ -189,6 +189,18 @@ commands the screenshot is taken anyway, which still gives _some_ valuable infor
 
 The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineNodeOpts` property:
 
+### helpers
+Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
+
+Type: `string[]`<br>
+Default: `[]`
+
+### requires
+The `requires` option is useful when you want to add or extend some basic functionality.
+
+Type: `string[]`<br>
+Default: `[]`
+
 ### random
 Whether to randomize spec execution order.
 
@@ -237,12 +249,6 @@ If true it inverts the matching tests and only runs tests that don't match with 
 Type: `boolean`<br>
 Default: `false`
 
-### helpers
-Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
-
-Type: `string[]`<br>
-Default: `[]`
-
 ## Using Cucumber
 
 First, install the adapter package from NPM:
@@ -257,7 +263,7 @@ Options for Cucumber can be given in the config file with `cucumberOpts`. Check 
 
 To get up and running quickly with Cucumber, have a look on our [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all the step definitions you need to get stared, and you'll be writing feature files right away.
 
-### Jasmine Options
+### Cucumber Options
 
 The following options can be applied in your `wdio.conf.js` to configure your Cucumber environment using the `cucumberOpts` property:
 

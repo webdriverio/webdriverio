@@ -21,6 +21,18 @@ interface JasmineNodeOptsConfig {
 
 interface JasmineNodeOpts {
     /**
+     * Array of filepaths (and globs) relative to spec_dir to include before
+     * jasmine specs.
+     * @default `[]`
+     */
+    helpers?: string[]
+    /**
+     * The `requires` option is useful when you want to add or extend some
+     * basic functionality.
+     * @default `[]`
+     */
+    requires?: string[]
+    /**
      * Whether to stop execution of the suite after the first spec failure
      * Since Jasmine v3.3.0
      * @default false
@@ -59,10 +71,4 @@ interface JasmineNodeOpts {
      * @default true
      */
     specFilter?: Function;
-    /**
-     * Array of filepaths (and globs) relative to spec_dir to include before
-     * jasmine specs.
-     * @default `[]`
-     */
-    helpers?: string[]
 }
