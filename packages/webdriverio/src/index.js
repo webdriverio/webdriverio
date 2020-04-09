@@ -23,7 +23,12 @@ export const remote = async function (params = {}, remoteModifier) {
     const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(WebDriver.DEFAULTS))
     const automationProtocol = await getAutomationProtocol(config)
     const modifier = (client, options) => {
-        Object.assign(options, config)
+        /**
+         * overwrite instance options with default values of the protocol
+         * package (without undefined properties)
+         */
+        Object.assign(options, Object.entries(config)
+            .reduce((a, [k, v]) => (v == null ? a : { ...a, [k]:v }), {}))
 
         if (typeof remoteModifier === 'function') {
             client = remoteModifier(client, options)

@@ -1,12 +1,5 @@
 exports.config = {
     /**
-     * server configurations
-     */
-    hostname: 'localhost',
-    port: 4444,
-    path: '/',
-
-    /**
      * capabilities
      */
     capabilities: [{
