@@ -96,7 +96,7 @@ describe('Appium launcher', () => {
             }
             const capabilities = {
                 browserA: { port: 1234 },
-                browserB: { port: 4321 }
+                browserB: {}
             }
             const launcher = new AppiumLauncher(options, capabilities, {})
             launcher._startAppium = jest.fn().mockImplementation((cmd, args, cb) => cb(null, new MockProcess()))
@@ -107,7 +107,7 @@ describe('Appium launcher', () => {
             expect(capabilities.browserA.path).toBe('/')
             expect(capabilities.browserB.protocol).toBe('http')
             expect(capabilities.browserB.hostname).toBe('localhost')
-            expect(capabilities.browserB.port).toBe(4321)
+            expect(capabilities.browserB.port).toBe(4723)
             expect(capabilities.browserB.path).toBe('/')
         })
 
