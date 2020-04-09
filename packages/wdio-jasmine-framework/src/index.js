@@ -53,24 +53,20 @@ class JasmineAdapter {
         jasmineEnv.addReporter(this.reporter)
 
         /**
-         * Set whether to stop suite execution when a spec fails
-         */
-        const stopOnSpecFailure = !!this.jasmineNodeOpts.stopOnSpecFailure
-
-        /**
-         * Set whether to stop spec execution when an expectation fails
-        */
-        const stopSpecOnExpectationFailure = !!this.jasmineNodeOpts.stopSpecOnExpectationFailure
-
-        /**
          * Filter specs to run based on jasmineNodeOpts.grep and jasmineNodeOpts.invert
          */
         jasmineEnv.configure({
-            specFilter: ::this.customSpecFilter,
-            stopOnSpecFailure: stopOnSpecFailure,
+            specFilter: this.jasmineNodeOpts.specFilter || ::this.customSpecFilter,
+            stopOnSpecFailure: Boolean(this.jasmineNodeOpts.stopOnSpecFailure),
+            failSpecWithNoExpectations: Boolean(this.jasmineNodeOpts.failSpecWithNoExpectations),
+            failFast: this.jasmineNodeOpts.failFast,
             random: Boolean(this.jasmineNodeOpts.random),
-            oneFailurePerSpec: stopSpecOnExpectationFailure,
-            failFast: this.jasmineNodeOpts.failFast
+            seed: Boolean(this.jasmineNodeOpts.seed),
+            oneFailurePerSpec: Boolean(
+                // depcrecated old property
+                this.jasmineNodeOpts.stopSpecOnExpectationFailure ||
+                this.jasmineNodeOpts.oneFailurePerSpec
+            )
         })
 
         /**

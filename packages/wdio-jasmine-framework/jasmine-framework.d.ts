@@ -1,6 +1,8 @@
 /// <reference types="jasmine"/>
 
-declare namespace WebdriverIO {
+declare module WebdriverIO {
+    interface Config extends JasmineNodeOpts {}
+
     interface Suite {
         title: string;
         fullName: string;
@@ -11,22 +13,6 @@ declare namespace WebdriverIO {
         parent: string;
         passed: boolean;
     }
-}
-
-declare module "webdriverio" {
-    interface Options {
-        jasmineNodeOpts?: JasmineNodeOpts;
-    }
-}
-
-declare module "@wdio/sync" {
-    interface Options {
-        jasmineNodeOpts?: JasmineNodeOpts;
-    }
-}
-
-declare module "@wdio/jasmine-framework" {
-    export default WebdriverIO
 }
 
 interface JasmineNodeOpts {

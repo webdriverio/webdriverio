@@ -1,6 +1,8 @@
 /// <reference types="mocha"/>
 
-declare namespace WebdriverIO {
+declare module WebdriverIO {
+    interface Config extends MochaOpts {}
+
     interface Suite {
         file: string;
         title: string;
@@ -23,22 +25,6 @@ declare namespace WebdriverIO {
     }
 }
 
-declare module "@wdio/mocha-framework" {
-    export default WebdriverIO
-}
-
-declare module "webdriverio" {
-    interface Options {
-        mochaOpts?: MochaOpts;
-    }
-}
-
-declare module "@wdio/sync" {
-    interface Options {
-        mochaOpts?: MochaOpts;
-    }
-}
-
 interface MochaOpts {
     /**
      * Propagate uncaught errors?
@@ -57,17 +43,9 @@ interface MochaOpts {
      */
     checkLeaks?: boolean;
     /**
-     * Color TTY output from reporter?
-     */
-    color?: boolean;
-    /**
      * Delay root suite execution?
      */
     delay?: boolean;
-    /**
-     * Show diff on failure?
-     */
-    diff?: boolean;
     /**
      * Test filter given string.
      */
@@ -93,43 +71,15 @@ interface MochaOpts {
      */
     grep?: RegExp | string;
     /**
-     * Enable desktop notifications?
-     */
-    growl?: boolean;
-    /**
-     * Display inline diffs?
-     */
-    inlineDiffs?: boolean;
-    /**
      * Invert test filter matches?
      */
     invert?: boolean;
-    /**
-     * Disable syntax highlighting?
-     */
-    noHighlighting?: boolean;
-    /**
-     * Reporter name or constructor.
-     */
-    reporter?: string | Function;
-    /**
-     * Reporter settings object.
-     */
-    reporterOption?: object;
     /**
      * Number of times to retry failed tests.
      */
     retries?: number;
     /**
-     * Slow threshold value.
-     */
-    slow?: number;
-    /**
      * Timeout threshold value.
      */
     timeout?: number | string;
-    /**
-     * Interface name.
-     */
-    ui?: string;
 }
