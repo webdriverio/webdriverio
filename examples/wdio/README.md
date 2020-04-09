@@ -9,6 +9,8 @@ $ npm run test:mocha
 $ npm run test:jasmine
 # cucumber tests
 $ npm run test:cucumber
+# cucumber tests with steps definition in typescript
+$ npm run test:cucumberTypescript
 # testsuite with multiremote
 $ npm run test:multiremote
 # test suite with custome reporter

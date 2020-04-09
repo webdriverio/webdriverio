@@ -100,7 +100,10 @@
     "shelljs": "^0.8.3",
     "source-map-support": "^0.5.13",
     "tempy": "^0.5.0",
-    "typescript": "^3.6.3"
+    "typescript": "^3.6.3",
+    "ts-node": "^8.5.4",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "tsconfig-paths": "^3.9.0"
   },
   "husky": {
     "hooks": {

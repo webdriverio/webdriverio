@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "*": [ "../../../node_modules/*" ]
+      },
+      "types": [
+        "node",
+        "jest",
+        "../../../packages/wdio-sync"
+      ]
+  },
+  "include": [
+      "./src/**/*.ts"
+  ]
+}
