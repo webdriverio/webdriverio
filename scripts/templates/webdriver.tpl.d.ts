@@ -142,7 +142,11 @@ declare namespace WebDriver {
          * more information.
          */
         perfLoggingPrefs?: {
-            [name: string]: any;
+            enableNetwork?: boolean;
+            enablePage?: boolean;
+            enableTimeline?: boolean;
+            tracingCategories?: boolean;
+            bufferUsageReportingInterval?: boolean;
         };
         /**
          * A dictionary with each entry consisting of the name of the preference and its value.
@@ -314,20 +318,10 @@ declare namespace WebDriver {
             [name: string]: any;
         };
 
-        cleanSession?: boolean;
-
         // Chrome specific
         chromeOptions?: ChromeOptions;
         'goog:chromeOptions'?: ChromeOptions;
         mobileEmulationEnabled?: boolean;
-
-        perfLoggingPrefs?: {
-            enableNetwork?: boolean;
-            enablePage?: boolean;
-            enableTimeline?: boolean;
-            tracingCategories?: boolean;
-            bufferUsageReportingInterval?: boolean;
-        };
 
         // webdriverio specific
         specs?: string[];

@@ -41,7 +41,7 @@ suite('my awesome website', () => {
 })
 ```
 
-If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](http://mochajs.org).
+If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
 
 __Note:__ Since all commands are running synchronously, there is no need to have async mode in Mocha enabled. Therefore, you can't use the `done` callback:
 
@@ -53,6 +53,100 @@ it('should test something', () => {
 
 If you want to run something asynchronously, you can either use the [`browser.call`](call) command or [custom commands](CustomCommands.md).
 
+### Mocha Options
+
+The following options can be applied in your `wdio.conf.js` to configure your Mocha environment:
+
+### require
+The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).
+
+Type: `string|string[]`<br>
+Default: `[]`
+
+### compilers
+Use the given module(s) to compile files. Compilers will be included before requires (WebdriverIO framework option).
+
+Type: `string[]`<br>
+Default: `[]`
+
+### allowUncaught
+Propagate uncaught errors.
+
+Type: `boolean`<br>
+Default: `false`
+
+### bail
+Bail after first test failure.
+
+Type: `boolean`<br>
+Default: `false`
+
+### checkLeaks
+Check for global variable leaks.
+
+Type: `boolean`<br>
+Default: `false`
+
+### delay
+Delay root suite execution.
+
+Type: `boolean`<br>
+Default: `false`
+
+### fgrep
+Test filter given string.
+
+Type: `string`<br>
+Default: `null`
+
+### forbidOnly
+Tests marked `only` fail the suite.
+
+Type: `boolean`<br>
+Default: `false`
+
+### forbidPending
+Pending tests fail the suite.
+
+Type: `boolean`<br>
+Default: `false`
+
+### fullTrace
+Full stacktrace upon failure.
+
+Type: `boolean`<br>
+Default: `false`
+
+### global
+Variables expected in global scope.
+
+Type: `string[]`<br>
+Default: `[]`
+
+### grep
+Test filter given regular expression.
+
+Type: `RegExp|string`<br>
+Default: `null`
+
+### invert
+Invert test filter matches.
+
+Type: `boolean`<br>
+Default: `false`
+
+### retries
+Number of times to retry failed tests.
+
+Type: `number`<br>
+Default: `0`
+
+### timeout
+Timeout threshold value (in ms).
+
+Type: `number`<br>
+Default: `30000`
+
 ## Using Jasmine
 
 First, install the adapter package from NPM:
@@ -61,7 +155,7 @@ First, install the adapter package from NPM:
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-You can then configure your Jasmine environment by setting a `jasmineNodeOpts` property in your config.
+You can then configure your Jasmine environment by setting a `jasmineNodeOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
 
 ### Intercept Assertion
 
@@ -91,6 +185,70 @@ jasmineNodeOpts: {
 the command takes too much time and the website state has changed. (Though usually, after another 2
 commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.)
 
+### Jasmine Options
+
+The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineNodeOpts` property:
+
+### helpers
+Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
+
+Type: `string[]`<br>
+Default: `[]`
+
+### requires
+The `requires` option is useful when you want to add or extend some basic functionality.
+
+Type: `string[]`<br>
+Default: `[]`
+
+### random
+Whether to randomize spec execution order.
+
+Type: `boolean`<br>
+Default: `true`
+
+### seed
+Seed to use as the basis of randomization. Null causes the seed to be determined randomly at the start of execution.
+
+Type: `Function`<br>
+Default: `null`
+
+### failFast
+Whether to stop execution of the suite after the first spec failure.
+
+Type: `boolean`<br>
+Default: `false`
+
+### failSpecWithNoExpectations
+Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure.
+
+Type: `boolean`<br>
+Default: `false`
+
+### oneFailurePerSpec
+Whether to cause specs to only have one expectation failure.
+
+Type: `boolean`<br>
+Default: `false`
+
+### specFilter
+Function to use to filter specs.
+
+Type: `Function`<br>
+Default: `() => true`
+
+### grep
+Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set)
+
+Type: `string|Regexp`<br>
+Default: `null`
+
+### invertGrep
+If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set)
+
+Type: `boolean`<br>
+Default: `false`
+
 ## Using Cucumber
 
 First, install the adapter package from NPM:
@@ -104,6 +262,128 @@ If you want to use Cucumber, set the `framework` property to `cucumber` by addin
 Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options).
 
 To get up and running quickly with Cucumber, have a look on our [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all the step definitions you need to get stared, and you'll be writing feature files right away.
+
+### Cucumber Options
+
+The following options can be applied in your `wdio.conf.js` to configure your Cucumber environment using the `cucumberOpts` property:
+
+### backtrace
+Show full backtrace for errors.
+
+Type: `Boolean`<br>
+Default: `true`
+
+### requireModule
+Require modules prior to requiring any support files.
+
+Type: `string[]`<br>
+Default: `[]`<br>
+Example:
+
+```js
+cucumberOpts: {
+    requireModule: ['@babel/register']
+    // or
+    requireModule: [
+        [
+            '@babel/register',
+            {
+                rootMode: 'upward',
+                ignore: ['node_modules']
+            }
+        ]
+    ],
+    // or
+    requireModule: [
+        () => { require('ts-node').register({ files: true }) }
+    ]
+ }
+ ```
+
+### failAmbiguousDefinitions
+Treat ambiguous definitions as errors. Please note that this is a `@wdio/cucumber-framework` specific option and not recognized by cucumber-js itself.
+
+Type: `boolean`<br>
+Default: `false`
+
+### failFast
+Abort the run on first failure.
+
+Type: `boolean`<br>
+Default: `false`
+
+### ignoreUndefinedDefinitions
+Treat undefined definitions as warnings. Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself.
+
+Type: `boolean`<br>
+Default: `false`
+
+### name
+Only execute the scenarios with name matching the expression (repeatable).
+
+Type: `RegExp[]`<br>
+Default: `[]`
+
+### profile
+Specify the profile to use.
+
+Type: `string[]`<br>
+Default: `[]`
+
+### require
+Require files containing your step definitions before executing features. You can also specify a glob to your step definitions.
+
+Type: `string[]`<br>
+Default: `[]`
+Example:
+
+```js
+cucumberOpts: {
+    require: [path.join(__dirname, 'step-definitions', 'my-steps.js')]
+}
+```
+
+### snippetSyntax
+Specify a custom snippet syntax.
+
+Type: `string`<br>
+Default: `null`
+
+### snippets
+Hide step definition snippets for pending steps.
+
+Type: `boolean`<br>
+Default: `true`
+
+### source
+Hide source uris.
+
+Type: `boolean`<br>
+Default: `true`
+
+### strict
+Fail if there are any undefined or pending steps.
+
+Type: `boolean`<br>
+Default: `false`
+
+### tagExpression
+Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+
+Type: `string`<br>
+Default: `null`
+
+### tagsInTitle
+Add cucumber tags to feature or scenario name.
+
+Type: `boolean`<br>
+Default: `false`
+
+### timeout
+Timeout in milliseconds for step definitions.
+
+Type: `number`<br>
+Default: `30000`
 
 ### Skipping tests in cucumber
 
