@@ -88,6 +88,29 @@ describe('Appium launcher', () => {
             expect(capabilities[0].path).toBe('/')
         })
 
+        test('should set correct config properties using multiremote', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar' }
+            }
+            const capabilities = {
+                browserA: { port: 1234 },
+                browserB: { port: 4321 }
+            }
+            const launcher = new AppiumLauncher(options, capabilities, {})
+            launcher._startAppium = jest.fn().mockImplementation((cmd, args, cb) => cb(null, new MockProcess()))
+            await launcher.onPrepare()
+            expect(capabilities.browserA.protocol).toBe('http')
+            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.port).toBe(1234)
+            expect(capabilities.browserA.path).toBe('/')
+            expect(capabilities.browserB.protocol).toBe('http')
+            expect(capabilities.browserB.hostname).toBe('localhost')
+            expect(capabilities.browserB.port).toBe(4321)
+            expect(capabilities.browserB.path).toBe('/')
+        })
+
         test('should set correct config properties for Windows', async () => {
             Object.defineProperty(process, 'platform', {
                 value: 'win32'

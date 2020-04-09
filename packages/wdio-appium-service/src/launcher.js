@@ -52,7 +52,19 @@ export default class AppiumLauncher {
             this.command = 'cmd'
         }
 
-        this.capabilities.forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+        /**
+         * update capability connection options to connect
+         * to Appium server
+         */
+        (
+            Array.isArray(this.capabilities)
+                ? this.capabilities
+                : Object.values(this.capabilities)
+        ).forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+
+        /**
+         * start Appium
+         */
         this.process = await promisify(this._startAppium)(this.command, this.appiumArgs)
 
         if (typeof this.logPath === 'string') {
