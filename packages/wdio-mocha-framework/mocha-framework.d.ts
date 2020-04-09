@@ -31,6 +31,16 @@ interface MochaOptsConfig {
 
 interface MochaOpts {
     /**
+     * The `require` option is useful when you want to add or extend some
+     * basic functionality (WebdriverIO framework option).
+     */
+    require?: string | string[],
+    /**
+     * Use the given module(s) to compile files. Compilers will be included
+     * before requires (WebdriverIO framework option).
+     */
+    compilers?: string[],
+    /**
      * Propagate uncaught errors?
      */
     allowUncaught?: boolean;

@@ -57,6 +57,18 @@ If you want to run something asynchronously, you can either use the [`browser.ca
 
 The following options can be applied in your `wdio.conf.js` to configure your Mocha environment:
 
+### require
+The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).
+
+Type: `string|string[]`<br>
+Default: `[]`
+
+### compilers
+Use the given module(s) to compile files. Compilers will be included before requires (WebdriverIO framework option).
+
+Type: `string[]`<br>
+Default: `[]`
+
 ### allowUncaught
 Propagate uncaught errors.
 

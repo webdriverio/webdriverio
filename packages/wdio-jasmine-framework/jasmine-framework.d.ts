@@ -64,5 +64,5 @@ interface JasmineNodeOpts {
      * jasmine specs.
      * @default `[]`
      */
-    helpers: string[]
+    helpers?: string[]
 }

@@ -8,7 +8,8 @@ const suite: WebdriverIO.Suite = {
 const config: WebdriverIO.Config = {
     jasmineNodeOpts: {
         oneFailurePerSpec: true,
-        specFilter: () => {}
+        specFilter: () => {},
+        helpers: ['foobar']
     }
 }
 
