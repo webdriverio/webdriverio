@@ -1,5 +1,3 @@
-import isBase64 from 'is-base64'
-
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 
 /**
@@ -193,3 +191,39 @@ export function isFunctionAsync (fn) {
 export function filterSpecArgs (args) {
     return args.filter((arg) => typeof arg !== 'function')
 }
+
+/**
+ * is function isBase64
+ * @param  {String} str  string in base64 to check
+ * @return {Boolean}      true provided function is async
+ */
+
+export default function isBase64(str) {
+  
+  const isString = (typeof input === 'string' || input instanceof String);
+
+  if (!isString) {
+    let invalidType;
+    if (str === null) {
+      invalidType = 'null';
+    } else {
+      invalidType = typeof input;
+      if (invalidType === 'object' && str.constructor && str.constructor.hasOwnProperty('name')) {
+        invalidType = str.constructor.name;
+      } else {
+        invalidType = `a ${invalidType}`;
+      }
+    }
+    throw new TypeError(`Expected string but received ${invalidType}.`);
+  }
+    
+  const len = str.length;
+  if (!len || len % 4 !== 0 || notBase64.test(str)) {
+    return false;
+  }
+  const firstPaddingChar = str.indexOf('=');
+  return firstPaddingChar === -1 ||
+    firstPaddingChar === len - 1 ||
+    (firstPaddingChar === len - 2 && str[len - 1] === '=');
+}
+
