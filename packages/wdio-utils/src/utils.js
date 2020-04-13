@@ -195,9 +195,9 @@ export function filterSpecArgs (args) {
 /**
  * checks if provided string is Base64
  * @param  {String} str  string in base64 to check
- * @return {Boolean} true provided string is Base64
+ * @return {Boolean} true if the provided string is Base64
  */
-export default function isBase64(str) {
+export function isBase64(str) {
     var notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
     const isString = (typeof str === 'string' || str instanceof String)
 
