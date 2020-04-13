@@ -72,7 +72,7 @@ export default class BrowserstackService {
      */
 
     afterScenario(uri, feature, pickle, result) {
-        if (result.status === 'failed') {
+        if (result.status !== 'passed') {
             ++this.failures
         }
     }
