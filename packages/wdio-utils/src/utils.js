@@ -193,38 +193,34 @@ export function filterSpecArgs (args) {
 }
 
 /**
- * is function isBase64
+ * checks if provided string is Base64
  * @param  {String} str  string in base64 to check
- * @return {Boolean}      true provided function is async
+ * @return {Boolean} true provided string is Base64
  */
-
 export default function isBase64(str) {
-    var notBase64 = /[^A-Z0-9+\/=]/i;
-    const isString = (typeof str === 'string' || str instanceof String);
+    var notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
+    const isString = (typeof str === 'string' || str instanceof String)
 
     if (!isString) {
-      let invalidType;
-      if (str === null) {
-        invalidType = 'null';
-      } else {
-        invalidType = typeof str;
-        if (invalidType === 'object' && str.constructor && str.constructor.hasOwnProperty('name')) {
-          invalidType = str.constructor.name;
+        let invalidType
+        if (str === null) {
+            invalidType = 'null'
         } else {
-          invalidType = `a ${invalidType}`;
+            invalidType = typeof str
+            if (invalidType === 'object' && str.constructor) {
+                invalidType = str.constructor.name
+            } else {
+                invalidType = `a ${invalidType}`
+            }
         }
-      }
-      throw new TypeError(`Expected string but received ${invalidType}.`);
+        throw new TypeError(`Expected string but received ${invalidType}.`)
     }
-
-    
-    const len = str.length;
+    const len = str.length
     if (!len || len % 4 !== 0 || notBase64.test(str)) {
-      return false;
+        return false
     }
-    const firstPaddingChar = str.indexOf('=');
+    const firstPaddingChar = str.indexOf('=')
     return firstPaddingChar === -1 ||
       firstPaddingChar === len - 1 ||
-      (firstPaddingChar === len - 2 && str[len - 1] === '=');
+      (firstPaddingChar === len - 2 && str[len - 1] === '=')
 }
-
