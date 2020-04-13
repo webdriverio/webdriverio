@@ -14,14 +14,19 @@ class CucumberReporter {
         this.specs = specs
         this.reporter = reporter
         this.failedCount = 0
+        this.scenarioLevelReport = options.scenarioLevelReporter
 
         this.eventListener = new CucumberEventListener(eventBroadcaster)
             .on('before-feature', this.handleBeforeFeature.bind(this))
             .on('before-scenario', this.handleBeforeScenario.bind(this))
-            .on('before-step', this.handleBeforeStep.bind(this))
-            .on('after-step', this.handleAfterStep.bind(this))
             .on('after-scenario', this.handleAfterScenario.bind(this))
             .on('after-feature', this.handleAfterFeature.bind(this))
+
+        if(!this.scenarioLevelReport) {
+            this.eventListener
+                .on('before-step', this.handleBeforeStep.bind(this))
+                .on('after-step', this.handleAfterStep.bind(this))
+        }
     }
 
     handleBeforeFeature (uri, feature) {
@@ -42,7 +47,7 @@ class CucumberReporter {
         this.scenarioStart = new Date()
         this.testStart = new Date()
 
-        this.emit('suite:start', {
+        this.emit(this.scenarioLevelReport ? 'test:start' : 'suite:start', {
             uid: getUniqueIdentifier(scenario),
             title: this.getTitle(scenario),
             parent: getUniqueIdentifier(feature),
@@ -80,7 +85,7 @@ class CucumberReporter {
         this.emit('hook:end', payload)
     }
 
-    afterTest (uri, feature, scenario, step, result) {
+    afterTest (uri, feature, scenario, step, result, sourceLocation = null) {
         let state = 'undefined'
         switch (result.status) {
         case Status.FAILED:
@@ -96,7 +101,7 @@ class CucumberReporter {
             state = 'pending'
         }
         let error = result.exception
-        let stepTitle = getTestStepTitle(step.keyword, step.text)
+        let title = step ? getTestStepTitle(step.keyword, step.text) : this.getTitle(scenario)
 
         if (result.status === Status.UNDEFINED) {
             if (this.options.ignoreUndefinedDefinitions) {
@@ -104,7 +109,7 @@ class CucumberReporter {
                  * mark test as pending
                  */
                 state = 'pending'
-                stepTitle += ' (undefined step)'
+                title += ' (undefined step)'
             } else {
                 /**
                  * mark test as failed
@@ -112,12 +117,15 @@ class CucumberReporter {
                 this.failedCount++
 
                 error = {
-                    message: `Step "${stepTitle}" is not defined. You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.`,
-                    stack: `${step.uri}:${step.line}`
+                    message: (step ? `Step "${title}" is not defined` : `Scenario ${title} has undefined steps`) +
+                        'You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.',
+                    stack: step ? `${step.uri}:${step.line}` : `${scenario.uri}:${scenario.line}`
                 }
             }
         } else if (result.status === Status.FAILED) {
-            this.failedCount++
+            if (!result.retried) {
+                this.failedCount++
+            }
             if (false === result.exception instanceof Error) {
                 error = {
                     message: result.exception,
@@ -133,27 +141,42 @@ class CucumberReporter {
             }
         }
 
-        const payload = buildStepPayload(uri, feature, scenario, step, {
-            type: 'step',
-            title: stepTitle,
+        const common = {
+            title: title,
             state,
             error,
             duration: new Date() - this.testStart,
-            passed: state === 'pass'
-        })
+            passed: state === 'pass',
+            file: uri
+        }
+
+        const payload = step ? buildStepPayload(uri, feature, scenario, step, {
+            type: 'step',
+            ...common
+        }) : {
+            type: 'scenario',
+            uid: getUniqueIdentifier(scenario, sourceLocation),
+            parent: getUniqueIdentifier(feature),
+            tags: scenario.tags,
+            ...common
+        }
         this.emit('test:' + state, payload)
     }
 
     handleAfterScenario (uri, feature, scenario, result, sourceLocation) {
-        this.emit('suite:end', {
-            uid: getUniqueIdentifier(scenario, sourceLocation),
-            title: this.getTitle(scenario),
-            parent: getUniqueIdentifier(feature),
-            type: 'scenario',
-            file: uri,
-            duration: new Date() - this.scenarioStart,
-            tags: scenario.tags
-        })
+        if(this.scenarioLevelReport) {
+            this.afterTest(uri, feature, scenario, undefined, result, sourceLocation)
+        } else {
+            this.emit('suite:end', {
+                uid: getUniqueIdentifier(scenario, sourceLocation),
+                title: this.getTitle(scenario),
+                parent: getUniqueIdentifier(feature),
+                type: 'scenario',
+                file: uri,
+                duration: new Date() - this.scenarioStart,
+                tags: scenario.tags
+            })
+        }
     }
 
     handleAfterFeature (uri, feature) {

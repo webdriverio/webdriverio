@@ -85,8 +85,10 @@ export default class CucumberEventListener extends EventEmitter {
         this.acceptedPickles.push(pickleEvent)
     }
 
-    onTestCaseStarted () {
-        const { uri, pickle } = this.acceptedPickles.shift()
+    onTestCaseStarted (pickleEvent) {
+        const { uri, pickle } = this.acceptedPickles.find(item =>
+            item.uri === pickleEvent.sourceLocation.uri &&
+            item.pickle.locations[0].line === pickleEvent.sourceLocation.line)
         const doc = this.gherkinDocEvents.find(gde => gde.uri === uri).document
         const feature = doc.feature
         this.currentPickle = pickle

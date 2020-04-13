@@ -124,7 +124,10 @@ const cucumberTestrunner = async () => {
             ],
             cucumberOpts: {
                 tagExpression: '(not @SKIPPED_TAG)',
-                ignoreUndefinedDefinitions: true
+                ignoreUndefinedDefinitions: true,
+                retry: 1,
+                retryTagFilter: '@retry',
+                scenarioLevelReporter: true
             }
         }
     )
