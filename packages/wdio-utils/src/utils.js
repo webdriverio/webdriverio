@@ -1,5 +1,3 @@
-import isBase64 from 'is-base64'
-
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 
 /**
@@ -192,4 +190,25 @@ export function isFunctionAsync (fn) {
  */
 export function filterSpecArgs (args) {
     return args.filter((arg) => typeof arg !== 'function')
+}
+
+/**
+ * checks if provided string is Base64
+ * @param  {String} str  string in base64 to check
+ * @return {Boolean} true if the provided string is Base64
+ */
+export function isBase64(str) {
+    var notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
+    const isString = (typeof str === 'string' || str instanceof String)
+    if (!isString) {
+        throw new Error('Expected string but received invalid type.')
+    }
+    const len = str.length
+    if (!len || len % 4 !== 0 || notBase64.test(str)) {
+        return false
+    }
+    const firstPaddingChar = str.indexOf('=')
+    return firstPaddingChar === -1 ||
+      firstPaddingChar === len - 1 ||
+      (firstPaddingChar === len - 2 && str[len - 1] === '=')
 }

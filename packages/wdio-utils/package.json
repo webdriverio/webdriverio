@@ -31,8 +31,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "6.0.12",
-    "is-base64": "^1.1.0"
+    "@wdio/logger": "6.0.12"
   },
   "publishConfig": {
     "access": "public"
