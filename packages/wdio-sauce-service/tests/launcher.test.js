@@ -68,6 +68,25 @@ test('onPrepare w/ SauceConnect w/o scRelay', async () => {
     expect(config.hostname).toBe(undefined)
 })
 
+test('onPrepare w/ SauceConnect w/ scRelay w/ default port', async () => {
+    const options = {
+        sauceConnect: true,
+        scRelay: true,
+    }
+    const caps = [{}]
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        sauceConnect: true
+    }
+    const service = new SauceServiceLauncher(options)
+    expect(service.sauceConnectProcess).toBeUndefined()
+    await service.onPrepare(config, caps)
+
+    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(caps[0].port).toEqual(4445)
+})
+
 test('onPrepare w/ SauceConnect w/ region EU', async () => {
     const options = {
         sauceConnect: true
