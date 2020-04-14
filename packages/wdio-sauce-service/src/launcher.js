@@ -38,6 +38,7 @@ export default class SauceLauncher {
             accessKey: config.key,
             logger: log.debug,
             tunnelIdentifier: sauceConnectTunnelIdentifier,
+            ...(config.region === 'eu' ? { '-x': 'https://eu-central-1.saucelabs.com/rest/v1' } : {}),
             ...sauceConnectOpts
         }
 
