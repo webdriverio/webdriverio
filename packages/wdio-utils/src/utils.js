@@ -200,20 +200,8 @@ export function filterSpecArgs (args) {
 export function isBase64(str) {
     var notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
     const isString = (typeof str === 'string' || str instanceof String)
-
     if (!isString) {
-        let invalidType
-        if (str === null) {
-            invalidType = 'null'
-        } else {
-            invalidType = typeof str
-            if (invalidType === 'object' && str.constructor) {
-                invalidType = str.constructor.name
-            } else {
-                invalidType = `a ${invalidType}`
-            }
-        }
-        throw new TypeError(`Expected string but received ${invalidType}.`)
+        throw new Error('Expected string but received invalid type.')
     }
     const len = str.length
     if (!len || len % 4 !== 0 || notBase64.test(str)) {
