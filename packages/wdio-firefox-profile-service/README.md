@@ -48,7 +48,9 @@ export.config = {
 };
 ```
 
-If you have build a custom Firefox extension that you want to install in the browser make sure to set `'xpinstall.signatures.required': false` as profile flag since Firefox extensions are required to be [signed by Mozilla](https://wiki.mozilla.org/Add-ons/Extension_Signing).
+If you have built a custom Firefox extension that you want to install in the browser make sure to set `'xpinstall.signatures.required': false` as profile flag since Firefox extensions are required to be [signed by Mozilla](https://wiki.mozilla.org/Add-ons/Extension_Signing).
+
+To use custom unsigned extensions you will also need to use [Firefox Developer Edition](https://www.mozilla.org/en-GB/firefox/developer/) since the regular Firefox 48 and newer [do not allow this](https://wiki.mozilla.org/Add-ons/Extension_Signing#Timeline).
 
 ## Options
 
