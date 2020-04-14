@@ -17,6 +17,33 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.0.16 (2020-04-14)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#5259](https://github.com/webdriverio/webdriverio/pull/5259) Add any non-passing Cucumber test result to failure count ([@esaari](https://github.com/esaari))
+* `wdio-utils`
+  * [#5260](https://github.com/webdriverio/webdriverio/pull/5260) fix(wdio-utils): add isBase64 function and remove 'is-base64' library  ([@tawfiknouri](https://github.com/tawfiknouri))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#5263](https://github.com/webdriverio/webdriverio/pull/5263) Add Sauce Connect support for EU ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* `wdio-firefox-profile-service`
+  * [#5261](https://github.com/webdriverio/webdriverio/pull/5261) Explain that using custom extensions requires Firefox Developer Edition ([@jan-molak](https://github.com/jan-molak))
+* Other
+  * [#5245](https://github.com/webdriverio/webdriverio/pull/5245) Fix legacy docs link to include file extension ([@nathanarritt](https://github.com/nathanarritt))
+
+#### Committers: 6
+- Eric Saari ([@esaari](https://github.com/esaari))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Nathan Arritt ([@nathanarritt](https://github.com/nathanarritt))
+- Tawfik Nouri ([@tawfiknouri](https://github.com/tawfiknouri))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.0.15 (2020-04-09)
 
 #### :bug: Bug Fix
