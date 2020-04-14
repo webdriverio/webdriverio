@@ -68,6 +68,43 @@ test('onPrepare w/ SauceConnect w/o scRelay', async () => {
     expect(config.hostname).toBe(undefined)
 })
 
+test('onPrepare w/ SauceConnect w/ region EU', async () => {
+    const options = {
+        sauceConnect: true
+    }
+    const caps = [{}]
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        region: 'eu',
+        sauceConnect: true
+    }
+    const service = new SauceServiceLauncher(options)
+    expect(service.sauceConnectProcess).toBeUndefined()
+    await service.onPrepare(config, caps)
+
+    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service.sauceConnectOpts['-x']).toContain('https://eu-central-1.saucelabs.com/rest/v1')
+})
+
+test('onPrepare w/ SauceConnect w/ default region', async () => {
+    const options = {
+        sauceConnect: true
+    }
+    const caps = [{}]
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        sauceConnect: true
+    }
+    const service = new SauceServiceLauncher(options)
+    expect(service.sauceConnectProcess).toBeUndefined()
+    await service.onPrepare(config, caps)
+
+    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service.sauceConnectOpts['-x']).toBeUndefined()
+})
+
 test('onPrepare multiremote', async () => {
     const options = {
         sauceConnect: true,
