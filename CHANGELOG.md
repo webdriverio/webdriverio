@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.0.17 (2020-04-15)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`
+  * [#5268](https://github.com/webdriverio/webdriverio/pull/5268) Fix Appium service port assignment ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v6.0.16 (2020-04-14)
 
 #### :bug: Bug Fix
