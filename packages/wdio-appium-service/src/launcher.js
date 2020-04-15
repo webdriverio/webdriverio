@@ -60,7 +60,12 @@ export default class AppiumLauncher {
             Array.isArray(this.capabilities)
                 ? this.capabilities
                 : Object.values(this.capabilities)
-        ).forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+        ).forEach((cap) => Object.assign(
+            cap,
+            DEFAULT_CONNECTION,
+            this.args.port ? { port: this.args.port } : {},
+            { ...cap }
+        ))
 
         /**
          * start Appium
