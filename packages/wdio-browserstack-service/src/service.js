@@ -7,7 +7,6 @@ const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService {
     constructor ({ preferScenarioName = false }, caps, config) {
-        this.options = options
         this.config = config
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
         this.preferScenarioName = preferScenarioName
@@ -44,13 +43,13 @@ export default class BrowserstackService {
         return this._printSessionURL()
     }
 
-    beforeFeature(uri, feature, scenarios) {
+    beforeFeature(uri, feature) {
         const oldTitle = this.fullTitle
-        this.fullTitle = [this.fullTitle, feature.document.feature.name].filter(Boolean).join(", ")
+        this.fullTitle = [this.fullTitle, feature.document.feature.name].filter(Boolean).join(', ')
         this.fullTitle !== oldTitle && this._update(this.sessionId, { name: this.fullTitle })
     }
 
-    afterTest(test, context, { error, result, duration, passed, retries }) {
+    afterTest(test, context, { error, passed }) {
         this.fullTitle = (
             /**
              * Jasmine
@@ -67,7 +66,7 @@ export default class BrowserstackService {
         }
     }
 
-    after(result, capabilities, specs) {
+    after(result) {
         if(this.preferScenarioName && this.scenariosThatRan.length === 1){
             this.fullTitle = this.scenariosThatRan.pop()
         }
@@ -75,7 +74,7 @@ export default class BrowserstackService {
         return this._update(this.sessionId, {
             status: result === 0 ? 'passed' : 'failed',
             name: this.fullTitle,
-            reason: this.failReasons.filter(Boolean).join("\n")
+            reason: this.failReasons.filter(Boolean).join('\n')
         })
     }
 
@@ -83,16 +82,16 @@ export default class BrowserstackService {
      * For CucumberJS
      */
 
-    afterScenario(uri, feature, pickle, { duration, exception, status }) {
-        if (result.status !== "skipped") {
-          this.scenariosThatRan.push(pickle.name)
+    afterScenario(uri, feature, pickle, { exception, status }) {
+        if (status !== 'skipped') {
+            this.scenariosThatRan.push(pickle.name)
         }
 
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
-      const failureStatuses = ["failed", "ambiguous", "undefined", "unknown", this.strict ? ["pending"] : []].flat()
+        const failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown', this.strict ? ['pending'] : []].flat()
 
         if (failureStatuses.includes(status)) {
-            exception = exception || status === "pending"
+            exception = exception || status === 'pending'
                 ? `Some steps/hooks are pending for scenario "${pickle.name}"`
                 : 'Unknown Error'
 
