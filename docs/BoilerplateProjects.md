@@ -42,7 +42,7 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
   - Mocha
 - Features
   - [Page Object](PageObjects.md) Model
-  - Sauce Labs integration with [Sauce Service](../packages/wdio-sauce-service/README.md)
+  - Sauce Labs integration with [Sauce Service](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-sauce-service/README.md)
   - Allure Report
   - Automatic screenshots capture for failing tests
   - CircleCI example
