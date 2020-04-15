@@ -81,6 +81,50 @@ describe('Appium launcher', () => {
             expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
         })
 
+        test('should respect custom Appium port', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar', port: 1234 }
+            }
+            const capabilities = [{}]
+            const launcher = new AppiumLauncher(options, capabilities, {})
+            launcher._startAppium = jest.fn().mockImplementation(
+                (cmd, args, cb) => cb(null, new MockProcess()))
+            await launcher.onPrepare()
+
+            expect(launcher.process).toBeInstanceOf(MockProcess)
+            expect(launcher.logPath).toBe('./')
+            expect(launcher.command).toBe('path/to/my_custom_appium')
+            expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
+            expect(capabilities[0].protocol).toBe('http')
+            expect(capabilities[0].hostname).toBe('localhost')
+            expect(capabilities[0].port).toBe(1234)
+            expect(capabilities[0].path).toBe('/')
+        })
+
+        test('should respect custom port before Appium port', async () => {
+            const options = {
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar', port: 1234 }
+            }
+            const capabilities = [{ port: 4321 }]
+            const launcher = new AppiumLauncher(options, capabilities, {})
+            launcher._startAppium = jest.fn().mockImplementation(
+                (cmd, args, cb) => cb(null, new MockProcess()))
+            await launcher.onPrepare()
+
+            expect(launcher.process).toBeInstanceOf(MockProcess)
+            expect(launcher.logPath).toBe('./')
+            expect(launcher.command).toBe('path/to/my_custom_appium')
+            expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
+            expect(capabilities[0].protocol).toBe('http')
+            expect(capabilities[0].hostname).toBe('localhost')
+            expect(capabilities[0].port).toBe(4321)
+            expect(capabilities[0].path).toBe('/')
+        })
+
         test('should set correct config properties for Windows', async () => {
             const originalPlatform = process.platform
             Object.defineProperty(process, 'platform', {

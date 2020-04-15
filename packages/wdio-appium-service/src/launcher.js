@@ -8,6 +8,13 @@ import getFilePath from './utils/getFilePath'
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'appium.txt'
 
+const DEFAULT_CONNECTION = {
+    protocol: 'http',
+    hostname: 'localhost',
+    port: 4723,
+    path: '/'
+}
+
 export default class AppiumLauncher {
     constructor() {
         this.logPath = null
@@ -39,8 +46,25 @@ export default class AppiumLauncher {
             this.command = 'cmd'
         }
 
-        const asyncStartAppium = promisify(this._startAppium)
-        this.process = await asyncStartAppium(this.command, this.appiumArgs, this.waitStartTime)
+        /**
+         * update capability connection options to connect
+         * to Appium server
+         */
+        (
+            Array.isArray(this.capabilities)
+                ? this.capabilities
+                : Object.values(this.capabilities)
+        ).forEach((cap) => Object.assign(
+            cap,
+            DEFAULT_CONNECTION,
+            this.args.port ? { port: this.args.port } : {},
+            { ...cap }
+        ))
+
+        /**
+         * start Appium
+         */
+        this.process = await promisify(this._startAppium)(this.command, this.appiumArgs)
 
         if (typeof this.logPath === 'string') {
             this._redirectLogStream(this.logPath)
@@ -54,7 +78,7 @@ export default class AppiumLauncher {
         }
     }
 
-    _startAppium(command, args, waitStartTime, callback) {
+    _startAppium(command, args, callback) {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         let process = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let error
