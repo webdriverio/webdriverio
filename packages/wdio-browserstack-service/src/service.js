@@ -6,10 +6,13 @@ import { BROWSER_DESCRIPTION } from './constants'
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService {
-    constructor (options, caps, config) {
+    constructor ({ preferScenarioName = false }, caps, config) {
+        this.options = options
         this.config = config
-        this.failures = 0
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
+        this.preferScenarioName = preferScenarioName
+        this.strict = !!(config.cucumberOpts && config.cucumberOpts.strict)
+        this.failReasons = []
     }
 
     /**
@@ -36,16 +39,18 @@ export default class BrowserstackService {
             this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
 
+        this.scenariosThatRan = []
+
         return this._printSessionURL()
     }
 
-    afterSuite(suite) {
-        if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
-            this.failures++
-        }
+    beforeFeature(uri, feature, scenarios) {
+        const oldTitle = this.fullTitle
+        this.fullTitle = [this.fullTitle, feature.document.feature.name].filter(Boolean).join(", ")
+        this.fullTitle !== oldTitle && this._update(this.sessionId, { name: this.fullTitle })
     }
 
-    afterTest(test) {
+    afterTest(test, context, { error, result, duration, passed, retries }) {
         this.fullTitle = (
             /**
              * Jasmine
@@ -57,32 +62,50 @@ export default class BrowserstackService {
             `${test.parent} - ${test.title}`
         )
 
-        if (!test.passed) {
-            this.failures++
-            this.failReason = (test.error && test.error.message ? test.error.message : 'Unknown Error')
+        if (!passed) {
+            this.failReasons.push(error && error.message || 'Unknown Error')
         }
     }
 
-    after() {
-        return this._update(this.sessionId, this._getBody())
+    after(result, capabilities, specs) {
+        if(this.preferScenarioName && this.scenariosThatRan.length === 1){
+            this.fullTitle = this.scenariosThatRan.pop()
+        }
+
+        return this._update(this.sessionId, {
+            status: result === 0 ? 'passed' : 'failed',
+            name: this.fullTitle,
+            reason: this.failReasons.filter(Boolean).join("\n")
+        })
     }
 
     /**
      * For CucumberJS
      */
 
-    afterScenario(uri, feature, pickle, result) {
-        if (result.status === 'failed') {
-            ++this.failures
+    afterScenario(uri, feature, pickle, { duration, exception, status }) {
+        if (result.status !== "skipped") {
+          this.scenariosThatRan.push(pickle.name)
+        }
+
+        // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
+      const failureStatuses = ["failed", "ambiguous", "undefined", "unknown", this.strict ? ["pending"] : []].flat()
+
+        if (failureStatuses.includes(status)) {
+            exception = exception || status === "pending"
+                ? `Some steps/hooks are pending for scenario "${pickle.name}"`
+                : 'Unknown Error'
+
+            this.failReasons.push(exception)
         }
     }
 
     async onReload(oldSessionId, newSessionId) {
         this.sessionId = newSessionId
-        await this._update(oldSessionId, this._getBody())
-        this.failures = 0
+        await this._update(oldSessionId, { name: this.fullTitle })
+        this.scenariosThatRan = []
         delete this.fullTitle
-        delete this.failReason
+        this.failReasons = []
         this._printSessionURL()
     }
 
@@ -92,14 +115,6 @@ export default class BrowserstackService {
             username: this.config.user,
             password: this.config.key
         })
-    }
-
-    _getBody() {
-        return {
-            status: this.failures === 0 ? 'passed' : 'failed',
-            name: this.fullTitle,
-            reason: this.failReason
-        }
     }
 
     async _printSessionURL() {
