@@ -9,9 +9,11 @@ const ROOT = path.resolve(__dirname, '..', '..')
 
 // TypeScript project root for testing particular typings
 const outDirs = [
-    'sync', 'sync-applitools', 'sync-browserstack', 'sync-mocha', 'sync-jasmine', 'webdriverio', 'webdriverio-applitools',
-    'webdriverio-browserstack', 'webdriverio-mocha', 'webdriverio-jasmine', 'sync-cucumber', 'devtools', 'sync-devtools',
-    'webdriverio-reporter', 'webdriverio-saucelabs', 'sync-saucelabs'
+    'sync', 'sync-applitools', 'sync-browserstack', 'sync-mocha', 'sync-jasmine',
+    'webdriverio', 'webdriverio-applitools', 'webdriverio-browserstack',
+    'webdriverio-mocha', 'webdriverio-jasmine', 'webdriverio-cucumber',
+    'sync-cucumber', 'devtools', 'sync-devtools', 'webdriverio-reporter',
+    'webdriverio-saucelabs', 'sync-saucelabs'
 ]
 
 const packages = {

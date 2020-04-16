@@ -6,17 +6,6 @@ const { executeHooksWithArgs, testFnWrapper } = utils
 
 import CucumberAdapterFactory, { CucumberAdapter } from '../src'
 
-global.browser = {
-    config: {},
-    options: {},
-    capabilities: {
-        device: '',
-        os: 'OS X',
-        os_version: 'Sierra',
-        browserName: 'chrome'
-    }
-}
-
 const wdioReporter = {
     write: jest.fn(),
     emit: jest.fn(),
@@ -36,6 +25,19 @@ const adapterFactory = (cucumberOpts = {}, capabilities = {}) => new CucumberAda
     { browserName: 'chrome', ...capabilities },
     wdioReporter
 )
+
+beforeEach(() => {
+    global.browser = {
+        config: {},
+        options: {},
+        capabilities: {
+            device: '',
+            os: 'OS X',
+            os_version: 'Sierra',
+            browserName: 'chrome'
+        }
+    }
+})
 
 test('comes with a factory', async () => {
     expect(typeof CucumberAdapterFactory.init).toBe('function')
@@ -283,6 +285,10 @@ describe('addHooks', () => {
     const beforeFeature = Cucumber.BeforeAll.mock.calls[0][0]
     const afterFeature = Cucumber.AfterAll.mock.calls[0][0]
 
+    afterAll(() => {
+        delete global.result
+    })
+
     test('beforeScenario', () => {
         beforeScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation' })
         expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeScenario, ['uri', 'feature', 'pickle', 'sourceLocation'])
@@ -423,6 +429,10 @@ describe('skip filters', () => {
 })
 
 afterEach(() => {
+    delete global.browser
+    delete global.MY_VAR
+    delete global.MY_PARAMS
+
     Cucumber.setDefinitionFunctionWrapper.mockClear()
     Cucumber.supportCodeLibraryBuilder.reset.mockReset()
     Cucumber.setDefaultTimeout.mockReset()

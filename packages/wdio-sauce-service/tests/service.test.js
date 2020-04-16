@@ -2,15 +2,6 @@ import got from 'got'
 
 import SauceService from '../src'
 
-global.browser = {
-    config: {},
-    execute: jest.fn(),
-    chromeA: { sessionId: 'sessionChromeA' },
-    chromeB: { sessionId: 'sessionChromeB' },
-    chromeC: { sessionId: 'sessionChromeC' },
-    instances: ['chromeA', 'chromeB', 'chromeC'],
-}
-
 const uri = '/some/uri'
 const featureObject = {
     type: 'gherkin-document',
@@ -32,6 +23,17 @@ const featureObject = {
             comments: []
         }
 }
+
+beforeEach(() => {
+    global.browser = {
+        config: {},
+        execute: jest.fn(),
+        chromeA: { sessionId: 'sessionChromeA' },
+        chromeB: { sessionId: 'sessionChromeB' },
+        chromeC: { sessionId: 'sessionChromeC' },
+        instances: ['chromeA', 'chromeB', 'chromeC'],
+    }
+})
 
 test('constructor should set setJobNameInBeforeSuite to true', () => {
     const options = {
@@ -124,14 +126,14 @@ test('afterSuite', () => {
 
 test('afterTest', () => {
     const service = new SauceService()
-    service.beforeSession({}, {})
+    service.beforeSession({}, {}, {})
 
     expect(service.failures).toBe(0)
 
-    service.afterTest({ passed: true })
+    service.afterTest({}, {}, { passed: true })
     expect(service.failures).toBe(0)
 
-    service.afterTest({ passed: false })
+    service.afterTest({}, {}, { passed: false })
     expect(service.failures).toBe(1)
 })
 
@@ -393,6 +395,115 @@ test('getBody', () => {
     })
 })
 
+test('getBody', () => {
+    const service = new SauceService()
+    service.suiteTitle = 'jojo'
+    service.beforeSession({}, {
+        name: 'jobname',
+        tags: ['jobTag'],
+        public: true,
+        build: 'foobuild',
+        'custom-data': { some: 'data' }
+    })
+
+    expect(service.getBody(0)).toEqual({
+        name: 'jobname',
+        tags: ['jobTag'],
+        public: true,
+        build: 'foobuild',
+        'custom-data': { some: 'data' },
+        passed: true
+    })
+
+    service.capabilities = {}
+    expect(service.getBody(1)).toEqual({
+        name: 'jojo',
+        passed: false
+    })
+
+    expect(service.getBody(1, true)).toEqual({
+        name: 'jojo (1)',
+        passed: false
+    })
+
+    service.getBody(1, true)
+    service.getBody(1, true)
+    global.browser.isMultiremote = true
+    expect(service.getBody(12, true)).toEqual({
+        name: 'jojo (2)',
+        passed: false
+    })
+
+    expect(service.getBody(12, true, 'chrome')).toEqual({
+        name: 'chrome: jojo (2)',
+        passed: false
+    })
+})
+
+test('getBody with name Capability (JSON WP)', () => {
+    const service = new SauceService()
+    service.suiteTitle = 'jojo'
+    service.beforeSession({}, {
+        name: 'bizarre'
+    })
+
+    expect(service.getBody(1)).toEqual({
+        name: 'bizarre',
+        passed: false
+    })
+
+    expect(service.getBody(1, true)).toEqual({
+        name: 'bizarre',
+        passed: false
+    })
+
+    service.getBody(1, true)
+    service.getBody(1, true)
+    global.browser.isMultiremote = true
+    expect(service.getBody(12, true)).toEqual({
+        name: 'bizarre',
+        passed: false
+    })
+
+    expect(service.getBody(12, true, 'chrome')).toEqual({
+        name: 'bizarre',
+        passed: false
+    })
+})
+
+test('getBody with name Capability (W3C)', () => {
+    const service = new SauceService()
+    service.suiteTitle = 'jojo'
+    service.beforeSession({}, {
+        'sauce:options': {
+            name: 'bizarre'
+        }
+    })
+
+    expect(service.getBody(1)).toEqual({
+        name: 'bizarre',
+        passed: false
+    })
+
+    expect(service.getBody(1, true)).toEqual({
+        name: 'bizarre',
+        passed: false
+    })
+
+    service.getBody(1, true)
+    service.getBody(1, true)
+    global.browser.isMultiremote = true
+    expect(service.getBody(12, true)).toEqual({
+        name: 'bizarre',
+        passed: false
+    })
+
+    expect(service.getBody(12, true, 'chrome')).toEqual({
+        name: 'bizarre',
+        passed: false
+    })
+})
+
 test('getBody without multiremote', () => {
     const service = new SauceService()
     service.suiteTitle = 'jojo'
@@ -416,6 +527,6 @@ test('getBody without multiremote', () => {
 })
 
 afterEach(() => {
-    global.browser.execute.mockClear()
+    delete global.browser
     got.put.mockClear()
 })

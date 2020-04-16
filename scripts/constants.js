@@ -32,11 +32,32 @@ const EDIT_WARNING = `// -------------------- ATTENTION --------------------
 //
 `
 
+const SAUCE_API_DESCRIPTION = `
+All commands are only supported on Chrome using Sauce Labs
+[Extended Debugging](https://wiki.saucelabs.com/pages/viewpage.action?pageId=70072943)
+capabilities. You can enable these by setting the following Sauce options:\n\n
+\`\`\`js
+{
+    browserName: 'Chrome',
+    browserVersion: 'latest',
+    platformName: 'Windows 10',
+    'sauce:options': {
+        extendedDebugging: true
+    }
+}
+\`\`\`
+`
+
+const PROTOCOL_API_DESCRIPTION = {
+    'saucelabs': SAUCE_API_DESCRIPTION
+}
+
 module.exports = {
     PROTOCOLS,
     EDIT_WARNING,
     PROTOCOL_NAMES,
     MOBILE_PROTOCOLS,
     VENDOR_PROTOCOLS,
-    IGNORED_SUBPACKAGES_FOR_DOCS
+    IGNORED_SUBPACKAGES_FOR_DOCS,
+    PROTOCOL_API_DESCRIPTION
 }

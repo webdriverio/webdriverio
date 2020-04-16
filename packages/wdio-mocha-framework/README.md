@@ -118,29 +118,4 @@ CoffeeScript and similar transpilers may be used by mapping the file extensions 
 }
 ```
 
-## Development
-
-All commands can be found in the package.json. The most important are:
-
-Watch changes:
-
-```sh
-$ npm run watch
-```
-
-Run tests:
-
-```sh
-$ npm test
-
-# run test with coverage report:
-$ npm run test:cover
-```
-
-Build package:
-
-```sh
-$ npm build
-```
-
 For more information on WebdriverIO see the [homepage](https://webdriver.io).

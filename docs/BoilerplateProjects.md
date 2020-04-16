@@ -5,6 +5,61 @@ title: Boilerplate Projects
 
 Over time, our community has developed several boilerplate projects that you can use as inspiration to set up your own test suite.
 
+## v6 Boilerplate Projects
+
+### [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
+
+Boilerplate project to run Appium tests with WebdriverIO for:
+
+- iOS/Android Native Apps
+- iOS/Android Hybrid Apps
+- Android Chrome and iOS Safari browser
+
+This boilerplate includes the following:
+
+- Framework: Jasmine
+- Features:
+    - Configs for:
+        - iOS and Android app
+        - iOS and Android browsers
+    - Helpers for:
+        - WebView
+        - Gestures
+        - Native alerts
+        - Pickers
+     - Tests examples for:
+        - WebView
+        - Login
+        - Forms
+        - Swipe
+        - Browsers
+
+### [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
+ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
+
+- Frameworks
+  - WebdriverIO (v6)
+  - Mocha
+- Features
+  - [Page Object](PageObjects.md) Model
+  - Sauce Labs integration with [Sauce Service](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-sauce-service/README.md)
+  - Allure Report
+  - Automatic screenshots capture for failing tests
+  - CircleCI example
+  - ESLint
+
+### [webdriverio/jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate)
+Boilerplate project to run WebdriverIO tests with Jasmine using Babel features and the page objects pattern.
+
+- Frameworks
+  - WebdriverIO (v6)
+  - Jasmine (v3)
+- Features
+  - Page Object Pattern
+  - Sauce Labs integration
+
+----
+
 ## v5 Boilerplate Projects
 
 ### [labs42io/web-automation](https://github.com/labs42io/web-automation)
@@ -17,7 +72,7 @@ BDD tests with Cucumber, WebdriverIO and Docker Selenium.
   - Cucumber
 - Features
   - Dockerized selenium grid and browsers
-  - Configurable selenium and browser versions 
+  - Configurable selenium and browser versions
   - Over 150 predefined snippets for [Cucumber Gherkin Syntax](https://cucumber.io/docs/gherkin/)
   - Write custom snippets with TypeScript
   - Visually debug tests with *VNC viewier*
@@ -25,7 +80,7 @@ BDD tests with Cucumber, WebdriverIO and Docker Selenium.
   - Automatic screenshots attached for failing tests
   - CI integration samples
   - ESLint
-  
+
 ### [davidnguyen179/storybook-wdio](https://github.com/davidnguyen179/storybook-wdio)
 
 The project creates the powerful component base boilerplate using Storybook, React, Typescript, Mocha, WebdriverIO and Selenium.
@@ -175,33 +230,6 @@ A powerful boilerplate project to run E2E tests with Cucumber.
     - Code formatter (ESlint, Prettier)
     - Husky
 
-### [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
-
-Boilerplate project to run Appium tests with WebdriverIO for:
-
-- iOS/Android Native Apps
-- iOS/Android Hybrid Apps
-- Android Chrome and iOS Safari browser
-
-This boilerplate includes the following:
-
-- Framework: Jasmine
-- Features:
-    - Configs for:
-        - iOS and Android app
-        - iOS and Android browsers
-    - Helpers for:
-        - WebView
-        - Gestures
-        - Native alerts
-        - Pickers
-     - Tests examples for:
-        - WebView
-        - Login
-        - Forms
-        - Swipe
-        - Browsers
-        
 ### [Schveitzer/webdriverio-appium-cucumber-boilerplate](https://github.com/Schveitzer/webdriverio-appium-cucumber-boilerplate)
 
 Boilerplate project to run Appium tests together with WebdriverIO and BDD with Cucumber for:
@@ -217,7 +245,7 @@ This boilerplate includes the following:
     - @Wdio/Allure (v5.x)
     - Appium (1.16.x)
     - Cucumber (v5.x)
-    
+
 - Features:
     - Configs for:
         - iOS and Android app
@@ -232,7 +260,7 @@ This boilerplate includes the following:
     - Reports with Allure (Print screen on fail)
     - Code formatter (ESlint, Prettier)
     - Git hook using `husky`
-        
+
 ### [blueimp/wdio](https://github.com/blueimp/wdio)
 
 Docker setup for WebdriverIO with automatic screenshots, image diffing, and screen recording support for containerized versions of Chrome and Firefox. Also includes macOS host configs to test an app running in Docker with Safari Desktop, as well as Safari Mobile and Chrome Mobile via Appium.
@@ -279,10 +307,6 @@ This project is useful not only as an example of WebdriverIO v5 and integration 
     - Uses [Page Objects](PageObjects.md)
     - Examples of using Page Locators to run same script on Multiple Mobile Devices
 
-----
-
-## v4 Boilerplate Projects
-
 ### [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
 Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you, so you can start writing feature files in your project right away.
@@ -301,57 +325,3 @@ Simple boilerplate project that runs multiple browsers on [SauceLabs](https://sa
 - Features:
     - [Page Object](PageObjects.md) usage
     - Integration with [SauceLabs](https://saucelabs.com)
-
-### [cognitom/webdriverio-examples](https://github.com/cognitom/webdriverio-examples)
-
-Project with various examples to setup WebdriverIO with an internal grid and PhantomJS, or using cloud services like [TestingBot](https://testingbot.com).
-
-- Framework: Mocha
-- Features:
-    - Examples for the tunneling feature from TestingBot
-    - Standalone examples
-    - Simple demo of how to integrate PhantomJS as a service (so that no Java is required!)
-
-### [michaelguild13/Selenium-WebdriverIO-Mocha-Chai-Sinon-Boilerplate](https://github.com/michaelguild13/Selenium-WebdriverIO-Mocha-Chai-Sinon-Boilerplate)
-
-Enhance testing stack demonstration with Mocha and Chai allows you to write simple assertion using the [Chai](http://chaijs.com) assertion library.
-
-- Framework: Mocha
-- Features:
-    - Chai integration
-    - Babel setup
-
-### [dcypherthis/wdio-boilerplate-cucumber](https://github.com/dcypherthis/wdio-boilerplate-cucumber)
-
-This project is an example of how to get started with WebdriverIO for Selenium testing in NodeJS. It makes use of the Cucumber BDD framework, and supports the dot, junit, and allure reporters. It is ES6 friendly (via `babel-register`) and uses Grunt to manage tasks.
-
-- Framework: Cucumber
-- Features:
-    - Detailed documentation
-    - Runs tests in a [Docker](https://www.docker.com) container
-    - Babel setup
-
-### [WillLuce/WebdriverIO_Typescript](https://github.com/WillLuce/WebdriverIO_Typescript)
-
-This directory contains the WebdriverIO [page object](PageObjects.md) example, written in TypeScript.
-
-- Framework: Mocha
-- Features:
-    - examples of [Page Object](PageObjects.md) Model implementation
-    - Intellisense
-
-### [klamping/wdio-starter-kit](https://github.com/klamping/wdio-starter-kit)
-
-Boilerplate repo for quick setup of WebdriverIO test scripts with TravisCI, Sauce Labs, and Visual Regression Testing.
-
-- Framework: Mocha, Chai
-- Features:
-    - Login and Registration Tests (with [Page Object](PageObjects.md)s)
-    - Mocha
-    - Chai with `expect` global
-    - Chai WebdriverIO
-    - Sauce Labs integration
-    - Visual Regression Tests
-    - Local notifications
-    - ESLint using Semistandard style
-    - WebdriverIO-tuned `.gitignore` file

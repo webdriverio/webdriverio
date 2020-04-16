@@ -27,24 +27,29 @@ got.put.mockReturnValue(Promise.resolve({ body: '{}' }))
 
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
-    global.browser = {
-        execute,
-        sessionId: 'globalSessionId',
-        requestHandler: {
-            auth: {
-                user: 'user',
-                pass: 'pass'
-            }
-        },
-        chromeA: { sessionId: 'sessionChromeA' },
-        chromeB: { sessionId: 'sessionChromeB' },
-        chromeC: { sessionId: 'sessionChromeC' },
-        instances: ['chromeA', 'chromeB', 'chromeC'],
-    }
+
+    beforeEach(() => {
+        global.browser = {
+            execute,
+            sessionId: 'globalSessionId',
+            requestHandler: {
+                auth: {
+                    user: 'user',
+                    pass: 'pass'
+                }
+            },
+            config: {},
+            chromeA: { sessionId: 'sessionChromeA' },
+            chromeB: { sessionId: 'sessionChromeB' },
+            chromeC: { sessionId: 'sessionChromeC' },
+            instances: ['chromeA', 'chromeB', 'chromeC'],
+        }
+    })
 
     afterEach(() => {
-        global.browser.isMultiremote = false
+        delete global.browser
         execute.mockReset()
+        got.put.mockClear()
     })
 
     it('before', () => {
@@ -153,7 +158,7 @@ describe('wdio-testingbot-service', () => {
         const test = {
             passed: true
         }
-        tbService.afterTest(test)
+        tbService.afterTest({}, {}, test)
 
         expect(tbService.failures).toEqual(0)
     })
@@ -164,7 +169,7 @@ describe('wdio-testingbot-service', () => {
         const test = {
             passed: false
         }
-        tbService.afterTest(test)
+        tbService.afterTest({}, {}, test)
 
         expect(tbService.failures).toEqual(1)
     })
@@ -393,8 +398,10 @@ describe('wdio-testingbot-service', () => {
 
         await service.updateJob('12345', 23, true)
 
-        expect(got.put).toHaveBeenCalled()
         expect(service.failures).toBe(0)
+        expect(got.put).toHaveBeenCalled()
+        expect(got.put.mock.calls[0][1].username).toBe('foobar')
+        expect(got.put.mock.calls[0][1].password).toBe('123')
     })
 
     it('updateJob failure', async () => {

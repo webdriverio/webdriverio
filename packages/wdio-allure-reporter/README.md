@@ -67,6 +67,11 @@ exports.config = {
     * `content` (*String*, optional) - step attachment
     * `name` (*String*, optional) - step attachment name, `attachment` by default.
     * `status` (*String*, optional) - step status, `passed` by default. Must be "failed", "passed" or "broken"
+* `startStep(title)` - start with a step
+    * `title` (*String*) - name of the step.
+* `endStep(status)` - end with a step
+    * `status` (*String*, optional) - step status, `passed` by default. Must be "failed", "passed" or "broken"
+
 ### Usage
 Allure Api can be accessed using:
 

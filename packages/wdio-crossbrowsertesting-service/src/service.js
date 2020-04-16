@@ -62,8 +62,8 @@ export default class CrossBrowserTestingService {
      * After test
      * @param {Object} test Test
      */
-    afterTest (test) {
-        if (!test.passed) {
+    afterTest (test, context, results) {
+        if (!results.passed) {
             ++this.failures
         }
     }
@@ -152,7 +152,8 @@ export default class CrossBrowserTestingService {
         const response = await got.put(this.getRestUrl(sessionId), {
             json,
             responseType: 'json',
-            auth: `${this.cbtUsername}:${this.cbtAuthkey}`
+            username: this.cbtUsername,
+            password: this.cbtAuthkey
         })
 
         global.browser.jobData = response.body

@@ -9,6 +9,13 @@ import { getFilePath } from './utils'
 const DEFAULT_LOG_FILENAME = 'wdio-selenium-standalone.log'
 const log = logger('@wdio/selenium-standalone-service')
 
+const DEFAULT_CONNECTION = {
+    protocol: 'http',
+    hostname: 'localhost',
+    port: 4444,
+    path: '/wd/hub'
+}
+
 export default class SeleniumStandaloneLauncher {
     constructor (options, capabilities, config) {
         this.capabilities = capabilities
@@ -29,7 +36,15 @@ export default class SeleniumStandaloneLauncher {
          * update capability connection options to connect
          * to standalone server
          */
-        this.capabilities.forEach((cap) => !cap.path && (cap.path = '/wd/hub'))
+        (
+            Array.isArray(this.capabilities)
+                ? this.capabilities
+                : Object.values(this.capabilities)
+        ).forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+
+        /**
+         * start Selenium Standalone server
+         */
         this.process = await promisify(SeleniumStandalone.start)(this.args)
 
         if (typeof this.logPath === 'string') {

@@ -19,7 +19,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: () => { },
+            scrollIntoView: () => jest.fn(),
             contains: () => false
         }
         global.document = { elementFromPoint: () => elemMock }
@@ -38,7 +38,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: () => { },
+            scrollIntoView: () => jest.fn(),
             contains: () => true
         }
         global.document = { elementFromPoint: () => 'some element' }
@@ -119,7 +119,7 @@ describe('isElementClickable script', () => {
                 top: 33,
                 left: 45500
             }],
-            scrollIntoView: () => { },
+            scrollIntoView: () => jest.fn(),
             contains: () => false
         }
         global.document = {
@@ -143,7 +143,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: () => { },
+            scrollIntoView: () => jest.fn(),
             contains: () => false
         }
         global.document = {
@@ -170,7 +170,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: () => { },
+            scrollIntoView: () => jest.fn(),
             contains: () => false,
             disabled: true
         }
@@ -211,7 +211,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: () => { },
+            scrollIntoView: () => jest.fn(),
             contains: () => false
         }
         global.document = {
@@ -232,7 +232,7 @@ describe('isElementClickable script', () => {
                 left: 999
             }),
             getClientRects: () => [{}],
-            scrollIntoView: () => { },
+            scrollIntoView: () => jest.fn(),
             contains: () => false
         }
         global.document = { elementFromPoint: () => elemMock }
@@ -242,5 +242,10 @@ describe('isElementClickable script', () => {
 
     afterEach(() => {
         delete global.window.StyleMedia
+    })
+
+    afterAll(() => {
+        delete global.window.innerWidth
+        delete global.window.innerHeight
     })
 })

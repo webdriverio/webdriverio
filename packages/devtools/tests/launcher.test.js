@@ -58,6 +58,7 @@ test('launch Firefox with custom arguments', async () => {
         browserName: 'firefox',
         'moz:firefoxOptions': {
             args: ['foobar'],
+            binary: '/foo/bar',
             headless: true,
             defaultViewport: {
                 width: 123,

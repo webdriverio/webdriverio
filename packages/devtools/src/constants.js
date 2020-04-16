@@ -84,9 +84,17 @@ export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name', 'xpath
 export const SERIALIZE_PROPERTY = 'data-devtoolsdriver-fetchedElement'
 export const SERIALIZE_FLAG = '__executeElement'
 
+export const PPTR_LOG_PREFIX = 'puppeteer:protocol'
+
 export const ERROR_MESSAGES = {
     staleElement: {
         name: 'stale element reference',
         message: 'stale element reference: The element reference is stale; either the element is no longer attached to the DOM, it is not in the current frame context, or the document has been refreshed'
     }
+}
+
+export const VENDOR_PREFIX = {
+    chrome: 'goog:chromeOptions',
+    firefox: 'moz:firefoxOptions',
+    edge: 'ms:edgeOptions'
 }

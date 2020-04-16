@@ -44,7 +44,7 @@ import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject, hasElementId } from '../../utils'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed'
 
-const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome']
+const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome', 'safari technology preview']
 
 export default async function isDisplayed() {
 

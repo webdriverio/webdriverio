@@ -128,7 +128,7 @@ Default: ``
 ### tagsInTitle
 Add cucumber tags to feature or scenario name
 
-Type: `Boolean[]`<br>
+Type: `Boolean`<br>
 Default: `false`
 
 ### timeout
@@ -136,6 +136,17 @@ Timeout in milliseconds for step definitions.
 
 Type: `Number`<br>
 Default: `30000`
+
+### retry
+Specify the number of times to retry failing test cases.
+
+Type: `Number`<br>
+Default: `0`
+
+### retryTagFilter
+Only retries the features or scenarios with tags matching the expression (repeatable). This option requires '--retry' to be specified.
+
+Type: `RegExp`
 
 ----
 

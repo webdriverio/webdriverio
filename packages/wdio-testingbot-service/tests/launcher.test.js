@@ -6,18 +6,24 @@ const log = logger()
 
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
-    global.browser = {
-        execute,
-        sessionId: 'globalSessionId',
-        requestHandler: {
-            auth: {
-                user: 'user',
-                pass: 'pass'
+
+    beforeEach(() => {
+        global.browser = {
+            execute,
+            sessionId: 'globalSessionId',
+            requestHandler: {
+                auth: {
+                    user: 'user',
+                    pass: 'pass'
+                }
             }
         }
-    }
+    })
 
-    afterEach(() => execute.mockReset())
+    afterEach(() => {
+        delete global.browser
+        execute.mockReset()
+    })
 
     it('onPrepare: tbTunnel is undefined', async () => {
         const options = { tbTunnel: undefined }

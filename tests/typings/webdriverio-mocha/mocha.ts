@@ -7,4 +7,13 @@ const suite: WebdriverIO.Suite = {
     pending: true
 }
 
+const config: WebdriverIO.Config = {
+    mochaOpts: {
+        timeout: 3000,
+        allowUncaught: true,
+        require: ['@babel/register', './test/helpers/common.js'],
+        compilers: ['coffee:coffee-script/register']
+    }
+}
+
 export default {}

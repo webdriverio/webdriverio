@@ -17,7 +17,7 @@ runner.on('error', ({ name, message, stack }) => process.send({
 
 process.on('message', (m) => {
     if (!m || !m.command) {
-        return log.info('Ignore message for worker:', m)
+        return
     }
 
     log.info(`Run worker command: ${m.command}`)

@@ -4,7 +4,7 @@
  *
  * <example>
     :example.test.js
-    it('should demonstrate the doubleClick command', () => {
+    it('should demonstrate the dragAndDrop command', () => {
         const elem = $('#someElem')
         const target = $('#someTarget')
         elem.dragAndDrop(target)

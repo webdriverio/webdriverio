@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cli",
-  "version": "6.0.5",
+  "version": "6.0.16",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cli",
@@ -35,11 +35,11 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/config": "6.0.1",
-    "@wdio/logger": "6.0.1",
-    "@wdio/utils": "6.0.4",
+    "@wdio/config": "6.0.16",
+    "@wdio/logger": "6.0.16",
+    "@wdio/utils": "6.0.16",
     "async-exit-hook": "^2.0.1",
-    "chalk": "^3.0.0",
+    "chalk": "^4.0.0",
     "chokidar": "^3.0.0",
     "cli-spinners": "^2.1.0",
     "ejs": "^3.0.1",
@@ -49,7 +49,7 @@
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
     "log-update": "^4.0.0",
-    "webdriverio": "6.0.5",
+    "webdriverio": "6.0.16",
     "yargs": "^15.0.1",
     "yarn-install": "^1.0.0"
   },

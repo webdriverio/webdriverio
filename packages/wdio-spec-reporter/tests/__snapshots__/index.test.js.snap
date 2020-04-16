@@ -3,6 +3,9 @@
 exports[`SpecReporter getResultDisplay should not print if data table format is not given 1`] = `
 Array [
   "Foo test",
+  "grey Some important",
+  "grey description to read!",
+  "",
   "   green ✓ foo",
   "   green ✓ bar",
   "",
@@ -12,6 +15,9 @@ Array [
 exports[`SpecReporter getResultDisplay should not print if data table is empty 1`] = `
 Array [
   "Foo test",
+  "grey Some important",
+  "grey description to read!",
+  "",
   "   green ✓ foo",
   "   green ✓ bar",
   "",
@@ -21,6 +27,9 @@ Array [
 exports[`SpecReporter getResultDisplay should print data tables 1`] = `
 Array [
   "Foo test",
+  "grey Some important",
+  "grey description to read!",
+  "",
   "   green ✓ foo",
   "     │ Vegetable │ Rating │",
   "     │ Apricot   │ 5      │",

@@ -100,4 +100,11 @@ Default: `false`
 
 ----
 
+## Overriding generated name metadata
+The service automatically generates a name for each test from the suite name, browser name and other information.
+
+You can override this by providing a value for the `name` desired capability, but this will have the side effect of giving all tests the same name.
+
+----
+
 For more information on WebdriverIO see the [homepage](https://webdriver.io).

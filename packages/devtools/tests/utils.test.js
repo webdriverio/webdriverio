@@ -1,10 +1,15 @@
 import fs from 'fs'
+import path from 'path'
+// eslint-disable-next-line
+import { log as pptrDebugLog } from 'pptrDebug'
 import childProcess from 'child_process'
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
-    canAccess, uniq, findByWhich
+    canAccess, uniq, findByWhich, patchDebug
 } from '../src/utils'
+
+const debug = jest.requireActual('debug')
 
 const command = {
     endpoint: '/session/:sessionId/element/:elementId/element',
@@ -50,7 +55,8 @@ jest.mock('fs', () => {
                 throw new Error('Not accessible')
             }
         }),
-        shouldThrow: (value) => (expectedThrow = value)
+        shouldThrow: (value) => (expectedThrow = value),
+        existsSync: (pkgName) => pkgName === 'pptrDebug'
     }
 })
 
@@ -65,6 +71,13 @@ jest.mock('child_process', () => {
         }),
         shouldReturn: (value) => (returnValue = value)
     }
+})
+
+jest.mock('path', () => {
+    let resolveResult = 'debug'
+    const resolve = jest.fn(() => resolveResult)
+    const setResolveResult = (result) => (resolveResult = result)
+    return { resolve, setResolveResult, dirname: jest.fn() }
 })
 
 describe('validate', () => {
@@ -364,4 +377,19 @@ test('findByWhich', () => {
     fs.shouldThrow(true)
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual([])
+})
+
+test('patchDebug', () => {
+    const logMock = { debug: jest.fn() }
+    patchDebug(logMock)
+    debug.log('something something - puppeteer:protocol foobar')
+    expect(logMock.debug).toBeCalledWith('foobar')
+})
+
+test('patchDebug with debug not install in puppeteer', () => {
+    const logMock = { debug: jest.fn() }
+    path.setResolveResult('pptrDebug')
+    patchDebug(logMock)
+    pptrDebugLog('something something - puppeteer:protocol barfoo')
+    expect(logMock.debug).toBeCalledWith('barfoo')
 })

@@ -21,12 +21,20 @@ export const remote = async function (params = {}, remoteModifier) {
     logger.setLogLevelsConfig(params.logLevels, params.logLevel)
 
     const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(WebDriver.DEFAULTS))
+    const automationProtocol = await getAutomationProtocol(config)
     const modifier = (client, options) => {
+        /**
+         * overwrite instance options with default values of the protocol
+         * package (without undefined properties)
+         */
+        Object.assign(options, Object.entries(config)
+            .reduce((a, [k, v]) => (v == null ? a : { ...a, [k]:v }), {}))
+
         if (typeof remoteModifier === 'function') {
-            client = remoteModifier(client, Object.assign(options, config))
+            client = remoteModifier(client, options)
         }
 
-        Object.assign(options, config)
+        options.automationProtocol = automationProtocol
         return client
     }
 
@@ -38,7 +46,6 @@ export const remote = async function (params = {}, remoteModifier) {
         process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
     }
 
-    const automationProtocol = await getAutomationProtocol(config)
     const prototype = getPrototype('browser')
     log.info(`Initiate new session using the ${automationProtocol} protocol`)
     const ProtocolDriver = require(automationProtocol).default
@@ -49,7 +56,7 @@ export const remote = async function (params = {}, remoteModifier) {
      * in order to wrap the function within Fibers (only if webdriverio
      * is used with @wdio/cli)
      */
-    if (params.runner && !isStub(config.automationProtocol)) {
+    if (params.runner && !isStub(automationProtocol)) {
         const origAddCommand = ::instance.addCommand
         instance.addCommand = (name, fn, attachToElement) => (
             origAddCommand(name, runFnInFiberContext(fn), attachToElement)
@@ -62,7 +69,6 @@ export const remote = async function (params = {}, remoteModifier) {
     }
 
     instance.addLocatorStrategy = addLocatorStrategyHandler(instance)
-
     return instance
 }
 

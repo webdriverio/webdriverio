@@ -2,12 +2,11 @@ import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
 
-import edgeFinder from './finder/edge'
-import firefoxFinder from './finder/firefox'
+import browserFinder from './finder'
 import { getPages } from './utils'
 import {
     CHROME_NAMES, FIREFOX_NAMES, EDGE_NAMES, DEFAULT_FLAGS, DEFAULT_WIDTH,
-    DEFAULT_HEIGHT, DEFAULT_X_POSITION, DEFAULT_Y_POSITION
+    DEFAULT_HEIGHT, DEFAULT_X_POSITION, DEFAULT_Y_POSITION, VENDOR_PREFIX
 } from './constants'
 
 const log = logger('devtools')
@@ -18,7 +17,7 @@ const log = logger('devtools')
  * @return {object}               puppeteer browser instance
  */
 async function launchChrome (capabilities) {
-    const chromeOptions = capabilities['goog:chromeOptions'] || {}
+    const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const chromeFlags = [
         ...DEFAULT_FLAGS,
         ...[
@@ -59,8 +58,20 @@ async function launchChrome (capabilities) {
     return browser
 }
 
-function launchBrowser (capabilities, executablePath, vendorCapKey) {
+function launchBrowser (capabilities, product) {
+    const vendorCapKey = VENDOR_PREFIX[product]
+
+    if (!capabilities[vendorCapKey]) {
+        capabilities[vendorCapKey] = {}
+    }
+
+    const executablePath = (
+        capabilities[vendorCapKey].binary ||
+        browserFinder[product][process.platform]()[0]
+    )
+
     const puppeteerOptions = Object.assign({
+        product,
         executablePath,
         defaultViewport: {
             width: DEFAULT_WIDTH,
@@ -69,27 +80,11 @@ function launchBrowser (capabilities, executablePath, vendorCapKey) {
     }, capabilities[vendorCapKey] || {})
 
     if (!executablePath) {
-        throw new Error('Couldn\'t find executeable for browser')
+        throw new Error('Couldn\'t find executable for browser')
     }
 
     log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
     return puppeteer.launch(puppeteerOptions)
-}
-
-function launchFirefox (capabilities) {
-    const executablePath = firefoxFinder[process.platform]()[0]
-    const vendorPrefix = 'moz:firefoxOptions'
-    if (!capabilities[vendorPrefix]) {
-        capabilities[vendorPrefix] = {}
-    }
-
-    capabilities[vendorPrefix].product = 'firefox'
-    return launchBrowser(capabilities, executablePath, vendorPrefix, { product: 'firefox' })
-}
-
-function launchEdge (capabilities) {
-    const executablePath = edgeFinder[process.platform]()[0]
-    return launchBrowser(capabilities, executablePath, 'ms:edgeOptions')
 }
 
 export default function launch (capabilities) {
@@ -100,12 +95,12 @@ export default function launch (capabilities) {
     }
 
     if (FIREFOX_NAMES.includes(browserName)) {
-        return launchFirefox(capabilities)
+        return launchBrowser(capabilities, 'firefox')
     }
 
     /* istanbul ignore next */
     if (EDGE_NAMES.includes(browserName)) {
-        return launchEdge(capabilities)
+        return launchBrowser(capabilities, 'edge')
     }
 
     throw new Error(`Couldn't identify browserName ${browserName}`)

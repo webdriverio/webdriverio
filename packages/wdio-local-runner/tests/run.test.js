@@ -1,5 +1,4 @@
 import exitHook from 'async-exit-hook'
-import logger from '@wdio/logger'
 import { instances } from '@wdio/runner'
 
 beforeAll(() => {
@@ -25,7 +24,6 @@ test('should have registered runner listener', () => {
 
 test('should not call runner if message is undefined', () => {
     process.on.mock.calls[0][1](false)
-    expect(logger().info).toHaveBeenCalledWith('Ignore message for worker:', false)
 })
 
 test('should call runner command on process message', async () => {

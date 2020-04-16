@@ -124,9 +124,11 @@ test('emitHookEvent: should emit events for beforeAll and afterAll hooks', async
 
 test('should properly configure the jasmine environment', async () => {
     const stopOnSpecFailure = false
+    const failSpecWithNoExpectations = false
     const stopSpecOnExpectationFailure = false
     const random = false
     const failFast = false
+    const seed = false
 
     const adapter = adapterFactory({
         jasmineNodeOpts: {
@@ -140,9 +142,11 @@ test('should properly configure the jasmine environment', async () => {
     await adapter.run()
     expect(adapter.jrunner.jasmine.getEnv().configure).toBeCalledWith({
         specFilter: expect.any(Function),
+        failSpecWithNoExpectations,
         oneFailurePerSpec: stopSpecOnExpectationFailure,
         stopOnSpecFailure,
         random,
+        seed,
         failFast,
     })
 })
