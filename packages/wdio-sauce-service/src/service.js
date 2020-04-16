@@ -6,9 +6,10 @@ const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 const log = logger('@wdio/sauce-service')
 
 export default class SauceService {
-    constructor () {
+    constructor (options) {
         this.testCnt = 0
         this.failures = 0 // counts failures between reloads
+        this.options = options || {}
     }
 
     /**
@@ -38,7 +39,9 @@ export default class SauceService {
 
     beforeSuite (suite) {
         this.suiteTitle = suite.title
-        global.browser.execute('sauce:job-name=' + this.suiteTitle)
+        if (this.options.setJobNameInBeforeSuite) {
+            global.browser.execute('sauce:job-name=' + this.suiteTitle)
+        }
     }
 
     beforeTest (test) {

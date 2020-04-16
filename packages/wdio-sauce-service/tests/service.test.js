@@ -33,6 +33,27 @@ const featureObject = {
         }
 }
 
+test('constructor should set setJobNameInBeforeSuite to true', () => {
+    const options = {
+        setJobNameInBeforeSuite: true
+    }
+    const service = new SauceService(options)
+    expect(service.options.setJobNameInBeforeSuite).toBeTruthy()
+})
+
+test('constructor should set setJobNameInBeforeSuite to false', () => {
+    const options = {
+        setJobNameInBeforeSuite: false
+    }
+    const service = new SauceService(options)
+    expect(service.options.setJobNameInBeforeSuite).toBeFalsy()
+})
+
+test('constructor should set setJobNameInBeforeSuite to false by default', () => {
+    const service = new SauceService()
+    expect(service.options.setJobNameInBeforeSuite).toBeFalsy()
+})
+
 test('beforeSuite', () => {
     const service = new SauceService()
     expect(service.suiteTitle).toBeUndefined()
