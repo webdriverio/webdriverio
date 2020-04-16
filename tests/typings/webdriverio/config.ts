@@ -16,9 +16,6 @@ const config: WebdriverIO.Config = {
     logLevels: {
         webdriver: 'info',
     },
-    featureFlags: {
-      specFiltering: true,
-    },
 
     capabilities: [{
         browserName: 'chrome',
