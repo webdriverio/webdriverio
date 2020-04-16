@@ -279,8 +279,8 @@ exports.config = {
     beforeSuite: function (suite) {
     },
     /**
-     * This hook gets executed _before_ a hook within the suite starts.
-     * (For example, this runs before calling `beforeEach` in Mocha.)
+     * This hook gets executed _before_ every hook within the suite starts.
+     * (For example, this runs before calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.)
      *
      * (`stepData` and `world` are Cucumber-specific.)
      *
@@ -288,8 +288,8 @@ exports.config = {
     beforeHook: function (test, context/*, stepData, world*/) {
     },
     /**
-     * Hook that gets executed _after_ a hook within the suite ends.
-     * (For example, this runs after calling `afterEach` in Mocha.)
+     * Hook that gets executed _after_ every hook within the suite ends.
+     * (For example, this runs after calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.)
      *
      * (`stepData` and `world` are Cucumber-specific.)
      */
