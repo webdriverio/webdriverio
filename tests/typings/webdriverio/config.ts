@@ -12,6 +12,14 @@ const config: WebdriverIO.Config = {
         }]
     ],
 
+    automationProtocol: 'webdriver',
+    logLevels: {
+        webdriver: 'info',
+    },
+    featureFlags: {
+      specFiltering: true,
+    },
+
     capabilities: [{
         browserName: 'chrome',
         'goog:chromeOptions': {

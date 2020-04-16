@@ -21,6 +21,14 @@ const conf: WebdriverIO.Config = {
         }]
     ],
 
+    automationProtocol: 'webdriver',
+    logLevels: {
+        webdriver: 'info',
+    },
+    featureFlags: {
+      specFiltering: true,
+    },
+
     transformRequest: (requestOptions) => {
         requestOptions.headers['X-Custom-Auth'] = 'custom_header_value'
         return requestOptions

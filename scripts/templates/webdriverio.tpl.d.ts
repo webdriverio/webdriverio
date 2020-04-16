@@ -46,6 +46,13 @@ declare namespace WebdriverIO {
     type ServiceEntry = string | HookFunctions | [string, ServiceOption]
 
     interface Options {
+        /**
+         * Define the protocol you want to use for your browser automation.
+         * Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and
+         * [`devtools`](https://www.npmjs.com/package/devtools) are supported,
+         * as these are the main browser automation technologies available.
+         */
+        automationProtocol?: string;
         runner?: string;
         /**
          * Your cloud service username (only works for Sauce Labs, Browserstack, TestingBot,
@@ -144,6 +151,10 @@ declare namespace WebdriverIO {
          * Node arguments to specify when launching child processes.
          */
         execArgv?: string[];
+        /**
+         * Enable Features
+         */
+        featureFlags?: object;
     }
 
     interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }
