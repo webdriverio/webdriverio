@@ -183,6 +183,36 @@ describe('elements', () => {
         expect(await browser.getElementProperty(textarea[ELEMENT_KEY], 'value'))
             .toBe('foobar😉')
     })
+
+    it('should allow to click relative to the center of an element', async () => {
+        const message = await browser.findElement('css selector', '.btn1_right_clicked')
+        const btn2 = await browser.findElement('css selector', '.btn2')
+
+        expect(await browser.getElementCSSValue(message[ELEMENT_KEY], 'display'))
+            .toBe('none')
+        await browser.performActions([{
+            type: 'pointer',
+            id: 'pointer1',
+            parameters: { pointerType: 'mouse' },
+            actions: [{
+                type: 'pointerMove',
+                origin: {
+                    [ELEMENT_KEY]: btn2[ELEMENT_KEY]
+                },
+                x: -50,
+                y: 0
+            }, {
+                type: 'pointerDown',
+                button: 2
+            }, {
+                type: 'pointerUp',
+                button: 2
+            }]
+        }])
+        await new Promise((r) => setTimeout(r, 3000))
+        expect(await browser.getElementCSSValue(message[ELEMENT_KEY], 'display'))
+            .toBe('block')
+    })
 })
 
 afterAll(async () => {

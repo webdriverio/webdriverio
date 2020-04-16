@@ -136,14 +136,6 @@ declare namespace WebdriverIO {
          */
         framework?: string;
         /**
-         * Mocha specific configurations.
-         */
-        mochaOpts?: object;
-        /**
-         * Mocha specific configurations.
-         */
-        jasmineNodeOpts?: object;
-        /**
          * List of reporters to use. A reporter can be either a string, or an array of
          * `['reporterName', { <reporter options> }]` where the first element is a string
          * with the reporter name and the second element an object with reporter options.
@@ -384,9 +376,10 @@ declare namespace WebdriverIO {
         reverse?: boolean,
     }
 
-    type DataMatcher = {
+    type Matcher = {
         name: string,
-        args: Array<string>
+        args: Array<string | object>
+        class?: string
     }
 
     type ReactSelectorOptions = {
@@ -459,7 +452,7 @@ declare namespace WebdriverIO {
          * it from an element scope is that the driver will look within the children of that element.
          */
         $$(
-            selector: string | Function | DataMatcher
+            selector: string | Function | Matcher
         ): ElementArray;
 
         /**
@@ -470,7 +463,7 @@ declare namespace WebdriverIO {
          * to an element. The command will then transform the reference to an extended WebdriverIO element.
          */
         $(
-            selector: string | Function | DataMatcher
+            selector: string | Function | Matcher
         ): Element;
 
         /**

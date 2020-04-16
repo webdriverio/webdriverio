@@ -109,9 +109,9 @@ export { config }
 
 ## Framework types
 
-Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property.
+Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property, as well as install its type definitions.
 
-For instance, if you decide to use the Mocha framework, you need to add it like this to have all types globally available:
+For instance, if you decide to use the Mocha framework, you need to install `@types/mocha` and add it like this to have all types globally available:
 
 ```json
 {

@@ -74,8 +74,8 @@ export default class SauceService {
         }
     }
 
-    afterTest (test) {
-        if (!test.passed) {
+    afterTest (test, context, results) {
+        if (!results.passed) {
             ++this.failures
         }
     }
@@ -196,12 +196,14 @@ export default class SauceService {
             body.name += ` (${testCnt})`
         }
 
+        let caps = this.capabilities['sauce:options'] || this.capabilities
+
         for (let prop of jobDataProperties) {
-            if (!this.capabilities[prop]) {
+            if (!caps[prop]) {
                 continue
             }
 
-            body[prop] = this.capabilities[prop]
+            body[prop] = caps[prop]
         }
 
         body.passed = failures === 0

@@ -16,10 +16,12 @@ describe('wdio-runner', () => {
 
     describe('_fetchDriverLogs', () => {
         let runner
+
         beforeEach(() => {
             runner = new WDIORunner()
             runner.cid = '0-1'
         })
+
         it('not do anything if driver does not support log commands', async () => {
             global.browser = { sessionId: '123' }
 
@@ -108,6 +110,7 @@ describe('wdio-runner', () => {
 
         afterEach(() => {
             fs.writeFile.mockClear()
+            delete global.browser
         })
     })
 
@@ -167,6 +170,10 @@ describe('wdio-runner', () => {
             runner._shutdown = jest.fn()
             await runner.endSession()
             expect(hook).toBeCalledTimes(0)
+        })
+
+        afterEach(() => {
+            delete global.browser
         })
     })
 
@@ -325,8 +332,13 @@ describe('wdio-runner', () => {
 
             expect(runner._shutdown).toBeCalledWith(1)
 
-            // user defined capabilities should be used until browser session is started
+            // user defined capabilities should be used until
+            // browser session is started
             expect(runner.reporter.caps).toEqual(caps)
+        })
+
+        afterEach(() => {
+            delete global.browser
         })
     })
 
@@ -335,7 +347,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             const browser = await runner._initSession(
                 { hostname: 'foobar' },
-                [{ browserName: 'chrome' }]
+                [{ browserName: 'chrome1' }]
             )
 
             expect(browser).toBe(global.browser)
@@ -393,14 +405,11 @@ describe('wdio-runner', () => {
         })
 
         afterEach(() => {
-            global.throwRemoteCall = undefined
-
-            if (global.browser) {
-                global.browser.on.mockClear()
-                global.browser = undefined
-                global.$ = undefined
-                global.$$ = undefined
-            }
+            delete global.throwRemoteCall
+            delete global.browser
+            delete global.driver
+            delete global.$
+            delete global.$$
         })
     })
 

@@ -1,11 +1,12 @@
 import fs from 'fs'
+import path from 'path'
 import { execFileSync } from 'child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
 
 import cleanUp from './scripts/cleanUpSerializationSelector'
-import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES } from './constants'
+import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES, PPTR_LOG_PREFIX } from './constants'
 
 const log = logger('devtools')
 
@@ -298,4 +299,37 @@ export function findByWhich (executables, priorities) {
     })
 
     return sort(uniq(installations.filter(Boolean)), priorities)
+}
+
+/**
+ * monkey patch debug package to log CDP messages from Puppeteer
+ */
+export function patchDebug (scoppedLogger) {
+    /**
+     * log puppeteer messages
+     */
+    let puppeteerDebugPkg = path.resolve(
+        path.dirname(require.resolve('puppeteer-core')),
+        'node_modules',
+        'debug')
+
+    /**
+     * check if Puppeteer has its own version of debug, if not use the
+     * one that is installed for all packages
+     */
+    if (!fs.existsSync(puppeteerDebugPkg)) {
+        /**
+         * let's not get caught by our dep checker, therefor
+         * define package name in variable first
+         */
+        const pkgName = 'debug'
+        puppeteerDebugPkg = require.resolve(pkgName)
+    }
+
+    require(puppeteerDebugPkg).log = (msg) => {
+        if (msg.includes('puppeteer:protocol')) {
+            msg = msg.slice(msg.indexOf(PPTR_LOG_PREFIX) + PPTR_LOG_PREFIX.length).trim()
+        }
+        scoppedLogger.debug(msg)
+    }
 }

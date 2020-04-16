@@ -1,6 +1,6 @@
 {
   "name": "@wdio/firefox-profile-service",
-  "version": "6.0.1",
+  "version": "6.0.16",
   "description": "WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-firefox-profile-service",
@@ -40,7 +40,7 @@
     "firefox-profile": "^2.0.0"
   },
   "peerDependencies": {
-    "@wdio/cli": "^5.0.0"
+    "@wdio/cli": "^6.0.1"
   },
   "publishConfig": {
     "access": "public"

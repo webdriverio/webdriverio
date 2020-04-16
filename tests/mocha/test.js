@@ -50,6 +50,12 @@ describe('Mocha smoke test', () => {
         assert.equal(el.$('.selector-2').isExisting(), true)
     })
 
+    it('should allow to reload a session', () => {
+        const sessionIdBefore = browser.sessionId
+        browser.reloadSession()
+        expect(sessionIdBefore).not.toBe(browser.sessionId)
+    })
+
     it('should handle promises in waitUntil callback funciton', () => {
         const results = []
         const result = browser.waitUntil(() => {

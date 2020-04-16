@@ -1,9 +1,7 @@
 import sync, { executeSync, runSync } from '../src'
 
-beforeAll(() => {
-    if (!global.browser) {
-        global.browser = {}
-    }
+beforeEach(() => {
+    global.browser = {}
 })
 
 it('exports a function to make async tests sync', async () => {
@@ -124,4 +122,8 @@ describe('runSync', () => {
         expect(rejectFn).toBeCalledWith(error)
         expect(fn).toBeCalledTimes(2)
     })
+})
+
+afterEach(() => {
+    delete global.browser
 })

@@ -1,4 +1,4 @@
-import uuidv4 from 'uuid/v4'
+import { v4 as uuidv4 } from 'uuid'
 
 export default async function getWindowHandles() {
     let newPages = await this.browser.pages()

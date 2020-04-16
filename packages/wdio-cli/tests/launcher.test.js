@@ -444,12 +444,17 @@ describe('launcher', () => {
             expect(launcher.runnerStarted).toBe(1)
             expect(launcher.runner.run.mock.calls[0][0]).toHaveProperty('cid', '0-5')
             expect(launcher.getRunnerId(0)).toBe('0-0')
+
             expect(onWorkerStartMock).toHaveBeenCalledWith(
                 '0-5',
                 caps,
                 ['/foo.test.js'],
                 { hostname: '127.0.0.2' },
-                ['--foo', 'bar']
+                [
+                    // this comes from the way we call Jest test
+                    '--max-old-space-size=8192',
+                    '--foo', 'bar'
+                ]
             )
         })
     })
@@ -470,9 +475,10 @@ describe('launcher', () => {
 
     describe('run', () => {
         let config = {}
-        global.console.error = () => {}
 
         beforeEach(() => {
+            global.console.error = jest.fn()
+
             config = {
                 // ConfigParser.addFileConfig() will return onPrepare and onComplete as arrays of functions
                 onPrepare: [jest.fn()],
@@ -526,9 +532,13 @@ describe('launcher', () => {
             expect(launcher.runner.shutdown).toBeCalled()
             expect(error).toBeInstanceOf(Error)
         })
+
+        afterEach(() => {
+            global.console.error.mockRestore()
+        })
     })
 
     afterEach(() => {
-        global.console.log.mockReset()
+        global.console.log.mockRestore()
     })
 })

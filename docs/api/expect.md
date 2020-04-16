@@ -42,7 +42,7 @@ This options can be applied in addition to the command options when numbers are 
 
 ### toHaveUrl
 
-Checks if browser is on a specifc page.
+Checks if browser is on a specific page.
 
 ##### Usage
 
@@ -291,7 +291,7 @@ expect(elem).toBeChecked()
 
 ### toHaveHref
 
-Checks if link element has a specifc link target.
+Checks if link element has a specific link target.
 
 ##### Usage
 
@@ -313,7 +313,7 @@ expect(link).toHaveLink('https://webdriver.io')
 
 ### toHaveHrefContaining
 
-Checks if link element contains a specifc link target.
+Checks if link element contains a specific link target.
 
 ##### Usage
 

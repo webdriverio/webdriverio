@@ -1,6 +1,6 @@
 {
   "name": "@wdio/sumologic-reporter",
-  "version": "6.0.1",
+  "version": "6.0.16",
   "description": "A WebdriverIO reporter that sends test results to Sumologic for data analyses",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sumologic-reporter",
@@ -30,14 +30,14 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "6.0.1",
-    "@wdio/reporter": "6.0.1",
+    "@wdio/logger": "6.0.16",
+    "@wdio/reporter": "6.0.14",
     "dateformat": "^3.0.3",
-    "got": "^10.2.1",
+    "got": "^10.7.0",
     "json-stringify-safe": "^5.0.1"
   },
   "peerDependencies": {
-    "@wdio/cli": "^5.0.0"
+    "@wdio/cli": "^6.0.1"
   },
   "publishConfig": {
     "access": "public"

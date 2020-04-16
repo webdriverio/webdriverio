@@ -1,10 +1,8 @@
 import executeHooksWithArgs from '../src/executeHooksWithArgs'
 
 describe('executeHooksWithArgs', () => {
-    beforeAll(() => {
-        if (!global.browser) {
-            global.browser = {}
-        }
+    beforeEach(() => {
+        global.browser = {}
     })
 
     it('multiple hooks, multiple args', async () => {
@@ -54,5 +52,9 @@ describe('executeHooksWithArgs', () => {
     it('should do nothing if there were no hooks passed', async () => {
         const res = await executeHooksWithArgs()
         expect(res).toHaveLength(0)
+    })
+
+    afterEach(() => {
+        delete global.browser
     })
 })

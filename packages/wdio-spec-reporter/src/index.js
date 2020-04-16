@@ -195,6 +195,13 @@ class SpecReporter extends WDIOReporter {
             // Display the title of the suite
             output.push(`${suiteIndent}${suite.title}`)
 
+            // display suite description (Cucumber only)
+            if (suite.description) {
+                output.push(...suite.description.trim().split('\n')
+                    .map((l) => `${suiteIndent}${this.chalk.grey(l.trim())}`))
+                output.push('') // empty line
+            }
+
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
                 const testTitle = test.title

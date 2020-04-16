@@ -13,6 +13,7 @@ Array [
       },
       "executablePath": "/path/to/edge",
       "headless": true,
+      "product": "edge",
     },
   ],
 ]
@@ -27,6 +28,7 @@ Array [
         "width": 1200,
       },
       "executablePath": "/path/to/edge",
+      "product": "edge",
     },
   ],
 ]
@@ -39,11 +41,12 @@ Array [
       "args": Array [
         "foobar",
       ],
+      "binary": "/foo/bar",
       "defaultViewport": Object {
         "height": 456,
         "width": 123,
       },
-      "executablePath": "/path/to/firefox",
+      "executablePath": "/foo/bar",
       "headless": true,
       "product": "firefox",
     },

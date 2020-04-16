@@ -27,24 +27,30 @@ const featureObject = {
 
 describe('wdio-crossbrowsertesting-service', () => {
     const execute = jest.fn()
-    global.browser = {
-        execute,
-        sessionId: 'globalSessionId',
-        requestHandler: {
-            auth: {
-                user: 'test',
-                pass: 'testy'
-            }
-        },
-        chromeA: { sessionId: 'sessionChromeA' },
-        chromeB: { sessionId: 'sessionChromeB' },
-        chromeC: { sessionId: 'sessionChromeC' },
-        instances: ['chromeA', 'chromeB', 'chromeC'],
-    }
+
+    beforeEach(() => {
+        global.browser = {
+            execute,
+            sessionId: 'globalSessionId',
+            requestHandler: {
+                auth: {
+                    user: 'test',
+                    pass: 'testy'
+                }
+            },
+            config: {},
+            chromeA: { sessionId: 'sessionChromeA' },
+            chromeB: { sessionId: 'sessionChromeB' },
+            chromeC: { sessionId: 'sessionChromeC' },
+            instances: ['chromeA', 'chromeB', 'chromeC'],
+            isMultiremote: false
+        }
+    })
 
     afterEach(() => {
-        global.browser.isMultiremote = false
+        delete global.browser
         execute.mockReset()
+        got.put.mockClear()
     })
 
     it('before', () => {
@@ -143,8 +149,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const cbtService = new CrossBrowserTestingService()
         cbtService.failures = 0
 
-        cbtService.afterTest({ passed: true })
-
+        cbtService.afterTest({}, {}, { passed: true })
         expect(cbtService.failures).toEqual(0)
     })
 
@@ -152,7 +157,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const cbtService = new CrossBrowserTestingService()
         cbtService.failures = 0
 
-        cbtService.afterTest({ passed: false })
+        cbtService.afterTest({}, {}, { passed: false })
 
         expect(cbtService.failures).toEqual(1)
     })
@@ -369,6 +374,9 @@ describe('wdio-crossbrowsertesting-service', () => {
 
         await service.updateJob('12345', 23, true)
         expect(service.failures).toBe(0)
+        expect(got.put).toHaveBeenCalled()
+        expect(got.put.mock.calls[0][1].username).toBe('test')
+        expect(got.put.mock.calls[0][1].password).toBe('testy')
     })
 
     it('updateJob failure', async () => {

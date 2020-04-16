@@ -2,11 +2,6 @@ os: linux
 dist: xenial
 language: node_js
 
-cache:
-  directories:
-    - node_modules
-    - packages
-
 e2e_setup: &e2e_setup
   addons:
     chrome: stable
@@ -16,49 +11,31 @@ e2e_setup: &e2e_setup
   script: npx run-s test:e2e
 
 stages:
-  - name: build
   - name: test
-  - name: e2e
   - name: deploy
 
 jobs:
   fast_finish: true
   include:
-    - stage: build
-      name: 'Build (Node v10)'
-      node_js: 12
-      script:
-        - npm run setup-full
-    - stage: build
-      name: 'Build (Node v12)'
-      node_js: 12
-      script:
-        - npm run setup-full
-    - stage: build
-      name: 'Build (Node v12)'
-      node_js: 12
-      os: osx
-      script:
-        - npm run setup-full
-    - name: 'CI Tests (Node v10)'
+    - <<: *e2e_setup
       stage: test
+      name: 'Test (Linux Node v10)'
       node_js: 10
       script:
-        - npm run test
-    - name: 'CI Tests (Node v12)'
+        - npm run ci
+    - <<: *e2e_setup
       stage: test
+      name: 'Test (Linux Node v12)'
       node_js: 12
       script:
-        - npm run test
+        - npm run ci
     - <<: *e2e_setup
-      name: 'e2e Tests (Linux)'
-      stage: e2e
-      node_js: 12
-    - <<: *e2e_setup
-      name: 'e2e Tests (OSX)'
-      stage: e2e
+      stage: test
+      name: 'Test (MacOS Node v12)'
       node_js: 12
       os: osx
+      script:
+        - npm run ci
     # Windows on Travis is not stable enough yet
     # - <<: *base_setup
     #   <<: *e2e_setup
@@ -70,7 +47,7 @@ jobs:
       node_js: 12
       deploy:
         provider: script
-        script: "gem install compass && npm run docs"
+        script: "gem install compass && npm install && npm run docs"
         cleanup: true
         on:
           tags: true

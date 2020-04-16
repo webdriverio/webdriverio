@@ -27,7 +27,7 @@ const conf: WebdriverIO.Config = {
     },
     transformResponse: (response, requestOptions) => {
         if (requestOptions.method === 'DELETE' && response.statusCode === 200) {
-            response.body.deleted = true
+            console.log(response.body)
         }
 
         return response

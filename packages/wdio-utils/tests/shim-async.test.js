@@ -7,10 +7,12 @@ jest.mock('@wdio/sync', () => {
     throw new Error('Does not exist')
 })
 
-beforeAll(() => {
-    if (!global.browser) {
-        global.browser = {}
-    }
+beforeEach(() => {
+    global.browser = {}
+})
+
+afterEach(() => {
+    delete global.browser
 })
 
 describe('executeHooksWithArgs', () => {

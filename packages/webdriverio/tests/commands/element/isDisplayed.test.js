@@ -1,5 +1,6 @@
 import got from 'got'
 import { remote } from '../../../src'
+
 jest.mock('../../../src/scripts/isElementDisplayed', () => ({
     __esModule: true,
     default: function () { return true }
@@ -91,6 +92,26 @@ describe('isDisplayed test', () => {
                 baseUrl: 'http://foobar.com',
                 capabilities: {
                     browserName: 'safari',
+                    keepBrowserName: true
+                }
+            })
+            elem = await browser.$('#foo')
+            got.mockClear()
+
+            expect(await elem.isDisplayed()).toBe(true)
+            expect(got).toBeCalledTimes(1)
+            expect(got.mock.calls[0][1].uri.pathname)
+                .toBe('/session/foobar-123/execute/sync')
+            expect(got.mock.calls[0][1].json.args[0]).toEqual({
+                'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+                ELEMENT: 'some-elem-123'
+            })
+        })
+        it('should be used if stp and w3c', async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'safari technology preview',
                     keepBrowserName: true
                 }
             })

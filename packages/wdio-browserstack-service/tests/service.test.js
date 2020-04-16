@@ -78,7 +78,7 @@ describe('_printSessionURL', () => {
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
             'https://api.browserstack.com/automate/sessions/session123.json',
-            { auth: 'foo:bar', responseType: 'json' })
+            { username: 'foo', password: 'bar', responseType: 'json' })
         expect(logInfoSpy).toHaveBeenCalled()
         expect(logInfoSpy).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2'
@@ -168,6 +168,7 @@ describe('before', () => {
 
     it('should initialize correctly for appium', () => {
         global.browser.capabilities = {
+            app: 'test-app',
             device: 'iPhone XS',
             os: 'iOS',
             os_version: '12.1',
@@ -275,7 +276,7 @@ describe('after', () => {
         }
         expect(got.put).toHaveBeenCalledWith(
             'https://api.browserstack.com/automate/sessions/session123.json',
-            { json, auth: 'foo:bar' })
+            { json, username: 'foo', password: 'bar' })
         expect(service.failures).toBe(0)
         expect(updateSpy).toHaveBeenCalled()
     })

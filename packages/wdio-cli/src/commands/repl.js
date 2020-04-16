@@ -56,5 +56,5 @@ export const handler = async (argv) => {
     global.browser = client
 
     await client.debug()
-    await client.deleteSession()
+    return client.deleteSession()
 }

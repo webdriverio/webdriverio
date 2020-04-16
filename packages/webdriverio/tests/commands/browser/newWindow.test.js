@@ -2,14 +2,17 @@
  * @jest-environment jsdom
  */
 
-global.window.open = jest.fn()
-
 import got from 'got'
 import { remote } from '../../../src'
 
 describe('newWindow', () => {
     beforeEach(() => {
+        global.window.open = jest.fn()
+    })
+
+    afterEach(() => {
         got.mockClear()
+        global.window.open.mockRestore()
     })
 
     it('should allow to create a new window handle', async () => {
@@ -71,12 +74,9 @@ describe('newWindow', () => {
                 mobileMode: true
             }
         })
-        expect.hasAssertions()
 
-        try {
-            await browser.newWindow('https://webdriver.io', 'some name', 'some params')
-        } catch (e) {
-            expect(e.message).toContain('not supported on mobile')
-        }
+        const error = await browser.newWindow('https://webdriver.io', 'some name', 'some params')
+            .catch((err) => err)
+        expect(error.message).toContain('not supported on mobile')
     })
 })

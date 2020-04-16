@@ -1,5 +1,8 @@
 import USKeyboardLayout from 'puppeteer-core/lib/USKeyboardLayout'
 
+import getElementRect from './getElementRect'
+import { ELEMENT_KEY } from '../constants'
+
 const KEY = 'key'
 const POINTER = 'pointer'
 
@@ -80,6 +83,15 @@ export default async function performActions ({ actions }) {
                     if (origin === 'pointer' && lastPointer.x && lastPointer.y) {
                         x += lastPointer.x
                         y += lastPointer.y
+                    }
+
+                    /**
+                     * set location relative from an element
+                     */
+                    if (origin && typeof origin[ELEMENT_KEY] === 'string' && typeof x === 'number' && typeof y === 'number') {
+                        const elemRect = await getElementRect.call(this, { elementId: origin[ELEMENT_KEY] })
+                        x += elemRect.x + (elemRect.width / 2)
+                        y += elemRect.y + (elemRect.height / 2)
                     }
 
                     lastPointer.x = x

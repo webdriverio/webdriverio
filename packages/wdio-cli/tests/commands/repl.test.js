@@ -19,8 +19,7 @@ jest.mock('repl')
 
 describe('repl commandDir', () => {
     it('should call debug command', async () => {
-        await handler({ browserName: 'chrome' })
-        const client = remote({})
+        const client = await handler({ browserName: 'chrome' })
         expect(client.debug).toHaveBeenCalledTimes(1)
         expect(client.deleteSession).toHaveBeenCalledTimes(1)
     })
@@ -31,6 +30,12 @@ describe('repl commandDir', () => {
         expect(yargs.example).toHaveBeenCalled()
         expect(yargs.epilogue).toHaveBeenCalled()
         expect(yargs.help).toHaveBeenCalled()
+    })
+
+    afterEach(() => {
+        delete global.$
+        delete global.$$
+        delete global.browser
     })
 })
 
@@ -63,5 +68,11 @@ describe('Command: repl', () => {
                 browserName: 'foobar'
             }
         })
+    })
+
+    afterEach(() => {
+        delete global.$
+        delete global.$$
+        delete global.browser
     })
 })

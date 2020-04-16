@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should get initialised 1`] = `
+SuiteStats {
+  "_duration": 0,
+  "cid": "0-0",
+  "description": "some description",
+  "fullTitle": "barfoo",
+  "hooks": Array [],
+  "hooksAndTests": Array [],
+  "suites": Array [],
+  "tags": Array [
+    "foo",
+    "bar",
+  ],
+  "tests": Array [],
+  "title": "foobar",
+  "type": "suite",
+  "uid": "foobar",
+}
+`;

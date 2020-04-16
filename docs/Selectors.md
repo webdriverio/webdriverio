@@ -211,7 +211,7 @@ const Button = $(`android=${selector}`)
 Button.click()
 ```
 
-### Android DataMatcher (Espresso only)
+### Android DataMatcher and ViewMatcher (Espresso only)
 
 Android's DataMatcher strategy provides a way to find elements by [Data Matcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)
 
@@ -219,6 +219,17 @@ Android's DataMatcher strategy provides a way to find elements by [Data Matcher]
 const menuItem = $({
   "name": "hasEntry",
   "args": ["title", "ViewTitle"]
+})
+menuItem.click()
+```
+
+And similarly [View Matcher](https://developer.android.com/reference/android/support/test/espresso/ViewInteraction)
+
+```js
+const menuItem = $({
+  "name": "hasEntry",
+  "args": ["title", "ViewTitle"],
+  "class": "androidx.test.espresso.matcher.ViewMatchers"
 })
 menuItem.click()
 ```
