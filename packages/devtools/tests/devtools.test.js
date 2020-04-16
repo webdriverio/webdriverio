@@ -32,7 +32,7 @@ test('newSession', async () => {
     expect(client.options.capabilities).toMatchSnapshot()
     expect(client.options.requestedCapabilities).toMatchSnapshot()
     expect(client.isDevTools).toBe(true)
-    expect(client.isChrome).toBe(true)
+    expect(client.isChromium).toBe(true)
     expect(client.isW3C).toBe(true)
     expect(launch).toBeCalledTimes(1)
 })

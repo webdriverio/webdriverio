@@ -42,12 +42,12 @@ function isW3C (capabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Chromedriver
  */
-function isChrome (caps) {
+function isChromium (caps) {
     if (!caps) {
         return false
     }
     return (
-        Boolean(caps.chrome) ||
+        Boolean(caps.chrome || caps.msedge) ||
         Boolean(caps['goog:chromeOptions'])
     )
 }
@@ -160,7 +160,7 @@ export function capabilitiesEnvironmentDetector (capabilities, automationProtoco
 export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }) {
     return {
         isW3C: isW3C(capabilities),
-        isChrome: isChrome(capabilities),
+        isChromium: isChromium(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
@@ -181,7 +181,7 @@ export function devtoolsEnvironmentDetector ({ browserName }) {
         isMobile: false,
         isIOS: false,
         isAndroid: false,
-        isChrome: browserName === 'chrome',
+        isChromium: browserName === ('chrome' || 'msedge'),
         isSauce: false,
         isSeleniumStandalone: false,
     }
@@ -195,7 +195,7 @@ export function devtoolsEnvironmentDetector ({ browserName }) {
  */
 export function webdriverEnvironmentDetector (capabilities) {
     return {
-        isChrome: isChrome(capabilities),
+        isChromium: isChromium(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),

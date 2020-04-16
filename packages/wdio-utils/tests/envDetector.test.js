@@ -8,6 +8,7 @@ import ghostdriverResponse from './__fixtures__/ghostdriver.response.json'
 import safaridriverResponse from './__fixtures__/safaridriver.response.json'
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
 import edgedriverResponse from './__fixtures__/edgedriver.response.json'
+import edgechromiumdriverResponse from './__fixtures__/edgechromiumdriver.response.json'
 import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json'
 
 describe('sessionEnvironmentDetector', () => {
@@ -16,6 +17,7 @@ describe('sessionEnvironmentDetector', () => {
     const experitestAppiumCaps = experitestResponse.appium.capabilities
     const geckoCaps = geckodriverResponse.value.capabilities
     const edgeCaps = edgedriverResponse.value.capabilities
+    const edgeChromiumCaps = edgechromiumdriverResponse.value
     const phantomCaps = ghostdriverResponse.value
     const safariCaps = safaridriverResponse.value.capabilities
     const safariLegacyCaps = safaridriverLegacyResponse.value
@@ -41,12 +43,13 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ requestedCapabilities }).isW3C).toBe(false)
     })
 
-    it('isChrome', () => {
+    it('isChromium', () => {
         const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
-        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChrome).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChrome).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChromium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChromium).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: edgeChromiumCaps, requestedCapabilities }).isChromium).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChromium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChromium).toBe(false)
     })
 
     it('isSauce', () => {
@@ -157,7 +160,7 @@ describe('capabilitiesEnvironmentDetector', () => {
 
         expect(capabilitiesFlags.isDevTools).toBe(true)
         expect(capabilitiesFlags.isSeleniumStandalone).toBe(false)
-        expect(capabilitiesFlags.isChrome).toBe(false)
+        expect(capabilitiesFlags.isChromium).toBe(false)
         expect(capabilitiesFlags.isMobile).toBe(false)
     })
 })

@@ -228,7 +228,7 @@ describe('WebdriverIO module interface', () => {
             })
             expect(flags).toEqual({
                 isAndroid: false,
-                isChrome: true,
+                isChromium: true,
                 isIOS: false,
                 isMobile: false,
                 isSauce: false
