@@ -40,9 +40,7 @@ export default function isElementClickable (elem) {
 
     // get overlapping elements
     function getOverlappingElements (elem, context) {
-        const elements = [getOverlappingElement(elem, context)]
-        elements.concat(getOverlappingRects(elem, context))
-        return elements
+        return [getOverlappingElement(elem, context)].concat(getOverlappingRects(elem, context))
     }
 
     // is a node a descendant of a given node
@@ -86,7 +84,7 @@ export default function isElementClickable (elem) {
         let shadowElementsFromPoint = []
         for (let i = 0; i < elemsWithShadowRoot.length; ++i) {
             let shadowElement = elemsWithShadowRoot[i]
-            shadowElementsFromPoint.concat(getOverlappingElements(elem, shadowElement.shadowRoot))
+            shadowElementsFromPoint = shadowElementsFromPoint.concat(getOverlappingElements(elem, shadowElement.shadowRoot))
         }
         // remove duplicates and parents
         shadowElementsFromPoint = [].concat(shadowElementsFromPoint)
