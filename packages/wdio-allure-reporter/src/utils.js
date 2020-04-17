@@ -1,6 +1,7 @@
 import process from 'process'
 import CompoundError from './compoundError'
 import { testStatuses, mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants'
+// eslint-disable-next-line no-control-regex
 const regex = new RegExp(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g)
 /**
  * Get allure test status by TestStat object
