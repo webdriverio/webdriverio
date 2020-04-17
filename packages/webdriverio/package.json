@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser automation test automation framework for Node.js",
-  "version": "6.0.16",
+  "version": "6.0.18",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -70,6 +70,6 @@
     "resq": "^1.6.0",
     "rgb2hex": "^0.1.0",
     "serialize-error": "^6.0.0",
-    "webdriver": "6.0.16"
+    "webdriver": "6.0.18"
   }
 }
