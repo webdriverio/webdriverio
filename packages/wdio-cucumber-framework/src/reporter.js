@@ -165,18 +165,18 @@ class CucumberReporter {
 
     handleAfterScenario (uri, feature, scenario, result, sourceLocation) {
         if(this.scenarioLevelReport) {
-            this.afterTest(uri, feature, scenario, undefined, result, sourceLocation)
-        } else {
-            this.emit('suite:end', {
-                uid: getUniqueIdentifier(scenario, sourceLocation),
-                title: this.getTitle(scenario),
-                parent: getUniqueIdentifier(feature),
-                type: 'scenario',
-                file: uri,
-                duration: new Date() - this.scenarioStart,
-                tags: scenario.tags
-            })
+            return this.afterTest(uri, feature, scenario, undefined, result, sourceLocation)
         }
+        
+        this.emit('suite:end', {
+            uid: getUniqueIdentifier(scenario, sourceLocation),
+            title: this.getTitle(scenario),
+            parent: getUniqueIdentifier(feature),
+            type: 'scenario',
+            file: uri,
+            duration: new Date() - this.scenarioStart,
+            tags: scenario.tags
+        })
     }
 
     handleAfterFeature (uri, feature) {
