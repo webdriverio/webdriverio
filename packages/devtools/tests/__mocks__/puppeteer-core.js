@@ -41,6 +41,7 @@ class PageMock {
         this.close = jest.fn()
         this.url = jest.fn().mockReturnValue('about:blank')
         this.emulate = jest.fn()
+        this.setViewport = jest.fn()
     }
 }
 const page = new PageMock()

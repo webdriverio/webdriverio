@@ -34,16 +34,26 @@ test('launch chrome with default values', async () => {
 })
 
 test('launch chrome with chrome arguments', async () => {
-    await launch({
+    const browser = await launch({
         browserName: 'chrome',
         'goog:chromeOptions': {
             headless: true,
             binary: '/foo/bar',
-            args: ['--window-size=222,333']
+            args: ['--window-size=222,333'],
+            mobileEmulation: {
+                deviceName: 'Nexus 5'
+            }
         }
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
     expect(puppeteer.launch).toBeCalledTimes(0)
+
+    const pages = await browser.pages()
+    expect(pages[0].setViewport).toBeCalledWith({
+        height: 640,
+        pixelRatio: 3,
+        width: 360
+    })
 })
 
 test('launch Firefox with default values', async () => {
