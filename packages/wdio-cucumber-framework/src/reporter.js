@@ -167,7 +167,7 @@ class CucumberReporter {
         if(this.scenarioLevelReport) {
             return this.afterTest(uri, feature, scenario, undefined, result, sourceLocation)
         }
-        
+
         this.emit('suite:end', {
             uid: getUniqueIdentifier(scenario, sourceLocation),
             title: this.getTitle(scenario),
