@@ -35,25 +35,21 @@ beforeEach(() => {
     }
 })
 
-test('constructor should set setJobNameInBeforeSuite to true', () => {
-    const options = {
-        setJobNameInBeforeSuite: true
-    }
-    const service = new SauceService(options)
-    expect(service.options.setJobNameInBeforeSuite).toBeTruthy()
-})
+test('constructor should set setJobNameInBeforeSuite', () => {
+    let service = new SauceService()
+    expect(service.options.setJobNameInBeforeSuite).toBeFalsy()
 
-test('constructor should set setJobNameInBeforeSuite to false', () => {
-    const options = {
+    let options = {
         setJobNameInBeforeSuite: false
     }
-    const service = new SauceService(options)
+    service = new SauceService(options)
     expect(service.options.setJobNameInBeforeSuite).toBeFalsy()
-})
 
-test('constructor should set setJobNameInBeforeSuite to false by default', () => {
-    const service = new SauceService()
-    expect(service.options.setJobNameInBeforeSuite).toBeFalsy()
+    options = {
+        setJobNameInBeforeSuite: true
+    }
+    service = new SauceService(options)
+    expect(service.options.setJobNameInBeforeSuite).toBeTruthy()
 })
 
 test('beforeSuite', () => {
@@ -61,6 +57,16 @@ test('beforeSuite', () => {
     expect(service.suiteTitle).toBeUndefined()
     service.beforeSuite({ title: 'foobar' })
     expect(service.suiteTitle).toBe('foobar')
+})
+
+test('beforeSuite should set job-name', () => {
+    const options = {
+        setJobNameInBeforeSuite: true
+    }
+    const service = new SauceService(options)
+    service.beforeSession({ user: 'foobar', key: '123' }, {})
+    service.beforeSuite({ title: 'foobar' })
+    expect(global.browser.execute).toBeCalledWith('sauce:job-name=foobar')
 })
 
 test('beforeSession should set to unknown creds if no sauce user and key are found', () => {
