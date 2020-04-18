@@ -1,8 +1,8 @@
 import process from 'process'
 import CompoundError from './compoundError'
 import { testStatuses, mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants'
-// eslint-disable-next-line no-control-regex
-const regex = new RegExp(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g)
+import stripAnsi from 'strip-ansi'
+
 /**
  * Get allure test status by TestStat object
  * @param test {Object} - TestStat object
@@ -68,13 +68,13 @@ export const tellReporter = (event, msg = {}) => {
 export const getErrorFromFailedTest = (test) => {
     if (test.errors && Array.isArray(test.errors)) {
         for(let i = 0; i < test.errors.length; i += 1){
-            if(test.errors[i].message) test.errors[i].message = test.errors[i].message.replace(regex, '')
-            if(test.errors[i].stack) test.errors[i].stack = test.errors[i].stack.replace(regex, '')
+            if(test.errors[i].message) test.errors[i].message = stripAnsi(test.errors[i].message)
+            if(test.errors[i].stack) test.errors[i].stack = stripAnsi(test.errors[i].stack)
         }
         return test.errors.length === 1 ? test.errors[0] : new CompoundError(...test.errors)
     }
-    if(test.error.message) test.error.message = test.error.message.replace(regex, '')
-    if(test.error.stack) test.error.stack = test.error.stack.replace(regex, '')
+    if(test.error.message) test.error.message = stripAnsi(test.error.message)
+    if(test.error.stack) test.error.stack = stripAnsi(test.error.stack)
     return test.error
 }
 
