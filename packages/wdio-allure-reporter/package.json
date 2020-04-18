@@ -33,7 +33,8 @@
   },
   "dependencies": {
     "@wdio/reporter": "6.0.14",
-    "allure-js-commons": "^1.3.2"
+    "allure-js-commons": "^1.3.2",
+    "strip-ansi": "^6.0.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"
