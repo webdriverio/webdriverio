@@ -38,31 +38,30 @@ function isW3C (capabilities) {
 }
 
 /**
- * check if session is run by Chromedriver
- * @param  {Object}  capabilities  caps of session response
- * @return {Boolean}               true if run by Chromedriver
+ * check if session is run by a chromium based driver (chromedriver, msedgedriver)
+ * @param  {Object}  capabilities  capabilities of session response
+ * @return {Boolean}               true if run by chromium based driver
  */
-function isChrome (caps) {
-    if (!caps) {
+function isChromium (capabilities) {
+    if (!capabilities) {
         return false
     }
     return (
-        Boolean(caps.chrome) ||
-        Boolean(caps['goog:chromeOptions'])
+        capabilities.browserName === ('chrome' || 'msedge' || 'MicrosoftEdge') ||
+        Boolean(capabilities['goog:chromeOptions'] || capabilities['ms:edgeOptions'])
     )
 }
 
 /**
  * check if current platform is mobile device
- *
- * @param  {Object}  caps  capabilities
  * @return {Boolean}       true if platform is mobile device
+ * @param capabilities
  */
-function isMobile (caps) {
-    if (!caps) {
+function isMobile (capabilities) {
+    if (!capabilities) {
         return false
     }
-    const browserName = (caps.browserName || '').toLowerCase()
+    const browserName = (capabilities.browserName || '').toLowerCase()
 
     /**
      * we have mobile caps if
@@ -71,11 +70,11 @@ function isMobile (caps) {
         /**
          * capabilities contain mobile only specific capabilities
          */
-        Object.keys(caps).find((cap) => MOBILE_CAPABILITIES.includes(cap)) ||
+        Object.keys(capabilities).find((cap) => MOBILE_CAPABILITIES.includes(cap)) ||
         /**
          * browserName is empty (and eventually app is defined)
          */
-        caps.browserName === '' ||
+        capabilities.browserName === '' ||
         /**
          * browserName is a mobile browser
          */
@@ -88,13 +87,13 @@ function isMobile (caps) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run on iOS device
  */
-function isIOS (caps) {
-    if (!caps) {
+function isIOS (capabilities) {
+    if (!capabilities) {
         return false
     }
     return Boolean(
-        (caps.platformName && caps.platformName.match(/iOS/i)) ||
-        (caps.deviceName && caps.deviceName.match(/(iPad|iPhone)/i))
+        (capabilities.platformName && capabilities.platformName.match(/iOS/i)) ||
+        (capabilities.deviceName && capabilities.deviceName.match(/(iPad|iPhone)/i))
     )
 }
 
@@ -103,28 +102,27 @@ function isIOS (caps) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run on Android device
  */
-function isAndroid (caps) {
-    if (!caps) {
+function isAndroid (capabilities) {
+    if (!capabilities) {
         return false
     }
     return Boolean(
-        (caps.platformName && caps.platformName.match(/Android/i)) ||
-        (caps.browserName && caps.browserName.match(/Android/i))
+        (capabilities.platformName && capabilities.platformName.match(/Android/i)) ||
+        (capabilities.browserName && capabilities.browserName.match(/Android/i))
     )
 }
 
 /**
  * detects if session is run on Sauce with extended debugging enabled
- * @param  {string}  hostname     hostname of session request
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
  */
-function isSauce (caps) {
+function isSauce (capabilities) {
     return Boolean(
-        caps.extendedDebugging ||
+        capabilities.extendedDebugging ||
         (
-            caps['sauce:options'] &&
-            caps['sauce:options'].extendedDebugging
+            capabilities['sauce:options'] &&
+            capabilities['sauce:options'].extendedDebugging
         )
     )
 }
@@ -134,11 +132,11 @@ function isSauce (caps) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is run with Selenium Standalone Server
  */
-function isSeleniumStandalone (caps) {
-    if (!caps) {
+function isSeleniumStandalone (capabilities) {
+    if (!capabilities) {
         return false
     }
-    return Boolean(caps['webdriver.remote.sessionid'])
+    return Boolean(capabilities['webdriver.remote.sessionid'])
 }
 
 /**
@@ -160,7 +158,7 @@ export function capabilitiesEnvironmentDetector (capabilities, automationProtoco
 export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }) {
     return {
         isW3C: isW3C(capabilities),
-        isChrome: isChrome(capabilities),
+        isChromium: isChromium(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
@@ -174,14 +172,14 @@ export function sessionEnvironmentDetector ({ capabilities, requestedCapabilitie
  * @param  {Object}  capabilities           caps of session response
  * @return {Object}                         object with environment flags
  */
-export function devtoolsEnvironmentDetector ({ browserName }) {
+export function devtoolsEnvironmentDetector (capabilities) {
     return {
         isDevTools: true,
         isW3C: true,
         isMobile: false,
         isIOS: false,
         isAndroid: false,
-        isChrome: browserName === 'chrome',
+        isChromium: isChromium(capabilities),
         isSauce: false,
         isSeleniumStandalone: false,
     }
@@ -195,7 +193,7 @@ export function devtoolsEnvironmentDetector ({ browserName }) {
  */
 export function webdriverEnvironmentDetector (capabilities) {
     return {
-        isChrome: isChrome(capabilities),
+        isChromium: isChromium(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),

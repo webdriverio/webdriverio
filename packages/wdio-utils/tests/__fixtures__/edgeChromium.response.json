@@ -1,0 +1,21 @@
+{
+  "value":  {
+    "acceptInsecureCerts": false,
+    "browserName": "msedge",
+    "browserVersion": "81.0.416.58",
+    "ms:edgeOptions": { "debuggerAddress": "localhost:61436" },
+    "msedge": {
+      "msedgedriverVersion": "80.0.361.103 (5454f92735729153a6142d0de005e0848877a8c4)",
+      "userDataDir": "C:\\Users\\foo\\AppData\\Local\\Temp\\scoped_dir2772_1730821669"
+    },
+    "networkConnectionEnabled": false,
+    "pageLoadStrategy": "normal",
+    "platformName": "windows",
+    "proxy": {},
+    "setWindowRect": true,
+    "strictFileInteractability": false,
+    "timeouts": { "implicit": 0, "pageLoad": 300000, "script": 30000 },
+    "unhandledPromptBehavior": "dismiss and notify",
+    "webdriver.remote.sessionid": "40c61e2333460f6d39f58c70880085a5"
+  }
+}
