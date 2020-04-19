@@ -7,6 +7,7 @@ const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService {
     constructor (options, caps, config) {
+        this.caps = caps
         this.config = config
         this.failures = 0
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -97,7 +98,7 @@ export default class BrowserstackService {
     _getBody() {
         return {
             status: this.failures === 0 ? 'passed' : 'failed',
-            name: this.fullTitle,
+            name: this.caps.name !== undefined ? this.caps.name : this.fullTitle,
             reason: this.failReason
         }
     }
