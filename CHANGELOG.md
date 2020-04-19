@@ -17,6 +17,21 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.0.18 (2020-04-17)
+
+#### :memo: Documentation
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#5273](https://github.com/webdriverio/webdriverio/pull/5273) Add missing type definitions ([@pako88](https://github.com/pako88))
+* Other
+  * [#5278](https://github.com/webdriverio/webdriverio/pull/5278) [Docs] Add missing ; before ( ([@dtinth](https://github.com/dtinth))
+  * [#5274](https://github.com/webdriverio/webdriverio/pull/5274) Update docs for beforeHook and afterHook ([@vgrigoruk](https://github.com/vgrigoruk))
+
+#### Committers: 3
+- Pascal König ([@pako88](https://github.com/pako88))
+- Thai Pangsakulyanont ([@dtinth](https://github.com/dtinth))
+- Vitalii Grygoruk ([@vgrigoruk](https://github.com/vgrigoruk))
+
+
 ## v6.0.17 (2020-04-15)
 
 #### :bug: Bug Fix

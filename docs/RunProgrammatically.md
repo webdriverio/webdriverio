@@ -18,7 +18,7 @@ Create a test file (e.g. `test.js`) with the following content:
 ```js
 const { remote } = require('webdriverio')
 
-(async () => {
+;(async () => {
     const browser = await remote({
         logLevel: 'error',
         path: '/', // remove `path` if you decided using something different from driver binaries.

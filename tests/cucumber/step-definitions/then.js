@@ -30,3 +30,11 @@ Then('this is ambiguous', () => {
 Then('this test should fail', () => {
     assert.equal(true, false, 'This step should have never been executed :-(')
 })
+
+let fail = true
+Then('this steps fails only the first time used', () => {
+    if(fail) {
+        fail = false
+        assert.equal(true, false)
+    }
+})

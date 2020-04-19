@@ -494,6 +494,11 @@ declare namespace WebDriver {
          */
         logLevel?: WebDriverLogTypes;
         /**
+         * Set specific log levels per logger
+         * use 'silent' level to disable logger
+         */
+        logLevels?: object;
+        /**
          * Timeout for any WebDriver request to a driver or grid.
          */
         connectionRetryTimeout?: number;
