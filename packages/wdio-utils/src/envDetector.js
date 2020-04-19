@@ -43,7 +43,7 @@ function isW3C (capabilities) {
  * @param  {Object}  capabilities  capabilities of session response
  * @return {Boolean}               true if run by chromium based driver
  */
-function isChromium (capabilities) {
+function isChrome (capabilities) {
     if (!capabilities) {
         return false
     }
@@ -159,7 +159,7 @@ export function capabilitiesEnvironmentDetector (capabilities, automationProtoco
 export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }) {
     return {
         isW3C: isW3C(capabilities),
-        isChromium: isChromium(capabilities),
+        isChrome: isChrome(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
@@ -180,7 +180,7 @@ export function devtoolsEnvironmentDetector (capabilities) {
         isMobile: false,
         isIOS: false,
         isAndroid: false,
-        isChromium: isChromium(capabilities),
+        isChrome: isChrome(capabilities),
         isSauce: false,
         isSeleniumStandalone: false,
     }
@@ -194,7 +194,7 @@ export function devtoolsEnvironmentDetector (capabilities) {
  */
 export function webdriverEnvironmentDetector (capabilities) {
     return {
-        isChromium: isChromium(capabilities),
+        isChrome: isChrome(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),

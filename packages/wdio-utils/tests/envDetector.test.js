@@ -45,14 +45,14 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ requestedCapabilities }).isW3C).toBe(false)
     })
 
-    it('isChromium', () => {
+    it('isChrome', () => {
         const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
-        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChromium).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChromium).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isChromium).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: edgeChromiumCaps, requestedCapabilities }).isChromium).toBe(true)
-        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChromium).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChromium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChrome).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isChrome).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: edgeChromiumCaps, requestedCapabilities }).isChrome).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChrome).toBe(false)
     })
 
     it('isSauce', () => {
@@ -163,15 +163,15 @@ describe('capabilitiesEnvironmentDetector', () => {
 
         expect(capabilitiesFlags.isDevTools).toBe(true)
         expect(capabilitiesFlags.isSeleniumStandalone).toBe(false)
-        expect(capabilitiesFlags.isChromium).toBe(false)
+        expect(capabilitiesFlags.isChrome).toBe(false)
         expect(capabilitiesFlags.isMobile).toBe(false)
     })
     it('should be detect chromium browser if browser is chrome and automationProtocol is devtools', () => {
         const capabilitiesFlags = capabilitiesEnvironmentDetector(chromedriverResponse.value, 'devtools')
-        expect(capabilitiesFlags.isChromium).toBe(true)
+        expect(capabilitiesFlags.isChrome).toBe(true)
     })
     it('should be detect chromium browser if browser is edge and automationProtocol is devtools', () => {
         const capabilitiesFlags = capabilitiesEnvironmentDetector(edgeChromiumResponse.value, 'devtools')
-        expect(capabilitiesFlags.isChromium).toBe(true)
+        expect(capabilitiesFlags.isChrome).toBe(true)
     })
 })

@@ -12,7 +12,7 @@ describe('newSession', () => {
         const session = await ProtocolStub.newSession({ capabilities: { 'appium:deviceName': 'Some Device', platformName: 'iOS', foo: 'bar' } })
         expect(Object.keys(session)).toHaveLength(8)
         expect(session.isAndroid).toBe(false)
-        expect(session.isChromium).toBe(false)
+        expect(session.isChrome).toBe(false)
         expect(session.isIOS).toBe(true)
         expect(session.isMobile).toBe(true)
         expect(session.isSauce).toBe(false)
@@ -24,7 +24,7 @@ describe('newSession', () => {
     it('should create stub for devtools automationProtocol', async () => {
         const session = await ProtocolStub.newSession({ capabilities: { browserName: 'chrome' }, _automationProtocol: 'devtools' })
         expect(Object.keys(session)).toHaveLength(11)
-        expect(session.isChromium).toBe(true)
+        expect(session.isChrome).toBe(true)
         expect(session.isW3C).toBe(true)
         expect(session.isSeleniumStandalone).toBe(false)
     })
@@ -35,7 +35,7 @@ describe('attachToSession', () => {
         const modifier = jest.fn()
         const session = await ProtocolStub.attachToSession({ capabilities: { browserName: 'chrome' } }, modifier)
         expect(modifier).not.toBeCalled()
-        expect(session.isChromium).toBe(true)
+        expect(session.isChrome).toBe(true)
     })
 
     it('should return newSession if modifier was not passed', async () => {
