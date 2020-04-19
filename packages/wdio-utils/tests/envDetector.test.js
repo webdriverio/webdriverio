@@ -49,6 +49,7 @@ describe('sessionEnvironmentDetector', () => {
         const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChromium).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChromium).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isChromium).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: edgeChromiumCaps, requestedCapabilities }).isChromium).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChromium).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChromium).toBe(false)

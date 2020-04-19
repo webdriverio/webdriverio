@@ -1,4 +1,5 @@
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
+const CHROMIUM_BROWSER_NAMES = ['chrome', 'msedge', 'MicrosoftEdge']
 const MOBILE_CAPABILITIES = [
     'appium-version', 'appiumVersion', 'device-type', 'deviceType',
     'device-orientation', 'deviceOrientation', 'deviceName'
@@ -47,7 +48,7 @@ function isChromium (capabilities) {
         return false
     }
     return (
-        capabilities.browserName === ('chrome' || 'msedge' || 'MicrosoftEdge') ||
+        CHROMIUM_BROWSER_NAMES.includes(capabilities.browserName) ||
         Boolean(capabilities['goog:chromeOptions'] || capabilities['ms:edgeOptions'])
     )
 }
