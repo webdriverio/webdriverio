@@ -35,7 +35,9 @@
     "@wdio/protocols": "5.22.1",
     "@wdio/utils": "5.18.6",
     "chrome-launcher": "^0.11.1",
-    "puppeteer-core": "^1.18.1"
+    "puppeteer-core": "^1.18.1",
+    "ua-parser-js": "^0.7.21",
+    "uuid": "^7.0.2"
   },
   "devDependencies": {
     "@types/puppeteer": "^1.19.0"

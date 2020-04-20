@@ -1,14 +1,17 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
+import DEVICES from 'puppeteer-core/DeviceDescriptors'
 import logger from '@wdio/logger'
 
 import { getPages } from './utils'
 import {
     CHROME_NAMES, FIREFOX_NAMES, EDGE_NAMES, DEFAULT_FLAGS, DEFAULT_WIDTH,
-    DEFAULT_HEIGHT, DEFAULT_X_POSITION, DEFAULT_Y_POSITION
+    DEFAULT_HEIGHT, DEFAULT_X_POSITION, DEFAULT_Y_POSITION, VENDOR_PREFIX
 } from './constants'
 
 const log = logger('devtools')
+
+const DEVICE_NAMES = Object.values(DEVICES).map((device) => device.name)
 
 /**
  * launches Chrome and returns a Puppeteer browser instance
@@ -16,7 +19,24 @@ const log = logger('devtools')
  * @return {object}               puppeteer browser instance
  */
 async function launchChrome (capabilities) {
-    const chromeOptions = capabilities['goog:chromeOptions'] || {}
+    const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
+    const mobileEmulation = chromeOptions.mobileEmulation || {}
+
+    if (typeof mobileEmulation.deviceName === 'string') {
+        const deviceProperties = Object.values(DEVICES).find(device => device.name === mobileEmulation.deviceName)
+        if (!deviceProperties) {
+            throw new Error(`Unknown device name "${mobileEmulation.deviceName}", available: ${DEVICE_NAMES.join(', ')}`)
+        }
+
+        mobileEmulation.userAgent = deviceProperties.userAgent
+        mobileEmulation.deviceMetrics = {
+            width: deviceProperties.viewport.width,
+            height: deviceProperties.viewport.height,
+            pixelRatio: deviceProperties.viewport.deviceScaleFactor
+        }
+    }
+
+    const deviceMetrics = mobileEmulation.deviceMetrics || {}
     const chromeFlags = [
         ...DEFAULT_FLAGS,
         ...[
@@ -30,7 +50,15 @@ async function launchChrome (capabilities) {
         ...(chromeOptions.args || [])
     ]
 
-    log.info(`Launch Chrome with flags: ${chromeFlags.join(' ')}`)
+    if (typeof deviceMetrics.pixelRatio === 'number') {
+        chromeFlags.push(`--device-scale-factor=${deviceMetrics.pixelRatio}`)
+    }
+
+    if (typeof mobileEmulation.userAgent === 'string') {
+        chromeFlags.push(`--user-agent=${mobileEmulation.userAgent}`)
+    }
+
+    log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
         chromeFlags
@@ -51,6 +79,10 @@ async function launchChrome (capabilities) {
         if (page.url() === 'about:blank') {
             await page.close()
         }
+    }
+
+    if (deviceMetrics.width && deviceMetrics.height) {
+        await pages[0].setViewport(deviceMetrics)
     }
 
     return browser

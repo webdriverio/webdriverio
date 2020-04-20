@@ -63,6 +63,8 @@ Array [
         "--headless",
         "--no-sandbox",
         "--window-size=222,333",
+        "--device-scale-factor=3",
+        "--user-agent=Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",
       ],
       "chromePath": "/foo/bar",
     },

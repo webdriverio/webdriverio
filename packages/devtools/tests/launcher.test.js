@@ -24,16 +24,38 @@ test('launch chrome with default values', async () => {
 })
 
 test('launch chrome with chrome arguments', async () => {
-    await launch({
+    const browser = await launch({
         browserName: 'chrome',
         'goog:chromeOptions': {
             headless: true,
             binary: '/foo/bar',
-            args: ['--window-size=222,333']
+            args: ['--window-size=222,333'],
+            mobileEmulation: {
+                deviceName: 'Nexus 5'
+            }
         }
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
     expect(puppeteerFirefox.launch).toBeCalledTimes(0)
+
+    const pages = await browser.pages()
+    expect(pages[0].setViewport).toBeCalledWith({
+        height: 640,
+        pixelRatio: 3,
+        width: 360
+    })
+})
+
+test('throws an error if an unknown deviceName is picked', async () => {
+    const err = await launch({
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+            mobileEmulation: {
+                deviceName: 'Cool Nexus 5'
+            }
+        }
+    }).catch((err) => err)
+    expect(err.message).toContain('Unknown device name "Cool Nexus 5"')
 })
 
 test('launch Firefox with default values', async () => {

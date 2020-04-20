@@ -89,3 +89,9 @@ export const ERROR_MESSAGES = {
         message: 'stale element reference: The element reference is stale; either the element is no longer attached to the DOM, it is not in the current frame context, or the document has been refreshed'
     }
 }
+
+export const VENDOR_PREFIX = {
+    chrome: 'goog:chromeOptions',
+    firefox: 'moz:firefoxOptions',
+    edge: 'ms:edgeOptions'
+}
