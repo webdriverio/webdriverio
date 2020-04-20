@@ -64,6 +64,7 @@ export default class AppiumLauncher {
             cap,
             DEFAULT_CONNECTION,
             this.args.port ? { port: this.args.port } : {},
+            { path: this.args.basePath },
             { ...cap }
         ))
 
