@@ -32,7 +32,7 @@
   "dependencies": {
     "@wdio/logger": "6.0.16",
     "cbt_tunnels": "^1.2.2",
-    "got": "^10.7.0"
+    "got": "^11.0.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"
