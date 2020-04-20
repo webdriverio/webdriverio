@@ -193,7 +193,7 @@ export function getErrorFromResponseBody (body) {
         return new Error(body)
     }
 
-    if (typeof body !== 'object' || !body.value) {
+    if (typeof body !== 'object' || (!body.value && !body.error)) {
         return new Error('unknown error')
     }
 
@@ -203,10 +203,11 @@ export function getErrorFromResponseBody (body) {
 //Exporting for testability
 export class CustomRequestError extends Error {
     constructor(body) {
-        super(body.value.message || body.value.class || 'unknown error')
-        if (body.value.error) {
-            this.name = body.value.error
-        } else if (body.value.message && body.value.message.includes('stale element reference')) {
+        const errorObj = body.value || body
+        super(errorObj.message || errorObj.class || 'unknown error')
+        if (errorObj.error) {
+            this.name = errorObj.error
+        } else if (errorObj.message && errorObj.message.includes('stale element reference')) {
             this.name = 'stale element reference'
         }
     }

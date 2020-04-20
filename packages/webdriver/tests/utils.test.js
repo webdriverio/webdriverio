@@ -82,6 +82,13 @@ describe('utils', () => {
             .toEqual(expectedError)
         expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
             .toEqual(expectedError)
+
+        const ieError = new Error('Command not found: POST /some/command')
+        ieError.name = 'unknown method'
+        expect(getErrorFromResponseBody({
+            message: 'Command not found: POST /some/command',
+            error: 'unknown method'
+        })).toEqual(ieError)
     })
 
     it('CustomRequestError', function () {

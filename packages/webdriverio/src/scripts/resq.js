@@ -2,7 +2,10 @@ export const waitToLoadReact = function waitToLoadReact () {
     window.resq.waitToLoadReact()
 }
 
-export const react$ = function react$ (selector, props = {}, state = {}, reactElement) {
+export const react$ = function react$ (selector, props, state, reactElement) {
+    props = props || {}
+    state = state || {}
+
     let element = window.resq.resq$(selector, reactElement)
 
     if (Object.keys(props).length) {
