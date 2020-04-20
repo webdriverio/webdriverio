@@ -56,6 +56,18 @@ test('launch chrome with chrome arguments', async () => {
     })
 })
 
+test('throws an error if an unknown deviceName is picked', async () => {
+    const err = await launch({
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+            mobileEmulation: {
+                deviceName: 'Cool Nexus 5'
+            }
+        }
+    }).catch((err) => err)
+    expect(err.message).toContain('Unknown device name "Cool Nexus 5"')
+})
+
 test('launch Firefox with default values', async () => {
     await launch({
         browserName: 'firefox'

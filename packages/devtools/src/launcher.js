@@ -26,7 +26,7 @@ async function launchChrome (capabilities) {
     if (typeof mobileEmulation.deviceName === 'string') {
         const deviceProperties = Object.values(DEVICES).find(device => device.name === mobileEmulation.deviceName)
         if (!deviceProperties) {
-            throw new Error(`Unknown device name, available: ${DEVICE_NAMES.join(', ')}`)
+            throw new Error(`Unknown device name "${mobileEmulation.deviceName}", available: ${DEVICE_NAMES.join(', ')}`)
         }
 
         mobileEmulation.userAgent = deviceProperties.userAgent
