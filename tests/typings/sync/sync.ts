@@ -101,6 +101,7 @@ browser.touchAction(touchAction)
 
 // dragAndDrop
 ele.dragAndDrop(ele, 0)
+ele.dragAndDrop({ x: 1, y: 2 })
 
 // addLocatorStrategy
 browser.addLocatorStrategy('myStrat', () => {})

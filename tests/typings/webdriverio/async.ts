@@ -131,6 +131,7 @@ async function bar() {
 
     // dragAndDrop
     await ele.dragAndDrop(ele, 0)
+    await ele.dragAndDrop({ x: 1, y: 2 })
 
     // addLocatorStrategy
     browser.addLocatorStrategy('myStrat', () => {})

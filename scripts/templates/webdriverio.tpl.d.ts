@@ -190,6 +190,11 @@ declare namespace WebdriverIO {
         y?: number
     }
 
+    type DragAndDropCoordinate = {
+        x: number,
+        y: number
+    }
+
     interface Element {
         selector: string;
         elementId: string;
