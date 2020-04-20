@@ -17,6 +17,43 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.0 (2020-04-20)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriverio`
+  * [#5282](https://github.com/webdriverio/webdriverio/pull/5282) Allow relative drag&drop arguments ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#5255](https://github.com/webdriverio/webdriverio/pull/5255) fix(wdio-cucumber-framework): add cucumber 6 retries support and scenario ([@alfonso-presa](https://github.com/alfonso-presa))
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-utils`
+  * [#5280](https://github.com/webdriverio/webdriverio/pull/5280) Support mobile emulation capability in DevTools package ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#5279](https://github.com/webdriverio/webdriverio/pull/5279) Script fixes for IE ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`
+  * [#5281](https://github.com/webdriverio/webdriverio/pull/5281) Appium service path assignment ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#5283](https://github.com/webdriverio/webdriverio/pull/5283) Closes [#5038](https://github.com/webdriverio/webdriverio/issues/5038) (@wdio-allure-reporter) strip out ASCII codes from expect-webdriverio ([@lacell75](https://github.com/lacell75))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#5277](https://github.com/webdriverio/webdriverio/pull/5277) sauce service: Add jobname in before ([@pako88](https://github.com/pako88))
+
+#### :memo: Documentation
+* [#5289](https://github.com/webdriverio/webdriverio/pull/5289) Fix link to 'sync vs asyc' doc ([@klamping](https://github.com/klamping))
+* [#5287](https://github.com/webdriverio/webdriverio/pull/5287) Update proxy documentation to include global-agent setup ([@Stetchy](https://github.com/Stetchy))
+* [#5286](https://github.com/webdriverio/webdriverio/pull/5286) Some minor fixes in webdriver 6 blogpost ([@edi9999](https://github.com/edi9999))
+
+#### Committers: 7
+- Alfonso Presa ([@alfonso-presa](https://github.com/alfonso-presa))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Edgar Hipp ([@edi9999](https://github.com/edi9999))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Pascal König ([@pako88](https://github.com/pako88))
+- Riain Condon ([@Stetchy](https://github.com/Stetchy))
+
+
 ## v6.0.18 (2020-04-17)
 
 #### :memo: Documentation
