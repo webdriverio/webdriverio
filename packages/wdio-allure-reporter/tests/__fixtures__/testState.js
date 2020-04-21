@@ -47,7 +47,7 @@ export function testFailedWithMultipleErrors() {
     return Object.assign(testState(), { errors, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 
-export function testFailedWithAssertionErrorFormExpectWebdriverIO() {
+export function testFailedWithAssertionErrorFromExpectWebdriverIO() {
     const errors =
     [
         {

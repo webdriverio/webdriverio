@@ -10,7 +10,7 @@ import { clean, getResults } from 'wdio-allure-helper'
 import AllureReporter from '../src/'
 import { runnerEnd, runnerStart } from './__fixtures__/runner'
 import { suiteEnd, suiteStart } from './__fixtures__/suite'
-import { testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors, testFailedWithAssertionErrorFormExpectWebdriverIO } from './__fixtures__/testState'
+import { testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors, testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState'
 import { commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot } from './__fixtures__/command'
 
 let processOn
@@ -211,7 +211,7 @@ describe('Failed tests', () => {
         reporter.onRunnerStart(runnerEvent)
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
-        reporter.onTestFail(testFailedWithAssertionErrorFormExpectWebdriverIO())
+        reporter.onTestFail(testFailedWithAssertionErrorFromExpectWebdriverIO())
         reporter.onSuiteEnd(suiteEnd())
         reporter.onRunnerEnd(runnerEnd())
 
