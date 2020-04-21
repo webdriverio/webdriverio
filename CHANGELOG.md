@@ -17,6 +17,24 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.1 (2020-04-21)
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#5305](https://github.com/webdriverio/webdriverio/pull/5305) Initiate `expect-webdriverio` after framework got initiated ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#5296](https://github.com/webdriverio/webdriverio/pull/5296) Closes [#5291](https://github.com/webdriverio/webdriverio/issues/5291)(@wdio/allure-reporter) - return status failed when an assertion failed with expect-webdriverio ([@lacell75](https://github.com/lacell75))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`, `wdio-cucumber-framework`
+  * [#5304](https://github.com/webdriverio/webdriverio/pull/5304) Fix#5292 (@wdio/allure-reporter, @wdio/cucumber-framework) added description of cucumber scenario in reports ([@lacell75](https://github.com/lacell75))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.0 (2020-04-20)
 
 #### :rocket: New Feature
