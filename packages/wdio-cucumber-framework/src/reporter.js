@@ -53,7 +53,8 @@ class CucumberReporter {
             parent: getUniqueIdentifier(feature),
             type: 'scenario',
             file: uri,
-            tags: scenario.tags
+            tags: scenario.tags,
+            description: scenario.description || feature.description
         })
     }
 

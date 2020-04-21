@@ -96,8 +96,9 @@ export default class CucumberEventListener extends EventEmitter {
         const testCasePreparedEvent = this.testCasePreparedEvents[this.testCasePreparedEvents.length - 1]
         const scenario = feature.children.find((child) => compareScenarioLineWithSourceLine(child, testCasePreparedEvent.sourceLocation))
         this.currentSteps = getTestCaseSteps(feature, scenario, pickle, testCasePreparedEvent)
+        this.currentPickle.description = scenario.description
 
-        this.emit('before-scenario', uri, feature, pickle)
+        this.emit('before-scenario', uri, feature, this.currentPickle)
     }
 
     // testStepStartedEvent = {

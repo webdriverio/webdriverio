@@ -223,7 +223,8 @@ describe('cucumber reporter', () => {
                 parent: 'feature123',
                 uid: 'scenario126',
                 file: './any.feature',
-                tags: [{ name: 'abc' }]
+                tags: [{ name: 'abc' }],
+                description: '    This should be a scenario description'
             }))
         })
 
@@ -557,7 +558,8 @@ describe('cucumber reporter', () => {
                 parent: 'feature123',
                 uid: 'scenario126',
                 file: './any.feature',
-                tags: [{ name: 'abc' }]
+                tags: [{ name: 'abc' }],
+                description: '    This should be a scenario description'
             }))
         })
 
@@ -582,7 +584,7 @@ describe('cucumber reporter', () => {
                 tags: [
                     { name: '@scenario-tag1' },
                     { name: '@scenario-tag2' }
-                ]
+                ],
             }))
         })
 
@@ -688,7 +690,8 @@ describe('cucumber reporter', () => {
                 title: '@feature-tag1, @feature-tag2: feature',
                 uid: 'feature123',
                 file: './any.feature',
-                cid: '0-1'
+                cid: '0-1',
+                description: gherkinDocEvent.document.feature.description
             }))
         })
 

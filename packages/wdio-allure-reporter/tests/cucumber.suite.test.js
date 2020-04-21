@@ -94,6 +94,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('test-case label[name="severity"]').eq(0).attr('value')).toEqual('critical')
         })
 
+        it('should detect description on top in test case', () => {
+            expect(allureXml('test-case > description').eq(0).text()).toEqual('My scenario description')
+            expect(allureXml('test-case description[type="text"]')).toHaveLength(1)
+        })
+
         it('should move attachments from successfull hook to test-case', () => {
             expect(allureXml('test-case > attachments > attachment').length).toEqual(1)
         })
