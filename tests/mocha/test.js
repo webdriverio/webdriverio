@@ -13,7 +13,7 @@ describe('Mocha smoke test', () => {
     })
 
     it('should return sync value', () => {
-        assert.equal(browser.getTitle(), 'Mock Page Title')
+        expect(browser).toHaveTitle('Mock Page Title')
     })
 
     let hasRun = false
