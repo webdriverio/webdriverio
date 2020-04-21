@@ -47,7 +47,7 @@ export function testFailedWithMultipleErrors() {
     return Object.assign(testState(), { errors, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
 
-export function testFailedWithASCIIColorCode() {
+export function testFailedWithAssertionErrorFromExpectWebdriverIO() {
     const errors =
     [
         {
@@ -61,7 +61,7 @@ export function testFailedWithASCIIColorCode() {
             '    at World.<anonymous> (then.js:271:21)\n' +
             '    at World.executeSync (node_modules/@wdio/sync/build/index.js:56:18)\n' +
             '    at node_modules/@wdio/sync/build/index.js:82:70',
-            name: 'AssertionError',
+            name: 'Error',
         }
     ]
     const error =
@@ -76,7 +76,7 @@ export function testFailedWithASCIIColorCode() {
             '    at World.<anonymous> (then.js:271:21)\n' +
             '    at World.executeSync (node_modules/@wdio/sync/build/index.js:56:18)\n' +
             '    at node_modules/@wdio/sync/build/index.js:82:70',
-            name: 'AssertionError',
+            name: 'Error',
         }
     return Object.assign(testState(), { errors, error, state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
