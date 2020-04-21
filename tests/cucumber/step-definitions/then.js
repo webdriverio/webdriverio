@@ -9,8 +9,7 @@ Then('the title of the page should be {string}', (expectedTitle) => {
 })
 
 Then('the title of the page should be {string} async', async (expectedTitle) => {
-    const actualTitle = await browser.getTitle()
-    assert.equal(actualTitle, expectedTitle)
+    expect(browser).toHaveTitle(expectedTitle)
 })
 
 let hasRun = false

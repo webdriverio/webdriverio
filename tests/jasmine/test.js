@@ -2,7 +2,7 @@ const assert = require('assert')
 
 describe('Jasmine smoke test', () => {
     it('should return sync value', () => {
-        expect(browser.getTitle()).toBe('Mock Page Title')
+        expect(browser).toHaveTitle('Mock Page Title')
     })
 
     let hasRun = false
@@ -13,6 +13,6 @@ describe('Jasmine smoke test', () => {
             throw new Error('booom!')
         }
 
-        assert.equal(this.wdioRetries, 1)
+        expect(this.wdioRetries).toBe(1)
     }, 1)
 })
