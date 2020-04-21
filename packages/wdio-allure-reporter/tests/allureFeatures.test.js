@@ -167,7 +167,7 @@ describe('reporter runtime implementation', () => {
             getCurrentTest: mock,
         }
 
-        reporter.addDescription({ description: 'foo', type: 'bar' })
+        reporter.addDescription({ description: 'foo', descriptionType: 'bar' })
         expect(setDescription).toHaveBeenCalledTimes(1)
         expect(setDescription).toHaveBeenCalledWith('foo', 'bar')
     })

@@ -55,7 +55,7 @@ describe('reporter reporter api', () => {
     it('should pass correct data from addDescription', () => {
         reporter.addDescription('foo', 'html')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
-        expect(utils.tellReporter).toHaveBeenCalledWith(events.addDescription, { description: 'foo', type: 'html' })
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addDescription, { description: 'foo', descriptionType: 'html' })
     })
 
     it('should pass correct data from addAttachment', () => {
