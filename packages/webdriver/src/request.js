@@ -108,7 +108,38 @@ export default class WebDriverRequest extends EventEmitter {
             log.info('DATA', transformCommandLogResult(fullRequestOptions.json))
         }
 
+        /**
+         * handle retries for requests
+         * @param {Error} error  error object that causes the retry
+         * @param {String} msg   message that is being shown as warning to user
+         */
+        const retry = (error, msg) => {
+            ++retryCount
+            this.emit('retry', { error, retryCount })
+            log.warn(msg)
+            log.info(`Retrying ${retryCount}/${totalRetryCount}`)
+            return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
+        }
         let response = await got(fullRequestOptions.uri, { ...fullRequestOptions })
+            .catch((err) => err)
+
+        /**
+         * handle request errors
+         */
+        if (response instanceof Error) {
+            /**
+             * handle timeouts
+             */
+            if (response.code === 'ETIMEDOUT') {
+                return retry(response, 'Request timed out! Consider increasing the "connectionRetryTimeout" option.')
+            }
+
+            /**
+             * throw if request error is unknown
+             */
+            throw response
+        }
+
         if (typeof transformResponse === 'function') {
             response = transformResponse(response, fullRequestOptions)
         }
@@ -161,10 +192,6 @@ export default class WebDriverRequest extends EventEmitter {
             throw error
         }
 
-        ++retryCount
-        this.emit('retry', { error, retryCount })
-        log.warn(`Request failed with status ${response.statusCode} due to ${error.message}`)
-        log.info(`Retrying ${retryCount}/${totalRetryCount}`)
-        return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
+        return retry(error, `Request failed with status ${response.statusCode} due to ${error.message}`)
     }
 }

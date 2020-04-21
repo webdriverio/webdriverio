@@ -99,7 +99,7 @@ Default: `null`
 Timeout for any WebDriver request to a driver or grid.
 
 Type: `Number`<br>
-Default: *90000*
+Default: *120000*
 
 ### connectionRetryCount
 Count of request retries to the Selenium server.
