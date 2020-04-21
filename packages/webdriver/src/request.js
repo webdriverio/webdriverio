@@ -114,12 +114,25 @@ export default class WebDriverRequest extends EventEmitter {
          * @param {String} msg   message that is being shown as warning to user
          */
         const retry = (error, msg) => {
+            /**
+             * stop retrying if totalRetryCount was exceeded or there is no reason to
+             * retry, e.g. if sessionId is invalid
+             */
+            if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
+                log.error(`Request failed with status ${response.statusCode} due to ${error}`)
+                this.emit('response', { error })
+                error.statusCode = response.statusCode
+                error.statusMessage = response.statusMessage
+                throw error
+            }
+
             ++retryCount
             this.emit('retry', { error, retryCount })
             log.warn(msg)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
             return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
         }
+
         let response = await got(fullRequestOptions.uri, { ...fullRequestOptions })
             .catch((err) => err)
 
@@ -177,18 +190,6 @@ export default class WebDriverRequest extends EventEmitter {
         if(error.name === 'stale element reference') {
             log.warn('Request encountered a stale element - terminating request')
             this.emit('response', { error })
-            throw error
-        }
-
-        /**
-         * stop retrying if totalRetryCount was exceeded or there is no reason to
-         * retry, e.g. if sessionId is invalid
-         */
-        if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
-            log.error(`Request failed with status ${response.statusCode} due to ${error}`)
-            this.emit('response', { error })
-            error.statusCode = response.statusCode
-            error.statusMessage = response.statusMessage
             throw error
         }
 

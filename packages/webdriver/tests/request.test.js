@@ -340,6 +340,46 @@ describe('webdriver request', () => {
             expect(result.message).toBe('Command can only be called to a Selenium Hub')
         })
 
+        it('should throw if timeout happens too often', async () => {
+            const retryCnt = 3
+            const req = new WebDriverRequest('POST', '/timeout', {}, true)
+            const reqRetryCnt = jest.fn()
+            req.on('retry', reqRetryCnt)
+            got.mockClear()
+            const result = await req.makeRequest({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/timeout',
+                connectionRetryCount: retryCnt
+            }, 'foobar').then(
+                (res) => res,
+                (e) => e
+            )
+            expect(result.code).toBe('ETIMEDOUT')
+            expect(reqRetryCnt).toBeCalledTimes(retryCnt)
+        })
+
+        it('should return proper response if retry passes', async () => {
+            const retryCnt = 7
+            const req = new WebDriverRequest('POST', '/timeout', {}, true)
+            const reqRetryCnt = jest.fn()
+            req.on('retry', reqRetryCnt)
+            got.mockClear()
+            const result = await req.makeRequest({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/timeout',
+                connectionRetryCount: retryCnt
+            }, 'foobar').then(
+                (res) => res,
+                (e) => e
+            )
+            expect(result).toEqual({ value: { value: {} } })
+            expect(reqRetryCnt).toBeCalledTimes(5)
+        })
+
         afterEach(() => {
             warn.mockClear()
             error.mockClear()
