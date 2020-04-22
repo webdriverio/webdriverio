@@ -316,7 +316,6 @@ describe('webdriver request', () => {
 
         it('should manage hub commands', async () => {
             const req = new WebDriverRequest('POST', '/grid/api/hub', {}, true)
-            got.mockClear()
             expect(await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -327,7 +326,6 @@ describe('webdriver request', () => {
 
         it('should fail if hub command is called on node', async () => {
             const req = new WebDriverRequest('POST', '/grid/api/testsession', {}, true)
-            got.mockClear()
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -345,7 +343,6 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', '/timeout', {}, true)
             const reqRetryCnt = jest.fn()
             req.on('retry', reqRetryCnt)
-            got.mockClear()
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -365,7 +362,6 @@ describe('webdriver request', () => {
             const req = new WebDriverRequest('POST', '/timeout', {}, true)
             const reqRetryCnt = jest.fn()
             req.on('retry', reqRetryCnt)
-            got.mockClear()
             const result = await req.makeRequest({
                 protocol: 'https',
                 hostname: 'localhost',
@@ -380,7 +376,23 @@ describe('webdriver request', () => {
             expect(reqRetryCnt).toBeCalledTimes(5)
         })
 
+        it('should throw if request error is unknown', async () => {
+            const req = new WebDriverRequest('POST', '/sumoerror', {}, true)
+            const result = await req.makeRequest({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/sumoerror',
+                connectionRetryCount: 0
+            }, 'foobar').then(
+                (res) => res,
+                (e) => e
+            )
+            expect(result.message).toBe('ups')
+        })
+
         afterEach(() => {
+            got.mockClear()
             warn.mockClear()
             error.mockClear()
         })
