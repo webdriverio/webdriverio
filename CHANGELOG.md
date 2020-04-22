@@ -17,6 +17,21 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.2 (2020-04-22)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#5308](https://github.com/webdriverio/webdriverio/pull/5308) Revert missed code from workaround ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-config`, `wdio-junit-reporter`, `webdriver`, `webdriverio`
+  * [#5306](https://github.com/webdriverio/webdriverio/pull/5306) Fix request timeout handling in `webdriver` package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
 ## v6.1.1 (2020-04-21)
 
 #### :bug: Bug Fix
