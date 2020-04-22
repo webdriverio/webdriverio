@@ -892,7 +892,7 @@ declare namespace WebDriver {
          * The Element Send Keys command scrolls into view the form control element and then sends the provided keys to the element. In case the element is not keyboard-interactable, an element not interactable error is returned.<br><br>The key input state used for input may be cleared mid-way through "typing" by sending the null key, which is U+E000 (NULL).
          * https://w3c.github.io/webdriver/#dfn-element-send-keys
          */
-        elementSendKeys(elementId: string, text: string, value?: string[]): void;
+        elementSendKeys(elementId: string, text: string): void;
 
         /**
          * [webdriver]
