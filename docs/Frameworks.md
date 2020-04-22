@@ -189,6 +189,12 @@ commands the screenshot is taken anyway, which still gives _some_ valuable infor
 
 The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineNodeOpts` property:
 
+#### defaultTimeoutInterval
+Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
+
+Type: `number`<br>
+Default: `60000`
+
 #### helpers
 Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
 
