@@ -210,6 +210,16 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
         break
     }
 
+    if (uri.pathname.endsWith('timeout') && requestMock.retryCnt < 5) {
+        const timeoutError = new Error('Timeout')
+        timeoutError.name = 'TimeoutError'
+        timeoutError.code = 'ETIMEDOUT'
+        timeoutError.event = 'request'
+        ++requestMock.retryCnt
+
+        return Promise.reject(timeoutError)
+    }
+
     if (uri.pathname.startsWith(`/session/${sessionId}/element/`) && uri.pathname.includes('/attribute/')) {
         value = `${uri.pathname.substring(uri.pathname.lastIndexOf('/') + 1)}-value`
     }

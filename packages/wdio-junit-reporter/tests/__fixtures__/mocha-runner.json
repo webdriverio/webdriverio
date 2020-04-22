@@ -54,7 +54,7 @@
         ],
         "maxInstances": 1,
         "maxInstancesPerCapability": 100,
-        "connectionRetryTimeout": 90000,
+        "connectionRetryTimeout": 120000,
         "connectionRetryCount": 3,
         "execArgv": [],
         "runnerEnv": {},
