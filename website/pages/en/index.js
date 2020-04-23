@@ -272,14 +272,46 @@ const ApplitoolsSupport = () => (
     </Container>
 )
 
-const LOGOS = [{
-    img: 'hilton.png',
-    alt: 'Hilton',
-    url: 'https://www.hilton.com/'
+const LOGOS = [
+/**
+ * Page 1
+ */
+{
+    img: 'google.png',
+    alt: 'Google',
+    url: 'https://developers.google.com/blockly/'
 }, {
     img: 'netflix.png',
     alt: 'Netflix',
     url: 'https://netflix.com/'
+}, {
+    img: 'microsoft.png',
+    alt: 'Microsoft',
+    url: 'https://www.microsoft.com/'
+}, {
+    img: 'mozilla.png',
+    alt: 'Mozilla',
+    url: 'https://www.mozilla.org/'
+}, {
+    img: 'buoyant.png',
+    alt: 'Buoyant',
+    url: 'https://buoyant.io/'
+}, {
+    img: 'sap.png',
+    alt: 'SAP',
+    url: 'https://www.sap.com/'
+},
+/**
+ * Page 2
+ */
+{
+    img: 'hilton.png',
+    alt: 'Hilton',
+    url: 'https://www.hilton.com/'
+}, {
+    img: 'github.png',
+    alt: 'GitHub',
+    url: 'https://www.electronjs.org/spectron'
 }, {
     img: 'oxford.png',
     alt: 'Oxford University Press',
@@ -293,10 +325,14 @@ const LOGOS = [{
     alt: 'GoPro',
     url: 'https://gopro.com/'
 }, {
-    img: 'sap.png',
-    alt: 'SAP',
-    url: 'https://www.sap.com/'
-}, {
+    img: 'algolia.png',
+    alt: 'Algolia',
+    url: 'https://www.algolia.com/'
+},
+/**
+ * Page 3
+ */
+{
     img: 'financialtimes.png',
     alt: 'Financial Times',
     url: 'https://www.ft.com/'
