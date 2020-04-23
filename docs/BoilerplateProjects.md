@@ -79,7 +79,6 @@ Build your angular e2e test with wdio. This project uses a new angular cli build
   - Completely integrated into angular workspace (angular.json)
   - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.
 
-
 ----
 
 ## v5 Boilerplate Projects
