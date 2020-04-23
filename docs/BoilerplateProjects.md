@@ -68,6 +68,18 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
   - CircleCI example
   - ESLint
 
+### [migalons/angular-wdio6-builder-demo](https://github.com/migalons/angular-wdio6-builder-demo)
+Build your angular e2e test with wdio. This project uses a new angular cli builder for replacing protractor with wdio.
+
+- Framewors
+  - Webdriverio (v6)
+  - Angular (v9)
+- Features
+  - Replaces protractor with wdio as e2e runner
+  - Completely integrated into angular workspace (angular.json)
+  - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.
+
+
 ----
 
 ## v5 Boilerplate Projects
@@ -325,3 +337,14 @@ Simple boilerplate project that runs multiple browsers on [SauceLabs](https://sa
 - Features:
     - [Page Object](PageObjects.md) usage
     - Integration with [SauceLabs](https://saucelabs.com)
+
+### [migalons/angular-wdio-builder-demo](https://github.com/migalons/angular-wdio-builder-demo)
+Build your angular e2e test with wdio. This project uses a new angular cli builder for replacing protractor with wdio.
+
+- Framewors
+  - Webdriverio (v5)
+  - Angular (v9)
+- Features
+  - Replaces protractor with wdio as e2e runner
+  - Completely integrated into angular workspace (angular.json)
+  - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.
