@@ -190,7 +190,7 @@ commands the screenshot is taken anyway, which still gives _some_ valuable infor
 The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineNodeOpts` property:
 
 #### defaultTimeoutInterval
-Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
+Default Timeout Interval for Jasmine operations.
 
 Type: `number`<br>
 Default: `60000`
@@ -405,4 +405,3 @@ Here you have some examples of this syntax:
 - `@skip(browserName="firefox";platformName="linux")`: will skip the test in firefox over linux executions.
 - `@skip(browserName=["chrome","firefox"])`: tagged items will be skipped for both chrome and firefox browsers.
 - `@skip(browserName=/i.*explorer/`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
-
