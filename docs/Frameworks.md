@@ -3,7 +3,7 @@ id: frameworks
 title: Frameworks
 ---
 
-The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/). 
+The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/).
 
 To integrate each framework with WebdriverIO, there are adapter packages on NPM which must be installed. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
 
@@ -17,7 +17,7 @@ First, install the adapter package from NPM:
 npm install @wdio/mocha-framework --save-dev
 ```
 
-If you like to use Mocha, you'll want to install an assertion library for more expressive tests. [Chai](http://chaijs.com) is a good choice. 
+If you like to use Mocha, you'll want to install an assertion library for more expressive tests. [Chai](http://chaijs.com) is a good choice.
 
 Initialise it (or whatever assertion library you like) in the `before` hook of your configuration file:
 
@@ -40,7 +40,7 @@ describe('my awesome website', () => {
 })
 ```
 
-WebdriverIO supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces). 
+WebdriverIO supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces).
 
 If you like to write your specs in TDD style, set the `ui` property in your `mochaOpts` config to `tdd`. Now your test files should be written like this:
 
@@ -73,14 +73,14 @@ First, install the adapter package from NPM:
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-Jasmine already provides assertion methods you can use with WebdriverIO. 
+Jasmine already provides assertion methods you can use with WebdriverIO.
 No need to add another one.
 
 ### Intercept Assertion
 
-The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result. 
+The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result.
 
-For example, it is pretty handy to take a screenshot everytime an assertion fails. In your `jasmineNodeOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion. 
+For example, it is pretty handy to take a screenshot everytime an assertion fails. In your `jasmineNodeOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
 
 The following example demonstrates how to take a screenshot if an assertion fails:
 
@@ -103,6 +103,76 @@ jasmineNodeOpts: {
 **Note:** You cannot stop test execution to do something async. It might happen that
 the command takes too much time and the website state has changed. (Though usually, after another 2
 commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.)
+
+### Jasmine Options
+
+The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineNodeOpts` property:
+
+#### defaultTimeoutInterval
+Default Timeout Interval for Jasmine operations.
+
+Type: `number`<br>
+Default: `60000`
+
+#### helpers
+Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
+
+Type: `string[]`<br>
+Default: `[]`
+
+#### requires
+The `requires` option is useful when you want to add or extend some basic functionality.
+
+Type: `string[]`<br>
+Default: `[]`
+
+#### random
+Whether to randomize spec execution order.
+
+Type: `boolean`<br>
+Default: `true`
+
+#### seed
+Seed to use as the basis of randomization. Null causes the seed to be determined randomly at the start of execution.
+
+Type: `Function`<br>
+Default: `null`
+
+#### failFast
+Whether to stop execution of the suite after the first spec failure.
+
+Type: `boolean`<br>
+Default: `false`
+
+#### failSpecWithNoExpectations
+Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure.
+
+Type: `boolean`<br>
+Default: `false`
+
+#### oneFailurePerSpec
+Whether to cause specs to only have one expectation failure.
+
+Type: `boolean`<br>
+Default: `false`
+
+#### specFilter
+Function to use to filter specs.
+
+Type: `Function`<br>
+Default: `() => true`
+
+#### grep
+Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set)
+
+Type: `string|Regexp`<br>
+Default: `null`
+
+#### invertGrep
+If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set)
+
+Type: `boolean`<br>
+Default: `false`
 
 ## Using Cucumber
 
@@ -132,4 +202,3 @@ Here you have some examples of this syntax:
 - `@skip(browserName="firefox";platformName="linux")`: will skip the test in firefox over linux executions.
 - `@skip(browserName=["chrome","firefox"])`: tagged items will be skipped for both chrome and firefox browsers.
 - `@skip(browserName=/i.*explorer/`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
-
