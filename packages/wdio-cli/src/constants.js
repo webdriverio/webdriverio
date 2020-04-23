@@ -86,7 +86,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
-        { name: 'docker', value: 'wdio-docker-service$--$docker' }
+        { name: 'docker', value: 'wdio-docker-service$--$docker' },
+        { name: 'visual-regression-testing', value: 'wdio-image-comparison-service$--$visual-regression-testing' }
     ]
 }
 
