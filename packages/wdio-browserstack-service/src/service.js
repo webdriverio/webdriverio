@@ -9,9 +9,10 @@ export default class BrowserstackService {
     constructor ({ preferScenarioName = false }, caps, config) {
         this.config = config
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
-        this.preferScenarioName = preferScenarioName
-        this.strict = !!(config.cucumberOpts && config.cucumberOpts.strict)
+        this.preferScenarioName = Boolean(preferScenarioName)
+        this.strict = Boolean(config.cucumberOpts && config.cucumberOpts.strict)
         this.failReasons = []
+        this.scenariosThatRan = []
     }
 
     /**
@@ -62,19 +63,23 @@ export default class BrowserstackService {
         )
 
         if (!passed) {
-            this.failReasons.push(error && error.message || 'Unknown Error')
+            this.failReasons.push((error && error.message) || 'Unknown Error')
         }
     }
 
     after(result) {
+        // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
+        // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
         if(this.preferScenarioName && this.scenariosThatRan.length === 1){
             this.fullTitle = this.scenariosThatRan.pop()
         }
 
+        const hasReasons = Boolean(this.failReasons.filter(Boolean).length)
+
         return this._update(this.sessionId, {
             status: result === 0 ? 'passed' : 'failed',
             name: this.fullTitle,
-            reason: this.failReasons.filter(Boolean).join('\n')
+            reason: hasReasons ? this.failReasons.join('\n') : undefined
         })
     }
 
@@ -91,9 +96,9 @@ export default class BrowserstackService {
         const failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown', this.strict ? ['pending'] : []].flat()
 
         if (failureStatuses.includes(status)) {
-            exception = exception || status === 'pending'
+            exception = exception || (status === 'pending'
                 ? `Some steps/hooks are pending for scenario "${pickle.name}"`
-                : 'Unknown Error'
+                : 'Unknown Error')
 
             this.failReasons.push(exception)
         }
