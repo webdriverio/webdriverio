@@ -292,8 +292,7 @@ describe('_getBody', () => {
 
     it('should return "passed" if no errors', () => {
         service.failures = 0
-        service.fullTitle = 'foo - bar'
 
-        expect(service._getBody()).toEqual({ status: 'passed', name: 'foo - bar', reason: undefined })
+        expect(service._getBody()).toEqual({ status: 'passed' })
     })
 })

@@ -95,8 +95,11 @@ export default class BrowserstackService {
     }
 
     _getBody() {
+        if (this.failures === 0) {
+            return { status: 'passed' }
+        }
         return {
-            status: this.failures === 0 ? 'passed' : 'failed',
+            status: 'failed',
             name: this.fullTitle,
             reason: this.failReason
         }
