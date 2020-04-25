@@ -33,7 +33,7 @@
     "@wdio/logger": "6.0.16",
     "@wdio/reporter": "6.0.14",
     "dateformat": "^3.0.3",
-    "got": "^10.7.0",
+    "got": "^11.0.2",
     "json-stringify-safe": "^5.0.1"
   },
   "peerDependencies": {

@@ -10,7 +10,7 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 /// <reference types="node"/>
 
-declare type HTTPRequestOptions = import('got').GotOptions;
+declare type HTTPRequestOptions = import('got').Options;
 declare type HTTPResponse = import('got').Response;
 
 declare namespace WebDriver {

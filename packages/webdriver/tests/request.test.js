@@ -94,7 +94,8 @@ describe('webdriver request', () => {
                 connectionRetryTimeout: 10 * 1000
             }, 'foobar12345')
 
-            expect(options.agent.protocol).toBe('https:')
+            expect(options.agent.https.protocol).toBe('https:')
+            expect(options.agent.http.protocol).toBe('http:')
             expect(options.uri.href)
                 .toBe('https://localhost:4445/session/foobar12345/element')
             expect(Object.keys(options.headers))
@@ -136,7 +137,8 @@ describe('webdriver request', () => {
                 key: 'bar',
                 path: '/'
             })
-            expect(options.auth).toEqual('foo:bar')
+            expect(options.username).toEqual('foo')
+            expect(options.password).toEqual('bar')
             expect(options.json).toEqual({ some: 'body' })
         })
 

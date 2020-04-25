@@ -51,7 +51,7 @@ export default class WebDriverRequest extends EventEmitter {
 
     _createOptions (options, sessionId) {
         const requestOptions = {
-            agent: options.agent || agents[options.protocol],
+            agent: options.agent || agents,
             headers: {
                 ...DEFAULT_HEADERS,
                 ...(typeof options.headers === 'object' ? options.headers : {})
@@ -90,7 +90,8 @@ export default class WebDriverRequest extends EventEmitter {
          * send authentication credentials only when creating new session
          */
         if (this.endpoint === '/session' && options.user && options.key) {
-            requestOptions.auth = `${options.user}:${options.key}`
+            requestOptions.username = options.user
+            requestOptions.password = options.key
         }
 
         /**

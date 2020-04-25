@@ -91,10 +91,17 @@ Type: `Number`<br>
 Default: `3`
 
 ### agent
-Allows you to use a custom` http`/`https` agent to make requests.
+Allows you to use a custom` http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.
 
 Type: `Object`<br>
-Default: `new http(s).Agent({ keepAlive: true })`
+Default:
+
+```js
+{
+    http: new http.Agent({ keepAlive: true }),
+    https: new https.Agent({ keepAlive: true })
+}
+```
 
 ### headers
 Specify custom `headers` to pass into every request.

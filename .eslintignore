@@ -3,4 +3,5 @@
 /packages/node_modules
 /packages/**/coverage
 /tests/typings/**/dist
+tests/typings/**/node_modules
 *.d.ts
