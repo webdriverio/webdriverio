@@ -33,7 +33,7 @@
   "dependencies": {
     "@wdio/logger": "6.0.16",
     "browserstack-local": "^1.4.5",
-    "got": "^10.7.0"
+    "got": "^11.0.2"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"
