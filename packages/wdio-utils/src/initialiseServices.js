@@ -12,7 +12,7 @@ const log = logger('@wdio/utils:initialiseServices')
  */
 function initialiseServices (services) {
     const initialisedServices = []
-    for (let [serviceName, serviceConfig] of services) {
+    for (let [serviceName, serviceConfig = {}] of services) {
         /**
          * allow custom services that are already initialised, e.g.
          *

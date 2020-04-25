@@ -138,7 +138,7 @@ const acceptPickle = (eventBroadcaster) => eventBroadcaster.emit('pickle-accepte
     }
 })
 const prepareSuite = (eventBroadcaster) => eventBroadcaster.emit('test-case-prepared', {
-    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 },
+    sourceLocation: SOURCE_LOCATION,
     steps: [
         {
             sourceLocation: { uri: gherkinDocEvent.uri, line: 125 },
@@ -154,7 +154,9 @@ const prepareSuite = (eventBroadcaster) => eventBroadcaster.emit('test-case-prep
         }
     ]
 })
-const startSuite = (eventBroadcaster) => eventBroadcaster.emit('test-case-started', {})
+
+const SOURCE_LOCATION = { uri: gherkinDocEvent.uri, line: 126 }
+const startSuite = (eventBroadcaster) => eventBroadcaster.emit('test-case-started', { sourceLocation: SOURCE_LOCATION })
 
 describe('cucumber reporter', () => {
     describe('emits messages for certain cucumber events', () => {
@@ -221,7 +223,8 @@ describe('cucumber reporter', () => {
                 parent: 'feature123',
                 uid: 'scenario126',
                 file: './any.feature',
-                tags: [{ name: 'abc' }]
+                tags: [{ name: 'abc' }],
+                description: '    This should be a scenario description'
             }))
         })
 
@@ -238,7 +241,7 @@ describe('cucumber reporter', () => {
                 eventBroadcaster.emit('test-step-started', {
                     index: 1,
                     testCase: {
-                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                        sourceLocation: SOURCE_LOCATION
                     }
                 })
 
@@ -293,7 +296,7 @@ describe('cucumber reporter', () => {
                     index: 1,
                     result: { duration: 10, status: 'passed' },
                     testCase: {
-                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                        sourceLocation: SOURCE_LOCATION
                     }
                 })
 
@@ -316,7 +319,7 @@ describe('cucumber reporter', () => {
                     index: 1,
                     result: { duration: 10, status: 'skipped' },
                     testCase: {
-                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                        sourceLocation: SOURCE_LOCATION
                     }
                 })
 
@@ -339,7 +342,7 @@ describe('cucumber reporter', () => {
                     index: 1,
                     result: { duration: 10, status: 'pending' },
                     testCase: {
-                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                        sourceLocation: SOURCE_LOCATION
                     }
                 })
 
@@ -367,7 +370,7 @@ describe('cucumber reporter', () => {
                         exception: err
                     },
                     testCase: {
-                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                        sourceLocation: SOURCE_LOCATION
                     }
                 })
 
@@ -398,7 +401,7 @@ describe('cucumber reporter', () => {
                         exception: 'string-error'
                     },
                     testCase: {
-                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                        sourceLocation: SOURCE_LOCATION
                     }
                 })
 
@@ -429,7 +432,7 @@ describe('cucumber reporter', () => {
                         exception: 'cucumber-ambiguous-error-message'
                     },
                     testCase: {
-                        sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                        sourceLocation: SOURCE_LOCATION
                     }
                 })
 
@@ -454,7 +457,7 @@ describe('cucumber reporter', () => {
             it('should send proper data on `test-case-finished` event', () => {
                 eventBroadcaster.emit('test-case-finished', {
                     result: { duration: 0, status: 'passed' },
-                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    sourceLocation: SOURCE_LOCATION
                 })
 
                 expect(wdioReporter.emit).toHaveBeenCalledWith('suite:end', expect.objectContaining({
@@ -491,6 +494,102 @@ describe('cucumber reporter', () => {
         })
     })
 
+    describe('emits messages for certain cucumber events when executed in scenarioLeverReporter', () => {
+        const cid = '0-1'
+        const specs = ['/foobar.js']
+        let eventBroadcaster
+        let cucumberReporter
+
+        beforeEach(() => {
+            eventBroadcaster = new EventEmitter()
+            cucumberReporter = new CucumberReporter(eventBroadcaster, { failAmbiguousDefinitions: true, scenarioLevelReporter: true }, cid, specs, wdioReporter)
+        })
+
+        it('should not send any data on `gherkin-document` event', () => {
+            loadGherkin(eventBroadcaster)
+            expect(cucumberReporter.eventListener.gherkinDocEvents).toEqual([gherkinDocEvent])
+            expect(wdioReporter.emit).not.toHaveBeenCalled()
+        })
+
+        it('should send proper data on `test-run-started` event', () => {
+            loadGherkin(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('test-run-started')
+
+            expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
+                cid,
+                description: gherkinDocEvent.document.feature.description,
+                file: gherkinDocEvent.uri,
+                keyword: gherkinDocEvent.document.feature.keyword,
+                specs,
+                tags: [...gherkinDocEvent.document.feature.tags],
+                title: gherkinDocEvent.document.feature.name,
+                type: 'feature',
+                uid: 'feature123',
+            }))
+        })
+
+        it('should not send any data on `pickle-accepted` event', () => {
+            loadGherkin(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            acceptPickle(eventBroadcaster)
+
+            expect(wdioReporter.emit).not.toHaveBeenCalled()
+        })
+
+        it('should not be ok if line is missing', () => {
+            loadGherkinNoLine(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            acceptPickle(eventBroadcaster)
+
+            expect(wdioReporter.emit).not.toHaveBeenCalled()
+        })
+
+        it('should send accepted pickle\'s data on `test-case-started` event', () => {
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+            startSuite(eventBroadcaster)
+
+            expect(wdioReporter.emit).toHaveBeenCalledWith('test:start', expect.objectContaining({
+                type: 'scenario',
+                cid: '0-1',
+                parent: 'feature123',
+                uid: 'scenario126',
+                file: './any.feature',
+                tags: [{ name: 'abc' }],
+                description: '    This should be a scenario description'
+            }))
+        })
+
+        it('should send proper data on `test-case-finished` event', () => {
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            wdioReporter.emit.mockClear()
+
+            eventBroadcaster.emit('test-case-finished', {
+                result: { duration: 0, status: 'passed' },
+                sourceLocation: SOURCE_LOCATION
+            })
+
+            expect(wdioReporter.emit).toHaveBeenCalledWith('test:pass', expect.objectContaining({
+                type: 'scenario',
+                cid: '0-1',
+                parent: 'feature123',
+                uid: 'scenario126',
+                file: './any.feature',
+                tags: [
+                    { name: '@scenario-tag1' },
+                    { name: '@scenario-tag2' }
+                ],
+            }))
+        })
+
+    })
+
     describe('provides a fail counter', () => {
         let eventBroadcaster
         let reporter
@@ -514,7 +613,7 @@ describe('cucumber reporter', () => {
                     exception: new Error('exception-error')
                 },
                 testCase: {
-                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    sourceLocation: SOURCE_LOCATION
                 }
             })
             expect(reporter.failedCount).toBe(1)
@@ -530,7 +629,7 @@ describe('cucumber reporter', () => {
                     stack: ''
                 },
                 testCase: {
-                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    sourceLocation: SOURCE_LOCATION
                 }
             })
 
@@ -545,7 +644,7 @@ describe('cucumber reporter', () => {
                     status: 'undefined'
                 },
                 testCase: {
-                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    sourceLocation: SOURCE_LOCATION
                 }
             })
 
@@ -562,7 +661,7 @@ describe('cucumber reporter', () => {
                     status: 'undefined'
                 },
                 testCase: {
-                    sourceLocation: { uri: gherkinDocEvent.uri, line: 126 }
+                    sourceLocation: SOURCE_LOCATION
                 }
             })
 
@@ -591,7 +690,8 @@ describe('cucumber reporter', () => {
                 title: '@feature-tag1, @feature-tag2: feature',
                 uid: 'feature123',
                 file: './any.feature',
-                cid: '0-1'
+                cid: '0-1',
+                description: gherkinDocEvent.document.feature.description
             }))
         })
 
@@ -616,7 +716,7 @@ describe('cucumber reporter', () => {
                 }
             })
             prepareSuite(eventBroadcaster)
-            eventBroadcaster.emit('test-case-started', {})
+            eventBroadcaster.emit('test-case-started', { sourceLocation: SOURCE_LOCATION })
 
             expect(wdioReporter.emit).toHaveBeenCalledWith('suite:start', expect.objectContaining({
                 type: 'scenario',

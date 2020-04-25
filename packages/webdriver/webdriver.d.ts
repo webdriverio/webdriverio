@@ -10,7 +10,7 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 /// <reference types="node"/>
 
-declare type HTTPRequestOptions = import('got').GotOptions;
+declare type HTTPRequestOptions = import('got').Options;
 declare type HTTPResponse = import('got').Response;
 
 declare namespace WebDriver {
@@ -500,6 +500,11 @@ declare namespace WebDriver {
          */
         logLevel?: WebDriverLogTypes;
         /**
+         * Set specific log levels per logger
+         * use 'silent' level to disable logger
+         */
+        logLevels?: object;
+        /**
          * Timeout for any WebDriver request to a driver or grid.
          */
         connectionRetryTimeout?: number;
@@ -887,7 +892,7 @@ declare namespace WebDriver {
          * The Element Send Keys command scrolls into view the form control element and then sends the provided keys to the element. In case the element is not keyboard-interactable, an element not interactable error is returned.<br><br>The key input state used for input may be cleared mid-way through "typing" by sending the null key, which is U+E000 (NULL).
          * https://w3c.github.io/webdriver/#dfn-element-send-keys
          */
-        elementSendKeys(elementId: string, text: string, value?: string[]): void;
+        elementSendKeys(elementId: string, text: string): void;
 
         /**
          * [webdriver]

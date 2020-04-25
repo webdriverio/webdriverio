@@ -51,11 +51,14 @@ class MockCustomFailingProcess extends MockFailingProcess {
     stderr = { pipe: jest.fn(), once: jest.fn().mockImplementation((event, cb) => cb(new Error('Uups'))) }
 }
 
-jest.mock('../src/utils', () => ({
-    getFilePath: jest.fn().mockReturnValue('/some/file/path'),
-    getAppiumCommand: jest.fn().mockReturnValue('/appium/command/path'),
-    cliArgsFromKeyValue: jest.fn().mockReturnValue(['--foo', 'bar'])
-}))
+jest.mock('../src/utils', () => {
+    const { cliArgsFromKeyValue } = jest.requireActual('../src/utils')
+    return {
+        getFilePath: jest.fn().mockReturnValue('/some/file/path'),
+        getAppiumCommand: jest.fn().mockReturnValue('/appium/command/path'),
+        cliArgsFromKeyValue
+    }
+})
 
 describe('Appium launcher', () => {
     const originalPlatform = process.platform
@@ -81,7 +84,7 @@ describe('Appium launcher', () => {
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
             expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
+            expect(launcher.appiumArgs).toMatchSnapshot()
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
             expect(capabilities[0].port).toBe(1234)
@@ -126,18 +129,18 @@ describe('Appium launcher', () => {
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
             expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
+            expect(launcher.appiumArgs).toMatchSnapshot()
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
             expect(capabilities[0].port).toBe(1234)
             expect(capabilities[0].path).toBe('/')
         })
 
-        test('should respect custom port before Appium port', async () => {
+        test('should respect custom port and path before Appium port and path', async () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar', port: 1234 }
+                args: { foo: 'bar', port: 1234, basePath: '/foo/bar' }
             }
             const capabilities = [{ port: 4321 }]
             const launcher = new AppiumLauncher(options, capabilities, {})
@@ -148,11 +151,12 @@ describe('Appium launcher', () => {
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
             expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
+            expect(launcher.appiumArgs).toMatchSnapshot()
+
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
             expect(capabilities[0].port).toBe(4321)
-            expect(capabilities[0].path).toBe('/')
+            expect(capabilities[0].path).toBe('/foo/bar')
         })
 
         test('should set correct config properties for Windows', async () => {
@@ -168,7 +172,7 @@ describe('Appium launcher', () => {
             await launcher.onPrepare()
 
             expect(launcher.command).toBe('cmd')
-            expect(launcher.appiumArgs).toEqual(['/c', 'path/to/my_custom_appium', '--foo', 'bar'])
+            expect(launcher.appiumArgs).toMatchSnapshot()
         })
 
         test('should set correct config properties when empty', async () => {
@@ -177,16 +181,14 @@ describe('Appium launcher', () => {
 
             expect(launcher.logPath).toBe(undefined)
             expect(launcher.command).toBe('node')
-            expect(launcher.appiumArgs).toEqual(['/appium/command/path', '--foo', 'bar'])
+            expect(launcher.appiumArgs).toMatchSnapshot()
         })
 
         test('should start Appium', async () => {
             const launcher = new AppiumLauncher({ args: { superspeed: true } }, [], {})
             await launcher.onPrepare()
 
-            expect(childProcess.spawn.mock.calls[0][0]).toBe('node')
-            expect(childProcess.spawn.mock.calls[0][1]).toEqual(['/appium/command/path', '--foo', 'bar'])
-            expect(childProcess.spawn.mock.calls[0][2]).toEqual({ stdio: ['ignore', 'pipe', 'pipe'] })
+            expect(childProcess.spawn.mock.calls[0]).toMatchSnapshot()
         })
 
         test('should fail if Appium exits', async () => {

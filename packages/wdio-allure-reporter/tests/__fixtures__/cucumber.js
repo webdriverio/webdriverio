@@ -12,6 +12,7 @@ const suite = (type = 'feature') => ({
         name: '@severity=critical'
     }],
     tests: [],
+    description: 'My scenario description',
     hooks: [],
     suites: []
 })

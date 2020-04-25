@@ -119,4 +119,10 @@ interface CucumberOpts {
      * @default 30000
      */
     timeout?: number;
+    /**
+     * Enable this to make webdriver.io behave as if scenarios
+     * and not steps were the tests.
+     * @default false
+     */
+    scenarioLevelReporter?: boolean;
 }

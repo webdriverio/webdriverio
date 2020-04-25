@@ -1,5 +1,6 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
+import DEVICES from 'puppeteer-core/DeviceDescriptors'
 import logger from '@wdio/logger'
 
 import browserFinder from './finder'
@@ -11,6 +12,8 @@ import {
 
 const log = logger('devtools')
 
+const DEVICE_NAMES = Object.values(DEVICES).map((device) => device.name)
+
 /**
  * launches Chrome and returns a Puppeteer browser instance
  * @param  {object} capabilities  session capabilities
@@ -18,6 +21,23 @@ const log = logger('devtools')
  */
 async function launchChrome (capabilities) {
     const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
+    const mobileEmulation = chromeOptions.mobileEmulation || {}
+
+    if (typeof mobileEmulation.deviceName === 'string') {
+        const deviceProperties = Object.values(DEVICES).find(device => device.name === mobileEmulation.deviceName)
+        if (!deviceProperties) {
+            throw new Error(`Unknown device name "${mobileEmulation.deviceName}", available: ${DEVICE_NAMES.join(', ')}`)
+        }
+
+        mobileEmulation.userAgent = deviceProperties.userAgent
+        mobileEmulation.deviceMetrics = {
+            width: deviceProperties.viewport.width,
+            height: deviceProperties.viewport.height,
+            pixelRatio: deviceProperties.viewport.deviceScaleFactor
+        }
+    }
+
+    const deviceMetrics = mobileEmulation.deviceMetrics || {}
     const chromeFlags = [
         ...DEFAULT_FLAGS,
         ...[
@@ -30,6 +50,14 @@ async function launchChrome (capabilities) {
         ] : []),
         ...(chromeOptions.args || [])
     ]
+
+    if (typeof deviceMetrics.pixelRatio === 'number') {
+        chromeFlags.push(`--device-scale-factor=${deviceMetrics.pixelRatio}`)
+    }
+
+    if (typeof mobileEmulation.userAgent === 'string') {
+        chromeFlags.push(`--user-agent=${mobileEmulation.userAgent}`)
+    }
 
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
     const chrome = await launchChromeBrowser({
@@ -53,6 +81,10 @@ async function launchChrome (capabilities) {
         if (page.url() === 'about:blank') {
             await page.close()
         }
+    }
+
+    if (deviceMetrics.width && deviceMetrics.height) {
+        await pages[0].setViewport(deviceMetrics)
     }
 
     return browser

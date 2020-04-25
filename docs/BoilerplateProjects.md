@@ -34,6 +34,26 @@ This boilerplate includes the following:
         - Swipe
         - Browsers
 
+### [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
+
+Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you, so you can start writing feature files in your project right away.
+
+- Framework: Cucumber
+- Features:
+    - Over 150 predefined steps that cover almost everything you need
+    - Integrates WebdriverIO’s Multiremote functionality
+    - Own demo app
+
+### [webdriverio/jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate)
+Boilerplate project to run WebdriverIO tests with Jasmine using Babel features and the page objects pattern.
+
+- Frameworks
+  - WebdriverIO (v6)
+  - Jasmine (v3)
+- Features
+  - Page Object Pattern
+  - Sauce Labs integration
+
 ### [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
 ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
 
@@ -47,16 +67,6 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
   - Automatic screenshots capture for failing tests
   - CircleCI example
   - ESLint
-
-### [webdriverio/jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate)
-Boilerplate project to run WebdriverIO tests with Jasmine using Babel features and the page objects pattern.
-
-- Frameworks
-  - WebdriverIO (v6)
-  - Jasmine (v3)
-- Features
-  - Page Object Pattern
-  - Sauce Labs integration
 
 ----
 
@@ -306,16 +316,6 @@ This project is useful not only as an example of WebdriverIO v5 and integration 
     - Cloud integration with [Perfecto](https://www.perfecto.io/)
     - Uses [Page Objects](PageObjects.md)
     - Examples of using Page Locators to run same script on Multiple Mobile Devices
-
-### [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
-
-Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you, so you can start writing feature files in your project right away.
-
-- Framework: Cucumber
-- Features:
-    - Over 150 predefined steps that cover almost everything you need
-    - Integrates WebdriverIO’s Multiremote functionality
-    - Own demo app
 
 ### [saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium](https://github.com/saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium)
 

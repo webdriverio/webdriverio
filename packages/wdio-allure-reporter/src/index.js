@@ -59,6 +59,9 @@ class AllureReporter extends WDIOReporter {
             this.getLabels(suite).forEach(({ name, value }) => {
                 currentTest.addLabel(name, value)
             })
+            if (suite.description) {
+                this.addDescription(suite)
+            }
             return this.setCaseParameters(suite.cid)
         }
 
@@ -352,13 +355,13 @@ class AllureReporter extends WDIOReporter {
         test.addParameter('environment-variable', name, value)
     }
 
-    addDescription({ description, type }) {
+    addDescription({ description, descriptionType }) {
         if (!this.isAnyTestRunning()) {
             return false
         }
 
         const test = this.allure.getCurrentTest()
-        test.setDescription(description, type)
+        test.setDescription(description, descriptionType)
     }
 
     addAttachment({ name, content, type = 'text/plain' }) {
@@ -487,10 +490,10 @@ class AllureReporter extends WDIOReporter {
      * Assign test description to test
      * @name addDescription
      * @param {string} description - description for test
-     * @param {string} type - description type 'text'\'html'\'markdown'
+     * @param {string} descriptionType - description type 'text'\'html'\'markdown'
      */
-    static addDescription = (description, type) => {
-        tellReporter(events.addDescription, { description, type })
+    static addDescription = (description, descriptionType) => {
+        tellReporter(events.addDescription, { description, descriptionType })
     }
 
     /**
