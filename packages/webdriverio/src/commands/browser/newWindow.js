@@ -9,13 +9,14 @@
  * <example>
     :newWindowSync.js
     it('should open a new tab', () => {
-        browser.url('http://google.com')
+        browser.url('https://google.com')
         console.log(browser.getTitle()) // outputs: "Google"
 
         browser.newWindow('https://webdriver.io', 'WebdriverIO window', 'width=420,height=230,resizable,scrollbars=yes,status=1')
         console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser automation test framework for Node.js"
 
         browser.closeWindow()
+        browser.switchWindow('https://google.com')
         console.log(browser.getTitle()) // outputs: "Google"
     });
  * </example>
