@@ -17,6 +17,18 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.4 (2020-04-25)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`, `wdio-crossbrowsertesting-service`, `wdio-shared-store-service`, `wdio-sumologic-reporter`, `wdio-testingbot-service`, `webdriver`, `webdriverio`
+  * [#5321](https://github.com/webdriverio/webdriverio/pull/5321) Update got across packages ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Bastien Caudan ([@bcaudan](https://github.com/bcaudan))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+
+
 ## v6.1.2 (2020-04-22)
 
 #### :eyeglasses: Spec Compliancy
