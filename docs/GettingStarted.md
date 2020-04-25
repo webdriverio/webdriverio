@@ -86,25 +86,20 @@ Open that file, and write the following code in it:
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync Mode-->
 ```js
-const assert = require('assert')
-
 describe('webdriver.io page', () => {
     it('should have the right title', () => {
         browser.url('https://webdriver.io')
         const title = browser.getTitle()
-        assert.strictEqual(title, 'WebdriverIO · Next-gen browser automation test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js');
     })
 })
 ```
 <!--Async Mode-->
 ```js
-const assert = require('assert')
-
 describe('webdriver.io page', () => {
     it('should have the right title', async () => {
         await browser.url('https://webdriver.io')
-        const title = await browser.getTitle()
-        assert.strictEqual(title, 'WebdriverIO · Next-gen browser automation test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js');
     })
 })
 ```
