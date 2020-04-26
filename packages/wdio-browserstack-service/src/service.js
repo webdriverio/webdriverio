@@ -9,10 +9,15 @@ export default class BrowserstackService {
     constructor ({ preferScenarioName = false }, caps, config) {
         this.config = config
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
+        this.failReasons = []
+
+        // Cucumber specific
+        this.scenariosThatRan = []
         this.preferScenarioName = Boolean(preferScenarioName)
         this.strict = Boolean(config.cucumberOpts && config.cucumberOpts.strict)
-        this.failReasons = []
-        this.scenariosThatRan = []
+        // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
+        this.failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown']
+        this.strict && this.failureStatuses.push('pending')
     }
 
     /**
@@ -92,10 +97,7 @@ export default class BrowserstackService {
             this.scenariosThatRan.push(pickle.name)
         }
 
-        // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
-        const failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown', this.strict ? ['pending'] : []].flat()
-
-        if (failureStatuses.includes(status)) {
+        if (this.failureStatuses.includes(status)) {
             exception = exception || (status === 'pending'
                 ? `Some steps/hooks are pending for scenario "${pickle.name}"`
                 : 'Unknown Error')

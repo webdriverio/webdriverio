@@ -263,7 +263,8 @@ describe('afterTest', () => {
 describe('afterScenario', () => {
     it('should increment failure reasons on non-passing statuses (strict mode off)', () => {
         const uri = '/some/uri'
-        service.failReasons = []
+        service = new BrowserstackService({}, [],
+            { user: 'foo', key: 'bar', cucumberOpts: { strict: false } })
 
         expect(service.failReasons).toEqual([])
 
@@ -306,8 +307,8 @@ describe('afterScenario', () => {
 
     it('should increment failure reasons on non-passing statuses (strict mode on)', () => {
         const uri = '/some/uri'
-        service.failReasons = []
-        service.strict = true
+        service = new BrowserstackService({}, [],
+            { user: 'foo', key: 'bar', cucumberOpts: { strict: true } })
 
         expect(service.failReasons).toEqual([])
 
@@ -418,10 +419,11 @@ describe('after', () => {
 
         it('should call _update with status "passed" when strict mode is "off" and only passed and pending tests ran',
             async () => {
-                const updateSpy = jest.spyOn(service, '_update')
-
+                service = new BrowserstackService({}, [],
+                    { user: 'foo', key: 'bar', cucumberOpts: { strict: false } })
                 service.sessionId = 'session123'
-                service.strict = false
+
+                const updateSpy = jest.spyOn(service, '_update')
 
                 await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
@@ -444,10 +446,11 @@ describe('after', () => {
 
         it('should call _update with status is "failed" when strict mode is "on" and only passed and pending tests ran',
             async () => {
-                const updateSpy = jest.spyOn(service, '_update')
-
+                service = new BrowserstackService({}, [],
+                    { user: 'foo', key: 'bar', cucumberOpts: { strict: true } })
                 service.sessionId = 'session123'
-                service.strict = true
+
+                const updateSpy = jest.spyOn(service, '_update')
 
                 await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
@@ -495,11 +498,12 @@ describe('after', () => {
 
         it('should call _update with status "failed" when strict mode is "on" and only failed and pending tests ran',
             async () => {
+                service = new BrowserstackService({}, [],
+                    { user: 'foo', key: 'bar', cucumberOpts: { strict: true } })
+                service.sessionId = 'session123'
+
                 const updateSpy = jest.spyOn(service, '_update')
                 const afterSpy = jest.spyOn(service, 'after')
-
-                service.sessionId = 'session123'
-                service.strict = true
 
                 await service.beforeSession(service.config)
                 await service.before(service.config)
