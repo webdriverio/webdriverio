@@ -66,7 +66,7 @@ And your `tsconfig.json` needs the following:
             "*": [ "./*" ],
             "src/*": ["./src/*"]
         },
-        "types": ["node", "webdriverio"]
+        "types": ["node", "webdriverio", "expect-webdriverio"]
     },
     "include": [
         "./src/**/*.ts"
@@ -121,7 +121,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
             "*": [ "./*" ],
             "src/*": ["./src/*"]
         },
-        "types": ["node", "webdriverio", "@wdio/mocha-framework"]
+        "types": ["node", "webdriverio", "expect-webdriverio", "@wdio/mocha-framework"]
     },
     "include": [
         "./src/**/*.ts"
