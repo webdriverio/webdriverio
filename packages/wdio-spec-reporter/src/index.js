@@ -24,69 +24,66 @@ class SpecReporter extends WDIOReporter {
             failed: 0,
             prevFailed: 0,
             skipped: 0
-          };
-      
+        }
+
         this.chalk = chalk
     }
 
-    onTestStart() {
-        this.stateCounts.prevHookFails = this.stateCounts.hookFails;
-        this.stateCounts.prevFailed = this.stateCounts.failed;
-      }
-    
-      onSuiteStart(suite) {
-        this.stateCounts.prevPassed = this.stateCounts.passed;
-        this.suiteUids.push(suite.uid);
-        this.suiteIndents[suite.uid] = ++this.indents;
-      }
-    
-      onSuiteEnd(suite) {
-        this.indents--;
-        this.suites.push(suite);
-      }
-    
-      onHookStart(hook) {
-      }
-    
-      onHookEnd(hook) {
+    onTestStart () {
+        this.stateCounts.prevHookFails = this.stateCounts.hookFails
+        this.stateCounts.prevFailed = this.stateCounts.failed
+    }
+
+    onSuiteStart (suite) {
+        this.stateCounts.prevPassed = this.stateCounts.passed
+        this.suiteUids.push(suite.uid)
+        this.suiteIndents[suite.uid] = ++this.indents
+    }
+
+    onSuiteEnd (suite) {
+        this.indents--
+        this.suites.push(suite)
+    }
+
+    onHookEnd (hook) {
         if (hook.error) {
-          this.stateCounts.failed++;
+            this.stateCounts.failed++
         }
-        if (this.stateCounts.failed > this.stateCounts.prevFailed){
-          this.stateCounts.hookFails = this.stateCounts.prevHookFails + 1;
+        if (this.stateCounts.failed > this.stateCounts.prevFailed) {
+            this.stateCounts.hookFails = this.stateCounts.prevHookFails + 1
         }
-      }
-    
-      onTestPass() {
-        this.stateCounts.prevPassed = this.stateCounts.passed;
-        if (this.stateCounts.hookFails === this.stateCounts.prevHookFails){
-          this.stateCounts.passed++;
+    }
+
+    onTestPass () {
+        this.stateCounts.prevPassed = this.stateCounts.passed
+        if (this.stateCounts.hookFails === this.stateCounts.prevHookFails) {
+            this.stateCounts.passed++
         }
-      }
-    
-      onTestFail() {
-        this.stateCounts.failed++;
-        if (this.stateCounts.failed > (this.stateCounts.prevFailed + 1)){
-          this.stateCounts.failed--;
+    }
+
+    onTestFail () {
+        this.stateCounts.failed++
+        if (this.stateCounts.failed > (this.stateCounts.prevFailed + 1)) {
+            this.stateCounts.failed--
         }
-    
+
         if (this.stateCounts.passed == this.stateCounts.prevPassed + 1) {
-          this.stateCounts.passed--;
+            this.stateCounts.passed--
         }
-      }
-    
-      onTestSkip() {
-        this.stateCounts.skipped++;
-      }
-    
-      onRunnerEnd(runner) {
-        this.printReport(runner);
-      }
-    
-        /**
-     * Print the report to the screen
-     */
-    printReport(runner) {
+    }
+
+    onTestSkip () {
+        this.stateCounts.skipped++
+    }
+
+    onRunnerEnd (runner) {
+        this.printReport(runner)
+    }
+
+    /**
+ * Print the report to the screen
+ */
+    printReport (runner) {
         const duration = `(${prettyMs(runner._duration)})`
         const preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]`
         const divider = '------------------------------------------------------------------'
@@ -162,7 +159,7 @@ class SpecReporter extends WDIOReporter {
      * @param  {Object} runner Runner data
      * @return {Array}         Header data
      */
-    getHeaderDisplay(runner) {
+    getHeaderDisplay (runner) {
         const combo = this.getEnviromentCombo(runner.capabilities, undefined, runner.isMultiremote).trim()
 
         // Spec file name and enviroment information
@@ -255,21 +252,21 @@ class SpecReporter extends WDIOReporter {
         const output = []
 
         // Get the passes
-        if(this.stateCounts.passed > 0) {
+        if (this.stateCounts.passed > 0) {
             const text = `${this.stateCounts.passed} passing ${duration}`
             output.push(this.chalk[this.getColor('passed')](text))
             duration = ''
         }
 
         // Get the failures
-        if(this.stateCounts.failed > 0) {
+        if (this.stateCounts.failed > 0) {
             const text = `${this.stateCounts.failed} failing ${duration}`.trim()
             output.push(this.chalk[this.getColor('failed')](text))
             duration = ''
         }
 
         // Get the skipped tests
-        if(this.stateCounts.skipped > 0) {
+        if (this.stateCounts.skipped > 0) {
             const text = `${this.stateCounts.skipped} skipped ${duration}`.trim()
             output.push(this.chalk[this.getColor('skipped')](text))
         }
@@ -290,7 +287,7 @@ class SpecReporter extends WDIOReporter {
             const suiteTitle = suite.title
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
-                if(test.state !== 'failed') {
+                if (test.state !== 'failed') {
                     continue
                 }
 
