@@ -71,7 +71,7 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
 ### [migalons/angular-wdio6-builder-demo](https://github.com/migalons/angular-wdio6-builder-demo)
 Build your angular e2e test with wdio. This project uses a new angular cli builder for replacing protractor with wdio.
 
-- Framewors
+- Frameworks:
   - Webdriverio (v6)
   - Angular (v9)
 - Features
