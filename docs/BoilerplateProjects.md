@@ -74,7 +74,7 @@ Build your angular e2e test with wdio. This project uses a new angular cli build
 - Frameworks:
   - Webdriverio (v6)
   - Angular (v9)
-- Features
+- Features:
   - Replaces protractor with wdio as e2e runner
   - Completely integrated into angular workspace (angular.json)
   - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.
