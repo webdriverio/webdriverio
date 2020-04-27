@@ -340,7 +340,7 @@ Simple boilerplate project that runs multiple browsers on [SauceLabs](https://sa
 ### [migalons/angular-wdio-builder-demo](https://github.com/migalons/angular-wdio-builder-demo)
 Build your angular e2e test with wdio. This project uses a new angular cli builder for replacing protractor with wdio.
 
-- Framewors
+- Frameworks:
   - Webdriverio (v5)
   - Angular (v9)
 - Features
