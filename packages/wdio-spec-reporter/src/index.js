@@ -19,52 +19,71 @@ class SpecReporter extends WDIOReporter {
         this.suiteIndents = {}
         this.defaultTestIndent = '   '
         this.stateCounts = {
-            prevPassed : 0,
-            passed : 0,
-            failed : 0,
-            skipped : 0
-        }
-
+            hookFails: 0,
+            passed: 0,
+            failed: 0,
+            prevFailed: 0,
+            skipped: 0
+          };
+      
         this.chalk = chalk
     }
 
-    onSuiteStart (suite) {
-        this.suiteUids.push(suite.uid)
-        this.suiteIndents[suite.uid] = ++this.indents
-    }
-
-    onSuiteEnd (suite) {
-        this.indents--
-        this.suites.push(suite)
-    }
-
-    onHookEnd (hook) {
+    onTestStart() {
+        this.stateCounts.prevHookFails = this.stateCounts.hookFails;
+        this.stateCounts.prevFailed = this.stateCounts.failed;
+      }
+    
+      onSuiteStart(suite) {
+        this.stateCounts.prevPassed = this.stateCounts.passed;
+        this.suiteUids.push(suite.uid);
+        this.suiteIndents[suite.uid] = ++this.indents;
+      }
+    
+      onSuiteEnd(suite) {
+        this.indents--;
+        this.suites.push(suite);
+      }
+    
+      onHookStart(hook) {
+      }
+    
+      onHookEnd(hook) {
         if (hook.error) {
-            this.stateCounts.failed++
+          this.stateCounts.failed++;
         }
-    }
-
-    onTestPass () {
-        this.stateCounts.prevPassed = this.stateCounts.passed
-        this.stateCounts.passed++
-    }
-
-    onTestFail () {
-        this.stateCounts.failed++
-        if (this.stateCounts.prevPassed === this.stateCounts.passed - 1) {
-            this.stateCounts.passed--
+        if (this.stateCounts.failed > this.stateCounts.prevFailed){
+          this.stateCounts.hookFails = this.stateCounts.prevHookFails + 1;
         }
-    }
-
-    onTestSkip () {
-        this.stateCounts.skipped++
-    }
-
-    onRunnerEnd (runner) {
-        this.printReport(runner)
-    }
-
-    /**
+      }
+    
+      onTestPass() {
+        this.stateCounts.prevPassed = this.stateCounts.passed;
+        if (this.stateCounts.hookFails === this.stateCounts.prevHookFails){
+          this.stateCounts.passed++;
+        }
+      }
+    
+      onTestFail() {
+        this.stateCounts.failed++;
+        if (this.stateCounts.failed > (this.stateCounts.prevFailed + 1)){
+          this.stateCounts.failed--;
+        }
+    
+        if (this.stateCounts.passed == this.stateCounts.prevPassed + 1) {
+          this.stateCounts.passed--;
+        }
+      }
+    
+      onTestSkip() {
+        this.stateCounts.skipped++;
+      }
+    
+      onRunnerEnd(runner) {
+        this.printReport(runner);
+      }
+    
+        /**
      * Print the report to the screen
      */
     printReport(runner) {
