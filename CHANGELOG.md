@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.6 (2020-04-28)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`, `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-runner`
+  * [#5335](https://github.com/webdriverio/webdriverio/pull/5335) embed expect-webdriverio in framework adapters ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v6.1.5 (2020-04-28)
 
 #### :memo: Documentation
