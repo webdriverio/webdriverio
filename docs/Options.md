@@ -244,6 +244,18 @@ reporters: [
 ]
 ```
 
+### reporterSyncInterval
+Determines in which interval the reporter should check if they are synchronised if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
+
+Type: `Number`<br>
+Default: `100` (ms)
+
+### reporterSyncTimeout
+Determines the maximum time reporters have to finish uploading all their logs until an error is being thrown by the testrunner.
+
+Type: `Number`<br>
+Default: `5000` (ms)
+
 ### automationProtocol
 
 Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.

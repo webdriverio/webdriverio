@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-    Next-gen browser automation test automation framework for Node.js
+    Next-gen browser and mobile automation test framework for Node.js.
 </p>
 
 <p align="center">
@@ -56,7 +56,7 @@ If you're looking for issues to help out with, check out [the issues labelled "g
 
 - [webdriver](https://github.com/webdriverio/webdriverio/tree/master/packages/webdriver) - A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol
 - [devtools](https://github.com/webdriverio/webdriverio/tree/master/packages/devtools) - A Chrome DevTools protocol binding that maps WebDriver commands into Chrome DevTools commands using Puppeteer
-- [webdriverio](https://github.com/webdriverio/webdriverio/blob/master/packages/webdriverio) - A next-gen browser automation test automation framework for Node.js
+- [webdriverio](https://github.com/webdriverio/webdriverio/blob/master/packages/webdriverio) - Next-gen browser and mobile automation test framework for Node.js
 - [@wdio/cli](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cli) - A WebdriverIO testrunner command line interface
 
 ### Helper

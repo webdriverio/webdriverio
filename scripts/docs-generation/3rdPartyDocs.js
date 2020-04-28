@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const request = require('request')
+const urljoin = require('url-join')
 
 const { buildPreface } = require('../utils/helpers')
 const reporters3rdParty = require('./3rd-party/reporters.json')
@@ -109,10 +110,13 @@ function normalizeDoc(readme, githubUrl, preface, repoInfo) {
          * match links like [foo](bar). `stringInParentheses` would be `bar`
          * do not match [foo](http://bar), [foo](#bar)
          */
-        const urlMatcher = row.match(/\[.*\]\(((?!(#|http)).*)\)/)
-        if (urlMatcher && urlMatcher.length > 1) {
-            const stringInParentheses = urlMatcher[1]
-            const url = `${githubUrl}/master/${stringInParentheses}`.replace(githubHost, githubRawHost)
+        const mdLinks = row.match(/\[([^\]]+)\]\(([^)"]+)(?: "([^"]+)")?\)/g) || []
+        for (const mdLink of mdLinks) {
+            const urlMatcher = mdLink.match(/\[([^[]+)\]\((.*)\)/)
+            const stringInParentheses = urlMatcher[2]
+            const url = stringInParentheses.startsWith('http')
+                ? stringInParentheses
+                : urljoin(githubUrl, 'blob', 'master', stringInParentheses)
             readmeArr[idx] = readmeArr[idx].replace(`](${stringInParentheses})`, `](${url})`)
         }
     })
