@@ -1,6 +1,6 @@
 {
   "name": "webdriverio",
-  "description": "Next-gen browser automation test automation framework for Node.js",
+  "description": "Next-gen browser and mobile automation test framework for Node.js",
   "version": "6.1.4",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",

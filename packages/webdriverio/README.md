@@ -1,7 +1,7 @@
 WebdriverIO
 ===========
 
-> Next-gen browser automation test framework for Node.js
+> Next-gen browser and mobile automation test framework for Node.js
 
 This package provides and easy to manage API and a lot of syntactical sugar on top of the WebDriver specification. You can use WebdriverIO as a standalone package or via a testrunner using [`@wdio/cli`](https://webdriver.io/docs/clioptions.html). WebdriverIO allows to run tests locally using the WebDriver or Chrome DevTools protocol as well as remote user agents using cloud providers like [Sauce Labs](https://saucelabs.com/).
 
