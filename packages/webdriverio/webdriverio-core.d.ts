@@ -149,6 +149,17 @@ declare namespace WebdriverIO {
          */
         reporters?: (string | object)[];
         /**
+         * Determines in which interval the reporter should check if they are synchronised
+         * if they report their logs asynchronously (e.g. if logs are streamed to a 3rd
+         * party vendor).
+         */
+        reporterSyncInterval?: number;
+        /**
+         * Determines the maximum time reporters have to finish uploading all their logs
+         * until an error is being thrown by the testrunner.
+         */
+        reporterSyncTimeout?: number;
+        /**
          * Services take over a specific job you don't want to take care of. They enhance
          * your test setup with almost no effort.
          */
