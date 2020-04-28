@@ -444,4 +444,5 @@ afterEach(() => {
     mockery.enable.mockClear()
     mockery.registerMock.mockClear()
     mockery.disable.mockClear()
+    setOptions.mockClear()
 })

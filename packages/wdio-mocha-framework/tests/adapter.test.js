@@ -372,4 +372,5 @@ afterEach(() => {
     Mocha.Runner.mockClear()
     runTestInFiberContext.mockReset()
     executeHooksWithArgs.mockReset()
+    setOptions.mockClear()
 })

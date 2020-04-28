@@ -9,10 +9,6 @@ jest.mock('fs')
 jest.mock('util', () => ({ promisify: (fn) => fn }))
 
 describe('wdio-runner', () => {
-    it('comes with own assertion lib', () => {
-        expect(process.env.WDIO_ASSERTION_LIB_ACTIVATED).toBe('1')
-    })
-
     describe('_fetchDriverLogs', () => {
         let runner
 

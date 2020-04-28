@@ -468,6 +468,7 @@ describe('hasTests', () => {
 })
 
 afterEach(() => {
+    setOptions.mockClear()
     runTestInFiberContext.mockClear()
     executeHooksWithArgs.mockClear()
 })
