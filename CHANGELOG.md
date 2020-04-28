@@ -17,6 +17,31 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.5 (2020-04-28)
+
+#### :memo: Documentation
+* `wdio-runner`, `wdio-sync`, `webdriverio`
+  * [#5334](https://github.com/webdriverio/webdriverio/pull/5334) Make WebdriverIO a browser AND mobile automation framework ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-devtools-service`
+  * [#5331](https://github.com/webdriverio/webdriverio/pull/5331) Bump puppeteer-core from 2.1.1 to 3.0.1 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `wdio-dot-reporter`, `wdio-lambda-runner`, `wdio-reporter`
+  * [#5330](https://github.com/webdriverio/webdriverio/pull/5330) Bump tmp from 0.0.33 to 0.2.0 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `wdio-concise-reporter`, `wdio-spec-reporter`
+  * [#5329](https://github.com/webdriverio/webdriverio/pull/5329) Bump pretty-ms from 6.0.1 to 7.0.0 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `webdriverio`
+  * [#5328](https://github.com/webdriverio/webdriverio/pull/5328) Bump archiver from 3.1.1 to 4.0.1 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `wdio-junit-reporter`
+  * [#5327](https://github.com/webdriverio/webdriverio/pull/5327) Bump junit-report-builder from 1.3.3 to 2.0.0 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+
+#### Committers: 4
+- Alan Christopher Thomas ([@alanchrt](https://github.com/alanchrt))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Miguel A. Alonso ([@migalons](https://github.com/migalons))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.4 (2020-04-25)
 
 #### :bug: Bug Fix
