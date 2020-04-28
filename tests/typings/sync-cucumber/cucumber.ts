@@ -13,6 +13,10 @@ const hook: WebdriverIO.HookFunctions = {
     afterScenario: function (uri, feature, scenario, result, sourceLocation) {
     },
     afterFeature: function (uri, feature, scenarios) {
+        expect(browser).toHaveTitle('some title')
+
+        const el = $('selector')
+        expect(el).toHaveTextContaining('foobar')
     }
 }
 

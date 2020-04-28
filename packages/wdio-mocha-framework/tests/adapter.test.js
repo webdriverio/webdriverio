@@ -2,6 +2,7 @@ import path from 'path'
 import Mocha from 'mocha'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import { setOptions } from 'expect-webdriverio'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src'
 import { loadModule } from '../src/utils'
@@ -49,6 +50,7 @@ test('should properly set up mocha', async () => {
     const result = await adapter.run()
     expect(result).toBe(0)
 
+    expect(setOptions).toBeCalledTimes(1)
     expect(adapter.mocha.loadFiles).toBeCalled()
     expect(adapter.mocha.reporter).toBeCalled()
     expect(adapter.mocha.fullTrace).toBeCalled()

@@ -1,3 +1,4 @@
+/// <reference types="expect-webdriverio"/>
 /// <reference types="jasmine"/>
 
 declare module WebdriverIO {

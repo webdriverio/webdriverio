@@ -169,4 +169,6 @@ browser.sharedStore.set('foo', ['q', 1, true, null, {'w' : {}, 'e': [] }, [{}]])
 // allure-reporter
 allure.addFeature('')
 
+expect(ele).toContainText('foobar')
+
 export default {}
