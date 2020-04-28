@@ -33,7 +33,7 @@
     "@wdio/logger": "6.0.16",
     "@wdio/utils": "6.1.0",
     "cucumber": "^6.0.5",
-    "expect-webdriverio": "^1.1.3",
+    "expect-webdriverio": "^1.1.5",
     "glob": "^7.1.2",
     "is-glob": "^4.0.0",
     "mockery": "~2.1.0"
