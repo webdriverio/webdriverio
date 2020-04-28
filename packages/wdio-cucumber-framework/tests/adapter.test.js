@@ -2,6 +2,8 @@ import path from 'path'
 import mockery from 'mockery'
 import * as Cucumber from 'cucumber'
 import * as utils from '@wdio/utils'
+import { setOptions } from 'expect-webdriverio'
+
 const { executeHooksWithArgs, testFnWrapper } = utils
 
 import CucumberAdapterFactory, { CucumberAdapter } from '../src'
@@ -52,6 +54,7 @@ test('should properly set up cucumber', async () => {
     const result = await adapter.run()
     expect(result).toBe(0)
 
+    expect(setOptions).toBeCalledTimes(1)
     expect(adapter.registerRequiredModules).toBeCalled()
     expect(adapter.loadSpecFiles).toBeCalled()
     expect(adapter.wrapSteps).toBeCalled()
@@ -441,4 +444,5 @@ afterEach(() => {
     mockery.enable.mockClear()
     mockery.registerMock.mockClear()
     mockery.disable.mockClear()
+    setOptions.mockClear()
 })

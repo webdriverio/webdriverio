@@ -135,16 +135,6 @@ export default class Runner extends EventEmitter {
         })
 
         /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
-         */
-        const { setOptions } = require('expect-webdriverio')
-        setOptions({
-            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this.config.waitforInterval, // interval between attempts
-        })
-
-        /**
          * kick off tests in framework
          */
         let failures = 0

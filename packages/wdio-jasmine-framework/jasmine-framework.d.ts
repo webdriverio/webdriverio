@@ -1,4 +1,5 @@
 /// <reference types="jasmine"/>
+/// <reference types="expect-webdriverio/jasmine"/>
 
 declare module WebdriverIO {
     interface Config extends JasmineNodeOptsConfig {}

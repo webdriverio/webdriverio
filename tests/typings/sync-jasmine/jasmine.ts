@@ -13,4 +13,13 @@ const config: WebdriverIO.Config = {
     }
 }
 
+describe('foo', () => {
+    it('bar', () => {
+        expect(browser).toHaveTitle('foobar')
+
+        const el = $('selector')
+        expect(el).toHaveTextContaining('foobar')
+    })
+})
+
 export default {}

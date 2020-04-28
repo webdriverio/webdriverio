@@ -1,4 +1,5 @@
 /// <reference types="mocha"/>
+/// <reference types="expect-webdriverio"/>
 
 declare module WebdriverIO {
     interface Config extends MochaOptsConfig {}
