@@ -32,7 +32,7 @@
   "dependencies": {
     "@wdio/logger": "6.0.16",
     "@wdio/utils": "6.1.0",
-    "expect-webdriverio": "^1.1.0",
+    "expect-webdriverio": "^1.1.2",
     "mocha": "^7.0.1"
   },
   "devDependencies": {
