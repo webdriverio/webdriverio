@@ -1,5 +1,4 @@
 /// <reference types="@wdio/sync/webdriverio-core"/>
-/// <reference types="expect-webdriverio"/>
 
 declare namespace WebdriverIO {
     interface Browser {
