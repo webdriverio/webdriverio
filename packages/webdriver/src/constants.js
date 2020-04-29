@@ -64,7 +64,7 @@ export const DEFAULTS = {
      */
     connectionRetryTimeout: {
         type: 'number',
-        default: 90000
+        default: 120000
     },
     /**
      * Count of request retries to the Selenium server

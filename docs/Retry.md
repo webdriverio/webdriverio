@@ -64,7 +64,13 @@ If you are using Jasmine, it also means that second parameter of both *test func
 
 It is __not__ possible to rerun whole suites with Jasmine&mdash;only hooks or test blocks.
 
-## Rerun Step Definitions in Cucumber
+## Rerunning in Cucumber
+
+### Rerun full suites in Cucumber
+
+For cucumber >=6 you can provide the [`retry`](https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#retry-failing-tests) configuration option along with a `retryTagFilter` optional parameter to have all or some of your failing scenarios get additional retries until succeeded. For this feature to work you need to set the `scenarioLevelReporter` to `true`.
+
+### Rerun Step Definitions in Cucumber
 
 To define a rerun rate for a certain step definitions just apply a retry option to it, like:
 

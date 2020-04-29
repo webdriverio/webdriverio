@@ -142,4 +142,10 @@ interface SauceServiceConfig {
      * @deprecated
      */
     scRelay?: boolean;
+    /**
+     * If true it updates the job name at the Sauce Labs job in the beforeSuite Hook.
+     * Attention: this comes at the cost of an additional call to Sauce Labs
+     * Default: false
+     */
+    setJobNameInBeforeSuite?: boolean;
 }

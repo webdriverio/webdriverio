@@ -71,6 +71,7 @@ describe('initialiseLauncherService', () => {
         )
         expect(launcherServices).toHaveLength(1)
         expect(launcherServices[0].config.foo).toBe('bar')
+        expect(launcherServices[0].options).toEqual({})
     })
 
     it('should propagate services that have launcher only capabilities', () => {

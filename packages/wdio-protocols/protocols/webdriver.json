@@ -616,11 +616,6 @@
         "type": "string",
         "description": "string to send as keystrokes to the element",
         "required": true
-      }, {
-        "name": "value",
-        "type": "string[]",
-        "description": "The sequence of keys to type. Workaround https://github.com/appium/appium/issues/12085",
-        "required": false
       }]
     }
   },

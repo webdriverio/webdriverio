@@ -32,7 +32,8 @@ class CucumberAdapter {
                 capabilities: this.capabilities,
                 ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
                 failAmbiguousDefinitions: Boolean(this.cucumberOpts.failAmbiguousDefinitions),
-                tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle)
+                tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle),
+                scenarioLevelReporter: Boolean(this.cucumberOpts.scenarioLevelReporter)
             }
             this.cucumberReporter = new CucumberReporter(this.eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
 
@@ -69,9 +70,18 @@ class CucumberAdapter {
     }
 
     async run () {
+        /**
+         * import and set options for `expect-webdriverio` assertion lib once
+         * the framework was initiated so that it can detect the environment
+         */
+        const { setOptions } = require('expect-webdriverio')
+        setOptions({
+            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
+            interval: this.config.waitforInterval, // interval between attempts
+        })
+
         let runtimeError
         let result
-
         try {
             this.registerRequiredModules()
             Cucumber.supportCodeLibraryBuilder.reset(this.cwd)

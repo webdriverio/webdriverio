@@ -3,8 +3,6 @@ import path from 'path'
 import util from 'util'
 import EventEmitter from 'events'
 
-import { setOptions } from 'expect-webdriverio'
-
 import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
@@ -77,14 +75,6 @@ export default class Runner extends EventEmitter {
 
         initialiseWorkerService(this.config, caps, args.ignoredWorkerServices)
             .map(::this.configParser.addService)
-
-        /**
-         * set options for `expect-webdriverio` assertion lib
-         */
-        setOptions({
-            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this.config.waitforInterval, // interval between attempts
-        })
 
         await runHook('beforeSession', this.config, this.caps, this.specs)
         browser = await this._initSession(this.config, this.caps, browser)

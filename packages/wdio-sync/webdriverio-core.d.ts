@@ -52,6 +52,13 @@ declare namespace WebdriverIO {
     type ServiceEntry = string | HookFunctions | [string, ServiceOption]
 
     interface Options {
+        /**
+         * Define the protocol you want to use for your browser automation.
+         * Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and
+         * [`devtools`](https://www.npmjs.com/package/devtools) are supported,
+         * as these are the main browser automation technologies available.
+         */
+        automationProtocol?: string;
         runner?: string;
         /**
          * Your cloud service username (only works for Sauce Labs, Browserstack, TestingBot,
@@ -141,6 +148,17 @@ declare namespace WebdriverIO {
          * with the reporter name and the second element an object with reporter options.
          */
         reporters?: (string | object)[];
+        /**
+         * Determines in which interval the reporter should check if they are synchronised
+         * if they report their logs asynchronously (e.g. if logs are streamed to a 3rd
+         * party vendor).
+         */
+        reporterSyncInterval?: number;
+        /**
+         * Determines the maximum time reporters have to finish uploading all their logs
+         * until an error is being thrown by the testrunner.
+         */
+        reporterSyncTimeout?: number;
         /**
          * Services take over a specific job you don't want to take care of. They enhance
          * your test setup with almost no effort.
@@ -413,6 +431,11 @@ declare namespace WebdriverIO {
         interval?: number
     }
 
+    type DragAndDropCoordinate = {
+        x: number,
+        y: number
+    }
+
     interface Element {
         selector: string;
         elementId: string;
@@ -516,7 +539,7 @@ declare namespace WebdriverIO {
          * Drag an item to a destination element.
          */
         dragAndDrop(
-            target: Element,
+            target: Element | DragAndDropCoordinate,
             options?: DragAndDropOptions
         ): void;
 

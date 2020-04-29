@@ -34,6 +34,26 @@ This boilerplate includes the following:
         - Swipe
         - Browsers
 
+### [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
+
+Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you, so you can start writing feature files in your project right away.
+
+- Framework: Cucumber
+- Features:
+    - Over 150 predefined steps that cover almost everything you need
+    - Integrates WebdriverIO’s Multiremote functionality
+    - Own demo app
+
+### [webdriverio/jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate)
+Boilerplate project to run WebdriverIO tests with Jasmine using Babel features and the page objects pattern.
+
+- Frameworks
+  - WebdriverIO (v6)
+  - Jasmine (v3)
+- Features
+  - Page Object Pattern
+  - Sauce Labs integration
+
 ### [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
 ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
 
@@ -48,15 +68,16 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
   - CircleCI example
   - ESLint
 
-### [webdriverio/jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate)
-Boilerplate project to run WebdriverIO tests with Jasmine using Babel features and the page objects pattern.
+### [migalons/angular-wdio6-builder-demo](https://github.com/migalons/angular-wdio6-builder-demo)
+Build your angular e2e test with wdio. This project uses a new angular cli builder for replacing protractor with wdio.
 
-- Frameworks
-  - WebdriverIO (v6)
-  - Jasmine (v3)
-- Features
-  - Page Object Pattern
-  - Sauce Labs integration
+- Frameworks:
+  - Webdriverio (v6)
+  - Angular (v9)
+- Features:
+  - Replaces protractor with wdio as e2e runner
+  - Completely integrated into angular workspace (angular.json)
+  - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.
 
 ----
 
@@ -307,16 +328,6 @@ This project is useful not only as an example of WebdriverIO v5 and integration 
     - Uses [Page Objects](PageObjects.md)
     - Examples of using Page Locators to run same script on Multiple Mobile Devices
 
-### [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
-
-Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you, so you can start writing feature files in your project right away.
-
-- Framework: Cucumber
-- Features:
-    - Over 150 predefined steps that cover almost everything you need
-    - Integrates WebdriverIO’s Multiremote functionality
-    - Own demo app
-
 ### [saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium](https://github.com/saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium)
 
 Simple boilerplate project that runs multiple browsers on [SauceLabs](https://saucelabs.com) in parallel.
@@ -325,3 +336,14 @@ Simple boilerplate project that runs multiple browsers on [SauceLabs](https://sa
 - Features:
     - [Page Object](PageObjects.md) usage
     - Integration with [SauceLabs](https://saucelabs.com)
+
+### [migalons/angular-wdio-builder-demo](https://github.com/migalons/angular-wdio-builder-demo)
+Build your angular e2e test with wdio. This project uses a new angular cli builder for replacing protractor with wdio.
+
+- Frameworks:
+  - Webdriverio (v5)
+  - Angular (v9)
+- Features:
+  - Replaces protractor with wdio as e2e runner
+  - Completely integrated into angular workspace (angular.json)
+  - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.

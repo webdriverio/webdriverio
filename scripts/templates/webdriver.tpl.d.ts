@@ -4,7 +4,7 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 /// <reference types="node"/>
 
-declare type HTTPRequestOptions = import('got').GotOptions;
+declare type HTTPRequestOptions = import('got').Options;
 declare type HTTPResponse = import('got').Response;
 
 declare namespace WebDriver {
@@ -493,6 +493,11 @@ declare namespace WebDriver {
          * Level of logging verbosity.
          */
         logLevel?: WebDriverLogTypes;
+        /**
+         * Set specific log levels per logger
+         * use 'silent' level to disable logger
+         */
+        logLevels?: object;
         /**
          * Timeout for any WebDriver request to a driver or grid.
          */

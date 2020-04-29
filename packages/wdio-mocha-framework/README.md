@@ -91,7 +91,7 @@ context.describe = function (name, callback) {
 
 ```js
 describe(() => {
-	it('Login form', () => {
+	it('Login form', function () => {
 		this.skip();
 	});
 });

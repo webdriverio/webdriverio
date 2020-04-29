@@ -109,10 +109,12 @@ export { config }
 
 ## Framework types
 
-Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property, as well as install its type definitions.
+Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property, as well as install its type definitions. This is especially important if you want to have type support for the built-in assertion library [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio).
 
 For instance, if you decide to use the Mocha framework, you need to install `@types/mocha` and add it like this to have all types globally available:
 
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Mocha-->
 ```json
 {
     "compilerOptions": {
@@ -128,6 +130,39 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
     ]
 }
 ```
+<!--Jasmine-->
+```json
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "*": [ "./*" ],
+            "src/*": ["./src/*"]
+        },
+        "types": ["node", "webdriverio", "@wdio/jasmine-framework"]
+    },
+    "include": [
+        "./src/**/*.ts"
+    ]
+}
+```
+<!--Cucumber-->
+```json
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "*": [ "./*" ],
+            "src/*": ["./src/*"]
+        },
+        "types": ["node", "webdriverio", "@wdio/cucumber-framework"]
+    },
+    "include": [
+        "./src/**/*.ts"
+    ]
+}
+```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 Instead of having all type definitions globally available, you can also `import` only the types that you need, like this:
 

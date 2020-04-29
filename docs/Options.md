@@ -82,7 +82,7 @@ Default: `null`
 Timeout for any WebDriver request to a driver or grid.
 
 Type: `Number`<br>
-Default: `90000`
+Default: `120000`
 
 ### connectionRetryCount
 Maximum count of request retries to the Selenium server.
@@ -91,10 +91,17 @@ Type: `Number`<br>
 Default: `3`
 
 ### agent
-Allows you to use a custom` http`/`https` agent to make requests.
+Allows you to use a custom` http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.
 
 Type: `Object`<br>
-Default: `new http(s).Agent({ keepAlive: true })`
+Default:
+
+```js
+{
+    http: new http.Agent({ keepAlive: true }),
+    https: new https.Agent({ keepAlive: true })
+}
+```
 
 ### headers
 Specify custom `headers` to pass into every request.
@@ -236,6 +243,18 @@ reporters: [
     }]
 ]
 ```
+
+### reporterSyncInterval
+Determines in which interval the reporter should check if they are synchronised if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
+
+Type: `Number`<br>
+Default: `100` (ms)
+
+### reporterSyncTimeout
+Determines the maximum time reporters have to finish uploading all their logs until an error is being thrown by the testrunner.
+
+Type: `Number`<br>
+Default: `5000` (ms)
 
 ### automationProtocol
 

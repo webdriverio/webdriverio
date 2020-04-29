@@ -96,13 +96,13 @@ img.install {
         ul {
             display: flex;
             justify-content: space-around;
-            width: 2150px;
+            width: 3200px;
             margin: 0;
             transition: transform 1000ms ease;
 
             li {
                 display: flex;
-                width: 200px;
+                min-width: 150px;
                 justify-content: center;
                 align-items: center;
 

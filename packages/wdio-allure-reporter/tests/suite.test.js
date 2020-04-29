@@ -10,7 +10,7 @@ import { clean, getResults } from 'wdio-allure-helper'
 import AllureReporter from '../src/'
 import { runnerEnd, runnerStart } from './__fixtures__/runner'
 import { suiteEnd, suiteStart } from './__fixtures__/suite'
-import { testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors } from './__fixtures__/testState'
+import { testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors, testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState'
 import { commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot } from './__fixtures__/command'
 
 let processOn
@@ -199,6 +199,34 @@ describe('Failed tests', () => {
         expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
         expect(lines[1].trim()).toBe('ReferenceError: All is Dust')
         expect(lines[3].trim()).toBe('InternalError: Abandon Hope')
+    })
+
+    it('should detect failed test case with Assertion failed from expect-webdriverIO', () => {
+        const reporter = new AllureReporter({ stdout: true, outputDir })
+
+        const runnerEvent = runnerStart()
+        delete runnerEvent.capabilities.browserName
+        delete runnerEvent.capabilities.version
+
+        reporter.onRunnerStart(runnerEvent)
+        reporter.onSuiteStart(suiteStart())
+        reporter.onTestStart(testStart())
+        reporter.onTestFail(testFailedWithAssertionErrorFromExpectWebdriverIO())
+        reporter.onSuiteEnd(suiteEnd())
+        reporter.onRunnerEnd(runnerEnd())
+
+        const results = getResults(outputDir)
+        expect(results).toHaveLength(1)
+        allureXml = results[0]
+
+        expect(allureXml('test-case > name').text()).toEqual('should can do something')
+        expect(allureXml('test-case').attr('status')).toEqual('failed')
+
+        const message = allureXml('message').text()
+        const lines = message.split('\n')
+        expect(lines[0]).toBe('Expect $(`login-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed')
+        expect(lines[1].trim()).toBe('Expected: "displayed"')
+        expect(lines[2].trim()).toBe('Received: "not displayed"')
     })
 })
 

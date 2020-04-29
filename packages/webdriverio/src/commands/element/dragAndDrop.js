@@ -12,7 +12,7 @@
  * </example>
  *
  * @alias element.dragAndDrop
- * @param {Element} target    destination selector
+ * @param {Element|DragAndDropCoordinate} target    destination selector
  * @param {DragAndDropOptions=} options           dragAndDrop command options
  * @param {Number=}             options.duration  how long the drag should take place
  * @uses action/moveToObject, protocol/buttonDown, protocol/buttonUp, property/getLocation, protocol/touchDown, protocol/touchMove, protocol/touchUp
@@ -25,14 +25,25 @@ import { getElementRect, getScrollPosition } from '../../utils'
 const ACTION_BUTTON = 0
 
 export default async function dragAndDrop (target, { duration = 100 } = {}) {
-    if (!target || target.constructor.name !== 'Element') {
-        throw new Error('command dragAndDrop requires an WebdriverIO Element as first parameter')
+    if (!target || (target.constructor.name !== 'Element' && (!target.x || !target.y))) {
+        throw new Error('command dragAndDrop requires an WebdriverIO Element or and object with "x" and "y" variables as first parameter')
     }
+
+    /**
+     * allow to specify an element or an x/y vector
+     */
+    const moveToElement = target.constructor.name === 'Element'
 
     if (!this.isW3C) {
         await this.moveTo()
         await this.buttonDown(ACTION_BUTTON)
-        await target.moveTo()
+
+        if (moveToElement) {
+            await target.moveTo()
+        } else {
+            await this.moveToElement(null, target.x, target.y)
+        }
+
         return this.buttonUp(ACTION_BUTTON)
     }
 
@@ -41,11 +52,18 @@ export default async function dragAndDrop (target, { duration = 100 } = {}) {
      */
     const { scrollX, scrollY } = await getScrollPosition(this)
     const sourceRect = await getElementRect(this)
-    const targetRect = await getElementRect(target)
     const sourceX = parseInt(sourceRect.x - scrollX + (sourceRect.width / 2), 10)
     const sourceY = parseInt(sourceRect.y - scrollY + (sourceRect.height / 2), 10)
-    const targetX = parseInt(targetRect.x - scrollX + (targetRect.width / 2), 10) - sourceX
-    const targetY = parseInt(targetRect.y - scrollY + (targetRect.height / 2), 10) - sourceY
+
+    let targetX, targetY
+    if (moveToElement) {
+        const targetRect = await getElementRect(target)
+        targetX = parseInt(targetRect.x - scrollX + (targetRect.width / 2), 10) - sourceX
+        targetY = parseInt(targetRect.y - scrollY + (targetRect.height / 2), 10) - sourceY
+    } else {
+        targetX = target.x
+        targetY = target.y
+    }
 
     /**
      * W3C way of handle the drag and drop action

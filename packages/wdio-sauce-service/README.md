@@ -92,6 +92,12 @@ Use Sauce Connect as a Selenium Relay. See more [here](https://wiki.saucelabs.co
 Type: `Boolean`<br>
 Default: `false`
 
+### setJobNameInBeforeSuite
+If true it updates the job name at the Sauce Labs job in the beforeSuite Hook. Attention: this comes at the cost of an additional call to Sauce Labs. The advantage of using this flag is the direct visibility of the job name in sauce labs also during the run time. This is especially useful for long running tests.
+
+Type: `Boolean`<br>
+Default: `false`
+
 ----
 
 ## Overriding generated name metadata
