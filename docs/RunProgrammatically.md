@@ -18,7 +18,7 @@ Create a test file (e.g. `test.js`) with the following content:
 ```js
 const { remote } = require('webdriverio')
 
-(async () => {
+;(async () => {
     const browser = await remote({
         logLevel: 'error',
         path: '/', // remove `path` if you decided using something different from driver binaries.
@@ -46,7 +46,7 @@ node test.js
 This should output the following:
 
 ```sh
-Title was: WebdriverIO · Next-gen browser automation test framework for Node.js
+Title was: WebdriverIO · Next-gen browser and mobile automation test framework for Node.js
 ```
 
 Yay, Congratulations! You’ve just run your automation script with WebdriverIO.

@@ -17,6 +17,138 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.6 (2020-04-28)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`, `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-runner`
+  * [#5335](https://github.com/webdriverio/webdriverio/pull/5335) embed expect-webdriverio in framework adapters ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v6.1.5 (2020-04-28)
+
+#### :memo: Documentation
+* `wdio-runner`, `wdio-sync`, `webdriverio`
+  * [#5334](https://github.com/webdriverio/webdriverio/pull/5334) Make WebdriverIO a browser AND mobile automation framework ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-devtools-service`
+  * [#5331](https://github.com/webdriverio/webdriverio/pull/5331) Bump puppeteer-core from 2.1.1 to 3.0.1 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `wdio-dot-reporter`, `wdio-lambda-runner`, `wdio-reporter`
+  * [#5330](https://github.com/webdriverio/webdriverio/pull/5330) Bump tmp from 0.0.33 to 0.2.0 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `wdio-concise-reporter`, `wdio-spec-reporter`
+  * [#5329](https://github.com/webdriverio/webdriverio/pull/5329) Bump pretty-ms from 6.0.1 to 7.0.0 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `webdriverio`
+  * [#5328](https://github.com/webdriverio/webdriverio/pull/5328) Bump archiver from 3.1.1 to 4.0.1 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `wdio-junit-reporter`
+  * [#5327](https://github.com/webdriverio/webdriverio/pull/5327) Bump junit-report-builder from 1.3.3 to 2.0.0 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+
+#### Committers: 4
+- Alan Christopher Thomas ([@alanchrt](https://github.com/alanchrt))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Miguel A. Alonso ([@migalons](https://github.com/migalons))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.1.4 (2020-04-25)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`, `wdio-crossbrowsertesting-service`, `wdio-shared-store-service`, `wdio-sumologic-reporter`, `wdio-testingbot-service`, `webdriver`, `webdriverio`
+  * [#5321](https://github.com/webdriverio/webdriverio/pull/5321) Update got across packages ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Bastien Caudan ([@bcaudan](https://github.com/bcaudan))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+
+
+## v6.1.2 (2020-04-22)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#5308](https://github.com/webdriverio/webdriverio/pull/5308) Revert missed code from workaround ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-config`, `wdio-junit-reporter`, `webdriver`, `webdriverio`
+  * [#5306](https://github.com/webdriverio/webdriverio/pull/5306) Fix request timeout handling in `webdriver` package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
+## v6.1.1 (2020-04-21)
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#5305](https://github.com/webdriverio/webdriverio/pull/5305) Initiate `expect-webdriverio` after framework got initiated ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#5296](https://github.com/webdriverio/webdriverio/pull/5296) Closes [#5291](https://github.com/webdriverio/webdriverio/issues/5291)(@wdio/allure-reporter) - return status failed when an assertion failed with expect-webdriverio ([@lacell75](https://github.com/lacell75))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`, `wdio-cucumber-framework`
+  * [#5304](https://github.com/webdriverio/webdriverio/pull/5304) Fix#5292 (@wdio/allure-reporter, @wdio/cucumber-framework) added description of cucumber scenario in reports ([@lacell75](https://github.com/lacell75))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.1.0 (2020-04-20)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriverio`
+  * [#5282](https://github.com/webdriverio/webdriverio/pull/5282) Allow relative drag&drop arguments ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#5255](https://github.com/webdriverio/webdriverio/pull/5255) fix(wdio-cucumber-framework): add cucumber 6 retries support and scenario ([@alfonso-presa](https://github.com/alfonso-presa))
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-utils`
+  * [#5280](https://github.com/webdriverio/webdriverio/pull/5280) Support mobile emulation capability in DevTools package ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#5279](https://github.com/webdriverio/webdriverio/pull/5279) Script fixes for IE ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`
+  * [#5281](https://github.com/webdriverio/webdriverio/pull/5281) Appium service path assignment ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#5283](https://github.com/webdriverio/webdriverio/pull/5283) Closes [#5038](https://github.com/webdriverio/webdriverio/issues/5038) (@wdio-allure-reporter) strip out ASCII codes from expect-webdriverio ([@lacell75](https://github.com/lacell75))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#5277](https://github.com/webdriverio/webdriverio/pull/5277) sauce service: Add jobname in before ([@pako88](https://github.com/pako88))
+
+#### :memo: Documentation
+* [#5289](https://github.com/webdriverio/webdriverio/pull/5289) Fix link to 'sync vs asyc' doc ([@klamping](https://github.com/klamping))
+* [#5287](https://github.com/webdriverio/webdriverio/pull/5287) Update proxy documentation to include global-agent setup ([@Stetchy](https://github.com/Stetchy))
+* [#5286](https://github.com/webdriverio/webdriverio/pull/5286) Some minor fixes in webdriver 6 blogpost ([@edi9999](https://github.com/edi9999))
+
+#### Committers: 7
+- Alfonso Presa ([@alfonso-presa](https://github.com/alfonso-presa))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Edgar Hipp ([@edi9999](https://github.com/edi9999))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Pascal König ([@pako88](https://github.com/pako88))
+- Riain Condon ([@Stetchy](https://github.com/Stetchy))
+
+
+## v6.0.18 (2020-04-17)
+
+#### :memo: Documentation
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#5273](https://github.com/webdriverio/webdriverio/pull/5273) Add missing type definitions ([@pako88](https://github.com/pako88))
+* Other
+  * [#5278](https://github.com/webdriverio/webdriverio/pull/5278) [Docs] Add missing ; before ( ([@dtinth](https://github.com/dtinth))
+  * [#5274](https://github.com/webdriverio/webdriverio/pull/5274) Update docs for beforeHook and afterHook ([@vgrigoruk](https://github.com/vgrigoruk))
+
+#### Committers: 3
+- Pascal König ([@pako88](https://github.com/pako88))
+- Thai Pangsakulyanont ([@dtinth](https://github.com/dtinth))
+- Vitalii Grygoruk ([@vgrigoruk](https://github.com/vgrigoruk))
+
+
 ## v6.0.17 (2020-04-15)
 
 #### :bug: Bug Fix

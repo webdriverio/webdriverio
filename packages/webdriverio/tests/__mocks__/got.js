@@ -193,7 +193,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
         value = 'https://webdriver.io/?foo=bar'
         break
     case `${path}/${sessionId}/title`:
-        value = 'WebdriverIO · Next-gen browser automation test framework for Node.js'
+        value = 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js'
         break
     case `${path}/${sessionId}/screenshot`:
     case `${path}/${sessionId}/appium/stop_recording_screen`:
@@ -208,6 +208,16 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
     case '/grid/api/testsession':
         value = '<!DOCTYPE html><html lang="en"></html>'
         break
+    }
+
+    if (uri.pathname.endsWith('timeout') && requestMock.retryCnt < 5) {
+        const timeoutError = new Error('Timeout')
+        timeoutError.name = 'TimeoutError'
+        timeoutError.code = 'ETIMEDOUT'
+        timeoutError.event = 'request'
+        ++requestMock.retryCnt
+
+        return Promise.reject(timeoutError)
     }
 
     if (uri.pathname.startsWith(`/session/${sessionId}/element/`) && uri.pathname.includes('/attribute/')) {

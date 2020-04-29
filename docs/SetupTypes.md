@@ -62,7 +62,7 @@ If you now run the file, it will return the title:
 
 ```sh
 $ node standalone.js
-WebdriverIO · Next-gen browser automation test framework for Node.js
+WebdriverIO · Next-gen browser and mobile automation test framework for Node.js
 ```
 
 ## The WDIO Testrunner

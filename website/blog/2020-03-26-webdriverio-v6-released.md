@@ -199,7 +199,7 @@ If you already use an assertion library like [Chai](https://www.chaijs.com/) you
 Next to all major updates that were described above there are also some minor changes that are worth mentioning:
 
 - __TypeScript Support:__ we improved the typings for WebdriverIO and WebDriver to include better descriptions and more detail
-- __WebDriver Default Path:__ we changed default WebDriver path to from `/wd/hub` to `/` as most of the browser drivers now default to this, this should have now affect for you - however if you have trouble connecting to a WebDriver endpoint after the upgrade, this could be a reason for that issue.\
+- __WebDriver Default Path:__ we changed default WebDriver path from `/wd/hub` to `/` as most of the browser drivers now default to this, this should have no effect for you - however if you have trouble connecting to a WebDriver endpoint after the upgrade, this could be a reason for that issue.
   > __Note for Appium users:__ If you are using a local or global install of Appium and you start Appium through the command line, you should also provide the cli argument `--base-path /`. This will prevent Appium not finding a matching local emulator/simulator/real device and start using the default `path: '/'` that WebdriverIO uses.\
 If you are using the `@wdio/appium-service` you don't need to do anything.
 - __Command Renaming:__ we renamed command `launchApp` to `launchChromeApp` for Chrome WebDriver sessions
@@ -213,4 +213,4 @@ If you are using the `@wdio/appium-service` you don't need to do anything.
 
 With the release of v6 we will continue to support v5 until we decide to release a new major version v7. We created a [backporting process](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#back-porting-bug-fixes) that allows us to seamlessly backport bug fixes and features from v6 to v5. Please note that as the code between both versions diverge we won't be able to backport every feature and bug fix. We might ask code contributors to provide a similar PR that has been made to the `master` branch also to the `v5` branch.
 
-That said, we generally recommend to update to the latest version as soon as possible to make sure that you leverage from bug fixes that have been made to the project.
+That said, we generally recommend to update to the latest version as soon as possible to make sure that you leverage bug fixes that have been made to the project.

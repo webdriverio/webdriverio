@@ -23,7 +23,7 @@ By default WebdriverIO provides an [assertion library](Assertion.md) that is bui
 describe('my awesome website', () => {
     it('should do some assertions', () => {
         browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js')
     })
 })
 ```
@@ -36,7 +36,7 @@ If you like to write your specs in TDD style, set the `ui` property in your `moc
 suite('my awesome website', () => {
     test('should do some assertions', () => {
         browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser automation test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js')
     })
 })
 ```
@@ -188,6 +188,12 @@ commands the screenshot is taken anyway, which still gives _some_ valuable infor
 ### Jasmine Options
 
 The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineNodeOpts` property:
+
+#### defaultTimeoutInterval
+Default Timeout Interval for Jasmine operations.
+
+Type: `number`<br>
+Default: `60000`
 
 #### helpers
 Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
@@ -399,4 +405,3 @@ Here you have some examples of this syntax:
 - `@skip(browserName="firefox";platformName="linux")`: will skip the test in firefox over linux executions.
 - `@skip(browserName=["chrome","firefox"])`: tagged items will be skipped for both chrome and firefox browsers.
 - `@skip(browserName=/i.*explorer/`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
-

@@ -1,6 +1,6 @@
 {
   "name": "@wdio/reporter",
-  "version": "6.0.14",
+  "version": "6.1.5",
   "description": "A WebdriverIO utility to help reporting all events",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-reporter",
@@ -30,7 +30,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
-    "tmp": "^0.1.0"
+    "tmp": "^0.2.0"
   },
   "publishConfig": {
     "access": "public"

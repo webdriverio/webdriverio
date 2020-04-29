@@ -20,9 +20,6 @@ export default class BaseReporter {
         this.cid = cid
         this.caps = caps
 
-        /**
-         * these configurations are not publicly documented as there should be no desire for it
-         */
         this.reporterSyncInterval = this.config.reporterSyncInterval || DEFAULT_SYNC_INTERVAL
         this.reporterSyncTimeout = this.config.reporterSyncTimeout || DEFAULT_SYNC_TIMEOUT
 

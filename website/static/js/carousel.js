@@ -15,12 +15,11 @@
     let ticks = 0
     const nextPage = () => {
         const direction = Math.floor(ticks / pages) % 2
-        ++ticks
-
         animateTo(direction
             ? pages - (ticks % pages)
             : ticks % pages
         )
+        ++ticks
     }
     let swapInterval = setInterval(nextPage, INTERVAL_LENGTH)
 

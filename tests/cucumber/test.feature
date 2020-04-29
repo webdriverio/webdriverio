@@ -47,3 +47,7 @@ Feature: Example feature
 
     Scenario: failAmbiguousDefinitions
         Given this is ambiguous
+
+    @retry
+    Scenario: failsTheFirstTimeToCheckRetries
+        Then  this steps fails only the first time used

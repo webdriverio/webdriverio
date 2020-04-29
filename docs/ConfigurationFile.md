@@ -227,6 +227,7 @@ exports.config = {
         tagExpression: [],  // <string[]> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 20000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
+        scenarioLevelReporter: false // Enable this to make webdriver.io behave as if scenarios and not steps were the tests.
     },
     //
     // =====
@@ -279,8 +280,8 @@ exports.config = {
     beforeSuite: function (suite) {
     },
     /**
-     * This hook gets executed _before_ a hook within the suite starts.
-     * (For example, this runs before calling `beforeEach` in Mocha.)
+     * This hook gets executed _before_ every hook within the suite starts.
+     * (For example, this runs before calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.)
      *
      * (`stepData` and `world` are Cucumber-specific.)
      *
@@ -288,8 +289,8 @@ exports.config = {
     beforeHook: function (test, context/*, stepData, world*/) {
     },
     /**
-     * Hook that gets executed _after_ a hook within the suite ends.
-     * (For example, this runs after calling `afterEach` in Mocha.)
+     * Hook that gets executed _after_ every hook within the suite ends.
+     * (For example, this runs after calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.)
      *
      * (`stepData` and `world` are Cucumber-specific.)
      */

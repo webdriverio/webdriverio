@@ -1,4 +1,4 @@
-import USKeyboardLayout from 'puppeteer-core/lib/USKeyboardLayout'
+import { keyDefinitions } from 'puppeteer-core/lib/USKeyboardLayout'
 
 import getElementRect from './getElementRect'
 import { ELEMENT_KEY } from '../constants'
@@ -49,7 +49,7 @@ export default async function performActions ({ actions }) {
                  * for special characters like emojies 😉 we need to
                  * send in the value as text because it is not unicode
                  */
-                if (!USKeyboardLayout[singleAction.value]) {
+                if (!keyDefinitions[singleAction.value]) {
                     await page.keyboard.sendCharacter(singleAction.value)
                     skipChars.push(singleAction.value)
                     continue

@@ -45,7 +45,7 @@ export default class BrowserstackService {
         }
     }
 
-    afterTest(test) {
+    afterTest(test, context, results) {
         this.fullTitle = (
             /**
              * Jasmine
@@ -57,7 +57,7 @@ export default class BrowserstackService {
             `${test.parent} - ${test.title}`
         )
 
-        if (!test.passed) {
+        if (!results.passed) {
             this.failures++
             this.failReason = (test.error && test.error.message ? test.error.message : 'Unknown Error')
         }

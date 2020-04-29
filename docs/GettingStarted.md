@@ -86,31 +86,26 @@ Open that file, and write the following code in it:
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync Mode-->
 ```js
-const assert = require('assert')
-
 describe('webdriver.io page', () => {
     it('should have the right title', () => {
         browser.url('https://webdriver.io')
         const title = browser.getTitle()
-        assert.strictEqual(title, 'WebdriverIO · Next-gen browser automation test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js');
     })
 })
 ```
 <!--Async Mode-->
 ```js
-const assert = require('assert')
-
 describe('webdriver.io page', () => {
     it('should have the right title', async () => {
         await browser.url('https://webdriver.io')
-        const title = await browser.getTitle()
-        assert.strictEqual(title, 'WebdriverIO · Next-gen browser automation test framework for Node.js')
+        await expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js');
     })
 })
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-Now save the file and return to your terminal. Learn more about [the differences between Sync and Async Mode](sync-vs-async).
+Now save the file and return to your terminal. Learn more about [the differences between Sync and Async Mode](sync-vs-async.html).
 
 ### Start the Testrunner
 

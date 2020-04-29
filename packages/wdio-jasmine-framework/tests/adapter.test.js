@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import { setOptions } from 'expect-webdriverio'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src'
 
@@ -49,7 +50,9 @@ test('should properly set up jasmine', async () => {
     const adapter = adapterFactory()
     await adapter.init()
     const result = await adapter.run()
+
     expect(result).toBe(0)
+    expect(setOptions).toBeCalledTimes(1)
     expect(adapter.jrunner.addSpecFiles.mock.calls[0][0]).toEqual(['/foo/bar.test.js'])
     expect(adapter.jrunner.jasmine.addReporter.mock.calls).toHaveLength(1)
     expect(executeHooksWithArgs.mock.calls).toHaveLength(1)
@@ -465,6 +468,7 @@ describe('hasTests', () => {
 })
 
 afterEach(() => {
+    setOptions.mockClear()
     runTestInFiberContext.mockClear()
     executeHooksWithArgs.mockClear()
 })

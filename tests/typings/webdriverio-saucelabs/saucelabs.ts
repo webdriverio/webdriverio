@@ -6,7 +6,8 @@ const config: WebdriverIO.Config = {
                 verbose: true,
                 connectRetries: 123
             },
-            scRelay: true
+            scRelay: true,
+            setJobNameInBeforeSuite: true
         }]
     ]
 }

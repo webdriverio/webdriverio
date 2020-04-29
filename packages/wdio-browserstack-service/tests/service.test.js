@@ -218,7 +218,7 @@ describe('afterTest', () => {
         service.fullTitle = ''
         service.failReason = ''
 
-        service.afterTest({ passed: false, fullName: 'foo bar', error: { message: 'error message' } })
+        service.afterTest({ fullName: 'foo bar', error: { message: 'error message' } }, {}, { passed: false })
         expect(service.failures).toBe(1)
         expect(service.fullTitle).toBe('foo bar')
         expect(service.failReason).toBe('error message')
@@ -229,14 +229,14 @@ describe('afterTest', () => {
         service.fullTitle = ''
         service.failReason = ''
 
-        service.afterTest({ passed: true, fullName: 'foo bar' })
+        service.afterTest({ fullName: 'foo bar' }, {}, { passed: true })
         expect(service.failures).toBe(0)
         expect(service.fullTitle).toBe('foo bar')
     })
 
     it('should set title for Mocha tests', () => {
         service.fullTitle = ''
-        service.afterTest({ title: 'foo', parent: 'bar' })
+        service.afterTest({ title: 'foo', parent: 'bar' }, {}, { passed: false })
         expect(service.fullTitle).toBe('bar - foo')
     })
 })

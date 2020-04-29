@@ -9,8 +9,7 @@ Then('the title of the page should be {string}', (expectedTitle) => {
 })
 
 Then('the title of the page should be {string} async', async (expectedTitle) => {
-    const actualTitle = await browser.getTitle()
-    assert.equal(actualTitle, expectedTitle)
+    expect(browser).toHaveTitle(expectedTitle)
 })
 
 let hasRun = false
@@ -29,4 +28,12 @@ Then('this is ambiguous', () => {
 
 Then('this test should fail', () => {
     assert.equal(true, false, 'This step should have never been executed :-(')
+})
+
+let fail = true
+Then('this steps fails only the first time used', () => {
+    if(fail) {
+        fail = false
+        assert.equal(true, false)
+    }
 })

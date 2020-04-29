@@ -3,7 +3,7 @@
   "localized-strings": {
     "next": "Next",
     "previous": "Previous",
-    "tagline": "Next-gen browser automation test framework for Node.js",
+    "tagline": "Next-gen browser and mobile automation test framework for Node.js",
     "docs": {
       "allure-reporter": {
         "title": "Allure Reporter"
@@ -67,6 +67,9 @@
       },
       "wdio-docker-service": {
         "title": "Docker Service"
+      },
+      "wdio-image-comparison-service": {
+        "title": "Visual Regression Testing Service"
       },
       "wdio-intercept-service": {
         "title": "Intercept Service"
@@ -489,7 +492,7 @@
     "Applitools Support|no description given": "Applitools Support",
     "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__|no description given": "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__",
     "Extendable|no description given": "Extendable",
-    "WebdriverIO can be run on the __WebDriver__ as well as __Chrome DevTools Protocol__ and is deep integrated with [Puppeteer](https://pptr.dev/).|no description given": "WebdriverIO can be run on the __WebDriver__ as well as __Chrome DevTools Protocol__ and is deep integrated with [Puppeteer](https://pptr.dev/).",
+    "WebdriverIO can be run on the [__WebDriver Protocol__](https://w3c.github.io/webdriver/) for true cross browser testing as well as [__Chrome DevTools Protocol__](https://chromedevtools.github.io/devtools-protocol/) for Chromium based automation using [Puppeteer](https://pptr.dev/).|no description given": "WebdriverIO can be run on the [__WebDriver Protocol__](https://w3c.github.io/webdriver/) for true cross browser testing as well as [__Chrome DevTools Protocol__](https://chromedevtools.github.io/devtools-protocol/) for Chromium based automation using [Puppeteer](https://pptr.dev/).",
     "Compatible|no description given": "Compatible",
     "The huge of variety of community plugins allows you to easily integrate and extend your setup to fulfill your requirements.|no description given": "The huge of variety of community plugins allows you to easily integrate and extend your setup to fulfill your requirements.",
     "Feature Rich|no description given": "Feature Rich",

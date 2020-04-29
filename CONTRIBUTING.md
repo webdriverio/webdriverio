@@ -149,7 +149,7 @@ If you add a new command or extend an existing with a special option, follow thi
         browser.url('http://google.com')
         console.log(browser.getTitle()) // outputs: "Google"
         browser.newWindow('https://webdriver.io', 'WebdriverIO window', 'width=420,height=230,resizable,scrollbars=yes,status=1')
-        console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser automation test framework for Node.js"
+        console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
         browser.closeWindow()
         console.log(browser.getTitle()) // outputs: "Google"
     });

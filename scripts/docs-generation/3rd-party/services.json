@@ -52,5 +52,11 @@
     "title": "LambdaTest",
     "githubUrl": "https://github.com/LambdaTest/wdio-lambdatest-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-lambdatest-service"
+  },
+  {
+    "packageName": "wdio-image-comparison-service",
+    "title": "Visual Regression Testing",
+    "githubUrl": "https://github.com/wswebcreation/wdio-image-comparison-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-image-comparison-service"
   }
 ]

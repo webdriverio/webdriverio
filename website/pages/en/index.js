@@ -272,14 +272,46 @@ const ApplitoolsSupport = () => (
     </Container>
 )
 
-const LOGOS = [{
-    img: 'hilton.png',
-    alt: 'Hilton',
-    url: 'https://www.hilton.com/'
+const LOGOS = [
+/**
+ * Page 1
+ */
+{
+    img: 'google.png',
+    alt: 'Google',
+    url: 'https://developers.google.com/blockly/'
 }, {
     img: 'netflix.png',
     alt: 'Netflix',
     url: 'https://netflix.com/'
+}, {
+    img: 'microsoft.png',
+    alt: 'Microsoft',
+    url: 'https://www.microsoft.com/'
+}, {
+    img: 'mozilla.png',
+    alt: 'Mozilla',
+    url: 'https://www.mozilla.org/'
+}, {
+    img: 'buoyant.png',
+    alt: 'Buoyant',
+    url: 'https://buoyant.io/'
+}, {
+    img: 'sap.png',
+    alt: 'SAP',
+    url: 'https://www.sap.com/'
+},
+/**
+ * Page 2
+ */
+{
+    img: 'hilton.png',
+    alt: 'Hilton',
+    url: 'https://www.hilton.com/'
+}, {
+    img: 'github.png',
+    alt: 'GitHub',
+    url: 'https://www.electronjs.org/spectron'
 }, {
     img: 'oxford.png',
     alt: 'Oxford University Press',
@@ -293,10 +325,14 @@ const LOGOS = [{
     alt: 'GoPro',
     url: 'https://gopro.com/'
 }, {
-    img: 'sap.png',
-    alt: 'SAP',
-    url: 'https://www.sap.com/'
-}, {
+    img: 'algolia.png',
+    alt: 'Algolia',
+    url: 'https://www.algolia.com/'
+},
+/**
+ * Page 3
+ */
+{
     img: 'financialtimes.png',
     alt: 'Financial Times',
     url: 'https://www.ft.com/'
@@ -367,8 +403,9 @@ class Index extends React.Component {
                             }, {
                                 content: (
                                     <translate>
-                                        WebdriverIO can be run on the __WebDriver__ as well as __Chrome DevTools
-                                        Protocol__ and is deep integrated with [Puppeteer](https://pptr.dev/).
+                                        WebdriverIO can be run on the [__WebDriver Protocol__](https://w3c.github.io/webdriver/)
+                                        for true cross browser testing as well as [__Chrome DevTools Protocol__](https://chromedevtools.github.io/devtools-protocol/)
+                                        for Chromium based automation using [Puppeteer](https://pptr.dev/).
                                     </translate>
                                 ),
                                 image: imgUrl('teaser/compatible.png'),
