@@ -1,3 +1,9 @@
+class CustomService {
+  onPrepare() {
+      // TODO: something before all workers launch
+  }
+}
+
 const config: WebdriverIO.Config = {
     services: [
         ['selenium-standalone', {
@@ -9,6 +15,9 @@ const config: WebdriverIO.Config = {
                 basePath: ''
             },
             skipSeleniumInstall: true
+        }],
+        [CustomService, {
+            someOption: true
         }]
     ],
 
