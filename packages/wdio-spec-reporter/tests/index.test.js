@@ -41,12 +41,24 @@ describe('SpecReporter', () => {
             expect(reporter.suiteIndents).toEqual({})
             expect(reporter.defaultTestIndent).toBe('   ')
             expect(reporter.stateCounts).toEqual({
-                prevPassed : 0,
-                passed : 0,
-                skipped : 0,
-                failed : 0,
+                hookFails: 0,
+                prevHookFails: 0,
+                passed: 0,
+                failed: 0,
+                prevFailed: 0,
+                skipped: 0
             })
             expect(reporter.chalk).toBe(chalk)
+        })
+    })
+
+    describe('onTestStart', () => {
+        beforeAll(() => {
+            reporter.onTestStart()
+        })
+        it('should set "prev" counters to their equivalent "current" counter', () => {
+            expect(tmpReporter.stateCounts.prevFailed).toBe(tmpReporter.stateCounts.failed)
+            expect(tmpReporter.stateCounts.prevHookFails).toBe(tmpReporter.stateCounts.hookFails)
         })
     })
 
@@ -107,6 +119,7 @@ describe('SpecReporter', () => {
 
         it('should increase stateCounts.failed by 1', () => {
             expect(reporter.stateCounts.failed).toBe(1)
+            expect(reporter.stateCounts.prevFailed).toBe(0)
         })
     })
 
