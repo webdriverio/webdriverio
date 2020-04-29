@@ -20,6 +20,7 @@ class SpecReporter extends WDIOReporter {
         this.defaultTestIndent = '   '
         this.stateCounts = {
             hookFails: 0,
+            prevHookFails: 0,
             passed: 0,
             failed: 0,
             prevFailed: 0,
