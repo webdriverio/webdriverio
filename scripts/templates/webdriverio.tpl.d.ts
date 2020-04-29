@@ -43,7 +43,7 @@ declare namespace WebdriverIO {
         [key: string]: any;
     }
     interface ServiceWithOption extends Array<string|ServiceOption>{ 0: string; 1: ServiceOption }
-    type ServiceEntry = string | HookFunctions | [string, ServiceOption]
+    type ServiceEntry = string | HookFunctions | [string, ServiceOption] | object
 
     interface Options {
         /**
