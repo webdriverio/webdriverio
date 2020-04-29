@@ -44,6 +44,7 @@ describe('SpecReporter', () => {
                 hookFails: 0,
                 prevHookFails: 0,
                 passed: 0,
+                prevPassed: 0,
                 failed: 0,
                 prevFailed: 0,
                 skipped: 0
@@ -115,11 +116,13 @@ describe('SpecReporter', () => {
     describe('onTestFail', () => {
         beforeAll(() => {
             reporter.onTestFail()
+            reporter.onTestFail()
         })
 
         it('should increase stateCounts.failed by 1', () => {
             expect(reporter.stateCounts.failed).toBe(1)
-            expect(reporter.stateCounts.prevFailed).toBe(0)
+            expect(reporter.stateCounts.failed).toBeLessThanOrEqual(reporter.stateCounts.prevFailed + 1)
+            expect(reporter.stateCounts.passed).toBe(reporter.stateCounts.prevPassed)
         })
     })
 
