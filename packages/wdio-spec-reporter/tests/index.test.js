@@ -52,6 +52,16 @@ describe('SpecReporter', () => {
         })
     })
 
+    describe('onTestStart', () => {
+        beforeAll(() => {
+            reporter.onTestStart()
+        })
+        it('should set "prev" counters to their equivalent "current" counter', () => {
+            expect(tmpReporter.stateCounts.prevFailed).toBe(tmpReporter.stateCounts.failed)
+            expect(tmpReporter.stateCounts.prevHookFails).toBe(tmpReporter.stateCounts.hookFails)
+        })
+    })
+
     describe('onSuiteStart', () => {
         beforeAll(() => {
             reporter.onSuiteStart(SUITES[0])
@@ -109,6 +119,7 @@ describe('SpecReporter', () => {
 
         it('should increase stateCounts.failed by 1', () => {
             expect(reporter.stateCounts.failed).toBe(1)
+            expect(reporter.stateCounts.prevFailed).toBe(0)
         })
     })
 
