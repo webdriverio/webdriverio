@@ -44,6 +44,9 @@ export default class JasmineReporter {
             test.status = 'pending'
         }
 
+        // This removes the dupe
+        test.failedExpectations = test.failedExpectations.filter(exp => !(exp.matcherName == ''))
+
         if (test.failedExpectations.length) {
             let errors = test.failedExpectations
             if (this.shouldCleanStack) {
