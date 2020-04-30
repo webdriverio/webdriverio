@@ -154,3 +154,70 @@ Array [
   ],
 ]
 `;
+
+exports[`launch chrome without default flags 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--window-position=0,0",
+        "--window-size=1200,900",
+      ],
+      "chromePath": undefined,
+    },
+  ],
+]
+`;
+
+exports[`launch chrome without default flags 2`] = `
+Array [
+  Array [
+    Object {
+      "browserURL": "http://localhost:1234",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
+
+exports[`launch chrome without default flags and without puppeteer default args 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--window-position=0,0",
+        "--window-size=1200,900",
+      ],
+      "chromePath": undefined,
+      "ignoreDefaultArgs": true,
+    },
+  ],
+]
+`;
+
+exports[`launch chrome without default flags and without puppeteer default args 2`] = `
+Array [
+  Array [
+    Object {
+      "browserURL": "http://localhost:1234",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
+
+exports[`overriding chrome default flags 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--window-position=0,0",
+        "--window-size=1200,900",
+        "--no-first-run",
+        "--enable-features=NetworkService",
+      ],
+      "chromePath": undefined,
+    },
+  ],
+]
+`;

@@ -22,6 +22,8 @@ const DEVICE_NAMES = Object.values(DEVICES).map((device) => device.name)
 async function launchChrome (capabilities) {
     const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
+    const disableDefaultChromeFlags = capabilities.disableDefaultChromeFlags || false
+    const ignorePuppeteerDefaultArgs = capabilities.ignorePuppeteerDefaultArgs || false
 
     if (typeof mobileEmulation.deviceName === 'string') {
         const deviceProperties = Object.values(DEVICES).find(device => device.name === mobileEmulation.deviceName)
@@ -39,7 +41,7 @@ async function launchChrome (capabilities) {
 
     const deviceMetrics = mobileEmulation.deviceMetrics || {}
     const chromeFlags = [
-        ...DEFAULT_FLAGS,
+        ...(disableDefaultChromeFlags ? [] : DEFAULT_FLAGS),
         ...[
             `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
             `--window-size=${DEFAULT_WIDTH},${DEFAULT_HEIGHT}`
@@ -60,10 +62,13 @@ async function launchChrome (capabilities) {
     }
 
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
-    const chrome = await launchChromeBrowser({
+
+    const chrome = await launchChromeBrowser( Object.assign({
         chromePath: chromeOptions.binary,
         chromeFlags
-    })
+    },
+    ignorePuppeteerDefaultArgs ? { ignoreDefaultArgs: true } : {}
+    ))
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
     const browser = await puppeteer.connect({
@@ -92,6 +97,7 @@ async function launchChrome (capabilities) {
 
 function launchBrowser (capabilities, product) {
     const vendorCapKey = VENDOR_PREFIX[product]
+    const ignoreDefaultArgs = capabilities.ignorePuppeteerDefaultArgs || false
 
     if (!capabilities[vendorCapKey]) {
         capabilities[vendorCapKey] = {}
@@ -103,13 +109,15 @@ function launchBrowser (capabilities, product) {
     )
 
     const puppeteerOptions = Object.assign({
+        ignoreDefaultArgs: ignoreDefaultArgs,
         product,
         executablePath,
         defaultViewport: {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT
         }
-    }, capabilities[vendorCapKey] || {})
+    }, capabilities[vendorCapKey] || {},
+    ignoreDefaultArgs ? { ignoreDefaultArgs: true } : {})
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
