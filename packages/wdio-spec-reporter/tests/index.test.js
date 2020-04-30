@@ -116,11 +116,15 @@ describe('SpecReporter', () => {
     describe('onTestFail', () => {
         beforeAll(() => {
             reporter.onTestFail()
-            reporter.onTestFail()
         })
 
         it('should increase stateCounts.failed by 1', () => {
             expect(reporter.stateCounts.failed).toBe(1)
+        })
+
+        it('should only report one fail, and not also report passed if failed', () => {
+            reporter.onTestFail()
+            reporter.onTestFail()
             expect(reporter.stateCounts.failed).toBeLessThanOrEqual(reporter.stateCounts.prevFailed + 1)
             expect(reporter.stateCounts.passed).toBe(reporter.stateCounts.prevPassed)
         })
