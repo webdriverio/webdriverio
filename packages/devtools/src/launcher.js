@@ -109,7 +109,6 @@ function launchBrowser (capabilities, product) {
     )
 
     const puppeteerOptions = Object.assign({
-        ignoreDefaultArgs: ignoreDefaultArgs,
         product,
         executablePath,
         defaultViewport: {
