@@ -1,5 +1,5 @@
 import { getStaleElementError } from '../utils'
-import path from "path"
+import path from 'path'
 
 export default async function elementSendKeys ({ elementId, text }) {
     const elementHandle = this.elementStore.get(elementId)
