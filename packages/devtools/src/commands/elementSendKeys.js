@@ -8,6 +8,8 @@ export default async function elementSendKeys ({ elementId, text }) {
         throw getStaleElementError(elementId)
     }
 
+    await elementHandle.focus()
+    const page = this.getPageHandle()
     const tagName = await (await elementHandle.getProperty('tagName')).jsonValue()
     const type = await (await elementHandle.getProperty('type')).jsonValue()
 
