@@ -17,6 +17,27 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.7 (2020-05-02)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5347](https://github.com/webdriverio/webdriverio/pull/5347) @devtools: Enable file uploads by changing input elements' value ([@nextlevelbeard](https://github.com/nextlevelbeard))
+* Other
+  * [#5337](https://github.com/webdriverio/webdriverio/pull/5337) Fix types for services ([@pako88](https://github.com/pako88))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#5349](https://github.com/webdriverio/webdriverio/pull/5349) Add hint for modifiyng clicks ([@Stejnar](https://github.com/Stejnar))
+* Other
+  * [#5348](https://github.com/webdriverio/webdriverio/pull/5348) Update BoilerplateProjects.md ([@SimitTomar](https://github.com/SimitTomar))
+
+#### Committers: 4
+- Pascal König ([@pako88](https://github.com/pako88))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- [@SimitTomar](https://github.com/SimitTomar)
+- [@Stejnar](https://github.com/Stejnar)
+
+
 ## v6.1.6 (2020-04-28)
 
 #### :bug: Bug Fix
