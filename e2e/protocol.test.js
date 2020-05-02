@@ -281,7 +281,7 @@ describe('frames', () => {
         await browser.elementClick(body[ELEMENT_KEY])
     })
 
-    it.skip('switchToFrame(null)', async () => {
+    it('switchToFrame(null)', async () => {
         await browser.switchToFrame(null)
         expect(await browser.getTitle()).toBe('The Internet')
     })
