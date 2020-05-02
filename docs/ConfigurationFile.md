@@ -100,11 +100,12 @@ exports.config = {
         // (see https://developers.google.com/web/updates/2017/04/headless-chrome)
         // args: ['--headless', '--disable-gpu'],
         }
-        // To run browser without any of 'WebdriverIO/DevTools' or Puppeteer default flags/args
-        // ignoreDefaultArgs: true,
         //
-        // To run browser excluding some of default flags/args
-        // ignoreDefaultArgs: ['--disable-sync', '--enable-features=NetworkService,NetworkServiceInProcess'],
+        // Parameter to ignore some or all default flags
+        // - if value is true: ignore all DevTools 'default flags' and Puppeteer 'default arguments'
+        // - if value is an array: DevTools filters given default arguments
+        // ignoreDefaultArgs: true,
+        // ignoreDefaultArgs: ['--disable-sync', '--disable-extensions'],
     }, {
         // maxInstances can get overwritten per capability. So if you have an in house Selenium
         // grid with only 5 firefox instance available you can make sure that not more than
@@ -122,6 +123,9 @@ exports.config = {
         // it is possible to configure which logTypes to exclude.
         // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
         excludeDriverLogs: ['bugreport', 'server'],
+        //
+        // Parameter to ignore some or all Puppeteer default arguments
+        // ignoreDefaultArgs: ['-foreground'], // set value to true to ignore all default arguments
     }],
     //
     // Additional list of node arguments to use when starting child processes
