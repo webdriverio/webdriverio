@@ -19,11 +19,10 @@ const DEVICE_NAMES = Object.values(DEVICES).map((device) => device.name)
  * @param  {object} capabilities  session capabilities
  * @return {object}               puppeteer browser instance
  */
-async function launchChrome (capabilities) {
+async function launchChrome(capabilities) {
     const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
-    const disableDefaultChromeFlags = capabilities.disableDefaultChromeFlags || false
-    const ignorePuppeteerDefaultArgs = capabilities.ignorePuppeteerDefaultArgs || false
+    const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
     if (typeof mobileEmulation.deviceName === 'string') {
         const deviceProperties = Object.values(DEVICES).find(device => device.name === mobileEmulation.deviceName)
@@ -39,9 +38,15 @@ async function launchChrome (capabilities) {
         }
     }
 
+    const chromeDefaultFlags = []
+    if (!ignoreDefaultArgs)
+        chromeDefaultFlags.push(...DEFAULT_FLAGS)
+    else if (Array.isArray(ignoreDefaultArgs))
+        chromeDefaultFlags.push(...DEFAULT_FLAGS.filter(flag => !ignoreDefaultArgs.includes(flag)))
+
     const deviceMetrics = mobileEmulation.deviceMetrics || {}
     const chromeFlags = [
-        ...(disableDefaultChromeFlags ? [] : DEFAULT_FLAGS),
+        ...chromeDefaultFlags,
         ...[
             `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
             `--window-size=${DEFAULT_WIDTH},${DEFAULT_HEIGHT}`
@@ -63,11 +68,11 @@ async function launchChrome (capabilities) {
 
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
 
-    const chrome = await launchChromeBrowser( Object.assign({
+    const chrome = await launchChromeBrowser(Object.assign({
         chromePath: chromeOptions.binary,
         chromeFlags
     },
-    ignorePuppeteerDefaultArgs ? { ignoreDefaultArgs: true } : {}
+    ignoreDefaultArgs ? { ignoreDefaultArgs: ignoreDefaultArgs } : {}
     ))
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
@@ -95,9 +100,9 @@ async function launchChrome (capabilities) {
     return browser
 }
 
-function launchBrowser (capabilities, product) {
+function launchBrowser(capabilities, product) {
     const vendorCapKey = VENDOR_PREFIX[product]
-    const ignoreDefaultArgs = capabilities.ignorePuppeteerDefaultArgs || false
+    const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
     if (!capabilities[vendorCapKey]) {
         capabilities[vendorCapKey] = {}
@@ -126,7 +131,7 @@ function launchBrowser (capabilities, product) {
     return puppeteer.launch(puppeteerOptions)
 }
 
-export default function launch (capabilities) {
+export default function launch(capabilities) {
     const browserName = capabilities.browserName.toLowerCase()
 
     if (CHROME_NAMES.includes(browserName)) {

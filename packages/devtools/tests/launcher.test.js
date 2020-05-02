@@ -56,24 +56,10 @@ test('launch chrome with chrome arguments', async () => {
     })
 })
 
-test('launch chrome without default flags', async () => {
-    const browser = await launch({
-        browserName: 'chrome',
-        disableDefaultChromeFlags: true
-    })
-    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
-    expect(puppeteer.connect.mock.calls).toMatchSnapshot()
-
-    const pages = await browser.pages()
-    expect(pages[0].close).toBeCalled()
-    expect(pages[1].close).toBeCalledTimes(0)
-})
-
 test('launch chrome without default flags and without puppeteer default args', async () => {
     const browser = await launch({
         browserName: 'chrome',
-        disableDefaultChromeFlags: true,
-        ignorePuppeteerDefaultArgs: true
+        ignoreDefaultArgs: true
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
     expect(puppeteer.connect.mock.calls).toMatchSnapshot()
@@ -86,10 +72,9 @@ test('launch chrome without default flags and without puppeteer default args', a
 test('overriding chrome default flags', async () => {
     const browser = await launch({
         browserName: 'chrome',
-        disableDefaultChromeFlags: true,
+        ignoreDefaultArgs: ['--disable-sync', '--enable-features=NetworkService,NetworkServiceInProcess'],
         'goog:chromeOptions': {
-            args: [
-                '--no-first-run', '--enable-features=NetworkService']
+            args: ['--enable-features=NetworkService']
         }
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
@@ -169,7 +154,7 @@ test('throws if browser is unknown', async () => {
 test('launch Firefox without Puppeteer default args', async () => {
     await launch({
         browserName: 'firefox',
-        ignorePuppeteerDefaultArgs: true
+        ignoreDefaultArgs: true
     })
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })
@@ -177,7 +162,7 @@ test('launch Firefox without Puppeteer default args', async () => {
 test('launch Edge without Puppeteer default args', async () => {
     await launch({
         browserName: 'edge',
-        ignorePuppeteerDefaultArgs: true
+        ignoreDefaultArgs: true
     })
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })

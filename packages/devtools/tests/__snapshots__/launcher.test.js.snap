@@ -155,31 +155,6 @@ Array [
 ]
 `;
 
-exports[`launch chrome without default flags 1`] = `
-Array [
-  Array [
-    Object {
-      "chromeFlags": Array [
-        "--window-position=0,0",
-        "--window-size=1200,900",
-      ],
-      "chromePath": undefined,
-    },
-  ],
-]
-`;
-
-exports[`launch chrome without default flags 2`] = `
-Array [
-  Array [
-    Object {
-      "browserURL": "http://localhost:1234",
-      "defaultViewport": null,
-    },
-  ],
-]
-`;
-
 exports[`launch chrome without default flags and without puppeteer default args 1`] = `
 Array [
   Array [
@@ -211,12 +186,34 @@ Array [
   Array [
     Object {
       "chromeFlags": Array [
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-first-run",
+        "--disable-hang-monitor",
+        "--disable-prompt-on-repost",
+        "--disable-client-side-phishing-detection",
+        "--password-store=basic",
+        "--use-mock-keychain",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-breakpad",
+        "--disable-dev-shm-usage",
+        "--disable-ipc-flooding-protection",
+        "--disable-renderer-backgrounding",
+        "--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees",
         "--window-position=0,0",
         "--window-size=1200,900",
-        "--no-first-run",
         "--enable-features=NetworkService",
       ],
       "chromePath": undefined,
+      "ignoreDefaultArgs": Array [
+        "--disable-sync",
+        "--enable-features=NetworkService,NetworkServiceInProcess",
+      ],
     },
   ],
 ]
