@@ -221,3 +221,36 @@ Array [
   ],
 ]
 `;
+
+exports[`launch Firefox without Puppeteer default args 1`] = `
+Array [
+  Array [
+    Object {
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "executablePath": "/path/to/firefox",
+      "ignoreDefaultArgs": true,
+      "product": "firefox",
+    },
+  ],
+]
+`;
+
+
+exports[`launch Edge without Puppeteer default args 1`] = `
+Array [
+  Array [
+    Object {
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "executablePath": "/path/to/edge",
+      "ignoreDefaultArgs": true,
+      "product": "edge",
+    },
+  ],
+]
+`;

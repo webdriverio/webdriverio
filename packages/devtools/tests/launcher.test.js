@@ -165,3 +165,19 @@ test('throws if browser is unknown', async () => {
         expect(e.message).toContain('Couldn\'t identify browserName')
     }
 })
+
+test('launch Firefox without Puppeteer default args', async () => {
+    await launch({
+        browserName: 'firefox',
+        ignorePuppeteerDefaultArgs: true
+    })
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+})
+
+test('launch Edge without Puppeteer default args', async () => {
+    await launch({
+        browserName: 'edge',
+        ignorePuppeteerDefaultArgs: true
+    })
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+})

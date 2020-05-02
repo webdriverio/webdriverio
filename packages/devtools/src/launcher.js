@@ -115,7 +115,7 @@ function launchBrowser (capabilities, product) {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT
         }
-    }, capabilities[vendorCapKey] || {},
+    }, capabilities[vendorCapKey],
     ignoreDefaultArgs ? { ignoreDefaultArgs: true } : {})
 
     if (!executablePath) {
