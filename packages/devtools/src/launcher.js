@@ -19,7 +19,7 @@ const DEVICE_NAMES = Object.values(DEVICES).map((device) => device.name)
  * @param  {object} capabilities  session capabilities
  * @return {object}               puppeteer browser instance
  */
-async function launchChrome(capabilities) {
+async function launchChrome (capabilities) {
     const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
     const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
@@ -38,15 +38,10 @@ async function launchChrome(capabilities) {
         }
     }
 
-    const chromeDefaultFlags = []
-    if (!ignoreDefaultArgs)
-        chromeDefaultFlags.push(...DEFAULT_FLAGS)
-    else if (Array.isArray(ignoreDefaultArgs))
-        chromeDefaultFlags.push(...DEFAULT_FLAGS.filter(flag => !ignoreDefaultArgs.includes(flag)))
-
+    const defaultFlags = Array.isArray(ignoreDefaultArgs) ? DEFAULT_FLAGS.filter(flag => !ignoreDefaultArgs.includes(flag)) : (!ignoreDefaultArgs) ? DEFAULT_FLAGS : []
     const deviceMetrics = mobileEmulation.deviceMetrics || {}
     const chromeFlags = [
-        ...chromeDefaultFlags,
+        ...defaultFlags,
         ...[
             `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
             `--window-size=${DEFAULT_WIDTH},${DEFAULT_HEIGHT}`
@@ -100,7 +95,7 @@ async function launchChrome(capabilities) {
     return browser
 }
 
-function launchBrowser(capabilities, product) {
+function launchBrowser (capabilities, product) {
     const vendorCapKey = VENDOR_PREFIX[product]
     const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
@@ -121,7 +116,7 @@ function launchBrowser(capabilities, product) {
             height: DEFAULT_HEIGHT
         }
     }, capabilities[vendorCapKey],
-    ignoreDefaultArgs ? { ignoreDefaultArgs: true } : {})
+    ignoreDefaultArgs ? { ignoreDefaultArgs: ignoreDefaultArgs } : {})
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
@@ -131,7 +126,7 @@ function launchBrowser(capabilities, product) {
     return puppeteer.launch(puppeteerOptions)
 }
 
-export default function launch(capabilities) {
+export default function launch (capabilities) {
     const browserName = capabilities.browserName.toLowerCase()
 
     if (CHROME_NAMES.includes(browserName)) {
