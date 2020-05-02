@@ -7,7 +7,7 @@
  *
  * Modifier like Ctrl, Shift, Alt and Meta will stay pressed so you need to trigger them again to release them.
  * Modifiying a click however requires you to use the Webdriver Actions API through the [performActions](https://webdriver.io/docs/api/webdriver.html#performactions) method.
- * 
+ *
  * <example>
     :keys.js
     it('copies text out of active element', () => {
