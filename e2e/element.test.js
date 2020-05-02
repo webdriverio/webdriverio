@@ -105,7 +105,7 @@ describe('elements', () => {
         expect(await browser.getElementProperty(textarea[ELEMENT_KEY], 'value')).toBe('foobar')
     })
 
-    it.only('elementSendKeys for file-type input', async () => {
+    it('elementSendKeys for file-type input', async () => {
         const fileInput = await browser.findElement('css selector', '#upload-test')
         await browser.elementSendKeys(fileInput[ELEMENT_KEY], 'README.MD')
         expect(await browser.getElementProperty(fileInput[ELEMENT_KEY], 'value')).toBe('C:\\fakepath\\README.MD')
