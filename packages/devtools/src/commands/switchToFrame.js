@@ -32,7 +32,7 @@ export default async function switchToFrame ({ id }) {
          * `page` has `frames` method while `frame` has `childFrames` method
          */
         let getFrames = page.frames || page.childFrames
-        const childFrames = await getFrames()
+        const childFrames = await getFrames.apply(page)
         const childFrame = childFrames[id]
 
         if (!childFrame) {
