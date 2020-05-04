@@ -110,12 +110,12 @@ function launchBrowser (capabilities, product) {
     const puppeteerOptions = Object.assign({
         product,
         executablePath,
+        ignoreDefaultArgs,
         defaultViewport: {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT
         }
-    }, capabilities[vendorCapKey],
-    ignoreDefaultArgs ? { ignoreDefaultArgs: ignoreDefaultArgs } : {})
+    }, capabilities[vendorCapKey] || {})
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
