@@ -489,6 +489,7 @@ declare namespace WebDriver {
          * Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your Selenium session.
          */
         capabilities?: DesiredCapabilities;
+        requestedCapabilities?: DesiredCapabilities;
         /**
          * Level of logging verbosity.
          */
@@ -602,6 +603,25 @@ declare namespace WebDriver {
         mjpegServerFramerate?: number,
         screenshotQuality?: number,
         mjpegScalingFactor?: number,
+    }
+
+    interface BaseClient {
+        // id of WebDriver session
+        sessionId: string;
+        // assigned capabilities by the browser driver / WebDriver server
+        capabilities: DesiredCapabilities;
+        // original requested capabilities
+        requestedCapabilities: DesiredCapabilities;
+
+        /**
+         * browser flags
+         */
+        // true if session runs on a mobile device
+        isMobile: boolean;
+        // true if mobile session runs on iOS
+        isIOS: boolean;
+        // true if mobile session runs on Android
+        isAndroid: boolean;
     }
 
     // generated typings

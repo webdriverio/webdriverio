@@ -166,6 +166,14 @@ browser.addLocatorStrategy('myStrat', () => {})
 browser.sharedStore.get('foo')
 browser.sharedStore.set('foo', ['q', 1, true, null, {'w' : {}, 'e': [] }, [{}]])
 
+// test access to base client properties
+browser.sessionId
+browser.capabilities.browserName
+browser.requestedCapabilities.browserName
+browser.isMobile
+browser.isAndroid
+browser.isIOS
+
 // allure-reporter
 allure.addFeature('')
 

@@ -191,6 +191,14 @@ async function bar() {
 
     // addLocatorStrategy
     browser.addLocatorStrategy('myStrat', () => {})
+
+    // test access to base client properties
+    browser.sessionId
+    browser.capabilities.browserName
+    browser.requestedCapabilities.browserName
+    browser.isMobile
+    browser.isAndroid
+    browser.isIOS
 }
 
 // allure-reporter

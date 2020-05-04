@@ -478,7 +478,7 @@ declare namespace WebdriverIO {
         script?: number
     }
 
-    interface Browser {
+    interface Browser extends WebDriver.BaseClient {
         config: Config;
         options: RemoteOptions;
 
