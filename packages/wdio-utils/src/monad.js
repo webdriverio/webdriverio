@@ -27,8 +27,13 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
      * WebDriver monad
      */
     function unit (sessionId, commandWrapper) {
+        /**
+         * capabilities attached to the instance prototype not being shown if
+         * logging the instance
+         */
         propertiesObject.commandList = { value: Object.keys(propertiesObject) }
         propertiesObject.options = { value: options }
+        propertiesObject.requestedCapabilities = options.requestedCapabilities
 
         /**
          * allow to wrap commands if necessary

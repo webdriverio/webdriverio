@@ -3,7 +3,6 @@ import logger from '@wdio/logger'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
-import WebDriverRequest from './request'
 import { DEFAULTS } from './constants'
 import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
 
@@ -60,21 +59,10 @@ export default class WebDriver {
     }
 
     static async reloadSession (instance) {
-        const { w3cCaps, jsonwpCaps } = instance.options.requestedCapabilities
-        const sessionRequest = new WebDriverRequest(
-            'POST',
-            '/session',
-            {
-                capabilities: w3cCaps, // W3C compliant
-                desiredCapabilities: jsonwpCaps // JSONWP compliant
-            }
-        )
-
-        const response = await sessionRequest.makeRequest(instance.options)
-        const newSessionId = response.sessionId || (response.value && response.value.sessionId)
-        instance.sessionId = newSessionId
-
-        return newSessionId
+        const params = { ...instance.requestedCapabilities }
+        const sessionId = await startWebDriverSession(params)
+        instance.sessionId = sessionId
+        return sessionId
     }
 
     static get WebDriver () {
