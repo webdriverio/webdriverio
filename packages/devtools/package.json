@@ -37,7 +37,7 @@
     "chrome-launcher": "^0.13.1",
     "puppeteer-core": "^3.0.0",
     "ua-parser-js": "^0.7.21",
-    "uuid": "^7.0.2"
+    "uuid": "^8.0.0"
   },
   "devDependencies": {
     "@types/puppeteer": "^2.0.0"
