@@ -59,7 +59,10 @@ export default class WebDriver {
     }
 
     static async reloadSession (instance) {
-        const params = { ...instance.requestedCapabilities }
+        const params = {
+            ...instance.options,
+            capabilities: instance.requestedCapabilities
+        }
         const sessionId = await startWebDriverSession(params)
         instance.sessionId = sessionId
         return sessionId

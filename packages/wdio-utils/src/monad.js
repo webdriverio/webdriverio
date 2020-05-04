@@ -33,7 +33,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
          */
         propertiesObject.commandList = { value: Object.keys(propertiesObject) }
         propertiesObject.options = { value: options }
-        propertiesObject.requestedCapabilities = options.requestedCapabilities
+        propertiesObject.requestedCapabilities = { value: options.requestedCapabilities }
 
         /**
          * allow to wrap commands if necessary
