@@ -63,12 +63,11 @@ async function launchChrome (capabilities) {
 
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
 
-    const chrome = await launchChromeBrowser(Object.assign({
+    const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
+        ignoreDefaultArgs,
         chromeFlags
-    },
-    ignoreDefaultArgs ? { ignoreDefaultArgs: ignoreDefaultArgs } : {}
-    ))
+    })
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
     const browser = await puppeteer.connect({
