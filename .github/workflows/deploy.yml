@@ -3,10 +3,9 @@
 name: Docs Deploy
 
 on:
-    pull_request:
-#   create:
-#     tags:
-#       - v*
+  create:
+    tags:
+      - v*
 
 jobs:
   deploy:
@@ -15,10 +14,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-            node-version: '12.x'
+          node-version: '12.x'
       - run: npm install
       - run: npm run docs
         env:
-            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            DISTRIBUTION_ID: ${{ secrets.DISTRIBUTION_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DISTRIBUTION_ID: ${{ secrets.DISTRIBUTION_ID }}
