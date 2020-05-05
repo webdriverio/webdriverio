@@ -1,8 +1,5 @@
-// import compass plugins
-@import 'compass';
-
 // reset CSS before including inform styles
-@include global-reset();
+@import '_utils/reset';
 
 // import utilities
 @import '_utils/vars';
