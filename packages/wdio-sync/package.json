@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@wdio/logger": "6.0.16",
-    "fibers": "^5.0.0"
+    "fibers": "^4.0.1"
   },
   "publishConfig": {
     "access": "public"
