@@ -627,7 +627,7 @@ declare namespace WebDriver {
     // generated typings
     // ... insert here ...
 
-    interface ClientAsync extends AsyncClient { }
+    interface ClientAsync extends AsyncClient, BaseClient { }
 }
 
 type AsyncClient = {
