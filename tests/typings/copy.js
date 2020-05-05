@@ -45,12 +45,7 @@ async function copy() {
             const destination = path.join(__dirname, outDir, 'node_modules', packageName)
             const packageDir = packages[packageName]
 
-            let destDir
-            if (process.platform === 'win32') {
-                destDir = destination.split('\\').slice(0, -1).join('\\')
-            } else {
-                destDir = destination.split('/').slice(0, -1).join('/')
-            }
+            const destDir = destination.split(path.sep).slice(0, -1).join(path.sep)
             if (!fs.existsSync(destDir)) {
                 mkdir('-p', destDir)
             }
