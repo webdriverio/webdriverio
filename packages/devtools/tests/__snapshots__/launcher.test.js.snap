@@ -13,6 +13,7 @@ Array [
       },
       "executablePath": "/path/to/edge",
       "headless": true,
+      "ignoreDefaultArgs": undefined,
       "product": "edge",
     },
   ],
@@ -28,6 +29,7 @@ Array [
         "width": 1200,
       },
       "executablePath": "/path/to/edge",
+      "ignoreDefaultArgs": undefined,
       "product": "edge",
     },
   ],
@@ -48,6 +50,7 @@ Array [
       },
       "executablePath": "/foo/bar",
       "headless": true,
+      "ignoreDefaultArgs": undefined,
       "product": "firefox",
     },
   ],
@@ -63,6 +66,7 @@ Array [
         "width": 1200,
       },
       "executablePath": "/path/to/firefox",
+      "ignoreDefaultArgs": undefined,
       "product": "firefox",
     },
   ],
@@ -104,6 +108,7 @@ Array [
         "--user-agent=Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",
       ],
       "chromePath": "/foo/bar",
+      "ignoreDefaultArgs": undefined,
     },
   ],
 ]
@@ -139,6 +144,7 @@ Array [
         "--window-size=1200,900",
       ],
       "chromePath": undefined,
+      "ignoreDefaultArgs": undefined,
     },
   ],
 ]
@@ -150,6 +156,103 @@ Array [
     Object {
       "browserURL": "http://localhost:1234",
       "defaultViewport": null,
+    },
+  ],
+]
+`;
+
+exports[`launch chrome without default flags and without puppeteer default args 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--window-position=0,0",
+        "--window-size=1200,900",
+      ],
+      "chromePath": undefined,
+      "ignoreDefaultArgs": true,
+    },
+  ],
+]
+`;
+
+exports[`launch chrome without default flags and without puppeteer default args 2`] = `
+Array [
+  Array [
+    Object {
+      "browserURL": "http://localhost:1234",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
+
+exports[`overriding chrome default flags 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-first-run",
+        "--disable-hang-monitor",
+        "--disable-prompt-on-repost",
+        "--disable-client-side-phishing-detection",
+        "--password-store=basic",
+        "--use-mock-keychain",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-breakpad",
+        "--disable-dev-shm-usage",
+        "--disable-ipc-flooding-protection",
+        "--disable-renderer-backgrounding",
+        "--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees",
+        "--window-position=0,0",
+        "--window-size=1200,900",
+        "--enable-features=NetworkService",
+      ],
+      "chromePath": undefined,
+      "ignoreDefaultArgs": Array [
+        "--disable-sync",
+        "--enable-features=NetworkService,NetworkServiceInProcess",
+      ],
+    },
+  ],
+]
+`;
+
+exports[`launch Firefox without Puppeteer default args 1`] = `
+Array [
+  Array [
+    Object {
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "executablePath": "/path/to/firefox",
+      "ignoreDefaultArgs": true,
+      "product": "firefox",
+    },
+  ],
+]
+`;
+
+
+exports[`launch Edge without Puppeteer default args 1`] = `
+Array [
+  Array [
+    Object {
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "executablePath": "/path/to/edge",
+      "ignoreDefaultArgs": true,
+      "product": "edge",
     },
   ],
 ]
