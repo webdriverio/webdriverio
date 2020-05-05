@@ -51,18 +51,18 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isSauce', () => {
         const capabilities = { browserName: 'chrome' }
-        let requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         let hostname = 'localhost' // isSauce should also be true if run through Sauce Connect
 
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(false)
 
-        requestedCapabilities.w3cCaps.alwaysMatch.extendedDebugging = true
+        requestedCapabilities.extendedDebugging = true
         expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
-        requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        requestedCapabilities = {}
         expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(false)
 
-        requestedCapabilities.w3cCaps.alwaysMatch['sauce:options'] = { extendedDebugging: true }
+        requestedCapabilities['sauce:options'] = { extendedDebugging: true }
         expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
     })

@@ -41,6 +41,12 @@ export default class DevTools {
         const vendorCapPrefix = Object.keys(params.capabilities).find(
             (capKey) => availableVendorPrefixes.includes(capKey))
 
+        /**
+         * save original set of capabilities to allow to request the same session again
+         * (e.g. for reloadSession command in WebdriverIO)
+         */
+        params.requestedCapabilities = { ...params.capabilities }
+
         params.capabilities = {
             browserName: userAgent.browser.name,
             browserVersion: userAgent.browser.version,
@@ -50,15 +56,6 @@ export default class DevTools {
                 { debuggerAddress: browser._connection.url().split('/')[2] },
                 params.capabilities[vendorCapPrefix]
             )
-        }
-
-        /**
-         * save original set of capabilities to allow to request the same session again
-         * (e.g. for reloadSession command in WebdriverIO)
-         */
-        params.requestedCapabilities = {
-            w3cCaps: params.capabilities,
-            jsonwpCaps: params.capabilities
         }
 
         sessionMap.set(sessionId, { browser, session: driver })
@@ -76,8 +73,7 @@ export default class DevTools {
 
     static async reloadSession (instance) {
         const { session } = sessionMap.get(instance.sessionId)
-        const { w3cCaps } = instance.options.requestedCapabilities
-        const browser = await launch(w3cCaps)
+        const browser = await launch(instance.requestedCapabilities)
         const pages = await browser.pages()
 
         session.elementStore.clear()

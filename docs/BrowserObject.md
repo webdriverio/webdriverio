@@ -15,7 +15,7 @@ Besides all commands from the [API](API.md), the `browser` object provides some 
 console.log(browser.sessionId) // outputs: "57b15c6ea81d0edb9e5b372da3d9ce28"
 console.log(browser.capabilities)
 /**
- * outputs:
+ * outputs capabilities returned by the browser driver, e.g.:
    { acceptInsecureCerts: false,
      acceptSslCerts: false,
      applicationCacheEnabled: false,
@@ -43,11 +43,18 @@ console.log(browser.capabilities)
      version: '68.0.3440.106',
      webStorageEnabled: true }
  */
+console.log(browser.requestedCapabilities)
+/**
+ * outputs original capabilities set by the user, e.g.:
+ * {
+ *   browserName: 'chrome'
+ * }
+ */
 ```
 
 ## Get Config Options
 
-You can always define custom options within your WDIO config:
+If using the WDIO testrunner you can always define custom options within your WDIO config:
 
 ```js
 // wdio.conf.js

@@ -23,7 +23,7 @@ describe('reloadSession test', () => {
         name: 'should be sessionId if sessionId and value.sessionId are present',
         sessionIdMock: 'foobar-456',
         requestMock: [{}, { sessionId: 'foobar-567' }],
-        newSessionId: 'foobar-456',
+        newSessionId: 'foobar-567',
         jsonwpMode: true
     }]
 
