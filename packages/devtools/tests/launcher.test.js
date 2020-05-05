@@ -56,6 +56,34 @@ test('launch chrome with chrome arguments', async () => {
     })
 })
 
+test('launch chrome without default flags and without puppeteer default args', async () => {
+    const browser = await launch({
+        browserName: 'chrome',
+        ignoreDefaultArgs: true
+    })
+    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+
+    const pages = await browser.pages()
+    expect(pages[0].close).toBeCalled()
+    expect(pages[1].close).toBeCalledTimes(0)
+})
+
+test('overriding chrome default flags', async () => {
+    const browser = await launch({
+        browserName: 'chrome',
+        ignoreDefaultArgs: ['--disable-sync', '--enable-features=NetworkService,NetworkServiceInProcess'],
+        'goog:chromeOptions': {
+            args: ['--enable-features=NetworkService']
+        }
+    })
+    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+
+    const pages = await browser.pages()
+    expect(pages[0].close).toBeCalled()
+    expect(pages[1].close).toBeCalledTimes(0)
+})
+
 test('throws an error if an unknown deviceName is picked', async () => {
     const err = await launch({
         browserName: 'chrome',
@@ -121,4 +149,20 @@ test('throws if browser is unknown', async () => {
     } catch (e) {
         expect(e.message).toContain('Couldn\'t identify browserName')
     }
+})
+
+test('launch Firefox without Puppeteer default args', async () => {
+    await launch({
+        browserName: 'firefox',
+        ignoreDefaultArgs: true
+    })
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+})
+
+test('launch Edge without Puppeteer default args', async () => {
+    await launch({
+        browserName: 'edge',
+        ignoreDefaultArgs: true
+    })
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })

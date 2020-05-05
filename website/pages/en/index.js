@@ -403,8 +403,9 @@ class Index extends React.Component {
                             }, {
                                 content: (
                                     <translate>
-                                        WebdriverIO can be run on the __WebDriver__ as well as __Chrome DevTools
-                                        Protocol__ and is deep integrated with [Puppeteer](https://pptr.dev/).
+                                        WebdriverIO can be run on the [__WebDriver Protocol__](https://w3c.github.io/webdriver/)
+                                        for true cross browser testing as well as [__Chrome DevTools Protocol__](https://chromedevtools.github.io/devtools-protocol/)
+                                        for Chromium based automation using [Puppeteer](https://pptr.dev/).
                                     </translate>
                                 ),
                                 image: imgUrl('teaser/compatible.png'),

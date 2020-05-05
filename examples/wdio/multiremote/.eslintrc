@@ -1,11 +1,11 @@
 {
-  env: {
-    mocha: true
+  "env": {
+    "mocha": true
   },
-  globals: {
-    browser: true,
-    browserA: true,
-    browserB: true,
-    $: true
+  "globals": {
+    "browser": true,
+    "browserA": true,
+    "browserB": true,
+    "$": true
   }
 }

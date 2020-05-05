@@ -49,7 +49,7 @@ declare namespace WebdriverIO {
         [key: string]: any;
     }
     interface ServiceWithOption extends Array<string|ServiceOption>{ 0: string; 1: ServiceOption }
-    type ServiceEntry = string | HookFunctions | [string, ServiceOption]
+    type ServiceEntry = string | HookFunctions | [string, ServiceOption] | object
 
     interface Options {
         /**
@@ -148,6 +148,17 @@ declare namespace WebdriverIO {
          * with the reporter name and the second element an object with reporter options.
          */
         reporters?: (string | object)[];
+        /**
+         * Determines in which interval the reporter should check if they are synchronised
+         * if they report their logs asynchronously (e.g. if logs are streamed to a 3rd
+         * party vendor).
+         */
+        reporterSyncInterval?: number;
+        /**
+         * Determines the maximum time reporters have to finish uploading all their logs
+         * until an error is being thrown by the testrunner.
+         */
+        reporterSyncTimeout?: number;
         /**
          * Services take over a specific job you don't want to take care of. They enhance
          * your test setup with almost no effort.
@@ -816,7 +827,7 @@ declare namespace WebdriverIO {
         script?: number
     }
 
-    interface Browser {
+    interface Browser extends WebDriver.BaseClient {
         config: Config;
         options: RemoteOptions;
 

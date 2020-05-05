@@ -22,6 +22,7 @@ const DEVICE_NAMES = Object.values(DEVICES).map((device) => device.name)
 async function launchChrome (capabilities) {
     const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
+    const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
     if (typeof mobileEmulation.deviceName === 'string') {
         const deviceProperties = Object.values(DEVICES).find(device => device.name === mobileEmulation.deviceName)
@@ -37,9 +38,10 @@ async function launchChrome (capabilities) {
         }
     }
 
+    const defaultFlags = Array.isArray(ignoreDefaultArgs) ? DEFAULT_FLAGS.filter(flag => !ignoreDefaultArgs.includes(flag)) : (!ignoreDefaultArgs) ? DEFAULT_FLAGS : []
     const deviceMetrics = mobileEmulation.deviceMetrics || {}
     const chromeFlags = [
-        ...DEFAULT_FLAGS,
+        ...defaultFlags,
         ...[
             `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
             `--window-size=${DEFAULT_WIDTH},${DEFAULT_HEIGHT}`
@@ -60,8 +62,10 @@ async function launchChrome (capabilities) {
     }
 
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
+
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
+        ignoreDefaultArgs,
         chromeFlags
     })
 
@@ -92,6 +96,7 @@ async function launchChrome (capabilities) {
 
 function launchBrowser (capabilities, product) {
     const vendorCapKey = VENDOR_PREFIX[product]
+    const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
     if (!capabilities[vendorCapKey]) {
         capabilities[vendorCapKey] = {}
@@ -105,6 +110,7 @@ function launchBrowser (capabilities, product) {
     const puppeteerOptions = Object.assign({
         product,
         executablePath,
+        ignoreDefaultArgs,
         defaultViewport: {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT

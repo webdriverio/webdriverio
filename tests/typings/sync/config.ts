@@ -1,3 +1,9 @@
+class CustomService {
+  onPrepare() {
+      // TODO: something before all workers launch
+  }
+}
+
 const conf: WebdriverIO.Config = {
     // can be both array and function
     onComplete: (config, caps) => { },
@@ -18,6 +24,9 @@ const conf: WebdriverIO.Config = {
                 spawnCb: () => {}
             },
             skipSeleniumInstall: true
+        }],
+        [CustomService, {
+            someOption: true
         }]
     ],
 

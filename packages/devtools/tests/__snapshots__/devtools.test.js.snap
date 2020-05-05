@@ -12,19 +12,7 @@ Object {
 
 exports[`newSession 2`] = `
 Object {
-  "jsonwpCaps": Object {
-    "browserName": "Chrome",
-    "browserVersion": "80.0.3987.149",
-    "goog:chromeOptions": Object {
-      "debuggerAddress": "localhost:49375",
-    },
-  },
-  "w3cCaps": Object {
-    "browserName": "Chrome",
-    "browserVersion": "80.0.3987.149",
-    "goog:chromeOptions": Object {
-      "debuggerAddress": "localhost:49375",
-    },
-  },
+  "browserName": "chrome",
+  "goog:chromeOptions": Object {},
 }
 `;

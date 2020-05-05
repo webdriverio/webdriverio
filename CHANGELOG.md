@@ -17,6 +17,62 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.7 (2020-05-02)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5347](https://github.com/webdriverio/webdriverio/pull/5347) @devtools: Enable file uploads by changing input elements' value ([@nextlevelbeard](https://github.com/nextlevelbeard))
+* Other
+  * [#5337](https://github.com/webdriverio/webdriverio/pull/5337) Fix types for services ([@pako88](https://github.com/pako88))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#5349](https://github.com/webdriverio/webdriverio/pull/5349) Add hint for modifiyng clicks ([@Stejnar](https://github.com/Stejnar))
+* Other
+  * [#5348](https://github.com/webdriverio/webdriverio/pull/5348) Update BoilerplateProjects.md ([@SimitTomar](https://github.com/SimitTomar))
+
+#### Committers: 4
+- Pascal König ([@pako88](https://github.com/pako88))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- [@SimitTomar](https://github.com/SimitTomar)
+- [@Stejnar](https://github.com/Stejnar)
+
+
+## v6.1.6 (2020-04-28)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`, `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-runner`
+  * [#5335](https://github.com/webdriverio/webdriverio/pull/5335) embed expect-webdriverio in framework adapters ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v6.1.5 (2020-04-28)
+
+#### :memo: Documentation
+* `wdio-runner`, `wdio-sync`, `webdriverio`
+  * [#5334](https://github.com/webdriverio/webdriverio/pull/5334) Make WebdriverIO a browser AND mobile automation framework ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-devtools-service`
+  * [#5331](https://github.com/webdriverio/webdriverio/pull/5331) Bump puppeteer-core from 2.1.1 to 3.0.1 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `wdio-dot-reporter`, `wdio-lambda-runner`, `wdio-reporter`
+  * [#5330](https://github.com/webdriverio/webdriverio/pull/5330) Bump tmp from 0.0.33 to 0.2.0 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `wdio-concise-reporter`, `wdio-spec-reporter`
+  * [#5329](https://github.com/webdriverio/webdriverio/pull/5329) Bump pretty-ms from 6.0.1 to 7.0.0 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `webdriverio`
+  * [#5328](https://github.com/webdriverio/webdriverio/pull/5328) Bump archiver from 3.1.1 to 4.0.1 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+* `wdio-junit-reporter`
+  * [#5327](https://github.com/webdriverio/webdriverio/pull/5327) Bump junit-report-builder from 1.3.3 to 2.0.0 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+
+#### Committers: 4
+- Alan Christopher Thomas ([@alanchrt](https://github.com/alanchrt))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Miguel A. Alonso ([@migalons](https://github.com/migalons))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.4 (2020-04-25)
 
 #### :bug: Bug Fix

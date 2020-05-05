@@ -68,6 +68,35 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
   - CircleCI example
   - ESLint
 
+### [migalons/angular-wdio6-builder-demo](https://github.com/migalons/angular-wdio6-builder-demo)
+Build your angular e2e test with wdio. This project uses a new angular cli builder for replacing protractor with wdio.
+
+- Frameworks:
+  - Webdriverio (v6)
+  - Angular (v9)
+- Features:
+  - Replaces protractor with wdio as e2e runner
+  - Completely integrated into angular workspace (angular.json)
+  - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.
+
+### [SimitTomar/webdriverio-cucumber-pom-boilerplate](https://github.com/SimitTomar/webdriverio-cucumber-pom-boilerplate)
+
+A WebdriverIO & Cucumber Boilerplate based on Page Object Model!
+
+- Frameworks:
+    - webdriverIO (v6)
+    - cucumber (v6)
+    
+- Features:
+    - Supports Page Object Model
+    - Compatible with Nodejs Versions 8.x to 13.x
+    - Contains sample Scenarios written in Declarative style of BDD
+    - Supports Data externalisation
+    - Integrated with [eslint](https://www.npmjs.com/package/eslint) for identifying and reporting on code patterns.
+    - Integrated with [cucumber-html-reporter](https://www.npmjs.com/package/cucumber-html-reporter) for intuitive & detailed HTML reporting
+    - Embeds screenshots on failure
+    - Integrated with [wdio-cucumber-parallel-execution](https://www.npmjs.com/package/wdio-cucumber-parallel-execution) module for parallel execution
+    
 ----
 
 ## v5 Boilerplate Projects
@@ -325,3 +354,14 @@ Simple boilerplate project that runs multiple browsers on [SauceLabs](https://sa
 - Features:
     - [Page Object](PageObjects.md) usage
     - Integration with [SauceLabs](https://saucelabs.com)
+
+### [migalons/angular-wdio-builder-demo](https://github.com/migalons/angular-wdio-builder-demo)
+Build your angular e2e test with wdio. This project uses a new angular cli builder for replacing protractor with wdio.
+
+- Frameworks:
+  - Webdriverio (v5)
+  - Angular (v9)
+- Features:
+  - Replaces protractor with wdio as e2e runner
+  - Completely integrated into angular workspace (angular.json)
+  - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.

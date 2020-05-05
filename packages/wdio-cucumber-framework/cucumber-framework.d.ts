@@ -1,3 +1,5 @@
+/// <reference types="expect-webdriverio"/>
+
 import { SourceLocation, ScenarioResult } from "cucumber";
 
 declare module "webdriverio" {
