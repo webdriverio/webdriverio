@@ -2463,7 +2463,7 @@ declare namespace WebDriver {
 }
 
 type AsyncClient = {
-    [K in keyof WebDriver.Client]:
+    [K in keyof Pick<WebDriver.Client, Exclude<keyof WebDriver.Client, keyof WebDriver.BaseClient>>]:
     (...args: Parameters<WebDriver.Client[K]>) => Promise<ReturnType<WebDriver.Client[K]>>;
 }
 
