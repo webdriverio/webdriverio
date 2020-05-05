@@ -48,5 +48,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "types": "devtools-service.d.ts"
 }

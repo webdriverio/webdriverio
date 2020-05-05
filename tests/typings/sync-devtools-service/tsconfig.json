@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "types": [
+      "@wdio/sync",
+      "@wdio/devtools-service"
+    ],
+    "typeRoots" : ["./types"]
+  }
+}

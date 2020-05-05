@@ -13,7 +13,7 @@ const outDirs = [
     'webdriverio', 'webdriverio-applitools', 'webdriverio-browserstack',
     'webdriverio-mocha', 'webdriverio-jasmine', 'webdriverio-cucumber',
     'sync-cucumber', 'devtools', 'sync-devtools', 'webdriverio-reporter',
-    'webdriverio-saucelabs', 'sync-saucelabs'
+    'webdriverio-saucelabs', 'sync-saucelabs', 'webdriverio-devtools-service', 'sync-devtools-service'
 ]
 
 const packages = {
@@ -30,7 +30,8 @@ const packages = {
     '@wdio/cucumber-framework': 'packages/wdio-cucumber-framework',
     '@wdio/jasmine-framework': 'packages/wdio-jasmine-framework',
     '@wdio/selenium-standalone-service': 'packages/wdio-selenium-standalone-service',
-    '@wdio/shared-store-service': 'packages/wdio-shared-store-service'
+    '@wdio/shared-store-service': 'packages/wdio-shared-store-service',
+    '@wdio/devtools-service': 'packages/wdio-devtools-service'
 }
 
 const artifactDirs = ['node_modules', 'dist']
@@ -44,7 +45,12 @@ async function copy() {
             const destination = path.join(__dirname, outDir, 'node_modules', packageName)
             const packageDir = packages[packageName]
 
-            const destDir = destination.split('/').slice(0, -1).join('/')
+            let destDir
+            if (process.platform === 'win32') {
+                destDir = destination.split('\\').slice(0, -1).join('\\')
+            } else {
+                destDir = destination.split('/').slice(0, -1).join('/')
+            }
             if (!fs.existsSync(destDir)) {
                 mkdir('-p', destDir)
             }
