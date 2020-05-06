@@ -262,6 +262,29 @@ describe('frames', () => {
         await browser.switchToParentFrame()
         expect(await browser.getTitle()).toBe('The Internet')
     })
+
+    it('switchToFrame(number)', async () => {
+        const getDocumentText = () => browser.executeScript(
+            'return document.documentElement.outerText',
+            []
+        )
+
+        expect(await getDocumentText())
+            .toContain('An iFrame containing the TinyMCE WYSIWYG Editor')
+        await browser.switchToFrame(0)
+
+        expect(await getDocumentText())
+            .toContain('Your content goes here.')
+
+        const body = await browser.findElement('css selector', 'body')
+        expect(await browser.getElementAttribute(body[ELEMENT_KEY], 'id')).toBe('tinymce')
+        await browser.elementClick(body[ELEMENT_KEY])
+    })
+
+    it('switchToFrame(null)', async () => {
+        await browser.switchToFrame(null)
+        expect(await browser.getTitle()).toBe('The Internet')
+    })
 })
 
 describe('executeScript', () => {
