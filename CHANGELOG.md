@@ -17,6 +17,23 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.9 (2020-05-06)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5350](https://github.com/webdriverio/webdriverio/pull/5350) devtools package: fix switchToFrame function ([@takeya0x86](https://github.com/takeya0x86))
+  * [#5369](https://github.com/webdriverio/webdriverio/pull/5369) devtools: fix import of devices ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* `wdio-reporter`
+  * [#5365](https://github.com/webdriverio/webdriverio/pull/5365) Fix types of reporters runner hooks ([@pako88](https://github.com/pako88))
+
+#### Committers: 3
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Pascal König ([@pako88](https://github.com/pako88))
+- Takeshi Kishi ([@takeya0x86](https://github.com/takeya0x86))
+
+
 ## v6.1.8 (2020-05-05)
 
 #### :nail_care: Polish
