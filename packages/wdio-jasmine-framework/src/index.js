@@ -33,7 +33,8 @@ class JasmineAdapter {
             cid: this.cid,
             capabilities: this.capabilities,
             specs: this.specs,
-            cleanStack: this.jasmineNodeOpts.cleanStack
+            cleanStack: this.jasmineNodeOpts.cleanStack,
+            failFast: this.jasmineNodeOpts.failFast
         })
         this._hasTests = true
     }

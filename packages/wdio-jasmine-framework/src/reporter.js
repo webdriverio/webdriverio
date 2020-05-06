@@ -12,6 +12,7 @@ export default class JasmineReporter {
         this.failedCount = 0
         this.startedTest = null
         this.startedSuite = null
+        this.failFast = params.failFast
     }
 
     suiteStarted (suite) {
@@ -71,7 +72,7 @@ export default class JasmineReporter {
          * in case there is a runtime error within one of the specs
          * create an empty test to attach the error to it
          */
-        if (parentSuite.tests === 0 && suite.failedExpectations.length) {
+        if (!this.failFast && parentSuite.tests === 0 && suite.failedExpectations.length) {
             const id = 'spec' + Math.random()
             this.specStarted({
                 id,
