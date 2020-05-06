@@ -39,7 +39,6 @@ export.config = {
     key: process.env.SAUCE_ACCESS_KEY,
     services: [
         ['sauce', {
-            region: 'us',
             sauceConnect: true,
             sauceConnectOpts: {
                 // ...
