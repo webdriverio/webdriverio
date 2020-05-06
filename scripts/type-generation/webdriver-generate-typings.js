@@ -18,7 +18,7 @@ ${INDENTATION} */`
 const lines = []
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     lines.push(`    // ${protocolName} types`)
-    lines.push('    interface Client {')
+    lines.push('    interface Client extends BaseClient {')
 
     for (const [, methods] of Object.entries(definition)) {
         for (const [, description] of Object.entries(methods)) {

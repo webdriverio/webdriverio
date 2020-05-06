@@ -60,7 +60,7 @@ export async function startWebDriverSession (params) {
      * save original set of capabilities to allow to request the same session again
      * (e.g. for reloadSession command in WebdriverIO)
      */
-    params.requestedCapabilities = { w3cCaps, jsonwpCaps }
+    params.requestedCapabilities = params.capabilities
 
     /**
      * save actual receveived session details

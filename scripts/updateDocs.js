@@ -8,6 +8,8 @@ const mime = require('mime-types')
 const readDir = require('recursive-readdir')
 const { S3, CloudFront } = require('aws-sdk')
 
+const { version: PKG_VERSION } = require('../lerna.json')
+
 const PRODUCTION_VERSION = 'v6'
 const DISTRIBUTION_ID = process.env.DISTRIBUTION_ID
 const BUCKET_NAME = 'webdriver.io'
@@ -17,14 +19,10 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
 
 /* eslint-disable no-console */
 ;(async () => {
-    if (!process.env.TRAVIS_TAG) {
-        return console.log('Don\'t deploy, as this is not a tagged release')
-    }
-
     const s3 = new S3()
     const files = await readDir(BUILD_DIR, IGNORE_FILE_SUFFIX)
 
-    const version = process.env.TRAVIS_TAG.split('.')[0]
+    const version = `v${PKG_VERSION.split('.')[0]}`
     const bucketName = version === PRODUCTION_VERSION ? BUCKET_NAME : `${version}.${BUCKET_NAME}`
 
     console.log(`Uploading ${BUILD_DIR} to S3 bucket ${bucketName}`)

@@ -41,13 +41,3 @@ jobs:
     #   <<: *e2e_setup
     #   name: 'e2e Tests (Windows)'
     #   os: windows
-    - name: 'Release WebdriverIO Docs'
-      script: skip
-      stage: deploy
-      node_js: 12
-      deploy:
-        provider: script
-        script: "gem install compass && npm install && npm run docs"
-        cleanup: true
-        on:
-          tags: true

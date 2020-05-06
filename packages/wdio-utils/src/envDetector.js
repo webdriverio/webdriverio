@@ -164,7 +164,7 @@ export function sessionEnvironmentDetector ({ capabilities, requestedCapabilitie
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(requestedCapabilities.w3cCaps.alwaysMatch),
+        isSauce: isSauce(requestedCapabilities),
         isSeleniumStandalone: isSeleniumStandalone(capabilities)
     }
 }

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "types": [
+      "webdriverio",
+      "@wdio/devtools-service"
+    ],
+    "typeRoots" : ["./types"]
+  }
+}
