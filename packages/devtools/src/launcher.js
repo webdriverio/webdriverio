@@ -1,6 +1,6 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
-import devicesMap from 'puppeteer-core/DeviceDescriptors'
+import { devicesMap } from 'puppeteer-core/DeviceDescriptors'
 import logger from '@wdio/logger'
 
 import browserFinder from './finder'
@@ -26,6 +26,7 @@ async function launchChrome (capabilities) {
 
     if (typeof mobileEmulation.deviceName === 'string') {
         const deviceProperties = Object.values(devicesMap).find(device => device.name === mobileEmulation.deviceName)
+
         if (!deviceProperties) {
             throw new Error(`Unknown device name "${mobileEmulation.deviceName}", available: ${DEVICE_NAMES.join(', ')}`)
         }
