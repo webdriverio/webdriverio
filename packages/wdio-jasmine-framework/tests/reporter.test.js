@@ -116,6 +116,25 @@ test('suiteDone', () => {
     expect(runnerReporter.emit.mock.calls[7][0]).toBe('suite:end')
 })
 
+test('suiteDone failFast', () => {
+    jasmineReporter.failFast = true
+    jasmineReporter.suiteStarted({ id: 23, description: 'some test suite' })
+    jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
+    jasmineReporter.suiteDone({ id: 23, description: 'some test suite' })
+    expect(runnerReporter.emit.mock.calls[2][0]).toBe('suite:end')
+
+    /**
+     * check run time errors in suites
+     */
+    jasmineReporter.suiteStarted({ id: 25, description: 'some error prone suite' })
+    jasmineReporter.suiteDone({
+        id: 25, description: 'some error prone suite', failedExpectations: [new Error('foobar')]
+    })
+    expect(runnerReporter.emit.mock.calls[3][0]).toBe('suite:start')
+    expect(runnerReporter.emit.mock.calls[4][0]).toBe('suite:end')
+    expect(runnerReporter.emit.mock.calls[4][1].title).toBe('some error prone suite')
+})
+
 test('getFailedCount', () => {
     jasmineReporter.suiteStarted({ id: 23, description: 'some test suite' })
     jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
