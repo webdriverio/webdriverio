@@ -6,14 +6,14 @@ import { BROWSER_DESCRIPTION } from './constants'
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService {
-    constructor ({ preferScenarioName = false }, caps, config) {
+    constructor (options = {}, caps, config) {
         this.config = config
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
         this.failReasons = []
 
         // Cucumber specific
         this.scenariosThatRan = []
-        this.preferScenarioName = Boolean(preferScenarioName)
+        this.preferScenarioName = Boolean(options.preferScenarioName)
         this.strict = Boolean(config.cucumberOpts && config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
         this.failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown']
@@ -49,23 +49,18 @@ export default class BrowserstackService {
         return this._printSessionURL()
     }
 
-    beforeFeature(uri, feature) {
-        const oldTitle = this.fullTitle
-        this.fullTitle = [this.fullTitle, feature.document.feature.name].filter(Boolean).join(', ')
-        this.fullTitle !== oldTitle && this._update(this.sessionId, { name: this.fullTitle })
+    beforeSuite (suite) {
+        this.fullTitle = suite.title
+        this._update(this.sessionId, { name: this.fullTitle })
     }
 
-    afterTest(test, context, { error, passed }) {
-        this.fullTitle = (
-            /**
-             * Jasmine
-             */
-            test.fullName ||
-            /**
-             * Mocha
-             */
-            `${test.parent} - ${test.title}`
-        )
+    beforeFeature(uri, feature) {
+        this.fullTitle = feature.document.feature.name
+        this._update(this.sessionId, { name: this.fullTitle })
+    }
+
+    afterTest(test, context, results) {
+        const { error, passed } = results
 
         if (!passed) {
             this.failReasons.push((error && error.message) || 'Unknown Error')
@@ -107,8 +102,14 @@ export default class BrowserstackService {
     }
 
     async onReload(oldSessionId, newSessionId) {
+        const hasReasons = Boolean(this.failReasons.filter(Boolean).length)
+
         this.sessionId = newSessionId
-        await this._update(oldSessionId, { name: this.fullTitle })
+        await this._update(oldSessionId, {
+            name: this.fullTitle,
+            status: hasReasons ? 'failed' : 'passed',
+            reason: hasReasons ? this.failReasons.join('\n') : undefined
+        })
         this.scenariosThatRan = []
         delete this.fullTitle
         this.failReasons = []
