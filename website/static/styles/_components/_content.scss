@@ -177,3 +177,16 @@ img.install {
         border-top-left-radius: 0;
     }
 }
+
+.learnmore {
+    text-align: center;
+
+    a {
+        margin: 30px 20px;
+
+        &:last-child {
+            background-color: $orange;
+            color: $white;
+        }
+    }
+}

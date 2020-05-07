@@ -104,3 +104,14 @@ article #flowChartGraphDiv .node polygon {
     padding-right: auto;
     text-align: center;
 }
+
+.navSearchWrapper:before {
+    height: 12px;
+    transform: translateY(-65%);
+    width: 12px;
+}
+body .reactNavSearchWrapper  input#search_input_react {
+    padding: 6px 0 6px 38px;
+    font-weight: 400;
+    font-size: 16px;
+}
