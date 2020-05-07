@@ -17,6 +17,46 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.9 (2020-05-06)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5350](https://github.com/webdriverio/webdriverio/pull/5350) devtools package: fix switchToFrame function ([@takeya0x86](https://github.com/takeya0x86))
+  * [#5369](https://github.com/webdriverio/webdriverio/pull/5369) devtools: fix import of devices ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* `wdio-reporter`
+  * [#5365](https://github.com/webdriverio/webdriverio/pull/5365) Fix types of reporters runner hooks ([@pako88](https://github.com/pako88))
+
+#### Committers: 3
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Pascal König ([@pako88](https://github.com/pako88))
+- Takeshi Kishi ([@takeya0x86](https://github.com/takeya0x86))
+
+
+## v6.1.8 (2020-05-05)
+
+#### :nail_care: Polish
+* `wdio-devtools-service`
+  * [#5361](https://github.com/webdriverio/webdriverio/pull/5361) Add types for devtools service ([@pako88](https://github.com/pako88))
+* `devtools`, `wdio-sync`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#5351](https://github.com/webdriverio/webdriverio/pull/5351) Make `requestedCapabilities` better accessible ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`
+  * [#5344](https://github.com/webdriverio/webdriverio/pull/5344) ignore defaultChromeFlags / PptrDefaultArgs tags ([@anemer](https://github.com/anemer))
+
+#### :house: Internal
+* Other
+  * [#5360](https://github.com/webdriverio/webdriverio/pull/5360) Move docs deployment to GitHub workflow ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sync`
+  * [#5354](https://github.com/webdriverio/webdriverio/pull/5354) Bump fibers from 4.0.3 to 5.0.0 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+
+#### Committers: 4
+- Al Nemer ([@anemer](https://github.com/anemer))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Pascal König ([@pako88](https://github.com/pako88))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.7 (2020-05-02)
 
 #### :bug: Bug Fix

@@ -5,6 +5,18 @@ export default async function switchToFrame ({ id }) {
     const page = this.getPageHandle(true)
 
     /**
+     * switch to parent frame
+     */
+    if (id === null && typeof page.parentFrame === 'function') {
+        let parentFrame = await page.parentFrame()
+        while (parentFrame) {
+            parentFrame = await parentFrame.parentFrame()
+        }
+        this.currentFrame = parentFrame
+        return null
+    }
+
+    /**
      * switch frame by element ID
      */
     if (typeof id[ELEMENT_KEY] === 'string') {
@@ -32,7 +44,7 @@ export default async function switchToFrame ({ id }) {
          * `page` has `frames` method while `frame` has `childFrames` method
          */
         let getFrames = page.frames || page.childFrames
-        const childFrames = await getFrames()
+        const childFrames = await getFrames.apply(page)
         const childFrame = childFrames[id]
 
         if (!childFrame) {
@@ -40,18 +52,6 @@ export default async function switchToFrame ({ id }) {
         }
 
         this.currentFrame = childFrame
-        return null
-    }
-
-    /**
-     * switch to parent frame
-     */
-    if (id === null && typeof page.parentFrame === 'function') {
-        let parentFrame = await page.parentFrame()
-        while (parentFrame) {
-            parentFrame = await page.parentFrame()
-        }
-        this.currentFrame = parentFrame
         return null
     }
 
