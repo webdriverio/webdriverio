@@ -98,7 +98,9 @@ export default class BrowserstackService {
      * For CucumberJS
      */
 
-    afterScenario(uri, feature, pickle, { exception, status }) {
+    afterScenario(uri, feature, pickle, results) {
+        let { exception, status } = results
+
         if (status !== 'skipped') {
             this.scenariosThatRan.push(pickle.name)
         }
