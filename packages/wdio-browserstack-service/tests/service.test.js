@@ -500,7 +500,7 @@ describe('after', () => {
                 await service.afterScenario({}, {},
                     { name: 'Can do something skipped 2' }, { status: 'skipped' })
                 await service.afterScenario({}, {},
-                    { name: 'Can do something skipped 3' }, { status: 'passed'  })
+                    { name: 'Can do something skipped 3' }, { status: 'skipped'  })
 
                 await service.after(0)
 
