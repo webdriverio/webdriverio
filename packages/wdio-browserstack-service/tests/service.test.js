@@ -231,7 +231,7 @@ describe('afterTest', () => {
             undefined,
             { error: undefined, result: 1, duration: 7, passed: false, undefined })
 
-        expect(service.fullTitle).toBe('foo')
+        expect(service.fullTitle).toBe('bar3 - foo3')
         expect(service.failReasons).toHaveLength(3)
         expect(service.failReasons).toContain('cool reason')
         expect(service.failReasons).toContain('not so cool reason')
@@ -251,14 +251,14 @@ describe('afterTest', () => {
             undefined,
             { error: { message: 'not so cool reason' }, result: 1, duration: 5, passed: true, undefined })
 
-        expect(service.fullTitle).toBe('foo')
+        expect(service.fullTitle).toBe('bar2 - foo2')
         expect(service.failReasons).toEqual([])
     })
 
     it('should set title for Mocha tests', () => {
         service.beforeSuite({ title: 'foo', })
         service.afterTest({ title: 'bar', parent: 'foo' }, undefined, {})
-        expect(service.fullTitle).toBe('foo')
+        expect(service.fullTitle).toBe('foo - bar')
     })
 })
 

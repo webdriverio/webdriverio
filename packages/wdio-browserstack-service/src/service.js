@@ -62,6 +62,17 @@ export default class BrowserstackService {
     afterTest(test, context, results) {
         const { error, passed } = results
 
+        this.fullTitle = (
+            /**
+             * Jasmine
+             */
+            test.fullName ||
+            /**
+             * Mocha
+             */
+            `${test.parent} - ${test.title}`
+        )
+
         if (!passed) {
             this.failReasons.push((error && error.message) || 'Unknown Error')
         }
