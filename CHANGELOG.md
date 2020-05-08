@@ -17,6 +17,21 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.10 (2020-05-08)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#5271](https://github.com/webdriverio/webdriverio/pull/5271) Rework Browserstack service, improve Cucumber integration ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :memo: Documentation
+* `wdio-devtools-service`
+  * [#5375](https://github.com/webdriverio/webdriverio/pull/5375) Add docs to Tidelift subscription ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+
 ## v6.1.9 (2020-05-06)
 
 #### :bug: Bug Fix
