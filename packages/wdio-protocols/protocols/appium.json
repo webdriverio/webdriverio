@@ -1462,5 +1462,40 @@
         "required": true
       }]
     }
+  },
+  "/session/:sessionId/appium/compare_images": {
+    "POST": {
+      "command": "compareImages",
+      "description": "Performs images comparison using OpenCV framework features. It is expected that both OpenCV framework and opencv4nodejs module are installed on the machine where Appium server is running.",
+      "ref": "http://appium.io/docs/en/writing-running-appium/image-comparison/",
+      "parameters": [{
+          "name": "mode",
+          "type": "string",
+          "description": "One of possible comparison modes: 'matchFeatures', 'getSimilarity', 'matchTemplate'. 'matchFeatures' is by default.",
+          "required": true,
+          "default": "matchFeatures"
+        }, {
+          "name": "firstImage",
+          "type": "string",
+          "description": "An image data. All image formats, that OpenCV library itself accepts, are supported.",
+          "required": true
+        }, {
+          "name": "secondImage",
+          "type": "string",
+          "description": "An image data. All image formats, that OpenCV library itself accepts, are supported.",
+          "required": true
+        }, {
+          "name": "options",
+          "type": "object",
+          "description": "The content of this dictionary depends on the actual `mode` value. See the documentation on `appium-support` module for more details. ",
+          "required": true,
+          "default": {}
+        }],
+      "returns": {
+        "type": "object",
+        "name": "result",
+        "description": "The content of the resulting dictionary depends on the actual `mode` and `options` values. See the documentation on `appium-support` module for more details."
+      }
+    }
   }
 }
