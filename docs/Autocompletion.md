@@ -3,6 +3,10 @@ id: autocompletion
 title: Autocompletion
 ---
 
+## IntelliJ
+
+Autocompletion works out of the box in IDEA and WebStorm.
+
 If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors.
 
 ![Autocompletion](/img/autocompletion/0.png)
@@ -15,11 +19,7 @@ Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see 
 
 ![Autocompletion](/img/autocompletion/2.png)
 
-### TypeScript
-
-For TypeScript please see [TypeScript](TypeScript.md)
-
-### Visual Studio Code (VSCode)
+## Visual Studio Code (VSCode)
 
 It's required to create `jsconfig.json` in project root and refer to used wdio packages to make autocompletion work in vanilla js. See examples below.
 
@@ -49,6 +49,6 @@ Async version with Cucumber
 }
 ```
 
-### IntelliJ
+## TypeScript
 
-Autocompletion works out of the box in IDEA and WebStorm.
+For TypeScript please see [TypeScript](TypeScript.md)
