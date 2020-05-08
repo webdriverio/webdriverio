@@ -228,7 +228,7 @@ test('onLoadEventFired: using min trace time', async () => {
         cancel: jest.fn()
     }
     traceGatherer.waitForMaxTimeout = jest.fn().mockReturnValue(new Promise(
-        (resolve) => setTimeout(resolve, 150)
+        (resolve) => setTimeout(() => resolve(jest.fn()), 150)
     ))
 
     const start = Date.now()

@@ -59,6 +59,7 @@ class Footer extends React.Component {
                     </div>
                     <div>
                         <h5>More</h5>
+                        <a href={this.props.config.baseUrl + 'docs/enterprise.html'}>Tidelift Subscription</a>
                         <a href={this.props.config.baseUrl + 'blog'}>Blog</a>
                         <a href="https://github.com/webdriverio/webdriverio">GitHub</a>
                         <a
