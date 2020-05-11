@@ -4,7 +4,7 @@ For information about the governance of the WebdriverIO project, see [GOVERNANCE
 
 ## TSC (Technical Steering Committee)
 
-[abjerstedt](https://github.com/abjerstedt) - __Adam Bjerstedt__ <_tbd_><br>
+[abjerstedt](https://github.com/abjerstedt) - __Adam Bjerstedt__ <[abjerstedt@gmail.com](abjerstedt@gmail.com)><br>
 [christian-bromann](https://github.com/christian-bromann) - __Christian Bromann__ <[christian@saucelabs.com](christian@saucelabs.com)> (he/him)<br>
 [erwinheitzman](https://github.com/erwinheitzman) - __Erwin Heitzman__ <[erwin.heitzman@gmail.com](erwin.heitzman@gmail.com)><br>
 [klamping](https://github.com/klamping) - __Kevin Lamping__ <[klamping@pm.me](klamping@pm.me)><br>
