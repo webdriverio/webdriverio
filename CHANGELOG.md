@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.11 (2020-05-11)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#5377](https://github.com/webdriverio/webdriverio/pull/5377) wdio-protocolse: add api for appium image comparison features  (#5372) ([@sanlengjingvv](https://github.com/sanlengjingvv))
+
+#### Committers: 1
+- [@sanlengjingvv](https://github.com/sanlengjingvv)
+
+
 ## v6.1.10 (2020-05-08)
 
 #### :nail_care: Polish
