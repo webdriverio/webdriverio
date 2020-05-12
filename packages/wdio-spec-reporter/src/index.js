@@ -401,18 +401,15 @@ class SpecReporter extends WDIOReporter {
          * platform: JSONWP format
          * os, os_version: invalid BS capability
          */
-        const platform = caps.platformName || caps.platform || caps.os ? (caps.os + ' ' + caps.os_version) : "unkown"
+        const platform = caps.platformName || caps.platform || caps.os ? (caps.os + ' ' + caps.os_version) : "unknown"
 
         // Mobile capabilities
         if (device) {
             const program = (caps.app || '').replace('sauce-storage:', '') || caps.browserName
             const executing = program ? `executing ${program}` : ''
-            version = caps.platformVersion
-            platform = caps.platformName
             if (!verbose) {
                 return `${device} ${platform} ${version}`
             }
-
             return `${device} on ${platform} ${version} ${executing}`.trim()
         }
 
