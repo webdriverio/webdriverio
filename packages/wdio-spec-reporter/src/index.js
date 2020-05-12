@@ -387,7 +387,7 @@ class SpecReporter extends WDIOReporter {
     getEnviromentCombo (caps, verbose = true, isMultiremote = false) {
         const device = caps.deviceName
         const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser)
-        const version = caps.version || caps.platformVersion || caps.browserVersion
+        const version = caps.browserVersion || caps.browser_version || caps.version || caps.platformVersion
         const platform = caps.os ? (caps.os + ' ' + caps.os_version) : (caps.platform || caps.platformName)
 
         // Mobile capabilities
