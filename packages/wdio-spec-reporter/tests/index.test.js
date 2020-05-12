@@ -268,7 +268,7 @@ describe('SpecReporter', () => {
 
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: loremipsum')
+            expect(result[1]).toBe('Running: loremipsum on (unknown)')
         })
 
         it('should validate header output in multiremote', () => {
@@ -277,7 +277,7 @@ describe('SpecReporter', () => {
 
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: MultiremoteBrowser')
+            expect(result[1]).toBe('Running: MultiremoteBrowser on (unknown)')
         })
     })
 
@@ -503,7 +503,7 @@ describe('SpecReporter', () => {
         it('should return Multibrowser as capability if multiremote is used', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome'
-            }, true, true)).toBe('MultiremoteBrowser')
+            }, true, true)).toBe('MultiremoteBrowser on (unknown)')
         })
 
         it('should return preface desktop combo', () => {
