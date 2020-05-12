@@ -396,7 +396,6 @@ class SpecReporter extends WDIOReporter {
             const executing = program ? `executing ${program}` : ''
             version = caps.platformVersion
             platform = caps.platformName
-            
             if (!verbose) {
                 return `${device} ${platform} ${version}`
             }
