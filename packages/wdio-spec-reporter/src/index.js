@@ -401,7 +401,7 @@ class SpecReporter extends WDIOReporter {
          * platform: JSONWP format
          * os, os_version: invalid BS capability
          */
-        const platform = caps.os ? (caps.os + ' ' + caps.osVersion) : caps.platformName || caps.platform
+        const platform = caps.platformName || caps.platform || (caps.os ? caps.os + ' ' + caps.osVersion : '(unknown)')
 
         // Mobile capabilities
         if (device) {
