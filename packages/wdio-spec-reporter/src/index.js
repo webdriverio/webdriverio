@@ -394,7 +394,7 @@ class SpecReporter extends WDIOReporter {
          * platformVersion: mobile format
          * browser_version: invalid BS capability
          */
-        const version = caps.version || caps.browserVersion || platformVersion || caps.browser_version
+        const version = caps.version || caps.browserVersion || caps.platformVersion || caps.browser_version
         /**
          * fallback to different capability types:
          * platformName: W3C format
