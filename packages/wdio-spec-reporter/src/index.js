@@ -387,14 +387,16 @@ class SpecReporter extends WDIOReporter {
     getEnviromentCombo (caps, verbose = true, isMultiremote = false) {
         const device = caps.deviceName
         const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser)
-        const version = caps.browserVersion || caps.browser_version || caps.version || caps.platformVersion
-        const platform = caps.os ? (caps.os + ' ' + caps.os_version) : (caps.platform || caps.platformName)
+        let version = caps.version || caps.browserVersion || caps.browser_version
+        let platform = caps.os ? (caps.os + ' ' + caps.os_version) : caps.platform
 
         // Mobile capabilities
         if (device) {
             const program = (caps.app || '').replace('sauce-storage:', '') || caps.browserName
             const executing = program ? `executing ${program}` : ''
-
+            version = caps.platformVersion
+            platform = caps.platformName
+            
             if (!verbose) {
                 return `${device} ${platform} ${version}`
             }
