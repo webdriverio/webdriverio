@@ -1,3 +1,11 @@
+/**
+ * 
+ * The Get Window Handles command returns a list of window handles 
+ * for every open top-level browsing context. 
+ * The order in which the window handles are returned is arbitrary.
+ * 
+ */
+
 import { v4 as uuidv4 } from 'uuid'
 
 export default async function getWindowHandles() {

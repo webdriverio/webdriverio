@@ -1,3 +1,10 @@
+/**
+ * 
+ * The Switch to Parent Frame command sets the current browsing context for future commands 
+ * to the parent of the current browsing context.
+ * 
+ */
+
 export default async function switchToParentFrame () {
     const page = this.getPageHandle(true)
 

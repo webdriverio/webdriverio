@@ -1,3 +1,9 @@
+/**
+ * 
+ * The Get Element Attribute command will return the attribute of a web element.
+ * 
+ */
+
 import command from '../scripts/getElementAttribute'
 import { getStaleElementError } from '../utils'
 

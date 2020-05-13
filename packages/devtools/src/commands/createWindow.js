@@ -1,5 +1,11 @@
-import { v4 as uuidv4 } from 'uuid'
+/**
+ * 
+ * Create a new top-level browsing context.
+ * 
+ */
 
+import { v4 as uuidv4 } from 'uuid'
+    
 import command from '../scripts/createWindow'
 
 const WINDOW_FEATURES = 'menubar=1,toolbar=1,location=1,resizable=1,scrollbars=1'

@@ -1,3 +1,9 @@
+/**
+ * 
+ * The Get Element Tag Name command returns the qualified element name of the given web element.
+ * 
+ */
+
 import command from '../scripts/getElementTagName'
 import { getStaleElementError } from '../utils'
 

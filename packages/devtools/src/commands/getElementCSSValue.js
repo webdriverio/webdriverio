@@ -1,3 +1,10 @@
+/**
+ * 
+ * The Get Element CSS Value command retrieves the computed value 
+ * of the given CSS property of the given web element.
+ * 
+ */
+
 import command from '../scripts/getElementCSSValue'
 import { getStaleElementError } from '../utils'
 
