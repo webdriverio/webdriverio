@@ -97,6 +97,6 @@ assert.true(
 )
 ```
 
-In that example the `myFirefoxBrowser` instance will start waiting on a messages once the `myChromeBrowser` instance clicked on the send button. Multiremote makes it easy and convenient to control multiple browser either doing the same thing in parallel or something different.
+В этом примере инстанс `myFirefoxBrowser` начнет ждать, когда появится сообщение, после того, как `myChromeBrowser` нажмет на кнопку отправки. Multiremote делает управление несколькими браузерами простым и понятным, как при выполнении одинаковых действий, так и при разных.
 
 **Заметка:** мультиремоут не предназначен для выполнения всех тестов параллельно. Он создан, чтобы облегчить управление более, чем одним браузером в особо сложных интеграционных тестах.
