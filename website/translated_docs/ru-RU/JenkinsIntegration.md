@@ -3,9 +3,9 @@ id: jenkins
 title: Интеграция с Jenkins
 ---
 
-WebdriverIO может работать с системами непрерывной интеграции (CI), такими как [Jenkins](https://jenkins-ci.org/). В этом примере для отладки тестов и отслеживания их результатов рассмотрим [junit reporter](https://github.com/webdriverio/wdio-junit-repo). Сам процесс интеграции довольно прост.
+WebdriverIO может работать с системами непрерывной интеграции (CI), такими как [Jenkins](https://jenkins-ci.org/). В этом примере для отладки тестов и получения отчетов рассмотрим [junit reporter](https://github.com/webdriverio/wdio-junit-repo). Сам процесс интеграции довольно прост.
 
-Во-первых, нам необходимо назначить `junit` в качестве репортера. Так же, стоит убедиться, что репортер установлен (`$ npm install --save-dev wdio-junit-reporter`) и что место, куда мы будем сохранять результаты тестов, доступно для Jenkins'а. Следовательно, назначаем репортер в файле конфигурации:
+Во-первых, нам необходимо назначить `junit` в качестве репортера. Так же, стоит убедиться, что репортер установлен (`$ npm install --save-dev wdio-junit-reporter`) и что место, куда мы будем сохранять отчеты, доступно для Jenkins'а. Следовательно, назначаем репортер в файле конфигурации:
 
 ```js
 // wdio.conf.js
@@ -21,7 +21,7 @@ module.exports = {
 };
 ```
 
-It is up to you which framework you want to choose. The reports will be similar. This tutorial is going to use Jasmine. After you have written couple of tests you can begin to setup a new Jenkins job. Give it a name and a description:
+Тестовый фреймворк, в данном случае, не имеет значения. Отчеты будут одинаковы. В этом руководстве использован Jasmine. Написав неколько тестовых сценариев, можно приступать к настройке новой задачи в Jenkins. Даем наименование и описание:
 
 ![Name And Description](/img/jenkins/jobname.png "Name And Description")
 
