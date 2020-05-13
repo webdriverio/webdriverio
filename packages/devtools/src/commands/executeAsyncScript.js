@@ -1,3 +1,11 @@
+/**
+ * 
+ * The Execute Async Script command causes JavaScript to execute as an anonymous function. 
+ * Unlike the Execute Script command, the result of the function is ignored. 
+ * Instead an additional argument is provided as the final argument to the function. 
+ * This is a function that, when called, returns its first argument as the response.
+ */
+
 import command from '../scripts/executeAsyncScript'
 import { transformExecuteArgs, transformExecuteResult } from '../utils'
 import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants'

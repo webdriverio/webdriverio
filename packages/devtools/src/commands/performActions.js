@@ -1,3 +1,10 @@
+/**
+ * 
+ * The Perform Actions command is used to execute complex user actions. 
+ * See [spec](https://github.com/jlipps/simple-wd-spec#perform-actions) for more details.
+ * 
+ */
+
 import { keyDefinitions } from 'puppeteer-core/lib/USKeyboardLayout'
 
 import getElementRect from './getElementRect'

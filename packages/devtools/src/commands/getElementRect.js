@@ -1,3 +1,9 @@
+/**
+ * 
+ * The Get Element Rect command returns the dimensions and coordinates of the given web element.
+ * 
+ */
+
 import command from '../scripts/getElementRect'
 import { getStaleElementError } from '../utils'
 

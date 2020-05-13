@@ -1,3 +1,10 @@
+/** 
+ * 
+ * The Find Element command is used to find an element in the current browsing context 
+ * that can be used for future commands.
+ * 
+ */
+
 import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
 import { findElement as findElementUtil } from '../utils'
 

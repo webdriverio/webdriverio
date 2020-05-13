@@ -1,3 +1,11 @@
+/** 
+ * 
+ * The Element Send Keys command scrolls into view the form control element and then sends 
+ * the provided keys to the element. In case the element is not keyboard-interactable, 
+ * an element not interactable error is returned. The key input state used for input 
+ * may be cleared mid-way through \"typing\" by sending the null key, which is U+E000 (NULL)
+ */
+
 import { getStaleElementError } from '../utils'
 
 export default async function elementSendKeys ({ elementId, text }) {

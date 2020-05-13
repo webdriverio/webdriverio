@@ -1,3 +1,10 @@
+/**
+ * 
+ * The Find Element From Element command is used to find an element from a web element
+ * in the current browsing context that can be used for future commands.
+ * 
+ */
+
 import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
 import { findElement, getStaleElementError } from '../utils'
 

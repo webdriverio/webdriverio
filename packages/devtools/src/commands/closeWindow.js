@@ -1,3 +1,11 @@
+/** 
+ * 
+ * The Close Window command closes the current top-level browsing context. 
+ * Once done, if there are no more top-level browsing contexts open, 
+ * the WebDriver session itself is closed.
+ * 
+ */
+
 import { v4 as uuidv4 } from 'uuid'
 
 export default async function closeWindow () {

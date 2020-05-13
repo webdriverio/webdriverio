@@ -1,3 +1,9 @@
+/**
+ * 
+ * Get Active Element returns the active element of the current browsing context’s document element.
+ * 
+ */
+
 import findElement from './findElement'
 import command from '../scripts/getActiveElement'
 import cleanUp from '../scripts/cleanUpSerializationSelector'

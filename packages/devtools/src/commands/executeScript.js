@@ -1,3 +1,9 @@
+/** 
+ * 
+ * The Execute Script command executes a JavaScript function 
+ * in the context of the current browsing context and returns the return value of the function.
+ */
+
 import command from '../scripts/executeScript'
 import { transformExecuteArgs, transformExecuteResult } from '../utils'
 import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants'

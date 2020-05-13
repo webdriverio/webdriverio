@@ -1,3 +1,10 @@
+/**
+ * 
+ * The New Session command creates a new WebDriver session with the endpoint node. 
+ * If the creation fails, a session not created error is returned.
+ * 
+ */
+
 import os from 'os'
 import { v4 as uuidv4 } from 'uuid'
 
