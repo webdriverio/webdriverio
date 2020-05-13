@@ -3,7 +3,7 @@ id: multiremote
 title: Multiremote
 ---
 
-WebdriverIO allows you to run multiple WebDriver/Appium sessions in a single test. This becomes handy when you need to test application features where multiple users are required (e.g. chat or WebRTC applications). Instead of creating a couple of remote instances where you need to execute common commands like [newSession](/docs/api/webdriver.html#newsession) or [url](/docs/api/browser/url.html) on each of those instances, you can simply create a multiremote instance and control all browser at the same time. To do so just use the `multiremote` function and pass an object with named browser with their capabilities into it. By giving each capability a name you will be able to easy select and access that single instance when executing commands on a single instance.
+WebdriverIO позволяет запускать несколько сессий WebDriver/Appium в одном тесте. Это удобно, когда нужно протестировать функционал, где требуется сразу несолько пользователей (например, чат, или WebRTC приложение). Вместо того, чтобы создавать несколько удаленных инстансов, и выполнять в каждом из них одинаковые команды вроде [newSession](/docs/api/webdriver.html#newsession) или [url](/docs/api/browser/url.html), можно создать один "multiremote" инстанс и в нем контролировать сессии. To do so just use the `multiremote` function and pass an object with named browser with their capabilities into it. By giving each capability a name you will be able to easy select and access that single instance when executing commands on a single instance.
 
 ## Using Standalone Mode
 
