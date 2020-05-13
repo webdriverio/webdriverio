@@ -5,7 +5,7 @@ title: Интеграция с Jenkins
 
 WebdriverIO может работать с системами непрерывной интеграции (CI), такими как [Jenkins](https://jenkins-ci.org/). В этом примере для отладки тестов и получения отчетов рассмотрим [junit reporter](https://github.com/webdriverio/wdio-junit-repo). Сам процесс интеграции довольно прост.
 
-Во-первых, нам необходимо назначить `junit` в качестве репортера. Так же, стоит убедиться, что репортер установлен (`$ npm install --save-dev wdio-junit-reporter`) и что место, куда мы будем сохранять отчеты, доступно для Jenkins'а. Следовательно, назначаем репортер в файле конфигурации:
+Во-первых, нам необходимо назначить `junit` в качестве репортера. Так же, стоит убедиться, что репортер установлен (`$ npm install --save-dev wdio-junit-reporter`) и что место, куда мы будем сохранять XUnit отчеты, доступно для Jenkins'а. Следовательно, назначаем репортер в файле конфигурации:
 
 ```js
 // wdio.conf.js
@@ -25,11 +25,11 @@ module.exports = {
 
 ![Name And Description](/img/jenkins/jobname.png "Name And Description")
 
-Then make sure it grabs always the newest version of your repository:
+Затем убеждаемся, что Jenkins всегда будет стягивать последнюю версию проекта:
 
 ![Jenkins Git Setup](/img/jenkins/gitsetup.png "Jenkins Git Setup")
 
-Now the important part: create a build step to execute shell commands. That build step needs to build your project. Since this demo project only tests an external app we don't need to build anything but install the node dependencies and run our test command `npm test` which is an alias for `node_modules/.bin/wdio test/wdio.conf.js`.
+Самая важная часть: добавляем build step для выполнения shell комманд. Здесь будет происходить сборка проекта. Since this demo project only tests an external app we don't need to build anything but install the node dependencies and run our test command `npm test` which is an alias for `node_modules/.bin/wdio test/wdio.conf.js`.
 
 ![Build Step](/img/jenkins/runjob.png "Build Step")
 
