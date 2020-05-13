@@ -21,9 +21,9 @@ module.exports = {
 };
 ```
 
-Тестовый фреймворк, в данном случае, не имеет значения. Отчеты будут одинаковы. В этом руководстве использован Jasmine. Написав неколько тестовых сценариев, можно приступать к настройке новой задачи в Jenkins. Даем наименование и описание:
+Тестовый фреймворк, в данном случае, не имеет значения. Отчеты будут одинаковы. В этом руководстве использован Jasmine. Написав неколько тестовых сценариев, можно приступать к настройке новой задачи в Jenkins. Даем имя и описание:
 
-![Name And Description](/img/jenkins/jobname.png "Name And Description")
+![Имя и описание](/img/jenkins/jobname.png "Name And Description")
 
 Затем убеждаемся, что Jenkins всегда будет стягивать последнюю версию проекта:
 
@@ -39,6 +39,6 @@ module.exports = {
 
 ![Post-build Action](/img/jenkins/postjob.png "Post-build Action")
 
-Вот и всё! Этого достаточно, чтобы тесты на WebdriverIO запускались в Jenkins'е. Your job will now provide detailed test results with history charts, stacktrace information on failed jobs as well as a list of commands with payload that got used in each test.
+Вот и всё! Этого достаточно, чтобы тесты на WebdriverIO запускались в Jenkins'е. Запуск тестов теперь будет дополнен отчетами с графиками, трассировкой стека тестов, которые упали, а так же списком команд, использованых в каждом тесте.
 
-![Jenkins Final Integration](/img/jenkins/final.png "Jenkins Final Integration")
+![Интеграция с Jenkins](/img/jenkins/final.png "Jenkins Final Integration")
