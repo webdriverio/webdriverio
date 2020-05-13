@@ -67,7 +67,7 @@ export.config = {
 browser.url('http://chat.socket.io/');
 ```
 
-Each command result will be an object with the browser names as key and the actual command result as value, e.g.
+Результатом каждой команды будет объект, содержащий имя браузера, как ключ, и фактического значения для него.
 
 ```js
 // wdio testrunner example
@@ -80,9 +80,9 @@ console.log(result.resultChrome); // returns: 'Chrome 40 on Mac OS X (Yosemite)'
 console.log(result.resultFirefox); // returns: 'Firefox 35 on Mac OS X (Yosemite)'
 ```
 
-You will notice that each command gets executed one by one. That means that the command finishes once all browser have executed it. This is helpful because it keeps the browser actions synced and it makes it easier to understand what currently happens.
+Как можно заметить, команды выполняются поочередно, одна за одной. Это означает, что выполнение команды завершится, когда она отработает во всех браузерах. Это полезно в том плане, что действия браузера остаются синхронными и упрощает понимание, что происходит в данный момент.
 
-Sometimes it is necessary to do different things with each browser in order to test something. For instance if we want to test a chat application, there has to be one browser who inputs a text message while the other browser waits to receive that message and do an assertion on it. When using the WDIO testrunner it registers the browser names with their instances to the global scope, e.g.
+Иногда, в тесте необходимо выполнить разные операции с каждым браузером. Например, если мы хотим протестировать чат, у нас должен быть один браузер, с которого отправляется сообщение, в то время как другой должен его получить и проверить. При использовании тест-раннера WDIO, он регистрирует имена браузеров с инстансами глобально.
 
 ```js
 myChromeBrowser.$('#message').setValue('Hi, I am Chrome');
