@@ -1,9 +1,9 @@
 ---
 id: jenkins
-title: Jenkins Integration
+title: Интеграция с Jenkins
 ---
 
-WebdriverIO offers a tight integration to CI systems like [Jenkins](https://jenkins-ci.org/). With the [junit reporter](https://github.com/webdriverio/wdio-junit-reporter) you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
+WebdriverIO может работать с системами непрерывной интеграции (CI), такими как [Jenkins](https://jenkins-ci.org/). Самым простым инструментом для отладки тестов и отслеживания их результатов является [junit reporter](https://github.com/webdriverio/wdio-junit-repo). Это самый быстрый способ настроить интеграцию.
 
 First we need to define `junit` as test reporter. Also make sure you have it installed (`$ npm install --save-dev wdio-junit-reporter`) and that we save our xunit results at a place where Jenkins can pick them up. Therefore we define our reporter in our config as follows:
 
