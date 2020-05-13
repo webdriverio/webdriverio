@@ -3,11 +3,11 @@ id: multiremote
 title: Multiremote
 ---
 
-WebdriverIO позволяет запускать несколько сессий WebDriver/Appium в одном тесте. Это удобно, когда нужно протестировать функционал, где требуется сразу несолько пользователей (например, чат, или WebRTC приложение). Вместо того, чтобы создавать несколько удаленных инстансов, и выполнять в каждом из них одинаковые команды вроде [newSession](/docs/api/webdriver.html#newsession) или [url](/docs/api/browser/url.html), можно создать один "multiremote" инстанс и в нем контролировать сессии. To do so just use the `multiremote` function and pass an object with named browser with their capabilities into it. By giving each capability a name you will be able to easy select and access that single instance when executing commands on a single instance.
+WebdriverIO позволяет запускать несколько сессий WebDriver/Appium в одном тесте. Это удобно, когда нужно протестировать функционал, где требуется сразу несолько пользователей (например, чат, или WebRTC приложение). Вместо того, чтобы создавать несколько удаленных инстансов, и выполнять в каждом из них одинаковые команды вроде [newSession](/docs/api/webdriver.html#newsession) или [url](/docs/api/browser/url.html), можно создать один "multiremote" инстанс и в нем контролировать сессии. Для этого используется функция `multiremote`, в которую передается объект с именованным браузером и его набором свойств. Именуя каждое свойство (capability), получится с легкостью выбирать и получать доступ к конкретному инстансу, который содержится внутри `multiremote` инстанса.
 
-## Using Standalone Mode
+## Автономный режим
 
-Here is an example demonstrating a how to create a multiremote WebdriverIO instance in **standalone mode**:
+Вот пример того, как создать multiremote инстанс WebdriverIO в **автономном режиме**:
 
 ```js
 import { multiremote } from 'webdriverio';
@@ -38,9 +38,9 @@ import { multiremote } from 'webdriverio';
 })()
 ```
 
-## Using WDIO Testrunner
+## Тест-раннер WDIO
 
-In order to use multiremote in the wdio testrunner just define the `capabilities` object in your `wdio.conf.js` as an object with the browser names as keys (instead of a list of capabilities):
+Чтобы использовать `multiremote` с тест-раннером WDIO, в файле конфигурации `wdio.conf.js` нужно назначить `capabilities`, как объект с наименованиями браузера в виде ключей (вместо перечни capabilities):
 
 ```js
 export.config = {
@@ -61,7 +61,7 @@ export.config = {
 };
 ```
 
-This would create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io/). Any kind of OS/browser combination is possible here (e.g. cross platform like mobile device and desktop browser). All commands you call with the `browser` variable gets executed in parallel with each instance. This helps to streamline your integration test and speedup the execution a bit. For example open up an url:
+С такой конфигурацией будет создано две сессии вебдрайвера: с Chrome и Firefox. Не ограничиваясь браузерами, так же возможно поднять два мобильных устройства, используя [Appium](http://appium.io/). Multiremote работает с любой комбинацией ОС/браузер (например, кросс-платформа вроде смартфона + десктоп браузер). Все команды, вызванные обращением к переменной `browser`, выполняются параллельно на каждом инстансе. Это поможет упростить интеграционные тесты и немного ускорить их выполнение. К примеру, переход по ссылке:
 
 ```js
 browser.url('http://chat.socket.io/');
@@ -99,4 +99,4 @@ assert.true(
 
 In that example the `myFirefoxBrowser` instance will start waiting on a messages once the `myChromeBrowser` instance clicked on the send button. Multiremote makes it easy and convenient to control multiple browser either doing the same thing in parallel or something different.
 
-**Note:** Multiremote is not meant to execute all your tests in parallel. It should help you to coordinate more than one browser for sophisticated integration tests.
+**Заметка:** мультиремоут не предназначен для выполнения всех тестов параллельно. Он создан, чтобы облегчить управление более, чем одним браузером в особо сложных интеграционных тестах.
