@@ -29,11 +29,11 @@ module.exports = {
 
 ![Jenkins Git Setup](/img/jenkins/gitsetup.png "Jenkins Git Setup")
 
-Самая важная часть: добавляем build step для выполнения shell комманд. Здесь будет происходить сборка проекта. Since this demo project only tests an external app we don't need to build anything but install the node dependencies and run our test command `npm test` which is an alias for `node_modules/.bin/wdio test/wdio.conf.js`.
+Самая важная часть: добавляем build step для выполнения shell комманд. Здесь будет происходить сборка проекта. В случае нашего примера, тестируется стороннее приложение, поэтому, собирать ничего не будем. Нужно только установить все зависимости и запустить тесты командой `npm test` (алиас для `node_modules/.bin/wdio test/wdio.conf.js`).
 
 ![Build Step](/img/jenkins/runjob.png "Build Step")
 
-After our test we want Jenkins to track our xunit report. To do so we have to add a post-build action called *"Publish JUnit test result report"*. You could also install an external xunit plugin to track your reports. The JUnit one comes with the basic Jenkins installation and is sufficient enough for now.
+По окончанию тестов нам нужно, чтобы Jenkins увидел сгенерированный XUnit репорт. Для этого в post-build действия добавляем *"Publish JUnit test result report"*. Как альтернатива, можно установить сторонний xunit плагин для обработки отчетов. The JUnit one comes with the basic Jenkins installation and is sufficient enough for now.
 
 According to our config file we store the xunit reports in our workspace root directory. These reports are xml files. So all we need to do in order to track the reports is to point Jenkins to all xml files in our root directory:
 
