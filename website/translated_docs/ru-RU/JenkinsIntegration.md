@@ -33,12 +33,12 @@ module.exports = {
 
 ![Build Step](/img/jenkins/runjob.png "Build Step")
 
-По окончанию тестов нам нужно, чтобы Jenkins увидел сгенерированный XUnit репорт. Для этого в post-build действия добавляем *"Publish JUnit test result report"*. Как альтернатива, можно установить сторонний xunit плагин для обработки отчетов. The JUnit one comes with the basic Jenkins installation and is sufficient enough for now.
+По окончанию тестов нам нужно, чтобы Jenkins увидел сгенерированный XUnit репорт. Для этого в post-build действия добавляем *"Publish JUnit test result report"*. Как альтернатива, можно установить сторонний xunit плагин для обработки отчетов. JUnit работает в Jenkins из коробки и для первого запуска его будет достаточно.
 
-According to our config file we store the xunit reports in our workspace root directory. These reports are xml files. So all we need to do in order to track the reports is to point Jenkins to all xml files in our root directory:
+Как было указано в файле с конфигурациями, отчеты будут сохраняться в корневой директории проекта. Формат отчетов — xml. Поэтому, чтобы Jenkins увидел и обработал их, достаточно указать на все xml файлы в корневой директории:
 
 ![Post-build Action](/img/jenkins/postjob.png "Post-build Action")
 
-That's it! This is all you need to setup Jenkins to run your WebdriverIO jobs. Your job will now provide detailed test results with history charts, stacktrace information on failed jobs as well as a list of commands with payload that got used in each test.
+Вот и всё! Этого достаточно, чтобы тесты на WebdriverIO запускались в Jenkins'е. Your job will now provide detailed test results with history charts, stacktrace information on failed jobs as well as a list of commands with payload that got used in each test.
 
 ![Jenkins Final Integration](/img/jenkins/final.png "Jenkins Final Integration")
