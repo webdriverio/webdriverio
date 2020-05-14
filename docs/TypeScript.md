@@ -34,7 +34,7 @@ exports.config = {
 exports.config = {
     // ...
     jasmineNodeOpts: {
-        requires: ['ts-node/register']
+        requires: ['ts-node/register', 'tsconfig-paths/register']
     },
     // ...
 }
