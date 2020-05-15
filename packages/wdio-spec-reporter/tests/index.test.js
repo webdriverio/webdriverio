@@ -12,7 +12,7 @@ import {
 
 const reporter = new SpecReporter({})
 
-const defaultCaps = { browserName: 'loremipsum', sessionId: 'foobar' }
+const defaultCaps = { browserName: 'loremipsum', version: 50, platform: 'Windows 10', sessionId: 'foobar' }
 const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
 const getRunnerConfig = (config = {}) => {
     return Object.assign({}, RUNNER, {
@@ -268,7 +268,7 @@ describe('SpecReporter', () => {
 
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: loremipsum on (unknown)')
+            expect(result[1]).toBe('Running: loremipsum (v50) on Windows 10')
         })
 
         it('should validate header output in multiremote', () => {
@@ -277,7 +277,7 @@ describe('SpecReporter', () => {
 
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: MultiremoteBrowser on (unknown)')
+            expect(result[1]).toBe('Running: MultiremoteBrowser (v50) on Windows 10')
         })
     })
 
@@ -494,7 +494,14 @@ describe('SpecReporter', () => {
     describe('getEnviromentCombo', () => {
         it('should return Multibrowser as capability if multiremote is used', () => {
             expect(tmpReporter.getEnviromentCombo({
-                browserName: 'chrome'
+                browserName: 'chrome',
+                platform: 'Windows 8.1'
+            }, true, true)).toBe('MultiremoteBrowser on Windows 8.1')
+        })
+
+        it('should return Multibrowser as capability if multiremote is used without platform', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browserName: 'chrome',
             }, true, true)).toBe('MultiremoteBrowser on (unknown)')
         })
 
