@@ -401,7 +401,7 @@ class SpecReporter extends WDIOReporter {
          * platform: JSONWP format
          * os, os_version: invalid BS capability
          */
-        const platform = caps.platformName || caps.platform || (caps.os ? caps.os + ' ' + caps.os_version : '(unknown)')
+        const platform = caps.platformName || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities
         if (device) {
@@ -414,10 +414,10 @@ class SpecReporter extends WDIOReporter {
         }
 
         if (!verbose) {
-            return (browser + ' ' + (version || '') + ' ' + (platform || '')).trim()
+            return (browser + (version ? ` ${version} ` : ' ') + (platform)).trim()
         }
 
-        return browser + (version ? ` (v${version})` : '') + (platform ? ` on ${platform}` : '')
+        return browser + (version ? ` (v${version})` : '') + (` on ${platform}`)
     }
 }
 

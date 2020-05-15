@@ -492,18 +492,18 @@ describe('SpecReporter', () => {
     })
 
     describe('getEnviromentCombo', () => {
+        it('should return Multibrowser as capability if multiremote is used', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browserName: 'chrome'
+            }, true, true)).toBe('MultiremoteBrowser on (unknown)')
+        })
+
         it('should return verbose desktop combo', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
                 version: 50,
                 platform: 'Windows 8.1'
             })).toBe('chrome (v50) on Windows 8.1')
-        })
-
-        it('should return Multibrowser as capability if multiremote is used', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browserName: 'chrome'
-            }, true, true)).toBe('MultiremoteBrowser on (unknown)')
         })
 
         it('should return preface desktop combo', () => {
@@ -582,6 +582,50 @@ describe('SpecReporter', () => {
                 os: 'Windows',
                 os_version: '10'
             }, false)).toBe('Chrome 50 Windows 10')
+        })
+
+        it('should return verbose desktop combo when using BrowserStack capabilities without os', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browser: 'Chrome',
+                browser_version: 50,
+            })).toBe('Chrome (v50) on (unknown)')
+        })
+
+        it('should return preface desktop combo when using BrowserStack capabilities without os', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browser: 'Chrome',
+                browser_version: 50,
+            }, false)).toBe('Chrome 50 (unknown)')
+        })
+
+        it('should return verbose desktop combo when using BrowserStack capabilities without os_version', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browser: 'Chrome',
+                browser_version: 50,
+                os: 'Windows',
+            })).toBe('Chrome (v50) on Windows')
+        })
+
+        it('should return preface desktop combo when using BrowserStack capabilities without os_version', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browser: 'Chrome',
+                browser_version: 50,
+                os: 'Windows',
+            }, false)).toBe('Chrome 50 Windows')
+        })
+
+        it('should return verbose desktop combo without platform', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browserName: 'chrome',
+                version: 50,
+            })).toBe('chrome (v50) on (unknown)')
+        })
+
+        it('should return preface desktop combo without platform', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browserName: 'chrome',
+                version: 50,
+            }, false)).toBe('chrome 50 (unknown)')
         })
     })
 })
