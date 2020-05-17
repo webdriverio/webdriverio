@@ -62,35 +62,35 @@ exports[`SpecReporter printReport with normal setup should print jobs of all ins
 Array [
   Array [
     "------------------------------------------------------------------
-[MultiremoteBrowser #0-0] Spec: /foo/bar/baz.js
-[MultiremoteBrowser #0-0] Running: MultiremoteBrowser
-[MultiremoteBrowser #0-0]
-[MultiremoteBrowser #0-0] Foo test
-[MultiremoteBrowser #0-0]    green ✓ foo
-[MultiremoteBrowser #0-0]    green ✓ bar
-[MultiremoteBrowser #0-0]
-[MultiremoteBrowser #0-0] Bar test
-[MultiremoteBrowser #0-0]    green ✓ some test
-[MultiremoteBrowser #0-0]    red ✖ a failed test
-[MultiremoteBrowser #0-0]    red ✖ a failed test with no stack
-[MultiremoteBrowser #0-0]
-[MultiremoteBrowser #0-0] Baz test
-[MultiremoteBrowser #0-0]    green ✓ foo bar baz
-[MultiremoteBrowser #0-0]    cyan - a skipped test
-[MultiremoteBrowser #0-0]
-[MultiremoteBrowser #0-0] green 4 passing (5s)
-[MultiremoteBrowser #0-0] red 1 failing
-[MultiremoteBrowser #0-0] cyan 1 skipped
-[MultiremoteBrowser #0-0]
-[MultiremoteBrowser #0-0] 1) Bar test a failed test
-[MultiremoteBrowser #0-0] red expected foo to equal bar
-[MultiremoteBrowser #0-0] gray Failed test stack trace
-[MultiremoteBrowser #0-0]
-[MultiremoteBrowser #0-0] 2) Bar test a failed test with no stack
-[MultiremoteBrowser #0-0] red expected foo to equal bar
-[MultiremoteBrowser #0-0]
-[MultiremoteBrowser #0-0] Check out browserA job at https://app.saucelabs.com/tests/foobar
-[MultiremoteBrowser #0-0] Check out browserB job at https://app.saucelabs.com/tests/barfoo
+[MultiremoteBrowser (unknown) #0-0] Spec: /foo/bar/baz.js
+[MultiremoteBrowser (unknown) #0-0] Running: MultiremoteBrowser on (unknown)
+[MultiremoteBrowser (unknown) #0-0]
+[MultiremoteBrowser (unknown) #0-0] Foo test
+[MultiremoteBrowser (unknown) #0-0]    green ✓ foo
+[MultiremoteBrowser (unknown) #0-0]    green ✓ bar
+[MultiremoteBrowser (unknown) #0-0]
+[MultiremoteBrowser (unknown) #0-0] Bar test
+[MultiremoteBrowser (unknown) #0-0]    green ✓ some test
+[MultiremoteBrowser (unknown) #0-0]    red ✖ a failed test
+[MultiremoteBrowser (unknown) #0-0]    red ✖ a failed test with no stack
+[MultiremoteBrowser (unknown) #0-0]
+[MultiremoteBrowser (unknown) #0-0] Baz test
+[MultiremoteBrowser (unknown) #0-0]    green ✓ foo bar baz
+[MultiremoteBrowser (unknown) #0-0]    cyan - a skipped test
+[MultiremoteBrowser (unknown) #0-0]
+[MultiremoteBrowser (unknown) #0-0] green 4 passing (5s)
+[MultiremoteBrowser (unknown) #0-0] red 1 failing
+[MultiremoteBrowser (unknown) #0-0] cyan 1 skipped
+[MultiremoteBrowser (unknown) #0-0]
+[MultiremoteBrowser (unknown) #0-0] 1) Bar test a failed test
+[MultiremoteBrowser (unknown) #0-0] red expected foo to equal bar
+[MultiremoteBrowser (unknown) #0-0] gray Failed test stack trace
+[MultiremoteBrowser (unknown) #0-0]
+[MultiremoteBrowser (unknown) #0-0] 2) Bar test a failed test with no stack
+[MultiremoteBrowser (unknown) #0-0] red expected foo to equal bar
+[MultiremoteBrowser (unknown) #0-0]
+[MultiremoteBrowser (unknown) #0-0] Check out browserA job at https://app.saucelabs.com/tests/foobar
+[MultiremoteBrowser (unknown) #0-0] Check out browserB job at https://app.saucelabs.com/tests/barfoo
 ",
   ],
 ]
@@ -100,35 +100,35 @@ exports[`SpecReporter printReport with normal setup should print link to SauceLa
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum #0-0] Spec: /foo/bar/baz.js
-[loremipsum #0-0] Running: loremipsum
-[loremipsum #0-0] Session ID: foobar
-[loremipsum #0-0]
-[loremipsum #0-0] Foo test
-[loremipsum #0-0]    green ✓ foo
-[loremipsum #0-0]    green ✓ bar
-[loremipsum #0-0]
-[loremipsum #0-0] Bar test
-[loremipsum #0-0]    green ✓ some test
-[loremipsum #0-0]    red ✖ a failed test
-[loremipsum #0-0]    red ✖ a failed test with no stack
-[loremipsum #0-0]
-[loremipsum #0-0] Baz test
-[loremipsum #0-0]    green ✓ foo bar baz
-[loremipsum #0-0]    cyan - a skipped test
-[loremipsum #0-0]
-[loremipsum #0-0] green 4 passing (5s)
-[loremipsum #0-0] red 1 failing
-[loremipsum #0-0] cyan 1 skipped
-[loremipsum #0-0]
-[loremipsum #0-0] 1) Bar test a failed test
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0] gray Failed test stack trace
-[loremipsum #0-0]
-[loremipsum #0-0] 2) Bar test a failed test with no stack
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Baz test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
+[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
+[loremipsum 50 Windows 10 #0-0] red 1 failing
+[loremipsum 50 Windows 10 #0-0] cyan 1 skipped
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 ",
   ],
 ]
@@ -138,35 +138,35 @@ exports[`SpecReporter printReport with normal setup should print link to SauceLa
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum #0-0] Spec: /foo/bar/baz.js
-[loremipsum #0-0] Running: loremipsum
-[loremipsum #0-0] Session ID: foobar
-[loremipsum #0-0]
-[loremipsum #0-0] Foo test
-[loremipsum #0-0]    green ✓ foo
-[loremipsum #0-0]    green ✓ bar
-[loremipsum #0-0]
-[loremipsum #0-0] Bar test
-[loremipsum #0-0]    green ✓ some test
-[loremipsum #0-0]    red ✖ a failed test
-[loremipsum #0-0]    red ✖ a failed test with no stack
-[loremipsum #0-0]
-[loremipsum #0-0] Baz test
-[loremipsum #0-0]    green ✓ foo bar baz
-[loremipsum #0-0]    cyan - a skipped test
-[loremipsum #0-0]
-[loremipsum #0-0] green 4 passing (5s)
-[loremipsum #0-0] red 1 failing
-[loremipsum #0-0] cyan 1 skipped
-[loremipsum #0-0]
-[loremipsum #0-0] 1) Bar test a failed test
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0] gray Failed test stack trace
-[loremipsum #0-0]
-[loremipsum #0-0] 2) Bar test a failed test with no stack
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Baz test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
+[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
+[loremipsum 50 Windows 10 #0-0] red 1 failing
+[loremipsum 50 Windows 10 #0-0] cyan 1 skipped
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 ",
   ],
 ]
@@ -176,68 +176,68 @@ exports[`SpecReporter printReport with normal setup should print link to SauceLa
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum #0-0] Spec: /foo/bar/baz.js
-[loremipsum #0-0] Running: loremipsum
-[loremipsum #0-0] Session ID: foobar
-[loremipsum #0-0]
-[loremipsum #0-0] Foo test
-[loremipsum #0-0]    green ✓ foo
-[loremipsum #0-0]    green ✓ bar
-[loremipsum #0-0]
-[loremipsum #0-0] Bar test
-[loremipsum #0-0]    green ✓ some test
-[loremipsum #0-0]    red ✖ a failed test
-[loremipsum #0-0]    red ✖ a failed test with no stack
-[loremipsum #0-0]
-[loremipsum #0-0] Baz test
-[loremipsum #0-0]    green ✓ foo bar baz
-[loremipsum #0-0]    cyan - a skipped test
-[loremipsum #0-0]
-[loremipsum #0-0] green 4 passing (5s)
-[loremipsum #0-0] red 1 failing
-[loremipsum #0-0] cyan 1 skipped
-[loremipsum #0-0]
-[loremipsum #0-0] 1) Bar test a failed test
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0] gray Failed test stack trace
-[loremipsum #0-0]
-[loremipsum #0-0] 2) Bar test a failed test with no stack
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Baz test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
+[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
+[loremipsum 50 Windows 10 #0-0] red 1 failing
+[loremipsum 50 Windows 10 #0-0] cyan 1 skipped
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 ",
   ],
   Array [
     "------------------------------------------------------------------
-[loremipsum #0-0] Spec: /foo/bar/baz.js
-[loremipsum #0-0] Running: loremipsum
-[loremipsum #0-0] Session ID: foobar
-[loremipsum #0-0]
-[loremipsum #0-0] Foo test
-[loremipsum #0-0]    green ✓ foo
-[loremipsum #0-0]    green ✓ bar
-[loremipsum #0-0]
-[loremipsum #0-0] Bar test
-[loremipsum #0-0]    green ✓ some test
-[loremipsum #0-0]    red ✖ a failed test
-[loremipsum #0-0]    red ✖ a failed test with no stack
-[loremipsum #0-0]
-[loremipsum #0-0] Baz test
-[loremipsum #0-0]    green ✓ foo bar baz
-[loremipsum #0-0]    cyan - a skipped test
-[loremipsum #0-0]
-[loremipsum #0-0] green 4 passing (5s)
-[loremipsum #0-0] red 1 failing
-[loremipsum #0-0] cyan 1 skipped
-[loremipsum #0-0]
-[loremipsum #0-0] 1) Bar test a failed test
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0] gray Failed test stack trace
-[loremipsum #0-0]
-[loremipsum #0-0] 2) Bar test a failed test with no stack
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.us-east-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Baz test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
+[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
+[loremipsum 50 Windows 10 #0-0] red 1 failing
+[loremipsum 50 Windows 10 #0-0] cyan 1 skipped
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.us-east-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 ",
   ],
 ]
@@ -247,35 +247,35 @@ exports[`SpecReporter printReport with normal setup should print link to SauceLa
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum #0-0] Spec: /foo/bar/baz.js
-[loremipsum #0-0] Running: loremipsum
-[loremipsum #0-0] Session ID: foobar
-[loremipsum #0-0]
-[loremipsum #0-0] Foo test
-[loremipsum #0-0]    green ✓ foo
-[loremipsum #0-0]    green ✓ bar
-[loremipsum #0-0]
-[loremipsum #0-0] Bar test
-[loremipsum #0-0]    green ✓ some test
-[loremipsum #0-0]    red ✖ a failed test
-[loremipsum #0-0]    red ✖ a failed test with no stack
-[loremipsum #0-0]
-[loremipsum #0-0] Baz test
-[loremipsum #0-0]    green ✓ foo bar baz
-[loremipsum #0-0]    cyan - a skipped test
-[loremipsum #0-0]
-[loremipsum #0-0] green 4 passing (5s)
-[loremipsum #0-0] red 1 failing
-[loremipsum #0-0] cyan 1 skipped
-[loremipsum #0-0]
-[loremipsum #0-0] 1) Bar test a failed test
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0] gray Failed test stack trace
-[loremipsum #0-0]
-[loremipsum #0-0] 2) Bar test a failed test with no stack
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Baz test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
+[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
+[loremipsum 50 Windows 10 #0-0] red 1 failing
+[loremipsum 50 Windows 10 #0-0] cyan 1 skipped
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 ",
   ],
 ]
@@ -285,35 +285,35 @@ exports[`SpecReporter printReport with normal setup should print link to SauceLa
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum #0-0] Spec: /foo/bar/baz.js
-[loremipsum #0-0] Running: loremipsum
-[loremipsum #0-0] Session ID: foobar
-[loremipsum #0-0]
-[loremipsum #0-0] Foo test
-[loremipsum #0-0]    green ✓ foo
-[loremipsum #0-0]    green ✓ bar
-[loremipsum #0-0]
-[loremipsum #0-0] Bar test
-[loremipsum #0-0]    green ✓ some test
-[loremipsum #0-0]    red ✖ a failed test
-[loremipsum #0-0]    red ✖ a failed test with no stack
-[loremipsum #0-0]
-[loremipsum #0-0] Baz test
-[loremipsum #0-0]    green ✓ foo bar baz
-[loremipsum #0-0]    cyan - a skipped test
-[loremipsum #0-0]
-[loremipsum #0-0] green 4 passing (5s)
-[loremipsum #0-0] red 1 failing
-[loremipsum #0-0] cyan 1 skipped
-[loremipsum #0-0]
-[loremipsum #0-0] 1) Bar test a failed test
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0] gray Failed test stack trace
-[loremipsum #0-0]
-[loremipsum #0-0] 2) Bar test a failed test with no stack
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Baz test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
+[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
+[loremipsum 50 Windows 10 #0-0] red 1 failing
+[loremipsum 50 Windows 10 #0-0] cyan 1 skipped
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 ",
   ],
 ]
@@ -323,35 +323,35 @@ exports[`SpecReporter printReport with normal setup should print link to SauceLa
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum #0-0] Spec: /foo/bar/baz.js
-[loremipsum #0-0] Running: loremipsum
-[loremipsum #0-0] Session ID: foobar
-[loremipsum #0-0]
-[loremipsum #0-0] Foo test
-[loremipsum #0-0]    green ✓ foo
-[loremipsum #0-0]    green ✓ bar
-[loremipsum #0-0]
-[loremipsum #0-0] Bar test
-[loremipsum #0-0]    green ✓ some test
-[loremipsum #0-0]    red ✖ a failed test
-[loremipsum #0-0]    red ✖ a failed test with no stack
-[loremipsum #0-0]
-[loremipsum #0-0] Baz test
-[loremipsum #0-0]    green ✓ foo bar baz
-[loremipsum #0-0]    cyan - a skipped test
-[loremipsum #0-0]
-[loremipsum #0-0] green 4 passing (5s)
-[loremipsum #0-0] red 1 failing
-[loremipsum #0-0] cyan 1 skipped
-[loremipsum #0-0]
-[loremipsum #0-0] 1) Bar test a failed test
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0] gray Failed test stack trace
-[loremipsum #0-0]
-[loremipsum #0-0] 2) Bar test a failed test with no stack
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0]
-[loremipsum #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Baz test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
+[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
+[loremipsum 50 Windows 10 #0-0] red 1 failing
+[loremipsum 50 Windows 10 #0-0] cyan 1 skipped
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
 ",
   ],
 ]
@@ -361,33 +361,33 @@ exports[`SpecReporter printReport with normal setup should print the report to t
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum #0-0] Spec: /foo/bar/baz.js
-[loremipsum #0-0] Running: loremipsum
-[loremipsum #0-0] Session ID: foobar
-[loremipsum #0-0]
-[loremipsum #0-0] Foo test
-[loremipsum #0-0]    green ✓ foo
-[loremipsum #0-0]    green ✓ bar
-[loremipsum #0-0]
-[loremipsum #0-0] Bar test
-[loremipsum #0-0]    green ✓ some test
-[loremipsum #0-0]    red ✖ a failed test
-[loremipsum #0-0]    red ✖ a failed test with no stack
-[loremipsum #0-0]
-[loremipsum #0-0] Baz test
-[loremipsum #0-0]    green ✓ foo bar baz
-[loremipsum #0-0]    cyan - a skipped test
-[loremipsum #0-0]
-[loremipsum #0-0] green 4 passing (5s)
-[loremipsum #0-0] red 1 failing
-[loremipsum #0-0] cyan 1 skipped
-[loremipsum #0-0]
-[loremipsum #0-0] 1) Bar test a failed test
-[loremipsum #0-0] red expected foo to equal bar
-[loremipsum #0-0] gray Failed test stack trace
-[loremipsum #0-0]
-[loremipsum #0-0] 2) Bar test a failed test with no stack
-[loremipsum #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] Baz test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
+[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
+[loremipsum 50 Windows 10 #0-0] red 1 failing
+[loremipsum 50 Windows 10 #0-0] cyan 1 skipped
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 ",
   ],
 ]
