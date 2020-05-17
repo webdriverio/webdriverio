@@ -17,6 +17,31 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.12 (2020-05-17)
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#5390](https://github.com/webdriverio/webdriverio/pull/5390) Fix browser version in spec reporter ([@unickq](https://github.com/unickq))
+
+#### :memo: Documentation
+* Other
+  * [#5403](https://github.com/webdriverio/webdriverio/pull/5403) Docs: Update TypeScript.md ([@osmolyar](https://github.com/osmolyar))
+  * [#5402](https://github.com/webdriverio/webdriverio/pull/5402) Fix class syntax in CustomServices.md ([@pmdartus](https://github.com/pmdartus))
+  * [#5397](https://github.com/webdriverio/webdriverio/pull/5397) Update typescript configuration for jasmine ([@woolter](https://github.com/woolter))
+  * [#5393](https://github.com/webdriverio/webdriverio/pull/5393) Adding boilerplate Project for wdio-V6 perfecto ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-allure-reporter`
+  * [#5391](https://github.com/webdriverio/webdriverio/pull/5391) Update README.md of wdio-allure-reporter ([@goatsy](https://github.com/goatsy))
+
+#### Committers: 7
+- Nick ([@unickq](https://github.com/unickq))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+- Pierre-Marie Dartus ([@pmdartus](https://github.com/pmdartus))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- Walter Hector Lijo ([@woolter](https://github.com/woolter))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@goatsy](https://github.com/goatsy)
+
+
 ## v6.1.11 (2020-05-11)
 
 #### :eyeglasses: Spec Compliancy
