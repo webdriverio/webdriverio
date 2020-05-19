@@ -5,7 +5,7 @@ declare namespace WDIOReporter {
     class Reporter {
         constructor (options: Options);
 
-        onRunnerStart(): void;
+        onRunnerStart(runner: any): void;
         onBeforeCommand(command: BeforeCommand): void;
         onAfterCommand(command: AfterCommand): void;
         onScreenshot(): void;
@@ -18,7 +18,7 @@ declare namespace WDIOReporter {
         onTestSkip(test: Test): void;
         onTestEnd(test: Test): void;
         onSuiteEnd(suite: Suite): void;
-        onRunnerEnd(): void;
+        onRunnerEnd(runner: any): void;
 
         isSynchronised: boolean;
 

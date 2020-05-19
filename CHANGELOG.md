@@ -17,6 +17,73 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.12 (2020-05-17)
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#5390](https://github.com/webdriverio/webdriverio/pull/5390) Fix browser version in spec reporter ([@unickq](https://github.com/unickq))
+
+#### :memo: Documentation
+* Other
+  * [#5403](https://github.com/webdriverio/webdriverio/pull/5403) Docs: Update TypeScript.md ([@osmolyar](https://github.com/osmolyar))
+  * [#5402](https://github.com/webdriverio/webdriverio/pull/5402) Fix class syntax in CustomServices.md ([@pmdartus](https://github.com/pmdartus))
+  * [#5397](https://github.com/webdriverio/webdriverio/pull/5397) Update typescript configuration for jasmine ([@woolter](https://github.com/woolter))
+  * [#5393](https://github.com/webdriverio/webdriverio/pull/5393) Adding boilerplate Project for wdio-V6 perfecto ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-allure-reporter`
+  * [#5391](https://github.com/webdriverio/webdriverio/pull/5391) Update README.md of wdio-allure-reporter ([@goatsy](https://github.com/goatsy))
+
+#### Committers: 7
+- Nick ([@unickq](https://github.com/unickq))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+- Pierre-Marie Dartus ([@pmdartus](https://github.com/pmdartus))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- Walter Hector Lijo ([@woolter](https://github.com/woolter))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@goatsy](https://github.com/goatsy)
+
+
+## v6.1.11 (2020-05-11)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#5377](https://github.com/webdriverio/webdriverio/pull/5377) wdio-protocolse: add api for appium image comparison features  (#5372) ([@sanlengjingvv](https://github.com/sanlengjingvv))
+
+#### Committers: 1
+- [@sanlengjingvv](https://github.com/sanlengjingvv)
+
+
+## v6.1.10 (2020-05-08)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#5271](https://github.com/webdriverio/webdriverio/pull/5271) Rework Browserstack service, improve Cucumber integration ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :memo: Documentation
+* `wdio-devtools-service`
+  * [#5375](https://github.com/webdriverio/webdriverio/pull/5375) Add docs to Tidelift subscription ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+
+## v6.1.9 (2020-05-06)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5350](https://github.com/webdriverio/webdriverio/pull/5350) devtools package: fix switchToFrame function ([@takeya0x86](https://github.com/takeya0x86))
+  * [#5369](https://github.com/webdriverio/webdriverio/pull/5369) devtools: fix import of devices ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### :memo: Documentation
+* `wdio-reporter`
+  * [#5365](https://github.com/webdriverio/webdriverio/pull/5365) Fix types of reporters runner hooks ([@pako88](https://github.com/pako88))
+
+#### Committers: 3
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Pascal König ([@pako88](https://github.com/pako88))
+- Takeshi Kishi ([@takeya0x86](https://github.com/takeya0x86))
+
+
 ## v6.1.8 (2020-05-05)
 
 #### :nail_care: Polish

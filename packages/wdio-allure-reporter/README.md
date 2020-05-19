@@ -118,8 +118,8 @@ Install and configure the [Allure Jenkins plugin](https://docs.qameta.io/allure#
 Screenshots can be attached to the report by using the `takeScreenshot` function from WebDriverIO in afterStep hook.
 First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook
 ```js
-afterTest: function(test) {
-    if (test.error !== undefined) {
+afterTest: function (test, context, { error, result, duration, passed, retries }) {
+    if (error !== undefined) {
       browser.takeScreenshot();
     }
   }

@@ -34,7 +34,7 @@ exports.config = {
 exports.config = {
     // ...
     jasmineNodeOpts: {
-        requires: ['ts-node/register']
+        requires: ['ts-node/register', 'tsconfig-paths/register']
     },
     // ...
 }
@@ -93,7 +93,7 @@ You can even use a typed configuration if you desire.
 All you have to do is create a plain JS config file that registers TypeScript and requires the typed config:
 
 ```javascript
-require('ts-node/register')
+require('ts-node').register({ files: true })
 module.exports = require('./wdio.conf')
 ```
 

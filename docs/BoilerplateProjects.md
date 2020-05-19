@@ -97,6 +97,19 @@ A WebdriverIO & Cucumber Boilerplate based on Page Object Model!
     - Embeds screenshots on failure
     - Integrated with [wdio-cucumber-parallel-execution](https://www.npmjs.com/package/wdio-cucumber-parallel-execution) module for parallel execution
     
+### [tamil777selvan/wdioV6-Perfecto-Boilerplate](https://github.com/tamil777selvan/wdioV6-Perfecto-Boilerplate.git)
+
+Boilerplate project to run WebdriverIO tests in Perfecto Cloud ([https://www.perfecto.io/]()) using Cucumber features, and the page objects pattern.
+
+- Frameworks:
+    - webdriverIO (v6)
+    - cucumber (v6)
+    
+- Features:
+    - Cloud integration with [Perfecto](https://www.perfecto.io/)
+    - Supports Page Object Model
+    - Contains sample Scenarios written in Declarative style of BDD
+
 ----
 
 ## v5 Boilerplate Projects

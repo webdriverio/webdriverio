@@ -6,10 +6,18 @@ import { BROWSER_DESCRIPTION } from './constants'
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService {
-    constructor (options, caps, config) {
+    constructor (options = {}, caps, config) {
         this.config = config
-        this.failures = 0
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
+        this.failReasons = []
+
+        // Cucumber specific
+        this.scenariosThatRan = []
+        this.preferScenarioName = Boolean(options.preferScenarioName)
+        this.strict = Boolean(config.cucumberOpts && config.cucumberOpts.strict)
+        // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
+        this.failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown']
+        this.strict && this.failureStatuses.push('pending')
     }
 
     /**
@@ -36,16 +44,24 @@ export default class BrowserstackService {
             this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
 
+        this.scenariosThatRan = []
+
         return this._printSessionURL()
     }
 
-    afterSuite(suite) {
-        if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
-            this.failures++
-        }
+    beforeSuite (suite) {
+        this.fullTitle = suite.title
+        this._update(this.sessionId, { name: this.fullTitle })
+    }
+
+    beforeFeature(uri, feature) {
+        this.fullTitle = feature.document.feature.name
+        this._update(this.sessionId, { name: this.fullTitle })
     }
 
     afterTest(test, context, results) {
+        const { error, passed } = results
+
         this.fullTitle = (
             /**
              * Jasmine
@@ -57,32 +73,59 @@ export default class BrowserstackService {
             `${test.parent} - ${test.title}`
         )
 
-        if (!results.passed) {
-            this.failures++
-            this.failReason = (test.error && test.error.message ? test.error.message : 'Unknown Error')
+        if (!passed) {
+            this.failReasons.push((error && error.message) || 'Unknown Error')
         }
     }
 
-    after() {
-        return this._update(this.sessionId, this._getBody())
+    after(result) {
+        // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
+        // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
+        if(this.preferScenarioName && this.scenariosThatRan.length === 1){
+            this.fullTitle = this.scenariosThatRan.pop()
+        }
+
+        const hasReasons = Boolean(this.failReasons.filter(Boolean).length)
+
+        return this._update(this.sessionId, {
+            status: result === 0 ? 'passed' : 'failed',
+            name: this.fullTitle,
+            reason: hasReasons ? this.failReasons.join('\n') : undefined
+        })
     }
 
     /**
      * For CucumberJS
      */
 
-    afterScenario(uri, feature, pickle, result) {
-        if (result.status === 'failed') {
-            ++this.failures
+    afterScenario(uri, feature, pickle, results) {
+        let { exception, status } = results
+
+        if (status !== 'skipped') {
+            this.scenariosThatRan.push(pickle.name)
+        }
+
+        if (this.failureStatuses.includes(status)) {
+            exception = exception || (status === 'pending'
+                ? `Some steps/hooks are pending for scenario "${pickle.name}"`
+                : 'Unknown Error')
+
+            this.failReasons.push(exception)
         }
     }
 
     async onReload(oldSessionId, newSessionId) {
+        const hasReasons = Boolean(this.failReasons.filter(Boolean).length)
+
         this.sessionId = newSessionId
-        await this._update(oldSessionId, this._getBody())
-        this.failures = 0
+        await this._update(oldSessionId, {
+            name: this.fullTitle,
+            status: hasReasons ? 'failed' : 'passed',
+            reason: hasReasons ? this.failReasons.join('\n') : undefined
+        })
+        this.scenariosThatRan = []
         delete this.fullTitle
-        delete this.failReason
+        this.failReasons = []
         this._printSessionURL()
     }
 
@@ -92,14 +135,6 @@ export default class BrowserstackService {
             username: this.config.user,
             password: this.config.key
         })
-    }
-
-    _getBody() {
-        return {
-            status: this.failures === 0 ? 'passed' : 'failed',
-            name: this.fullTitle,
-            reason: this.failReason
-        }
     }
 
     async _printSessionURL() {

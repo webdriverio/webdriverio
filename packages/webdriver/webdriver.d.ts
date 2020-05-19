@@ -1463,6 +1463,13 @@ declare namespace WebDriver {
          * https://github.com/appium/appium/blob/master/docs/en/commands/session/events/log-event.md
          */
         logEvent(vendor: string, event: string): void;
+
+        /**
+         * [appium]
+         * Performs images comparison using OpenCV framework features. It is expected that both OpenCV framework and opencv4nodejs module are installed on the machine where Appium server is running.
+         * http://appium.io/docs/en/writing-running-appium/image-comparison/
+         */
+        compareImages(mode: string, firstImage: string, secondImage: string, options: object): ProtocolCommandResponse;
     }
 
     // jsonwp types
