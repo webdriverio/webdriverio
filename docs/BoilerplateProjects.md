@@ -109,6 +109,23 @@ Boilerplate project to run WebdriverIO tests in Perfecto Cloud ([https://www.per
     - Cloud integration with [Perfecto](https://www.perfecto.io/)
     - Supports Page Object Model
     - Contains sample Scenarios written in Declarative style of BDD
+    
+### [pako88/wdio-mocha-typescript](https://github.com/pako88/wdio-mocha-typescript)
+Boilerplate with WebdriverIO v6, Mocha, TypeScript, ESLint
+
+- Frameworks
+  - WebdriverIO (v6)
+  - Mocha
+- Features
+  - Page Object Pattern
+  - TypeScript
+  - ESLint
+  - VSCode
+  - GitHub Actions
+  - Sauce Labs integration
+  - Chromedriver Config
+  - Devtools Config
+  - many example tests
 
 ----
 
