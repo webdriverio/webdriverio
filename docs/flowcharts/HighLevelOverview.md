@@ -4,7 +4,7 @@ title: High level overview
 ---
 Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
 <div id="flowChartGraphDivContainer"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.3/mermaid.min.js"></script>
+<script src="https://unpkg.com/mermaid@8.5.1/dist/mermaid.min.js"></script>
 <script src="/js/flowchart.js"></script>
 <script>
     var graphData = `
