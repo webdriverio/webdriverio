@@ -13,11 +13,11 @@ This flowchart provides a high level overview of the @wdio/cli run, repl, config
     </div>
     <div id="flowChartGraphDivContainer"></div>
 </div>
-<script src="https://unpkg.com/mermaid@8.4.3/dist/mermaid.min.js"></script>
+<script src="https://unpkg.com/mermaid@8.5.1/dist/mermaid.min.js"></script>
 <script src="/js/flowchart.js"></script>
 <script>
     var parseCLIARGS = `graph TD
-        STARTWDIO(Execute wdio or wdio run)-->
+        STARTWDIO[[Execute wdio or wdio run]]-->
         PARSECLIARGS[Parse CLI args]
         PARSECLIARGS-->HELPSWITCH["wdio command --help"]-->
         COMMANDINCLUDED{"Command<br>included?"}
@@ -33,15 +33,17 @@ This flowchart provides a high level overview of the @wdio/cli run, repl, config
         LAUNCHRUNNER[Launch test runner]
     `;
     var runRepl = `graph TD
-        LAUNCHTESTRUNNER2("Launch test runner by calling<br>the @wdio/cli:index run")-->
-        CALLRUNCMDHANDLER["Call @wdio/cli/commands:run launcher()"]-->
-        INSTANTIATELAUNCHER["Create @wdio/cli:launcher instance<br>1) Set log level<br>2) Worker count equals number<br>of specs * caps array length<br>3)Create a new runnner instance<br>using @wdio/utils:initialisePlugin<br>4. Create CLI Interface instance.<br>5. Setup interface job:start,<br>job:end event listeners"]-->
-        CALLLAUNCHERINSTANCERUN("Call @wdio/cli:launcher run()")-->
-        INITLAUNCHERINSTANCE["Create instance of all services<br>listed in the config services property."]-->
-        INIT["Run pre-test tasks for runner plugins<br>by calling the runner's initialise() method."]-->
-        CONFIGONPREPAREHOOK["Run the wdio.conf.js onPrepare hook"]-->
+        CALLRUN[["@wdio/cli:index run()"]]-->
+        LAUNCHTESTRUNNER2[Test runner is launched]-->
+        CALLRUNCMDHANDLER[["@wdio/cli/commands:run launcher()"]]-->
+        INSTANTIATELAUNCHER["Creates @wdio/cli:launcher instance<br>1) Set log level<br>2) Worker count equals number<br>of specs * caps array length<br>3)Create a new runnner instance<br>using @wdio/utils:initialisePlugin<br>4. Create CLI Interface instance.<br>5. Setup interface job:start,<br>job:end event listeners"]-->
+        CALLLAUNCHERINSTANCERUN[["@wdio/cli:launcher run()"]]-->
+        INITLAUNCHERINSTANCE["Create instance of all services<br>listed in the config services property."] -->
+        INIT[["Call the runner initialise() method"]]-->
+        RUNPRETSTTASKS["Run pre-test tasks for runner plugins"]-->
+        CONFIGONPREPAREHOOK[["wdio.conf.js onPrepare hook"]]-->
         SERVICESONPREPAREHOOK["Run the services onPrepare hook<br>e.g. start selenium server."]-->
-        RUNMODE["Call @wdio/cli:launcher runMode()."]-->
+        RUNMODE[["@wdio/cli:launcher runMode()"]]-->
         RUNMODEPROMISERESOLVED{"runMode() promise resolve?"}
         RUNMODEPROMISERESOLVED-->|No|SCHEDULE["In @wdio/cli:launcher runMode()<br>create a spec execution schedule."]-->
         RUNSPECS["Start test execution by calling<br>@wdio/cli:launcher runSpecs()."]-->
