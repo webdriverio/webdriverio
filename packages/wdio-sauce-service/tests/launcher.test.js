@@ -1,7 +1,18 @@
-import SauceConnectLauncher from 'sauce-connect-launcher-update'
 import logger from '@wdio/logger'
-
+import SauceLabs from 'saucelabs'
 import SauceServiceLauncher from '../src/launcher'
+
+jest.mock('saucelabs', () => {
+    return class SauceLabsMock {
+        static instances = []
+        constructor (options) {
+            this.options = options
+            this.stop = jest.fn()
+            this.startSauceConnect = jest.fn().mockReturnValue(this)
+            SauceLabsMock.instances.push(this)
+        }
+    }
+})
 
 const log = logger()
 
@@ -25,8 +36,9 @@ test('onPrepare', async () => {
     expect(caps).toEqual([{
         'sauce:options': { tunnelIdentifier: 'my-tunnel' }
     }])
+    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
     expect(service.sauceConnectProcess).not.toBeUndefined()
-    expect(SauceConnectLauncher).toBeCalled()
 })
 
 test('onPrepare w/o identifier', async () => {
@@ -38,13 +50,14 @@ test('onPrepare w/o identifier', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options)
+    const service = new SauceServiceLauncher(options, {}, config)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps[0]['sauce:options'].tunnelIdentifier).toContain('SC-tunnel-')
     expect(service.sauceConnectProcess).not.toBeUndefined()
-    expect(SauceConnectLauncher).toBeCalled()
+    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
     expect(log.info.mock.calls[0][0]).toContain('Sauce Connect successfully started after')
 })
 
@@ -70,20 +83,23 @@ test('onPrepare w/ SauceConnect w/o scRelay', async () => {
 
 test('onPrepare w/ SauceConnect w/ scRelay w/ default port', async () => {
     const options = {
-        sauceConnect: true,
         scRelay: true,
+        sauceConnect: true,
+        sauceConnectOpts: { tunnelIdentifier: 'test123' }
     }
     const caps = [{}]
-    const config = {
-        user: 'foobaruser',
-        key: '12345',
-        sauceConnect: true
-    }
+    const config = {}
     const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledWith({
+        noAutodetect: true,
+        sePort: 4445,
+        tunnelIdentifier: 'test123',
+    })
     expect(caps[0].port).toEqual(4445)
 })
 
@@ -95,33 +111,15 @@ test('onPrepare w/ SauceConnect w/ region EU', async () => {
     const config = {
         user: 'foobaruser',
         key: '12345',
-        region: 'eu',
-        sauceConnect: true
+        region: 'eu'
     }
-    const service = new SauceServiceLauncher(options)
+    const service = new SauceServiceLauncher(options, caps, config)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(service.sauceConnectProcess).not.toBeUndefined()
-    expect(service.sauceConnectOpts['-x']).toContain('https://eu-central-1.saucelabs.com/rest/v1')
-})
-
-test('onPrepare w/ SauceConnect w/ default region', async () => {
-    const options = {
-        sauceConnect: true
-    }
-    const caps = [{}]
-    const config = {
-        user: 'foobaruser',
-        key: '12345',
-        sauceConnect: true
-    }
-    const service = new SauceServiceLauncher(options)
-    expect(service.sauceConnectProcess).toBeUndefined()
-    await service.onPrepare(config, caps)
-
-    expect(service.sauceConnectProcess).not.toBeUndefined()
-    expect(service.sauceConnectOpts['-x']).toBeUndefined()
+    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.instances[0].options.region).toBe('eu')
 })
 
 test('onPrepare multiremote', async () => {
@@ -184,13 +182,14 @@ test('onPrepare if sauceTunnel is not set', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options)
+    const service = new SauceServiceLauncher(options, caps, config)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual([{}])
     expect(service.sauceConnectProcess).toBeUndefined()
-    expect(SauceConnectLauncher).not.toBeCalled()
+    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(0)
 })
 
 test('onPrepare multiremote with tunnel identifier and with w3c caps ', async () => {
@@ -377,5 +376,5 @@ test('onComplete', async () => {
 })
 
 afterEach(async () => {
-    SauceConnectLauncher.mockClear()
+    SauceLabs.instances = []
 })
