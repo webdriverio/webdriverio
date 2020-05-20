@@ -4,12 +4,12 @@ title: Create worker process
 ---
 This flowchart explains how a worker process is created.
 <div id="flowChartGraphDivContainer"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.3/mermaid.min.js"></script>
+<script src="https://unpkg.com/mermaid@8.5.1/dist/mermaid.min.js"></script>
 <script src="/js/flowchart.js"></script>
 <script>
     var startTestInstance = `
     graph TD
-        STARTINSTANCE("Call @wdio/cli:launcher startInstance()")-->
+        STARTINSTANCE[["@wdio/cli:launcher startInstance()"]]-->
         CALLRUNNERRUNMETHOD["Call @wdio/local-runner:index.js run()<br>return @wdio/local-runner:worker instance"]-->
         ADDLISTENERS["Add message, error, exit event<br>listeners to worker instance."]-->
         CALLPOSTMESSAGE["Call @wdio/local-runner:worker postMessage().<br>If an instance is not created, call startProcess()<br>and fork a child process."]-->

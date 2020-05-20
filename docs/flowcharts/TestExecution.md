@@ -4,13 +4,13 @@ title: Test Execution
 ---
 This flowchart explains the test execution process and the interaction between @wdio/runner and the most of the other WebdriverIO packages.
 <div id="flowChartGraphDivContainer"></div>
-<script src="https://unpkg.com/mermaid@8.4.3/dist/mermaid.min.js"></script>
+<script src="https://unpkg.com/mermaid@8.5.1/dist/mermaid.min.js"></script>
 <script src="/js/flowchart.js"></script>
 <script>
     var setupTest = `
     graph TD
         START("@wdio/runner:index called from<br>child process via a run message.")-->
-        EXECUTERUN["Execute @wdio/runner:index run()."]-->
+        EXECUTERUN[["@wdio/runner:index run()"]]-->
         SETUPREPORTER["Initialise BaseReporter object which creates a new<br>@wdio/runner reporter instance.All reporters listed<br>in the wdio.conf.js reporters property are initialised."]-->
         INITTESTFRAMEWORK["Test framework from the wdio.conf. js property is<br>initialised usingthe @wdio/utils initialisePlugin method.<br> <br>Supported frameworks include @wdio/mocha-framework,<br>@wdio/cucumber-framework and @wdio/jasmine-framework."]-->
         INITSERVICES["Initialise services"]-->
