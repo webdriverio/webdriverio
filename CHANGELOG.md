@@ -17,6 +17,27 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.13 (2020-05-23)
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#5417](https://github.com/webdriverio/webdriverio/pull/5417) Update SauceLabs package and remove sauce-connect-launcher ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cucumber-framework`
+  * [#5422](https://github.com/webdriverio/webdriverio/pull/5422) update cucumber version in readme ([@tejasv02](https://github.com/tejasv02))
+* Other
+  * [#5421](https://github.com/webdriverio/webdriverio/pull/5421) Added subrountine shapes where applicable ([@jdavis61](https://github.com/jdavis61))
+  * [#5420](https://github.com/webdriverio/webdriverio/pull/5420) add new boilerplate project ([@pako88](https://github.com/pako88))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- James Davis ([@jdavis61](https://github.com/jdavis61))
+- Pascal König ([@pako88](https://github.com/pako88))
+- Tejasvi Manmatha ([@tejasv02](https://github.com/tejasv02))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.12 (2020-05-17)
 
 #### :nail_care: Polish
