@@ -195,6 +195,11 @@ declare namespace WebdriverIO {
         y?: number
     }
 
+    type DragAndDropCoordinate = {
+        x: number,
+        y: number
+    }
+
     interface Element {
         selector: string;
         elementId: string;
@@ -300,7 +305,7 @@ declare namespace WebdriverIO {
          * Drag an item to a destination element.
          */
         dragAndDrop(
-            target: Element,
+            target: Element | DragAndDropCoordinate,
             duration?: number
         ): void;
 

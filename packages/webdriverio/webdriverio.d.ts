@@ -72,6 +72,10 @@ declare namespace WebdriverIOAsync {
     interface TouchAction extends TouchActionSync {
         element?: Element
     }
+    type DragAndDropCoordinate = {
+        x: number,
+        y: number
+    }
     type TouchActions = string | TouchAction | TouchAction[];
     interface Browser extends BrowserAsync, BrowserStatic {
         waitUntil(
@@ -95,7 +99,7 @@ declare namespace WebdriverIOAsync {
     }
 
     interface Element extends ElementAsync, ElementStatic {
-        dragAndDrop(target: Element, duration?: number): Promise<void>;
+        dragAndDrop(target: Element | DragAndDropCoordinate, duration?: number): Promise<void>;
         touchAction(action: TouchActions): Promise<void>;
     }
     interface ElementArray extends Array<Element> {
