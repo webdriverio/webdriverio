@@ -364,6 +364,7 @@ declare namespace WebDriver {
             [name: string]: string;
         },
         capabilities?: DesiredCapabilities;
+        requestedCapabilities?: DesiredCapabilities;
         logLevel?: WebDriverLogTypes;
         logOutput?: string | NodeJS.WritableStream
         connectionRetryTimeout?: number;
@@ -401,13 +402,8 @@ declare namespace WebDriver {
     ): Promise<Client>;
 
     interface ClientOptions {
-        capabilities: DesiredCapabilities;
         isW3C: boolean;
         isChrome: boolean;
-        isAndroid: boolean;
-        isMobile: boolean;
-        isIOS: boolean;
-        sessionId: string;
     }
 
     // object with no match
@@ -459,9 +455,28 @@ declare namespace WebDriver {
         mjpegScalingFactor?: number,
     }
 
+    interface BaseClient {
+        // id of WebDriver session
+        sessionId: string;
+        // assigned capabilities by the browser driver / WebDriver server
+        capabilities: DesiredCapabilities;
+        // original requested capabilities
+        requestedCapabilities: DesiredCapabilities;
+
+        /**
+         * browser flags
+         */
+        // true if session runs on a mobile device
+        isMobile: boolean;
+        // true if mobile session runs on iOS
+        isIOS: boolean;
+        // true if mobile session runs on Android
+        isAndroid: boolean;
+    }
+
     // generated typings
         // webdriver types
-    interface Client {
+    interface Client extends BaseClient {
 
         /**
          * [webdriver]
@@ -857,7 +872,7 @@ declare namespace WebDriver {
     }
 
     // appium types
-    interface Client {
+    interface Client extends BaseClient {
 
         /**
          * [appium]
@@ -1295,7 +1310,7 @@ declare namespace WebDriver {
     }
 
     // jsonwp types
-    interface Client {
+    interface Client extends BaseClient {
 
         /**
          * [jsonwp]
@@ -1964,7 +1979,7 @@ declare namespace WebDriver {
     }
 
     // mjsonwp types
-    interface Client {
+    interface Client extends BaseClient {
 
         /**
          * [mjsonwp]
@@ -2031,7 +2046,7 @@ declare namespace WebDriver {
     }
 
     // chromium types
-    interface Client {
+    interface Client extends BaseClient {
 
         /**
          * [chromium]
@@ -2203,7 +2218,7 @@ declare namespace WebDriver {
     }
 
     // saucelabs types
-    interface Client {
+    interface Client extends BaseClient {
 
         /**
          * [saucelabs]
@@ -2249,7 +2264,7 @@ declare namespace WebDriver {
     }
 
     // selenium types
-    interface Client {
+    interface Client extends BaseClient {
 
         /**
          * [selenium]
@@ -2288,11 +2303,11 @@ declare namespace WebDriver {
     }
 
 
-    interface ClientAsync extends AsyncClient { }
+    interface ClientAsync extends AsyncClient, BaseClient { }
 }
 
 type AsyncClient = {
-    [K in keyof WebDriver.Client]:
+    [K in keyof Pick<WebDriver.Client, Exclude<keyof WebDriver.Client, keyof WebDriver.BaseClient>>]:
     (...args: Parameters<WebDriver.Client[K]>) => Promise<ReturnType<WebDriver.Client[K]>>;
 }
 

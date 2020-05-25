@@ -25,6 +25,12 @@ export default class DevTools {
         const sessionId = uuidv4()
         const [browserName, browserVersion] = (await browser.version()).split('/')
 
+        /**
+         * save original set of capabilities to allow to request the same session again
+         * (e.g. for reloadSession command in WebdriverIO)
+         */
+        params.requestedCapabilities = { ...params.capabilities }
+
         params.capabilities = {
             browserName,
             browserVersion,
@@ -34,15 +40,6 @@ export default class DevTools {
                 { debuggerAddress: browser._connection.url().split('/')[2] },
                 params.capabilities['goog:chromeOptions']
             )
-        }
-
-        /**
-         * save original set of capabilities to allow to request the same session again
-         * (e.g. for reloadSession command in WebdriverIO)
-         */
-        params.requestedCapabilities = {
-            w3cCaps: params.capabilities,
-            jsonwpCaps: params.capabilities
         }
 
         sessionMap.set(sessionId, { browser, session: driver })
@@ -60,8 +57,7 @@ export default class DevTools {
 
     static async reloadSession (instance) {
         const { session } = sessionMap.get(instance.sessionId)
-        const { w3cCaps } = instance.options.requestedCapabilities
-        const browser = await launch(w3cCaps)
+        const browser = await launch(instance.requestedCapabilities)
         const pages = await browser.pages()
 
         session.elementStore.clear()

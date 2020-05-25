@@ -2,7 +2,7 @@
 /// <reference types="webdriver"/>
 
 declare namespace WebDriver {
-    interface ClientOptions {
+    interface ClientOptions extends WebDriver.BaseClient {
         isDevTools: boolean;
         getPuppeteer: (...args: any[]) => any;
     }

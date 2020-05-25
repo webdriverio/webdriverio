@@ -36,7 +36,7 @@ declare namespace WebdriverIO {
         executeAsync: (script: string | ((...arguments: any[]) => void), ...arguments: any[]) => any;
     }
 
-    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.Client, WebdriverIO.Browser { }
+    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.BaseClient, WebDriver.Client, WebdriverIO.Browser { }
 }
 
 declare var browser: WebdriverIO.BrowserObject;

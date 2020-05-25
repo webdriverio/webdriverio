@@ -68,6 +68,14 @@ describe('WebDriver', () => {
 
             expect(logger.setLevel).toBeCalled()
         })
+
+        it('propagates capabilities and requestedCapabilities', async () => {
+            const browser = await WebDriver.newSession({
+                capabilities: { browserName: 'firefox' }
+            })
+            expect(browser.capabilities.browserName).toBe('mockBrowser')
+            expect(browser.requestedCapabilities.browserName).toBe('firefox')
+        })
     })
 
     describe('attachToSession', () => {

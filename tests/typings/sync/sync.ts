@@ -106,6 +106,14 @@ ele.dragAndDrop({ x: 1, y: 2 })
 // addLocatorStrategy
 browser.addLocatorStrategy('myStrat', () => {})
 
+// test access to base client properties
+browser.sessionId
+browser.capabilities.browserName
+browser.requestedCapabilities.browserName
+browser.isMobile
+browser.isAndroid
+browser.isIOS
+
 // selenium-standalone-service
 const config: WebdriverIO.Config = {
     skipSeleniumInstall: true

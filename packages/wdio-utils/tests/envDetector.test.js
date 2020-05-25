@@ -22,14 +22,14 @@ describe('sessionEnvironmentDetector', () => {
     const standaloneCaps = seleniumstandaloneResponse.value
 
     it('isMobile', () => {
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         expect(sessionEnvironmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isMobile).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isMobile).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isMobile).toBe(false)
     })
 
     it('isW3C', () => {
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(true)
@@ -42,7 +42,7 @@ describe('sessionEnvironmentDetector', () => {
     })
 
     it('isChrome', () => {
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChrome).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
@@ -57,18 +57,18 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(false)
 
-        requestedCapabilities.w3cCaps.alwaysMatch.extendedDebugging = true
+        requestedCapabilities.extendedDebugging = true
         expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
-        requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        requestedCapabilities = {}
         expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(false)
 
-        requestedCapabilities.w3cCaps.alwaysMatch['sauce:options'] = { extendedDebugging: true }
+        requestedCapabilities['sauce:options'] = { extendedDebugging: true }
         expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
     })
 
     it('isSeleniumStandalone', () => {
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
@@ -76,7 +76,7 @@ describe('sessionEnvironmentDetector', () => {
     })
 
     it('should not detect mobile app for browserName===undefined', function () {
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         const capabilities = {}
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(false)
@@ -86,7 +86,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('should not detect mobile app for browserName==="firefox"', function () {
         const capabilities = { browserName: 'firefox' }
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(false)
         expect(isIOS).toEqual(false)
@@ -95,7 +95,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('should not detect mobile app for browserName==="chrome"', function () {
         const capabilities = { browserName: 'chrome' }
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(false)
         expect(isIOS).toEqual(false)
@@ -104,7 +104,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('should detect mobile app for browserName===""', function () {
         const capabilities = { browserName: '' }
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
         expect(isIOS).toEqual(false)
@@ -118,7 +118,7 @@ describe('sessionEnvironmentDetector', () => {
             deviceName: 'LGVS450PP2a16334',
             app: 'foo.apk'
         }
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
         expect(isIOS).toEqual(false)
@@ -135,7 +135,7 @@ describe('sessionEnvironmentDetector', () => {
             noReset: true,
             appWaitActivity: 'com.example.gui.LauncherActivity'
         }
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        let requestedCapabilities = {}
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
         expect(isIOS).toEqual(false)

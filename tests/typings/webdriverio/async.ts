@@ -52,13 +52,13 @@ async function bar() {
     callResult.toFixed(2)
 
     // browser element command
-    browser.getElementRect('elementId')
+    // browser.getElementRect('elementId')
 
     // protocol command return mapped object value
-    const { x, y, width, height } = await browser.getWindowRect()
+    // const { x, y, width, height } = await browser.getWindowRect()
 
     // protocol command return unmapped object
-    const { foo, bar } = await browser.takeHeapSnapshot()
+    // const { foo, bar } = await browser.takeHeapSnapshot()
 
     // browser command return mapped object value
     const { x: x0, y: y0, width: w, height: h }  =  await browser.getWindowSize()
@@ -135,6 +135,14 @@ async function bar() {
 
     // addLocatorStrategy
     browser.addLocatorStrategy('myStrat', () => {})
+
+    // test access to base client properties
+    browser.sessionId
+    browser.capabilities.browserName
+    browser.requestedCapabilities.browserName
+    browser.isMobile
+    browser.isAndroid
+    browser.isIOS
 }
 
 // selenium-standalone-service

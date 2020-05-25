@@ -42,7 +42,7 @@ type ElementStatic = Pick<WebdriverIO.Element,
 >;
 
 // Browser commands that should be wrapper with Promise
-type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | 'config' | '$' | '$$' | 'touchAction'>;
+type BrowserPromise = Omit<WebdriverIO.Browser, 'addCommand' | 'overwriteCommand' | 'options' | 'config' | '$' | '$$' | 'touchAction' | 'sessionId' | 'capabilities' | 'requestedCapabilities' | 'isMobile' | 'isIOS' | 'isAndroid'>;
 
 // Browser commands wrapper with Promise
 type BrowserAsync = {
@@ -111,7 +111,7 @@ declare namespace WebdriverIOAsync {
 
     interface Config { }
 
-    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, WebdriverIOAsync.Browser { }
+    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.BaseClient, WebdriverIOAsync.Browser { }
 }
 
 declare namespace WebdriverIO {

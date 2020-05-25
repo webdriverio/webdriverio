@@ -230,14 +230,24 @@ describe('utils', () => {
     })
 
     describe('startWebDriverSession', () => {
-        it('should handle sessionRequest error', async () => {
-            let error
-            try {
-                await startWebDriverSession({})
-            } catch (err) {
-                error = err
+        it('attaches capabilities to the params object', async () => {
+            const params = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/wd/hub',
+                protocol: 'http',
+                capabilities: {
+                    browserName: 'chrome',
+                }
             }
+            const sessionId = await startWebDriverSession(params)
+            expect(sessionId).toBe('foobar-123')
+            expect(params.capabilities.browserName).toBe('mockBrowser')
+            expect(params.requestedCapabilities.browserName).toBe('chrome')
+        })
 
+        it('should handle sessionRequest error', async () => {
+            let error = await startWebDriverSession({}).catch((err) => err)
             expect(error.message).toContain('Failed to create session')
         })
     })
