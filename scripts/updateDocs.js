@@ -2,10 +2,15 @@
 
 const fs = require('fs')
 const path = require('path')
+const { promisify } = require('util')
+
 const mime = require('mime-types')
 const readDir = require('recursive-readdir')
 const { S3, CloudFront } = require('aws-sdk')
 
+const { version: PKG_VERSION } = require('../lerna.json')
+
+const PRODUCTION_VERSION = 'v6'
 const DISTRIBUTION_ID = process.env.DISTRIBUTION_ID
 const BUCKET_NAME = 'webdriver.io'
 const BUILD_DIR = path.resolve(__dirname, '..', 'website', 'build', 'webdriver.io')
@@ -17,9 +22,12 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
     const s3 = new S3()
     const files = await readDir(BUILD_DIR, IGNORE_FILE_SUFFIX)
 
-    console.log(`Uploading ${BUILD_DIR} to S3 bucket ${BUCKET_NAME}`)
+    const version = `v${PKG_VERSION.split('.')[0]}`
+    const bucketName = version === PRODUCTION_VERSION ? BUCKET_NAME : `${version}.${BUCKET_NAME}`
+
+    console.log(`Uploading ${BUILD_DIR} to S3 bucket ${bucketName}`)
     await Promise.all(files.map((file) => new Promise((resolve, reject) => s3.upload({
-        Bucket: BUCKET_NAME,
+        Bucket: bucketName,
         Key: file.replace(BUILD_DIR + '/', ''),
         Body: fs.createReadStream(file),
         ContentType: mime.lookup(file),
@@ -34,18 +42,18 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
         return resolve(res)
     }))))
 
-    console.log(`Invalidate objects from distribution ${DISTRIBUTION_ID}`)
+    const distributionId = version === PRODUCTION_VERSION
+        ? DISTRIBUTION_ID
+        : process.env[`DISTRIBUTION_ID_${version.toUpperCase()}`]
+    console.log(`Invalidate objects from distribution ${distributionId}`)
     const cloudfront = new CloudFront()
-    const { Invalidation } = await new Promise((resolve, reject) => cloudfront.createInvalidation({
-        DistributionId: DISTRIBUTION_ID,
+    const { Invalidation } = await promisify(cloudfront.createInvalidation.bind(cloudfront))({
+        DistributionId: distributionId,
         InvalidationBatch: {
             CallerReference: `${Date.now()}`,
             Paths: { Quantity: 1, Items: ['/*'] }
         }
-    }, function(err, data) {
-        if (err) return reject(err)
-        return resolve(data)
-    }))
+    })
     console.log(`Created new invalidation with ID ${Invalidation.Id}`)
 })().then(
     () => console.log('Successfully updated webdriver.io docs'),
