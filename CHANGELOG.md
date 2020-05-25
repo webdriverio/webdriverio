@@ -15,12 +15,47 @@ See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHAN
 
 ---
 
+## v5.23.0 (2020-05-25)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriverio`
+  * [#5282](https://github.com/webdriverio/webdriverio/pull/5282) Allow relative drag&drop arguments ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5350](https://github.com/webdriverio/webdriverio/pull/5350) devtools package: fix switchToFrame function ([@takeya0x86](https://github.com/takeya0x86))
+  * [#5280](https://github.com/webdriverio/webdriverio/pull/5280) Support mobile emulation capability in DevTools package ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#5279](https://github.com/webdriverio/webdriverio/pull/5279) Script fixes for IE ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`
+  * [#5268](https://github.com/webdriverio/webdriverio/pull/5268) Fix Appium service port assignment ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#5390](https://github.com/webdriverio/webdriverio/pull/5390) Fix browser version in spec reporter ([@unickq](https://github.com/unickq))
+* `wdio-cli`
+  * [#5145](https://github.com/webdriverio/webdriverio/pull/5145) Forward service defined path (driver server endpoint) for Selenium server. ([@kapoorlakshya](https://github.com/kapoorlakshya))
+
+#### :memo: Documentation
+* [#5421](https://github.com/webdriverio/webdriverio/pull/5421) Added subrountine shapes where applicable ([@jdavis61](https://github.com/jdavis61))
+* [#5403](https://github.com/webdriverio/webdriverio/pull/5403) Docs: Update TypeScript.md ([@osmolyar](https://github.com/osmolyar))
+* [#5402](https://github.com/webdriverio/webdriverio/pull/5402) Fix class syntax in CustomServices.md ([@pmdartus](https://github.com/pmdartus))
+
+#### Committers: 8
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- James Davis ([@jdavis61](https://github.com/jdavis61))
+- Lakshya Kapoor ([@kapoorlakshya](https://github.com/kapoorlakshya))
+- Nick ([@unickq](https://github.com/unickq))
+- Nikita Pankratov ([@nikita-pankratov](https://github.com/nikita-pankratov))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+- Pierre-Marie Dartus ([@pmdartus](https://github.com/pmdartus))
+- Takeshi Kishi ([@takeya0x86](https://github.com/takeya0x86))
+
 ## v5.22.5
 
 #### :bug: Bug Fix
 * `wdio-sauce-service`
   * Update SauceLabs package to latest ([@christian-bromann](https://github.com/christian-bromann))
-
 
 ## v5.22.4 (2020-03-23)
 
