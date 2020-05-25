@@ -51,13 +51,13 @@ export default class AppiumLauncher {
          * to Appium server
          */
         (
-            Array.isArray(this.capabilities)
-                ? this.capabilities
-                : Object.values(this.capabilities)
+            Array.isArray(config.capabilities)
+                ? config.capabilities
+                : Object.values(config.capabilities)
         ).forEach((cap) => Object.assign(
             cap,
             DEFAULT_CONNECTION,
-            this.args.port ? { port: this.args.port } : {},
+            appiumConfig.port ? { port: appiumConfig.port } : {},
             { ...cap }
         ))
 

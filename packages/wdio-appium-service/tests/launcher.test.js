@@ -72,8 +72,10 @@ describe('Appium launcher', () => {
                     logPath: './',
                     command: 'path/to/my_custom_appium',
                     args: { foo: 'bar' }
-                }
+                },
+                capabilities: [{ port: 1234 }]
             }
+            const launcher = new AppiumLauncher(config.appium, config.capabilities)
             await launcher.onPrepare(config)
 
             expect(launcher.logPath).toBe(config.appium.logPath)
@@ -81,48 +83,28 @@ describe('Appium launcher', () => {
             expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
         })
 
-        test('should respect custom Appium port', async () => {
-            const options = {
-                logPath: './',
-                command: 'path/to/my_custom_appium',
-                args: { foo: 'bar', port: 1234 }
-            }
-            const capabilities = [{}]
-            const launcher = new AppiumLauncher(options, capabilities, {})
-            launcher._startAppium = jest.fn().mockImplementation(
-                (cmd, args, cb) => cb(null, new MockProcess()))
-            await launcher.onPrepare()
-
-            expect(launcher.process).toBeInstanceOf(MockProcess)
-            expect(launcher.logPath).toBe('./')
-            expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
-            expect(capabilities[0].protocol).toBe('http')
-            expect(capabilities[0].hostname).toBe('localhost')
-            expect(capabilities[0].port).toBe(1234)
-            expect(capabilities[0].path).toBe('/')
-        })
-
         test('should respect custom port before Appium port', async () => {
-            const options = {
-                logPath: './',
-                command: 'path/to/my_custom_appium',
-                args: { foo: 'bar', port: 1234 }
+            const config = {
+                appium: {
+                    logPath: './',
+                    command: 'path/to/my_custom_appium',
+                    args: { foo: 'bar', port: 1234 }
+                },
+                capabilities: [{ port: 4321 }]
             }
-            const capabilities = [{ port: 4321 }]
-            const launcher = new AppiumLauncher(options, capabilities, {})
+            const launcher = new AppiumLauncher()
             launcher._startAppium = jest.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))
-            await launcher.onPrepare()
+            await launcher.onPrepare(config)
 
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
             expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toEqual(['--foo', 'bar'])
-            expect(capabilities[0].protocol).toBe('http')
-            expect(capabilities[0].hostname).toBe('localhost')
-            expect(capabilities[0].port).toBe(4321)
-            expect(capabilities[0].path).toBe('/')
+            expect(launcher.appiumArgs).toEqual(['--foo', 'bar', '--port', '1234'])
+            expect(config.capabilities[0].protocol).toBe('http')
+            expect(config.capabilities[0].hostname).toBe('localhost')
+            expect(config.capabilities[0].port).toBe(4321)
+            expect(config.capabilities[0].path).toBe('/')
         })
 
         test('should set correct config properties for Windows', async () => {
@@ -136,7 +118,8 @@ describe('Appium launcher', () => {
                     logPath: './',
                     command: 'path/to/my_custom_appium',
                     args: { foo: 'bar' }
-                }
+                },
+                capabilities: [{}]
             }
             await launcher.onPrepare(config)
 
@@ -149,7 +132,9 @@ describe('Appium launcher', () => {
         })
 
         test('should set correct config properties when empty', async () => {
-            await launcher.onPrepare({})
+            await launcher.onPrepare({
+                capabilities: [{}]
+            })
 
             expect(launcher.logPath).toBe(undefined)
             expect(launcher.command).toBe('node')
@@ -160,7 +145,8 @@ describe('Appium launcher', () => {
             await launcher.onPrepare({
                 appium: {
                     args: { superspeed: true }
-                }
+                },
+                capabilities: [{}]
             })
 
             expect(childProcess.spawn.mock.calls[0][0]).toBe('node')
@@ -173,7 +159,9 @@ describe('Appium launcher', () => {
 
             let error
             try {
-                await launcher.onPrepare({})
+                await launcher.onPrepare({
+                    capabilities: [{}]
+                })
             } catch (e) {
                 error = e
             }
@@ -186,7 +174,9 @@ describe('Appium launcher', () => {
 
             let error
             try {
-                await launcher.onPrepare({})
+                await launcher.onPrepare({
+                    capabilities: [{}]
+                })
             } catch (e) {
                 error = e
             }
@@ -198,7 +188,7 @@ describe('Appium launcher', () => {
 
     describe('onComplete', () => {
         test('should call process.kill', async () => {
-            await launcher.onPrepare({})
+            await launcher.onPrepare({ capabilities: [{}] })
             launcher.process.kill = jest.fn()
 
             launcher.onComplete()
@@ -219,7 +209,7 @@ describe('Appium launcher', () => {
         test('should not write output to file', async () => {
             launcher._redirectLogStream = jest.fn()
 
-            await launcher.onPrepare({})
+            await launcher.onPrepare({ capabilities: [{}] })
 
             expect(launcher._redirectLogStream).not.toBeCalled()
         })
@@ -229,6 +219,7 @@ describe('Appium launcher', () => {
                 appium: {
                     logPath: './'
                 },
+                capabilities: [{}]
             })
 
             expect(fs.createWriteStream.mock.calls[0][0]).toBe(path.join(process.cwd(), 'appium.txt'))
