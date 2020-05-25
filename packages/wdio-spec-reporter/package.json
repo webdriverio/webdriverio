@@ -1,6 +1,6 @@
 {
   "name": "@wdio/spec-reporter",
-  "version": "5.22.4",
+  "version": "5.23.0",
   "description": "A WebdriverIO plugin to report in spec style",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-spec-reporter",
