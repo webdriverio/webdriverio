@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const Octokit = require('@octokit/rest')
+const { Octokit } = require('@octokit/rest')
 const inquirer = require('inquirer')
 const shell = require('shelljs')
 
