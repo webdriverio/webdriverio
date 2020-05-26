@@ -166,6 +166,10 @@ describe('formatMessage', () => {
         const adapter = adapterFactory()
         const params = { type: 'foobar', err: new Error('uups') }
         const message = adapter.formatMessage(params)
+
+        // delete stack to avoid differences in stack paths
+        delete message.error.stack
+
         expect(message).toMatchSnapshot()
     })
 
@@ -180,6 +184,10 @@ describe('formatMessage', () => {
             err: new Error('For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves.')
         }
         const message = adapter.formatMessage(params)
+
+        // delete stack to avoid differences in stack paths
+        delete message.error.stack
+
         expect(message).toMatchSnapshot()
     })
 

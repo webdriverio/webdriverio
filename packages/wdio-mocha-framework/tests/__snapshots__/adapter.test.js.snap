@@ -12,14 +12,6 @@ Object {
     "actual": undefined,
     "expected": undefined,
     "message": "uups",
-    "stack": "Error: uups
-    at Object.<anonymous> (/Users/christianbromann/Sites/WebdriverIO/webdriverio/packages/wdio-mocha-framework/tests/adapter.test.js:167:47)
-    at Object.asyncJestTest (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/jasmineAsyncInstall.js:100:37)
-    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:45:12
-    at new Promise (<anonymous>)
-    at mapper (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:28:19)
-    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:75:41
-    at processTicksAndRejections (internal/process/task_queues.js:94:5)",
     "type": "Error",
   },
   "type": "foobar",
@@ -33,14 +25,6 @@ Object {
     "actual": undefined,
     "expected": undefined,
     "message": "The execution in the test \\"parentfoo barfoo\\" took too long. Try to reduce the run time or increase your timeout for test specs (https://webdriver.io/docs/timeouts.html).",
-    "stack": "Error: The execution in the test \\"parentfoo barfoo\\" took too long. Try to reduce the run time or increase your timeout for test specs (https://webdriver.io/docs/timeouts.html).
-    at Object.<anonymous> (/Users/christianbromann/Sites/WebdriverIO/webdriverio/packages/wdio-mocha-framework/tests/adapter.test.js:180:18)
-    at Object.asyncJestTest (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/jasmineAsyncInstall.js:100:37)
-    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:45:12
-    at new Promise (<anonymous>)
-    at mapper (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:28:19)
-    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:75:41
-    at processTicksAndRejections (internal/process/task_queues.js:94:5)",
     "type": "Error",
   },
   "file": undefined,
