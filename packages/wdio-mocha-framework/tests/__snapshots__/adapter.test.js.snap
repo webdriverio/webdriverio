@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`formatMessage should do nothing if no error or params are given 1`] = `
+Object {
+  "type": "foobar",
+}
+`;
+
+exports[`formatMessage should format an error message 1`] = `
+Object {
+  "error": Object {
+    "actual": undefined,
+    "expected": undefined,
+    "message": "uups",
+    "stack": "Error: uups
+    at Object.<anonymous> (/Users/christianbromann/Sites/WebdriverIO/webdriverio/packages/wdio-mocha-framework/tests/adapter.test.js:167:47)
+    at Object.asyncJestTest (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/jasmineAsyncInstall.js:100:37)
+    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:45:12
+    at new Promise (<anonymous>)
+    at mapper (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:28:19)
+    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:75:41
+    at processTicksAndRejections (internal/process/task_queues.js:94:5)",
+    "type": "Error",
+  },
+  "type": "foobar",
+}
+`;
+
+exports[`formatMessage should format an error message with timeout error 1`] = `
+Object {
+  "duration": undefined,
+  "error": Object {
+    "actual": undefined,
+    "expected": undefined,
+    "message": "The execution in the test \\"parentfoo barfoo\\" took too long. Try to reduce the run time or increase your timeout for test specs (https://webdriver.io/docs/timeouts.html).",
+    "stack": "Error: The execution in the test \\"parentfoo barfoo\\" took too long. Try to reduce the run time or increase your timeout for test specs (https://webdriver.io/docs/timeouts.html).
+    at Object.<anonymous> (/Users/christianbromann/Sites/WebdriverIO/webdriverio/packages/wdio-mocha-framework/tests/adapter.test.js:180:18)
+    at Object.asyncJestTest (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/jasmineAsyncInstall.js:100:37)
+    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:45:12
+    at new Promise (<anonymous>)
+    at mapper (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:28:19)
+    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/jest-jasmine2/build/queueRunner.js:75:41
+    at processTicksAndRejections (internal/process/task_queues.js:94:5)",
+    "type": "Error",
+  },
+  "file": undefined,
+  "fullTitle": "parentfoo barfoo",
+  "parent": "parentfoo",
+  "pending": false,
+  "title": "barfoo",
+  "type": "foobar",
+}
+`;
+
+exports[`formatMessage should format payload 1`] = `
+Object {
+  "context": "some context",
+  "currentTest": "current test",
+  "duration": undefined,
+  "file": "/foo/bar.test.js",
+  "fullTitle": "parentfoo barfoo",
+  "parent": "parentfoo",
+  "pending": false,
+  "title": "barfoo",
+  "type": "foobar",
+}
+`;

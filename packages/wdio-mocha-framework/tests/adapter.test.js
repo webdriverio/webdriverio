@@ -154,56 +154,81 @@ test('prepareMessage', async () => {
     expect(result.file).toBe('/foo/bar.test.js')
 })
 
-test('formatMessage', () => {
-    const adapter = adapterFactory()
+describe('formatMessage', () => {
+    test('should do nothing if no error or params are given', () => {
+        const adapter = adapterFactory()
+        let params = { type: 'foobar' }
+        let message = adapter.formatMessage(params)
+        expect(message).toMatchSnapshot()
+    })
 
-    let params = { type: 'foobar' }
-    let message = adapter.formatMessage(params)
-    expect(message).toEqual(params)
+    test('should format an error message', () => {
+        const adapter = adapterFactory()
+        const params = { type: 'foobar', err: new Error('uups') }
+        const message = adapter.formatMessage(params)
+        expect(message).toMatchSnapshot()
+    })
 
-    params = { type: 'foobar', err: new Error('uups') }
-    message = adapter.formatMessage(params)
-    expect(message.error.message).toEqual('uups')
-    expect(message.error.type).toEqual('Error')
+    test('should format an error message with timeout error', () => {
+        const adapter = adapterFactory()
+        const params = {
+            type: 'foobar',
+            payload: {
+                title: 'barfoo',
+                parent: { title: 'parentfoo' }
+            },
+            err: new Error('For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves.')
+        }
+        const message = adapter.formatMessage(params)
+        expect(message).toMatchSnapshot()
+    })
 
-    params = { type: 'foobar', payload: {
-        title: 'barfoo',
-        parent: { title: 'parentfoo' },
-        context: 'some context',
-        ctx: { currentTest: { title: 'current test' } },
-        file: '/foo/bar.test.js'
-    } }
-    message = adapter.formatMessage(params)
-    expect(message.title).toEqual('barfoo')
-    expect(message.parent).toEqual('parentfoo')
-    expect(message.currentTest).toEqual('current test')
-    expect(message.fullTitle).toBe('parentfoo barfoo')
-    expect(message.file).toBe('/foo/bar.test.js')
+    test('should format payload', () => {
+        const adapter = adapterFactory()
+        const params = { type: 'foobar', payload: {
+            title: 'barfoo',
+            parent: { title: 'parentfoo' },
+            context: 'some context',
+            ctx: { currentTest: { title: 'current test' } },
+            file: '/foo/bar.test.js'
+        } }
+        const message = adapter.formatMessage(params)
+        expect(message).toMatchSnapshot()
+    })
 
-    params = { type: 'foobar', payload: {
-        title: 'barfoo',
-        parent: { title: '', suites: [{ title: 'first suite' }] }
-    } }
-    message = adapter.formatMessage(params)
-    expect(message.parent).toEqual('')
+    test('should format parent title', () => {
+        const adapter = adapterFactory()
+        const params = { type: 'foobar', payload: {
+            title: 'barfoo',
+            parent: { title: '', suites: [{ title: 'first suite' }] }
+        } }
+        const message = adapter.formatMessage(params)
+        expect(message.parent).toEqual('')
+    })
 
-    params = { type: 'foobar', payload: {
-        title: 'barfoo',
-        parent: {},
-        fullTitle: () => 'full title'
-    } }
-    message = adapter.formatMessage(params)
-    expect(message.fullTitle).toEqual('full title')
+    test('should use fullTitle function if given', () => {
+        const adapter = adapterFactory()
+        const params = { type: 'foobar', payload: {
+            title: 'barfoo',
+            parent: {},
+            fullTitle: () => 'full title'
+        } }
+        const message = adapter.formatMessage(params)
+        expect(message.fullTitle).toEqual('full title')
+    })
 
-    params = { type: 'afterTest', payload: {
-        title: 'barfoo',
-        parent: {},
-        state: 'failed',
-        duration: 123
-    } }
-    message = adapter.formatMessage(params)
-    expect(message.passed).toBe(false)
-    expect(message.duration).toBe(123)
+    test('should format test status', () => {
+        const adapter = adapterFactory()
+        const params = { type: 'afterTest', payload: {
+            title: 'barfoo',
+            parent: {},
+            state: 'failed',
+            duration: 123
+        } }
+        const message = adapter.formatMessage(params)
+        expect(message.passed).toBe(false)
+        expect(message.duration).toBe(123)
+    })
 })
 
 test('requireExternalModules', () => {
