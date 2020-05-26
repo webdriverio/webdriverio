@@ -21,7 +21,7 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 #### :nail_care: Polish
 * `wdio-sauce-service`
-  * [#5417](https://github.com/webdriverio/webdriverio/pull/5417) Update SauceLabs package and remove sauce-connect-launcher ([@christian-bromann](https://github.com/christian-bromann))
+  * [#5417](https://github.com/webdriverio/webdriverio/pull/5417) Update Sauce Labs package and remove sauce-connect-launcher ([@christian-bromann](https://github.com/christian-bromann))
 
 #### :memo: Documentation
 * `wdio-cucumber-framework`
