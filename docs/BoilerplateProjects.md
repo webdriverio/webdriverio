@@ -127,6 +127,22 @@ Boilerplate with WebdriverIO v6, Mocha, TypeScript, ESLint
   - Devtools Config
   - many example tests
 
+### [Arjun-Ar91/WebdriverIO-V6-appium-cucumber-boilerplate](https://github.com/Arjun-Ar91/WebdriverIO-V6-appium-cucumber-boilerplate.git)
+
+Boilerplate project to run appium tests for native and mobile browser using cucumber v6 and webdriverIO v6 with page object pattern.
+
+- Frameworks
+    - WebdriverIO v6
+    - Cucumber v6
+    - Appium
+
+- Features
+    - Native Android and iOS apps
+    - Android Chrome browser
+    - iOS Safari browser
+    - Page Object Model
+    - Contains sample test scenarios in cucumber
+    - Integrated with multiple cucumber html reports
 ----
 
 ## v5 Boilerplate Projects
