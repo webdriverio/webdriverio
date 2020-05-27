@@ -61,8 +61,6 @@ Path where all logs from the Appium server should be stored.
 
 Type: `String`
 
-Default: `{}`
-
 Example:
 ```js
 export.config = {
@@ -77,11 +75,9 @@ export.config = {
 ```
 
 ### command
-To use your own installation of Appium, ex globally installed, specify the command which should be started.
+To use your own installation of Appium, e.g. globally installed, specify the command which should be started.
 
 Type: `String`
-
-Default: `{}`
 
 Example:
 ```js

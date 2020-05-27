@@ -23,6 +23,7 @@ const packages = {
     'webdriverio': 'packages/webdriverio',
     '@wdio/allure-reporter': 'packages/wdio-allure-reporter',
     '@wdio/reporter': 'packages/wdio-reporter',
+    '@wdio/appium-service': 'packages/wdio-appium-service',
     '@wdio/applitools-service': 'packages/wdio-applitools-service',
     '@wdio/browserstack-service': 'packages/wdio-browserstack-service',
     '@wdio/sauce-service': 'packages/wdio-sauce-service',
