@@ -9,7 +9,8 @@
       "@wdio/selenium-standalone-service",
       "@wdio/crossbrowsertesting-service",
       "@wdio/firefox-profile-service",
-      "@wdio/static-server-service"
+      "@wdio/static-server-service",
+      "@wdio/testingbot-service"
     ],
     "typeRoots": ["./types"]
   }

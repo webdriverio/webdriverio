@@ -19,23 +19,24 @@ const outDirs = [
 const packages = {
     'devtools': 'packages/devtools',
     'webdriver': 'packages/webdriver',
-    '@wdio/sync': 'packages/wdio-sync',
     'webdriverio': 'packages/webdriverio',
-    '@wdio/allure-reporter': 'packages/wdio-allure-reporter',
+    '@wdio/sync': 'packages/wdio-sync',
     '@wdio/reporter': 'packages/wdio-reporter',
+    '@wdio/allure-reporter': 'packages/wdio-allure-reporter',
     '@wdio/appium-service': 'packages/wdio-appium-service',
     '@wdio/applitools-service': 'packages/wdio-applitools-service',
     '@wdio/browserstack-service': 'packages/wdio-browserstack-service',
     '@wdio/crossbrowsertesting-service': 'packages/wdio-crossbrowsertesting-service',
-    '@wdio/firefox-profile-service': 'packages/wdio-firefox-profile-service',
-    '@wdio/sauce-service': 'packages/wdio-sauce-service',
-    '@wdio/static-server-service': 'packages/wdio-static-server-service',
-    '@wdio/mocha-framework': 'packages/wdio-mocha-framework',
     '@wdio/cucumber-framework': 'packages/wdio-cucumber-framework',
+    '@wdio/devtools-service': 'packages/wdio-devtools-service',
+    '@wdio/firefox-profile-service': 'packages/wdio-firefox-profile-service',
     '@wdio/jasmine-framework': 'packages/wdio-jasmine-framework',
+    '@wdio/mocha-framework': 'packages/wdio-mocha-framework',
+    '@wdio/sauce-service': 'packages/wdio-sauce-service',
     '@wdio/selenium-standalone-service': 'packages/wdio-selenium-standalone-service',
     '@wdio/shared-store-service': 'packages/wdio-shared-store-service',
-    '@wdio/devtools-service': 'packages/wdio-devtools-service'
+    '@wdio/static-server-service': 'packages/wdio-static-server-service',
+    '@wdio/testingbot-service': 'packages/wdio-testingbot-service'
 }
 
 const artifactDirs = ['node_modules', 'dist']

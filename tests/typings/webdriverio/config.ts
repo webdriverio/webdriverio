@@ -33,6 +33,12 @@ const config: WebdriverIO.Config = {
             port: 1234,
             middleware: [{}]
         }],
+        ['testingbot', {
+            tbTunnel: true,
+            tbTunnelOpts: {
+                foo: 'bar'
+            }
+        }],
         [CustomService, {
             someOption: true
         }]
