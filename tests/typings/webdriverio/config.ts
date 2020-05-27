@@ -22,6 +22,12 @@ const config: WebdriverIO.Config = {
                 foo: 'bar'
             }
         }],
+        ['firefox-profile', {
+            extensions: [],
+            profileDirectory: '/foo/bar',
+            proxy: {},
+            legay: false
+        }],
         [CustomService, {
             someOption: true
         }]
