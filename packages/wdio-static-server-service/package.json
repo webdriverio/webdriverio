@@ -42,5 +42,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "types": "static-server-service.d.ts"
 }

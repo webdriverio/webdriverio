@@ -15,15 +15,10 @@ const conf: WebdriverIO.Config = {
     afterSuite: () => {},
 
     services: [
-        ['selenium-standalone', {
-            logs: 'string',
-            installArgs: {
-                version: ''
-            },
-            args: {
-                spawnCb: () => {}
-            },
-            skipSeleniumInstall: true
+        ['appium', {
+            logPath: '/foobar',
+            command: 'appium',
+            args: []
         }],
         [CustomService, {
             someOption: true

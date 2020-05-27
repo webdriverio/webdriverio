@@ -43,5 +43,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "types": "appium-service.d.ts"
 }

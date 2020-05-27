@@ -44,5 +44,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "types": "firefox-profile-service.d.ts"
 }

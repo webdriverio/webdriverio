@@ -39,5 +39,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "types": "crossbrowsertesting-service.d.ts"
 }
