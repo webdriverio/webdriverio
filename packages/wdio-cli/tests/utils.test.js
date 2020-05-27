@@ -14,7 +14,8 @@ import {
     missingConfigurationPrompt,
     renderConfigurationFile,
     validateServiceAnswers,
-    getCapabilities
+    getCapabilities,
+    hasFile
 } from '../src/utils'
 
 import inquirer from 'inquirer'
@@ -333,6 +334,13 @@ describe('getCapabilities', () => {
     it('should return driver with capabilities for desktop', () => {
         expect(getCapabilities({ option: 'chrome' })).toMatchSnapshot()
     })
+})
+
+test('hasFile', () => {
+    fs.existsSync.mockReturnValue(true)
+    expect(hasFile('package.json')).toBe(true)
+    fs.existsSync.mockReturnValue(false)
+    expect(hasFile('xyz')).toBe(false)
 })
 
 afterEach(() => {
