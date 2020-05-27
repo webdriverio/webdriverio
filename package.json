@@ -89,7 +89,7 @@
     "eslint-plugin-import": "^2.18.2",
     "husky": "^4.2.3",
     "inquirer": "^7.0.0",
-    "jest": "^25.1.0",
+    "jest": "^26.0.1",
     "jest-circus": "^26.0.1",
     "lerna": "^3.16.4",
     "lerna-changelog": "^1.0.0",
