@@ -6,7 +6,7 @@ let inCommandHook = false
 let hasWdioSyncSupport = false
 let runSync = null
 
-let executeHooksWithArgs = async function executeHooksWithArgsShim (hooks, args) {
+let executeHooksWithArgs = async function executeHooksWithArgsShim(hooks, args) {
     /**
      * make sure hooks are an array of functions
      */
@@ -54,8 +54,8 @@ let runFnInFiberContext = function (fn) {
     }
 }
 
-let wrapCommand = function wrapCommand (commandName, fn) {
-    return async function wrapCommandFn (...args) {
+let wrapCommand = function wrapCommand(commandName, fn) {
+    return async function wrapCommandFn(...args) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
             inCommandHook = true
@@ -94,7 +94,9 @@ let wrapCommand = function wrapCommand (commandName, fn) {
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-let executeSync = async function (fn, retries, args = []) {
+let executeSync
+
+executeSync = async function executeSync(fn, retries, args = []) {
     this.wdioRetries = retries.attempts
 
     try {
@@ -127,7 +129,9 @@ let executeSync = async function (fn, retries, args = []) {
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-const executeAsync = async function (fn, retries, args = []) {
+let executeAsync
+
+executeAsync = async function executeAsync(fn, retries, args = []) {
     this.wdioRetries = retries.attempts
 
     try {

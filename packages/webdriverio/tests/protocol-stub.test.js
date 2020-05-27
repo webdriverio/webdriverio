@@ -47,7 +47,7 @@ describe('attachToSession', () => {
         const multiremore = new Multiremote()
         multiremore.instances['instanceName'] = 'instance'
 
-        const session = await ProtocolStub.attachToSession(undefined, ::multiremore.modifier)
+        const session = await ProtocolStub.attachToSession(undefined, multiremore.modifier.bind(multiremore))
 
         expect(session.capabilities).toBeUndefined()
         expect(session.commandList).toHaveLength(0)
