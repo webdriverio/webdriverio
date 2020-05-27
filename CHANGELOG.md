@@ -17,6 +17,25 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.14 (2020-05-27)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-reporter`
+  * [#5435](https://github.com/webdriverio/webdriverio/pull/5435) Improve Mocha timeout message ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-appium-service`, `wdio-cli`, `wdio-crossbrowsertesting-service`, `wdio-firefox-profile-service`, `wdio-static-server-service`, `wdio-sync`, `wdio-testingbot-service`, `webdriverio`
+  * [#5437](https://github.com/webdriverio/webdriverio/pull/5437) Add typing definition for last missing service options ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#5431](https://github.com/webdriverio/webdriverio/pull/5431) Promote that WebdriverIO supports modern web frameworks ([@christian-bromann](https://github.com/christian-bromann))
+  * [#5432](https://github.com/webdriverio/webdriverio/pull/5432) Added Cucumber-Appium Boilerplate ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+
+#### Committers: 3
+- Arjun ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.13 (2020-05-23)
 
 #### :nail_care: Polish
