@@ -28,6 +28,11 @@ const config: WebdriverIO.Config = {
             proxy: {},
             legay: false
         }],
+        ['static-server', {
+            folders: [{}],
+            port: 1234,
+            middleware: [{}]
+        }],
         [CustomService, {
             someOption: true
         }]

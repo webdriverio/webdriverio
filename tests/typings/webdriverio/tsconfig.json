@@ -8,7 +8,8 @@
       "@wdio/allure-reporter",
       "@wdio/selenium-standalone-service",
       "@wdio/crossbrowsertesting-service",
-      "@wdio/firefox-profile-service"
+      "@wdio/firefox-profile-service",
+      "@wdio/static-server-service"
     ],
     "typeRoots": ["./types"]
   }

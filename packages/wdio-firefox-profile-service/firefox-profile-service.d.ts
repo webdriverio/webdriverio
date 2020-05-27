@@ -1,8 +1,8 @@
 declare module WebdriverIO {
-    interface ServiceOption extends FirefoxProfileServiceConfig {}
+    interface ServiceOption extends FirefoxProfileConfig {}
 }
 
-interface FirefoxProfileServiceConfig {
+interface FirefoxProfileConfig {
     /**
      * Add one or multiple extensions to the browser session. All entries can be either
      * an absolute path to the `.xpi` file or the path to an unpacked Firefox extension directory.
@@ -15,9 +15,9 @@ interface FirefoxProfileServiceConfig {
     /**
      * Set network proxy settings.
      */
-    proxy?: object
+    proxy?: object;
     /**
      * Please set this flag to `true` if you use Firefox v55 or lower.
      */
-    legacy?: boolean
+    legacy?: boolean;
 }
