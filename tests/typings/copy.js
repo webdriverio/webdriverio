@@ -26,6 +26,7 @@ const packages = {
     '@wdio/appium-service': 'packages/wdio-appium-service',
     '@wdio/applitools-service': 'packages/wdio-applitools-service',
     '@wdio/browserstack-service': 'packages/wdio-browserstack-service',
+    '@wdio/crossbrowsertesting-service': 'packages/wdio-crossbrowsertesting-service',
     '@wdio/sauce-service': 'packages/wdio-sauce-service',
     '@wdio/mocha-framework': 'packages/wdio-mocha-framework',
     '@wdio/cucumber-framework': 'packages/wdio-cucumber-framework',

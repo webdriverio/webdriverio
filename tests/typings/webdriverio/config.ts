@@ -16,6 +16,12 @@ const config: WebdriverIO.Config = {
             },
             skipSeleniumInstall: true
         }],
+        ['crossbrowsertesting', {
+            cbtTunnel: true,
+            cbtTunnelOpts: {
+                foo: 'bar'
+            }
+        }],
         [CustomService, {
             someOption: true
         }]

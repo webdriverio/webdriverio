@@ -6,7 +6,8 @@
     "types": [
       "webdriverio",
       "@wdio/allure-reporter",
-      "@wdio/selenium-standalone-service"
+      "@wdio/selenium-standalone-service",
+      "@wdio/crossbrowsertesting-service"
     ],
     "typeRoots": ["./types"]
   }
