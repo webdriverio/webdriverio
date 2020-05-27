@@ -170,16 +170,15 @@ exports.config = {
     // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
     // specFileRetriesDeferred: false,
     //
-    <%- include('reporters', { reporters: answers.reporters }) %> <%
-    if(answers.framework === 'mocha') { %>
+    <%- include('reporters', { reporters: answers.reporters }) %>
+    <% if(answers.framework === 'mocha') { %>
     //
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
         <% if(answers.isUsingTypeScript) {
         %>// TypeScript setup
-        require: 'ts-node/register',
-        compilers: ['tsconfig-paths/register'],
+        require: ['ts-node/register'],
         <% } else if(answers.isUsingBabel) {
         %>// Babel setup
         require: ['@babel/register'],
@@ -194,7 +193,7 @@ exports.config = {
     jasmineNodeOpts: {
         <% if(answers.isUsingTypeScript) {
         %>// TypeScript setup
-        requires: ['ts-node/register', 'tsconfig-paths/register'],
+        requires: ['ts-node/register'],
         <% } else if(answers.isUsingBabel) {
         %>// Babel setup
         helpers: [require.resolve('@babel/register')],
@@ -220,7 +219,6 @@ exports.config = {
         // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
         <% if(answers.isUsingTypeScript) {
         %>requireModule: [
-            'tsconfig-paths/register',
             () => { require('ts-node').register({ files: true }) },
         ],
         <% } else if(answers.isUsingBabel) {
