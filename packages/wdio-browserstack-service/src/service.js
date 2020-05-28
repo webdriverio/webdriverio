@@ -126,7 +126,7 @@ export default class BrowserstackService {
         this.scenariosThatRan = []
         delete this.fullTitle
         this.failReasons = []
-        this._printSessionURL()
+        await this._printSessionURL()
     }
 
     _update(sessionId, requestBody) {
