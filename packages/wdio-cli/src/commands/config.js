@@ -2,7 +2,10 @@ import util from 'util'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
-import { CONFIG_HELPER_INTRO, QUESTIONNAIRE, CLI_EPILOGUE, COMPILER_OPTIONS, TS_COMPILER_INSTRUCTIONS } from '../constants'
+import {
+    CONFIG_HELPER_INTRO, QUESTIONNAIRE, CLI_EPILOGUE, COMPILER_OPTIONS,
+    TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES
+} from '../constants'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, hasFile } from '../utils'
 
 export const command = 'config'
@@ -69,9 +72,10 @@ export const runConfig = async function (useYarn, yes, exit) {
     }
 
     console.log('\nPackages installed successfully, creating configuration file...')
+    const defaultRunner = SUPPORTED_PACKAGES.runner[0].name
     const parsedAnswers = {
         ...answers,
-        runner: answers.runner && answers.runner.short,
+        runner: (answers.runner && answers.runner.short) || defaultRunner,
         framework: answers.framework.short,
         reporters: answers.reporters.map(({ short }) => short),
         services: answers.services.map(({ short }) => short),
