@@ -17,6 +17,19 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.15 (2020-05-28)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#5443](https://github.com/webdriverio/webdriverio/pull/5443) Couldn't find plugin "" runner ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-browserstack-service`
+  * [#5440](https://github.com/webdriverio/webdriverio/pull/5440) adding missing await for printSessionURL for onReload in browserstack service ([@mathew-jithin](https://github.com/mathew-jithin))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Jithin Mathew ([@mathew-jithin](https://github.com/mathew-jithin))
+
+
 ## v6.1.14 (2020-05-27)
 
 #### :bug: Bug Fix
