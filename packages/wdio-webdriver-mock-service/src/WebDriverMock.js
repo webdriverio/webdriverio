@@ -22,10 +22,10 @@ for (const protocol of protocols) {
 }
 
 export default class WebDriverMock {
-    constructor (host = 'localhost', port = 4444, path = '/') {
+    constructor(host = 'localhost', port = 4444, path = '/') {
         this.path = path
-        this.scope = nock(`http://${host}:${port}`, { 'encodedQueryParams':true })
-        this.command = new Proxy({}, { get: ::this.get })
+        this.scope = nock(`http://${host}:${port}`, { 'encodedQueryParams': true })
+        this.command = new Proxy({}, { get: this.get.bind(this) })
     }
 
     /**
@@ -35,7 +35,7 @@ export default class WebDriverMock {
      * @param   {String}   expectedPath path to match against
      * @returns {Function}              to be called by Nock to match actual path
      */
-    static pathMatcher (expectedPath) {
+    static pathMatcher(expectedPath) {
         return (path) => {
             const sessionId = path.match(REGEXP_SESSION_ID)
 
@@ -56,7 +56,7 @@ export default class WebDriverMock {
         }
     }
 
-    get (obj, commandName) {
+    get(obj, commandName) {
         const { method, endpoint, commandData } = protocolFlattened.get(commandName)
 
         return (...args) => {

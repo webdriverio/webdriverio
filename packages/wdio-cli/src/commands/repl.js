@@ -51,8 +51,8 @@ export const handler = async (argv) => {
     const execMode = hasWdioSyncSupport ? { runner: 'repl' } : {}
     const client = await remote({ ...argv, ...caps, ...execMode })
 
-    global.$ = ::client.$
-    global.$$ = ::client.$$
+    global.$ = client.$.bind(client)
+    global.$$ = client.$$.bind(client)
     global.browser = client
 
     await client.debug()

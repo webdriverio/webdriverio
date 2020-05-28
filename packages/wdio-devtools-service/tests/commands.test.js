@@ -1,7 +1,7 @@
 import EventEmitter from 'events'
 import CommandHandler from '../src/commands'
 
-class MyEmitter extends EventEmitter {}
+class MyEmitter extends EventEmitter { }
 
 jest.mock('../src/utils', () => ({
     readIOStream: jest.fn().mockReturnValue('foobar'),
@@ -86,7 +86,7 @@ test('startTracing', () => {
     handler.startTracing()
 
     expect(handler.isTracing).toBe(true)
-    expect(::handler.startTracing).toThrow()
+    expect(handler.startTracing.bind(handler)).toThrow()
 })
 
 test('endTracing', async () => {

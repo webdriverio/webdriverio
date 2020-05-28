@@ -32,7 +32,7 @@ export default class WorkerInstance extends EventEmitter {
      * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
      */
-    constructor (config, { cid, configFile, caps, specs, execArgv, retries }, stdout, stderr) {
+    constructor(config, { cid, configFile, caps, specs, execArgv, retries }, stdout, stderr) {
         super()
         this.cid = cid
         this.config = config
@@ -49,7 +49,7 @@ export default class WorkerInstance extends EventEmitter {
     /**
      * spawns process to kick of wdio-runner
      */
-    startProcess () {
+    startProcess() {
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
@@ -69,9 +69,9 @@ export default class WorkerInstance extends EventEmitter {
             stdio: ['inherit', 'pipe', 'pipe', 'ipc']
         })
 
-        childProcess.on('message', ::this._handleMessage)
-        childProcess.on('error', ::this._handleError)
-        childProcess.on('exit', ::this._handleExit)
+        childProcess.on('message', this._handleMessage.bind(this))
+        childProcess.on('error', this._handleError.bind(this))
+        childProcess.on('exit', this._handleExit.bind(this))
 
         /* istanbul ignore if */
         if (!process.env.JEST_WORKER_ID) {
@@ -82,7 +82,7 @@ export default class WorkerInstance extends EventEmitter {
         return childProcess
     }
 
-    _handleMessage (payload) {
+    _handleMessage(payload) {
         const { cid, childProcess } = this
 
         /**
@@ -128,12 +128,12 @@ export default class WorkerInstance extends EventEmitter {
         this.emit('message', Object.assign(payload, { cid }))
     }
 
-    _handleError (payload) {
+    _handleError(payload) {
         const { cid } = this
         this.emit('error', Object.assign(payload, { cid }))
     }
 
-    _handleExit (exitCode) {
+    _handleExit(exitCode) {
         const { cid, childProcess, specs, retries } = this
 
         /**
@@ -153,7 +153,7 @@ export default class WorkerInstance extends EventEmitter {
      * @param  {object} argv     arguments for functions to call
      * @return null
      */
-    postMessage (command, args) {
+    postMessage(command, args) {
         const { cid, configFile, caps, specs, retries, isBusy } = this
 
         if (isBusy && command !== 'endSession') {

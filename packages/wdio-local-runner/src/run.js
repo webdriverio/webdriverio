@@ -8,7 +8,7 @@ import { SHUTDOWN_TIMEOUT } from './constants'
 const log = logger('@wdio/local-runner')
 
 const runner = new Runner()
-runner.on('exit', ::process.exit)
+runner.on('exit', process.exit.bind(process))
 runner.on('error', ({ name, message, stack }) => process.send({
     origin: 'worker',
     name: 'error',

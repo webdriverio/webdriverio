@@ -25,19 +25,19 @@ class AllureReporter extends WDIOReporter {
     }
 
     registerListeners() {
-        process.on(events.addLabel, ::this.addLabel)
-        process.on(events.addFeature, ::this.addFeature)
-        process.on(events.addStory, ::this.addStory)
-        process.on(events.addSeverity, ::this.addSeverity)
-        process.on(events.addIssue, ::this.addIssue)
-        process.on(events.addTestId, ::this.addTestId)
-        process.on(events.addEnvironment, ::this.addEnvironment)
-        process.on(events.addAttachment, ::this.addAttachment)
-        process.on(events.addDescription, ::this.addDescription)
-        process.on(events.startStep, ::this.startStep)
-        process.on(events.endStep, ::this.endStep)
-        process.on(events.addStep, ::this.addStep)
-        process.on(events.addArgument, ::this.addArgument)
+        process.on(events.addLabel, this.addLabel.bind(this))
+        process.on(events.addFeature, this.addFeature.bind(this))
+        process.on(events.addStory, this.addStory.bind(this))
+        process.on(events.addSeverity, this.addSeverity.bind(this))
+        process.on(events.addIssue, this.addIssue.bind(this))
+        process.on(events.addTestId, this.addTestId.bind(this))
+        process.on(events.addEnvironment, this.addEnvironment.bind(this))
+        process.on(events.addAttachment, this.addAttachment.bind(this))
+        process.on(events.addDescription, this.addDescription.bind(this))
+        process.on(events.startStep, this.startStep.bind(this))
+        process.on(events.endStep, this.endStep.bind(this))
+        process.on(events.addStep, this.addStep.bind(this))
+        process.on(events.addArgument, this.addArgument.bind(this))
     }
 
     onRunnerStart(runner) {
@@ -127,12 +127,12 @@ class AllureReporter extends WDIOReporter {
         currentTest.addLabel('thread', cid)
     }
 
-    getLabels({ tags }){
+    getLabels({ tags }) {
         const labels = []
-        if (tags){
+        if (tags) {
             tags.forEach((tag) => {
                 const label = tag.name.replace(/[@]/, '').split('=')
-                if(label.length === 2){
+                if (label.length === 2) {
                     labels.push({ name: label[0], value: label[1] })
                 }
             })

@@ -25,7 +25,7 @@ const DEFAULT_INTERFACE_TYPE = 'bdd'
  * Mocha runner
  */
 class MochaAdapter {
-    constructor (cid, config, specs, capabilities, reporter) {
+    constructor(cid, config, specs, capabilities, reporter) {
         this.cid = cid
         this.capabilities = capabilities
         this.reporter = reporter
@@ -42,7 +42,7 @@ class MochaAdapter {
         this._hasTests = true
     }
 
-    async init () {
+    async init() {
         const { mochaOpts } = this.config
         const mocha = this.mocha = new Mocha(mochaOpts)
         mocha.loadFiles()
@@ -50,13 +50,13 @@ class MochaAdapter {
         mocha.fullTrace()
 
         this.specs.forEach((spec) => mocha.addFile(spec))
-        mocha.suite.on('pre-require', ::this.preRequire)
+        mocha.suite.on('pre-require', this.preRequire.bind(this))
         this._loadFiles(mochaOpts)
 
         return this
     }
 
-    _loadFiles (mochaOpts) {
+    _loadFiles(mochaOpts) {
         try {
             this.mocha.loadFiles()
 
@@ -80,11 +80,11 @@ class MochaAdapter {
         }
     }
 
-    hasTests () {
+    hasTests() {
         return this._hasTests
     }
 
-    async run () {
+    async run() {
         const mocha = this.mocha
 
         /**
@@ -124,7 +124,7 @@ class MochaAdapter {
         return result
     }
 
-    options (options, context) {
+    options(options, context) {
         let { require = [], compilers = [] } = options
 
         if (typeof require === 'string') {
@@ -134,7 +134,7 @@ class MochaAdapter {
         this.requireExternalModules([...compilers, ...require], context)
     }
 
-    preRequire (context, file, mocha) {
+    preRequire(context, file, mocha) {
         const options = this.config.mochaOpts
 
         const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui)
@@ -164,7 +164,7 @@ class MochaAdapter {
     /**
      * Hooks which are added as true Mocha hooks need to call done() to notify async
      */
-    wrapHook (hookName) {
+    wrapHook(hookName) {
         return () => executeHooksWithArgs(
             this.config[hookName],
             this.prepareMessage(hookName)
@@ -173,7 +173,7 @@ class MochaAdapter {
         })
     }
 
-    prepareMessage (hookName) {
+    prepareMessage(hookName) {
         const params = { type: hookName }
 
         switch (hookName) {
@@ -192,7 +192,7 @@ class MochaAdapter {
         return this.formatMessage(params)
     }
 
-    formatMessage (params) {
+    formatMessage(params) {
         let message = {
             type: params.type
         }
@@ -241,7 +241,7 @@ class MochaAdapter {
         return message
     }
 
-    requireExternalModules (modules, context) {
+    requireExternalModules(modules, context) {
         modules.forEach(module => {
             if (!module) {
                 return
@@ -257,7 +257,7 @@ class MochaAdapter {
         })
     }
 
-    emit (event, payload, err) {
+    emit(event, payload, err) {
         /**
          * For some reason, Mocha fires a second 'suite:end' event for the root suite,
          * with no matching 'suite:start', so this can be ignored.
@@ -277,7 +277,7 @@ class MochaAdapter {
         this.reporter.emit(message.type, message)
     }
 
-    getSyncEventIdStart (type) {
+    getSyncEventIdStart(type) {
         const prop = `${type}Cnt`
         const suiteId = this.suiteIds[this.suiteIds.length - 1]
         const cnt = this[prop].has(suiteId)
@@ -287,14 +287,14 @@ class MochaAdapter {
         return `${type}-${suiteId}-${cnt}`
     }
 
-    getSyncEventIdEnd (type) {
+    getSyncEventIdEnd(type) {
         const prop = `${type}Cnt`
         const suiteId = this.suiteIds[this.suiteIds.length - 1]
         const cnt = this[prop].get(suiteId) - 1
         return `${type}-${suiteId}-${cnt}`
     }
 
-    getUID (message) {
+    getUID(message) {
         if (message.type === 'suite:start') {
             const suiteCnt = this.suiteCnt.has(this.level)
                 ? this.suiteCnt.get(this.level)

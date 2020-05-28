@@ -15,7 +15,7 @@ import { commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot 
 
 let processOn
 beforeAll(() => {
-    processOn = ::process.on
+    processOn = process.on.bind(process)
     process.on = jest.fn()
 })
 
@@ -35,7 +35,7 @@ describe('Passing tests', () => {
         reporter.onTestStart(testStart())
         reporter.addLabel({ name: 'customLabel', value: 'Label' })
         reporter.addStory({ storyName: 'Story' })
-        reporter.addFeature( { featureName: 'foo' })
+        reporter.addFeature({ featureName: 'foo' })
         reporter.addSeverity({ severity: 'baz' })
         reporter.addIssue({ issue: '1' })
         reporter.addTestId({ testId: '2' })
@@ -174,7 +174,7 @@ describe('Failed tests', () => {
     })
 
     it('should detect failed test case with multiple errors', () => {
-        const reporter = new AllureReporter({ stdout: true, outputDir } )
+        const reporter = new AllureReporter({ stdout: true, outputDir })
 
         const runnerEvent = runnerStart()
         runnerEvent.config.framework = 'jasmine'
@@ -389,7 +389,7 @@ describe('selenium command reporting', () => {
             disableWebdriverStepsReporting: true
         }
         const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(), ))
+        reporter.onRunnerStart(Object.assign(runnerStart()))
         reporter.onSuiteStart(suiteStart())
         reporter.onTestStart(testStart())
         reporter.onBeforeCommand(commandStart())

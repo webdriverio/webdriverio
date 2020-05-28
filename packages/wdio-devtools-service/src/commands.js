@@ -9,7 +9,7 @@ import { readIOStream, sumByKey } from './utils'
 const log = logger('@wdio/devtools-service:CommandHandler')
 
 export default class CommandHandler {
-    constructor (client, browser) {
+    constructor(client, browser) {
         this.client = client
         this.browser = browser
         this.isTracing = false
@@ -20,7 +20,7 @@ export default class CommandHandler {
          */
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && !fnName.startsWith('_'))
-        commands.forEach(fnName => this.browser.addCommand(fnName, ::this[fnName]))
+        commands.forEach(fnName => this.browser.addCommand(fnName, this[fnName].bind(this)))
 
         /**
          * propagate CDP events to the browser event listener
@@ -35,7 +35,7 @@ export default class CommandHandler {
     /**
      * allow to easily access the CDP from the browser object
      */
-    cdp (domain, command, args = {}) {
+    cdp(domain, command, args = {}) {
         if (!this.client[domain]) {
             throw new Error(`Domain "${domain}" doesn't exist in the Chrome DevTools protocol`)
         }
@@ -59,7 +59,7 @@ export default class CommandHandler {
      * helper method to receive Chrome remote debugging connection data to
      * e.g. use external tools like lighthouse
      */
-    cdpConnection () {
+    cdpConnection() {
         const { host, port } = this.client
         return { host, port }
     }
@@ -67,7 +67,7 @@ export default class CommandHandler {
     /**
      * get nodeId to use for other commands
      */
-    async getNodeId (selector) {
+    async getNodeId(selector) {
         const document = await this.cdp('DOM', 'getDocument')
         const { nodeId } = await this.cdp(
             'DOM', 'querySelector',
@@ -79,7 +79,7 @@ export default class CommandHandler {
     /**
      * get nodeIds to use for other commands
      */
-    async getNodeIds (selector) {
+    async getNodeIds(selector) {
         const document = await this.cdp('DOM', 'getDocument')
         const { nodeIds } = await this.cdp(
             'DOM', 'querySelectorAll',
@@ -94,7 +94,7 @@ export default class CommandHandler {
      * @param  {string[]} [categories=DEFAULT_TRACING_CATEGORIES]  categories to trace for
      * @param  {Number}   [samplingFrequency=10000]                sampling frequency
      */
-    startTracing (categories = DEFAULT_TRACING_CATEGORIES, samplingFrequency = 10000) {
+    startTracing(categories = DEFAULT_TRACING_CATEGORIES, samplingFrequency = 10000) {
         if (this.isTracing) {
             throw new Error('browser is already being traced')
         }
@@ -112,7 +112,7 @@ export default class CommandHandler {
      *
      * @return {Number}  tracing id to use for other commands
      */
-    async endTracing () {
+    async endTracing() {
         if (!this.isTracing) {
             throw new Error('No tracing was initiated, call `browser.startTracing()` first')
         }
@@ -131,21 +131,21 @@ export default class CommandHandler {
             })
         })
 
-        this.traceEvents = await readIOStream(::this.cdp, stream)
+        this.traceEvents = await readIOStream(this.cdp.bind(this), stream)
         return stream
     }
 
     /**
      * get raw trace logs
      */
-    getTraceLogs () {
+    getTraceLogs() {
         return this.traceEvents
     }
 
     /**
      * get page weight from last page load
      */
-    getPageWeight () {
+    getPageWeight() {
         const pageWeight = sumByKey(Object.values(this.networkHandler.requestTypes), 'size')
         const transferred = sumByKey(Object.values(this.networkHandler.requestTypes), 'encoded')
         const requestCount = sumByKey(Object.values(this.networkHandler.requestTypes), 'count')

@@ -1,24 +1,13 @@
 {
+  "extends": "../../tsconfig",
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
-    "allowJs": true,
-    "declaration": true,
-    "removeComments": true,
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "outDir": "./build",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "declaration": false,
+    "composite": false
   },
   "include": [
     "src/**/*"
-  ],
-  "references": [
-    {
-      "path": "../wdio-logger"
-    }
   ]
 }

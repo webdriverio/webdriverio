@@ -9,7 +9,7 @@ const POINTER = 'pointer'
 const sleep = (time = 0) => new Promise(
     (resolve) => setTimeout(resolve, time))
 
-export default async function performActions ({ actions }) {
+export default async function performActions({ actions }) {
     const page = this.getPageHandle()
     const lastPointer = {}
 
@@ -34,7 +34,7 @@ export default async function performActions ({ actions }) {
                 }
 
                 const cmd = singleAction.type.slice(KEY.length).toLowerCase()
-                const keyboardFn = ::page.keyboard[cmd]
+                const keyboardFn = page.keyboard[cmd].bind(page)
 
                 /**
                  * skip up event as we had to use sendCharacter for non unicode
@@ -73,7 +73,7 @@ export default async function performActions ({ actions }) {
                 }
 
                 const cmd = singleAction.type.slice(POINTER.length).toLowerCase()
-                const keyboardFn = ::page.mouse[cmd]
+                const keyboardFn = page.mouse[cmd].bind(page)
                 let { x, y, duration, button, origin } = singleAction
 
                 if (cmd === 'move') {

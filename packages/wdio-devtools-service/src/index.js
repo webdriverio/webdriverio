@@ -13,13 +13,13 @@ const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only sup
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
 export default class DevToolsService {
-    constructor (options) {
+    constructor(options) {
         this.options = options
         this.isSupported = false
         this.shouldRunPerformanceAudits = false
     }
 
-    beforeSession (_, caps) {
+    beforeSession(_, caps) {
         if ((caps.browserName && caps.browserName.toLowerCase() !== 'chrome') || isBrowserVersionLower(caps, 63)) {
             return log.error(UNSUPPORTED_ERROR_MESSAGE)
         }
@@ -27,9 +27,9 @@ export default class DevToolsService {
         this.isSupported = true
     }
 
-    async before () {
+    async before() {
         if (!this.isSupported) {
-            return global.browser.addCommand('cdp', /* istanbul ignore next */ () => {
+            return global.browser.addCommand('cdp', /* istanbul ignore next */() => {
                 throw new Error(UNSUPPORTED_ERROR_MESSAGE)
             })
         }
@@ -50,11 +50,11 @@ export default class DevToolsService {
             this.traceGatherer = new TraceGatherer(this.devtoolsDriver)
 
             const session = await this.devtoolsDriver.getCDPSession()
-            session.on('Page.loadEventFired', ::this.traceGatherer.onLoadEventFired)
-            session.on('Page.frameNavigated', ::this.traceGatherer.onFrameNavigated)
+            session.on('Page.loadEventFired', this.traceGatherer.onLoadEventFired.bind(this))
+            session.on('Page.frameNavigated', this.traceGatherer.onFrameNavigated.bind(this))
 
             const page = await this.devtoolsDriver.getActivePage()
-            page.on('requestfailed', ::this.traceGatherer.onFrameLoadFail)
+            page.on('requestfailed', this.traceGatherer.onFrameLoadFail.bind(this))
 
             /**
              * enable domains for client
@@ -67,7 +67,7 @@ export default class DevToolsService {
             ))
 
             this.devtoolsGatherer = new DevtoolsGatherer()
-            this.client.on('event', ::this.devtoolsGatherer.onMessage)
+            this.client.on('event', this.devtoolsGatherer.onMessage.bind(this))
 
             log.info(`Connected to Chrome on ${debuggerAddress.host}:${debuggerAddress.port}`)
         } catch (err) {
@@ -75,18 +75,18 @@ export default class DevToolsService {
             return
         }
 
-        global.browser.addCommand('enablePerformanceAudits', ::this._enablePerformanceAudits)
-        global.browser.addCommand('disablePerformanceAudits', ::this._disablePerformanceAudits)
-        global.browser.addCommand('emulateDevice', ::this._emulateDevice)
+        global.browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
+        global.browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
+        global.browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
 
         /**
          * allow user to work with Puppeteer directly
          */
         global.browser.addCommand('getPuppeteer',
-            /* istanbul ignore next */ () => this.devtoolsDriver)
+            /* istanbul ignore next */() => this.devtoolsDriver)
     }
 
-    async beforeCommand (commandName, params) {
+    async beforeCommand(commandName, params) {
         if (!this.shouldRunPerformanceAudits || !this.traceGatherer || this.traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
             return
         }
@@ -100,7 +100,7 @@ export default class DevToolsService {
         return this.traceGatherer.startTracing(url)
     }
 
-    async afterCommand (commandName) {
+    async afterCommand(commandName) {
         if (!this.traceGatherer || !this.traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
             return
         }
@@ -115,7 +115,7 @@ export default class DevToolsService {
 
         this.traceGatherer.once('tracingError', (err) => {
             const auditor = new Auditor()
-            auditor.updateCommands(global.browser, /* istanbul ignore next */ () => {
+            auditor.updateCommands(global.browser, /* istanbul ignore next */() => {
                 throw new Error(`Couldn't capture performance due to: ${err.message}`)
             })
         })
@@ -139,7 +139,7 @@ export default class DevToolsService {
     /**
      * set flag to run performance audits for page transitions
      */
-    _enablePerformanceAudits ({ networkThrottling = DEFAULT_NETWORK_THROTTLING_STATE, cpuThrottling = 4, cacheEnabled = false } = {}) {
+    _enablePerformanceAudits({ networkThrottling = DEFAULT_NETWORK_THROTTLING_STATE, cpuThrottling = 4, cacheEnabled = false } = {}) {
         if (!Object.prototype.hasOwnProperty.call(NETWORK_STATES, networkThrottling)) {
             throw new Error(`Network throttling profile "${networkThrottling}" is unknown, choose between ${Object.keys(NETWORK_STATES).join(', ')}`)
         }
@@ -157,14 +157,14 @@ export default class DevToolsService {
     /**
      * custom command to disable performance audits
      */
-    _disablePerformanceAudits () {
+    _disablePerformanceAudits() {
         this.shouldRunPerformanceAudits = false
     }
 
     /**
      * set device emulation
      */
-    async _emulateDevice (device, inLandscape) {
+    async _emulateDevice(device, inLandscape) {
         const page = await this.devtoolsDriver.getActivePage()
 
         if (typeof device === 'string') {
@@ -186,7 +186,7 @@ export default class DevToolsService {
     /**
      * helper method to set throttling profile
      */
-    async _setThrottlingProfile (networkThrottling, cpuThrottling, cacheEnabled) {
+    async _setThrottlingProfile(networkThrottling, cpuThrottling, cacheEnabled) {
         const page = await this.devtoolsDriver.getActivePage()
         await page.setCacheEnabled(Boolean(cacheEnabled))
         await this.devtoolsDriver.send('Emulation.setCPUThrottlingRate', { rate: cpuThrottling })

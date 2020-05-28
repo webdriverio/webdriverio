@@ -2,11 +2,11 @@ import Profile from 'firefox-profile'
 import { promisify } from 'util'
 
 export default class FirefoxProfileLauncher {
-    constructor (options) {
+    constructor(options) {
         this.options = options
     }
 
-    async onPrepare (config, capabilities) {
+    async onPrepare(config, capabilities) {
         /**
          * Return if no profile options were specified
          */
@@ -14,7 +14,7 @@ export default class FirefoxProfileLauncher {
             return
         }
 
-        if(this.options.profileDirectory) {
+        if (this.options.profileDirectory) {
             this.profile = await promisify(Profile.copy)(this.options.profileDirectory)
         } else {
             this.profile = new Profile()
@@ -28,14 +28,14 @@ export default class FirefoxProfileLauncher {
         }
 
         // Add the extension
-        await promisify(::this.profile.addExtensions)(this.options.extensions)
+        await promisify(this.profile.addExtensions.bind(this))(this.options.extensions)
         return this._buildExtension(capabilities)
     }
 
     /**
      * Sets any preferences and proxy
      */
-    _setPreferences () {
+    _setPreferences() {
         for (const [preference, value] of Object.entries(this.options)) {
             if (['extensions', 'proxy', 'legacy', 'profileDirectory'].includes(preference)) {
                 continue
@@ -51,8 +51,8 @@ export default class FirefoxProfileLauncher {
         this.profile.updatePreferences()
     }
 
-    async _buildExtension (capabilities) {
-        const zippedProfile = await promisify(::this.profile.encoded)()
+    async _buildExtension(capabilities) {
+        const zippedProfile = await promisify(this.profile.encoded.bind(this))()
 
         if (Array.isArray(capabilities)) {
             capabilities
@@ -76,7 +76,7 @@ export default class FirefoxProfileLauncher {
     }
 
     _setProfile(capability, zippedProfile) {
-        if(this.options.legacy) {
+        if (this.options.legacy) {
             // for older firefox and geckodriver versions
             capability.firefox_profile = zippedProfile
         } else {
