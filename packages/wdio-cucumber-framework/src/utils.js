@@ -201,10 +201,7 @@ export function getTestCaseSteps (feature, scenario, pickle, testCasePreparedEve
 
         // set proper text for step
         if (step && eventStep.sourceLocation) {
-            step = {
-                ...step,
-                text: getStepText(step, pickle)
-            }
+            step = enhanceStepWithPickleData(step, pickle)
         }
 
         // if step was not found `eventStep` is a user defined hook
@@ -220,17 +217,41 @@ export function getTestCaseSteps (feature, scenario, pickle, testCasePreparedEve
 }
 
 /**
- * get resolved step text for table steps, example:
+ * get resolved step text and argument for table steps, example:
  * Then User `<userId>` with `<password>` is logged in
  * Then User `someUser` with `Password12` is logged in
- * @param   {object}    step        cucumber's step
+ * @param   {object}    origStep    cucumber's step
  * @param   {object}    pickle      cucumber's pickleEvent
  * @returns {string}
  */
-export function getStepText (step, pickle) {
+export function enhanceStepWithPickleData (origStep, pickle) {
+    const step = { ...origStep }
     const pickleStep = pickle.steps.find(s => s.locations.some(loc => loc.line === step.location.line))
 
-    return pickleStep ? pickleStep.text : step.text
+    if (pickleStep) {
+        step.text = pickleStep.text
+
+        if (step.argument && Array.isArray(pickleStep.arguments)) {
+            step.argument.rows.forEach(stepRow => {
+                stepRow.cells.forEach(stepCell => {
+                    let pStepCellTmp
+                    pickleStep.arguments.find(pStepArg => {
+                        return pStepArg.rows.find(pStepRow => {
+                            return pStepRow.cells.find(pStepCell => {
+                                if (pStepCell.location.line === stepCell.location.line &&
+                                    pStepCell.location.column === stepCell.location.column) {
+                                    pStepCellTmp = pStepCell
+                                }
+                            })
+                        })
+                    })
+                    stepCell.value = pStepCellTmp.value
+                })
+            })
+        }
+    }
+
+    return step
 }
 
 /**
