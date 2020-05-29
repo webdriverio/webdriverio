@@ -1,123 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es5",
     "module": "commonjs",
     "allowJs": true,
     "declaration": false,
+    "sourceMap": true,
     "removeComments": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
   },
-  "include": [
-    "src/**/*"
-  ],
-  "references": [
-    {
-      "path": "./packages/devtools"
-    },
-    {
-      "path": "./packages/wdio-allure-reporter"
-    },
-    {
-      "path": "./packages/wdio-appium-service"
-    },
-    {
-      "path": "./packages/wdio-applitools-service"
-    },
-    {
-      "path": "./packages/wdio-browserstack-service"
-    },
-    {
-      "path": "./packages/wdio-cli"
-    },
-    {
-      "path": "./packages/wdio-concise-reporter"
-    },
-    {
-      "path": "./packages/wdio-config"
-    },
-    {
-      "path": "./packages/wdio-crossbrowsertesting-service"
-    },
-    {
-      "path": "./packages/wdio-cucumber-framework"
-    },
-    {
-      "path": "./packages/wdio-dot-reporter"
-    },
-    {
-      "path": "./packages/wdio-firefox-profile-service"
-    },
-    {
-      "path": "./packages/wdio-jasmine-framework"
-    },
-    {
-      "path": "./packages/wdio-junit-reporter"
-    },
-    {
-      "path": "./packages/wdio-lambda-runner"
-    },
-    {
-      "path": "./packages/wdio-local-runner"
-    },
-    {
-      "path": "./packages/wdio-logger"
-    },
-    {
-      "path": "./packages/wdio-mocha-framework"
-    },
-    {
-      "path": "./packages/wdio-repl"
-    },
-    {
-      "path": "./packages/wdio-reporter"
-    },
-    {
-      "path": "./packages/wdio-runner"
-    },
-    {
-      "path": "./packages/wdio-sauce-service"
-    },
-    {
-      "path": "./packages/wdio-selenium-standalone-service"
-    },
-    {
-      "path": "./packages/wdio-shared-store-service"
-    },
-    {
-      "path": "./packages/wdio-smoke-test-reporter"
-    },
-    {
-      "path": "./packages/wdio-smoke-test-service"
-    },
-    {
-      "path": "./packages/wdio-spec-reporter"
-    },
-    {
-      "path": "./packages/wdio-static-server-service"
-    },
-    {
-      "path": "./packages/wdio-sumologic-reporter"
-    },
-    {
-      "path": "./packages/wdio-sync"
-    },
-    {
-      "path": "./packages/wdio-testingbot-service"
-    },
-    {
-      "path": "./packages/wdio-utils"
-    },
-    {
-      "path": "./packages/wdio-webdriver-mock-service"
-    },
-    {
-      "path": "./packages/webdriver"
-    },
-    {
-      "path": "./packages/webdriverio"
-    }
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
   ]
 }

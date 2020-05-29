@@ -12,6 +12,7 @@
   "types": "./webdriver.d.ts",
   "typeScriptVersion": "3.7.3",
   "scripts": {
+    "tsc": "tsc",
     "build": "run-s clean compile",
     "clean": "rimraf ./build",
     "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
