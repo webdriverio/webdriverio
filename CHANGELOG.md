@@ -17,6 +17,17 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.16 (2020-06-02)
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#5442](https://github.com/webdriverio/webdriverio/pull/5442) Add support for Android viewtag selector ([@ricmatsui](https://github.com/ricmatsui))
+
+#### Committers: 2
+- Ricardo Matsui ([@ricmatsui](https://github.com/ricmatsui))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.15 (2020-05-28)
 
 #### :bug: Bug Fix
