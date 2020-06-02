@@ -18,6 +18,49 @@
 @import '_components/tables';
 @import '_components/navigation';
 
+html {
+    filter: grayscale(1);
+}
+
+.blacklivesmatter {
+    background-color: black;
+    text-align: center;
+    position: fixed;
+    top: 0;
+    padding: 0 100px;
+    color: #aaaaaa;
+    z-index: 1;
+    max-width: 1400px;
+
+    h3, a {
+        text-align: center;
+        color: #ffffff;
+        font-weight: bold;
+    }
+
+    a {
+        display: inline-black;
+        padding: 0 5px;
+    }
+}
+
+@media screen and (min-width: 1400px) {
+    .blacklivesmatter {
+        max-width: 100%;
+        height: 130px;
+        padding: 0;
+        width: 100%;
+    }
+}
+
+.navPusher {
+    padding-top: 180px;
+}
+
+.fixedHeaderContainer {
+    top: 130px;
+}
+
 html,
 body {
     width: 100%;
