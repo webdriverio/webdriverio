@@ -44,7 +44,7 @@ class Launcher {
         this.interface = new CLInterface(config, totalWorkerCnt, this.isWatchMode)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
-        this.isMultiremote = !Array.isArray(capabilities)
+        this.isMultiremote = config.parallelMultiremote ? true : !Array.isArray(capabilities)
         this.exitCode = 0
         this.hasTriggeredExitRoutine = false
         this.hasStartedAnyProcess = false
@@ -140,9 +140,9 @@ class Launcher {
          * schedule test runs
          */
         let cid = 0
-        if (this.isMultiremote) {
+        if (this.isMultiremote && !config.parallelMultiremote) {
             /**
-             * Multiremote mode
+             * Single Multiremote mode (compatibility with previous multiremote logic)
              */
             this.schedule.push({
                 cid: cid++,
@@ -153,7 +153,7 @@ class Launcher {
             })
         } else {
             /**
-             * Regular mode
+             * Single or Multi remote in parallel
              */
             for (let capabilities of caps) {
                 this.schedule.push({

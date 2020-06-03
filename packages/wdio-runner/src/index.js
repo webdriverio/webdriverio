@@ -51,7 +51,9 @@ export default class Runner extends EventEmitter {
         this.config = this.configParser.getConfig()
         this.config.specFileRetryAttempts = (this.config.specFileRetries || 0) - (retries || 0)
         logger.setLogLevelsConfig(this.config.logLevels, this.config.logLevel)
-        const isMultiremote = this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
+        const isMultiremote = this.isMultiremote = this.config.parallelMultiremote
+            ?  true
+            : !Array.isArray(this.configParser.getCapabilities())
 
         /**
          * create `browser` stub only if `specFiltering` feature is enabled

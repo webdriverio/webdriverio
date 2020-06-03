@@ -36,11 +36,17 @@ export default class SeleniumStandaloneLauncher {
          * update capability connection options to connect
          * to standalone server
          */
-        (
-            Array.isArray(this.capabilities)
-                ? this.capabilities
-                : Object.values(this.capabilities)
-        ).forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+        if (config.parallelMultiremote) {
+            this.capabilities.forEach(caps => {
+                Object.values(caps).forEach(cap => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+            })
+        } else {
+            (
+                Array.isArray(this.capabilities)
+                    ? this.capabilities
+                    : Object.values(this.capabilities)
+            ).forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+        }
 
         /**
          * start Selenium Standalone server
