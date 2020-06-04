@@ -52,7 +52,7 @@ export function commandCallStructure (commandName, args) {
     const callArgs = args.map((arg) => {
         if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function'))) {
             arg = '<fn>'
-        } else if (typeof arg === 'string' && isBase64(arg)) {
+        } else if (typeof arg === 'string' && !commandName.startsWith('findElement') && isBase64(arg)) {
             arg = SCREENSHOT_REPLACEMENT
         } else if (typeof arg === 'string') {
             arg = `"${arg}"`
