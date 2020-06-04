@@ -232,6 +232,7 @@ declare namespace WebDriver {
         handlesAlerts?: boolean;
         version?: string;
         platform?: string;
+        deviceScreenSize?: string;
 
         // Read-write capabilities
         javascriptEnabled?: boolean;
