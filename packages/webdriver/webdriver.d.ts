@@ -232,7 +232,6 @@ declare namespace WebDriver {
         handlesAlerts?: boolean;
         version?: string;
         platform?: string;
-        deviceScreenSize?: string;
 
         // Read-write capabilities
         javascriptEnabled?: boolean;
@@ -403,6 +402,7 @@ declare namespace WebDriver {
         autoWebviewTimeout?: number;
         chromedriverPort?: number;
         chromedriverPorts?: (number | number[])[]
+        deviceScreenSize?: string;
         intentAction?: string;
         intentCategory?: string;
         intentFlags?: string;
