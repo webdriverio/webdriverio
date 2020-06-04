@@ -25,7 +25,28 @@ import { getElementRect, getScrollPosition } from '../../utils'
 const ACTION_BUTTON = 0
 
 export default async function dragAndDrop (target, { duration = 100 } = {}) {
-    if (!target || (target.constructor.name !== 'Element' && (!target.x || !target.y))) {
+    /**
+     * fail if
+     */
+    if (
+        /**
+         * no target was specified
+         */
+        !target ||
+        (
+            /**
+             * target is not from type element
+             */
+            target.constructor.name !== 'Element' &&
+            /**
+             * and is also not an object with x and y number parameters
+             */
+            (
+                typeof target.x !== 'number' ||
+                typeof target.y !== 'number'
+            )
+        )
+    ) {
         throw new Error('command dragAndDrop requires an WebdriverIO Element or and object with "x" and "y" variables as first parameter')
     }
 
