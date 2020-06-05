@@ -402,7 +402,6 @@ declare namespace WebDriver {
         autoWebviewTimeout?: number;
         chromedriverPort?: number;
         chromedriverPorts?: (number | number[])[]
-        deviceScreenSize?: string;
         intentAction?: string;
         intentCategory?: string;
         intentFlags?: string;
