@@ -20,6 +20,7 @@
 
 
 .blacklivesmatter {
+    display: none;
     background-color: black;
     text-align: center;
     position: fixed;
@@ -39,6 +40,45 @@
         display: inline-black;
         padding: 0 5px;
     }
+
+    .close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: transparent;
+        background: transparent;
+        border: 0;
+        width: 32px;
+        height: 32px;
+        opacity: .3;
+        font-weight: bold;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 1;
+        }
+
+        &:focus {
+            outline: 0;
+        }
+
+        &:before, &:after {
+            position: absolute;
+            left: 15px;
+            top: 0;
+            content: ' ';
+            height: 33px;
+            width: 2px;
+            background-color: #bbb;
+        }
+
+        &:before {
+            transform: rotate(45deg);
+        }
+        &:after {
+            transform: rotate(-45deg);
+        }
+    }
 }
 
 @media screen and (min-width: 1400px) {
@@ -48,14 +88,6 @@
         padding: 0;
         width: 100%;
     }
-}
-
-.navPusher {
-    padding-top: 180px;
-}
-
-.fixedHeaderContainer {
-    top: 130px;
 }
 
 html,

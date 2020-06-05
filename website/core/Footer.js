@@ -30,7 +30,9 @@ class Footer extends React.Component {
                         <a href="https://support.eji.org/give/153413/#!/donation/checkout">The Equal Justice Initiative</a>,
                         <a href="https://www.naacpldf.org/">NAACP Legal Defense and Education Fund</a>, or your local civil rights charity.
                     </p>
+                    <button className="close">x</button>
                 </div>
+                <script src="/js/blm.js" type="application/javascript"></script>
                 <footer className="nav-footer" id="footer">
                     <section className="sitemap">
                         <a href={this.props.config.baseUrl} className="nav-home">
