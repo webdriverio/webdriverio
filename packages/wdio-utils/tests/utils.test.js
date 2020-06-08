@@ -22,6 +22,16 @@ describe('utils', () => {
                 (Buffer.from('some screenshot')).toString('base64')
             ]
         )).toBe('foobar("param", 1, true, <object>, <fn>, <fn>, <fn>, null, undefined, "<Screenshot[base64]>")')
+        expect(commandCallStructure('foobar', ['/html/body/a']))
+            .toBe('foobar("<Screenshot[base64]>")')
+        expect(commandCallStructure('findElement', ['/html/body/a']))
+            .toBe('findElement("/html/body/a")')
+        expect(commandCallStructure('findElements', ['/html/body/a']))
+            .toBe('findElements("/html/body/a")')
+        expect(commandCallStructure('findElementFromElement', ['/html/body/a']))
+            .toBe('findElementFromElement("/html/body/a")')
+        expect(commandCallStructure('findElementsFromElement', ['/html/body/a']))
+            .toBe('findElementsFromElement("/html/body/a")')
     })
 
     it('transformCommandLogResult', () => {
