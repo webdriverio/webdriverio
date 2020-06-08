@@ -9,7 +9,7 @@ import {
     getDataFromResult,
     setUserHookNames,
     getTestCaseSteps,
-    getStepText,
+    enhanceStepWithPickleData,
     getAllSteps
 } from '../src/utils'
 
@@ -91,15 +91,63 @@ describe('utils', () => {
         })
     })
 
-    describe('getStepText', () => {
+    describe('enhanceStepWithPickleData', () => {
         it('should return pickle step text if step was found', () => {
             const pickle = { steps: [{ locations: [{ line: 1 }], text: '11' }, { locations: [{ line: 1 }, { line: 2 }, { line: 3 }], text: '2' }] }
-            expect(getStepText({ location: { line: 2 } }, pickle)).toEqual('2')
+            expect(enhanceStepWithPickleData({ location: { line: 2 } }, pickle)).toEqual({ location: { line: 2 }, text: '2' })
         })
 
         it('should return step text if step was not found', () => {
             const pickle = { steps: [{ locations: [{ line: 1 }], text: '11' }] }
-            expect(getStepText({ location: { line: 2 }, text: 'foo' }, pickle)).toEqual('foo')
+            expect(enhanceStepWithPickleData({ location: { line: 2 }, text: 'foo' }, pickle)).toEqual({ location: { line: 2 }, text: 'foo' })
+        })
+
+        it('should replace data table variables with values', () => {
+            const pickle = { steps: [{
+                locations: [{ line: 1 }],
+                text: 'bar',
+                arguments: [{
+                    rows: [{
+                        cells: [{
+                            location: { line: 11, column: 10 },
+                            value: 'winter'
+                        }, {
+                            location: { line: 11, column: 20 },
+                            value: 'cold'
+                        }]
+                    }]
+                }]
+            }] }
+
+            const step = {
+                location: { line: 1 },
+                argument: {
+                    rows: [{
+                        cells: [{
+                            location: { line: 11, column: 10 },
+                            value: '<season>'
+                        }, {
+                            location: { line: 11, column: 20 },
+                            value: '<weather>'
+                        }]
+                    }]
+                }
+            }
+            expect(enhanceStepWithPickleData(step, pickle)).toEqual({
+                location: { line: 1 },
+                text: 'bar',
+                argument: {
+                    rows: [{
+                        cells: [{
+                            location: { line: 11, column: 10 },
+                            value: 'winter'
+                        }, {
+                            location: { line: 11, column: 20 },
+                            value: 'cold'
+                        }]
+                    }]
+                }
+            })
         })
     })
 
