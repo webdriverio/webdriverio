@@ -231,21 +231,51 @@ export function enhanceStepWithPickleData (origStep, pickle) {
     if (pickleStep) {
         step.text = pickleStep.text
 
+        // replace variable with real value
         if (step.argument && Array.isArray(pickleStep.arguments)) {
+            // build map like { line: { column: value } }
+            const pickleStepValueLocation = {}
+
+            // {
+            //     arguments: [{
+            //         rows: [{
+            //             cells: [{
+            //                 location: { ... },
+            //                 value: "winter"
+            //             }, {
+            //                 location: { ... },
+            //                 value: "cold"
+            //             }]
+            //         }]
+            //     }]
+            // }
+            pickleStep.arguments.forEach(pStepArg => {
+                pStepArg.rows.forEach(pStepRow => {
+                    pStepRow.cells.forEach(pStepCell => {
+                        if (!pickleStepValueLocation[pStepCell.location.line]) {
+                            pickleStepValueLocation[pStepCell.location.line] = {}
+                        }
+                        pickleStepValueLocation[pStepCell.location.line][pStepCell.location.column] = pStepCell.value
+                    })
+                })
+            })
+
+            // {
+            //     argument: {
+            //         rows: [{
+            //             cells: [{
+            //                 location: { ... },
+            //                 value: "<season>"
+            //             }, {
+            //                 location: { ... },
+            //                 value: "<weather>"
+            //             }]
+            //         }]
+            //     }
+            // }
             step.argument.rows.forEach(stepRow => {
                 stepRow.cells.forEach(stepCell => {
-                    let pStepCellTmp
-                    pickleStep.arguments.find(pStepArg => {
-                        return pStepArg.rows.find(pStepRow => {
-                            return pStepRow.cells.find(pStepCell => {
-                                if (pStepCell.location.line === stepCell.location.line &&
-                                    pStepCell.location.column === stepCell.location.column) {
-                                    pStepCellTmp = pStepCell
-                                }
-                            })
-                        })
-                    })
-                    stepCell.value = pStepCellTmp.value
+                    stepCell.value = pickleStepValueLocation[stepCell.location.line][stepCell.location.column]
                 })
             })
         }
