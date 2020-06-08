@@ -17,6 +17,23 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.17 (2020-06-08)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#5448](https://github.com/webdriverio/webdriverio/pull/5448) Fix data table variable values in Cucumber scenario outlines ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#5462](https://github.com/webdriverio/webdriverio/pull/5462) Allow to have 0 x and y values for dragAndDrop ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#5463](https://github.com/webdriverio/webdriverio/pull/5463) Fix depcrecated usage of rejectUnauthorized ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#5464](https://github.com/webdriverio/webdriverio/pull/5464) Don't think XPath selector is a base64 screenshot ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v6.1.16 (2020-06-02)
 
 #### :nail_care: Polish
