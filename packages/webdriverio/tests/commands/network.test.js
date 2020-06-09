@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { getPrototype } from '../../src/utils'
 
-const scope = 'browser'
+const scope = 'network'
 const dir = path.resolve(__dirname, '../..', 'src', 'commands', scope)
 const files = fs
     .readdirSync(dir)
@@ -10,7 +10,7 @@ const files = fs
 
 test(scope + ' commands list and strategies', () => {
     const prototype = Object.keys(getPrototype(scope))
-    const expected = [...files, 'strategies', 'network']
+    const expected = [...files, 'strategies']
 
     expect(prototype).toEqual(expected)
 })
