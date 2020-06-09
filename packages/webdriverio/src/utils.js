@@ -3,6 +3,7 @@ import http from 'http'
 import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
+import getPort from 'get-port'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
@@ -10,18 +11,21 @@ import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
 import isPlainObject from 'lodash.isplainobject'
 
-import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT } from './constants'
+import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from './constants'
 import { findStrategy } from './utils/findStrategy'
+import { getNetwork } from './utils/getNetworkObject'
 
 const browserCommands = require('./commands/browser')
 const elementCommands = require('./commands/element')
+const networkCommands = require('./commands/network')
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
 
 const scopes = {
     browser: browserCommands,
-    element: elementCommands
+    element: elementCommands,
+    network: networkCommands
 }
 
 const applyScopePrototype = (prototype, scope) => {
@@ -41,6 +45,24 @@ export const getPrototype = (scope) => {
      */
     applyScopePrototype(prototype, scope)
     prototype.strategies = { value: new Map() }
+
+    /**
+     * register network primitives
+     */
+    if (scope === 'browser') {
+        let networkScope
+        prototype.network = {
+            get: function () {
+                /**
+                 * only create network scope once
+                 */
+                if (!networkScope) {
+                    networkScope = getNetwork.call(this)
+                }
+                return networkScope
+            }
+        }
+    }
 
     return prototype
 }
@@ -458,4 +480,33 @@ export const getAutomationProtocol = async (config) => {
     }
 
     return 'devtools'
+}
+
+/**
+ * updateCapabilities allows modifying capabilities before session
+ * is started
+ *
+ * NOTE: this method is executed twice when running the WDIO testrunner
+ */
+export const updateCapabilities = async (params) => {
+    /**
+     * attach remote debugging port options to Firefox sessions
+     * (this will be ignored if not supported)
+     */
+    if (params.capabilities.browserName === 'firefox') {
+        if (!params.capabilities['moz:firefoxOptions']) {
+            params.capabilities['moz:firefoxOptions'] = {}
+        }
+
+        if (!params.capabilities['moz:firefoxOptions'].args) {
+            params.capabilities['moz:firefoxOptions'].args = []
+        }
+
+        if (!params.capabilities['moz:firefoxOptions'].args.includes(FF_REMOTE_DEBUG_ARG)) {
+            params.capabilities['moz:firefoxOptions'].args.push(
+                FF_REMOTE_DEBUG_ARG,
+                (await getPort()).toString()
+            )
+        }
+    }
 }

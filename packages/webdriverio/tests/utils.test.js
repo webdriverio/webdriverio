@@ -14,7 +14,8 @@ import {
     getAbsoluteFilepath,
     assertDirectoryExists,
     validateUrl,
-    getAutomationProtocol
+    getAutomationProtocol,
+    updateCapabilities
 } from '../src/utils'
 
 jest.mock('http', () => {
@@ -32,7 +33,6 @@ jest.mock('http', () => {
 })
 
 describe('utils', () => {
-
     describe('getElementFromResponse', () => {
         it('should return null if response is null', () => {
             expect(getElementFromResponse(null)).toBe(null)
@@ -509,6 +509,35 @@ describe('utils', () => {
             http.setResponse({ statusCode: 404 })
             expect(await getAutomationProtocol({ capabilities: { browserName: 'foobar' } }))
                 .toBe('webdriver')
+        })
+    })
+
+    describe('updateCapabilities', () => {
+        it('should do nothing if no browser specified', async () => {
+            const params = { capabilities: {} }
+            await updateCapabilities(params)
+            expect(params).toMatchSnapshot()
+        })
+
+        describe('setting devtools port in Firefox', () => {
+            it('should set firefox options if there aren\'t any', async () => {
+                const params = { capabilities: { browserName: 'firefox' } }
+                await updateCapabilities(params)
+                expect(params).toMatchSnapshot()
+            })
+
+            it('should not overwrite if already set', async () => {
+                const params = {
+                    capabilities: {
+                        browserName: 'firefox',
+                        'moz:firefoxOptions': {
+                            args: ['foo', 'bar', '-remote-debugging-port', 1234, 'barfoo']
+                        }
+                    }
+                }
+                await updateCapabilities(params)
+                expect(params).toMatchSnapshot()
+            })
         })
     })
 })
