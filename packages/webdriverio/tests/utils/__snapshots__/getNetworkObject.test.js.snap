@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`attach Puppeteer should log commands 1`] = `
+Array [
+  Array [
+    "COMMAND",
+    "test123()",
+  ],
+  Array [
+    "RESULT",
+    123,
+  ],
+]
+`;
+
+exports[`attach Puppeteer should pass for Chrome 1`] = `
+Array [
+  Array [
+    Object {
+      "browserURL": "http://localhost:1234",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
+
+exports[`attach Puppeteer should pass for Firefox 1`] = `
+Array [
+  Array [
+    Object {
+      "browserURL": "http://localhost:4321",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
