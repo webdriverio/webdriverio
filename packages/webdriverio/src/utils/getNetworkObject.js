@@ -9,10 +9,7 @@ import { FF_REMOTE_DEBUG_ARG } from '../constants'
 import { getBrowserObject, getPrototype as getWDIOPrototype } from '../utils'
 
 /**
- * transforms and findElement response into a WDIO element
- * @param  {String} selector  selector that was used to query the element
- * @param  {Object} res       findElement response
- * @return {Object}           WDIO element object
+ * returns the network scope with properly wrapped commands
  */
 export const getNetwork = function getNetwork () {
     const browser = getBrowserObject(this)
@@ -106,6 +103,6 @@ export const getPuppeteer = async function getPuppeteer () {
 
     throw new Error(
         'Network primitives aren\'t available for this session. ' +
-        'This feature is only support for local Chrome, Firefox and Edge testing.'
+        'This feature is only supported for local Chrome, Firefox and Edge testing.'
     )
 }
