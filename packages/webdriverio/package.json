@@ -68,6 +68,7 @@
     "lodash.isobject": "^3.0.2",
     "lodash.isplainobject": "^4.0.6",
     "lodash.zip": "^4.2.0",
+    "minimatch": "^3.0.4",
     "puppeteer-core": "^3.3.0",
     "resq": "^1.6.0",
     "rgb2hex": "^0.2.0",
