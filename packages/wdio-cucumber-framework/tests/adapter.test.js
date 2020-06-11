@@ -293,12 +293,12 @@ describe('addHooks', () => {
     })
 
     test('beforeScenario', () => {
-        beforeScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation' })
-        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeScenario, ['uri', 'feature', 'pickle', 'sourceLocation'])
+        beforeScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation', context: 'context' })
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeScenario, ['uri', 'feature', 'pickle', 'sourceLocation', 'context'])
     })
     test('afterScenario', () => {
-        afterScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation', result: 'result' })
-        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterScenario, ['uri', 'feature', 'pickle', 'result', 'sourceLocation'])
+        afterScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation', result: 'result', context: 'context' })
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterScenario, ['uri', 'feature', 'pickle', 'result', 'sourceLocation', 'context'])
     })
     test('beforeFeature', () => {
         beforeFeature()

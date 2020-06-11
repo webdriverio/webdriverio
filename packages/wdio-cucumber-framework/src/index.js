@@ -234,13 +234,13 @@ class CucumberAdapter {
      * @param {object} config config
      */
     addWdioHooks (config) {
-        Cucumber.Before(function wdioHookBeforeScenario ({ sourceLocation, pickle }) {
+        Cucumber.Before(function wdioHookBeforeScenario ({ sourceLocation, pickle, context }) {
             const { uri, feature } = getDataFromResult(global.result)
-            return executeHooksWithArgs(config.beforeScenario, [uri, feature, pickle, sourceLocation])
+            return executeHooksWithArgs(config.beforeScenario, [uri, feature, pickle, sourceLocation, context])
         })
-        Cucumber.After(function wdioHookAfterScenario ({ sourceLocation, pickle, result }) {
+        Cucumber.After(function wdioHookAfterScenario ({ sourceLocation, pickle, result, context }) {
             const { uri, feature } = getDataFromResult(global.result)
-            return executeHooksWithArgs(config.afterScenario, [uri, feature, pickle, result, sourceLocation])
+            return executeHooksWithArgs(config.afterScenario, [uri, feature, pickle, result, sourceLocation, context])
         })
         Cucumber.BeforeAll(function wdioHookBeforeFeature () {
             const { uri, feature, scenarios } = getDataFromResult(global.result)
