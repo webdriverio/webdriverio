@@ -31,9 +31,7 @@ exports.config = Object.assign({}, config, {
     afterScenario: (world) => {
         browser.pause(30)
         browser.Cucumber_Test = -1
-        if (
-            browser.Cucumber_CurrentWorld !== world
-        ) {
+        if (browser.Cucumber_CurrentWorld !== world) {
             throw new Error("world doesn't match")
         }
 
