@@ -429,3 +429,10 @@ export const DRIVER_DEFAULT_ENDPOINT = {
 }
 
 export const FF_REMOTE_DEBUG_ARG = '-remote-debugging-port'
+
+export const ERROR_REASON = [
+    'Failed', 'Aborted', 'TimedOut', 'AccessDenied', 'ConnectionClosed',
+    'ConnectionReset', 'ConnectionRefused', 'ConnectionAborted',
+    'ConnectionFailed', 'NameNotResolved', 'InternetDisconnected',
+    'AddressUnreachable', 'BlockedByClient', 'BlockedByResponse'
+]

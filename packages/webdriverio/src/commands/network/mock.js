@@ -12,8 +12,8 @@
  * </example>
  *
  * @alias browser.mock
- * @param {String}      url     url to mock
- * @param {MockOptions} params  parameters to mock resource
+ * @param {String}            url            url to mock
+ * @param {MockFilterOptions} filterOptions  more filters
  * @type utility
  *
  */
@@ -21,7 +21,7 @@ import NetworkInterception from '../../utils/NetworkInterception'
 
 const SESSION_MOCKS = new Set()
 
-export default async function mock (url, customMockFn) {
+export default async function mock (url, filterOptions) {
     const [page] = await this.puppeteer.pages()
     const client = await page.target().createCDPSession()
 
@@ -32,12 +32,14 @@ export default async function mock (url, customMockFn) {
         await client.send('Fetch.enable', {
             patterns: [{ requestStage: 'Response' }]
         })
-        client.on('Fetch.requestPaused', NetworkInterception.handleRequestInterception(client, SESSION_MOCKS))
+        client.on(
+            'Fetch.requestPaused',
+            NetworkInterception.handleRequestInterception(client, SESSION_MOCKS)
+        )
     }
 
-    const networkInterception = new NetworkInterception(url, customMockFn)
+    const networkInterception = new NetworkInterception(url, filterOptions)
     SESSION_MOCKS.add(networkInterception)
-    console.log(SESSION_MOCKS.size)
 
     return networkInterception
 }
