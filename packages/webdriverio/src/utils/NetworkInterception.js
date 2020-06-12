@@ -1,6 +1,7 @@
 import atob from 'atob'
 import minimatch from 'minimatch'
 
+import { containsObject } from './'
 import { ERROR_REASON } from '../constants'
 
 export default class NetworkInterception {
@@ -8,11 +9,7 @@ export default class NetworkInterception {
         this.url = url
         this.filterOptions = filterOptions
         this.respondOverwrites = []
-        this.matches = new Set()
-    }
-
-    get calls () {
-        return this.matches
+        this.matches = []
     }
 
     static handleRequestInterception (client, mocks) {
@@ -35,7 +32,11 @@ export default class NetworkInterception {
                  * match filter options
                  */
                 if (
-                    (mock.filterOptions.method && mock.filterOptions.method.toLowerCase() !== request.method.toLowerCase())
+                    /**
+                     * HTTP method
+                     */
+                    (mock.filterOptions.method && mock.filterOptions.method.toLowerCase() !== request.method.toLowerCase()) ||
+                    (mock.filterOptions.headers && containsObject(responseHeaders, mock.filterOptions.headers))
                 ) {
                     continue
                 }
@@ -49,16 +50,23 @@ export default class NetworkInterception {
                 request.body = responseHeaders['Content-Type'] && responseHeaders['Content-Type'].includes('application/json')
                     ? JSON.parse(request.body)
                     : request.body
-                mock.matches.add(request)
+                mock.matches.push(request)
+
+                /**
+                 * no stubbing if no overwrites were defined
+                 */
+                if (mock.respondOverwrites.length === 0) {
+                    continue
+                }
+
+                const { errorReason, overwrite, params } = mock.respondOverwrites[0].sticky
+                    ? mock.respondOverwrites[0]
+                    : mock.respondOverwrites.shift()
 
                 /**
                  * when response is modified
                  */
-                if (mock.respondOverwrites.length) {
-                    const { overwrite, params } = mock.respondOverwrites[0].sticky
-                        ? mock.respondOverwrites[0]
-                        : mock.respondOverwrites.shift()
-
+                if (overwrite) {
                     let body = overwrite
                     if (typeof overwrite === 'function') {
                         body = await overwrite(request, client)
@@ -83,10 +91,10 @@ export default class NetworkInterception {
                 /**
                  * when request is aborted
                  */
-                if (mock.abortErrorCode) {
+                if (errorReason) {
                     return client.send('Fetch.failRequest', {
                         requestId,
-                        errorReason: mock.abortErrorCode
+                        errorReason
                     })
                 }
             }
@@ -96,10 +104,17 @@ export default class NetworkInterception {
     }
 
     /**
+     * allows access to all requests made with given pattern
+     */
+    get calls () {
+        return this.matches
+    }
+
+    /**
      * Resets all information stored in the `mock.calls` set.
      */
     clear () {
-        this.matches = new Set()
+        this.matches = []
     }
 
     /**
@@ -108,9 +123,7 @@ export default class NetworkInterception {
      */
     restore () {
         this.clear()
-        delete this.requestOverwrite
         this.respondOverwrites = []
-        delete this.abortErrorCode
     }
 
     /**
@@ -135,10 +148,18 @@ export default class NetworkInterception {
      * Abort the request with an error code
      * @param {string} errorCode  error code of the response
      */
-    abort (errorCode) {
-        if (typeof errorCode !== 'string' || !ERROR_REASON.includes(errorCode)) {
-            throw new Error(`Invalid value for errorCode, allowed are: ${ERROR_REASON.join(', ')}`)
+    abort (errorReason, sticky = true) {
+        if (typeof errorReason !== 'string' || !ERROR_REASON.includes(errorReason)) {
+            throw new Error(`Invalid value for errorReason, allowed are: ${ERROR_REASON.join(', ')}`)
         }
-        this.abortErrorCode = errorCode
+        this.respondOverwrites.push({ errorReason, sticky })
+    }
+
+    /**
+     * Abort the request once with an error code
+     * @param {string} errorReason  error code of the response
+     */
+    abortOnce (errorReason) {
+        this.abort(errorReason, false)
     }
 }

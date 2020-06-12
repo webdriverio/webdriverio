@@ -63,6 +63,12 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
             delete value.capabilities
         }
 
+        if (params.json.capabilities.alwaysMatch.browserName && params.json.capabilities.alwaysMatch.browserName.includes('devtools')) {
+            value.capabilities['goog:chromeOptions'] = {
+                debuggerAddress: 'localhost:1234'
+            }
+        }
+
         break
     case `/session/${sessionId}/element`:
         if (params.json && params.json.value === '#nonexisting') {

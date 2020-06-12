@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`stub request with a text 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "Zm9vYmFy",
+    "requestId": 123,
+    "responseCode": undefined,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+    ],
+  },
+]
+`;
+
+exports[`stub request with an object 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "eyJmb28iOiJiYXIifQ==",
+    "requestId": 123,
+    "responseCode": undefined,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+    ],
+  },
+]
+`;
