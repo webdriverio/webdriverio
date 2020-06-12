@@ -102,6 +102,23 @@ describe('utils', () => {
             expect(enhanceStepWithPickleData({ location: { line: 2 }, text: 'foo' }, pickle)).toEqual({ location: { line: 2 }, text: 'foo' })
         })
 
+        it('should only enhance argument of DataTable type', () => {
+            const pickle = { steps: [{
+                locations: [{ line: 1 }],
+                text: '11',
+                arguments: [{ content: 'foobar', location: {} }]
+            }] }
+            const step = {
+                location: { line: 1 },
+                argument: { content: 'foobar', location: {}, type: 'DocString' }
+            }
+            expect(enhanceStepWithPickleData(step, pickle)).toEqual({
+                location: { line: 1 },
+                text: '11',
+                argument: { content: 'foobar', location: {}, type: 'DocString' }
+            })
+        })
+
         it('should replace data table variables with values', () => {
             const pickle = { steps: [{
                 locations: [{ line: 1 }],
@@ -122,6 +139,7 @@ describe('utils', () => {
             const step = {
                 location: { line: 1 },
                 argument: {
+                    type: 'DataTable',
                     rows: [{
                         cells: [{
                             location: { line: 11, column: 10 },
@@ -137,6 +155,7 @@ describe('utils', () => {
                 location: { line: 1 },
                 text: 'bar',
                 argument: {
+                    type: 'DataTable',
                     rows: [{
                         cells: [{
                             location: { line: 11, column: 10 },
