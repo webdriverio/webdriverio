@@ -15,7 +15,7 @@ export default class RunnerTransformStream extends Transform {
             return callback()
         }
 
-        this.push(`[${this.cid}] ${logMsg}`)
+        this.push(logMsg)
         callback()
     }
 

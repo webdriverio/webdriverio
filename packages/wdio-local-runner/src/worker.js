@@ -61,6 +61,8 @@ export default class WorkerInstance extends EventEmitter {
             runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
         }
 
+        runnerEnv.cid = cid
+
         log.info(`Start worker ${cid} with arg: ${argv}`)
         const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
             cwd: process.cwd(),

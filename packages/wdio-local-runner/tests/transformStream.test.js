@@ -1,13 +1,13 @@
 import RunnerTransformStream from '../src/transformStream'
 import { DEBUGGER_MESSAGES } from '../src/constants'
 
-test('should add cid to message', () => {
+test('should pass regular message', () => {
     const stream = new RunnerTransformStream('0-5')
     const cb = jest.fn()
     const pushSpy = jest.spyOn(stream, 'push')
 
     stream._transform('foobar', null, cb)
-    expect(pushSpy).toBeCalledWith('[0-5] foobar')
+    expect(pushSpy).toBeCalledWith('foobar')
     expect(cb).toBeCalled()
 })
 
