@@ -232,7 +232,7 @@ export function enhanceStepWithPickleData (origStep, pickle) {
         step.text = pickleStep.text
 
         // replace variable with real value
-        if (step.argument && Array.isArray(pickleStep.arguments)) {
+        if (step.argument && step.argument.rows && Array.isArray(pickleStep.arguments)) {
             // build map like { line: { column: value } }
             const pickleStepValueLocation = {}
 
