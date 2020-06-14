@@ -119,7 +119,7 @@ export default function getLogger (name) {
     loggers[name].setLevel(logLevel)
     loggers[name].methodFactory = wdioLoggerMethodFactory
     prefix.apply(loggers[name], {
-        template: `[${process.env.cid}] %t %l %n:`,
+        template: `${process.env.cid ? '[' + process.env.cid + '] ' : ''}%t %l %n:`,
         timestampFormatter: (date) => chalk.gray(date.toISOString()),
         levelFormatter: (level) => chalk[COLORS[level]](level.toUpperCase()),
         nameFormatter: (name) => chalk.whiteBright(name)
