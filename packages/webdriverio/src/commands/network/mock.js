@@ -17,7 +17,9 @@
  * @type utility
  *
  */
-import NetworkInterception from '../../utils/NetworkInterception'
+import DevtoolsNetworkInterception from '../../utils/interception/devtools'
+import WebDriverNetworkInterception from '../../utils/interception/webdriver'
+import { getBrowserObject } from '../../utils'
 
 const SESSION_MOCKS = new Set()
 
@@ -28,7 +30,7 @@ export default async function mock (url, filterOptions) {
     /**
      * enable network Mocking if not already
      */
-    if (SESSION_MOCKS.size === 0) {
+    if (SESSION_MOCKS.size === 0 && !this.isSauce) {
         await client.send('Fetch.enable', {
             patterns: [{ requestStage: 'Response' }]
         })
@@ -38,8 +40,14 @@ export default async function mock (url, filterOptions) {
         )
     }
 
+    const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
     const networkInterception = new NetworkInterception(url, filterOptions)
     SESSION_MOCKS.add(networkInterception)
+
+    if (this.isSauce) {
+        const browser = getBrowserObject(this)
+        await networkInterception.init(browser)
+    }
 
     return networkInterception
 }

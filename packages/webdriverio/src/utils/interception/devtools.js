@@ -1,10 +1,10 @@
 import atob from 'atob'
 import minimatch from 'minimatch'
 
-import { containsObject } from './'
-import { ERROR_REASON } from '../constants'
+import { containsObject } from '..'
+import { ERROR_REASON } from '../../constants'
 
-export default class NetworkInterception {
+export default class DevtoolsInterception {
     constructor (url, filterOptions = {}) {
         this.url = url
         this.filterOptions = filterOptions

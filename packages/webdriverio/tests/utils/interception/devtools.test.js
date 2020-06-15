@@ -1,4 +1,4 @@
-import NetworkInterception from '../../src/utils/NetworkInterception'
+import NetworkInterception from '../../../src/utils/interception/devtools'
 
 const cdpClient = {
     send: jest.fn().mockReturnValue(Promise.resolve({
