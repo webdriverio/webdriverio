@@ -17,6 +17,21 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.18 (2020-06-15)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#5485](https://github.com/webdriverio/webdriverio/pull/5485) Fix DocString support in cucumber framework ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#5487](https://github.com/webdriverio/webdriverio/pull/5487) Update GettingStarted.md; remove unneeded line of code ([@klamping](https://github.com/klamping))
+
+#### Committers: 3
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.17 (2020-06-08)
 
 #### :bug: Bug Fix
