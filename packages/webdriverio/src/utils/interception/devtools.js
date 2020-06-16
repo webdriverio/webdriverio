@@ -4,17 +4,11 @@ import atob from 'atob'
 import minimatch from 'minimatch'
 import { canAccess } from '@wdio/utils'
 
+import Interception from './'
 import { containsHeaderObject } from '..'
 import { ERROR_REASON } from '../../constants'
 
-export default class DevtoolsInterception {
-    constructor (url, filterOptions = {}) {
-        this.url = url
-        this.filterOptions = filterOptions
-        this.respondOverwrites = []
-        this.matches = []
-    }
-
+export default class DevtoolsInterception extends Interception {
     static handleRequestInterception (client, mocks) {
         return async (event) => {
             const responseHeaders = event.responseHeaders.reduce((headers, { name, value }) => {
