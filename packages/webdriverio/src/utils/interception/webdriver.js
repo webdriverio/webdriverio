@@ -42,7 +42,7 @@ export default class WebDriverInterception {
      */
     restore () {
         return this.browser.call(
-            () => this.browser.restoreMockCalls(this.mockId))
+            () => this.browser.clearMockCalls(this.mockId, true))
     }
 
     /**
