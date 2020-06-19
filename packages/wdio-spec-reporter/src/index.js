@@ -387,26 +387,37 @@ class SpecReporter extends WDIOReporter {
     getEnviromentCombo (caps, verbose = true, isMultiremote = false) {
         const device = caps.deviceName
         const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser)
-        const version = caps.version || caps.platformVersion || caps.browser_version
-        const platform = caps.os ? (caps.os + ' ' + caps.os_version) : (caps.platform || caps.platformName)
+        /**
+         * fallback to different capability types:
+         * browserVersion: W3C format
+         * version: JSONWP format
+         * platformVersion: mobile format
+         * browser_version: invalid BS capability
+         */
+        const version = caps.browserVersion || caps.version || caps.platformVersion || caps.browser_version
+        /**
+         * fallback to different capability types:
+         * platformName: W3C format
+         * platform: JSONWP format
+         * os, os_version: invalid BS capability
+         */
+        const platform = caps.platformName || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities
         if (device) {
             const program = (caps.app || '').replace('sauce-storage:', '') || caps.browserName
             const executing = program ? `executing ${program}` : ''
-
             if (!verbose) {
                 return `${device} ${platform} ${version}`
             }
-
             return `${device} on ${platform} ${version} ${executing}`.trim()
         }
 
         if (!verbose) {
-            return (browser + ' ' + (version || '') + ' ' + (platform || '')).trim()
+            return (browser + (version ? ` ${version} ` : ' ') + (platform)).trim()
         }
 
-        return browser + (version ? ` (v${version})` : '') + (platform ? ` on ${platform}` : '')
+        return browser + (version ? ` (v${version})` : '') + (` on ${platform}`)
     }
 }
 

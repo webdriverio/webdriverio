@@ -9,7 +9,10 @@ Feature: Example feature
 
     Scenario: Sync Execution
         When  I click on link "=foo"
-        Then  the title of the page should be "Mock Page Title"
+        Then  the title of the page should be:
+        """
+        Mock Page Title
+        """
 
     Scenario: Async Execution
         When  I click on link "=foo" async

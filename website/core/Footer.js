@@ -21,71 +21,85 @@ class Footer extends React.Component {
 
     render() {
         return (
-            <footer className="nav-footer" id="footer">
-                <section className="sitemap">
-                    <a href={this.props.config.baseUrl} className="nav-home">
-                        {this.props.config.footerIcon && (
-                            <img
-                                src={this.props.config.baseUrl + this.props.config.footerIcon}
-                                alt={this.props.config.title}
-                                width="66"
-                                height="58"
-                            />
-                        )}
+            <div>
+                <div className="blacklivesmatter">
+                    <h3>BLACK LIVES MATTER</h3>
+                    <p>
+                        In solidarity, we ask that you consider financially supporting efforts such as
+                        <a href="https://secure.actblue.com/donate/ms_blm_homepage_2019">Black Lives Matter</a>,
+                        <a href="https://support.eji.org/give/153413/#!/donation/checkout">The Equal Justice Initiative</a>,
+                        <a href="https://www.naacpldf.org/">NAACP Legal Defense and Education Fund</a>, or your local civil rights charity.
+                    </p>
+                    <button className="close">x</button>
+                </div>
+                <script src="/js/blm.js" type="application/javascript"></script>
+                <footer className="nav-footer" id="footer">
+                    <section className="sitemap">
+                        <a href={this.props.config.baseUrl} className="nav-home">
+                            {this.props.config.footerIcon && (
+                                <img
+                                    src={this.props.config.baseUrl + this.props.config.footerIcon}
+                                    alt={this.props.config.title}
+                                    width="66"
+                                    height="58"
+                                />
+                            )}
+                        </a>
+                        <div>
+                            <h5>Docs</h5>
+                            <a href="/docs/gettingstarted.html">Getting Started</a>
+                            <a href="/docs/api.html">API Reference</a>
+                            <a href="/docs/contribute.html">Contribute</a>
+                            <a href="/help.html">Help</a>
+                        </div>
+                        <div>
+                            <h5>Community</h5>
+                            <a
+                                href="https://stackoverflow.com/questions/tagged/webdriver-io"
+                                target="_blank"
+                                rel="noreferrer noopener">
+                                Stack Overflow
+                            </a>
+                            <a href="https://gitter.im/webdriverio/webdriverio">Support Chat</a>
+                            <a href="https://seleniumhq.slack.com/join/shared_invite/enQtODAwOTUzOTM5OTEwLTZjZjgzN2ExOTBmZGE0NjkwYzA2Nzc0MjczMGYwYjdiNGQ5YjI0ZjdjYjFhMjVlMjFkZWJmNDYyMmU1OTYyM2Y">Slack</a>
+                            <a
+                                href="https://twitter.com/webdriverio"
+                                target="_blank"
+                                rel="noreferrer noopener">
+                                Twitter
+                            </a>
+                        </div>
+                        <div>
+                            <h5>More</h5>
+                            <a href={this.props.config.baseUrl + 'docs/enterprise.html'}>Tidelift Subscription</a>
+                            <a href={this.props.config.baseUrl + 'blog'}>Blog</a>
+                            <a href="https://github.com/webdriverio/webdriverio">GitHub</a>
+                            <a
+                                className="github-button"
+                                href={this.props.config.repoUrl}
+                                data-icon="octicon-star"
+                                data-count-href="/webdriverio/webdriverio/stargazers"
+                                data-show-count={true}
+                                data-count-aria-label="# stargazers on GitHub"
+                                aria-label="Star this project on GitHub">
+                                Star
+                            </a>
+                        </div>
+                    </section>
+                    <a
+                        href="https://openjsf.org/projects/"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="fbOpenSource">
+                        <img
+                            src={this.props.config.baseUrl + 'img/open-jsf-logo.svg'}
+                            alt="OpenJS Foundation"
+                            width="170"
+                        />
                     </a>
-                    <div>
-                        <h5>Docs</h5>
-                        <a href="/docs/gettingstarted.html">Getting Started</a>
-                        <a href="/docs/api.html">API Reference</a>
-                        <a href="/docs/contribute.html">Contribute</a>
-                        <a href="/help.html">Help</a>
-                    </div>
-                    <div>
-                        <h5>Community</h5>
-                        <a
-                            href="https://stackoverflow.com/questions/tagged/webdriver-io"
-                            target="_blank"
-                            rel="noreferrer noopener">
-                            Stack Overflow
-                        </a>
-                        <a href="https://gitter.im/webdriverio/webdriverio">Support Chat</a>
-                        <a href="https://seleniumhq.slack.com/join/shared_invite/enQtODAwOTUzOTM5OTEwLTZjZjgzN2ExOTBmZGE0NjkwYzA2Nzc0MjczMGYwYjdiNGQ5YjI0ZjdjYjFhMjVlMjFkZWJmNDYyMmU1OTYyM2Y">Slack</a>
-                        <a
-                            href="https://twitter.com/webdriverio"
-                            target="_blank"
-                            rel="noreferrer noopener">
-                            Twitter
-                        </a>
-                    </div>
-                    <div>
-                        <h5>More</h5>
-                        <a href={this.props.config.baseUrl + 'blog'}>Blog</a>
-                        <a href="https://github.com/webdriverio/webdriverio">GitHub</a>
-                        <a
-                            className="github-button"
-                            href={this.props.config.repoUrl}
-                            data-icon="octicon-star"
-                            data-count-href="/webdriverio/webdriverio/stargazers"
-                            data-show-count={true}
-                            data-count-aria-label="# stargazers on GitHub"
-                            aria-label="Star this project on GitHub">
-                            Star
-                        </a>
-                    </div>
-                </section>
-                <a
-                    href="https://openjsf.org/projects/"
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="fbOpenSource">
-                    <img
-                        src={this.props.config.baseUrl + 'img/open-jsf-logo.svg'}
-                        alt="OpenJS Foundation"
-                        width="170"
-                    />
-                </a>
-                <section className="copyright">{this.props.config.copyright}</section>
-            </footer>
+                    <section className="copyright">{this.props.config.copyright}</section>
+                </footer>
+            </div>
         )
     }
 }

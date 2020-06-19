@@ -21,7 +21,7 @@ export default class CustomService {
 
     onComplete(exitCode, config, capabilities) {
         // TODO: something after the workers shutdown
-    },
+    }
 
     // custom service methods ...
 }

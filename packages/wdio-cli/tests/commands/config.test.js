@@ -8,14 +8,16 @@ import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile } f
 jest.mock('../../src/utils', () => ({
     addServiceDeps: jest.fn(),
     convertPackageHashToObject: jest.fn().mockReturnValue('foobar'),
-    renderConfigurationFile: jest.fn()
+    renderConfigurationFile: jest.fn(),
+    hasFile: jest.fn().mockReturnValue(false)
 }))
 
-let errorLogSpy
+let errorLogSpy, consoleLogSpy
 
 beforeEach(() => {
     yarnInstall.mockClear()
     errorLogSpy = jest.spyOn(console, 'error')
+    consoleLogSpy = jest.spyOn(console, 'log')
 })
 
 afterEach(() => {
@@ -85,4 +87,21 @@ test('should throw an error if something goes wrong', async () => {
             err.message.startsWith('something went wrong during setup: uups')
         ).toBe(true)
     }
+})
+
+test.only('prints TypeScript setup message', async () => {
+    convertPackageHashToObject.mockImplementation((input) => input)
+    inquirer.prompt.mockReturnValue(Promise.resolve({
+        executionMode: 'sync',
+        runner: '@wdio/local-runner--$local',
+        framework: { package: '@wdio/mocha-framework', short: 'mocha' },
+        reporters: [],
+        services: [
+            { package: '@wdio/crossbrowsertesting-service', short: 'crossbrowsertesting' },
+            { package: 'wdio-lambdatest-service', short: 'lambdatest' }
+        ],
+        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
+    }))
+    await handler({})
+    expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })

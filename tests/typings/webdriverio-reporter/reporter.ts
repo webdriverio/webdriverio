@@ -60,6 +60,14 @@ class CustomReporter extends WDIOReporter {
     constructor(options: WDIOReporter.Options) {
         super(options)
     }
+
+    onRunnerStart(runner: any) {
+      // Do things
+    }
+
+    onRunnerEnd(runner: any) {
+      // Do things
+    }
 }
 
 export default {}

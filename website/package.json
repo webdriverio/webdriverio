@@ -1,9 +1,9 @@
 {
   "scripts": {
     "examples": "docusaurus-examples",
-    "start": "run-p start:*",
+    "start": "cd .. && npm run docs:generate && cd ./website && npx run-p start:*",
     "start:docusaurus": "docusaurus-start",
-    "start:css": "sass --watch ./static/styles",
+    "start:css": "sass --watch ./static/styles/index.scss:./static/css/index.css",
     "build": "run-s build:*",
     "build:css": "sass --style compressed ./static/styles/index.scss ./static/css/index.css",
     "build:docusaurus": "docusaurus-build",

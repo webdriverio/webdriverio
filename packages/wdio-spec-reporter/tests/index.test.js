@@ -12,7 +12,7 @@ import {
 
 const reporter = new SpecReporter({})
 
-const defaultCaps = { browserName: 'loremipsum', sessionId: 'foobar' }
+const defaultCaps = { browserName: 'loremipsum', version: 50, platform: 'Windows 10', sessionId: 'foobar' }
 const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
 const getRunnerConfig = (config = {}) => {
     return Object.assign({}, RUNNER, {
@@ -170,7 +170,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to SauceLabs job details page', () => {
+            it('should print link to Sauce Labs job details page', () => {
                 const runner = getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com'
                 })
@@ -191,7 +191,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to SauceLabs job details page if run with Sauce Connect (w3c)', () => {
+            it('should print link to Sauce Labs job details page if run with Sauce Connect (w3c)', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
                         ...defaultCaps,
@@ -203,7 +203,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to SauceLabs job details page if run with Sauce Connect (jsonwp)', () => {
+            it('should print link to Sauce Labs job details page if run with Sauce Connect (jsonwp)', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
                         tunnelIdentifier: 'foobar',
@@ -215,7 +215,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to SauceLabs EU job details page', () => {
+            it('should print link to Sauce Labs EU job details page', () => {
                 printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu'
@@ -268,7 +268,7 @@ describe('SpecReporter', () => {
 
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: loremipsum')
+            expect(result[1]).toBe('Running: loremipsum (v50) on Windows 10')
         })
 
         it('should validate header output in multiremote', () => {
@@ -277,7 +277,7 @@ describe('SpecReporter', () => {
 
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: MultiremoteBrowser')
+            expect(result[1]).toBe('Running: MultiremoteBrowser (v50) on Windows 10')
         })
     })
 
@@ -492,18 +492,25 @@ describe('SpecReporter', () => {
     })
 
     describe('getEnviromentCombo', () => {
+        it('should return Multibrowser as capability if multiremote is used', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browserName: 'chrome',
+                platform: 'Windows 8.1'
+            }, true, true)).toBe('MultiremoteBrowser on Windows 8.1')
+        })
+
+        it('should return Multibrowser as capability if multiremote is used without platform', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browserName: 'chrome',
+            }, true, true)).toBe('MultiremoteBrowser on (unknown)')
+        })
+
         it('should return verbose desktop combo', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
                 version: 50,
                 platform: 'Windows 8.1'
             })).toBe('chrome (v50) on Windows 8.1')
-        })
-
-        it('should return Multibrowser as capability if multiremote is used', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browserName: 'chrome'
-            }, true, true)).toBe('MultiremoteBrowser')
         })
 
         it('should return preface desktop combo', () => {
@@ -582,6 +589,50 @@ describe('SpecReporter', () => {
                 os: 'Windows',
                 os_version: '10'
             }, false)).toBe('Chrome 50 Windows 10')
+        })
+
+        it('should return verbose desktop combo when using BrowserStack capabilities without os', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browser: 'Chrome',
+                browser_version: 50,
+            })).toBe('Chrome (v50) on (unknown)')
+        })
+
+        it('should return preface desktop combo when using BrowserStack capabilities without os', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browser: 'Chrome',
+                browser_version: 50,
+            }, false)).toBe('Chrome 50 (unknown)')
+        })
+
+        it('should return verbose desktop combo when using BrowserStack capabilities without os_version', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browser: 'Chrome',
+                browser_version: 50,
+                os: 'Windows',
+            })).toBe('Chrome (v50) on Windows')
+        })
+
+        it('should return preface desktop combo when using BrowserStack capabilities without os_version', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browser: 'Chrome',
+                browser_version: 50,
+                os: 'Windows',
+            }, false)).toBe('Chrome 50 Windows')
+        })
+
+        it('should return verbose desktop combo without platform', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browserName: 'chrome',
+                version: 50,
+            })).toBe('chrome (v50) on (unknown)')
+        })
+
+        it('should return preface desktop combo without platform', () => {
+            expect(tmpReporter.getEnviromentCombo({
+                browserName: 'chrome',
+                version: 50,
+            }, false)).toBe('chrome 50 (unknown)')
         })
     })
 })

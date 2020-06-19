@@ -234,6 +234,15 @@ const menuItem = $({
 menuItem.click()
 ```
 
+### Android View Tag (Espresso only)
+
+The view tag strategy provides a convenient way to find elements by their [tag](https://developer.android.com/reference/android/support/test/espresso/matcher/ViewMatchers.html#withTagValue%28org.hamcrest.Matcher%3Cjava.lang.Object%3E%29).
+
+```js
+const elem = $('-android viewtag:tag_identifier')
+elem.click()
+```
+
 ### iOS UIAutomation
 
 When automating an iOS application, Apple’s [UI Automation framework](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) can be used to find elements.

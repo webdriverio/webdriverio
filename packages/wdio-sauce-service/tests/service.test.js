@@ -339,7 +339,7 @@ test('updateJob for VMs', () => {
     service.updateJob('12345', 23, true)
 
     const [reqUri, reqCall] = got.put.mock.calls[0]
-    expect(reqUri).toBe('https://saucelabs.com/rest/v1/foobar/jobs/12345')
+    expect(reqUri).toBe('https://api.us-west-1.saucelabs.com/rest/v1/foobar/jobs/12345')
     expect(reqCall.json).toEqual({ name: 'my test (1)', passed: false })
     expect(service.failures).toBe(0)
 })

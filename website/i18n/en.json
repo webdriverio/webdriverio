@@ -392,6 +392,9 @@
       "driverbinaries": {
         "title": "Driver Binaries"
       },
+      "enterprise": {
+        "title": "WebdriverIO for Enterprise"
+      },
       "flowchartsoverview": {
         "title": "Flowcharts"
       },

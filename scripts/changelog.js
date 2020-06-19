@@ -7,6 +7,7 @@ const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
 const shell = require('shelljs')
+const { Octokit } = require('@octokit/rest')
 const { highlight } = require('cli-highlight')
 const { Changelog } = require('lerna-changelog')
 const { load } = require('lerna-changelog/lib/configuration')
@@ -31,13 +32,15 @@ const changelog = new Changelog(config)
  * update local tags
  */
 shell.exec('git fetch --tags --force')
-const latestRelease = shell.exec('git describe --tags `git rev-list --tags --max-count=1`').stdout.trim()
+const latestRelease = shell.exec('git describe --abbrev=0 --tags').stdout.trim()
 const BANNER = `
 #######################
 ###                 ###
 ###    CHANGELOG    ###
 ###                 ###
 #######################`
+
+const api = new Octokit({ auth: process.env.GITHUB_AUTH })
 
 /**
  * in case the error check above doesn't has any effect and a release
@@ -55,12 +58,12 @@ changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) =>
 
     if (changes.trim().length === 0) {
         console.log('No changelog detected, skipping!')
-        return
+        return 'No updates!'
     }
 
-    newChangelog = `\n\n## v${version} ${changes}\n`
+    newChangelog = `## v${version} ${changes}\n`
     let changelogContent = fs.readFileSync(changelogPath, 'utf8')
-    changelogContent = changelogContent.replace('---', '---' + newChangelog)
+    changelogContent = changelogContent.replace('---', '---\n\n' + newChangelog)
     fs.writeFileSync(changelogPath, changelogContent, 'utf8')
 
     /**
@@ -79,4 +82,16 @@ changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) =>
     console.log(BANNER)
     // eslint-disable-next-line no-console
     console.log(highlighted, '\n\n')
-})
+    return newChangelog
+}).then(
+    /**
+     * make GitHub release for machine readable changelog
+     */
+    (releaseBody) => api.repos.createRelease({
+        owner: 'webdriverio',
+        repo: 'webdriverio',
+        tag_name: `v${version}`,
+        name: `v${version}`,
+        body: releaseBody
+    })
+)

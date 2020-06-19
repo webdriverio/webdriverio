@@ -2,7 +2,7 @@ import { W3C_SELECTOR_STRATEGIES } from '../constants'
 import isPlainObject from 'lodash.isplainobject'
 
 const DEFAULT_STRATEGY = 'css selector'
-const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
+const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
 const XPATH_SELECTORS_START = [
     '/', '(', '../', './', '*/'
 ]
