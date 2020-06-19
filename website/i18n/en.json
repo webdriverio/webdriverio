@@ -86,6 +86,9 @@
       "wdio-mochawesome-reporter": {
         "title": "Mochawesome Reporter"
       },
+      "wdio-ng-apimock-service": {
+        "title": "Ng-apimock Service"
+      },
       "wdio-reportportal-reporter": {
         "title": "Report Portal Reporter"
       },

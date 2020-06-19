@@ -58,5 +58,11 @@
     "title": "Visual Regression Testing",
     "githubUrl": "https://github.com/wswebcreation/wdio-image-comparison-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-image-comparison-service"
+  },
+  {
+    "packageName": "wdio-ng-apimock-service",
+    "title": "Ng-apimock",
+    "githubUrl": "https://github.com/ng-apimock/webdriverio-plugin",
+    "npmUrl": "https://www.npmjs.com/package/wdio-ng-apimock-service"
   }
 ]
