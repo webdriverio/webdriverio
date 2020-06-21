@@ -145,7 +145,7 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
     - Integrated with multiple cucumber html reports
 ----
 
-### [AdarshKumarGM/WebDriverIO-with-CucumberJS] (https://github.com/AdarshKumarGM/WebDriverIO-with-CucumberJS)
+### [AdarshKumarGM/WebDriverIO-with-CucumberJS](https://github.com/AdarshKumarGM/WebDriverIO-with-CucumberJS)
 Boilerplate for bulding cucumberJS with webdriverIO framework.
 
 - Framework: 
