@@ -411,3 +411,17 @@ Build your angular e2e test with wdio. This project uses a new angular cli build
   - Replaces protractor with wdio as e2e runner
   - Completely integrated into angular workspace (angular.json)
   - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.
+  
+### [AdarshKumarGM/WebDriverIO-with-CucumberJS] (https://github.com/AdarshKumarGM/WebDriverIO-with-CucumberJS)
+Boilerplate for bulding cucumberJS with webdriverIO framework.
+
+- Framework: 
+   - WebdriverIO (v6.x)
+   - CucumberJS (v6.x)
+   - Node (v12.x)
+   
+- Features:
+   - Capability for desktop browser
+   - Multiple cucumber html reporting
+   - Eslint
+   - Folder structure containing support files to kick start
