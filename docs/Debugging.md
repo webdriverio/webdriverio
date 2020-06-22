@@ -77,6 +77,10 @@ $ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 
 ## Debugging with Visual Studio Code (VSCode)
 
+If you want to debug your tests with breakpoints in latest VSCode, you have to install and enable the [nightly version of the JavaScript Debugger](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly).  
+
+> according to https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 this is only needed for windows and linux. mac os x is working without the nightly version.  
+
 It's possible to run all or selected spec file(s). Debug configuration(s) have to be added to `.vscode/launch.json`, to debug selected spec add the following config:
 ```
 {
