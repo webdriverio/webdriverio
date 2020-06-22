@@ -144,6 +144,20 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
     - Contains sample test scenarios in cucumber
     - Integrated with multiple cucumber html reports
 
+### [AdarshKumarGM/WebDriverIO-with-CucumberJS](https://github.com/AdarshKumarGM/WebDriverIO-with-CucumberJS)
+Boilerplate for bulding cucumberJS with webdriverIO framework.
+
+- Framework: 
+   - WebdriverIO (v6.x)
+   - CucumberJS (v6.x)
+   - Node (v12.x)
+   
+- Features:
+   - Capability for desktop browser
+   - Multiple cucumber html reporting
+   - Eslint
+   - Folder structure containing support files to kick start
+   
 ### [Arjun-Ar91/WebdriverIO-V6-appium-mocha-boilerplate](https://github.com/Arjun-Ar91/WebdriverIO-V6-appium-mocha-boilerplate.git)
 
 Boilerplate project to run appium tests for native and mobile browser using mocha v6 and webdriverIO v6 with page object pattern.
@@ -161,20 +175,6 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
 
-### [AdarshKumarGM/WebDriverIO-with-CucumberJS](https://github.com/AdarshKumarGM/WebDriverIO-with-CucumberJS)
-Boilerplate for bulding cucumberJS with webdriverIO framework.
-
-- Framework: 
-   - WebdriverIO (v6.x)
-   - CucumberJS (v6.x)
-   - Node (v12.x)
-   
-- Features:
-   - Capability for desktop browser
-   - Multiple cucumber html reporting
-   - Eslint
-   - Folder structure containing support files to kick start
-----
 ## v5 Boilerplate Projects
 
 ### [labs42io/web-automation](https://github.com/labs42io/web-automation)
