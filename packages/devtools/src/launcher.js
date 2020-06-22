@@ -120,6 +120,8 @@ function launchBrowser (capabilities, product) {
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
+    } else if (!executablePath.includes('Nightly')) {
+        throw new Error('Only Nightly release channel is supported in Devtools for Firefox')
     }
 
     log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
