@@ -3,7 +3,7 @@
 name: Docs Deploy
 
 on:
-  create:
+  push:
     tags:
       - v*
 

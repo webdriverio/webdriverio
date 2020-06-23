@@ -86,7 +86,7 @@ A WebdriverIO & Cucumber Boilerplate based on Page Object Model!
 - Frameworks:
     - webdriverIO (v6)
     - cucumber (v6)
-    
+
 - Features:
     - Supports Page Object Model
     - Compatible with Nodejs Versions 8.x to 13.x
@@ -96,7 +96,7 @@ A WebdriverIO & Cucumber Boilerplate based on Page Object Model!
     - Integrated with [cucumber-html-reporter](https://www.npmjs.com/package/cucumber-html-reporter) for intuitive & detailed HTML reporting
     - Embeds screenshots on failure
     - Integrated with [wdio-cucumber-parallel-execution](https://www.npmjs.com/package/wdio-cucumber-parallel-execution) module for parallel execution
-    
+
 ### [tamil777selvan/wdioV6-Perfecto-Boilerplate](https://github.com/tamil777selvan/wdioV6-Perfecto-Boilerplate.git)
 
 Boilerplate project to run WebdriverIO tests in Perfecto Cloud ([https://www.perfecto.io/]()) using Cucumber features, and the page objects pattern.
@@ -104,12 +104,12 @@ Boilerplate project to run WebdriverIO tests in Perfecto Cloud ([https://www.per
 - Frameworks:
     - webdriverIO (v6)
     - cucumber (v6)
-    
+
 - Features:
     - Cloud integration with [Perfecto](https://www.perfecto.io/)
     - Supports Page Object Model
     - Contains sample Scenarios written in Declarative style of BDD
-    
+
 ### [pako88/wdio-mocha-typescript](https://github.com/pako88/wdio-mocha-typescript)
 Boilerplate with WebdriverIO v6, Mocha, TypeScript, ESLint
 
@@ -127,7 +127,53 @@ Boilerplate with WebdriverIO v6, Mocha, TypeScript, ESLint
   - Devtools Config
   - many example tests
 
-----
+### [Arjun-Ar91/WebdriverIO-V6-appium-cucumber-boilerplate](https://github.com/Arjun-Ar91/WebdriverIO-V6-appium-cucumber-boilerplate.git)
+
+Boilerplate project to run appium tests for native and mobile browser using cucumber v6 and webdriverIO v6 with page object pattern.
+
+- Frameworks
+    - WebdriverIO v6
+    - Cucumber v6
+    - Appium
+
+- Features
+    - Native Android and iOS apps
+    - Android Chrome browser
+    - iOS Safari browser
+    - Page Object Model
+    - Contains sample test scenarios in cucumber
+    - Integrated with multiple cucumber html reports
+
+### [AdarshKumarGM/WebDriverIO-with-CucumberJS](https://github.com/AdarshKumarGM/WebDriverIO-with-CucumberJS)
+Boilerplate for bulding cucumberJS with webdriverIO framework.
+
+- Framework: 
+   - WebdriverIO (v6.x)
+   - CucumberJS (v6.x)
+   - Node (v12.x)
+   
+- Features:
+   - Capability for desktop browser
+   - Multiple cucumber html reporting
+   - Eslint
+   - Folder structure containing support files to kick start
+   
+### [Arjun-Ar91/WebdriverIO-V6-appium-mocha-boilerplate](https://github.com/Arjun-Ar91/WebdriverIO-V6-appium-mocha-boilerplate.git)
+
+Boilerplate project to run appium tests for native and mobile browser using mocha v6 and webdriverIO v6 with page object pattern.
+
+- Frameworks
+    - WebdriverIO v6
+    - Mocha v6
+    - Appium
+
+- Features
+    - Native Android and iOS apps
+    - Android Chrome browser
+    - iOS Safari browser
+    - Page Object Model
+    - Contains sample test scenarios in mocha
+    - Integrated with eslint and allure reporting
 
 ## v5 Boilerplate Projects
 
@@ -179,7 +225,7 @@ The project creates the powerful component base boilerplate using Storybook, Rea
     - [Page Object](PageObjects.md) Models used with ES6 style class-based approach, and full ES6–ES8 support through Babel
     - Examples of multi-selector option to query elements with more than one selector at a time
     - Examples of headless browser execution, using PhantomJS and Chrome
-    - Integration with BrowserStack, SauceLabs
+    - Integration with BrowserStack, Sauce Labs
     - Support of reading and writing from MS-Excel documents for easy test data management from external data sources with examples
     - Database support for any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing queries, fetching result sets, and so on. Includes examples of E2E testing.
     - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of JUnit report(`.html`) format
@@ -196,7 +242,7 @@ The project creates the powerful component base boilerplate using Storybook, Rea
     - Task manage through Grunt
     - Multiple reporting (Spec, Junit, Allure), plus local view of JUnit report (`.html`) format
     - Jasmine Spec examples with assert module and Jasmine-specific assertions using demo app http://www.phptravels.net
-    - Examples of headless browser execution using Chrome and Firefox and Integration with BrowserStack and SauceLabs
+    - Examples of headless browser execution using Chrome and Firefox and Integration with BrowserStack and Sauce Labs
     - Examples of reading and writing from MS-Excel documents for easy test data management from external data sources
     - Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), query execution, and fetching result sets
 
@@ -209,7 +255,7 @@ The project creates the powerful component base boilerplate using Storybook, Rea
     - Task management through Grunt
     - Multiple reporting (Spec, Junit, Allure), plus local view of Junit report (`.html`) format
     - Mocha Spec examples with `assert` module and Mocha-specific assertions using demo app http://www.phptravels.net
-    - Examples of headless browser execution using Chrome and Firefox and Integration with BrowserStack & SauceLabs
+    - Examples of headless browser execution using Chrome and Firefox and Integration with BrowserStack & Sauce Labs
     - Examples of reading and writing from MS-Excel documents for easy test data management from external data sources
     - Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica, etc.), query execution, and fetching result sets
 
@@ -378,12 +424,12 @@ This project is useful not only as an example of WebdriverIO v5 and integration 
 
 ### [saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium](https://github.com/saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium)
 
-Simple boilerplate project that runs multiple browsers on [SauceLabs](https://saucelabs.com) in parallel.
+Simple boilerplate project that runs multiple browsers on [Sauce Labs](https://saucelabs.com) in parallel.
 
 - Framework: Mocha
 - Features:
     - [Page Object](PageObjects.md) usage
-    - Integration with [SauceLabs](https://saucelabs.com)
+    - Integration with [Sauce Labs](https://saucelabs.com)
 
 ### [migalons/angular-wdio-builder-demo](https://github.com/migalons/angular-wdio-builder-demo)
 Build your angular e2e test with wdio. This project uses a new angular cli builder for replacing protractor with wdio.

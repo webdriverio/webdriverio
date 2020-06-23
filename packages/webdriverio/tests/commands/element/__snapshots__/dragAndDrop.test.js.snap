@@ -1,0 +1,118 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`dragAndDrop should allow drag and drop to 0 coordinates 1`] = `
+Array [
+  Object {
+    "actions": Array [
+      Object {
+        "duration": 0,
+        "type": "pointerMove",
+        "x": NaN,
+        "y": NaN,
+      },
+      Object {
+        "button": 0,
+        "type": "pointerDown",
+      },
+      Object {
+        "duration": 10,
+        "type": "pause",
+      },
+      Object {
+        "duration": 100,
+        "origin": "pointer",
+        "type": "pointerMove",
+        "x": 0,
+        "y": 0,
+      },
+      Object {
+        "button": 0,
+        "type": "pointerUp",
+      },
+    ],
+    "id": "finger1",
+    "parameters": Object {
+      "pointerType": "mouse",
+    },
+    "type": "pointer",
+  },
+]
+`;
+
+exports[`dragAndDrop should do a dragAndDrop 1`] = `
+Array [
+  Object {
+    "actions": Array [
+      Object {
+        "duration": 0,
+        "type": "pointerMove",
+        "x": 40,
+        "y": 15,
+      },
+      Object {
+        "button": 0,
+        "type": "pointerDown",
+      },
+      Object {
+        "duration": 10,
+        "type": "pause",
+      },
+      Object {
+        "duration": 100,
+        "origin": "pointer",
+        "type": "pointerMove",
+        "x": 135,
+        "y": 225,
+      },
+      Object {
+        "button": 0,
+        "type": "pointerUp",
+      },
+    ],
+    "id": "finger1",
+    "parameters": Object {
+      "pointerType": "mouse",
+    },
+    "type": "pointer",
+  },
+]
+`;
+
+exports[`dragAndDrop should do a dragAndDrop with coordinates 1`] = `
+Array [
+  Object {
+    "actions": Array [
+      Object {
+        "duration": 0,
+        "type": "pointerMove",
+        "x": 40,
+        "y": 15,
+      },
+      Object {
+        "button": 0,
+        "type": "pointerDown",
+      },
+      Object {
+        "duration": 10,
+        "type": "pause",
+      },
+      Object {
+        "duration": 100,
+        "origin": "pointer",
+        "type": "pointerMove",
+        "x": 123,
+        "y": 321,
+      },
+      Object {
+        "button": 0,
+        "type": "pointerUp",
+      },
+    ],
+    "id": "finger1",
+    "parameters": Object {
+      "pointerType": "mouse",
+    },
+    "type": "pointer",
+  },
+]
+`;

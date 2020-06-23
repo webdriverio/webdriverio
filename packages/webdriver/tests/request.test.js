@@ -199,48 +199,48 @@ describe('webdriver request', () => {
                 process.env['STRICT_SSL'] = 'false'
                 const req = new WebDriverRequest('POST', path)
                 const options = req._createOptions(defaults)
-                expect(options.rejectUnauthorized).toEqual(false)
+                expect(options.https.rejectUnauthorized).toEqual(false)
             })
 
             it('should contain key "rejectUnauthorized" with value "false" when environment variable "strict_ssl" is defined with value "false"', () => {
                 process.env['strict_ssl'] = 'false'
                 const req = new WebDriverRequest('POST', path)
                 const options = req._createOptions(defaults)
-                expect(options.rejectUnauthorized).toEqual(false)
+                expect(options.https.rejectUnauthorized).toEqual(false)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "STRICT_SSL" is defined with value "true"', () => {
                 process.env['STRICT_SSL'] = 'true'
                 const req = new WebDriverRequest('POST', path)
                 const options = req._createOptions(defaults)
-                expect(options.rejectUnauthorized).toEqual(true)
+                expect(options.https.rejectUnauthorized).toEqual(true)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "strict_ssl" is defined with value "true"', () => {
                 process.env['strict_ssl'] = 'true'
                 const req = new WebDriverRequest('POST', path)
                 const options = req._createOptions(defaults)
-                expect(options.rejectUnauthorized).toEqual(true)
+                expect(options.https.rejectUnauthorized).toEqual(true)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "STRICT_SSL" / "strict_ssl" is not defined', () => {
                 const req = new WebDriverRequest('POST', path)
                 const options = req._createOptions(defaults)
-                expect(options.rejectUnauthorized).toEqual(true)
+                expect(options.https.rejectUnauthorized).toEqual(true)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "STRICT_SSL" is defined with any other value than "false"', () => {
                 process.env['STRICT_SSL'] = 'foo'
                 const req = new WebDriverRequest('POST', path)
                 const options = req._createOptions(defaults)
-                expect(options.rejectUnauthorized).toEqual(true)
+                expect(options.https.rejectUnauthorized).toEqual(true)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "strict_ssl" is defined with any other value than "false"', () => {
                 process.env['strict_ssl'] = 'foo'
                 const req = new WebDriverRequest('POST', path)
                 const options = req._createOptions(defaults)
-                expect(options.rejectUnauthorized).toEqual(true)
+                expect(options.https.rejectUnauthorized).toEqual(true)
             })
         })
     })

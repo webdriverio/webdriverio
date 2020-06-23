@@ -1,7 +1,7 @@
 WebdriverIO Sauce Service
 =========================
 
-> WebdriverIO service that provides a better integration into SauceLabs. This service can be used for:
+> WebdriverIO service that provides a better integration into Sauce Labs. This service can be used for:
 > - the Sauce Labs virtual machine cloud (desktop web and em/simulators) and can update the job metadata ('name', 'passed', 'tags', 'public', 'build', 'custom-data') and runs Sauce Connect if desired.
 > - the Sauce Labs Real Device cloud (iOS and Android) and can **ONLY** update the job status to passed / failed
 

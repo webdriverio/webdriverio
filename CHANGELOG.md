@@ -17,11 +17,86 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.18 (2020-06-15)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#5485](https://github.com/webdriverio/webdriverio/pull/5485) Fix DocString support in cucumber framework ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#5487](https://github.com/webdriverio/webdriverio/pull/5487) Update GettingStarted.md; remove unneeded line of code ([@klamping](https://github.com/klamping))
+
+#### Committers: 3
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.1.17 (2020-06-08)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#5448](https://github.com/webdriverio/webdriverio/pull/5448) Fix data table variable values in Cucumber scenario outlines ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#5462](https://github.com/webdriverio/webdriverio/pull/5462) Allow to have 0 x and y values for dragAndDrop ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#5463](https://github.com/webdriverio/webdriverio/pull/5463) Fix depcrecated usage of rejectUnauthorized ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#5464](https://github.com/webdriverio/webdriverio/pull/5464) Don't think XPath selector is a base64 screenshot ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v6.1.16 (2020-06-02)
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#5442](https://github.com/webdriverio/webdriverio/pull/5442) Add support for Android viewtag selector ([@ricmatsui](https://github.com/ricmatsui))
+
+#### Committers: 2
+- Ricardo Matsui ([@ricmatsui](https://github.com/ricmatsui))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.1.15 (2020-05-28)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#5443](https://github.com/webdriverio/webdriverio/pull/5443) Couldn't find plugin "" runner ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-browserstack-service`
+  * [#5440](https://github.com/webdriverio/webdriverio/pull/5440) adding missing await for printSessionURL for onReload in browserstack service ([@mathew-jithin](https://github.com/mathew-jithin))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Jithin Mathew ([@mathew-jithin](https://github.com/mathew-jithin))
+
+
+## v6.1.14 (2020-05-27)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-reporter`
+  * [#5435](https://github.com/webdriverio/webdriverio/pull/5435) Improve Mocha timeout message ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-appium-service`, `wdio-cli`, `wdio-crossbrowsertesting-service`, `wdio-firefox-profile-service`, `wdio-static-server-service`, `wdio-sync`, `wdio-testingbot-service`, `webdriverio`
+  * [#5437](https://github.com/webdriverio/webdriverio/pull/5437) Add typing definition for last missing service options ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#5431](https://github.com/webdriverio/webdriverio/pull/5431) Promote that WebdriverIO supports modern web frameworks ([@christian-bromann](https://github.com/christian-bromann))
+  * [#5432](https://github.com/webdriverio/webdriverio/pull/5432) Added Cucumber-Appium Boilerplate ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+
+#### Committers: 3
+- Arjun ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.13 (2020-05-23)
 
 #### :nail_care: Polish
 * `wdio-sauce-service`
-  * [#5417](https://github.com/webdriverio/webdriverio/pull/5417) Update SauceLabs package and remove sauce-connect-launcher ([@christian-bromann](https://github.com/christian-bromann))
+  * [#5417](https://github.com/webdriverio/webdriverio/pull/5417) Update Sauce Labs package and remove sauce-connect-launcher ([@christian-bromann](https://github.com/christian-bromann))
 
 #### :memo: Documentation
 * `wdio-cucumber-framework`

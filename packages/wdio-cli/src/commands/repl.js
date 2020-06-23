@@ -16,7 +16,7 @@ export const cmdArgs = {
     platformVersion: {
         alias: 'v',
         desc: 'Version of OS for mobile devices',
-        type: 'number',
+        type: 'string',
     },
     deviceName: {
         alias: 'd',

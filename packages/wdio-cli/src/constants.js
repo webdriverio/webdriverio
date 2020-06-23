@@ -1,5 +1,5 @@
 import { version } from '../package.json'
-import { validateServiceAnswers } from './utils'
+import { validateServiceAnswers, hasFile } from './utils'
 
 export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${version})`
 
@@ -33,6 +33,21 @@ export const IOS_CONFIG = {
     automationName: 'XCUITest',
     deviceName: 'iPhone Simulator'
 }
+
+export const COMPILER_OPTIONS = {
+    babel: 'Babel (https://babeljs.io/)',
+    ts: 'TypeScript (https://www.typescriptlang.org/)',
+    nil: 'No!'
+}
+export const TS_COMPILER_INSTRUCTIONS = `To have TypeScript support please add the following packages to your "types" list:
+{
+  "compilerOptions": {
+    "types": ["node", %s]
+  }
+}
+
+For for information on TypeScript integration check out: https://webdriver.io/docs/typescript.html
+`
 
 /**
  * We have to use a string hash for value because InquirerJS default values do not work if we have
@@ -84,6 +99,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
+        { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
@@ -96,6 +112,8 @@ export const QUESTIONNAIRE = [{
     name: 'runner',
     message: 'Where should your tests be launched?',
     choices: SUPPORTED_PACKAGES.runner,
+    // only ask if there are more than 1 runner to pick from
+    when: /* istanbul ignore next */ () => SUPPORTED_PACKAGES.runner.length > 1
 }, {
     type: 'list',
     name: 'backend',
@@ -236,6 +254,16 @@ export const QUESTIONNAIRE = [{
     message: 'Where are your step definitions located?',
     default: './features/step-definitions',
     when: /* istanbul ignore next */ (answers) => answers.framework.includes('cucumber')
+}, {
+    type: 'list',
+    name: 'isUsingCompiler',
+    message: 'Are you using a compiler?',
+    choices: Object.values(COMPILER_OPTIONS),
+    default: /* istanbul ignore next */ () => hasFile('babel.config.js')
+        ? COMPILER_OPTIONS.babel // default to Babel
+        : hasFile('tsconfig.json')
+            ? COMPILER_OPTIONS.ts // default to TypeScript
+            : COMPILER_OPTIONS.nil // default to no compiler
 }, {
     type: 'checkbox',
     name: 'reporters',

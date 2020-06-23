@@ -1,11 +1,12 @@
 import path from 'path'
 import Mocha from 'mocha'
+import { format } from 'util'
 
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 
 import { loadModule } from './utils'
-import { INTERFACES, EVENTS, NOOP } from './constants'
+import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
 
 const log = logger('@wdio/mocha-framework')
 
@@ -198,6 +199,15 @@ class MochaAdapter {
         }
 
         if (params.err) {
+            /**
+             * replace "Ensure the done() callback is being called in this test." with a more meaningful message
+             */
+            if (params.err && params.err.message && params.err.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
+                const replacement = format(MOCHA_TIMEOUT_MESSAGE_REPLACEMENT, params.payload.parent.title, params.payload.title)
+                params.err.message = params.err.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+                params.err.stack = params.err.stack.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+            }
+
             message.error = {
                 message: params.err.message,
                 stack: params.err.stack,

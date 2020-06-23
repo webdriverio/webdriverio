@@ -16,6 +16,29 @@ const config: WebdriverIO.Config = {
             },
             skipSeleniumInstall: true
         }],
+        ['crossbrowsertesting', {
+            cbtTunnel: true,
+            cbtTunnelOpts: {
+                foo: 'bar'
+            }
+        }],
+        ['firefox-profile', {
+            extensions: [],
+            profileDirectory: '/foo/bar',
+            proxy: {},
+            legay: false
+        }],
+        ['static-server', {
+            folders: [{}],
+            port: 1234,
+            middleware: [{}]
+        }],
+        ['testingbot', {
+            tbTunnel: true,
+            tbTunnelOpts: {
+                foo: 'bar'
+            }
+        }],
         [CustomService, {
             someOption: true
         }]

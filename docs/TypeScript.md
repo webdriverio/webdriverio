@@ -107,6 +107,8 @@ const config: WebdriverIO.Config = {
 export { config }
 ```
 
+If you are using this approach for a typed configuration, you have to remove the line with 'ts-node/register' from your framework options in your config file.
+
 ## Framework types
 
 Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property, as well as install its type definitions. This is especially important if you want to have type support for the built-in assertion library [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio).

@@ -170,7 +170,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to SauceLabs job details page', () => {
+            it('should print link to Sauce Labs job details page', () => {
                 const runner = getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com'
                 })
@@ -191,7 +191,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to SauceLabs job details page if run with Sauce Connect (w3c)', () => {
+            it('should print link to Sauce Labs job details page if run with Sauce Connect (w3c)', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
                         ...defaultCaps,
@@ -203,7 +203,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to SauceLabs job details page if run with Sauce Connect (jsonwp)', () => {
+            it('should print link to Sauce Labs job details page if run with Sauce Connect (jsonwp)', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
                         tunnelIdentifier: 'foobar',
@@ -215,7 +215,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to SauceLabs EU job details page', () => {
+            it('should print link to Sauce Labs EU job details page', () => {
                 printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu'

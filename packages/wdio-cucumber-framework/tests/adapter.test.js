@@ -106,6 +106,7 @@ test('should throw when run fails', async () => {
     await adapter.init()
 
     const runtimeError = new Error('boom')
+    // eslint-disable-next-line
     Cucumber.Runtime = jest.fn().mockImplementationOnce(() => ({
         start: () => { throw runtimeError }
     }))

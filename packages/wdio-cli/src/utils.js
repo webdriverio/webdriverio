@@ -257,3 +257,11 @@ export function getCapabilities(arg) {
     }
     return { capabilities: { browserName: arg.option } }
 }
+
+/**
+ * Check if file exists in current work directory
+ * @param {string} filename to check existance for
+ */
+export function hasFile (filename) {
+    return fs.existsSync(path.join(process.cwd(), filename))
+}

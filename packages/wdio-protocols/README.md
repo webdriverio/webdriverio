@@ -7,7 +7,7 @@ This package stores the definition for various automation protocols such as [Web
 - [JSON Wire Protocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol)
 - [Appium](http://appium.io/)
 - [Mobile JSON Wire Protocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md)
-- [SauceLabs](https://saucelabs.com/)
+- [Sauce Labs](https://saucelabs.com/)
 - Chrome (WebDriver extension when running Chromedriver)
 - Selenium (when running Selenium Standalone Server)
 

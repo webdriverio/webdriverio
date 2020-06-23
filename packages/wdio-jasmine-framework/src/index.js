@@ -214,7 +214,7 @@ class JasmineAdapter {
     }
 
     /**
-     * Hooks which are added as true Mocha hooks need to call done() to notify async
+     * Hooks which are added as true Jasmine hooks need to call done() to notify async
      */
     wrapHook(hookName) {
         return (done) => executeHooksWithArgs(
