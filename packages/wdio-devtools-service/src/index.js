@@ -10,7 +10,7 @@ import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE } from './constants'
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
-const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 64 and up, and Chromium as the browserName!'
+const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up, and Chromium as the browserName!'
 
 export default class DevToolsService {
     constructor (options) {
