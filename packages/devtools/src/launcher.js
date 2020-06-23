@@ -6,8 +6,18 @@ import logger from '@wdio/logger'
 import browserFinder from './finder'
 import { getPages } from './utils'
 import {
-    CHROME_NAMES, FIREFOX_NAMES, EDGE_NAMES, DEFAULT_FLAGS, DEFAULT_WIDTH,
-    DEFAULT_HEIGHT, DEFAULT_X_POSITION, DEFAULT_Y_POSITION, VENDOR_PREFIX, CHANNEL_FIREFOX_NIGHTLY
+    CHROME_NAMES,
+    FIREFOX_NAMES,
+    EDGE_NAMES,
+    BROWSER_TYPE,
+    DEFAULT_FLAGS,
+    DEFAULT_WIDTH,
+    DEFAULT_HEIGHT,
+    DEFAULT_X_POSITION,
+    DEFAULT_Y_POSITION,
+    VENDOR_PREFIX,
+    CHANNEL_FIREFOX_NIGHTLY,
+    BROWSER_ERROR_MESSAGES
 } from './constants'
 
 const log = logger('devtools')
@@ -120,8 +130,8 @@ function launchBrowser (capabilities, product) {
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
-    } else if (!executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY)) {
-        throw new Error('Only Nightly release channel is supported in Devtools for Firefox')
+    } else if (product === BROWSER_TYPE.firefox && !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY)) {
+        throw new Error(BROWSER_ERROR_MESSAGES.firefoxNightly)
     }
 
     log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
@@ -136,12 +146,12 @@ export default function launch (capabilities) {
     }
 
     if (FIREFOX_NAMES.includes(browserName)) {
-        return launchBrowser(capabilities, 'firefox')
+        return launchBrowser(capabilities, BROWSER_TYPE.firefox)
     }
 
     /* istanbul ignore next */
     if (EDGE_NAMES.includes(browserName)) {
-        return launchBrowser(capabilities, 'edge')
+        return launchBrowser(capabilities, BROWSER_TYPE.edge)
     }
 
     throw new Error(`Couldn't identify browserName ${browserName}`)

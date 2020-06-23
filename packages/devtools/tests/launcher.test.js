@@ -97,18 +97,38 @@ test('throws an error if an unknown deviceName is picked', async () => {
 })
 
 test('launch Firefox with default values', async () => {
-    await launch({
-        browserName: 'firefox'
-    })
-    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+    try {
+        await launch({ browserName: 'firefox' })
+    } catch (err) {
+        expect(err.message).toContain('Only Nightly release channel is supported')
+    }
 })
 
 test('launch Firefox with custom arguments', async () => {
+    try {
+        await launch({
+            browserName: 'firefox',
+            'moz:firefoxOptions': {
+                args: ['foobar'],
+                binary: '/foo/bar',
+                headless: true,
+                defaultViewport: {
+                    width: 123,
+                    height: 456
+                }
+            }
+        })
+    } catch (err) {
+        expect(err.message).toContain('Only Nightly release channel is supported')
+    }
+})
+
+test('launch Firefox Nightly with custom arguments', async () => {
     await launch({
         browserName: 'firefox',
         'moz:firefoxOptions': {
             args: ['foobar'],
-            binary: '/foo/bar',
+            binary: '/foo/firefox-nightly',
             headless: true,
             defaultViewport: {
                 width: 123,
@@ -151,12 +171,31 @@ test('throws if browser is unknown', async () => {
     }
 })
 
-test('launch Firefox without Puppeteer default args', async () => {
+test('launch Firefox Nightly without Puppeteer default args', async () => {
     await launch({
         browserName: 'firefox',
+        'moz:firefoxOptions': {
+            binary: '/foo/firefox-nightly',
+            headless: true
+        },
         ignoreDefaultArgs: true
     })
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+})
+
+test('launch Firefox without Puppeteer default args', async () => {
+    try {
+        await launch({
+            browserName: 'firefox',
+            'moz:firefoxOptions': {
+                binary: '/foo/firefox',
+                headless: true
+            },
+            ignoreDefaultArgs: true
+        })
+    } catch (err) {
+        expect(err.message).toContain('Only Nightly release channel is supported')
+    }
 })
 
 test('launch Edge without Puppeteer default args', async () => {
