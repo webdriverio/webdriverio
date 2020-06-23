@@ -7,7 +7,7 @@ import browserFinder from './finder'
 import { getPages } from './utils'
 import {
     CHROME_NAMES, FIREFOX_NAMES, EDGE_NAMES, DEFAULT_FLAGS, DEFAULT_WIDTH,
-    DEFAULT_HEIGHT, DEFAULT_X_POSITION, DEFAULT_Y_POSITION, VENDOR_PREFIX
+    DEFAULT_HEIGHT, DEFAULT_X_POSITION, DEFAULT_Y_POSITION, VENDOR_PREFIX, CHANNEL_FIREFOX_NIGHTLY
 } from './constants'
 
 const log = logger('devtools')
@@ -120,7 +120,7 @@ function launchBrowser (capabilities, product) {
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
-    } else if (!executablePath.includes('Nightly')) {
+    } else if (!executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY)) {
         throw new Error('Only Nightly release channel is supported in Devtools for Firefox')
     }
 
