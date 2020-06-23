@@ -98,3 +98,5 @@ export const VENDOR_PREFIX = {
     firefox: 'moz:firefoxOptions',
     edge: 'ms:edgeOptions'
 }
+
+export const CHANNEL_FIREFOX_NIGHTLY = 'nightly'
