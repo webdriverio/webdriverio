@@ -159,11 +159,11 @@ class JunitReporter extends WDIOReporter {
         let builder = junit.newBuilder()
 
         if (runner.config.hostname.indexOf('browserstack') && runner.capabilities.os === 'Android') {
-          // NOTE: deviceUUID is used resulting in a everchanging package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
-          const browserstackSanitizedCapabilities = (runner.capabilities.device.toLowerCase() + '.' + runner.capabilities.os.toLowerCase() + '.' + runner.capabilities.os_version.replace(/\./g, '_')).replace(/ /g,'');
-          this.packageName = this.options.packageName ? `${browserstackSanitizedCapabilities}-${this.options.packageName}` : browserstackSanitizedCapabilities;
+            // NOTE: deviceUUID is used resulting in a everchanging package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
+            const browserstackSanitizedCapabilities = (runner.capabilities.device.toLowerCase() + '.' + runner.capabilities.os.toLowerCase() + '.' + runner.capabilities.os_version.replace(/\./g, '_')).replace(/ /g, '')
+            this.packageName = this.options.packageName ? `${browserstackSanitizedCapabilities}-${this.options.packageName}` : browserstackSanitizedCapabilities
         } else {
-          this.packageName = this.options.packageName ? `${runner.sanitizedCapabilities}-${this.options.packageName}` : runner.sanitizedCapabilities;
+            this.packageName = this.options.packageName ? `${runner.sanitizedCapabilities}-${this.options.packageName}` : runner.sanitizedCapabilities
         }
         
         this.isCucumberFrameworkRunner = runner.config.framework === 'cucumber'
