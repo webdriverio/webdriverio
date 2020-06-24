@@ -97,6 +97,8 @@ test('throws an error if an unknown deviceName is picked', async () => {
 })
 
 test('launch Firefox with default values', async () => {
+    expect.assertions(1)
+
     try {
         await launch({ browserName: 'firefox' })
     } catch (err) {
@@ -105,6 +107,8 @@ test('launch Firefox with default values', async () => {
 })
 
 test('launch Firefox with custom arguments', async () => {
+    expect.assertions(1)
+
     try {
         await launch({
             browserName: 'firefox',
@@ -184,6 +188,8 @@ test('launch Firefox Nightly without Puppeteer default args', async () => {
 })
 
 test('launch Firefox without Puppeteer default args', async () => {
+    expect.assertions(1)
+
     try {
         await launch({
             browserName: 'firefox',
