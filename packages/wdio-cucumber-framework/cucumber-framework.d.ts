@@ -1,6 +1,6 @@
 /// <reference types="expect-webdriverio"/>
 
-import { SourceLocation, ScenarioResult } from "cucumber";
+import { SourceLocation, ScenarioResult, World } from "cucumber";
 
 declare module "webdriverio" {
     interface HookFunctions extends CucumberHookFunctions {}

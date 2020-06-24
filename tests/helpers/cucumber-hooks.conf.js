@@ -7,10 +7,9 @@ exports.config = Object.assign({}, config, {
         await browser.pause(30)
         browser.Cucumber_Test = 0
     },
-    beforeScenario: (world) => {
+    beforeScenario: () => {
         browser.pause(30)
         browser.Cucumber_Test = 1
-        browser.Cucumber_CurrentWorld = world
     },
     beforeStep: async function ({ step }, world) {
         await browser.pause(20)
@@ -28,13 +27,9 @@ exports.config = Object.assign({}, config, {
         }
         browser.Cucumber_Test = 1
     },
-    afterScenario: (world) => {
+    afterScenario: () => {
         browser.pause(30)
         browser.Cucumber_Test = -1
-        if (browser.Cucumber_CurrentWorld !== world) {
-            throw new Error("world doesn't match")
-        }
-
     },
     afterFeature: () => {
         delete browser.Cucumber_Test
