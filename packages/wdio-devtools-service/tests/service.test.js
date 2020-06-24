@@ -62,8 +62,12 @@ test('beforeSession', () => {
     const service = new DevToolsService({}, [{}], {})
     expect(service.isSupported).toBe(false)
 
+    service.beforeSession(null, {})
+    expect(service.isSupported).toBe(false)
+
     service.beforeSession(null, { browserName: 'firefox' })
     expect(service.isSupported).toBe(false)
+
     service.beforeSession(null, { browserName: 'chrome', version: 62 })
     expect(service.isSupported).toBe(false)
 

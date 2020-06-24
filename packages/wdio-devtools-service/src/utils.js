@@ -164,8 +164,11 @@ export function getBrowserMajorVersion (version) {
  * @param {object} caps capabilities
  */
 export function isBrowserSupported(caps) {
-    if ((caps.browserName && !(caps.browserName.toLowerCase() in SUPPORTED_BROWSERS_AND_MIN_VERSIONS))
-    || (caps.browserName && isBrowserVersionLower(caps, SUPPORTED_BROWSERS_AND_MIN_VERSIONS[caps.browserName.toLowerCase()])))
+    if (
+        !caps.browserName ||
+        !(caps.browserName.toLowerCase() in SUPPORTED_BROWSERS_AND_MIN_VERSIONS) ||
+        isBrowserVersionLower(caps, SUPPORTED_BROWSERS_AND_MIN_VERSIONS[caps.browserName.toLowerCase()])){
         return false
+    }
     return true
 }
