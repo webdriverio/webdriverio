@@ -44,16 +44,27 @@ interface DevtoolsConfig {
   debuggerAddress?: string;
 }
 
+interface PerformanceAuditOptions {
+  /**
+   * Network throttling artificially limits the maximum download throughput (rate of data transfer). (e.g. Fast 3G).
+   */
+  networkThrottling?: NetworkStates,
+  /**
+   * Define CPU throttling to understand how your page performs under that constraint (e.g. 1.5).
+   */
+  cpuThrottling?: number,
+  /**
+   * Enable or disable cache of resources. Defaults to true.
+   */
+  cacheEnabled?: boolean
+}
+
 interface DevtoolsBrowser {
   /**
    * Enables auto performance audits for all page loads that are cause by calling the url command or clicking on a link or anything that causes a page load.
    * You can pass in a config object to determine some throttling options. The default throttling profile is Good 3G network with a 4x CPU trottling.
    */
-  enablePerformanceAudits(
-    networkThrottling?: NetworkStates,
-    cpuThrottling?: number,
-    cacheEnabled?: boolean
-  ): void;
+  enablePerformanceAudits(params?: PerformanceAuditOptions): void;
   /**
    * Disable the performance audits
    */
