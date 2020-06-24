@@ -109,11 +109,10 @@ export const BROWSER_ERROR_MESSAGES = {
         Adding the following binary capability in Firefox Options is mandatory to run with Nightly edition:
 
         'moz:firefoxOptions': {
-         binary: '/path/to/firefox'
+            binary: '/path/to/firefox'
         }
 
-        Note: "Nightly" as a term should be present in the "Firefox Application Name" across all OS's in binary path mentioned above for this to work.
-        `
+        Note: "Nightly" as a term should be present in the "Firefox Application Name" across all OS's in binary path mentioned above for this to work.`
 }
 
 export const VENDOR_PREFIX = {
