@@ -3,9 +3,9 @@ id: multiremote
 title: Multiremote
 ---
 
-WebdriverIO allows you to run multiple WebDriver/Appium sessions in a single test. This becomes handy when you’re testing features that require multiple users (for example, chat or WebRTC applications). 
+WebdriverIO allows you to run multiple WebDriver/Appium sessions in a single test. This becomes handy when you’re testing features that require multiple users (for example, chat or WebRTC applications).
 
-Instead of creating a couple of remote instances where you need to execute common commands like [`newSession`](/docs/api/webdriver.html#newsession) or [`url`](/docs/api/browser/url.html) on each instance, you can simply create a **multiremote** instance and control all browsers at the same time. 
+Instead of creating a couple of remote instances where you need to execute common commands like [`newSession`](/docs/api/webdriver.html#newsession) or [`url`](/docs/api/browser/url.html) on each instance, you can simply create a **multiremote** instance and control all browsers at the same time.
 
 To do so, just use the `multiremote()` function, and pass in an object with names keyed to `capabilities` for values. By giving each capability a name, you can easily select and access that single instance when executing commands on a single instance.
 
@@ -65,14 +65,14 @@ export.config = {
 }
 ```
 
-This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io). 
+This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io).
 
-Any kind of OS/browser combination is possible here (including mobile and desktop browsers). All commands your tests call via the `browser` variable are executed in parallel with each instance. This helps streamline your integration tests and speed up their execution. 
+Any kind of OS/browser combination is possible here (including mobile and desktop browsers). All commands your tests call via the `browser` variable are executed in parallel with each instance. This helps streamline your integration tests and speed up their execution.
 
 For example, if you open up a URL:
 
 ```js
-browser.url('http://chat.socket.io')
+browser.url('https://socketio-chat-h9jt.herokuapp.com/')
 ```
 
 Each command’s result will be an object with the browser names as the key, and the command result as value, like so:
@@ -90,7 +90,7 @@ console.log(result.resultFirefox) // returns: 'Firefox 35 on Mac OS X (Yosemite)
 
 Notice that each command is executed one by one. This means that the command finishes once all browsers have executed it. This is helpful because it keeps the browser actions synced, which makes it easier to understand what’s currently happening.
 
-Sometimes it is necessary to do different things in each browser in order to test something. For instance, if we want to test a chat application, there has to be one browser who sends a text message while another browser waits to receive it, and then run an assertion on it. 
+Sometimes it is necessary to do different things in each browser in order to test something. For instance, if we want to test a chat application, there has to be one browser who sends a text message while another browser waits to receive it, and then run an assertion on it.
 
 When using the WDIO testrunner, it registers the browser names with their instances to the global scope:
 
@@ -107,9 +107,9 @@ assert.true(
 )
 ```
 
-In this example, the `myFirefoxBrowser` instance will start waiting on a message once the `myChromeBrowser` instance has clicked on `#send` button. 
+In this example, the `myFirefoxBrowser` instance will start waiting on a message once the `myChromeBrowser` instance has clicked on `#send` button.
 
 Multiremote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
 
-__NOTE:__ Multiremote is _not_ meant to execute all your tests in parallel. 
+__NOTE:__ Multiremote is _not_ meant to execute all your tests in parallel.
 It is intended to help coordinate multiple browsers for sophisticated integration tests.
