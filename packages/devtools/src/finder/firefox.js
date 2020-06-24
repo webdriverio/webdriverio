@@ -25,7 +25,7 @@ function darwin() {
 
     execSync(
         `${LSREGISTER} -dump` +
-        ' | grep -i \'firefox\\?.app.*$\'' +
+        ' | grep -i \'Firefox Nightly\\?.app.*$\'' +
         ' | awk \'{$1=""; print $0}\''
     )
         .toString()
@@ -49,8 +49,8 @@ function darwin() {
     ]
 
     const whichFinds = findByWhich(
-        ['firefox'],
-        [{ regex: /firefox/, weight: 51 }]
+        ['firefox-nightly'],
+        [{ regex: /firefox-nightly/, weight: 51 }]
     )
     const installFinds = sort(installations, priorities)
     return [...installFinds, ...whichFinds]
@@ -70,11 +70,11 @@ function linux() {
         '/usr/share/applications/',
     ]
     desktopInstallationFolders.forEach(folder => {
-        installations = installations.concat(findEdgeExecutables(folder))
+        installations = installations.concat(findFirefoxExecutables(folder))
     })
 
     return findByWhich(
-        ['firefox'],
+        ['firefox-nightly'],
         [{ regex: /firefox/, weight: 51 }]
     )
 }
@@ -82,7 +82,7 @@ function linux() {
 function win32() {
     const installations = []
     const suffixes = [
-        `${path.sep}Firefox${path.sep}Application${path.sep}firefox.exe`
+        `${path.sep}Firefox Nightly${path.sep}Application${path.sep}firefox.exe`
     ]
 
     const prefixes = [
@@ -99,7 +99,7 @@ function win32() {
     return installations
 }
 
-function findEdgeExecutables(folder) {
+function findFirefoxExecutables(folder) {
     const argumentsRegex = /(^[^ ]+).*/ // Take everything up to the first space
     const edgeExecRegex = '^Exec=/.*/(firefox)-.*'
 
