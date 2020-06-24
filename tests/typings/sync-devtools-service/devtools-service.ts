@@ -1,13 +1,17 @@
 const config: WebdriverIO.Config = {
   services: [
-      ['devtools', {
-        debuggerAddress: 'localhost:24563'
-      }]
+    ['devtools', {
+      debuggerAddress: 'localhost:24563'
+    }]
   ]
 }
 
 browser.enablePerformanceAudits()
-browser.enablePerformanceAudits('Good 3G', 4, false)
+browser.enablePerformanceAudits({
+  networkThrottling: 'online',
+  cpuThrottling: 0,
+  cacheEnabled: false
+})
 browser.disablePerformanceAudits()
 
 const metrics: object = browser.getMetrics()

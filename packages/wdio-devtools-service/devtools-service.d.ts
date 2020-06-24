@@ -64,7 +64,7 @@ interface DevtoolsBrowser {
    * Enables auto performance audits for all page loads that are cause by calling the url command or clicking on a link or anything that causes a page load.
    * You can pass in a config object to determine some throttling options. The default throttling profile is Good 3G network with a 4x CPU trottling.
    */
-  enablePerformanceAudits(params: PerformanceAuditOptions): void;
+  enablePerformanceAudits(params?: PerformanceAuditOptions): void;
   /**
    * Disable the performance audits
    */
