@@ -17,6 +17,27 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.21 (2020-06-24)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#5539](https://github.com/webdriverio/webdriverio/pull/5539) Closes [#5535](https://github.com/webdriverio/webdriverio/issues/5535) ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+#### :memo: Documentation
+* [#5525](https://github.com/webdriverio/webdriverio/pull/5525) Update BoilerplateProjects.md ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+* [#5515](https://github.com/webdriverio/webdriverio/pull/5515) Update Debugging and TypeScript documentation ([@pako88](https://github.com/pako88))
+
+#### :house: Internal
+* [#5527](https://github.com/webdriverio/webdriverio/pull/5527) Issue# 5521 - unskipped mocha test re-ran it several times ([@sethuster](https://github.com/sethuster))
+
+#### Committers: 5
+- Arjun ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+- Pascal König ([@pako88](https://github.com/pako88))
+- Seth Urban ([@sethuster](https://github.com/sethuster))
+- Srinivasan Sekar ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.18 (2020-06-15)
 
 #### :bug: Bug Fix
