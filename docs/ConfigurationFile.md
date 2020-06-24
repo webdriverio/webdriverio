@@ -376,13 +376,13 @@ exports.config = {
      */
     beforeFeature: function (uri, feature, scenarios) {
     },
-    beforeScenario: function (uri, feature, scenario, sourceLocation) {
+    beforeScenario: function (uri, feature, scenario, sourceLocation, context) {
     },
     beforeStep: function ({ uri, feature, step }, context) {
     },
     afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed }) {
     },
-    afterScenario: function (uri, feature, scenario, result, sourceLocation) {
+    afterScenario: function (uri, feature, scenario, result, sourceLocation, context) {
     },
     afterFeature: function (uri, feature, scenarios) {
     }
