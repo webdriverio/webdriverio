@@ -160,7 +160,7 @@ class JunitReporter extends WDIOReporter {
 
         if (runner.config.hostname.indexOf('browserstack') && runner.capabilities.os === 'Android') {
           // NOTE: deviceUUID is used resulting in a everchanging package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
-          let browserstackSanitizedCapabilities = runner.capabilities.device.replace(' ', '') + '.' + runner.capabilties.os + '.' + runner.capabilities.os_version.replace(' ', '_');
+          const browserstackSanitizedCapabilities = (runner.capabilities.device + '.' + runner.capabilties.os + '.' + runner.capabilities.os_version).replace(' ', '');
           this.packageName = this.options.packageName ? `${browserstackSanitizedCapabilities}-${this.options.packageName}` : browserstackSanitizedCapabilities;
         } else {
           this.packageName = this.options.packageName ? `${runner.sanitizedCapabilities}-${this.options.packageName}` : runner.sanitizedCapabilities;
