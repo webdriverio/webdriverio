@@ -29,7 +29,7 @@ jest.mock('../src/auditor', () => {
 })
 
 jest.mock('../src/utils', () => {
-    const { isBrowserVersionLower } = jest.requireActual('../src/utils')
+    const { isBrowserSupported } = jest.requireActual('../src/utils')
     let wasCalled = false
 
     const cdpClientMock = {
@@ -48,7 +48,7 @@ jest.mock('../src/utils', () => {
             throw new Error('boom')
         }),
         getCDPClient: jest.fn().mockReturnValue(cdpClientMock),
-        isBrowserVersionLower
+        isBrowserSupported
     }
 })
 
@@ -62,8 +62,12 @@ test('beforeSession', () => {
     const service = new DevToolsService({}, [{}], {})
     expect(service.isSupported).toBe(false)
 
+    service.beforeSession(null, {})
+    expect(service.isSupported).toBe(false)
+
     service.beforeSession(null, { browserName: 'firefox' })
     expect(service.isSupported).toBe(false)
+
     service.beforeSession(null, { browserName: 'chrome', version: 62 })
     expect(service.isSupported).toBe(false)
 
