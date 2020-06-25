@@ -1,5 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`stub request with a different web resource 1`] = `
+Array [
+  Object {
+    "name": "Content-Type",
+    "value": "application/json",
+  },
+  Object {
+    "name": "Location",
+    "value": "http://json.org/image.svg",
+  },
+]
+`;
+
 exports[`stub request with a text 1`] = `
 Array [
   "Fetch.fulfillRequest",

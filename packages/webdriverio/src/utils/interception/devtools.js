@@ -78,22 +78,28 @@ export default class DevtoolsInterception {
                         body = JSON.stringify(body)
                     }
 
+                    let responseCode = params.statusCode || event.responseStatusCode
+                    const responseHeaders = [
+                        ...event.responseHeaders,
+                        ...Object.entries(params.headers || {}).map(([key, value]) => { key, value })
+                    ]
+
                     /**
                      * check if local file and load it
                      */
                     const responseFilePath = path.isAbsolute(body) ? body : path.join(process.cwd(), body)
                     if (fs.existsSync(responseFilePath) && canAccess(responseFilePath)) {
                         body = fs.readFileSync(responseFilePath).toString()
+                    } else if (body.startsWith('http')) {
+                        responseCode = 301
+                        responseHeaders.push({ name: 'Location', value: body })
                     }
 
                     request.mockedResponse = body
                     return client.send('Fetch.fulfillRequest', {
                         requestId,
-                        responseCode: params.statusCode || event.responseStatusCode,
-                        responseHeaders: [
-                            ...event.responseHeaders,
-                            ...Object.entries(params.headers || {}).map(([key, value]) => { key, value })
-                        ],
+                        responseCode,
+                        responseHeaders,
                         body: Buffer.from(body).toString('base64')
                     })
                 }

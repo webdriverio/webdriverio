@@ -43,7 +43,7 @@ test('restore', async () => {
     const mock = new NetworkInterception('**/foobar/**', { foo: 'bar' })
     await mock.init(browserMock)
     expect(await mock.restore()).toEqual({})
-    expect(browserMock.restoreMockCalls).toBeCalledWith(123)
+    expect(browserMock.clearMockCalls).toBeCalledWith(123, true)
 })
 
 test('respond', async () => {
