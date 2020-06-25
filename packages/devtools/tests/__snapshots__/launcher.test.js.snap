@@ -36,19 +36,35 @@ Array [
 ]
 `;
 
-exports[`launch Firefox with custom arguments 1`] = `
+exports[`launch Edge without Puppeteer default args 1`] = `
+Array [
+  Array [
+    Object {
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "executablePath": "/path/to/edge",
+      "ignoreDefaultArgs": true,
+      "product": "edge",
+    },
+  ],
+]
+`;
+
+exports[`launch Firefox Nightly with custom arguments 1`] = `
 Array [
   Array [
     Object {
       "args": Array [
         "foobar",
       ],
-      "binary": "/foo/bar",
+      "binary": "/foo/firefox-nightly",
       "defaultViewport": Object {
         "height": 456,
         "width": 123,
       },
-      "executablePath": "/foo/bar",
+      "executablePath": "/foo/firefox-nightly",
       "headless": true,
       "ignoreDefaultArgs": undefined,
       "product": "firefox",
@@ -57,16 +73,18 @@ Array [
 ]
 `;
 
-exports[`launch Firefox with default values 1`] = `
+exports[`launch Firefox Nightly without Puppeteer default args 1`] = `
 Array [
   Array [
     Object {
+      "binary": "/foo/firefox-nightly",
       "defaultViewport": Object {
         "height": 900,
         "width": 1200,
       },
-      "executablePath": "/path/to/firefox",
-      "ignoreDefaultArgs": undefined,
+      "executablePath": "/foo/firefox-nightly",
+      "headless": true,
+      "ignoreDefaultArgs": true,
       "product": "firefox",
     },
   ],
@@ -220,39 +238,6 @@ Array [
         "--disable-sync",
         "--enable-features=NetworkService,NetworkServiceInProcess",
       ],
-    },
-  ],
-]
-`;
-
-exports[`launch Firefox without Puppeteer default args 1`] = `
-Array [
-  Array [
-    Object {
-      "defaultViewport": Object {
-        "height": 900,
-        "width": 1200,
-      },
-      "executablePath": "/path/to/firefox",
-      "ignoreDefaultArgs": true,
-      "product": "firefox",
-    },
-  ],
-]
-`;
-
-
-exports[`launch Edge without Puppeteer default args 1`] = `
-Array [
-  Array [
-    Object {
-      "defaultViewport": Object {
-        "height": 900,
-        "width": 1200,
-      },
-      "executablePath": "/path/to/edge",
-      "ignoreDefaultArgs": true,
-      "product": "edge",
     },
   ],
 ]
