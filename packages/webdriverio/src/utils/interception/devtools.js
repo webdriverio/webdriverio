@@ -1,7 +1,9 @@
+import fs from 'fs'
+import path from 'path'
 import atob from 'atob'
 import minimatch from 'minimatch'
 
-import { containsObject } from '..'
+import { containsObject, canAccess } from '..'
 import { ERROR_REASON } from '../../constants'
 
 export default class DevtoolsInterception {
@@ -72,11 +74,19 @@ export default class DevtoolsInterception {
                         body = await overwrite(request, client)
                     }
 
-                    request.mockedResponse = body
                     if (typeof body !== 'string') {
                         body = JSON.stringify(body)
                     }
 
+                    /**
+                     * check if local file and load it
+                     */
+                    const responseFilePath = path.isAbsolute(body) ? body : path.join(process.cwd(), body)
+                    if (fs.existsSync(responseFilePath) && canAccess(responseFilePath)) {
+                        body = fs.readFileSync(responseFilePath).toString()
+                    }
+
+                    request.mockedResponse = body
                     return client.send('Fetch.fulfillRequest', {
                         requestId,
                         responseCode: params.statusCode || event.responseStatusCode,

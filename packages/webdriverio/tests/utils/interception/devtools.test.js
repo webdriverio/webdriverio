@@ -133,6 +133,20 @@ test('stub request with a text', async () => {
     expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
 })
 
+test('stub request with a file', async () => {
+    const mock = new NetworkInterception('**/foobar/**')
+    mock.respond(__filename)
+    await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+        requestId: 123,
+        request: { url: 'http://test.com/foobar/test.html' },
+        responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
+    })
+
+    const response = cdpClient.send.mock.calls.pop()[1]
+    const buff = new Buffer(response.body, 'base64')
+    expect(buff.toString('ascii')).toContain('stub request with a file')
+})
+
 test('allows to clear mocks', async () => {
     const mock = new NetworkInterception('**/foobar/**')
     await NetworkInterception.handleRequestInterception(cdpClient, [mock])({

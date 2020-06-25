@@ -1,3 +1,4 @@
+import fs from 'fs'
 import http from 'http'
 import path from 'path'
 import { ELEMENT_KEY } from '../src/constants'
@@ -15,7 +16,8 @@ import {
     assertDirectoryExists,
     validateUrl,
     getAutomationProtocol,
-    updateCapabilities
+    updateCapabilities,
+    canAccess
 } from '../src/utils'
 
 jest.mock('http', () => {
@@ -31,6 +33,8 @@ jest.mock('http', () => {
         })
     }
 })
+
+jest.mock('fs')
 
 describe('utils', () => {
     describe('getElementFromResponse', () => {
@@ -458,6 +462,11 @@ describe('utils', () => {
     })
 
     describe('assertDirectoryExists', () => {
+        beforeEach(() => {
+            const fsOrig = jest.requireActual('fs')
+            fs.existsSync.mockImplementation(::fsOrig.existsSync)
+        })
+
         it('should fail if not existing directory', () => {
             expect(() => assertDirectoryExists('/i/dont/exist.png')).toThrowError(new Error('directory (/i/dont) doesn\'t exist'))
         })
@@ -543,5 +552,15 @@ describe('utils', () => {
                 expect(params).toMatchSnapshot()
             })
         })
+    })
+
+    it('canAccess', () => {
+        expect(canAccess('/foobar')).toBe(true)
+        expect(fs.accessSync).toBeCalledWith('/foobar')
+
+        fs.accessSync.mockImplementation(() => {
+            throw new Error('upps')
+        })
+        expect(canAccess('/foobar')).toBe(false)
     })
 })

@@ -525,3 +525,21 @@ export const containsObject = (base, match) => {
 
     return true
 }
+
+/**
+ * Helper utility to check file access
+ * @param {String} file file to check access for
+ * @return              true if file can be accessed
+ */
+export const canAccess = (file) => {
+    if (!file) {
+        return false
+    }
+
+    try {
+        fs.accessSync(file)
+        return true
+    } catch (e) {
+        return false
+    }
+}
