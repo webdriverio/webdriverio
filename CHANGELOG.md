@@ -17,6 +17,24 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.22 (2020-06-25)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#5536](https://github.com/webdriverio/webdriverio/pull/5536) DevTools Service: Accept 'chromium' as the browserName  ([@pjcalvo](https://github.com/pjcalvo))
+
+#### :nail_care: Polish
+* `devtools`
+  * [#5528](https://github.com/webdriverio/webdriverio/pull/5528) Check for nightly channel to handle devtools ([@mathew-jithin](https://github.com/mathew-jithin))
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#5483](https://github.com/webdriverio/webdriverio/pull/5483) Add context to before/after scenario hooks issue 5394 ([@osmolyar](https://github.com/osmolyar))
+
+#### Committers: 3
+- Jithin Mathew ([@mathew-jithin](https://github.com/mathew-jithin))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+- Pablillo Calvo ([@pjcalvo](https://github.com/pjcalvo))
+
+
 ## v6.1.21 (2020-06-24)
 
 #### :bug: Bug Fix
