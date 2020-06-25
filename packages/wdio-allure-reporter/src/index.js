@@ -420,13 +420,9 @@ class AllureReporter extends WDIOReporter {
     isScreenshotCommand(command) {
         const isScrenshotEndpoint = /\/session\/[^/]*\/screenshot/
         return (
-            /**
-             * WebDriver protocol
-             */
+            // WebDriver protocol
             isScrenshotEndpoint.test(command.endpoint) ||
-            /**
-             * DevTools protocol
-             */
+            // DevTools protocol
             command.command === 'takeScreenshot'
         )
     }
