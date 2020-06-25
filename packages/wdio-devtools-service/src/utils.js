@@ -13,6 +13,7 @@ const VERSION_PROPS = ['browserVersion', 'browser_version', 'version']
 const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
     'chrome': 63,
     'chromium' : 63,
+    'googlechrome': 63,
     'google chrome': 63
 }
 

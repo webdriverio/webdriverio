@@ -113,9 +113,13 @@ describe('getChromeMajorVersion', () => {
 })
 
 describe('isBrowserSupported', () => {
-
     test('should return true when the browser and version are supported', () => {
         const caps = { browserName: 'Chromium', version: 80 }
+        expect(isBrowserSupported(caps)).toEqual(true)
+    })
+
+    test('should return true when the browser and version are supported', () => {
+        const caps = { browserName: 'Google Chrome', version: 80 }
         expect(isBrowserSupported(caps)).toEqual(true)
     })
 
