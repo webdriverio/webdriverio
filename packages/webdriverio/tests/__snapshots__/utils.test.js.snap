@@ -31,6 +31,14 @@ Object {
 }
 `;
 
+exports[`utils updateCapabilities setting devtools port in Firefox should set firefox options if there aren't any 2`] = `
+Object {
+  "capabilities": Object {
+    "browserName": "firefox",
+  },
+}
+`;
+
 exports[`utils updateCapabilities should do nothing if no browser specified 1`] = `
 Object {
   "capabilities": Object {},

@@ -488,12 +488,12 @@ export const getAutomationProtocol = async (config) => {
  *
  * NOTE: this method is executed twice when running the WDIO testrunner
  */
-export const updateCapabilities = async (params) => {
+export const updateCapabilities = async (params, automationProtocol) => {
     /**
      * attach remote debugging port options to Firefox sessions
      * (this will be ignored if not supported)
      */
-    if (params.capabilities.browserName === 'firefox') {
+    if (automationProtocol === 'webdriver' && params.capabilities.browserName === 'firefox') {
         if (!params.capabilities['moz:firefoxOptions']) {
             params.capabilities['moz:firefoxOptions'] = {}
         }
