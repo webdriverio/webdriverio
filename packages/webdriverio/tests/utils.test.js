@@ -522,8 +522,12 @@ describe('utils', () => {
         describe('setting devtools port in Firefox', () => {
             it('should set firefox options if there aren\'t any', async () => {
                 const params = { capabilities: { browserName: 'firefox' } }
-                await updateCapabilities(params)
+                await updateCapabilities(params, 'webdriver')
                 expect(params).toMatchSnapshot()
+
+                const params2 = { capabilities: { browserName: 'firefox' } }
+                await updateCapabilities(params2, 'devtools')
+                expect(params2).toMatchSnapshot()
             })
 
             it('should not overwrite if already set', async () => {

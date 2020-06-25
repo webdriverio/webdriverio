@@ -54,7 +54,7 @@ export const remote = async function (params = {}, remoteModifier) {
     log.info(`Initiate new session using the ${automationProtocol} protocol`)
     const ProtocolDriver = require(automationProtocol).default
 
-    await updateCapabilities(params)
+    await updateCapabilities(params, automationProtocol)
     const instance = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**
