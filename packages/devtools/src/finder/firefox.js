@@ -74,7 +74,7 @@ function linux() {
     })
 
     return findByWhich(
-        ['firefox-nightly'],
+        ['firefox-nightly', 'firefox'],
         [{ regex: /firefox/, weight: 51 }]
     )
 }
