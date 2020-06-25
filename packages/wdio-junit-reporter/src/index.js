@@ -165,7 +165,7 @@ class JunitReporter extends WDIOReporter {
         } else {
             this.packageName = this.options.packageName ? `${runner.sanitizedCapabilities}-${this.options.packageName}` : runner.sanitizedCapabilities
         }
-        
+
         this.isCucumberFrameworkRunner = runner.config.framework === 'cucumber'
         if (this.isCucumberFrameworkRunner) {
             this.packageName = `CucumberJUnitReport-${this.packageName}`
