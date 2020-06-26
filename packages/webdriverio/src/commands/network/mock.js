@@ -104,7 +104,7 @@ export default async function mock (url, filterOptions) {
     SESSION_MOCKS.add(networkInterception)
 
     if (this.isSauce) {
-        await networkInterception.init(browser)
+        await networkInterception.init()
     }
 
     return networkInterception

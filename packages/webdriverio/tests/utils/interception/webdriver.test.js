@@ -19,36 +19,36 @@ beforeEach(() => {
 })
 
 test('init', async () => {
-    const mock = new NetworkInterception('**/foobar/**', { foo: 'bar' })
-    await mock.init(browserMock)
+    const mock = new NetworkInterception('**/foobar/**', { foo: 'bar' }, browserMock)
+    await mock.init()
     expect(browserMock.mockRequest).toBeCalledWith('**/foobar/**', { foo: 'bar' })
     expect(mock.mockId).toBe(123)
 })
 
 test('calls', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
-    await mock.init(browserMock)
+    const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
+    await mock.init()
     expect(await mock.calls).toEqual([1, 2, 3])
     expect(browserMock.mockCalls).toBeCalledWith(123)
 })
 
 test('clear', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
-    await mock.init(browserMock)
+    const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
+    await mock.init()
     expect(await mock.clear()).toEqual({})
     expect(browserMock.clearMockCalls).toBeCalledWith(123)
 })
 
 test('restore', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
-    await mock.init(browserMock)
+    const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
+    await mock.init()
     expect(await mock.restore()).toEqual({})
     expect(browserMock.clearMockCalls).toBeCalledWith(123, true)
 })
 
 test('respond', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
-    await mock.init(browserMock)
+    const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
+    await mock.init()
     expect(await mock.respond('foo', 'bar')).toEqual({})
     expect(browserMock.respondMock).toBeCalledWith(
         123,
@@ -61,8 +61,8 @@ test('respond', async () => {
 })
 
 test('respond without params', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
-    await mock.init(browserMock)
+    const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
+    await mock.init()
     expect(await mock.respond('foo')).toEqual({})
     expect(browserMock.respondMock).toBeCalledWith(
         123,
@@ -75,8 +75,8 @@ test('respond without params', async () => {
 })
 
 test('respondOnce', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
-    await mock.init(browserMock)
+    const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
+    await mock.init()
     expect(await mock.respondOnce('foo', 'bar')).toEqual({})
     expect(browserMock.respondMock).toBeCalledWith(
         123,
@@ -88,8 +88,8 @@ test('respondOnce', async () => {
 })
 
 test('respondOnce without params', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
-    await mock.init(browserMock)
+    const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
+    await mock.init()
     expect(await mock.respondOnce('foo')).toEqual({})
     expect(browserMock.respondMock).toBeCalledWith(
         123,
@@ -101,8 +101,8 @@ test('respondOnce without params', async () => {
 })
 
 test('abort', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
-    await mock.init(browserMock)
+    const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
+    await mock.init()
 
     expect(await mock.abort('InternetDisconnected')).toEqual({})
     expect(browserMock.respondMock).toBeCalledWith(
@@ -126,8 +126,8 @@ test('abort fails if invalid error reason was provided', async () => {
 })
 
 test('abortOnce', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
-    await mock.init(browserMock)
+    const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
+    await mock.init()
 
     expect(await mock.abortOnce('InternetDisconnected')).toEqual({})
     expect(browserMock.respondMock).toBeCalledWith(
