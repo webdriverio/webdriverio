@@ -835,7 +835,7 @@ declare namespace WebdriverIO {
          */
         mock(
             url: string,
-            filterOptions: MockFilterOptions
+            filterOptions?: MockFilterOptions
         ): Mock;
 
         /**
@@ -870,7 +870,7 @@ declare namespace WebdriverIO {
          */
         respond(
             overwrites: object | string,
-            params: MockResponseParams
+            params?: MockResponseParams
         ): void;
 
         /**
@@ -878,7 +878,7 @@ declare namespace WebdriverIO {
          */
         respondOnce(
             overwrites: object | string,
-            params: MockResponseParams
+            params?: MockResponseParams
         ): void;
 
         /**

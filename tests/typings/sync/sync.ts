@@ -177,4 +177,26 @@ browser.isIOS
 // allure-reporter
 allure.addFeature('')
 
+// network mocking
+browser.network.throttle()
+browser.network.mock('**/image.jpg')
+const mock = browser.network.mock('**/image.jpg', {
+    method: 'get',
+    headers: { foo: 'bar' }
+})
+mock.abort('Aborted')
+mock.abortOnce('AccessDenied')
+mock.clear()
+mock.respond('/other/resource.jpg')
+mock.respond('/other/resource.jpg', {
+    statusCode: 100,
+    headers: { foo: 'bar' }
+})
+mock.respondOnce('/other/resource.jpg')
+mock.respondOnce('/other/resource.jpg', {
+    statusCode: 100,
+    headers: { foo: 'bar' }
+})
+mock.restore()
+
 export default {}

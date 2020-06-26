@@ -199,6 +199,28 @@ async function bar() {
     browser.isMobile
     browser.isAndroid
     browser.isIOS
+
+    // network mocking
+    browser.network.throttle()
+    browser.network.mock('**/image.jpg')
+    const mock = await browser.network.mock('**/image.jpg', {
+        method: 'get',
+        headers: { foo: 'bar' }
+    })
+    mock.abort('Aborted')
+    mock.abortOnce('AccessDenied')
+    mock.clear()
+    mock.respond('/other/resource.jpg')
+    mock.respond('/other/resource.jpg', {
+        statusCode: 100,
+        headers: { foo: 'bar' }
+    })
+    mock.respondOnce('/other/resource.jpg')
+    mock.respondOnce('/other/resource.jpg', {
+        statusCode: 100,
+        headers: { foo: 'bar' }
+    })
+    mock.restore()
 }
 
 // allure-reporter
