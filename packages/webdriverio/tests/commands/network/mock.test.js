@@ -54,6 +54,6 @@ describe('custom$', () => {
 
         browser.network.puppeteer = puppeteerMock
         const mock = await browser.network.mock('/foobar')
-        expect(mock.init).toBeCalledWith(browser)
+        expect(mock.init).toBeCalledWith()
     })
 })
