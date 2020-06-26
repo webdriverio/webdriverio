@@ -41,10 +41,9 @@ await expect(selectOptions).toHaveChildren({ gte: 1 })
 
 For the full list, see the [expect API doc](/docs/api/expect.html).
 
-
 ## Migrating from Chai
 
-Chai and expect-webdriverio can coexist, and with some minor adjustments a smooth transition to expect-webdriverio can be achieved. If you've upgraded to wdio v6 then by default you will have access to all the assertions from expect-webdriverio out of the box. This means that globally wherever you use `expect` you would call an expect-webdriverio assertion. That is, unless you have explicitly overriden the global `expect` to use Chai. In this case you would not have access to any of the expect-webdriverio assertions without explicitly importing the expect-webdriverio package where you need it.
+[Chai](https://www.chaijs.com/) and [expect-webdriverio](https://github.com/webdriverio/expect-webdriverio#readme) can coexist, and with some minor adjustments a smooth transition to expect-webdriverio can be achieved. If you've upgraded to wdio v6 then by default you will have access to all the assertions from expect-webdriverio out of the box. This means that globally wherever you use `expect` you would call an expect-webdriverio assertion. That is, unless you have explicitly overriden the global `expect` to use Chai. In this case you would not have access to any of the expect-webdriverio assertions without explicitly importing the expect-webdriverio package where you need it.
 
 This guide will show examples of how to migrate from Chai if it has been overridden locally and how to migrate from Chai if it has been overridden globally.
 
@@ -56,8 +55,8 @@ Assume Chai was imported explicitly in a file, e.g.:
 // myfile.js - original code
 const expectChai = require('chai').expect;
 
-describe('Homepage', function () {
-    it('should assert', function () {
+describe('Homepage', () => {
+    it('should assert', () => {
         browser.url('./');
         expectChai(browser.getUrl()).to.include('/login');
     });
@@ -68,8 +67,8 @@ To migrate this code remove the Chai import and use the new expect-webdriverio a
 
 ```js
 // myfile.js - migrated code
-describe('Homepage', function () {
-    it('should assert', function () {
+describe('Homepage', () => {
+    it('should assert', () => {
         browser.url('./');
         expect(browser).toHaveUrl('/login'); // new expect-webdriverio API method https://webdriver.io/docs/api/expect.html#tohaveurl
     });
@@ -83,15 +82,15 @@ If you wanted to use both Chai and expect-webdriverio in the same file you would
 const expectChai = require('chai').expect;
 
 describe('Element', function () {
-    it('should be displayed', function (element) {
-        const isDisplayed = browser.$(element).isDisplayed()
+    it('should be displayed', () => {
+        const isDisplayed = browser.$("#element").isDisplayed()
         expectChai(isDisplayed).to.equal(true); // Chai assertion
     });
 });
 
-describe('Other element', function () {
-    it('should not be displayed', function (element) {
-        expect(browser.$(element)).not.toBeDisplayed(); // expect-webdriverio assertion
+describe('Other element', () => {
+    it('should not be displayed', () => {
+        expect(browser.$("#element")).not.toBeDisplayed(); // expect-webdriverio assertion
     });
 });
 ```
@@ -102,7 +101,7 @@ Assume `expect` was globally overridden to use Chai. In order to use expect-webd
 
 ```js
 // wdio.conf.js
-before: function before() {
+before: () => {
     require('expect-webdriverio');
     global.wdioExpect = global.expect;
     const chai = require('chai');
@@ -114,16 +113,16 @@ Now Chai and expect-webdriverio can be used alongside each other. In your code y
 
 ```js
 // myfile.js
-describe('Element', function () {
-    it('should be displayed', function (element) {
-        const isDisplayed = browser.$(element).isDisplayed()
+describe('Element', () => {
+    it('should be displayed', () => {
+        const isDisplayed = browser.$("#element").isDisplayed()
         expect(isDisplayed).to.equal(true); // Chai assertion
     });
 });
 
-describe('Other element', function () {
-    it('should not be displayed', function (element) {
-        expectWdio(browser.$(element)).not.toBeDisplayed(); // expect-webdriverio assertion
+describe('Other element', () => {
+    it('should not be displayed', () => {
+        expectWdio(browser.$("#element")).not.toBeDisplayed(); // expect-webdriverio assertion
     });
 });
 ```
