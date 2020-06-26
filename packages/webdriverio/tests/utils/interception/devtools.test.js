@@ -109,6 +109,18 @@ test('abort request', async () => {
     )
 })
 
+test('stub request with a function', async () => {
+    const mock = new NetworkInterception('**/foobar/**')
+    mock.respond(() => 'foobar')
+    await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+        requestId: 123,
+        request: { url: 'http://test.com/foobar/test.html' },
+        responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
+    })
+
+    expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
+})
+
 test('stub request with an object', async () => {
     const mock = new NetworkInterception('**/foobar/**')
     mock.respond({ foo: 'bar' })

@@ -13,10 +13,16 @@ const puppeteerMock = {
     pages: jest.fn().mockReturnValue([pageMock])
 }
 
+jest.mock('../../../src/utils/interception/webdriver', () => class WebDriverInterceptionMock {
+    constructor () {
+        this.init = jest.fn()
+    }
+})
+
 describe('custom$', () => {
     let browser
 
-    beforeEach(async () => {
+    it('should enable the fetch domain if not already done', async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -25,9 +31,7 @@ describe('custom$', () => {
         })
 
         browser.network.puppeteer = puppeteerMock
-    })
 
-    it('should enable the fetch domain if not already done', async () => {
         expect(clientMock.send).toBeCalledTimes(0)
         await browser.network.mock('/foobar')
         expect(clientMock.send).toBeCalledWith('Fetch.enable', expect.any(Object))
@@ -35,5 +39,21 @@ describe('custom$', () => {
 
         await browser.network.mock('/foobar')
         expect(clientMock.send).toBeCalledTimes(1)
+    })
+
+    it('should mock using WebDriver capabilities', async () => {
+        browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'devtools',
+                'sauce:options': {
+                    extendedDebugging: true
+                }
+            }
+        })
+
+        browser.network.puppeteer = puppeteerMock
+        const mock = await browser.network.mock('/foobar')
+        expect(mock.init).toBeCalledWith(browser)
     })
 })
