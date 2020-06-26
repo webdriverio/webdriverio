@@ -81,7 +81,7 @@ If you wanted to use both Chai and expect-webdriverio in the same file you would
 // myfile.js
 const expectChai = require('chai').expect;
 
-describe('Element', function () {
+describe('Element', () => {
     it('should be displayed', () => {
         const isDisplayed = browser.$("#element").isDisplayed()
         expectChai(isDisplayed).to.equal(true); // Chai assertion
