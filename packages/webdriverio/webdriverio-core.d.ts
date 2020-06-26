@@ -435,6 +435,18 @@ declare namespace WebdriverIO {
         y: number
     }
 
+    type MockResponseParams = {
+        statusCode?: number,
+        headers?: object
+    }
+
+    type MockFilterOptions = {
+        method?: string,
+        headers?: object
+    }
+
+    type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
+
     interface Element {
         selector: string;
         elementId: string;
@@ -813,6 +825,68 @@ declare namespace WebdriverIO {
         ): Promise<boolean>;
     }
 
+    interface Network {
+        
+        /**
+         * Mock the response of a request. You can define a mock based on a matching
+         * glob and corresponding header and status code. Calling the mock method
+         * returns a stub object that you can use to modify the response of the
+         * web resource.
+         */
+        mock(
+            url: string,
+            filterOptions: MockFilterOptions
+        ): Promise<Mock>;
+
+        /**
+         * some description
+         */
+        throttle(): Promise<void>;
+    }
+
+    interface Mock {
+        
+        /**
+         * Abort the request with an error code.
+         */
+        abort(
+            errorCode: ErrorCode
+        ): Promise<void>;
+
+        /**
+         * Abort the request once with an error code.
+         */
+        abortOnce(
+            errorCode: ErrorCode
+        ): Promise<void>;
+
+        /**
+         * Resets all information stored in the `mock.calls` array.
+         */
+        clear(): Promise<void>;
+
+        /**
+         * Always respond with same overwrite.
+         */
+        respond(
+            overwrites: object | string,
+            params: MockResponseParams
+        ): Promise<void>;
+
+        /**
+         * Only respond once with given overwrite.
+         */
+        respondOnce(
+            overwrites: object | string,
+            params: MockResponseParams
+        ): Promise<void>;
+
+        /**
+         * Does everything that `mock.clear()` does, and also removes any mocked return values or implementations.
+         */
+        restore(): Promise<void>;
+    }
+
     interface ElementArray extends Array<Element> {
         selector: string | Function;
         parent: Element | WebdriverIO.BrowserObject;
@@ -829,6 +903,7 @@ declare namespace WebdriverIO {
     interface Browser extends WebDriver.BaseClient {
         config: Config;
         options: RemoteOptions;
+        network: Network;
 
         /**
          * add command to `browser` or `element` scope

@@ -429,6 +429,18 @@ declare namespace WebdriverIO {
         y: number
     }
 
+    type MockResponseParams = {
+        statusCode?: number,
+        headers?: object
+    }
+
+    type MockFilterOptions = {
+        method?: string,
+        headers?: object
+    }
+
+    type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
+
     interface Element {
         selector: string;
         elementId: string;
@@ -464,6 +476,14 @@ declare namespace WebdriverIO {
         // ... element commands ...
     }
 
+    interface Network {
+        // ... network commands ...
+    }
+
+    interface Mock {
+        // ... mock commands ...
+    }
+
     interface ElementArray extends Array<Element> {
         selector: string | Function;
         parent: Element | WebdriverIO.BrowserObject;
@@ -480,6 +500,7 @@ declare namespace WebdriverIO {
     interface Browser extends WebDriver.BaseClient {
         config: Config;
         options: RemoteOptions;
+        network: Network;
 
         /**
          * add command to `browser` or `element` scope

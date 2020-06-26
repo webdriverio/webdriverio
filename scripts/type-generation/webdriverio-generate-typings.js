@@ -8,12 +8,7 @@ const { buildCommand, getJsDoc } = require('./generate-typings-utils')
 const specifics = require('./specific-types.json')
 const { EDIT_WARNING } = require('../constants')
 
-const elementDir = path.resolve(__dirname + '../../../packages/webdriverio/src/commands/element')
-const elementCommands = fs.readdirSync(elementDir)
-
-const browserDir = path.resolve(__dirname + '../../../packages/webdriverio/src/commands/browser')
-const browserCommands = fs.readdirSync(browserDir)
-
+const TYPING_SCOPES = ['element', 'browser', 'network', 'mock']
 const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'call']
 const INDENTATION = ' '.repeat(8)
 
@@ -56,25 +51,21 @@ const gatherCommands = (commandPath, commandFile, promisify = false) => {
 }
 
 const generateTypes = (packageName, promisify, fileName = 'webdriverio-core.d.ts') => {
-    let bCommands = []
-    browserCommands.forEach((commandFile) => {
-        const commandPath = path.resolve(`${browserDir}/${commandFile}`)
-        bCommands.push(...gatherCommands(commandPath, commandFile, promisify))
-    })
-    const allBrowserCommands = bCommands.join('\n')
-
-    let eCommands = []
-    elementCommands.forEach((commandFile) => {
-        const commandPath = path.resolve(`${elementDir}/${commandFile}`)
-        eCommands.push(...gatherCommands(commandPath, commandFile, promisify))
-    })
-    const allElementCommands = eCommands.join('\n')
-
     const templatePath = path.resolve(__dirname + '../../templates/webdriverio.tpl.d.ts')
     const templateContents = fs.readFileSync(templatePath, 'utf8')
+    let typingsContents = EDIT_WARNING + templateContents
 
-    let typingsContents = EDIT_WARNING + templateContents.replace('// ... element commands ...', () => allElementCommands)
-    typingsContents = typingsContents.replace('// ... browser commands ...', () => allBrowserCommands)
+    for (const scope of TYPING_SCOPES) {
+        const scopeCommands = []
+        const scopePath = path.resolve(__dirname, '..', '..', 'packages', 'webdriverio', 'src', 'commands', scope)
+        const scopeCommandFiles = fs.readdirSync(scopePath)
+        scopeCommandFiles.forEach((commandFile) => {
+            const commandPath = path.resolve(`${scopePath}/${commandFile}`)
+            scopeCommands.push(...gatherCommands(commandPath, commandFile, promisify))
+        })
+
+        typingsContents = typingsContents.replace(`// ... ${scope} commands ...`, () => scopeCommands.join('\n'))
+    }
 
     const outputFile = path.join(__dirname, '..', '..', `packages/${packageName}`, fileName)
     fs.writeFileSync(outputFile, typingsContents, { encoding: 'utf-8' })
@@ -83,5 +74,5 @@ const generateTypes = (packageName, promisify, fileName = 'webdriverio-core.d.ts
     console.log(`Generated typings file at ${outputFile}`)
 }
 
-generateTypes('webdriverio', true) // to be used in v6
+generateTypes('webdriverio', true)
 generateTypes('wdio-sync', false)
