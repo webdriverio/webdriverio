@@ -110,7 +110,7 @@ before: function before() {
 }
 ```
 
-Now Chai and expect-webdriverio can be used alongside each other. Once all Chai assertions have been replaced thoughout the code base the "before" hook can be deleted. In your code you would use Chai and expect-webdriverio assertions as follows, e.g.:
+Now Chai and expect-webdriverio can be used alongside each other. In your code you would use Chai and expect-webdriverio assertions as follows, e.g.:
 
 ```js
 // myfile.js
@@ -127,3 +127,5 @@ describe('Other element', function () {
     });
 });
 ```
+
+To migrate you would slowly move each Chai assertion over to expect-webdriverio. Once all Chai assertions have been replaced thoughout the code base the "before" hook can be deleted. A global find and replace to replace all instances of `wdioExpect` to `expect` will then finish off the migration.
