@@ -350,6 +350,30 @@
       "api/expect": {
         "title": "Expect"
       },
+      "api/mock/abort": {
+        "title": "abort"
+      },
+      "api/mock/abortOnce": {
+        "title": "abortOnce"
+      },
+      "api/mock/clear": {
+        "title": "clear"
+      },
+      "api/mock/respond": {
+        "title": "respond"
+      },
+      "api/mock/respondOnce": {
+        "title": "respondOnce"
+      },
+      "api/mock/restore": {
+        "title": "restore"
+      },
+      "api/network/mock": {
+        "title": "mock"
+      },
+      "api/network/throttle": {
+        "title": "throttle"
+      },
       "assertion": {
         "title": "Assertion"
       },
@@ -488,6 +512,8 @@
       "Protocols": "Protocols",
       "browser": "browser",
       "element": "element",
+      "network": "network",
+      "mock": "mock",
       "Flowcharts": "Flowcharts"
     }
   },
