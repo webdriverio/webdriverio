@@ -203,14 +203,14 @@ test('throws error if navigation takes too long', async () => {
 test('should wait for page load to be complete before executing the command', async () => {
     executionContext.evaluate.mockReset()
     executionContext.evaluate = jest.fn()
-        .mockReturnValueOnce('1')
-        .mockReturnValueOnce('loading')
-        .mockReturnValueOnce('1')
-        .mockReturnValueOnce('loading')
-        .mockReturnValueOnce('1')
-        .mockReturnValueOnce('interactive')
-        .mockReturnValueOnce('1')
-        .mockReturnValueOnce('complete')
+        .mockResolvedValueOnce('1')
+        .mockResolvedValueOnce('loading')
+        .mockResolvedValueOnce('1')
+        .mockResolvedValueOnce('loading')
+        .mockResolvedValueOnce('1')
+        .mockResolvedValueOnce('interactive')
+        .mockResolvedValueOnce('1')
+        .mockResolvedValueOnce('complete')
 
     driver.commands.elementClick = (...args: any[]) => new Promise(
         (resolve) => setTimeout(() => resolve(...args), 100))
