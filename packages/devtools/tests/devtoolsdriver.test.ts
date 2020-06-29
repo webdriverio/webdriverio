@@ -236,8 +236,8 @@ test('should use page from target if we are currently in a frame', async () => {
 test('should rerun command if no execution context could be found', async () => {
     executionContext.evaluate.mockReset()
     executionContext.evaluate = jest.fn()
-        .mockReturnValueOnce(Promise.reject(new Error('ups')))
-        .mockReturnValueOnce(Promise.reject(new Error('ups')))
+        .mockImplementationOnce(() => Promise.reject(new Error('ups')))
+        .mockImplementationOnce(() => Promise.reject(new Error('ups')))
         .mockReturnValueOnce(Promise.resolve('1'))
         .mockReturnValueOnce(Promise.resolve('complete'))
 
