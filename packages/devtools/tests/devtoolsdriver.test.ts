@@ -236,10 +236,10 @@ test('should use page from target if we are currently in a frame', async () => {
 test('should rerun command if no execution context could be found', async () => {
     executionContext.evaluate.mockReset()
     executionContext.evaluate = jest.fn()
-        .mockImplementationOnce(() => Promise.reject(new Error('ups')))
-        .mockImplementationOnce(() => Promise.reject(new Error('ups')))
-        .mockReturnValueOnce(Promise.resolve('1'))
-        .mockReturnValueOnce(Promise.resolve('complete'))
+        .mockRejectedValueOnce(new Error('ups'))
+        .mockRejectedValueOnce(new Error('ups'))
+        .mockResolvedValueOnce('1')
+        .mockResolvedValueOnce('complete')
 
     driver.commands.elementClick = (...args: any[]) => new Promise(
         (resolve) => setTimeout(() => resolve(...args), 100))
