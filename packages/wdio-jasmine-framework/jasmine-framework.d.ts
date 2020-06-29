@@ -77,4 +77,14 @@ interface JasmineNodeOpts {
      * @default true
      */
     specFilter?: Function;
+    /**
+     * Optional pattern to selectively select it/describe cases to run from spec files.
+     * @default null
+     */
+    grep?: string | RegExp
+    /**
+     * Inverts 'grep' matches.
+     * @default null
+     */
+    invertGrep?: string | RegExp
 }

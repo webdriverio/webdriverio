@@ -42,7 +42,7 @@ exports.config = {
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
-    // If you run your tests on SauceLabs you can specify the region you want to run your tests
+    // If you run your tests on Sauce Labs you can specify the region you want to run your tests
     // in via the `region` property. Available short handles for regions are `us` (default) and `eu`.
     // These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud.
     // If you don't provide the region, it defaults to `us`.
@@ -376,13 +376,13 @@ exports.config = {
      */
     beforeFeature: function (uri, feature, scenarios) {
     },
-    beforeScenario: function (uri, feature, scenario, sourceLocation) {
+    beforeScenario: function (uri, feature, scenario, sourceLocation, context) {
     },
     beforeStep: function ({ uri, feature, step }, context) {
     },
     afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed }) {
     },
-    afterScenario: function (uri, feature, scenario, result, sourceLocation) {
+    afterScenario: function (uri, feature, scenario, result, sourceLocation, context) {
     },
     afterFeature: function (uri, feature, scenarios) {
     }

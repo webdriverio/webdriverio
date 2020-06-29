@@ -106,6 +106,7 @@ test('should throw when run fails', async () => {
     await adapter.init()
 
     const runtimeError = new Error('boom')
+    // eslint-disable-next-line
     Cucumber.Runtime = jest.fn().mockImplementationOnce(() => ({
         start: () => { throw runtimeError }
     }))
@@ -293,12 +294,14 @@ describe('addHooks', () => {
     })
 
     test('beforeScenario', () => {
-        beforeScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation' })
-        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeScenario, ['uri', 'feature', 'pickle', 'sourceLocation'])
+        const world = { pickle: 'pickle', sourceLocation: 'sourceLocation', foo: 'bar' }
+        beforeScenario(world)
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeScenario, ['uri', 'feature', 'pickle', 'sourceLocation', world])
     })
     test('afterScenario', () => {
-        afterScenario({ pickle: 'pickle', sourceLocation: 'sourceLocation', result: 'result' })
-        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterScenario, ['uri', 'feature', 'pickle', 'result', 'sourceLocation'])
+        const world = { pickle: 'pickle', sourceLocation: 'sourceLocation', result: 'result', foo: 'bar' }
+        afterScenario(world)
+        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterScenario, ['uri', 'feature', 'pickle', 'result', 'sourceLocation', world])
     })
     test('beforeFeature', () => {
         beforeFeature()

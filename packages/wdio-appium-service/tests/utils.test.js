@@ -151,10 +151,12 @@ describe('getFilePath', () => {
 
 describe('_getAppiumCommand', () => {
     test('should return path to dependency', () => {
-        expect(getAppiumCommand('fs-extra')).toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/fs-extra/lib/index.js'))
+        expect(getAppiumCommand('fs-extra'))
+            .toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/fs-extra/lib/index.js'))
     })
     test('should be appium by default', () => {
-        expect(() => getAppiumCommand()).toThrow("Cannot find module 'appium' from 'utils.js'")
+        expect(() => getAppiumCommand())
+            .toThrow("Cannot find module 'appium' from 'packages/wdio-appium-service/src/utils.js'")
     })
 })
 

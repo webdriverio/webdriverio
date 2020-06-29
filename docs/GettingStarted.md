@@ -7,7 +7,9 @@ Welcome to the WebdriverIO documentation. It will help you to get started fast. 
 
 > __Note:__ These are the docs for the latest version (>=6.x) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](versions.html)!
 
-The following short step-by-step introduction will help you get your first WebdriverIO script up and running.
+The following short step-by-step introduction will help you get your first WebdriverIO script up and running:
+
+<iframe width="660" height="440" src="https://www.youtube.com/embed/gaTPBkg4WEI" frameborder="0" allowfullscreen></iframe>
 
 ## Taking the first step
 
@@ -89,7 +91,6 @@ Open that file, and write the following code in it:
 describe('webdriver.io page', () => {
     it('should have the right title', () => {
         browser.url('https://webdriver.io')
-        const title = browser.getTitle()
         expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js');
     })
 })

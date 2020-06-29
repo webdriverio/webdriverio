@@ -6,7 +6,7 @@
  *
  */
 // eslint-disable-next-line import/no-unresolved
-const { remote } = require('webdriverio')
+const { remote } = require('../../packages/webdriverio')
 
 let browser;
 

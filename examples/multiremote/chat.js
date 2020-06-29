@@ -16,15 +16,26 @@ let matrix, browserA, browserB
 describe('multiremote example', () => {
     before(async () => {
         matrix = await multiremote({
-            browserA: { capabilities: { browserName: 'chrome' } },
-            browserB: { capabilities: { browserName: 'chrome' }, port: 4445 }
+            browserA: {
+                capabilities: {
+                    browserName: 'chrome',
+                    acceptInsecureCerts: true
+                }
+            },
+            browserB: {
+                capabilities: {
+                    browserName: 'chrome',
+                    acceptInsecureCerts: true
+                },
+                port: 4445
+            }
         })
         browserA = matrix.browserA
         browserB = matrix.browserB
     })
 
     it('should open chat application', async () => {
-        await matrix.url('https://socket-io-chat.now.sh/')
+        await matrix.url('https://socketio-chat-h9jt.herokuapp.com/')
     })
 
     it('should login the browser', async () => {

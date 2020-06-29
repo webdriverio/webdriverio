@@ -1,7 +1,7 @@
 WebdriverIO Sauce Service
 =========================
 
-> WebdriverIO service that provides a better integration into SauceLabs. This service can be used for:
+> WebdriverIO service that provides a better integration into Sauce Labs. This service can be used for:
 > - the Sauce Labs virtual machine cloud (desktop web and em/simulators) and can update the job metadata ('name', 'passed', 'tags', 'public', 'build', 'custom-data') and runs Sauce Connect if desired.
 > - the Sauce Labs Real Device cloud (iOS and Android) and can **ONLY** update the job status to passed / failed
 
@@ -84,12 +84,6 @@ Type: `Object`<br>
 Default: `{ noAutodetect: true }`
 
 *(only for vm and or em/simulators)*
-
-### scRelay
-Use Sauce Connect as a Selenium Relay. See more [here](https://wiki.saucelabs.com/display/DOCS/Using+the+Selenium+Relay+with+Sauce+Connect+Proxy).
-
-Type: `Boolean`<br>
-Default: `false`
 
 ### setJobNameInBeforeSuite
 If true it updates the job name at the Sauce Labs job in the beforeSuite Hook. Attention: this comes at the cost of an additional call to Sauce Labs. The advantage of using this flag is the direct visibility of the job name in sauce labs also during the run time. This is especially useful for long running tests.

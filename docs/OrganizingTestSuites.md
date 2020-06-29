@@ -174,6 +174,17 @@ grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
 
 _**Note:** This will_ not _override the `--spec` flag for running a single spec._
 
+## Running Specific Tests with MochaOpts
+
+You can also filter which specific `suite|describe` and/or `it|test` you want to run by passing a mocha specific argument: `--mochaOpts.grep` to the wdio CLI.
+
+```sh
+wdio wdio.conf.js --mochaOpts.grep myText
+wdio wdio.conf.js --mochaOpts.grep "Text with spaces"
+```
+
+_**Note:** Mocha will filter the tests after the WDIO test runner creates the instances, so you might see several instances being spawned but not actually executed._
+
 ## Stop testing after failure
 
 With the `bail` option, you can tell WebdriverIO to stop testing after any test fails. 

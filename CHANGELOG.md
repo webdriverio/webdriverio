@@ -17,6 +17,166 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.22 (2020-06-25)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#5536](https://github.com/webdriverio/webdriverio/pull/5536) DevTools Service: Accept 'chromium' as the browserName  ([@pjcalvo](https://github.com/pjcalvo))
+
+#### :nail_care: Polish
+* `devtools`
+  * [#5528](https://github.com/webdriverio/webdriverio/pull/5528) Check for nightly channel to handle devtools ([@mathew-jithin](https://github.com/mathew-jithin))
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#5483](https://github.com/webdriverio/webdriverio/pull/5483) Add context to before/after scenario hooks issue 5394 ([@osmolyar](https://github.com/osmolyar))
+
+#### Committers: 3
+- Jithin Mathew ([@mathew-jithin](https://github.com/mathew-jithin))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+- Pablillo Calvo ([@pjcalvo](https://github.com/pjcalvo))
+
+
+## v6.1.21 (2020-06-24)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#5539](https://github.com/webdriverio/webdriverio/pull/5539) Closes [#5535](https://github.com/webdriverio/webdriverio/issues/5535) ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+#### :memo: Documentation
+* [#5525](https://github.com/webdriverio/webdriverio/pull/5525) Update BoilerplateProjects.md ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+* [#5515](https://github.com/webdriverio/webdriverio/pull/5515) Update Debugging and TypeScript documentation ([@pako88](https://github.com/pako88))
+
+#### :house: Internal
+* [#5527](https://github.com/webdriverio/webdriverio/pull/5527) Issue# 5521 - unskipped mocha test re-ran it several times ([@sethuster](https://github.com/sethuster))
+
+#### Committers: 5
+- Arjun ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+- Pascal König ([@pako88](https://github.com/pako88))
+- Seth Urban ([@sethuster](https://github.com/sethuster))
+- Srinivasan Sekar ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.1.18 (2020-06-15)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#5485](https://github.com/webdriverio/webdriverio/pull/5485) Fix DocString support in cucumber framework ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#5487](https://github.com/webdriverio/webdriverio/pull/5487) Update GettingStarted.md; remove unneeded line of code ([@klamping](https://github.com/klamping))
+
+#### Committers: 3
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.1.17 (2020-06-08)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#5448](https://github.com/webdriverio/webdriverio/pull/5448) Fix data table variable values in Cucumber scenario outlines ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#5462](https://github.com/webdriverio/webdriverio/pull/5462) Allow to have 0 x and y values for dragAndDrop ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#5463](https://github.com/webdriverio/webdriverio/pull/5463) Fix depcrecated usage of rejectUnauthorized ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#5464](https://github.com/webdriverio/webdriverio/pull/5464) Don't think XPath selector is a base64 screenshot ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v6.1.16 (2020-06-02)
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#5442](https://github.com/webdriverio/webdriverio/pull/5442) Add support for Android viewtag selector ([@ricmatsui](https://github.com/ricmatsui))
+
+#### Committers: 2
+- Ricardo Matsui ([@ricmatsui](https://github.com/ricmatsui))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.1.15 (2020-05-28)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#5443](https://github.com/webdriverio/webdriverio/pull/5443) Couldn't find plugin "" runner ([@erwinheitzman](https://github.com/erwinheitzman))
+* `wdio-browserstack-service`
+  * [#5440](https://github.com/webdriverio/webdriverio/pull/5440) adding missing await for printSessionURL for onReload in browserstack service ([@mathew-jithin](https://github.com/mathew-jithin))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Jithin Mathew ([@mathew-jithin](https://github.com/mathew-jithin))
+
+
+## v6.1.14 (2020-05-27)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-reporter`
+  * [#5435](https://github.com/webdriverio/webdriverio/pull/5435) Improve Mocha timeout message ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-appium-service`, `wdio-cli`, `wdio-crossbrowsertesting-service`, `wdio-firefox-profile-service`, `wdio-static-server-service`, `wdio-sync`, `wdio-testingbot-service`, `webdriverio`
+  * [#5437](https://github.com/webdriverio/webdriverio/pull/5437) Add typing definition for last missing service options ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#5431](https://github.com/webdriverio/webdriverio/pull/5431) Promote that WebdriverIO supports modern web frameworks ([@christian-bromann](https://github.com/christian-bromann))
+  * [#5432](https://github.com/webdriverio/webdriverio/pull/5432) Added Cucumber-Appium Boilerplate ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+
+#### Committers: 3
+- Arjun ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.1.13 (2020-05-23)
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#5417](https://github.com/webdriverio/webdriverio/pull/5417) Update Sauce Labs package and remove sauce-connect-launcher ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cucumber-framework`
+  * [#5422](https://github.com/webdriverio/webdriverio/pull/5422) update cucumber version in readme ([@tejasv02](https://github.com/tejasv02))
+* Other
+  * [#5421](https://github.com/webdriverio/webdriverio/pull/5421) Added subrountine shapes where applicable ([@jdavis61](https://github.com/jdavis61))
+  * [#5420](https://github.com/webdriverio/webdriverio/pull/5420) add new boilerplate project ([@pako88](https://github.com/pako88))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- James Davis ([@jdavis61](https://github.com/jdavis61))
+- Pascal König ([@pako88](https://github.com/pako88))
+- Tejasvi Manmatha ([@tejasv02](https://github.com/tejasv02))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.1.12 (2020-05-17)
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#5390](https://github.com/webdriverio/webdriverio/pull/5390) Fix browser version in spec reporter ([@unickq](https://github.com/unickq))
+
+#### :memo: Documentation
+* Other
+  * [#5403](https://github.com/webdriverio/webdriverio/pull/5403) Docs: Update TypeScript.md ([@osmolyar](https://github.com/osmolyar))
+  * [#5402](https://github.com/webdriverio/webdriverio/pull/5402) Fix class syntax in CustomServices.md ([@pmdartus](https://github.com/pmdartus))
+  * [#5397](https://github.com/webdriverio/webdriverio/pull/5397) Update typescript configuration for jasmine ([@woolter](https://github.com/woolter))
+  * [#5393](https://github.com/webdriverio/webdriverio/pull/5393) Adding boilerplate Project for wdio-V6 perfecto ([@tamil777selvan](https://github.com/tamil777selvan))
+* `wdio-allure-reporter`
+  * [#5391](https://github.com/webdriverio/webdriverio/pull/5391) Update README.md of wdio-allure-reporter ([@goatsy](https://github.com/goatsy))
+
+#### Committers: 7
+- Nick ([@unickq](https://github.com/unickq))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+- Pierre-Marie Dartus ([@pmdartus](https://github.com/pmdartus))
+- Tamil Selvan ([@tamil777selvan](https://github.com/tamil777selvan))
+- Walter Hector Lijo ([@woolter](https://github.com/woolter))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@goatsy](https://github.com/goatsy)
+
+
 ## v6.1.11 (2020-05-11)
 
 #### :eyeglasses: Spec Compliancy

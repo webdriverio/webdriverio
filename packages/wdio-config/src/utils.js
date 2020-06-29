@@ -112,7 +112,7 @@ export function detectBackend (options = {}, isRDC = false) {
     ) {
         throw new Error(
             'A "user" or "key" was provided but could not be connected to a ' +
-            'known cloud service (SauceLabs, Browerstack or Testingbot). ' +
+            'known cloud service (Sauce Labs, Browerstack or Testingbot). ' +
             'Please check if given user and key properties are correct!'
         )
     }

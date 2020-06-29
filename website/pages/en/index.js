@@ -184,6 +184,32 @@ const AutomationProtocolSupport = () => (
     </Block>
 )
 
+const ReactSupport = () => (
+    <Block id="reactSupport">
+        {[
+            {
+                content: '' +
+                    'WebdriverIO allows you to automate any application written with modern web frameworks ' +
+                    'such as [React](https://reactjs.org/), [Angular](https://angular.io/), [Polymer](https://www.polymer-project.org/) ' +
+                    'or [Vue.js](https://vuejs.org/) as well as native mobile applications for Android and iOS.<br><br>' +
+                    'It comes with smart selector strategies that can, e.g. using the [`react$`](/docs/api/element/react$.html) ' +
+                    'command, fetch React components by its component name and filter it by its props or states. A similar command called ' +
+                    '[`$shadow`](/docs/api/element/shadow$.html) provides the ability to fetch elements within the shadow ' +
+                    '[shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM) of a web component.<br>' +
+                    '<br>' +
+                    '<p>Native Support for:<p>' +
+                    '<a href="https://reactjs.org/"><img class="frameworkLogos" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ii0xMS41IC0xMC4yMzE3NCAyMyAyMC40NjM0OCI+CiAgPHRpdGxlPlJlYWN0IExvZ288L3RpdGxlPgogIDxjaXJjbGUgY3g9IjAiIGN5PSIwIiByPSIyLjA1IiBmaWxsPSIjNjFkYWZiIi8+CiAgPGcgc3Ryb2tlPSIjNjFkYWZiIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiPgogICAgPGVsbGlwc2Ugcng9IjExIiByeT0iNC4yIi8+CiAgICA8ZWxsaXBzZSByeD0iMTEiIHJ5PSI0LjIiIHRyYW5zZm9ybT0icm90YXRlKDYwKSIvPgogICAgPGVsbGlwc2Ugcng9IjExIiByeT0iNC4yIiB0cmFuc2Zvcm09InJvdGF0ZSgxMjApIi8+CiAgPC9nPgo8L3N2Zz4K" alt=""></a>' +
+                    '<a href="https://vuejs.org/"><img class="frameworkLogos" src="/img/icons/vue.png" alt="Vue.js"></a>' +
+                    '<a href="https://angular.io/"><img class="frameworkLogos" src="/img/icons/angular.svg" alt="Angular"></a>' +
+                    '<a href="https://www.polymer-project.org/"><img class="frameworkLogos" src="/img/icons/polymer.svg" alt="Polymer"></a>',
+                image: imgUrl('react-support.png'),
+                imageAlign: 'right',
+                title: 'Support for Modern Web and Mobile Frameworks',
+            },
+        ]}
+    </Block>
+)
+
 const Talks = () => (
     <Container background="light" padding={['bottom', 'top']}>
         <a className="anchor" name="watch" />
@@ -244,7 +270,7 @@ Talks.propTypes = {
 }
 
 const ApplitoolsSupport = () => (
-    <Container padding={['bottom', 'top']} id="applitools">
+    <Container background="light" padding={['bottom', 'top']} id="applitools">
         <div className="blockElement imageAlignSide imageAlignRight twoByGridBlock">
             <div className="blockContent">
                 <h2>
@@ -427,8 +453,9 @@ class Index extends React.Component {
                     </Container>
                     <CompanyUsage />
                     <Talks />
-                    <AutomationProtocolSupport />
+                    <ReactSupport />
                     <TestSetup />
+                    <AutomationProtocolSupport />
                     <ApplitoolsSupport />
                 </div>
             </div>

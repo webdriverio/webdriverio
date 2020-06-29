@@ -32,7 +32,7 @@ const changelog = new Changelog(config)
  * update local tags
  */
 shell.exec('git fetch --tags --force')
-const latestRelease = shell.exec('git describe --tags `git rev-list --tags --max-count=1`').stdout.trim()
+const latestRelease = shell.exec('git describe --abbrev=0 --tags').stdout.trim()
 const BANNER = `
 #######################
 ###                 ###

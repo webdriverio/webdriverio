@@ -56,6 +56,34 @@ export.config = {
 };
 ```
 
+### Custom Configurations
+
+By default the service starts on `localhost:4444` and ensures that all capabilities are able to connect to it. If you prefer to run on a different port please specify `port` as an option in your capabilities, e.g.:
+
+```js
+// wdio.conf.js
+export.config = {
+    // ...
+    services: [
+        ['selenium-standalone', {
+            logPath: './temp',
+            args: {
+                version: "3.141.59",
+                seleniumArgs: ['-host', '127.0.0.1','-port', '5555']
+            },
+        }]
+    ],
+    capabilities: [{
+        browserName: 'chrome',
+        port: 5555
+    }, {
+        browserName: 'firefox',
+        port: 5555
+    }]
+    // ...
+}
+```
+
 ## Options
 
 The following options can be added to the wdio.conf.js file.

@@ -19,7 +19,7 @@
     it('should wait until text has changed', () => {
         const elem = $('#someText')
         elem.waitUntil(function () {
-            return this.getText() === 'I am now different',
+            return this.getText() === 'I am now different'
         }, {
             timeout: 5000,
             timeoutMsg: 'expected text to be different after 5s'

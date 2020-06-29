@@ -46,7 +46,7 @@ exports.config = {
     user: process.env.<%= answers.env_user %>,
     key: process.env.<%= answers.env_key %>,
     //
-    // If you run your tests on SauceLabs you can specify the region you want to run your tests
+    // If you run your tests on Sauce Labs you can specify the region you want to run your tests
     // in via the `region` property. Available short handles for regions are `us` (default) and `eu`.
     // These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud.
     // If you don't provide the region it will default for the `us`
@@ -155,14 +155,6 @@ exports.config = {
     %>services: [<%- answers.services.map(service => `'${service}'`) %>],
     <% } else {
     %>// services: [],
-    //<% }
-
-    if (answers.services.includes('appium')) {%>
-    // Appium Service config
-    // see details: https://webdriver.io/docs/appium-service.html
-    appium: {
-        <%- answers.packagesToInstall.includes('appium') ? '// ' : '' %>command: 'appium',
-    },
     //<% } %>
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
@@ -178,21 +170,35 @@ exports.config = {
     // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
     // specFileRetriesDeferred: false,
     //
-    <%- include('reporters', { reporters: answers.reporters }) %> <%
-    if(answers.framework === 'mocha') { %>
+    <%- include('reporters', { reporters: answers.reporters }) %>
+    <% if(answers.framework === 'mocha') { %>
     //
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
-        ui: 'bdd',
+        <% if(answers.isUsingTypeScript) {
+        %>// TypeScript setup
+        require: ['ts-node/register'],
+        <% } else if(answers.isUsingBabel) {
+        %>// Babel setup
+        require: ['@babel/register'],
+        <% }
+        %>ui: 'bdd',
         timeout: 60000
-    },<% }
+    },<%
+    }
     if(answers.framework === 'jasmine') { %>
     //
     // Options to be passed to Jasmine.
     jasmineNodeOpts: {
-        //
-        // Jasmine default timeout
+        <% if(answers.isUsingTypeScript) {
+        %>// TypeScript setup
+        requires: ['ts-node/register'],
+        <% } else if(answers.isUsingBabel) {
+        %>// Babel setup
+        helpers: [require.resolve('@babel/register')],
+        <% }
+        %>// Jasmine default timeout
         defaultTimeoutInterval: 60000,
         //
         // The Jasmine framework allows interception of each assertion in order to log the state of the application
@@ -206,19 +212,39 @@ exports.config = {
     if(answers.framework === 'cucumber') { %>//
     // If you are using Cucumber you need to specify the location of your step definitions.
     cucumberOpts: {
-        require: ['<%= answers.stepDefinitions %>'],        // <string[]> (file/dir) require files before executing features
-        backtrace: false,   // <boolean> show full backtrace for errors
-        requireModule: [],  // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        dryRun: false,      // <boolean> invoke formatters without executing steps
-        failFast: false,    // <boolean> abort the run on first failure
-        format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
-        snippets: true,     // <boolean> hide step definition snippets for pending steps
-        source: true,       // <boolean> hide source uris
-        profile: [],        // <string[]> (name) specify the profile to use
-        strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tagExpression: '',  // <string> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 60000,     // <number> timeout for step definitions
-        ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
+        // <string[]> (file/dir) require files before executing features
+        require: ['<%= answers.stepDefinitions %>'],
+        // <boolean> show full backtrace for errors
+        backtrace: false,
+        // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
+        <% if(answers.isUsingTypeScript) {
+        %>requireModule: [
+            () => { require('ts-node').register({ files: true }) },
+        ],
+        <% } else if(answers.isUsingBabel) {
+        %>requireModule: ['@babel/register'],
+        <% } else {
+        %>requireModule: [],
+        <% } %>// <boolean> invoke formatters without executing steps
+        dryRun: false,
+        // <boolean> abort the run on first failure
+        failFast: false,
+        // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
+        format: ['pretty'],
+        // <boolean> hide step definition snippets for pending steps
+        snippets: true,
+        // <boolean> hide source uris
+        source: true,
+        // <string[]> (name) specify the profile to use
+        profile: [],
+        // <boolean> fail if there are any undefined or pending steps
+        strict: false,
+        // <string> (expression) only execute the features or scenarios with tags matching the expression
+        tagExpression: '',
+        // <number> timeout for step definitions
+        timeout: 60000,
+        // <boolean> Enable this config to treat undefined definitions as warnings.
+        ignoreUndefinedDefinitions: false
     },
     <% } %>
     //
@@ -311,7 +337,7 @@ exports.config = {
     /**
      * Runs before a Cucumber scenario
      */
-    // beforeScenario: function (uri, feature, scenario, sourceLocation) {
+    // beforeScenario: function (uri, feature, scenario, sourceLocation,c ontext) {
     // },
     /**
      * Runs before a Cucumber step
@@ -326,7 +352,7 @@ exports.config = {
     /**
      * Runs after a Cucumber scenario
      */
-    // afterScenario: function (uri, feature, scenario, result, sourceLocation) {
+    // afterScenario: function (uri, feature, scenario, result, sourceLocation, context) {
     // },
     /**
      * Runs after a Cucumber feature

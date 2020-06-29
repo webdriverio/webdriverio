@@ -93,7 +93,7 @@ You can even use a typed configuration if you desire.
 All you have to do is create a plain JS config file that registers TypeScript and requires the typed config:
 
 ```javascript
-require('ts-node/register')
+require('ts-node').register({ files: true })
 module.exports = require('./wdio.conf')
 ```
 
@@ -106,6 +106,8 @@ const config: WebdriverIO.Config = {
 
 export { config }
 ```
+
+If you are using this approach for a typed configuration, you have to remove the line with 'ts-node/register' from your framework options in your config file.
 
 ## Framework types
 

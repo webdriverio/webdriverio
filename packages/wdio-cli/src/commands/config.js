@@ -1,8 +1,12 @@
+import util from 'util'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
-import { CONFIG_HELPER_INTRO, QUESTIONNAIRE, CLI_EPILOGUE } from '../constants'
-import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile } from '../utils'
+import {
+    CONFIG_HELPER_INTRO, QUESTIONNAIRE, CLI_EPILOGUE, COMPILER_OPTIONS,
+    TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES
+} from '../constants'
+import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, hasFile } from '../utils'
 
 export const command = 'config'
 export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'
@@ -11,7 +15,7 @@ export const cmdArgs = {
     yarn: {
         type: 'boolean',
         desc: 'Install packages via yarn package manager.',
-        default: false
+        default: hasFile('yarn.lock')
     },
     yes: {
         alias: 'y',
@@ -44,13 +48,14 @@ export const runConfig = async function (useYarn, yes, exit) {
     })
 
     const packagesToInstall = [
-        answers.runner.package,
+        (answers.runner && answers.runner.package) || '@wdio/local-runner',
         answers.framework.package,
         ...answers.reporters.map(reporter => reporter.package),
         ...answers.services.map(service => service.package)
     ]
 
-    if (answers.executionMode === 'sync') {
+    const syncExection = answers.executionMode === 'sync'
+    if (syncExection) {
         packagesToInstall.push('@wdio/sync')
     }
 
@@ -67,20 +72,42 @@ export const runConfig = async function (useYarn, yes, exit) {
     }
 
     console.log('\nPackages installed successfully, creating configuration file...')
+    const defaultRunner = SUPPORTED_PACKAGES.runner[0].name
     const parsedAnswers = {
         ...answers,
-        runner: answers.runner.short,
+        runner: (answers.runner && answers.runner.short) || defaultRunner,
         framework: answers.framework.short,
         reporters: answers.reporters.map(({ short }) => short),
         services: answers.services.map(({ short }) => short),
         packagesToInstall,
+        isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
+        isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel
     }
 
     try {
         await renderConfigurationFile(parsedAnswers)
     } catch (e) {
-        console.error(`Couldn't write config file: ${e.message}`)
+        console.error(`Couldn't write config file: ${e.stack}`)
         return !process.env.JEST_WORKER_ID && process.exit(1)
+    }
+
+    /**
+     * print TypeScript configuration message
+     */
+    if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
+        const wdioTypes = syncExection ? '@wdio/sync' : 'webdriverio'
+        const tsPkgs = `"${[
+            wdioTypes,
+            answers.framework.package,
+            ...answers.services
+                .map(service => service.package)
+                /**
+                 * given that we know that all "offical" services have
+                 * typescript support we only include them
+                 */
+                .filter(service => service.startsWith('@wdio'))
+        ].join('", "')}"`
+        console.log(util.format(TS_COMPILER_INSTRUCTIONS, tsPkgs))
     }
 
     /**

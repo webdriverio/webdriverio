@@ -1,19 +1,19 @@
-import { promisify } from 'util'
 import { performance, PerformanceObserver } from 'perf_hooks'
 
 import logger from '@wdio/logger'
-import SauceConnectLauncher from 'sauce-connect-launcher-update'
+import SauceLabs from 'saucelabs'
 
-function modifyObject (root, propertiesObject) {
-    for (const [k, v] of Object.entries(propertiesObject)) {
-        root[k] = v
-    }
-}
+const SC_RELAY_DEPCRECATION_WARNING = [
+    'The "scRelay" option is depcrecated and will be removed',
+    'with the upcoming versions of @wdio/sauce-service. Please',
+    'remove the option as tests should work identically without it.'
+].join(' ')
 
 const log = logger('@wdio/sauce-service')
 export default class SauceLauncher {
-    constructor (options) {
+    constructor (options, capabilities, config) {
         this.options = options
+        this.api = new SauceLabs(config)
     }
 
     /**
@@ -34,20 +34,20 @@ export default class SauceLauncher {
 
         this.sauceConnectOpts = {
             noAutodetect: true,
-            username: config.user,
-            accessKey: config.key,
-            logger: log.debug,
             tunnelIdentifier: sauceConnectTunnelIdentifier,
-            ...(config.region === 'eu' ? { '-x': 'https://eu-central-1.saucelabs.com/rest/v1' } : {}),
             ...sauceConnectOpts
         }
 
         let endpointConfigurations = {}
         if (this.options.scRelay) {
+            log.warn(SC_RELAY_DEPCRECATION_WARNING)
+
+            const scRelayPort = this.sauceConnectOpts.port || 4445
+            this.sauceConnectOpts.sePort = scRelayPort
             endpointConfigurations = {
                 protocol: 'http',
                 hostname: 'localhost',
-                port: this.sauceConnectOpts.port || 4445
+                port: scRelayPort
             }
         }
 
@@ -57,7 +57,7 @@ export default class SauceLauncher {
                     capability['sauce:options'] = {}
                 }
 
-                modifyObject(capability, endpointConfigurations)
+                Object.assign(capability, endpointConfigurations)
                 capability['sauce:options'].tunnelIdentifier = (
                     capability.tunnelIdentifier ||
                     capability['sauce:options'].tunnelIdentifier ||
@@ -70,7 +70,7 @@ export default class SauceLauncher {
                 if (!capabilities[browserName].capabilities['sauce:options']) {
                     capabilities[browserName].capabilities['sauce:options'] = {}
                 }
-                modifyObject(capabilities[browserName].capabilities, endpointConfigurations)
+                Object.assign(capabilities[browserName].capabilities, endpointConfigurations)
                 capabilities[browserName].capabilities['sauce:options'].tunnelIdentifier = (
                     capabilities[browserName].capabilities.tunnelIdentifier ||
                     capabilities[browserName].capabilities['sauce:options'].tunnelIdentifier ||
@@ -90,7 +90,7 @@ export default class SauceLauncher {
         obs.observe({ entryTypes: ['measure'], buffered: false })
 
         performance.mark('sauceConnectStart')
-        this.sauceConnectProcess = await promisify(SauceConnectLauncher)(this.sauceConnectOpts)
+        this.sauceConnectProcess = await this.api.startSauceConnect(this.sauceConnectOpts)
         performance.mark('sauceConnectEnd')
         performance.measure('bootTime', 'sauceConnectStart', 'sauceConnectEnd')
     }
@@ -103,6 +103,6 @@ export default class SauceLauncher {
             return
         }
 
-        return new Promise(resolve => this.sauceConnectProcess.close(resolve))
+        return this.sauceConnectProcess.close()
     }
 }
