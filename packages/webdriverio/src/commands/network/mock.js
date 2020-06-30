@@ -82,14 +82,14 @@ import { getBrowserObject } from '../../utils'
 const SESSION_MOCKS = new Set()
 
 export default async function mock (url, filterOptions) {
-    const [page] = await this.puppeteer.pages()
-    const client = await page.target().createCDPSession()
     const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
 
     /**
      * enable network Mocking if not already
      */
     if (SESSION_MOCKS.size === 0 && !this.isSauce) {
+        const [page] = await this.puppeteer.pages()
+        const client = await page.target().createCDPSession()
         await client.send('Fetch.enable', {
             patterns: [{ requestStage: 'Response' }]
         })
