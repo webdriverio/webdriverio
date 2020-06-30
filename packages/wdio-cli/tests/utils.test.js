@@ -1,6 +1,8 @@
 import fs from 'fs'
 import ejs from 'ejs'
 import childProcess from 'child_process'
+// import { SevereServerError } from 'webdriverio'
+
 
 import {
     runLauncherHook,
