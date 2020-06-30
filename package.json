@@ -35,6 +35,7 @@
     "test:eslint": "eslint --cache packages examples scripts tests",
     "test:typings": "npm run generate:typings && node tests/typings/copy && npm run ts && npm run clean:tests",
     "test:coverage": "node --max-old-space-size=8192 ./node_modules/.bin/jest --coverage --logHeapUsage",
+    "jest": "node --max-old-space-size=8192 ./node_modules/.bin/jest",
     "test:smoke": "babel-node ./tests/smoke.runner.js",
     "test:e2e": "jest --config e2e/jest.config.js",
     "ts": "run-p ts:*",
@@ -108,7 +109,6 @@
   "husky": {
     "hooks": {
       "pre-commit": "git diff-index --name-only --diff-filter=d HEAD | grep -E \"(.*)\\.js$\" | xargs node_modules/eslint/bin/eslint.js -c .eslintrc.js",
-      "pre-push": "npm run test:eslint"
     }
   },
   "jest": {
@@ -126,7 +126,7 @@
       "graceful-fs": "<rootDir>/tests/helpers/fs.js"
     },
     "coverageDirectory": "./coverage/",
-    "collectCoverage": true,
+    "collectCoverage": false,
     "coverageThreshold": {
       "global": {
         "branches": 96,

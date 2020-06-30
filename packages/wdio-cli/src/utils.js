@@ -24,7 +24,7 @@ export async function runServiceHook(launcher, hookName, ...args) {
         } catch (e) {
             const message = `A service failed in the '${hookName}' hook\n${e.stack}\n\n`
 
-            if (e instanceof wdio.SevereServiceError) {
+            if (e instanceof SevereServiceError) {
                 return { status: 'rejected', reason: message }
             }
 
