@@ -191,10 +191,14 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
-        this.allure.startStep(`${command.method} ${command.endpoint}`)
+        this.allure.startStep(command.method
+            ? `${command.method} ${command.endpoint}`
+            : command.command
+        )
 
-        if (!isEmpty(command.body)) {
-            this.dumpJSON('Request', command.body)
+        const payload = command.body || command.params
+        if (!isEmpty(payload)) {
+            this.dumpJSON('Request', payload)
         }
     }
 
@@ -415,7 +419,12 @@ class AllureReporter extends WDIOReporter {
 
     isScreenshotCommand(command) {
         const isScrenshotEndpoint = /\/session\/[^/]*\/screenshot/
-        return isScrenshotEndpoint.test(command.endpoint)
+        return (
+            // WebDriver protocol
+            isScrenshotEndpoint.test(command.endpoint) ||
+            // DevTools protocol
+            command.command === 'takeScreenshot'
+        )
     }
 
     dumpJSON(name, json) {
