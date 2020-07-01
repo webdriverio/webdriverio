@@ -1,7 +1,7 @@
 import fs from 'fs'
 import ejs from 'ejs'
 import childProcess from 'child_process'
-// import { SevereServerError } from 'webdriverio'
+import { SevereServiceError } from 'webdriverio'
 
 import {
     runLauncherHook,
@@ -41,17 +41,68 @@ beforeEach(() => {
     global.console.log = jest.fn()
 })
 
-test('runServiceHook', () => {
+describe('runServiceHook', () => {
     const hookSuccess = jest.fn()
-    const hookFailing = jest.fn().mockImplementation(() => { throw new Error('buhh') })
-    runServiceHook([
-        { onPrepare: hookSuccess },
-        { onPrepare: 'foobar' },
-        { onPrepare: hookFailing },
-        { onComplete: hookSuccess }
-    ], 'onPrepare', 1, true, 'abc')
-    expect(hookSuccess).toBeCalledTimes(1)
-    expect(hookFailing).toBeCalledTimes(1)
+    const slowSetupFn = jest.fn()
+    const asyncHookSuccess = jest.fn().mockImplementation(() => new Promise(resolve => {
+        setTimeout(() => {
+            slowSetupFn()
+            resolve()
+        }, 20)
+    }))
+
+    beforeEach(() => {
+        hookSuccess.mockClear()
+        slowSetupFn.mockClear()
+        asyncHookSuccess.mockClear()
+    })
+
+    test('run sync and async hooks successfully', async () => {
+        await runServiceHook([
+            { onPrepare: hookSuccess },
+            { onPrepare: asyncHookSuccess },
+            { onPrepare: 'foobar' },
+        ], 'onPrepare', 1, true, 'abc')
+        expect(hookSuccess).toBeCalledTimes(1)
+        expect(asyncHookSuccess).toBeCalledTimes(1)
+        expect(slowSetupFn).toBeCalledTimes(1)
+    })
+
+    it('executes all hooks and continues after a hook throws error', async () => {
+        const hookFailing = jest.fn().mockImplementation(() => { throw new Error('buhh') })
+
+        await runServiceHook([
+            { onPrepare: hookSuccess },
+            { onPrepare: 'foobar' },
+            { onPrepare: asyncHookSuccess },
+            { onPrepare: hookFailing },
+        ], 'onPrepare', 1, true, 'abc')
+
+        expect(hookSuccess).toBeCalledTimes(1)
+        expect(hookFailing).toBeCalledTimes(1)
+        expect(slowSetupFn).toBeCalledTimes(1)
+        expect(asyncHookSuccess).toBeCalledTimes(1)
+    })
+
+    it('executes all hooks and stops after a hook throws SevereServiceError', async () => {
+        const hookFailing = jest.fn().mockImplementation(() => { throw new SevereServiceError() })
+
+        try {
+            await runServiceHook([
+                { onPrepare: hookSuccess },
+                { onPrepare: 'foobar' },
+                { onPrepare: asyncHookSuccess },
+                { onPrepare: hookFailing },
+            ], 'onPrepare', 1, true, 'abc')
+        } catch(err) {
+            expect(err).toEqual(expect.stringContaining('SevereServiceError'))
+            expect(err).toEqual(expect.stringContaining('Stopping runner...'))
+            expect(hookSuccess).toBeCalledTimes(1)
+            expect(hookFailing).toBeCalledTimes(1)
+            expect(slowSetupFn).toBeCalledTimes(1)
+            expect(asyncHookSuccess).toBeCalledTimes(1)
+        }
+    })
 })
 
 test('runLauncherHook handles array of functions', () => {
