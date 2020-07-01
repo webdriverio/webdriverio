@@ -65,7 +65,9 @@ Array [
           "some value",
         ],
       },
-      "result": null,
+      "result": Object {
+        "value": null,
+      },
       "retries": 1,
     },
   ],
@@ -100,11 +102,13 @@ Array [
         ],
       },
       "result": Object {
-        "elementId": "123",
-        "text": "some text",
-        "value": Array [
-          "some value",
-        ],
+        "value": Object {
+          "elementId": "123",
+          "text": "some text",
+          "value": Array [
+            "some value",
+          ],
+        },
       },
       "retries": 0,
     },

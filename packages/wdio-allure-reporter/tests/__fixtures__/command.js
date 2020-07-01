@@ -7,6 +7,14 @@ const command = () => ({
     sessionId: '4d1707ae-820f-1645-8485-5a820b2a40da',
     capabilities: {}
 })
+const devtoolsCommand = () => ({
+    command: 'getTitle',
+    params: {},
+    retries: 0,
+    result: { value: 'WebdriverJS Testpage' },
+    sessionId: 'b1af7055-576c-4a77-b0a8-614c71b1e4ff',
+    cid: '0-0'
+})
 const screenShotCommand = () => ({
     method: 'GET',
     body: { using: 'css selector', value: 'img' },
@@ -16,19 +24,27 @@ const screenShotCommand = () => ({
     sessionId: '4d1707ae-820f-1645-8485-5a820b2a40da',
     capabilities: {}
 })
+const devtoolsScreenShotCommand = () => ({
+    command: 'takeScreenshot',
+    params: {},
+    retries: 0,
+    result: { value: 'WebdriverJS Testpage' },
+    sessionId: 'b1af7055-576c-4a77-b0a8-614c71b1e4ff',
+    cid: '0-0'
+})
 
-export function commandStart() {
-    return command()
+export function commandStart(isDevtools) {
+    return isDevtools ? devtoolsCommand() : command()
 }
 
-export function commandEnd() {
-    return command()
+export function commandEnd(isDevtools) {
+    return isDevtools ? devtoolsCommand() : command()
 }
 
-export function commandStartScreenShot() {
-    return screenShotCommand()
+export function commandStartScreenShot(isDevtools) {
+    return isDevtools ? devtoolsScreenShotCommand() : screenShotCommand()
 }
 
-export function commandEndScreenShot() {
-    return screenShotCommand()
+export function commandEndScreenShot(isDevtools) {
+    return isDevtools ? devtoolsScreenShotCommand() : screenShotCommand()
 }

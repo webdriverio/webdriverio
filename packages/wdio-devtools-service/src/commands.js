@@ -48,7 +48,7 @@ export default class CommandHandler {
         return new Promise((resolve, reject) => this.client[domain][command](args, (err, result) => {
             /* istanbul ignore if */
             if (err) {
-                return reject(new Error(`Chrome DevTools Error: ${result.message}`))
+                return reject(new Error(`Chrome DevTools Error: ${err.message}`))
             }
 
             return resolve(result)

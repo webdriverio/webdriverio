@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "6.1.22",
+  "version": "6.1.23",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -61,7 +61,7 @@
     "@wdio/utils": "6.1.17",
     "archiver": "^4.0.1",
     "css-value": "^0.0.1",
-    "devtools": "6.1.22",
+    "devtools": "6.1.23",
     "grapheme-splitter": "^1.0.2",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isobject": "^3.0.2",
