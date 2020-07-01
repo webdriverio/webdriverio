@@ -2,6 +2,7 @@ import fs from 'fs'
 import ejs from 'ejs'
 import path from 'path'
 import logger from '@wdio/logger'
+import { SevereServiceError } from 'webdriverio'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
 
@@ -14,16 +15,27 @@ const log = logger('@wdio/cli:utils')
 /**
  * run service launch sequences
  */
-export async function runServiceHook (launcher, hookName, ...args) {
-    try {
-        return await Promise.all(launcher.map((service) => {
+export async function runServiceHook(launcher, hookName, ...args) {
+    return Promise.all(launcher.map(async (service) => {
+        try {
             if (typeof service[hookName] === 'function') {
-                return service[hookName](...args)
+                await service[hookName](...args)
             }
-        }))
-    } catch (e) {
-        log.error(`A service failed in the '${hookName}' hook\n${e.stack}\n\nContinue...`)
-    }
+        } catch (e) {
+            const message = `A service failed in the '${hookName}' hook\n${e.stack}\n\n`
+
+            if (e instanceof SevereServiceError) {
+                return { status: 'rejected', reason: message }
+            }
+
+            log.error(`${message}Continue...`)
+        }
+    })).then(results => {
+        const rejectedHooks = results.filter(p => p && p.status === 'rejected')
+        if (rejectedHooks.length) {
+            return Promise.reject(`\n${rejectedHooks.map(p => p.reason).join()}\n\nStopping runner...`)
+        }
+    })
 }
 
 /**

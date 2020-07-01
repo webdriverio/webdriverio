@@ -420,6 +420,7 @@ describe('launcher', () => {
     describe('startInstance', () => {
         beforeEach(() => {
             launcher.runner.run = jest.fn().mockReturnValue({ on: () => {} })
+            launcher.launcher = []
             launcher.interface.emit = jest.fn()
         })
 

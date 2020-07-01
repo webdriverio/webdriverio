@@ -7,6 +7,7 @@ import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 import MultiRemote from './multiremote'
 import { WDIO_DEFAULTS } from './constants'
 import { getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol } from './utils'
+import SevereServiceError from './utils/SevereServiceError'
 
 const log = logger('webdriverio')
 
@@ -124,3 +125,5 @@ export const multiremote = async function (params = {}, config = {}) {
 
     return driver
 }
+
+export { SevereServiceError }
