@@ -17,6 +17,31 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.23 (2020-07-01)
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-allure-reporter`
+  * [#5543](https://github.com/webdriverio/webdriverio/pull/5543) Better support for Allure reporter using DevTools protocol ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-reporter`
+  * [#5544](https://github.com/webdriverio/webdriverio/pull/5544) Fix command reporting in reporters ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-devtools-service`
+  * [#5526](https://github.com/webdriverio/webdriverio/pull/5526) fixing wrong variable call in error of devtools' cdp ([@HananArgov](https://github.com/HananArgov))
+
+#### :memo: Documentation
+* Other
+  * [#5562](https://github.com/webdriverio/webdriverio/pull/5562) Add blog post for open office hours ([@christian-bromann](https://github.com/christian-bromann))
+  * [#5549](https://github.com/webdriverio/webdriverio/pull/5549) docs: Add "Migrating from Chai" section ([@caweidmann](https://github.com/caweidmann))
+* `wdio-jasmine-framework`
+  * [#5547](https://github.com/webdriverio/webdriverio/pull/5547) #5538: Added types for missing grep and invertGrep ([@sethuster](https://github.com/sethuster))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Cornelius ([@caweidmann](https://github.com/caweidmann))
+- DOA ([@HananArgov](https://github.com/HananArgov))
+- Seth Urban ([@sethuster](https://github.com/sethuster))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.1.22 (2020-06-25)
 
 #### :bug: Bug Fix
