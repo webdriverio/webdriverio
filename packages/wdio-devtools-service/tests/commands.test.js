@@ -25,7 +25,8 @@ test('cdp', async () => {
     const clientMock = {
         on: jest.fn(),
         Network: {
-            enable: jest.fn().mockImplementation((args, cb) => cb(null, 'foobar'))
+            enable: jest.fn().mockImplementation((args, cb) => cb(null, 'foobar')),
+            error: jest.fn().mockImplementation((args, fn) => fn(new Error('this is an error')))
         }
     }
     const browserMock = { addCommand: jest.fn() }
@@ -34,6 +35,9 @@ test('cdp', async () => {
     expect(() => handler.cdp('foobar', 'enable')).toThrow()
     expect(() => handler.cdp('Network', 'foobar')).toThrow()
     expect(await handler.cdp('Network', 'enable')).toBe('foobar')
+
+    const errorTest = await handler.cdp('Network', 'error').catch(error => error)
+    expect(errorTest.message).toBe('Chrome DevTools Error: this is an error')
 })
 
 test('cdpConnection', () => {
