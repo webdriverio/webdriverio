@@ -10,8 +10,9 @@ You can write your own custom service for the WDIO test runner to custom-fit you
 The basic construction of a custom service should look like this:
 
 ```js
-export default class CustomService {
-    onPrepare(config, capabilities) {
+export default class CustomService { 
+    // If a hook returns a promise, WebdriverIO will wait until that promise is resolved to continue.
+    async onPrepare(config, capabilities) {
         // TODO: something before all workers launch
     }
 
@@ -23,6 +24,22 @@ export default class CustomService {
         // TODO: something after the workers shutdown
     }
 
+    // custom service methods ...
+}
+```
+
+An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner. 
+
+```js
+import { SevereServiceError } from 'webdriverio'
+
+export default class CustomService { 
+    async onPrepare(config, capabilities) {
+        // TODO: something critical for setup before all workers launch
+
+        throw new SevereServiceError('Something went wrong.')
+    }
+    
     // custom service methods ...
 }
 ```
