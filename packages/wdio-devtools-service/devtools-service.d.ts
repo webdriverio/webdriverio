@@ -1,6 +1,6 @@
 declare module WebdriverIO {
-  interface ServiceOption extends DevtoolsConfig {}
-  interface Browser extends DevtoolsBrowser {}
+  interface ServiceOption extends DevtoolsConfig { }
+  interface Browser extends DevtoolsBrowser { }
 }
 
 type NetworkStates = 'offline' | 'GPRS' | 'Regular 2G' | 'Good 2G' | 'Regular 3G' | 'Good 3G' | 'Regular 4G' | 'DSL' | 'Wifi' | 'online';
@@ -137,4 +137,8 @@ interface DevtoolsBrowser {
    * Returns page weight information of the last page load.
    */
   getPageWeight(): object;
+  /**
+   * Returns access to puppeteer instance. Allow user to work with Puppeteer directly.
+   */
+  getPuppeteer(): object;
 }
