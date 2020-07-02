@@ -21,10 +21,10 @@ async function bar() {
   const performanceScore: number = browser.getPerformanceScore()
 
   browser.emulateDevice('iPad')
-  browser.emulateDevice( {viewport: { height: 10, width: 10 }, userAgent: 'test'} )
+  browser.emulateDevice({ viewport: { height: 10, width: 10 }, userAgent: 'test' })
 
   const cdpResponse = await browser.cdp('test', 'test')
-  const {host,port} = browser.cdpConnection()
+  const { host, port } = browser.cdpConnection()
 
   const nodeId: number = browser.getNodeId('selector')
   const nodeIds: number[] = browser.getNodeIds('selector')
@@ -35,4 +35,6 @@ async function bar() {
 
   const traceLogs: object = browser.getTraceLogs()
   const pageWeight: object = browser.getPageWeight()
+
+  const puppeteer = browser.getPuppeteer()
 }
