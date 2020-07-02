@@ -17,6 +17,21 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.24 (2020-07-02)
+
+#### :rocket: New Feature
+* `wdio-cli`, `webdriverio`
+  * [#5565](https://github.com/webdriverio/webdriverio/pull/5565) Enable Ability to Stop Execution when Error Occurs in Service Hook ([@emilyrohrbough](https://github.com/emilyrohrbough))
+
+#### :memo: Documentation
+* `wdio-devtools-service`
+  * [#5564](https://github.com/webdriverio/webdriverio/pull/5564) Add missing typescript typings for getPuppeteer command ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+#### Committers: 2
+- Emily Rohrbough  ([@emilyrohrbough](https://github.com/emilyrohrbough))
+- Srinivasan Sekar ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+
 ## v6.1.23 (2020-07-01)
 
 #### :bug: Bug Fix
