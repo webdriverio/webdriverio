@@ -1,3 +1,11 @@
+/**
+ * Get Active Element returns the active element of the current browsing context’s document element.
+ *
+ * @param browser.getActiveElement
+ * @see https://w3c.github.io/webdriver/#dfn-get-active-element
+ * @return {Object}       A JSON representation of an element object.
+ */
+
 import findElement from './findElement'
 import command from '../scripts/getActiveElement'
 import cleanUp from '../scripts/cleanUpSerializationSelector'
