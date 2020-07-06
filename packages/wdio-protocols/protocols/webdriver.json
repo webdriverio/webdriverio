@@ -730,7 +730,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-delete-cookie",
       "variables": [{
         "name": "name",
-        "description": "name of the cookie to retrieve"
+        "description": "name of the cookie to delete"
       }],
       "parameters": []
     }

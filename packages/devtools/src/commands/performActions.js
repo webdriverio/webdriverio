@@ -1,8 +1,10 @@
 /**
- * 
- * The Perform Actions command is used to execute complex user actions. 
+ * The Perform Actions command is used to execute complex user actions.
  * See [spec](https://github.com/jlipps/simple-wd-spec#perform-actions) for more details.
- * 
+ *
+ * @alias browser.performActions
+ * @see https://w3c.github.io/webdriver/#dfn-perform-actions
+ * @param {object[]} actions  A list of objects, each of which represents an input source and its associated actions.
  */
 
 import { keyDefinitions } from 'puppeteer-core/lib/USKeyboardLayout'
