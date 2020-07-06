@@ -2,6 +2,8 @@ import WDIOJunitReporter from '../src'
 
 import mochaRunnerLog from './__fixtures__/mocha-runner.json'
 import cucumberRunnerLog from './__fixtures__/cucumber-runner.json'
+import cucumberRunnerBrowserstackIosLog from './__fixtures__/cucumber-runner-browserstack-ios.json'
+import cucumberRunnerBrowserstackAndroidLog from './__fixtures__/cucumber-runner-browserstack-android.json'
 import suitesLog from './__fixtures__/suites.json'
 import suitesWithNoErrorObjectLog from './__fixtures__/suites-with-no-error-object.json'
 import featuresLog from './__fixtures__/cucumber-features.json'
@@ -77,6 +79,13 @@ describe('wdio-junit-reporter', () => {
         expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 
+    it('generates xml output (Cucumber-style) (with packageName)', () => {
+        reporter = new WDIOJunitReporter({ packageName: 'wdio-unit-tests', stdout: true })
+        reporter.suites = featuresLog
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
     it('scenario will be marked failed if a single scenario step fails (Cucumber-style)', () => {
         reporter.suites = featuresWithFailingThenSkipStepLog
 
@@ -145,5 +154,37 @@ describe('wdio-junit-reporter', () => {
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output with correct information when test is ran against Browserstack for iOS apps (with packageName)', () => {
+        reporter = new WDIOJunitReporter({ packageName: 'wdio-unit-tests', stdout: true })
+        reporter.suites = featuresLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(cucumberRunnerBrowserstackIosLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output with correct information when test is ran against Browserstack for iOS apps', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        reporter.suites = featuresLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(cucumberRunnerBrowserstackIosLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output with correct information when test is ran against Browserstack for Android apps (with packageName)', () => {
+        reporter = new WDIOJunitReporter({ packageName: 'wdio-unit-test', stdout: true })
+        reporter.suites = featuresLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(cucumberRunnerBrowserstackAndroidLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output with correct information when test is ran against Browserstack for Android apps', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        reporter.suites = featuresLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(cucumberRunnerBrowserstackAndroidLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 })
