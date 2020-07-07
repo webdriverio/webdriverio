@@ -1,4 +1,6 @@
 /**
+ * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+ *
  * Only respond once with given overwrite. You can call `respondOnce` multiple
  * consecutive times and it will start with the respond you defined last. If you
  * only use `respondOnce` and the resource is called more times a mock has been
