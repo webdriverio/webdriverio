@@ -49,7 +49,7 @@ $ npx wdio config
 
 It will ask you questions and generate a config file for you in less than a minute.
 
-![WDIO configuration utility](/img/config-utility.gif)
+![WDIO configuration utility](https://webdriver.io/img/config-utility.gif)
 
 Once you have your configuration file set up, you can start your tests by running:
 
