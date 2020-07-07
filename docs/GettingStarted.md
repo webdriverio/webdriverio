@@ -5,7 +5,7 @@ title: Getting Started
 
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
-> __Note:__ These are the docs for the latest version (>=6.x) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](versions.html)!
+> __Note:__ These are the docs for the latest version (>=6.x) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](https://webdriver.io/docs/versions.html)!
 
 The following short step-by-step introduction will help you get your first WebdriverIO script up and running:
 
@@ -106,7 +106,7 @@ describe('webdriver.io page', () => {
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-Now save the file and return to your terminal. Learn more about [the differences between Sync and Async Mode](sync-vs-async.html).
+Now save the file and return to your terminal. Learn more about [the differences between Sync and Async Mode](https://webdriver.io/docs/sync-vs-async.html).
 
 ### Start the Testrunner
 
