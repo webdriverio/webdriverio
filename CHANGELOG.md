@@ -17,6 +17,32 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.1.25 (2020-07-07)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#5572](https://github.com/webdriverio/webdriverio/pull/5572) Closes [#5568](https://github.com/webdriverio/webdriverio/issues/5568) ([@JumiDeluxe](https://github.com/JumiDeluxe))
+
+#### :nail_care: Polish
+* `wdio-junit-reporter`
+  * [#5540](https://github.com/webdriverio/webdriverio/pull/5540) Better package names for Cucumber Junit reports ([@mikesalvia](https://github.com/mikesalvia))
+* `wdio-cli`
+  * [#5570](https://github.com/webdriverio/webdriverio/pull/5570) Added Novus Visual Regression Service ([@Jnegrier](https://github.com/Jnegrier))
+
+#### :memo: Documentation
+* `devtools`, `wdio-protocols`
+  * [#5573](https://github.com/webdriverio/webdriverio/pull/5573) Added Documentation to devtools command ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#5574](https://github.com/webdriverio/webdriverio/pull/5574) Add workshop video to contribute page ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Juan Negrier ([@Jnegrier](https://github.com/Jnegrier))
+- Mike Salvia ([@mikesalvia](https://github.com/mikesalvia))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- jwm00 ([@JumiDeluxe](https://github.com/JumiDeluxe))
+
+
 ## v6.1.24 (2020-07-02)
 
 #### :rocket: New Feature
