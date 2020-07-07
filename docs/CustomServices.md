@@ -10,7 +10,7 @@ You can write your own custom service for the WDIO test runner to custom-fit you
 The basic construction of a custom service should look like this:
 
 ```js
-export default class CustomService { 
+export default class CustomService {
     // If a hook returns a promise, WebdriverIO will wait until that promise is resolved to continue.
     async onPrepare(config, capabilities) {
         // TODO: something before all workers launch
@@ -28,18 +28,18 @@ export default class CustomService {
 }
 ```
 
-An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner. 
+An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner.
 
 ```js
 import { SevereServiceError } from 'webdriverio'
 
-export default class CustomService { 
+export default class CustomService {
     async onPrepare(config, capabilities) {
         // TODO: something critical for setup before all workers launch
 
         throw new SevereServiceError('Something went wrong.')
     }
-    
+
     // custom service methods ...
 }
 ```
@@ -103,4 +103,4 @@ exports.config = {
 > export const launcher = Launcher
 > ```
 
-We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please create a Pull Request to our [configuration utility](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-cli/src/config.js#L20-L34) so that your package will be suggested whenever someone runs `wdio config`.
+We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please create a Pull Request to our [configuration utility](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-cli/src/commands/config.js) so that your package will be suggested whenever someone runs `wdio config`.
