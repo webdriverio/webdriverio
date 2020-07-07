@@ -87,7 +87,7 @@ describe('moveTo', () => {
         expect(got.mock.calls[3][1].json)
             .toEqual({ element: 'some-elem-123', xoffset: 5, yoffset: 10 })
     })
-    
+
     it('should return integer values when provided float getScrollPosition params', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
