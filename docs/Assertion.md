@@ -39,7 +39,7 @@ await expect(selectOptions).toHaveChildren({ gte: 1 })
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-For the full list, see the [expect API doc](/docs/api/expect.html).
+For the full list, see the [expect API doc](/docs/api/expect.md).
 
 ## Migrating from Chai
 
