@@ -5,7 +5,7 @@ title: Getting Started
 
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
-> __Note:__ These are the docs for the latest version (>=6.x) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](https://webdriver.io/docs/versions.html)!
+> __Note:__ These are the docs for the latest version (>=6.x) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](Versions.md)!
 
 The following short step-by-step introduction will help you get your first WebdriverIO script up and running:
 
