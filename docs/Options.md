@@ -219,7 +219,7 @@ Options: `mocha` | `jasmine`
 
 ### mochaOpts, jasmineNodeOpts and cucumberOpts
 
-Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](frameworks.html).
+Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](Frameworks.md).
 
 Type: `Object`<br>
 Default: `{ timeout: 10000 }`
