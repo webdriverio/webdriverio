@@ -16,18 +16,18 @@
     :mock.js
     it('should mock network resources', () => {
         // via static string
-        const userListMock = browser.network.mock('**\/users/list')
+        const userListMock = browser.network.mock('**' + '/users/list')
         // you can also specifying the mock even more by filtering resources
         // by headers or status code, e.g. mock only responses with specific
         // header set
         const strictMock = browser.network.mock('**', {
             // mock all json responses
-            headers: { 'Content-Type: 'application/json' }
+            headers: { 'Content-Type': 'application/json' }
         })
     })
 
     it('should modify API responses', () => {
-        const todoMock = browser.network.mock('**\/todos', {
+        const todoMock = browser.network.mock('**' + '/todos', {
             method: 'get'
         })
 
@@ -54,12 +54,12 @@
     })
 
     it('should modify text assets', () => {
-        const scriptMock = browser.network.mock('**\/script.min.js')
+        const scriptMock = browser.network.mock('**' + '/script.min.js')
         scriptMock.respond('./tests/fixtures/script.js')
     })
 
     it('should redirect web resources', () => {
-        const headerMock = browser.network.mock('**\/header.png')
+        const headerMock = browser.network.mock('**' + '/header.png')
         headerMock.respond('https://media.giphy.com/media/F9hQLAVhWnL56/giphy.gif')
 
         const pageMock = browser.network.mock('https://google.com/')
@@ -70,8 +70,8 @@
  * </example>
  *
  * @alias browser.mock
- * @param {String}            url            url to mock
- * @param {MockFilterOptions} filterOptions  more filters
+ * @param {String}             url            url to mock
+ * @param {MockFilterOptions=} filterOptions  more filters
  * @type utility
  *
  */

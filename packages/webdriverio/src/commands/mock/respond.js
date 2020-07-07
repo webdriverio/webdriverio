@@ -2,20 +2,32 @@
  * Always respond with same overwrite.
  *
  * <example>
-    :addValue.js
+    :respond.js
     it('should demonstrate the addValue command', () => {
-        const mock = await browser.network.mock('/todos')
+        const mock = browser.network.mock('https://todo-backend-express-knex.herokuapp.com/', {
+            method: 'get'
+        })
+
         mock.respond([{
-            title: 'Injected Todo',
+            title: 'Injected (non) completed Todo',
             order: null,
-            completed: false,
-            url: "http://todo-backend-express-knex.herokuapp.com/916"
+            completed: false
+        }, {
+            title: 'Injected completed Todo',
+            order: null,
+            completed: true
         }])
+
+        browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
+
+        $('#todo-list li').waitForExist()
+        console.log($$('#todo-list li').map(el => el.getText()))
+        // outputs: "[ 'Injected (non) completed Todo', 'Injected completed Todo' ]"
     })
  * </example>
  *
  * @alias mock.respond
  * @param {*} overwrites  payload to overwrite the response
- * @param {*} params      additional respond parameters to overwrite
+ * @param {MockResponseParams=} params      additional respond parameters to overwrite
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception

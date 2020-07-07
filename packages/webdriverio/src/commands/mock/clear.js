@@ -2,8 +2,8 @@
  * Resets all information stored in the `mock.calls` array.
  *
  * <example>
-    :addValue.js
-    it('should demonstrate the addValue command', () => {
+    :clear.js
+    it('should clear mock', () => {
         const mock = browser.network.mock('https://google.com/')
         browser.url('https://google.com')
 

@@ -6,9 +6,9 @@
  * `AddressUnreachable`, `BlockedByClient`, `BlockedByResponse`.
  *
  * <example>
-    :addValue.js
-    it('should demonstrate the addValue command', () => {
-        const mock = await browser.network.mock('/todos')
+    :abort.js
+    it('should block Google Analytics from page', () => {
+        const mock = browser.network.mock('https://www.google-analytics.com/**')
         mock.abort('Failed')
     })
  * </example>
