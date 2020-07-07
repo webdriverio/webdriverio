@@ -29,7 +29,7 @@ For any kind of mobile automation, you’ll need to install and setup [Appium](h
 
 There are also plenty of services that allow you to run your automation test in the cloud at high scale. Instead of having to setup all these drivers locally, you can just talk to these services (e.g. [Sauce Labs](https://saucelabs.com)) in the cloud and inspect the results on their platform. The communication between test script and automation environment will look as follows:
 
-![WebDriver Setup](/img/webdriver.png)
+![WebDriver Setup](https://webdriver.io/img/webdriver.png)
 
 ### Advantages
 
@@ -51,7 +51,7 @@ While every browser used to have its own internal DevTools interface that was no
 
 The communication happens without any proxy, directly to the browser using WebSockets:
 
-![DevTools Setup](/img/devtools.png)
+![DevTools Setup](https://webdriver.io/img/devtools.png)
 
 WebdriverIO allows you to use the DevTools capabilities as an alternative automation technology for WebDriver if you have special requirements to automate the browser. With the [`devtools`](https://www.npmjs.com/package/devtools) NPM package, you can use the same commands that WebDriver provides, which then can be used by WebdriverIO and the WDIO testrunner to run its useful commands on top of that protocol. It uses Puppeteer to under the hood and allows you to run a sequence of commands with Puppeteer if needed.
 
