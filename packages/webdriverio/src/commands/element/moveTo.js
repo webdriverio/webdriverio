@@ -25,8 +25,8 @@ export default async function moveTo ({ xOffset, yOffset } = {}) {
      */
     const { x, y, width, height } = await getElementRect(this)
     const { scrollX, scrollY } = await getScrollPosition(this)
-    const newXOffset = parseInt(x + (typeof xOffset === 'number' ? xOffset : (width / 2)), 10) - scrollX
-    const newYOffset = parseInt(y + (typeof yOffset === 'number' ? yOffset : (height / 2)), 10) - scrollY
+    const newXOffset = parseInt(x - scrollX + (typeof xOffset === 'number' ? xOffset : (width / 2)), 10)
+    const newYOffset = parseInt(y - scrollY + (typeof yOffset === 'number' ? yOffset : (height / 2)), 10)
 
     /**
      * W3C way of handle the mouse move actions
