@@ -1,3 +1,12 @@
+/**
+ * Create a new top-level browsing context.
+ *
+ * @alias browser.createWindow
+ * @see https://w3c.github.io/webdriver/#new-window
+ * @param {string} type  Set to 'tab' if the newly created window shares an OS-level window with the current browsing context, or 'window' otherwise.
+ * @return {object}      New window object containing 'handle' with the value of the handle and 'type' with the value of the created window type
+ */
+
 import { v4 as uuidv4 } from 'uuid'
 
 import command from '../scripts/createWindow'
