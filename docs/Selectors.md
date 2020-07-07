@@ -482,4 +482,4 @@ const pluginWrapper = browser.custom$$('myStrat', '.pluginWrapper')
 console.log(pluginWrapper.length) // 4
 ```
 
-**Note:** this only works in an web environment in which the [`execute`](/docs/api/browser/execute.html) command can be run.
+**Note:** this only works in an web environment in which the [`execute`](https://webdriver.io/docs/api/browser/execute.html) command can be run.
