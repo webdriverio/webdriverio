@@ -446,6 +446,9 @@
       "jenkins": {
         "title": "Jenkins Integration"
       },
+      "mocksandspies": {
+        "title": "Mocks and Spies"
+      },
       "multiremote": {
         "title": "Multiremote"
       },
