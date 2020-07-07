@@ -103,4 +103,4 @@ exports.config = {
 > export const launcher = Launcher
 > ```
 
-We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please create a Pull Request to our [configuration utility](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-cli/src/commands/config.js) so that your package will be suggested whenever someone runs `wdio config`.
+We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please create a Pull Request to our [configuration utility](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-cli/src/constants.js#L82-L108) so that your package will be suggested whenever someone runs `wdio config`.
