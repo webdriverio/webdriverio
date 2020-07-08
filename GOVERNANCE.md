@@ -18,7 +18,7 @@ Contributors have read-only access to source code and to submit changes via pull
 
 As Contributors gain experience and familiarity with the project, their profile within, and commitment to, the community will increase. At some stage, they may find themselves being nominated for committership by an existing Committer.
 
-To become a Committer:
+To become a Contributor:
 
 * you have to have at least one pull request proposed, approved and merged or
 * you have helped responding to a variety of issues that help close them
