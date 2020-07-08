@@ -12,7 +12,8 @@ const config: WebdriverIO.Config = {
         timeout: 3000,
         allowUncaught: true,
         require: ['@babel/register', './test/helpers/common.js'],
-        compilers: ['coffee:coffee-script/register']
+        compilers: ['coffee:coffee-script/register'],
+        ui: "tdd"
     }
 }
 
