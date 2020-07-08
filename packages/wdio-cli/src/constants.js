@@ -256,6 +256,17 @@ export const QUESTIONNAIRE = [{
     default: './features/step-definitions',
     when: /* istanbul ignore next */ (answers) => answers.framework.includes('cucumber')
 }, {
+    type: 'confirm',
+    name: 'generateTestFiles',
+    message: 'Do you want WebdriverIO to autogenerate some test files?',
+    default: true
+}, {
+    type: 'confirm',
+    name: 'usePageObjects',
+    message: 'Do you want to use Page Objects (https://martinfowler.com/bliki/PageObject.html)?',
+    default: true,
+    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles
+}, {
     type: 'list',
     name: 'isUsingCompiler',
     message: 'Are you using a compiler?',
