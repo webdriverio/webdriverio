@@ -92,8 +92,8 @@ export const runConfig = async function (useYarn, yes, exit) {
     try {
         await renderConfigurationFile(parsedAnswers)
 
-        console.log('\nConfig file installed successfully, creating test files...')
         if (answers.generateTestFiles) {
+            console.log('\nConfig file installed successfully, creating test files...')
             await generateTestFiles(parsedAnswers)
         }
     } catch (e) {

@@ -1,11 +1,11 @@
 import yargs from 'yargs'
-import fs from 'fs'
+import fs from 'fs-extra'
 import * as installCmd from './../../src/commands/install'
 import * as utils from './../../src/utils'
 import yarnInstall from 'yarn-install'
 
 jest.mock('yarn-install')
-jest.mock('fs')
+jest.mock('fs-extra')
 
 let findInConfigMock
 
