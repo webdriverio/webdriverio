@@ -13,7 +13,7 @@ const config: WebdriverIO.Config = {
         allowUncaught: true,
         require: ['@babel/register', './test/helpers/common.js'],
         compilers: ['coffee:coffee-script/register'],
-        ui: "tdd"
+        ui: 'tdd'
     }
 }
 
