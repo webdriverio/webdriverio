@@ -49,6 +49,7 @@
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
     "mkdirp": "^1.0.4",
+    "recursive-readdir": "^2.2.2",
     "webdriverio": "6.1.25",
     "yargs": "^15.0.1",
     "yarn-install": "^1.0.0"
