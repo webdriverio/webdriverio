@@ -84,7 +84,7 @@ describe('Mocha smoke test', () => {
         browser.clickScenario()
 
         return remote({
-            runner: true,
+            runner: 'local',
             hostname: 'localhost',
             port: 4444,
             path: '/',
