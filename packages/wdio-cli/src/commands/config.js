@@ -82,7 +82,7 @@ export const runConfig = async function (useYarn, yes, exit) {
         reporters: answers.reporters.map(({ short }) => short),
         services: answers.services.map(({ short }) => short),
         packagesToInstall,
-        isUsingTypeScript: true || answers.isUsingCompiler === COMPILER_OPTIONS.ts,
+        isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
         isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
         isSync: syncExecution,
         _async: syncExecution ? '' : 'async ',
