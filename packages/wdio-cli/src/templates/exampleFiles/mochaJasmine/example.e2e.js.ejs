@@ -34,8 +34,8 @@ describe('My Login application', () => {
         %>$('#username').setValue(username);
         $('#password').setValue(password);
         $('button[type="submit"]').click(); <% } else {
-        %>await (await $('#username')).setValue(username);
-        await (await $('#password')).setValue(password);
+        %>await (await $('#username')).setValue('tomsmith');
+        await (await $('#password')).setValue('SuperSecretPassword!');
         await (await $('button[type="submit"]')).click();<%
         } %>
 

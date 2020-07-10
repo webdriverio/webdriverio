@@ -253,7 +253,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'stepDefinitions',
     message: 'Where are your step definitions located?',
-    default: './features/step-definitions',
+    default: './features/step-definitions/steps.js',
     when: /* istanbul ignore next */ (answers) => answers.framework.includes('cucumber')
 }, {
     type: 'confirm',
