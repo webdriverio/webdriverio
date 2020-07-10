@@ -6,7 +6,7 @@ import childProcess from 'child_process'
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
-    canAccess, uniq, findByWhich, patchDebug
+    uniq, findByWhich, patchDebug
 } from '../src/utils'
 
 const debug = jest.requireActual('debug')
@@ -48,14 +48,7 @@ let pageMock = {
 }
 
 jest.mock('fs', () => {
-    let expectedThrow = false
     return {
-        accessSync: jest.fn().mockImplementation(() => {
-            if (expectedThrow) {
-                throw new Error('Not accessible')
-            }
-        }),
-        shouldThrow: (value) => (expectedThrow = value),
         existsSync: (pkgName) => pkgName === 'pptrDebug'
     }
 })
@@ -346,17 +339,6 @@ test('getStaleElementError', () => {
     const err = getStaleElementError('foobar')
     expect(err instanceof Error).toBe(true)
     expect(err.name).toContain('stale element reference')
-})
-
-test('canAccess', () => {
-    fs.shouldThrow(true)
-    expect(canAccess()).toBe(false)
-
-    fs.shouldThrow(false)
-    expect(canAccess('/some/file')).toBe(true)
-
-    fs.shouldThrow(true)
-    expect(canAccess('/some/file')).toBe(false)
 })
 
 test('uniq', () => {

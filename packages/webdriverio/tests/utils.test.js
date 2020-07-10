@@ -16,8 +16,7 @@ import {
     assertDirectoryExists,
     validateUrl,
     getAutomationProtocol,
-    updateCapabilities,
-    canAccess
+    updateCapabilities
 } from '../src/utils'
 
 jest.mock('http', () => {
@@ -552,15 +551,5 @@ describe('utils', () => {
                 expect(params).toMatchSnapshot()
             })
         })
-    })
-
-    it('canAccess', () => {
-        expect(canAccess('/foobar')).toBe(true)
-        expect(fs.accessSync).toBeCalledWith('/foobar')
-
-        fs.accessSync.mockImplementation(() => {
-            throw new Error('upps')
-        })
-        expect(canAccess('/foobar')).toBe(false)
     })
 })

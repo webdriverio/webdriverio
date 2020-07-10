@@ -2,8 +2,9 @@ import fs from 'fs'
 import path from 'path'
 import atob from 'atob'
 import minimatch from 'minimatch'
+import { canAccess } from '@wdio/utils'
 
-import { containsObject, canAccess } from '..'
+import { containsObject } from '..'
 import { ERROR_REASON } from '../../constants'
 
 export default class DevtoolsInterception {
