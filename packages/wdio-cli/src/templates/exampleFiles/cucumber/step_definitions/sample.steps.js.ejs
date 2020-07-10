@@ -27,7 +27,8 @@ When(/^I login with \w+ and \w+$/, <%= _async %>(username, password) => {
 
 Then(/^I should see a flash message saying (.*)$/, <%= _async %>(message) => {
     <%= _await %>expect(SecurePage.flashAlert).toBeExisting();
-    <%= _await %>expect(SecurePage.flashAlert).toHaveText('You logged into a secure area!');
+    <%= _await %>expect(SecurePage.flashAlert).toHaveTextContaining(
+        'You logged into a secure area!');
 });
 <% } else {
 
@@ -52,6 +53,7 @@ When(/^I login with \w+ and \w+$/, <%= _async %>(username, password) => {
 
 Then(/^I should see a flash message saying (.*)$/, <%= _async %>(message) => {
     <%= _await %>expect($('#flash')).toBeExisting();
-    <%= _await %>expect($('#flash')).toHaveText('You logged into a secure area!');
+    <%= _await %>expect($('#flash')).toHaveTextContaining(
+        'You logged into a secure area!');
 });
 <% } %>

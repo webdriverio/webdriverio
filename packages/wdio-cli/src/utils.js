@@ -9,10 +9,7 @@ import { execSync } from 'child_process'
 import { promisify } from 'util'
 
 import { runConfig } from './commands/config'
-import {
-    CONFIG_HELPER_SUCCESS_MESSAGE, EXCLUSIVE_SERVICES, ANDROID_CONFIG,
-    IOS_CONFIG, QUESTIONNAIRE
-} from './constants'
+import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
 
 const log = logger('@wdio/cli:utils')
 
@@ -206,7 +203,6 @@ export async function renderConfigurationFile (answers) {
     const renderedTpl = await renderFile(tplPath, { answers })
 
     fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
-    console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
 }
 
 export async function missingConfigurationPrompt(command, message, useYarn = false) {

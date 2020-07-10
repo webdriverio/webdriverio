@@ -3,7 +3,8 @@ import yarnInstall from 'yarn-install'
 
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
-    TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES
+    TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
+    CONFIG_HELPER_SUCCESS_MESSAGE
 } from '../constants'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
@@ -119,6 +120,8 @@ export const runConfig = async function (useYarn, yes, exit) {
         ].join('", "')}"`
         console.log(util.format(TS_COMPILER_INSTRUCTIONS, tsPkgs))
     }
+
+    console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
 
     /**
      * don't exit if running unit tests
