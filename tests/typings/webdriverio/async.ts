@@ -16,6 +16,12 @@ async function bar() {
         }
     })
 
+    multiremote({
+        myBrowserInstance: {
+            browserName: 'chrome'
+        }
+    }).then(() => {}, () => {})
+
     // interact with specific instance
     const mrSingleElem = await mr.myBrowserInstance.$('')
     await mrSingleElem.click()
@@ -31,6 +37,8 @@ async function bar() {
 
     // remote
     const r = await remote({ capabilities: { browserName: 'chrome' } })
+    remote({ capabilities: { browserName: 'chrome' } }).then(
+        () => {}, () => {})
     const rElem = await r.$('')
     await rElem.click()
 
