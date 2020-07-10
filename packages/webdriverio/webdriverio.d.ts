@@ -4,7 +4,7 @@ declare namespace WebdriverIO {
     function remote(
         options?: RemoteOptions,
         modifier?: (...args: any[]) => any
-    ): BrowserObject;
+    ): Promise<BrowserObject>;
 
     function attach(
         options: WebDriver.AttachSessionOptions,
@@ -12,7 +12,7 @@ declare namespace WebdriverIO {
 
     function multiremote(
         options: MultiRemoteOptions
-    ): BrowserObject;
+    ): Promise<BrowserObject>;
 
     interface Browser {
         /**
