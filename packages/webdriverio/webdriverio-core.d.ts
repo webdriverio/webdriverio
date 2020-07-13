@@ -442,7 +442,7 @@ declare namespace WebdriverIO {
 
     type MockFilterOptions = {
         method?: string,
-        headers?: object
+        headers?: Record<string, string>
     }
 
     type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
