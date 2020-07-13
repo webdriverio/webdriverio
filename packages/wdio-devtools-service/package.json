@@ -37,7 +37,7 @@
     "@wdio/logger": "6.0.16",
     "chrome-remote-interface": "^0.28.0",
     "core-js": "~3.6.0",
-    "lighthouse": "^5.1.0",
+    "lighthouse": "^6.1.1",
     "puppeteer-core": "^4.0.0",
     "speedline": "^1.4.1",
     "stable": "^0.1.8",
