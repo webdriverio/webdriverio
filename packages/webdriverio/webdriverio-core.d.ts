@@ -437,7 +437,7 @@ declare namespace WebdriverIO {
 
     type MockResponseParams = {
         statusCode?: number,
-        headers?: object
+        headers?: Record<string, string>
     }
 
     type MockFilterOptions = {
