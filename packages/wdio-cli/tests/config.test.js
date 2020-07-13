@@ -1,4 +1,4 @@
-import { getAnswers } from '../src/commands/config'
+import { getAnswers } from '../src/utils'
 
 test('runConfig with yes param', async () => {
     let answers = await getAnswers(true)
