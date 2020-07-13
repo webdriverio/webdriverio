@@ -192,5 +192,4 @@ describe('utils:isBase64', () => {
     it('should throw if input type not a string', () => {
         expect(() => isBase64(null)).toThrow('Expected string but received invalid type.')
     })
-
 })

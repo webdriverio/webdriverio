@@ -23,7 +23,6 @@ import {
 } from '../src/utils'
 
 import { runConfig } from '../src/commands/config'
-import { CONFIG_HELPER_SUCCESS_MESSAGE } from '../src/constants'
 
 jest.mock('child_process', function () {
     const m = {
@@ -223,7 +222,6 @@ describe('renderConfigurationFile', () => {
 
         expect(ejs.renderFile).toHaveBeenCalled()
         expect(fs.writeFileSync).toHaveBeenCalled()
-        expect(console.log).toHaveBeenCalledWith(CONFIG_HELPER_SUCCESS_MESSAGE)
     })
 
     it('should throw error', async () => {
@@ -477,10 +475,6 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(2)
-        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/defs/example.step.js'))
-            .toBe(true)
-        expect(fs.writeFileSync.mock.calls[1][0].endsWith('/example.feature'))
-            .toBe(true)
     })
 
     it('Cucumber with page objects and TypeScript', async () => {
@@ -512,9 +506,7 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(6)
-        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/some/step/defs/pageobjects/page.ts'))
-            .toBe(true)
-        expect(fs.writeFileSync.mock.calls[1][0].endsWith('/some/step/defs/example.step.ts'))
+        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/some/step/pageobjects/page.ts'))
             .toBe(true)
         expect(fs.writeFileSync.mock.calls[2][0].endsWith('/example.feature'))
             .toBe(true)
