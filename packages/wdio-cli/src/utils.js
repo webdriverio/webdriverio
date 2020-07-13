@@ -288,7 +288,8 @@ export async function generateTestFiles (answers) {
         process.cwd(),
         path.dirname(answers.specs).replace(/\*\*$/, '')
     )
-    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
+    const destSpecPagePath = path.join(destSpecRootPath, '..')
+    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''), '..')
 
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
@@ -309,7 +310,7 @@ export async function generateTestFiles (answers) {
             file.endsWith('page.js.ejs')
                 ? answers.framework === 'cucumber'
                     ? `${destStepRootPath}/pageobjects/${path.basename(file)}`
-                    : `${destSpecRootPath}/pageobjects/${path.basename(file)}`
+                    : `${destSpecPagePath}/pageobjects/${path.basename(file)}`
                 : file.includes('step_definition')
                     ? `${answers.stepDefinitions}`
                     : `${destSpecRootPath}/${path.basename(file)}`

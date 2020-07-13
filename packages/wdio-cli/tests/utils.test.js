@@ -506,7 +506,7 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(6)
-        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/some/step/pageobjects/page.ts'))
+        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/some/pageobjects/page.ts'))
             .toBe(true)
         expect(fs.writeFileSync.mock.calls[2][0].endsWith('/example.feature'))
             .toBe(true)
