@@ -7,8 +7,8 @@
  */
 if (usePageObjects) { %>
 <%- isUsingTypeScript || isUsingBabel
-    ? "import LoginPage from '" + _relativePath + "/login.page';"
-    : "const LoginPage = require('" + _relativePath + "/login.page');" %>
+    ? `import LoginPage from '${relativePath}/login.page';`
+    : `const LoginPage = require('${relativePath}/login.page');` %>
 <%- isUsingTypeScript || isUsingBabel
     ? "import SecurePage from '" + _relativePath + "/secure.page';"
     : "const SecurePage = require('" + _relativePath + "/secure.page');" %>
