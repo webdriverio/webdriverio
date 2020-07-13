@@ -49,16 +49,28 @@ export function isUnifiedPlatform({ deviceName = '', platformName = '' }){
  */
 export function makeCapabilityFactory(tunnelIdentifier, options) {
     return capability => {
-        if (!capability['sauce:options']) {
+        // If the capability appears to be using the legacy JSON Wire Protocol
+        // we need to make sure the key 'sauce:options' is not present
+        const isLegacy = Boolean(
+            (capability.platform || capability.version) &&
+            !capability['sauce:options']
+        )
+
+        if (!capability['sauce:options'] && !isLegacy) {
             capability['sauce:options'] = {}
         }
 
         Object.assign(capability, options)
-        capability['sauce:options'].tunnelIdentifier = (
+
+        const sauceOptions = !isLegacy ? capability['sauce:options'] : capability
+        sauceOptions.tunnelIdentifier = (
             capability.tunnelIdentifier ||
-            capability['sauce:options'].tunnelIdentifier ||
+            sauceOptions.tunnelIdentifier ||
             tunnelIdentifier
         )
-        delete capability.tunnelIdentifier
+
+        if (!isLegacy) {
+            delete capability.tunnelIdentifier
+        }
     }
 }
