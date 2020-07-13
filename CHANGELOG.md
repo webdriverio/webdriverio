@@ -17,6 +17,34 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.2.0 (2020-07-13)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-utils`
+  * [#5590](https://github.com/webdriverio/webdriverio/pull/5590) Implement autogeneration of test files ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#5599](https://github.com/webdriverio/webdriverio/pull/5599) Have `remote` and `multiremote` return a promise ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-mocha-framework`
+  * [#5592](https://github.com/webdriverio/webdriverio/pull/5592) webdriverio-mocha: add ui type mocha ts in mochaOpts ([@cjatkinson](https://github.com/cjatkinson))
+
+#### :memo: Documentation
+* `wdio-sync`, `webdriverio`
+  * [#5598](https://github.com/webdriverio/webdriverio/pull/5598) doc: fix incorrect links in docs ([@mohanraj-r](https://github.com/mohanraj-r))
+* `wdio-applitools-service`
+  * [#5583](https://github.com/webdriverio/webdriverio/pull/5583) Update docs for Applitools ([@ojkelly-vha](https://github.com/ojkelly-vha))
+
+#### :house: Internal
+* [#5593](https://github.com/webdriverio/webdriverio/pull/5593) Better define the "Contributor" path ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Christopher Atkinson ([@cjatkinson](https://github.com/cjatkinson))
+- Mohan Raj Rajamanickam ([@mohanraj-r](https://github.com/mohanraj-r))
+- [@ojkelly-vha](https://github.com/ojkelly-vha)
+
+
 ## v6.1.25 (2020-07-07)
 
 #### :bug: Bug Fix
