@@ -12,7 +12,10 @@ import {
     hasWdioSyncSupport, executeSync, executeAsync,
 } from './shim'
 import { testFnWrapper, runTestInFiberContext } from './test-framework'
-import { capabilitiesEnvironmentDetector, sessionEnvironmentDetector, devtoolsEnvironmentDetector } from './envDetector'
+import {
+    isW3C, capabilitiesEnvironmentDetector,
+    sessionEnvironmentDetector, devtoolsEnvironmentDetector
+} from './envDetector'
 
 export {
     initialisePlugin,
@@ -41,6 +44,7 @@ export {
     /**
      * environmentDetector
      */
+    isW3C,
     sessionEnvironmentDetector,
     capabilitiesEnvironmentDetector,
     devtoolsEnvironmentDetector
