@@ -267,6 +267,18 @@ export const QUESTIONNAIRE = [{
     default: true,
     when: /* istanbul ignore next */ (answers) => answers.generateTestFiles
 }, {
+    type: 'input',
+    name: 'pages',
+    message: 'Where are your page-objects located?',
+    default: './test/pageobjects/**/*.js',
+    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles && answers.usePageObjects && answers.framework.match(/(mocha|jasmine)/)
+}, {
+    type: 'input',
+    name: 'pages',
+    message: 'Where are your page-objects located?',
+    default: './features/pageobjects/**/*.js',
+    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles && answers.usePageObjects && answers.framework.includes('cucumber')
+}, {
     type: 'list',
     name: 'isUsingCompiler',
     message: 'Are you using a compiler?',

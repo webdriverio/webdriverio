@@ -408,7 +408,8 @@ describe('generateTestFiles', () => {
         const answers = {
             specs: './tests/e2e/**/*.js',
             framework: 'mocha',
-            usePageObjects: true
+            usePageObjects: true,
+            pages: './tests/page/objects/model/**/*.js',
         }
 
         await generateTestFiles(answers)
@@ -442,7 +443,7 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(4)
-        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/pageobjects/page.js'))
+        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/page.js'))
             .toBe(true)
         expect(fs.writeFileSync.mock.calls[1][0].endsWith('/example.e2e.js'))
             .toBe(true)
@@ -488,7 +489,8 @@ describe('generateTestFiles', () => {
             framework: 'cucumber',
             stepDefinitions: '/some/step/defs',
             usePageObjects: true,
-            isUsingTypeScript: true
+            isUsingTypeScript: true,
+            pages: './tests/page/object/**/*.js'
         }
         await generateTestFiles(answers)
 
@@ -506,7 +508,7 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(6)
-        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/some/pageobjects/page.ts'))
+        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/page.ts'))
             .toBe(true)
         expect(fs.writeFileSync.mock.calls[2][0].endsWith('/example.feature'))
             .toBe(true)

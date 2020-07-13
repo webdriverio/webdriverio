@@ -288,14 +288,19 @@ export async function generateTestFiles (answers) {
         process.cwd(),
         path.dirname(answers.specs).replace(/\*\*$/, '')
     )
-    const destSpecPagePath = path.join(destSpecRootPath, '..')
-    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''), '..')
+
+    let destPageObjectRootPath = ''
 
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
         : [path.join(TEMPLATE_ROOT_DIR, 'mochaJasmine')]
 
     if (answers.usePageObjects) {
+        destPageObjectRootPath = path.join(
+            process.cwd(),
+            path.dirname(answers.pages).replace(/\*\*$/, '')
+        )
+        answers._relativePath = (answers.generateTestFiles && answers.usePageObjects) ? path.relative(destSpecRootPath, destPageObjectRootPath) : ''
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
     }
 
@@ -308,9 +313,7 @@ export async function generateTestFiles (answers) {
         const renderedTpl = await renderFile(file, answers)
         let destPath = (
             file.endsWith('page.js.ejs')
-                ? answers.framework === 'cucumber'
-                    ? `${destStepRootPath}/pageobjects/${path.basename(file)}`
-                    : `${destSpecPagePath}/pageobjects/${path.basename(file)}`
+                ? `${destPageObjectRootPath}/${path.basename(file)}`
                 : file.includes('step_definition')
                     ? `${answers.stepDefinitions}`
                     : `${destSpecRootPath}/${path.basename(file)}`
