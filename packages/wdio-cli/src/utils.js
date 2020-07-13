@@ -1,16 +1,20 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import ejs from 'ejs'
 import path from 'path'
+import inquirer from 'inquirer'
 import logger from '@wdio/logger'
+import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
 
-import inquirer from 'inquirer'
 import { runConfig } from './commands/config'
-import { CONFIG_HELPER_SUCCESS_MESSAGE, EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG } from './constants'
+import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
 
 const log = logger('@wdio/cli:utils')
+
+const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
+const renderFile = promisify(ejs.renderFile)
 
 /**
  * run service launch sequences
@@ -194,13 +198,11 @@ export function convertPackageHashToObject(string, hash = '$--$') {
 }
 
 export async function renderConfigurationFile (answers) {
-    const renderFile = promisify(ejs.renderFile)
     const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
 
     const renderedTpl = await renderFile(tplPath, { answers })
 
     fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
-    console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
 }
 
 export async function missingConfigurationPrompt(command, message, useYarn = false) {
@@ -276,4 +278,73 @@ export function getCapabilities(arg) {
  */
 export function hasFile (filename) {
     return fs.existsSync(path.join(process.cwd(), filename))
+}
+
+/**
+ * generate test files based on CLI answers
+ */
+export async function generateTestFiles (answers) {
+    const destSpecRootPath = path.join(
+        process.cwd(),
+        path.dirname(answers.specs).replace(/\*\*$/, '')
+    )
+    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
+
+    const testFiles = answers.framework === 'cucumber'
+        ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
+        : [path.join(TEMPLATE_ROOT_DIR, 'mochaJasmine')]
+
+    if (answers.usePageObjects) {
+        testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
+    }
+
+    const files = (await Promise.all(testFiles.map((dirPath) => readDir(
+        dirPath,
+        [(file, stats) => !stats.isDirectory() && !(file.endsWith('.ejs') || file.endsWith('.feature'))]
+    )))).reduce((cur, acc) => [...acc, ...(cur)], [])
+
+    for (const file of files) {
+        const renderedTpl = await renderFile(file, answers)
+        let destPath = (
+            file.endsWith('page.js.ejs')
+                ? answers.framework === 'cucumber'
+                    ? `${destStepRootPath}/pageobjects/${path.basename(file)}`
+                    : `${destSpecRootPath}/pageobjects/${path.basename(file)}`
+                : file.includes('step_definition')
+                    ? `${answers.stepDefinitions}`
+                    : `${destSpecRootPath}/${path.basename(file)}`
+        ).replace(/\.ejs$/, '').replace(/\.js$/, answers.isUsingTypeScript ? '.ts' : '.js')
+
+        fs.ensureDirSync(path.dirname(destPath))
+        fs.writeFileSync(destPath, renderedTpl)
+    }
+}
+
+export async function getAnswers(yes) {
+    return yes
+        ? QUESTIONNAIRE.reduce((answers, question) => Object.assign(
+            answers,
+            question.when && !question.when(answers)
+                /**
+                 * set nothing if question doesn't apply
+                 */
+                ? {}
+                : { [question.name]: typeof question.default !== 'undefined'
+                    /**
+                     * set default value if existing
+                     */
+                    ? typeof question.default === 'function'
+                        ? question.default()
+                        : question.default
+                    : question.choices && question.choices.length
+                    /**
+                     * pick first choice, select value if it exists
+                     */
+                        ? question.choices[0].value
+                            ? question.choices[0].value
+                            : question.choices[0]
+                        : {}
+                }
+        ), {})
+        : await inquirer.prompt(QUESTIONNAIRE)
 }

@@ -19,7 +19,7 @@ WDIO Configuration Helper
 export const CONFIG_HELPER_SUCCESS_MESSAGE = `
 Configuration file was created successfully!
 To run your tests, execute:
-$ wdio run wdio.conf.js
+$ npx wdio run wdio.conf.js
 `
 
 export const ANDROID_CONFIG = {
@@ -253,8 +253,19 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'stepDefinitions',
     message: 'Where are your step definitions located?',
-    default: './features/step-definitions',
+    default: './features/step-definitions/steps.js',
     when: /* istanbul ignore next */ (answers) => answers.framework.includes('cucumber')
+}, {
+    type: 'confirm',
+    name: 'generateTestFiles',
+    message: 'Do you want WebdriverIO to autogenerate some test files?',
+    default: true
+}, {
+    type: 'confirm',
+    name: 'usePageObjects',
+    message: 'Do you want to use Page Objects (https://martinfowler.com/bliki/PageObject.html)?',
+    default: true,
+    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles
 }, {
     type: 'list',
     name: 'isUsingCompiler',
