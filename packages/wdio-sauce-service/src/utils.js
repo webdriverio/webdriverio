@@ -41,3 +41,24 @@ export function isUnifiedPlatform({ deviceName = '', platformName = '' }){
     // If the string contains `simulator` or `emulator` it's a EMU/SIM session
     return !deviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
 }
+
+/** Ensure capabilities are in the correct format for Sauce Labs
+ * @param {string} tunnelIdentifier - The default Sauce Connect tunnel identifier
+ * @param {object} options - Additional options to set on the capability
+ * @returns {function(object): void} - A function that mutates a single capability
+ */
+export function makeCapabilityFactory(tunnelIdentifier, options) {
+    return capability => {
+        if (!capability['sauce:options']) {
+            capability['sauce:options'] = {}
+        }
+
+        Object.assign(capability, options)
+        capability['sauce:options'].tunnelIdentifier = (
+            capability.tunnelIdentifier ||
+            capability['sauce:options'].tunnelIdentifier ||
+            tunnelIdentifier
+        )
+        delete capability.tunnelIdentifier
+    }
+}
