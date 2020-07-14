@@ -247,6 +247,7 @@ test('after for UP', () => {
     const service = new SauceService()
     global.browser.capabilities = {}
     service.updateUP = jest.fn()
+    service.isServiceEnabled = true
     service.isUP = true
     service.failures = 5
 
@@ -256,17 +257,23 @@ test('after for UP', () => {
     expect(service.updateUP).toBeCalledWith(5)
 })
 
-test('after for UP with multi remove', () => {
+test('after for UP with multi remote', () => {
     const service = new SauceService()
+    service.beforeSession(
+        { user: 'foobar', key: '123' },
+        { chromeA: {}, chromeB: {}, chromeC: {} }
+    )
     global.browser.capabilities = {}
     service.updateUP = jest.fn()
+    service.isServiceEnabled = true
     service.isUP = true
-    service.failures = 5
+    service.failures = 0
 
     global.browser.isMultiremote = true
+    global.browser.sessionId = 'foobar'
     service.after()
 
-    expect(service.updateUP).toBeCalledWith(5)
+    expect(service.updateUP).toBeCalledTimes(3)
 })
 
 test('after with bail set', () => {
@@ -330,14 +337,14 @@ test('onReload', () => {
 test('onReload with RDC', () => {
     const service = new SauceService()
     service.beforeSession({}, { testobject_api_key: 1 })
-    service.failures = 5
+    service.failures = 0
     service.updateJob = jest.fn()
 
     global.browser.isMultiremote = false
     global.browser.sessionId = 'foobar'
     service.onReload('oldbar', 'newbar')
 
-    expect(service.updateJob).toBeCalledWith('oldbar', 5, true)
+    expect(service.updateJob).toBeCalledWith('oldbar', 0, true)
 })
 
 test('onReload should not set context if no sauce user was applied', () => {
