@@ -69,7 +69,7 @@ export default class DevtoolsInterception {
                 /**
                  * when response is modified
                  */
-                if (overwrite) {
+                if (overwrite !== undefined) {
                     let newBody = overwrite
                     if (typeof overwrite === 'function') {
                         newBody = await overwrite(request, client)
