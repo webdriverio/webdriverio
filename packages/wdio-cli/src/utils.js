@@ -289,6 +289,8 @@ export async function generateTestFiles (answers) {
         path.dirname(answers.specs).replace(/\*\*$/, '')
     )
 
+    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
+
     let destPageObjectRootPath = ''
 
     const testFiles = answers.framework === 'cucumber'
@@ -300,7 +302,12 @@ export async function generateTestFiles (answers) {
             process.cwd(),
             path.dirname(answers.pages).replace(/\*\*$/, '')
         )
-        answers._relativePath = (answers.generateTestFiles && answers.usePageObjects) ? path.relative(destSpecRootPath, destPageObjectRootPath) : ''
+        answers._relativePath =
+            (answers.generateTestFiles && answers.usePageObjects)
+                ? !(answers.framework === 'cucumber')
+                    ? path.relative(destSpecRootPath, destPageObjectRootPath)
+                    : path.relative(destStepRootPath, destPageObjectRootPath)
+                :  ''
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
     }
 
@@ -338,7 +345,7 @@ export async function getAnswers(yes) {
                      * set default value if existing
                      */
                     ? typeof question.default === 'function'
-                        ? question.default()
+                        ? question.default(answers)
                         : question.default
                     : question.choices && question.choices.length
                     /**

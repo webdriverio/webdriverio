@@ -270,14 +270,12 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'pages',
     message: 'Where are your page-objects located?',
-    default: './test/pageobjects/**/*.js',
-    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles && answers.usePageObjects && answers.framework.match(/(mocha|jasmine)/)
-}, {
-    type: 'input',
-    name: 'pages',
-    message: 'Where are your page-objects located?',
-    default: './features/pageobjects/**/*.js',
-    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles && answers.usePageObjects && answers.framework.includes('cucumber')
+    default: (answers) => (
+        answers.framework.match(/(mocha|jasmine)/)
+            ? './test/pageobjects/**/*.js'
+            : './features/pageobjects/**/*.js'
+    ),
+    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles && answers.usePageObjects
 }, {
     type: 'list',
     name: 'isUsingCompiler',
