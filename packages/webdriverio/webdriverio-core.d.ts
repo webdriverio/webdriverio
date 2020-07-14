@@ -7,6 +7,11 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
 
+// See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/24419
+interface Element { }
+interface Node { }
+interface NodeListOf<TNode = Node> { }
+
 declare namespace WebdriverIO {
     type LocationParam = 'x' | 'y';
 

@@ -1,5 +1,5 @@
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote } from 'webdriverio'
+import { remote, multiremote, MockOverwriteFunction } from 'webdriverio'
 
 // An example of adding command withing ts file to WebdriverIO (async)
 declare module "webdriverio" {
