@@ -187,6 +187,8 @@ module.exports = function (docfile) {
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
         isElementScope : scope === 'element',
+        isNetworkScope : scope === 'network',
+        isMockScope : scope === 'mock'
     }
 
     return commandDescription

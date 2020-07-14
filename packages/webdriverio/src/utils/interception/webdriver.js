@@ -1,3 +1,4 @@
+import Interception from './'
 import { ERROR_REASON } from '../../constants'
 
 /**
@@ -6,18 +7,10 @@ import { ERROR_REASON } from '../../constants'
  * class uses a WebDriver extension to trigger the same behavior on a
  * compliant backend.
  */
-export default class WebDriverInterception {
-    constructor (url, filterOptions = {}) {
-        this.url = url
-        this.filterOptions = filterOptions
-        this.respondOverwrites = []
-        this.matches = []
-    }
-
-    async init (browser) {
-        const { mockId } = await browser.mockRequest(this.url, this.filterOptions)
+export default class WebDriverInterception extends Interception {
+    async init () {
+        const { mockId } = await this.browser.mockRequest(this.url, this.filterOptions)
         this.mockId = mockId
-        this.browser = browser
     }
 
     /**

@@ -55,6 +55,7 @@
     "test:unit": "jest"
   },
   "dependencies": {
+    "@types/puppeteer": "^3.0.1",
     "@wdio/config": "6.1.14",
     "@wdio/logger": "6.0.16",
     "@wdio/repl": "6.1.17",
