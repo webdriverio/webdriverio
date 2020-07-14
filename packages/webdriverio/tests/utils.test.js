@@ -1,3 +1,4 @@
+import fs from 'fs'
 import http from 'http'
 import path from 'path'
 import { ELEMENT_KEY } from '../src/constants'
@@ -31,6 +32,8 @@ jest.mock('http', () => {
         })
     }
 })
+
+jest.mock('fs')
 
 describe('utils', () => {
     describe('getElementFromResponse', () => {
@@ -458,6 +461,11 @@ describe('utils', () => {
     })
 
     describe('assertDirectoryExists', () => {
+        beforeEach(() => {
+            const fsOrig = jest.requireActual('fs')
+            fs.existsSync.mockImplementation(::fsOrig.existsSync)
+        })
+
         it('should fail if not existing directory', () => {
             expect(() => assertDirectoryExists('/i/dont/exist.png')).toThrowError(new Error('directory (/i/dont) doesn\'t exist'))
         })

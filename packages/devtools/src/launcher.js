@@ -30,7 +30,11 @@ const DEVICE_NAMES = Object.values(devicesMap).map((device) => device.name)
  * @return {object}               puppeteer browser instance
  */
 async function launchChrome (capabilities) {
-    const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
+    if (!capabilities[VENDOR_PREFIX.chrome]) {
+        capabilities[VENDOR_PREFIX.chrome] = {}
+    }
+
+    const chromeOptions = capabilities[VENDOR_PREFIX.chrome]
     const mobileEmulation = chromeOptions.mobileEmulation || {}
     const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 

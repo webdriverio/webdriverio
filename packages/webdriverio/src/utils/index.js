@@ -11,13 +11,13 @@ import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
 import isPlainObject from 'lodash.isplainobject'
 
-import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from './constants'
-import { findStrategy } from './utils/findStrategy'
-import { getNetwork } from './utils/getNetworkObject'
+import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
+import { findStrategy } from './findStrategy'
+import { getNetwork } from './getNetworkObject'
 
-const browserCommands = require('./commands/browser')
-const elementCommands = require('./commands/element')
-const networkCommands = require('./commands/network')
+const browserCommands = require('../commands/browser')
+const elementCommands = require('../commands/element')
+const networkCommands = require('../commands/network')
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
@@ -509,4 +509,19 @@ export const updateCapabilities = async (params, automationProtocol) => {
             )
         }
     }
+}
+
+/**
+ * compare if an object (`base`) contains the same values as another object (`match`)
+ * @param {object} base  object to compare to
+ * @param {object} match object that needs to match thebase
+ */
+export const containsHeaderObject = (base, match) => {
+    for (const [key, value] of Object.entries(match)) {
+        if (typeof base[key] === 'undefined' || base[key] !== value) {
+            return false
+        }
+    }
+
+    return true
 }

@@ -7,8 +7,9 @@
  */
 import path from 'path'
 import { execSync } from 'child_process'
+import { canAccess } from '@wdio/utils'
 
-import { sort, canAccess, findByWhich } from '../utils'
+import { sort, findByWhich } from '../utils'
 
 const newLineRegex = /\r?\n/
 

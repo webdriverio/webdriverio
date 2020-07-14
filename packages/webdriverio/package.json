@@ -55,11 +55,13 @@
     "test:unit": "jest"
   },
   "dependencies": {
+    "@types/puppeteer": "^3.0.1",
     "@wdio/config": "6.1.14",
     "@wdio/logger": "6.0.16",
     "@wdio/repl": "6.1.17",
     "@wdio/utils": "6.1.17",
     "archiver": "^4.0.1",
+    "atob": "^2.1.2",
     "css-value": "^0.0.1",
     "devtools": "6.1.22",
     "get-port": "^5.1.1",
@@ -68,6 +70,7 @@
     "lodash.isobject": "^3.0.2",
     "lodash.isplainobject": "^4.0.6",
     "lodash.zip": "^4.2.0",
+    "minimatch": "^3.0.4",
     "puppeteer-core": "^3.3.0",
     "resq": "^1.6.0",
     "rgb2hex": "^0.2.0",

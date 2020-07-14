@@ -18,6 +18,7 @@ beforeEach(() => {
     yarnInstall.mockClear()
     errorLogSpy = jest.spyOn(console, 'error')
     consoleLogSpy = jest.spyOn(console, 'log')
+    consoleLogSpy.mockClear()
 })
 
 afterEach(() => {
@@ -45,7 +46,7 @@ test('it should properly build command', () => {
 })
 
 test('should log error if creating config file fails', async () => {
-    renderConfigurationFile.mockReturnValue(Promise.reject(new Error('boom!')))
+    renderConfigurationFile.mockReturnValueOnce(Promise.reject(new Error('boom!')))
     await handler({})
     expect(errorLogSpy).toHaveBeenCalledTimes(1)
 })
@@ -60,7 +61,7 @@ test('installs @wdio/sync if user requests to run in sync mode', async () => {
     }))
     await handler({})
     expect(yarnInstall).toHaveBeenCalledWith({
-        deps: [undefined, undefined, '@wdio/sync'],
+        deps: ['@wdio/local-runner', undefined, '@wdio/sync'],
         dev: true,
         respectNpm5: true
     })
@@ -78,7 +79,7 @@ test('it should install with yarn when flag is passed', async () => {
 
 test('should throw an error if something goes wrong', async () => {
     expect.assertions(1)
-    yarnInstall.mockReturnValue({ status: 1, stderr: 'uups' })
+    yarnInstall.mockReturnValueOnce({ status: 1, stderr: 'uups' })
 
     try {
         await handler({})
@@ -89,7 +90,7 @@ test('should throw an error if something goes wrong', async () => {
     }
 })
 
-test.only('prints TypeScript setup message', async () => {
+test('prints TypeScript setup message', async () => {
     convertPackageHashToObject.mockImplementation((input) => input)
     inquirer.prompt.mockReturnValue(Promise.resolve({
         executionMode: 'sync',
