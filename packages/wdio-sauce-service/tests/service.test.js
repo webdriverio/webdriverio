@@ -1,6 +1,7 @@
 import got from 'got'
 
 import SauceService from '../src'
+import { isUnifiedPlatform } from '../src/utils'
 
 const uri = '/some/uri'
 const featureObject = {
@@ -52,12 +53,16 @@ test('constructor should set setJobNameInBeforeSuite', () => {
     expect(service.options.setJobNameInBeforeSuite).toBeTruthy()
 })
 
+jest.mock('../src/utils', () => {
+    return {
+        isUnifiedPlatform: jest.fn().mockReturnValue(true),
+    }
+})
+
 test('before should call isUnifiedPlatform', () => {
     const service = new SauceService()
-    global.browser.capabilities = {}
-    service.isUnifiedPlatform = jest.fn()
     service.before()
-    expect(service.isUnifiedPlatform).toBeCalledTimes(1)
+    expect(isUnifiedPlatform).toBeCalledTimes(1)
 })
 
 test('beforeSuite', () => {
@@ -564,41 +569,6 @@ test('getBody without multiremote', () => {
         'custom-data': { some: 'data' },
         passed: true
     })
-})
-
-test('isUnifiedPlatform should be false for no provided deviceName and platformName', () => {
-    const service = new SauceService()
-    expect(service.isUnifiedPlatform({})).toEqual(false)
-})
-
-test('isUnifiedPlatform should be false for a non matching deviceName', () => {
-    const service = new SauceService()
-    expect(service.isUnifiedPlatform({ deviceName: 'foo' })).toEqual(false)
-})
-
-test('isUnifiedPlatform should be false for a non matching platformName', () => {
-    const service = new SauceService()
-    expect(service.isUnifiedPlatform({ platformName: 'foo' })).toEqual(false)
-})
-
-test('isUnifiedPlatform should be false for an emulator test', () => {
-    const service = new SauceService()
-    expect(service.isUnifiedPlatform({ deviceName: 'Google Pixel emulator', platformName: 'Android' })).toEqual(false)
-})
-
-test('isUnifiedPlatform should be false for a simulator test', () => {
-    const service = new SauceService()
-    expect(service.isUnifiedPlatform({ deviceName: 'iPhone XS simulator', platformName: 'iOS' })).toEqual(false)
-})
-
-test('isUnifiedPlatform should be true for a real device iOS test', () => {
-    const service = new SauceService()
-    expect(service.isUnifiedPlatform({ deviceName: 'iPhone XS', platformName: 'iOS' })).toEqual(true)
-})
-
-test('isUnifiedPlatform should be true for real device Android test', () => {
-    const service = new SauceService()
-    expect(service.isUnifiedPlatform({ deviceName: 'Google Pixel', platformName: 'Android' })).toEqual(true)
 })
 
 test('updateUP should set job status to false', () => {
