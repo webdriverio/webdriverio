@@ -19,7 +19,9 @@ exports.generateWdioDocs = (sidebars) => {
     const COMMAND_DIR = path.join(__dirname, '..', '..', 'packages', 'webdriverio', 'src', 'commands')
     const COMMANDS = {
         browser: fs.readdirSync(path.join(COMMAND_DIR, 'browser')),
-        element: fs.readdirSync(path.join(COMMAND_DIR, 'element'))
+        element: fs.readdirSync(path.join(COMMAND_DIR, 'element')),
+        network: fs.readdirSync(path.join(COMMAND_DIR, 'network')),
+        mock: fs.readdirSync(path.join(COMMAND_DIR, 'mock'))
     }
 
     for (const [scope, files] of Object.entries(COMMANDS)) {

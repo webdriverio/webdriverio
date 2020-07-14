@@ -1,4 +1,5 @@
 import allure from '@wdio/allure-reporter'
+import { MockOverwrite, MockOverwriteFunction } from '@wdio/sync'
 
 // An example of adding command withing ts file with @wdio/sync
 declare module "@wdio/sync" {
@@ -176,5 +177,38 @@ browser.isIOS
 
 // allure-reporter
 allure.addFeature('')
+
+// network mocking
+browser.network.throttle()
+browser.network.mock('**/image.jpg')
+const mock = browser.network.mock('**/image.jpg', {
+    method: 'get',
+    headers: { foo: 'bar' }
+})
+mock.abort('Aborted')
+mock.abortOnce('AccessDenied')
+mock.clear()
+mock.respond('/other/resource.jpg')
+mock.respond('/other/resource.jpg', {
+    statusCode: 100,
+    headers: { foo: 'bar' }
+})
+const res: MockOverwriteFunction = async function (req, client) {
+    const url:string = req.url
+    await client.send('foo', { bar: 1 })
+    return url
+}
+mock.respond(res)
+mock.respond(async (req, client) => {
+    const url:string = req.url
+    await client.send('foo', { bar: 1 })
+    return true
+})
+mock.respondOnce('/other/resource.jpg')
+mock.respondOnce('/other/resource.jpg', {
+    statusCode: 100,
+    headers: { foo: 'bar' }
+})
+mock.restore()
 
 export default {}
