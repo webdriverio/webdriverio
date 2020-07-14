@@ -1,6 +1,5 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
-import { devicesMap } from 'puppeteer-core/DeviceDescriptors'
 import logger from '@wdio/logger'
 
 import browserFinder from './finder'
@@ -22,6 +21,7 @@ import {
 
 const log = logger('devtools')
 
+const devicesMap = puppeteer.devices
 const DEVICE_NAMES = Object.values(devicesMap).map((device) => device.name)
 
 /**
