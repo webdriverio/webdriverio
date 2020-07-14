@@ -269,13 +269,15 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'input',
     name: 'pages',
-    message: 'Where are your page-objects located?',
-    default: (answers) => (
-        answers.framework.match(/(mocha|jasmine)/)
-            ? './test/pageobjects/**/*.js'
-            : './features/pageobjects/**/*.js'
-    ),
-    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles && answers.usePageObjects
+    message: 'Where are your test page-objects located?',
+    default: './test/pageobjects/**/*.js',
+    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles && answers.framework.match(/(mocha|jasmine)/)
+}, {
+    type: 'input',
+    name: 'pages',
+    message: 'Where are your test page-objects located?',
+    default: './feature/pageobjects/**/*.js',
+    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles && answers.framework.includes('cucumber')
 }, {
     type: 'list',
     name: 'isUsingCompiler',

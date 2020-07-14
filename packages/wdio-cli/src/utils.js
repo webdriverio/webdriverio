@@ -345,7 +345,7 @@ export async function getAnswers(yes) {
                      * set default value if existing
                      */
                     ? typeof question.default === 'function'
-                        ? question.default(answers)
+                        ? question.default()
                         : question.default
                     : question.choices && question.choices.length
                     /**
