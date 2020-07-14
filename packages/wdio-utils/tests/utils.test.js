@@ -209,3 +209,15 @@ describe('utils:canAccess', () => {
         expect(canAccess('/foobar')).toBe(false)
     })
 })
+
+describe('utils:canAccess', () => {
+    it('canAccess', () => {
+        expect(canAccess('/foobar')).toBe(true)
+        expect(fs.accessSync).toBeCalledWith('/foobar')
+
+        fs.accessSync.mockImplementation(() => {
+            throw new Error('upps')
+        })
+        expect(canAccess('/foobar')).toBe(false)
+    })
+})
