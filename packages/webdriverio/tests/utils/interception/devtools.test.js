@@ -1,3 +1,5 @@
+import { canAccess } from '@wdio/utils'
+
 import NetworkInterception from '../../../src/utils/interception/devtools'
 
 const cdpClient = {
@@ -148,6 +150,7 @@ test('stub request with a text', async () => {
 test('stub request with a file', async () => {
     const mock = new NetworkInterception('**/foobar/**')
     mock.respond(__filename)
+    canAccess.mockImplementation(() => true)
     await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
         requestId: 123,
         request: { url: 'http://test.com/foobar/test.html' },

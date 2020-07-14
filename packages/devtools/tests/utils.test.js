@@ -1,4 +1,3 @@
-import fs from 'fs'
 import path from 'path'
 // eslint-disable-next-line
 import { log as pptrDebugLog } from 'pptrDebug'
@@ -8,6 +7,7 @@ import {
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
     uniq, findByWhich, patchDebug
 } from '../src/utils'
+import { canAccess } from '@wdio/utils'
 
 const debug = jest.requireActual('debug')
 
@@ -348,7 +348,7 @@ test('uniq', () => {
 })
 
 test('findByWhich', () => {
-    fs.shouldThrow(false)
+    canAccess.mockImplementation(() => true)
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual([])
 
@@ -356,7 +356,9 @@ test('findByWhich', () => {
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual(['/path/to/other/firefox'])
 
-    fs.shouldThrow(true)
+    canAccess.mockImplementation(() => {
+        throw new Error('uups')
+    })
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual([])
 })
