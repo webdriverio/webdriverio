@@ -29,7 +29,7 @@
  * </example>
  *
  * @alias mock.respond
- * @param {object|string}       overwrites  payload to overwrite the response
+ * @param {MockOverwrite}       overwrites  payload to overwrite the response
  * @param {MockResponseParams=} params      additional respond parameters to overwrite
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception

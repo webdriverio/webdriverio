@@ -1,6 +1,8 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
 
+import { CDPSession } from '@types/puppeteer'
+
 declare namespace WebdriverIO {
     type LocationParam = 'x' | 'y';
 
@@ -429,14 +431,65 @@ declare namespace WebdriverIO {
         y: number
     }
 
+    /**
+     * HTTP request data. (copied from the puppeteer-core package as there is currently
+     * no way to access these types otherwise)
+     */
+    type ResourcePriority = 'VeryLow' | 'Low' | 'Medium' | 'High' | 'VeryHigh';
+    interface Request {
+        /**
+         * Request URL (without fragment).
+         */
+        url: string;
+        /**
+         * Fragment of the requested URL starting with hash, if present.
+         */
+        urlFragment?: string;
+        /**
+         * HTTP request method.
+         */
+        method: string;
+        /**
+         * HTTP request headers.
+         */
+        headers: Record<string, string>;
+        /**
+         * HTTP POST request data.
+         */
+        postData?: string;
+        /**
+         * True when the request has POST data. Note that postData might still be omitted when this flag is true when the data is too long.
+         */
+        hasPostData?: boolean;
+        /**
+         * The mixed content type of the request.
+         */
+        mixedContentType?: 'blockable' | 'optionally-blockable' | 'none';
+        /**
+         * Priority of the resource request at the time request is sent.
+         */
+        initialPriority: ResourcePriority;
+        /**
+         * The referrer policy of the request, as defined in https://www.w3.org/TR/referrer-policy/
+         */
+        referrerPolicy: 'unsafe-url' | 'no-referrer-when-downgrade' | 'no-referrer' | 'origin' | 'origin-when-cross-origin' | 'same-origin' | 'strict-origin' | 'strict-origin-when-cross-origin';
+        /**
+         * Whether is loaded via link preload.
+         */
+        isLinkPreload?: boolean;
+    }
+
+    type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>
+    type MockOverwrite = string | Record<string, any> | MockOverwriteFunction
+
     type MockResponseParams = {
         statusCode?: number,
-        headers?: object
+        headers?: Record<string, string>
     }
 
     type MockFilterOptions = {
         method?: string,
-        headers?: object
+        headers?: Record<string, string>
     }
 
     type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
