@@ -50,6 +50,10 @@ export default class SauceService {
     }
 
     beforeTest (test) {
+        /**
+         * Date:    20200714
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
         if (!this.isServiceEnabled || this.isRDC || this.isUP) {
             return
         }
@@ -93,6 +97,10 @@ export default class SauceService {
      * For CucumberJS
      */
     beforeFeature (uri, feature) {
+        /**
+         * Date:    20200714
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
         if (!this.isServiceEnabled || this.isRDC || this.isUP) {
             return
         }
@@ -102,6 +110,10 @@ export default class SauceService {
     }
 
     beforeScenario (uri, feature, scenario) {
+        /**
+         * Date:    20200714
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
         if (!this.isServiceEnabled || this.isRDC || this.isUP) {
             return
         }
