@@ -409,6 +409,7 @@ describe('generateTestFiles', () => {
             specs: './tests/e2e/**/*.js',
             framework: 'mocha',
             usePageObjects: true,
+            generateTestFiles: true,
             pages: './tests/page/objects/model/*.js',
         }
 
@@ -449,29 +450,30 @@ describe('generateTestFiles', () => {
             .toBe(true)
     })
 
-    it('Jasmine without page objects', async () => {
-        readDir.mockReturnValue(Promise.resolve([
-            '/foo/bar/example.e2e.js'
-        ]))
-        const answers = {
-            specs: './tests/e2e/**/*.js',
-            framework: 'jasmine',
-            usePageObjects: false,
-        }
-
-        await generateTestFiles(answers)
-
-        expect(readDir).toBeCalledTimes(1)
-        expect(readDir.mock.calls[0][0]).toContain('mochaJasmine')
-    })
-
-    it('Jasmine without page generation', async () => {
+    it('Jasmine with page generation and no pageObjects', async () => {
         readDir.mockReturnValue(Promise.resolve([
         ]))
         const answers = {
             specs: './tests/e2e/**/*.js',
             framework: 'jasmine',
             generateTestFiles: false,
+            usePageObjects: false,
+        }
+
+        await generateTestFiles(answers)
+
+        expect(readDir).toBeCalledTimes(1)
+        expect(ejs.renderFile).toBeCalledTimes(0)
+    })
+
+    it('Cucumber with page generation and no pageObjects', async () => {
+        readDir.mockReturnValue(Promise.resolve([
+        ]))
+        const answers = {
+            specs: './tests/e2e/**/*.js',
+            framework: 'cucumber',
+            generateTestFiles: false,
+            usePageObjects: false,
         }
 
         await generateTestFiles(answers)
@@ -489,7 +491,8 @@ describe('generateTestFiles', () => {
             specs: './tests/e2e/*.js',
             framework: 'cucumber',
             stepDefinitions: '/some/step/defs',
-            usePageObjects: false
+            usePageObjects: false,
+            generateTestFiles: true
         }
         await generateTestFiles(answers)
 
