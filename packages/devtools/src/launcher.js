@@ -21,8 +21,7 @@ import {
 
 const log = logger('devtools')
 
-const devicesMap = puppeteer.devices
-const DEVICE_NAMES = Object.values(devicesMap).map((device) => device.name)
+const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.name)
 
 /**
  * launches Chrome and returns a Puppeteer browser instance
@@ -35,7 +34,7 @@ async function launchChrome (capabilities) {
     const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
     if (typeof mobileEmulation.deviceName === 'string') {
-        const deviceProperties = Object.values(devicesMap).find(device => device.name === mobileEmulation.deviceName)
+        const deviceProperties = Object.values(puppeteer.devices).find(device => device.name === mobileEmulation.deviceName)
 
         if (!deviceProperties) {
             throw new Error(`Unknown device name "${mobileEmulation.deviceName}", available: ${DEVICE_NAMES.join(', ')}`)
