@@ -2,18 +2,19 @@
   "scripts": {
     "examples": "docusaurus-examples",
     "start": "cd .. && npm run docs:generate && cd ./website && npx run-p start:*",
-    "start:docusaurus": "docusaurus-start",
+    "start:docusaurus": "docusaurus start",
     "start:css": "sass --watch ./static/styles/index.scss:./static/css/index.css",
     "build": "run-s build:*",
     "build:css": "sass --style compressed ./static/styles/index.scss ./static/css/index.css",
-    "build:docusaurus": "docusaurus-build",
-    "write-translations": "docusaurus-write-translations",
-    "version": "docusaurus-version",
-    "rename-version": "docusaurus-rename-version",
-    "publish-gh-pages": "docusaurus-publish"
+    "build:docusaurus": "docusaurus build",
+    "write-translations": "docusaurus write-translations",
+    "version": "docusaurus version",
+    "rename-version": "docusaurus rename-version",
+    "publish-gh-pages": "docusaurus publish"
   },
   "devDependencies": {
-    "docusaurus": "^1.12.0",
+    "@docusaurus/core": "^2.0.0-alpha.48",
+    "@docusaurus/preset-classic": "^2.0.0-alpha.48",
     "eslint": "^6.3.0",
     "eslint-plugin-react": "^7.14.3"
   },
