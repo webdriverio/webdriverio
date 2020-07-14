@@ -215,6 +215,17 @@ async function bar() {
         statusCode: 100,
         headers: { foo: 'bar' }
     })
+    const res: MockOverwriteFunction = async function (req, client) {
+        const url:string = req.url
+        await client.send('foo', { bar: 1 })
+        return url
+    }
+    mock.respond(res)
+    mock.respond(async (req, client) => {
+        const url:string = req.url
+        await client.send('foo', { bar: 1 })
+        return true
+    })
     mock.respondOnce('/other/resource.jpg')
     mock.respondOnce('/other/resource.jpg', {
         statusCode: 100,

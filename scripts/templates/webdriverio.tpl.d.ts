@@ -1,8 +1,6 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
 
-import { CDPSession } from '@types/puppeteer'
-
 declare namespace WebdriverIO {
     type LocationParam = 'x' | 'y';
 
@@ -436,6 +434,8 @@ declare namespace WebdriverIO {
      * no way to access these types otherwise)
      */
     type ResourcePriority = 'VeryLow' | 'Low' | 'Medium' | 'High' | 'VeryHigh';
+    type MixedContentType = 'blockable' | 'optionally-blockable' | 'none';
+    type ReferrerPolicy = 'unsafe-url' | 'no-referrer-when-downgrade' | 'no-referrer' | 'origin' | 'origin-when-cross-origin' | 'same-origin' | 'strict-origin' | 'strict-origin-when-cross-origin';
     interface Request {
         /**
          * Request URL (without fragment).
@@ -464,7 +464,7 @@ declare namespace WebdriverIO {
         /**
          * The mixed content type of the request.
          */
-        mixedContentType?: 'blockable' | 'optionally-blockable' | 'none';
+        mixedContentType?: MixedContentType;
         /**
          * Priority of the resource request at the time request is sent.
          */
@@ -472,15 +472,16 @@ declare namespace WebdriverIO {
         /**
          * The referrer policy of the request, as defined in https://www.w3.org/TR/referrer-policy/
          */
-        referrerPolicy: 'unsafe-url' | 'no-referrer-when-downgrade' | 'no-referrer' | 'origin' | 'origin-when-cross-origin' | 'same-origin' | 'strict-origin' | 'strict-origin-when-cross-origin';
+        referrerPolicy: ReferrerPolicy;
         /**
          * Whether is loaded via link preload.
          */
         isLinkPreload?: boolean;
     }
 
-    type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>
-    type MockOverwrite = string | Record<string, any> | MockOverwriteFunction
+    type CDPSession = Partial<import('puppeteer').CDPSession>;
+    type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
+    type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
 
     type MockResponseParams = {
         statusCode?: number,
