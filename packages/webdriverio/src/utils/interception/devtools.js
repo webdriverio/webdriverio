@@ -4,7 +4,7 @@ import atob from 'atob'
 import minimatch from 'minimatch'
 import { canAccess } from '@wdio/utils'
 
-import { containsObject } from '..'
+import { containsHeaderObject } from '..'
 import { ERROR_REASON } from '../../constants'
 
 export default class DevtoolsInterception {
@@ -39,7 +39,7 @@ export default class DevtoolsInterception {
                      * HTTP method
                      */
                     (mock.filterOptions.method && mock.filterOptions.method.toLowerCase() !== request.method.toLowerCase()) ||
-                    (mock.filterOptions.headers && containsObject(responseHeaders, mock.filterOptions.headers))
+                    (mock.filterOptions.headers && containsHeaderObject(responseHeaders, mock.filterOptions.headers))
                 ) {
                     continue
                 }
@@ -70,13 +70,13 @@ export default class DevtoolsInterception {
                  * when response is modified
                  */
                 if (overwrite) {
-                    let body = overwrite
+                    let newBody = overwrite
                     if (typeof overwrite === 'function') {
-                        body = await overwrite(request, client)
+                        newBody = await overwrite(request, client)
                     }
 
-                    if (typeof body !== 'string') {
-                        body = JSON.stringify(body)
+                    if (typeof newBody !== 'string') {
+                        newBody = JSON.stringify(newBody)
                     }
 
                     let responseCode = params.statusCode || event.responseStatusCode
@@ -88,20 +88,20 @@ export default class DevtoolsInterception {
                     /**
                      * check if local file and load it
                      */
-                    const responseFilePath = path.isAbsolute(body) ? body : path.join(process.cwd(), body)
+                    const responseFilePath = path.isAbsolute(newBody) ? newBody : path.join(process.cwd(), newBody)
                     if (fs.existsSync(responseFilePath) && canAccess(responseFilePath)) {
-                        body = fs.readFileSync(responseFilePath).toString()
-                    } else if (body.startsWith('http')) {
+                        newBody = fs.readFileSync(responseFilePath).toString()
+                    } else if (newBody.startsWith('http')) {
                         responseCode = 301
-                        responseHeaders.push({ name: 'Location', value: body })
+                        responseHeaders.push({ name: 'Location', value: newBody })
                     }
 
-                    request.mockedResponse = body
+                    request.mockedResponse = newBody
                     return client.send('Fetch.fulfillRequest', {
                         requestId,
                         responseCode,
                         responseHeaders,
-                        body: Buffer.from(body).toString('base64')
+                        body: Buffer.from(newBody).toString('base64')
                     })
                 }
 

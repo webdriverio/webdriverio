@@ -516,7 +516,7 @@ export const updateCapabilities = async (params, automationProtocol) => {
  * @param {object} base  object to compare to
  * @param {object} match object that needs to match thebase
  */
-export const containsObject = (base, match) => {
+export const containsHeaderObject = (base, match) => {
     for (const [key, value] of Object.entries(match)) {
         if (typeof base[key] === 'undefined' || base[key] !== value) {
             return false
