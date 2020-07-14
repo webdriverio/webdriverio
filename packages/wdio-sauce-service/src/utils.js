@@ -1,3 +1,5 @@
+import { isW3C } from '@wdio/utils'
+
 /**
  * Determine if the current instance is a Unified Platform instance
  * @param {string} deviceName
@@ -53,6 +55,7 @@ export function makeCapabilityFactory(tunnelIdentifier, options) {
         // we need to make sure the key 'sauce:options' is not present
         const isLegacy = Boolean(
             (capability.platform || capability.version) &&
+            !isW3C(capability) &&
             !capability['sauce:options']
         )
 
