@@ -37,15 +37,19 @@ export default class SauceService {
         }
     }
 
+    before() {
+        this.isUP = this.isUnifiedPlatform(global.browser.capabilities)
+    }
+
     beforeSuite (suite) {
         this.suiteTitle = suite.title
-        if (this.options.setJobNameInBeforeSuite) {
+        if (this.options.setJobNameInBeforeSuite && !this.isUP) {
             global.browser.execute('sauce:job-name=' + this.suiteTitle)
         }
     }
 
     beforeTest (test) {
-        if (!this.isServiceEnabled || this.isRDC) {
+        if (!this.isServiceEnabled || this.isRDC || this.isUP) {
             return
         }
 
@@ -88,7 +92,7 @@ export default class SauceService {
      * For CucumberJS
      */
     beforeFeature (uri, feature) {
-        if (!this.isServiceEnabled || this.isRDC) {
+        if (!this.isServiceEnabled || this.isRDC || this.isUP) {
             return
         }
 
@@ -97,7 +101,7 @@ export default class SauceService {
     }
 
     beforeScenario (uri, feature, scenario) {
-        if (!this.isServiceEnabled || this.isRDC) {
+        if (!this.isServiceEnabled || this.isRDC || this.isUP) {
             return
         }
 
@@ -130,15 +134,14 @@ export default class SauceService {
         }
 
         const status = 'status: ' + (failures > 0 ? 'failing' : 'passing')
-
         if (!global.browser.isMultiremote) {
             log.info(`Update job with sessionId ${global.browser.sessionId}, ${status}`)
-            return this.updateJob(global.browser.sessionId, failures)
+            return this.isUP ? this.updateUP(failures) : this.updateJob(global.browser.sessionId, failures)
         }
 
         return Promise.all(Object.keys(this.capabilities).map((browserName) => {
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${global.browser[browserName].sessionId}, ${status}`)
-            return this.updateJob(global.browser[browserName].sessionId, failures, false, browserName)
+            return this.isUP ? this.updateUP(failures) : this.updateJob(global.browser[browserName].sessionId, failures, false, browserName)
         }))
     }
 
@@ -212,5 +215,58 @@ export default class SauceService {
 
         body.passed = failures === 0
         return body
+    }
+
+    /**
+     * Determine if the current instance is a Unified Platform instance
+     * @param {string} deviceName
+     * @param {string} platformName
+     * @returns {boolean}
+     *
+     * This is what we get back from the UP (for now)
+     *
+     * capabilities =  {
+     *  webStorageEnabled: false,
+     *  locationContextEnabled: false,
+     *  browserName: 'safari',
+     *  platform: 'MAC',
+     *  javascriptEnabled: true,
+     *  databaseEnabled: false,
+     *  takesScreenshot: true,
+     *  networkConnectionEnabled: false,
+     *  platformVersion: '12.1.2',
+     *  webDriverAgentUrl: 'http://127.0.0.1:5700',
+     *  testobject_platform_name: 'iOS',
+     *  orientation: 'PORTRAIT',
+     *  realDevice: true,
+     *  build: 'Sauce Real Device browser iOS - 1594732389756',
+     *  commandTimeouts: { default: 60000 },
+     *  testobject_device: 'iPhone_XS_ws',
+     *  automationName: 'XCUITest',
+     *  platformName: 'iOS',
+     *  udid: '',
+     *  deviceName: '',
+     *  testobject_test_report_api_url: '',
+     *  testobject_test_report_url: '',
+     *  testobject_user_id: 'wim.selles',
+     *  testobject_project_id: 'saucelabs-default',
+     *  testobject_test_report_id: 51,
+     *  testobject_device_name: 'iPhone XS',
+     *  testobject_device_session_id: '',
+     *  deviceContextId: ''
+     * }
+     */
+    isUnifiedPlatform({ deviceName = '', platformName = '' }){
+        // If the string contains `simulator` or `emulator` it's a EMU/SIM session
+        return !deviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+    }
+
+    /**
+     * Update the UP with the JS-executor
+     * @param {number} failures
+     * @returns {*}
+     */
+    updateUP(failures){
+        return global.browser.execute(`sauce:job-result=${failures === 0}`)
     }
 }
