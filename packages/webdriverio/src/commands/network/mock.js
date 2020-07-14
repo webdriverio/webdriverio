@@ -1,4 +1,6 @@
 /**
+ * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+ *
  * Mock the response of a request. You can define a mock based on a matching
  * glob and corresponding header and status code. Calling the mock method
  * returns a stub object that you can use to modify the response of the

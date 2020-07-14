@@ -1,10 +1,9 @@
 ---
 id: mocksandspies
-title: Mocks and Spies
+title: Mocks and Spies (Beta)
 ---
 
-> This feature was introduced with WebdriverIO v6.2 and is only supported running
-  tests locally on __Chrome__, __Firefox Nightly__ or __Edge (Chromium)__ as well as on [Sauce Labs](https://saucelabs.com/)
+> This feature was introduced with WebdriverIO v6.2 as a __beta__ and is only supported running tests locally on __Chrome__, __Firefox Nightly__ or __Edge (Chromium)__ as well as on [Sauce Labs](https://saucelabs.com/). If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know!
 
 WebdriverIO comes with built in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. You can define custom responses for web resources like REST API requests in your test and modify them dynamically.
 
