@@ -2424,6 +2424,34 @@ declare namespace WebDriver {
          * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
          */
         jankinessCheck(): ProtocolCommandResponse;
+
+        /**
+         * [saucelabs]
+         * Mocks a network resource.
+         * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
+         */
+        mockRequest(url: string, filterOptions?: object): ProtocolCommandResponse;
+
+        /**
+         * [saucelabs]
+         * Receive request information about requests that match the mocked resource.
+         * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
+         */
+        getMockCalls(mockId: string): ProtocolCommandResponse;
+
+        /**
+         * [saucelabs]
+         * Clear list of mock calls.
+         * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
+         */
+        clearMockCalls(mockId: string, restore: boolean): void;
+
+        /**
+         * [saucelabs]
+         * Respond if mock matches a specific resource.
+         * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
+         */
+        respondMock(mockId: string, payload: object): void;
     }
 
     // selenium types

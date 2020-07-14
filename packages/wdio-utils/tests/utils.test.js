@@ -1,7 +1,11 @@
+import fs from 'fs'
+
 import {
-    overwriteElementCommands, commandCallStructure, isValidParameter,
+    overwriteElementCommands, commandCallStructure, isValidParameter, canAccess,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult
 } from '../src/utils'
+
+jest.mock('fs')
 
 describe('utils', () => {
     it('commandCallStructure', () => {
@@ -191,5 +195,17 @@ describe('utils:isBase64', () => {
     })
     it('should throw if input type not a string', () => {
         expect(() => isBase64(null)).toThrow('Expected string but received invalid type.')
+    })
+})
+
+describe('utils:canAccess', () => {
+    it('canAccess', () => {
+        expect(canAccess('/foobar')).toBe(true)
+        expect(fs.accessSync).toBeCalledWith('/foobar')
+
+        fs.accessSync.mockImplementation(() => {
+            throw new Error('upps')
+        })
+        expect(canAccess('/foobar')).toBe(false)
     })
 })

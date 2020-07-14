@@ -7,6 +7,11 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
 
+// See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/24419
+interface Element { }
+interface Node { }
+interface NodeListOf<TNode = Node> { }
+
 declare namespace WebdriverIO {
     type LocationParam = 'x' | 'y';
 
@@ -435,6 +440,72 @@ declare namespace WebdriverIO {
         y: number
     }
 
+    /**
+     * HTTP request data. (copied from the puppeteer-core package as there is currently
+     * no way to access these types otherwise)
+     */
+    type ResourcePriority = 'VeryLow' | 'Low' | 'Medium' | 'High' | 'VeryHigh';
+    type MixedContentType = 'blockable' | 'optionally-blockable' | 'none';
+    type ReferrerPolicy = 'unsafe-url' | 'no-referrer-when-downgrade' | 'no-referrer' | 'origin' | 'origin-when-cross-origin' | 'same-origin' | 'strict-origin' | 'strict-origin-when-cross-origin';
+    interface Request {
+        /**
+         * Request URL (without fragment).
+         */
+        url: string;
+        /**
+         * Fragment of the requested URL starting with hash, if present.
+         */
+        urlFragment?: string;
+        /**
+         * HTTP request method.
+         */
+        method: string;
+        /**
+         * HTTP request headers.
+         */
+        headers: Record<string, string>;
+        /**
+         * HTTP POST request data.
+         */
+        postData?: string;
+        /**
+         * True when the request has POST data. Note that postData might still be omitted when this flag is true when the data is too long.
+         */
+        hasPostData?: boolean;
+        /**
+         * The mixed content type of the request.
+         */
+        mixedContentType?: MixedContentType;
+        /**
+         * Priority of the resource request at the time request is sent.
+         */
+        initialPriority: ResourcePriority;
+        /**
+         * The referrer policy of the request, as defined in https://www.w3.org/TR/referrer-policy/
+         */
+        referrerPolicy: ReferrerPolicy;
+        /**
+         * Whether is loaded via link preload.
+         */
+        isLinkPreload?: boolean;
+    }
+
+    type CDPSession = Partial<import('puppeteer').CDPSession>;
+    type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
+    type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
+
+    type MockResponseParams = {
+        statusCode?: number,
+        headers?: Record<string, string>
+    }
+
+    type MockFilterOptions = {
+        method?: string,
+        headers?: Record<string, string>
+    }
+
+    type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
+
     interface Element {
         selector: string;
         elementId: string;
@@ -813,6 +884,71 @@ declare namespace WebdriverIO {
         ): Promise<boolean>;
     }
 
+    interface Network {
+        
+        /**
+         * Mock the response of a request. You can define a mock based on a matching
+         * glob and corresponding header and status code. Calling the mock method
+         * returns a stub object that you can use to modify the response of the
+         * web resource.
+         */
+        mock(
+            url: string,
+            filterOptions?: MockFilterOptions
+        ): Promise<Mock>;
+
+        /**
+         * some description
+         */
+        throttle(): Promise<void>;
+    }
+
+    interface Mock {
+        
+        /**
+         * Abort the request with an error code.
+         */
+        abort(
+            errorCode: ErrorCode
+        ): Promise<void>;
+
+        /**
+         * Abort the request once with an error code.
+         */
+        abortOnce(
+            errorCode: ErrorCode
+        ): Promise<void>;
+
+        /**
+         * Resets all information stored in the `mock.calls` array.
+         */
+        clear(): Promise<void>;
+
+        /**
+         * Always respond with same overwrite.
+         */
+        respond(
+            overwrites: MockOverwrite,
+            params?: MockResponseParams
+        ): Promise<void>;
+
+        /**
+         * Only respond once with given overwrite. You can call `respondOnce` multiple
+         * consecutive times and it will start with the respond you defined last. If you
+         * only use `respondOnce` and the resource is called more times a mock has been
+         * defined than it defaults back to the original resource.
+         */
+        respondOnce(
+            overwrites: MockOverwrite,
+            params?: MockResponseParams
+        ): Promise<void>;
+
+        /**
+         * Does everything that `mock.clear()` does, and also removes any mocked return values or implementations.
+         */
+        restore(): Promise<void>;
+    }
+
     interface ElementArray extends Array<Element> {
         selector: string | Function;
         parent: Element | WebdriverIO.BrowserObject;
@@ -829,6 +965,7 @@ declare namespace WebdriverIO {
     interface Browser extends WebDriver.BaseClient {
         config: Config;
         options: RemoteOptions;
+        network: Network;
 
         /**
          * add command to `browser` or `element` scope

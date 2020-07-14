@@ -120,7 +120,7 @@
       "<rootDir>/node_modules/"
     ],
     "collectCoverageFrom": [
-      "packages/**/src/*.js"
+      "packages/**/src/**/*.js"
     ],
     "moduleNameMapper": {
       "graceful-fs": "<rootDir>/tests/helpers/fs.js"
@@ -139,6 +139,7 @@
     "coveragePathIgnorePatterns": [
       "node_modules/",
       "packages/devtools/src/scripts",
+      "packages/devtools/src/commands",
       "packages/webdriverio/src/scripts",
       "packages/wdio-devtools-service/src/scripts",
       "packages/webdriverio/build",

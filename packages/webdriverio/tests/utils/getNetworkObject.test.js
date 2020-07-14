@@ -73,6 +73,25 @@ describe('attach Puppeteer', () => {
         expect(puppeteer.connect.mock.calls).toMatchSnapshot()
     })
 
+    it('should fail for old Firefox version', async () => {
+        const scope = getNetwork.call({
+            ...browser,
+            capabilities: {
+                browserName: 'firefox',
+                browserVersion: '78.0b'
+            },
+            options: {
+                requestedCapabilities: {
+                    'moz:firefoxOptions': {
+                        args: ['foo', 'bar', '-remote-debugging-port', 4321, 'barfoo']
+                    }
+                }
+            }
+        })
+        const err = await scope.throttle().catch(err => err)
+        expect(err.message).toContain('Network primitives aren\'t available for this session.')
+    })
+
     it('should not re-attach if connection was already established', async () => {
         const scope = getNetwork.call({
             ...browser,
