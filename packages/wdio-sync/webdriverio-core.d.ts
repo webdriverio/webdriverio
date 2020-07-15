@@ -884,48 +884,29 @@ declare namespace WebdriverIO {
         ): boolean;
     }
 
-    interface Network {
-        
-        /**
-         * Mock the response of a request. You can define a mock based on a matching
-         * glob and corresponding header and status code. Calling the mock method
-         * returns a stub object that you can use to modify the response of the
-         * web resource.
-         */
-        mock(
-            url: string,
-            filterOptions?: MockFilterOptions
-        ): Mock;
-
-        /**
-         * some description
-         */
-        throttle(): void;
-    }
-
     interface Mock {
         
         /**
-         * Abort the request with an error code.
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
          */
         abort(
             errorCode: ErrorCode
         ): void;
 
         /**
-         * Abort the request once with an error code.
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
          */
         abortOnce(
             errorCode: ErrorCode
         ): void;
 
         /**
-         * Resets all information stored in the `mock.calls` array.
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
          */
         clear(): void;
 
         /**
-         * Always respond with same overwrite.
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
          */
         respond(
             overwrites: MockOverwrite,
@@ -933,10 +914,7 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
-         * Only respond once with given overwrite. You can call `respondOnce` multiple
-         * consecutive times and it will start with the respond you defined last. If you
-         * only use `respondOnce` and the resource is called more times a mock has been
-         * defined than it defaults back to the original resource.
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
          */
         respondOnce(
             overwrites: MockOverwrite,
@@ -944,7 +922,7 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
-         * Does everything that `mock.clear()` does, and also removes any mocked return values or implementations.
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
          */
         restore(): void;
     }
@@ -965,7 +943,6 @@ declare namespace WebdriverIO {
     interface Browser extends WebDriver.BaseClient {
         config: Config;
         options: RemoteOptions;
-        network: Network;
 
         /**
          * add command to `browser` or `element` scope
@@ -1072,6 +1049,14 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         */
+        mock(
+            url: string,
+            filterOptions?: MockFilterOptions
+        ): Mock;
+
+        /**
          * Open new window in browser. This command is the equivalent function to `window.open()`. This command does not
          * work in mobile environments.
          */
@@ -1164,6 +1149,15 @@ declare namespace WebdriverIO {
          */
         switchWindow(
             urlOrTitleToMatch: string | RegExp
+        ): void;
+
+        /**
+         * Throttle the network capabilities of the browser. This can help to
+         * emulate certain scenarios where a user looses the internet connection
+         * and your app needs to address that.
+         */
+        throttle(
+            params: throttleoptions
         ): void;
 
         /**

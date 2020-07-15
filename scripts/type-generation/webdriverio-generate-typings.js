@@ -8,7 +8,7 @@ const { buildCommand, getJsDoc } = require('./generate-typings-utils')
 const specifics = require('./specific-types.json')
 const { EDIT_WARNING } = require('../constants')
 
-const TYPING_SCOPES = ['element', 'browser', 'network', 'mock']
+const TYPING_SCOPES = ['element', 'browser', 'mock']
 const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'call']
 const INDENTATION = ' '.repeat(8)
 

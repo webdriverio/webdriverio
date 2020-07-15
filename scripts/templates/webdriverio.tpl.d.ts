@@ -535,10 +535,6 @@ declare namespace WebdriverIO {
         // ... element commands ...
     }
 
-    interface Network {
-        // ... network commands ...
-    }
-
     interface Mock {
         // ... mock commands ...
     }
@@ -559,7 +555,6 @@ declare namespace WebdriverIO {
     interface Browser extends WebDriver.BaseClient {
         config: Config;
         options: RemoteOptions;
-        network: Network;
 
         /**
          * add command to `browser` or `element` scope

@@ -5,8 +5,7 @@ import { commandCallStructure, overwriteElementCommands } from './utils'
 
 const SCOPE_TYPES = {
     'browser': /* istanbul ignore next */ function Browser () {},
-    'element': /* istanbul ignore next */ function Element () {},
-    'network': /* istanbul ignore next */ function Network () {}
+    'element': /* istanbul ignore next */ function Element () {}
 }
 
 export default function WebDriver (options, modifier, propertiesObject = {}) {

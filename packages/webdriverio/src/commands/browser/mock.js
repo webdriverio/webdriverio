@@ -72,9 +72,11 @@
  * </example>
  *
  * @alias browser.mock
- * @param {String}             url            url to mock
- * @param {MockFilterOptions=} filterOptions  more filters
- * @return {Mock}                             a mock object to modify the response
+ * @param {String}             url                    url to mock
+ * @param {MockFilterOptions=} filterOptions          filter mock resource by additional options
+ * @param {String=}            filterOptions.method   filter resource by HTTP method
+ * @param {Object=}            filterOptions.headers  filter resource by specific request headers
+ * @return {Mock}                                     a mock object to modify the response
  * @type utility
  *
  */
