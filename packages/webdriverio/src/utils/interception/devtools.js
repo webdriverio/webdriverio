@@ -41,7 +41,7 @@ export default class DevtoolsInterception extends Interception {
                 const { body, base64Encoded } = await client.send(
                     'Fetch.getResponseBody',
                     { requestId }
-                )
+                ).catch(() => ({}))
 
                 request.body = base64Encoded ? atob(body) : body
                 request.body = responseHeaders['Content-Type'] && responseHeaders['Content-Type'].includes('application/json')
@@ -74,7 +74,7 @@ export default class DevtoolsInterception extends Interception {
                     }
 
                     let responseCode = params.statusCode || event.responseStatusCode
-                    const responseHeaders = [
+                    let responseHeaders = [
                         ...event.responseHeaders,
                         ...Object.entries(params.headers || {}).map(([key, value]) => { key, value })
                     ]
@@ -87,6 +87,11 @@ export default class DevtoolsInterception extends Interception {
                         newBody = fs.readFileSync(responseFilePath).toString()
                     } else if (newBody.startsWith('http')) {
                         responseCode = 301
+                        /**
+                         * filter out possible available location header
+                         */
+                        responseHeaders = responseHeaders.filter(
+                            ({ name }) => name.toLowerCase() !== 'location')
                         responseHeaders.push({ name: 'Location', value: newBody })
                     }
 

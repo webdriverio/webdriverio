@@ -13,6 +13,19 @@ Array [
 ]
 `;
 
+exports[`stub request with a different web resource containing different location header 1`] = `
+Array [
+  Object {
+    "name": "Content-Type",
+    "value": "application/json",
+  },
+  Object {
+    "name": "Location",
+    "value": "http://json.org/image.svg",
+  },
+]
+`;
+
 exports[`stub request with a function 1`] = `
 Array [
   "Fetch.fulfillRequest",

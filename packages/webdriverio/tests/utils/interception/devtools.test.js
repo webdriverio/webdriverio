@@ -172,7 +172,21 @@ test('stub request with a different web resource', async () => {
     })
 
     expect(cdpClient.send.mock.calls.pop()[1].responseHeaders).toMatchSnapshot()
+})
 
+test('stub request with a different web resource containing different location header', async () => {
+    const mock = new NetworkInterception('**/foobar/**')
+    mock.respond('http://json.org/image.svg')
+    await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+        requestId: 123,
+        request: { url: 'http://test.com/foobar/test.html' },
+        responseHeaders: [
+            { name: 'Location', value: 'http://some.other/picture.png' },
+            { name: 'Content-Type', value: 'application/json' }
+        ]
+    })
+
+    expect(cdpClient.send.mock.calls.pop()[1].responseHeaders).toMatchSnapshot()
 })
 
 test('allows to clear mocks', async () => {

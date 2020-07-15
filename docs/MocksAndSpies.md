@@ -3,7 +3,7 @@ id: mocksandspies
 title: Mocks and Spies (Beta)
 ---
 
-> This feature was introduced with WebdriverIO v6.2 as a __beta__ and is only supported running tests locally on __Chrome__, __Firefox Nightly__ or __Edge (Chromium)__ as well as on [Sauce Labs](https://saucelabs.com/). If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know!
+> This feature was introduced with WebdriverIO v6.2 as a __beta__ and is only supported running tests locally on __Chrome__, __Firefox Nightly__ or __Edge (Chromium)__ and is planned to be supported on [Sauce Labs](https://saucelabs.com/) for the stable release. If you encounter problems using it please file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) and let us know!
 
 WebdriverIO comes with built in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. You can define custom responses for web resources like REST API requests in your test and modify them dynamically.
 
@@ -92,7 +92,7 @@ await mock.respond([{
 await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
 
 await (await browser.$('#todo-list li')).waitForExist()
-console.log(Promise.all((await $$('#todo-list li')).map(el => el.getText())))
+console.log(await Promise.all((await browser.$$('#todo-list li')).map(el => el.getText())))
 // outputs: "[ 'Injected (non) completed Todo', 'Injected completed Todo' ]"
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
@@ -122,6 +122,9 @@ If you like to modify text resources like JavaScript, CSS files or other text ba
 ```js
 const scriptMock = browser.network.mock('**/script.min.js')
 scriptMock.respond('./tests/fixtures/script.js')
+
+// or respond with your custom JS
+scriptMock.respond('alert("I am a mocked resource")')
 ```
 
 ### Redirect web resources
@@ -187,8 +190,8 @@ await mock.respond((req) => {
 
 await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
 
-await (await $('#todo-list li')).waitForExist()
-console.log(await Promise.all((await $$('#todo-list li label')).map((el) => el.getText())))
+await (await browser.$('#todo-list li')).waitForExist()
+console.log(await Promise.all((await browser.$$('#todo-list li label')).map((el) => el.getText())))
 // returns
 // [
 //   '0',  '1',  '2',  '19', '20',

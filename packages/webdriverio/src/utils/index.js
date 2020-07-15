@@ -475,6 +475,7 @@ export const getAutomationProtocol = async (config) => {
         req.end()
     })
 
+    driverEndpointHeaders.req.agent.destroy()
     if (driverEndpointHeaders && parseInt(driverEndpointHeaders.statusCode, 10) === 200) {
         return 'webdriver'
     }
