@@ -3,7 +3,8 @@ const CUSTOM_INTERFACES = [
     'MoveToOptions', 'DragAndDropOptions', 'NewWindowOptions', 'Element',
     'ElementArray', 'ClickOptions', 'WaitUntilOptions', 'Cookie', 'Timeouts',
     'CSSProperty', 'TouchActions', 'Matcher', 'WebDriver.Cookie', 'DragAndDropCoordinate',
-    'ErrorCode', 'MockResponseParams', 'Mock', 'MockFilterOptions', 'MockOverwrite'
+    'ErrorCode', 'MockResponseParams', 'Mock', 'MockFilterOptions', 'MockOverwrite',
+    'ThrottleOptions'
 ]
 
 module.exports = {

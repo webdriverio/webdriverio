@@ -209,7 +209,13 @@ async function bar() {
     browser.isIOS
 
     // network mocking
-    browser.throttle()
+    browser.throttle('Regular2G')
+    browser.throttle({
+        offline: false,
+        downloadThroughput: 50 * 1024 / 8,
+        uploadThroughput: 20 * 1024 / 8,
+        latency: 500
+    })
     browser.mock('**/image.jpg')
     const mock = await browser.mock('**/image.jpg', {
         method: 'get',

@@ -500,6 +500,15 @@ declare namespace WebdriverIO {
 
     type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
 
+    type ThrottlePreset = 'offline' | 'GPRS' | 'Regular2G' | 'Good2G' | 'Regular3G' | 'Good3G' | 'Regular4G' | 'DSL' | 'WiFi' | 'online'
+    interface CustomThrottle {
+        offline: boolean,
+        downloadThroughput: number,
+        uploadThroughput: number,
+        latency: number
+    }
+    type ThrottleOptions = ThrottlePreset | CustomThrottle
+
     interface Element {
         selector: string;
         elementId: string;
