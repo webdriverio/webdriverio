@@ -34,8 +34,6 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         propertiesObject.commandList = { value: Object.keys(propertiesObject) }
         propertiesObject.options = { value: options }
         propertiesObject.requestedCapabilities = { value: options.requestedCapabilities }
-        propertiesObject.puppeteer = { value: null, writable: true }
-        propertiesObject._NOT_FIBER = { value: false, writable: true, configurable: true }
 
         /**
          * allow to wrap commands if necessary

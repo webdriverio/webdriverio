@@ -36,7 +36,16 @@ const applyScopePrototype = (prototype, scope) => {
  * enhances objects with element commands
  */
 export const getPrototype = (scope) => {
-    const prototype = {}
+    const prototype = {
+        /**
+         * used to store the puppeteer instance in the browser scope
+         */
+        puppeteer: { value: null, writable: true },
+        /**
+         * for handling sync execution in @wdio/sync
+         */
+        _NOT_FIBER: { value: false, writable: true, configurable: true }
+    }
 
     /**
      * register action commands
