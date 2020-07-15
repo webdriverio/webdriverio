@@ -263,13 +263,13 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'confirm',
     name: 'usePageObjects',
-    message: 'Do you want to use Page Objects (https://martinfowler.com/bliki/PageObject.html)?',
+    message: 'Do you want to use page objects (https://martinfowler.com/bliki/PageObject.html)?',
     default: true,
     when: /* istanbul ignore next */ (answers) => answers.generateTestFiles
 }, {
     type: 'input',
     name: 'pages',
-    message: 'Where are your page-objects located?',
+    message: 'Where are your page objects located?',
     default: /* istanbul ignore next */ (answers) => (
         answers.framework.match(/(mocha|jasmine)/)
             ? './test/pageobjects/**/*.js'

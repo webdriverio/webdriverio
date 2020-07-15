@@ -284,7 +284,6 @@ export function hasFile (filename) {
  * generate test files based on CLI answers
  */
 export async function generateTestFiles (answers) {
-
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
         : [path.join(TEMPLATE_ROOT_DIR, 'mochaJasmine')]
