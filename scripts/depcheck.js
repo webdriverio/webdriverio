@@ -32,7 +32,7 @@ const EXEC_OPTIONS = { silent: true, async: true }
         result.package = pkg
         result.packagePath = packagePath
         return result
-    }))).filter((result) => Object.keys(result.missing).length && Object.keys(result.missing) != 'puppeteer')
+    }))).filter((result) => Object.keys(result.missing).length)
 
     if (brokenPackages.length) {
         let message = ''

@@ -1,5 +1,3 @@
-import { Browser } from 'puppeteer'
-
 declare module WebdriverIO {
   interface ServiceOption extends DevtoolsConfig { }
   interface Browser extends DevtoolsBrowser { }
@@ -142,5 +140,5 @@ interface DevtoolsBrowser {
   /**
    * Returns access to puppeteer instance. Allow user to work with Puppeteer directly.
    */
-  getPuppeteer(): Browser;
+  getPuppeteer(): Partial<import('puppeteer').Browser>;
 }
