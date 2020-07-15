@@ -91,8 +91,12 @@ export const getPuppeteer = async function getPuppeteer () {
     if (this.capabilities.browserName.toLowerCase() === 'firefox') {
         const majorVersion = parseInt(this.capabilities.browserVersion.split('.').shift(), 10)
         if (majorVersion >= 79) {
+            const ffOptions = this.capabilities['moz:firefoxOptions']
             const ffArgs = this.requestedCapabilities['moz:firefoxOptions'].args
-            const rdPort = ffArgs[ffArgs.findIndex((arg) => arg === FF_REMOTE_DEBUG_ARG) + 1]
+
+            const rdPort = ffOptions.debuggerAddress
+                ? ffOptions.debuggerAddress
+                : ffArgs[ffArgs.findIndex((arg) => arg === FF_REMOTE_DEBUG_ARG) + 1]
             this.puppeteer = await puppeteer.connect({
                 browserURL: `http://localhost:${rdPort}`,
                 defaultViewport: null
