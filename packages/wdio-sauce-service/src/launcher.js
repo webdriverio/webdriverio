@@ -3,6 +3,8 @@ import { performance, PerformanceObserver } from 'perf_hooks'
 import logger from '@wdio/logger'
 import SauceLabs from 'saucelabs'
 
+import { makeCapabilityFactory } from './utils.js'
+
 const SC_RELAY_DEPCRECATION_WARNING = [
     'The "scRelay" option is depcrecated and will be removed',
     'with the upcoming versions of @wdio/sauce-service. Please',
@@ -51,32 +53,15 @@ export default class SauceLauncher {
             }
         }
 
+        const prepareCapability = makeCapabilityFactory(sauceConnectTunnelIdentifier, endpointConfigurations)
+
         if (Array.isArray(capabilities)) {
             for (const capability of capabilities) {
-                if (!capability['sauce:options']) {
-                    capability['sauce:options'] = {}
-                }
-
-                Object.assign(capability, endpointConfigurations)
-                capability['sauce:options'].tunnelIdentifier = (
-                    capability.tunnelIdentifier ||
-                    capability['sauce:options'].tunnelIdentifier ||
-                    sauceConnectTunnelIdentifier
-                )
-                delete capability.tunnelIdentifier
+                prepareCapability(capability)
             }
         } else {
             for (const browserName of Object.keys(capabilities)) {
-                if (!capabilities[browserName].capabilities['sauce:options']) {
-                    capabilities[browserName].capabilities['sauce:options'] = {}
-                }
-                Object.assign(capabilities[browserName].capabilities, endpointConfigurations)
-                capabilities[browserName].capabilities['sauce:options'].tunnelIdentifier = (
-                    capabilities[browserName].capabilities.tunnelIdentifier ||
-                    capabilities[browserName].capabilities['sauce:options'].tunnelIdentifier ||
-                    sauceConnectTunnelIdentifier
-                )
-                delete capabilities[browserName].capabilities.tunnelIdentifier
+                prepareCapability(capabilities[browserName].capabilities)
             }
         }
 
