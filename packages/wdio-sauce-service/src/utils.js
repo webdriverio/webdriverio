@@ -1,3 +1,5 @@
+import { isW3C } from '@wdio/utils'
+
 /**
  * Determine if the current instance is a Unified Platform instance
  * @param {string} deviceName
@@ -40,4 +42,38 @@
 export function isUnifiedPlatform({ deviceName = '', platformName = '' }){
     // If the string contains `simulator` or `emulator` it's a EMU/SIM session
     return !deviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+}
+
+/** Ensure capabilities are in the correct format for Sauce Labs
+ * @param {string} tunnelIdentifier - The default Sauce Connect tunnel identifier
+ * @param {object} options - Additional options to set on the capability
+ * @returns {function(object): void} - A function that mutates a single capability
+ */
+export function makeCapabilityFactory(tunnelIdentifier, options) {
+    return capability => {
+        // If the capability appears to be using the legacy JSON Wire Protocol
+        // we need to make sure the key 'sauce:options' is not present
+        const isLegacy = Boolean(
+            (capability.platform || capability.version) &&
+            !isW3C(capability) &&
+            !capability['sauce:options']
+        )
+
+        if (!capability['sauce:options'] && !isLegacy) {
+            capability['sauce:options'] = {}
+        }
+
+        Object.assign(capability, options)
+
+        const sauceOptions = !isLegacy ? capability['sauce:options'] : capability
+        sauceOptions.tunnelIdentifier = (
+            capability.tunnelIdentifier ||
+            sauceOptions.tunnelIdentifier ||
+            tunnelIdentifier
+        )
+
+        if (!isLegacy) {
+            delete capability.tunnelIdentifier
+        }
+    }
 }
