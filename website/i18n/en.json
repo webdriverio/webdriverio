@@ -89,6 +89,9 @@
       "wdio-ng-apimock-service": {
         "title": "Ng-apimock Service"
       },
+      "wdio-novus-visual-regression-service": {
+        "title": "Novus Visual Regression Service Service"
+      },
       "wdio-reportportal-reporter": {
         "title": "Report Portal Reporter"
       },
@@ -173,6 +176,9 @@
       "api/browser/keys": {
         "title": "keys"
       },
+      "api/browser/mock": {
+        "title": "mock"
+      },
       "api/browser/newWindow": {
         "title": "newWindow"
       },
@@ -205,6 +211,9 @@
       },
       "api/browser/switchWindow": {
         "title": "switchWindow"
+      },
+      "api/browser/throttle": {
+        "title": "throttle"
       },
       "api/browser/touchAction": {
         "title": "touchAction"
@@ -368,12 +377,6 @@
       "api/mock/restore": {
         "title": "restore"
       },
-      "api/network/mock": {
-        "title": "mock"
-      },
-      "api/network/throttle": {
-        "title": "throttle"
-      },
       "assertion": {
         "title": "Assertion"
       },
@@ -515,7 +518,6 @@
       "Protocols": "Protocols",
       "browser": "browser",
       "element": "element",
-      "network": "network",
       "mock": "mock",
       "Flowcharts": "Flowcharts"
     }
