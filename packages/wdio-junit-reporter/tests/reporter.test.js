@@ -4,6 +4,7 @@ import mochaRunnerLog from './__fixtures__/mocha-runner.json'
 import cucumberRunnerLog from './__fixtures__/cucumber-runner.json'
 import cucumberRunnerBrowserstackIosLog from './__fixtures__/cucumber-runner-browserstack-ios.json'
 import cucumberRunnerBrowserstackAndroidLog from './__fixtures__/cucumber-runner-browserstack-android.json'
+import cucumberRunnerBrowserstackNoCaps from './__fixtures__/cucumber-runner-browserstack-nocaps.json'
 import suitesLog from './__fixtures__/suites.json'
 import suitesWithNoErrorObjectLog from './__fixtures__/suites-with-no-error-object.json'
 import featuresLog from './__fixtures__/cucumber-features.json'
@@ -186,5 +187,13 @@ describe('wdio-junit-reporter', () => {
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter.buildJunitXml(cucumberRunnerBrowserstackAndroidLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('ensures that browserstack sanitised capabilities are not null if not provided by user', () => {
+        reporter = new WDIOJunitReporter({})
+        reporter.suites = featuresLog
+
+        expect(reporter.buildJunitXml(cucumberRunnerBrowserstackNoCaps).replace(/\s/g, '')).toMatchSnapshot()
+
     })
 })
