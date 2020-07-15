@@ -30,14 +30,14 @@ describe('custom$', () => {
             }
         })
 
-        browser.network.puppeteer = puppeteerMock
+        browser.puppeteer = puppeteerMock
 
         expect(clientMock.send).toBeCalledTimes(0)
-        await browser.network.mock('/foobar')
+        await browser.mock('/foobar')
         expect(clientMock.send).toBeCalledWith('Fetch.enable', expect.any(Object))
         expect(clientMock.on).toBeCalledWith('Fetch.requestPaused', expect.any(Function))
 
-        await browser.network.mock('/foobar')
+        await browser.mock('/foobar')
         expect(clientMock.send).toBeCalledTimes(1)
     })
 
@@ -52,8 +52,8 @@ describe('custom$', () => {
             }
         })
 
-        browser.network.puppeteer = puppeteerMock
-        const mock = await browser.network.mock('/foobar')
+        browser.puppeteer = puppeteerMock
+        const mock = await browser.mock('/foobar')
         expect(mock.init).toBeCalledWith()
     })
 })

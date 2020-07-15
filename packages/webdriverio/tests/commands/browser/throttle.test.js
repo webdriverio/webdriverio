@@ -17,11 +17,11 @@ test('should fail if wrong params applied', async () => {
         }
     })
 
-    let err = await browser.network.throttle().catch(err => err)
+    let err = await browser.throttle().catch(err => err)
     expect(err.message).toContain('Invalid parameter for "throttle"')
-    err = await browser.network.throttle(123).catch(err => err)
+    err = await browser.throttle(123).catch(err => err)
     expect(err.message).toContain('Invalid parameter for "throttle"')
-    err = await browser.network.throttle('FOOBAR').catch(err => err)
+    err = await browser.throttle('FOOBAR').catch(err => err)
     expect(err.message).toContain('Invalid parameter for "throttle"')
 })
 
@@ -35,7 +35,7 @@ test('should use WebDriver extension if run on Sauce', async () => {
         }
     })
 
-    await browser.network.throttle('Regular3G')
+    await browser.throttle('Regular3G')
     expect(got.mock.calls[1][0].href)
         .toContain('/sauce/ondemand/throttle/network')
 })
@@ -47,7 +47,7 @@ test('should allow to send strings as param', async () => {
         }
     })
 
-    await browser.network.throttle('Regular3G')
+    await browser.throttle('Regular3G')
     expect(cdpSession.send.mock.calls).toMatchSnapshot()
 })
 
@@ -58,7 +58,7 @@ test('should allow to send objects as param', async () => {
         }
     })
 
-    await browser.network.throttle({ foo: 'bar' })
+    await browser.throttle({ foo: 'bar' })
     expect(cdpSession.send).toBeCalledWith(
         'Network.emulateNetworkConditions',
         { foo: 'bar' })

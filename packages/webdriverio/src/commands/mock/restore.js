@@ -6,7 +6,7 @@
  * <example>
     :addValue.js
     it('should demonstrate the addValue command', () => {
-        const mock = browser.network.mock('**\/googlelogo_color_272x92dp.png')
+        const mock = browser.mock('**\/googlelogo_color_272x92dp.png')
         mock.respond('https://webdriver.io/img/webdriverio.png')
         browser.url('https://google.com') // shows WebdriverIO logo instead of Google
 

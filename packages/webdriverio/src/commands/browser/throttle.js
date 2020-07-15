@@ -7,10 +7,10 @@
     :throttle.js
     it('should throttle the network', () => {
         // via static string
-        browser.network.throttle('Regular 3G')
+        browser.throttle('Regular 3G')
 
         // via custom values
-        browser.network.throttle({
+        browser.throttle({
             'offline': false,
             'downloadThroughput': 200 * 1024 / 8,
             'uploadThroughput': 200 * 1024 / 8,
@@ -24,7 +24,7 @@
  * @type utility
  *
  */
-import { getBrowserObject } from '../../utils'
+import { getBrowserObject, getPuppeteer } from '../../utils'
 
 const NETWORK_PRESETS = {
     'offline': {
@@ -114,6 +114,7 @@ export default async function throttle (params) {
     }
 
     // Connect to Chrome DevTools
+    await getPuppeteer.call(this)
     const pages = await this.puppeteer.pages()
     const client = await pages[0].target().createCDPSession()
 

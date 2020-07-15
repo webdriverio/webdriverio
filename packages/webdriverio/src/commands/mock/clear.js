@@ -6,7 +6,7 @@
  * <example>
     :clear.js
     it('should clear mock', () => {
-        const mock = browser.network.mock('https://google.com/')
+        const mock = browser.mock('https://google.com/')
         browser.url('https://google.com')
 
         console.log(mock.calls.length) // returns 1

@@ -10,7 +10,7 @@ const files = fs
 
 test(scope + ' commands list and strategies', () => {
     const prototype = Object.keys(getPrototype(scope))
-    const expected = [...files, 'strategies', 'network']
+    const expected = [...files, 'strategies']
 
     expect(prototype).toEqual(expected)
 })

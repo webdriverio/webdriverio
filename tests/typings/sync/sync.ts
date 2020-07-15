@@ -179,9 +179,9 @@ browser.isIOS
 allure.addFeature('')
 
 // network mocking
-browser.network.throttle()
-browser.network.mock('**/image.jpg')
-const mock = browser.network.mock('**/image.jpg', {
+browser.throttle()
+browser.mock('**/image.jpg')
+const mock = browser.mock('**/image.jpg', {
     method: 'get',
     headers: { foo: 'bar' }
 })

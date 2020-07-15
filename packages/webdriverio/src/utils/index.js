@@ -7,25 +7,23 @@ import getPort from 'get-port'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
+import isPlainObject from 'lodash.isplainobject'
+import puppeteer from 'puppeteer-core'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
-import isPlainObject from 'lodash.isplainobject'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
 import { findStrategy } from './findStrategy'
-import { getNetwork } from './getNetworkObject'
 
 const browserCommands = require('../commands/browser')
 const elementCommands = require('../commands/element')
-const networkCommands = require('../commands/network')
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
 
 const scopes = {
     browser: browserCommands,
-    element: elementCommands,
-    network: networkCommands
+    element: elementCommands
 }
 
 const applyScopePrototype = (prototype, scope) => {
@@ -45,24 +43,6 @@ export const getPrototype = (scope) => {
      */
     applyScopePrototype(prototype, scope)
     prototype.strategies = { value: new Map() }
-
-    /**
-     * register network primitives
-     */
-    if (scope === 'browser') {
-        let networkScope
-        prototype.network = {
-            get: function () {
-                /**
-                 * only create network scope once
-                 */
-                if (!networkScope) {
-                    networkScope = getNetwork.call(this)
-                }
-                return networkScope
-            }
-        }
-    }
 
     return prototype
 }
@@ -487,6 +467,57 @@ export const getAutomationProtocol = async (config) => {
     }
 
     return 'devtools'
+}
+
+/**
+ * attach puppeteer to the driver scope so it can be used in the
+ * command
+ */
+export const getPuppeteer = async function getPuppeteer () {
+    /**
+     * check if we already connected Puppeteer and if so return
+     * that instance
+     */
+    if (this.puppeteer) {
+        return this.puppeteer
+    }
+
+    /**
+     * attach to Chromes debugger session
+     */
+    const chromiumOptions = this.capabilities['goog:chromeOptions'] || this.capabilities['ms:edgeOptions']
+    if (chromiumOptions && chromiumOptions.debuggerAddress) {
+        this.puppeteer = await puppeteer.connect({
+            browserURL: `http://${chromiumOptions.debuggerAddress}`,
+            defaultViewport: null
+        })
+        return this.puppeteer
+    }
+
+    /**
+     * attach to Firefox debugger session
+     */
+    if (this.capabilities.browserName.toLowerCase() === 'firefox') {
+        const majorVersion = parseInt(this.capabilities.browserVersion.split('.').shift(), 10)
+        if (majorVersion >= 79) {
+            const ffOptions = this.capabilities['moz:firefoxOptions']
+            const ffArgs = this.requestedCapabilities['moz:firefoxOptions'].args
+
+            const rdPort = ffOptions && ffOptions.debuggerAddress
+                ? ffOptions.debuggerAddress
+                : ffArgs[ffArgs.findIndex((arg) => arg === FF_REMOTE_DEBUG_ARG) + 1]
+            this.puppeteer = await puppeteer.connect({
+                browserURL: `http://localhost:${rdPort}`,
+                defaultViewport: null
+            })
+            return this.puppeteer
+        }
+    }
+
+    throw new Error(
+        'Network primitives aren\'t available for this session. ' +
+        'This feature is only supported for local Chrome, Firefox and Edge testing.'
+    )
 }
 
 /**

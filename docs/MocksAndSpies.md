@@ -15,11 +15,11 @@ Before you can modify any responses you have define a mock first. This mock is d
 <!--Sync-->
 ```js
 // mock all resources ending with "/users/list"
-const userListMock = browser.network.mock('**/users/list')
+const userListMock = browser.mock('**/users/list')
 
 // or you can specify the mock by filtering resources by headers or
 // status code, only mock successful requests to json resources
-const strictMock = browser.network.mock('**', {
+const strictMock = browser.mock('**', {
     // mock all json responses
     headers: { 'Content-Type': 'application/json' },
     // that were successful
@@ -29,11 +29,11 @@ const strictMock = browser.network.mock('**', {
 <!--Async-->
 ```js
 // mock all resources ending with "/users/list"
-const userListMock = await browser.network.mock('**/users/list')
+const userListMock = await browser.mock('**/users/list')
 
 // or you can specify the mock by filtering resources by headers or
 // status code, only mock successful requests to json resources
-const strictMock = await browser.network.mock('**', {
+const strictMock = await browser.mock('**', {
     // mock all json responses
     headers: { 'Content-Type': 'application/json' },
     // that were successful
@@ -53,7 +53,7 @@ In order to mock API requests where you expect a JSON response all you need to d
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync-->
 ```js
-const mock = browser.network.mock('https://todo-backend-express-knex.herokuapp.com/', {
+const mock = browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
     method: 'get'
 })
 
@@ -75,7 +75,7 @@ console.log($$('#todo-list li').map(el => el.getText()))
 ```
 <!--Async-->
 ```js
-const mock = await browser.network.mock('https://todo-backend-express-knex.herokuapp.com/', {
+const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
     method: 'get'
 })
 
@@ -120,7 +120,7 @@ mock.response(responseFixture)
 If you like to modify text resources like JavaScript, CSS files or other text based resources you can just pass in a file path and WebdriverIO will replaces the original resource with it, e.g.:
 
 ```js
-const scriptMock = browser.network.mock('**/script.min.js')
+const scriptMock = browser.mock('**/script.min.js')
 scriptMock.respond('./tests/fixtures/script.js')
 
 // or respond with your custom JS
@@ -134,14 +134,14 @@ You can also just replace a web resource with another web resource if your desir
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync-->
 ```js
-const pageMock = browser.network.mock('https://google.com/')
+const pageMock = browser.mock('https://google.com/')
 pageMock.respond('https://webdriver.io')
 browser.url('https://google.com')
 console.log(browser.getTitle()) // returns "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
 ```
 <!--Async-->
 ```js
-const pageMock = await browser.network.mock('https://google.com/')
+const pageMock = await browser.mock('https://google.com/')
 await pageMock.respond('https://webdriver.io')
 await browser.url('https://google.com')
 console.log(await browser.getTitle()) // returns "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
@@ -155,7 +155,7 @@ If your mock response depends on the original resource response you can also dyn
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync-->
 ```js
-const mock = browser.network.mock('https://todo-backend-express-knex.herokuapp.com/', {
+const mock = browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
     method: 'get'
 })
 
@@ -179,7 +179,7 @@ console.log($$('#todo-list li label').map((el) => el.getText()))
 ```
 <!--Async-->
 ```js
-const mock = await browser.network.mock('https://todo-backend-express-knex.herokuapp.com/', {
+const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
     method: 'get'
 })
 
@@ -227,12 +227,12 @@ This is very useful if you want to block 3rd party script from your page that ha
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync-->
 ```js
-const mock = browser.network.mock('https://www.google-analytics.com/**')
+const mock = browser.mock('https://www.google-analytics.com/**')
 mock.abort('Failed')
 ```
 <!--Async-->
 ```js
-const mock = await browser.network.mock('https://www.google-analytics.com/**')
+const mock = await browser.mock('https://www.google-analytics.com/**')
 await mock.abort('Failed')
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
@@ -244,7 +244,7 @@ Every mock is automatically a spy that counts the amount of requests the browser
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync-->
 ```js
-const mock = browser.network.mock('**/user', { method: 'post' })
+const mock = browser.mock('**/user', { method: 'post' })
 console.log(mock.calls.length) // returns 0
 
 // register user
@@ -261,7 +261,7 @@ expect(mock.calls[0].body).toEqual({ success: true })
 ```
 <!--Async-->
 ```js
-const mock = await browser.network.mock('**/user', { method: 'post' })
+const mock = await browser.mock('**/user', { method: 'post' })
 console.log(mock.calls.length) // returns 0
 
 // register user

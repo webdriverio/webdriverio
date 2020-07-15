@@ -10,7 +10,7 @@
  * <example>
     :abortOnce.js
     it('should block mock only once', () => {
-        const mock = browser.network.mock('https://webdriver.io')
+        const mock = browser.mock('https://webdriver.io')
         mock.abortOnce('Failed')
 
         browser.url('https://webdriver.io')

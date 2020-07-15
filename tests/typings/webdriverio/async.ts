@@ -209,9 +209,9 @@ async function bar() {
     browser.isIOS
 
     // network mocking
-    browser.network.throttle()
-    browser.network.mock('**/image.jpg')
-    const mock = await browser.network.mock('**/image.jpg', {
+    browser.throttle()
+    browser.mock('**/image.jpg')
+    const mock = await browser.mock('**/image.jpg', {
         method: 'get',
         headers: { foo: 'bar' }
     })

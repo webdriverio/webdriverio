@@ -10,7 +10,7 @@ The WebdriverIO team continues its efforts to provide more functionality to its 
 Replacing a REST API request from a browser can now be as simple as follows:
 
 ```js
-const mock = browser.network.mock('https://todo-backend-express-knex.herokuapp.com/')
+const mock = browser.mock('https://todo-backend-express-knex.herokuapp.com/')
 
 mock.respond([{
     title: 'Injected (non) completed Todo',
@@ -37,11 +37,11 @@ Aside mocking the new version also ships with another network command that allow
 
 ```js
 // throttle to Regular 3G
-browser.network.throttle('Regular 3G')
+browser.throttle('Regular 3G')
 // disable network completely
-browser.network.throttle('Offline')
+browser.throttle('Offline')
 // set custom network throughput
-browser.network.throttle({
+browser.throttle({
     'offline': false,
     'downloadThroughput': 200 * 1024 / 8,
     'uploadThroughput': 200 * 1024 / 8,

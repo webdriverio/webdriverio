@@ -17,8 +17,7 @@ title: <?= method.command ?>
 
 ```js
 <? if (method.isElementScope) {
-?>$(selector).<?= method.command ?>(<?= method.paramString ?>)<? } else if (method.isNetworkScope) {
-?>browser.network.<?= method.command ?>(<?= method.paramString ?>)<? } else if (method.isMockScope) {
+?>$(selector).<?= method.command ?>(<?= method.paramString ?>)<? } else if (method.isMockScope) {
 ?>mock.<?= method.command ?>(<?= method.paramString ?>)<? } else {
 ?><?= method.isMobile ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)<? } ?>
 ```

@@ -14,7 +14,7 @@
     }
 
     it('should demonstrate the respondOnce command', () => {
-        const mock = browser.network.mock('https://todo-backend-express-knex.herokuapp.com/', {
+        const mock = browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
             method: 'get'
         })
 

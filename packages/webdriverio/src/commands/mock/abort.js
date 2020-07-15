@@ -10,7 +10,7 @@
  * <example>
     :abort.js
     it('should block Google Analytics from page', () => {
-        const mock = browser.network.mock('https://www.google-analytics.com/**')
+        const mock = browser.mock('https://www.google-analytics.com/**')
         mock.abort('Failed')
     })
  * </example>
