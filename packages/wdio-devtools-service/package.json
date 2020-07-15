@@ -34,6 +34,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@types/puppeteer": "^3.0.1",
     "@wdio/logger": "6.0.16",
     "chrome-remote-interface": "^0.28.0",
     "core-js": "~3.6.0",

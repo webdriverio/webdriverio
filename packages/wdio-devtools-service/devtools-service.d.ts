@@ -140,5 +140,5 @@ interface DevtoolsBrowser {
   /**
    * Returns access to puppeteer instance. Allow user to work with Puppeteer directly.
    */
-  getPuppeteer(): object;
+  getPuppeteer(): Partial<import('puppeteer').Browser>;
 }
