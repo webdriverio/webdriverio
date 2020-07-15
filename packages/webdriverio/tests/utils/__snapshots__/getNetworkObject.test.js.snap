@@ -24,6 +24,28 @@ Array [
 ]
 `;
 
+exports[`attach Puppeteer should pass for Edge 1`] = `
+Array [
+  Array [
+    Object {
+      "browserURL": "http://localhost:1234",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
+
+exports[`attach Puppeteer should pass for Firefox (DevTools) 1`] = `
+Array [
+  Array [
+    Object {
+      "browserURL": "http://localhost:localhost:1234",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
+
 exports[`attach Puppeteer should pass for Firefox 1`] = `
 Array [
   Array [

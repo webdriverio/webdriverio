@@ -76,10 +76,10 @@ export const getPuppeteer = async function getPuppeteer () {
     /**
      * attach to Chromes debugger session
      */
-    const chromeOptions = this.capabilities['goog:chromeOptions']
-    if (chromeOptions && chromeOptions.debuggerAddress) {
+    const chromiumOptions = this.capabilities['goog:chromeOptions'] || this.capabilities['ms:edgeOptions']
+    if (chromiumOptions && chromiumOptions.debuggerAddress) {
         this.puppeteer = await puppeteer.connect({
-            browserURL: `http://${this.capabilities['goog:chromeOptions'].debuggerAddress}`,
+            browserURL: `http://${chromiumOptions.debuggerAddress}`,
             defaultViewport: null
         })
         return this.puppeteer
@@ -94,7 +94,7 @@ export const getPuppeteer = async function getPuppeteer () {
             const ffOptions = this.capabilities['moz:firefoxOptions']
             const ffArgs = this.requestedCapabilities['moz:firefoxOptions'].args
 
-            const rdPort = ffOptions.debuggerAddress
+            const rdPort = ffOptions && ffOptions.debuggerAddress
                 ? ffOptions.debuggerAddress
                 : ffArgs[ffArgs.findIndex((arg) => arg === FF_REMOTE_DEBUG_ARG) + 1]
             this.puppeteer = await puppeteer.connect({

@@ -73,6 +73,47 @@ describe('attach Puppeteer', () => {
         expect(puppeteer.connect.mock.calls).toMatchSnapshot()
     })
 
+    it('should pass for Firefox (DevTools)', async () => {
+        const scope = getNetwork.call({
+            ...browser,
+            capabilities: {
+                browserName: 'firefox',
+                browserVersion: '79.0b',
+                'moz:firefoxOptions': {
+                    debuggerAddress: 'localhost:1234'
+                }
+            },
+            options: {
+                requestedCapabilities: {
+                    'moz:firefoxOptions': {
+                        args: {}
+                    }
+                }
+            }
+        })
+        await scope.throttle('online')
+        expect(typeof scope.puppeteer).toBe('object')
+        expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+    })
+
+    it('should pass for Edge', async () => {
+        const scope = getNetwork.call({
+            ...browser,
+            capabilities: {
+                browserName: 'edge',
+                'ms:edgeOptions': {
+                    debuggerAddress: 'localhost:1234'
+                }
+            },
+            options: {
+                requestedCapabilities: {}
+            }
+        })
+        await scope.throttle('online')
+        expect(typeof scope.puppeteer).toBe('object')
+        expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+    })
+
     it('should fail for old Firefox version', async () => {
         const scope = getNetwork.call({
             ...browser,
