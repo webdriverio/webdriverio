@@ -4,11 +4,11 @@
  */
 if (usePageObjects) {
 %><%- isUsingTypeScript || isUsingBabel
-    ? `import LoginPage from  '${_relativePath}/login.page';`
-    : `const LoginPage = require('${_relativePath}/login.page');` %>
+    ? `import LoginPage from  '${relativePath}/login.page';`
+    : `const LoginPage = require('${relativePath}/login.page');` %>
 <%- isUsingTypeScript || isUsingBabel
-    ? `import SecurePage from '${_relativePath}/secure.page';`
-    : `const SecurePage = require('${_relativePath}/secure.page');` %>
+    ? `import SecurePage from '${relativePath}/secure.page';`
+    : `const SecurePage = require('${relativePath}/secure.page');` %>
 
 describe('My Login application', () => {
     it('should login with valid credentials', <%= _async %>() => {

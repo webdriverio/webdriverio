@@ -1,3 +1,4 @@
+import path from 'path'
 import util from 'util'
 import yarnInstall from 'yarn-install'
 
@@ -76,6 +77,27 @@ export const runConfig = async function (useYarn, yes, exit) {
 
     console.log('\nPackages installed successfully, creating configuration file...')
     const defaultRunner = SUPPORTED_PACKAGES.runner[0].name
+
+    /**
+     * find relative paths between tests and pages
+     */
+    const destSpecRootPath = path.join(
+        process.cwd(),
+        path.dirname(answers.specs || '').replace(/\*\*$/, ''))
+
+    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
+
+    const destPageObjectRootPath = answers.usePageObjects
+        ?  path.join(
+            process.cwd(),
+            path.dirname(answers.pages || '').replace(/\*\*$/, ''))
+        : ''
+    const relativePath = (answers.generateTestFiles && answers.usePageObjects)
+        ? !(answers.framework === 'cucumber')
+            ? path.relative(destSpecRootPath, destPageObjectRootPath)
+            : path.relative(destStepRootPath, destPageObjectRootPath)
+        : ''
+
     const parsedAnswers = {
         ...answers,
         runner: (answers.runner && answers.runner.short) || defaultRunner,
@@ -87,7 +109,10 @@ export const runConfig = async function (useYarn, yes, exit) {
         isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
         isSync: syncExecution,
         _async: syncExecution ? '' : 'async ',
-        _await: syncExecution ? '' : 'await '
+        _await: syncExecution ? '' : 'await ',
+        destSpecRootPath: destSpecRootPath,
+        destPageObjectRootPath: destPageObjectRootPath,
+        relativePath : relativePath
     }
 
     try {

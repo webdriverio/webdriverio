@@ -284,30 +284,12 @@ export function hasFile (filename) {
  * generate test files based on CLI answers
  */
 export async function generateTestFiles (answers) {
-    const destSpecRootPath = path.join(
-        process.cwd(),
-        path.dirname(answers.specs).replace(/\*\*$/, '')
-    )
-
-    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
-
-    let destPageObjectRootPath = ''
 
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
         : [path.join(TEMPLATE_ROOT_DIR, 'mochaJasmine')]
 
     if (answers.usePageObjects) {
-        destPageObjectRootPath = path.join(
-            process.cwd(),
-            path.dirname(answers.pages).replace(/\*\*$/, '')
-        )
-        answers._relativePath =
-            (answers.generateTestFiles && answers.usePageObjects)
-                ? !(answers.framework === 'cucumber')
-                    ? path.relative(destSpecRootPath, destPageObjectRootPath)
-                    : path.relative(destStepRootPath, destPageObjectRootPath)
-                :  ''
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
     }
 
@@ -320,10 +302,10 @@ export async function generateTestFiles (answers) {
         const renderedTpl = await renderFile(file, answers)
         let destPath = (
             file.endsWith('page.js.ejs')
-                ? `${destPageObjectRootPath}/${path.basename(file)}`
+                ? `${answers.destPageObjectRootPath}/${path.basename(file)}`
                 : file.includes('step_definition')
                     ? `${answers.stepDefinitions}`
-                    : `${destSpecRootPath}/${path.basename(file)}`
+                    : `${answers.destSpecRootPath}/${path.basename(file)}`
         ).replace(/\.ejs$/, '').replace(/\.js$/, answers.isUsingTypeScript ? '.ts' : '.js')
 
         fs.ensureDirSync(path.dirname(destPath))
