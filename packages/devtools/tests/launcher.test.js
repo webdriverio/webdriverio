@@ -41,7 +41,7 @@ test('launch chrome with chrome arguments', async () => {
             binary: '/foo/bar',
             args: ['--window-size=222,333'],
             mobileEmulation: {
-                deviceName: 'Nexus 5'
+                deviceName: 'Nexus 6P'
             }
         }
     })
@@ -50,9 +50,9 @@ test('launch chrome with chrome arguments', async () => {
 
     const pages = await browser.pages()
     expect(pages[0].setViewport).toBeCalledWith({
-        height: 640,
-        pixelRatio: 3,
-        width: 360
+        height: 732,
+        pixelRatio: 3.5,
+        width: 412
     })
 })
 
