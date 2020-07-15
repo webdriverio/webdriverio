@@ -7,11 +7,11 @@
  */
 if (usePageObjects) { %>
 <%- isUsingTypeScript || isUsingBabel
-    ? "import LoginPage from './pageobjects/login.page';"
-    : "const LoginPage = require('./pageobjects/login.page');" %>
+    ? `import LoginPage from '${relativePath}/login.page';`
+    : `const LoginPage = require('${relativePath}/login.page');` %>
 <%- isUsingTypeScript || isUsingBabel
-    ? "import SecurePage from './pageobjects/secure.page';"
-    : "const SecurePage = require('./pageobjects/secure.page');" %>
+    ? `import SecurePage from '${relativePath}/secure.page';`
+    : `const SecurePage = require('${relativePath}/secure.page');` %>
 
 const pages = {
     login: LoginPage

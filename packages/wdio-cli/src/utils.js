@@ -284,11 +284,6 @@ export function hasFile (filename) {
  * generate test files based on CLI answers
  */
 export async function generateTestFiles (answers) {
-    const destSpecRootPath = path.join(
-        process.cwd(),
-        path.dirname(answers.specs).replace(/\*\*$/, '')
-    )
-    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
 
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
@@ -307,12 +302,10 @@ export async function generateTestFiles (answers) {
         const renderedTpl = await renderFile(file, answers)
         let destPath = (
             file.endsWith('page.js.ejs')
-                ? answers.framework === 'cucumber'
-                    ? `${destStepRootPath}/pageobjects/${path.basename(file)}`
-                    : `${destSpecRootPath}/pageobjects/${path.basename(file)}`
+                ? `${answers.destPageObjectRootPath}/${path.basename(file)}`
                 : file.includes('step_definition')
                     ? `${answers.stepDefinitions}`
-                    : `${destSpecRootPath}/${path.basename(file)}`
+                    : `${answers.destSpecRootPath}/${path.basename(file)}`
         ).replace(/\.ejs$/, '').replace(/\.js$/, answers.isUsingTypeScript ? '.ts' : '.js')
 
         fs.ensureDirSync(path.dirname(destPath))
@@ -334,7 +327,7 @@ export async function getAnswers(yes) {
                      * set default value if existing
                      */
                     ? typeof question.default === 'function'
-                        ? question.default()
+                        ? question.default(answers)
                         : question.default
                     : question.choices && question.choices.length
                     /**

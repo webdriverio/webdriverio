@@ -267,6 +267,16 @@ export const QUESTIONNAIRE = [{
     default: true,
     when: /* istanbul ignore next */ (answers) => answers.generateTestFiles
 }, {
+    type: 'input',
+    name: 'pages',
+    message: 'Where are your page-objects located?',
+    default: /* istanbul ignore next */ (answers) => (
+        answers.framework.match(/(mocha|jasmine)/)
+            ? './test/pageobjects/**/*.js'
+            : './features/pageobjects/**/*.js'
+    ),
+    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles && answers.usePageObjects
+}, {
     type: 'list',
     name: 'isUsingCompiler',
     message: 'Are you using a compiler?',
