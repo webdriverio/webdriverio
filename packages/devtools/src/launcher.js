@@ -125,6 +125,7 @@ function launchBrowser (capabilities, product) {
         product,
         executablePath,
         ignoreDefaultArgs,
+        headless: Boolean(capabilities[vendorCapKey].headless),
         defaultViewport: {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT
