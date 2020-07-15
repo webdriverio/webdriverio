@@ -406,9 +406,11 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.e2e.js'
         ]))
         const answers = {
-            specs: './tests/e2e/**/*.js',
             framework: 'mocha',
-            usePageObjects: true
+            usePageObjects: true,
+            generateTestFiles: true,
+            destPageObjectRootPath: '/tests/page/objects/model',
+            destSpecRootPath: '/tests/specs'
         }
 
         await generateTestFiles(answers)
@@ -442,10 +444,42 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(4)
-        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/pageobjects/page.js'))
+        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/page/objects/model/page.js'))
             .toBe(true)
         expect(fs.writeFileSync.mock.calls[1][0].endsWith('/example.e2e.js'))
             .toBe(true)
+    })
+
+    it('Jasmine with page generation and no pageObjects', async () => {
+        readDir.mockReturnValue(Promise.resolve([
+        ]))
+        const answers = {
+            specs: './tests/e2e/**/*.js',
+            framework: 'jasmine',
+            generateTestFiles: false,
+            usePageObjects: false
+        }
+
+        await generateTestFiles(answers)
+
+        expect(readDir).toBeCalledTimes(1)
+        expect(ejs.renderFile).toBeCalledTimes(0)
+    })
+
+    it('Cucumber with page generation and no pageObjects', async () => {
+        readDir.mockReturnValue(Promise.resolve([
+        ]))
+        const answers = {
+            specs: './tests/e2e/**/*.js',
+            framework: 'cucumber',
+            generateTestFiles: false,
+            usePageObjects: false,
+        }
+
+        await generateTestFiles(answers)
+
+        expect(readDir).toBeCalledTimes(1)
+        expect(ejs.renderFile).toBeCalledTimes(0)
     })
 
     it('Cucumber without page objects', async () => {
@@ -454,10 +488,11 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.feature'
         ]))
         const answers = {
-            specs: './tests/e2e/**/*.js',
+            specs: './tests/e2e/*.js',
             framework: 'cucumber',
             stepDefinitions: '/some/step/defs',
-            usePageObjects: false
+            usePageObjects: false,
+            generateTestFiles: true
         }
         await generateTestFiles(answers)
 
@@ -484,11 +519,12 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.feature'
         ]))
         const answers = {
-            specs: './tests/e2e/**/*.js',
             framework: 'cucumber',
-            stepDefinitions: '/some/step/defs',
             usePageObjects: true,
-            isUsingTypeScript: true
+            isUsingTypeScript: true,
+            stepDefinitions: '/some/step',
+            destPageObjectRootPath: '/some/page/objects',
+            relativePath : '../page/object'
         }
         await generateTestFiles(answers)
 
@@ -506,7 +542,7 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(6)
-        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/some/step/pageobjects/page.ts'))
+        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/some/page/objects/page.ts'))
             .toBe(true)
         expect(fs.writeFileSync.mock.calls[2][0].endsWith('/example.feature'))
             .toBe(true)
