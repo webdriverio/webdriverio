@@ -19,6 +19,9 @@ const XPATH_SELECTOR_REGEXP = [
     // *=query or =query
     /(\*)?=(.+)$/,
 ]
+const IMAGEPATH_MOBILE_SELECTORS_ENDSWITH = [
+    '.jpg', '.gif', '.png', '.bmp', '.svg'
+]
 
 const defineStrategy = function (selector) {
     // Condition with checking isPlainObject(selector) should be first because
@@ -33,6 +36,10 @@ const defineStrategy = function (selector) {
     // Check if user has specified locator strategy directly
     if (selector.match(DIRECT_SELECTOR_REGEXP)) {
         return 'directly'
+    }
+    // Use appium image strategy if selector string matches any of the type of images
+    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path=> selector.toLowerCase().endsWith(path))) {
+        return '-image'
     }
     // Use xPath strategy if selector starts with //
     if (XPATH_SELECTORS_START.some(option => selector.startsWith(option))) {
@@ -62,10 +69,6 @@ const defineStrategy = function (selector) {
     if (selector.startsWith('~')) {
         return 'accessibility id'
     }
-    // Recursive element search using image content
-    if (selector.startsWith('appium=')) {
-        return '-image'
-    }
     // Class name mobile selector
     // for iOS = UIA...
     // for Android = android.widget
@@ -92,6 +95,7 @@ const defineStrategy = function (selector) {
     if (selector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))) {
         return 'xpath extended'
     }
+
 }
 export const findStrategy = function (selector, isW3C, isMobile) {
     let using = DEFAULT_STRATEGY
@@ -198,7 +202,6 @@ export const findStrategy = function (selector, isW3C, isMobile) {
     }
     case '-image': {
         using = '-image'
-        value = selector.slice(7)
         break
     }
 
