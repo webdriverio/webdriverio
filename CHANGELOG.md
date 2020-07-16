@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.3.1 (2020-07-16)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#5627](https://github.com/webdriverio/webdriverio/pull/5627) Fix dependency of @wdio/sauce-service on @wdio/utils ([@lfdebrux](https://github.com/lfdebrux))
+
+#### Committers: 1
+- Laurence de Bruxelles ([@lfdebrux](https://github.com/lfdebrux))
+
+
 ## v6.3.0 (2020-07-16)
 
 #### :rocket: New Feature
