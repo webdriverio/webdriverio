@@ -207,7 +207,10 @@ test('launch Firefox without Puppeteer default args', async () => {
 test('launch Edge without Puppeteer default args', async () => {
     await launch({
         browserName: 'edge',
-        ignoreDefaultArgs: true
+        ignoreDefaultArgs: true,
+        'ms:edgeOptions': {
+            headless: true
+        }
     })
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })

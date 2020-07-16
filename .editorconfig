@@ -14,5 +14,5 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[{.babelrc,.eslintrc,.codeclimate.yml,.travis.yml,*.json,.eslintrc.js,.github/**/*.yml}]
+[{.babelrc,.eslintrc,.codeclimate.yml,.travis.yml,**/*.json,.eslintrc.js,.github/**/*.yml}]
 indent_size = 2

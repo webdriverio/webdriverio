@@ -3,18 +3,20 @@ import http from 'http'
 import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
+import getPort from 'get-port'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
+import isPlainObject from 'lodash.isplainobject'
+import puppeteer from 'puppeteer-core'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
-import isPlainObject from 'lodash.isplainobject'
 
-import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT } from './constants'
-import { findStrategy } from './utils/findStrategy'
+import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
+import { findStrategy } from './findStrategy'
 
-const browserCommands = require('./commands/browser')
-const elementCommands = require('./commands/element')
+const browserCommands = require('../commands/browser')
+const elementCommands = require('../commands/element')
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
@@ -34,7 +36,16 @@ const applyScopePrototype = (prototype, scope) => {
  * enhances objects with element commands
  */
 export const getPrototype = (scope) => {
-    const prototype = {}
+    const prototype = {
+        /**
+         * used to store the puppeteer instance in the browser scope
+         */
+        puppeteer: { value: null, writable: true },
+        /**
+         * for handling sync execution in @wdio/sync
+         */
+        _NOT_FIBER: { value: false, writable: true, configurable: true }
+    }
 
     /**
      * register action commands
@@ -453,9 +464,111 @@ export const getAutomationProtocol = async (config) => {
         req.end()
     })
 
+    /**
+     * kill agent otherwise process will stale
+     */
+    if (driverEndpointHeaders.req && driverEndpointHeaders.req.agent) {
+        driverEndpointHeaders.req.agent.destroy()
+    }
+
     if (driverEndpointHeaders && parseInt(driverEndpointHeaders.statusCode, 10) === 200) {
         return 'webdriver'
     }
 
     return 'devtools'
+}
+
+/**
+ * attach puppeteer to the driver scope so it can be used in the
+ * command
+ */
+export const getPuppeteer = async function getPuppeteer () {
+    /**
+     * check if we already connected Puppeteer and if so return
+     * that instance
+     */
+    if (this.puppeteer) {
+        return this.puppeteer
+    }
+
+    /**
+     * attach to Chromes debugger session
+     */
+    const chromiumOptions = this.capabilities['goog:chromeOptions'] || this.capabilities['ms:edgeOptions']
+    if (chromiumOptions && chromiumOptions.debuggerAddress) {
+        this.puppeteer = await puppeteer.connect({
+            browserURL: `http://${chromiumOptions.debuggerAddress}`,
+            defaultViewport: null
+        })
+        return this.puppeteer
+    }
+
+    /**
+     * attach to Firefox debugger session
+     */
+    if (this.capabilities.browserName.toLowerCase() === 'firefox') {
+        const majorVersion = parseInt(this.capabilities.browserVersion.split('.').shift(), 10)
+        if (majorVersion >= 79) {
+            const ffOptions = this.capabilities['moz:firefoxOptions']
+            const ffArgs = this.requestedCapabilities['moz:firefoxOptions'].args
+
+            const rdPort = ffOptions && ffOptions.debuggerAddress
+                ? ffOptions.debuggerAddress
+                : ffArgs[ffArgs.findIndex((arg) => arg === FF_REMOTE_DEBUG_ARG) + 1]
+            this.puppeteer = await puppeteer.connect({
+                browserURL: `http://localhost:${rdPort}`,
+                defaultViewport: null
+            })
+            return this.puppeteer
+        }
+    }
+
+    throw new Error(
+        'Network primitives aren\'t available for this session. ' +
+        'This feature is only supported for local Chrome, Firefox and Edge testing.'
+    )
+}
+
+/**
+ * updateCapabilities allows modifying capabilities before session
+ * is started
+ *
+ * NOTE: this method is executed twice when running the WDIO testrunner
+ */
+export const updateCapabilities = async (params, automationProtocol) => {
+    /**
+     * attach remote debugging port options to Firefox sessions
+     * (this will be ignored if not supported)
+     */
+    if (automationProtocol === 'webdriver' && params.capabilities.browserName === 'firefox') {
+        if (!params.capabilities['moz:firefoxOptions']) {
+            params.capabilities['moz:firefoxOptions'] = {}
+        }
+
+        if (!params.capabilities['moz:firefoxOptions'].args) {
+            params.capabilities['moz:firefoxOptions'].args = []
+        }
+
+        if (!params.capabilities['moz:firefoxOptions'].args.includes(FF_REMOTE_DEBUG_ARG)) {
+            params.capabilities['moz:firefoxOptions'].args.push(
+                FF_REMOTE_DEBUG_ARG,
+                (await getPort()).toString()
+            )
+        }
+    }
+}
+
+/**
+ * compare if an object (`base`) contains the same values as another object (`match`)
+ * @param {object} base  object to compare to
+ * @param {object} match object that needs to match thebase
+ */
+export const containsHeaderObject = (base, match) => {
+    for (const [key, value] of Object.entries(match)) {
+        if (typeof base[key] === 'undefined' || base[key] !== value) {
+            return false
+        }
+    }
+
+    return true
 }
