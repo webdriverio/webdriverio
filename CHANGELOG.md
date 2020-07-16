@@ -17,6 +17,43 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.3.0 (2020-07-16)
+
+#### :rocket: New Feature
+* `devtools`, `wdio-cli`, `wdio-local-runner`, `wdio-protocols`, `wdio-sync`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#5477](https://github.com/webdriverio/webdriverio/pull/5477) Implement Network Primitives ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-devtools-service`
+  * [#5566](https://github.com/webdriverio/webdriverio/pull/5566) fix return type of getPuppeteer in typescript definitions ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+* `wdio-cli`
+  * [#5612](https://github.com/webdriverio/webdriverio/pull/5612) Move `pageobject` folders outside specs and steps folder... ([@pjcalvo](https://github.com/pjcalvo))
+  * [#5618](https://github.com/webdriverio/webdriverio/pull/5618) Remove extra space introduced by prior PR https://github.com/webdriverio/webdriverio/pull/5483 ([@osmolyar](https://github.com/osmolyar))
+* `wdio-sauce-service`, `wdio-utils`
+  * [#5610](https://github.com/webdriverio/webdriverio/pull/5610) Fix issue #5585 ([@lfdebrux](https://github.com/lfdebrux))
+* `wdio-sauce-service`
+  * [#5617](https://github.com/webdriverio/webdriverio/pull/5617) feat: update Sauce Unified Platform (RDC on Sauce) with the JS-executor ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#5623](https://github.com/webdriverio/webdriverio/pull/5623) Update $.js documentation ([@GibbsB](https://github.com/GibbsB))
+
+#### :house: Internal
+* `devtools`, `wdio-devtools-service`
+  * [#5619](https://github.com/webdriverio/webdriverio/pull/5619) chore: Bump puppeteer core 5.1.0 ([@mohanraj-r](https://github.com/mohanraj-r))
+
+#### Committers: 9
+- Brandon Gibbons ([@GibbsB](https://github.com/GibbsB))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Laurence de Bruxelles ([@lfdebrux](https://github.com/lfdebrux))
+- Mohan Raj Rajamanickam ([@mohanraj-r](https://github.com/mohanraj-r))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+- Pablillo Calvo ([@pjcalvo](https://github.com/pjcalvo))
+- Srinivasan Sekar ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.2.0 (2020-07-13)
 
 #### :rocket: New Feature
