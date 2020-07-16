@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@wdio/logger": "6.0.16",
-    "@wdio/utils": "6.0.16",
+    "@wdio/utils": "^6.3.0",
     "saucelabs": "^4.2.0"
   },
   "peerDependencies": {
