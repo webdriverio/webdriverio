@@ -377,4 +377,10 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('-ios uiautomation')
         expect(element.value).toBe('foo')
     })
+
+    it('should find an mobile element using image string', () => {
+        let element = findStrategy('appium=imagetext1223')
+        expect(element.using).toBe('-image')
+        expect(element.value).toBe('imagetext1223')
+    })
 })
