@@ -159,7 +159,6 @@ class JunitReporter extends WDIOReporter {
         let builder = junit.newBuilder()
         if (runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
-            //
             // NOTE: platformVersion is used to build sanitizedCapabilities which can be incorrect and includes a minor version for iOS which is not guaranteed to be the same under Browserstack.
             const browserstackSanitizedCapabilities = [runner.capabilities.device, runner.capabilities.os, runner.capabilities.os_version]
                 .filter(Boolean)
