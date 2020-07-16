@@ -84,7 +84,7 @@ test('it should install with yarn when flag is passed', async () => {
 
 test('should throw an error if something goes wrong', async () => {
     expect.assertions(1)
-    yarnInstall.mockReturnValue({ status: 1, stderr: 'uups' })
+    yarnInstall.mockReturnValueOnce({ status: 1, stderr: 'uups' })
 
     try {
         await handler({})

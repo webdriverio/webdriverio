@@ -124,6 +124,7 @@ export const runConfig = async function (useYarn, yes, exit) {
         }
     } catch (e) {
         console.error(`Couldn't write config file: ${e.stack}`)
+        /* istanbul ignore next */
         return !process.env.JEST_WORKER_ID && process.exit(1)
     }
 
@@ -151,7 +152,7 @@ export const runConfig = async function (useYarn, yes, exit) {
     /**
      * don't exit if running unit tests
      */
-    if (exit && !process.env.JEST_WORKER_ID) {
+    if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
         /* istanbul ignore next */
         process.exit(0)
     }
