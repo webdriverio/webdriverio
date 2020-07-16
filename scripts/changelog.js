@@ -83,6 +83,9 @@ changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) =>
     // eslint-disable-next-line no-console
     console.log(highlighted, '\n\n')
     return newChangelog
+}, (err) => {
+    console.error(err)
+    process.exit(1)
 }).then(
     /**
      * make GitHub release for machine readable changelog
