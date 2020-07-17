@@ -190,6 +190,14 @@ Gives the ability to provide custom regex for formatting test suite name (e.g. i
 Type: `Regex`,<br>
 Default: `/[^a-z0-9]+/`
 
+### addFileAttribute
+
+Adds a file attribute to each testcase. This config is primarily for CircleCI. This setting provides richer details but may break on other CI platforms.
+
+Type: `Boolean`,<br>
+Default: `false`
+
+
 ### packageName
 
 You can break out packages by an additional level by setting `'packageName'`. For example, if you wanted to iterate over a test suite with different environment variable set:

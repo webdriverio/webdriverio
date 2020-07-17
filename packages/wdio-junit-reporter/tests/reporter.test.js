@@ -187,4 +187,20 @@ describe('wdio-junit-reporter', () => {
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter.buildJunitXml(cucumberRunnerBrowserstackAndroidLog).replace(/\s/g, '')).toMatchSnapshot()
     })
+
+    it('generates xml output correctly when the addFileAttribute option is set', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
+        reporter.suites = featuresLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output correctly when the addFileAttribute option is set (Cucumber-style)', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
+        reporter.suites = featuresLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
 })
