@@ -7,7 +7,7 @@
  * @param {object[]} actions  A list of objects, each of which represents an input source and its associated actions.
  */
 
-import { keyDefinitions } from 'puppeteer-core/lib/cjs/common/USKeyboardLayout'
+import { keyDefinitions } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout'
 
 import getElementRect from './getElementRect'
 import { ELEMENT_KEY } from '../constants'
