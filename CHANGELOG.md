@@ -17,6 +17,22 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.3.3 (2020-07-17)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#5633](https://github.com/webdriverio/webdriverio/pull/5633) Appium find by image support ([@jayandran-Sampath](https://github.com/jayandran-Sampath))
+
+#### :bug: Bug Fix
+* `wdio-sync`, `webdriverio`
+  * [#5632](https://github.com/webdriverio/webdriverio/pull/5632) Add `calls` property to mock typings. ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Nick ([@unickq](https://github.com/unickq))
+- [@jayandran-Sampath](https://github.com/jayandran-Sampath)
+
+
 ## v6.3.2 (2020-07-17)
 
 #### :rocket: New Feature
