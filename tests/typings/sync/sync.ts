@@ -216,5 +216,8 @@ mock.respondOnce('/other/resource.jpg', {
     headers: { foo: 'bar' }
 })
 mock.restore()
+const match = mock.calls[0]
+match.body
+match.headers
 
 export default {}

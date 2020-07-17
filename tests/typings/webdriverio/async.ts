@@ -246,6 +246,9 @@ async function bar() {
         headers: { foo: 'bar' }
     })
     mock.restore()
+    const match = mock.calls[0]
+    match.body
+    match.headers
 }
 
 // allure-reporter
