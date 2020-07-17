@@ -341,6 +341,19 @@ With selector chaining, it's way easier. Simply narrow down the desired element 
 $('.row .entry:nth-child(2)').$('button*=Add').click()
 ```
 
+### Appium Image Selector
+
+Using the  `-image` locator strategy, it is possible to send an Appium an image file representing an element you want to access.
+
+Supported file formats `jpg,png,gif,bmp,svg`
+
+Full reference can be found [here](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
+
+```js
+const elem = $('filepathofimage/test.jpg')
+elem.click()
+```
+
 ## React Selectors
 
 WebdriverIO provides a way to select React components based on the component name. To do this, you have a choice of two commands: `react$` and `react$$`.
