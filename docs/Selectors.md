@@ -350,7 +350,7 @@ Supported file formats `jpg,png,gif,bmp,svg`
 Full reference can be found [here](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
 
 ```js
-const elem = $('filepathofimage/test.jpg')
+const elem = $('./file/path/of/image/test.jpg')
 elem.click()
 ```
 
