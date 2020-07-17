@@ -5,7 +5,7 @@ authorURL: http://twitter.com/bromann
 authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s=80
 ---
 
-The WebdriverIO team continues its efforts to provide more functionality to its automation interface by shipping new network primitives to its API. With the latest v6.2. update you can now easily mock web resources in your test and define custom responses that allow you to drastically reduce testing time as you can now better test individual scenarios. With that WebdriverIO catches up with other popular testing tools like [Puppeteer](https://pptr.dev/), [Playwright](https://playwright.dev/) or [Cypress](https://www.cypress.io/) and even simplifies mocking further.
+The WebdriverIO team continues its efforts to provide more functionality to its automation interface by shipping new network primitives to its API. With the latest `v6.3`. update you can now easily mock web resources in your test and define custom responses that allow you to drastically reduce testing time as you can now better test individual scenarios. With that WebdriverIO catches up with other popular testing tools like [Puppeteer](https://pptr.dev/), [Playwright](https://playwright.dev/) or [Cypress](https://www.cypress.io/) and even simplifies mocking further.
 
 Replacing a REST API request from a browser can now be as simple as follows:
 
