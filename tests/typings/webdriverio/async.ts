@@ -1,5 +1,5 @@
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote } from 'webdriverio'
+import { remote, multiremote, MockOverwriteFunction } from 'webdriverio'
 
 // An example of adding command withing ts file to WebdriverIO (async)
 declare module "webdriverio" {
@@ -16,6 +16,12 @@ async function bar() {
         }
     })
 
+    multiremote({
+        myBrowserInstance: {
+            browserName: 'chrome'
+        }
+    }).then(() => {}, () => {})
+
     // interact with specific instance
     const mrSingleElem = await mr.myBrowserInstance.$('')
     await mrSingleElem.click()
@@ -31,6 +37,8 @@ async function bar() {
 
     // remote
     const r = await remote({ capabilities: { browserName: 'chrome' } })
+    remote({ capabilities: { browserName: 'chrome' } }).then(
+        () => {}, () => {})
     const rElem = await r.$('')
     await rElem.click()
 
@@ -199,6 +207,45 @@ async function bar() {
     browser.isMobile
     browser.isAndroid
     browser.isIOS
+
+    // network mocking
+    browser.throttle('Regular2G')
+    browser.throttle({
+        offline: false,
+        downloadThroughput: 50 * 1024 / 8,
+        uploadThroughput: 20 * 1024 / 8,
+        latency: 500
+    })
+    browser.mock('**/image.jpg')
+    const mock = await browser.mock('**/image.jpg', {
+        method: 'get',
+        headers: { foo: 'bar' }
+    })
+    mock.abort('Aborted')
+    mock.abortOnce('AccessDenied')
+    mock.clear()
+    mock.respond('/other/resource.jpg')
+    mock.respond('/other/resource.jpg', {
+        statusCode: 100,
+        headers: { foo: 'bar' }
+    })
+    const res: MockOverwriteFunction = async function (req, client) {
+        const url:string = req.url
+        await client.send('foo', { bar: 1 })
+        return url
+    }
+    mock.respond(res)
+    mock.respond(async (req, client) => {
+        const url:string = req.url
+        await client.send('foo', { bar: 1 })
+        return true
+    })
+    mock.respondOnce('/other/resource.jpg')
+    mock.respondOnce('/other/resource.jpg', {
+        statusCode: 100,
+        headers: { foo: 'bar' }
+    })
+    mock.restore()
 }
 
 // allure-reporter

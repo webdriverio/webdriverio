@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "6.1.25",
+  "version": "6.3.0",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -55,21 +55,26 @@
     "test:unit": "jest"
   },
   "dependencies": {
+    "@types/puppeteer": "^3.0.1",
     "@wdio/config": "6.1.14",
     "@wdio/logger": "6.0.16",
-    "@wdio/repl": "6.1.17",
-    "@wdio/utils": "6.1.17",
+    "@wdio/repl": "6.3.0",
+    "@wdio/utils": "6.3.0",
     "archiver": "^4.0.1",
+    "atob": "^2.1.2",
     "css-value": "^0.0.1",
-    "devtools": "6.1.25",
+    "devtools": "6.3.0",
+    "get-port": "^5.1.1",
     "grapheme-splitter": "^1.0.2",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isobject": "^3.0.2",
     "lodash.isplainobject": "^4.0.6",
     "lodash.zip": "^4.2.0",
+    "minimatch": "^3.0.4",
+    "puppeteer-core": "^5.1.0",
     "resq": "^1.6.0",
     "rgb2hex": "^0.2.0",
     "serialize-error": "^7.0.0",
-    "webdriver": "6.1.25"
+    "webdriver": "6.3.0"
   }
 }

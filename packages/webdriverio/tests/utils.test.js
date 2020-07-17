@@ -1,5 +1,8 @@
+import fs from 'fs'
 import http from 'http'
 import path from 'path'
+import puppeteer from 'puppeteer-core'
+
 import { ELEMENT_KEY } from '../src/constants'
 import {
     getElementFromResponse,
@@ -14,7 +17,9 @@ import {
     getAbsoluteFilepath,
     assertDirectoryExists,
     validateUrl,
-    getAutomationProtocol
+    getAutomationProtocol,
+    getPuppeteer,
+    updateCapabilities
 } from '../src/utils'
 
 jest.mock('http', () => {
@@ -31,8 +36,20 @@ jest.mock('http', () => {
     }
 })
 
-describe('utils', () => {
+const browser = {
+    sessionId: '1234',
+    capabilities: { browserName: 'foobar' },
+    __propertiesObject__: {},
+    requestedCapabilities: { requested: 'capabilities' }
+}
 
+jest.mock('fs')
+
+beforeEach(() => {
+    puppeteer.connect.mockClear()
+})
+
+describe('utils', () => {
     describe('getElementFromResponse', () => {
         it('should return null if response is null', () => {
             expect(getElementFromResponse(null)).toBe(null)
@@ -458,6 +475,11 @@ describe('utils', () => {
     })
 
     describe('assertDirectoryExists', () => {
+        beforeEach(() => {
+            const fsOrig = jest.requireActual('fs')
+            fs.existsSync.mockImplementation(::fsOrig.existsSync)
+        })
+
         it('should fail if not existing directory', () => {
             expect(() => assertDirectoryExists('/i/dont/exist.png')).toThrowError(new Error('directory (/i/dont) doesn\'t exist'))
         })
@@ -509,6 +531,145 @@ describe('utils', () => {
             http.setResponse({ statusCode: 404 })
             expect(await getAutomationProtocol({ capabilities: { browserName: 'foobar' } }))
                 .toBe('webdriver')
+        })
+    })
+
+    describe('attach Puppeteer', () => {
+        it('should fail if capabilities are not supported', async () => {
+            const err = await getPuppeteer.call(browser).catch(err => err)
+            expect(err.message).toContain('Network primitives aren\'t available for this session.')
+        })
+
+        it('should pass for Chrome', async () => {
+            const pptr = await getPuppeteer.call({
+                ...browser,
+                capabilities: {
+                    browserName: 'chrome',
+                    'goog:chromeOptions': {
+                        debuggerAddress: 'localhost:1234'
+                    }
+                }
+            })
+            expect(typeof pptr).toBe('object')
+            expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+        })
+
+        it('should pass for Firefox', async () => {
+            const pprt = await getPuppeteer.call({
+                ...browser,
+                capabilities: {
+                    browserName: 'firefox',
+                    browserVersion: '79.0b'
+                },
+                requestedCapabilities: {
+                    'moz:firefoxOptions': {
+                        args: ['foo', 'bar', '-remote-debugging-port', 4321, 'barfoo']
+                    }
+                }
+            })
+            expect(typeof pprt).toBe('object')
+            expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+        })
+
+        it('should pass for Firefox (DevTools)', async () => {
+            const pptr = await getPuppeteer.call({
+                ...browser,
+                capabilities: {
+                    browserName: 'firefox',
+                    browserVersion: '79.0b',
+                    'moz:firefoxOptions': {
+                        debuggerAddress: 'localhost:1234'
+                    }
+                },
+                requestedCapabilities: {
+                    'moz:firefoxOptions': {
+                        args: {}
+                    }
+                }
+            })
+            expect(typeof pptr).toBe('object')
+            expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+        })
+
+        it('should pass for Edge', async () => {
+            const pptr = await getPuppeteer.call({
+                ...browser,
+                capabilities: {
+                    browserName: 'edge',
+                    'ms:edgeOptions': {
+                        debuggerAddress: 'localhost:1234'
+                    }
+                },
+                options: {
+                    requestedCapabilities: {}
+                }
+            })
+            expect(typeof pptr).toBe('object')
+            expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+        })
+
+        it('should fail for old Firefox version', async () => {
+            const err = await getPuppeteer.call({
+                ...browser,
+                capabilities: {
+                    browserName: 'firefox',
+                    browserVersion: '78.0b'
+                },
+                requestedCapabilities: {
+                    'moz:firefoxOptions': {
+                        args: ['foo', 'bar', '-remote-debugging-port', 4321, 'barfoo']
+                    }
+                }
+            }).catch(err => err)
+            expect(err.message).toContain('Network primitives aren\'t available for this session.')
+        })
+
+        it('should not re-attach if connection was already established', async () => {
+            const pptr = await getPuppeteer.call({
+                ...browser,
+                capabilities: {
+                    browserName: 'chrome',
+                    'goog:chromeOptions': {
+                        debuggerAddress: 'localhost:1234'
+                    }
+                },
+                puppeteer: 'foobar'
+            })
+            expect(pptr).toBe('foobar')
+            expect(puppeteer.connect).toHaveBeenCalledTimes(0)
+        })
+    })
+
+    describe('updateCapabilities', () => {
+        it('should do nothing if no browser specified', async () => {
+            const params = { capabilities: {} }
+            await updateCapabilities(params)
+            expect(params).toMatchSnapshot()
+        })
+
+        describe('setting devtools port in Firefox', () => {
+            it('should set firefox options if there aren\'t any', async () => {
+                const params = { capabilities: { browserName: 'firefox' } }
+                await updateCapabilities(params, 'webdriver')
+                expect(params).toMatchSnapshot()
+
+                const params2 = { capabilities: { browserName: 'firefox' } }
+                await updateCapabilities(params2, 'devtools')
+                expect(params2).toMatchSnapshot()
+            })
+
+            it('should not overwrite if already set', async () => {
+                const params = {
+                    capabilities: {
+                        browserName: 'firefox',
+                        'moz:firefoxOptions': {
+                            args: ['foo', 'bar', '-remote-debugging-port', 1234, 'barfoo']
+                        }
+                    }
+                }
+                await updateCapabilities(params)
+                expect(params).toMatchSnapshot()
+            })
         })
     })
 })

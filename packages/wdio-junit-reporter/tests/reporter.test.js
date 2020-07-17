@@ -192,8 +192,23 @@ describe('wdio-junit-reporter', () => {
     it('ensures that browserstack sanitised capabilities are not null if not provided by user', () => {
         reporter = new WDIOJunitReporter({})
         reporter.suites = featuresLog
-
+        //verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter.buildJunitXml(cucumberRunnerBrowserstackNoCaps).replace(/\s/g, '')).toMatchSnapshot()
+
+    it('generates xml output correctly when the addFileAttribute option is set', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
+        reporter.suites = featuresLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output correctly when the addFileAttribute option is set (Cucumber-style)', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
+        reporter.suites = featuresLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
 
     })
 })
