@@ -19,6 +19,9 @@ const XPATH_SELECTOR_REGEXP = [
     // *=query or =query
     /(\*)?=(.+)$/,
 ]
+const IMAGEPATH_MOBILE_SELECTORS_ENDSWITH = [
+    '.jpg', '.gif', '.png', '.bmp', '.svg'
+]
 
 const defineStrategy = function (selector) {
     // Condition with checking isPlainObject(selector) should be first because
@@ -33,6 +36,10 @@ const defineStrategy = function (selector) {
     // Check if user has specified locator strategy directly
     if (selector.match(DIRECT_SELECTOR_REGEXP)) {
         return 'directly'
+    }
+    // Use appium image strategy if selector ends with certain text(.jpg,.gif..)
+    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path=> selector.toLowerCase().endsWith(path))) {
+        return '-image'
     }
     // Use xPath strategy if selector starts with //
     if (XPATH_SELECTORS_START.some(option => selector.startsWith(option))) {
@@ -190,6 +197,10 @@ export const findStrategy = function (selector, isW3C, isMobile) {
             partial ? `contains(., "${query}")` : `normalize-space() = "${query}"`
         )
         value = `.//${tag || '*'}[${conditions.join(' and ')}]`
+        break
+    }
+    case '-image': {
+        using = '-image'
         break
     }
     }

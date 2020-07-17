@@ -377,4 +377,25 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('-ios uiautomation')
         expect(element.value).toBe('foo')
     })
+
+    it('should find an mobile element using image string', () => {
+        let element = findStrategy('/test.jpg')
+        expect(element.using).toBe('-image')
+        expect(element.value).toBe('/test.jpg')
+
+        element = findStrategy('path/test.png')
+        expect(element.using).toBe('-image')
+        expect(element.value).toBe('path/test.png')
+
+        element = findStrategy('path/test.PNG')
+        expect(element.using).toBe('-image')
+        expect(element.value).toBe('path/test.PNG')
+
+        element = findStrategy('//path//test.svg')
+        expect(element.using).toBe('-image')
+        expect(element.value).toBe('//path//test.svg')
+
+        element = findStrategy('//xpath[@img="/test.png"]')
+        expect(element.using).toBe('xpath')
+    })
 })
