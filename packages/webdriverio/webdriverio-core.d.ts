@@ -490,6 +490,13 @@ declare namespace WebdriverIO {
         isLinkPreload?: boolean;
     }
 
+    interface Matches extends Request {
+        /**
+         * body response of actual resource
+         */
+        body: any
+    }
+
     type CDPSession = Partial<import('puppeteer').CDPSession>;
     type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
@@ -894,6 +901,11 @@ declare namespace WebdriverIO {
     }
 
     interface Mock {
+        /**
+         * list of requests made by the browser to that mock
+         */
+        calls: Matches[];
+
         
         /**
          * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
