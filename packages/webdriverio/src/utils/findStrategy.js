@@ -20,7 +20,7 @@ const XPATH_SELECTOR_REGEXP = [
     /(\*)?=(.+)$/,
 ]
 const IMAGEPATH_MOBILE_SELECTORS_ENDSWITH = [
-    '.jpg', '.gif', '.png', '.bmp', '.svg'
+    '.jpg', '.jpeg', '.gif', '.png', '.bmp', '.svg'
 ]
 
 const defineStrategy = function (selector) {
