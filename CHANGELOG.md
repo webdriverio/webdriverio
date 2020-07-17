@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.3.2 (2020-07-17)
+
+#### :rocket: New Feature
+* `wdio-junit-reporter`
+  * [#5628](https://github.com/webdriverio/webdriverio/pull/5628) Add file attribute to testcase output ([@hollandben](https://github.com/hollandben))
+
+#### Committers: 1
+- Ben Holland ([@hollandben](https://github.com/hollandben))
+
+
 ## v6.3.1 (2020-07-16)
 
 #### :bug: Bug Fix
