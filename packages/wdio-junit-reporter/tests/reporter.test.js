@@ -201,6 +201,6 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
+        expect(reporter.buildJunitXml(cucumberRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
     })
 })
