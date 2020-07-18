@@ -1,6 +1,5 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
-import { devicesMap } from 'puppeteer-core/DeviceDescriptors'
 import logger from '@wdio/logger'
 
 import browserFinder from './finder'
@@ -22,7 +21,7 @@ import {
 
 const log = logger('devtools')
 
-const DEVICE_NAMES = Object.values(devicesMap).map((device) => device.name)
+const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.name)
 
 /**
  * launches Chrome and returns a Puppeteer browser instance
@@ -30,12 +29,16 @@ const DEVICE_NAMES = Object.values(devicesMap).map((device) => device.name)
  * @return {object}               puppeteer browser instance
  */
 async function launchChrome (capabilities) {
-    const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
+    if (!capabilities[VENDOR_PREFIX.chrome]) {
+        capabilities[VENDOR_PREFIX.chrome] = {}
+    }
+
+    const chromeOptions = capabilities[VENDOR_PREFIX.chrome]
     const mobileEmulation = chromeOptions.mobileEmulation || {}
     const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
     if (typeof mobileEmulation.deviceName === 'string') {
-        const deviceProperties = Object.values(devicesMap).find(device => device.name === mobileEmulation.deviceName)
+        const deviceProperties = Object.values(puppeteer.devices).find(device => device.name === mobileEmulation.deviceName)
 
         if (!deviceProperties) {
             throw new Error(`Unknown device name "${mobileEmulation.deviceName}", available: ${DEVICE_NAMES.join(', ')}`)
@@ -122,6 +125,7 @@ function launchBrowser (capabilities, product) {
         product,
         executablePath,
         ignoreDefaultArgs,
+        headless: Boolean(capabilities[vendorCapKey].headless),
         defaultViewport: {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT

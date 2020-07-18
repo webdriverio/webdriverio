@@ -47,6 +47,8 @@ class JunitReporter extends WDIOReporter {
 
     addCucumberFeatureToBuilder(builder, runner, specFileName, suite) {
         const featureName = this.prepareName(suite.title)
+        const filePath = specFileName.replace(process.cwd(), '.')
+
         if (suite.type === 'feature') {
             const feature = builder.testSuite()
                 .name(featureName)
@@ -55,7 +57,7 @@ class JunitReporter extends WDIOReporter {
                 .property('specId', 0)
                 .property(this.suiteTitleLabel, suite.title)
                 .property('capabilities', runner.sanitizedCapabilities)
-                .property(this.fileNameLabel, specFileName.replace(process.cwd(), '.'))
+                .property(this.fileNameLabel, filePath)
             this.activeFeature = feature
             this.activeFeatureName = featureName
         } else if (this.activeFeature) {
@@ -66,6 +68,10 @@ class JunitReporter extends WDIOReporter {
                 .className(`${this.packageName}.${this.activeFeatureName}`)
                 .name(`${this.activeFeatureName}.${testName}`)
                 .time(scenario._duration / 1000)
+
+            if (this.options.addFileAttribute) {
+                testCase.file(filePath)
+            }
 
             scenario = this.addFailedHooks(scenario)
 
@@ -109,6 +115,8 @@ class JunitReporter extends WDIOReporter {
 
     addSuiteToBuilder(builder, runner, specFileName, suite) {
         const suiteName = this.prepareName(suite.title)
+        const filePath = specFileName.replace(process.cwd(), '.')
+
         let testSuite = builder.testSuite()
             .name(suiteName)
             .timestamp(suite.start)
@@ -116,7 +124,7 @@ class JunitReporter extends WDIOReporter {
             .property('specId', 0)
             .property(this.suiteTitleLabel, suite.title)
             .property('capabilities', runner.sanitizedCapabilities)
-            .property(this.fileNameLabel, specFileName.replace(process.cwd(), '.'))
+            .property(this.fileNameLabel, filePath)
 
         suite = this.addFailedHooks(suite)
 
@@ -128,6 +136,10 @@ class JunitReporter extends WDIOReporter {
                     .className(`${this.packageName}.${suiteName}`)
                     .name(testName)
                     .time(test._duration / 1000)
+
+                if (this.options.addFileAttribute) {
+                    testCase.file(filePath)
+                }
 
                 if (test.state === 'pending' || test.state === 'skipped') {
                     testCase.skipped()
@@ -157,7 +169,7 @@ class JunitReporter extends WDIOReporter {
 
     buildJunitXml (runner) {
         let builder = junit.newBuilder()
-        if (runner.config.hostname.indexOf('browserstack') > -1) {
+        if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
             // NOTE: platformVersion is used to build sanitizedCapabilities which can be incorrect and includes a minor version for iOS which is not guaranteed to be the same under Browserstack.
             const browserstackSanitizedCapabilities = [

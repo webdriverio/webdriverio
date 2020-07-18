@@ -1,6 +1,11 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
 
+// See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/24419
+interface Element { }
+interface Node { }
+interface NodeListOf<TNode = Node> { }
+
 declare namespace WebdriverIO {
     type LocationParam = 'x' | 'y';
 
@@ -429,6 +434,88 @@ declare namespace WebdriverIO {
         y: number
     }
 
+    /**
+     * HTTP request data. (copied from the puppeteer-core package as there is currently
+     * no way to access these types otherwise)
+     */
+    type ResourcePriority = 'VeryLow' | 'Low' | 'Medium' | 'High' | 'VeryHigh';
+    type MixedContentType = 'blockable' | 'optionally-blockable' | 'none';
+    type ReferrerPolicy = 'unsafe-url' | 'no-referrer-when-downgrade' | 'no-referrer' | 'origin' | 'origin-when-cross-origin' | 'same-origin' | 'strict-origin' | 'strict-origin-when-cross-origin';
+    interface Request {
+        /**
+         * Request URL (without fragment).
+         */
+        url: string;
+        /**
+         * Fragment of the requested URL starting with hash, if present.
+         */
+        urlFragment?: string;
+        /**
+         * HTTP request method.
+         */
+        method: string;
+        /**
+         * HTTP request headers.
+         */
+        headers: Record<string, string>;
+        /**
+         * HTTP POST request data.
+         */
+        postData?: string;
+        /**
+         * True when the request has POST data. Note that postData might still be omitted when this flag is true when the data is too long.
+         */
+        hasPostData?: boolean;
+        /**
+         * The mixed content type of the request.
+         */
+        mixedContentType?: MixedContentType;
+        /**
+         * Priority of the resource request at the time request is sent.
+         */
+        initialPriority: ResourcePriority;
+        /**
+         * The referrer policy of the request, as defined in https://www.w3.org/TR/referrer-policy/
+         */
+        referrerPolicy: ReferrerPolicy;
+        /**
+         * Whether is loaded via link preload.
+         */
+        isLinkPreload?: boolean;
+    }
+
+    interface Matches extends Request {
+        /**
+         * body response of actual resource
+         */
+        body: any
+    }
+
+    type CDPSession = Partial<import('puppeteer').CDPSession>;
+    type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
+    type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
+
+    type MockResponseParams = {
+        statusCode?: number,
+        headers?: Record<string, string>
+    }
+
+    type MockFilterOptions = {
+        method?: string,
+        headers?: Record<string, string>
+    }
+
+    type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
+
+    type ThrottlePreset = 'offline' | 'GPRS' | 'Regular2G' | 'Good2G' | 'Regular3G' | 'Good3G' | 'Regular4G' | 'DSL' | 'WiFi' | 'online'
+    interface CustomThrottle {
+        offline: boolean,
+        downloadThroughput: number,
+        uploadThroughput: number,
+        latency: number
+    }
+    type ThrottleOptions = ThrottlePreset | CustomThrottle
+
     interface Element {
         selector: string;
         elementId: string;
@@ -462,6 +549,15 @@ declare namespace WebdriverIO {
             func: Function
         ): void;
         // ... element commands ...
+    }
+
+    interface Mock {
+        /**
+         * list of requests made by the browser to that mock
+         */
+        calls: Matches[];
+
+        // ... mock commands ...
     }
 
     interface ElementArray extends Array<Element> {

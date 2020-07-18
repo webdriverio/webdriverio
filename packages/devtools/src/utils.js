@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { execFileSync } from 'child_process'
 import logger from '@wdio/logger'
-import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
+import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
 
 import cleanUp from './scripts/cleanUpSerializationSelector'
@@ -252,20 +252,6 @@ export function sort(installations, priorities) {
         .sort((a, b) => (b.weight - a.weight))
         // remove priority flag
         .map(pair => pair.path)
-}
-
-/**
- * helper utility to check if binary is accessible
- * @param  {String}  file  path to browser binary
- * @return {Boolean}       true if browser is accessible
- */
-export function canAccess(file) {
-    try {
-        fs.accessSync(file)
-        return true
-    } catch (e) {
-        return false
-    }
 }
 
 /**

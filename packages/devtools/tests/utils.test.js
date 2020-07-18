@@ -1,4 +1,3 @@
-import fs from 'fs'
 import path from 'path'
 // eslint-disable-next-line
 import { log as pptrDebugLog } from 'pptrDebug'
@@ -6,8 +5,9 @@ import childProcess from 'child_process'
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
-    canAccess, uniq, findByWhich, patchDebug
+    uniq, findByWhich, patchDebug
 } from '../src/utils'
+import { canAccess } from '@wdio/utils'
 
 const debug = jest.requireActual('debug')
 
@@ -48,14 +48,7 @@ let pageMock = {
 }
 
 jest.mock('fs', () => {
-    let expectedThrow = false
     return {
-        accessSync: jest.fn().mockImplementation(() => {
-            if (expectedThrow) {
-                throw new Error('Not accessible')
-            }
-        }),
-        shouldThrow: (value) => (expectedThrow = value),
         existsSync: (pkgName) => pkgName === 'pptrDebug'
     }
 })
@@ -348,17 +341,6 @@ test('getStaleElementError', () => {
     expect(err.name).toContain('stale element reference')
 })
 
-test('canAccess', () => {
-    fs.shouldThrow(true)
-    expect(canAccess()).toBe(false)
-
-    fs.shouldThrow(false)
-    expect(canAccess('/some/file')).toBe(true)
-
-    fs.shouldThrow(true)
-    expect(canAccess('/some/file')).toBe(false)
-})
-
 test('uniq', () => {
     const listA = [1, 2, 3]
     expect(listA).toBe(listA)
@@ -366,7 +348,7 @@ test('uniq', () => {
 })
 
 test('findByWhich', () => {
-    fs.shouldThrow(false)
+    canAccess.mockImplementation(() => true)
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual([])
 
@@ -374,7 +356,9 @@ test('findByWhich', () => {
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual(['/path/to/other/firefox'])
 
-    fs.shouldThrow(true)
+    canAccess.mockImplementation(() => {
+        throw new Error('uups')
+    })
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual([])
 })

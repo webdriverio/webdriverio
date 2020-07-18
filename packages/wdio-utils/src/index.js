@@ -5,14 +5,17 @@ import { initialiseWorkerService, initialiseLauncherService } from './initialise
 import webdriverMonad from './monad'
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeRequire,
-    isFunctionAsync, transformCommandLogResult
+    isFunctionAsync, transformCommandLogResult, canAccess
 } from './utils'
 import {
     wrapCommand, runFnInFiberContext, executeHooksWithArgs,
     hasWdioSyncSupport, executeSync, executeAsync,
 } from './shim'
 import { testFnWrapper, runTestInFiberContext } from './test-framework'
-import { capabilitiesEnvironmentDetector, sessionEnvironmentDetector, devtoolsEnvironmentDetector } from './envDetector'
+import {
+    isW3C, capabilitiesEnvironmentDetector,
+    sessionEnvironmentDetector, devtoolsEnvironmentDetector
+} from './envDetector'
 
 export {
     initialisePlugin,
@@ -25,6 +28,7 @@ export {
     isValidParameter,
     getArgumentType,
     safeRequire,
+    canAccess,
 
     /**
      * wdio-sync shim
@@ -41,6 +45,7 @@ export {
     /**
      * environmentDetector
      */
+    isW3C,
     sessionEnvironmentDetector,
     capabilitiesEnvironmentDetector,
     devtoolsEnvironmentDetector

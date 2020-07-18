@@ -1,10 +1,23 @@
 import exitHook from 'async-exit-hook'
 import { instances } from '@wdio/runner'
 
+jest.mock('../src/constants', () => ({
+    SHUTDOWN_TIMEOUT: 1
+}))
+
+const sleep = (ms = 100) => new Promise(
+    (resolve) => setTimeout(resolve, ms))
+
+let exitHookFn, runner
+const origExit = ::process.exit
+
 beforeAll(() => {
     jest.spyOn(process, 'on')
     jest.spyOn(process, 'send')
-    require('../src/run.js')
+    process.exit = jest.fn()
+    const run = require('../src/run.js')
+    exitHookFn = run.exitHookFn
+    runner = run.runner
 })
 
 test('should register exitHook', () => {
@@ -41,7 +54,35 @@ test('should call runner command on process message', async () => {
     })
 })
 
+test('should exit process if failing to execute', async () => {
+    runner.errorMe = jest.fn().mockReturnValue(Promise.reject(new Error('Uups')))
+    process.on.mock.calls[0][1]({
+        command: 'errorMe',
+        foo: 'bar'
+    })
+    expect(instances[0].errorMe).toHaveBeenCalledTimes(1)
+    await sleep()
+    expect(process.exit).toBeCalledWith(1)
+
+})
+
+test('exitHookFn do nothing if no callback is provided', async () => {
+    exitHookFn()
+    await sleep()
+    expect(runner.sigintWasCalled).toBe(undefined)
+})
+
+test('exitHookFn should call callback after shutdown timeout', async () => {
+    const cb = jest.fn()
+    exitHookFn(cb)
+    expect(runner.sigintWasCalled).toBe(true)
+    expect(cb).toHaveBeenCalledTimes(0)
+    await sleep()
+    expect(cb).toHaveBeenCalledTimes(1)
+})
+
 afterAll(() => {
     process.on.mockRestore()
     process.send.mockRestore()
+    process.exit = origExit
 })
