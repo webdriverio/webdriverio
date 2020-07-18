@@ -195,6 +195,7 @@ describe('wdio-junit-reporter', () => {
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter.buildJunitXml(cucumberRunnerBrowserstackAndroidLogMissingOS).replace(/\s/g, '')).toMatchSnapshot()
+    })
 
     it('generates xml output correctly when the addFileAttribute option is set', () => {
         reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
