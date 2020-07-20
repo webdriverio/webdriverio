@@ -172,20 +172,17 @@ class JunitReporter extends WDIOReporter {
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
             // NOTE: platformVersion is used to build sanitizedCapabilities which can be incorrect and includes a minor version for iOS which is not guaranteed to be the same under Browserstack.
-            let browserstackSanitizedCapabilities;
-            try {
-                browserstackSanitizedCapabilities = [
-                    runner.capabilities.device,
-                    runner.capabilities.os,
-                    runner.capabilities.os_version.replace(/\./g, "_"),
-                ]
-                    .filter(Boolean)
-                    .map((capability) => capability.toLowerCase())
-                    .join(".")
-                    .replace(/ /g, "");
-            } catch (e) {
-                browserstackSanitizedCapabilities =
-                    runner.sanitizedCapabilities;
+            let browserstackSanitizedCapabilities = [
+                runner.capabilities.device,
+                runner.capabilities.os,
+                (runner.capabilities.os_version || "").replace(/\./g, "_"),
+            ]
+                .filter(Boolean)
+                .map((capability) => capability.toLowerCase())
+                .join(".")
+                .replace(/ /g, "");
+            if (!browserstackSanitizedCapabilities) {
+                browserstackSanitizedCapabilities = runner.sanitizedCapabilities;
             }
             this.packageName = this.options.packageName ? `${browserstackSanitizedCapabilities}-${this.options.packageName}` : browserstackSanitizedCapabilities
         } else {
