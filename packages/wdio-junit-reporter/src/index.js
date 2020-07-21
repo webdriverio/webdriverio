@@ -175,13 +175,12 @@ class JunitReporter extends WDIOReporter {
             const browserstackSanitizedCapabilities = [
                 runner.capabilities.device,
                 runner.capabilities.os,
-                runner.capabilities.os_version.replace(/\./g, '_')
+                (runner.capabilities.os_version || '').replace(/\./g, '_'),
             ]
                 .filter(Boolean)
                 .map((capability) => capability.toLowerCase())
                 .join('.')
-                .replace(/ /g, '')
-
+                .replace(/ /g, '') || runner.sanitizedCapabilities
             this.packageName = this.options.packageName ? `${browserstackSanitizedCapabilities}-${this.options.packageName}` : browserstackSanitizedCapabilities
         } else {
             this.packageName = this.options.packageName ? `${runner.sanitizedCapabilities}-${this.options.packageName}` : runner.sanitizedCapabilities
