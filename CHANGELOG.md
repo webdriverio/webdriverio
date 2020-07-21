@@ -17,6 +17,27 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.3.4 (2020-07-21)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#5641](https://github.com/webdriverio/webdriverio/pull/5641) Wdio JUnit Reporter - Closes [#5637](https://github.com/webdriverio/webdriverio/issues/5637) ([@unickq](https://github.com/unickq))
+  * [#5637](https://github.com/webdriverio/webdriverio/pull/5637) Fix 5589 ([@jonesh66](https://github.com/jonesh66))
+
+#### :memo: Documentation
+* `devtools`
+  * [#5635](https://github.com/webdriverio/webdriverio/pull/5635) Update devtools package.json homepage url ([@klamping](https://github.com/klamping))
+
+#### :house: Internal
+* [#5639](https://github.com/webdriverio/webdriverio/pull/5639) [Security] Bump codecov from 3.7.0 to 3.7.1 ([@dependabot-preview[bot]](https://github.com/apps/dependabot-preview))
+
+#### Committers: 4
+- Jonesh Sharma ([@jonesh66](https://github.com/jonesh66))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Nick ([@unickq](https://github.com/unickq))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.3.3 (2020-07-17)
 
 #### :rocket: New Feature
