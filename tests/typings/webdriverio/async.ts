@@ -1,5 +1,5 @@
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, MockOverwriteFunction } from 'webdriverio'
+import { remote, multiremote, MockOverwriteFunction, SevereServiceError } from 'webdriverio'
 
 // An example of adding command within ts file to WebdriverIO (async)
 declare module "webdriverio" {
@@ -249,6 +249,14 @@ async function bar() {
     const match = mock.calls[0]
     match.body
     match.headers
+}
+
+function testSevereServiceError_noParameters() {
+    throw new SevereServiceError();
+}
+
+function testSevereServiceError_stringParameter() {
+    throw new SevereServiceError("Something happened.");
 }
 
 // allure-reporter
