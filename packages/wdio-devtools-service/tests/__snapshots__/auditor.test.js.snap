@@ -65,10 +65,12 @@ Object {
   "firstMeaningfulPaint": 23117,
   "firstPaint": undefined,
   "firstVisualChange": undefined,
+  "largestContentfulPaint": undefined,
   "lastVisualChange": undefined,
   "load": undefined,
   "speedIndex": 20411,
   "timeToFirstByte": 105,
+  "totalBlockingTime": undefined,
 }
 `;
 

@@ -105,11 +105,13 @@ export default class Auditor {
             firstPaint: metrics.observedFirstPaint,
             firstContentfulPaint: metrics.firstContentfulPaint,
             firstMeaningfulPaint: metrics.firstMeaningfulPaint,
+            largestContentfulPaint: metrics.largestContentfulPaint,
             lastVisualChange: metrics.observedLastVisualChange,
             firstCPUIdle: metrics.firstCPUIdle,
             firstInteractive: metrics.interactive,
             load: metrics.observedLoad,
-            speedIndex: metrics.speedIndex
+            speedIndex: metrics.speedIndex,
+            totalBlockingTime: metrics.totalBlockingTime,
         }
     }
 
