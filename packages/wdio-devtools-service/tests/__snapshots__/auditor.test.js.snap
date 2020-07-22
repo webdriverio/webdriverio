@@ -57,6 +57,7 @@ Array [
 
 exports[`getMetrics 1`] = `
 Object {
+  "cumulativeLayoutShift": 24347,
   "domContentLoaded": undefined,
   "estimatedInputLatency": 16,
   "firstCPUIdle": 23117,
@@ -65,13 +66,12 @@ Object {
   "firstMeaningfulPaint": 23117,
   "firstPaint": undefined,
   "firstVisualChange": undefined,
-  "largestContentfulPaint": undefined,
+  "largestContentfulPaint": 23117,
   "lastVisualChange": undefined,
   "load": undefined,
-  "speedIndex": 20411,
   "serverResponseTime": 105,
-  "totalBlockingTime": undefined,
-  "cumulativeLayoutShift": 105,
+  "speedIndex": 20411,
+  "totalBlockingTime": 20411,
 }
 `;
 
