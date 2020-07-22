@@ -58,6 +58,13 @@ export default class WebDriver {
         return monad(options.sessionId, commandWrapper)
     }
 
+    /**
+     * Changes The instance session id and browser capabilities for the new session
+     * directly into the passed in browser object
+     *
+     * @param   {Object} instance  the object we get from a new browser session.
+     * @returns {string}           the new session id of the browser
+    */
     static async reloadSession (instance) {
         const params = {
             ...instance.options,
@@ -65,6 +72,7 @@ export default class WebDriver {
         }
         const sessionId = await startWebDriverSession(params)
         instance.sessionId = sessionId
+        instance.capabilities = params.capabilities
         return sessionId
     }
 

@@ -81,7 +81,7 @@ test('if not supported by browser', async () => {
     const service = new DevToolsService({}, [{}], {})
     service.isSupported = false
 
-    await service.before()
+    await service._setDevtools()
     expect(global.browser.addCommand.mock.calls).toHaveLength(1)
     expect(global.browser.addCommand.mock.calls[0][0]).toBe('cdp')
     expect(global.browser.addCommand.mock.calls[0][1].toString()).toContain('throw new Error')
@@ -91,7 +91,7 @@ test('if supported by browser', async () => {
     global.browser = { addCommand: jest.fn() }
     const service = new DevToolsService({}, [{}], {})
     service.isSupported = true
-    await service.before()
+    await service._setDevtools()
     expect(service.client.Network.enable).toBeCalledTimes(1)
     service.client.Network.enable.mockClear()
     expect(service.client.Console.enable).toBeCalledTimes(1)
@@ -107,7 +107,7 @@ test('initialised with the debuggerAddress as option', async () => {
     global.browser = { addCommand: jest.fn() }
     const service = new DevToolsService(options)
     service.isSupported = true
-    await service.before()
+    await service._setDevtools()
     expect(getCDPClient).toBeCalledWith({ host: 'localhost', port: 4444 })
     expect(service.client.Network.enable).toBeCalledTimes(1)
     expect(service.client.Console.enable).toBeCalledTimes(1)
@@ -132,7 +132,7 @@ test('initialization fails', async () => {
 
     const service = new DevToolsService({}, [{}], {})
     service.isSupported = true
-    await service.before()
+    await service._setDevtools()
 
     expect(service.commandHandler).toBe(undefined)
     expect(log.error.mock.calls.pop()[0]).toContain('Couldn\'t connect to chrome: Error: boom')
@@ -317,6 +317,20 @@ test('_emulateDevice', async () => {
         () => true,
         () => false)
     expect(isSuccessful).toBe(false)
+})
+
+test('before hook', async () => {
+    const service = new DevToolsService({}, [{}], {})
+    service._setDevtools = jest.fn()
+    service.before()
+    expect(service._setDevtools).toBeCalledTimes(1)
+})
+
+test('onReload hook', async () => {
+    const service = new DevToolsService({}, [{}], {})
+    service._setDevtools = jest.fn()
+    service.onReload()
+    expect(service._setDevtools).toBeCalledTimes(1)
 })
 
 afterEach(() => {
