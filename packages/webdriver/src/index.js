@@ -59,10 +59,11 @@ export default class WebDriver {
     }
 
     /**
-     * Changes The instance id and browser capabilities for the new session
+     * Changes The instance session id and browser capabilities for the new session
      * directly into the passed in browser object
-     * @param {Object} instance - the object we get from a new browser session.
-     * @returns {string} - the new session id of the browser
+     *
+     * @param   {Object} instance  the object we get from a new browser session.
+     * @returns {string}           the new session id of the browser
     */
     static async reloadSession (instance) {
         const params = {
