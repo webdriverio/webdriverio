@@ -3,7 +3,7 @@ import weightedMean from 'weighted-mean'
 import Diagnostics from 'lighthouse/lighthouse-core/audits/diagnostics'
 import MainThreadWorkBreakdown from 'lighthouse/lighthouse-core/audits/mainthread-work-breakdown'
 import Metrics from 'lighthouse/lighthouse-core/audits/metrics'
-import TTFBMetric from 'lighthouse/lighthouse-core/audits/time-to-first-byte'
+import ServerResponseTime from 'lighthouse/lighthouse-core/audits/server-response-time'
 
 import { quantileAtValue } from './utils'
 import logger from '@wdio/logger'
@@ -94,12 +94,12 @@ export default class Auditor {
     }
 
     async getMetrics () {
-        const timeToFirstByte = await this._audit(TTFBMetric, { URL: this.url })
+        const serverResponseTime = await this._audit(ServerResponseTime, { URL: this.url })
         const result = await this._audit(Metrics)
         const metrics = result.details.items[0] || {}
         return {
             estimatedInputLatency: metrics.estimatedInputLatency,
-            timeToFirstByte: Math.round(timeToFirstByte.numericValue, 10),
+            serverResponseTime: Math.round(serverResponseTime.numericValue, 10),
             domContentLoaded: metrics.observedDomContentLoaded,
             firstVisualChange: metrics.observedFirstVisualChange,
             firstPaint: metrics.observedFirstPaint,
