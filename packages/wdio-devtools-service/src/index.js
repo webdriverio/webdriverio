@@ -26,64 +26,14 @@ export default class DevToolsService {
         this.isSupported = true
     }
 
-    async before () {
-        if (!this.isSupported) {
-            return global.browser.addCommand('cdp', /* istanbul ignore next */ () => {
-                throw new Error(UNSUPPORTED_ERROR_MESSAGE)
-            })
-        }
-
-        try {
-            let debuggerAddress
-
-            if (this.options.debuggerAddress) {
-                const [host, port] = this.options.debuggerAddress.split(':')
-                debuggerAddress = { host, port: parseInt(port, 10) }
-            } else {
-                debuggerAddress = await findCDPInterface()
-            }
-
-            this.client = await getCDPClient(debuggerAddress)
-            this.commandHandler = new CommandHandler(this.client, global.browser)
-            this.devtoolsDriver = await DevToolsDriver.attach(`http://${debuggerAddress.host}:${debuggerAddress.port}`)
-            this.traceGatherer = new TraceGatherer(this.devtoolsDriver)
-
-            const session = await this.devtoolsDriver.getCDPSession()
-            session.on('Page.loadEventFired', ::this.traceGatherer.onLoadEventFired)
-            session.on('Page.frameNavigated', ::this.traceGatherer.onFrameNavigated)
-
-            const page = await this.devtoolsDriver.getActivePage()
-            page.on('requestfailed', ::this.traceGatherer.onFrameLoadFail)
-
-            /**
-             * enable domains for client
-             */
-            await Promise.all(['Page', 'Network', 'Console'].map(
-                (domain) => Promise.all([
-                    session.send(`${domain}.enable`),
-                    this.client[domain]['enable']()
-                ])
-            ))
-
-            this.devtoolsGatherer = new DevtoolsGatherer()
-            this.client.on('event', ::this.devtoolsGatherer.onMessage)
-
-            log.info(`Connected to Chrome on ${debuggerAddress.host}:${debuggerAddress.port}`)
-        } catch (err) {
-            log.error(`Couldn't connect to chrome: ${err.stack}`)
-            return
-        }
-
-        global.browser.addCommand('enablePerformanceAudits', ::this._enablePerformanceAudits)
-        global.browser.addCommand('disablePerformanceAudits', ::this._disablePerformanceAudits)
-        global.browser.addCommand('emulateDevice', ::this._emulateDevice)
-
-        /**
-         * allow user to work with Puppeteer directly
-         */
-        global.browser.addCommand('getPuppeteer',
-            /* istanbul ignore next */ () => this.devtoolsDriver)
+    onReload () {
+        return this._setDevtools()
     }
+
+    before () {
+        return this._setDevtools()
+    }
+
 
     async beforeCommand (commandName, params) {
         if (!this.shouldRunPerformanceAudits || !this.traceGatherer || this.traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
@@ -190,5 +140,64 @@ export default class DevToolsService {
         await page.setCacheEnabled(Boolean(cacheEnabled))
         await this.devtoolsDriver.send('Emulation.setCPUThrottlingRate', { rate: cpuThrottling })
         await this.devtoolsDriver.send('Network.emulateNetworkConditions', NETWORK_STATES[networkThrottling])
+    }
+
+    async _setDevtools() {
+        if (!this.isSupported) {
+            return global.browser.addCommand('cdp', /* istanbul ignore next */() => {
+                throw new Error(UNSUPPORTED_ERROR_MESSAGE)
+            })
+        }
+
+        try {
+            let debuggerAddress
+
+            if (this.options.debuggerAddress) {
+                const [host, port] = this.options.debuggerAddress.split(':')
+                debuggerAddress = { host, port: parseInt(port, 10) }
+            } else {
+                debuggerAddress = await findCDPInterface()
+            }
+
+            this.client = await getCDPClient(debuggerAddress)
+            this.commandHandler = new CommandHandler(this.client, global.browser)
+            this.devtoolsDriver = await DevToolsDriver.attach(`http://${debuggerAddress.host}:${debuggerAddress.port}`)
+            this.traceGatherer = new TraceGatherer(this.devtoolsDriver)
+
+            const session = await this.devtoolsDriver.getCDPSession()
+            session.on('Page.loadEventFired', :: this.traceGatherer.onLoadEventFired)
+            session.on('Page.frameNavigated', :: this.traceGatherer.onFrameNavigated)
+
+            const page = await this.devtoolsDriver.getActivePage()
+            page.on('requestfailed', :: this.traceGatherer.onFrameLoadFail)
+
+            /**
+             * enable domains for client
+             */
+            await Promise.all(['Page', 'Network', 'Console'].map(
+                (domain) => Promise.all([
+                    session.send(`${domain}.enable`),
+                    this.client[domain]['enable']()
+                ])
+            ))
+
+            this.devtoolsGatherer = new DevtoolsGatherer()
+            this.client.on('event', :: this.devtoolsGatherer.onMessage)
+
+            log.info(`Connected to Chrome on ${debuggerAddress.host}:${debuggerAddress.port}`)
+        } catch (err) {
+            log.error(`Couldn't connect to chrome: ${err.stack}`)
+            return
+        }
+
+        global.browser.addCommand('enablePerformanceAudits', :: this._enablePerformanceAudits)
+        global.browser.addCommand('disablePerformanceAudits', :: this._disablePerformanceAudits)
+        global.browser.addCommand('emulateDevice', :: this._emulateDevice)
+
+        /**
+         * allow user to work with Puppeteer directly
+         */
+        global.browser.addCommand('getPuppeteer',
+            /* istanbul ignore next */() => this.devtoolsDriver)
     }
 }
