@@ -99,6 +99,9 @@ export default class Auditor {
         const metrics = result.details.items[0] || {}
         return {
             estimatedInputLatency: metrics.estimatedInputLatency,
+            /**
+             * keeping TTFB for backwards compatibility
+             */
             timeToFirstByte: Math.round(serverResponseTime.numericValue, 10),
             serverResponseTime: Math.round(serverResponseTime.numericValue, 10),
             domContentLoaded: metrics.observedDomContentLoaded,
