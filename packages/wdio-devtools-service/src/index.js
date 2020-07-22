@@ -34,7 +34,6 @@ export default class DevToolsService {
         return this._setDevtools()
     }
 
-
     async beforeCommand (commandName, params) {
         if (!this.shouldRunPerformanceAudits || !this.traceGatherer || this.traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
             return
