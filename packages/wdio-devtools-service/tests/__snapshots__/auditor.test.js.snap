@@ -71,6 +71,7 @@ Object {
   "load": undefined,
   "serverResponseTime": 105,
   "speedIndex": 20411,
+  "timeToFirstByte": 105,
   "totalBlockingTime": 20411,
 }
 `;
