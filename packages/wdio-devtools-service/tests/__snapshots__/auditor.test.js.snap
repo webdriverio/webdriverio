@@ -69,8 +69,9 @@ Object {
   "lastVisualChange": undefined,
   "load": undefined,
   "speedIndex": 20411,
-  "timeToFirstByte": 105,
+  "serverResponseTime": 105,
   "totalBlockingTime": undefined,
+  "cumulativeLayoutShift": 105,
 }
 `;
 

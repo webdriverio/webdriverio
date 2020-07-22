@@ -112,6 +112,7 @@ export default class Auditor {
             load: metrics.observedLoad,
             speedIndex: metrics.speedIndex,
             totalBlockingTime: metrics.totalBlockingTime,
+            cumulativeLayoutShift: metrics.cumulativeLayoutShift,
         }
     }
 
