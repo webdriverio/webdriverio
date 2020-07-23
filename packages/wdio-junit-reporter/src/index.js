@@ -225,8 +225,10 @@ class JunitReporter extends WDIOReporter {
             switch (data.type) {
             case 'command':
                 standardOutput.push(
-                    `COMMAND: ${data.method.toUpperCase()} ` +
-                    `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this.format(data.body)}`
+                    data.method
+                        ? `COMMAND: ${data.method.toUpperCase()} ` +
+                          `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this.format(data.body)}`
+                        : `COMMAND: ${data.command} - ${this.format(data.params)}`
                 )
                 break
             case 'result':

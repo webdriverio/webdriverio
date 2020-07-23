@@ -24,7 +24,7 @@
  * @type utility
  *
  */
-import { getBrowserObject, getPuppeteer } from '../../utils'
+import { getBrowserObject } from '../../utils'
 
 const NETWORK_PRESETS = {
     'offline': {
@@ -114,7 +114,7 @@ export default async function throttle (params) {
     }
 
     // Connect to Chrome DevTools
-    await getPuppeteer.call(this)
+    await this.getPuppeteer()
     const pages = await this.puppeteer.pages()
     const client = await pages[0].target().createCDPSession()
 

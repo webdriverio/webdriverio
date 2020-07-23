@@ -1,20 +1,18 @@
 import logger from '@wdio/logger'
+import puppeteerCore from 'puppeteer-core'
 
 import CommandHandler from './commands'
-import DevToolsDriver from './driver'
 import Auditor from './auditor'
 import TraceGatherer from './gatherer/trace'
 import DevtoolsGatherer from './gatherer/devtools'
-import { findCDPInterface, getCDPClient, isBrowserSupported } from './utils'
-import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE } from './constants'
+import { isBrowserSupported, setUnsupportedCommand } from './utils'
+import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE, UNSUPPORTED_ERROR_MESSAGE } from './constants'
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
-const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up, and Chromium as the browserName!'
 
 export default class DevToolsService {
-    constructor (options) {
-        this.options = options
+    constructor () {
         this.isSupported = false
         this.shouldRunPerformanceAudits = false
     }
@@ -26,12 +24,23 @@ export default class DevToolsService {
         this.isSupported = true
     }
 
-    onReload () {
-        return this._setDevtools()
+    async onReload () {
+        if (!this.isSupported) {
+            return setUnsupportedCommand()
+        }
+
+        this.puppeteer = await global.browser.getPuppeteer()
+        return this._setupHandler()
     }
 
-    before () {
-        return this._setDevtools()
+    async before () {
+        this.isSupported = this.isSupported || Boolean(global.browser.puppeteer)
+        if (!this.isSupported) {
+            return setUnsupportedCommand()
+        }
+
+        this.puppeteer = await global.browser.getPuppeteer()
+        return this._setupHandler()
     }
 
     async beforeCommand (commandName, params) {
@@ -113,90 +122,63 @@ export default class DevToolsService {
      * set device emulation
      */
     async _emulateDevice (device, inLandscape) {
-        const page = await this.devtoolsDriver.getActivePage()
-
         if (typeof device === 'string') {
             const deviceName = device + (inLandscape ? ' landscape' : '')
-            const deviceCapabilities = this.devtoolsDriver.devices[deviceName]
+            const deviceCapabilities = puppeteerCore.devices[deviceName]
             if (!deviceCapabilities) {
-                const deviceNames = this.devtoolsDriver.devices
+                const deviceNames = puppeteerCore.devices
                     .map((device) => device.name)
                     .filter((device) => !device.endsWith('landscape'))
                 throw new Error(`Unknown device, available options: ${deviceNames.join(', ')}`)
             }
 
-            return page.emulate(deviceCapabilities)
+            return this.page.emulate(deviceCapabilities)
         }
 
-        return page.emulate(device)
+        return this.page.emulate(device)
     }
 
     /**
      * helper method to set throttling profile
      */
     async _setThrottlingProfile (networkThrottling, cpuThrottling, cacheEnabled) {
-        const page = await this.devtoolsDriver.getActivePage()
-        await page.setCacheEnabled(Boolean(cacheEnabled))
-        await this.devtoolsDriver.send('Emulation.setCPUThrottlingRate', { rate: cpuThrottling })
-        await this.devtoolsDriver.send('Network.emulateNetworkConditions', NETWORK_STATES[networkThrottling])
+        await this.page.setCacheEnabled(Boolean(cacheEnabled))
+        await this.session.send('Emulation.setCPUThrottlingRate', { rate: cpuThrottling })
+        await this.session.send('Network.emulateNetworkConditions', NETWORK_STATES[networkThrottling])
     }
 
-    async _setDevtools() {
-        if (!this.isSupported) {
-            return global.browser.addCommand('cdp', /* istanbul ignore next */() => {
-                throw new Error(UNSUPPORTED_ERROR_MESSAGE)
-            })
-        }
+    async _setupHandler() {
+        this.target = await this.puppeteer.waitForTarget(
+            /* istanbul ignore next */
+            (t) => t.type() === 'page')
+        this.page = await this.target.page()
+        this.session = await this.target.createCDPSession()
 
-        try {
-            let debuggerAddress
+        this.commandHandler = new CommandHandler(this.puppeteer, this.session, this.page)
+        this.traceGatherer = new TraceGatherer(this.puppeteer, this.session, this.page)
 
-            if (this.options.debuggerAddress) {
-                const [host, port] = this.options.debuggerAddress.split(':')
-                debuggerAddress = { host, port: parseInt(port, 10) }
-            } else {
-                debuggerAddress = await findCDPInterface()
-            }
+        this.session.on('Page.loadEventFired', :: this.traceGatherer.onLoadEventFired)
+        this.session.on('Page.frameNavigated', :: this.traceGatherer.onFrameNavigated)
 
-            this.client = await getCDPClient(debuggerAddress)
-            this.commandHandler = new CommandHandler(this.client, global.browser)
-            this.devtoolsDriver = await DevToolsDriver.attach(`http://${debuggerAddress.host}:${debuggerAddress.port}`)
-            this.traceGatherer = new TraceGatherer(this.devtoolsDriver)
+        this.page.on('requestfailed', :: this.traceGatherer.onFrameLoadFail)
 
-            const session = await this.devtoolsDriver.getCDPSession()
-            session.on('Page.loadEventFired', :: this.traceGatherer.onLoadEventFired)
-            session.on('Page.frameNavigated', :: this.traceGatherer.onFrameNavigated)
+        /**
+         * enable domains for client
+         */
+        await Promise.all(['Page', 'Network', 'Console'].map(
+            (domain) => Promise.all([
+                this.session.send(`${domain}.enable`)
+            ])
+        ))
 
-            const page = await this.devtoolsDriver.getActivePage()
-            page.on('requestfailed', :: this.traceGatherer.onFrameLoadFail)
-
-            /**
-             * enable domains for client
-             */
-            await Promise.all(['Page', 'Network', 'Console'].map(
-                (domain) => Promise.all([
-                    session.send(`${domain}.enable`),
-                    this.client[domain]['enable']()
-                ])
-            ))
-
-            this.devtoolsGatherer = new DevtoolsGatherer()
-            this.client.on('event', :: this.devtoolsGatherer.onMessage)
-
-            log.info(`Connected to Chrome on ${debuggerAddress.host}:${debuggerAddress.port}`)
-        } catch (err) {
-            log.error(`Couldn't connect to chrome: ${err.stack}`)
-            return
-        }
+        this.devtoolsGatherer = new DevtoolsGatherer()
+        this.puppeteer._connection._transport._ws.addEventListener('message', (event) => {
+            const data = JSON.parse(event.data)
+            this.devtoolsGatherer.onMessage(data)
+        })
 
         global.browser.addCommand('enablePerformanceAudits', :: this._enablePerformanceAudits)
         global.browser.addCommand('disablePerformanceAudits', :: this._disablePerformanceAudits)
         global.browser.addCommand('emulateDevice', :: this._emulateDevice)
-
-        /**
-         * allow user to work with Puppeteer directly
-         */
-        global.browser.addCommand('getPuppeteer',
-            /* istanbul ignore next */() => this.devtoolsDriver)
     }
 }

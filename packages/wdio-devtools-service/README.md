@@ -5,7 +5,7 @@ WebdriverIO DevTools Service
 
 With Chrome v63 and up the browser [started to support](https://developers.google.com/web/updates/2017/10/devtools-release-notes#multi-client) multi clients allowing arbitrary clients to access the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). This provides interesting opportunities to automate Chrome beyond the [WebDriver protocol](https://www.w3.org/TR/webdriver/). With this service you can enhance the wdio browser object to leverage that access and call Chrome DevTools commands within your tests to e.g. intercept requests, throttle network capabilities or take CSS/JS coverage.
 
-_**Note:** this service currently only supports Chrome v63 and up, and Chromium (MicrosfotEdge is not yet supported)!_ 
+_**Note:** this service currently only supports Chrome v63 and up, and Chromium (MicrosfotEdge is not yet supported)!_
 
 ## Installation
 
@@ -39,14 +39,6 @@ export.config = {
     // ...
 };
 ```
-
-## Options
-
-### debuggerAddress
-Define endpoint for Chrome DevTools protocol manually (e.g. `localhost:24563`). (optional)
-
-Type: `string`<br>
-Default: `null`
 
 ## Usage
 
@@ -256,15 +248,6 @@ it('should take JS coverage', () => {
     const coverage = result.filter((res) => res.url !== '')
     console.log(coverage)
 })
-```
-
-### `cdpConnection` Command
-
-Returns the host and port the Chrome DevTools interface is connected to.
-
-```js
-const connection = browser.cdpConnection()
-console.log(connection);  // outputs: { host: 'localhost', port: 50700 }
 ```
 
 ### `getNodeId(selector)` and `getNodeIds(selector)` Command
