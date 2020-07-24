@@ -17,6 +17,28 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.3.5 (2020-07-24)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`, `webdriver`
+  * [#5651](https://github.com/webdriverio/webdriverio/pull/5651) Fix re-attach devtools service if `reloadSession` was called ([@HananArgov](https://github.com/HananArgov))
+* `webdriverio`
+  * [#5649](https://github.com/webdriverio/webdriverio/pull/5649) Add TypeScript types for SevereServiceError ([@AdamTReineke](https://github.com/AdamTReineke))
+
+#### :nail_care: Polish
+* `wdio-devtools-service`
+  * [#5646](https://github.com/webdriverio/webdriverio/pull/5646) Upgrade lighthouse and add new metrics ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+#### :memo: Documentation
+* [#5654](https://github.com/webdriverio/webdriverio/pull/5654) Fix version 4 doc links ([@Jazzepi](https://github.com/Jazzepi))
+
+#### Committers: 4
+- Adam Reineke ([@AdamTReineke](https://github.com/AdamTReineke))
+- DOA ([@HananArgov](https://github.com/HananArgov))
+- Michael Pinnegar ([@Jazzepi](https://github.com/Jazzepi))
+- Srinivasan Sekar ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+
 ## v6.3.4 (2020-07-21)
 
 #### :bug: Bug Fix
