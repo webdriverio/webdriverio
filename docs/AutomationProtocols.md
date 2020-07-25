@@ -43,6 +43,16 @@ There are also plenty of services that allow you to run your automation test in 
 - Not designed for in-depth browser analysis (e.g., tracing or intercepting network events)
 - Limited set of automation capabilities (e.g., no support to throttle CPU or network)
 
+To use webdriver as the automation protocol, you just need to switch the `automationProtocol` flag to `webdriverio` in your `wdio.conf.js`:
+```js
+// wdio.conf.js
+exports.config = {
+    // ...
+    automationProtocol: 'webdriver'
+    // ...
+}
+```
+
 ## DevTools Protocol
 
 The DevTools interface is a native browser interface that is usually being used to debug the browser from a remote application (e.g., [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Next to its capabilities to inspect the browser in nearly all possible forms, it can also be used to control it.
