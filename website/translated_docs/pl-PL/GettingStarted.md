@@ -3,7 +3,7 @@ id: gettingstarted
 title: Getting Started
 ---
 
-Witamy w dokumentacji do WebdriverIO. Pomoże ci ona szybko zapoznać się i zacząć. W razie kłopotów poproś o pomoc na naszym [Kanale Gitter](https://gitter.im/webdriverio/webdriverio) lub kontaktuj się że mną na [Twitterze](https://twitter.com/webdriverio). Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
+Witamy w dokumentacji do WebdriverIO. Pomoże ci ona szybko zapoznać się i zacząć. W razie kłopotów poproś o pomoc na naszym [Kanale Gitter](https://gitter.im/webdriverio/webdriverio) lub kontaktuj się ze mną na [Twitterze](https://twitter.com/webdriverio). Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
 
 > **Note:** These are the docs for the latest version (v5.0.0) of WebdriverIO. If you are still using v4 or older please us the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
 
