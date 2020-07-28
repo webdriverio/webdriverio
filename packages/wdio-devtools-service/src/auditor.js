@@ -76,6 +76,7 @@ export default class Auditor {
             return AUDIT.audit({
                 traces: { defaultPass: this.traceLogs },
                 devtoolsLogs: { defaultPass: this.devtoolsLogs },
+                TestedAsMobileDevice: true,
                 ...params
             }, auditContext)
         } catch (e) {
@@ -142,21 +143,24 @@ export default class Auditor {
     }
 
     async getPerformanceScore() {
-        const auditResults = []
-        auditResults.push(this._audit(CumulativeLayoutShift))
-        auditResults.push(this._audit(FirstContentfulPaint))
-        auditResults.push(this._audit(LargestContentfulPaint))
-        auditResults.push(this._audit(SpeedIndex))
-        auditResults.push(this._audit(TotalBlockingTime))
-        auditResults.push(this._audit(InteractiveMetric))
+        const auditResults = {}
+        auditResults['speed-index'] =  await this._audit(SpeedIndex)
+        auditResults['first-contentful-paint'] =  await this._audit(FirstContentfulPaint)
+        auditResults['largest-contentful-paint'] =  await this._audit(LargestContentfulPaint)
+        auditResults['cumulative-layout-shift'] =  await this._audit(CumulativeLayoutShift)
+        auditResults['total-blocking-time'] =  await this._audit(TotalBlockingTime)
+        auditResults.interactive = await this._audit(InteractiveMetric)
 
-        const resultsById = {}
-        for (const audit of auditResults) {
-            resultsById[audit.id] = audit
+        if (!auditResults.interactive || !auditResults['cumulative-layout-shift'] || !auditResults['first-contentful-paint'] ||
+            !auditResults['largest-contentful-paint'] || !auditResults['speed-index'] || !auditResults['total-blocking-time']) {
+            log.info('One or multiple required metrics couldn\'t be found, setting performance score to: null')
+            return null
         }
 
-        const scoredCategories = ReportScoring.scoreAllCategories(categories, resultsById)
-
-        return scoredCategories['performance'].score
+        const scores = categories.performance.auditRefs.map((auditRef) => ({
+            score: auditResults[auditRef.id].score,
+            weight: auditRef.weight,
+        }))
+        return ReportScoring.arithmeticMean(scores)
     }
 }
