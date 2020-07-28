@@ -98,11 +98,11 @@ Title was: WebdriverIO · Next-gen WebDriver test framework for Node.js
 
 Gratulacje! Właśnie udało Ci się uruchomić Twój pierwszy automatyczny skrypt z WebdriverIO. Teraz wejdźmy na wyższy bieg i stwórzmy pierwszy prawdziwy test.
 
-## Let's get serious
+## Przejdźmy do konkretów
 
-*(If you haven't already, navigate back to the project root directory)*
+*(Powróć do katalogu źródłowego projektu)*
 
-This was just a warm up. Let's move forward and run WebdriverIO with the test runner. If you want to use WebdriverIO in your project for integration testing we recommend to use the test runner because it comes with a lot of useful features that makes your life easier. With WebdriverIO v5 and up the testrunner has moved into the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package. To get started, we need to install this first:
+To była tylko rozgrzewka. Przejdźmy dalej i uruchommy WebdriverIO z testrunnerem. Jeśli chcesz używać WebdriverIO w swoim projekcie do testów integracyjnych, to zalecamy używanie testrunnera, ponieważ posiada on wiele przydatnych funkcji, które ułatwiają Twoje życie. With WebdriverIO v5 and up the testrunner has moved into the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package. To get started, we need to install this first:
 
 ```sh
 $ npm i --save-dev @wdio/cli
