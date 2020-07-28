@@ -7,7 +7,7 @@ Jeśli piszesz kod od jakiegoś czasu, to prawdopodobnie lubisz autouzupełniani
 
 ![Autocompletion](/img/autocompletion/0.png)
 
-[JSDoc](http://usejsdoc.org/) używane są do dokumentacji kodu. Pomaga to zobaczyć więcej szczegółów na temat parametrów i ich typów.
+Kod jest udokumentowany za pomocą [JSDoców](http://usejsdoc.org/). Pomaga to zobaczyć więcej szczegółów na temat parametrów i ich typów.
 
 ![Autocompletion](/img/autocompletion/1.png)
 
