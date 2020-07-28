@@ -102,21 +102,21 @@ Gratulacje! Właśnie udało Ci się uruchomić Twój pierwszy automatyczny skry
 
 *(Powróć do katalogu źródłowego projektu)*
 
-To była tylko rozgrzewka. Przejdźmy dalej i uruchommy WebdriverIO z testrunnerem. Jeśli chcesz używać WebdriverIO w swoim projekcie do testów integracyjnych, to zalecamy używanie testrunnera, ponieważ posiada on wiele przydatnych funkcji, które ułatwiają Twoje życie. With WebdriverIO v5 and up the testrunner has moved into the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package. To get started, we need to install this first:
+To była tylko rozgrzewka. Przejdźmy dalej i uruchommy WebdriverIO z testrunnerem. Jeśli chcesz używać WebdriverIO w swoim projekcie do testów integracyjnych, to zalecamy używanie testrunnera, ponieważ posiada on wiele przydatnych funkcji, które ułatwiają Twoje życie. Z wersją WebdriverIO v5 i wyższymi testrunner został przeniesiony do paczki NPM [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli). Aby rozpocząć, musimy najpierw zainstalować to:
 
 ```sh
 $ npm i --save-dev @wdio/cli
 ```
 
-### Generate Configuration File
+### Generowanie Pliku Konfiguracyjnego
 
-To do that just run the configuration utility:
+Aby to zrobić, użyj narzędzia konfiguracji:
 
 ```sh
 $ ./node_modules/.bin/wdio config
 ```
 
-A question interface pops up. It will help to create the config easy and fast. If you are not sure what to answer follow this answers:
+Pojawi się kwestionariusz. Pomoże to w łatwym i szybkim tworzeniu konfiguracji. Jeśli nie wiesz, jak odpowiedzieć, to odpowiedz jak w krokach poniżej:
 
 __Q: Where should your tests be launched?__  
 A: *local_  
