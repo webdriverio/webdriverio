@@ -3,29 +3,29 @@ id: gettingstarted
 title: Getting Started
 ---
 
-Witamy w dokumentacji do WebdriverIO. Pomoże ci ona szybko zapoznać się i zacząć. W razie kłopotów poproś o pomoc na naszym [Kanale Gitter](https://gitter.im/webdriverio/webdriverio) lub kontaktuj się ze mną na [Twitterze](https://twitter.com/webdriverio). Also, if you encounter problems in starting up the server or running the tests after following this tutorial, ensure that the server and the geckodriver are listed in your project directory. If not, re-download them per steps 2 and 3 below.
+Witamy w dokumentacji do WebdriverIO. Pomoże ci ona szybko zapoznać się i zacząć. W razie kłopotów poproś o pomoc na naszym [Kanale Gitter](https://gitter.im/webdriverio/webdriverio) lub kontaktuj się ze mną na [Twitterze](https://twitter.com/webdriverio). Ponadto, jeśli napotkasz problemy z uruchomieniem serwera lub uruchomieniem testów po tym samouczku, upewnij się, że serwer i geckodriver są wymienione w katalogu projektu. Jeśli nie, to ponownie je pobierz, zgodnie z 2 i 3 krokiem w instrukcji poniżej.
 
-> **Note:** These are the docs for the latest version (v5.0.0) of WebdriverIO. If you are still using v4 or older please us the legacy docs website [v4.webdriver.io](http://v4.webdriver.io)!
+> **Uwaga:** To jest dokumentacja dla najnowszej wersji (v5.0.0) WebdriverIO. Jeśli nadal używasz wersji v4 lub starszej, użyj starej dokumentacji dostepnej tutaj [v4.webdriver.io](http://v4.webdriver.io)!
 
-The following will give you a short step by step introduction to get your first WebdriverIO script up and running.
+Instrukcje poniżej pomogą Ci krok po kroku uruchomić Twój pierwszy skrypt WebdriverIO.
 
-## Taking the first step
+## Pierwsze kroki
 
-Let's suppose you have [Node.js](http://nodejs.org/) already installed. First thing we need to do is to download a browser driver that helps us automate the browser. To do so we create an example folder first:
+Załóżmy, że masz już zainstalowany [Node.js](http://nodejs.org/). Najpierw musimy pobrać sterownik przeglądarki, który pomoże nam zautomatyzować przeglądarkę. Aby to zrobić, najpierw tworzymy przykładowy folder:
 
-### Create a simple test folder
+### Utwórz prosty folder testowy
 
 ```sh
-$ mkdir webdriverio-test && cd webdriverio-test
+$ mkdir webdriverio-test && cd test webdriverio
 ```
 
-*While still in this test folder:*
+*Wciąż w tym folderze testowym:*
 
-### Download Geckodriver
+### Pobierz Geckodriver
 
-Download the latest version of geckodriver for your environment and unpack it in your project directory:
+Pobierz najnowszą wersję geckodriver dla swojego środowiska i rozpakuj ją w katalogu projektu:
 
-Linux 64 bit
+Linux 64 bitowy
 
 ```sh
 $ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-linux64.tar.gz | tar xz
