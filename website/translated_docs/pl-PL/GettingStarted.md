@@ -37,19 +37,19 @@ OSX
 $ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-macos.tar.gz | tar xz
 ```
 
-Note: Other geckodriver releases are available [here](https://github.com/mozilla/geckodriver/releases). In order to automate other browser you need to run different drivers. You can find a list with all drivers in the [awesome-selenium](https://github.com/christian-bromann/awesome-selenium#driver) readme.
+Uwaga: Inne wersje geckodrivera są dostępne [tutaj](https://github.com/mozilla/geckodriver/releases). Aby zautomatyzować inną przeglądarkę, musisz używać innych, dedykowanych sterowników. Możesz znaleźć listę ze wszystkimi sterownikami w pliku readme [awesome-selenium](https://github.com/christian-bromann/awesome-selenium#driver).
 
-### Start Browser Driver
+### Uruchom Sterownik Przeglądarki
 
-Start Geckodriver by running:
+Uruchom Geckodriver za pomocą komendy:
 
 ```sh
 $ /path/to/binary/geckodriver --port 4444
 ```
 
-This will start Geckodriver on `localhost:4444` with the WebDriver endpoint set to `/`. Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
+To uruchomi Geckodrivera na `localhost:4444` z punktem końcowym (endpoint) WebDrivera ustawionym na `/`. Pozostaw to uruchomione w tle i otwórz nowe okno terminalu. Następnym krokiem jest pobranie WebdriverIO przez NPM:
 
-### Download WebdriverIO
+### Pobierz WebdriverIO
 
 By calling:
 
