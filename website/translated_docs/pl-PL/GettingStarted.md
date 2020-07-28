@@ -51,15 +51,15 @@ To uruchomi Geckodrivera na `localhost:4444` z punktem końcowym (endpoint) WebD
 
 ### Pobierz WebdriverIO
 
-By calling:
+Przez wywołanie:
 
 ```sh
 $ npm install webdriverio
 ```
 
-### Create Test File
+### Utwórz plik testowy
 
-Create a test file (e.g. `test.js`) with the following content:
+Utwórz plik testowy (np. `test.js`) o następującej treści:
 
 ```js
 const { remote } = require('webdriverio');
@@ -82,21 +82,21 @@ const { remote } = require('webdriverio');
 })().catch((e) => console.error(e));
 ```
 
-### Run your test file
+### Uruchom plik testowy
 
-Make sure you have at least Node.js v8.11.2 or higher installed. To update your current running Node.js version install [nvm](https://github.com/creationix/nvm) and follow their instructions. Once that is done run the test script by calling:
+Upewnij się, że masz zainstalowany co najmniej Node.js v8.11.2 lub nowszy. Aby zaktualizować aktualną wersję Node.js zainstaluj [nvm](https://github.com/creationix/nvm) i postępuj zgodnie z ich instrukcjami. Po wykonaniu tych kroków uruchom skrypt testowy przez wywołanie:
 
 ```sh
 $ node test.js
 ```
 
-this should output the following:
+w konsoli powinna się pojawić taka wiadomość:
 
 ```sh
 Title was: WebdriverIO · Next-gen WebDriver test framework for Node.js
 ```
 
-Yay, Congratulations! You've just run your first automation script with WebdriverIO. Let's step it up a notch and create a real test.
+Gratulacje! Właśnie udało Ci się uruchomić Twój pierwszy automatyczny skrypt z WebdriverIO. Teraz wejdźmy na wyższy bieg i stwórzmy pierwszy prawdziwy test.
 
 ## Let's get serious
 
