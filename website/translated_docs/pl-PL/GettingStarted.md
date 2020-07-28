@@ -1,6 +1,6 @@
 ---
 id: gettingstarted
-title: Getting Started
+title: Pierwsze kroki
 ---
 
 Witamy w dokumentacji do WebdriverIO. Pomoże ci ona szybko zapoznać się i zacząć. W razie kłopotów poproś o pomoc na naszym [Kanale Gitter](https://gitter.im/webdriverio/webdriverio) lub kontaktuj się ze mną na [Twitterze](https://twitter.com/webdriverio). Ponadto, jeśli napotkasz problemy z uruchomieniem serwera lub uruchomieniem testów po tym samouczku, upewnij się, że serwer i geckodriver są wymienione w katalogu projektu. Jeśli nie, to ponownie je pobierz, zgodnie z 2 i 3 krokiem w instrukcji poniżej.
