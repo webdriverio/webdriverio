@@ -118,45 +118,45 @@ $ ./node_modules/.bin/wdio config
 
 Pojawi się kwestionariusz. Pomoże to w łatwym i szybkim tworzeniu konfiguracji. Jeśli nie wiesz, jak odpowiedzieć, to odpowiedz jak w krokach poniżej:
 
-__Q: Where should your tests be launched?__  
-A: *local_  
-<br /> __Q: Shall I install the runner plugin for you?__  
-A: _Yes_  
-<br /> __Q: Where do you want to execute your tests?__  
-A: _On my local machine_  
-<br /> __Q: Which framework do you want to use?__  
-A: _mocha_  
-<br /> __Q: Shall I install the framework adapter for you?__  
-A: _Yes* (just press enter)  
-<br /> __Q: Do you want to run WebdriverIO commands synchronous or asynchronous?__  
-A: *sync* (just press enter, you can also run commands async and handle promises by yourself but for the sake of simplicity let's run them synchronously)  
-<br /> __Q: Where are your test specs located?__  
-A: *./test/specs/**/*.js* (just press enter)  
-<br /> __Q: Which reporter do you want to use?__  
-A: *dot* (just press space and enter)  
-<br /> __Q: Shall I install the reporter library for you?__  
-A: *Yes* (just press enter)  
-<br /> __Q: Do you want to add a service to your test setup?__  
-A: none (just press enter, let's skip this for simplicity)  
-<br /> __Q: Level of logging verbosity:__  
-A: *trace* (just press enter)  
-<br /> __Q: In which directory should screenshots gets saved if a command fails?__  
-A: *./errorShots/* (just press enter)  
-<br /> __Q: What is the base url?__  
-A: *http://localhost* (just press enter)  
+__Q: Where should your tests be launched?__ || Gdzie powinny uruchamiać się Twoje testy?  
+A: *local_ || lokalnie  
+<br /> __Q: Shall I install the runner plugin for you?__ || Czy powinienem zainstalować wtyczkę testrunnera dla Ciebie?  
+A: _Yes_ || Tak  
+<br /> __Q: Where do you want to execute your tests?__ || Gdzie chcesz uruchamiać swoje testy?  
+A: _On my local machine_ || Na swojej lokalnej maszynie  
+<br /> __Q: Which framework do you want to use?__ || Którego frameworka chcesz używać?  
+A: _mocha_ || mocha  
+<br /> __Q: Shall I install the framework adapter for you?__ || Czy mam zainstalować adapter tego frameworka dla Ciebie?  
+A: _Yes* (just press enter) || Tak (po prostu naciśnij enter)  
+<br /> __Q: Do you want to run WebdriverIO commands synchronous or asynchronous?__ || Czy chcesz uruchamiać komendy WebdriverIO synchronicznie czy asynchronicznie?  
+A: *sync* (just press enter, you can also run commands async and handle promises by yourself but for the sake of simplicity let's run them synchronously) || synchronicznie (po prostu nacisnij enter. Dodatkowo możesz uruchamiać komendy asynchroniczne i rozwiązywać promisy własnoręcznie, ale dla uproszczenia uruchommy je synchronicznie)   
+<br /> __Q: Where are your test specs located?__ || Gdzie znajdują się Twoje pliki testowe?  
+A: *./test/specs/**/*.js* (Po prostu naciśnij enter)  
+<br /> __Q: Which reporter do you want to use?__ || Jakiego narzędzia do raportowania chcesz używać?  
+A: *dot* (po prostu naciśnij spację, by zaznaczyć a następnie enter)  
+<br /> __Q: Shall I install the reporter library for you?__ || Czy mam dla Ciebie zainstalować bibliotekę narzędzia do raportowania?  
+A: *Yes* (just press enter) || Tak (po prostu naciśnij enter)  
+<br /> __Q: Do you want to add a service to your test setup?__ || Czy chcesz dodać jakieś serwisy do Twojego środowiska testowego?  
+A: none (just press enter, let's skip this for simplicity) || Żadne (po prostu naciśnij enter; pomińmy to dla ułatwienia)  
+<br /> __Q: Level of logging verbosity:__ || Szczegółowość wiadomości w konsoli  
+A: *trace* (po prostu naciśnij enter)  
+<br /> __Q: In which directory should screenshots gets saved if a command fails?__ || W jakiej lokacji powinny zapisywać się zrzuty ekranu, gdy komenda napotka błąd?  
+A: *./errorShots/* (po prostu naciśnij enter)  
+<br /> __Q: What is the base url?__ || Jaki jest bazowy adres?  
+A: *http://localhost* (po prostu naciśnij enter)  
 
 
-That's it! The configurator now installs all required packages for you and creates a config file with the name `wdio.conf.js`. Next step is to create your first spec file (test file).
+To tyle! Konfigurator instaluje teraz wszystkie wymagane pakiety i tworzy plik konfiguracyjny o nazwie `wdio.conf.js`. Następnym krokiem jest utworzenie pierwszego pliku specyfikacji (plik testowy).
 
-### Create Spec Files
+### Utwórz Pliki Specyfikacji
 
-For that create a test folder like this:
+W tym celu utwórz folder testowy w taki sposób:
 
 ```sh
 $ mkdir -p ./test/specs
 ```
 
-Now let's create a simple spec file in that new folder:
+Teraz utwórzmy prosty plik specyfikacji w tym nowym folderze:
 
 ```js
 const assert = require('assert');
@@ -170,12 +170,12 @@ describe('webdriver.io page', () => {
 });
 ```
 
-### Kick Off Testrunner
+### Uruchommy Testrunnera
 
-The last step is to execute the test runner. To do so just run:
+Ostatnim krokiem jest uruchomienie testrunnera. Aby to zrobić, wystarczyć:
 
 ```sh
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-Hurray! The test should pass and you can start writing integration tests with WebdriverIO. If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio). Also our community has collected a lot of [boilerplate projects](BoilerplateProjects.md) that can help you to get started.
+Hurra! Test powinien przejść. Gdy tak się stanie, możesz rozpocząć pisanie testów integracyjnych wraz z WebdriverIO. Jeśli interesują Cię bardziej szczegółowe poradniki, możesz sprawdzić nasz własny kurs o nazwie [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio). Również nasza społeczność stworzyła sporo [gotowców](BoilerplateProjects.md), które mogą pomóc Ci zacząć.
