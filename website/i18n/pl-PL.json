@@ -234,93 +234,93 @@
         "title": "Webdriver Protocol"
       },
       "autocompletion": {
-        "title": "Autocompletion"
+        "title": "Autouzupełnianie"
       },
       "babel": {
-        "title": "Babel Setup"
+        "title": "Konfiguracja Babela"
       },
       "boilerplate": {
-        "title": "Boilerplate Projects"
+        "title": "Gotowe Projekty"
       },
       "browserobject": {
-        "title": "The Browser Object"
+        "title": "Obiekt Browser"
       },
       "clioptions": {
-        "title": "WDIO CLI Options"
+        "title": "Opcje WDIO CLI"
       },
       "cloudservices": {
-        "title": "Using Cloud Services"
+        "title": "Korzystanie z usług w chmurze"
       },
       "configurationfile": {
-        "title": "Testrunner Configuration"
+        "title": "Konfiguracja Testrunnera"
       },
       "customcommands": {
-        "title": "Custom Commands"
+        "title": "Niestandardowe komendy"
       },
       "customreporter": {
-        "title": "Custom Reporter"
+        "title": "Niestandardowy reporter"
       },
       "customservices": {
-        "title": "Custom Services"
+        "title": "Niestandardowe Serwisy"
       },
       "debugging": {
-        "title": "Debugging"
+        "title": "Debugowanie"
       },
       "frameworks": {
-        "title": "Frameworks"
+        "title": "Frameworki"
       },
       "gettingstarted": {
-        "title": "Getting Started"
+        "title": "Pierwsze kroki"
       },
       "jenkins": {
-        "title": "Jenkins Integration"
+        "title": "Integracja Jenkins"
       },
       "multiremote": {
         "title": "Multiremote"
       },
       "options": {
-        "title": "Options"
+        "title": "Opcje"
       },
       "organizingsuites": {
-        "title": "Organizing Test Suite"
+        "title": "Organizacja zestawów testowych"
       },
       "pageobjects": {
         "title": "Page Object Pattern"
       },
       "proxy": {
-        "title": "Proxy Setup"
+        "title": "Ustawienia serwera proxy"
       },
       "repl": {
-        "title": "REPL interface"
+        "title": "Interfejs REPL"
       },
       "retry": {
-        "title": "Retry Flaky Tests"
+        "title": "Powtarzanie niestabilnych testów"
       },
       "selectors": {
-        "title": "Selectors"
+        "title": "Selektory"
       },
       "setuptypes": {
-        "title": "How to setup WebdriverIO"
+        "title": "Jak skonfigurować WebdriverIO"
       },
       "timeouts": {
-        "title": "Timeouts"
+        "title": "Limity czasowe"
       },
       "typescript": {
-        "title": "TypeScript Setup"
+        "title": "Konfiguracja TypeScript"
       },
       "watcher": {
-        "title": "Watch Test Files"
+        "title": "Obserwuj Pliki Testowe"
       }
     },
     "links": {
-      "Guide": "Guide",
+      "Guide": "Poradnik",
       "API": "API",
-      "Help": "Help",
+      "Help": "Pomoc",
       "Blog": "Blog",
       "GitHub": "GitHub"
     },
     "categories": {
-      "Introduction": "Introduction",
+      "Introduction": "Wprowadzenie",
       "Configuration": "Konfiguracja",
       "Usage": "Użytkowanie",
       "Testrunner": "Testrunner",
@@ -349,9 +349,9 @@
     "WebdriverIO has 1st class support for the __WebDriver specification__ as well as to __Appium__ and allows to run tests on desktop and mobile.|no description given": "WebdriverIO has 1st class support for the __WebDriver specification__ as well as to __Appium__ and allows to run tests on desktop and mobile.",
     "Compatible|no description given": "Kompatybilny",
     "It implements all Webdriver protocol commands and provides useful integrations with other tools.|no description given": "It implements all Webdriver protocol commands and provides useful integrations with other tools.",
-    "Feature Rich|no description given": "Feature Rich",
-    "Help Translate|recruit community translators for your project": "Help Translate",
-    "Edit this Doc|recruitment message asking to edit the doc source": "Edit",
-    "Translate this Doc|recruitment message asking to translate the docs": "Translate"
+    "Feature Rich|no description given": "Bogaty w funkcje",
+    "Help Translate|recruit community translators for your project": "Pomóż w tłumaczeniu",
+    "Edit this Doc|recruitment message asking to edit the doc source": "Edytuj",
+    "Translate this Doc|recruitment message asking to translate the docs": "Przetłumacz"
   }
 }
