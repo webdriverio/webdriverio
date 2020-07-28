@@ -3,7 +3,7 @@ id: babel
 title: Konfiguracja Babela
 ---
 
-To write tests using next generation JavaScript features you can add [Babel](https://babeljs.io/) as compiler for your test files. For that first, install the necessary Babel dependencies:
+By pisać testy przy użyciu funkcji następnej generacji JavaScriptu, możesz użyć [Babel'a](https://babeljs.io/) jako kompilatora dla plików testowych. For that first, install the necessary Babel dependencies:
 
     npm install --save-dev @babel/cli @babel/preset-env @babel/register
     
