@@ -1,11 +1,11 @@
 ---
 id: retry
-title: Retry Flaky Tests
+title: Powtarzanie niestabilnych testów
 ---
 
-You can rerun certain tests with the WebdriverIO testrunner that turn out to be unstable due to e.g. flaky network or race conditions. However it is not recommended to just increase the rerun rate if tests become unstable.
+Możesz ponownie uruchomić niektóre testy z testrunnerem WebdriverIO, który okazały się niestabilne np. z powodu wolnej sieci lub race conditions. Nie zaleca się jednak, by po prostu zwiększyć częstotliwość ponownego uruchamiania, w przypadku, gdy testy staną się niestabilne.
 
-## Rerun suites in MochaJS
+## Powtarzanie zestawów testowych w MochaJS
 
 Since version 3 of MochaJS you can rerun whole test suites (everything inside an `describe` block). If you use Mocha you should favor this retry mechanism instead of the WebdriverIO implementation that only allows you to rerun certain test blocks (everything within an `it` block). Here is an example how to rerun a whole suite in MochaJS:
 
