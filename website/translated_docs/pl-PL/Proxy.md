@@ -1,16 +1,16 @@
 ---
 id: proxy
-title: Proxy Setup
+title: Ustawienia serwera proxy
 ---
 
-You can tunnel two different types of request through a proxy:
+Możesz tunelować dwa różne typy żądań przez proxy:
 
-- connection between your test script and the browser driver (or WebDriver endpoint)
-- connection between the browser and the internet
+- połączenie między twoim skryptem testowym a sterownikiem przeglądarki (lub punktem końcowym WebDriver)
+- połączenie między przeglądarką a internetem
 
-## Proxy Between Driver And Test
+## Proxy między sterownikiem a testem
 
-If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests you can set it using the `PROXY` environment variable as explained in the [request module](https://github.com/request/request#controlling-proxy-behaviour-using-environment-variables). Before you start the test make sure you exported the variable in the terminal as follows:
+Jeśli Twoja firma ma proxy korporacyjne (np. `http://my.corp.proxy.com:9090`) dla wszystkich wychodzących żądań możesz ustawić je za pomocą zmiennej środowiskowej `PROXY`, jak wyjaśniono w [Moduł Request](https://github.com/request/request#controlling-proxy-behaviour-using-environment-variables). Zanim rozpoczniesz test upewnij się, że zmienna jest wyeksportowana w terminalu w następujący sposób:
 
 ```sh
 $ export HTTP_PROXY=http://my.corp.proxy.com:9090
@@ -18,15 +18,15 @@ $ export HTTPS_PROXY=https://my.corp.proxy.com:9090
 $ wdio wdio.conf.js
 ```
 
-If you use [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) start it via:
+Jeśli używasz [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) uruchom go poprzez:
 
 ```sh
 $ sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
 ```
 
-## Proxy Between Browser And Internet
+## Proxy między przeglądarką a Internetem
 
-In order to tunnel the connection between the browser and the internet you can set up a proxy which can be useful e.g. to capture network information and other data using tools like [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy). The proxy parameters can be applied via the standard capabilities the following way:
+W celu tunelowania połączenia pomiędzy przeglądarką a internetem możesz skonfigurować proxy, które może być przydatne np. do przechwytywania informacji sieciowych oraz innych danych za pomocą narzędzi takich jak [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy). Parametry proxy mogą być stosowane za pomocą standardowych funkcji w następujący sposób:
 
 ```js
 // wdio.conf.js
@@ -49,4 +49,4 @@ exports.config = {
 }
 ```
 
-For more information see the [WebDriver specification](https://w3c.github.io/webdriver/#proxy).
+Aby uzyskać więcej informacji zobacz [specyfikację WebDriver](https://w3c.github.io/webdriver/#proxy).
