@@ -3,12 +3,12 @@ id: babel
 title: Konfiguracja Babela
 ---
 
-By pisać testy przy użyciu funkcji następnej generacji JavaScriptu, możesz użyć [Babel'a](https://babeljs.io/) jako kompilatora dla plików testowych. For that first, install the necessary Babel dependencies:
+By pisać testy przy użyciu funkcji następnej generacji JavaScriptu, możesz użyć [Babel'a](https://babeljs.io/) jako kompilatora dla plików testowych. W tym celu zainstaluj niezbędne zależności Babel'a:
 
     npm install --save-dev @babel/cli @babel/preset-env @babel/register
     
 
-Make sure your [`babel.config.js`](https://babeljs.io/docs/en/config-files) is configured properly. The simplest setup you can use is:
+Upewnij się, że twój [`babel.config.js`](https://babeljs.io/docs/en/config-files) jest poprawnie skonfigurowany. Najprostsza konfiguracja, której możesz użyć:
 
 ```js
 module.exports = {
@@ -22,7 +22,7 @@ module.exports = {
 }
 ```
 
-There are multiple ways to setup Babel using the wdio testrunner. If you are running Cucumber or Jasmine tests, you just need to register Babel in the before hook of your config file
+Istnieje wiele sposobów konfiguracji Babel'a do używania testrunnera wdio. Jeśli używasz frameworka Cucumber lub Jasmine, wystarczy zarejestrować Babel w wywołaniu `before` w pliku konfiguracyjnym
 
 ```js
 before: function() {
@@ -30,7 +30,7 @@ before: function() {
 },
 ```
 
-If you run Mocha tests, you can use Mocha's internal compiler to register Babel, e.g.:
+Jeśli uruchamiasz testy Mocha, możesz użyć wewnętrznego kompilatora Mocha'i by zarejestrować Babela. Na przykład:
 
 ```js
 mochaOpts: {
