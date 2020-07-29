@@ -17,6 +17,22 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.3.6 (2020-07-29)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#5671](https://github.com/webdriverio/webdriverio/pull/5671) Fix issue with auto-genarated tests for Cucumber ([@pjcalvo](https://github.com/pjcalvo))
+
+#### :nail_care: Polish
+* `wdio-devtools-service`
+  * [#5667](https://github.com/webdriverio/webdriverio/pull/5667) Calculate performance score based on new weightage and metrics ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+#### Committers: 3
+- Pablillo Calvo ([@pjcalvo](https://github.com/pjcalvo))
+- Srinivasan Sekar ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.3.5 (2020-07-24)
 
 #### :bug: Bug Fix
