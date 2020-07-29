@@ -9,48 +9,10 @@ import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index'
 import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive'
 import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time'
 import ReportScoring from 'lighthouse/lighthouse-core/scoring'
-
+import defaultConfig from 'lighthouse/lighthouse-core/config/default-config'
 import logger from '@wdio/logger'
 
 const log = logger('@wdio/devtools-service:Auditor')
-
-const categories = {
-    performance: {
-        title: 'lighthouse-core/config/default-config.js | performanceCategoryTitle # 0',
-        auditRefs: [
-            {
-                id: 'first-contentful-paint',
-                weight: 15,
-                group: 'metrics',
-            },
-            {
-                id: 'speed-index',
-                weight: 15,
-                group: 'metrics',
-            },
-            {
-                id: 'largest-contentful-paint',
-                weight: 25,
-                group: 'metrics',
-            },
-            {
-                id: 'interactive',
-                weight: 15,
-                group: 'metrics',
-            },
-            {
-                id: 'total-blocking-time',
-                weight: 25,
-                group: 'metrics',
-            },
-            {
-                id: 'cumulative-layout-shift',
-                weight: 5,
-                group: 'metrics',
-            }
-        ]
-    }
-}
 
 const SHARED_AUDIT_CONTEXT = {
     settings: { throttlingMethod: 'devtools' },
@@ -157,7 +119,7 @@ export default class Auditor {
             return null
         }
 
-        const scores = categories.performance.auditRefs.map((auditRef) => ({
+        const scores = defaultConfig.categories.performance.auditRefs.filter((auditRef) => auditRef.weight).map((auditRef) => ({
             score: auditResults[auditRef.id].score,
             weight: auditRef.weight,
         }))
