@@ -76,4 +76,4 @@ Object {
 }
 `;
 
-exports[`getPerformanceScore 1`] = `0.14150273742062677`;
+exports[`getPerformanceScore 1`] = `0.8`;

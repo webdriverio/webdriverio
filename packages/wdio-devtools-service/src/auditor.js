@@ -1,35 +1,18 @@
-import weightedMean from 'weighted-mean'
-
 import Diagnostics from 'lighthouse/lighthouse-core/audits/diagnostics'
 import MainThreadWorkBreakdown from 'lighthouse/lighthouse-core/audits/mainthread-work-breakdown'
 import Metrics from 'lighthouse/lighthouse-core/audits/metrics'
 import ServerResponseTime from 'lighthouse/lighthouse-core/audits/server-response-time'
-
-import { quantileAtValue } from './utils'
+import CumulativeLayoutShift from 'lighthouse/lighthouse-core/audits/metrics/cumulative-layout-shift'
+import FirstContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/first-contentful-paint'
+import LargestContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/largest-contentful-paint'
+import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index'
+import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive'
+import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time'
+import ReportScoring from 'lighthouse/lighthouse-core/scoring'
+import defaultConfig from 'lighthouse/lighthouse-core/config/default-config'
 import logger from '@wdio/logger'
 
 const log = logger('@wdio/devtools-service:Auditor')
-
-/**
- * metric scoring to calculate Lighthouse Performance Score
- * contains: [media, falloff]
- * see https://docs.google.com/spreadsheets/d/1_iDW0B870vZF6dAhf1Icdher0gX_KFxCd6Df0_fZ6do/edit#gid=283330180
- */
-const METRIC_SCORING = {
-    FMP: [4000, 1600], // first meaningful paint
-    FI: [10000, 1700], // first interactive
-    CI: [10000, 1700], // consistently interactive
-    SI: [5500, 1250], // speed index
-    EIL: [100, 50] // estimated input latency
-}
-
-const WEIGHT_WITHIN_CATEGORY = {
-    FMP: 5,
-    FI: 5,
-    CI: 5,
-    SI: 1,
-    EIL: 1
-}
 
 const SHARED_AUDIT_CONTEXT = {
     settings: { throttlingMethod: 'devtools' },
@@ -55,6 +38,7 @@ export default class Auditor {
             return AUDIT.audit({
                 traces: { defaultPass: this.traceLogs },
                 devtoolsLogs: { defaultPass: this.devtoolsLogs },
+                TestedAsMobileDevice: true,
                 ...params
             }, auditContext)
         } catch (e) {
@@ -120,31 +104,25 @@ export default class Auditor {
         }
     }
 
-    async getPerformanceScore () {
-        const {
-            firstMeaningfulPaint, firstCPUIdle, firstInteractive, speedIndex, estimatedInputLatency
-        } = await this.getMetrics()
+    async getPerformanceScore() {
+        const auditResults = {}
+        auditResults['speed-index'] =  await this._audit(SpeedIndex)
+        auditResults['first-contentful-paint'] =  await this._audit(FirstContentfulPaint)
+        auditResults['largest-contentful-paint'] =  await this._audit(LargestContentfulPaint)
+        auditResults['cumulative-layout-shift'] =  await this._audit(CumulativeLayoutShift)
+        auditResults['total-blocking-time'] =  await this._audit(TotalBlockingTime)
+        auditResults.interactive = await this._audit(InteractiveMetric)
 
-        /**
-         * return null if any of the metrics could not bet calculated and
-         * therefor are undefined
-         */
-        if (!firstMeaningfulPaint || !firstCPUIdle || !firstInteractive || !speedIndex || !estimatedInputLatency) {
+        if (!auditResults.interactive || !auditResults['cumulative-layout-shift'] || !auditResults['first-contentful-paint'] ||
+            !auditResults['largest-contentful-paint'] || !auditResults['speed-index'] || !auditResults['total-blocking-time']) {
             log.info('One or multiple required metrics couldn\'t be found, setting performance score to: null')
             return null
         }
 
-        const FMPScore = quantileAtValue(...METRIC_SCORING.FMP, firstMeaningfulPaint)
-        const FIScore = quantileAtValue(...METRIC_SCORING.FI, firstCPUIdle)
-        const CIScore = quantileAtValue(...METRIC_SCORING.CI, firstInteractive)
-        const SIScore = quantileAtValue(...METRIC_SCORING.SI, speedIndex)
-        const EILScore = quantileAtValue(...METRIC_SCORING.EIL, estimatedInputLatency)
-        return weightedMean([
-            [FMPScore, WEIGHT_WITHIN_CATEGORY.FMP],
-            [FIScore, WEIGHT_WITHIN_CATEGORY.FI],
-            [CIScore, WEIGHT_WITHIN_CATEGORY.CI],
-            [SIScore, WEIGHT_WITHIN_CATEGORY.SI],
-            [EILScore, WEIGHT_WITHIN_CATEGORY.EIL]
-        ])
+        const scores = defaultConfig.categories.performance.auditRefs.filter((auditRef) => auditRef.weight).map((auditRef) => ({
+            score: auditResults[auditRef.id].score,
+            weight: auditRef.weight,
+        }))
+        return ReportScoring.arithmeticMean(scores)
     }
 }
