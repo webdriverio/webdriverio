@@ -1,4 +1,3 @@
-import path from 'path'
 import util from 'util'
 import yarnInstall from 'yarn-install'
 
