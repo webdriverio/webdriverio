@@ -340,3 +340,30 @@ export async function getAnswers(yes) {
         ), {})
         : await inquirer.prompt(QUESTIONNAIRE)
 }
+
+export function getPathForFileGeneration(answers){
+
+    const destSpecRootPath = path.join(
+        process.cwd(),
+        path.dirname(answers.specs || '').replace(/\*\*$/, ''))
+
+    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
+
+    const destPageObjectRootPath = answers.usePageObjects
+        ?  path.join(
+            process.cwd(),
+            path.dirname(answers.pages || '').replace(/\*\*$/, ''))
+        : ''
+    const relativePath = (answers.generateTestFiles && answers.usePageObjects)
+        ? !(answers.framework.short === 'cucumber')
+            ? path.relative(destSpecRootPath, destPageObjectRootPath)
+            : path.relative(destStepRootPath, destPageObjectRootPath)
+        : ''
+
+    return {
+        destSpecRootPath : destSpecRootPath,
+        destStepRootPath : destStepRootPath,
+        destPageObjectRootPath : destPageObjectRootPath,
+        relativePath : relativePath
+    }
+}

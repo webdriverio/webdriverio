@@ -19,7 +19,9 @@ import {
     validateServiceAnswers,
     getCapabilities,
     hasFile,
-    generateTestFiles
+    generateTestFiles,
+    getPathForFileGeneration
+
 } from '../src/utils'
 
 import { runConfig } from '../src/commands/config'
@@ -555,4 +557,84 @@ afterEach(() => {
     fs.writeFileSync.mockClear()
     fs.ensureDirSync.mockClear()
     ejs.renderFile.mockClear()
+})
+
+describe('getPathForFileGeneration', () => {
+    it('Cucumber with pageobjects default values', () => {
+        const generatedPaths = getPathForFileGeneration({
+            stepDefinitions: './features/step-definitions/steps.js',
+            pages: './features/pageobjects/**/*.js',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework : {
+                short:'cucumber'
+            }
+        })
+        expect(generatedPaths.relativePath).toEqual('../pageobjects')
+    })
+
+    it('Cucumber with pageobjects default different path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            stepDefinitions: './features/step-definitions/steps.js',
+            pages: './features/page/objects/**/*.js',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework : {
+                short:'cucumber'
+            }
+        })
+        expect(generatedPaths.relativePath).toEqual('../page/objects')
+    })
+
+    it('Mocha with pageobjects default values', () => {
+        const generatedPaths = getPathForFileGeneration({
+            specs: './test/specs/**/*.js',
+            pages: './test/pageobjects/**/*.js',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework : {
+                short:'mocha'
+            }
+        })
+        expect(generatedPaths.relativePath).toEqual('../pageobjects')
+    })
+
+    it('Mocha with pageobjects different path', () => {
+        const generatedPaths = getPathForFileGeneration({
+            specs: './test/specs/files/**/*.js',
+            pages: './test/pageobjects/**/*.js',
+            generateTestFiles: true,
+            usePageObjects: true,
+            framework : {
+                short:'mocha'
+            }
+        })
+        expect(generatedPaths.relativePath).toEqual('../../pageobjects')
+    })
+
+    it('Do not auto generate file', () => {
+        const generatedPaths = getPathForFileGeneration({
+            specs: './test/specs/files/**/*.js',
+            pages: './test/pageobjects/**/*.js',
+            generateTestFiles: false,
+            usePageObjects: true,
+            framework : {
+                short:'mocha'
+            }
+        })
+        expect(generatedPaths.relativePath).toEqual('')
+    })
+
+    it('Do not use PageObjects', () => {
+        const generatedPaths = getPathForFileGeneration({
+            specs: './test/specs/files/**/*.js',
+            pages: './test/pageobjects/**/*.js',
+            generateTestFiles: true,
+            usePageObjects: false,
+            framework : {
+                short:'mocha'
+            }
+        })
+        expect(generatedPaths.relativePath).toEqual('')
+    })
 })
