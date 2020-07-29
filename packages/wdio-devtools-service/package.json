@@ -41,8 +41,7 @@
     "lighthouse": "^6.1.0",
     "puppeteer-core": "^5.1.0",
     "speedline": "^1.4.1",
-    "stable": "^0.1.8",
-    "weighted-mean": "^1.0.2"
+    "stable": "^0.1.8"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"
