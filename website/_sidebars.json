@@ -41,7 +41,8 @@
       "jenkins",
       "runprogrammatically",
       "driverbinaries",
-      "flowchartsoverview"
+      "flowchartsoverview",
+      "githubactions"
     ]
   },
   "api": {
