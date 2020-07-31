@@ -51,6 +51,17 @@ browser.url('https://webdriver.io/')
 expect(browser).toHaveUrl('https://webdriver.io')
 ```
 
+### toHaveUrlContaining
+
+Checks if browser is on a page URL that contains a value.
+
+##### Usage
+
+```js
+browser.url('https://webdriver.io/')
+expect(browser).toHaveUrlContaining('webdriver')
+```
+
 ### toHaveTitle
 
 Checks if website has a specific title.
@@ -60,6 +71,17 @@ Checks if website has a specific title.
 ```js
 browser.url('https://webdriver.io/')
 expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js')
+```
+
+### toHaveTitleContaining
+
+Checks if website has a specific title that contains a value.
+
+##### Usage
+
+```js
+browser.url('https://webdriver.io/')
+expect(browser).toHaveTitleContaining('WebdriverIO')
 ```
 
 ## Element Matchers
