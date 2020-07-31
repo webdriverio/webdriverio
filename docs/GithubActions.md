@@ -3,7 +3,7 @@ id: githubactions
 title: Github Actions
 ---
 
-If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) to run your tests on Github's infrastructure
+If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) to run your tests on Github's infrastructure.
 
 1. everytime you push changes
 2. on every pull request creation
