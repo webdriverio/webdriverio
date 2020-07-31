@@ -7,7 +7,6 @@ If your repository is hosted on Github, you can use [Github Actions](https://doc
 
 1. everytime you push changes
 2. on every pull request creation
-
 3. on scheduled time
 
 4. by manual trigger
