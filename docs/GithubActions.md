@@ -12,7 +12,7 @@ If your repository is hosted on Github, you can use [Github Actions](https://doc
 
 In the root of your repository, create a .github/workflows directory. Add a .yml file, for example .github/workflows/ci.yaml. In here you will configure how to run tests.
 
-See [jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml) for reference implementation. And [sample test runs](https://github.com/webdriverio/jasmine-boilerplate/actions?query=workflow%3ACI)
+See [jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml) for reference implementation, and [sample test runs](https://github.com/webdriverio/jasmine-boilerplate/actions?query=workflow%3ACI).
 
 
 ```
