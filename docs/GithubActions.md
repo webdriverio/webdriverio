@@ -6,7 +6,6 @@ title: Github Actions
 If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) to run your tests on Github's infrastructure
 
 1. everytime you push changes
-
 2. on every pull request creation
 
 3. on scheduled time
@@ -43,4 +42,3 @@ jobs:
 ```
 
 Refer [Github](https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#creating-a-workflow-file) to know more about creating workflow files.
-
