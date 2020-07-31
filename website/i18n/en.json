@@ -446,6 +446,9 @@
       "gettingstarted": {
         "title": "Getting Started"
       },
+      "githubactions": {
+        "title": "Github Actions"
+      },
       "jenkins": {
         "title": "Jenkins Integration"
       },
