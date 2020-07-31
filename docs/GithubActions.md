@@ -14,7 +14,6 @@ In the root of your repository, create a .github/workflows directory. Add a .yml
 
 See [jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml) for reference implementation, and [sample test runs](https://github.com/webdriverio/jasmine-boilerplate/actions?query=workflow%3ACI).
 
-
 ```
 name: CI
 on: [push, pull_request]
