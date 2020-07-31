@@ -97,19 +97,22 @@ Get most common used performance metrics.
 ```js
 console.log(browser.getMetrics())
 /**
- * { load: 355,
- *   speedIndex: 281,
- *   firstInteractive: 366,
- *   firstVisualChange: 264,
- *   lastVisualChange: 389,
- *   firstMeaningfulPaint: 263,
- *   firstCPUIdle: 366,
- *   timeToFirstByte: 16,
- *   firstPaint: 263,
- *   estimatedInputLatency: 16,
- *   firstContentfulPaint: 263,
- *   score: 0.9999913442537731,
- *   domContentLoaded: 346 }
+ * { estimatedInputLatency: 16,
+ *   timeToFirstByte: 566,
+ *   serverResponseTime: 566,
+ *   domContentLoaded: 3397,
+ *   firstVisualChange: 2610,
+ *   firstPaint: 2822,
+ *   firstContentfulPaint: 2822,
+ *   firstMeaningfulPaint: 2822,
+ *   largestContentfulPaint: 2822,
+ *   lastVisualChange: 15572,
+ *   firstCPUIdle: 6135,
+ *   firstInteractive: 6135,
+ *   load: 8429,
+ *   speedIndex: 3259,
+ *   totalBlockingTime: 31,
+ *   cumulativeLayoutShift: 2822 }
  */
 ```
 
@@ -158,7 +161,7 @@ console.log(browser.getMainThreadWorkBreakdown())
 
 #### getPerformanceScore
 
-Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstMeaningfulPaint`, `firstCPUIdle`, `firstInteractive`, `speedIndex`, `estimatedInputLatency`.
+Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstContentfulPaint`, `speedIndex`, `largestContentfulPaint`, `cumulativeLayoutShift`, `totalBlockingTime`, `firstInteractive`.
 
 ```js
 console.log(browser.getPerformanceScore())
