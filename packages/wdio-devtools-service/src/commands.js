@@ -9,8 +9,7 @@ import { sumByKey } from './utils'
 const log = logger('@wdio/devtools-service:CommandHandler')
 
 export default class CommandHandler {
-    constructor (puppeteer, session, page) {
-        this.puppeteer = puppeteer
+    constructor (session, page) {
         this.session = session
         this.page = page
         this.isTracing = false
@@ -37,7 +36,7 @@ export default class CommandHandler {
      */
     async getNodeId (selector) {
         const document = await this.session.send('DOM.getDocument')
-        const { nodeId } = await this.cdp(
+        const { nodeId } = await this.session.send(
             'DOM.querySelector',
             { nodeId: document.root.nodeId, selector }
         )
@@ -89,6 +88,7 @@ export default class CommandHandler {
         try {
             this.traceEvents = await this.page.tracing.stop()
             this.traceEvents = JSON.parse(this.traceEvents.toString('utf8'))
+            this.isTracing = false
         } catch (err) {
             throw new Error(`Couldn't parse trace events: ${err.message}`)
         }

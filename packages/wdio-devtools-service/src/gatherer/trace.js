@@ -26,9 +26,8 @@ const NETWORK_RECORDER_EVENTS = [
 ]
 
 export default class TraceGatherer extends EventEmitter {
-    constructor (puppeteer, session, page) {
+    constructor (session, page) {
         super()
-        this.puppeteer = puppeteer
         this.session = session
         this.page = page
         this.networkListeners = {}

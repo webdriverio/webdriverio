@@ -25,21 +25,11 @@ export default class DevToolsService {
     }
 
     async onReload () {
-        if (!this.isSupported) {
-            return setUnsupportedCommand()
-        }
-
-        this.puppeteer = await global.browser.getPuppeteer()
         return this._setupHandler()
     }
 
     async before () {
         this.isSupported = this.isSupported || Boolean(global.browser.puppeteer)
-        if (!this.isSupported) {
-            return setUnsupportedCommand()
-        }
-
-        this.puppeteer = await global.browser.getPuppeteer()
         return this._setupHandler()
     }
 
@@ -148,13 +138,18 @@ export default class DevToolsService {
     }
 
     async _setupHandler() {
+        if (!this.isSupported) {
+            return setUnsupportedCommand()
+        }
+
+        this.puppeteer = await global.browser.getPuppeteer()
         this.target = await this.puppeteer.waitForTarget(
             /* istanbul ignore next */
             (t) => t.type() === 'page')
         this.page = await this.target.page()
         this.session = await this.target.createCDPSession()
 
-        this.commandHandler = new CommandHandler(this.puppeteer, this.session, this.page)
+        this.commandHandler = new CommandHandler(this.session, this.page)
         this.traceGatherer = new TraceGatherer(this.puppeteer, this.session, this.page)
 
         this.session.on('Page.loadEventFired', :: this.traceGatherer.onLoadEventFired)
