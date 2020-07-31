@@ -8,7 +8,6 @@ If your repository is hosted on Github, you can use [Github Actions](https://doc
 1. everytime you push changes
 2. on every pull request creation
 3. on scheduled time
-
 4. by manual trigger
 
 In the root of your repository, create a .github/workflows directory. Add a .yml file, for example .github/workflows/ci.yaml. In here you will configure how to run tests.
