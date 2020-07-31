@@ -1055,6 +1055,16 @@ declare namespace WebdriverIO {
         ): Promise<WebDriver.Cookie[]>;
 
         /**
+         * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
+         * to run commands with Puppeteer. Note that all Puppeteer commands are
+         * asynchronous by default so in order to interchange between sync and async
+         * execution make sure to wrap your Puppeteer calls within a `browser.call`
+         * commands as shown in the example.
+         */
+         */
+        getPuppeteer(): Promise<void>;
+
+        /**
          * Returns browser window size (and position for drivers with W3C support).
          */
         getWindowSize(): Promise<WebDriver.RectReturn>;
