@@ -79,6 +79,7 @@ export default class Auditor {
 
     async getMetrics () {
         const serverResponseTime = await this._audit(ServerResponseTime, { URL: this.url })
+        const cumulativeLayoutShift = await this._audit(CumulativeLayoutShift)
         const result = await this._audit(Metrics)
         const metrics = result.details.items[0] || {}
         return {
@@ -100,7 +101,7 @@ export default class Auditor {
             load: metrics.observedLoad,
             speedIndex: metrics.speedIndex,
             totalBlockingTime: metrics.totalBlockingTime,
-            cumulativeLayoutShift: metrics.cumulativeLayoutShift,
+            cumulativeLayoutShift: cumulativeLayoutShift.numericValue,
         }
     }
 

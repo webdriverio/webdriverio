@@ -1,7 +1,7 @@
 export default {
     audit: jest.fn().mockReturnValue({
         score: 1,
-        numericValue: 0,
+        numericValue: 24347,
         numericUnit: 'unitless',
         displayValue: '0',
         details: {
