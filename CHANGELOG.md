@@ -17,6 +17,18 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.3.7 (2020-08-03)
+
+#### :memo: Documentation
+* [#5678](https://github.com/webdriverio/webdriverio/pull/5678) Update Expect API Docs to add two matchers ([@klamping](https://github.com/klamping))
+* [#5674](https://github.com/webdriverio/webdriverio/pull/5674) docs: add docs for github action integration ([@ilamparithiNatarajan](https://github.com/ilamparithiNatarajan))
+
+#### Committers: 3
+- Ilamparithi Natarajan ([@ilamparithiNatarajan](https://github.com/ilamparithiNatarajan))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Srinivasan Sekar ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+
 ## v6.3.6 (2020-07-29)
 
 #### :bug: Bug Fix
