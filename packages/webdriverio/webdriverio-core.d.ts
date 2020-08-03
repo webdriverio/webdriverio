@@ -497,6 +497,7 @@ declare namespace WebdriverIO {
         body: any
     }
 
+    type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
     type CDPSession = Partial<import('puppeteer').CDPSession>;
     type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
@@ -1061,8 +1062,7 @@ declare namespace WebdriverIO {
          * execution make sure to wrap your Puppeteer calls within a `browser.call`
          * commands as shown in the example.
          */
-         */
-        getPuppeteer(): Promise<void>;
+        getPuppeteer(): Promise<PuppeteerBrowser>;
 
         /**
          * Returns browser window size (and position for drivers with W3C support).

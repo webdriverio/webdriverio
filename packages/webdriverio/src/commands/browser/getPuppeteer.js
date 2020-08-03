@@ -4,6 +4,8 @@
  * asynchronous by default so in order to interchange between sync and async
  * execution make sure to wrap your Puppeteer calls within a `browser.call`
  * commands as shown in the example.
+ *
+ * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
 import puppeteer from 'puppeteer-core'
 import { FF_REMOTE_DEBUG_ARG } from '../../constants'

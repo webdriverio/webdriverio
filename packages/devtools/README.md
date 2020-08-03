@@ -36,8 +36,7 @@ let browser;
      * run Puppeteer code
      */
     await browser.call(async () => {
-        const puppeteerBrowser = browser.getPuppeteer()
-        const page = (await puppeteerBrowser.pages())[0]
+        const page = (await browser.puppeteer.pages())[0]
         await page.setRequestInterception(true)
         page.on('request', interceptedRequest => {
             if (interceptedRequest.url().endsWith('webdriverio.png')) {
