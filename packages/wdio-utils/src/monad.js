@@ -58,7 +58,9 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         /**
          * assign propertiesObject to itself so the client can be recreated
          */
-        propertiesObject['__propertiesObject__'] = { value: propertiesObject }
+        // eslint-disable-next-line no-unused-vars
+        const { puppeteer, ...propertiesObjectWithoutPuppeteer } = propertiesObject
+        propertiesObject['__propertiesObject__'] = { value: propertiesObjectWithoutPuppeteer }
 
         let client = Object.create(prototype, propertiesObject)
         client.sessionId = sessionId

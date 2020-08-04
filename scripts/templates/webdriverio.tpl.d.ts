@@ -491,6 +491,7 @@ declare namespace WebdriverIO {
         body: any
     }
 
+    type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
     type CDPSession = Partial<import('puppeteer').CDPSession>;
     type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;

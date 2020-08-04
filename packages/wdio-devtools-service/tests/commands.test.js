@@ -1,129 +1,98 @@
-import EventEmitter from 'events'
 import CommandHandler from '../src/commands'
-
-class MyEmitter extends EventEmitter {}
 
 jest.mock('../src/utils', () => ({
     readIOStream: jest.fn().mockReturnValue('foobar'),
     sumByKey: jest.fn().mockReturnValue('foobar')
 }))
 
-test('initialization', () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn(), emit: jest.fn() }
-    new CommandHandler(clientMock, browserMock)
-    expect(browserMock.addCommand.mock.calls).toHaveLength(8)
-    expect(clientMock.on).toBeCalled()
+const pageMock = {
+    tracing: {
+        start: jest.fn(),
+        stop: jest.fn()
+    }
+}
 
-    const event = { method: 'foobar.bar', params: 123 }
-    expect(browserMock.emit).not.toBeCalled()
-    clientMock.on.mock.calls[4][1](event)
-    expect(browserMock.emit).toBeCalled()
+const sessionMock = {
+    on: jest.fn(),
+    emit: jest.fn(),
+    send: jest.fn()
+}
+
+beforeEach(() => {
+    pageMock.tracing.start.mockClear()
+    pageMock.tracing.stop.mockClear()
+    sessionMock.on.mockClear()
+    sessionMock.emit.mockClear()
+    sessionMock.send.mockClear()
+    global.browser = {
+        addCommand: jest.fn()
+    }
+})
+
+test('initialization', () => {
+    new CommandHandler(sessionMock, pageMock)
+    expect(global.browser.addCommand.mock.calls).toHaveLength(7)
+    expect(sessionMock.on).toBeCalled()
 })
 
 test('cdp', async () => {
-    const clientMock = {
-        on: jest.fn(),
-        Network: {
-            enable: jest.fn().mockImplementation((args, cb) => cb(null, 'foobar')),
-            error: jest.fn().mockImplementation((args, fn) => fn(new Error('this is an error')))
-        }
-    }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
-
-    expect(() => handler.cdp('foobar', 'enable')).toThrow()
-    expect(() => handler.cdp('Network', 'foobar')).toThrow()
+    sessionMock.send.mockReturnValue(Promise.resolve('foobar'))
+    const handler = new CommandHandler(sessionMock, pageMock)
     expect(await handler.cdp('Network', 'enable')).toBe('foobar')
-
-    const errorTest = await handler.cdp('Network', 'error').catch(error => error)
-    expect(errorTest.message).toBe('Chrome DevTools Error: this is an error')
-})
-
-test('cdpConnection', () => {
-    const clientMock = {
-        on: jest.fn(),
-        host: 'localhost',
-        port: 8473,
-        foo: 'bar'
-    }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
-
-    expect(handler.cdpConnection()).toEqual({ host: 'localhost', port: 8473 })
+    expect(sessionMock.send).toBeCalledWith('Network.enable', {})
 })
 
 test('getNodeId', async () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
+    sessionMock.send.mockResolvedValueOnce({ root: { nodeId: 123 } })
+    sessionMock.send.mockResolvedValueOnce({ nodeId: 42 })
+    const handler = new CommandHandler(sessionMock, pageMock)
 
-    handler.cdp = jest.fn()
-        .mockReturnValueOnce({ root: { nodeId: 123 } })
-        .mockReturnValueOnce({ nodeId: 42 })
     expect(await handler.getNodeId('selector')).toBe(42)
-    expect(handler.cdp.mock.calls[0]).toEqual(['DOM', 'getDocument'])
-    expect(handler.cdp.mock.calls[1]).toEqual(
-        ['DOM', 'querySelector', { nodeId: 123, selector: 'selector' }])
+    expect(sessionMock.send).toBeCalledWith('DOM.getDocument')
+    expect(sessionMock.send).toBeCalledWith(
+        'DOM.querySelector',
+        { nodeId: 123, selector: 'selector' })
 })
 
 test('getNodeIds', async () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
+    sessionMock.send.mockResolvedValueOnce({ root: { nodeId: 123 } })
+    sessionMock.send.mockResolvedValueOnce({ nodeIds: [42, 43] })
+    const handler = new CommandHandler(sessionMock, pageMock)
 
-    handler.cdp = jest.fn()
-        .mockReturnValueOnce({ root: { nodeId: 123 } })
-        .mockReturnValueOnce({ nodeIds: [1, 2, 3] })
-    expect(await handler.getNodeIds('selector')).toEqual([1, 2, 3])
-    expect(handler.cdp.mock.calls[0]).toEqual(['DOM', 'getDocument'])
-    expect(handler.cdp.mock.calls[1]).toEqual(
-        ['DOM', 'querySelectorAll', { nodeId: 123, selector: 'selector' }])
+    expect(await handler.getNodeIds('selector')).toEqual([42, 43])
+    expect(sessionMock.send).toBeCalledWith('DOM.getDocument')
+    expect(sessionMock.send).toBeCalledWith(
+        'DOM.querySelectorAll',
+        { nodeId: 123, selector: 'selector' })
 })
 
 test('startTracing', () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
-    handler.cdp = jest.fn()
-
+    const handler = new CommandHandler(sessionMock, pageMock)
     handler.startTracing()
 
     expect(handler.isTracing).toBe(true)
     expect(::handler.startTracing).toThrow()
+    expect(pageMock.tracing.start).toBeCalledTimes(1)
 })
 
 test('endTracing', async () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = new MyEmitter()
-    browserMock.addCommand = jest.fn()
-
-    const handler = new CommandHandler(clientMock, browserMock)
-    handler.cdp = jest.fn()
+    pageMock.tracing.stop.mockResolvedValue(Buffer.from('{ "traceEvents": "foobar" }'))
+    const handler = new CommandHandler(sessionMock, pageMock)
     handler.isTracing = true
 
-    process.nextTick(() => browserMock.emit('Tracing.tracingComplete', { stream: 42 }))
-    const stream = await handler.endTracing()
-
-    expect(handler.cdp).toBeCalledWith('Tracing', 'end')
-    expect(stream).toBe(42)
-    expect(handler.traceEvents).toBe('foobar')
+    const traceEvents = await handler.endTracing()
+    expect(pageMock.tracing.stop).toBeCalledTimes(1)
+    expect(traceEvents).toEqual({ traceEvents: 'foobar' })
     expect(handler.isTracing).toBe(false)
 })
 
 test('endTracing throws if not tracing', async () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = new MyEmitter()
-    browserMock.addCommand = jest.fn()
-
-    const handler = new CommandHandler(clientMock, browserMock)
+    const handler = new CommandHandler(sessionMock, pageMock)
     await expect(handler.endTracing()).rejects.toBeInstanceOf(Error)
 })
 
 test('getPageWeight', () => {
-    const clientMock = { on: jest.fn() }
-    const browserMock = { addCommand: jest.fn() }
-    const handler = new CommandHandler(clientMock, browserMock)
+    const handler = new CommandHandler(sessionMock, pageMock)
     handler.networkHandler.requestTypes = {
         Document: { size: 23343, encoded: 7674, count: 1 },
         Image: { size: 53479, encoded: 53479, count: 6 },

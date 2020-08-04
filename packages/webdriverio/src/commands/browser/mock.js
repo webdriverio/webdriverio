@@ -82,7 +82,7 @@
  */
 import DevtoolsNetworkInterception from '../../utils/interception/devtools'
 import WebDriverNetworkInterception from '../../utils/interception/webdriver'
-import { getBrowserObject, getPuppeteer } from '../../utils'
+import { getBrowserObject } from '../../utils'
 
 const SESSION_MOCKS = new Set()
 
@@ -90,7 +90,7 @@ export default async function mock (url, filterOptions) {
     const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
 
     if (!this.isSauce) {
-        await getPuppeteer.call(this)
+        await this.getPuppeteer()
     }
 
     /**

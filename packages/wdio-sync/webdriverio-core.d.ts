@@ -497,6 +497,7 @@ declare namespace WebdriverIO {
         body: any
     }
 
+    type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
     type CDPSession = Partial<import('puppeteer').CDPSession>;
     type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
@@ -1053,6 +1054,15 @@ declare namespace WebdriverIO {
         getCookies(
             names?: string[] | string
         ): WebDriver.Cookie[];
+
+        /**
+         * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
+         * to run commands with Puppeteer. Note that all Puppeteer commands are
+         * asynchronous by default so in order to interchange between sync and async
+         * execution make sure to wrap your Puppeteer calls within a `browser.call`
+         * commands as shown in the example.
+         */
+        getPuppeteer(): PuppeteerBrowser;
 
         /**
          * Returns browser window size (and position for drivers with W3C support).

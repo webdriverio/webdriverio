@@ -34,5 +34,3 @@ browser.endTracing()
 
 const traceLogs: object = browser.getTraceLogs()
 const pageWeight: object = browser.getPageWeight()
-
-const puppeteer = browser.getPuppeteer()
