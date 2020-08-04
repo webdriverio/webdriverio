@@ -5,7 +5,6 @@ exports.config = {
      * server configurations
      */
     hostname: 'localhost',
-    port: 4444,
 
     /**
      * specify test files
@@ -17,11 +16,13 @@ exports.config = {
      */
     capabilities: {
         browserA: {
+            port: 4444,
             capabilities: {
                 browserName: 'chrome'
             }
         },
         browserB: {
+            port: 4445,
             capabilities: {
                 browserName: 'chrome'
             }
