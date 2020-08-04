@@ -172,8 +172,10 @@ export const QUESTIONNAIRE = [{
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'LT_USERNAME',
-    when: /* istanbul ignore next */ (answers) => {
-        return answers.backend.indexOf('LambdaTest') > -1 && answers.hostname.indexOf('lambdatest.com') > -1
+    when: /* istanbul ignore next */ (answers) => (
+        answers.backend.indexOf('LambdaTest') > -1 &&
+        answers.hostname.indexOf('lambdatest.com') > -1
+    )
     }
 }, {
     type: 'input',
