@@ -182,8 +182,10 @@ export const QUESTIONNAIRE = [{
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'LT_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers) => {
-        return answers.backend.indexOf('LambdaTest') > -1 && answers.hostname.indexOf('lambdatest.com') > -1
+    when: /* istanbul ignore next */ (answers) => (
+        answers.backend.indexOf('LambdaTest') > -1 &&
+        answers.hostname.indexOf('lambdatest.com') > -1
+    )
     }
 }, {
     type: 'input',
