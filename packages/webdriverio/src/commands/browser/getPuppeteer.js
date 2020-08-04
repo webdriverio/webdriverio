@@ -52,7 +52,7 @@ export default async function getPuppeteer () {
     }
 
     throw new Error(
-        'Network primitives aren\'t available for this session. ' +
-        'This feature is only supported for local Chrome, Firefox and Edge testing.'
+        'Using DevTools capabilities is not supported for this session. ' +
+        'This feature is only supported for local testing on Chrome, Firefox and Chromium Edge.'
     )
 }
