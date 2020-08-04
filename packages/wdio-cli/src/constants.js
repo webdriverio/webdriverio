@@ -176,7 +176,6 @@ export const QUESTIONNAIRE = [{
         answers.backend.indexOf('LambdaTest') > -1 &&
         answers.hostname.indexOf('lambdatest.com') > -1
     )
-    }
 }, {
     type: 'input',
     name: 'env_key',
