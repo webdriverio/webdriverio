@@ -59,13 +59,13 @@ export default class DevTools {
         }
 
         sessionMap.set(sessionId, { browser, session: driver })
-        const environmentPrototype = { getPuppeteer: { value: /* istanbul ignore next */ () => browser } }
+        const environmentPrototype = { puppeteer: { value: browser } }
         Object.entries(devtoolsEnvironmentDetector({ browserName: userAgent.browser.name.toLowerCase() })).forEach(([name, value]) => {
             environmentPrototype[name] = { value }
         })
         const commandWrapper = (_, __, commandInfo) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
-        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
+        const prototype = { ...protocolCommands, ...userPrototype, ...environmentPrototype }
 
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(sessionId, customCommandWrapper)

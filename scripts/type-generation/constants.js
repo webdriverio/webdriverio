@@ -4,7 +4,7 @@ const CUSTOM_INTERFACES = [
     'ElementArray', 'ClickOptions', 'WaitUntilOptions', 'Cookie', 'Timeouts',
     'CSSProperty', 'TouchActions', 'Matcher', 'WebDriver.Cookie', 'DragAndDropCoordinate',
     'ErrorCode', 'MockResponseParams', 'Mock', 'MockFilterOptions', 'MockOverwrite',
-    'ThrottleOptions'
+    'ThrottleOptions', 'PuppeteerBrowser'
 ]
 
 module.exports = {

@@ -8,6 +8,7 @@ export const deleteCookies = require('./browser/deleteCookies').default
 export const execute = require('./browser/execute').default
 export const executeAsync = require('./browser/executeAsync').default
 export const getCookies = require('./browser/getCookies').default
+export const getPuppeteer = require('./browser/getPuppeteer').default
 export const getWindowSize = require('./browser/getWindowSize').default
 export const keys = require('./browser/keys').default
 export const mock = require('./browser/mock').default

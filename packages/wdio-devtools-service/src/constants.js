@@ -52,6 +52,7 @@ export const CPU_IDLE_TRESHOLD = 10000
 export const MAX_TRACE_WAIT_TIME = 45000
 export const NETWORK_IDLE_TIMEOUT = 5000
 export const DEFAULT_NETWORK_THROTTLING_STATE = 'Good 3G'
+export const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up, and Chromium as the browserName!'
 
 export const NETWORK_STATES = {
     offline: {

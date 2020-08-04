@@ -5,7 +5,7 @@ WebdriverIO DevTools Service
 
 With Chrome v63 and up the browser [started to support](https://developers.google.com/web/updates/2017/10/devtools-release-notes#multi-client) multi clients allowing arbitrary clients to access the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). This provides interesting opportunities to automate Chrome beyond the [WebDriver protocol](https://www.w3.org/TR/webdriver/). With this service you can enhance the wdio browser object to leverage that access and call Chrome DevTools commands within your tests to e.g. intercept requests, throttle network capabilities or take CSS/JS coverage.
 
-_**Note:** this service currently only supports Chrome v63 and up, and Chromium (MicrosfotEdge is not yet supported)!_ 
+_**Note:** this service currently only supports Chrome v63 and up, and Chromium (MicrosfotEdge is not yet supported)!_
 
 ## Installation
 
@@ -39,14 +39,6 @@ export.config = {
     // ...
 };
 ```
-
-## Options
-
-### debuggerAddress
-Define endpoint for Chrome DevTools protocol manually (e.g. `localhost:24563`). (optional)
-
-Type: `string`<br>
-Default: `null`
 
 ## Usage
 
@@ -258,15 +250,6 @@ it('should take JS coverage', () => {
 })
 ```
 
-### `cdpConnection` Command
-
-Returns the host and port the Chrome DevTools interface is connected to.
-
-```js
-const connection = browser.cdpConnection()
-console.log(connection);  // outputs: { host: 'localhost', port: 50700 }
-```
-
 ### `getNodeId(selector)` and `getNodeIds(selector)` Command
 
 Helper method to get the nodeId of an element in the page. NodeIds are similar like WebDriver node ids an identifier for a node. It can be used as a parameter for other Chrome DevTools methods, e.g. `DOM.focus`.
@@ -333,7 +316,7 @@ console.log(browser.getPageWeight())
 
 ### Access Puppeteer Instance
 
-The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the `getPuppeteer` command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
+The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the [`getPuppeteer`](/docs/api/browser/getPuppeteer.html) command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
 
 ```js
 describe('use Puppeteer', () => {
