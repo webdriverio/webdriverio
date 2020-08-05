@@ -350,7 +350,7 @@ export default class Runner extends EventEmitter {
         try {
             await global.browser.deleteSession()
         } catch (err) {
-            console.log('Failed or delete session, it has either timed out or has been ended prior to test runner completion.')
+            console.log('Failed to delete session, it has either timed out or has been ended prior to test runner completion.')
         }
         
         /**
