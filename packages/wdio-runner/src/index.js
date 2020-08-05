@@ -346,9 +346,13 @@ export default class Runner extends EventEmitter {
         if (this.isMultiremote) {
             global.browser.instances.forEach(i => { capabilities[i] = global.browser[i].capabilities })
         }
-
-        await global.browser.deleteSession()
-
+        
+        try {
+            await global.browser.deleteSession()
+        } catch (err) {
+            console.log('Failed or delete session, it has either timed out or has been ended prior to test runner completion.')
+        }
+        
         /**
          * delete session(s)
          */
