@@ -99,7 +99,7 @@ describe('attach Puppeteer', () => {
                 }
             }
         }).catch(err => err)
-        expect(err.message).toContain('Network primitives aren\'t available for this session.')
+        expect(err.message).toContain('Using DevTools capabilities is not supported for this session.')
     })
 
     it('should not re-attach if connection was already established', async () => {
