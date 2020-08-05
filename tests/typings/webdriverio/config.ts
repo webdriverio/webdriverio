@@ -71,5 +71,9 @@ const config: WebdriverIO.Config = {
             },
             log: { level: 'error' }
         }
-    }]
+    }],
+
+    filesToWatch: [
+        '/foo/page-objects/**/*.page.js',
+    ],
 }

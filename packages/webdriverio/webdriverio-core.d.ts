@@ -94,6 +94,10 @@ declare namespace WebdriverIO {
          */
         exclude?: string[];
         /**
+         * Files to watch when running `wdio` with the `--watch` flag.
+         */
+        filesToWatch?: string[],
+        /**
          * An object describing various of suites, which you can then specify
          * with the --suite option on the wdio CLI.
          */
