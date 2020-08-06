@@ -1188,7 +1188,7 @@ declare namespace WebdriverIO {
 
         /**
          * Throttle the network capabilities of the browser. This can help to
-         * emulate certain scenarios where a user looses the internet connection
+         * emulate certain scenarios where a user loses their internet connection
          * and your app needs to address that.
          */
         throttle(
