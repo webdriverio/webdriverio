@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/applitools-service` as a devDependency in your
 ```json
 {
     "devDependencies": {
-        "@wdio/applitools-service": "^5.0.0"
+        "@wdio/applitools-service": "^6.3.6"
     }
 }
 ```

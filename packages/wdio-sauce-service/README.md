@@ -12,7 +12,7 @@ The easiest way is to keep `@wdio/sauce-service` as a devDependency in your `pac
 ```json
 {
     "devDependencies": {
-        "@wdio/sauce-service": "^5.0.0"
+        "@wdio/sauce-service": "^6.3.6"
     }
 }
 ```

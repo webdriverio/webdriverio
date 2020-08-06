@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/cucumber-framework` as a devDependency in your
 ```json
 {
   "devDependencies": {
-    "@wdio/cucumber-framework": "~6.0.10"
+    "@wdio/cucumber-framework": "^6.3.6"
   }
 }
 ```

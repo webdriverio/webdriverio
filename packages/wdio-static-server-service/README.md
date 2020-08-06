@@ -16,7 +16,7 @@ After that, your `package.json` should include the following:
 ```json
 {
     "devDependencies": {
-        "@wdio/static-server-service": "^5.11.0"
+        "@wdio/static-server-service": "^6.1.14"
     }
 }
 ```
