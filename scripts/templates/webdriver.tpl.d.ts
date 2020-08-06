@@ -345,6 +345,12 @@ declare namespace WebDriver {
             [name: string]: any;
         };
 
+        //selenoid specific
+        "selenoid:options"?: {
+            enable: boolean,
+            enableVideo: boolean
+        }
+
         // Appium General Capabilities
         automationName?: string;
         platformVersion?: string;
@@ -583,7 +589,7 @@ declare namespace WebDriver {
 
     // appium.json
     interface StringsReturn {
-        [key:string]: string
+        [key: string]: string
     }
 
     interface SettingsReturn extends ProtocolCommandResponse {
