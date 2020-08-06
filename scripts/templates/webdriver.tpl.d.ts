@@ -345,11 +345,17 @@ declare namespace WebDriver {
             [name: string]: any;
         };
 
-        //selenoid specific
-        "selenoid:options"?: {
-            enable: boolean,
-            enableVideo: boolean
-        }
+        // Selenoid specific
+        'selenoid:options'?: {
+            enableVNC?: boolean,
+            enableVideo?: boolean,
+            videoName?: string,
+            screenResolution?: string,
+            videoScreenSize?: string,
+            videoFrameRate?: number,
+            videoCodec?: string,
+            enableLog: boolean
+        },
 
         // Appium General Capabilities
         automationName?: string;
