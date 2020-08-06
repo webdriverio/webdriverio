@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/mocha-framework` as a devDependency in your `p
 ```json
 {
   "devDependencies": {
-    "@wdio/mocha-framework": "^5.0.0"
+    "@wdio/mocha-framework": "^6.3.6"
   }
 }
 ```

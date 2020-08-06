@@ -14,7 +14,7 @@ The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `
 ```json
 {
     "devDependencies": {
-        "@wdio/devtools-service": "^5.0.0"
+        "@wdio/devtools-service": "^6.3.7"
     }
 }
 ```

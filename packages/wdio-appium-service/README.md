@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/appium-service` as a devDependency in your `pa
 ```json
 {
     "devDependencies": {
-        "@wdio/appium-service": "^5.0.0"
+        "@wdio/appium-service": "^6.1.16"
     }
 }
 ```
