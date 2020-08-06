@@ -17,6 +17,35 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.4.0 (2020-08-06)
+
+#### :bug: Bug Fix
+* [#5688](https://github.com/webdriverio/webdriverio/pull/5688) repaired mocha/multiremote example ([@cjatkinson](https://github.com/cjatkinson))
+
+#### :nail_care: Polish
+* `wdio-sync`, `webdriverio`
+  * [#5689](https://github.com/webdriverio/webdriverio/pull/5689) Add type definition for filesToWatch ([@seanpoulter](https://github.com/seanpoulter))
+* `wdio-cli`
+  * [#5686](https://github.com/webdriverio/webdriverio/pull/5686) Added LambdaTest environment variables for wdio/cli while generating … ([@kanhaiya15](https://github.com/kanhaiya15))
+* `devtools`, `wdio-cli`, `wdio-devtools-service`, `wdio-junit-reporter`, `wdio-sync`, `wdio-utils`, `webdriverio`
+  * [#5677](https://github.com/webdriverio/webdriverio/pull/5677) Improve Puppeteer integration ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#5638](https://github.com/webdriverio/webdriverio/pull/5638) Update browser.throttle documentation ([@klamping](https://github.com/klamping))
+* `wdio-appium-service`
+  * [#5690](https://github.com/webdriverio/webdriverio/pull/5690) Updated ReadMe ([@abhidp](https://github.com/abhidp))
+
+#### Committers: 7
+- Abhi D ([@abhidp](https://github.com/abhidp))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Christopher Atkinson ([@cjatkinson](https://github.com/cjatkinson))
+- Kanhaiya Lal Singh ([@kanhaiya15](https://github.com/kanhaiya15))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Sean Poulter ([@seanpoulter](https://github.com/seanpoulter))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.3.7 (2020-08-03)
 
 #### :memo: Documentation
