@@ -3,7 +3,13 @@ id: typescript
 title: TypeScript Setup
 ---
 
-Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.org) to compile your `*.ts` files in the `before` hook of your config file. You will need [`ts-node`](https://github.com/TypeStrong/ts-node) and [`tsconfig-paths`](https://github.com/dividab/tsconfig-paths) installed as `devDependencies`.
+Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.org) to compile your `*.ts` files in the `before` hook of your config file.
+
+You will need [`typescript`](https://github.com/microsoft/TypeScript), [`ts-node`](https://github.com/TypeStrong/ts-node) and [`tsconfig-paths`](https://github.com/dividab/tsconfig-paths) installed as `devDependencies`.
+
+```
+npm i typescript ts-node tsconfig-paths --save-dev
+```
 
 The minimum TypeScript version is 3.7.3.
 
