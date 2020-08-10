@@ -70,12 +70,12 @@ And your `tsconfig.json` needs the following:
         "baseUrl": ".",
         "paths": {
             "*": [ "./*" ],
-            "src/*": ["./src/*"]
+            "test/*": ["./test/*"]
         },
         "types": ["node", "webdriverio"]
     },
     "include": [
-        "./src/**/*.ts"
+        "./test/**/*.ts"
     ]
 }
 ```
@@ -129,12 +129,12 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
         "baseUrl": ".",
         "paths": {
             "*": [ "./*" ],
-            "src/*": ["./src/*"]
+            "test/*": ["./test/*"]
         },
         "types": ["node", "webdriverio", "@wdio/mocha-framework"]
     },
     "include": [
-        "./src/**/*.ts"
+        "./test/**/*.ts"
     ]
 }
 ```
@@ -145,12 +145,12 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
         "baseUrl": ".",
         "paths": {
             "*": [ "./*" ],
-            "src/*": ["./src/*"]
+            "test/*": ["./test/*"]
         },
         "types": ["node", "webdriverio", "@wdio/jasmine-framework"]
     },
     "include": [
-        "./src/**/*.ts"
+        "./test/**/*.ts"
     ]
 }
 ```
@@ -161,12 +161,12 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
         "baseUrl": ".",
         "paths": {
             "*": [ "./*" ],
-            "src/*": ["./src/*"]
+            "test/*": ["./test/*"]
         },
         "types": ["node", "webdriverio", "@wdio/cucumber-framework"]
     },
     "include": [
-        "./src/**/*.ts"
+        "./test/**/*.ts"
     ]
 }
 ```
