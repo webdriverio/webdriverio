@@ -114,7 +114,6 @@ const config: Config = {
 
 export { config }
 ```
-<!--Async mode-->
 
 If you are using this approach for a typed configuration, you have to remove the line with 'ts-node/register' from your framework options in your config file.
 
