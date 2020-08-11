@@ -359,7 +359,7 @@ export function getPathForFileGeneration(answers){
             ? path.relative(destSpecRootPath, destPageObjectRootPath)
             : path.relative(destStepRootPath, destPageObjectRootPath)
         : ''
-    
+
     /**
     * On Windows, path.relative can return backslashes that could be interpreted as espace sequences in strings
     */
