@@ -5,7 +5,7 @@ WebdriverIO DevTools Service
 
 With Chrome v63 and up the browser [started to support](https://developers.google.com/web/updates/2017/10/devtools-release-notes#multi-client) multi clients allowing arbitrary clients to access the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). This provides interesting opportunities to automate Chrome beyond the [WebDriver protocol](https://www.w3.org/TR/webdriver/). With this service you can enhance the wdio browser object to leverage that access and call Chrome DevTools commands within your tests to e.g. intercept requests, throttle network capabilities or take CSS/JS coverage.
 
-_**Note:** this service currently only supports Chrome v63 and up, and Chromium (MicrosfotEdge is not yet supported)!_
+_**Note:** this service currently only supports Chrome v63 and up, and Chromium (Microsoft Edge is not yet supported)!_
 
 ## Installation
 
