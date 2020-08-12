@@ -6,12 +6,7 @@ export default {
             overallSavingsMs: -27.904999999999973,
             type: 'opportunity',
         },
-        displayValue: 'lighthouse-core/audits/time-to-first-byte.js | displayValue # 0',
-        extendedInfo: {
-            value: {
-                wastedMs: -27.904999999999973
-            }
-        },
+        displayValue: 'lighthouse-core/audits/server-response-time.js | displayValue # 0',
         numericValue: 105.095,
         score: 1,
     })

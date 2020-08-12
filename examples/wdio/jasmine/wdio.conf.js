@@ -17,7 +17,8 @@ exports.config = {
      * capabilities
      */
     capabilities: [{
-        browserName: 'chrome'
+        browserName: 'chrome',
+        acceptInsecureCerts: true
     }],
 
     /**

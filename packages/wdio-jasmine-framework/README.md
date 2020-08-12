@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/jasmine-framework` as a devDependency in your 
 ```json
 {
   "devDependencies": {
-    "@wdio/jasmine-framework": "^5.0.0"
+    "@wdio/jasmine-framework": "^6.3.6"
   }
 }
 ```

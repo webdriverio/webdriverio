@@ -4,7 +4,6 @@
 declare namespace WebDriver {
     interface ClientOptions {
         isDevTools: boolean;
-        getPuppeteer: (...args: any[]) => any;
     }
 }
 

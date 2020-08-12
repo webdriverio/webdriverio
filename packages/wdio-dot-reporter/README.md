@@ -12,7 +12,7 @@ The easiest way is to keep `@wdio/dot-reporter` as a devDependency in your `pack
 ```json
 {
   "devDependencies": {
-    "@wdio/dot-reporter": "^5.0.0"
+    "@wdio/dot-reporter": "^6.3.6"
   }
 }
 ```

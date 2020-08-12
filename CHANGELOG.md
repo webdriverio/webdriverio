@@ -17,6 +17,85 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.4.0 (2020-08-06)
+
+#### :bug: Bug Fix
+* [#5688](https://github.com/webdriverio/webdriverio/pull/5688) repaired mocha/multiremote example ([@cjatkinson](https://github.com/cjatkinson))
+
+#### :nail_care: Polish
+* `wdio-sync`, `webdriverio`
+  * [#5689](https://github.com/webdriverio/webdriverio/pull/5689) Add type definition for filesToWatch ([@seanpoulter](https://github.com/seanpoulter))
+* `wdio-cli`
+  * [#5686](https://github.com/webdriverio/webdriverio/pull/5686) Added LambdaTest environment variables for wdio/cli while generating … ([@kanhaiya15](https://github.com/kanhaiya15))
+* `devtools`, `wdio-cli`, `wdio-devtools-service`, `wdio-junit-reporter`, `wdio-sync`, `wdio-utils`, `webdriverio`
+  * [#5677](https://github.com/webdriverio/webdriverio/pull/5677) Improve Puppeteer integration ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#5638](https://github.com/webdriverio/webdriverio/pull/5638) Update browser.throttle documentation ([@klamping](https://github.com/klamping))
+* `wdio-appium-service`
+  * [#5690](https://github.com/webdriverio/webdriverio/pull/5690) Updated ReadMe ([@abhidp](https://github.com/abhidp))
+
+#### Committers: 7
+- Abhi D ([@abhidp](https://github.com/abhidp))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Christopher Atkinson ([@cjatkinson](https://github.com/cjatkinson))
+- Kanhaiya Lal Singh ([@kanhaiya15](https://github.com/kanhaiya15))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Sean Poulter ([@seanpoulter](https://github.com/seanpoulter))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.3.7 (2020-08-03)
+
+#### :memo: Documentation
+* [#5678](https://github.com/webdriverio/webdriverio/pull/5678) Update Expect API Docs to add two matchers ([@klamping](https://github.com/klamping))
+* [#5674](https://github.com/webdriverio/webdriverio/pull/5674) docs: add docs for github action integration ([@ilamparithiNatarajan](https://github.com/ilamparithiNatarajan))
+
+#### Committers: 3
+- Ilamparithi Natarajan ([@ilamparithiNatarajan](https://github.com/ilamparithiNatarajan))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Srinivasan Sekar ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+
+## v6.3.6 (2020-07-29)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#5671](https://github.com/webdriverio/webdriverio/pull/5671) Fix issue with auto-genarated tests for Cucumber ([@pjcalvo](https://github.com/pjcalvo))
+
+#### :nail_care: Polish
+* `wdio-devtools-service`
+  * [#5667](https://github.com/webdriverio/webdriverio/pull/5667) Calculate performance score based on new weightage and metrics ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+#### Committers: 3
+- Pablillo Calvo ([@pjcalvo](https://github.com/pjcalvo))
+- Srinivasan Sekar ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.3.5 (2020-07-24)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`, `webdriver`
+  * [#5651](https://github.com/webdriverio/webdriverio/pull/5651) Fix re-attach devtools service if `reloadSession` was called ([@HananArgov](https://github.com/HananArgov))
+* `webdriverio`
+  * [#5649](https://github.com/webdriverio/webdriverio/pull/5649) Add TypeScript types for SevereServiceError ([@AdamTReineke](https://github.com/AdamTReineke))
+
+#### :nail_care: Polish
+* `wdio-devtools-service`
+  * [#5646](https://github.com/webdriverio/webdriverio/pull/5646) Upgrade lighthouse and add new metrics ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+#### :memo: Documentation
+* [#5654](https://github.com/webdriverio/webdriverio/pull/5654) Fix version 4 doc links ([@Jazzepi](https://github.com/Jazzepi))
+
+#### Committers: 4
+- Adam Reineke ([@AdamTReineke](https://github.com/AdamTReineke))
+- DOA ([@HananArgov](https://github.com/HananArgov))
+- Michael Pinnegar ([@Jazzepi](https://github.com/Jazzepi))
+- Srinivasan Sekar ([@SrinivasanTarget](https://github.com/SrinivasanTarget))
+
+
 ## v6.3.4 (2020-07-21)
 
 #### :bug: Bug Fix

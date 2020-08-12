@@ -21,7 +21,7 @@ const storeLauncher = new SharedStoreLauncher()
 describe('SharedStoreService', () => {
     it('onPrepare', async () => {
         await storeLauncher.onPrepare()
-        expect(writeFile).toBeCalledWith(process.pid, 3000)
+        expect(writeFile).toBeCalledWith(process.pid, '3000')
     })
 
     it('onComplete', async () => {

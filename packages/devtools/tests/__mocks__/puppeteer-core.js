@@ -68,6 +68,7 @@ class PuppeteerMock {
         this.waitForTarget = jest.fn().mockImplementation(() => target)
         this.getActivePage = jest.fn().mockImplementation(() => page)
         this.pages = jest.fn().mockReturnValue(Promise.resolve([page, page2]))
+        this._connection = { _transport: { _ws: { addEventListener: jest.fn() } } }
     }
 }
 

@@ -88,6 +88,10 @@ declare namespace WebdriverIO {
          */
         exclude?: string[];
         /**
+         * Files to watch when running `wdio` with the `--watch` flag.
+         */
+        filesToWatch?: string[],
+        /**
          * An object describing various of suites, which you can then specify
          * with the --suite option on the wdio CLI.
          */
@@ -491,6 +495,7 @@ declare namespace WebdriverIO {
         body: any
     }
 
+    type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
     type CDPSession = Partial<import('puppeteer').CDPSession>;
     type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;

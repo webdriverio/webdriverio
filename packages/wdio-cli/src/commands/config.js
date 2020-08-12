@@ -1,4 +1,3 @@
-import path from 'path'
 import util from 'util'
 import yarnInstall from 'yarn-install'
 
@@ -9,7 +8,7 @@ import {
 } from '../constants'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
-    hasFile, generateTestFiles, getAnswers
+    hasFile, generateTestFiles, getAnswers, getPathForFileGeneration
 } from '../utils'
 
 export const command = 'config'
@@ -81,22 +80,8 @@ export const runConfig = async function (useYarn, yes, exit) {
     /**
      * find relative paths between tests and pages
      */
-    const destSpecRootPath = path.join(
-        process.cwd(),
-        path.dirname(answers.specs || '').replace(/\*\*$/, ''))
 
-    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
-
-    const destPageObjectRootPath = answers.usePageObjects
-        ?  path.join(
-            process.cwd(),
-            path.dirname(answers.pages || '').replace(/\*\*$/, ''))
-        : ''
-    const relativePath = (answers.generateTestFiles && answers.usePageObjects)
-        ? !(answers.framework === 'cucumber')
-            ? path.relative(destSpecRootPath, destPageObjectRootPath)
-            : path.relative(destStepRootPath, destPageObjectRootPath)
-        : ''
+    const parsedPaths = getPathForFileGeneration(answers)
 
     const parsedAnswers = {
         ...answers,
@@ -110,9 +95,9 @@ export const runConfig = async function (useYarn, yes, exit) {
         isSync: syncExecution,
         _async: syncExecution ? '' : 'async ',
         _await: syncExecution ? '' : 'await ',
-        destSpecRootPath: destSpecRootPath,
-        destPageObjectRootPath: destPageObjectRootPath,
-        relativePath : relativePath
+        destSpecRootPath: parsedPaths.destSpecRootPath,
+        destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
+        relativePath : parsedPaths.relativePath
     }
 
     try {

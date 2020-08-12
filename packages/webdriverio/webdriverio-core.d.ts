@@ -94,6 +94,10 @@ declare namespace WebdriverIO {
          */
         exclude?: string[];
         /**
+         * Files to watch when running `wdio` with the `--watch` flag.
+         */
+        filesToWatch?: string[],
+        /**
          * An object describing various of suites, which you can then specify
          * with the --suite option on the wdio CLI.
          */
@@ -497,6 +501,7 @@ declare namespace WebdriverIO {
         body: any
     }
 
+    type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
     type CDPSession = Partial<import('puppeteer').CDPSession>;
     type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
@@ -1055,6 +1060,15 @@ declare namespace WebdriverIO {
         ): Promise<WebDriver.Cookie[]>;
 
         /**
+         * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
+         * to run commands with Puppeteer. Note that all Puppeteer commands are
+         * asynchronous by default so in order to interchange between sync and async
+         * execution make sure to wrap your Puppeteer calls within a `browser.call`
+         * commands as shown in the example.
+         */
+        getPuppeteer(): Promise<PuppeteerBrowser>;
+
+        /**
          * Returns browser window size (and position for drivers with W3C support).
          */
         getWindowSize(): Promise<WebDriver.RectReturn>;
@@ -1174,7 +1188,7 @@ declare namespace WebdriverIO {
 
         /**
          * Throttle the network capabilities of the browser. This can help to
-         * emulate certain scenarios where a user looses the internet connection
+         * emulate certain scenarios where a user loses their internet connection
          * and your app needs to address that.
          */
         throttle(

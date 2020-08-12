@@ -177,6 +177,29 @@ declare namespace WebDriver {
         }
     }
 
+    interface SelenoidOptions {
+        enableVNC?: boolean,
+        screenResolution?: string,
+        enableVideo?: boolean,
+        videoName?: string,
+        videoScreenSize?: string,
+        videoFrameRate?: number,
+        videoCodec?: string,
+        enableLog?: boolean,
+        logName?: string,
+        name?: string,
+        sessionTimeout?: string,
+        timeZone?: string,
+        env?: string[],
+        applicationContainers?: string[],
+        hostsEntries?: string[],
+        dnsServers?: string[],
+        additionalNetworks?: string[],
+        labels?: Map<string, string>,
+        skin?: string,
+        s3KeyPattern?: string
+    }
+
     interface Capabilities {
         /**
          * Identifies the user agent.
@@ -344,6 +367,9 @@ declare namespace WebDriver {
         'tb:options'?: {
             [name: string]: any;
         };
+
+        // Selenoid specific
+        'selenoid:options'?: SelenoidOptions,
 
         // Appium General Capabilities
         automationName?: string;
@@ -583,7 +609,7 @@ declare namespace WebDriver {
 
     // appium.json
     interface StringsReturn {
-        [key:string]: string
+        [key: string]: string
     }
 
     interface SettingsReturn extends ProtocolCommandResponse {

@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/junit-reporter` as a devDependency in your `pa
 ```json
 {
   "devDependencies": {
-    "@wdio/junit-reporter": "^5.0.0"
+    "@wdio/junit-reporter": "^6.3.6"
   }
 }
 ```

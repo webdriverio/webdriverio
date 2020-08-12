@@ -1,12 +1,18 @@
 /**
  * Throttle the network capabilities of the browser. This can help to
- * emulate certain scenarios where a user looses the internet connection
+ * emulate certain scenarios where a user loses their internet connection
  * and your app needs to address that.
+ *
+ * There are many presets available with default configurations for ease of use.
+ * They are `offline`, `GPRS`, `Regular2G`, `Good2G`, `Regular3G`, `Good3G`,
+ * `Regular4G`, `DSL`, `WiFi`, `online`.
+ *
+ * You can see the values for these presets [in the source code](https://github.com/webdriverio/webdriverio/blob/6824e4eb118a8d20685f12f4bc42f13fd56f8a25/packages/webdriverio/src/commands/browser/throttle.js#L29).
  *
  * <example>
     :throttle.js
     it('should throttle the network', () => {
-        // via static string
+        // via static string preset
         browser.throttle('Regular 3G')
 
         // via custom values
@@ -21,10 +27,14 @@
  *
  * @alias browser.throttle
  * @param {ThrottleOptions} params  parameters for throttling
+ * @param {Boolean}        params.offline              True to emulate internet disconnection.
+ * @param {Number}         params.latency              Minimum latency from request sent to response headers received (ms).
+ * @param {Number}         params.downloadThroughput   Maximal aggregated download throughput (bytes/sec). -1 disables download throttling.
+ * @param {Number}         params.uploadThroughput     Maximal aggregated upload throughput (bytes/sec). -1 disables upload throttling.
  * @type utility
  *
  */
-import { getBrowserObject, getPuppeteer } from '../../utils'
+import { getBrowserObject } from '../../utils'
 
 const NETWORK_PRESETS = {
     'offline': {
@@ -114,7 +124,7 @@ export default async function throttle (params) {
     }
 
     // Connect to Chrome DevTools
-    await getPuppeteer.call(this)
+    await this.getPuppeteer()
     const pages = await this.puppeteer.pages()
     const client = await pages[0].target().createCDPSession()
 

@@ -40,5 +40,9 @@ const conf: WebdriverIO.Config = {
         }
 
         return response
-    }
+    },
+
+    filesToWatch: [
+        '/foo/page-objects/**/*.page.js',
+    ],
 }

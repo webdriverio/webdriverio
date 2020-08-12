@@ -6,7 +6,7 @@ import { elementErrorHandler } from '../middlewares'
 import { ELEMENT_KEY } from '../constants'
 
 /**
- * transforms and findElement response into a WDIO element
+ * transforms a findElement response into a WDIO element
  * @param  {String} selector  selector that was used to query the element
  * @param  {Object} res       findElement response
  * @return {Object}           WDIO element object
@@ -60,20 +60,20 @@ export const getElement = function findElement (selector, res, isReactElement = 
 }
 
 /**
- * transforms and findElement response into a WDIO element
+ * transforms a findElements response into an array of WDIO elements
  * @param  {String} selector  selector that was used to query the element
- * @param  {Object} res       findElement response
- * @return {Object}           WDIO element object
+ * @param  {Object} res       findElements response
+ * @return {Array}            array of WDIO elements
  */
 export const getElements = function getElements (selector, elemResponse, isReactElement = false) {
     const browser = getBrowserObject(this)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
-        ...getWDIOPrototype('element'),
-        scope: 'element'
+        ...getWDIOPrototype('element')
     }
 
     const elements = elemResponse.map((res, i) => {
+        propertiesObject.scope = 'element'
         const element = webdriverMonad(this.options, (client) => {
             const elementId = getElementFromResponse(res)
 
