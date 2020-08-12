@@ -7,6 +7,10 @@ When you're writing tests, you often need to check that values meet certain cond
 
 ## Default Options
 
+These default options below are connected to the waitforTimeout and waitforInterval options set in the config.
+
+Only set the options below if you want to wait for specific timeouts for your assertions.
+
 ```js
 {
     wait: 2000, // ms to wait for expectation to succeed
