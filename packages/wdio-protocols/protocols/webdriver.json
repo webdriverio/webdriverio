@@ -175,7 +175,7 @@
       "ref": "https://w3c.github.io/webdriver/#new-window",
       "parameters": [{
         "name": "type",
-        "type": "string",
+        "type": "'tab' | 'window'",
         "description": "Set to 'tab' if the newly created window shares an OS-level window with the current browsing context, or 'window' otherwise.",
         "required": true
       }],

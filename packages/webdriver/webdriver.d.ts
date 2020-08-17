@@ -763,7 +763,7 @@ declare namespace WebDriver {
          * Create a new top-level browsing context.
          * https://w3c.github.io/webdriver/#new-window
          */
-        createWindow(type: string): WindowHandle;
+        createWindow(type: 'tab' | 'window'): WindowHandle;
 
         /**
          * [webdriver]
