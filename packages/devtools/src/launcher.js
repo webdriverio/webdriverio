@@ -79,7 +79,7 @@ async function launchChrome (capabilities) {
 
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
-        ignoreDefaultArgs,
+        ignoreDefaultFlags: true,
         chromeFlags
     })
 
