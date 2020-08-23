@@ -61,7 +61,7 @@ class Footer extends React.Component {
                                 Stack Overflow
                             </a>
                             <a href="https://gitter.im/webdriverio/webdriverio">Support Chat</a>
-                            <a href="https://seleniumhq.slack.com/join/shared_invite/enQtODAwOTUzOTM5OTEwLTZjZjgzN2ExOTBmZGE0NjkwYzA2Nzc0MjczMGYwYjdiNGQ5YjI0ZjdjYjFhMjVlMjFkZWJmNDYyMmU1OTYyM2Y">Slack</a>
+                            <a href="https://seleniumhq.slack.com/join/shared_invite/zt-f7jwg1n7-RVw4v4sMA7Zjufira_~EVw#/">Slack</a>
                             <a
                                 href="https://twitter.com/webdriverio"
                                 target="_blank"
