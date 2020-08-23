@@ -106,7 +106,9 @@ module.exports = require('./wdio.conf.ts')
 And in your typed configuration file:
 
 ```typescript
-const config: WebdriverIO.Config = {
+import { Config } from 'webdriverio';
+
+const config: Config = {
     // Put your webdriverio configuration here
 }
 
