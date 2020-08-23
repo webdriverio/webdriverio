@@ -23,6 +23,7 @@ export const DEFAULT_FLAGS = [
     '--mute-audio',
     // Skip first run wizards
     '--no-first-run',
+    '--no-default-browser-check',
     // chromedriver flags
     '--disable-hang-monitor',
     '--disable-prompt-on-repost',
@@ -34,6 +35,7 @@ export const DEFAULT_FLAGS = [
     '--disable-dev-shm-usage',
     '--disable-ipc-flooding-protection',
     '--disable-renderer-backgrounding',
+    '--force-fieldtrials=*BackgroundTracing/default/',
     '--enable-features=NetworkService,NetworkServiceInProcess',
     /**
      * `site-per-process` affects `page.frames()`, see #4471
