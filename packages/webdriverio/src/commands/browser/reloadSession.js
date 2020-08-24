@@ -43,7 +43,7 @@ export default async function reloadSession () {
     await ProtocolDriver.reloadSession(this)
 
     if (Array.isArray(this.options.onReload) && this.options.onReload.length) {
-        await Promise.all(this.options.onReload.map((hook) => hook(oldSessionId, this.sessionId)))
+        await Promise.all(this.options.onReload.map(async (hook) => await hook(oldSessionId, this.sessionId)))
     }
 
     return this.sessionId
