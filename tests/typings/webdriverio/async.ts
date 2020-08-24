@@ -50,12 +50,6 @@ async function bar() {
         windowName: 'some name',
         windowFeatures: 'some features'
     })
-
-    await browser.createWindow('tab')
-    await browser.createWindow('window')
-    // @ts-expect-error
-    await browser.createWindow('something else')
-
     const waitUntil: boolean = await browser.waitUntil(
         () => Promise.resolve(true),
         {
