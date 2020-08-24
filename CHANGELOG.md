@@ -17,6 +17,41 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.4.1 (2020-08-24)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#5712](https://github.com/webdriverio/webdriverio/pull/5712) fix(cli): backslash replacement on win32 ([@rendmath](https://github.com/rendmath))
+* `webdriverio`
+  * [#5705](https://github.com/webdriverio/webdriverio/pull/5705) Fix prototypes for items in getElements array. ([@L0tso](https://github.com/L0tso))
+* `wdio-shared-store-service`
+  * [#5702](https://github.com/webdriverio/webdriverio/pull/5702) Fix data argument must be string in shared-store-service ([@stevoland](https://github.com/stevoland))
+
+#### :nail_care: Polish
+* `devtools`
+  * [#5710](https://github.com/webdriverio/webdriverio/pull/5710) devtools: Fix `ignoreDefaultArgs` capability option ([@koggdal](https://github.com/koggdal))
+
+#### :memo: Documentation
+* Other
+  * [#5708](https://github.com/webdriverio/webdriverio/pull/5708) docs: folder structure for typescript docs ([@rendmath](https://github.com/rendmath))
+  * [#5709](https://github.com/webdriverio/webdriverio/pull/5709) docs: add import for typed configuration ([@rendmath](https://github.com/rendmath))
+  * [#5707](https://github.com/webdriverio/webdriverio/pull/5707) docs: add extension to required ts conf path ([@rendmath](https://github.com/rendmath))
+  * [#5704](https://github.com/webdriverio/webdriverio/pull/5704) docs: typescript package dependency requirement ([@rendmath](https://github.com/rendmath))
+* `wdio-devtools-service`
+  * [#5722](https://github.com/webdriverio/webdriverio/pull/5722) Fix typo in README.md ([@iboshkov](https://github.com/iboshkov))
+* `webdriver`
+  * [#5698](https://github.com/webdriverio/webdriverio/pull/5698) TypeDefination fix for selenoid options ([@suniljaiswal01](https://github.com/suniljaiswal01))
+
+#### Committers: 7
+- Bohdan Belenok ([@L0tso](https://github.com/L0tso))
+- Ilija Boshkov ([@iboshkov](https://github.com/iboshkov))
+- Johannes Koggdal ([@koggdal](https://github.com/koggdal))
+- Mathieu Renda ([@rendmath](https://github.com/rendmath))
+- Stephen J. Collings ([@stevoland](https://github.com/stevoland))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@suniljaiswal01](https://github.com/suniljaiswal01)
+
+
 ## v6.4.0 (2020-08-06)
 
 #### :bug: Bug Fix
