@@ -26,9 +26,8 @@ class Footer extends React.Component {
                     <h3>BLACK LIVES MATTER</h3>
                     <p>
                         In solidarity, we ask that you consider financially supporting efforts such as
-                        <a href="https://secure.actblue.com/donate/ms_blm_homepage_2019">Black Lives Matter</a>,
                         <a href="https://support.eji.org/give/153413/#!/donation/checkout">The Equal Justice Initiative</a>,
-                        <a href="https://www.naacpldf.org/">NAACP Legal Defense and Education Fund</a>, or your local civil rights charity.
+                        or your local civil rights charity.
                     </p>
                     <button className="close">x</button>
                 </div>
