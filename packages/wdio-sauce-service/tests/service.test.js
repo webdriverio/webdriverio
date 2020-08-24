@@ -95,7 +95,7 @@ test('beforeTest should set context for jasmine test', () => {
     service.beforeSession({ user: 'foobar', key: '123' }, {})
     service.beforeTest({
         fullName: 'my test can do something',
-        title: 'foobar'
+        description: 'foobar'
     })
     expect(global.browser.execute).toBeCalledWith('sauce:context=my test can do something')
 })
