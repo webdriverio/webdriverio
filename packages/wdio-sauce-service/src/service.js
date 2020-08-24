@@ -65,7 +65,7 @@ export default class SauceService {
          */
         /* istanbul ignore if */
         if (this.suiteTitle === 'Jasmine__TopLevel__Suite') {
-            this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.description) - 1)
+            this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.desciption) - 1)
         }
 
         const fullTitle = (
