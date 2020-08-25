@@ -314,6 +314,17 @@ console.log(browser.getPageWeight())
 // }
 ```
 
+### Setting Download Paths for the Browser
+
+The `cdp` command can be used to call the [`Page.setDownloadBehavior`](https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-setDownloadBehavior) command of Devtools Protocol to set the behavior when downloading a file. Make sure the `downloadPath` is an absolute path and the `browser.cdp()` call is made before the file is downloaded.
+
+```js
+browser.cdp('Page', 'setDownloadBehavior', {
+    behavior: 'allow',
+    downloadPath: '/home/root/webdriverio-project/',
+});
+```
+
 ### Access Puppeteer Instance
 
 The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the [`getPuppeteer`](/docs/api/browser/getPuppeteer.html) command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
