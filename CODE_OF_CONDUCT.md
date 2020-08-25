@@ -49,7 +49,7 @@ Project maintainers who do not follow or enforce the Code of Conduct in good fai
 
 ### Project Spaces
 
-For reporting issues in spaces related to WebdriverIO please use the email `christian@saucelabs.com`. WebdriverIO handles CoC issues related to the spaces that it maintains. Projects maintainers commit to:
+For reporting issues in spaces related to WebdriverIO please contact any of the members of the [Technical Steering Committee (TSC)](/AUTHORS.md). WebdriverIO handles CoC issues related to the spaces that it maintains. Projects maintainers commit to:
 
 - maintain the confidentiality with regard to the reporter of an incident
 - to participate in the path for escalation as outlined in the section on Escalation when required.
