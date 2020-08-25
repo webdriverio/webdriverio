@@ -54,7 +54,8 @@ const log = logger()
 beforeEach(() => {
     global.browser = {
         getPuppeteer: jest.fn(() => puppeteer.connect({})),
-        addCommand: jest.fn()
+        addCommand: jest.fn(),
+        emit: jest.fn()
     }
 
     sessionMock.send.mockClear()
@@ -106,9 +107,11 @@ test('if supported by browser', async () => {
 
     const rawWsEvent = rawEventListener.mock.calls.pop().pop()
     service.devtoolsGatherer = { onMessage: jest.fn() }
-    rawWsEvent({ data: '{"foo": 123}' })
+    rawWsEvent({ data: '{"method": "foo", "params": "bar"}' })
     expect(service.devtoolsGatherer.onMessage).toBeCalledTimes(1)
-    expect(service.devtoolsGatherer.onMessage).toBeCalledWith({ foo: 123 })
+    expect(service.devtoolsGatherer.onMessage).toBeCalledWith({ method:'foo', params: 'bar' })
+    expect(global.browser.emit).toBeCalledTimes(1)
+    expect(global.browser.emit).toBeCalledWith('foo', 'bar')
 })
 
 test('beforeCommand', () => {
