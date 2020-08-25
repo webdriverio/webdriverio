@@ -320,8 +320,8 @@ The `cdp` command can be used to call the [`Page.setDownloadBehavior`](https://c
 
 ```js
 browser.cdp('Page', 'setDownloadBehavior', {
-            behavior: 'allow',
-            downloadPath: '/home/root/webdriverio-project/',
+    behavior: 'allow',
+    downloadPath: '/home/root/webdriverio-project/',
 });
 ```
 
