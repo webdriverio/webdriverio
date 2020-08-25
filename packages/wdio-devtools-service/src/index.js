@@ -170,6 +170,9 @@ export default class DevToolsService {
         this.puppeteer._connection._transport._ws.addEventListener('message', (event) => {
             const data = JSON.parse(event.data)
             this.devtoolsGatherer.onMessage(data)
+            const method = data.method || 'event'
+            log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
+            global.browser.emit(method, data.params)
         })
 
         global.browser.addCommand('enablePerformanceAudits', :: this._enablePerformanceAudits)
