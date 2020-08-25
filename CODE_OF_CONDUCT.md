@@ -58,7 +58,7 @@ For reporting issues in spaces related to WebdriverIO please contact any of the 
 
 For reporting issues in spaces managed by the OpenJS Foundation, for example, repositories within the OpenJS organization, use the email `report@lists.openjsf.org`. The Cross Project Council (CPC) is responsible for managing these reports and commits to:
 
-- maintain the confidentiality with regard to the reporter of an incident
+- maintain confidentiality with regard to the reporter of an incident
 - to participate in the path for escalation as outlined in
   the section on Escalation when required.
 
