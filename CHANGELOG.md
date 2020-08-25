@@ -17,6 +17,31 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.4.2 (2020-08-25)
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#5750](https://github.com/webdriverio/webdriverio/pull/5750) @wdio/sauce-service Job Names are not sliced when using Jasmine #5728 ([@joshskumar](https://github.com/joshskumar))
+
+#### :memo: Documentation
+* `wdio-devtools-service`
+  * [#5753](https://github.com/webdriverio/webdriverio/pull/5753) Document setting download paths with browser.cdp() ([@vipulgupta2048](https://github.com/vipulgupta2048))
+* `wdio-cli`
+  * [#5740](https://github.com/webdriverio/webdriverio/pull/5740) Add wdio-rerun-service entries to Webdriver.IO ([@mikesalvia](https://github.com/mikesalvia))
+* `webdriver`
+  * [#5733](https://github.com/webdriverio/webdriverio/pull/5733) Make type definition for createWindow more precise ([@lukyth](https://github.com/lukyth))
+* Other
+  * [#5653](https://github.com/webdriverio/webdriverio/pull/5653) Update expect.md ([@marseam](https://github.com/marseam))
+
+#### Committers: 6
+- Kanitkorn Sujautra ([@lukyth](https://github.com/lukyth))
+- Martin McGee ([@marseam](https://github.com/marseam))
+- Mike Salvia ([@mikesalvia](https://github.com/mikesalvia))
+- Vipul Gupta ([@vipulgupta2048](https://github.com/vipulgupta2048))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@joshskumar](https://github.com/joshskumar)
+
+
 ## v6.4.1 (2020-08-24)
 
 #### :bug: Bug Fix
