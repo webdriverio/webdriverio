@@ -87,7 +87,7 @@ interface DevtoolsBrowser {
   getPerformanceScore(): number;
 
   /**
-   * The service allows you to emulate a specific device type. 
+   * The service allows you to emulate a specific device type.
    * If set, the browser viewport will be modified to fit the device capabilities as well as the user agent will set according to the device user agent.
    * Note: This only works if you don't use mobileEmulation within capabilities['goog:chromeOptions']. If mobileEmulation is present the call to browser.emulateDevice() won't do anything.
    */
@@ -106,14 +106,14 @@ interface DevtoolsBrowser {
    */
   cdpConnection(): { host: string, port: number };
   /**
-   * Helper method to get the nodeId of an element in the page. 
-   * NodeIds are similar like WebDriver node ids an identifier for a node. 
+   * Helper method to get the nodeId of an element in the page.
+   * NodeIds are similar like WebDriver node ids an identifier for a node.
    * It can be used as a parameter for other Chrome DevTools methods, e.g. DOM.focus.
    */
   getNodeId(selector: string): number;
   /**
-   * Helper method to get the nodeId of an element in the page. 
-   * NodeIds are similar like WebDriver node ids an identifier for a node. 
+   * Helper method to get the nodeId of an element in the page.
+   * NodeIds are similar like WebDriver node ids an identifier for a node.
    * It can be used as a parameter for other Chrome DevTools methods, e.g. DOM.focus.
    */
   getNodeIds(selector: string): number[];
@@ -129,7 +129,7 @@ interface DevtoolsBrowser {
    */
   endTracing(): void;
   /**
-   * Returns the tracelogs that was captured within the tracing period. 
+   * Returns the tracelogs that was captured within the tracing period.
    * You can use this command to store the trace logs on the file system to analyse the trace via Chrome DevTools interface.
    */
   getTraceLogs(): object;
@@ -137,8 +137,4 @@ interface DevtoolsBrowser {
    * Returns page weight information of the last page load.
    */
   getPageWeight(): object;
-  /**
-   * Returns access to puppeteer instance. Allow user to work with Puppeteer directly.
-   */
-  getPuppeteer(): Partial<import('puppeteer').Browser>;
 }

@@ -83,9 +83,11 @@ describe('my test', () => {
         // WebDriver command
         browser.url('https://webdriver.io')
 
+        // get <Puppeteer.Browser> instance (https://pptr.dev/#?product=Puppeteer&version=v5.2.1&show=api-class-browser)
+        const puppeteerBrowser = browser.getPuppeteer()
+
         // switch to Puppeteer to intercept requests
         browser.call(async () => {
-            const puppeteerBrowser = browser.getPuppeteer()
             const page = (await puppeteerBrowser.pages())[0]
             await page.setRequestInterception(true)
             page.on('request', interceptedRequest => {

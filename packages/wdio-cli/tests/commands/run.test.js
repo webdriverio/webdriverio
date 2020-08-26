@@ -26,6 +26,7 @@ describe('Command: run', () => {
 
     beforeEach(() => {
         fs.existsSync.mockImplementation(() => true)
+        fs.existsSync.mockClear()
         jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => {})
         jest.spyOn(console, 'error')
         jest.spyOn(process, 'openStdin').mockImplementation(
@@ -41,6 +42,12 @@ describe('Command: run', () => {
             .toHaveBeenCalledWith('run', 'No WebdriverIO configuration found in "foo/bar"')
 
         fs.existsSync.mockClear()
+    })
+
+    it('should use local conf if nothing defined', async () => {
+        fs.existsSync.mockImplementation(() => true)
+        await runCmd.handler({})
+        expect(fs.existsSync).toBeCalledTimes(2)
     })
 
     it('should use Watcher if "--watch" flag is passed', async () => {

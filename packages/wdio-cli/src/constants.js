@@ -104,7 +104,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
         { name: 'visual-regression-testing', value: 'wdio-image-comparison-service$--$visual-regression-testing' },
-        { name: 'novus-visual-regression', value: 'wdio-novus-visual-regression-service$--$novus-visual-regression' }
+        { name: 'novus-visual-regression', value: 'wdio-novus-visual-regression-service$--$novus-visual-regression' },
+        { name: 'rerun', value: 'wdio-rerun-service$--$rerun' }
     ]
 }
 
@@ -167,6 +168,24 @@ export const QUESTIONNAIRE = [{
     when: /* istanbul ignore next */ (answers) => {
         return answers.backend === 'In the cloud using Experitest' && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
     }
+}, {
+    type: 'input',
+    name: 'env_user',
+    message: 'Environment variable for username',
+    default: 'LT_USERNAME',
+    when: /* istanbul ignore next */ (answers) => (
+        answers.backend.indexOf('LambdaTest') > -1 &&
+        answers.hostname.indexOf('lambdatest.com') > -1
+    )
+}, {
+    type: 'input',
+    name: 'env_key',
+    message: 'Environment variable for access key',
+    default: 'LT_ACCESS_KEY',
+    when: /* istanbul ignore next */ (answers) => (
+        answers.backend.indexOf('LambdaTest') > -1 &&
+        answers.hostname.indexOf('lambdatest.com') > -1
+    )
 }, {
     type: 'input',
     name: 'env_user',

@@ -5,6 +5,26 @@ title: Expect
 
 When you're writing tests, you often need to check that values meet certain conditions. `expect` gives you access to a number of "matchers" that let you validate different things on the `browser` or an `element` object.
 
+## Default Options
+
+These default options below are connected to the waitforTimeout and waitforInterval options set in the config.
+
+Only set the options below if you want to wait for specific timeouts for your assertions.
+
+```js
+{
+    wait: 2000, // ms to wait for expectation to succeed
+    interval: 100, // interval between attempts
+}
+```
+
+Set options like this:
+```js
+beforeSession () { // before hook works as well
+    require('expect-webdriverio').setOptions({ wait: 5000 })
+},
+```
+
 ### Matcher Options
 
 Every matcher can take several options that allows you to modify the assertion:
@@ -24,7 +44,7 @@ This options can be applied in addition to the command options when strings are 
 | Name | Type | Details |
 | ---- | ---- | ------- |
 | <code><var>ignoreCase</var></code> | boolean | apply `toLowerCase` to both actual and expected values |
-| <code><var>trim</var></code> | boolean | apply `trim` to actual value` |
+| <code><var>trim</var></code> | boolean | apply `trim` to actual value |
 | <code><var>containing</var></code> | boolean | expect actual value to contain expected value, otherwise strict equal. |
 | <code><var>asString</var></code> | boolean | might be helpful to force converting property value to string |
 
@@ -51,6 +71,18 @@ browser.url('https://webdriver.io/')
 expect(browser).toHaveUrl('https://webdriver.io')
 ```
 
+### toHaveUrlContaining
+
+Checks if browser is on a page URL that contains a value.
+
+##### Usage
+
+```js
+browser.url('https://webdriver.io/')
+
+expect(browser).toHaveUrlContaining('webdriver')
+```
+
 ### toHaveTitle
 
 Checks if website has a specific title.
@@ -60,6 +92,17 @@ Checks if website has a specific title.
 ```js
 browser.url('https://webdriver.io/')
 expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js')
+```
+
+### toHaveTitleContaining
+
+Checks if website has a specific title that contains a value.
+
+##### Usage
+
+```js
+browser.url('https://webdriver.io/')
+expect(browser).toHaveTitleContaining('WebdriverIO')
 ```
 
 ## Element Matchers
@@ -227,7 +270,7 @@ Checks if an input element contains a certain value.
 
 ```js
 const myInput = $('input')
-expect(myInput).toHaveValue('us')
+expect(myInput).toHaveValueContaining('us')
 ```
 
 ### toBeClickable
@@ -365,7 +408,7 @@ Checks if element contains a specific text.
 ```js
 browser.url('https://webdriver.io/')
 const elem = $('.tagline')
-expect(elem).toHaveTextContaining('browser automation test framework')
+expect(elem).toHaveTextContaining('browser and mobile automation test framework')
 ```
 
 ### toBeDisplayedInViewport

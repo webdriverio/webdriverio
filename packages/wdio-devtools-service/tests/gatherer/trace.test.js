@@ -13,13 +13,12 @@ const pageMock = {
     },
     evaluateOnNewDocument: jest.fn()
 }
+
 const sessionMock = {
     on: jest.fn(),
+    emit: jest.fn(),
+    send: jest.fn(),
     removeListener: jest.fn()
-}
-const driverMock = {
-    getCDPSession: jest.fn().mockReturnValue(Promise.resolve(sessionMock)),
-    getActivePage: jest.fn().mockReturnValue(Promise.resolve(pageMock))
 }
 
 const frame = {
@@ -31,14 +30,12 @@ const frame = {
 jest.useFakeTimers()
 
 beforeEach(() => {
-    driverMock.getCDPSession.mockClear()
-    driverMock.getActivePage.mockClear()
     pageMock.on.mockClear()
     pageMock.tracing.start.mockClear()
     pageMock.tracing.stop.mockClear()
     pageMock.evaluateOnNewDocument.mockClear()
     sessionMock.on.mockClear()
-    traceGatherer = new TraceGatherer(driverMock)
+    traceGatherer = new TraceGatherer(sessionMock, pageMock)
     traceGatherer.emit = jest.fn()
 })
 

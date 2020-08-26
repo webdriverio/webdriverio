@@ -3,7 +3,13 @@ id: typescript
 title: TypeScript Setup
 ---
 
-Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.org) to compile your `*.ts` files in the `before` hook of your config file. You will need [`ts-node`](https://github.com/TypeStrong/ts-node) and [`tsconfig-paths`](https://github.com/dividab/tsconfig-paths) installed as `devDependencies`.
+Similar to Babel setup, you can register [TypeScript](http://www.typescriptlang.org) to compile your `*.ts` files in the `before` hook of your config file.
+
+You will need [`typescript`](https://github.com/microsoft/TypeScript), [`ts-node`](https://github.com/TypeStrong/ts-node) and [`tsconfig-paths`](https://github.com/dividab/tsconfig-paths) installed as `devDependencies`.
+
+```
+npm i typescript ts-node tsconfig-paths --save-dev
+```
 
 The minimum TypeScript version is 3.7.3.
 
@@ -64,12 +70,12 @@ And your `tsconfig.json` needs the following:
         "baseUrl": ".",
         "paths": {
             "*": [ "./*" ],
-            "src/*": ["./src/*"]
+            "test/*": ["./test/*"]
         },
         "types": ["node", "webdriverio"]
     },
     "include": [
-        "./src/**/*.ts"
+        "./test/**/*.ts"
     ]
 }
 ```
@@ -94,13 +100,15 @@ All you have to do is create a plain JS config file that registers TypeScript an
 
 ```javascript
 require('ts-node').register({ files: true })
-module.exports = require('./wdio.conf')
+module.exports = require('./wdio.conf.ts')
 ```
 
 And in your typed configuration file:
 
 ```typescript
-const config: WebdriverIO.Config = {
+import { Config } from 'webdriverio';
+
+const config: Config = {
     // Put your webdriverio configuration here
 }
 
@@ -123,12 +131,12 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
         "baseUrl": ".",
         "paths": {
             "*": [ "./*" ],
-            "src/*": ["./src/*"]
+            "test/*": ["./test/*"]
         },
         "types": ["node", "webdriverio", "@wdio/mocha-framework"]
     },
     "include": [
-        "./src/**/*.ts"
+        "./test/**/*.ts"
     ]
 }
 ```
@@ -139,12 +147,12 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
         "baseUrl": ".",
         "paths": {
             "*": [ "./*" ],
-            "src/*": ["./src/*"]
+            "test/*": ["./test/*"]
         },
         "types": ["node", "webdriverio", "@wdio/jasmine-framework"]
     },
     "include": [
-        "./src/**/*.ts"
+        "./test/**/*.ts"
     ]
 }
 ```
@@ -155,12 +163,12 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
         "baseUrl": ".",
         "paths": {
             "*": [ "./*" ],
-            "src/*": ["./src/*"]
+            "test/*": ["./test/*"]
         },
         "types": ["node", "webdriverio", "@wdio/cucumber-framework"]
     },
     "include": [
-        "./src/**/*.ts"
+        "./test/**/*.ts"
     ]
 }
 ```

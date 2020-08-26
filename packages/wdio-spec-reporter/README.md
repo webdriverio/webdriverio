@@ -12,7 +12,7 @@ The easiest way is to keep `@wdio/spec-reporter` as a devDependency in your `pac
 ```json
 {
   "devDependencies": {
-    "@wdio/spec-reporter": "^5.0.0"
+    "@wdio/spec-reporter": "^6.3.6"
   }
 }
 ```

@@ -3,7 +3,7 @@ import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 
 import { handler, builder } from './../../src/commands/config'
-import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles } from '../../src/utils'
+import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
 
 jest.mock('../../src/utils', () => ({
     addServiceDeps: jest.fn(),
@@ -11,7 +11,8 @@ jest.mock('../../src/utils', () => ({
     renderConfigurationFile: jest.fn(),
     hasFile: jest.fn().mockReturnValue(false),
     getAnswers: jest.fn().mockImplementation(jest.requireActual('../../src/utils').getAnswers),
-    generateTestFiles: jest.fn()
+    generateTestFiles: jest.fn(),
+    getPathForFileGeneration: jest.fn().mockImplementation(jest.requireActual('../../src/utils').getPathForFileGeneration),
 }))
 
 const errorLogSpy = jest.spyOn(console, 'error')
@@ -33,6 +34,7 @@ test('should create config file', async () => {
     expect(convertPackageHashToObject).toBeCalledTimes(4)
     expect(renderConfigurationFile).toBeCalledTimes(1)
     expect(generateTestFiles).toBeCalledTimes(0)
+    expect(getPathForFileGeneration).toBeCalledTimes(1)
     expect(errorLogSpy).toHaveBeenCalledTimes(0)
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: expect.any(Object),
@@ -84,7 +86,7 @@ test('it should install with yarn when flag is passed', async () => {
 
 test('should throw an error if something goes wrong', async () => {
     expect.assertions(1)
-    yarnInstall.mockReturnValue({ status: 1, stderr: 'uups' })
+    yarnInstall.mockReturnValueOnce({ status: 1, stderr: 'uups' })
 
     try {
         await handler({})

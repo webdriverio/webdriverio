@@ -29,7 +29,11 @@ const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.nam
  * @return {object}               puppeteer browser instance
  */
 async function launchChrome (capabilities) {
-    const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
+    if (!capabilities[VENDOR_PREFIX.chrome]) {
+        capabilities[VENDOR_PREFIX.chrome] = {}
+    }
+
+    const chromeOptions = capabilities[VENDOR_PREFIX.chrome]
     const mobileEmulation = chromeOptions.mobileEmulation || {}
     const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
@@ -75,7 +79,7 @@ async function launchChrome (capabilities) {
 
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
-        ignoreDefaultArgs,
+        ignoreDefaultFlags: true,
         chromeFlags
     })
 
@@ -121,6 +125,7 @@ function launchBrowser (capabilities, product) {
         product,
         executablePath,
         ignoreDefaultArgs,
+        headless: Boolean(capabilities[vendorCapKey].headless),
         defaultViewport: {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT

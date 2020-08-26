@@ -89,6 +89,9 @@
       "wdio-ng-apimock-service": {
         "title": "Ng-apimock Service"
       },
+      "wdio-novus-visual-regression-service": {
+        "title": "Novus Visual Regression Service Service"
+      },
       "wdio-reportportal-reporter": {
         "title": "Report Portal Reporter"
       },
@@ -173,6 +176,9 @@
       "api/browser/keys": {
         "title": "keys"
       },
+      "api/browser/mock": {
+        "title": "mock"
+      },
       "api/browser/newWindow": {
         "title": "newWindow"
       },
@@ -205,6 +211,9 @@
       },
       "api/browser/switchWindow": {
         "title": "switchWindow"
+      },
+      "api/browser/throttle": {
+        "title": "throttle"
       },
       "api/browser/touchAction": {
         "title": "touchAction"
@@ -350,6 +359,24 @@
       "api/expect": {
         "title": "Expect"
       },
+      "api/mock/abort": {
+        "title": "abort"
+      },
+      "api/mock/abortOnce": {
+        "title": "abortOnce"
+      },
+      "api/mock/clear": {
+        "title": "clear"
+      },
+      "api/mock/respond": {
+        "title": "respond"
+      },
+      "api/mock/respondOnce": {
+        "title": "respondOnce"
+      },
+      "api/mock/restore": {
+        "title": "restore"
+      },
       "assertion": {
         "title": "Assertion"
       },
@@ -419,8 +446,14 @@
       "gettingstarted": {
         "title": "Getting Started"
       },
+      "githubactions": {
+        "title": "Github Actions"
+      },
       "jenkins": {
         "title": "Jenkins Integration"
+      },
+      "mocksandspies": {
+        "title": "Mocks and Spies (Beta)"
       },
       "multiremote": {
         "title": "Multiremote"
@@ -488,6 +521,7 @@
       "Protocols": "Protocols",
       "browser": "browser",
       "element": "element",
+      "mock": "mock",
       "Flowcharts": "Flowcharts"
     }
   },

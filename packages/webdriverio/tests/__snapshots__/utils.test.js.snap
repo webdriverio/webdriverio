@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`utils updateCapabilities setting devtools port in Firefox should not overwrite if already set 1`] = `
+Object {
+  "capabilities": Object {
+    "browserName": "firefox",
+    "moz:firefoxOptions": Object {
+      "args": Array [
+        "foo",
+        "bar",
+        "-remote-debugging-port",
+        1234,
+        "barfoo",
+      ],
+    },
+  },
+}
+`;
+
+exports[`utils updateCapabilities setting devtools port in Firefox should set firefox options if there aren't any 1`] = `
+Object {
+  "capabilities": Object {
+    "browserName": "firefox",
+    "moz:firefoxOptions": Object {
+      "args": Array [
+        "-remote-debugging-port",
+        "9222",
+      ],
+    },
+  },
+}
+`;
+
+exports[`utils updateCapabilities setting devtools port in Firefox should set firefox options if there aren't any 2`] = `
+Object {
+  "capabilities": Object {
+    "browserName": "firefox",
+  },
+}
+`;
+
+exports[`utils updateCapabilities should do nothing if no browser specified 1`] = `
+Object {
+  "capabilities": Object {},
+}
+`;

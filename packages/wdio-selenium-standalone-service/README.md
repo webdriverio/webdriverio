@@ -14,7 +14,7 @@ The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependenc
 ```json
 {
     "devDependencies": {
-        "@wdio/selenium-standalone-service": "^5.0.0"
+        "@wdio/selenium-standalone-service": "^6.1.14"
     }
 }
 ```

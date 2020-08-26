@@ -11,4 +11,4 @@ about: If you have questions, please reach out in our Gitter support channel.
 For questions or help please see:
 
 - [WebdriverIO Gitter Support Channel](https://gitter.im/webdriverio/webdriverio)
-- [#webdriverio channel om SeleniumHQ Slack](https://seleniumhq.slack.com/join/shared_invite/enQtODAwOTUzOTM5OTEwLTZjZjgzN2ExOTBmZGE0NjkwYzA2Nzc0MjczMGYwYjdiNGQ5YjI0ZjdjYjFhMjVlMjFkZWJmNDYyMmU1OTYyM2Y)
+- [#webdriverio channel om SeleniumHQ Slack](https://seleniumhq.slack.com/join/shared_invite/zt-f7jwg1n7-RVw4v4sMA7Zjufira_~EVw#/)

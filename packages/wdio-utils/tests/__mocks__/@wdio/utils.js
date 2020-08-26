@@ -93,3 +93,4 @@ export const sessionEnvironmentDetector = sessionEnvDetector
 export const capabilitiesEnvironmentDetector = capabilitiesEnvDetector
 export const devtoolsEnvironmentDetector = devtoolsEnvDetector
 export const transformCommandLogResult = jest.fn().mockImplementation((data) => data)
+export const canAccess = jest.fn()

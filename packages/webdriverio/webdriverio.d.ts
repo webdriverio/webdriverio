@@ -40,6 +40,11 @@ declare namespace WebdriverIO {
     }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser { }
+
+    /**
+     * Error to be thrown when a severe error was encountered when a Service is being ran.
+     */
+    class SevereServiceError extends Error { }
 }
 
 declare var browser: WebdriverIO.BrowserObject;

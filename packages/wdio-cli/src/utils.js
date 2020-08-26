@@ -340,3 +340,37 @@ export async function getAnswers(yes) {
         ), {})
         : await inquirer.prompt(QUESTIONNAIRE)
 }
+
+export function getPathForFileGeneration(answers){
+
+    const destSpecRootPath = path.join(
+        process.cwd(),
+        path.dirname(answers.specs || '').replace(/\*\*$/, ''))
+
+    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
+
+    const destPageObjectRootPath = answers.usePageObjects
+        ?  path.join(
+            process.cwd(),
+            path.dirname(answers.pages || '').replace(/\*\*$/, ''))
+        : ''
+    let relativePath = (answers.generateTestFiles && answers.usePageObjects)
+        ? !(answers.framework.short === 'cucumber')
+            ? path.relative(destSpecRootPath, destPageObjectRootPath)
+            : path.relative(destStepRootPath, destPageObjectRootPath)
+        : ''
+
+    /**
+    * On Windows, path.relative can return backslashes that could be interpreted as espace sequences in strings
+    */
+    if (process.platform === 'win32') {
+        relativePath = relativePath.replace(/\\/g, '/')
+    }
+
+    return {
+        destSpecRootPath : destSpecRootPath,
+        destStepRootPath : destStepRootPath,
+        destPageObjectRootPath : destPageObjectRootPath,
+        relativePath : relativePath
+    }
+}

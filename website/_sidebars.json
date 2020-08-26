@@ -34,13 +34,15 @@
       "timeouts",
       "organizingsuites",
       "retry",
+      "mocksandspies",
       "debugging",
       "repl",
       "watcher",
       "jenkins",
       "runprogrammatically",
       "driverbinaries",
-      "flowchartsoverview"
+      "flowchartsoverview",
+      "githubactions"
     ]
   },
   "api": {

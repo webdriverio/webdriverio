@@ -1,7 +1,7 @@
 class CustomService {
-  onPrepare() {
-      // TODO: something before all workers launch
-  }
+    onPrepare() {
+        // TODO: something before all workers launch
+    }
 }
 
 const config: WebdriverIO.Config = {
@@ -71,5 +71,17 @@ const config: WebdriverIO.Config = {
             },
             log: { level: 'error' }
         }
-    }]
+    }, {
+        'selenoid:options': {
+            enableVNC: true,
+            enableVideo: true,
+            enableLog: true,
+            logName: 'test.log',
+            videoName: 'test.mp4'
+        }
+    }],
+
+    filesToWatch: [
+        '/foo/page-objects/**/*.page.js',
+    ],
 }
