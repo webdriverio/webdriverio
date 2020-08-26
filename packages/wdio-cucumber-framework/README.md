@@ -121,7 +121,9 @@ Default: `false`
 Only execute the features or scenarios with tags matching the expression. Note that untagged
 features will still spawn a Selenium session (see issue [webdriverio/webdriverio#1247](https://github.com/webdriverio/webdriverio/issues/1247)).
 Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
-If passing as a command-line argument (--cucumberOpts.tagExpression), compound expressions may need to be enclosed in three sets of double quotes if WebdriverIO is invoked using `npx` on Windows.
+If passing as a command-line argument, compound expressions may need to be enclosed in three sets of double quotes if WebdriverIO is invoked using `npx` on Windows.
+
+E.g.: `npx wdio wdio.config.js --cucumberOpts.tagExpression """@Smoke and not @Pending"""`
 
 Type: `String`<br>
 Default: ``
