@@ -172,15 +172,15 @@ class Launcher {
             /**
              * fail if no specs were found or specified
              */
-             if (Object.values(this.schedule).reduce((specCnt, schedule) => specCnt + schedule.specs.length, 0) === 0) {
-                    for (let s in this.configParser.getConfig().exclude) {
-                      for (let i = 0; i < this.configParser.getConfig().specs.length; i++) {
-                        if (this.configParser.getConfig().specs[i].includes(this.configParser.getConfig().exclude[s].substring(1))) {
-                          log.error(this.configParser.getConfig().specs[i] + " is excluded by configuration");
-                        }
-                      }
-                    }
-                   log.error('No specs found to run, exiting with failure')
+            if (Object.values(this.schedule).reduce((specCnt, schedule) => specCnt + schedule.specs.length, 0) === 0) {
+              for (let s in this.configParser.getConfig().exclude) {
+                for (let i = 0; i < this.configParser.getConfig().specs.length; i++) {
+                  if (this.configParser.getConfig().specs[i].includes(this.configParser.getConfig().exclude[s].substring(1))) {
+                    log.error(this.configParser.getConfig().specs[i] + ' is excluded by configuration')
+                  }
+                }
+              }
+              log.error('No specs found to run, exiting with failure')
                 return resolve(1)
             }
 
