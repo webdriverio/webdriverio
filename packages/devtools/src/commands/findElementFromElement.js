@@ -17,7 +17,7 @@ export default async function findElementFromElement ({ elementId, using, value 
         throw new Error(`selector strategy "${using}" is not yet supported`)
     }
 
-    const elementHandle = this.elementStore.get(elementId)
+    const elementHandle = await this.elementStore.get(elementId)
 
     if (!elementHandle) {
         throw getStaleElementError(elementId)

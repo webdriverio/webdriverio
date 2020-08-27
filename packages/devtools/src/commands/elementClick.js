@@ -19,7 +19,7 @@ const SELECT_SCRIPT = 'return (function select (elem) { elem.selected = true }).
 
 export default async function elementClick ({ elementId }) {
     const page = this.getPageHandle()
-    const elementHandle = this.elementStore.get(elementId)
+    const elementHandle = await this.elementStore.get(elementId)
 
     if (!elementHandle) {
         throw getStaleElementError(elementId)
