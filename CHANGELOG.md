@@ -17,6 +17,25 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.4.3 (2020-08-27)
+
+#### :nail_care: Polish
+* `wdio-devtools-service`
+  * [#5760](https://github.com/webdriverio/webdriverio/pull/5760)  Propagate CDP events to the browser event listener ([@L0tso](https://github.com/L0tso))
+
+#### :memo: Documentation
+* `wdio-cucumber-framework`
+  * [#5764](https://github.com/webdriverio/webdriverio/pull/5764) Update documentation for tagExpression usage ([@osmolyar](https://github.com/osmolyar))
+
+#### :house: Internal
+* [#5761](https://github.com/webdriverio/webdriverio/pull/5761) Add section on reporting and include OpenJS Foundation excalation path ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Bohdan Belenok ([@L0tso](https://github.com/L0tso))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+
+
 ## v6.4.2 (2020-08-25)
 
 #### :nail_care: Polish
