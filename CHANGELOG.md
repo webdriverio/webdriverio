@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.4.4 (2020-08-28)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5768](https://github.com/webdriverio/webdriverio/pull/5768) Invalidate stalled elements in ElementStore ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v6.4.3 (2020-08-27)
 
 #### :nail_care: Polish
