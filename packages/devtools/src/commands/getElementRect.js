@@ -10,8 +10,8 @@
 import command from '../scripts/getElementRect'
 import { getStaleElementError } from '../utils'
 
-export default function getElementRect ({ elementId }) {
-    const elementHandle = this.elementStore.get(elementId)
+export default async function getElementRect ({ elementId }) {
+    const elementHandle = await this.elementStore.get(elementId)
 
     if (!elementHandle) {
         throw getStaleElementError(elementId)

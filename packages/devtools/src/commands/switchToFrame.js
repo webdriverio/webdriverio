@@ -30,7 +30,7 @@ export default async function switchToFrame ({ id }) {
      * switch frame by element ID
      */
     if (typeof id[ELEMENT_KEY] === 'string') {
-        const elementHandle = this.elementStore.get(id[ELEMENT_KEY])
+        const elementHandle = await this.elementStore.get(id[ELEMENT_KEY])
 
         if (!elementHandle) {
             throw getStaleElementError(elementHandle)
