@@ -32,7 +32,7 @@ export default async function executeScript ({ script, args }) {
         script,
         SERIALIZE_PROPERTY,
         SERIALIZE_FLAG,
-        ...transformExecuteArgs.call(this, args)
+        ...(await transformExecuteArgs.call(this, args))
     )
 
     let executeTimeout

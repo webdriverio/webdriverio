@@ -1,13 +1,29 @@
 import ElementStore from '../src/elementstore'
 
-test('should keep a map of elements', () => {
+const elementHandleFactory = ({ isConnected = true } = {}) => ({
+    id: Math.random(),
+    async evaluate(cb) {
+        return cb({ isConnected })
+    }
+})
+
+test('should keep a map of elements', async () => {
     const store = new ElementStore()
-    store.set('foobar')
-    expect(store.get('ELEMENT-1')).toBe('foobar')
+    const elementHandle1 = elementHandleFactory()
+    store.set(elementHandle1)
+    expect(await store.get('ELEMENT-1')).toBe(elementHandle1)
 
     store.clear()
     expect(store.elementMap.size).toBe(0)
 
-    store.set('barfoo')
-    expect(store.get('ELEMENT-2')).toBe('barfoo')
+    const elementHandle2 = elementHandleFactory()
+    store.set(elementHandle2)
+    expect(await store.get('ELEMENT-2')).toBe(elementHandle2)
+})
+
+test('should not return element if it is not attached to the DOM', async () => {
+    const store = new ElementStore()
+    const elementHandle = elementHandleFactory({ isConnected: false })
+    store.set(elementHandle)
+    expect(await store.get('ELEMENT-3')).toBe(undefined)
 })

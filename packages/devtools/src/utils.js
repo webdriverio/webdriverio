@@ -162,10 +162,10 @@ export function sanitizeError (err) {
 /**
  * transform elements in argument list to Puppeteer element handles
  */
-export function transformExecuteArgs (args = []) {
-    return args.map((arg) => {
+export async function transformExecuteArgs (args = []) {
+    return Promise.all(args.map(async (arg) => {
         if (arg[ELEMENT_KEY]) {
-            const elementHandle = this.elementStore.get(arg[ELEMENT_KEY])
+            const elementHandle = await this.elementStore.get(arg[ELEMENT_KEY])
 
             if (!elementHandle) {
                 throw getStaleElementError(arg[ELEMENT_KEY])
@@ -175,7 +175,7 @@ export function transformExecuteArgs (args = []) {
         }
 
         return arg
-    })
+    }))
 }
 
 /**

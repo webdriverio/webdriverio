@@ -268,11 +268,11 @@ describe('sanitizeError', () => {
     })
 })
 
-test('transformExecuteArgs', () => {
+test('transformExecuteArgs', async () => {
     const scope = { elementStore: new Map() }
     scope.elementStore.set('foobar', 'barfoo')
 
-    expect(transformExecuteArgs.call(scope, [
+    expect(await transformExecuteArgs.call(scope, [
         'foo',
         { 'element-6066-11e4-a52e-4f735466cecf': 'foobar' },
         true,
@@ -280,16 +280,16 @@ test('transformExecuteArgs', () => {
     ])).toEqual(['foo', 'barfoo', true, 42])
 })
 
-test('transformExecuteArgs throws stale element if element is not in store', () => {
+test('transformExecuteArgs throws stale element if element is not in store', async () => {
     const scope = { elementStore: new Map() }
     scope.elementStore.set('foobar', 'barfoo')
 
-    expect(() => transformExecuteArgs.call(scope, [
+    expect(transformExecuteArgs.call(scope, [
         'foo',
         { 'element-6066-11e4-a52e-4f735466cecf': 'not-existing' },
         true,
         42
-    ])).toThrow()
+    ])).rejects.toThrow()
 })
 
 describe('transformExecuteResult', () => {

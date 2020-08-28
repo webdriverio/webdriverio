@@ -11,7 +11,7 @@ import command from '../scripts/getElementTagName'
 import { getStaleElementError } from '../utils'
 
 export default async function getElementTagName ({ elementId }) {
-    const elementHandle = this.elementStore.get(elementId)
+    const elementHandle = await this.elementStore.get(elementId)
 
     if (!elementHandle) {
         throw getStaleElementError(elementId)
