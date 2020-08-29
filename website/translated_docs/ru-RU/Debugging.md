@@ -1,6 +1,6 @@
 ---
 id: debugging
-title: Debugging
+title: Отладка
 ---
 
 Debugging is significantly more difficult when there are several processes spawning dozens of tests in multiple browsers.
