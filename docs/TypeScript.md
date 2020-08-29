@@ -169,7 +169,7 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 
 ```json
 {
-    "compilerOptions": { ... }
+    "compilerOptions": { ... },
     "include": [
         "./test/**/*.ts",
         "./src/**/*.ts"
