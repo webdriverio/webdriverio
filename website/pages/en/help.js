@@ -46,7 +46,12 @@ class Help extends React.Component {
                         <header className="postHeader">
                             <h1>Need help?</h1>
                         </header>
-                        <p>This project is maintained by a dedicated group of people.</p>
+                        <p>This project is maintained by a dedicated group of people. Some are available for 1:1 help. Reach out to them:</p>
+
+                        <ul>
+                            <li><a href="https://www.codementor.io/@kevinlamping">Kevin Lamping</a></li>
+                            <li><a href="https://github.com/webdriverio/webdriverio/blob/master/website/pages/en/help.js">Add your name to this list</a></li>
+                        </ul>
                         <GridBlock contents={supportLinks} layout="threeColumn" />
                     </div>
                 </Container>
