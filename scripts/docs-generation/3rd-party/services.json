@@ -67,13 +67,13 @@
   },
   {
     "packageName": "wdio-novus-visual-regression-service",
-    "title": "Novus Visual Regression Service",
+    "title": "Novus Visual Regression",
     "githubUrl": "https://github.com/Jnegrier/wdio-novus-visual-regression-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-novus-visual-regression-service"
   },
   {
     "packageName": "wdio-rerun-service",
-    "title": "Re-run Service",
+    "title": "Re-run",
     "githubUrl": "https://github.com/jwplayer/wdio-rerun-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-rerun-service"
   }
