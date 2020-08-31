@@ -5,7 +5,7 @@ const DEFAULT_PATH = '/'
 const LEGACY_PATH = '/wd/hub'
 
 const REGION_MAPPING = {
-    'us': '', // default endpoint
+    'us': 'us-west-1.', // default endpoint
     'eu': 'eu-central-1.',
     'eu-central-1': 'eu-central-1.',
     'us-east-1': 'us-east-1.'
