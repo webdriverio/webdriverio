@@ -1,23 +1,25 @@
 /**
  *
- * Drag an item to a destination element.
+ * Drag an item to a destination element or position.
  *
  * <example>
     :example.test.js
     it('should demonstrate the dragAndDrop command', () => {
         const elem = $('#someElem')
         const target = $('#someTarget')
+
+        // drag and drop to other element
         elem.dragAndDrop(target)
+
+        // drag and drop relative from current position
+        elem.dragAndDrop({ x: 100, y: 200 })
     })
  * </example>
  *
  * @alias element.dragAndDrop
- * @param {Element|DragAndDropCoordinate} target    destination selector
+ * @param {Element|DragAndDropCoordinate} target  destination element or object with x and y properties
  * @param {DragAndDropOptions=} options           dragAndDrop command options
  * @param {Number=}             options.duration  how long the drag should take place
- * @uses action/moveToObject, protocol/buttonDown, protocol/buttonUp, property/getLocation, protocol/touchDown, protocol/touchMove, protocol/touchUp
- * @type action
- *
  */
 
 import { getElementRect, getScrollPosition } from '../../utils'
