@@ -90,7 +90,7 @@
         "title": "Ng-apimock Service"
       },
       "wdio-novus-visual-regression-service": {
-        "title": "Novus Visual Regression Service Service"
+        "title": "Novus Visual Regression Service"
       },
       "wdio-reportportal-reporter": {
         "title": "Report Portal Reporter"
@@ -99,7 +99,7 @@
         "title": "Report Portal Service"
       },
       "wdio-rerun-service": {
-        "title": "Re-run Service Service"
+        "title": "Re-run Service"
       },
       "wdio-slack-service": {
         "title": "Slack Service"
