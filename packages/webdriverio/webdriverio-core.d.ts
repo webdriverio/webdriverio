@@ -627,7 +627,7 @@ declare namespace WebdriverIO {
         doubleClick(): Promise<void>;
 
         /**
-         * Drag an item to a destination element.
+         * Drag an item to a destination element or position.
          */
         dragAndDrop(
             target: Element | DragAndDropCoordinate,
