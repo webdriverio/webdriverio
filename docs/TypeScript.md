@@ -137,7 +137,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
     ]
 }
 ```
-<!--Cucumber -->
+<!--Cucumber-->
 ```json
 {
     "compilerOptions": {
@@ -204,7 +204,6 @@ declare namespace WebdriverIO {
 ## Tips and Hints
 
 ### tsconfig.json example
-It's still good to have an example
 
 ```json
 {
