@@ -17,6 +17,30 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.4.5 (2020-08-31)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#5769](https://github.com/webdriverio/webdriverio/pull/5769) Use proper Chrome version in headless mode ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-config`, `wdio-sauce-service`
+  * [#5772](https://github.com/webdriverio/webdriverio/pull/5772) Add new Sauce Labs Unified Platform endpoint ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* Other
+  * [#5773](https://github.com/webdriverio/webdriverio/pull/5773) Update typescript guide ([@mgrybyk](https://github.com/mgrybyk))
+  * [#5659](https://github.com/webdriverio/webdriverio/pull/5659) docs: Don't have types being linked to their own pages ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#5777](https://github.com/webdriverio/webdriverio/pull/5777) Minor updates to dragAndDrop command docs ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v6.4.4 (2020-08-28)
 
 #### :bug: Bug Fix
