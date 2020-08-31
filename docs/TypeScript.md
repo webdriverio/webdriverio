@@ -206,8 +206,6 @@ declare namespace WebdriverIO {
 ### tsconfig.json example
 It's still good to have an example
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Mocha + Sync Mode-->
 ```json
 {
   "compilerOptions": {
@@ -230,7 +228,6 @@ It's still good to have an example
   ]
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
 ### Compile & Lint
 
