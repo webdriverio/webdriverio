@@ -98,6 +98,9 @@
       "wdio-reportportal-service": {
         "title": "Report Portal Service"
       },
+      "wdio-rerun-service": {
+        "title": "Re-run Service Service"
+      },
       "wdio-slack-service": {
         "title": "Slack Service"
       },
@@ -169,6 +172,9 @@
       },
       "api/browser/getCookies": {
         "title": "getCookies"
+      },
+      "api/browser/getPuppeteer": {
+        "title": "getPuppeteer"
       },
       "api/browser/getWindowSize": {
         "title": "getWindowSize"
