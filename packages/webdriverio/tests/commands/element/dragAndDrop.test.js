@@ -133,7 +133,7 @@ describe('dragAndDrop', () => {
         const endTime = process.hrtime(startTime)
         const totalExecutionTime = (endTime[0] * TIME_FACTOR.NS_PER_SEC + endTime[1]) * TIME_FACTOR.MS_PER_SEC
 
-        expect(totalExecutionTime >= 100 && totalExecutionTime < 150).toBeTruthy()
+        expect(totalExecutionTime >= 100 && totalExecutionTime < 200).toBeTruthy()
 
     })
 
@@ -170,6 +170,6 @@ describe('dragAndDrop', () => {
         const endTime = process.hrtime(startTime)
         const totalExecutionTime = (endTime[0] * TIME_FACTOR.NS_PER_SEC + endTime[1]) * TIME_FACTOR.MS_PER_SEC
 
-        expect(totalExecutionTime >= 200 && totalExecutionTime < 250).toBeTruthy()
+        expect(totalExecutionTime >= 200 && totalExecutionTime < 300).toBeTruthy()
     })
 })
