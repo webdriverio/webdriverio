@@ -436,3 +436,8 @@ export const ERROR_REASON = [
     'ConnectionFailed', 'NameNotResolved', 'InternetDisconnected',
     'AddressUnreachable', 'BlockedByClient', 'BlockedByResponse'
 ]
+
+export const TIME_FACTOR = {
+    'NS_PER_SEC': '1e9',
+    'MS_PER_SEC': '1e-6'
+}
