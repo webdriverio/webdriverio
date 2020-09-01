@@ -69,7 +69,7 @@ export function getUniqueIdentifier (target, sourceLocation) {
         if (Array.isArray(target.examples)) {
             target.examples.forEach((example) => {
                 example.tableHeader.cells.forEach((header, idx) => {
-                    if (name.indexOf('<' + header.value + '>') === -1) {
+                    if (!name || name.indexOf('<' + header.value + '>') === -1) {
                         return
                     }
 
