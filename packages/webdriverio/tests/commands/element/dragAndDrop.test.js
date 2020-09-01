@@ -1,6 +1,5 @@
 import got from 'got'
 import { remote } from '../../../src'
-import { TIME_FACTOR } from '../../../src/constants'
 
 describe('dragAndDrop', () => {
     beforeEach(() => {
@@ -131,9 +130,9 @@ describe('dragAndDrop', () => {
         const startTime = process.hrtime()
         await elem.dragAndDrop(subElem, { duration: 100 })
         const endTime = process.hrtime(startTime)
-        const totalExecutionTime = (endTime[0] * TIME_FACTOR.NS_PER_SEC + endTime[1]) * TIME_FACTOR.MS_PER_SEC
+        const totalExecutionTime = (endTime[0] * '1e9' + endTime[1]) * '1e-6'
 
-        expect(totalExecutionTime >= 100 && totalExecutionTime < 200).toBeTruthy()
+        expect(totalExecutionTime >= 100 && totalExecutionTime < 400).toBeTruthy()
 
     })
 
@@ -168,8 +167,8 @@ describe('dragAndDrop', () => {
         const startTime = process.hrtime()
         await elem.dragAndDrop({ x: 123, y: 321 }, { duration: 200 })
         const endTime = process.hrtime(startTime)
-        const totalExecutionTime = (endTime[0] * TIME_FACTOR.NS_PER_SEC + endTime[1]) * TIME_FACTOR.MS_PER_SEC
+        const totalExecutionTime = (endTime[0] * '1e9' + endTime[1]) * '1e-6'
 
-        expect(totalExecutionTime >= 200 && totalExecutionTime < 300).toBeTruthy()
+        expect(totalExecutionTime >= 200 && totalExecutionTime < 500).toBeTruthy()
     })
 })

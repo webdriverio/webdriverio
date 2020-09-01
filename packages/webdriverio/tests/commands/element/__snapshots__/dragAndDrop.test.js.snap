@@ -19,7 +19,7 @@ Array [
         "type": "pause",
       },
       Object {
-        "duration": 0,
+        "duration": 10,
         "origin": "pointer",
         "type": "pointerMove",
         "x": 0,
@@ -58,7 +58,7 @@ Array [
         "type": "pause",
       },
       Object {
-        "duration": 0,
+        "duration": 10,
         "origin": "pointer",
         "type": "pointerMove",
         "x": 135,
@@ -97,7 +97,7 @@ Array [
         "type": "pause",
       },
       Object {
-        "duration": 0,
+        "duration": 10,
         "origin": "pointer",
         "type": "pointerMove",
         "x": 123,

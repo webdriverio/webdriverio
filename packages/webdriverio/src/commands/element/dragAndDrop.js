@@ -28,7 +28,7 @@ const ACTION_BUTTON = 0
 
 const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))
 
-export default async function dragAndDrop(target, { duration = 0 } = {}) {
+export default async function dragAndDrop(target, { duration = 10 } = {}) {
     /**
      * fail if
      */
