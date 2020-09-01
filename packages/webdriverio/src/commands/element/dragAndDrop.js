@@ -26,7 +26,9 @@ import { getElementRect, getScrollPosition } from '../../utils'
 
 const ACTION_BUTTON = 0
 
-export default async function dragAndDrop (target, { duration = 100 } = {}) {
+const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))
+
+export default async function dragAndDrop(target, { duration = 0 } = {}) {
     /**
      * fail if
      */
@@ -67,6 +69,7 @@ export default async function dragAndDrop (target, { duration = 100 } = {}) {
             await this.moveToElement(null, target.x, target.y)
         }
 
+        await sleep(duration)
         return this.buttonUp(ACTION_BUTTON)
     }
 

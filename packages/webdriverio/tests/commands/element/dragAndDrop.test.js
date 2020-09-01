@@ -116,6 +116,26 @@ describe('dragAndDrop', () => {
         expect(got.mock.calls[6][1].uri.pathname).toContain('/foobar-123/buttonup')
     })
 
+    it('should do a dragAndDrop with the given duration (no w3c)', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        const elem = await browser.$('#foo')
+        const subElem = await elem.$('#subfoo')
+        await elem.dragAndDrop(subElem, { duration: 100 })
+
+        expect(got.mock.calls[3][1].uri.pathname).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[3][1].json).toEqual({ element: 'some-elem-123' })
+        expect(got.mock.calls[4][1].uri.pathname).toContain('/foobar-123/buttondown')
+        expect(got.mock.calls[5][1].uri.pathname).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[5][1].json).toEqual({ element: 'some-sub-elem-321' })
+        expect(got.mock.calls[6][1].uri.pathname).toContain('/foobar-123/buttonup')
+    })
+
     it('should do a dragAndDrop (no w3c)', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -126,6 +146,25 @@ describe('dragAndDrop', () => {
 
         const elem = await browser.$('#foo')
         await elem.dragAndDrop({ x: 123, y: 321 })
+
+        expect(got.mock.calls[2][1].uri.pathname).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[2][1].json).toEqual({ element: 'some-elem-123' })
+        expect(got.mock.calls[3][1].uri.pathname).toContain('/foobar-123/buttondown')
+        expect(got.mock.calls[4][1].uri.pathname).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[4][1].json).toEqual({ element: null, xoffset: 123, yoffset: 321 })
+        expect(got.mock.calls[5][1].uri.pathname).toContain('/foobar-123/buttonup')
+    })
+
+    it('should do a dragAndDrop with the given co-ordinates and duration(no w3c)', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        const elem = await browser.$('#foo')
+        await elem.dragAndDrop({ x: 123, y: 321 }, { duration: 200 })
 
         expect(got.mock.calls[2][1].uri.pathname).toContain('/foobar-123/moveto')
         expect(got.mock.calls[2][1].json).toEqual({ element: 'some-elem-123' })
