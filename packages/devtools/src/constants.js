@@ -23,6 +23,7 @@ export const DEFAULT_FLAGS = [
     '--mute-audio',
     // Skip first run wizards
     '--no-first-run',
+    '--no-default-browser-check',
     // chromedriver flags
     '--disable-hang-monitor',
     '--disable-prompt-on-repost',
@@ -34,6 +35,7 @@ export const DEFAULT_FLAGS = [
     '--disable-dev-shm-usage',
     '--disable-ipc-flooding-protection',
     '--disable-renderer-backgrounding',
+    '--force-fieldtrials=*BackgroundTracing/default/',
     '--enable-features=NetworkService,NetworkServiceInProcess',
     /**
      * `site-per-process` affects `page.frames()`, see #4471
@@ -46,6 +48,12 @@ export const CHROME_NAMES = ['chrome', 'googlechrome', 'headlesschrome', 'google
 export const FIREFOX_NAMES = ['firefox', 'ff', 'mozilla', 'mozillafirefox', 'headless firefox', 'headlessfirefox']
 export const EDGE_NAMES = ['edge', 'msedge', 'microsoft-edge', 'microsoftedge']
 export const SUPPORTED_BROWSER = [...CHROME_NAMES, ...FIREFOX_NAMES, ...EDGE_NAMES]
+
+export const BROWSER_TYPE = {
+    chrome: 'chrome',
+    firefox: 'firefox',
+    edge: 'edge'
+}
 
 export const DEFAULTS = {
     capabilities: {
@@ -93,8 +101,26 @@ export const ERROR_MESSAGES = {
     }
 }
 
+export const BROWSER_ERROR_MESSAGES = {
+    firefoxNightly: `Only Nightly release channel is supported in Devtools/Puppeteer for Firefox. Refer to the following issue:
+        https://bugzilla.mozilla.org/show_bug.cgi?id=1606604
+
+        You can use the following link to download Firefox Nightly edition:
+        https://www.mozilla.org/en-US/firefox/channel/desktop/
+
+        Adding the following binary capability in Firefox Options is mandatory to run with Nightly edition:
+
+        'moz:firefoxOptions': {
+            binary: '/path/to/firefox'
+        }
+
+        Note: "Nightly" as a term should be present in the "Firefox Application Name" across all OS's in binary path mentioned above for this to work.`
+}
+
 export const VENDOR_PREFIX = {
     chrome: 'goog:chromeOptions',
     firefox: 'moz:firefoxOptions',
     edge: 'ms:edgeOptions'
 }
+
+export const CHANNEL_FIREFOX_NIGHTLY = 'nightly'

@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/applitools-service` as a devDependency in your
 ```json
 {
     "devDependencies": {
-        "@wdio/applitools-service": "^5.0.0"
+        "@wdio/applitools-service": "^6.3.6"
     }
 }
 ```
@@ -37,6 +37,7 @@ export.config = {
         ['applitools', {
             key: '<APPLITOOLS_KEY>', // can be passed here or via environment variable `APPLITOOLS_KEY`
             serverUrl: 'https://<org>eyesapi.applitools.com', // optional, can be passed here or via environment variable `APPLITOOLS_SERVER_URL`
+            appName: 'myApp',
             // options
             proxy: { // optional
                 url: 'http://corporateproxy.com:8080'

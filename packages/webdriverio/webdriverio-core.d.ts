@@ -7,6 +7,11 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
 
+// See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/24419
+interface Element { }
+interface Node { }
+interface NodeListOf<TNode = Node> { }
+
 declare namespace WebdriverIO {
     type LocationParam = 'x' | 'y';
 
@@ -88,6 +93,10 @@ declare namespace WebdriverIO {
          * Exclude specs from test execution.
          */
         exclude?: string[];
+        /**
+         * Files to watch when running `wdio` with the `--watch` flag.
+         */
+        filesToWatch?: string[],
         /**
          * An object describing various of suites, which you can then specify
          * with the --suite option on the wdio CLI.
@@ -435,6 +444,89 @@ declare namespace WebdriverIO {
         y: number
     }
 
+    /**
+     * HTTP request data. (copied from the puppeteer-core package as there is currently
+     * no way to access these types otherwise)
+     */
+    type ResourcePriority = 'VeryLow' | 'Low' | 'Medium' | 'High' | 'VeryHigh';
+    type MixedContentType = 'blockable' | 'optionally-blockable' | 'none';
+    type ReferrerPolicy = 'unsafe-url' | 'no-referrer-when-downgrade' | 'no-referrer' | 'origin' | 'origin-when-cross-origin' | 'same-origin' | 'strict-origin' | 'strict-origin-when-cross-origin';
+    interface Request {
+        /**
+         * Request URL (without fragment).
+         */
+        url: string;
+        /**
+         * Fragment of the requested URL starting with hash, if present.
+         */
+        urlFragment?: string;
+        /**
+         * HTTP request method.
+         */
+        method: string;
+        /**
+         * HTTP request headers.
+         */
+        headers: Record<string, string>;
+        /**
+         * HTTP POST request data.
+         */
+        postData?: string;
+        /**
+         * True when the request has POST data. Note that postData might still be omitted when this flag is true when the data is too long.
+         */
+        hasPostData?: boolean;
+        /**
+         * The mixed content type of the request.
+         */
+        mixedContentType?: MixedContentType;
+        /**
+         * Priority of the resource request at the time request is sent.
+         */
+        initialPriority: ResourcePriority;
+        /**
+         * The referrer policy of the request, as defined in https://www.w3.org/TR/referrer-policy/
+         */
+        referrerPolicy: ReferrerPolicy;
+        /**
+         * Whether is loaded via link preload.
+         */
+        isLinkPreload?: boolean;
+    }
+
+    interface Matches extends Request {
+        /**
+         * body response of actual resource
+         */
+        body: any
+    }
+
+    type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
+    type CDPSession = Partial<import('puppeteer').CDPSession>;
+    type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
+    type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
+
+    type MockResponseParams = {
+        statusCode?: number,
+        headers?: Record<string, string>
+    }
+
+    type MockFilterOptions = {
+        method?: string,
+        headers?: Record<string, string>
+    }
+
+    type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
+
+    type ThrottlePreset = 'offline' | 'GPRS' | 'Regular2G' | 'Good2G' | 'Regular3G' | 'Good3G' | 'Regular4G' | 'DSL' | 'WiFi' | 'online'
+    interface CustomThrottle {
+        offline: boolean,
+        downloadThroughput: number,
+        uploadThroughput: number,
+        latency: number
+    }
+    type ThrottleOptions = ThrottlePreset | CustomThrottle
+
     interface Element {
         selector: string;
         elementId: string;
@@ -535,7 +627,7 @@ declare namespace WebdriverIO {
         doubleClick(): Promise<void>;
 
         /**
-         * Drag an item to a destination element.
+         * Drag an item to a destination element or position.
          */
         dragAndDrop(
             target: Element | DragAndDropCoordinate,
@@ -813,6 +905,54 @@ declare namespace WebdriverIO {
         ): Promise<boolean>;
     }
 
+    interface Mock {
+        /**
+         * list of requests made by the browser to that mock
+         */
+        calls: Matches[];
+
+        
+        /**
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         */
+        abort(
+            errorCode: ErrorCode
+        ): Promise<void>;
+
+        /**
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         */
+        abortOnce(
+            errorCode: ErrorCode
+        ): Promise<void>;
+
+        /**
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         */
+        clear(): Promise<void>;
+
+        /**
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         */
+        respond(
+            overwrites: MockOverwrite,
+            params?: MockResponseParams
+        ): Promise<void>;
+
+        /**
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         */
+        respondOnce(
+            overwrites: MockOverwrite,
+            params?: MockResponseParams
+        ): Promise<void>;
+
+        /**
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         */
+        restore(): Promise<void>;
+    }
+
     interface ElementArray extends Array<Element> {
         selector: string | Function;
         parent: Element | WebdriverIO.BrowserObject;
@@ -920,6 +1060,15 @@ declare namespace WebdriverIO {
         ): Promise<WebDriver.Cookie[]>;
 
         /**
+         * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
+         * to run commands with Puppeteer. Note that all Puppeteer commands are
+         * asynchronous by default so in order to interchange between sync and async
+         * execution make sure to wrap your Puppeteer calls within a `browser.call`
+         * commands as shown in the example.
+         */
+        getPuppeteer(): Promise<PuppeteerBrowser>;
+
+        /**
          * Returns browser window size (and position for drivers with W3C support).
          */
         getWindowSize(): Promise<WebDriver.RectReturn>;
@@ -933,6 +1082,14 @@ declare namespace WebdriverIO {
         keys(
             value: string | string[]
         ): Promise<void>;
+
+        /**
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         */
+        mock(
+            url: string,
+            filterOptions?: MockFilterOptions
+        ): Promise<Mock>;
 
         /**
          * Open new window in browser. This command is the equivalent function to `window.open()`. This command does not
@@ -1030,6 +1187,15 @@ declare namespace WebdriverIO {
         ): Promise<void>;
 
         /**
+         * Throttle the network capabilities of the browser. This can help to
+         * emulate certain scenarios where a user loses their internet connection
+         * and your app needs to address that.
+         */
+        throttle(
+            params: ThrottleOptions
+        ): Promise<void>;
+
+        /**
          * The Touch Action API provides the basis of all gestures that can be automated in Appium.
          * It is currently only available to native apps and can not be used to interact with webapps.
          * At its core is the ability to chain together _ad hoc_ individual actions, which will then be
@@ -1041,7 +1207,7 @@ declare namespace WebdriverIO {
 
         /**
          * Uploads a file to the Selenium Standalone server or other browser driver
-         * (e.g. Chromedriver) by using the [`file`](/api/protocol/file.html) command.
+         * (e.g. Chromedriver) by using the [`file`](docs/api/selenium.html#file) command.
          * _Note:_ that this command is only supported if you use a Selenium Hub or
          * Chromedriver directly.
          */

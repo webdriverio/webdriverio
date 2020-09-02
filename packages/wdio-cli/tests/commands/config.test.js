@@ -3,21 +3,25 @@ import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 
 import { handler, builder } from './../../src/commands/config'
-import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile } from '../../src/utils'
+import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
 
 jest.mock('../../src/utils', () => ({
     addServiceDeps: jest.fn(),
     convertPackageHashToObject: jest.fn().mockReturnValue('foobar'),
     renderConfigurationFile: jest.fn(),
-    hasFile: jest.fn().mockReturnValue(false)
+    hasFile: jest.fn().mockReturnValue(false),
+    getAnswers: jest.fn().mockImplementation(jest.requireActual('../../src/utils').getAnswers),
+    generateTestFiles: jest.fn(),
+    getPathForFileGeneration: jest.fn().mockImplementation(jest.requireActual('../../src/utils').getPathForFileGeneration),
 }))
 
-let errorLogSpy, consoleLogSpy
-
+const errorLogSpy = jest.spyOn(console, 'error')
+const consoleLogSpy = jest.spyOn(console, 'log')
 beforeEach(() => {
     yarnInstall.mockClear()
-    errorLogSpy = jest.spyOn(console, 'error')
-    consoleLogSpy = jest.spyOn(console, 'log')
+    yarnInstall.mockReturnValue({ status: 0 })
+    errorLogSpy.mockClear()
+    consoleLogSpy.mockClear()
 })
 
 afterEach(() => {
@@ -29,6 +33,8 @@ test('should create config file', async () => {
     expect(addServiceDeps).toBeCalledTimes(1)
     expect(convertPackageHashToObject).toBeCalledTimes(4)
     expect(renderConfigurationFile).toBeCalledTimes(1)
+    expect(generateTestFiles).toBeCalledTimes(0)
+    expect(getPathForFileGeneration).toBeCalledTimes(1)
     expect(errorLogSpy).toHaveBeenCalledTimes(0)
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: expect.any(Object),
@@ -45,7 +51,7 @@ test('it should properly build command', () => {
 })
 
 test('should log error if creating config file fails', async () => {
-    renderConfigurationFile.mockReturnValue(Promise.reject(new Error('boom!')))
+    renderConfigurationFile.mockReturnValueOnce(Promise.reject(new Error('boom!')))
     await handler({})
     expect(errorLogSpy).toHaveBeenCalledTimes(1)
 })
@@ -55,12 +61,14 @@ test('installs @wdio/sync if user requests to run in sync mode', async () => {
         executionMode: 'sync',
         runner: '@wdio/local-runner--$local',
         framework: '@wdio/mocha-framework$--$mocha',
+        generateTestFiles: true,
         reporters: [],
         services: []
     }))
     await handler({})
+    expect(generateTestFiles).toBeCalledTimes(1)
     expect(yarnInstall).toHaveBeenCalledWith({
-        deps: [undefined, undefined, '@wdio/sync'],
+        deps: ['@wdio/local-runner', undefined, '@wdio/sync'],
         dev: true,
         respectNpm5: true
     })
@@ -78,7 +86,7 @@ test('it should install with yarn when flag is passed', async () => {
 
 test('should throw an error if something goes wrong', async () => {
     expect.assertions(1)
-    yarnInstall.mockReturnValue({ status: 1, stderr: 'uups' })
+    yarnInstall.mockReturnValueOnce({ status: 1, stderr: 'uups' })
 
     try {
         await handler({})
@@ -89,7 +97,7 @@ test('should throw an error if something goes wrong', async () => {
     }
 })
 
-test.only('prints TypeScript setup message', async () => {
+test('prints TypeScript setup message', async () => {
     convertPackageHashToObject.mockImplementation((input) => input)
     inquirer.prompt.mockReturnValue(Promise.resolve({
         executionMode: 'sync',
@@ -100,6 +108,7 @@ test.only('prints TypeScript setup message', async () => {
             { package: '@wdio/crossbrowsertesting-service', short: 'crossbrowsertesting' },
             { package: 'wdio-lambdatest-service', short: 'lambdatest' }
         ],
+        generateTestFiles: false,
         isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
     }))
     await handler({})

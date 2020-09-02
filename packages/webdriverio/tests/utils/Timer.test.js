@@ -57,6 +57,20 @@ describe('timer', () => {
             await triggerDelay()
             expect(await timer).toBe('foobar')
         })
+
+        it('should wrap fn into fibers', async () => {
+            global.browser = {}
+            setWdioSyncSupport(true)
+            runFnInFiberContext.mockReturnValueOnce(() => 'called')
+            let timer = new Timer(20, 30, () => 'foobar')
+            await triggerDelay()
+            expect(await timer).toBe('called')
+        })
+
+        afterAll(() => {
+            setWdioSyncSupport(false)
+            delete global.browser
+        })
     })
 
     it('should execute condition at least once', async () => {

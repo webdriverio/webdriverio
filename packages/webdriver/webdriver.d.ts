@@ -183,6 +183,29 @@ declare namespace WebDriver {
         }
     }
 
+    interface SelenoidOptions {
+        enableVNC?: boolean,
+        screenResolution?: string,
+        enableVideo?: boolean,
+        videoName?: string,
+        videoScreenSize?: string,
+        videoFrameRate?: number,
+        videoCodec?: string,
+        enableLog?: boolean,
+        logName?: string,
+        name?: string,
+        sessionTimeout?: string,
+        timeZone?: string,
+        env?: string[],
+        applicationContainers?: string[],
+        hostsEntries?: string[],
+        dnsServers?: string[],
+        additionalNetworks?: string[],
+        labels?: Map<string, string>,
+        skin?: string,
+        s3KeyPattern?: string
+    }
+
     interface Capabilities {
         /**
          * Identifies the user agent.
@@ -350,6 +373,9 @@ declare namespace WebDriver {
         'tb:options'?: {
             [name: string]: any;
         };
+
+        // Selenoid specific
+        'selenoid:options'?: SelenoidOptions,
 
         // Appium General Capabilities
         automationName?: string;
@@ -589,7 +615,7 @@ declare namespace WebDriver {
 
     // appium.json
     interface StringsReturn {
-        [key:string]: string
+        [key: string]: string
     }
 
     interface SettingsReturn extends ProtocolCommandResponse {
@@ -737,7 +763,7 @@ declare namespace WebDriver {
          * Create a new top-level browsing context.
          * https://w3c.github.io/webdriver/#new-window
          */
-        createWindow(type: string): WindowHandle;
+        createWindow(type: 'tab' | 'window'): WindowHandle;
 
         /**
          * [webdriver]
@@ -2424,6 +2450,34 @@ declare namespace WebDriver {
          * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
          */
         jankinessCheck(): ProtocolCommandResponse;
+
+        /**
+         * [saucelabs]
+         * Mocks a network resource.
+         * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
+         */
+        mockRequest(url: string, filterOptions?: object): ProtocolCommandResponse;
+
+        /**
+         * [saucelabs]
+         * Receive request information about requests that match the mocked resource.
+         * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
+         */
+        getMockCalls(mockId: string): ProtocolCommandResponse;
+
+        /**
+         * [saucelabs]
+         * Clear list of mock calls.
+         * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
+         */
+        clearMockCalls(mockId: string, restore: boolean): void;
+
+        /**
+         * [saucelabs]
+         * Respond if mock matches a specific resource.
+         * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
+         */
+        respondMock(mockId: string, payload: object): void;
     }
 
     // selenium types

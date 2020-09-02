@@ -1,6 +1,6 @@
 describe('multiremote example', () => {
     it('should open chat application', () => {
-        browser.url('https://socket-io-chat.now.sh/')
+        browser.url('https://socketio-chat-h9jt.herokuapp.com/')
     })
 
     it('should login the browser', () => {

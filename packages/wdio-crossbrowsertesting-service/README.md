@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/crossbrowsertesting-service` as a devDependenc
 ```json
 {
     "devDependencies": {
-        "@wdio/crossbrowsertesting-service": "^5.0.0"
+        "@wdio/crossbrowsertesting-service": "^6.1.14"
     }
 }
 ```

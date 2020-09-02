@@ -103,7 +103,7 @@ export default class DevToolsDriver {
                 throw sanitizeError(err)
             }
 
-            this.emit('result', { command, params, retries, result })
+            this.emit('result', { command, params, retries, result: { value: result } })
             if (typeof result !== 'undefined') {
                 const isScreenshot = (
                     command.toLowerCase().includes('screenshot') &&

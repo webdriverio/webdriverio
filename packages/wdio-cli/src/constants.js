@@ -19,7 +19,7 @@ WDIO Configuration Helper
 export const CONFIG_HELPER_SUCCESS_MESSAGE = `
 Configuration file was created successfully!
 To run your tests, execute:
-$ wdio run wdio.conf.js
+$ npx wdio run wdio.conf.js
 `
 
 export const ANDROID_CONFIG = {
@@ -103,7 +103,9 @@ export const SUPPORTED_PACKAGES = {
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
-        { name: 'visual-regression-testing', value: 'wdio-image-comparison-service$--$visual-regression-testing' }
+        { name: 'visual-regression-testing', value: 'wdio-image-comparison-service$--$visual-regression-testing' },
+        { name: 'novus-visual-regression', value: 'wdio-novus-visual-regression-service$--$novus-visual-regression' },
+        { name: 'rerun', value: 'wdio-rerun-service$--$rerun' }
     ]
 }
 
@@ -166,6 +168,24 @@ export const QUESTIONNAIRE = [{
     when: /* istanbul ignore next */ (answers) => {
         return answers.backend === 'In the cloud using Experitest' && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
     }
+}, {
+    type: 'input',
+    name: 'env_user',
+    message: 'Environment variable for username',
+    default: 'LT_USERNAME',
+    when: /* istanbul ignore next */ (answers) => (
+        answers.backend.indexOf('LambdaTest') > -1 &&
+        answers.hostname.indexOf('lambdatest.com') > -1
+    )
+}, {
+    type: 'input',
+    name: 'env_key',
+    message: 'Environment variable for access key',
+    default: 'LT_ACCESS_KEY',
+    when: /* istanbul ignore next */ (answers) => (
+        answers.backend.indexOf('LambdaTest') > -1 &&
+        answers.hostname.indexOf('lambdatest.com') > -1
+    )
 }, {
     type: 'input',
     name: 'env_user',
@@ -252,8 +272,29 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'stepDefinitions',
     message: 'Where are your step definitions located?',
-    default: './features/step-definitions',
+    default: './features/step-definitions/steps.js',
     when: /* istanbul ignore next */ (answers) => answers.framework.includes('cucumber')
+}, {
+    type: 'confirm',
+    name: 'generateTestFiles',
+    message: 'Do you want WebdriverIO to autogenerate some test files?',
+    default: true
+}, {
+    type: 'confirm',
+    name: 'usePageObjects',
+    message: 'Do you want to use page objects (https://martinfowler.com/bliki/PageObject.html)?',
+    default: true,
+    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles
+}, {
+    type: 'input',
+    name: 'pages',
+    message: 'Where are your page objects located?',
+    default: /* istanbul ignore next */ (answers) => (
+        answers.framework.match(/(mocha|jasmine)/)
+            ? './test/pageobjects/**/*.js'
+            : './features/pageobjects/**/*.js'
+    ),
+    when: /* istanbul ignore next */ (answers) => answers.generateTestFiles && answers.usePageObjects
 }, {
     type: 'list',
     name: 'isUsingCompiler',

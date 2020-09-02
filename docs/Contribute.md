@@ -57,3 +57,9 @@ We already provide a template for you to fill out. There are not many rules to f
 Like in many Open Source projects we ask you to sign a __CLA__ which is a Contributor License Agreement that ensures that all contributions to the project are licensed under the project's respective open source license, which is MIT. It regulates the legal implications of you providing us (as the OpenJS Foundation) code changes.
 
 The WebdriverIO maintainer will review your pull request as soon as possible. They will then either approve and merge your changes, request modifications or close with an explanation.
+
+## Workshop
+
+As part of the [OpenJS World 2020](https://events.linuxfoundation.org/openjs-world/) [Collaborator Summit](https://openjscs2020.sched.com/event/cf2J/contributing-to-webdriverio-christian-bromann) the WebdriverIO team hosted a workshop on "Contributing to WebdriverIO" that can help you get familiar with the code base and the project. Have a watch:
+
+<iframe width="800" height="600" src="https://www.youtube.com/embed/QaA5C1Y4BH0" frameborder="0" allowfullscreen></iframe>

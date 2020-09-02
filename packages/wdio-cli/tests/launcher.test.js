@@ -420,6 +420,7 @@ describe('launcher', () => {
     describe('startInstance', () => {
         beforeEach(() => {
             launcher.runner.run = jest.fn().mockReturnValue({ on: () => {} })
+            launcher.launcher = []
             launcher.interface.emit = jest.fn()
         })
 
@@ -450,11 +451,7 @@ describe('launcher', () => {
                 caps,
                 ['/foo.test.js'],
                 { hostname: '127.0.0.2' },
-                [
-                    // this comes from the way we call Jest test
-                    '--max-old-space-size=8192',
-                    '--foo', 'bar'
-                ]
+                expect.arrayContaining(['--foo', 'bar'])
             )
         })
     })

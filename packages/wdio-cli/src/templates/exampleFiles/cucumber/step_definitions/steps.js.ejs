@@ -1,0 +1,57 @@
+<%- isUsingTypeScript || isUsingBabel
+    ? "import { Given, When, Then } from 'cucumber';"
+    : "const { Given, When, Then } = require('cucumber');" %>
+<%
+/**
+ * step definition without page objects
+ */
+if (usePageObjects) { %>
+<%- isUsingTypeScript || isUsingBabel
+    ? `import LoginPage from '${relativePath}/login.page';`
+    : `const LoginPage = require('${relativePath}/login.page');` %>
+<%- isUsingTypeScript || isUsingBabel
+    ? `import SecurePage from '${relativePath}/secure.page';`
+    : `const SecurePage = require('${relativePath}/secure.page');` %>
+
+const pages = {
+    login: LoginPage
+}
+
+Given(/^I am on the (\w+) page$/, <%= _async %>(page) => {
+    <%= _await %>pages[page].open()
+});
+
+When(/^I login with (\w+) and (.+)$/, <%= _async %>(username, password) => {
+    <%= _await %>LoginPage.login(username, password)
+});
+
+Then(/^I should see a flash message saying (.*)$/, <%= _async %>(message) => {
+    <%= _await %>expect(SecurePage.flashAlert).toBeExisting();
+    <%= _await %>expect(SecurePage.flashAlert).toHaveTextContaining(message);
+});
+<% } else {
+
+/**
+ * step definition with page objects
+ */
+%>
+Given(/^I am on the (\w+) page$/, <%= _async %>(page) => {
+    <%= _await %>browser.url(`https://the-internet.herokuapp.com/${page}`);
+});
+
+When(/^I login with (\w+) and (.+)$/, <%= _async %>(username, password) => {
+    <% if (isSync) {
+    %>$('#username').setValue(username);
+    $('#password').setValue(password);
+    $('button[type="submit"]').click(); <% } else {
+    %>await (await $('#username')).setValue(username);
+    await (await $('#password')).setValue(password);
+    await (await $('button[type="submit"]')).click();<%
+    } %>
+});
+
+Then(/^I should see a flash message saying (.*)$/, <%= _async %>(message) => {
+    <%= _await %>expect($('#flash')).toBeExisting();
+    <%= _await %>expect($('#flash')).toHaveTextContaining(message);
+});
+<% } %>

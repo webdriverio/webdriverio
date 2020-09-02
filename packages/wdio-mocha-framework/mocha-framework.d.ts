@@ -97,4 +97,8 @@ interface MochaOpts {
      * Timeout threshold value.
      */
     timeout?: number | string;
+    /**
+     * Set test UI to one of the built-in test interfaces.
+     */
+    ui?: 'bdd' | 'tdd' | 'qunit' | 'exports';
 }

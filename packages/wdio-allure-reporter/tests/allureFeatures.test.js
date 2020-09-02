@@ -333,6 +333,13 @@ describe('reporter runtime implementation', () => {
             expect(addParameter).toHaveBeenCalledWith('argument', 'browser', 'firefox-1.2.3')
         })
 
+        it('should correctly set proper browser version for chrome headless in devtools', () => {
+            reporter.onRunnerStart({ config: { }, capabilities: { browserName: 'Chrome Headless', browserVersion: '85.0.4183.84' } })
+            reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
+            expect(addParameter).toHaveBeenCalledTimes(1)
+            expect(addParameter).toHaveBeenCalledWith('argument', 'browser', 'Chrome Headless-85.0.4183.84')
+        })
+
         it('should correctly add argument for appium', () => {
             reporter.onRunnerStart({ config: {}, capabilities: { deviceName: 'Android Emulator', platformVersion: '8.0' } })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
@@ -355,6 +362,8 @@ describe('auxiliary methods', () => {
         expect(reporter.isScreenshotCommand({ endpoint: '/session/id/screenshot' })).toEqual(true)
         expect(reporter.isScreenshotCommand({ endpoint: '/wdu/hub/session/id/screenshot' })).toEqual(true)
         expect(reporter.isScreenshotCommand({ endpoint: '/session/id/click' })).toEqual(false)
+        expect(reporter.isScreenshotCommand({ command: 'takeScreenshot' })).toEqual(true)
+        expect(reporter.isScreenshotCommand({ command: 'elementClick' })).toEqual(false)
     })
 
     it('dumpJSON', () => {

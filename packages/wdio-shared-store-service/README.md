@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/shared-store-service` as a devDependency in yo
 ```json
 {
     "devDependencies": {
-        "@wdio/shared-store-service": "^5.0.0"
+        "@wdio/shared-store-service": "^6.1.4"
     }
 }
 ```

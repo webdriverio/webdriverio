@@ -1,3 +1,13 @@
+/**
+ * The Switch To Frame command is used to select the current top-level browsing context
+ * or a child browsing context of the current browsing context to use as the current
+ * browsing context for subsequent commands.
+ *
+ * @alias browser.switchToFrame
+ * @see https://w3c.github.io/webdriver/#dfn-switch-to-frame
+ * @param {string|object|null} id  one of three possible types: null: this represents the top-level browsing context (i.e., not an iframe), a Number, representing the index of the window object corresponding to a frame, an Element object received using `findElement`.
+ */
+
 import { ELEMENT_KEY } from '../constants'
 import { getStaleElementError } from '../utils'
 
@@ -20,7 +30,7 @@ export default async function switchToFrame ({ id }) {
      * switch frame by element ID
      */
     if (typeof id[ELEMENT_KEY] === 'string') {
-        const elementHandle = this.elementStore.get(id[ELEMENT_KEY])
+        const elementHandle = await this.elementStore.get(id[ELEMENT_KEY])
 
         if (!elementHandle) {
             throw getStaleElementError(elementHandle)

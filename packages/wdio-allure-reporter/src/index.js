@@ -113,7 +113,7 @@ class AllureReporter extends WDIOReporter {
             const { browserName, deviceName } = this.capabilities
             const targetName = browserName || deviceName || cid
             const browserstackVersion = this.capabilities.os_version || this.capabilities.osVersion
-            const version = browserstackVersion || this.capabilities.version || this.capabilities.platformVersion || ''
+            const version = browserstackVersion || this.capabilities.browserVersion || this.capabilities.version || this.capabilities.platformVersion || ''
             const paramName = deviceName ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
             currentTest.addParameter('argument', paramName, paramValue)
@@ -191,10 +191,14 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
-        this.allure.startStep(`${command.method} ${command.endpoint}`)
+        this.allure.startStep(command.method
+            ? `${command.method} ${command.endpoint}`
+            : command.command
+        )
 
-        if (!isEmpty(command.body)) {
-            this.dumpJSON('Request', command.body)
+        const payload = command.body || command.params
+        if (!isEmpty(payload)) {
+            this.dumpJSON('Request', payload)
         }
     }
 
@@ -415,7 +419,12 @@ class AllureReporter extends WDIOReporter {
 
     isScreenshotCommand(command) {
         const isScrenshotEndpoint = /\/session\/[^/]*\/screenshot/
-        return isScrenshotEndpoint.test(command.endpoint)
+        return (
+            // WebDriver protocol
+            isScrenshotEndpoint.test(command.endpoint) ||
+            // DevTools protocol
+            command.command === 'takeScreenshot'
+        )
     }
 
     dumpJSON(name, json) {

@@ -104,10 +104,45 @@ The results can be consumed by any of the [reporting tools](https://docs.qameta.
 ### Command-line
 
 Install the [Allure command-line tool](https://www.npmjs.com/package/allure-commandline), and process the results directory:
-```bash
+
+```sh
 allure generate [allure_output_dir] && allure open
 ```
+
 This will generate a report (by default in `./allure-report`), and open it in your browser.
+
+### Autogenerate Report
+
+You can also autogenerate the report by using the Allure command line tool programatically. To do so install the package in your project by:
+
+```sh
+$ npm i allure-commandline
+```
+
+Then add or extend your `onComplete` hook or create a [custom service](/docs/customservices.html) for this:
+
+```js
+    onComplete: function() {
+        const reportError = new Error('Could not generate Allure report')
+        const generation = allure(['generate', 'allure-results', '--clean'])
+        return new Promise((resolve, reject) => {
+            const generationTimeout = setTimeout(
+                () => reject(reportError),
+                5000)
+
+            generation.on('exit', function(exitCode) {
+                clearTimeout(generationTimeout)
+
+                if (exitCode !== 0) {
+                    return reject(reportError)
+                }
+
+                console.log('Allure report successfully generated')
+                resolve()
+            })
+        })
+    }
+```
 
 ### Jenkins
 
@@ -118,11 +153,11 @@ Install and configure the [Allure Jenkins plugin](https://docs.qameta.io/allure#
 Screenshots can be attached to the report by using the `takeScreenshot` function from WebDriverIO in afterStep hook.
 First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook
 ```js
-afterTest: function (test, context, { error, result, duration, passed, retries }) {
-    if (error !== undefined) {
-      browser.takeScreenshot();
-    }
+afterStep: function (test, context, { error, result, duration, passed, retries }) {
+  if (error) {
+    browser.takeScreenshot();
   }
+}
 ```
 
 As shown in the example above, when this function is called, a screenshot image will be attached to the allure report.

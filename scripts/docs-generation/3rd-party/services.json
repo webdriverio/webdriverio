@@ -64,5 +64,17 @@
     "title": "Ng-apimock",
     "githubUrl": "https://github.com/ng-apimock/webdriverio-plugin",
     "npmUrl": "https://www.npmjs.com/package/wdio-ng-apimock-service"
+  },
+  {
+    "packageName": "wdio-novus-visual-regression-service",
+    "title": "Novus Visual Regression",
+    "githubUrl": "https://github.com/Jnegrier/wdio-novus-visual-regression-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-novus-visual-regression-service"
+  },
+  {
+    "packageName": "wdio-rerun-service",
+    "title": "Re-run",
+    "githubUrl": "https://github.com/jwplayer/wdio-rerun-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-rerun-service"
   }
 ]

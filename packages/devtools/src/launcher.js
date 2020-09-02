@@ -1,18 +1,27 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
-import { devicesMap } from 'puppeteer-core/DeviceDescriptors'
 import logger from '@wdio/logger'
 
 import browserFinder from './finder'
 import { getPages } from './utils'
 import {
-    CHROME_NAMES, FIREFOX_NAMES, EDGE_NAMES, DEFAULT_FLAGS, DEFAULT_WIDTH,
-    DEFAULT_HEIGHT, DEFAULT_X_POSITION, DEFAULT_Y_POSITION, VENDOR_PREFIX
+    CHROME_NAMES,
+    FIREFOX_NAMES,
+    EDGE_NAMES,
+    BROWSER_TYPE,
+    DEFAULT_FLAGS,
+    DEFAULT_WIDTH,
+    DEFAULT_HEIGHT,
+    DEFAULT_X_POSITION,
+    DEFAULT_Y_POSITION,
+    VENDOR_PREFIX,
+    CHANNEL_FIREFOX_NIGHTLY,
+    BROWSER_ERROR_MESSAGES
 } from './constants'
 
 const log = logger('devtools')
 
-const DEVICE_NAMES = Object.values(devicesMap).map((device) => device.name)
+const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.name)
 
 /**
  * launches Chrome and returns a Puppeteer browser instance
@@ -20,12 +29,16 @@ const DEVICE_NAMES = Object.values(devicesMap).map((device) => device.name)
  * @return {object}               puppeteer browser instance
  */
 async function launchChrome (capabilities) {
-    const chromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
+    if (!capabilities[VENDOR_PREFIX.chrome]) {
+        capabilities[VENDOR_PREFIX.chrome] = {}
+    }
+
+    const chromeOptions = capabilities[VENDOR_PREFIX.chrome]
     const mobileEmulation = chromeOptions.mobileEmulation || {}
     const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
     if (typeof mobileEmulation.deviceName === 'string') {
-        const deviceProperties = Object.values(devicesMap).find(device => device.name === mobileEmulation.deviceName)
+        const deviceProperties = Object.values(puppeteer.devices).find(device => device.name === mobileEmulation.deviceName)
 
         if (!deviceProperties) {
             throw new Error(`Unknown device name "${mobileEmulation.deviceName}", available: ${DEVICE_NAMES.join(', ')}`)
@@ -66,7 +79,7 @@ async function launchChrome (capabilities) {
 
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
-        ignoreDefaultArgs,
+        ignoreDefaultFlags: true,
         chromeFlags
     })
 
@@ -112,6 +125,7 @@ function launchBrowser (capabilities, product) {
         product,
         executablePath,
         ignoreDefaultArgs,
+        headless: Boolean(capabilities[vendorCapKey].headless),
         defaultViewport: {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT
@@ -120,6 +134,8 @@ function launchBrowser (capabilities, product) {
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
+    } else if (product === BROWSER_TYPE.firefox && !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY)) {
+        throw new Error(BROWSER_ERROR_MESSAGES.firefoxNightly)
     }
 
     log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
@@ -134,12 +150,12 @@ export default function launch (capabilities) {
     }
 
     if (FIREFOX_NAMES.includes(browserName)) {
-        return launchBrowser(capabilities, 'firefox')
+        return launchBrowser(capabilities, BROWSER_TYPE.firefox)
     }
 
     /* istanbul ignore next */
     if (EDGE_NAMES.includes(browserName)) {
-        return launchBrowser(capabilities, 'edge')
+        return launchBrowser(capabilities, BROWSER_TYPE.edge)
     }
 
     throw new Error(`Couldn't identify browserName ${browserName}`)

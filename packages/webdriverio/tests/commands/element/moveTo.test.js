@@ -88,6 +88,21 @@ describe('moveTo', () => {
             .toEqual({ element: 'some-elem-123', xoffset: 5, yoffset: 10 })
     })
 
+    it('should return integer values when provided float getScrollPosition params', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const elem = await browser.$('#elem')
+        got.setMockResponse([{}, { x: 4, y: 9, height: 35, width: 42 }, { scrollX: 2.1, scrollY: 3.3 }])
+        await elem.moveTo({ xOffset: 5, yOffset: 10 })
+        expect(got.mock.calls[5][1].json.actions[0].actions[0])
+            .toEqual({ type: 'pointerMove', duration: 0, x: 6, y: 15 })
+    })
+
     afterEach(() => {
         got.mockClear()
     })

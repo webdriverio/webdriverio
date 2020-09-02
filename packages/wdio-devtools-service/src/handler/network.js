@@ -1,15 +1,15 @@
 import { IGNORED_URLS } from '../constants'
 
 export default class NetworkHandler {
-    constructor(cdp) {
+    constructor (session) {
         this.requestLog = { requests: [] }
         this.requestTypes = {}
         this.cachedFirstRequest = null
 
-        cdp.on('Network.dataReceived', this.onDataReceived.bind(this))
-        cdp.on('Network.responseReceived', this.onNetworkResponseReceived.bind(this))
-        cdp.on('Network.requestWillBeSent', this.onNetworkRequestWillBeSent.bind(this))
-        cdp.on('Page.frameNavigated', this.onPageFrameNavigated.bind(this))
+        session.on('Network.dataReceived', this.onDataReceived.bind(this))
+        session.on('Network.responseReceived', this.onNetworkResponseReceived.bind(this))
+        session.on('Network.requestWillBeSent', this.onNetworkRequestWillBeSent.bind(this))
+        session.on('Page.frameNavigated', this.onPageFrameNavigated.bind(this))
     }
 
     findRequest(params) {

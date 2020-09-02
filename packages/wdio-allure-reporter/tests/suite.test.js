@@ -10,8 +10,13 @@ import { clean, getResults } from 'wdio-allure-helper'
 import AllureReporter from '../src/'
 import { runnerEnd, runnerStart } from './__fixtures__/runner'
 import { suiteEnd, suiteStart } from './__fixtures__/suite'
-import { testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors, testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState'
-import { commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot } from './__fixtures__/command'
+import {
+    testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors,
+    testFailedWithAssertionErrorFromExpectWebdriverIO
+} from './__fixtures__/testState'
+import {
+    commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot
+} from './__fixtures__/command'
 
 let processOn
 beforeAll(() => {
@@ -307,204 +312,217 @@ describe('Pending tests', () => {
     })
 })
 
-describe('selenium command reporting', () => {
-    let outputDir
+const assertionResults = {
+    webdriver: {
+        commandTitle: 'GET /session/:sessionId/element',
+        screenshotTitle: 'GET /session/:sessionId/screenshot'
+    },
+    devtools: {
+        commandTitle: 'getTitle',
+        screenshotTitle: 'takeScreenshot'
+    }
+}
 
-    beforeEach(() => {
-        outputDir = directory()
+for (const protocol of ['webdriver', 'devtools']) {
+    describe(`${protocol} command reporting`, () => {
+        let outputDir
+
+        beforeEach(() => {
+            outputDir = directory()
+        })
+
+        afterEach(() => {
+            clean(outputDir)
+        })
+
+        it('should not add step if no tests started', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onBeforeCommand(commandStart(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+
+            expect(allureXml('step > name')).toHaveLength(0)
+        })
+
+        it('should not add step if isMultiremote = true', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStart(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+
+            expect(allureXml('step > name')).toHaveLength(0)
+        })
+
+        it('should not end step if it was not started', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+
+            expect(allureXml('step > name')).toHaveLength(0)
+        })
+
+        it('should not add step if disableWebdriverStepsReporting = true', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableWebdriverStepsReporting: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(Object.assign(runnerStart(), ))
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStart(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+
+            expect(allureXml('step > name')).toHaveLength(0)
+        })
+
+        it('should add step from command', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStart(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+            expect(allureXml('step > name')).toHaveLength(1)
+            expect(allureXml('step > name').eq(0).text()).toEqual(assertionResults[protocol].commandTitle)
+            expect(allureXml('step > title').eq(0).text()).toEqual(assertionResults[protocol].commandTitle)
+            expect(allureXml('test-case attachment[title="Response"]')).toHaveLength(1)
+            expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
+        })
+
+        it('should not empty attach for step from command', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            const command = commandStart(protocol === 'devtools')
+            delete command.body
+            reporter.onBeforeCommand(command)
+            reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+            expect(allureXml('step > name')).toHaveLength(1)
+            expect(allureXml('step > name').eq(0).text()).toEqual(assertionResults[protocol].commandTitle)
+            expect(allureXml('step > title').eq(0).text()).toEqual(assertionResults[protocol].commandTitle)
+            expect(allureXml('test-case attachment[title="Request"]')).toHaveLength(0)
+            expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
+        })
+
+        it('should add step with screenshot command', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+            expect(allureXml('step > name')).toHaveLength(1)
+            expect(allureXml('step > name').eq(0).text()).toEqual(assertionResults[protocol].screenshotTitle)
+            expect(allureXml('step > title').eq(0).text()).toEqual(assertionResults[protocol].screenshotTitle)
+            expect(allureXml('test-case attachment[title="Screenshot"]')).toHaveLength(1)
+            expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
+        })
+
+        it('should not add step with screenshot command when disableWebdriverScreenshotsReporting=true', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableWebdriverScreenshotsReporting: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onTestStart(testStart())
+            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onTestSkip(testPending())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+            expect(allureXml('step > name')).toHaveLength(1)
+            expect(allureXml('step > name').eq(0).text()).toEqual(assertionResults[protocol].screenshotTitle)
+            expect(allureXml('step > title').eq(0).text()).toEqual(assertionResults[protocol].screenshotTitle)
+            expect(allureXml('test-case attachment[title="Screenshot"]')).toHaveLength(0)
+            expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
+        })
     })
-
-    afterEach(() => {
-        clean(outputDir)
-    })
-
-    it('should not add step if no tests started', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onBeforeCommand(commandStart())
-        reporter.onAfterCommand(commandEnd())
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const results = getResults(outputDir)
-        expect(results).toHaveLength(1)
-        const allureXml = results[0]
-
-        expect(allureXml('step > name')).toHaveLength(0)
-    })
-
-    it('should not add step if isMultiremote = true', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStart())
-        reporter.onAfterCommand(commandEnd())
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const results = getResults(outputDir)
-        expect(results).toHaveLength(1)
-        const allureXml = results[0]
-
-        expect(allureXml('step > name')).toHaveLength(0)
-    })
-
-    it('should not end step if it was not started', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onAfterCommand(commandEnd())
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const results = getResults(outputDir)
-        expect(results).toHaveLength(1)
-        const allureXml = results[0]
-
-        expect(allureXml('step > name')).toHaveLength(0)
-    })
-
-    it('should not add step if disableWebdriverStepsReporting = true', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableWebdriverStepsReporting: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(Object.assign(runnerStart()))
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStart())
-        reporter.onAfterCommand(commandEnd())
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const results = getResults(outputDir)
-        expect(results).toHaveLength(1)
-        const allureXml = results[0]
-
-        expect(allureXml('step > name')).toHaveLength(0)
-    })
-
-    it('should add step from selenium command', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStart())
-        reporter.onAfterCommand(commandEnd())
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const results = getResults(outputDir)
-        expect(results).toHaveLength(1)
-        const allureXml = results[0]
-        expect(allureXml('step > name')).toHaveLength(1)
-        expect(allureXml('step > name').eq(0).text()).toEqual('GET /session/:sessionId/element')
-        expect(allureXml('step > title').eq(0).text()).toEqual('GET /session/:sessionId/element')
-        expect(allureXml('test-case attachment[title="Response"]')).toHaveLength(1)
-        expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
-    })
-
-    it('should not empty attach for step from selenium command', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        const command = commandStart()
-        delete command.body
-        reporter.onBeforeCommand(command)
-        reporter.onAfterCommand(commandEnd())
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const results = getResults(outputDir)
-        expect(results).toHaveLength(1)
-        const allureXml = results[0]
-        expect(allureXml('step > name')).toHaveLength(1)
-        expect(allureXml('step > name').eq(0).text()).toEqual('GET /session/:sessionId/element')
-        expect(allureXml('step > title').eq(0).text()).toEqual('GET /session/:sessionId/element')
-        expect(allureXml('test-case attachment[title="Request"]')).toHaveLength(0)
-        expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
-    })
-
-    it('should add step with screenshot command', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStartScreenShot())
-        reporter.onAfterCommand(commandEndScreenShot())
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const results = getResults(outputDir)
-        expect(results).toHaveLength(1)
-        const allureXml = results[0]
-        expect(allureXml('step > name')).toHaveLength(1)
-        expect(allureXml('step > name').eq(0).text()).toEqual('GET /session/:sessionId/screenshot')
-        expect(allureXml('step > title').eq(0).text()).toEqual('GET /session/:sessionId/screenshot')
-        expect(allureXml('test-case attachment[title="Screenshot"]')).toHaveLength(1)
-        expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
-    })
-
-    it('should not add step with screenshot command when disableWebdriverScreenshotsReporting=true', () => {
-        const allureOptions = {
-            stdout: true,
-            outputDir,
-            disableWebdriverScreenshotsReporting: true
-        }
-        const reporter = new AllureReporter(allureOptions)
-        reporter.onRunnerStart(runnerStart())
-        reporter.onSuiteStart(suiteStart())
-        reporter.onTestStart(testStart())
-        reporter.onBeforeCommand(commandStartScreenShot())
-        reporter.onAfterCommand(commandEndScreenShot())
-        reporter.onTestSkip(testPending())
-        reporter.onSuiteEnd(suiteEnd())
-        reporter.onRunnerEnd(runnerEnd())
-
-        const results = getResults(outputDir)
-        expect(results).toHaveLength(1)
-        const allureXml = results[0]
-        expect(allureXml('step > name')).toHaveLength(1)
-        expect(allureXml('step > name').eq(0).text()).toEqual('GET /session/:sessionId/screenshot')
-        expect(allureXml('step > title').eq(0).text()).toEqual('GET /session/:sessionId/screenshot')
-        expect(allureXml('test-case attachment[title="Screenshot"]')).toHaveLength(0)
-        expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
-    })
-})
+}

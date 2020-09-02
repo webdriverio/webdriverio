@@ -67,7 +67,7 @@ describe('detectBackend', () => {
             user: 'foobar',
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0'
         })
-        expect(caps.hostname).toBe('ondemand.saucelabs.com')
+        expect(caps.hostname).toBe('ondemand.us-west-1.saucelabs.com')
         expect(caps.port).toBe(443)
         expect(caps.path).toBe('/wd/hub')
         expect(caps.protocol).toBe('https')
@@ -79,7 +79,7 @@ describe('detectBackend', () => {
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
             region: 'us'
         })
-        expect(caps.hostname).toBe('ondemand.saucelabs.com')
+        expect(caps.hostname).toBe('ondemand.us-west-1.saucelabs.com')
         expect(caps.port).toBe(443)
         expect(caps.path).toBe('/wd/hub')
         expect(caps.protocol).toBe('https')
@@ -103,7 +103,7 @@ describe('detectBackend', () => {
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
             region: 'foobar'
         })
-        expect(caps.hostname).toBe('ondemand.saucelabs.com')
+        expect(caps.hostname).toBe('ondemand.us-west-1.saucelabs.com')
         expect(caps.port).toBe(443)
         expect(caps.path).toBe('/wd/hub')
         expect(caps.protocol).toBe('https')

@@ -3,18 +3,19 @@ import http from 'http'
 import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
+import getPort from 'get-port'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
+import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
-import isPlainObject from 'lodash.isplainobject'
 
-import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT } from './constants'
-import { findStrategy } from './utils/findStrategy'
+import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
+import { findStrategy } from './findStrategy'
 
-const browserCommands = require('./commands/browser')
-const elementCommands = require('./commands/element')
+const browserCommands = require('../commands/browser')
+const elementCommands = require('../commands/element')
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
@@ -34,7 +35,16 @@ const applyScopePrototype = (prototype, scope) => {
  * enhances objects with element commands
  */
 export const getPrototype = (scope) => {
-    const prototype = {}
+    const prototype = {
+        /**
+         * used to store the puppeteer instance in the browser scope
+         */
+        puppeteer: { value: null, writable: true },
+        /**
+         * for handling sync execution in @wdio/sync
+         */
+        _NOT_FIBER: { value: false, writable: true, configurable: true }
+    }
 
     /**
      * register action commands
@@ -453,9 +463,60 @@ export const getAutomationProtocol = async (config) => {
         req.end()
     })
 
+    /**
+     * kill agent otherwise process will stale
+     */
+    if (driverEndpointHeaders.req && driverEndpointHeaders.req.agent) {
+        driverEndpointHeaders.req.agent.destroy()
+    }
+
     if (driverEndpointHeaders && parseInt(driverEndpointHeaders.statusCode, 10) === 200) {
         return 'webdriver'
     }
 
     return 'devtools'
+}
+
+/**
+ * updateCapabilities allows modifying capabilities before session
+ * is started
+ *
+ * NOTE: this method is executed twice when running the WDIO testrunner
+ */
+export const updateCapabilities = async (params, automationProtocol) => {
+    /**
+     * attach remote debugging port options to Firefox sessions
+     * (this will be ignored if not supported)
+     */
+    if (automationProtocol === 'webdriver' && params.capabilities.browserName === 'firefox') {
+        if (!params.capabilities['moz:firefoxOptions']) {
+            params.capabilities['moz:firefoxOptions'] = {}
+        }
+
+        if (!params.capabilities['moz:firefoxOptions'].args) {
+            params.capabilities['moz:firefoxOptions'].args = []
+        }
+
+        if (!params.capabilities['moz:firefoxOptions'].args.includes(FF_REMOTE_DEBUG_ARG)) {
+            params.capabilities['moz:firefoxOptions'].args.push(
+                FF_REMOTE_DEBUG_ARG,
+                (await getPort()).toString()
+            )
+        }
+    }
+}
+
+/**
+ * compare if an object (`base`) contains the same values as another object (`match`)
+ * @param {object} base  object to compare to
+ * @param {object} match object that needs to match thebase
+ */
+export const containsHeaderObject = (base, match) => {
+    for (const [key, value] of Object.entries(match)) {
+        if (typeof base[key] === 'undefined' || base[key] !== value) {
+            return false
+        }
+    }
+
+    return true
 }

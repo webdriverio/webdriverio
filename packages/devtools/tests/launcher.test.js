@@ -41,7 +41,7 @@ test('launch chrome with chrome arguments', async () => {
             binary: '/foo/bar',
             args: ['--window-size=222,333'],
             mobileEmulation: {
-                deviceName: 'Nexus 5'
+                deviceName: 'Nexus 6P'
             }
         }
     })
@@ -50,9 +50,9 @@ test('launch chrome with chrome arguments', async () => {
 
     const pages = await browser.pages()
     expect(pages[0].setViewport).toBeCalledWith({
-        height: 640,
-        pixelRatio: 3,
-        width: 360
+        height: 732,
+        pixelRatio: 3.5,
+        width: 412
     })
 })
 
@@ -97,18 +97,42 @@ test('throws an error if an unknown deviceName is picked', async () => {
 })
 
 test('launch Firefox with default values', async () => {
-    await launch({
-        browserName: 'firefox'
-    })
-    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+    expect.assertions(1)
+
+    try {
+        await launch({ browserName: 'firefox' })
+    } catch (err) {
+        expect(err.message).toContain('Only Nightly release channel is supported')
+    }
 })
 
 test('launch Firefox with custom arguments', async () => {
+    expect.assertions(1)
+
+    try {
+        await launch({
+            browserName: 'firefox',
+            'moz:firefoxOptions': {
+                args: ['foobar'],
+                binary: '/foo/bar',
+                headless: true,
+                defaultViewport: {
+                    width: 123,
+                    height: 456
+                }
+            }
+        })
+    } catch (err) {
+        expect(err.message).toContain('Only Nightly release channel is supported')
+    }
+})
+
+test('launch Firefox Nightly with custom arguments', async () => {
     await launch({
         browserName: 'firefox',
         'moz:firefoxOptions': {
             args: ['foobar'],
-            binary: '/foo/bar',
+            binary: '/foo/firefox-nightly',
             headless: true,
             defaultViewport: {
                 width: 123,
@@ -151,18 +175,42 @@ test('throws if browser is unknown', async () => {
     }
 })
 
-test('launch Firefox without Puppeteer default args', async () => {
+test('launch Firefox Nightly without Puppeteer default args', async () => {
     await launch({
         browserName: 'firefox',
+        'moz:firefoxOptions': {
+            binary: '/foo/firefox-nightly',
+            headless: true
+        },
         ignoreDefaultArgs: true
     })
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })
 
+test('launch Firefox without Puppeteer default args', async () => {
+    expect.assertions(1)
+
+    try {
+        await launch({
+            browserName: 'firefox',
+            'moz:firefoxOptions': {
+                binary: '/foo/firefox',
+                headless: true
+            },
+            ignoreDefaultArgs: true
+        })
+    } catch (err) {
+        expect(err.message).toContain('Only Nightly release channel is supported')
+    }
+})
+
 test('launch Edge without Puppeteer default args', async () => {
     await launch({
         browserName: 'edge',
-        ignoreDefaultArgs: true
+        ignoreDefaultArgs: true,
+        'ms:edgeOptions': {
+            headless: true
+        }
     })
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })

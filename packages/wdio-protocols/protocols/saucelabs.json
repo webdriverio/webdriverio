@@ -49,7 +49,7 @@
         "required": true
       }],
       "returns": {
-        "type": "Object",
+        "type": "object",
         "name": "log",
         "description": "log output of desired type (see example)"
       }
@@ -178,7 +178,7 @@
         "required": false
       }],
       "returns": {
-        "type": "Object",
+        "type": "object",
         "name": "hasRegression",
         "description": "An object containing the result as well as metrics about the result."
       }
@@ -198,10 +198,78 @@
       ],
       "parameters": [],
       "returns": {
-        "type": "Object",
+        "type": "object",
         "name": "testResults",
         "description": "An object containing the score as well as metrics around how smooth the UX of the page was during the test."
       }
+    }
+  },
+  "/session/:sessionId/sauce/ondemand/mock": {
+    "POST": {
+      "command": "mockRequest",
+      "description": "Mocks a network resource.",
+      "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands",
+      "parameters": [{
+        "name": "url",
+        "type": "string",
+        "description": "URL glob to match url to mock.",
+        "required": true
+      }, {
+        "name": "filterOptions",
+        "description": "Additional filter options for url to mock (e.g. headers, method).",
+        "type": "object",
+        "required": false
+      }],
+      "returns": {
+        "type": "object",
+        "name": "mockId",
+        "description": "An object containing the id of a mock resource."
+      }
+    }
+  },
+  "/session/:sessionId/sauce/ondemand/mock/:mockId": {
+    "GET": {
+      "command": "getMockCalls",
+      "description": "Receive request information about requests that match the mocked resource.",
+      "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands",
+      "variables": [{
+        "name": "mockId",
+        "description": "the id of a mock"
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "object",
+        "name": "requests",
+        "description": "A list of request information."
+      }
+    },
+    "DELETE": {
+      "command": "clearMockCalls",
+      "description": "Clear list of mock calls.",
+      "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands",
+      "variables": [{
+        "name": "mockId",
+        "description": "the id of a mock"
+      }],
+      "parameters": [{
+        "type": "boolean",
+        "name": "restore",
+        "description": "Set to true if mock should be restored as well."
+      }]
+    },
+    "POST": {
+      "command": "respondMock",
+      "description": "Respond if mock matches a specific resource.",
+      "ref": "https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands",
+      "variables": [{
+        "name": "mockId",
+        "description": "the id of a mock"
+      }],
+      "parameters": [{
+        "type": "object",
+        "name": "payload",
+        "description": "Information on mock response."
+      }]
     }
   }
 }

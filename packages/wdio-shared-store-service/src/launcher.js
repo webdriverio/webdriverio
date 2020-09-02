@@ -17,7 +17,7 @@ export default class SharedStoreLauncher {
         const result = await server.startServer()
 
         log.info(`Started shared server on port ${result.port}`)
-        await writeFile(this.pidFile, result.port)
+        await writeFile(this.pidFile, result.port.toString())
     }
 
     async onComplete () {

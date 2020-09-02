@@ -116,7 +116,27 @@ describe('dragAndDrop', () => {
         expect(got.mock.calls[6][1].uri.pathname).toContain('/foobar-123/buttonup')
     })
 
-    it('should do a dragAndDrop (no w3c)', async () => {
+    it('should do a dragAndDrop with the given duration (no w3c)', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        const elem = await browser.$('#foo')
+        const subElem = await elem.$('#subfoo')
+
+        const startTime = process.hrtime()
+        await elem.dragAndDrop(subElem, { duration: 100 })
+        const endTime = process.hrtime(startTime)
+        const totalExecutionTime = (endTime[0] * '1e9' + endTime[1]) * '1e-6'
+
+        expect(totalExecutionTime >= 100 && totalExecutionTime < 400).toBeTruthy()
+
+    })
+
+    it('should do a dragAndDrop with the given coordinates (no w3c)', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -133,5 +153,22 @@ describe('dragAndDrop', () => {
         expect(got.mock.calls[4][1].uri.pathname).toContain('/foobar-123/moveto')
         expect(got.mock.calls[4][1].json).toEqual({ element: null, xoffset: 123, yoffset: 321 })
         expect(got.mock.calls[5][1].uri.pathname).toContain('/foobar-123/buttonup')
+    })
+
+    it('should do a dragAndDrop with the given co-ordinates and duration(no w3c)', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar-noW3C'
+            }
+        })
+
+        const elem = await browser.$('#foo')
+        const startTime = process.hrtime()
+        await elem.dragAndDrop({ x: 123, y: 321 }, { duration: 200 })
+        const endTime = process.hrtime(startTime)
+        const totalExecutionTime = (endTime[0] * '1e9' + endTime[1]) * '1e-6'
+
+        expect(totalExecutionTime >= 200 && totalExecutionTime < 500).toBeTruthy()
     })
 })

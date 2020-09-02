@@ -1,3 +1,5 @@
+const{ SevereServiceError } = jest.requireActual('webdriverio')
+
 const getWdioMock = () => {
     const mock = {
         $: jest.fn(),
@@ -22,3 +24,5 @@ export const remote = jest.fn().mockImplementation(() => {
     return getWdioMock()
 })
 export const multiremote = jest.fn().mockImplementation(() => (getWdioMock()))
+
+export { SevereServiceError }

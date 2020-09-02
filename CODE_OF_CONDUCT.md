@@ -45,9 +45,28 @@ Instances of abusive, harassing, or otherwise unacceptable behavior may be repor
 
 Project maintainers who do not follow or enforce the Code of Conduct in good faith may face temporary or permanent repercussions as determined by other members of the project's leadership.
 
-## Contact Info
+## Reporting
 
-If you need to report an incident, please contact any of the members of the [Technical Steering Committee (TSC)](/AUTHORS.md).
+### Project Spaces
+
+For reporting issues in spaces related to WebdriverIO please contact any of the members of the [Technical Steering Committee (TSC)](/AUTHORS.md). WebdriverIO handles CoC issues related to the spaces that it maintains. Projects maintainers commit to:
+
+- maintain confidentiality with regard to the reporter of an incident
+- to participate in the path for escalation as outlined in the section on Escalation when required.
+
+### Foundation Spaces
+
+For reporting issues in spaces managed by the OpenJS Foundation, for example, repositories within the OpenJS organization, use the email `report@lists.openjsf.org`. The Cross Project Council (CPC) is responsible for managing these reports and commits to:
+
+- maintain confidentiality with regard to the reporter of an incident
+- to participate in the path for escalation as outlined in
+  the section on Escalation when required.
+
+## Escalation
+
+The OpenJS Foundation maintains a Code of Conduct Panel (CoCP). This is a foundation-wide team established to manage escalation when a reporter believes that a report to a member project or the CPC has not been properly handled. In order to escalate to the CoCP send an email to `coc-escalation@lists.openjsf.org`.
+
+For more information, refer to the full [Code of Conduct governance document](https://github.com/openjs-foundation/cross-project-council/blob/master/CODE_OF_CONDUCT.md).
 
 ## Attribution
 

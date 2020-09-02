@@ -35,6 +35,14 @@ class CDPSessionMock {
 }
 const cdpSession = new CDPSessionMock()
 
+class TargetMock {
+    constructor () {
+        this.page = jest.fn().mockImplementation(() => page)
+        this.createCDPSession = jest.fn().mockImplementation(() => cdpSession)
+    }
+}
+const target = new TargetMock()
+
 class PageMock {
     constructor () {
         this.on = jest.fn()
@@ -42,6 +50,7 @@ class PageMock {
         this.url = jest.fn().mockReturnValue('about:blank')
         this.emulate = jest.fn()
         this.setViewport = jest.fn()
+        this.target = jest.fn().mockReturnValue(target)
     }
 }
 const page = new PageMock()
@@ -54,19 +63,12 @@ class PageMock2 extends PageMock {
 }
 const page2 = new PageMock2()
 
-class TargetMock {
-    constructor () {
-        this.page = jest.fn().mockImplementation(() => page)
-        this.createCDPSession = jest.fn().mockImplementation(() => cdpSession)
-    }
-}
-const target = new TargetMock()
-
 class PuppeteerMock {
     constructor () {
         this.waitForTarget = jest.fn().mockImplementation(() => target)
         this.getActivePage = jest.fn().mockImplementation(() => page)
         this.pages = jest.fn().mockReturnValue(Promise.resolve([page, page2]))
+        this._connection = { _transport: { _ws: { addEventListener: jest.fn() } } }
     }
 }
 
