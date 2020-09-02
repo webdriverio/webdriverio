@@ -50,11 +50,11 @@ export default class DevToolsService {
             this.traceGatherer = new TraceGatherer(this.devtoolsDriver)
 
             const session = await this.devtoolsDriver.getCDPSession()
-            session.on('Page.loadEventFired', this.traceGatherer.onLoadEventFired.bind(this))
-            session.on('Page.frameNavigated', this.traceGatherer.onFrameNavigated.bind(this))
+            session.on('Page.loadEventFired', this.traceGatherer.onLoadEventFired.bind(this.traceGatherer))
+            session.on('Page.frameNavigated', this.traceGatherer.onFrameNavigated.bind(this.traceGatherer))
 
             const page = await this.devtoolsDriver.getActivePage()
-            page.on('requestfailed', this.traceGatherer.onFrameLoadFail.bind(this))
+            page.on('requestfailed', this.traceGatherer.onFrameLoadFail.bind(this.traceGatherer))
 
             /**
              * enable domains for client
@@ -67,7 +67,7 @@ export default class DevToolsService {
             ))
 
             this.devtoolsGatherer = new DevtoolsGatherer()
-            this.client.on('event', this.devtoolsGatherer.onMessage.bind(this))
+            this.client.on('event', this.devtoolsGatherer.onMessage.bind(this.devtoolsGatherer))
 
             log.info(`Connected to Chrome on ${debuggerAddress.host}:${debuggerAddress.port}`)
         } catch (err) {

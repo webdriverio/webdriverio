@@ -107,7 +107,10 @@ class CucumberAdapter {
              *
              * @return  {object|null}
              */
-            this.getCurrentStep = this.cucumberReporter.eventListener.getCurrentStep.bind(this)
+            this.getCurrentStep = this.cucumberReporter
+                .eventListener
+                .getCurrentStep
+                .bind(this.cucumberReporter.eventListener)
 
             const runtime = new Cucumber.Runtime({
                 eventBroadcaster: this.eventBroadcaster,

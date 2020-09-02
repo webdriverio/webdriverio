@@ -74,7 +74,7 @@ export default class Runner extends EventEmitter {
         }
 
         initialiseWorkerService(this.config, caps, args.ignoredWorkerServices)
-            .map(this.configParser.addService.bind(this))
+            .map(this.configParser.addService.bind(this.configParser))
 
         await runHook('beforeSession', this.config, this.caps, this.specs)
         browser = await this._initSession(this.config, this.caps, browser)

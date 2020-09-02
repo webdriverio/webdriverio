@@ -129,9 +129,7 @@ executeSync = async function executeSync(fn, retries, args = []) {
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-let executeAsync
-
-executeAsync = async function executeAsync(fn, retries, args = []) {
+const executeAsync = async function executeAsync(fn, retries, args = []) {
     this.wdioRetries = retries.attempts
 
     try {

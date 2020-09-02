@@ -342,8 +342,8 @@ class Launcher {
             execArgv,
             retries
         })
-        worker.on('message', this.interface.onMessage.bind(this))
-        worker.on('error', this.interface.onMessage.bind(this))
+        worker.on('message', this.interface.onMessage.bind(this.interface))
+        worker.on('error', this.interface.onMessage.bind(this.interface))
         worker.on('exit', this.endHandler.bind(this))
     }
 

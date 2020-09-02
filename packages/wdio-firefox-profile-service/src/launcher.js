@@ -28,7 +28,7 @@ export default class FirefoxProfileLauncher {
         }
 
         // Add the extension
-        await promisify(this.profile.addExtensions.bind(this))(this.options.extensions)
+        await promisify(this.profile.addExtensions.bind(this.profile))(this.options.extensions)
         return this._buildExtension(capabilities)
     }
 
@@ -52,7 +52,7 @@ export default class FirefoxProfileLauncher {
     }
 
     async _buildExtension(capabilities) {
-        const zippedProfile = await promisify(this.profile.encoded.bind(this))()
+        const zippedProfile = await promisify(this.profile.encoded.bind(this.profile))()
 
         if (Array.isArray(capabilities)) {
             capabilities

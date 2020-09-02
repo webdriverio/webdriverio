@@ -86,7 +86,7 @@ export default class ApplitoolsService {
             return
         }
 
-        global.browser.call(this.eyes.close.bind(this))
+        global.browser.call(this.eyes.close.bind(this.eyes))
     }
 
     after() {
@@ -94,6 +94,6 @@ export default class ApplitoolsService {
             return
         }
 
-        global.browser.call(this.eyes.abortIfNotClosed.bind(this))
+        global.browser.call(this.eyes.abortIfNotClosed.bind(this.eyes))
     }
 }
