@@ -10,6 +10,10 @@
     });
  * </example>
  *
+ * If you are working with lots of nested shadow roots,
+ * an alternative approach to `shadow$` is to use a custom locator strategy,
+ * for example: https://www.npmjs.com/package/query-selector-shadow-dom#webdriverio
+ *
  * @alias element.shadow$
  * @param {String|Function} selector  selector or JS Function to fetch a certain element
  * @return {Element}
