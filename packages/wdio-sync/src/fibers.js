@@ -7,7 +7,7 @@ let Future
 
 global._HAS_FIBER_CONTEXT = false
 
-const origErrorFn = ::console.error
+const origErrorFn = console.error.bind(console)
 const errors = []
 console.error = /* istanbul ignore next */ (...args) => errors.push(args)
 

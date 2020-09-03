@@ -15,7 +15,7 @@ const defaultRetries = { attempts: 0, limit: 0 }
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-const executeSync = async function (fn, retries = defaultRetries, args = []) {
+async function executeSync(fn, retries = defaultRetries, args = []) {
     /**
      * User can also use the `@wdio/sync` package directly to run commands
      * synchronously in standalone mode. In this case we neither have
@@ -63,7 +63,7 @@ const executeSync = async function (fn, retries = defaultRetries, args = []) {
 /**
  * run hook or spec via executeSync
  */
-function runSync (fn, repeatTest = 0, args = []) {
+function runSync(fn, repeatTest = 0, args = []) {
     return (resolve, reject) =>
         Fiber(() => executeSync.call(this, fn, repeatTest, args).then(resolve, reject)).run()
 }
@@ -76,7 +76,7 @@ export {
     runSync,
 }
 
-export default function sync (testFn) {
+export default function sync(testFn) {
     return new Promise((resolve, reject) => {
         return runSync(testFn)(resolve, reject)
     })

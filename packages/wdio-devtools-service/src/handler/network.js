@@ -6,13 +6,13 @@ export default class NetworkHandler {
         this.requestTypes = {}
         this.cachedFirstRequest = null
 
-        session.on('Network.dataReceived', ::this.onDataReceived)
-        session.on('Network.responseReceived', ::this.onNetworkResponseReceived)
-        session.on('Network.requestWillBeSent', ::this.onNetworkRequestWillBeSent)
-        session.on('Page.frameNavigated', ::this.onPageFrameNavigated)
+        session.on('Network.dataReceived', this.onDataReceived.bind(this))
+        session.on('Network.responseReceived', this.onNetworkResponseReceived.bind(this))
+        session.on('Network.requestWillBeSent', this.onNetworkRequestWillBeSent.bind(this))
+        session.on('Page.frameNavigated', this.onPageFrameNavigated.bind(this))
     }
 
-    findRequest (params) {
+    findRequest(params) {
         let request = this.requestLog.requests.find((req) => req.id === params.requestId)
 
         /**
@@ -24,7 +24,7 @@ export default class NetworkHandler {
         return request
     }
 
-    onDataReceived (params) {
+    onDataReceived(params) {
         let request = this.findRequest(params)
 
         /**
@@ -40,7 +40,7 @@ export default class NetworkHandler {
         this.requestTypes[request.type].encoded += parseInt(params.encodedDataLength, 10)
     }
 
-    onNetworkResponseReceived (params) {
+    onNetworkResponseReceived(params) {
         let request = this.findRequest(params)
         /**
          * ensure that a requestWillBeSent event was triggered before
@@ -56,7 +56,7 @@ export default class NetworkHandler {
         request.type = params.type
     }
 
-    onNetworkRequestWillBeSent (params) {
+    onNetworkRequestWillBeSent(params) {
         let isFirstRequestOfFrame = false
 
         if (
@@ -118,7 +118,7 @@ export default class NetworkHandler {
         return this.requestLog.requests.push(log)
     }
 
-    onPageFrameNavigated (params) {
+    onPageFrameNavigated(params) {
         /**
          * Only create a requestLog for pages that don't have a parent frame.
          * I.e. iframes are ignored

@@ -71,7 +71,7 @@ test('startTracing', () => {
     handler.startTracing()
 
     expect(handler.isTracing).toBe(true)
-    expect(::handler.startTracing).toThrow()
+    expect(handler.startTracing.bind(handler)).toThrow()
     expect(pageMock.tracing.start).toBeCalledTimes(1)
 })
 

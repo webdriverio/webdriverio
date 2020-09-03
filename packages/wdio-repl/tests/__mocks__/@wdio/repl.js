@@ -1,10 +1,10 @@
 export default class WDIORepl {
     static introMessage = 'some intro from mock'
 
-    constructor (config) {
+    constructor(config) {
         this.config = Object.assign({
             commandTimeout: 5000,
-            eval: ::this.eval,
+            eval: this.eval.bind(this),
             prompt: '\u203A ',
             useGlobal: true,
             useColor: true
@@ -17,11 +17,11 @@ export default class WDIORepl {
                 (resolve) => setTimeout(() => resolve(this), 100)))
     }
 
-    eval (...args) {
+    eval(...args) {
         this.evalFn(...args)
     }
 
-    start (...args) {
+    start(...args) {
         return this.startFn(...args)
     }
 }

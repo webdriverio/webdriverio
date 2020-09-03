@@ -36,12 +36,12 @@ process.on('WDIO_TIMER', (payload) => {
  * @param  {Function[]} afterCommand   method to be executed after calling the actual function
  * @return {Function}   actual wrapped function
  */
-export default function wrapCommand (commandName, fn) {
-    return function wrapCommandFn (...args) {
+export default function wrapCommand(commandName, fn) {
+    return function wrapCommandFn(...args) {
         /**
          * print error if a user is using a fiberized command outside of the Fibers context
          */
-        if(!global._HAS_FIBER_CONTEXT && global.WDIO_WORKER) {
+        if (!global._HAS_FIBER_CONTEXT && global.WDIO_WORKER) {
             log.warn(
                 `Can't return command result of ${commandName} synchronously because command ` +
                 'was executed outside of an it block, hook or step definition!'
@@ -70,7 +70,7 @@ export default function wrapCommand (commandName, fn) {
         const future = new Future()
 
         const result = runCommandWithHooks.apply(this, [commandName, fn, ...args])
-        result.then(::future.return, ::future.throw)
+        result.then(future.return.bind(future), future.throw.bind(future))
 
         try {
             const futureResult = future.wait()
@@ -101,7 +101,7 @@ export default function wrapCommand (commandName, fn) {
 /**
  * helper method that runs the command with before/afterCommand hook
  */
-async function runCommandWithHooks (commandName, fn, ...args) {
+async function runCommandWithHooks(commandName, fn, ...args) {
     // save error for getting full stack in case of failure
     // should be before any async calls
     const stackError = new Error()
@@ -139,7 +139,7 @@ async function runCommandHook(hookFn, args) {
  * @param {object} context browser or element
  * @param {string} fnName function name
  */
-function isNotInFiber (context, fnName) {
+function isNotInFiber(context, fnName) {
     return fnName !== '' && !!(context.elementId || (context.parent && context.parent.elementId))
 }
 

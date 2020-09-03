@@ -20,7 +20,7 @@ export default class CommandHandler {
          */
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && !fnName.startsWith('_'))
-        commands.forEach(fnName => global.browser.addCommand(fnName, ::this[fnName]))
+        commands.forEach(fnName => global.browser.addCommand(fnName, this[fnName]))
     }
 
     /**
@@ -80,7 +80,7 @@ export default class CommandHandler {
      *
      * @return {Number}  tracing id to use for other commands
      */
-    async endTracing () {
+    async endTracing() {
         if (!this.isTracing) {
             throw new Error('No tracing was initiated, call `browser.startTracing()` first')
         }
@@ -99,14 +99,14 @@ export default class CommandHandler {
     /**
      * get raw trace logs
      */
-    getTraceLogs () {
+    getTraceLogs() {
         return this.traceEvents
     }
 
     /**
      * get page weight from last page load
      */
-    getPageWeight () {
+    getPageWeight() {
         const pageWeight = sumByKey(Object.values(this.networkHandler.requestTypes), 'size')
         const transferred = sumByKey(Object.values(this.networkHandler.requestTypes), 'encoded')
         const requestCount = sumByKey(Object.values(this.networkHandler.requestTypes), 'count')

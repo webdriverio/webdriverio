@@ -26,7 +26,7 @@ class CucumberAdapter {
         this.eventBroadcaster = new EventEmitter()
     }
 
-    async init () {
+    async init() {
         try {
             const reporterOptions = {
                 capabilities: this.capabilities,
@@ -65,11 +65,11 @@ class CucumberAdapter {
         return this
     }
 
-    hasTests () {
+    hasTests() {
         return this._hasTests
     }
 
-    async run () {
+    async run() {
         /**
          * import and set options for `expect-webdriverio` assertion lib once
          * the framework was initiated so that it can detect the environment
@@ -107,7 +107,10 @@ class CucumberAdapter {
              *
              * @return  {object|null}
              */
-            this.getCurrentStep = ::this.cucumberReporter.eventListener.getCurrentStep
+            this.getCurrentStep = this.cucumberReporter
+                .eventListener
+                .getCurrentStep
+                .bind(this.cucumberReporter.eventListener)
 
             const runtime = new Cucumber.Runtime({
                 eventBroadcaster: this.eventBroadcaster,
@@ -152,9 +155,9 @@ class CucumberAdapter {
         const skipTag = /^@skip\((.*)\)$/
 
         const match = (value, expr) => {
-            if(Array.isArray(expr)) {
+            if (Array.isArray(expr)) {
                 return expr.indexOf(value) >= 0
-            } else if(expr instanceof RegExp) {
+            } else if (expr instanceof RegExp) {
                 return expr.test(value)
             }
             return (expr && ('' + expr).toLowerCase()) === (value && ('' + value).toLowerCase())
@@ -163,7 +166,7 @@ class CucumberAdapter {
         const parse = (skipExpr) =>
             skipExpr.split(';').reduce((acc, splitItem) => {
                 const pos = splitItem.indexOf('=')
-                if(pos > 0) {
+                if (pos > 0) {
                     acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
                 }
                 return acc
@@ -185,7 +188,7 @@ class CucumberAdapter {
      * Or pass your own function
      * Usage: `[() => { require('ts-node').register({ files: true }) }]`
      */
-    registerRequiredModules () {
+    registerRequiredModules() {
         this.cucumberOpts.requireModule.map(requiredModule => {
             if (Array.isArray(requiredModule)) {
                 require(requiredModule[0])(requiredModule[1])
@@ -197,7 +200,7 @@ class CucumberAdapter {
         })
     }
 
-    requiredFiles () {
+    requiredFiles() {
         return this.cucumberOpts.require.reduce(
             (files, requiredFile) => files.concat(isGlob(requiredFile)
                 ? glob.sync(requiredFile)
@@ -207,7 +210,7 @@ class CucumberAdapter {
         )
     }
 
-    loadSpecFiles () {
+    loadSpecFiles() {
         // we use mockery to allow people to import 'our' cucumber even though their spec files are in their folders
         // because of that we don't have to attach anything to the global object, and the current cucumber spec files
         // should just work with no changes with this framework
@@ -242,11 +245,11 @@ class CucumberAdapter {
             const { uri, feature } = getDataFromResult(global.result)
             return executeHooksWithArgs(config.afterScenario, [uri, feature, world.pickle, world.result, world.sourceLocation, world])
         })
-        Cucumber.BeforeAll(function wdioHookBeforeFeature () {
+        Cucumber.BeforeAll(function wdioHookBeforeFeature() {
             const { uri, feature, scenarios } = getDataFromResult(global.result)
             return executeHooksWithArgs(config.beforeFeature, [uri, feature, scenarios])
         })
-        Cucumber.AfterAll(function wdioHookAfterFeature () {
+        Cucumber.AfterAll(function wdioHookAfterFeature() {
             const { uri, feature, scenarios } = getDataFromResult(global.result)
             return executeHooksWithArgs(config.afterFeature, [uri, feature, scenarios])
         })
@@ -256,7 +259,7 @@ class CucumberAdapter {
      * wraps step definition code with sync/async runner with a retry option
      * @param {object} config
      */
-    wrapSteps (config) {
+    wrapSteps(config) {
         const wrapStep = this.wrapStep
         const cid = this.cid
         const getCurrentStep = () => this.getCurrentStep()
@@ -291,7 +294,7 @@ class CucumberAdapter {
      * @param   {Function}  getCurrentStep  step definition
      * @return  {Function}                  wrapped step definition for sync WebdriverIO code
      */
-    wrapStep (code, retryTest = 0, isStep, config, cid, getCurrentStep) {
+    wrapStep(code, retryTest = 0, isStep, config, cid, getCurrentStep) {
         return function (...args) {
             /**
              * wrap user step/hook with wdio before/after hooks

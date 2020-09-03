@@ -11,6 +11,7 @@
   },
   "types": "./allure-reporter.d.ts",
   "scripts": {
+    "tsc": "tsc",
     "build": "run-s clean compile",
     "clean": "rimraf ./build",
     "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
