@@ -94,9 +94,7 @@ let wrapCommand = function wrapCommand(commandName, fn) {
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-let executeSync
-
-executeSync = async function executeSync(fn, retries, args = []) {
+let executeSync = async function executeSync(fn, retries, args = []) {
     this.wdioRetries = retries.attempts
 
     try {

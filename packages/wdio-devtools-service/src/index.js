@@ -152,10 +152,10 @@ export default class DevToolsService {
         this.commandHandler = new CommandHandler(this.session, this.page)
         this.traceGatherer = new TraceGatherer(this.puppeteer, this.session, this.page)
 
-        this.session.on('Page.loadEventFired', this.traceGatherer.onLoadEventFired)
-        this.session.on('Page.frameNavigated', this.traceGatherer.onFrameNavigated)
+        this.session.on('Page.loadEventFired', this.traceGatherer.onLoadEventFired.bind(this.traceGatherer))
+        this.session.on('Page.frameNavigated', this.traceGatherer.onFrameNavigated.bind(this.traceGatherer))
 
-        this.page.on('requestfailed', this.traceGatherer.onFrameLoadFail)
+        this.page.on('requestfailed', this.traceGatherer.onFrameLoadFail.bind(this.traceGatherer))
 
         /**
          * enable domains for client
@@ -175,8 +175,8 @@ export default class DevToolsService {
             global.browser.emit(method, data.params)
         })
 
-        global.browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits)
-        global.browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits)
-        global.browser.addCommand('emulateDevice', this._emulateDevice)
+        global.browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
+        global.browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
+        global.browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
     }
 }
