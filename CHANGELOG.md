@@ -17,6 +17,30 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.4.6 (2020-09-03)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#5771](https://github.com/webdriverio/webdriverio/pull/5771) Closes [#5647](https://github.com/webdriverio/webdriverio/issues/5647) : add other check for app capability in browserstack-service ([@Virtim](https://github.com/Virtim))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#5783](https://github.com/webdriverio/webdriverio/pull/5783) [#5541] dragAndDrop to sleep for given duration in JsonWireProtocol ([@mathew-jithin](https://github.com/mathew-jithin))
+
+#### :memo: Documentation
+* `wdio-devtools-service`
+  * [#5792](https://github.com/webdriverio/webdriverio/pull/5792) Fix wdio-devtools-service README ([@vgrigoruk](https://github.com/vgrigoruk))
+* `webdriverio`
+  * [#5787](https://github.com/webdriverio/webdriverio/pull/5787) [DOCUMENTATION] Nested shadow roots plugin ([@Georgegriff](https://github.com/Georgegriff))
+
+#### Committers: 5
+- George Griffiths ([@Georgegriff](https://github.com/Georgegriff))
+- Jithin Mathew ([@mathew-jithin](https://github.com/mathew-jithin))
+- Tim Vir ([@Virtim](https://github.com/Virtim))
+- Vitalii Grygoruk ([@vgrigoruk](https://github.com/vgrigoruk))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.4.5 (2020-08-31)
 
 #### :bug: Bug Fix
