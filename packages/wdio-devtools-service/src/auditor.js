@@ -21,14 +21,14 @@ const SHARED_AUDIT_CONTEXT = {
 }
 
 export default class Auditor {
-    constructor (traceLogs, devtoolsLogs) {
+    constructor(traceLogs, devtoolsLogs) {
         this.devtoolsLogs = devtoolsLogs
         this.traceLogs = traceLogs
         this.url = traceLogs.pageUrl
         this.loaderId = traceLogs.loaderId
     }
 
-    _audit (AUDIT, params = {}) {
+    _audit(AUDIT, params = {}) {
         const auditContext = {
             options: { ...AUDIT.defaultOptions },
             ...SHARED_AUDIT_CONTEXT
@@ -51,20 +51,20 @@ export default class Auditor {
      * an Auditor instance is created for every trace so provide an updateCommands
      * function to receive the latest performance metrics with the browser instance
      */
-    updateCommands (browser, customFn) {
+    updateCommands(browser, customFn) {
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && fnName !== 'updateCommands' && !fnName.startsWith('_'))
-        commands.forEach(fnName => browser.addCommand(fnName, customFn || ::this[fnName]))
+        commands.forEach(fnName => browser.addCommand(fnName, customFn || this[fnName].bind(this)))
     }
 
-    async getMainThreadWorkBreakdown () {
+    async getMainThreadWorkBreakdown() {
         const result = await this._audit(MainThreadWorkBreakdown)
         return result.details.items.map(
             ({ group, duration }) => ({ group, duration })
         )
     }
 
-    async getDiagnostics () {
+    async getDiagnostics() {
         const result = await this._audit(Diagnostics)
 
         /**

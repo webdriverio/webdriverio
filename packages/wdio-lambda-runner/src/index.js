@@ -11,7 +11,7 @@ import { DEFAULT_CONFIG } from './constants'
 const log = logger('@wdio/lambda-runner')
 
 export default class AWSLambdaRunner extends EventEmitter {
-    constructor (configFile, config, capabilities, specs) {
+    constructor(configFile, config, capabilities, specs) {
         super()
 
         const { AWS_ACCESS_KEY, AWS_ACCESS_KEY_ID } = process.env
@@ -30,7 +30,7 @@ export default class AWSLambdaRunner extends EventEmitter {
         this.serverlessBinPath = path.resolve(require.resolve('serverless'), '..', '..', 'bin', 'serverless')
     }
 
-    async initialise () {
+    async initialise() {
         /**
          * generate temp dir for AWS service
          */
@@ -88,10 +88,10 @@ export default class AWSLambdaRunner extends EventEmitter {
     /**
      * kill all instances that were started
      */
-    kill () {
+    kill() {
     }
 
-    async run (options) {
+    async run(options) {
         options.specs = options.specs.map((spec) => spec.replace(process.cwd(), '.'))
         shell.cd(this.serviceDir.name)
 
@@ -105,12 +105,12 @@ export default class AWSLambdaRunner extends EventEmitter {
         this.emit(this.cid, result.failures === 0 ? 0 : 1)
     }
 
-    link (source, dest) {
+    link(source, dest) {
         log.debug('Linking: ', source, dest)
         fs.symlinkSync(source, dest)
     }
 
-    exec (script) {
+    exec(script) {
         log.debug(`Run script "${script}"`)
         return new Promise((resolve, reject) => {
             const child = shell.exec(script, { async: true, silent: true })
@@ -126,7 +126,7 @@ export default class AWSLambdaRunner extends EventEmitter {
                 }
                 log.debug(trimmedStdout)
             })
-            child.stderr.on('data', ::log.error)
+            child.stderr.on('data', log.error.bind(log))
             child.on('close', (code) => {
                 /**
                  * ...otherwise resolve with status code

@@ -11,7 +11,7 @@ import { ELEMENT_KEY } from '../constants'
  * @param  {Object} res       findElement response
  * @return {Object}           WDIO element object
  */
-export const getElement = function findElement (selector, res, isReactElement = false) {
+export const getElement = function findElement(selector, res, isReactElement = false) {
     const browser = getBrowserObject(this)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
@@ -42,7 +42,7 @@ export const getElement = function findElement (selector, res, isReactElement = 
 
         client.selector = selector
         client.parent = this
-        client.emit = ::this.emit
+        client.emit = this.emit.bind(this)
         client.isReactElement = isReactElement
 
         return client
@@ -50,7 +50,7 @@ export const getElement = function findElement (selector, res, isReactElement = 
 
     const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
 
-    const origAddCommand = ::elementInstance.addCommand
+    const origAddCommand = elementInstance.addCommand.bind(elementInstance)
     elementInstance.addCommand = (name, fn) => {
         browser.__propertiesObject__[name] = { value: fn }
         origAddCommand(name, runFnInFiberContext(fn))
@@ -65,7 +65,7 @@ export const getElement = function findElement (selector, res, isReactElement = 
  * @param  {Object} res       findElements response
  * @return {Array}            array of WDIO elements
  */
-export const getElements = function getElements (selector, elemResponse, isReactElement = false) {
+export const getElements = function getElements(selector, elemResponse, isReactElement = false) {
     const browser = getBrowserObject(this)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
@@ -98,7 +98,7 @@ export const getElements = function getElements (selector, elemResponse, isReact
             client.selector = selector
             client.parent = this
             client.index = i
-            client.emit = ::this.emit
+            client.emit = this.emit.bind(this)
             client.isReactElement = isReactElement
 
             return client
@@ -106,7 +106,7 @@ export const getElements = function getElements (selector, elemResponse, isReact
 
         const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
 
-        const origAddCommand = ::elementInstance.addCommand
+        const origAddCommand = elementInstance.addCommand.bind(elementInstance)
         elementInstance.addCommand = (name, fn) => {
             browser.__propertiesObject__[name] = { value: fn }
             origAddCommand(name, runFnInFiberContext(fn))

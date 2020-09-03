@@ -6,7 +6,7 @@ import { linkPlaceholder, testStatuses } from '../src/constants'
 describe('utils', () => {
     let processEmit
     beforeAll(() => {
-        processEmit = ::process.emit
+        processEmit = process.emit.bind(process)
         process.emit = jest.fn()
     })
 

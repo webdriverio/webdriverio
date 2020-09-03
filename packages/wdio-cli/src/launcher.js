@@ -12,7 +12,7 @@ import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils'
 const log = logger('@wdio/cli:launcher')
 
 class Launcher {
-    constructor (configFilePath, args = {}, isWatchMode = false) {
+    constructor(configFilePath, args = {}, isWatchMode = false) {
         this.args = args
         this.configFilePath = configFilePath
 
@@ -58,11 +58,11 @@ class Launcher {
      * run sequence
      * @return  {Promise}               that only gets resolves with either an exitCode or an error
      */
-    async run () {
+    async run() {
         /**
          * catches ctrl+c event
          */
-        exitHook(::this.exitHandler)
+        exitHook(this.exitHandler.bind(this))
         let exitCode
         let error
 
@@ -120,7 +120,7 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    runMode (config, caps) {
+    runMode(config, caps) {
         /**
          * fail if no caps were found
          */
@@ -190,7 +190,7 @@ class Launcher {
      * run multiple single remote tests
      * @return {Boolean} true if all specs have been run and all instances have finished
      */
-    runSpecs () {
+    runSpecs() {
         let config = this.configParser.getConfig()
 
         /**
@@ -207,7 +207,7 @@ class Launcher {
                  */
                 .filter(() => {
                     const filter = typeof config.bail !== 'number' || config.bail < 1 ||
-                                   config.bail > this.runnerFailed
+                        config.bail > this.runnerFailed
 
                     /**
                      * clear number of specs when filter is false
@@ -261,7 +261,7 @@ class Launcher {
      * gets number of all running instances
      * @return {number} number of running instances
      */
-    getNumberOfRunningInstances () {
+    getNumberOfRunningInstances() {
         return this.schedule.map((a) => a.runningInstances).reduce((a, b) => a + b)
     }
 
@@ -269,7 +269,7 @@ class Launcher {
      * get number of total specs left to complete whole suites
      * @return {number} specs left to complete suite
      */
-    getNumberOfSpecsLeft () {
+    getNumberOfSpecsLeft() {
         return this.schedule.map((a) => a.specs.length).reduce((a, b) => a + b)
     }
 
@@ -280,7 +280,7 @@ class Launcher {
      * @param  {String} rid  Runner ID override
      * @param  {Number} retries  Number of retries remaining
      */
-    async startInstance (specs, caps, cid, rid, retries) {
+    async startInstance(specs, caps, cid, rid, retries) {
         let config = this.configParser.getConfig()
         // Retried tests receive the cid of the failing test as rid
         // so they can run with the same cid of the failing test.
@@ -342,9 +342,9 @@ class Launcher {
             execArgv,
             retries
         })
-        worker.on('message', ::this.interface.onMessage)
-        worker.on('error', ::this.interface.onMessage)
-        worker.on('exit', ::this.endHandler)
+        worker.on('message', this.interface.onMessage.bind(this.interface))
+        worker.on('error', this.interface.onMessage.bind(this.interface))
+        worker.on('exit', this.endHandler.bind(this))
     }
 
     /**
@@ -352,7 +352,7 @@ class Launcher {
      * @param  {Number} cid capability id (unique identifier for a capability)
      * @return {String}     runner id (combination of cid and test id e.g. 0a, 0b, 1a, 1b ...)
      */
-    getRunnerId (cid) {
+    getRunnerId(cid) {
         if (!this.rid[cid]) {
             this.rid[cid] = 0
         }
@@ -366,7 +366,7 @@ class Launcher {
      * @param  {Array} specs      Specs that were run
      * @param  {Number} retries   Number or retries remaining
      */
-    endHandler ({ cid, exitCode, specs, retries }) {
+    endHandler({ cid, exitCode, specs, retries }) {
         const passed = this.isWatchModeHalted() || exitCode === 0
 
         if (!passed && retries > 0) {
@@ -413,7 +413,7 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    exitHandler (callback) {
+    exitHandler(callback) {
         if (!callback) {
             return
         }
@@ -431,7 +431,7 @@ class Launcher {
      * returns true if user stopped watch mode, ex with ctrl+c
      * @returns {boolean}
      */
-    isWatchModeHalted () {
+    isWatchModeHalted() {
         return this.isWatchMode && this.hasTriggeredExitRoutine
     }
 }

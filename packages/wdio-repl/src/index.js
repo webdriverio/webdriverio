@@ -40,10 +40,10 @@ import { STATIC_RETURNS, INTRO_MESSAGE } from './constants'
 export default class WDIORepl {
     static introMessage = INTRO_MESSAGE
 
-    constructor (config) {
+    constructor(config) {
         this.config = Object.assign({
             commandTimeout: 5000,
-            eval: ::this.eval,
+            eval: this.eval.bind(this),
             prompt: '\u203A ',
             useGlobal: true,
             useColor: true
@@ -52,7 +52,7 @@ export default class WDIORepl {
         this.isCommandRunning = false
     }
 
-    eval (cmd, context, filename, callback) {
+    eval(cmd, context, filename, callback) {
         if (this.isCommandRunning) {
             return
         }
@@ -73,7 +73,7 @@ export default class WDIORepl {
         return this._runCmd(cmd, context, callback)
     }
 
-    _runCmd (cmd, context, callback) {
+    _runCmd(cmd, context, callback) {
         try {
             const result = vm.runInContext(cmd, context)
             return this._handleResult(result, callback)
@@ -83,7 +83,7 @@ export default class WDIORepl {
         }
     }
 
-    _handleResult (result, callback) {
+    _handleResult(result, callback) {
         if (!result || typeof result.then !== 'function') {
             this.isCommandRunning = false
             return callback(null, result)
@@ -125,7 +125,7 @@ export default class WDIORepl {
         })
     }
 
-    start (context) {
+    start(context) {
         if (this.replServer) {
             throw new Error('a repl was already initialised')
         }

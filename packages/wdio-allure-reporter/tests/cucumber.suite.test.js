@@ -15,7 +15,7 @@ import { commandStart, commandEnd } from './__fixtures__/command'
 
 let processOn
 beforeAll(() => {
-    processOn = ::process.on
+    processOn = process.on.bind(process)
     process.on = jest.fn()
 })
 

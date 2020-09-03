@@ -31,7 +31,7 @@ describe('newSession', () => {
 })
 
 describe('attachToSession', () => {
-    it('should return newSession if not multiremore', async () => {
+    it('should return newSession if not multiremote', async () => {
         const modifier = jest.fn()
         const session = await ProtocolStub.attachToSession({ capabilities: { browserName: 'chrome' } }, modifier)
         expect(modifier).not.toBeCalled()
@@ -44,10 +44,10 @@ describe('attachToSession', () => {
     })
 
     it('should call modifier if multiremote', async () => {
-        const multiremore = new Multiremote()
-        multiremore.instances['instanceName'] = 'instance'
+        const multiremote = new Multiremote()
+        multiremote.instances['instanceName'] = 'instance'
 
-        const session = await ProtocolStub.attachToSession(undefined, ::multiremore.modifier)
+        const session = await ProtocolStub.attachToSession(undefined, multiremote.modifier.bind(multiremote))
 
         expect(session.capabilities).toBeUndefined()
         expect(session.commandList).toHaveLength(0)

@@ -9,7 +9,7 @@ const DEFAULT_VIEWPORT = {
 }
 
 export default class ApplitoolsService {
-    constructor (options) {
+    constructor(options) {
         this.options = options
         this.eyes = new Eyes()
     }
@@ -17,7 +17,7 @@ export default class ApplitoolsService {
     /**
      * set API key in onPrepare hook and start test
      */
-    beforeSession () {
+    beforeSession() {
         const key = this.options.key || process.env.APPLITOOLS_KEY
         const serverUrl = this.options.serverUrl || process.env.APPLITOOLS_SERVER_URL
 
@@ -45,7 +45,7 @@ export default class ApplitoolsService {
     /**
      * set custom commands
      */
-    before () {
+    before() {
         if (!this.isConfigured) {
             return
         }
@@ -72,7 +72,7 @@ export default class ApplitoolsService {
         })
     }
 
-    beforeTest (test) {
+    beforeTest(test) {
         if (!this.isConfigured) {
             return
         }
@@ -81,19 +81,19 @@ export default class ApplitoolsService {
         global.browser.call(() => this.eyes.open(global.browser, test.title, test.parent, this.viewport))
     }
 
-    afterTest () {
+    afterTest() {
         if (!this.isConfigured) {
             return
         }
 
-        global.browser.call(::this.eyes.close)
+        global.browser.call(this.eyes.close.bind(this.eyes))
     }
 
-    after () {
+    after() {
         if (!this.isConfigured) {
             return
         }
 
-        global.browser.call(::this.eyes.abortIfNotClosed)
+        global.browser.call(this.eyes.abortIfNotClosed.bind(this.eyes))
     }
 }

@@ -1,9 +1,9 @@
 class ReplMock {
-    constructor () {
-        this.start = jest.fn().mockReturnValue({ on: ::this.on })
+    constructor() {
+        this.start = jest.fn().mockReturnValue({ on: this.on.bind(this) })
     }
 
-    on (event, cb) {
+    on(event, cb) {
         cb(event)
     }
 }

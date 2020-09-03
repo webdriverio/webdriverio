@@ -13,6 +13,7 @@
     "node": ">=10.0.0"
   },
   "scripts": {
+    "tsc": "tsc",
     "build": "run-s clean compile copy",
     "clean": "rimraf ./build",
     "compile": "babel src/ -d build/ --config-file ../../babel.config.js",

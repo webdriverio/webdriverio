@@ -13,7 +13,7 @@ import { runHook, initialiseInstance, filterLogTypes, getInstancesData } from '.
 const log = logger('@wdio/runner')
 
 export default class Runner extends EventEmitter {
-    constructor () {
+    constructor() {
         super()
         this.configParser = new ConfigParser()
         this.sigintWasCalled = false
@@ -29,7 +29,7 @@ export default class Runner extends EventEmitter {
      * @param  {Number}    retries        number of retries remaining
      * @return {Promise}                  resolves in number of failures for testrun
      */
-    async run ({ cid, args, specs, caps, configFile, retries }) {
+    async run({ cid, args, specs, caps, configFile, retries }) {
         this.cid = cid
         this.specs = specs
         this.caps = caps
@@ -74,7 +74,7 @@ export default class Runner extends EventEmitter {
         }
 
         initialiseWorkerService(this.config, caps, args.ignoredWorkerServices)
-            .map(::this.configParser.addService)
+            .map(this.configParser.addService.bind(this.configParser))
 
         await runHook('beforeSession', this.config, this.caps, this.specs)
         browser = await this._initSession(this.config, this.caps, browser)
@@ -170,7 +170,7 @@ export default class Runner extends EventEmitter {
      * @param  {Object}  browserStub   stubbed `browser` object with only capabilities, config and env flags
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
-    async _initSession (config, caps, browserStub) {
+    async _initSession(config, caps, browserStub) {
         const browser = await this._startSession(config, caps)
 
         // return null if session couldn't get established
@@ -216,7 +216,7 @@ export default class Runner extends EventEmitter {
      * @param  {Object}  caps          desired capabilities of session
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
-    async _startSession (config, caps) {
+    async _startSession(config, caps) {
         let browser = null
 
         try {
@@ -235,7 +235,7 @@ export default class Runner extends EventEmitter {
     /**
      * fetch logs provided by browser driver
      */
-    async _fetchDriverLogs (config, excludeDriverLogs) {
+    async _fetchDriverLogs(config, excludeDriverLogs) {
         /**
          * only fetch logs if
          */
@@ -303,7 +303,7 @@ export default class Runner extends EventEmitter {
     /**
      * kill worker session
      */
-    async _shutdown (failures) {
+    async _shutdown(failures) {
         try {
             await this.reporter.waitForSync()
         } catch (e) {
@@ -317,7 +317,7 @@ export default class Runner extends EventEmitter {
      * end WebDriver session, a config object can be applied if object has changed
      * within a hook by the user
      */
-    async endSession () {
+    async endSession() {
         /**
          * make sure instance(s) exist and have `sessionId`
          */

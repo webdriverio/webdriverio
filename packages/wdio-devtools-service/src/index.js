@@ -12,28 +12,28 @@ const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
 export default class DevToolsService {
-    constructor () {
+    constructor() {
         this.isSupported = false
         this.shouldRunPerformanceAudits = false
     }
 
-    beforeSession (_, caps) {
-        if (!isBrowserSupported(caps)){
+    beforeSession(_, caps) {
+        if (!isBrowserSupported(caps)) {
             return log.error(UNSUPPORTED_ERROR_MESSAGE)
         }
         this.isSupported = true
     }
 
-    async onReload () {
+    async onReload() {
         return this._setupHandler()
     }
 
-    async before () {
+    async before() {
         this.isSupported = this.isSupported || Boolean(global.browser.puppeteer)
         return this._setupHandler()
     }
 
-    async beforeCommand (commandName, params) {
+    async beforeCommand(commandName, params) {
         if (!this.shouldRunPerformanceAudits || !this.traceGatherer || this.traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
             return
         }
@@ -47,7 +47,7 @@ export default class DevToolsService {
         return this.traceGatherer.startTracing(url)
     }
 
-    async afterCommand (commandName) {
+    async afterCommand(commandName) {
         if (!this.traceGatherer || !this.traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
             return
         }
@@ -62,7 +62,7 @@ export default class DevToolsService {
 
         this.traceGatherer.once('tracingError', (err) => {
             const auditor = new Auditor()
-            auditor.updateCommands(global.browser, /* istanbul ignore next */ () => {
+            auditor.updateCommands(global.browser, /* istanbul ignore next */() => {
                 throw new Error(`Couldn't capture performance due to: ${err.message}`)
             })
         })
@@ -86,7 +86,7 @@ export default class DevToolsService {
     /**
      * set flag to run performance audits for page transitions
      */
-    _enablePerformanceAudits ({ networkThrottling = DEFAULT_NETWORK_THROTTLING_STATE, cpuThrottling = 4, cacheEnabled = false } = {}) {
+    _enablePerformanceAudits({ networkThrottling = DEFAULT_NETWORK_THROTTLING_STATE, cpuThrottling = 4, cacheEnabled = false } = {}) {
         if (!Object.prototype.hasOwnProperty.call(NETWORK_STATES, networkThrottling)) {
             throw new Error(`Network throttling profile "${networkThrottling}" is unknown, choose between ${Object.keys(NETWORK_STATES).join(', ')}`)
         }
@@ -104,14 +104,14 @@ export default class DevToolsService {
     /**
      * custom command to disable performance audits
      */
-    _disablePerformanceAudits () {
+    _disablePerformanceAudits() {
         this.shouldRunPerformanceAudits = false
     }
 
     /**
      * set device emulation
      */
-    async _emulateDevice (device, inLandscape) {
+    async _emulateDevice(device, inLandscape) {
         if (typeof device === 'string') {
             const deviceName = device + (inLandscape ? ' landscape' : '')
             const deviceCapabilities = puppeteerCore.devices[deviceName]
@@ -131,7 +131,7 @@ export default class DevToolsService {
     /**
      * helper method to set throttling profile
      */
-    async _setThrottlingProfile (networkThrottling, cpuThrottling, cacheEnabled) {
+    async _setThrottlingProfile(networkThrottling, cpuThrottling, cacheEnabled) {
         await this.page.setCacheEnabled(Boolean(cacheEnabled))
         await this.session.send('Emulation.setCPUThrottlingRate', { rate: cpuThrottling })
         await this.session.send('Network.emulateNetworkConditions', NETWORK_STATES[networkThrottling])
@@ -152,10 +152,10 @@ export default class DevToolsService {
         this.commandHandler = new CommandHandler(this.session, this.page)
         this.traceGatherer = new TraceGatherer(this.puppeteer, this.session, this.page)
 
-        this.session.on('Page.loadEventFired', :: this.traceGatherer.onLoadEventFired)
-        this.session.on('Page.frameNavigated', :: this.traceGatherer.onFrameNavigated)
+        this.session.on('Page.loadEventFired', this.traceGatherer.onLoadEventFired.bind(this.traceGatherer))
+        this.session.on('Page.frameNavigated', this.traceGatherer.onFrameNavigated.bind(this.traceGatherer))
 
-        this.page.on('requestfailed', :: this.traceGatherer.onFrameLoadFail)
+        this.page.on('requestfailed', this.traceGatherer.onFrameLoadFail.bind(this.traceGatherer))
 
         /**
          * enable domains for client
@@ -175,8 +175,8 @@ export default class DevToolsService {
             global.browser.emit(method, data.params)
         })
 
-        global.browser.addCommand('enablePerformanceAudits', :: this._enablePerformanceAudits)
-        global.browser.addCommand('disablePerformanceAudits', :: this._disablePerformanceAudits)
-        global.browser.addCommand('emulateDevice', :: this._emulateDevice)
+        global.browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
+        global.browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
+        global.browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
     }
 }
