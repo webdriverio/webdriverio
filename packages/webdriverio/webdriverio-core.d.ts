@@ -527,6 +527,9 @@ declare namespace WebdriverIO {
     }
     type ThrottleOptions = ThrottlePreset | CustomThrottle
 
+    type AddCommandFn<IsElement extends boolean = false> = (this: IsElement extends true ? Element : BrowserObject, ...args: any[]) => any
+    type OverwriteCommandFn<ElementKey extends keyof Element, BrowserKey extends keyof BrowserObject, IsElement extends boolean = false> = (this: IsElement extends true ? Element : BrowserObject, origCommand: IsElement extends true ? Element[ElementKey] : BrowserObject[BrowserKey], ...args: any[]) => any
+
     interface Element {
         selector: string;
         elementId: string;
@@ -557,7 +560,7 @@ declare namespace WebdriverIO {
          */
         addCommand(
             name: string,
-            func: Function
+            func: AddCommandFn<false>
         ): void;
         
         /**
@@ -973,19 +976,19 @@ declare namespace WebdriverIO {
         /**
          * add command to `browser` or `element` scope
          */
-        addCommand(
+        addCommand<IsElement extends boolean>(
             name: string,
-            func: Function,
-            attachToElement?: boolean
+            func: AddCommandFn<IsElement>,
+            attachToElement?: IsElement
         ): void;
 
         /**
          * overwrite `browser` or `element` command
          */
-        overwriteCommand(
-            name: string,
-            func: (origCommand: Function, ...args: any[]) => any,
-            attachToElement?: boolean
+        overwriteCommand<ElementKey extends keyof Element, BrowserKey extends keyof BrowserObject, IsElement extends boolean>(
+            name: IsElement extends true ? ElementKey : BrowserKey,
+            func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
+            attachToElement?: IsElement
         ): void;
 
         /**
