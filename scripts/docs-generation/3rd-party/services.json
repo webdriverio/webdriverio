@@ -59,7 +59,6 @@
     "githubUrl": "https://github.com/wswebcreation/wdio-image-comparison-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-image-comparison-service"
   },
-
   {
     "packageName": "wdio-parallel-runner-service",
     "title": "Parallel Runner",
