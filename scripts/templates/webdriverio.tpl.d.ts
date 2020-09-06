@@ -588,7 +588,7 @@ declare namespace WebdriverIO {
         /**
          * add command to `browser` or `element` scope
          */
-        addCommand<IsElement extends boolean>(
+        addCommand<IsElement extends boolean = false>(
             name: string,
             func: AddCommandFn<IsElement>,
             attachToElement?: IsElement
@@ -597,7 +597,7 @@ declare namespace WebdriverIO {
         /**
          * overwrite `browser` or `element` command
          */
-        overwriteCommand<ElementKey extends keyof Element, BrowserKey extends keyof BrowserObject, IsElement extends boolean>(
+        overwriteCommand<ElementKey extends keyof Element, BrowserKey extends keyof BrowserObject, IsElement extends boolean = false>(
             name: IsElement extends true ? ElementKey : BrowserKey,
             func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
             attachToElement?: IsElement

@@ -273,9 +273,9 @@ browser.addCommand('sleep', async function (ms: number) {
     return this.pause(ms).catch()
 }, false)
 
-// browser.addCommand('sleep', async function (ms: number) {
-//     return this.pause(ms).catch()
-// })
+browser.addCommand('sleep', async function (ms: number) {
+    return this.pause(ms).catch()
+})
 
 // overwriteCommand
 
@@ -293,9 +293,9 @@ browser.overwriteCommand('pause', async function (pause, ms = 1000) {
     return pause(ms).catch()
 }, false)
 
-// browser.overwriteCommand('pause', async function (pause, ms = 1000) {
-//     return pause(ms).catch()
-// })
+browser.overwriteCommand('pause', async function (pause, ms = 1000) {
+    return pause(ms).catch()
+})
 
 // allure-reporter
 allure.addFeature('')

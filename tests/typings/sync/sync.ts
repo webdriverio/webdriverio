@@ -228,9 +228,9 @@ browser.addCommand('sleep', function (ms: number) {
     this.pause(ms)
 }, false)
 
-// browser.addCommand('sleep', function (ms: number) {
-//     this.pause(ms)
-// })
+browser.addCommand('sleep', function (ms: number) {
+    this.pause(ms)
+})
 
 // overwriteCommand
 
@@ -248,8 +248,8 @@ browser.overwriteCommand('pause', function (pause, ms = 1000) {
     pause(ms)
 }, false)
 
-// browser.overwriteCommand('pause', function (pause, ms = 1000) {
-//     pause(ms)
-// })
+browser.overwriteCommand('pause', function (pause, ms = 1000) {
+    pause(ms)
+})
 
 export default {}
