@@ -44,7 +44,7 @@ await el.click()
 
 ## Sync mode
 
-If you're using [`@wdio/sync`](https://www.npmjs.com/package/@wdio/sync) then you can avoid awaiting for browser/element calls. It is still required to deal with Promises from 3rd-party libraries, you should use [browser.call](docs/api/browser/call.html) for this.
+If you're using [`@wdio/sync`](https://www.npmjs.com/package/@wdio/sync) then you can avoid awaiting for browser/element calls. It is still required to deal with Promises from 3rd-party libraries, you should use [browser.call](api/browser/call.html) for this.
 
 Example
 
