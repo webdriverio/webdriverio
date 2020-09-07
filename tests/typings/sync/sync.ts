@@ -67,10 +67,6 @@ const { x: x0, y: y0, width: w, height: h } = browser.getWindowSize()
 // browser custom command
 browser.browserCustomCommand(5)
 
-browser.overwriteCommand('click', function (origCommand) {
-    origCommand()
-}, true)
-
 // $
 const el1 = $('')
 const strFunction = (str: string) => str
@@ -219,5 +215,41 @@ mock.restore()
 const match = mock.calls[0]
 match.body
 match.headers
+
+// addCommand
+
+// element
+browser.addCommand('getClass', function () {
+    return this.getAttribute('class')
+}, true)
+
+// browser
+browser.addCommand('sleep', function (ms: number) {
+    this.pause(ms)
+}, false)
+
+browser.addCommand('sleep', function (ms: number) {
+    this.pause(ms)
+})
+
+// overwriteCommand
+
+// element
+type ClickOptionsExtended = WebdriverIO.ClickOptions & { wait?: boolean }
+browser.overwriteCommand('click', function (clickFn, opts: ClickOptionsExtended = {}) {
+    if (opts.wait) {
+        this.waitForClickable()
+    }
+    clickFn(opts)
+}, true)
+
+// browser
+browser.overwriteCommand('pause', function (pause, ms = 1000) {
+    pause(ms)
+}, false)
+
+browser.overwriteCommand('pause', function (pause, ms = 1000) {
+    pause(ms)
+})
 
 export default {}
