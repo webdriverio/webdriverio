@@ -36,7 +36,7 @@ export default class JasmineReporter {
         this.testStart = new Date()
         test.type = 'test'
         test.start = new Date()
-        let parentSuite = this.parent[this.parent.length - 1]
+        const parentSuite = this.parent[this.parent.length - 1]
 
         /**
          * if jasmine test has no root describe block, create one
