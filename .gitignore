@@ -66,8 +66,8 @@ tests/typings/**/dist
 /*.js
 allure-reporter.d.ts
 devtools.d.ts
-!babel.config.js
 !.eslintrc.js
+!jest.config.js
 packages/**/package-lock.json
 .DS_Store
 

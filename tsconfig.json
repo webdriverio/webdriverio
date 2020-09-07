@@ -4,12 +4,12 @@
     "module": "commonjs",
     "allowJs": true,
     "declaration": false,
-    "sourceMap": true,
     "removeComments": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "inlineSourceMap": true
   },
   "exclude": [
     "node_modules",
