@@ -33,27 +33,35 @@
 import vm from 'vm'
 import repl from 'repl'
 
+// @ts-ignore
 import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/utils'
 
-import { STATIC_RETURNS, INTRO_MESSAGE } from './constants'
+import { STATIC_RETURNS, INTRO_MESSAGE, DEFAULT_CONFIG } from './constants'
+
+export interface ReplConfig {
+    commandTimeout: number,
+    eval: repl.REPLEval,
+    prompt: string,
+    useGlobal: true,
+    useColor: true
+}
 
 export default class WDIORepl {
     static introMessage = INTRO_MESSAGE
+    private _config: ReplConfig
+    private _isCommandRunning = false
+    private _replServer: repl.REPLServer | undefined
 
-    constructor(config) {
-        this.config = Object.assign({
-            commandTimeout: 5000,
-            eval: this.eval.bind(this),
-            prompt: '\u203A ',
-            useGlobal: true,
-            useColor: true
-        }, config)
-
-        this.isCommandRunning = false
+    constructor(config: ReplConfig) {
+        this._config = Object.assign(
+            DEFAULT_CONFIG,
+            { eval: this.eval.bind(this) },
+            config
+        )
     }
 
-    eval(cmd, context, filename, callback) {
-        if (this.isCommandRunning) {
+    eval (cmd: string, context: vm.Context, filename: string, callback: (err: Error | null, result: any) => void) {
+        if (this._isCommandRunning) {
             return
         }
 
@@ -62,7 +70,7 @@ export default class WDIORepl {
         }
 
         vm.createContext(context)
-        this.isCommandRunning = true
+        this._isCommandRunning = true
 
         /* istanbul ignore if */
         if (hasWdioSyncSupport) {
@@ -73,71 +81,79 @@ export default class WDIORepl {
         return this._runCmd(cmd, context, callback)
     }
 
-    _runCmd(cmd, context, callback) {
+    private _runCmd (cmd: string, context: vm.Context, callback: (err: Error | null, result: any) => void) {
         try {
             const result = vm.runInContext(cmd, context)
             return this._handleResult(result, callback)
         } catch (e) {
-            this.isCommandRunning = false
-            return callback(e)
+            this._isCommandRunning = false
+            return callback(e, undefined)
         }
     }
 
-    _handleResult(result, callback) {
+    private _handleResult (result: any, callback: (err: Error | null, result: any) => void) {
         if (!result || typeof result.then !== 'function') {
-            this.isCommandRunning = false
+            this._isCommandRunning = false
             return callback(null, result)
         }
 
+        let timeoutCalled = false
         const timeout = setTimeout(
             () => {
-                callback(new Error('Command execution timed out'))
-                this.isCommandRunning = false
-                timeout._called = true
+                callback(new Error('Command execution timed out'), undefined)
+                this._isCommandRunning = false
+                timeoutCalled = true
             },
-            this.config.commandTimeout
+            this._config.commandTimeout
         )
 
-        result.then((res) => {
+        result.then((res: any) => {
             /**
              * don't do anything if timeout was called
              */
-            if (timeout._called) {
+            if (timeoutCalled) {
                 return
             }
-            this.isCommandRunning = false
+            this._isCommandRunning = false
             clearTimeout(timeout)
             return callback(null, res)
-        }, (e) => {
+        }, (e: Error) => {
             /**
              * don't do anything if timeout was called
              */
-            if (timeout._called) {
+            if (timeoutCalled) {
                 return
             }
 
-            this.isCommandRunning = false
+            this._isCommandRunning = false
             clearTimeout(timeout)
             const errorMessage = e ? e.message : 'Command execution timed out'
             const commandError = new Error(errorMessage)
             delete commandError.stack
-            return callback(commandError)
+            return callback(commandError, undefined)
         })
     }
 
-    start(context) {
-        if (this.replServer) {
+    start (context: vm.Context) {
+        if (this._replServer) {
             throw new Error('a repl was already initialised')
         }
 
         if (context) {
-            const evalFn = this.config.eval
-            this.config.eval = (cmd, _, filename, callback) => evalFn(cmd, context, filename, callback)
+            const evalFn = this._config.eval
+            this._config.eval = function (cmd, _, filename, callback) {
+                return evalFn.call(this, cmd, context, filename, callback)
+            }
         }
 
-        this.replServer = repl.start(this.config)
+        this._replServer = repl.start(this._config)
 
-        return new Promise(
-            (resolve) => this.replServer.on('exit', resolve))
+        return new Promise((resolve) => {
+            if (!this._replServer) {
+                return
+            }
+
+            return this._replServer.on('exit', resolve)
+        })
     }
 }

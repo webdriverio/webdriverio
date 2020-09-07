@@ -3,9 +3,7 @@ module.exports = {
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint'],
     extends: [
-        'eslint:recommended',
-        'plugin:import/errors',
-        'plugin:import/warnings'
+        'eslint:recommended'
     ],
     env: {
         node: true,
@@ -18,12 +16,6 @@ module.exports = {
     rules: {
         semi: ['error', 'never'],
         indent: [2, 4],
-
-        'import/no-unresolved': [2, { commonjs: true, amd: true }],
-        'import/named': 2,
-        'import/namespace': 2,
-        'import/default': 2,
-        'import/export': 2,
 
         'no-multiple-empty-lines': [2, { 'max': 1, 'maxEOF': 1 }],
         'array-bracket-spacing': ['error', 'never'],
@@ -41,5 +33,12 @@ module.exports = {
         'unicode-bom': ['error', 'never'],
         'object-curly-spacing': ['error', 'always'],
         'require-atomic-updates': 0
-    }
+    },
+    overrides: [{
+        files: ['*.ts', '*.tsx'],
+        rules: {
+            // see https://github.com/typescript-eslint/typescript-eslint/issues/46
+            '@typescript-eslint/no-unused-vars': [2, { args: 'none' }]
+        }
+    }]
 }
