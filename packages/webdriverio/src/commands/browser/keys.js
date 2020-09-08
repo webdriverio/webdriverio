@@ -35,7 +35,7 @@ export default function keys (value) {
      */
     if (typeof value === 'string') {
         keySequence = checkUnicode(value, this.isDevTools)
-    } else if (value instanceof Array) {
+    } else if (Array.isArray(value)) {
         for (const charSet of value) {
             keySequence = keySequence.concat(checkUnicode(charSet, this.isDevTools))
         }
