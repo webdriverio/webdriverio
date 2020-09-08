@@ -258,6 +258,13 @@ test('onPrepare without tunnel identifier and without w3c caps ', async () => {
     }, {
         browserName: 'firefox',
         tunnelIdentifier: 'fish'
+    }, {
+        deviceName: 'iPhone',
+        platformName: 'iOS',
+        tunnelIdentifier: 'fish-bar'
+    }, {
+        deviceName: 'iPhone',
+        platformName: 'iOS',
     }]
     const config = {
         user: 'foobaruser',
@@ -272,6 +279,13 @@ test('onPrepare without tunnel identifier and without w3c caps ', async () => {
     }, {
         browserName: 'firefox',
         tunnelIdentifier: 'fish'
+    }, {
+        deviceName: 'iPhone',
+        platformName: 'iOS',
+        tunnelIdentifier: 'fish-bar'
+    }, {
+        deviceName: 'iPhone',
+        platformName: 'iOS',
     }])
     expect(service.sauceConnectProcess).toBeUndefined()
 })
