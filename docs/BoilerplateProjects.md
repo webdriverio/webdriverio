@@ -79,6 +79,26 @@ Build your angular e2e test with wdio. This project uses a new angular cli build
   - Completely integrated into angular workspace (angular.json)
   - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.
 
+### [WarleyGabriel/demo-webdriverio-cucumber](https://github.com/WarleyGabriel/demo-webdriverio-cucumber)
+
+Boilerplate project to run E2E tests with Cucumber.
+
+- Frameworks:
+    - WebdriverIO (v6)
+    - Cucumber
+- Features:
+    - TypeScript
+    - [Expect-webdriverio](https://github.com/webdriverio/expect-webdriverio)
+    - [Page Object](PageObjects.md) Pattern
+    - [Gherkin lint](https://github.com/vsiakka/gherkin-lint)
+    - Scripts to check undefined and unused steps on step/feature files
+    - [Commit lint](https://github.com/conventional-changelog/commitlint) and [Commitizen](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
+    - ESlint
+    - Prettier
+    - Husky
+    - Github Actions example
+    - Allure report (screenshots on failure) and Timeline report
+
 ### [SimitTomar/webdriverio-cucumber-pom-boilerplate](https://github.com/SimitTomar/webdriverio-cucumber-pom-boilerplate)
 
 A WebdriverIO & Cucumber Boilerplate based on Page Object Model!
@@ -329,19 +349,6 @@ A powerful boilerplate to run E2E and visual regression tests with Mocha.
     - Chai
     - Multiple reports (Spec, Dot, Allure, Timeline)
     - Visual regression tests (Image comparison service)
-    - Code formatter (ESlint, Prettier)
-    - Husky
-
-### [WarleyGabriel/demo-webdriverio-cucumber](https://github.com/WarleyGabriel/demo-webdriverio-cucumber)
-
-A powerful boilerplate project to run E2E tests with Cucumber.
-
-- Framework: Cucumber (v5.x)
-- Features:
-    - [Page Object](PageObjects.md) Pattern
-    - ES6 style class-based approach, and full ES6–ES8 support through Babel
-    - Chai
-    - Multiple reports (Spec, Dot, Allure, Timeline)
     - Code formatter (ESlint, Prettier)
     - Husky
 
