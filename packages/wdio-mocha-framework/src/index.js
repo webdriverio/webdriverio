@@ -46,20 +46,20 @@ class MochaAdapter {
     async init() {
         const { mochaOpts } = this.config
         const mocha = this.mocha = new Mocha(mochaOpts)
-        mocha.loadFiles()
+        await mocha.loadFilesAsync()
         mocha.reporter(NOOP)
         mocha.fullTrace()
 
         this.specs.forEach((spec) => mocha.addFile(spec))
         mocha.suite.on('pre-require', this.preRequire.bind(this))
-        this._loadFiles(mochaOpts)
+        await this._loadFiles(mochaOpts)
 
         return this
     }
 
-    _loadFiles(mochaOpts) {
+    async _loadFiles(mochaOpts) {
         try {
-            this.mocha.loadFiles()
+            await this.mocha.loadFilesAsync()
 
             /**
              * grep
