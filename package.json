@@ -23,6 +23,7 @@
     "link": "node ./scripts/link",
     "release": "NODE_ENV=production npm run setup-full && npm run generate:typings && lerna publish --exact",
     "release:next": "npm run release -- --dist-tag next",
+    "postPublish": "./scripts/pushTags.js",
     "setup-full": "run-s bootstrap-full build-full",
     "setup": "run-s bootstrap build",
     "docs": "run-s docs:*",
