@@ -9,4 +9,4 @@ const shell = require('shelljs')
 const { version } = require('../lerna.json')
 
 console.log('\nPushing release tag...')
-shell.exec(`git push origin master v${version} -f --no-verify`)
+shell.exec(`git push origin refs/tags/v${version} -f --no-verify`)
