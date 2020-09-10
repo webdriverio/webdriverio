@@ -35,9 +35,6 @@
       "junit-reporter": {
         "title": "Junit Reporter"
       },
-      "rpii-wdio-html-reporter": {
-        "title": "HTML Reporter"
-      },
       "sauce-service": {
         "title": "Sauce Service"
       },
@@ -59,63 +56,6 @@
       "testingbot-service": {
         "title": "Testingbot Service"
       },
-      "wdio-chromedriver-service": {
-        "title": "ChromeDriver Service"
-      },
-      "wdio-cucumberjs-json-reporter": {
-        "title": "CucumberJS JSON Reporter"
-      },
-      "wdio-docker-service": {
-        "title": "Docker Service"
-      },
-      "wdio-image-comparison-service": {
-        "title": "Visual Regression Testing Service"
-      },
-      "wdio-intercept-service": {
-        "title": "Intercept Service"
-      },
-      "wdio-json-reporter": {
-        "title": "JSON Reporter"
-      },
-      "wdio-lambdatest-service": {
-        "title": "LambdaTest Service"
-      },
-      "wdio-markdown-reporter": {
-        "title": "Markdown Reporter"
-      },
-      "wdio-mochawesome-reporter": {
-        "title": "Mochawesome Reporter"
-      },
-      "wdio-ng-apimock-service": {
-        "title": "Ng-apimock Service"
-      },
-      "wdio-novus-visual-regression-service": {
-        "title": "Novus Visual Regression Service"
-      },
-      "wdio-reportportal-reporter": {
-        "title": "Report Portal Reporter"
-      },
-      "wdio-reportportal-service": {
-        "title": "Report Portal Service"
-      },
-      "wdio-rerun-service": {
-        "title": "Re-run Service"
-      },
-      "wdio-slack-service": {
-        "title": "Slack Service"
-      },
-      "wdio-timeline-reporter": {
-        "title": "Timeline Reporter"
-      },
-      "wdio-video-reporter": {
-        "title": "Video Reporter"
-      },
-      "wdio-wiremock-service": {
-        "title": "WireMock Service"
-      },
-      "wdio-zafira-listener-service": {
-        "title": "Zafira Listener Service"
-      },
       "webdriver-mock-service": {
         "title": "Webdriver Mock Service"
       },
@@ -127,6 +67,9 @@
       },
       "api/chromium": {
         "title": "Chromium"
+      },
+      "api/expect-webdriverio": {
+        "title": "Expect"
       },
       "api/jsonwp": {
         "title": "JSON Wire Protocol"
@@ -362,9 +305,6 @@
       "api/element/waitUntil": {
         "title": "waitUntil"
       },
-      "api/expect": {
-        "title": "Expect"
-      },
       "api/mock/abort": {
         "title": "abort"
       },
@@ -424,6 +364,66 @@
       },
       "debugging": {
         "title": "Debugging"
+      },
+      "docs/rpii-wdio-html-reporter": {
+        "title": "HTML Reporter"
+      },
+      "docs/wdio-chromedriver-service": {
+        "title": "ChromeDriver Service"
+      },
+      "docs/wdio-cucumberjs-json-reporter": {
+        "title": "CucumberJS JSON Reporter"
+      },
+      "docs/wdio-docker-service": {
+        "title": "Docker Service"
+      },
+      "docs/wdio-image-comparison-service": {
+        "title": "Visual Regression Testing Service"
+      },
+      "docs/wdio-intercept-service": {
+        "title": "Intercept Service"
+      },
+      "docs/wdio-json-reporter": {
+        "title": "JSON Reporter"
+      },
+      "docs/wdio-lambdatest-service": {
+        "title": "LambdaTest Service"
+      },
+      "docs/wdio-markdown-reporter": {
+        "title": "Markdown Reporter"
+      },
+      "docs/wdio-mochawesome-reporter": {
+        "title": "Mochawesome Reporter"
+      },
+      "docs/wdio-ng-apimock-service": {
+        "title": "Ng-apimock Service"
+      },
+      "docs/wdio-novus-visual-regression-service": {
+        "title": "Novus Visual Regression Service"
+      },
+      "docs/wdio-reportportal-reporter": {
+        "title": "Report Portal Reporter"
+      },
+      "docs/wdio-reportportal-service": {
+        "title": "Report Portal Service"
+      },
+      "docs/wdio-rerun-service": {
+        "title": "Re-run Service"
+      },
+      "docs/wdio-slack-service": {
+        "title": "Slack Service"
+      },
+      "docs/wdio-timeline-reporter": {
+        "title": "Timeline Reporter"
+      },
+      "docs/wdio-video-reporter": {
+        "title": "Video Reporter"
+      },
+      "docs/wdio-wiremock-service": {
+        "title": "WireMock Service"
+      },
+      "docs/wdio-zafira-listener-service": {
+        "title": "Zafira Listener Service"
       },
       "driverbinaries": {
         "title": "Driver Binaries"
