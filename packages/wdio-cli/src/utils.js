@@ -8,7 +8,6 @@ import { SevereServiceError } from 'webdriverio'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
 
-import { runConfig } from './commands/config'
 import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
 
 const log = logger('@wdio/cli:utils')
@@ -203,29 +202,6 @@ export async function renderConfigurationFile (answers) {
     const renderedTpl = await renderFile(tplPath, { answers })
 
     fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
-}
-
-export async function missingConfigurationPrompt(command, message, useYarn = false) {
-    const { config } = await inquirer.prompt([
-        {
-            type: 'confirm',
-            name: 'config',
-            message: `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`,
-            default: false
-        }
-    ])
-
-    /**
-     * don't exit if running unit tests
-     */
-    if (!config && !process.env.JEST_WORKER_ID) {
-        /* istanbul ignore next */
-        console.log(message)
-        /* istanbul ignore next */
-        return process.exit(0)
-    }
-
-    return await runConfig(useYarn, false, true)
 }
 
 export const validateServiceAnswers = (answers) => {
