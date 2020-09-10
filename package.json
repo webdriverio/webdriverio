@@ -7,7 +7,7 @@
     "bootstrap-full": "npm run clean && lerna bootstrap --no-ci && npm run link",
     "bootstrap": "run-p clean:* && lerna bootstrap --force-local && npm run link",
     "build-full": "lerna run --parallel build",
-    "build": "npm run clean:build && lerna run --parallel tsc && lerna run --parallel copy",
+    "build": "npm run clean:build && lerna run --parallel compile && lerna run --parallel copy",
     "changelog": "node ./scripts/changelog.js",
     "ci": "run-s setup-full test test:e2e",
     "clean": "run-p clean-full:* clean:*",
