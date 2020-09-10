@@ -54,6 +54,47 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
   - Page Object Pattern
   - Sauce Labs integration
 
+### [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
+
+- Framework: Cucumber (v5.x)
+- Features:
+    - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
+    - Examples of multi selector option to query element with more than one selector at a time
+    - Examples of multi browser and headless browser execution using - Chrome and Firefox
+    - Integration with BrowserStack, Sauce Labs
+    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
+    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
+    - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
+    - Task manage through Grunt
+    - Examples with demo app https://search.yahoo.com/  and http://the-internet.herokuapp.com, Chai assertion liberary (expect, assert, should)
+    - `Appium specific .config file for playback on mobile device.` For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+
+### [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
+
+- Framework: Mocha (v5.x)
+- Features:
+    -  Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
+    - Task manage through Grunt
+    -  Examples with demo app https://search.yahoo.com  and http://the-internet.herokuapp.com
+    -  Examples of multi browser and headless browser execution using - Chrome and Firefox
+    -  Examples of Multiple reporting (Spec, Junit, Allure), plus local view of Junit report (.html) format
+    -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
+    -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
+    - `Appium specific .config file for playback on mobile device.` For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+
+### [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
+
+- Framework: Jasmine (v3.x)
+- Features:
+    -  Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
+    -  Task manage through Grunt
+    -  Examples with demo app https://search.yahoo.com  and http://the-internet.herokuapp.com
+    -  Examples of multi browser and headless browser execution using - Chrome and Firefox
+    -  Examples of Multiple reporting (Spec, Junit, Allure), plus local view of Junit report (.html) format
+    -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
+    -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
+     - `Appium specific .config file for playback on mobile device.` For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+
 ### [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
 ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
 
