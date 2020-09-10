@@ -13,8 +13,10 @@
   },
   "exclude": [
     "node_modules",
+    "packages/**/node_modules",
     "**/*.spec.ts",
     "e2e/**/*",
-    "expect-webdriverio"
+    "expect-webdriverio",
+    "coverage"
   ]
 }
