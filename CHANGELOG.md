@@ -17,6 +17,42 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.4.7 (2020-09-10)
+
+#### :bug: Bug Fix
+* `wdio-mocha-framework`
+  * [#5809](https://github.com/webdriverio/webdriverio/pull/5809) Support ESM specs with Mocha ([@diachedelic](https://github.com/diachedelic))
+* `wdio-sauce-service`
+  * [#5805](https://github.com/webdriverio/webdriverio/pull/5805) Fix Unified Platform and Sauce Connect bug ([@wswebcreation](https://github.com/wswebcreation))
+* `webdriverio`
+  * [#5806](https://github.com/webdriverio/webdriverio/pull/5806) Check array input parameter using Array.isArray ([@zabil](https://github.com/zabil))
+
+#### :memo: Documentation
+* Other
+  * [#5808](https://github.com/webdriverio/webdriverio/pull/5808) Update cucumber boilerplate to webdriverio v6 ([@WarleyGabriel](https://github.com/WarleyGabriel))
+  * [#5774](https://github.com/webdriverio/webdriverio/pull/5774) Add names of mentors will to give 1:1 help to "help" page ([@klamping](https://github.com/klamping))
+  * [#5800](https://github.com/webdriverio/webdriverio/pull/5800) Fixed broken links for browser.call page ([@pjcalvo](https://github.com/pjcalvo))
+* `wdio-sync`, `webdriverio`
+  * [#5799](https://github.com/webdriverio/webdriverio/pull/5799) addCommand and overwriteCommand types ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* Other
+  * [#5794](https://github.com/webdriverio/webdriverio/pull/5794) Add script to push release tag ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-lambda-runner`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-shared-store-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-sync`, `wdio-testingbot-service`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#5446](https://github.com/webdriverio/webdriverio/pull/5446) 5424 setup typescript (Work in progress, do not merge) ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 9
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Pablillo Calvo ([@pjcalvo](https://github.com/pjcalvo))
+- Warley Gabriel ([@WarleyGabriel](https://github.com/WarleyGabriel))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- Zabil Cheriya Maliackal ([@zabil](https://github.com/zabil))
+- [@diachedelic](https://github.com/diachedelic)
+
+
 ## v6.4.6 (2020-09-03)
 
 #### :bug: Bug Fix
