@@ -25,7 +25,7 @@ test('should send command to child process', () => {
     const callback = jest.fn()
     const repl = new WDIORunnerRepl(childProcess, {})
 
-    expect(repl.commandIsRunning).toBe(undefined)
+    expect(repl.commandIsRunning).toBe(false)
     expect(repl.callback).toBe(undefined)
     repl.eval('1+1', null, null, callback)
     expect(repl.commandIsRunning).toBe(true)

@@ -149,11 +149,7 @@ export default class WDIORepl {
         this._replServer = repl.start(this._config)
 
         return new Promise((resolve) => {
-            if (!this._replServer) {
-                return
-            }
-
-            return this._replServer.on('exit', resolve)
+            return (this._replServer as repl.REPLServer).on('exit', resolve)
         })
     }
 }

@@ -1,19 +1,18 @@
 import vm from 'vm'
 import replMock from 'repl'
-import expect from 'expect'
 
 import WDIORepl, { ReplConfig } from '../src/index'
 
+let runInContextFail = false
 jest.mock('vm', () => {
     class VMMock {
         createContext: () => any
         runInContext: () => any
-        runInContextFail: boolean = false
 
         constructor () {
             this.createContext = jest.fn(),
             this.runInContext = jest.fn().mockImplementation(() => {
-                if (this.runInContextFail) {
+                if (runInContextFail) {
                     throw new Error('boom!')
                 }
 
@@ -44,6 +43,10 @@ const defaultArgs: ReplConfig = {
     useGlobal: true,
     useColor: true,
     eval: () => {}
+}
+
+interface SomeContext {
+    foo: string;
 }
 
 describe('eval', () => {
@@ -103,8 +106,7 @@ describe('runCmd', () => {
         const repl = new WDIORepl(defaultArgs)
         const callback = jest.fn()
 
-        // @ts-ignore
-        vm.runInContextFail = true
+        runInContextFail = true
         repl['_runCmd']('1+1', {}, callback)
         expect(callback).toBeCalled()
         expect(repl['_isCommandRunning']).toBe(false)
@@ -180,8 +182,7 @@ describe('handleResult', () => {
 describe('start', () => {
     it('should throw repl server was already started', () => {
         const repl = new WDIORepl(defaultArgs)
-        // @ts-ignore
-        repl._replServer = true
+        repl['_replServer'] = {} as replMock.REPLServer
         expect(() => repl.start({})).toThrow()
     })
 
@@ -190,22 +191,27 @@ describe('start', () => {
         await repl.start({})
         expect(replMock.start).toBeCalled()
 
-        // @ts-ignore
-        expect(repl._replServer.on).toBeCalled()
+        expect((repl['_replServer'] as replMock.REPLServer).on).toBeCalled()
     })
 
     it('should allow run eval with own context', async () => {
-        const config = { ...defaultArgs, eval: jest.fn() }
+        const config = {
+            ...defaultArgs,
+            eval: jest.fn().mockImplementation(function () {
+                this.foo = 'foobar'
+            })
+        }
         const repl = new WDIORepl(config)
         await repl.start({})
 
-        // @ts-ignore
-        repl._config.eval('1+1', {}, '/some/filename', jest.fn())
+        const context = { foo: 'bar' } as SomeContext
+        repl['_config'].eval.call(context as unknown as replMock.REPLServer, '1+1', {}, '/some/filename', jest.fn())
         expect(config.eval).toBeCalledWith(
             '1+1',
             expect.any(Object),
             '/some/filename',
             expect.any(Function)
         )
+        expect(context.foo).toBe('foobar')
     })
 })
