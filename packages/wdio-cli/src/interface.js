@@ -21,6 +21,7 @@ export default class WDIOCLInterface extends EventEmitter {
         this.isWatchMode = isWatchMode
         this.inDebugMode = false
         this.specFileRetries = config.specFileRetries || 0
+        this.specFileRetriesDelay = config.specFileRetriesDelay || 0
         this.skippedSpecs = 0
 
         this.on('job:start', this.addJob.bind(this))
@@ -72,7 +73,8 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onSpecRetry(cid, job, retries) {
-        this.onJobComplete(cid, job, retries, chalk.bold.yellow('RETRYING'))
+        const delayMsg = this.specFileRetriesDelay > 0 ? ` after ${this.specFileRetriesDelay}s` : ''
+        this.onJobComplete(cid, job, retries, chalk.bold(chalk.yellow('RETRYING') + delayMsg))
     }
 
     onSpecPass(cid, job, retries) {

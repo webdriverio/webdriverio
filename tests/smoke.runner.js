@@ -3,6 +3,8 @@ import path from 'path'
 import assert from 'assert'
 import { promisify } from 'util'
 
+import { sleep } from '../packages/wdio-utils/src/utils'
+
 const fs = {
     readFile: promisify(readFile),
     unlink: promisify(unlink),
@@ -18,8 +20,6 @@ import {
     JASMINE_REPORTER_LOGS,
     CUCUMBER_REPORTER_LOGS,
 } from './helpers/fixtures'
-
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
 async function runTests (tests) {
     /**
@@ -289,6 +289,7 @@ const retryPass = async () => {
             specs: [path.resolve(__dirname, 'mocha', 'retry_and_pass.js')],
             outputDir: path.dirname(logfiles[0]),
             specFileRetries: 1,
+            specFileRetriesDelay: 1,
             retryFilename
         })
     if (!await fs.exists(logfiles[0])) {

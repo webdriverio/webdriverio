@@ -184,6 +184,12 @@ The number of times to retry an entire specfile when it fails as a whole.
 Type: `Number`<br>
 Default: `0`
 
+### specFileRetriesDelay
+Delay in seconds between the spec file retry attempts
+
+Type: `Number`<br>
+Default: `0`
+
 ### specFileRetriesDeferred
 Whether or not retried specfiles should be retried immediately or deferred to the end of the queue.
 

@@ -131,6 +131,10 @@ declare namespace WebdriverIO {
         specFileRetries?: number;
         readonly specFileRetryAttempts?: number;
         /**
+         * Delay in seconds between the spec file retry attempts
+         */
+        specFileRetriesDelay?: number;
+        /**
          * Default timeout for all `waitFor*` commands. (Note the lowercase f in the option name.)
          * This timeout only affects commands starting with `waitFor*` and their default wait time.
          */
