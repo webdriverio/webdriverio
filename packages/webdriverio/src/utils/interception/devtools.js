@@ -29,11 +29,10 @@ export default class DevtoolsInterception extends Interception {
                  * match filter options
                  */
                 if (
-                    /**
-                     * HTTP method
-                     */
-                    (mock.filterOptions.method && mock.filterOptions.method.toLowerCase() !== request.method.toLowerCase()) ||
-                    (mock.filterOptions.headers && !containsHeaderObject(responseHeaders, mock.filterOptions.headers))
+                    filterMethod(request.method, mock.filterOptions.method) ||
+                    filterHeaders(request.headers, mock.filterOptions.requestHeaders) ||
+                    filterHeaders(responseHeaders, mock.filterOptions.headers) ||
+                    filterRequest(request.postData, mock.filterOptions.postData)
                 ) {
                     continue
                 }
@@ -43,6 +42,7 @@ export default class DevtoolsInterception extends Interception {
                     { requestId }
                 ).catch(() => ({}))
 
+                mock.responseHeaders = { ...responseHeaders }
                 request.body = base64Encoded ? atob(body) : body
                 request.body = responseHeaders['Content-Type'] && responseHeaders['Content-Type'].includes('application/json')
                     ? JSON.parse(request.body)
@@ -178,4 +178,22 @@ export default class DevtoolsInterception extends Interception {
     abortOnce (errorReason) {
         this.abort(errorReason, false)
     }
+}
+
+const filterMethod = (method, expected) => {
+    return expected && expected.toLowerCase() !== method.toLowerCase()
+}
+
+const filterHeaders = (responseHeaders, expected) => {
+    return expected && !containsHeaderObject(responseHeaders, expected)
+}
+
+const filterRequest = (postData, expected) => {
+    if (typeof expected === 'undefined') {
+        return false
+    }
+    if (typeof expected === 'function') {
+        return expected(postData) !== true
+    }
+    return postData !== expected
 }
