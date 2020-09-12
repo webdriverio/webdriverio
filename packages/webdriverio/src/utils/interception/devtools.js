@@ -33,7 +33,7 @@ export default class DevtoolsInterception extends Interception {
                      * HTTP method
                      */
                     (mock.filterOptions.method && mock.filterOptions.method.toLowerCase() !== request.method.toLowerCase()) ||
-                    (mock.filterOptions.headers && containsHeaderObject(responseHeaders, mock.filterOptions.headers))
+                    (mock.filterOptions.headers && !containsHeaderObject(responseHeaders, mock.filterOptions.headers))
                 ) {
                     continue
                 }
