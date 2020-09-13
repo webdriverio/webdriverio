@@ -26,19 +26,43 @@ test('allows to access network calls', async () => {
     expect(mock.calls.length).toBe(1)
 })
 
-test('allows to filter network calls by header', async () => {
-    const mock = new NetworkInterception('**/foobar/**', {
-        headers: { 'Content-Type': 'text/xml' }
+describe('filter by header', () => {
+    const mockWithCall = async (filter) => {
+        const mock = new NetworkInterception('**/foobar/**', filter)
+        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+            request: { url: 'http://test.com/foobar/test1.html', method: 'put' },
+            responseHeaders: [{ name: 'Content-Type', value: 'text/xml' }]
+        })
+        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+            request: { url: 'http://test.com/foobar/test2.html', method: 'put' },
+            responseHeaders: [{ name: 'Content-Type', value: 'foobar' }]
+        })
+        return mock
+    }
+
+    test('filter network calls by header - 1 match', async () => {
+        const mock = await mockWithCall({
+            method: 'put',
+            headers: { 'Content-Type': 'text/xml' }
+        })
+
+        expect(mock.calls.length).toBe(1)
+        expect(mock.calls[0].url).toBe('http://test.com/foobar/test1.html')
     })
-    await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-        request: { url: 'http://test.com/foobar/test.html' },
-        responseHeaders: [{ name: 'Content-Type', value: 'text/xml' }]
+
+    test('filter network calls by header - no match value', async () => {
+        const mock = await mockWithCall({
+            headers: { 'Content-Type': 'no match' }
+        })
+        expect(mock.calls.length).toBe(0)
     })
-    await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-        request: { url: 'http://test.com/foobar/test.html' },
-        responseHeaders: [{ name: 'Content-Type', value: 'foobar' }]
+
+    test('filter network calls by header - no match key', async () => {
+        const mock = await mockWithCall({
+            headers: { 'foo': 'bar' }
+        })
+        expect(mock.calls.length).toBe(0)
     })
-    expect(mock.calls.length).toBe(1)
 })
 
 test('allows to filter network calls by method', async () => {
