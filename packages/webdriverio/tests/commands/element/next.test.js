@@ -28,7 +28,6 @@ describe('prevSibling test', () => {
         expect(elems[2].ELEMENT).toBe(undefined)
         expect(elems[2].selector).toBe('#subfoo')
         expect(elems[2].index).toBe(2)
-        // const result = await 
         expect(elems[1].next().elementId).toBe('some-sub-elem-789')
     })
 
