@@ -26,6 +26,7 @@ export const isFocused = require('./element/isFocused').default
 export const isSelected = require('./element/isSelected').default
 export const moveTo = require('./element/moveTo').default
 export const next = require('./element/next').default
+export const parentElement = require('./element/parentElement').default
 export const prev = require('./element/prev').default
 export const react$$ = require('./element/react$$').default
 export const react$ = require('./element/react$').default
