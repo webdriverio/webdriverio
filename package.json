@@ -59,7 +59,6 @@
     "ts:webdriverio-jasmine": "cd tests/typings/webdriverio-jasmine && tsc --incremental",
     "ts:webdriverio-reporter": "cd tests/typings/webdriverio-reporter && tsc --incremental",
     "watch": "node ./scripts/build --watch",
-    "watch:pkg": "node ./scripts/build --watch",
     "version": "npm run changelog && git add CHANGELOG.md"
   },
   "devDependencies": {

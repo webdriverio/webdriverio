@@ -30,11 +30,35 @@ inquirer.prompt(questions).then(answers => {
     const mainPackageFolderFiles = [
         {
             name: '.npmignore',
-            content: 'src\ntests'
+            content: 'src\ntests\ntsconfig.json\ntsconfig.prod.json'
         },
         {
-            name: '.npmrc',
-            content: `message = "${fullPackageName}: bump version %s"`
+            name: 'tsconfig.json',
+            content: `{
+    "extends": "../../tsconfig",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "outDir": "./build",
+        "rootDir": "./src"
+    },
+    "include": [
+        "src/**/*"
+    ]
+}`
+        },
+        {
+            name: 'tsconfig.prod.json',
+            content: `{
+    "extends": "../../tsconfig.prod",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "outDir": "./build",
+        "rootDir": "./src"
+    },
+    "include": [
+        "src/**/*"
+    ]
+}`
         },
         {
             name: 'package.json',
@@ -48,14 +72,6 @@ inquirer.prompt(questions).then(answers => {
   "main": "./build/index",
   "engines": {
     "node": ">=10.0.0"
-  },
-  "scripts": {
-    "build": "run-s clean compile",
-    "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src test",
-    "test:unit": "jest"
   },
   "repository": {
     "type": "git",
