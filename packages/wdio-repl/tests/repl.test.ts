@@ -197,7 +197,7 @@ describe('start', () => {
     it('should allow run eval with own context', async () => {
         const config = {
             ...defaultArgs,
-            eval: jest.fn().mockImplementation(function () {
+            eval: jest.fn().mockImplementation(function (this: SomeContext) {
                 this.foo = 'foobar'
             })
         }
