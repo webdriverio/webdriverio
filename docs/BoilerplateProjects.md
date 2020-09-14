@@ -54,7 +54,7 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
   - Page Object Pattern
   - Sauce Labs integration
 
-### [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
+### [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: Cucumber (v5.x)
 - Features:
