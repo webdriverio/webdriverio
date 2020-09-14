@@ -29,9 +29,9 @@ class JunitReporter extends WDIOReporter {
 
     addFailedHooks(suite) {
         /**
-         * Add failed before and after all hooks to suite as tests.
+         * Add failed hooks to suite as tests.
          */
-        const failedHooks = suite.hooks.filter(hook => hook.error && (hook.title === '"before all" hook' || hook.title === '"after all" hook'))
+        const failedHooks = suite.hooks.filter(hook => hook.error && hook.title.match(/^"(before|after)( all| each)?" hook/))
         failedHooks.forEach(hook => {
             const { title, _duration, error, state } = hook
             suite.tests.push({
