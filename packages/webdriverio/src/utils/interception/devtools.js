@@ -25,7 +25,11 @@ export default class DevtoolsInterception extends Interception {
                     continue
                 }
 
+                /**
+                 * Add statusCode and responseHeaders to request to be used in expect-webdriverio
+                 */
                 request.statusCode = responseStatusCode
+                request.responseHeaders = { ...responseHeaders }
 
                 /**
                  * match filter options
@@ -45,7 +49,6 @@ export default class DevtoolsInterception extends Interception {
                     { requestId }
                 ).catch(() => ({}))
 
-                mock.responseHeaders = { ...responseHeaders }
                 request.body = base64Encoded ? atob(body) : body
                 request.body = responseHeaders['Content-Type'] && responseHeaders['Content-Type'].includes('application/json')
                     ? JSON.parse(request.body)

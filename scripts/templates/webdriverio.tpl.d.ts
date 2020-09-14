@@ -498,6 +498,14 @@ declare namespace WebdriverIO {
          * body response of actual resource
          */
         body: string | JsonCompatible
+        /**
+         * HTTP response headers.
+         */
+        responseHeaders: Record<string, string>;
+        /**
+         * HTTP response status code.
+         */
+        statusCode: number;
     }
 
     type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
