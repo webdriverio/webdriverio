@@ -17,6 +17,19 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.5.1 (2020-09-14)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#5812](https://github.com/webdriverio/webdriverio/pull/5812) Fix missing mocha test hooks in a junit report ([@vgrigoruk](https://github.com/vgrigoruk))
+* Other
+  * [#5823](https://github.com/webdriverio/webdriverio/pull/5823) scripts: ensure api doc dir ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Vitalii Grygoruk ([@vgrigoruk](https://github.com/vgrigoruk))
+
+
 ## v6.5.0 (2020-09-14)
 
 #### :rocket: New Feature
