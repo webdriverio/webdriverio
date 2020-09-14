@@ -44,6 +44,11 @@ declare namespace WebdriverIO {
         }
     }
 
+    type JsonPrimitive = string | number | boolean | null;
+    type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray };
+    type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>;
+    type JsonCompatible = JsonObject | JsonArray;
+
     interface MultiRemoteCapabilities {
         [instanceName: string]: {
             capabilities: WebDriver.DesiredCapabilities;
@@ -498,7 +503,7 @@ declare namespace WebdriverIO {
         /**
          * body response of actual resource
          */
-        body: any
+        body: string | JsonCompatible
     }
 
     type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
@@ -513,7 +518,10 @@ declare namespace WebdriverIO {
 
     type MockFilterOptions = {
         method?: string,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
+        responseHeaders?: Record<string, string>,
+        statusCode?: number,
+        postData?: string | ((payload: string | undefined) => boolean)
     }
 
     type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
@@ -1087,7 +1095,7 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
          */
         mock(
             url: string,
