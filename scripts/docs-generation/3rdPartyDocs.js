@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
 const request = require('request')
 const urljoin = require('url-join')
@@ -6,11 +6,15 @@ const urljoin = require('url-join')
 const { buildPreface } = require('../utils/helpers')
 const reporters3rdParty = require('./3rd-party/reporters.json')
 const services3rdParty = require('./3rd-party/services.json')
+const api3rdParty = require('./3rd-party/api.json')
 
-const plugins = {
-    reporter: ['Reporter', 'Reporter', reporters3rdParty],
-    service: ['Services', 'Service', services3rdParty]
-}
+const plugins = [{
+    category: 'docs', namePlural: 'Reporter', nameSingular: 'Reporter', packages3rdParty: reporters3rdParty
+}, {
+    category: 'docs', namePlural: 'Services', nameSingular: 'Service', packages3rdParty: services3rdParty
+}, {
+    category: 'api', namePlural: 'Testrunner', nameSingular: '', packages3rdParty: api3rdParty
+}]
 const githubHost = 'https://github.com/'
 const githubRawHost = 'https://raw.githubusercontent.com/'
 const githubReadme = 'master/README.md'
@@ -19,29 +23,35 @@ const readmeHeaderLines = 9
 const readmeHeaders = ['===', '# ']
 const readmeBadges = ['https://badge', 'https://travis-ci.org/']
 
+const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..')
+const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs')
+
 /**
  * Generate docs for 3rd party reporters and services
  * @param {object} sidebars website/sidebars
  */
 exports.generate3rdPartyDocs = async (sidebars) => {
-    for (const [, [namePlural, nameSingular, packages3rdParty]] of Object.entries(plugins)) {
-        for (const { packageName, title, githubUrl, npmUrl } of packages3rdParty) {
-            const readme = await downloadReadme(githubUrl)
+    for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
+        const categoryDir = path.join(DOCS_ROOT_DIR, category)
+        await fs.ensureDir(categoryDir)
+
+        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme } of packages3rdParty) {
+            const readme = await downloadReadme(githubUrl, location)
             const id = `${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
             const doc = normalizeDoc(readme, githubUrl,
-                buildPreface(id, title, nameSingular, `${githubUrl}/edit/${githubReadme}`),
-                buildInfo(packageName, githubUrl, npmUrl))
-            fs.writeFileSync(path.join(__dirname, '..', '..', 'docs', `_${id}.md`), doc, { encoding: 'utf-8' })
+                buildPreface(id, title, nameSingular, `${githubUrl}/edit/${location}`),
+                suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl))
+            await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, { encoding: 'utf-8' })
 
-            if (!sidebars.docs[namePlural]) {
-                sidebars.docs[namePlural] = []
+            if (!sidebars[category][namePlural]) {
+                sidebars[category][namePlural] = []
             }
 
             // eslint-disable-next-line no-console
             console.log(`Generated docs for ${packageName}`)
 
-            sidebars.docs[namePlural].push(id)
+            sidebars[category][namePlural].push(`${category}/${id}`)
         }
     }
 }
@@ -49,11 +59,12 @@ exports.generate3rdPartyDocs = async (sidebars) => {
 /**
  * Download README.md from github
  * @param {string}              githubUrl   github url to project
+ * @param {string}              location    file location in repo
  * @return {Promise<string>}                readme content
  */
-function downloadReadme(githubUrl) {
+function downloadReadme(githubUrl, location = githubReadme) {
     return new Promise((resolve, reject) => {
-        const url = `${githubUrl}/${githubReadme}`.replace(githubHost, githubRawHost)
+        const url = `${githubUrl}/${location}`.replace(githubHost, githubRawHost)
         // eslint-disable-next-line no-console
         console.log(`Downloading: ${url}`)
         request.get(url, (err, httpResponse, body) => {
