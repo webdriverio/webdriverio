@@ -289,7 +289,7 @@ describe('cli interface', () => {
             cid,
             job,
             retries,
-            message: chalk.bold.yellow('RETRYING')
+            message: chalk.bold(chalk.yellow('RETRYING'))
         }, {
             method: 'onSpecPass',
             cid,
@@ -318,6 +318,14 @@ describe('cli interface', () => {
             wdioClInterface.jobs.set('cid', job)
             wdioClInterface.onSpecSkip(cid, job)
             expect(wdioClInterface.onJobComplete).toBeCalledWith(cid, job, 0, 'SKIPPED', expect.any(Function))
+        })
+
+        it('onSpecRetry with delay', () => {
+            wdioClInterface.onJobComplete = jest.fn()
+            wdioClInterface.specFileRetriesDelay = 2
+            wdioClInterface.jobs.set('cid', job)
+            wdioClInterface.onSpecRetry(cid, job, 3)
+            expect(wdioClInterface.onJobComplete).toBeCalledWith(cid, job, 3, chalk.bold(chalk.yellow('RETRYING') + ' after 2s'))
         })
     })
 
@@ -441,6 +449,7 @@ describe('cli interface', () => {
     })
 
     afterEach(() => {
+        wdioClInterface.specFileRetriesDelay = 0
         global.console.log.mockRestore()
     })
 })
