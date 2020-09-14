@@ -5,7 +5,7 @@ import { initialiseWorkerService, initialiseLauncherService } from './initialise
 import webdriverMonad from './monad'
 import {
     commandCallStructure, isValidParameter, getArgumentType, safeRequire,
-    isFunctionAsync, transformCommandLogResult, canAccess
+    isFunctionAsync, transformCommandLogResult, canAccess, sleep
 } from './utils'
 import {
     wrapCommand, runFnInFiberContext, executeHooksWithArgs,
@@ -29,6 +29,7 @@ export {
     getArgumentType,
     safeRequire,
     canAccess,
+    sleep,
 
     /**
      * wdio-sync shim
