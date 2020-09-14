@@ -17,6 +17,35 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.5.0 (2020-09-14)
+
+#### :rocket: New Feature
+* `wdio-shared-store-service`, `wdio-sync`, `webdriverio`
+  * [#5821](https://github.com/webdriverio/webdriverio/pull/5821) Filter postData, responseHeaders, statusCode ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-sync`, `wdio-utils`, `webdriverio`
+  * [#5819](https://github.com/webdriverio/webdriverio/pull/5819) Add optional delay between spec file retry attempts ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5803](https://github.com/webdriverio/webdriverio/pull/5803) adding dialog handler to switchwindow so that we can handle alerts ([@ParmaJonEman](https://github.com/ParmaJonEman))
+* `webdriverio`
+  * [#5820](https://github.com/webdriverio/webdriverio/pull/5820) Fix network mock headers filter ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-jasmine-framework`
+  * [#5790](https://github.com/webdriverio/webdriverio/pull/5790) log warning if jasmine tests have no root describe ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#5818](https://github.com/webdriverio/webdriverio/pull/5818) generate expect-webdriverio api doc ([@mgrybyk](https://github.com/mgrybyk))
+* [#5814](https://github.com/webdriverio/webdriverio/pull/5814) Update BoilerplateProjects.md ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+
+#### Committers: 4
+- Amiya Pattanaik ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@ParmaJonEman](https://github.com/ParmaJonEman)
+
+
 ## v6.4.7 (2020-09-10)
 
 #### :bug: Bug Fix
