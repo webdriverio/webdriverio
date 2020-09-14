@@ -50,9 +50,7 @@
       "api"
     ],
     "Protocols": [],
-    "Testrunner": [
-      "api/expect"
-    ]
+    "Testrunner": []
   },
   "flowcharts": {
       "Flowcharts": [

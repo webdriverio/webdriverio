@@ -15,7 +15,8 @@
   "devDependencies": {
     "docusaurus": "^1.12.0",
     "eslint": "^6.3.0",
-    "eslint-plugin-react": "^7.14.3"
+    "eslint-plugin-react": "^7.14.3",
+    "sass": "^1.26.10"
   },
   "dependencies": {
     "prop-types": "^15.7.2",
