@@ -15,7 +15,7 @@ export default class DevtoolsInterception extends Interception {
                 headers[name] = value
                 return headers
             }, {})
-            const { requestId, request } = event
+            const { requestId, request, responseStatusCode } = event
 
             for (const mock of mocks) {
                 /**
@@ -25,6 +25,8 @@ export default class DevtoolsInterception extends Interception {
                     continue
                 }
 
+                request.statusCode = responseStatusCode
+
                 /**
                  * match filter options
                  */
@@ -32,7 +34,8 @@ export default class DevtoolsInterception extends Interception {
                     filterMethod(request.method, mock.filterOptions.method) ||
                     filterHeaders(request.headers, mock.filterOptions.requestHeaders) ||
                     filterHeaders(responseHeaders, mock.filterOptions.headers) ||
-                    filterRequest(request.postData, mock.filterOptions.postData)
+                    filterRequest(request.postData, mock.filterOptions.postData) ||
+                    filterStatusCode(responseStatusCode, mock.filterOptions.statusCode)
                 ) {
                     continue
                 }
@@ -73,7 +76,7 @@ export default class DevtoolsInterception extends Interception {
                         newBody = JSON.stringify(newBody)
                     }
 
-                    let responseCode = params.statusCode || event.responseStatusCode
+                    let responseCode = params.statusCode || responseStatusCode
                     let responseHeaders = [
                         ...event.responseHeaders,
                         ...Object.entries(params.headers || {}).map(([key, value]) => { key, value })
@@ -196,4 +199,8 @@ const filterRequest = (postData, expected) => {
         return expected(postData) !== true
     }
     return postData !== expected
+}
+
+const filterStatusCode = (statusCode, expected) => {
+    return typeof expected === 'number' && statusCode !== expected
 }

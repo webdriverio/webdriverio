@@ -65,6 +65,78 @@ describe('filter by header', () => {
     })
 })
 
+describe('filter by postData', () => {
+    const mockWithCall = async (filter) => {
+        const mock = new NetworkInterception('**/foobar/**', filter)
+        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+            request: { url: 'http://test.com/foobar/test1.html', method: 'post', postData: JSON.stringify({ foo: { bar: 'baz' } }) },
+            responseHeaders: []
+        })
+        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+            request: { url: 'http://test.com/foobar/test2.html', method: 'post', postData: 'foobar' },
+            responseHeaders: []
+        })
+        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+            request: { url: 'http://test.com/foobar/test3.html', method: 'get' },
+            responseHeaders: []
+        })
+        return mock
+    }
+
+    test('filter network calls by postData - exact match', async () => {
+        const mock = await mockWithCall({
+            postData: 'foobar'
+        })
+
+        expect(mock.calls.length).toBe(1)
+        expect(mock.calls[0].url).toBe('http://test.com/foobar/test2.html')
+    })
+
+    test('filter network calls by postData - function comparator', async () => {
+        const mock = await mockWithCall({
+            postData: (postData) => {
+                if (typeof postData !== 'string') {
+                    return false
+                }
+                try {
+                    return JSON.parse(postData).foo.bar === 'baz'
+                } catch {
+                    return false
+                }
+            }
+        })
+
+        expect(mock.calls.length).toBe(1)
+        expect(mock.calls[0].url).toBe('http://test.com/foobar/test1.html')
+    })
+})
+
+describe('filter by statusCode', () => {
+    const mockWithCall = async (filter) => {
+        const mock = new NetworkInterception('**/foobar/**', filter)
+        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+            request: { url: 'http://test.com/foobar/test1.html', method: 'post' },
+            responseHeaders: [],
+            responseStatusCode: 200
+        })
+        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+            request: { url: 'http://test.com/foobar/test2.html', method: 'post' },
+            responseHeaders: [],
+            responseStatusCode: 201
+        })
+        return mock
+    }
+
+    test('filter network calls by statusCode', async () => {
+        const mock = await mockWithCall({
+            statusCode: 201
+        })
+
+        expect(mock.calls.length).toBe(1)
+        expect(mock.calls[0].url).toBe('http://test.com/foobar/test2.html')
+    })
+})
+
 test('allows to filter network calls by method', async () => {
     const mock = new NetworkInterception('**/foobar/**', {
         method: 'put'
