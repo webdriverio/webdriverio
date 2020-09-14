@@ -11,6 +11,8 @@ import featuresLog from './__fixtures__/cucumber-features.json'
 import featuresWithFailingThenSkipStepLog from './__fixtures__/cucumber-features-with-failed-then-skipped-steps.json'
 import featuresWithPendingStepLog from './__fixtures__/cucumber-features-with-pending-step.json'
 import featuresWithErrorStepAndNoErrorObjectLog from './__fixtures__/cucumber-features-with-error-step-and-no-error-object.json'
+import suitesWithFailedBeforeEachHookLog from './__fixtures__/suites-with-failed-before-each-hook.json'
+import suitesWithFailedAfterEachHookLog from './__fixtures__/suites-with-failed-after-each-hook.json'
 import suitesHooksLog from './__fixtures__/suites-hooks.json'
 import suitesMultipleLog from './__fixtures__/suites-multiple.json'
 
@@ -117,6 +119,20 @@ describe('wdio-junit-reporter', () => {
 
     it('generates xml output if before all hook failed', () => {
         reporter.suites = suitesHooksLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output if before each hook failed', () => {
+        reporter.suites = suitesWithFailedBeforeEachHookLog
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output if after each hook failed', () => {
+        reporter.suites = suitesWithFailedAfterEachHookLog
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter.buildJunitXml(mochaRunnerLog).replace(/\s/g, '')).toMatchSnapshot()
