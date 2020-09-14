@@ -17,6 +17,8 @@
     "**/*.spec.ts",
     "e2e/**/*",
     "expect-webdriverio",
-    "coverage"
+    "coverage",
+    "examples",
+    "jest.config.js"
   ]
 }
