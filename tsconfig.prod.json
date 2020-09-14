@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "allowJs": true,
+    "declaration": false,
+    "removeComments": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "exclude": [
+    "node_modules",
+    "packages/**/node_modules",
+    "**/*.spec.ts",
+    "e2e/**/*",
+    "expect-webdriverio",
+    "coverage",
+    "examples",
+    "jest.config.js"
+  ]
+}

@@ -46,14 +46,6 @@
   ],
   "types": "./webdriverio.d.ts",
   "typeScriptVersion": "3.7.3",
-  "scripts": {
-    "build": "run-s clean compile",
-    "clean": "rimraf ./build",
-    "compile": "tsc",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src tests",
-    "test:unit": "jest"
-  },
   "dependencies": {
     "@types/puppeteer": "^3.0.1",
     "@wdio/config": "6.4.7",

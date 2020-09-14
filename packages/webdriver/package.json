@@ -11,14 +11,6 @@
   },
   "types": "./webdriver.d.ts",
   "typeScriptVersion": "3.7.3",
-  "scripts": {
-    "build": "run-s clean compile",
-    "clean": "rimraf ./build",
-    "compile": "tsc",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src test",
-    "test:unit": "jest"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"

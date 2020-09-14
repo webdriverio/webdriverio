@@ -1,2 +1,4 @@
 src
 tests
+tsconfig.json
+tsconfig.prod.json

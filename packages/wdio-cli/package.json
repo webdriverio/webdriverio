@@ -13,13 +13,7 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "build": "run-s clean compile copy",
-    "clean": "rimraf ./build",
-    "compile": "tsc",
-    "copy": "copyfiles -u 1 -V \"src/templates/**/*\" ./build/",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src test",
-    "test:unit": "jest"
+    "copy": "copyfiles -u 1 -V \"src/templates/**/*\" ./build/"
   },
   "repository": {
     "type": "git",
