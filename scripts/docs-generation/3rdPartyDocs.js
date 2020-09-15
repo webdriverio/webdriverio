@@ -112,7 +112,7 @@ function normalizeDoc(readme, githubUrl, preface, repoInfo) {
         /**
          * prepend # to header rows
          */
-        if (row.match(/^(#)\1* /)) {
+        if (row.match(/^(# )\1* /)) {
             readmeArr[idx] = `#${row}`
         }
 
