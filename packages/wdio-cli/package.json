@@ -52,7 +52,7 @@
     "mkdirp": "^1.0.4",
     "recursive-readdir": "^2.2.2",
     "webdriverio": "6.5.0",
-    "yargs": "^15.0.1",
+    "yargs": "^16.0.3",
     "yarn-install": "^1.0.0"
   },
   "publishConfig": {
