@@ -396,8 +396,8 @@ describe('auxiliary methods', () => {
         reporter.isMultiRemote = false
         reporter.capabilities = capabilities
         reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
-        expect(reporter.allure.getCurrentTest).toBeCalled(1)
-        expect(currentTestMock.addParameter).toHaveBeenCalledWith('argument', 'device', 'Android GoogleAPI Emulator-6.0')
+        expect(reporter.allure.getCurrentTest).toBeCalledTimes(1)
+        expect(currentTestMock.addParameter).toHaveBeenCalledWith('argument', 'device', 'Android GoogleAPI Emulator 6.0')
     })
 })
 
