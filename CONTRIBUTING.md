@@ -98,19 +98,43 @@ It will ask you about the type and name of the new package and creates all the f
 
 ## Run e2e Experience With Smoke Tests
 
-WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is setup in a way so it doesn't require an actual browser driver since all requests are mocked using the `@wdio/webdriver-mock-service`. This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
+WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is setup in a way so it doesn't require an actual browser driver since all requests are mocked using the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-webdriver-mock-service). This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
 
 ```sh
 $ npm run test:smoke
 ```
 
-There are several [test suites](https://github.com/webdriverio/webdriverio/blob/master/tests/smoke.runner.js#L359-L378) defined that run in different environments, e.g. Mocha, Jasmine and Cucumber. You can run a specific test suite by calling, e.g.:
+There are several [test suites](https://github.com/webdriverio/webdriverio/blob/master/tests/smoke.runner.js#L363-L383) defined that run in different environments, e.g. Mocha, Jasmine and Cucumber. You can run a specific test suite by calling, e.g.:
 
 ```sh
 $ npm run test:smoke mochaTestrunner
 ```
 
-You can define your own scenario of mock responses in the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-webdriver-mock-service/src/index.js#L142-L149).
+You can define your own scenario of mock responses in the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-webdriver-mock-service/src/index.js#L136-L147).
+
+## Setting up and deploying the docs
+
+This repository contains everything to setup, build and deploy the WebdriverIO documentation pages. We are using [Docosaurus](https://docusaurus.io/) (v1) to generate the page. The content is generated based of:
+
+- the guidelines pages from markdown files of the [docs directory](https://github.com/webdriverio/webdriverio/tree/master/docs)
+- service and reporter docs from the readme files of those packages within this repository
+- service and reporter docs from 3rd party plugins (defined in [these JSON files](https://github.com/webdriverio/webdriverio/tree/master/scripts/docs-generation/3rd-party)) that are downloaded from GitHub and parsed
+- the protocol APIs from the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-protocols/protocols) package
+- the WebdriverIO API that is parsed out of the JSDoc comments of individual commands (e.g. [`execute`](https://github.com/webdriverio/webdriverio/blob/master/packages/webdriverio/src/commands/browser/execute.js#L2-L36) command)
+
+After you have [setup the project](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#set-up-project) you can go into the `website` directory to setup the docs page and run it on you local machine. To do so, run:
+
+```sh
+$ cd website
+$ npm install
+$ npm start
+```
+
+This will setup everything needed to run the page on [`localhost:3000`](http://localhost:3000/). You can now modify the content of the [`/docs`](https://github.com/webdriverio/webdriverio/tree/master/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places you have to rerun the `npm start` script to re-generate the docs.
+
+Everytime a new release is pushed to GitHub the WebdriverIO docs are automatically generated and pushed to the projects S3 bucket. The process is defined in a GitHub Actions [pipeline](https://github.com/webdriverio/webdriverio/blob/master/.github/workflows/deploy.yml) and does not need to be done manually.
+
+For more information on Docosaurus please checkout their [documentation page](https://docusaurus.io/docs/en/installation).
 
 ## TypeScript definitions
 
