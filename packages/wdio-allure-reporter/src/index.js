@@ -110,8 +110,11 @@ class AllureReporter extends WDIOReporter {
         const currentTest = this.allure.getCurrentTest()
 
         if (!this.isMultiremote) {
-            const { browserName, deviceName } = this.capabilities
-            const targetName = browserName || deviceName || cid
+            const { browserName, deviceName, desired } = this.capabilities
+            let targetName = browserName || deviceName || cid
+            if(desired && desired.deviceName && desired.platformVersion){
+                targetName = desired.deviceName+'-'+desired.platformVersion
+            }
             const browserstackVersion = this.capabilities.os_version || this.capabilities.osVersion
             const version = browserstackVersion || this.capabilities.browserVersion || this.capabilities.version || this.capabilities.platformVersion || ''
             const paramName = deviceName ? 'device' : 'browser'

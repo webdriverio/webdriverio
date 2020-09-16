@@ -377,6 +377,29 @@ describe('auxiliary methods', () => {
         expect(addAttachment).toHaveBeenCalledTimes(1)
         expect(addAttachment).toHaveBeenCalledWith('foo', JSON.stringify(json, null, 2), 'application/json')
     })
+
+    it('should populate the correct deviceName', () => {
+        const capabilities = {
+            deviceName: 'emulator',
+            desired: {
+                platformName: 'Android',
+                automationName: 'UiAutomator2',
+                deviceName: 'Android GoogleAPI Emulator',
+                platformVersion: '6.0',
+                noReset: true,
+            }
+        }
+        const reporter = new AllureReporter({ stdout: true })
+        let addParameter = jest.fn()
+        let currentTestMock = { addParameter, addLabel: jest.fn() }
+        reporter.allure.getCurrentTest = jest.fn().mockReturnValue(currentTestMock)
+        reporter.allure.startCase = jest.fn()
+        reporter.isMultiRemote = false
+        reporter.capabilities = capabilities
+        reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
+        expect(reporter.allure.getCurrentTest.mock.calls.length).toBe(1)
+        expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Android GoogleAPI Emulator-6.0')
+    })
 })
 
 describe('hooks handling disabbled Mocha Hooks', () => {
