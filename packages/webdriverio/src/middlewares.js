@@ -1,6 +1,7 @@
 
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
+import { ELEMENT_KEY } from './constants'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -13,6 +14,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
         return fn(commandName, async function elementErrorHandlerCallbackFn () {
             const element = await implicitWait(this, commandName)
             this.elementId = element.elementId
+            this[ELEMENT_KEY] = element.elementId
 
             try {
                 const result = await fn(commandName, commandFn).apply(this, args)
