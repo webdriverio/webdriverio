@@ -87,6 +87,18 @@ describe('middleware', () => {
         expect(warn.mock.calls).toEqual([['Request encountered a stale element - terminating request']])
     })
 
+    it('should assign elementId and w3c identifier to element scope after re-found', async () => {
+        const elem = await browser.$('#nonexisting')
+        expect(elem.elementId).toEqual(undefined)
+        expect(elem['element-6066-11e4-a52e-4f735466cecf']).toEqual(undefined)
+
+        elem.selector = '#exists'
+        elem.addCommand('getThis', function() {return this})
+        const elementThis = await elem.getThis()
+        expect(elementThis.elementId).toEqual('some-elem-123')
+        expect(elementThis['element-6066-11e4-a52e-4f735466cecf']).toEqual('some-elem-123')
+    })
+
     describe('should NOT wait on element if', () => {
         // wdio default waitForExist command
         it('elem EXISTS and command = waitForExist', async () => {
