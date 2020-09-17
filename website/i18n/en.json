@@ -335,6 +335,9 @@
       "babel": {
         "title": "Babel Setup"
       },
+      "bamboo": {
+        "title": "Bamboo Integration"
+      },
       "boilerplate": {
         "title": "Boilerplate Projects"
       },
