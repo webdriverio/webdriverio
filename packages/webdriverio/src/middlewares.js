@@ -14,9 +14,7 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
         return fn(commandName, async function elementErrorHandlerCallbackFn () {
             const element = await implicitWait(this, commandName)
             this.elementId = element.elementId
-            if(this.isW3C) {
-                this[ELEMENT_KEY] = element.elementId
-            }
+            this[ELEMENT_KEY] = element.elementId
 
             try {
                 const result = await fn(commandName, commandFn).apply(this, args)
