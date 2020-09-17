@@ -21,7 +21,7 @@ In order to set up this project and start contributing follow this step by step 
 
 * Switch to Node v10 LTS (you should be able to use older/newer versions of Node but we recommend to use v10 LTS so all developers are on the same side)
 
-* Setup project:
+* Set up the project:
 
     ```sh
     $ npm install
@@ -45,7 +45,7 @@ In order to set up this project and start contributing follow this step by step 
     $ npx jest ./packages/webdriver/tests
     ```
 
-    It should give you a passing result. Now you can move on to setup your development environment and start working on some code.
+    It should give you a passing result. Now you can move on to set up your development environment and start working on some code.
 
 ## Link changes to your current project
 
@@ -98,7 +98,7 @@ It will ask you about the type and name of the new package and creates all the f
 
 ## Run e2e Experience With Smoke Tests
 
-WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is setup in a way so it doesn't require an actual browser driver since all requests are mocked using the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-webdriver-mock-service). This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
+WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is set up in a way so it doesn't require an actual browser driver since all requests are mocked using the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-webdriver-mock-service). This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
 
 ```sh
 $ npm run test:smoke
@@ -114,15 +114,15 @@ You can define your own scenario of mock responses in the [`@wdio/webdriver-mock
 
 ## Setting up and deploying the docs
 
-This repository contains everything to setup, build and deploy the WebdriverIO documentation pages. We are using [Docosaurus](https://docusaurus.io/) (v1) to generate the page. The content is generated based of:
+This repository contains everything to set up, build and deploy the WebdriverIO documentation pages. We are using [Docusaurus](https://docusaurus.io/) (v1) to generate the page. The content is generated based off:
 
 - the guidelines pages from markdown files of the [docs directory](https://github.com/webdriverio/webdriverio/tree/master/docs)
 - service and reporter docs from the readme files of those packages within this repository
 - service and reporter docs from 3rd party plugins (defined in [these JSON files](https://github.com/webdriverio/webdriverio/tree/master/scripts/docs-generation/3rd-party)) that are downloaded from GitHub and parsed
 - the protocol APIs from the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-protocols/protocols) package
-- the WebdriverIO API that is parsed out of the JSDoc comments of individual commands (e.g. [`execute`](https://github.com/webdriverio/webdriverio/blob/master/packages/webdriverio/src/commands/browser/execute.js#L2-L36) command)
+- the WebdriverIO API that is parsed out of the JSDoc comments of individual commands (e.g., [`execute`](https://github.com/webdriverio/webdriverio/blob/master/packages/webdriverio/src/commands/browser/execute.js#L2-L36) command)
 
-After you have [setup the project](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#set-up-project) you can go into the `website` directory to setup the docs page and run it on you local machine. To do so, run:
+After you have [set up the project](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#set-up-project) you can go into the `website` directory to set up the docs page and run it on your local machine. To do so, run:
 
 ```sh
 $ cd website
@@ -130,11 +130,11 @@ $ npm install
 $ npm start
 ```
 
-This will setup everything needed to run the page on [`localhost:3000`](http://localhost:3000/). You can now modify the content of the [`/docs`](https://github.com/webdriverio/webdriverio/tree/master/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places you have to rerun the `npm start` script to re-generate the docs.
+This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). You can now modify the content of the [`/docs`](https://github.com/webdriverio/webdriverio/tree/master/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places you have to rerun the `npm start` script to re-generate the docs.
 
 Everytime a new release is pushed to GitHub the WebdriverIO docs are automatically generated and pushed to the projects S3 bucket. The process is defined in a GitHub Actions [pipeline](https://github.com/webdriverio/webdriverio/blob/master/.github/workflows/deploy.yml) and does not need to be done manually.
 
-For more information on Docosaurus please checkout their [documentation page](https://docusaurus.io/docs/en/installation).
+For more information on Docusaurus please checkout their [documentation page](https://docusaurus.io/docs/en/installation).
 
 ## TypeScript definitions
 
