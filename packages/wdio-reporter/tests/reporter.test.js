@@ -20,6 +20,7 @@ describe('WDIOReporter', () => {
         expect(eventsOnSpy).toBeCalledWith('test:pass', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('test:fail', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('test:pending', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith('test:retries', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('test:end', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('suite:end', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('runner:end', expect.any(Function))

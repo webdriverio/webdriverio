@@ -15,6 +15,7 @@ declare namespace WDIOReporter {
         onTestStart(test: Test): void;
         onTestPass(test: Test): void;
         onTestFail(test: Test): void;
+        onTestFailRetries(test: Test): void;
         onTestSkip(test: Test): void;
         onTestEnd(test: Test): void;
         onSuiteEnd(suite: Suite): void;

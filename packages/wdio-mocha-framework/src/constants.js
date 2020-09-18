@@ -16,10 +16,11 @@ export const EVENTS = {
     'hook end': 'hook:end',
     'pass': 'test:pass',
     'fail': 'test:fail',
+    'retry': 'test:retries',
     'pending': 'test:pending'
 }
 
-export const NOOP = /* istanbul ignore next */ function () {}
+export const NOOP = /* istanbul ignore next */ function () { }
 export const MOCHA_TIMEOUT_MESSAGE = 'For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves.'
 export const MOCHA_TIMEOUT_MESSAGE_REPLACEMENT = [
     'The execution in the test "%s %s" took too long. Try to reduce the run time or',

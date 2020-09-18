@@ -18,7 +18,8 @@ describe('WDIOReporter Listeners', () => {
         beforeEach(() => {
             spy = jest.spyOn(WDIOReporter.prototype, 'onTestSkip')
             spy2 = jest.spyOn(TestStats.prototype, 'skip')
-            stat = { type: 'test:start',
+            stat = {
+                type: 'test:start',
                 title: 'should can do something',
                 parent: 'My awesome feature',
                 fullTitle: 'My awesome feature should can do something',
@@ -537,6 +538,58 @@ describe('WDIOReporter Listeners', () => {
             emitEvents()
             expect(reporter.counts.tests).toBe(1)
             expect(reporter.counts.failures).toBe(1)
+        })
+    })
+
+    describe('handling test:retries', () => {
+
+        let runnerStartEvent
+        let suiteStartEvent
+        let testStartEvent
+        let testRetriesEvent
+        let testFailEvent
+        let testEndEvent
+
+        const emitEvents = () => {
+            reporter.emit('runner:start', runnerStartEvent)
+            reporter.emit('suite:start', suiteStartEvent)
+            reporter.emit('test:start', testStartEvent)
+            reporter.emit('test:retries', testRetriesEvent)
+            reporter.emit('test:start', testStartEvent)
+            reporter.emit('test:fail', testFailEvent)
+            reporter.emit('test:end', testEndEvent)
+        }
+
+        beforeEach(() => {
+            runnerStartEvent = {
+                cid: 'runnerid',
+                capabilities: {
+                    browserName: 'Chrome'
+                }
+            }
+            suiteStartEvent = {
+                uid: 'suiteid',
+                title: 'the software'
+            }
+            testStartEvent = {
+                uid: 'testid',
+                title: 'should do the needful'
+            }
+            testRetriesEvent = {
+                uid: 'testid'
+            }
+            testFailEvent = {
+                uid: 'testid'
+            }
+            testEndEvent = {
+                uid: 'testid'
+            }
+        })
+
+        it('should call test retry with the test stat', () => {
+            reporter.onTestEnd = jest.fn()
+            emitEvents()
+            expect(reporter.onTestEnd).toHaveBeenCalledWith(reporter.tests[testStartEvent.uid])
         })
     })
 

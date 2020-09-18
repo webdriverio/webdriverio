@@ -338,7 +338,7 @@ class MochaAdapter {
         if (['test:start', 'test:pending'].includes(message.type)) {
             return this.getSyncEventIdStart('test')
         }
-        if (['test:end', 'test:pass', 'test:fail'].includes(message.type)) {
+        if (['test:end', 'test:pass', 'test:fail', 'test:retries'].includes(message.type)) {
             return this.getSyncEventIdEnd('test')
         }
 

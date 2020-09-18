@@ -333,6 +333,28 @@ Context.executeSync (/path/to/project/packages/wdio-sync/src/index.js:488:12)\n 
         type: 'Error' } } }
 ```
 
+##### onTestFailRetries
+
+```js
+TestStats {
+     type: 'test',
+     start: '2018-02-09T14:11:29.581Z',
+     duration: 21,
+     uid: 'failing test12',
+     cid: '0-0',
+     title: 'failing test will retry',
+     fullTitle: 'failing test',
+     state: 'pending',
+     end: '2018-02-09T14:11:29.602Z',
+     error:
+      { message: 'some error',
+        stack: `Error: some error\n    at Context.it (/path/to/project/test/b.js:17:19)\n
+  at /path/to/project/packages/wdio-sync/src/index.js:490:28\n    at Promise (<anonymous>)\
+n    at F (/path/to/project/node_modules/core-js/library/modules/_export.js:35:28)\n    at
+Context.executeSync (/path/to/project/packages/wdio-sync/src/index.js:488:12)\n    at /path/to/project/packages/wdio-sync/src/index.js:623:33`,
+        type: 'Error' } } }
+```
+
 ##### onTestEnd
 
 ```js

@@ -5,7 +5,7 @@ import RunnableStats from './runnable'
  * captures data on a test.
  */
 export default class TestStats extends RunnableStats {
-    constructor (test) {
+    constructor(test) {
         super('test')
         this.uid = RunnableStats.getIdentifier(test)
         this.cid = test.cid
@@ -13,6 +13,7 @@ export default class TestStats extends RunnableStats {
         this.fullTitle = test.fullTitle
         this.output = []
         this.argument = test.argument
+        this.retries = test.retries
 
         /**
          * initial test state is pending
@@ -21,20 +22,30 @@ export default class TestStats extends RunnableStats {
         this.state = 'pending'
     }
 
-    pass () {
+    pass() {
         this.complete()
         this.state = 'passed'
     }
 
-    skip (reason) {
+    skip(reason) {
         this.pendingReason = reason
         this.state = 'skipped'
     }
 
-    fail (errors) {
+    fail(errors) {
         this.complete()
         this.state = 'failed'
         this.errors = errors
+
+        if (errors && errors.length) {
+            this.error = errors[0]
+        }
+    }
+
+    failRetries(errors) {
+        this.complete()
+        this.errors = errors
+        this.state = 'pending'
 
         if (errors && errors.length) {
             this.error = errors[0]
