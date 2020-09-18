@@ -1,6 +1,6 @@
 {
   "name": "@wdio/lambda-runner",
-  "version": "6.5.0",
+  "version": "6.5.2",
   "description": "A WebdriverIO plugin that allows you to run tests on AWS",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-lambda-runner",
@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@wdio/logger": "6.4.7",
-    "@wdio/runner": "6.5.0",
+    "@wdio/runner": "6.5.2",
     "find-node-modules": "^2.0.0",
     "serverless": "^2.0.0",
     "shelljs": "^0.8.3",
