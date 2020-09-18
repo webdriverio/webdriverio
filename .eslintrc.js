@@ -35,7 +35,7 @@ module.exports = {
         'require-atomic-updates': 0
     },
     overrides: [{
-        files: ['*.ts', '*.tsx'],
+        files: ['*.ts'],
         rules: {
             // see https://github.com/typescript-eslint/typescript-eslint/issues/46
             '@typescript-eslint/no-unused-vars': [2, { args: 'none' }]
