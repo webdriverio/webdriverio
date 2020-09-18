@@ -17,6 +17,33 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.5.2 (2020-09-18)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#5872](https://github.com/webdriverio/webdriverio/pull/5872) Assign w3c identifier to element scope after element re-found ([@L0tso](https://github.com/L0tso))
+* `wdio-allure-reporter`
+  * [#5870](https://github.com/webdriverio/webdriverio/pull/5870) Fixes the issue On V6, for android tests, where the incorrect deviceName is displayed in allure reports ([@jags14385](https://github.com/jags14385))
+* `wdio-devtools-service`
+  * [#5858](https://github.com/webdriverio/webdriverio/pull/5858) Fix unbound commands in devtools-service ([@mattmohan](https://github.com/mattmohan))
+
+#### :memo: Documentation
+* [#5871](https://github.com/webdriverio/webdriverio/pull/5871) Added Bamboo Documentation ([@AutomationReddy](https://github.com/AutomationReddy))
+* [#5868](https://github.com/webdriverio/webdriverio/pull/5868) Add docs on how to deploy and run our docs page ([@christian-bromann](https://github.com/christian-bromann))
+* [#5857](https://github.com/webdriverio/webdriverio/pull/5857) Prepend hash only for h1 in 3rd party docs ([@mgrybyk](https://github.com/mgrybyk))
+* [#5856](https://github.com/webdriverio/webdriverio/pull/5856) Update BoilerplateProjects.md ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+
+#### Committers: 8
+- Amiya Pattanaik ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+- Bohdan Belenok ([@L0tso](https://github.com/L0tso))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jags ([@jags14385](https://github.com/jags14385))
+- Matthew Mohan ([@mattmohan](https://github.com/mattmohan))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Vinod Reddy ([@AutomationReddy](https://github.com/AutomationReddy))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.5.1 (2020-09-14)
 
 #### :bug: Bug Fix
