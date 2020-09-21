@@ -37,8 +37,9 @@ module.exports = {
     overrides: [{
         files: ['*.ts'],
         rules: {
-            // see https://github.com/typescript-eslint/typescript-eslint/issues/46
-            '@typescript-eslint/no-unused-vars': [2, { args: 'none' }]
+            // see https://stackoverflow.com/questions/55280555/typescript-eslint-eslint-plugin-error-route-is-defined-but-never-used-no-un
+            'no-unused-vars': 'off',
+            '@typescript-eslint/no-unused-vars': 'error'
         }
     }]
 }
