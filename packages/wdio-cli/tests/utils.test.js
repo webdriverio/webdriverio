@@ -1,6 +1,5 @@
 import fs from 'fs-extra'
 import ejs from 'ejs'
-import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
 import childProcess from 'child_process'
 import { SevereServiceError } from 'webdriverio'
@@ -14,7 +13,6 @@ import {
     replaceConfig,
     addServiceDeps,
     convertPackageHashToObject,
-    missingConfigurationPrompt,
     renderConfigurationFile,
     validateServiceAnswers,
     getCapabilities,
@@ -23,8 +21,6 @@ import {
     getPathForFileGeneration
 
 } from '../src/utils'
-
-import { runConfig } from '../src/commands/config'
 
 jest.mock('child_process', function () {
     const m = {
@@ -335,39 +331,6 @@ describe('convertPackageHashToObject', () => {
             package: 'test/package-name',
             short: 'package-name'
         })
-    })
-})
-
-describe('missingConfigurationPromp', () => {
-    it('should prompt user', async () => {
-        inquirer.prompt.mockImplementation(() => ({ config: true }))
-        await missingConfigurationPrompt()
-        expect(inquirer.prompt).toHaveBeenCalled()
-    })
-
-    it('should call function to initalize configuration helper', async () => {
-        await missingConfigurationPrompt('test')
-        expect(runConfig).toHaveBeenCalledWith(false, false, true)
-    })
-
-    it('should pass "yarn" flag to runConfig', async () => {
-        await missingConfigurationPrompt('test', 'test message', true)
-        expect(runConfig).toHaveBeenCalledWith(true, false, true)
-    })
-
-    it('should throw if error occurs', async () => {
-        runConfig.mockImplementation(Promise.reject)
-
-        try {
-            await missingConfigurationPrompt('test')
-        } catch (error) {
-            expect(error).toBeTruthy()
-        }
-    })
-
-    afterEach(() => {
-        runConfig.mockClear()
-        inquirer.prompt.mockClear()
     })
 })
 

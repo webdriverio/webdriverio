@@ -34,7 +34,7 @@ In order to set up this project and start contributing follow this step by step 
 
     * Builds all subpackages via ```npm run build```
 
-        As the last step you need to build all sub-packages in order to resolve the internal dependencies. We also have a NPM command for that:
+        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as compiler. We are currently transitioning to TypeScript so you will see a mixture of normal JS files and TypeScript files.
 
 * Run Tests to ensure that everything is set up correctly
 
@@ -77,13 +77,13 @@ If you only work on a single package you can watch only for that one by calling:
 
 ```sh
 # e.g. `$ npm run watch:pkg @wdio/runner`
-$ npm run watch:pkg <package-name>
+$ npm run watch <package-name>
 ```
 
 It is also a good idea to run jest in watch mode while developing on a single package to see if changes affect any tests:
 
 ```sh
-$ npx jest ./packages/<package-name>/tests --watch
+$ npx jest ./packages/<package-name>/tests --watch --coverageReporters lcov
 ```
 
 ## Create New Package
