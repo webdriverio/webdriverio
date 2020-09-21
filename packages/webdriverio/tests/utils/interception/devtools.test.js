@@ -174,7 +174,7 @@ test('abort request', async () => {
         responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
     }
     const mock = new NetworkInterception('**/foobar/**')
-    expect(::mock.abort).toThrow()
+    expect(mock.abort.bind(mock)).toThrow()
     expect(() => mock.abort('foobar')).toThrow()
 
     mock.abortOnce('NameNotResolved')

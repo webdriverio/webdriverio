@@ -7,9 +7,9 @@ import {
     replaceConfig,
     findInConfig,
     addServiceDeps,
-    convertPackageHashToObject,
-    missingConfigurationPrompt
+    convertPackageHashToObject
 } from '../utils'
+import { missingConfigurationPrompt } from './config'
 
 import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants'
 

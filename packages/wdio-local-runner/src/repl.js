@@ -4,6 +4,7 @@ export default class WDIORunnerRepl extends WDIORepl {
     constructor (childProcess, options) {
         super(options)
         this.childProcess = childProcess
+        this.commandIsRunning = false
     }
 
     _getError(params) {

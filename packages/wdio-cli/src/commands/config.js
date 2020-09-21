@@ -1,4 +1,5 @@
 import util from 'util'
+import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
 import {
@@ -34,7 +35,7 @@ export const builder = (yargs) => {
         .help()
 }
 
-export const runConfig = async function (useYarn, yes, exit) {
+const runConfig = async function (useYarn, yes, exit) {
     console.log(CONFIG_HELPER_INTRO)
     const answers = await getAnswers(yes)
 
@@ -149,4 +150,34 @@ export async function handler(argv) {
     } catch (error) {
         throw new Error(`something went wrong during setup: ${error.stack.slice(7)}`)
     }
+}
+
+/**
+ * Helper utility used in `run` and `install` command to create config if none exist
+ * @param {string}   command        to be executed by user
+ * @param {string}   message        to show when no config is suppose to be created
+ * @param {boolean}  useYarn        parameter set to true if yarn is used
+ * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
+ */
+export async function missingConfigurationPrompt(command, message, useYarn = false, runConfigCmd = runConfig) {
+    const { config } = await inquirer.prompt([
+        {
+            type: 'confirm',
+            name: 'config',
+            message: `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`,
+            default: false
+        }
+    ])
+
+    /**
+     * don't exit if running unit tests
+     */
+    if (!config && !process.env.JEST_WORKER_ID) {
+        /* istanbul ignore next */
+        console.log(message)
+        /* istanbul ignore next */
+        return process.exit(0)
+    }
+
+    return await runConfigCmd(useYarn, false, true)
 }

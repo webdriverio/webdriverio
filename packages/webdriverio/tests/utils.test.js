@@ -464,7 +464,7 @@ describe('utils', () => {
     describe('assertDirectoryExists', () => {
         beforeEach(() => {
             const fsOrig = jest.requireActual('fs')
-            fs.existsSync.mockImplementation(::fsOrig.existsSync)
+            fs.existsSync.mockImplementation(fsOrig.existsSync.bind(fsOrig))
         })
 
         it('should fail if not existing directory', () => {

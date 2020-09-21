@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
+const { IGNORED_SUBPACKAGES_FOR_DOCS } = require('../constants')
 const { getSubPackages, buildPreface } = require('../utils/helpers')
 
 const plugins = {
@@ -13,7 +14,7 @@ const plugins = {
  * @param {object} sidebars website/sidebars
  */
 exports.generateReportersAndServicesDocs = (sidebars) => {
-    const packages = getSubPackages()
+    const packages = getSubPackages(IGNORED_SUBPACKAGES_FOR_DOCS)
 
     for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
         const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)

@@ -1,9 +1,10 @@
 import fs from 'fs-extra'
 import path from 'path'
 
-import Launcher from './../launcher'
-import Watcher from './../watcher'
-import { missingConfigurationPrompt } from '../utils'
+import { missingConfigurationPrompt } from './config'
+
+import Launcher from '../launcher'
+import Watcher from '../watcher'
 import { CLI_EPILOGUE } from '../constants'
 
 export const command = 'run <configPath>'
