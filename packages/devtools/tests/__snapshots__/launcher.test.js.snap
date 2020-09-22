@@ -98,6 +98,8 @@ Array [
   Array [
     Object {
       "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
         "--disable-extensions",
         "--disable-background-networking",
         "--disable-background-timer-throttling",
@@ -141,6 +143,8 @@ Array [
   Array [
     Object {
       "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
         "--disable-extensions",
         "--disable-background-networking",
         "--disable-background-timer-throttling",
@@ -216,6 +220,8 @@ Array [
   Array [
     Object {
       "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
         "--disable-extensions",
         "--disable-background-networking",
         "--disable-background-timer-throttling",
