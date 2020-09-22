@@ -29,7 +29,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "firefox-profile": "^2.0.0"
+    "firefox-profile": "^4.0.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"
