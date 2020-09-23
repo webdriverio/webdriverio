@@ -15,11 +15,11 @@ import pkg from '../package.json'
 
 export interface WebDriverResponse {
     value: any
-    sessionId: string
     /**
      * JSONWP property
      */
     status?: number
+    sessionId?: string
 }
 
 const DEFAULT_HEADERS = {
@@ -68,7 +68,7 @@ export default class WebDriverRequest extends EventEmitter {
         return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    _createOptions (options: Options, sessionId?: string): got.Options {
+    private _createOptions (options: Options, sessionId?: string): got.Options {
         const requestOptions: got.Options = {
             https: {},
             agent: options.agent || agents,
@@ -94,16 +94,18 @@ export default class WebDriverRequest extends EventEmitter {
          * example /sessions. The call to /sessions is not connected to a session itself and it therefore doesn't
          * require it
          */
-        if (this.requiresSessionId && !sessionId) {
-            throw new Error('A sessionId is required for this command')
+        let endpoint = this.endpoint
+        if (this.requiresSessionId) {
+            if (!sessionId) {
+                throw new Error('A sessionId is required for this command')
+            }
+            endpoint = endpoint.replace(':sessionId', sessionId)
         }
 
         requestOptions.url = new URL(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
-            (this.isHubCommand
-                ? this.endpoint
-                : path.join(options.path || '', this.endpoint.replace(':sessionId', sessionId)))
+            this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint)
         )
 
         /**
@@ -125,19 +127,28 @@ export default class WebDriverRequest extends EventEmitter {
         return requestOptions
     }
 
-    async _request (fullRequestOptions: got.Options, transformResponse: Options, totalRetryCount = 0, retryCount = 0): Promise<WebDriverResponse> {
+    private async _request (
+        fullRequestOptions: got.Options,
+        transformResponse?: (response: got.Response, requestOptions: got.HTTPSOptions) => got.Response,
+        totalRetryCount = 0,
+        retryCount = 0
+    ): Promise<WebDriverResponse> {
         log.info(`[${fullRequestOptions.method}] ${(fullRequestOptions.url as URL).href}`)
 
         if (fullRequestOptions.json && Object.keys(fullRequestOptions.json).length) {
             log.info('DATA', transformCommandLogResult(fullRequestOptions.json))
         }
 
+        let response = await got.default(fullRequestOptions.url!, { ...fullRequestOptions })
+            // @ts-ignore
+            .catch((err: got.RequestError) => err)
+
         /**
          * handle retries for requests
          * @param {Error} error  error object that causes the retry
          * @param {String} msg   message that is being shown as warning to user
          */
-        const retry = (error: got.RequestError, msg: string) => {
+        const retry = (error: Error, msg: string) => {
             /**
              * stop retrying if totalRetryCount was exceeded or there is no reason to
              * retry, e.g. if sessionId is invalid
@@ -145,8 +156,6 @@ export default class WebDriverRequest extends EventEmitter {
             if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
                 log.error(`Request failed with status ${response.statusCode} due to ${error}`)
                 this.emit('response', { error })
-                error.statusCode = response.statusCode
-                error.statusMessage = response.statusMessage
                 throw error
             }
 
@@ -157,9 +166,6 @@ export default class WebDriverRequest extends EventEmitter {
             return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
         }
 
-        let response = await got.default(fullRequestOptions.url, { ...fullRequestOptions })
-            .catch((err: got.RequestError) => err)
-
         /**
          * handle request errors
          */
@@ -167,7 +173,7 @@ export default class WebDriverRequest extends EventEmitter {
             /**
              * handle timeouts
              */
-            if (response.code === 'ETIMEDOUT') {
+            if ((response as got.RequestError).code === 'ETIMEDOUT') {
                 return retry(response, 'Request timed out! Consider increasing the "connectionRetryTimeout" option.')
             }
 
@@ -178,7 +184,7 @@ export default class WebDriverRequest extends EventEmitter {
         }
 
         if (typeof transformResponse === 'function') {
-            response = transformResponse(response, fullRequestOptions)
+            response = transformResponse(response, fullRequestOptions) as got.Response<string>
         }
 
         const error = getErrorFromResponseBody(response.body)

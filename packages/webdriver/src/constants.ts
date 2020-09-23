@@ -1,7 +1,8 @@
 import { Options } from './types'
 
 interface Option {
-    type: 'string' | 'number' | 'object' | 'boolean' | 'function' | ((option: any) => boolean)
+    type: 'string' | 'number' | 'object' | 'boolean' | 'function'
+    validate?: (option: any) => boolean
     default?: any
     match?: RegExp
     required?: boolean
@@ -34,11 +35,8 @@ export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, O
      * path to WebDriver endpoints
      */
     path: {
-        type: (path) => {
-            if (typeof path !== 'string') {
-                throw new TypeError('The option "path" needs to be from type "string"')
-            }
-
+        type: 'string',
+        validate: (path: string): boolean => {
             if (!path.startsWith('/')) {
                 throw new TypeError('The option "path" needs to start with a "/"')
             }
