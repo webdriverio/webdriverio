@@ -1,4 +1,13 @@
-export const DEFAULTS = {
+import { Options } from './types'
+
+interface Option {
+    type: 'string' | 'number' | 'object' | 'boolean' | 'function' | ((option: any) => boolean)
+    default?: any
+    match?: RegExp
+    required?: boolean
+}
+
+export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, Option> = {
     /**
      * protocol of automation driver
      */
@@ -92,24 +101,44 @@ export const DEFAULTS = {
         type: 'object'
     },
     /**
+     * Override default agent
+     */
+    logLevels: {
+        type: 'object'
+    },
+    /**
      * Pass custom headers
      */
     headers: {
         type: 'object'
     },
     /**
-     * Whether to allow direct connect caps to adjust endpoint details (Appium only)
-     */
-    enableDirectConnect: {
-        type: 'boolean',
-        default: false
-    },
-    /**
      * Function transforming the request options before the request is made
      */
-    transformRequest: requestOptions => requestOptions,
+    transformRequest: {
+        type: 'function',
+        default: (requestOptions: object) => requestOptions
+    },
     /**
      * Function transforming the response object after it is received
      */
-    transformResponse: response => response,
+    transformResponse: {
+        type: 'function',
+        default: (response: object) => response
+    },
+    /**
+     * Appium direct connect options server (https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
+     */
+    directConnectProtocol: {
+        type: 'string'
+    },
+    directConnectHost: {
+        type: 'string'
+    },
+    directConnectPort: {
+        type: 'number'
+    },
+    directConnectPath: {
+        type: 'string'
+    }
 }

@@ -1,16 +1,27 @@
+// @ts-ignore
 import logger from '@wdio/logger'
 
+// @ts-ignore
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
+// @ts-ignore
 import { validateConfig } from '@wdio/config'
 
 import { DEFAULTS } from './constants'
-import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
+import { Options, BaseClient } from './types'
+import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
+
+const log = logger('webdriver')
 
 export default class WebDriver {
-    static async newSession (options = {}, modifier, userPrototype = {}, customCommandWrapper) {
+    static async newSession (
+        options: Options = {},
+        modifier: (...args: any[]) => any,
+        userPrototype = {},
+        customCommandWrapper: (...args: any[]) => any
+    ) {
         const params = validateConfig(DEFAULTS, options)
 
-        if (!options.logLevels || !options.logLevels['webdriver']) {
+        if (!options.logLevels || !options.logLevels.webdriver) {
             logger.setLevel('webdriver', params.logLevel)
         }
 
@@ -21,8 +32,14 @@ export default class WebDriver {
          * for example). But only do this if the user has enabled this
          * behavior in the first place.
          */
-        if (params.enableDirectConnect) {
-            setupDirectConnect(params)
+        const { directConnectProtocol, directConnectHost, directConnectPort, directConnectPath } = params.capabilities as Options
+        if (directConnectProtocol && directConnectHost && directConnectPort && (directConnectPath || directConnectPath === '')) {
+            log.info('Found direct connect information in new session response. ' +
+                `Will connect to server at ${directConnectProtocol}://${directConnectHost}:${directConnectPort}/${directConnectPath}`)
+            params.protocol = directConnectProtocol
+            params.hostname = directConnectHost
+            params.port = directConnectPort
+            params.path = directConnectPath
         }
 
         const sessionId = await startWebDriverSession(params)
@@ -38,14 +55,19 @@ export default class WebDriver {
     /**
      * allows user to attach to existing sessions
      */
-    static attachToSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
-        if (typeof options.sessionId !== 'string') {
+    static attachToSession (
+        options: BaseClient,
+        modifier: (...args: any[]) => any,
+        userPrototype = {},
+        commandWrapper: (...args: any[]) => any
+    ) {
+        if (!options || typeof options.sessionId !== 'string') {
             throw new Error('sessionId is required to attach to existing session')
         }
 
         // logLevel can be undefined in watch mode when SIGINT is called
-        if (options.logLevel !== undefined) {
-            logger.setLevel('webdriver', options.logLevel)
+        if ((options as Options).logLevel !== undefined) {
+            logger.setLevel('webdriver', (options as Options).logLevel)
         }
 
         options.capabilities = options.capabilities || {}
@@ -65,7 +87,7 @@ export default class WebDriver {
      * @param   {Object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
     */
-    static async reloadSession (instance) {
+    static async reloadSession (instance: BaseClient) {
         const params = {
             ...instance.options,
             capabilities: instance.requestedCapabilities
@@ -79,12 +101,9 @@ export default class WebDriver {
     static get WebDriver () {
         return WebDriver
     }
-    static get DEFAULTS () {
-        return DEFAULTS
-    }
 }
 
 /**
  * Helper methods consumed by webdriverio package
  */
-export { getPrototype }
+export { getPrototype, DEFAULTS }
