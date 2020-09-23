@@ -5,7 +5,6 @@
  *   $ npm install devtools webdriverio
  *
  */
-// eslint-disable-next-line import/no-unresolved
 const { remote } = require('../../packages/webdriverio')
 
 let browser;

@@ -3,6 +3,8 @@ import path from 'path'
 import assert from 'assert'
 import { promisify } from 'util'
 
+import { sleep } from '../packages/wdio-utils/src/utils'
+
 const fs = {
     readFile: promisify(readFile),
     unlink: promisify(unlink),
@@ -19,8 +21,6 @@ import {
     CUCUMBER_REPORTER_LOGS,
 } from './helpers/fixtures'
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
 async function runTests (tests) {
     /**
      * Usage example: `npm run test:smoke -- customService`
@@ -35,8 +35,8 @@ async function runTests (tests) {
         }
     } else {
         // parallel
-        await Promise.all(tests.map(test => test().catch(() => {
-            throw new Error(`Smoke test failed with name ${test.name}`)
+        await Promise.all(tests.map(test => test().catch((err) => {
+            throw new Error(`Smoke test failed with name ${test.name}, ${err}`)
         })))
     }
 }
@@ -289,6 +289,7 @@ const retryPass = async () => {
             specs: [path.resolve(__dirname, 'mocha', 'retry_and_pass.js')],
             outputDir: path.dirname(logfiles[0]),
             specFileRetries: 1,
+            specFileRetriesDelay: 1,
             retryFilename
         })
     if (!await fs.exists(logfiles[0])) {

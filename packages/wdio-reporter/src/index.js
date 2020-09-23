@@ -36,6 +36,7 @@ export default class WDIOReporter extends EventEmitter {
             skipping: 0,
             failures: 0
         }
+        this.retries = 0
 
         let currentTest
 
@@ -80,6 +81,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('test:start',  /* istanbul ignore next */(test) => {
+            test.retries = this.retries
             currentTest = new TestStats(test)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.tests.push(currentTest)
@@ -105,7 +107,16 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestFail(testStat)
         })
 
+        this.on('test:retry', (test) => {
+            const testStat = this.tests[test.uid]
+
+            testStat.fail(getErrorsFromEvent(test))
+            this.onTestRetry(testStat)
+            this.retries++
+        })
+
         this.on('test:pending', (test) => {
+            test.retries = this.retries
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentTest = new TestStats(test)
 
@@ -135,6 +146,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('test:end',  /* istanbul ignore next */(test) => {
             const testStat = this.tests[test.uid]
+            this.retries = 0
             this.onTestEnd(testStat)
         })
 
@@ -156,13 +168,13 @@ export default class WDIOReporter extends EventEmitter {
         /**
          * browser client event handlers
          */
-        this.on('client:beforeCommand',  /* istanbul ignore next */ (payload) => {
+        this.on('client:beforeCommand',  /* istanbul ignore next */(payload) => {
             if (!currentTest) {
                 return
             }
             currentTest.output.push(Object.assign(payload, { type: 'command' }))
         })
-        this.on('client:afterCommand',  /* istanbul ignore next */ (payload) => {
+        this.on('client:afterCommand',  /* istanbul ignore next */(payload) => {
             if (!currentTest) {
                 return
             }
@@ -205,6 +217,8 @@ export default class WDIOReporter extends EventEmitter {
     onTestPass() { }
     /* istanbul ignore next */
     onTestFail() { }
+    /* istanbul ignore next */
+    onTestRetry() { }
     /* istanbul ignore next */
     onTestSkip() { }
     /* istanbul ignore next */

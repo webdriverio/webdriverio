@@ -17,6 +17,75 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.5.2 (2020-09-18)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#5872](https://github.com/webdriverio/webdriverio/pull/5872) Assign w3c identifier to element scope after element re-found ([@L0tso](https://github.com/L0tso))
+* `wdio-allure-reporter`
+  * [#5870](https://github.com/webdriverio/webdriverio/pull/5870) Fixes the issue On V6, for android tests, where the incorrect deviceName is displayed in allure reports ([@jags14385](https://github.com/jags14385))
+* `wdio-devtools-service`
+  * [#5858](https://github.com/webdriverio/webdriverio/pull/5858) Fix unbound commands in devtools-service ([@mattmohan](https://github.com/mattmohan))
+
+#### :memo: Documentation
+* [#5871](https://github.com/webdriverio/webdriverio/pull/5871) Added Bamboo Documentation ([@AutomationReddy](https://github.com/AutomationReddy))
+* [#5868](https://github.com/webdriverio/webdriverio/pull/5868) Add docs on how to deploy and run our docs page ([@christian-bromann](https://github.com/christian-bromann))
+* [#5857](https://github.com/webdriverio/webdriverio/pull/5857) Prepend hash only for h1 in 3rd party docs ([@mgrybyk](https://github.com/mgrybyk))
+* [#5856](https://github.com/webdriverio/webdriverio/pull/5856) Update BoilerplateProjects.md ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+
+#### Committers: 8
+- Amiya Pattanaik ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+- Bohdan Belenok ([@L0tso](https://github.com/L0tso))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jags ([@jags14385](https://github.com/jags14385))
+- Matthew Mohan ([@mattmohan](https://github.com/mattmohan))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Vinod Reddy ([@AutomationReddy](https://github.com/AutomationReddy))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.5.1 (2020-09-14)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#5812](https://github.com/webdriverio/webdriverio/pull/5812) Fix missing mocha test hooks in a junit report ([@vgrigoruk](https://github.com/vgrigoruk))
+* Other
+  * [#5823](https://github.com/webdriverio/webdriverio/pull/5823) scripts: ensure api doc dir ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Vitalii Grygoruk ([@vgrigoruk](https://github.com/vgrigoruk))
+
+
+## v6.5.0 (2020-09-14)
+
+#### :rocket: New Feature
+* `wdio-shared-store-service`, `wdio-sync`, `webdriverio`
+  * [#5821](https://github.com/webdriverio/webdriverio/pull/5821) Filter postData, responseHeaders, statusCode ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cli`, `wdio-sync`, `wdio-utils`, `webdriverio`
+  * [#5819](https://github.com/webdriverio/webdriverio/pull/5819) Add optional delay between spec file retry attempts ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#5803](https://github.com/webdriverio/webdriverio/pull/5803) adding dialog handler to switchwindow so that we can handle alerts ([@ParmaJonEman](https://github.com/ParmaJonEman))
+* `webdriverio`
+  * [#5820](https://github.com/webdriverio/webdriverio/pull/5820) Fix network mock headers filter ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-jasmine-framework`
+  * [#5790](https://github.com/webdriverio/webdriverio/pull/5790) log warning if jasmine tests have no root describe ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#5818](https://github.com/webdriverio/webdriverio/pull/5818) generate expect-webdriverio api doc ([@mgrybyk](https://github.com/mgrybyk))
+* [#5814](https://github.com/webdriverio/webdriverio/pull/5814) Update BoilerplateProjects.md ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+
+#### Committers: 4
+- Amiya Pattanaik ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@ParmaJonEman](https://github.com/ParmaJonEman)
+
+
 ## v6.4.7 (2020-09-10)
 
 #### :bug: Bug Fix

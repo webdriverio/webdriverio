@@ -39,7 +39,7 @@ await expect(selectOptions).toHaveChildren({ gte: 1 })
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-For the full list, see the [expect API doc](/docs/api/expect.html).
+For the full list, see the [expect API doc](/docs/api/expect-webdriverio.html).
 
 ## Migrating from Chai
 
@@ -70,7 +70,7 @@ To migrate this code remove the Chai import and use the new expect-webdriverio a
 describe('Homepage', () => {
     it('should assert', () => {
         browser.url('./');
-        expect(browser).toHaveUrl('/login'); // new expect-webdriverio API method https://webdriver.io/docs/api/expect.html#tohaveurl
+        expect(browser).toHaveUrl('/login'); // new expect-webdriverio API method https://webdriver.io/docs/api/expect-webdriverio.html#tohaveurl
     });
 });
 ```

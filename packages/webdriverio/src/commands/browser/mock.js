@@ -1,5 +1,5 @@
 /**
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+ * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
  *
  * Mock the response of a request. You can define a mock based on a matching
  * glob and corresponding header and status code. Calling the mock method
@@ -11,7 +11,7 @@
  *
  * There are 3 ways to modify the response:
  * - return a custom JSON object (for stubbing API request)
- * - replace web resource with a local file (service a modifed JavaScript file) or
+ * - replace web resource with a local file (service a modified JavaScript file) or
  * - redirect resource to a different url
  *
  * <example>
@@ -20,15 +20,28 @@
         // via static string
         const userListMock = browser.mock('**' + '/users/list')
         // you can also specifying the mock even more by filtering resources
-        // by headers or status code, e.g. mock only responses with specific
-        // header set
+        // by request or response headers, status code, postData, e.g. mock only responses with specific
+        // header set and statusCode
         const strictMock = browser.mock('**', {
             // mock all json responses
-            headers: { 'Content-Type': 'application/json' }
+            statusCode: 200,
+            headers: { 'Content-Type': 'application/json' },
+            responseHeaders: { 'Cache-Control': 'no-cache' }
+        })
+
+        // postData comparator function
+        const apiV1Mock = browser.mock('**' + '/api/v1', {
+            postData: (data) => typeof data === 'string' && data.includes('foo')
+        })
+
+        // postData exact match
+        const apiV2Mock = browser.mock('**' + '/api/v2', {
+            postData: 'foobar'
         })
     })
 
     it('should modify API responses', () => {
+        // filter by method
         const todoMock = browser.mock('**' + '/todos', {
             method: 'get'
         })
@@ -72,11 +85,12 @@
  * </example>
  *
  * @alias browser.mock
- * @param {String}             url                    url to mock
- * @param {MockFilterOptions=} filterOptions          filter mock resource by additional options
- * @param {String=}            filterOptions.method   filter resource by HTTP method
- * @param {Object=}            filterOptions.headers  filter resource by specific request headers
- * @return {Mock}                                     a mock object to modify the response
+ * @param {String}             url                            url to mock
+ * @param {MockFilterOptions=} filterOptions                  filter mock resource by additional options
+ * @param {String=}            filterOptions.method           filter resource by HTTP method
+ * @param {Object=}            filterOptions.headers          filter resource by specific request headers
+ * @param {Object=}            filterOptions.responseHeaders  filter resource by specific response headers
+ * @return {Mock}                                             a mock object to modify the response
  * @type utility
  *
  */

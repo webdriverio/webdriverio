@@ -41,9 +41,7 @@ describe('element', () => {
 
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
-        expect(elem[ELEMENT_KEY]).toBe(undefined)
         expect(elem.ELEMENT).toBe('some-elem-123')
-        expect(subElem[ELEMENT_KEY]).toBe(undefined)
         expect(subElem.ELEMENT).toBe('some-sub-elem-321')
     })
 

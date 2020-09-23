@@ -4,7 +4,7 @@ import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
 import { ConfigParser } from '@wdio/config'
-import { initialisePlugin, initialiseLauncherService } from '@wdio/utils'
+import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
 
 import CLInterface from './interface'
 import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils'
@@ -282,6 +282,12 @@ class Launcher {
      */
     async startInstance(specs, caps, cid, rid, retries) {
         let config = this.configParser.getConfig()
+
+        // wait before retrying the spec file
+        if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && config.specFileRetries !== retries) {
+            await sleep(config.specFileRetriesDelay * 1000)
+        }
+
         // Retried tests receive the cid of the failing test as rid
         // so they can run with the same cid of the failing test.
         cid = rid || this.getRunnerId(cid)

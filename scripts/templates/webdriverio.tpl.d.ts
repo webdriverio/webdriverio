@@ -38,6 +38,11 @@ declare namespace WebdriverIO {
         }
     }
 
+    type JsonPrimitive = string | number | boolean | null;
+    type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray };
+    type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>;
+    type JsonCompatible = JsonObject | JsonArray;
+
     interface MultiRemoteCapabilities {
         [instanceName: string]: {
             capabilities: WebDriver.DesiredCapabilities;
@@ -130,6 +135,10 @@ declare namespace WebdriverIO {
          */
         specFileRetries?: number;
         readonly specFileRetryAttempts?: number;
+        /**
+         * Delay in seconds between the spec file retry attempts
+         */
+        specFileRetriesDelay?: number;
         /**
          * Default timeout for all `waitFor*` commands. (Note the lowercase f in the option name.)
          * This timeout only affects commands starting with `waitFor*` and their default wait time.
@@ -492,7 +501,15 @@ declare namespace WebdriverIO {
         /**
          * body response of actual resource
          */
-        body: any
+        body: string | JsonCompatible
+        /**
+         * HTTP response headers.
+         */
+        responseHeaders: Record<string, string>;
+        /**
+         * HTTP response status code.
+         */
+        statusCode: number;
     }
 
     type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
@@ -507,7 +524,10 @@ declare namespace WebdriverIO {
 
     type MockFilterOptions = {
         method?: string,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
+        responseHeaders?: Record<string, string>,
+        statusCode?: number,
+        postData?: string | ((payload: string | undefined) => boolean)
     }
 
     type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'

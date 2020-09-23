@@ -15,7 +15,7 @@ export default class DevtoolsInterception extends Interception {
                 headers[name] = value
                 return headers
             }, {})
-            const { requestId, request } = event
+            const { requestId, request, responseStatusCode } = event
 
             for (const mock of mocks) {
                 /**
@@ -26,14 +26,20 @@ export default class DevtoolsInterception extends Interception {
                 }
 
                 /**
+                 * Add statusCode and responseHeaders to request to be used in expect-webdriverio
+                 */
+                request.statusCode = responseStatusCode
+                request.responseHeaders = { ...responseHeaders }
+
+                /**
                  * match filter options
                  */
                 if (
-                    /**
-                     * HTTP method
-                     */
-                    (mock.filterOptions.method && mock.filterOptions.method.toLowerCase() !== request.method.toLowerCase()) ||
-                    (mock.filterOptions.headers && containsHeaderObject(responseHeaders, mock.filterOptions.headers))
+                    filterMethod(request.method, mock.filterOptions.method) ||
+                    filterHeaders(request.headers, mock.filterOptions.requestHeaders) ||
+                    filterHeaders(responseHeaders, mock.filterOptions.headers) ||
+                    filterRequest(request.postData, mock.filterOptions.postData) ||
+                    filterStatusCode(responseStatusCode, mock.filterOptions.statusCode)
                 ) {
                     continue
                 }
@@ -73,7 +79,7 @@ export default class DevtoolsInterception extends Interception {
                         newBody = JSON.stringify(newBody)
                     }
 
-                    let responseCode = params.statusCode || event.responseStatusCode
+                    let responseCode = params.statusCode || responseStatusCode
                     let responseHeaders = [
                         ...event.responseHeaders,
                         ...Object.entries(params.headers || {}).map(([key, value]) => { key, value })
@@ -178,4 +184,26 @@ export default class DevtoolsInterception extends Interception {
     abortOnce (errorReason) {
         this.abort(errorReason, false)
     }
+}
+
+const filterMethod = (method, expected) => {
+    return expected && expected.toLowerCase() !== method.toLowerCase()
+}
+
+const filterHeaders = (responseHeaders, expected) => {
+    return expected && !containsHeaderObject(responseHeaders, expected)
+}
+
+const filterRequest = (postData, expected) => {
+    if (typeof expected === 'undefined') {
+        return false
+    }
+    if (typeof expected === 'function') {
+        return expected(postData) !== true
+    }
+    return postData !== expected
+}
+
+const filterStatusCode = (statusCode, expected) => {
+    return typeof expected === 'number' && statusCode !== expected
 }

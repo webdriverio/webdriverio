@@ -241,3 +241,9 @@ export const canAccess = (file) => {
         return false
     }
 }
+
+/**
+ * sleep
+ * @param {number=0} ms number in ms to sleep
+ */
+export const sleep = (ms = 0) => new Promise((r) => setTimeout(r, ms))
