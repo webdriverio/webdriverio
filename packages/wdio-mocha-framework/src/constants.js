@@ -16,7 +16,7 @@ export const EVENTS = {
     'hook end': 'hook:end',
     'pass': 'test:pass',
     'fail': 'test:fail',
-    'retry': 'test:retries',
+    'retry': 'test:retry',
     'pending': 'test:pending'
 }
 

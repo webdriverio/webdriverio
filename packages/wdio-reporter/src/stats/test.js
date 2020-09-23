@@ -42,13 +42,4 @@ export default class TestStats extends RunnableStats {
         }
     }
 
-    failRetries(errors) {
-        this.complete()
-        this.errors = errors
-        this.state = 'pending'
-
-        if (errors && errors.length) {
-            this.error = errors[0]
-        }
-    }
 }

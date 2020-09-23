@@ -541,55 +541,115 @@ describe('WDIOReporter Listeners', () => {
         })
     })
 
-    describe('handling test:retries', () => {
+    describe('handling test:retry', () => {
 
         let runnerStartEvent
         let suiteStartEvent
-        let testStartEvent
-        let testRetriesEvent
+        let testStartFirstEvent
+        let testRetryEvent
+        let testStartSecondEvent
+        let testPassEvent
         let testFailEvent
         let testEndEvent
 
-        const emitEvents = () => {
+        const emitEventsFirstTry = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
-            reporter.emit('test:start', testStartEvent)
-            reporter.emit('test:retries', testRetriesEvent)
-            reporter.emit('test:start', testStartEvent)
+            reporter.emit('test:start', testStartFirstEvent)
+            reporter.emit('test:retry', testRetryEvent)
+        }
+
+        const emitEventsSecondPassTry = () => {
+            reporter.emit('test:start', testStartSecondEvent)
+            reporter.emit('test:pass', testPassEvent)
+            reporter.emit('test:end', testEndEvent)
+        }
+
+        const emitEventsSecondFailTry = () => {
+            reporter.emit('test:start', testStartSecondEvent)
             reporter.emit('test:fail', testFailEvent)
             reporter.emit('test:end', testEndEvent)
         }
 
         beforeEach(() => {
             runnerStartEvent = {
-                cid: 'runnerid',
+                cid: 'runner-id',
                 capabilities: {
                     browserName: 'Chrome'
                 }
             }
             suiteStartEvent = {
-                uid: 'suiteid',
+                uid: 'suite-id',
                 title: 'the software'
             }
-            testStartEvent = {
-                uid: 'testid',
+            testStartFirstEvent = {
+                uid: 'test-id',
                 title: 'should do the needful'
             }
-            testRetriesEvent = {
-                uid: 'testid'
+            testRetryEvent = {
+                uid: 'test-id'
+            }
+            testStartSecondEvent = {
+                uid: 'test-retry-id',
+                title: 'should do the needful'
+            }
+            testPassEvent = {
+                uid: 'test-retry-id'
             }
             testFailEvent = {
-                uid: 'testid'
+                uid: 'test-retry-id'
             }
             testEndEvent = {
-                uid: 'testid'
+                uid: 'test-retry-id'
             }
         })
 
         it('should call test retry with the test stat', () => {
+            reporter.onTestStart = jest.fn()
+            reporter.onTestRetry = jest.fn()
+            reporter.onTestFail = jest.fn()
             reporter.onTestEnd = jest.fn()
-            emitEvents()
-            expect(reporter.onTestEnd).toHaveBeenCalledWith(reporter.tests[testStartEvent.uid])
+
+            emitEventsFirstTry()
+            expect(reporter.onTestStart).toHaveBeenCalledWith(reporter.tests[testStartFirstEvent.uid])
+            expect(reporter.onTestRetry).toHaveBeenCalledWith(reporter.tests[testRetryEvent.uid])
+
+            emitEventsSecondFailTry()
+            expect(reporter.onTestStart).toHaveBeenCalledWith(reporter.tests[testStartSecondEvent.uid])
+            expect(reporter.onTestFail).toHaveBeenCalledWith(reporter.tests[testFailEvent.uid])
+            expect(reporter.onTestEnd).toHaveBeenCalledWith(reporter.tests[testEndEvent.uid])
+        })
+
+        it('should update test retries count', () => {
+            emitEventsFirstTry()
+            expect(reporter.tests[testRetryEvent.uid].retries).toBe(0)
+
+            emitEventsSecondFailTry()
+            expect(reporter.tests[testEndEvent.uid].retries).toBe(1)
+        })
+
+        it('should increment the test and passes counts only after test retry', () => {
+            emitEventsFirstTry()
+            expect(reporter.counts.tests).toBe(0)
+            expect(reporter.counts.passes).toBe(0)
+            expect(reporter.counts.failures).toBe(0)
+
+            emitEventsSecondPassTry()
+            expect(reporter.counts.tests).toBe(1)
+            expect(reporter.counts.passes).toBe(1)
+            expect(reporter.counts.failures).toBe(0)
+        })
+
+        it('should increment the test and failure counts only after test retry', () => {
+            emitEventsFirstTry()
+            expect(reporter.counts.tests).toBe(0)
+            expect(reporter.counts.passes).toBe(0)
+            expect(reporter.counts.failures).toBe(0)
+
+            emitEventsSecondFailTry()
+            expect(reporter.counts.tests).toBe(1)
+            expect(reporter.counts.passes).toBe(0)
+            expect(reporter.counts.failures).toBe(1)
         })
     })
 

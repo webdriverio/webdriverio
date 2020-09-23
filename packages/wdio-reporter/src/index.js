@@ -107,6 +107,14 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestFail(testStat)
         })
 
+        this.on('test:retry', (test) => {
+            const testStat = this.tests[test.uid]
+
+            testStat.fail(getErrorsFromEvent(test))
+            this.onTestRetry(testStat)
+            this.retries++
+        })
+
         this.on('test:pending', (test) => {
             test.retries = this.retries
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
@@ -134,14 +142,6 @@ export default class WDIOReporter extends EventEmitter {
             this.counts.skipping++
             this.counts.tests++
             this.onTestSkip(currentTest)
-        })
-
-        this.on('test:retries', (test) => {
-            const testStat = this.tests[test.uid]
-
-            testStat.failRetries(getErrorsFromEvent(test))
-            this.onTestFailRetries(testStat)
-            this.retries++
         })
 
         this.on('test:end',  /* istanbul ignore next */(test) => {
@@ -218,7 +218,7 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onTestFail() { }
     /* istanbul ignore next */
-    onTestFailRetries() { }
+    onTestRetry() { }
     /* istanbul ignore next */
     onTestSkip() { }
     /* istanbul ignore next */

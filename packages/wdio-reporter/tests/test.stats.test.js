@@ -53,18 +53,6 @@ describe('TestStats', () => {
         stat.complete.mockReset()
     })
 
-    it('can fail and retry', () => {
-        stat.failRetries([new Error('oh oh retry')])
-        expect(stat.state).toBe('pending')
-        expect(stat.errors.length).toBe(1)
-        expect(stat.errors[0].message).toBe('oh oh retry')
-
-        expect(stat.error.message).toBe('oh oh retry')
-        expect(stat.complete.mock.calls).toHaveLength(1)
-
-        stat.complete.mockReset()
-    })
-
     it('should not throw if it fails with no errors somehow', () => {
         stat.fail([])
         expect(stat.errors.length).toBe(0)
@@ -74,10 +62,5 @@ describe('TestStats', () => {
     it('should not throw if it fails with undefined errors somehow', () => {
         stat.fail(undefined)
         expect(stat.state).toBe('failed')
-    })
-
-    it('should not throw if it fails and will retry with undefined errors somehow', () => {
-        stat.failRetries(undefined)
-        expect(stat.state).toBe('pending')
     })
 })
