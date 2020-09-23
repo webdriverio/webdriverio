@@ -1,7 +1,7 @@
 
 /**
  * 
- * Returns the next sibling element of the selected DOM-element.
+ * Returns the parent element of the selected DOM-element.
  * 
  * <example>
     :index.html
@@ -11,17 +11,17 @@
         <li><a href="/">Sibling Three</a></li>
     </ul>
     :prev.js
-    it('should get text from next sibling element', () => {
+    it('should get id from parent element', () => {
         const elem = $$('li');
-        console.log(elem[1].next().getText()); // outputs: "Sibling Three"
+        console.log(elem[2].parentEl().getAttribute('id')); // outputs: "parent"
     });
  * </example>
  *
- * @alias element.next
+ * @alias element.parentEl
  * @return {Element}
  * @type utility
  */
 
-export default function next () {
-    return this.$(function () { return this.nextElementSibling })
+export default function parentEl () {
+    return this.$(function () { return this.parentElement })
 }
