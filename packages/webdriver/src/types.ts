@@ -555,7 +555,10 @@ export interface Options {
     /**
      * Allows you to use a custom http/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
      */
-    agent?: http.Agent | https.Agent;
+    agent?: {
+        http: http.Agent,
+        https: https.Agent
+    };
     /**
      * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
      */
@@ -574,7 +577,7 @@ export interface Options {
     directConnectPath?: string
 }
 
-export interface JSONWPCommandError {
+export interface JSONWPCommandError extends Error {
     code: string
     message: string
     statusCode: string

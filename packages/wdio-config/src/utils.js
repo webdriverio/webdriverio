@@ -158,13 +158,13 @@ export function validateConfig (defaults, options, keysToKeep = []) {
         }
 
         if (typeof options[name] !== 'undefined') {
-            if (typeof expectedOption.type === 'string' && typeof options[name] !== expectedOption.type) {
+            if (typeof options[name] !== expectedOption.type) {
                 throw new Error(`Expected option "${name}" to be type of ${expectedOption.type} but was ${typeof options[name]}`)
             }
 
-            if (typeof expectedOption.type === 'function') {
+            if (typeof expectedOption.validate === 'function') {
                 try {
-                    expectedOption.type(options[name])
+                    expectedOption.validate(options[name])
                 } catch (e) {
                     throw new Error(`Type check for option "${name}" failed: ${e.message}`)
                 }
