@@ -249,6 +249,11 @@ declare namespace WebDriver {
         unhandledPromptBehavior?: string;
     }
 
+    interface W3CCapabilities {
+        alwaysMatch: Capabilities;
+        firstMatch: Capabilities;
+    }
+
     interface DesiredCapabilities extends Capabilities {
         // Read-only capabilities
         cssSelectorsEnabled?: boolean;
@@ -394,6 +399,12 @@ declare namespace WebDriver {
         enablePerformanceLogging?: boolean;
         printPageSourceOnFindFailure?: boolean;
 
+        // Appium direct config
+        directConnectProtocol: string;
+        directConnectHost: string;
+        directConnectPort: number;
+        directConnectPath: string;
+
         // Appium Android Only
         appActivity?: string;
         appPackage?: string;
@@ -496,6 +507,18 @@ declare namespace WebDriver {
 
     interface Options {
         /**
+         * Your cloud service username (only works for Sauce Labs, Browserstack, TestingBot,
+         * CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will automatically
+         * set connection options for you.
+         */
+        user?: string;
+        /**
+         * Your cloud service access key or secret key (only works for Sauce Labs, Browserstack,
+         * TestingBot, CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will
+         * automatically set connection options for you.
+         */
+        key?: string;
+        /**
          * Protocol to use when communicating with the Selenium standalone server (or driver).
          */
         protocol?: string;
@@ -520,8 +543,8 @@ declare namespace WebDriver {
         /**
          * Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your Selenium session.
          */
-        capabilities?: DesiredCapabilities;
-        requestedCapabilities?: DesiredCapabilities;
+        capabilities?: DesiredCapabilities | W3CCapabilities;
+        requestedCapabilities?: DesiredCapabilities | W3CCapabilities;
         /**
          * Level of logging verbosity.
          */
@@ -545,6 +568,10 @@ declare namespace WebDriver {
         headers?: {
             [name: string]: string;
         };
+        /**
+         * Allows you to use a customhttp/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
+         */
+        agent?: http.Agent | https.Agent;
         /**
          * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
          */
@@ -1359,7 +1386,7 @@ declare namespace WebDriver {
 
         /**
          * [appium]
-         * 
+         *
          * https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#appium-extension-endpoints
          */
         setValueImmediate(elementId: string, value: string): void;
@@ -1797,168 +1824,168 @@ declare namespace WebDriver {
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidsubmit
          */
         elementSubmit(elementId: string): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidclear
          */
         elementClear(elementId: string): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidvalue
          */
         elementSendKeys(elementId: string, value: string[]): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidkeys
          */
         sendKeys(value: string[]): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidsource
          */
         getPageSource(): string;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidexecute
          */
         executeScript(script: string, args?: (string|object|number|boolean|undefined)[]): any;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidexecute_async
          */
         executeAsyncScript(script: string, args: (string|object|number|boolean|undefined)[]): any;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidcookie
          */
         getAllCookies(): object[];
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidcookie
          */
         addCookie(cookie: object): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidcookie
          */
         deleteAllCookies(): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidcookiename
          */
         deleteCookie(name: string): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessioniddismiss_alert
          */
         dismissAlert(): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidaccept_alert
          */
         acceptAlert(): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidalert_text
          */
         getAlertText(): string;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://w3c.github.io/webdriver/webdriver-spec.html#dfn-send-alert-text
          */
         sendAlertText(text: string): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidscreenshot
          */
         takeScreenshot(): string;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeavailable_engines
          */
         getAvailableEngines(): string[];
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactive_engine
          */
         getActiveEngine(): string;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactivated
          */
         isIMEActivated(): boolean;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimedeactivate
          */
         deactivateIME(): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidimeactivate
          */
         activateIME(engine: string): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#get-sessionsessionidorientation
          */
         getOrientation(): string;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#post-sessionsessionidorientation
          */
         setOrientation(orientation: string): void;
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
          */
         moveToElement(element?: (string|null), xoffset?: number, yoffset?: number): void;
@@ -2091,7 +2118,7 @@ declare namespace WebDriver {
 
         /**
          * [jsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#delete-sessionsessionidlocal_storagekeykey
          */
         deleteLocalStorageItem(key: string): void;
@@ -2172,63 +2199,63 @@ declare namespace WebDriver {
 
         /**
          * [mjsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts
          */
         getContext(): string|null;
 
         /**
          * [mjsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts
          */
         switchContext(name: string): void;
 
         /**
          * [mjsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts
          */
         getContexts(): string[];
 
         /**
          * [mjsonwp]
-         * 
+         *
          * https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#mobile-json-wire-protocol-endpoints
          */
         getPageIndex(): string;
 
         /**
          * [mjsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-modes
          */
         getNetworkConnection(): number;
 
         /**
          * [mjsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#device-modes
          */
         setNetworkConnection(type: number): void;
 
         /**
          * [mjsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#touch-gestures
          */
         touchPerform(actions: object[]): void;
 
         /**
          * [mjsonwp]
-         * 
+         *
          * https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#touch-gestures
          */
         multiTouchPerform(actions: object[], elementId: object[]): void;
 
         /**
          * [mjsonwp]
-         * 
+         *
          * https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md#mobile-json-wire-protocol-endpoints
          */
         receiveAsyncResponse(status: string, value: string): void;

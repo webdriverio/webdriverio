@@ -1,7 +1,7 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
-import WebDriver from 'webdriver'
+import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 
 const log = logger('@wdio/local-runner:utils')
@@ -34,7 +34,7 @@ export function sanitizeCaps (caps, filterOut) {
         // WDIO config keys
         ...Object.keys(DEFAULT_CONFIGS()),
         // WebDriver config keys
-        ...Object.keys(WebDriver.DEFAULTS)
+        ...Object.keys(DEFAULTS)
     ]
     return Object.keys(caps).filter(key => (
         /**

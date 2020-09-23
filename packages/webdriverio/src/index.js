@@ -1,6 +1,6 @@
 import path from 'path'
-import WebDriver from 'webdriver'
 import logger from '@wdio/logger'
+import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig, detectBackend } from '@wdio/config'
 import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 
@@ -24,7 +24,7 @@ const log = logger('webdriverio')
 export const remote = async function (params = {}, remoteModifier) {
     logger.setLogLevelsConfig(params.logLevels, params.logLevel)
 
-    const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(WebDriver.DEFAULTS))
+    const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(DEFAULTS))
     const automationProtocol = await getAutomationProtocol(config)
     const modifier = (client, options) => {
         /**

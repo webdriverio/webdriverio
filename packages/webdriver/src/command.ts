@@ -1,14 +1,23 @@
+// @ts-ignore
 import logger from '@wdio/logger'
+// @ts-ignore
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
+import Protocols from '@wdio/protocols'
 
 import WebDriverRequest from './request'
+import { BaseClient } from './types'
 
 const log = logger('webdriver')
 
-export default function (method, endpointUri, commandInfo, doubleEncodeVariables = false) {
+export default function (
+    method: string,
+    endpointUri: string,
+    commandInfo: Protocols.CommandEndpoint,
+    doubleEncodeVariables: boolean = false
+) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return function protocolCommand (...args) {
+    return function protocolCommand (this: BaseClient, ...args: any[]) {
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
@@ -20,7 +29,7 @@ export default function (method, endpointUri, commandInfo, doubleEncodeVariables
 
         const commandUsage = `${command}(${commandParams.map((p) => p.name).join(', ')})`
         const moreInfo = `\n\nFor more info see ${ref}\n`
-        const body = {}
+        const body: Record<string, any> = {}
 
         /**
          * parameter check
@@ -42,7 +51,8 @@ export default function (method, endpointUri, commandInfo, doubleEncodeVariables
         /**
          * parameter type check
          */
-        for (const [i, arg] of Object.entries(args)) {
+        for (const [it, arg] of Object.entries(args)) {
+            const i = parseInt(it, 10)
             const commandParam = commandParams[i]
 
             if (!isValidParameter(arg, commandParam.type)) {
@@ -67,7 +77,7 @@ export default function (method, endpointUri, commandInfo, doubleEncodeVariables
             /**
              * inject url variables
              */
-            if (i < variables.length) {
+            if (variables.length) {
                 const encodedArg = doubleEncodeVariables ? encodeURIComponent(encodeURIComponent(arg)) : encodeURIComponent(arg)
                 endpoint = endpoint.replace(`:${commandParams[i].name}`, encodedArg)
                 continue

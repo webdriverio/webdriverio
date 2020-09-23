@@ -1,12 +1,17 @@
 import merge from 'lodash.merge'
+// @ts-ignore
 import logger from '@wdio/logger'
 import {
+    // @ts-ignore
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    // @ts-ignore
     SauceLabsProtocol, SeleniumProtocol
 } from '@wdio/protocols'
+import Protocols from '@wdio/protocols'
 
-import WebDriverRequest from './request'
+import WebDriverRequest, { WebDriverResponse } from './request'
 import command from './command'
+import { Options, JSONWPCommandError, W3CCapabilities } from './types'
 
 const log = logger('webdriver')
 
@@ -17,21 +22,31 @@ const BROWSER_DRIVER_ERRORS = [
     'Command not found' // iedriver
 ]
 
+interface DriverFlags {
+    isW3C: boolean
+    isChrome: boolean
+    isMobile: boolean
+    isSauce: boolean
+    isIOS: boolean
+    isAndroid: boolean
+    isSeleniumStandalone: boolean
+}
+
 /**
  * start browser session with WebDriver protocol
  */
-export async function startWebDriverSession (params) {
+export async function startWebDriverSession (params: Options): Promise<string> {
     /**
      * the user could have passed in either w3c style or jsonwp style caps
      * and we want to pass both styles to the server, which means we need
      * to check what style the user sent in so we know how to construct the
      * object for the other style
      */
-    const [w3cCaps, jsonwpCaps] = params.capabilities && params.capabilities.alwaysMatch
+    const [w3cCaps, jsonwpCaps] = params.capabilities && (params.capabilities as W3CCapabilities).alwaysMatch
         /**
          * in case W3C compliant capabilities are provided
          */
-        ? [params.capabilities, params.capabilities.alwaysMatch]
+        ? [params.capabilities, (params.capabilities as W3CCapabilities).alwaysMatch]
         /**
          * otherwise assume they passed in jsonwp-style caps (flat object)
          */
@@ -72,10 +87,11 @@ export async function startWebDriverSession (params) {
 
 /**
  * check if WebDriver requests was successful
- * @param  {Object}  body  body payload of response
- * @return {Boolean}       true if request was successful
+ * @param  {Number}  statusCode status code of request
+ * @param  {Object}  body       body payload of response
+ * @return {Boolean}            true if request was successful
  */
-export function isSuccessfulResponse (statusCode, body) {
+export function isSuccessfulResponse (statusCode: number, body: WebDriverResponse) {
     /**
      * response contains a body
      */
@@ -140,9 +156,9 @@ export function isSuccessfulResponse (statusCode, body) {
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }) {
-    const prototype = {}
-    const ProtocolCommands = merge(
+export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }: DriverFlags) {
+    const prototype: Record<string, PropertyDescriptor> = {}
+    const ProtocolCommands: Protocols.Protocol = merge(
         /**
          * if mobile apply JSONWire and WebDriver protocol because
          * some legacy JSONWire commands are still used in Appium
@@ -184,7 +200,7 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
  * @param  {Object} body body object
  * @return {Object} error
  */
-export function getErrorFromResponseBody (body) {
+export function getErrorFromResponseBody (body: any) {
     if (!body) {
         return new Error('Response has empty body')
     }
@@ -202,7 +218,7 @@ export function getErrorFromResponseBody (body) {
 
 //Exporting for testability
 export class CustomRequestError extends Error {
-    constructor(body) {
+    constructor(body: WebDriverResponse) {
         const errorObj = body.value || body
         super(errorObj.message || errorObj.class || 'unknown error')
         if (errorObj.error) {
@@ -219,7 +235,7 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce, isSeleniumStandalone }) {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce, isSeleniumStandalone }: DriverFlags) {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -232,31 +248,10 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
 }
 
 /**
- * Decorate the params object with host updates based on the presence of
- * directConnect capabilities in the new session response. Note that this
- * mutates the object.
- * @param  {Object} params    post-new-session params used to build driver
- */
-export function setupDirectConnect(params) {
-    const { directConnectProtocol, directConnectHost, directConnectPort,
-        directConnectPath } = params.capabilities
-    if (directConnectProtocol && directConnectHost && directConnectPort &&
-        (directConnectPath || directConnectPath === '')) {
-        log.info('Found direct connect information in new session response. ' +
-            `Will connect to server at ${directConnectProtocol}://` +
-            `${directConnectHost}:${directConnectPort}/${directConnectPath}`)
-        params.protocol = directConnectProtocol
-        params.hostname = directConnectHost
-        params.port = directConnectPort
-        params.path = directConnectPath
-    }
-}
-
-/**
  * get human readable message from response error
  * @param {Error} err response error
  */
-export const getSessionError = (err, params) => {
+export const getSessionError = (err: JSONWPCommandError, params: Options) => {
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +

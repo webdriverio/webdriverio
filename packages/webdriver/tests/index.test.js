@@ -187,7 +187,6 @@ describe('WebDriver', () => {
 
     it('ensure that WebDriver interface exports protocols and other objects', () => {
         expect(WebDriver.WebDriver).not.toBe(undefined)
-        expect(WebDriver.DEFAULTS).not.toBe(undefined)
     })
 
     afterEach(() => {

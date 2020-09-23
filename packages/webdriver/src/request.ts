@@ -1,14 +1,26 @@
 import path from 'path'
 import http from 'http'
 import https from 'https'
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
 
-import got from 'got'
+import * as got from 'got'
+// @ts-ignore
 import logger from '@wdio/logger'
+// @ts-ignore
 import { transformCommandLogResult } from '@wdio/utils'
 
+import { Options } from './types'
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 import pkg from '../package.json'
+
+export interface WebDriverResponse {
+    value: any
+    sessionId: string
+    /**
+     * JSONWP property
+     */
+    status?: number
+}
 
 const DEFAULT_HEADERS = {
     'Connection': 'keep-alive',
@@ -23,24 +35,31 @@ const agents = {
 }
 
 export default class WebDriverRequest extends EventEmitter {
-    constructor (method, endpoint, body, isHubCommand) {
+    body: object
+    method: string
+    endpoint: string
+    isHubCommand: boolean
+    requiresSessionId: boolean
+    defaultOptions = {
+        retry: 0, // we have our own retry mechanism
+        followRedirect: true,
+        responseType: 'json',
+        throwHttpErrors: false
+    }
+
+    constructor (method: string, endpoint: string, body: object, isHubCommand: boolean = false) {
         super()
         this.body = body
         this.method = method
         this.endpoint = endpoint
         this.isHubCommand = isHubCommand
-        this.requiresSessionId = this.endpoint.match(/:sessionId/)
-        this.defaultOptions = {
-            method,
-            retry: 0, // we have our own retry mechanism
-            followRedirect: true,
-            responseType: 'json',
-            throwHttpErrors: false
-        }
+        this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
     }
 
-    makeRequest (options, sessionId) {
-        let fullRequestOptions = Object.assign({}, this.defaultOptions, this._createOptions(options, sessionId))
+    makeRequest (options: Options, sessionId?: string) {
+        let fullRequestOptions: got.Options = Object.assign({
+            method: this.method
+        }, this.defaultOptions, this._createOptions(options, sessionId))
         if (typeof options.transformRequest === 'function') {
             fullRequestOptions = options.transformRequest(fullRequestOptions)
         }
@@ -49,8 +68,8 @@ export default class WebDriverRequest extends EventEmitter {
         return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    _createOptions (options, sessionId) {
-        const requestOptions = {
+    _createOptions (options: Options, sessionId?: string): got.Options {
+        const requestOptions: got.Options = {
             https: {},
             agent: options.agent || agents,
             headers: {
@@ -67,7 +86,7 @@ export default class WebDriverRequest extends EventEmitter {
         if (this.body && (Object.keys(this.body).length || this.method === 'POST')) {
             const contentLength = Buffer.byteLength(JSON.stringify(this.body), 'utf8')
             requestOptions.json = this.body
-            requestOptions.headers['Content-Length'] = contentLength
+            requestOptions.headers!['Content-Length'] = `${contentLength}`
         }
 
         /**
@@ -79,12 +98,12 @@ export default class WebDriverRequest extends EventEmitter {
             throw new Error('A sessionId is required for this command')
         }
 
-        requestOptions.uri = new URL(
+        requestOptions.url = new URL(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
             (this.isHubCommand
                 ? this.endpoint
-                : path.join(options.path, this.endpoint.replace(':sessionId', sessionId)))
+                : path.join(options.path || '', this.endpoint.replace(':sessionId', sessionId)))
         )
 
         /**
@@ -98,7 +117,7 @@ export default class WebDriverRequest extends EventEmitter {
         /**
          * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
          */
-        requestOptions.https.rejectUnauthorized = !(
+        requestOptions.https!.rejectUnauthorized = !(
             process.env.STRICT_SSL === 'false' ||
             process.env.strict_ssl === 'false'
         )
@@ -106,8 +125,8 @@ export default class WebDriverRequest extends EventEmitter {
         return requestOptions
     }
 
-    async _request (fullRequestOptions, transformResponse, totalRetryCount = 0, retryCount = 0) {
-        log.info(`[${fullRequestOptions.method}] ${fullRequestOptions.uri.href}`)
+    async _request (fullRequestOptions: got.Options, transformResponse: Options, totalRetryCount = 0, retryCount = 0): Promise<WebDriverResponse> {
+        log.info(`[${fullRequestOptions.method}] ${(fullRequestOptions.url as URL).href}`)
 
         if (fullRequestOptions.json && Object.keys(fullRequestOptions.json).length) {
             log.info('DATA', transformCommandLogResult(fullRequestOptions.json))
@@ -118,7 +137,7 @@ export default class WebDriverRequest extends EventEmitter {
          * @param {Error} error  error object that causes the retry
          * @param {String} msg   message that is being shown as warning to user
          */
-        const retry = (error, msg) => {
+        const retry = (error: got.RequestError, msg: string) => {
             /**
              * stop retrying if totalRetryCount was exceeded or there is no reason to
              * retry, e.g. if sessionId is invalid
@@ -138,8 +157,8 @@ export default class WebDriverRequest extends EventEmitter {
             return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
         }
 
-        let response = await got(fullRequestOptions.uri, { ...fullRequestOptions })
-            .catch((err) => err)
+        let response = await got.default(fullRequestOptions.url, { ...fullRequestOptions })
+            .catch((err: got.RequestError) => err)
 
         /**
          * handle request errors
