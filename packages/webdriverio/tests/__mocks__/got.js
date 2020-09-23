@@ -171,6 +171,12 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
                 { [ELEMENT_KEY]: 'some-elem-456' },
                 { [ELEMENT_KEY]: 'some-elem-789' },
             ]
+        } else if (params.json.script.includes('previousElementSibling')){
+            result = { [ELEMENT_KEY]: 'some-previous-elem' }
+        } else if (params.json.script.includes('parentElement')){
+            result = { [ELEMENT_KEY]: 'some-parent-elem' }
+        } else if (params.json.script.includes('nextElementSibling')){
+            result = { [ELEMENT_KEY]: 'some-next-elem' }
         } else {
             result = script.apply(this, args)
         }
