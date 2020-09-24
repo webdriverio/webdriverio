@@ -11,13 +11,13 @@ title: Boilerplate Projects
 - 기능: 
     - ES6의 클래스 기반의 접근에 따른 페이지 오브젝트 모델. 바벨을 활용해 ES6-ES8까지 모두 지원.
     - 엘리먼트 쿼리를 위한 다양한 셀렉터 수단에 대한 예시.
-    - Examples of headless browser execution using - PhantomJS and Chrome
-    - Integration with BrowserStack
-    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
-    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
-    - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
-    - Task manage through Grunt
-    - Examples with demo app https://search.yahoo.com/ and http://www.phptravels.net, Chai assertion liberary (expect, assert, should)
+    - headless 브라우저 실행 예시 - 팬텀JS와 크롬
+    - 브라우저 스택 통합
+    - 외부 데이터를 통해 손쉽게 테스트 데이터를 관리할 수 있는 MS-Excel의 입/출력을 지원
+    - 관계 데이터베이스 지원 (Oracle, MySql, TeraData, Vertica 등등). E2E 테스팅 예제에서 쿼리를 실행해보고, 결과를 입력. 
+    - 다양한 결과 보고서 (Spec, Junit, Allure, JSON)와 Junit 리포트 (.html) 형식의 로컬 보고서.
+    - Grunt를 통한 태스크 관리
+    - 데모 앱(https://search.yahoo.com/ , http://www.phptravels.net)을 대상으로 예제를 제공. Chai 검증 라이브러리 활용 (expect, assert, should)
     - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
