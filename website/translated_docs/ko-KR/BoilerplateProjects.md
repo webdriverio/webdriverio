@@ -1,6 +1,6 @@
 ---
 id: boilerplate
-title: Boilerplate Projects
+title: 보일러 플레이트 프로젝트들
 ---
 
 시간이 지남에 따라, 우리의 커뮤니티는 예시로 활용할 수 있는 보일러 플레이트 프로젝트를 많이 만들었습니다. 이 프로젝트들은 여러분만의 테스트 수트를 구성할 수 있도록 영감을 줄 것입니다.
@@ -18,7 +18,7 @@ title: Boilerplate Projects
     - 다양한 결과 보고서 (Spec, Junit, Allure, JSON)와 Junit 리포트 (.html) 형식의 로컬 보고서.
     - Grunt를 통한 태스크 관리
     - 데모 앱(https://search.yahoo.com/ , http://www.phptravels.net)을 대상으로 예제를 제공. Chai 검증 라이브러리 활용 (expect, assert, should)
-    - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+    - Appium 방식의 .config 파일. 모바일 장비에서 녹화/재생 방식. 원클릭 방식의 Appium 설치 지원. [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
