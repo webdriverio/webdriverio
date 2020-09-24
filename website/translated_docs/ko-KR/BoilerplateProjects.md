@@ -3,14 +3,14 @@ id: boilerplate
 title: Boilerplate Projects
 ---
 
-Over the time our community has developed a bunch of boilerplate projects that can be used as inspiration to set up your own test suite.
+시간이 지남에 따라, 우리의 커뮤니티는 예시로 활용할 수 있는 보일러 플레이트 프로젝트를 많이 만들었습니다. 이 프로젝트들은 여러분만의 테스트 수트를 구성할 수 있도록 영감을 줄 것입니다.
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: Cucumber (v3.x)
-- Features: 
-    - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
-    - Examples of multi selector option to query element with more than one selector at a time
+- 기능: 
+    - ES6의 클래스 기반의 접근에 따른 페이지 오브젝트 모델. 바벨을 활용해 ES6-ES8까지 모두 지원.
+    - 엘리먼트 쿼리를 위한 다양한 셀렉터 수단에 대한 예시.
     - Examples of headless browser execution using - PhantomJS and Chrome
     - Integration with BrowserStack
     - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
