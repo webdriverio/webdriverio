@@ -6,9 +6,9 @@
  * <example>
     :index.html
     <ul id="parent">
-        <li><a href="/">Sibling One</a></li>
-        <li><a href="/">Sibling Two</a></li>
-        <li><a href="/">Sibling Three</a></li>
+        <li>Sibling One</li>
+        <li>Sibling Two</li>
+        <li>Sibling Three</li>
     </ul>
     :prev.js
     it('should get text from previous sibling element', () => {
