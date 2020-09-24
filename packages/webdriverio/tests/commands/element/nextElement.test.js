@@ -1,16 +1,16 @@
 
 import { remote } from '../../../src'
 
-describe('parent element test', () => {
-    it('should return parent element of an element', async () => {
+describe('next element sibling test', () => {
+    it('should return next sibling of an element', async () => {
         const browser = await remote({
             capabilities: {
                 browserName: 'foobar'
             }
         })
         const elem = await browser.$('#foo')
-        const parentEl = await elem.parentEl()
+        const nextEl = await elem.nextElement()
 
-        expect(parentEl.elementId).toBe('some-parent-elem')
+        expect(nextEl.elementId).toBe('some-next-elem')
     })
 })

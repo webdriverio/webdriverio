@@ -13,15 +13,15 @@
     :prev.js
     it('should get text from next sibling element', () => {
         const elem = $$('li');
-        console.log(elem[1].next().getText()); // outputs: "Sibling Three"
+        console.log(elem[1].nextElement().getText()); // outputs: "Sibling Three"
     });
  * </example>
  *
- * @alias element.next
+ * @alias element.nextElement
  * @return {Element}
  * @type utility
  */
 
-export default function next () {
+export default function nextElement () {
     return this.$(function () { return this.nextElementSibling })
 }

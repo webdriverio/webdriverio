@@ -13,15 +13,15 @@
     :prev.js
     it('should get id from parent element', () => {
         const elem = $$('li');
-        console.log(elem[2].parentEl().getAttribute('id')); // outputs: "parent"
+        console.log(elem[2].parentElement().getAttribute('id')); // outputs: "parent"
     });
  * </example>
  *
- * @alias element.parentEl
+ * @alias element.parentElement
  * @return {Element}
  * @type utility
  */
 
-export default function parentEl () {
+export default function parentElement () {
     return this.$(function () { return this.parentElement })
 }
