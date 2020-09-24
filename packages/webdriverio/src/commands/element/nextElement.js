@@ -1,8 +1,8 @@
 
 /**
- * 
+ *
  * Returns the next sibling element of the selected DOM-element.
- * 
+ *
  * <example>
     :index.html
     <ul id="parent">

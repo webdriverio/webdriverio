@@ -1,8 +1,8 @@
 
 /**
- * 
+ *
  * Returns the parent element of the selected DOM-element.
- * 
+ *
  * <example>
     :index.html
     <ul id="parent">

@@ -792,6 +792,21 @@ declare namespace WebdriverIO {
         ): Promise<void>;
 
         /**
+         * Returns the next sibling element of the selected DOM-element.
+         */
+        nextElement(): Promise<Element>;
+
+        /**
+         * Returns the parent element of the selected DOM-element.
+         */
+        parentElement(): Promise<Element>;
+
+        /**
+         * Returns the previous sibling element of the selected DOM-element.
+         */
+        previousElement(): Promise<Element>;
+
+        /**
          * The `react$$` command is a useful command to query multiple React Components
          * by their actual name and filter them by props and state.
          */
