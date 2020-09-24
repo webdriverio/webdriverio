@@ -5,15 +5,15 @@
  *
  * <example>
     :index.html
-    <ul id="parent">
-        <li>Sibling One</li>
-        <li>Sibling Two</li>
-        <li>Sibling Three</li>
-    </ul>
-    :prev.js
+    <div class="parent">
+        <p>Sibling One</p>
+        <p>Sibling Two</p>
+        <p>Sibling Three</p>
+    </div>
+    :parentElement.js
     it('should get id from parent element', () => {
-        const elem = $$('li');
-        console.log(elem[2].parentElement().getAttribute('id')); // outputs: "parent"
+        const elem = $$('p');
+        console.log(elem[2].parentElement().getAttribute('class')); // outputs: "parent"
     });
  * </example>
  *

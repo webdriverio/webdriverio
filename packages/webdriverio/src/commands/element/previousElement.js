@@ -5,14 +5,14 @@
  *
  * <example>
     :index.html
-    <ul id="parent">
-        <li>Sibling One</li>
-        <li>Sibling Two</li>
-        <li>Sibling Three</li>
-    </ul>
-    :prev.js
+    <div class="parent">
+        <p>Sibling One</p>
+        <p>Sibling Two</p>
+        <p>Sibling Three</p>
+    </div>
+    :previousElement.js
     it('should get text from previous sibling element', () => {
-        const elem = $$('li');
+        const elem = $$('p');
         console.log(elem[1].previousElement().getText()); // outputs: "Sibling One"
     });
  * </example>
