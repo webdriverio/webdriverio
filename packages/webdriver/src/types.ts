@@ -578,10 +578,9 @@ export interface Options {
 }
 
 export interface JSONWPCommandError extends Error {
-    code: string
-    message: string
-    statusCode: string
-    statusMessage: string
+    code?: string
+    statusCode?: string
+    statusMessage?: string
 }
 
 interface SessionFlags {

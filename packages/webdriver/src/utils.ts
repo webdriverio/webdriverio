@@ -91,7 +91,7 @@ export async function startWebDriverSession (params: Options): Promise<string> {
  * @param  {Object}  body       body payload of response
  * @return {Boolean}            true if request was successful
  */
-export function isSuccessfulResponse (statusCode: number, body: WebDriverResponse) {
+export function isSuccessfulResponse (statusCode?: number, body?: WebDriverResponse) {
     /**
      * response contains a body
      */
@@ -251,7 +251,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * get human readable message from response error
  * @param {Error} err response error
  */
-export const getSessionError = (err: JSONWPCommandError, params: Options) => {
+export const getSessionError = (err: JSONWPCommandError, params: Options = {}) => {
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +
@@ -272,7 +272,7 @@ export const getSessionError = (err: JSONWPCommandError, params: Options) => {
     }
 
     // wrong path: chromedriver, geckodriver, etc
-    if (BROWSER_DRIVER_ERRORS.some(m => err.message.includes(m))) {
+    if (BROWSER_DRIVER_ERRORS.some(m => err && err.message && err.message.includes(m))) {
         return "Make sure to set `path: '/'` in your wdio.conf.js!"
     }
 
