@@ -7,7 +7,7 @@ import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
 import { DEFAULTS } from './constants'
-import { Options, BaseClient } from './types'
+import { Options, BaseClient, AttachOptions, SessionFlags } from './types'
 import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
 
 const log = logger('webdriver')
@@ -15,11 +15,11 @@ const log = logger('webdriver')
 export default class WebDriver {
     static async newSession (
         options: Options = {},
-        modifier: (...args: any[]) => any,
+        modifier?: (...args: any[]) => any,
         userPrototype = {},
-        customCommandWrapper: (...args: any[]) => any
+        customCommandWrapper?: (...args: any[]) => any
     ) {
-        const params = validateConfig(DEFAULTS, options)
+        const params: Options = validateConfig(DEFAULTS, options)
 
         if (!options.logLevels || !options.logLevels.webdriver) {
             logger.setLevel('webdriver', params.logLevel)
@@ -56,10 +56,10 @@ export default class WebDriver {
      * allows user to attach to existing sessions
      */
     static attachToSession (
-        options: BaseClient,
-        modifier: (...args: any[]) => any,
+        options?: AttachOptions,
+        modifier?: (...args: any[]) => any,
         userPrototype = {},
-        commandWrapper: (...args: any[]) => any
+        commandWrapper?: (...args: any[]) => any
     ) {
         if (!options || typeof options.sessionId !== 'string') {
             throw new Error('sessionId is required to attach to existing session')
@@ -73,8 +73,8 @@ export default class WebDriver {
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C === false ? false : true
 
-        const environmentPrototype = getEnvironmentVars(options)
-        const protocolCommands = getPrototype(options)
+        const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
+        const protocolCommands = getPrototype(options as Partial<SessionFlags>)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)

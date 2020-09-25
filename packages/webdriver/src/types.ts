@@ -537,7 +537,7 @@ export interface Options {
      * Set specific log levels per logger
      * use 'silent' level to disable logger
      */
-    logLevels?: Record<string, boolean>;
+    logLevels?: Record<string, string>;
     /**
      * Timeout for any WebDriver request to a driver or grid.
      */
@@ -583,7 +583,7 @@ export interface JSONWPCommandError extends Error {
     statusMessage?: string
 }
 
-interface SessionFlags {
+export interface SessionFlags {
     isW3C: boolean;
     isChrome: boolean;
     isAndroid: boolean;
@@ -602,4 +602,10 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     requestedCapabilities: DesiredCapabilities | W3CCapabilities;
     // framework options
     options: Options
+}
+
+export interface AttachOptions extends Partial<SessionFlags>, Partial<Options> {
+    sessionId: string
+    capabilities?: DesiredCapabilities | W3CCapabilities;
+    isW3C?: boolean;
 }

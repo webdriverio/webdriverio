@@ -1,7 +1,10 @@
-import got from 'got'
+import gotMock from 'got'
+// @ts-ignore
 import logger from '@wdio/logger'
 
 import WebDriver from '../src'
+
+const got = gotMock as unknown as jest.Mock
 
 const sessionOptions = {
     protocol: 'http',
@@ -35,7 +38,7 @@ describe('WebDriver', () => {
                 path: '/',
                 capabilities: {
                     alwaysMatch: { browserName: 'firefox' },
-                    firstMatch: [{}]
+                    firstMatch: {}
                 }
             })
 
@@ -170,7 +173,9 @@ describe('WebDriver', () => {
         })
 
         it('should fail attaching to session if sessionId is not given', () => {
-            expect(() => WebDriver.attachToSession({})).toThrow(/sessionId is required/)
+            // @ts-ignore
+            expect(() => WebDriver.attachToSession({}))
+                .toThrow(/sessionId is required/)
         })
     })
 
@@ -190,7 +195,7 @@ describe('WebDriver', () => {
     })
 
     afterEach(() => {
-        logger.setLevel.mockClear()
+        (logger.setLevel as jest.Mock).mockClear()
         got.mockClear()
     })
 })
