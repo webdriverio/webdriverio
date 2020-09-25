@@ -532,7 +532,7 @@ export interface Options {
     /**
      * Level of logging verbosity.
      */
-    logLevel?: WebDriverLogTypes;
+    logLevel: WebDriverLogTypes;
     /**
      * Set specific log levels per logger
      * use 'silent' level to disable logger

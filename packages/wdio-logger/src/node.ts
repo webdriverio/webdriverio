@@ -83,10 +83,6 @@ const wdioLoggerMethodFactory = function (this: log.Logger, methodName: string, 
             return arg
         })
 
-        if (!args.length) {
-            throw new Error('dsada')
-        }
-
         const logText = ansiStrip(`${util.format.apply(this, args as [string])}\n`)
         if (logFile && logFile.writable) {
             /**
