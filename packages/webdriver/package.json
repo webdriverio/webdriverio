@@ -5,7 +5,7 @@
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/webdriver",
   "license": "MIT",
-  "main": "./build/index",
+  "main": "./build/src",
   "engines": {
     "node": ">=10.0.0"
   },
