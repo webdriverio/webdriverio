@@ -1,5 +1,4 @@
 import merge from 'lodash.merge'
-// @ts-ignore
 import logger from '@wdio/logger'
 import {
     // @ts-ignore
@@ -241,7 +240,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * get human readable message from response error
  * @param {Error} err response error
  */
-export const getSessionError = (err: JSONWPCommandError, params: Options = {}) => {
+export const getSessionError = (err: JSONWPCommandError, params: Partial<Options> = {}) => {
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +

@@ -14,12 +14,12 @@ const log = logger('webdriver')
 
 export default class WebDriver {
     static async newSession (
-        options: Options = {},
+        options: Partial<Options> = {},
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ) {
-        const params: Options = validateConfig(DEFAULTS, options)
+        const params: Options = validateConfig(DEFAULTS, options) as Options
 
         if (!options.logLevels || !options.logLevels.webdriver) {
             logger.setLevel('webdriver', params.logLevel)
@@ -66,8 +66,8 @@ export default class WebDriver {
         }
 
         // logLevel can be undefined in watch mode when SIGINT is called
-        if ((options as Options).logLevel !== undefined) {
-            logger.setLevel('webdriver', (options as Options).logLevel)
+        if (options.logLevel !== undefined) {
+            logger.setLevel('webdriver', options.logLevel)
         }
 
         options.capabilities = options.capabilities || {}
