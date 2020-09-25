@@ -1,6 +1,7 @@
 import fs from 'fs'
 import nodeLogger from '../src/node'
 import nodeLogger2 from '../build/node'
+import log from 'loglevel'
 
 jest.useFakeTimers()
 
@@ -12,7 +13,10 @@ describe('wdio-logger node', () => {
             expect(log.getLevel()).toEqual(0)
         })
 
-        const scenarios = [{
+        const scenarios: {
+            level: log.LogLevelDesc,
+            logLevel: log.LogLevelNumbers
+        }[] = [{
             level: 'trace',
             logLevel: 0
         }, {
@@ -131,11 +135,13 @@ describe('wdio-logger node', () => {
         const logCacheAddSpy = jest.spyOn(Set.prototype, 'add')
         const logCacheForEachSpy = jest.spyOn(Set.prototype, 'forEach')
         let writableBuffer = null
-        logInfoSpy.mockImplementation((path) => ({
+        logInfoSpy.mockImplementation((path: string): fs.WriteStream => ({
             path,
             write,
-            writable: jest.fn(),
+            writable: true,
+            // @ts-ignore
             get writableBuffer() {
+                // @ts-ignore
                 return writableBuffer
             }
         }))
