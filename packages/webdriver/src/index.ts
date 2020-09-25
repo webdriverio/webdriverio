@@ -6,7 +6,7 @@ import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
 import { DEFAULTS } from './constants'
-import { Options, BaseClient, AttachOptions, SessionFlags } from './types'
+import { Options, Client, AttachOptions, SessionFlags } from './types'
 import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
 
 const log = logger('webdriver')
@@ -17,7 +17,7 @@ export default class WebDriver {
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
-    ) {
+    ): Promise<Client> {
         const params: Options = validateConfig(DEFAULTS, options) as Options
 
         if (!options.logLevels || !options.logLevels.webdriver) {
@@ -59,7 +59,7 @@ export default class WebDriver {
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         commandWrapper?: (...args: any[]) => any
-    ) {
+    ): Client {
         if (!options || typeof options.sessionId !== 'string') {
             throw new Error('sessionId is required to attach to existing session')
         }
@@ -86,7 +86,7 @@ export default class WebDriver {
      * @param   {Object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
     */
-    static async reloadSession (instance: BaseClient) {
+    static async reloadSession (instance: Client): Promise<string> {
         const params = {
             ...instance.options,
             capabilities: instance.requestedCapabilities
