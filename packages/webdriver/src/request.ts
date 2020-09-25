@@ -4,7 +4,6 @@ import https from 'https'
 import { EventEmitter } from 'events'
 
 import * as got from 'got'
-// @ts-ignore
 import logger from '@wdio/logger'
 // @ts-ignore
 import { transformCommandLogResult } from '@wdio/utils'
