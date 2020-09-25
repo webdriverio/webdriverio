@@ -170,7 +170,7 @@ test('startTracing: registers timeout for click events', async () => {
     traceGatherer.waitForCPUIdle = jest.fn()
     traceGatherer.finishTracing = jest.fn()
 
-    await traceGatherer.startTracing('click event')
+    await traceGatherer.startTracing('click transition')
     jest.advanceTimersByTime(FRAME_LOAD_START_TIMEOUT + 10)
     expect(pageMock.tracing.stop).toHaveBeenCalledTimes(1)
     await new Promise((resolve) => process.nextTick(resolve))

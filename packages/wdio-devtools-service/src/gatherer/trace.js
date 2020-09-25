@@ -61,10 +61,10 @@ export default class TraceGatherer extends EventEmitter {
         })
 
         /**
-         * if this tracing was started from a click event
+         * if this tracing was started from a click transition
          * then we want to discard page trace if no load detected
          */
-        if (url === 'click event') {
+        if (url === 'click transition') {
             log.info('Start checking for page load for click')
             this.clickTraceTimeout = setTimeout(async () => {
                 log.info('No page load detected, canceling trace')
