@@ -11,7 +11,7 @@ import Protocols from '@wdio/protocols'
 
 import WebDriverRequest, { WebDriverResponse } from './request'
 import command from './command'
-import { Options, JSONWPCommandError, W3CCapabilities } from './types'
+import { Options, JSONWPCommandError, W3CCapabilities, SessionFlags } from './types'
 
 const log = logger('webdriver')
 
@@ -21,16 +21,6 @@ const BROWSER_DRIVER_ERRORS = [
     "'POST /wd/hub/session' was not found.", // safaridriver
     'Command not found' // iedriver
 ]
-
-interface DriverFlags {
-    isW3C: boolean
-    isChrome: boolean
-    isMobile: boolean
-    isSauce: boolean
-    isIOS: boolean
-    isAndroid: boolean
-    isSeleniumStandalone: boolean
-}
 
 /**
  * start browser session with WebDriver protocol
@@ -156,7 +146,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }: DriverFlags) {
+export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     const ProtocolCommands: Protocols.Protocol = merge(
         /**
@@ -235,7 +225,7 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce, isSeleniumStandalone }: DriverFlags) {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
