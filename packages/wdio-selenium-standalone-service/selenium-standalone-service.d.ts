@@ -2,7 +2,7 @@ declare module WebdriverIO {
     interface ServiceOption extends SeleniumStandaloneOptions {}
 }
 
-interface SeleniumStandaloneOptions {
+export interface SeleniumStandaloneOptions {
     /**
      * Path where all logs from the Selenium server should be stored.
      */

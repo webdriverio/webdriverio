@@ -1,4 +1,5 @@
-import logger from '@wdio/logger'
+import { logger } from '@wdio/logger'
+
 
 import { promisify } from 'util'
 import fs from 'fs-extra'
@@ -16,8 +17,30 @@ const DEFAULT_CONNECTION = {
     path: '/wd/hub'
 }
 
+
+export interface Config {
+    outputDir: string,
+    watch: boolean,
+}
+
+export interface SeleniumStandaloneOptions {
+
+    logPath?: string;
+    installArgs?: Partial<import('selenium-standalone').InstallOpts>;
+    args?: Partial<import('selenium-standalone').StartOpts>;
+    skipSeleniumInstall?: boolean;
+}
 export default class SeleniumStandaloneLauncher {
-    constructor (options, capabilities, config) {
+
+    private capabilities: any
+    private logPath: string
+    private args: Partial<import('selenium-standalone').StartOpts>;
+    private installArgs: Partial<import('selenium-standalone').InstallOpts>;
+    private skipSeleniumInstall: boolean
+    private watchMode: boolean = false
+    private process!: SeleniumStandalone.ChildProcess
+
+    constructor(options: SeleniumStandaloneOptions, capabilities: any, config: Config) {
         this.capabilities = capabilities
         this.logPath = options.logPath || config.outputDir
         this.args = options.args || {}
@@ -25,7 +48,7 @@ export default class SeleniumStandaloneLauncher {
         this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
     }
 
-    async onPrepare (config) {
+    async onPrepare(config: Config) {
         this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
@@ -45,35 +68,35 @@ export default class SeleniumStandaloneLauncher {
         /**
          * start Selenium Standalone server
          */
-        this.process = await promisify(SeleniumStandalone.start)(this.args)
+        this.process = await promisify(SeleniumStandalone.start, { this.args })
 
         if (typeof this.logPath === 'string') {
             this._redirectLogStream()
         }
 
         if (this.watchMode) {
-            process.on('SIGINT', this._stopProcess)
-            process.on('exit', this._stopProcess)
-            process.on('uncaughtException', this._stopProcess)
+            this.process.on('SIGINT', this._stopProcess)
+            this.process.on('exit', this._stopProcess)
+            this.process.on('uncaughtException', this._stopProcess)
         }
     }
 
-    onComplete () {
+    onComplete() {
         // selenium should not be killed in watch mode
         if (!this.watchMode) {
             this._stopProcess()
         }
     }
 
-    _redirectLogStream () {
+    _redirectLogStream() {
         const logFile = getFilePath(this.logPath, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
         fs.ensureFileSync(logFile)
 
         const logStream = fs.createWriteStream(logFile, { flags: 'w' })
-        this.process.stdout.pipe(logStream)
-        this.process.stderr.pipe(logStream)
+        this.process.stdout?.pipe(logStream)
+        this.process.stderr?.pipe(logStream)
     }
 
     _stopProcess = () => {
