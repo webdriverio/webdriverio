@@ -9,7 +9,7 @@ import checkTimeSinceLastLongTask from '../scripts/checkTimeSinceLastLongTask'
 
 import {
     DEFAULT_TRACING_CATEGORIES, FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT,
-    MAX_TRACE_WAIT_TIME, CPU_IDLE_TRESHOLD, NETWORK_IDLE_TIMEOUT
+    MAX_TRACE_WAIT_TIME, CPU_IDLE_TRESHOLD, NETWORK_IDLE_TIMEOUT, CLICK_TRANSITION
 } from '../constants'
 import { isSupportedUrl } from '../utils'
 
@@ -61,10 +61,10 @@ export default class TraceGatherer extends EventEmitter {
         })
 
         /**
-         * if this tracing was started from a click event
+         * if this tracing was started from a click transition
          * then we want to discard page trace if no load detected
          */
-        if (url === 'click event') {
+        if (url === CLICK_TRANSITION) {
             log.info('Start checking for page load for click')
             this.clickTraceTimeout = setTimeout(async () => {
                 log.info('No page load detected, canceling trace')

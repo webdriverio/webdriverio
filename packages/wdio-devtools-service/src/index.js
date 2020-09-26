@@ -6,7 +6,7 @@ import Auditor from './auditor'
 import TraceGatherer from './gatherer/trace'
 import DevtoolsGatherer from './gatherer/devtools'
 import { isBrowserSupported, setUnsupportedCommand } from './utils'
-import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE, UNSUPPORTED_ERROR_MESSAGE } from './constants'
+import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION } from './constants'
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
@@ -43,7 +43,7 @@ export default class DevToolsService {
          */
         this._setThrottlingProfile(this.networkThrottling, this.cpuThrottling, this.cacheEnabled)
 
-        const url = ['url', 'navigateTo'].some(cmdName => cmdName === commandName) ? params[0] : 'click transition'
+        const url = ['url', 'navigateTo'].some(cmdName => cmdName === commandName) ? params[0] : CLICK_TRANSITION
         return this.traceGatherer.startTracing(url)
     }
 

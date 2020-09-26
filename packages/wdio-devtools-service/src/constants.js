@@ -118,3 +118,5 @@ export const NETWORK_STATES = {
         uploadThroughput: -1
     }
 }
+
+export const CLICK_TRANSITION = 'click transition'
