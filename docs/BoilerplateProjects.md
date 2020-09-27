@@ -140,6 +140,25 @@ Boilerplate project to run E2E tests with Cucumber.
     - Github Actions example
     - Allure report (screenshots on failure) and Timeline report
 
+### [WarleyGabriel/demo-webdriverio-mocha](https://github.com/WarleyGabriel/demo-webdriverio-mocha)
+
+Boilerplate project to run E2E tests with Mocha.
+
+- Frameworks:
+    - WebdriverIO (v6)
+    - Mocha
+- Features:
+    -   TypeScript
+    -   [Expect-webdriverio](https://github.com/webdriverio/expect-webdriverio)
+    -   [Visual regression tests](https://github.com/wswebcreation/wdio-image-comparison-service)
+    -   Page Object Pattern
+    -   [Commit lint](https://github.com/conventional-changelog/commitlint) and [Commitizen](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
+    -   ESlint
+    -   Prettier
+    -   Husky
+    -   Github Actions example
+    -   Allure report (screenshots on failure)
+
 ### [SimitTomar/webdriverio-cucumber-pom-boilerplate](https://github.com/SimitTomar/webdriverio-cucumber-pom-boilerplate)
 
 A WebdriverIO & Cucumber Boilerplate based on Page Object Model!
