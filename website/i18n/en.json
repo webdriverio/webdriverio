@@ -92,6 +92,9 @@
       "api/browser/$$": {
         "title": "$$"
       },
+      "api/browser/addCommand": {
+        "title": "addCommand"
+      },
       "api/browser/call": {
         "title": "call"
       },
@@ -130,6 +133,9 @@
       },
       "api/browser/newWindow": {
         "title": "newWindow"
+      },
+      "api/browser/overwriteCommand": {
+        "title": "overwriteCommand"
       },
       "api/browser/pause": {
         "title": "pause"
