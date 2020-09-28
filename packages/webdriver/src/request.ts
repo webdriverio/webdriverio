@@ -10,7 +10,8 @@ import { transformCommandLogResult } from '@wdio/utils'
 
 import { Options } from './types'
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
-import pkg from '../package.json'
+
+const pkg = require('../package.json')
 
 export interface WebDriverResponse {
     value: any

@@ -70,6 +70,18 @@ declare namespace WebdriverIO {
         automationProtocol?: string;
         runner?: string;
         /**
+         * Your cloud service username (only works for Sauce Labs, Browserstack, TestingBot,
+         * CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will automatically
+         * set connection options for you.
+         */
+        user?: string;
+        /**
+         * Your cloud service access key or secret key (only works for Sauce Labs, Browserstack,
+         * TestingBot, CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will
+         * automatically set connection options for you.
+         */
+        key?: string;
+        /**
          * If running on Sauce Labs, you can choose to run tests between different datacenters:
          * US or EU. To change your region to EU, add region: 'eu' to your config.
          */
@@ -570,7 +582,7 @@ declare namespace WebdriverIO {
             name: string,
             func: AddCommandFn<false>
         ): void;
-
+        
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
@@ -926,7 +938,7 @@ declare namespace WebdriverIO {
          */
         calls: Matches[];
 
-
+        
         /**
          * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
          */
@@ -1010,7 +1022,7 @@ declare namespace WebdriverIO {
             name: string,
             func: (elementFetchingMethod: (selector: string) => any) => void
         ): void
-
+        
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page. It returns an array with element results that will have an
