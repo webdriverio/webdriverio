@@ -604,6 +604,14 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     options: Options
 }
 
+export interface Client extends BaseClient {}
+export interface ClientAsync extends AsyncClient, BaseClient { }
+
+type AsyncClient = {
+    [K in keyof Pick<Client, Exclude<keyof Client, keyof BaseClient>>]:
+    (...args: Parameters<Client[K]>) => Promise<ReturnType<Client[K]>>;
+}
+
 export interface AttachOptions extends Partial<SessionFlags>, Partial<Options> {
     sessionId: string
     capabilities?: DesiredCapabilities | W3CCapabilities;
