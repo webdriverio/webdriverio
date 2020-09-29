@@ -25,9 +25,9 @@ export default class Page {
 }
 ```
 
-We will always export an instance of a page object and never create that instance in the test. Since we are writing end to end tests we always see the page as a stateless construct the same way as each http request is a stateless construct. Sure, the browser can carry session information and therefore can display different pages based on different sessions, but this shouldn't be reflected within a page object. These state changes should emerge from your actual tests.
+우리는 언제나 페이지 오브젝트의 인스턴스를 내보내야(export) 하고, 절대로 테스트 내에서 인스턴스를 생성하지 않아야 합니다. 우리가 엔드 투 엔드 테스트를 작성하기 때문에, 각각의 http 요청이 상태가 없는 구조인 것 처럼, 페이지들을 상태가 없는 구조로 보아야 합니다. 물론, 브라우저가 세션 정보를 전달할 수 있고, 다른 세션 정보에 따라 다른 페이지를 보여줄 수 있습니다. 그렇지만 이것이 페이지 오브젝트 안에 반영되어서는 안 됩니다. 이러한 상태의 변화는 당신의 실제 테스트에 따라 나타나야 합니다.
 
-Let's start testing the first page. For demo purposes we use [The Internet](http://the-internet.herokuapp.com) website by [Elemental Selenium](http://elementalselenium.com/) as guinea pig. Let's try to build a page object example for the [login page](http://the-internet.herokuapp.com/login). First step is to write all important selectors that are required in our `login.page` object as getter functions. As mentioned above we are using the `Object.create` method to inherit the prototype of our main page:
+그럼 첫번째 페이지 테스팅을 시작 해봅시다. For demo purposes we use [The Internet](http://the-internet.herokuapp.com) website by [Elemental Selenium](http://elementalselenium.com/) as guinea pig. Let's try to build a page object example for the [login page](http://the-internet.herokuapp.com/login). First step is to write all important selectors that are required in our `login.page` object as getter functions. As mentioned above we are using the `Object.create` method to inherit the prototype of our main page:
 
 ```js
 // login.page.js
