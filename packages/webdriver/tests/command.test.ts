@@ -1,11 +1,22 @@
-import commandWrapper from '../src/command'
-import logger from '@wdio/logger'
+import { EventEmitter } from 'events'
 
-const command = {
-    endpoint: '/session/:sessionId/element/:elementId/element',
-    method: 'POST',
+import logger from '@wdio/logger'
+import Protocols from '@wdio/protocols'
+
+import commandWrapper from '../src/command'
+import { BaseClient, WebDriverLogTypes } from '../src/types'
+
+/**
+ * workaround as typescript compiler uses expect-webdriverio as global
+ */
+const expect: jest.Expect = global.expect as unknown as jest.Expect
+
+const commandPath = '/session/:sessionId/element/:elementId/element'
+const commandMethod = 'POST'
+const commandEndpoint: Protocols.CommandEndpoint = {
     command: 'findElementFromElement',
-    ref: 'https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element-from-element',
+    ref: new URL('https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element-from-element'),
+    description: '',
     variables: [{
         'name': 'elementId',
         'description': 'the id of an element returned in a previous call to Find Element(s)'
@@ -42,42 +53,59 @@ jest.mock('../src/request', () => jest.fn().mockImplementation(
     })
 ))
 
-const scope = { emit: jest.fn() }
+class FakeClient extends EventEmitter {
+    isW3C = false
+    isChrome = false
+    isAndroid = false
+    isMobile = false
+    isIOS = false
+    isSauce = false
+    isSeleniumStandalone = false
+    sessionId = '123'
+    capabilities = {}
+    requestedCapabilities = {}
+    options = {
+        logLevel: 'warn' as WebDriverLogTypes
+    }
+}
+
+const scope: BaseClient = new FakeClient()
+type mockResponse = (...args: any[]) => any
 
 describe('command wrapper', () => {
     it('should fail if wrong arguments are passed in', () => {
-        const commandFn = commandWrapper(command.method, command.endpoint, command)
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
         expect(commandFn)
             .toThrow(/Wrong parameters applied for findElementFromElement/)
     })
 
     it('should fail if arguments are malformed', () => {
-        const commandFn = commandWrapper(command.method, command.endpoint, command)
-        expect(() => commandFn('123', 123, '123'))
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+        expect(() => commandFn.call(scope, '123', 123, '123'))
             .toThrow(/Malformed type for "using" parameter of command/)
     })
 
     it('should fail if not required param has wrong type', () => {
-        const commandFn = commandWrapper(command.method, command.endpoint, command)
-        expect(() => commandFn('123', '123', '123', 'foobar'))
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+        expect(() => commandFn.call(scope, '123', '123', '123', 'foobar'))
             .toThrow(/Malformed type for "customParam" parameter of command/)
     })
 
     it('should throw if param type within array is not met', async () => {
         expect.assertions(1)
-        const commandFn = commandWrapper(command.method, command.endpoint, command)
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
 
         try {
-            commandFn('123', '123', '123', 234, () => {})
+            commandFn.call(scope, '123', '123', '123', 234, () => {})
         } catch (err) {
             expect(err.message).toContain('Actual: (function)[]')
         }
     })
 
     it('should do a proper request', () => {
-        const commandFn = commandWrapper(command.method, command.endpoint, command)
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
         const requestMock = require('../src/request')
-        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', undefined)
+        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', undefined) as unknown as mockResponse
         expect(requestMock.mock.calls).toHaveLength(1)
         expect(resultFunction({ value: 14 })).toBe(14)
 
@@ -90,9 +118,9 @@ describe('command wrapper', () => {
     })
 
     it('should do a proper request with non required params', () => {
-        const commandFn = commandWrapper(command.method, command.endpoint, command)
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
         const requestMock = require('../src/request')
-        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', 123)
+        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', 123) as unknown as mockResponse
         expect(requestMock.mock.calls).toHaveLength(1)
         expect(resultFunction({ value: 'foobarboo' })).toBe('foobarboo')
 
@@ -106,7 +134,7 @@ describe('command wrapper', () => {
     })
 
     it('should encode uri parameters', () => {
-        const commandFn = commandWrapper(command.method, command.endpoint, command)
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
         const requestMock = require('../src/request')
         commandFn.call(scope, '/path', 'css selector', '#body', 123)
 
@@ -116,7 +144,7 @@ describe('command wrapper', () => {
     })
 
     it('should double encode uri parameters if using selenium', () => {
-        const commandFn = commandWrapper(command.method, command.endpoint, command, true)
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
         const requestMock = require('../src/request')
         commandFn.call(scope, '/path', 'css selector', '#body', 123)
 
@@ -130,24 +158,27 @@ describe('command wrapper result log', () => {
     const log = logger('webdriver')
     jest.spyOn(log, 'info').mockImplementation((string) => string)
 
-    function getRequestCallback(params) {
-        const commandFn = commandWrapper(params.method, params.endpoint, params)
+    function getRequestCallback (method: string, path: string, endpoint: Protocols.CommandEndpoint) {
+        const commandFn = commandWrapper(method, path, endpoint)
         const requestMock = require('../src/request')
         const resultFunction = commandFn.call(scope)
         expect(requestMock.mock.calls).toHaveLength(1)
 
         requestMock.mockClear()
-        log.info.mockClear()
+        ;(log.info as jest.Mock).mockClear()
 
         return resultFunction
     }
 
     const takeScreenshotCmd = {
-        command: 'takeScreenshot',
-        endpoint: '/foobar',
+        path: '/foobar',
         method: 'GET',
-        ref: 'foobar',
-        parameters: []
+        endpoint: {
+            command: 'takeScreenshot',
+            ref: new URL('https://foobar.com'),
+            parameters: [],
+            description: ''
+        }
     }
 
     const scenarios = [{
@@ -159,7 +190,10 @@ describe('command wrapper result log', () => {
         title: 'truncate long string value',
         command: {
             ...takeScreenshotCmd,
-            command: 'takeElementScreenshot'
+            endpoint: {
+                ...takeScreenshotCmd.endpoint,
+                command: 'takeElementScreenshot'
+            }
         },
         value: 'f'.repeat(123),
         log: 'f'.repeat(61) + '...'
@@ -167,7 +201,10 @@ describe('command wrapper result log', () => {
         title: 'truncate long string value',
         command: {
             ...takeScreenshotCmd,
-            command: 'startRecordingScreen'
+            endpoint: {
+                ...takeScreenshotCmd.endpoint,
+                command: 'startRecordingScreen'
+            }
         },
         value: 'f'.repeat(123),
         log: 'f'.repeat(61) + '...'
@@ -175,7 +212,10 @@ describe('command wrapper result log', () => {
         title: 'truncate long string value',
         command: {
             ...takeScreenshotCmd,
-            command: 'stopRecordingScreen'
+            endpoint: {
+                ...takeScreenshotCmd.endpoint,
+                command: 'stopRecordingScreen'
+            }
         },
         value: 'f'.repeat(123),
         log: 'f'.repeat(61) + '...'
@@ -188,7 +228,10 @@ describe('command wrapper result log', () => {
         title: 'not truncate long string value',
         command: {
             ...takeScreenshotCmd,
-            command: 'any-other-command'
+            endpoint: {
+                ...takeScreenshotCmd.endpoint,
+                command: 'any-other-command'
+            }
         },
         value: 'f'.repeat(66),
         get log() { return this.value }
@@ -215,16 +258,16 @@ describe('command wrapper result log', () => {
     }]
 
     for (const scenario of scenarios) {
-        it(`should ${scenario.title} for ${scenario.command.command}`, () => {
-            const resultFunction = getRequestCallback(scenario.command)
+        it(`should ${scenario.title} for ${scenario.command.endpoint.command}`, () => {
+            const resultFunction = getRequestCallback(scenario.command.method, scenario.command.path, scenario.command.endpoint) as unknown as mockResponse
             resultFunction({ value: scenario.value })
-            expect(log.info.mock.calls[0][1]).toBe(scenario.log)
+            expect((log.info as jest.Mock).mock.calls[0][1]).toBe(scenario.log)
         })
     }
 
     it('should be no result in log if there is value in response', () => {
-        const resultFunction = getRequestCallback(takeScreenshotCmd)
+        const resultFunction = getRequestCallback(takeScreenshotCmd.method, takeScreenshotCmd.path, takeScreenshotCmd.endpoint) as unknown as mockResponse
         resultFunction({})
-        expect(log.info.mock.calls).toHaveLength(0)
+        expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
     })
 })
