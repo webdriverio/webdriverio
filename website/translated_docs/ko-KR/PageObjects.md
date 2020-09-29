@@ -27,7 +27,7 @@ export default class Page {
 
 우리는 언제나 페이지 오브젝트의 인스턴스를 내보내야(export) 하고, 절대로 테스트 내에서 인스턴스를 생성하지 않아야 합니다. 우리가 엔드 투 엔드 테스트를 작성하기 때문에, 각각의 http 요청이 상태가 없는 구조인 것 처럼, 페이지들을 상태가 없는 구조로 보아야 합니다. 물론, 브라우저가 세션 정보를 전달할 수 있고, 다른 세션 정보에 따라 다른 페이지를 보여줄 수 있습니다. 그렇지만 이것이 페이지 오브젝트 안에 반영되어서는 안 됩니다. 이러한 상태의 변화는 당신의 실제 테스트에 따라 나타나야 합니다.
 
-그럼 첫번째 페이지 테스팅을 시작 해봅시다. For demo purposes we use [The Internet](http://the-internet.herokuapp.com) website by [Elemental Selenium](http://elementalselenium.com/) as guinea pig. Let's try to build a page object example for the [login page](http://the-internet.herokuapp.com/login). First step is to write all important selectors that are required in our `login.page` object as getter functions. As mentioned above we are using the `Object.create` method to inherit the prototype of our main page:
+그럼 첫번째 페이지 테스팅을 시작 해봅시다. 데모의 목적으로 우리는 [Elemental Selenium](http://elementalselenium.com/) 에서 만든 [The Internet](http://the-internet.herokuapp.com) 웹사이트를 사용 합니다. [login page](http://the-internet.herokuapp.com/login) 로 페이지 오브젝트 예제를 생성해 봅시다. 첫 번째 할 것은, `login.page`에 요구되는 모든 중요한 셀렉터들을 getter 함수를 통해 오브젝트로 만듭시다. 위에 서술한 것 처럼, 우리는 메인 페이지의 프로토타입을 상속 받기 위해서 `Object.create` 메서드를 사용 할 것입니다.
 
 ```js
 // login.page.js
@@ -54,22 +54,22 @@ class LoginPage extends Page {
 export default new LoginPage();
 ```
 
-Defining selectors in getter functions might look a bit verbose but it is really useful. These functions get evaluated when you actually access the property and not when you generate the object. With that you always request the element before you do an action on it.
+셀럭터들을 getter 함수로 정의하는 것은 약간 과한 것 처럼 보이지만 매우 유용합니다. 이 함수들은 당신이 객체를 생성할 때가 아니라 실제로 그 특성에 접근할 때 평가 됩니다. (lazy loading) 그것으로 당신은 당신이 실제로 엘리먼트를 대상으로 액션을 취하기 전에 언제나 새로 요청 합니다.
 
-WebdriverIO internally remembers the last result of a command. If you chain an element command with an action command it finds the element from the previous command and uses the result to execute the action. With that you can remove the selector (first parameter) and the command looks as simple as:
+WebdriverIO는 내부적으로 마지막 명령의 결과들을 저장하고 있습니다. 만약 액션 명령으로 엘리먼트를 연속하여 호출하는 경우 마지막 명령의 엘리먼트를 찾아서 그것을 대상으로 액션을 실행합니다. 그것으로 첫번째 파라미터로 사용하는 셀렉터를 제거할 수 있어서, 다음과 같이 간단해 집니다:
 
 ```js
 LoginPage.username.setValue('Max Mustermann');
 ```
 
-which is basically the same thing as:
+이는 기본적으로 다음과 동일합니다:
 
 ```js
 var elem = $('#username');
 elem.setValue('Max Mustermann');
 ```
 
-or
+또는
 
 ```js
 $('#username').setValue('Max Mustermann');
