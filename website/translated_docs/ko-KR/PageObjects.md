@@ -75,7 +75,7 @@ elem.setValue('Max Mustermann');
 $('#username').setValue('Max Mustermann');
 ```
 
-After we've defined all required elements and methods for the page we can start to write the test for it. All we need to do to use the page object is to require it and that's it. The `Object.create` method returns an instance of that page so we can start using it right away. By adding an additional assertion framework you can make your tests even more expressive:
+페이지에 필요한 모든 엘리먼트들과 메서드들을 정의하고나서 우리는 테스트를 작성을 시작할 수 있습니다. 우리가 페이지 오브젝트들을 사용하기 위해서 필요한 것은 단지 그것들을 요청하는 것 뿐입니다. `Object.create` 메서드는 대상 페이지의 인스턴스를 반환하기 떄문에, 우리는 그것을 즉시 사용할 수 있습니다. 검증 프레임워크를 추가 함으로서 당신은 테스트들을 더욱 표현력 있게 만들 수 있습니다:
 
 ```js
 // login.spec.js
