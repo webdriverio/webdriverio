@@ -5,13 +5,13 @@ title: 페이지 오브젝트 패턴
 
 새로운 버전 (v4)의 WebdriverIO는 페이지 오브젝트 패턴을 지원하도록 디자인 되었습니다. 엘리먼트를 일급 객체로 취급하는 원칙을 도입하면서, 이제 큰 규모의 테스트 수트를 이 패턴을 이용하여 만들 수 있습니다. 페이지 오브젝트를 구현하기 위해 추가적인 패키지가 필요하지 않습니다. `Object.create` 메서드가 우리에게 필요한 모든 기능을 제공 합니다.
 
-- inheritance between page objects
-- lazy loading of elements
-- encapsulation of methods and actions
+- 페이지 오브젝트 간의 상속
+- 엘리먼트들의 게으른 로딩
+- 메서드와 액션들의 캡슐화
 
-The goal behind page objects is to abstract any page information away from the actual tests. Ideally you should store all selectors or specific instructions that are unique for a certain page in a page object, so that you still can run your test after you've completely redesigned your page.
+페이지 오브젝트의 목적은 어떤 페이지의 정보든지 실제 테스트로 부터 추상화를 하는 것 입니다. 이상적으로는 당신은 특정 페이지의 모든 셀렉터나 고유한 명령어들을 페이지 오브젝트로 저장 함으로서, 만약 테스트 대상 페이지가 완전히 다시 디자인 되어도 여전히 테스트를 수행할 수 있습니다.
 
-First off we need a main page object that we call `Page`. It will contain general selectors or methods all page objects will inherit from. Apart from all child page objects `Page` is created using the prototype model:
+먼저, 당신은 `Page`라 불리는 메인 페이지 오브젝트가 필요합니다. 그것은 모든 페이지 오브젝트들이 상속 받는 일반적인 셀렉터나 메서드들을 포함 해야합니다. 모든 자녀 페이지 오브젝트들과 같이 `Page`는 다음의 프로토타입 모델을 이용하여 생성 됩니다.
 
 ```js
 export default class Page {
