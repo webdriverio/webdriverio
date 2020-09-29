@@ -15,9 +15,11 @@ The goal of using page objects is to abstract any page information away from the
 
 ## Making A Page Object
 
-First off, we need a main page object that we call `Page`. It will contain general selectors or methods which all page objects will inherit from.
+First off, we need a main page object that we call `Page.js`. It will contain general selectors or methods which all page objects will inherit from.
 
 ```js
+
+// Page.js
 export default class Page {
     constructor() {
         this.title = 'My Page'
