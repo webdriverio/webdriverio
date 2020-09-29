@@ -103,8 +103,8 @@ describe('login form', () => {
 });
 ```
 
-From the structural side it makes sense to separate spec files and page objects and put them into different directories. Additionally you can give each page object the ending: `.page.js`. This way it is easy to figure out that you actually require a page object if you execute `var LoginPage = require('../pageobjects/form.page');`.
+구조적인 측면에서도 스펙 파일들과 페이지 오브젝트들을 다른 디렉토리들로 분리하는 것이 이치에 맞습니다. 추가적으로, 당신은 각 페이지 오브젝트들을 `.page.js`로 명명할 수 있습니다. 이러한 방식은 만약 당신이 `var LoginPage = require('../pageobjects/form.page');` 와 같은 코드를 실행할 때, 어떤 페이지 오브젝트를 불러오는지 찾기 쉽습니다.
 
-This is the basic principle of how to write page objects with WebdriverIO. Note that you can build up way more complex page object structures than this. For example have specific page objects for modals or split up a huge page object into different sections objects that inherit from the main page object. The pattern gives you really a lot of opportunities to encapsulate page information from your actual tests, which is important to keep your test suite structured and clear in times where the project and number of tests grows.
+이것이 WebdriverIO로 페이지 오브젝트를 작성하는 기본적인 원칙 입니다. 이것 보다 더 복잡한 구조의 페이지 오브젝트 구조를 만들 수도 있습니다. 예를 들면 페이지의 일부에 대한 페이지 오브젝트를 갖는다거나, 큰 페이지를 메인 오브젝트를 상속하는 여러 오브젝트들로 구성된 섹션으로 나눌 수 있습니다. The pattern gives you really a lot of opportunities to encapsulate page information from your actual tests, which is important to keep your test suite structured and clear in times where the project and number of tests grows.
 
 You can find this and some more page object examples in the [example folder](https://github.com/webdriverio/webdriverio/tree/master/examples/pageobject) on GitHub.
