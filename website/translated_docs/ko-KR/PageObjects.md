@@ -105,6 +105,6 @@ describe('login form', () => {
 
 구조적인 측면에서도 스펙 파일들과 페이지 오브젝트들을 다른 디렉토리들로 분리하는 것이 이치에 맞습니다. 추가적으로, 당신은 각 페이지 오브젝트들을 `.page.js`로 명명할 수 있습니다. 이러한 방식은 만약 당신이 `var LoginPage = require('../pageobjects/form.page');` 와 같은 코드를 실행할 때, 어떤 페이지 오브젝트를 불러오는지 찾기 쉽습니다.
 
-이것이 WebdriverIO로 페이지 오브젝트를 작성하는 기본적인 원칙 입니다. 이것 보다 더 복잡한 구조의 페이지 오브젝트 구조를 만들 수도 있습니다. 예를 들면 페이지의 일부에 대한 페이지 오브젝트를 갖는다거나, 큰 페이지를 메인 오브젝트를 상속하는 여러 오브젝트들로 구성된 섹션으로 나눌 수 있습니다. The pattern gives you really a lot of opportunities to encapsulate page information from your actual tests, which is important to keep your test suite structured and clear in times where the project and number of tests grows.
+이것이 WebdriverIO로 페이지 오브젝트를 작성하는 기본적인 원칙 입니다. 이것 보다 더 복잡한 구조의 페이지 오브젝트 구조를 만들 수도 있습니다. 예를 들면 페이지의 일부에 대한 페이지 오브젝트를 갖는다거나, 큰 페이지를 메인 오브젝트를 상속하는 여러 오브젝트들로 구성된 섹션으로 나눌 수 있습니다. 이 패턴은 여러분의 실제 테스트를 캡슐화 할 수 있는 기회를 제공하는데, 이는 시간이 지나며 프로젝트와 그에 따른 테스트들이 증가하더라도 구조적이고 깔끔하게 유지하게 해줍니다.
 
-You can find this and some more page object examples in the [example folder](https://github.com/webdriverio/webdriverio/tree/master/examples/pageobject) on GitHub.
+추가적인 페이지 오브젝트 예제는 깃허브에 있는 [예제 폴더](https://github.com/webdriverio/webdriverio/tree/master/examples/pageobject) 에서 찾아볼 수 있습니다.
