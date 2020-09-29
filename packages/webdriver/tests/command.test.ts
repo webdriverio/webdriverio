@@ -18,29 +18,29 @@ const commandEndpoint: Protocols.CommandEndpoint = {
     ref: new URL('https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element-from-element'),
     description: '',
     variables: [{
-        'name': 'elementId',
-        'description': 'the id of an element returned in a previous call to Find Element(s)'
+        name: 'elementId',
+        description: 'the id of an element returned in a previous call to Find Element(s)'
     }],
     parameters: [{
-        'name': 'using',
-        'type': 'string',
-        'description': 'a valid element location strategy',
-        'required': true
+        name: 'using',
+        type: 'string',
+        description: 'a valid element location strategy',
+        required: true
     }, {
-        'name': 'value',
-        'type': 'string',
-        'description': 'the actual selector that will be used to find an element',
-        'required': true
+        name: 'value',
+        type: 'string',
+        description: 'the actual selector that will be used to find an element',
+        required: true
     }, {
-        'name': 'customParam',
-        'type': 'number',
-        'description': 'a random not required param',
-        'required': false
+        name: 'customParam',
+        type: 'number',
+        description: 'a random not required param',
+        required: false
     }, {
-        'name': 'customArrayParam',
-        'type': '(string|object|number|boolean|undefined)[]',
-        'description': 'a random not required param',
-        'required': false
+        name: 'customArrayParam',
+        type: '(string|object|number|boolean|undefined)[]',
+        description: 'a random not required param',
+        required: false
     }]
 }
 
