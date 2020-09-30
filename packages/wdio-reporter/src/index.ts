@@ -1,17 +1,42 @@
 import fs from 'fs'
 import fse from 'fs-extra'
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
 
 import { getErrorsFromEvent } from './utils'
 
-import SuiteStats from './stats/suite'
-import HookStats from './stats/hook'
-import TestStats from './stats/test'
+import SuiteStats, { Suite } from './stats/suite'
+import HookStats, { Hook } from './stats/hook'
+import TestStats, { Test } from './stats/test'
 
-import RunnerStats from './stats/runner'
+import RunnerStats, { Runner } from './stats/runner'
+
+interface WDIOReporterOptions {
+    outputDir: string
+    logFile: string
+    stdout: boolean
+    writeStream: fs.WriteStream
+}
 
 export default class WDIOReporter extends EventEmitter {
-    constructor(options) {
+
+    outputStream: fs.WriteStream
+    failures = []
+    suites?: SuiteStats[]
+    hooks: HookStats[] = []
+    tests: TestStats[] = []
+    currentSuites: SuiteStats[] = []
+    counts = {
+        suites: 0,
+        tests: 0,
+        hooks: 0,
+        passes: 0,
+        skipping: 0,
+        failures: 0
+    }
+    retries = 0
+    runnerStat?: RunnerStats
+
+    constructor(public options: WDIOReporterOptions) {
         super()
         this.options = options
 
@@ -23,22 +48,8 @@ export default class WDIOReporter extends EventEmitter {
         this.outputStream = this.options.stdout || !this.options.logFile
             ? options.writeStream
             : fs.createWriteStream(this.options.logFile)
-        this.failures = []
-        this.suites = {}
-        this.hooks = {}
-        this.tests = {}
-        this.currentSuites = []
-        this.counts = {
-            suites: 0,
-            tests: 0,
-            hooks: 0,
-            passes: 0,
-            skipping: 0,
-            failures: 0
-        }
-        this.retries = 0
 
-        let currentTest
+        let currentTest: TestStats
 
         const rootSuite = new SuiteStats({
             title: '(root)',
@@ -49,13 +60,13 @@ export default class WDIOReporter extends EventEmitter {
         this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
         this.on('client:afterCommand', this.onAfterCommand.bind(this))
 
-        this.on('runner:start',  /* istanbul ignore next */(runner) => {
+        this.on('runner:start',  /* istanbul ignore next */(runner: Runner) => {
             rootSuite.cid = runner.cid
             this.runnerStat = new RunnerStats(runner)
             this.onRunnerStart(this.runnerStat)
         })
 
-        this.on('suite:start',  /* istanbul ignore next */(params) => {
+        this.on('suite:start',  /* istanbul ignore next */(params: Suite) => {
             const suite = new SuiteStats(params)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.suites.push(suite)
@@ -64,7 +75,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteStart(suite)
         })
 
-        this.on('hook:start',  /* istanbul ignore next */(hook) => {
+        this.on('hook:start',  /* istanbul ignore next */(hook: Hook) => {
             const hookStat = new HookStats(hook)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.hooks.push(hookStat)
@@ -73,14 +84,14 @@ export default class WDIOReporter extends EventEmitter {
             this.onHookStart(hookStat)
         })
 
-        this.on('hook:end',  /* istanbul ignore next */(hook) => {
+        this.on('hook:end',  /* istanbul ignore next */(hook: Hook) => {
             const hookStat = this.hooks[hook.uid]
             hookStat.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
             this.onHookEnd(hookStat)
         })
 
-        this.on('test:start',  /* istanbul ignore next */(test) => {
+        this.on('test:start',  /* istanbul ignore next */(test: Test) => {
             test.retries = this.retries
             currentTest = new TestStats(test)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
@@ -90,7 +101,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestStart(currentTest)
         })
 
-        this.on('test:pass',  /* istanbul ignore next */(test) => {
+        this.on('test:pass',  /* istanbul ignore next */(test: Test) => {
             const testStat = this.tests[test.uid]
             testStat.pass()
             this.counts.passes++
@@ -98,7 +109,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestPass(testStat)
         })
 
-        this.on('test:fail',  /* istanbul ignore next */(test) => {
+        this.on('test:fail',  /* istanbul ignore next */(test: Test) => {
             const testStat = this.tests[test.uid]
 
             testStat.fail(getErrorsFromEvent(test))
@@ -107,7 +118,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestFail(testStat)
         })
 
-        this.on('test:retry', (test) => {
+        this.on('test:retry', (test: Test) => {
             const testStat = this.tests[test.uid]
 
             testStat.fail(getErrorsFromEvent(test))
@@ -115,7 +126,7 @@ export default class WDIOReporter extends EventEmitter {
             this.retries++
         })
 
-        this.on('test:pending', (test) => {
+        this.on('test:pending', (test: Test) => {
             test.retries = this.retries
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentTest = new TestStats(test)
@@ -144,20 +155,20 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestSkip(currentTest)
         })
 
-        this.on('test:end',  /* istanbul ignore next */(test) => {
+        this.on('test:end',  /* istanbul ignore next */(test: Test) => {
             const testStat = this.tests[test.uid]
             this.retries = 0
             this.onTestEnd(testStat)
         })
 
-        this.on('suite:end',  /* istanbul ignore next */(suite) => {
+        this.on('suite:end',  /* istanbul ignore next */(suite: Suite) => {
             const suiteStat = this.suites[suite.uid]
             suiteStat.complete()
             this.currentSuites.pop()
             this.onSuiteEnd(suiteStat)
         })
 
-        this.on('runner:end',  /* istanbul ignore next */(runner) => {
+        this.on('runner:end',  /* istanbul ignore next */(runner: Runner) => {
             rootSuite.complete()
             this.runnerStat.failures = runner.failures
             this.runnerStat.retries = runner.retries
