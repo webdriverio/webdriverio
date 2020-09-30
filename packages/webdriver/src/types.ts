@@ -240,7 +240,7 @@ export interface Capabilities {
 
 export interface W3CCapabilities {
     alwaysMatch: Capabilities;
-    firstMatch: Capabilities;
+    firstMatch: Capabilities[];
 }
 
 export interface DesiredCapabilities extends Capabilities {

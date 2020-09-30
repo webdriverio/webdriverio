@@ -1,8 +1,8 @@
 import gotMock from 'got'
-// @ts-ignore
 import logger from '@wdio/logger'
 
 import WebDriver from '../src'
+import { DesiredCapabilities, Client } from '../src/types'
 
 const got = gotMock as unknown as jest.Mock
 
@@ -14,6 +14,13 @@ const sessionOptions = {
     sessionId: 'foobar'
 }
 
+interface TestClient extends Client {
+    getUrl (): string
+    getApplicationCacheStatus (): void
+    takeElementScreenshot (): void
+    getDeviceTime (): void
+}
+
 describe('WebDriver', () => {
     describe('newSession', () => {
         it('should allow to create a new session using jsonwire caps', async () => {
@@ -23,7 +30,7 @@ describe('WebDriver', () => {
             })
 
             const req = got.mock.calls[0][1]
-            expect(req.uri.pathname).toBe('/session')
+            expect(req.url.pathname).toBe('/session')
             expect(req.json).toEqual({
                 capabilities: {
                     alwaysMatch: { browserName: 'firefox' },
@@ -38,12 +45,12 @@ describe('WebDriver', () => {
                 path: '/',
                 capabilities: {
                     alwaysMatch: { browserName: 'firefox' },
-                    firstMatch: {}
+                    firstMatch: [{}]
                 }
             })
 
             const req = got.mock.calls[0][1]
-            expect(req.uri.pathname).toBe('/session')
+            expect(req.url.pathname).toBe('/session')
             expect(req.json).toEqual({
                 capabilities: {
                     alwaysMatch: { browserName: 'firefox' },
@@ -77,35 +84,35 @@ describe('WebDriver', () => {
                 path: '/',
                 capabilities: { browserName: 'firefox' }
             })
-            expect(browser.capabilities.browserName).toBe('mockBrowser')
-            expect(browser.requestedCapabilities.browserName).toBe('firefox')
+            expect((browser.capabilities as DesiredCapabilities).browserName).toBe('mockBrowser')
+            expect((browser.requestedCapabilities as DesiredCapabilities).browserName).toBe('firefox')
         })
     })
 
     describe('attachToSession', () => {
         it('should allow to attach to existing session', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'info' })
+            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'info' }) as TestClient
             await client.getUrl()
             const req = got.mock.calls[0][1]
-            expect(req.uri.href).toBe('http://localhost:4444/session/foobar/url')
+            expect(req.url.href).toBe('http://localhost:4444/session/foobar/url')
             expect(logger.setLevel).toBeCalled()
         })
 
         it('should allow to attach to existing session2', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions })
+            const client = WebDriver.attachToSession({ ...sessionOptions }) as TestClient
             await client.getUrl()
             const req = got.mock.calls[0][1]
-            expect(req.uri.href).toBe('http://localhost:4444/session/foobar/url')
+            expect(req.url.href).toBe('http://localhost:4444/session/foobar/url')
             expect(logger.setLevel).not.toBeCalled()
         })
 
         it('should allow to attach to existing session - W3C', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions })
+            const client = WebDriver.attachToSession({ ...sessionOptions }) as TestClient
             await client.getUrl()
 
-            expect(client.options.isChrome).toBeFalsy()
-            expect(client.options.isMobile).toBeFalsy()
-            expect(client.options.isSauce).toBeFalsy()
+            expect(client.isChrome).toBeFalsy()
+            expect(client.isMobile).toBeFalsy()
+            expect(client.isSauce).toBeFalsy()
             expect(client.getApplicationCacheStatus).toBeFalsy()
             expect(client.takeElementScreenshot).toBeTruthy()
             expect(client.getDeviceTime).toBeFalsy()
@@ -115,11 +122,11 @@ describe('WebDriver', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
                 isW3C: false,
                 isSauce: true,
-            })
+            }) as TestClient
 
             await client.getUrl()
 
-            expect(client.options.isSauce).toBe(true)
+            expect(client.isSauce).toBe(true)
             expect(client.getApplicationCacheStatus).toBeTruthy()
             expect(client.takeElementScreenshot).toBeFalsy()
             expect(client.getDeviceTime).toBeFalsy()
@@ -129,12 +136,12 @@ describe('WebDriver', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
                 isChrome: true,
                 isMobile: true
-            })
+            }) as TestClient
 
             await client.getUrl()
 
-            expect(client.options.isChrome).toBe(true)
-            expect(client.options.isMobile).toBe(true)
+            expect(client.isChrome).toBe(true)
+            expect(client.isMobile).toBe(true)
             expect(client.getApplicationCacheStatus).toBeTruthy()
             expect(client.takeElementScreenshot).toBeTruthy()
             expect(client.getDeviceTime).toBeTruthy()
