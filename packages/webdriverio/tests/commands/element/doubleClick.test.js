@@ -18,7 +18,7 @@ describe('doubleClick', () => {
         await elem.doubleClick()
 
         // double click
-        expect(got.mock.calls[2][1].uri.pathname).toContain('/foobar-123/actions')
+        expect(got.mock.calls[2][1].url.pathname).toContain('/foobar-123/actions')
         expect(got.mock.calls[2][1].json.actions).toHaveLength(1)
         expect(got.mock.calls[2][1].json.actions[0].type).toBe('pointer')
         expect(got.mock.calls[2][1].json.actions[0].actions).toHaveLength(6)
@@ -46,10 +46,10 @@ describe('doubleClick', () => {
         await elem.doubleClick()
 
         // move to
-        expect(got.mock.calls[2][1].uri.pathname).toContain('/foobar-123/moveto')
+        expect(got.mock.calls[2][1].url.pathname).toContain('/foobar-123/moveto')
         expect(got.mock.calls[2][1].json).toEqual({ element: 'some-elem-123' })
 
         // double click
-        expect(got.mock.calls[3][1].uri.pathname).toContain('/foobar-123/doubleclick')
+        expect(got.mock.calls[3][1].url.pathname).toContain('/foobar-123/doubleclick')
     })
 })

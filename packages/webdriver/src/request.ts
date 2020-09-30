@@ -106,7 +106,7 @@ export default class WebDriverRequest extends EventEmitter {
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
             (this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint))
-        )
+        ) as import('url').URL
 
         /**
          * send authentication credentials only when creating new session

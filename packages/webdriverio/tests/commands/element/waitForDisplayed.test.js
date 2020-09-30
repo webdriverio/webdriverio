@@ -37,7 +37,7 @@ describe('waitForDisplayed', () => {
         const result = await elem.waitForDisplayed({ timeout })
 
         expect(result).toBe(true)
-        expect(got.mock.calls[2][1].uri.pathname)
+        expect(got.mock.calls[2][1].url.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 

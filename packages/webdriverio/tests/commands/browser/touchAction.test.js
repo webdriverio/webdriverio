@@ -29,7 +29,7 @@ describe('touchAction test', () => {
                 y: 2,
                 element: elem
             })
-            expect(got.mock.calls[0][1].uri.pathname).toContain('/touch/perform')
+            expect(got.mock.calls[0][1].url.pathname).toContain('/touch/perform')
             expect(got.mock.calls[0][1].json).toEqual({
                 actions: [
                     { action: 'press', options: { x: 1, y: 2, element: 'some-elem-123' } }
@@ -43,7 +43,7 @@ describe('touchAction test', () => {
                 x: 1,
                 y: 2
             })
-            expect(got.mock.calls[0][1].uri.pathname).toContain('/touch/perform')
+            expect(got.mock.calls[0][1].url.pathname).toContain('/touch/perform')
             expect(got.mock.calls[0][1].json).toEqual({
                 actions: [
                     { action: 'press', options: { x: 1, y: 2 } }
@@ -53,7 +53,7 @@ describe('touchAction test', () => {
 
         it('should handle multiple actions as strings properly', async () => {
             await browser.touchAction(['wait', 'release'])
-            expect(got.mock.calls[0][1].uri.pathname).toContain('/touch/perform')
+            expect(got.mock.calls[0][1].url.pathname).toContain('/touch/perform')
             expect(got.mock.calls[0][1].json).toEqual({
                 actions: [
                     { action: 'wait' },
@@ -66,7 +66,7 @@ describe('touchAction test', () => {
     describe('multi touch', () => {
         it('should transform to array using element as first citizen', async () => {
             await browser.touchAction([['press'], ['release']])
-            expect(got.mock.calls[0][1].uri.pathname).toContain('/touch/multi/perform')
+            expect(got.mock.calls[0][1].url.pathname).toContain('/touch/multi/perform')
             expect(got.mock.calls[0][1].json).toEqual({
                 actions: [
                     [{ action: 'press' }],

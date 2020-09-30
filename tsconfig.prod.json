@@ -1,20 +1,22 @@
 {
+  "extends": "@tsconfig/node10/tsconfig.json",
+
   "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
     "allowJs": true,
     "declaration": true,
     "declarationMap": true,
     "resolveJsonModule": true,
     "removeComments": true,
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "lib": ["dom"],
+    "types": [
+      "node",
+      "jest"
+    ]
   },
+
   "exclude": [
-    "packages/devtools",
     "node_modules",
+    "packages/**/node_modules",
     "**/*.spec.ts",
     "e2e/**/*",
     "coverage",

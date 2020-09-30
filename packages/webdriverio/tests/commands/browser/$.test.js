@@ -14,7 +14,7 @@ describe('element', () => {
         const elem = await browser.$('#foo')
         expect(got.mock.calls[1][1].method)
             .toBe('POST')
-        expect(got.mock.calls[1][1].uri.pathname)
+        expect(got.mock.calls[1][1].url.pathname)
             .toBe('/session/foobar-123/element')
         expect(got.mock.calls[1][1].json)
             .toEqual({ using: 'css selector', value: '#foo' })

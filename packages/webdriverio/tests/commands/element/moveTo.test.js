@@ -14,7 +14,7 @@ describe('moveTo', () => {
         got.setMockResponse([undefined, { scrollX: 0, scrollY: 20 }])
         await elem.moveTo()
 
-        expect(got.mock.calls[4][1].uri.pathname).toContain('/foobar-123/actions')
+        expect(got.mock.calls[4][1].url.pathname).toContain('/foobar-123/actions')
         expect(got.mock.calls[4][1].json.actions).toHaveLength(1)
         expect(got.mock.calls[4][1].json.actions[0].type).toBe('pointer')
         expect(got.mock.calls[4][1].json.actions[0].actions).toHaveLength(1)
@@ -76,13 +76,13 @@ describe('moveTo', () => {
 
         const elem = await browser.$('#elem')
         await elem.moveTo()
-        expect(got.mock.calls[2][1].uri.pathname)
+        expect(got.mock.calls[2][1].url.pathname)
             .toContain('/foobar-123/moveto')
         expect(got.mock.calls[2][1].json)
             .toEqual({ element: 'some-elem-123' })
 
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
-        expect(got.mock.calls[3][1].uri.pathname)
+        expect(got.mock.calls[3][1].url.pathname)
             .toContain('/foobar-123/moveto')
         expect(got.mock.calls[3][1].json)
             .toEqual({ element: 'some-elem-123', xoffset: 5, yoffset: 10 })

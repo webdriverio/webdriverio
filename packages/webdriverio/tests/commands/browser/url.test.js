@@ -15,7 +15,7 @@ describe('url', () => {
 
     it('should accept a full url', async () => {
         await browser.url('http://google.com')
-        expect(got.mock.calls[1][1].uri.pathname)
+        expect(got.mock.calls[1][1].url.pathname)
             .toBe('/session/foobar-123/url')
         expect(got.mock.calls[1][1].json)
             .toEqual({ url: 'http://google.com/' })

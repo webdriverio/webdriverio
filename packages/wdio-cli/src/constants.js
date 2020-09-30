@@ -1,7 +1,8 @@
-import { version } from '../package.json'
 import { validateServiceAnswers, hasFile } from './utils'
 
-export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${version})`
+const pkg = require('../package.json')
+
+export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
 
 export const EXCLUSIVE_SERVICES = {
     'wdio-chromedriver-service': {
