@@ -23,5 +23,5 @@
  */
 
 export default function nextElement () {
-    return this.$(function () { return this.nextElementSibling })
+    return this.$(/* istanbul ignore next */ () => { return this.nextElementSibling })
 }
