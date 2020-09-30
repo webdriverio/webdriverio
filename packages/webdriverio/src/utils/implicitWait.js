@@ -24,6 +24,16 @@ export default async function implicitWait (currentElement, commandName) {
              */
             return await currentElement.parent.$(currentElement.selector)
         } catch {
+            if(currentElement.selector === "function () { return this.previousElementSibling; }"){
+                throw new Error(
+                    `Can't call ${commandName} on previous element of element with selector "${currentElement.parent.selector}" because it wasn't found`)
+            }
+
+            if(currentElement.selector === "function () { return this.nextElementSibling; }"){
+                throw new Error(
+                    `Can't call ${commandName} on next element of element with selector "${currentElement.parent.selector}" because it wasn't found`)
+            }
+
             throw new Error(
                 `Can't call ${commandName} on element with selector "${currentElement.selector}" because element wasn't found`)
         }
