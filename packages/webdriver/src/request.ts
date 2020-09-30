@@ -139,7 +139,8 @@ export default class WebDriverRequest extends EventEmitter {
             log.info('DATA', transformCommandLogResult(fullRequestOptions.json))
         }
 
-        let response = await got.default(fullRequestOptions.url!, { ...fullRequestOptions })
+        const { url, ...gotOptions } = fullRequestOptions
+        let response = await got.default(url!, gotOptions)
             // @ts-ignore
             .catch((err: got.RequestError) => err)
 

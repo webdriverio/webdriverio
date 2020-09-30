@@ -58,7 +58,12 @@ describe('wdio-logger node', () => {
     })
 
     describe('setLogLevelsConfig', () => {
-        const scenarios = [{
+        const scenarios: {
+            name: string
+            logger: string
+            config: Record<string, log.LogLevelDesc>
+            logLevel: number
+        }[] = [{
             name: 'should be possible to set logLevel in config',
             logger: 'test-setLogLevelsConfig-3',
             config: { 'test-setLogLevelsConfig-3': 'silent' },
@@ -76,13 +81,13 @@ describe('wdio-logger node', () => {
             logger: 'test-setLogLevelsConfig-5',
             get config() {
                 process.env.WDIO_LOG_LEVEL = 'info'
-                return { 'test-setLogLevelsConfig-5': 'warn' }
+                return { 'test-setLogLevelsConfig-5': 'warn' as log.LogLevelDesc }
             },
             logLevel: 3
         }, {
             name: 'should be possible to set logLevel in config for all sub levels',
             logger: 'test-setLogLevelsConfig-6:foo',
-            config: { 'test-setLogLevelsConfig-6:bar': 'error' },
+            config: { 'test-setLogLevelsConfig-6:bar': 'error' as log.LogLevelDesc },
             logLevel: 4
         }]
 

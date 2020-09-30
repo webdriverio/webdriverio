@@ -152,7 +152,7 @@ describe('utils', () => {
                 .toContain('Make sure you have set the "path" correctly!')
         })
 
-        fit('ECONNREFUSED', () => {
+        it('ECONNREFUSED', () => {
             expect(getSessionError({
                 name: 'Some Error',
                 code: 'ECONNREFUSED',
