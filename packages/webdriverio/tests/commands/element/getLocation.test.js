@@ -12,7 +12,7 @@ describe('getLocation test', () => {
         const elem = await browser.$('#foo')
         const size = await elem.getLocation()
 
-        expect(got.mock.calls[2][1].url.pathname)
+        expect(got.mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/rect')
         expect(size.x).toBe(15)
         expect(size.y).toBe(20)
@@ -29,7 +29,7 @@ describe('getLocation test', () => {
         const elem = await browser.$('#foo')
         const size = await elem.getLocation()
 
-        expect(got.mock.calls[2][1].url.pathname)
+        expect(got.mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/location')
         expect(size.x).toBe(15)
         expect(size.y).toBe(20)

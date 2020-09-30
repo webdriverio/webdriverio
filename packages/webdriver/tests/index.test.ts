@@ -29,8 +29,9 @@ describe('WebDriver', () => {
                 capabilities: { browserName: 'firefox' }
             })
 
+            const url = got.mock.calls[0][0]
             const req = got.mock.calls[0][1]
-            expect(req.url.pathname).toBe('/session')
+            expect(url.pathname).toBe('/session')
             expect(req.json).toEqual({
                 capabilities: {
                     alwaysMatch: { browserName: 'firefox' },
@@ -49,8 +50,9 @@ describe('WebDriver', () => {
                 }
             })
 
+            const url = got.mock.calls[0][0]
             const req = got.mock.calls[0][1]
-            expect(req.url.pathname).toBe('/session')
+            expect(url.pathname).toBe('/session')
             expect(req.json).toEqual({
                 capabilities: {
                     alwaysMatch: { browserName: 'firefox' },
@@ -93,16 +95,16 @@ describe('WebDriver', () => {
         it('should allow to attach to existing session', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'info' }) as TestClient
             await client.getUrl()
-            const req = got.mock.calls[0][1]
-            expect(req.url.href).toBe('http://localhost:4444/session/foobar/url')
+            const url = got.mock.calls[0][0]
+            expect(url.href).toBe('http://localhost:4444/session/foobar/url')
             expect(logger.setLevel).toBeCalled()
         })
 
         it('should allow to attach to existing session2', async () => {
             const client = WebDriver.attachToSession({ ...sessionOptions }) as TestClient
             await client.getUrl()
-            const req = got.mock.calls[0][1]
-            expect(req.url.href).toBe('http://localhost:4444/session/foobar/url')
+            const url = got.mock.calls[0][0]
+            expect(url.href).toBe('http://localhost:4444/session/foobar/url')
             expect(logger.setLevel).not.toBeCalled()
         })
 

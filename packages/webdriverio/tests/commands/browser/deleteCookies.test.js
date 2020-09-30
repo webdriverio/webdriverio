@@ -17,7 +17,7 @@ describe('deleteCookies', () => {
         await browser.deleteCookies()
 
         expect(got.mock.calls[1][1].method).toBe('DELETE')
-        expect(got.mock.calls[1][1].url.pathname)
+        expect(got.mock.calls[1][0].pathname)
             .toBe('/session/foobar-123/cookie')
     })
 
@@ -25,7 +25,7 @@ describe('deleteCookies', () => {
         await browser.deleteCookies('cookie1')
 
         expect(got.mock.calls[0][1].method).toBe('DELETE')
-        expect(got.mock.calls[0][1].url.pathname)
+        expect(got.mock.calls[0][0].pathname)
             .toBe('/session/foobar-123/cookie/cookie1')
     })
 
@@ -33,7 +33,7 @@ describe('deleteCookies', () => {
         await browser.deleteCookies(['cookie1'])
 
         expect(got.mock.calls[0][1].method).toBe('DELETE')
-        expect(got.mock.calls[0][1].url.pathname)
+        expect(got.mock.calls[0][0].pathname)
             .toBe('/session/foobar-123/cookie/cookie1')
     })
 
@@ -43,7 +43,7 @@ describe('deleteCookies', () => {
 
         cookieNames.forEach((name, i) => {
             expect(got.mock.calls[i][1].method).toBe('DELETE')
-            expect(got.mock.calls[i][1].url.pathname)
+            expect(got.mock.calls[i][0].pathname)
                 .toBe(`/session/foobar-123/cookie/${name}`)
         })
     })

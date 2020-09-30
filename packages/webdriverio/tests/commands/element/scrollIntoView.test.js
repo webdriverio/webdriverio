@@ -18,10 +18,11 @@ describe('scrollIntoView test', () => {
     it('should allow to check if an element is enabled', async () => {
         elem.elementId = { scrollIntoView: jest.fn() }
         await elem.scrollIntoView()
-        const executeCall = got.mock.calls[2][1]
-        expect(executeCall.url.pathname)
+        const executeCallUrl = got.mock.calls[2][0]
+        const executeCallOptions = got.mock.calls[2][1]
+        expect(executeCallUrl.pathname)
             .toBe('/session/foobar-123/execute/sync')
-        expect(Object.keys(executeCall.json.args[0])).toHaveLength(2)
+        expect(Object.keys(executeCallOptions.json.args[0])).toHaveLength(2)
         expect(elem.elementId.scrollIntoView.mock.calls).toHaveLength(1)
     })
 
