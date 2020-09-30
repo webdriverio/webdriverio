@@ -55,7 +55,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 }
 
 const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
-const outputFile = path.join(__dirname, '..', '..', 'packages', 'webdriver', 'build', 'src', 'types.d.ts')
+const outputFile = path.join(__dirname, '..', '..', 'packages', 'webdriver', 'build', 'types.d.ts')
 const generatedTypings = template.replace('// ... insert here ...', lines.join('\n'))
 
 const origTypings = fs.readFileSync(outputFile, 'utf8')

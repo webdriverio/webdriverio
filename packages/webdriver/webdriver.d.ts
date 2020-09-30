@@ -13,6 +13,8 @@
 
 declare type HTTPRequestOptions = import('got').Options;
 declare type HTTPResponse = import('got').Response;
+declare type HTTPAgent = import('http').Agent;
+declare type HTTPSAgent = import('https').Agent;
 
 declare namespace WebDriver {
     type PageLoadingStrategy = 'none' | 'eager' | 'normal';
@@ -401,10 +403,10 @@ declare namespace WebDriver {
         printPageSourceOnFindFailure?: boolean;
 
         // Appium direct config
-        directConnectProtocol: string;
-        directConnectHost: string;
-        directConnectPort: number;
-        directConnectPath: string;
+        directConnectProtocol?: string;
+        directConnectHost?: string;
+        directConnectPort?: number;
+        directConnectPath?: string;
 
         // Appium Android Only
         appActivity?: string;
@@ -573,8 +575,8 @@ declare namespace WebDriver {
          * Allows you to use a customhttp/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
          */
         agent?: {
-            http: http.Agent;
-            https: https.Agent;
+            http: HTTPAgent;
+            https: HTTPSAgent;
         };
         /**
          * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
