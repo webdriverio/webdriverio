@@ -19,7 +19,6 @@ export interface Suite extends Runnable {
  * Class describing statistics about a single suite.
  */
 export default class SuiteStats extends RunnableStats {
-    uid: string
     cid?: string
     title: string
     fullTitle: string

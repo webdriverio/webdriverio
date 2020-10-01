@@ -15,6 +15,7 @@ export interface RunnableError {
 }
 
 export default abstract class RunnableStats {
+    uid?: string
     type: string
     start: number
     end?: number

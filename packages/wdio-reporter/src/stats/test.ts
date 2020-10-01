@@ -28,7 +28,6 @@ interface Argument {
  * captures data on a test.
  */
 export default class TestStats extends RunnableStats {
-    uid: string
     cid: string
     title: string
     fullTitle: string

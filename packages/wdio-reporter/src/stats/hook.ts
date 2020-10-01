@@ -6,7 +6,6 @@ export interface Hook extends Runnable {
 }
 
 export default class HookStats extends RunnableStats {
-    uid: string
     cid: string
     title: string
     parent: string
