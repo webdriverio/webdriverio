@@ -5,7 +5,7 @@ import { DesiredCapabilities } from './types'
  * @param  {String} str  variable to sanitize
  * @return {String}      sanitized variable
  */
-export function sanitizeString (str: string) {
+export function sanitizeString (str?: string) {
     if (!str) {
         return ''
     }
@@ -34,16 +34,16 @@ export function sanitizeCaps (caps: DesiredCapabilities) {
     if (caps.deviceName) {
         result = [
             sanitizeString(caps.deviceName),
-            sanitizeString(caps.platformName!),
-            sanitizeString(caps.platformVersion!),
-            sanitizeString(caps.app!)
+            sanitizeString(caps.platformName),
+            sanitizeString(caps.platformVersion),
+            sanitizeString(caps.app)
         ]
     } else {
         result = [
-            sanitizeString(caps.browserName!),
-            sanitizeString(caps.version! || caps.browserVersion!),
-            sanitizeString(caps.platform! || caps.platformName!),
-            sanitizeString(caps.app!)
+            sanitizeString(caps.browserName),
+            sanitizeString(caps.version || caps.browserVersion),
+            sanitizeString(caps.platform || caps.platformName),
+            sanitizeString(caps.app)
         ]
     }
 
