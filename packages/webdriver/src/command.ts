@@ -13,7 +13,7 @@ export default function (
     method: string,
     endpointUri: string,
     commandInfo: Protocols.CommandEndpoint,
-    doubleEncodeVariables: boolean = false
+    doubleEncodeVariables = false
 ) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
@@ -77,7 +77,7 @@ export default function (
             /**
              * inject url variables
              */
-            if (variables.length) {
+            if (i < variables.length) {
                 const encodedArg = doubleEncodeVariables ? encodeURIComponent(encodeURIComponent(arg)) : encodeURIComponent(arg)
                 endpoint = endpoint.replace(`:${commandParams[i].name}`, encodedArg)
                 continue

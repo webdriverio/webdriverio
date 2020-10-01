@@ -32,7 +32,7 @@ export default class WebDriver {
          * for example). But only do this if the user has enabled this
          * behavior in the first place.
          */
-        const { directConnectProtocol, directConnectHost, directConnectPort, directConnectPath } = params.capabilities as Options
+        const { directConnectProtocol, directConnectHost, directConnectPort, directConnectPath } = params
         if (directConnectProtocol && directConnectHost && directConnectPort && (directConnectPath || directConnectPath === '')) {
             log.info('Found direct connect information in new session response. ' +
                 `Will connect to server at ${directConnectProtocol}://${directConnectHost}:${directConnectPort}/${directConnectPath}`)

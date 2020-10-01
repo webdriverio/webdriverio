@@ -35,7 +35,7 @@ const agents = {
 }
 
 export default class WebDriverRequest extends EventEmitter {
-    body: object
+    body: Record<string, unknown>
     method: string
     endpoint: string
     isHubCommand: boolean
