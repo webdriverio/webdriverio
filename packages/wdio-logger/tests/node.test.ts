@@ -139,13 +139,13 @@ describe('wdio-logger node', () => {
         const logInfoSpy = jest.spyOn(fs, 'createWriteStream')
         const logCacheAddSpy = jest.spyOn(Set.prototype, 'add')
         const logCacheForEachSpy = jest.spyOn(Set.prototype, 'forEach')
-        let writableBuffer = null
-        logInfoSpy.mockImplementation((path: string): fs.WriteStream => ({
-            path,
+        let writableBuffer: any = null
+        logInfoSpy.mockImplementation((path: fs.PathLike): fs.WriteStream => ({
+            path: path as string,
             write,
             writable: true,
             // @ts-ignore
-            get writableBuffer() {
+            get writableBuffer () {
                 // @ts-ignore
                 return writableBuffer
             }
