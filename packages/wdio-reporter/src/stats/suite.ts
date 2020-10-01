@@ -12,7 +12,7 @@ export interface Suite extends Runnable {
     hooks?: HookStats[]
     suites?: SuiteStats[]
     hooksAndTests?: (HookStats | TestStats)[]
-    description?: string | undefined
+    description?: string
 }
 
 /**
