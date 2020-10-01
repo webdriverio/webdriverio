@@ -3,7 +3,6 @@ import RunnableStats, { Runnable, RunnableError } from './runnable'
 export interface Hook extends Runnable {
     cid: string
     parent: string
-    efewf:string
 }
 
 export default class HookStats extends RunnableStats {
