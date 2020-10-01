@@ -4,7 +4,18 @@ import RunnableStats from './runnable'
  * Class describing statistics about a single suite.
  */
 export default class SuiteStats extends RunnableStats {
-    constructor (suite) {
+    uid: string
+    cid: string
+    title: string
+    fullTitle: string
+    tags: any
+    tests: never[]
+
+    hooks: never[]
+    suites: never[]
+    hooksAndTests: never[]
+    description: any
+    constructor(suite: { title: string; fullTitle: string; type?: any; cid?: any; tags?: any; description?: any; uid?: any }) {
         super(suite.type || 'suite')
         this.uid = RunnableStats.getIdentifier(suite)
         this.cid = suite.cid
@@ -23,5 +34,6 @@ export default class SuiteStats extends RunnableStats {
          * only Cucumber
          */
         this.description = suite.description
+
     }
 }

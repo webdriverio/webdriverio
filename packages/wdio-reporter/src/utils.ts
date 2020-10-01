@@ -3,7 +3,19 @@
  * @param  {String} str  variable to sanitize
  * @return {String}      sanitized variable
  */
-export function sanitizeString (str) {
+
+ export interface CapabilitiesOptions{
+    deviceName?: string;
+    platformName?: string;
+    platformVersion? : string;
+    app?: string;
+    browserName?:string;
+    version? : string;
+    platform?: string;
+    browserVersion?: string;
+
+ }
+export function sanitizeString (str:string | undefined) {
     if (!str) {
         return ''
     }
@@ -19,7 +31,7 @@ export function sanitizeString (str) {
  * formats capability object into sanitized string for e.g.filenames
  * @param {Object} caps  Selenium capabilities
  */
-export function sanitizeCaps (caps) {
+export function sanitizeCaps (caps?: CapabilitiesOptions) {
     if (!caps) {
         return ''
     }
@@ -57,7 +69,7 @@ export function sanitizeCaps (caps) {
  * have a hard assertion model (Mocha)
  * @param {*} e  An event emitted by a framework adapter
  */
-export function getErrorsFromEvent(e) {
+export function getErrorsFromEvent(e: { errors: any; error: any }) {
     if (e.errors) return e.errors
     if (e.error) return [e.error]
     return []

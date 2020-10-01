@@ -1,7 +1,7 @@
 import fs from 'fs'
 import tmp from 'tmp'
 import fse from 'fs-extra'
-import EventEmitter from 'events'
+import {EventEmitter} from 'events'
 import WDIOReporter from '../src'
 
 describe('WDIOReporter', () => {

@@ -1,17 +1,37 @@
 import fs from 'fs'
 import fse from 'fs-extra'
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
 
 import { getErrorsFromEvent } from './utils'
 
-import SuiteStats from './stats/suite'
+import SuiteStats,{} from './stats/suite'
 import HookStats from './stats/hook'
 import TestStats from './stats/test'
 
 import RunnerStats from './stats/runner'
 
+
+export interface Options {
+    configFile?: string;
+    logFile?: string;
+    logLevel?: string;
+    stdout?: boolean;
+    outputDir?: any;
+    writeStream?: any;
+}
+
 export default class WDIOReporter extends EventEmitter {
-    constructor(options) {
+    private options: Options
+    outputStream: any
+    retries: number
+    currentSuites: any
+    runnerStat?: RunnerStats
+    suites: any
+    counts: any
+    hooks: any
+    tests: any
+    failures: never[]
+    constructor(options: Options) {
         super()
         this.options = options
 
@@ -38,7 +58,7 @@ export default class WDIOReporter extends EventEmitter {
         }
         this.retries = 0
 
-        let currentTest
+        let currentTest: TestStats
 
         const rootSuite = new SuiteStats({
             title: '(root)',
@@ -193,7 +213,7 @@ export default class WDIOReporter extends EventEmitter {
     /**
      * function to write to reporters output stream
      */
-    write(content) {
+    write(content: any) {
         this.outputStream.write(content)
     }
 

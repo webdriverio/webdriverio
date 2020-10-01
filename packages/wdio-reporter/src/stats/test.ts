@@ -1,11 +1,41 @@
 import RunnableStats from './runnable'
 
+type TestState = 'passed' | 'pending' | 'failed' | 'skipped';
+
+interface Test {
+    type: string;
+    cid: any;
+    argument: any;
+    retries?: any;
+    parent: any;
+    _duration?: number;
+    title: string;
+    pending: boolean;
+    fullTitle: string;
+    specs?: string[]
+    state?: TestState;
+    errors?: Error[];
+    error?: Error;
+    uid: any
+}
+
 /**
  * TestStats class
  * captures data on a test.
  */
 export default class TestStats extends RunnableStats {
-    constructor(test) {
+    uid: any
+    cid: any;
+    title: string;
+    fullTitle: string;
+    output: any[];
+    argument: any;
+    retries: any;
+    state: TestState;
+    pendingReason: any;
+    errors: Error[] = [];
+    error: Error | undefined;
+    constructor(test: Test) {
         super('test')
         this.uid = RunnableStats.getIdentifier(test)
         this.cid = test.cid
@@ -27,12 +57,12 @@ export default class TestStats extends RunnableStats {
         this.state = 'passed'
     }
 
-    skip(reason) {
+    skip(reason: any) {
         this.pendingReason = reason
         this.state = 'skipped'
     }
 
-    fail(errors) {
+    fail(errors: Error[]) {
         this.complete()
         this.state = 'failed'
         this.errors = errors

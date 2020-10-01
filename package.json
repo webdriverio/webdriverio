@@ -102,5 +102,7 @@
       "pre-push": "npm run test:eslint"
     }
   },
-  "dependencies": {}
+  "dependencies": {
+    "@types/fs-extra": "^9.0.1"
+  }
 }
