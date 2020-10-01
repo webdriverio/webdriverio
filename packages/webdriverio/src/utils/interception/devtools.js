@@ -50,7 +50,8 @@ export default class DevtoolsInterception extends Interception {
                 ).catch(() => ({}))
 
                 request.body = base64Encoded ? atob(body) : body
-                request.body = responseHeaders['Content-Type'] && responseHeaders['Content-Type'].includes('application/json')
+                const responseContentType = responseHeaders[Object.keys(responseHeaders).find(h => h.toLowerCase() === 'content-type')]
+                request.body = responseContentType && responseContentType.includes('application/json')
                     ? JSON.parse(request.body)
                     : request.body
                 mock.matches.push(request)
@@ -187,11 +188,23 @@ export default class DevtoolsInterception extends Interception {
 }
 
 const filterMethod = (method, expected) => {
-    return expected && expected.toLowerCase() !== method.toLowerCase()
+    if (typeof expected === 'undefined') {
+        return false
+    }
+    if (typeof expected === 'function') {
+        return expected(method) !== true
+    }
+    return expected.toLowerCase() !== method.toLowerCase()
 }
 
 const filterHeaders = (responseHeaders, expected) => {
-    return expected && !containsHeaderObject(responseHeaders, expected)
+    if (typeof expected === 'undefined') {
+        return false
+    }
+    if (typeof expected === 'function') {
+        return expected(responseHeaders) !== true
+    }
+    return !containsHeaderObject(responseHeaders, expected)
 }
 
 const filterRequest = (postData, expected) => {
@@ -205,5 +218,11 @@ const filterRequest = (postData, expected) => {
 }
 
 const filterStatusCode = (statusCode, expected) => {
-    return typeof expected === 'number' && statusCode !== expected
+    if (typeof expected === 'undefined') {
+        return false
+    }
+    if (typeof expected === 'function') {
+        return expected(statusCode) !== true
+    }
+    return statusCode !== expected
 }
