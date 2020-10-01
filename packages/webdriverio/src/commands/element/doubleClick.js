@@ -34,7 +34,7 @@ export default async function doubleClick () {
     /**
      * W3C way of handle the double click actions
      */
-    await this.performActions([{
+    return this.performActions([{
         type: 'pointer',
         id: 'pointer1',
         parameters: { pointerType: 'mouse' },
@@ -47,6 +47,4 @@ export default async function doubleClick () {
             { type: 'pointerUp', button: 0 }
         ]
     }])
-
-    return this.releaseActions()
 }

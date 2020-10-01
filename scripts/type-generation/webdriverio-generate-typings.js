@@ -9,7 +9,7 @@ const specifics = require('./specific-types.json')
 const { EDIT_WARNING } = require('../constants')
 
 const TYPING_SCOPES = ['element', 'browser', 'mock']
-const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'call']
+const EXCLUDED_COMMANDS = ['execute', 'executeAsync', 'call', 'addCommand', 'overwriteCommand']
 const INDENTATION = ' '.repeat(8)
 
 const jsDocTemplate = `
