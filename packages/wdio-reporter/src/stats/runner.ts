@@ -10,6 +10,8 @@ export interface Runner extends Runnable {
     sessionId: string
     isMultiremote: boolean
     retry: number
+    failures: number
+    retries: number
 }
 
 /**
@@ -25,6 +27,8 @@ export default class RunnerStats extends RunnableStats {
     sessionId: string
     isMultiremote: boolean
     retry: number
+    failures?: number
+    retries?: number
 
     constructor (runner: Runner) {
         super('runner')
