@@ -61,7 +61,7 @@ describe('wdio-logger node', () => {
         const scenarios: {
             name: string
             logger: string
-            config: Record<string, log.LogLevelDesc>
+            config?: Record<string, log.LogLevelDesc>
             logLevel: number
         }[] = [{
             name: 'should be possible to set logLevel in config',
