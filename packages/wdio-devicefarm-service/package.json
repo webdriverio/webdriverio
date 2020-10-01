@@ -1,0 +1,29 @@
+{
+  "name": "@wdio/devicefarm-service",
+  "version": "0.0.0",
+  "description": "A WebdriverIO service that <provide service description>",
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-devicefarm-service",
+  "license": "MIT",
+  "main": "./build/index",
+  "engines": {
+    "node": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-service"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "dependencies": {
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
