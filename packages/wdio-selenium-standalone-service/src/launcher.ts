@@ -25,7 +25,7 @@ export interface Config {
 
 export interface SeleniumStandaloneOptions {
 
-    logPath?: string;
+    logPath: string;
     installArgs?: Partial<import('selenium-standalone').InstallOpts>;
     args?: Partial<import('selenium-standalone').StartOpts>;
     skipSeleniumInstall?: boolean;
@@ -48,7 +48,7 @@ export default class SeleniumStandaloneLauncher {
         this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
     }
 
-    async onPrepare(config: Config) {
+    async onPrepare(config: Config) :Promise<void> {
         this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
@@ -68,7 +68,7 @@ export default class SeleniumStandaloneLauncher {
         /**
          * start Selenium Standalone server
          */
-        this.process = await promisify(SeleniumStandalone.start, { this.args })
+        this.process = await promisify(SeleniumStandalone.start)(this.args)
 
         if (typeof this.logPath === 'string') {
             this._redirectLogStream()
@@ -81,15 +81,15 @@ export default class SeleniumStandaloneLauncher {
         }
     }
 
-    onComplete() {
+    onComplete(): void {
         // selenium should not be killed in watch mode
         if (!this.watchMode) {
             this._stopProcess()
         }
     }
 
-    _redirectLogStream() {
-        const logFile = getFilePath(this.logPath, DEFAULT_LOG_FILENAME)
+    _redirectLogStream(): void {
+        const logFile = getFilePath(this.logPath!, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
         fs.ensureFileSync(logFile)
@@ -99,7 +99,7 @@ export default class SeleniumStandaloneLauncher {
         this.process.stderr?.pipe(logStream)
     }
 
-    _stopProcess = () => {
+    _stopProcess = (): void => {
         if (this.process) {
             log.info('shutting down all browsers')
             this.process.kill()
