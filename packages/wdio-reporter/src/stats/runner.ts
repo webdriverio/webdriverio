@@ -1,11 +1,12 @@
 import RunnableStats, { Runnable } from './runnable'
 import { sanitizeCaps } from '../utils'
-import { DesiredCapabilities, Options } from '../types'
+import { DesiredCapabilities } from '../types'
+import { WDIOReporterOptions } from '..'
 
 export interface Runner extends Runnable {
     cid: string
     capabilities: DesiredCapabilities
-    config: Options
+    config: WDIOReporterOptions
     specs: string[]
     sessionId: string
     isMultiremote: boolean
@@ -22,7 +23,7 @@ export default class RunnerStats extends RunnableStats {
     cid: string
     capabilities: DesiredCapabilities
     sanitizedCapabilities: string
-    config: Options
+    config: WDIOReporterOptions
     specs: string[]
     sessionId: string
     isMultiremote: boolean

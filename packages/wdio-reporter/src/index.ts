@@ -10,7 +10,7 @@ import TestStats, { Test } from './stats/test'
 
 import RunnerStats, { Runner } from './stats/runner'
 
-interface WDIOReporterOptions {
+export interface WDIOReporterOptions {
     outputDir: string
     logFile: string
     stdout: boolean
