@@ -41,6 +41,7 @@ class MochaAdapter {
         this.testCnt = new Map()
         this.suiteIds = ['0']
         this._hasTests = true
+        this.specLoadError = null
     }
 
     async init() {
@@ -71,13 +72,14 @@ class MochaAdapter {
 
             this._hasTests = mochaRunner.total > 0
         } catch (err) {
-            log.warn(
+            const error = '' +
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
                 'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
-                `Spec file(s): ${this.specs.join(',')}\n`,
-                'Error: ', err
-            )
+                `Spec file(s): ${this.specs.join(',')}\n` +
+                `Error: ${err.stack}`
+            this.specLoadError = new Error(error)
+            log.warn(error)
         }
     }
 
@@ -118,8 +120,8 @@ class MochaAdapter {
         /**
          * in case the spec has a runtime error throw after the wdio hook
          */
-        if (runtimeError) {
-            throw runtimeError
+        if (runtimeError || this.specLoadError) {
+            throw runtimeError || this.specLoadError
         }
 
         return result
