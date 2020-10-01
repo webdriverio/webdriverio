@@ -19,8 +19,8 @@ const DEFAULT_CONNECTION = {
 
 
 export interface Config {
-    outputDir: string,
-    watch: boolean,
+    outputDir?: string,
+    watch?: boolean,
 }
 
 export interface SeleniumStandaloneOptions {
@@ -32,13 +32,13 @@ export interface SeleniumStandaloneOptions {
 }
 export default class SeleniumStandaloneLauncher {
 
-    private capabilities: any
-    private logPath: string
-    private args: Partial<import('selenium-standalone').StartOpts>;
-    private installArgs: Partial<import('selenium-standalone').InstallOpts>;
-    private skipSeleniumInstall: boolean
-    private watchMode: boolean = false
-    private process!: SeleniumStandalone.ChildProcess
+    capabilities: any
+    logPath?: string
+    args: Partial<import('selenium-standalone').StartOpts>;
+    installArgs: Partial<import('selenium-standalone').InstallOpts>;
+    skipSeleniumInstall: boolean
+    watchMode: boolean = false
+    process!: SeleniumStandalone.ChildProcess
 
     constructor(options: SeleniumStandaloneOptions, capabilities: any, config: Config) {
         this.capabilities = capabilities
