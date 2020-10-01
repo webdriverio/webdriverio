@@ -1,7 +1,8 @@
 import fs from 'fs'
 import nodeLogger from '../src/node'
 import nodeLogger2 from '../build/node'
-import log from 'loglevel'
+
+import type log from 'loglevel'
 
 jest.useFakeTimers()
 
