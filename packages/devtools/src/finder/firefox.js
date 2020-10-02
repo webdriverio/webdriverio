@@ -10,6 +10,7 @@ import { execSync } from 'child_process'
 import { canAccess } from '@wdio/utils'
 
 import { sort, findByWhich } from '../utils'
+import { darwinGetAppPaths, darwinGetInstallations } from './finder'
 
 const newLineRegex = /\r?\n/
 
@@ -18,27 +19,8 @@ function darwin() {
         '/Contents/MacOS/firefox-bin'
     ]
 
-    const LSREGISTER = '/System/Library/Frameworks/CoreServices.framework' +
-        '/Versions/A/Frameworks/LaunchServices.framework' +
-        '/Versions/A/Support/lsregister'
-
-    const installations = []
-
-    execSync(
-        `${LSREGISTER} -dump` +
-        ' | grep -i \'Firefox Nightly\\?.app.*$\'' +
-        ' | awk \'{$1=""; print $0}\''
-    )
-        .toString()
-        .split(newLineRegex)
-        .forEach((inst) => {
-            suffixes.forEach(suffix => {
-                const execPath = path.join(inst.substring(0, inst.indexOf('.app') + 4).trim(), suffix)
-                if (canAccess(execPath) && installations.indexOf(execPath) === -1) {
-                    installations.push(execPath)
-                }
-            })
-        })
+    const appPaths = darwinGetAppPaths('Firefox Nightly')
+    const installations = darwinGetInstallations(appPaths, suffixes)
 
     /**
      * Retains one per line to maintain readability.

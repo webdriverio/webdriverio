@@ -134,7 +134,7 @@ function launchBrowser (capabilities, product) {
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
-    } else if (product === BROWSER_TYPE.firefox && !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY)) {
+    } else if (product === BROWSER_TYPE.firefox && executablePath !== 'firefox' && !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY)) {
         throw new Error(BROWSER_ERROR_MESSAGES.firefoxNightly)
     }
 
