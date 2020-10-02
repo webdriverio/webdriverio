@@ -9,16 +9,16 @@ describe('Dot Reporter', () => {
         reporter.write = jest.fn()
 
         reporter.onTestSkip()
-        expect(reporter.write.mock.calls[0][0]).toBe('cyanBright .')
-        reporter.write.mockClear()
+        expect((reporter.write as jest.Mock).mock.calls[0][0]).toBe('cyanBright .');
+        (reporter.write as jest.Mock).mockClear()
 
         reporter.onTestPass()
-        expect(reporter.write.mock.calls[0][0]).toBe('greenBright .')
-        reporter.write.mockClear()
+        expect((reporter.write as jest.Mock).mock.calls[0][0]).toBe('greenBright .');
+        (reporter.write as jest.Mock).mockClear()
 
         reporter.onTestFail()
-        expect(reporter.write.mock.calls[0][0]).toBe('redBright F')
-        reporter.write.mockClear()
+        expect((reporter.write as jest.Mock).mock.calls[0][0]).toBe('redBright F');
+        (reporter.write as jest.Mock).mockClear()
     })
 
     it('should write to stdout per default', () => {

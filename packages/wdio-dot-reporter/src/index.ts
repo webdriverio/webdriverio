@@ -5,7 +5,10 @@ import WDIOReporter from '@wdio/reporter'
  * Initialize a new `Dot` matrix test reporter.
  */
 export default class DotReporter extends WDIOReporter {
-    constructor (options) {
+    options!: WDIOReporter.Options;
+    outputStream: any;
+    
+    constructor(options: WDIOReporter.Options) {
         /**
          * make dot reporter to write to output stream by default
          */
@@ -16,21 +19,21 @@ export default class DotReporter extends WDIOReporter {
     /**
      * pending tests
      */
-    onTestSkip () {
+    onTestSkip(): void {
         this.write(chalk.cyanBright('.'))
     }
 
     /**
      * passing tests
      */
-    onTestPass () {
+    onTestPass(): void {
         this.write(chalk.greenBright('.'))
     }
 
     /**
      * failing tests
      */
-    onTestFail () {
+    onTestFail(): void {
         this.write(chalk.redBright('F'))
     }
 }
