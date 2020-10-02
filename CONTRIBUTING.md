@@ -363,3 +363,7 @@ and choose the appropriate version upgrade based on the [Semantic Versioning](ht
 - __Patch Release__: everytime a bug was fixed, documentation (this includes TypeScript definitions) got updated or existing functionality was improved we should do a patch release.
 
 If you are unsure about which release type to pick, reach out in the TSC Gitter channel.
+
+## Contributor License Agreement
+
+Upon your first contribution, you will be asked to sign the [JS Foundation Contributor License Agreement (CLA) for webdriverio](https://cla.js.foundation/webdriverio/webdriverio).
