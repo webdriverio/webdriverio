@@ -1,12 +1,14 @@
+// @ts-ignore
 import logger from '@wdio/logger'
 
 import { writeFile, deleteFile, getPidPath } from './utils'
 
 const log = logger('@wdio/shared-store-service')
 
-let server = null
+let server: any = null
 
 export default class SharedStoreLauncher {
+    pidFile: string
     constructor() {
         // current process pid
         this.pidFile = getPidPath(process.pid)
