@@ -1207,7 +1207,7 @@ declare namespace WebdriverIO {
 
         /**
          * Uploads a file to the Selenium Standalone server or other browser driver
-         * (e.g. Chromedriver) by using the [`file`](docs/api/selenium.html#file) command.
+         * (e.g. Chromedriver).
          * _Note:_ that this command is only supported if you use a Selenium Hub or
          * Chromedriver directly.
          */
