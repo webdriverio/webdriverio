@@ -1,11 +1,11 @@
 {
   "name": "@wdio/devicefarm-service",
   "version": "0.0.0",
-  "description": "A WebdriverIO service that <provide service description>",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "description": "A WebdriverIO service that provides AWS Device Farm support",
+  "author": "TBD",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-devicefarm-service",
   "license": "MIT",
-  "main": "./build/index",
+  "main": "./build",
   "engines": {
     "node": ">=10.0.0"
   },
@@ -16,13 +16,18 @@
   "keywords": [
     "webdriver",
     "wdio",
+    "devicefarm",
     "wdio-service"
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "aws-sdk": "^2.764.0"
+    "aws-sdk": "^2.764.0",
+    "@wdio/logger": "6.4.7"
+  },
+  "peerDependencies": {
+    "@wdio/cli": "^6.0.1"
   },
   "publishConfig": {
     "access": "public"
