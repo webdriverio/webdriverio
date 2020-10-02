@@ -52,9 +52,9 @@ console.log(browser.requestedCapabilities)
  */
 ```
 
-## Get Config Options
+## Custom Configurations
 
-If using the WDIO testrunner you can always define custom options within your WDIO config:
+If using the WDIO testrunner you can always define custom configurations within your WDIO config:
 
 ```js
 // wdio.conf.js
@@ -89,6 +89,18 @@ console.log(browser.config)
 
 console.log(browser.config.fakeUser) // outputs: "maxmustermann"
 ```
+
+### Versus Options
+
+Custom configurations should not be confused with [Options](Options.md), which are documented separately:
+
+```js
+browser.config.baseUrl; // Custom configuration
+browser.options.baseUrl; // WebdriverIO option
+```
+
+When using the WDIO testrunner, if keys conflict in name (e.g. `baseUrl` above) the option value will take precedence and overwrite the config value.
+
 
 ## Mobile Flags
 
