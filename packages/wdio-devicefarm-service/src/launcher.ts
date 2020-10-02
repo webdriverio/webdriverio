@@ -42,12 +42,10 @@ export default class DeviceFarmLauncher implements WebdriverIO.HookFunctions {
     // https://docs.aws.amazon.com/devicefarm/latest/testgrid/testing-frameworks-nodejs.html
     private async createSession() {
         try {
-            const testGridUrlResult = await this.devicefarm.createTestGridUrl({
+            return await this.devicefarm.createTestGridUrl({
                 projectArn: this.options.projectArn,
                 expiresInSeconds: this.options.expiresInSeconds || 900,
             }).promise()
-
-            return testGridUrlResult
         } catch (err) {
             const errorMessage = `Failed to create a device farm session: ${err.message}`
             log.error(errorMessage)
