@@ -21,8 +21,16 @@ function darwin() {
         '/Contents/MacOS/Microsoft Edge'
     ]
 
-    const appPaths = darwinGetAppPaths('Microsoft Edge')
-    const installations = darwinGetInstallations(appPaths, suffixes)
+    const appName = 'Microsoft Edge'
+    const defaultPath = `/Applications/${appName}.app${suffixes[0]}`
+
+    let installations
+    if (canAccess(defaultPath)) {
+        installations = [defaultPath]
+    } else {
+        const appPaths = darwinGetAppPaths(appName)
+        installations = darwinGetInstallations(appPaths, suffixes)
+    }
 
     // Retains one per line to maintain readability.
     // clang-format off

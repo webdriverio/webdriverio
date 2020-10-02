@@ -19,8 +19,16 @@ function darwin() {
         '/Contents/MacOS/firefox-bin'
     ]
 
-    const appPaths = darwinGetAppPaths('Firefox Nightly')
-    const installations = darwinGetInstallations(appPaths, suffixes)
+    const appName = 'Firefox Nightly'
+    const defaultPath = `/Applications/${appName}.app${suffixes[0]}`
+
+    let installations
+    if (canAccess(defaultPath)) {
+        installations = [defaultPath]
+    } else {
+        const appPaths = darwinGetAppPaths(appName)
+        installations = darwinGetInstallations(appPaths, suffixes)
+    }
 
     /**
      * Retains one per line to maintain readability.
