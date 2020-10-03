@@ -1,11 +1,11 @@
 /**
- * in order to run this file make sure you have `webdriverio` and `devtools`
+ * in order to run this file make sure you have `webdriverio`
  * installed using NPM before running it:
  *
- *   $ npm install devtools webdriverio
+ *   $ npm install webdriverio
  *
  */
-const { remote } = require('../../packages/webdriverio')
+const { remote } = require('webdriverio')
 
 let browser;
 
