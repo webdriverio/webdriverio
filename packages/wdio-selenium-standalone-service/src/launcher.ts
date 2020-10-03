@@ -25,9 +25,9 @@ export interface Config {
 
 export interface SeleniumStandaloneOptions {
 
-    logPath: string;
-    installArgs?: Partial<import('selenium-standalone').InstallOpts>;
-    args?: Partial<import('selenium-standalone').StartOpts>;
+    logPath?: string;
+    installArgs?: any;
+    args?: any;
     skipSeleniumInstall?: boolean;
 }
 export default class SeleniumStandaloneLauncher {
@@ -48,11 +48,11 @@ export default class SeleniumStandaloneLauncher {
         this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
     }
 
-    async onPrepare(config: Config) :Promise<void> {
+    async onPrepare(config: Config): Promise<void> {
         this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
-            await promisify(SeleniumStandalone.install)(this.installArgs)
+            await promisify(SeleniumStandalone.install.bind(this.installArgs))
         }
 
         /**
@@ -68,7 +68,7 @@ export default class SeleniumStandaloneLauncher {
         /**
          * start Selenium Standalone server
          */
-        this.process = await promisify(SeleniumStandalone.start)(this.args)
+        this.process = promisify(SeleniumStandalone.start.bind(this.args))
 
         if (typeof this.logPath === 'string') {
             this._redirectLogStream()

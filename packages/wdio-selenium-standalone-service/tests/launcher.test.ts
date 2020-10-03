@@ -10,8 +10,8 @@ jest.mock('fs-extra', () => ({
 
 describe('Selenium standalone launcher', () => {
     beforeEach(() => {
-        Selenium.install.mockClear()
-        Selenium.start.mockClear()
+        (Selenium.install as jest.Mock).mockClear()
+        (Selenium.start as jest.Mock).mockClear()
     })
 
     describe('onPrepare', () => {
@@ -87,8 +87,8 @@ describe('Selenium standalone launcher', () => {
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({})
 
-            expect(Selenium.install.mock.calls[0][0]).toBe(options.installArgs)
-            expect(Selenium.start.mock.calls[0][0]).toBe(options.args)
+            expect((Selenium.install as jest.Mock).mock.calls[0][0]).toBe(options.installArgs)
+            expect((Selenium.start as jest.Mock).mock.calls[0][0]).toBe(options.args)
             expect(launcher._redirectLogStream).toBeCalled()
         })
 
@@ -110,7 +110,7 @@ describe('Selenium standalone launcher', () => {
             await launcher.onPrepare({})
 
             expect(Selenium.install).not.toBeCalled()
-            expect(Selenium.start.mock.calls[0][0]).toBe(options.args)
+            expect((Selenium.start as jest.Mock).mock.calls[0][0]).toBe(options.args)
             expect(launcher._redirectLogStream).toBeCalled()
         })
 
@@ -183,7 +183,7 @@ describe('Selenium standalone launcher', () => {
             }, [], {})
             await launcher.onPrepare({})
 
-            expect(fs.createWriteStream.mock.calls[0][0])
+            expect((fs.createWriteStream as jest.Mock).mock.calls[0][0])
                 .toBe(path.join(process.cwd(), 'wdio-selenium-standalone.log'))
             expect(launcher.process.stdout.pipe).toBeCalled()
             expect(launcher.process.stderr.pipe).toBeCalled()
