@@ -134,4 +134,29 @@ describe('addValue test', () => {
             expect(got.mock.calls[2][1].json.text).toEqual(undefined)
         })
     })
+
+    describe('should allow to add value to an input element as workaround for /webdriverio/issues/4936', () => {
+        let browser
+
+        beforeEach(async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'foobar'
+                }
+            })
+        })
+
+        afterEach(() => {
+            got.mockClear()
+        })
+
+        it('add string', async () => {
+            const elem = await browser.$('#foo')
+
+            await elem.addValue('Delete', { translateToUnicode: false })
+            expect(got.mock.calls[2][1].uri.pathname).toBe('/session/foobar-123/element/some-elem-123/value')
+            expect(got.mock.calls[2][1].json.text).toEqual('Delete')
+        })
+    })
 })
