@@ -1,9 +1,6 @@
 import type { AddressInfo } from 'net'
-
-// polka doesn't have up to date types
-// and the project is not maintained for 2 years
-const polka: Polka = require('polka')
-const { json } = require('@polka/parse')
+import polka from 'polka'
+import { json } from '@polka/parse'
 
 const store: WebdriverIO.JsonObject = {}
 

@@ -1,4 +1,13 @@
 // stub
+// polka doesn't have up to date types
+// and the project is not maintained for 2 years
+
+declare module '@polka/parse';
+
+declare module 'polka' {
+    function polka(): PolkaInstance;
+    export = polka;
+}
 
 type PolkaRequest = {
     path: string;
@@ -24,5 +33,3 @@ type NextFn = (
     res: PolkaResponse,
     next: Function
 ) => PolkaInstance;
-
-type Polka = () => PolkaInstance;
