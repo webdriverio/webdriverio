@@ -4,8 +4,8 @@ exports.config = {
     /**
      * server configurations
      */
-    // hostname: 'localhost',
-    // port: 4444,
+    hostname: 'localhost',
+    port: 4444,
 
     /**
      * specify test files
@@ -33,7 +33,7 @@ exports.config = {
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 500000
+        timeout: 5000
     },
 
     /**
