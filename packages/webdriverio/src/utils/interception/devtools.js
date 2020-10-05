@@ -76,6 +76,10 @@ export default class DevtoolsInterception extends Interception {
                         newBody = await overwrite(request, client)
                     }
 
+                    if (typeof newBody === undefined) {
+                        newBody = ''
+                    }
+
                     if (typeof newBody !== 'string') {
                         newBody = JSON.stringify(newBody)
                     }
@@ -107,7 +111,7 @@ export default class DevtoolsInterception extends Interception {
                         requestId,
                         responseCode,
                         responseHeaders,
-                        body: Buffer.from(newBody).toString('base64')
+                        body: newBody ? Buffer.from(newBody).toString('base64') : undefined
                     })
                 }
 
