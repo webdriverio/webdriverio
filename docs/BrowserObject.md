@@ -62,6 +62,7 @@ exports.config = {
     // ...
     fakeUser: 'maxmustermann',
     fakePassword: 'foobar',
+    baseUrl: 'example.com',
     // ...
 }
 ```
@@ -82,24 +83,50 @@ console.log(browser.config)
         connectionRetryTimeout: 120000,
         connectionRetryCount: 3,
         specs: [ 'err.js' ],
-        fakeUser: 'maxmustermann', // <-- custom option
-        fakePassword: 'foobar', // <-- custom option
+        fakeUser: 'maxmustermann', // <-- custom configuration
+        fakePassword: 'foobar', // <-- custom configuration
+        baseUrl: 'example.com', // <-- custom configuration
         // ...
  */
 
 console.log(browser.config.fakeUser) // outputs: "maxmustermann"
 ```
 
-### Versus Options
+### Configurations versus Options
 
-Custom configurations should not be confused with [Options](Options.md), which are documented separately:
+Custom configurations should not be confused with [Options](Options.md), which are accessed separately.
 
 ```js
-browser.config.baseUrl; // Custom configuration
-browser.options.baseUrl; // WebdriverIO option
+console.log(browser.options)
+/**
+ * outputs:
+ * {
+        protocol: 'http',
+        port: 4444,
+        hostname: 'localhost',
+        baseUrl: 'example.com',
+        // ...
+ */
 ```
 
-When using the WDIO testrunner, if keys conflict in name (e.g. `baseUrl` above) the option value will take precedence and overwrite the config value.
+When using the WDIO testrunner, if any configuration and option keys conflict in name (e.g. `baseUrl` in the following code snippets) the option value will take precedence and overwrite the config value.
+
+```js
+// wdio.conf.js
+exports.config = {
+    baseUrl: 'example.com'
+}
+```
+
+```bash
+# testrunner invocation
+$ npm wdio wdio.conf.js --baseUrl foobar.com
+```
+
+```js
+console.log(browser.config.baseUrl) // 'foobar.com'
+console.log(browser.options.baseUrl) // 'foobar.com'
+```
 
 ## Mobile Flags
 
