@@ -14,10 +14,10 @@ export default class SharedStoreService {
     before () {
         const sharedStore = Object.create({}, {
             get: {
-                value: (key) => global.browser.call(() => getValue(key))
+                value: (key: string) => global.browser.call(() => getValue(key))
             },
             set: {
-                value: (key, value) => global.browser.call(() => setValue(key, value))
+                value: (key: string, value: WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive) => global.browser.call(() => setValue(key, value))
             }
         })
 

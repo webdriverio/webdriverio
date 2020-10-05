@@ -280,7 +280,8 @@ In order to test certain scenarios this project has a test directory that allows
 - *e2e Tests*
   Last but not least we run actual e2e tests with real browser to ensure that our WebDriver DevTools implementation is working as expected. These
   test spin up headless Chrome and Firefox browser to test the commands implemented in the `devtools` package. Given that WebDriver functionality
-  is already tested with [WPT](https://github.com/web-platform-tests/wpt) we don't need to do it there.
+  is already tested with [WPT](https://github.com/web-platform-tests/wpt) we don't need to do it there. 
+  In order to run these tests, an installation of [Firefox Nightly](https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly) and [Google Chrome](https://www.google.com/chrome/) are required.
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:e2e

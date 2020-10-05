@@ -54,6 +54,24 @@ Array [
 ]
 `;
 
+exports[`launch Firefox Nightly binary without Puppeteer default args 1`] = `
+Array [
+  Array [
+    Object {
+      "binary": "firefox",
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "executablePath": "firefox",
+      "headless": true,
+      "ignoreDefaultArgs": true,
+      "product": "firefox",
+    },
+  ],
+]
+`;
+
 exports[`launch Firefox Nightly with custom arguments 1`] = `
 Array [
   Array [
