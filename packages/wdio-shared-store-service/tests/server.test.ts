@@ -5,8 +5,8 @@ const { startServer, stopServer, __store } = StoreServer
 const errHandler = jest.fn()
 
 describe('WdioSharedStoreService exports', () => {
-    let setUrl
-    let getUrl
+    let setUrl: string
+    let getUrl: string
     beforeAll(async () => {
         const result = await startServer()
         const baseUrl = `http://localhost:${result.port}`
