@@ -90,7 +90,7 @@ export default class DevtoolsInterception extends Interception {
                      * check if local file and load it
                      */
                     const responseFilePath = path.isAbsolute(newBody) ? newBody : path.join(process.cwd(), newBody)
-                    if (fs.existsSync(responseFilePath) && canAccess(responseFilePath)) {
+                    if (responseFilePath.length > 0 && fs.existsSync(responseFilePath) && canAccess(responseFilePath)) {
                         newBody = fs.readFileSync(responseFilePath).toString()
                     } else if (newBody.startsWith('http')) {
                         responseCode = 301
