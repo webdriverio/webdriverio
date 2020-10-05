@@ -54,8 +54,8 @@ const logCache = new Set()
 let logFile: fs.WriteStream
 
 const originalFactory = log.methodFactory
-const wdioLoggerMethodFactory = function (this: log.Logger, methodName: string, logLevel: log.LogLevelDesc, loggerName: string) {
-    const rawMethod = originalFactory(methodName, logLevel as log.LogLevelNumbers, loggerName)
+const wdioLoggerMethodFactory = function (this: log.Logger, methodName: string, logLevel: log.LogLevelNumbers, loggerName: string) {
+    const rawMethod = originalFactory(methodName, logLevel, loggerName)
     return (...args: string[]) => {
         /**
          * create logFile lazily
@@ -83,7 +83,7 @@ const wdioLoggerMethodFactory = function (this: log.Logger, methodName: string, 
             return arg
         })
 
-        const logText = ansiStrip(`${util.format.apply(this, args as [string])}\n`)
+        const logText = ansiStrip(`${util.format.apply(this, args as [string, ...params: string[]])}\n`)
         if (logFile && logFile.writable) {
             /**
              * empty logging cache if stuff got logged before
@@ -173,4 +173,4 @@ getLogger.setLogLevelsConfig = (logLevels: Record<string, log.LogLevelDesc> = {}
         loggers[logName].setLevel(logLevel)
     })
 }
-const getLogLevelName = (logName: string): log.LogLevelDesc => logName.split(':').shift() as log.LogLevelDesc
+const getLogLevelName = (logName: string) => logName.split(':').shift() as log.LogLevelDesc
