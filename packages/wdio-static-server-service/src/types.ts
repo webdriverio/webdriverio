@@ -1,6 +1,6 @@
 export interface MiddleWareOption {
     mount: string,
-    middleware: string;
+    middleware: string
 }
 
 export interface FolderOption {

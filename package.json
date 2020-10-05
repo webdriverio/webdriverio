@@ -98,7 +98,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "git diff-index --name-only --diff-filter=d HEAD | grep -E \"(.*)\\.js$\" | xargs node_modules/eslint/bin/eslint.js -c .eslintrc.js"
+      "pre-commit": "git diff-index --name-only --diff-filter=d HEAD | grep -E \"(.*)\\.js$\" | xargs node_modules/eslint/bin/eslint.js -c .eslintrc.js",
+      "pre-push": "npm run test:eslint"
     }
   },
   "dependencies": {}
