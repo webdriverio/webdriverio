@@ -5,7 +5,7 @@ import express from 'express'
 import fs from 'fs-extra'
 import morgan from 'morgan'
 import logger from '@wdio/logger'
-import { FolderOption, MiddleWareOption } from "./types";
+import { FolderOption, MiddleWareOption } from './types'
 
 const log = logger('@wdio/static-server-service')
 

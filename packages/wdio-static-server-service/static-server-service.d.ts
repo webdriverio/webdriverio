@@ -2,7 +2,7 @@ declare module WebdriverIO {
     interface ServiceOption extends StaticServerOptions {}
 }
 
-export interface StaticServerOptions {
+interface StaticServerOptions {
     /**
      * Array of folder paths and mount points.
      */

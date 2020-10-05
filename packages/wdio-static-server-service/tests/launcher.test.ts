@@ -6,7 +6,6 @@ import StaticServerLauncher from '../src/launcher'
 
 jest.mock('fs-extra')
 
-
 test('should not start server when no mount folder is defined', async () => {
     const service = new StaticServerLauncher({})
     await service.onPrepare({})
@@ -15,7 +14,7 @@ test('should not start server when no mount folder is defined', async () => {
 
 test('should be able to start server', async () => {
     const service = new StaticServerLauncher({
-        folders: { mount: 'foo', path: 'bar' },
+        folders: { mount: 'foo', path: 'bar' }
     })
     await service.onPrepare({})
     service.server.listen.mock.calls[0][1]()

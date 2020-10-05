@@ -26,14 +26,16 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "devDependencies": {
+    "@types/express": "^4.17.8",
+    "@types/fs-extra": "^9.0.1",
+    "@types/morgan": "^1.9.1"
+  },
   "dependencies": {
     "@wdio/logger": "6.6.0",
     "express": "^4.14.0",
     "fs-extra": "^9.0.0",
-    "morgan": "^1.7.0",
-    "@types/express": "^4.17.8",
-    "@types/fs-extra": "^9.0.1",
-    "@types/morgan": "^1.9.1"
+    "morgan": "^1.7.0"
   },
   "publishConfig": {
     "access": "public"
