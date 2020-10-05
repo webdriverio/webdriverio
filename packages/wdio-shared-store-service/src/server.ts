@@ -31,7 +31,7 @@ const app = polka()
         return res.end()
     })
 
-const startServer = () => new Promise((resolve, reject) => {
+const startServer: () => Promise<{ port: string }> = () => new Promise((resolve, reject) => {
     /**
      * run server on a random port, `0` stands for random port
      * > If port is omitted or is 0, the operating system will assign

@@ -1,4 +1,4 @@
-import { post } from 'got'
+import got from 'got'
 import { getValue, setValue, setPort } from '../src/client'
 
 jest.mock('got', () => ({
@@ -12,7 +12,7 @@ jest.mock('got', () => ({
                 url
             })
         }
-        if (typeof options.json.key === 'undefined') {
+        if (options.json.key === 'not-present') {
             return resolve({})
         }
         return resolve({ body: { value: 'store value' } })
@@ -29,18 +29,18 @@ describe('client', () => {
 
     it('should set value', async () => {
         await setValue('foo', 'bar')
-        expect(post).toBeCalledWith(`${baseUrl}/set`, { json: { key: 'foo', value: 'bar' } })
+        expect(got.post).toBeCalledWith(`${baseUrl}/set`, { json: { key: 'foo', value: 'bar' } })
     })
 
     it('should get value', async () => {
         const result = await getValue('foo')
-        expect(post).toBeCalledWith(`${baseUrl}/get`, { json: { key: 'foo' }, responseType: 'json' })
+        expect(got.post).toBeCalledWith(`${baseUrl}/get`, { json: { key: 'foo' }, responseType: 'json' })
         expect(result).toBe('store value')
     })
 
     it('should not fail if key is not in store', async () => {
-        const result = await getValue()
-        expect(post).toBeCalledWith(`${baseUrl}/get`, { json: { key: undefined }, responseType: 'json' })
+        const result = await getValue('not-present')
+        expect(got.post).toBeCalledWith(`${baseUrl}/get`, { json: { key: 'not-present' }, responseType: 'json' })
         expect(result).toBeUndefined()
     })
 
@@ -50,11 +50,11 @@ describe('client', () => {
     })
 
     it('should not fail on set error', async () => {
-        const result = await setValue('fail')
+        const result = await setValue('fail', 'fail')
         expect(result).toBeUndefined()
     })
 
     afterEach(() => {
-        post.mockClear()
+        (got.post as jest.Mock).mockClear()
     })
 })

@@ -1,8 +1,9 @@
 import { writeFile, deleteFile } from '../src/utils'
-import StoreServer from '../src/server'
 import SharedStoreLauncher from '../src/launcher'
+import StoreServerType from '../src/server'
+const StoreServer: typeof StoreServerType = require('../src/server').default
 
-const { stopServer } = StoreServer.default
+const { stopServer } = StoreServer
 
 jest.mock('../src/server', () => ({
     default: {
@@ -13,7 +14,7 @@ jest.mock('../src/server', () => ({
 jest.mock('../src/utils', () => ({
     writeFile: jest.fn(),
     deleteFile: jest.fn(),
-    getPidPath: pid => pid,
+    getPidPath: (pid: any) => pid,
 }))
 
 const storeLauncher = new SharedStoreLauncher()
@@ -31,8 +32,8 @@ describe('SharedStoreService', () => {
     })
 
     afterEach(() => {
-        writeFile.mockClear()
-        deleteFile.mockClear()
-        stopServer.mockClear()
+        (writeFile as jest.Mock).mockClear()
+        ;(deleteFile as jest.Mock).mockClear()
+        ;(stopServer as jest.Mock).mockClear()
     })
 })
