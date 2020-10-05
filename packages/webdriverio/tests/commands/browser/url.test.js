@@ -50,7 +50,7 @@ describe('url', () => {
 
     it('should accept an arrow function as the inject parameter', async () => {
         const arrowFunction = jest.fn(() => console.log('foo-bar'))
-        await browser.url('/', arrowFunction)
+        await browser.url('/', { inject: arrowFunction })
         expect(got.mock.calls[0][1].json).toEqual({ url: 'http://foobar.com/' })
     })
 
