@@ -22,7 +22,9 @@ describe('SharedStoreService', () => {
     })
 
     it('beforeSession', () => {
+        // @ts-ignore global.browser doesn't exist within test
         global.browser = { call: fn => fn() }
+
         storeService.before()
         global.browser.sharedStore.get('foobar')
         global.browser.sharedStore.set('foo', 'bar')
@@ -31,10 +33,12 @@ describe('SharedStoreService', () => {
     })
 
     afterEach(() => {
-        getPidPath.mockClear()
-        setPort.mockClear()
-        getValue.mockClear()
-        setValue.mockClear()
+        (getPidPath as jest.Mock).mockClear()
+        ;(setPort as jest.Mock).mockClear()
+        ;(getValue as jest.Mock).mockClear()
+        ;(setValue as jest.Mock).mockClear()
+
+        // @ts-ignore cleanup
         delete global.browser
     })
 })
