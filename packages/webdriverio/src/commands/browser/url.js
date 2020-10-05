@@ -59,7 +59,7 @@ export default async function url (path, { inject } = {} ) {
     }
 
     if (typeof path !== 'string') {
-        throw new Error('Parameter for "url" command needs to be type of string')
+        throw new Error('Parameter "path" for url command needs to be type of string')
     }
 
     if (typeof this.options.baseUrl === 'string') {
