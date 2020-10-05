@@ -1244,7 +1244,8 @@ declare namespace WebdriverIO {
          * node's url.resolve() method.
          */
         url(
-            url?: string
+            url?: string,
+            inject?: Function
         ): Promise<void>;
 
         /**

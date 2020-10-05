@@ -27,12 +27,37 @@ describe('url', () => {
             .toEqual({ url: 'http://foobar.com/foobar' })
     })
 
-    it('should throw an exception when a non-string value passed in', async () => {
+    it('should throw an exception when a non-string value passed in path', async () => {
         try {
             await browser.url(true)
         } catch (e) {
             expect(e.message).toContain('command needs to be type of string')
         }
+    })
+
+    it('should throw an exception when a non-function value passed in inject', async () => {
+        try {
+            await browser.url('/', { inject: 123 })
+        } catch (e) {
+            expect(e.message).toContain('command needs to be type of function')
+        }
+    })
+
+    it('should continue the navigation if inject parameter is not passed', async () => {
+        await browser.url('/')
+        expect(got.mock.calls[0][1].json).toEqual({ url: 'http://foobar.com/' })
+    })
+
+    it('should accept an arrow function as the inject parameter', async () => {
+        const arrowFunction = jest.fn(() => console.log('foo-bar'))
+        await browser.url('/', arrowFunction)
+        expect(got.mock.calls[0][1].json).toEqual({ url: 'http://foobar.com/' })
+    })
+
+    it('should accept a normal function as the inject parameter', async () => {
+        const arrowFunction = jest.fn(function () { console.log('foo-bar') })
+        await browser.url('/', arrowFunction)
+        expect(got.mock.calls[0][1].json).toEqual({ url: 'http://foobar.com/' })
     })
 
     afterEach(() => {

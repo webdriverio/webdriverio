@@ -25,6 +25,7 @@
  * </example>
  *
  * @param {String=} url  the URL to navigate to
+ * @param {Function=} inject pass script as a function
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
  * @see  https://nodejs.org/api/url.html#url_url_resolve_from_to
@@ -35,7 +36,28 @@
 import nodeUrl from 'url'
 import { validateUrl } from '../../utils'
 
-export default function url (path) {
+export default async function url (path, { inject } = {} ) {
+    /**
+     * If inject is a function, then we attach puppeteer to the existing browser instance and
+     * injects the passed function on the active tab
+     *
+     */
+    if(inject) {
+        if(typeof inject !== 'function') {
+            throw new Error('Parameter "inject" for url command needs to be type of function')
+        } else if(typeof inject === 'function') {
+            const browser = await this.getPuppeteer()
+            const allPages = await browser.pages()
+            for(let page of allPages) {
+                const state = await page.evaluate(() => document.visibilityState) // eslint-disable-line
+                if(state === 'visible') {
+                    await page.evaluate(inject)
+                    break
+                }
+            }
+        }
+    }
+
     if (typeof path !== 'string') {
         throw new Error('Parameter for "url" command needs to be type of string')
     }
