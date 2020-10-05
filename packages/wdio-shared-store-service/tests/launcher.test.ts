@@ -14,7 +14,7 @@ jest.mock('../src/server', () => ({
 jest.mock('../src/utils', () => ({
     writeFile: jest.fn(),
     deleteFile: jest.fn(),
-    getPidPath: (pid: any) => pid,
+    getPidPath: (pid: number) => pid,
 }))
 
 const storeLauncher = new SharedStoreLauncher()

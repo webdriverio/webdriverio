@@ -1,3 +1,5 @@
+import type { AddressInfo } from 'net'
+
 // polka doesn't have up to date types
 // and the project is not maintained for 2 years
 const polka: Polka = require('polka')
@@ -23,15 +25,15 @@ const app = polka()
     .use(json(), validateBody)
 
     // routes
-    .post('/get', (req: any, res: any) => {
-        res.end(JSON.stringify({ value: store[req.body.key] }))
+    .post('/get', (req, res) => {
+        res.end(JSON.stringify({ value: store[req.body.key as string] }))
     })
-    .post('/set', (req: any, res: any) => {
-        store[req.body.key] = req.body.value
+    .post('/set', (req, res) => {
+        store[req.body.key as string] = req.body.value as WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive
         return res.end()
     })
 
-const startServer: () => Promise<{ port: string }> = () => new Promise((resolve, reject) => {
+const startServer = () => new Promise((resolve, reject) => {
     /**
      * run server on a random port, `0` stands for random port
      * > If port is omitted or is 0, the operating system will assign
@@ -44,7 +46,7 @@ const startServer: () => Promise<{ port: string }> = () => new Promise((resolve,
             return reject(err)
         }
         resolve({
-            port: (app.server.address() as Record<string, any>).port
+            port: (app.server.address() as AddressInfo).port
         })
     })
 })
@@ -56,4 +58,4 @@ const stopServer = () => new Promise((resolve) => {
     resolve()
 })
 
-export default { startServer, stopServer, __store: store }
+export default { startServer, stopServer, __store: store } as SharedStoreServer

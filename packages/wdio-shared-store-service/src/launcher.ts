@@ -4,7 +4,7 @@ import { writeFile, deleteFile, getPidPath } from './utils'
 
 const log = logger('@wdio/shared-store-service')
 
-let server: any = null
+let server: SharedStoreServer
 
 export default class SharedStoreLauncher {
     pidFile: string
