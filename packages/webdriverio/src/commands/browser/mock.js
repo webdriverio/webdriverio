@@ -26,17 +26,16 @@
             // mock all json responses
             statusCode: 200,
             headers: { 'Content-Type': 'application/json' },
-            responseHeaders: { 'Cache-Control': 'no-cache' }
-        })
-
-        // postData comparator function
-        const apiV1Mock = browser.mock('**' + '/api/v1', {
-            postData: (data) => typeof data === 'string' && data.includes('foo')
-        })
-
-        // postData exact match
-        const apiV2Mock = browser.mock('**' + '/api/v2', {
+            responseHeaders: { 'Cache-Control': 'no-cache' },
             postData: 'foobar'
+        })
+
+        // comparator function
+        const apiV1Mock = browser.mock('**' + '/api/v1', {
+            statusCode: (statusCode) => statusCode >= 200 && statusCode <= 203,
+            headers: (headers) => headers['Authorization'] && headers['Authorization'].startsWith('Bearer '),
+            responseHeaders: (headers) => headers['Impersonation'],
+            postData: (data) => typeof data === 'string' && data.includes('foo')
         })
     })
 

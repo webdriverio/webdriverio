@@ -520,7 +520,7 @@ declare namespace WebdriverIO {
 
     type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
     type CDPSession = Partial<import('puppeteer').CDPSession>;
-    type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
+    type MockOverwriteFunction = (request: Matches, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
 
     type MockResponseParams = {
@@ -529,10 +529,10 @@ declare namespace WebdriverIO {
     }
 
     type MockFilterOptions = {
-        method?: string,
-        headers?: Record<string, string>,
-        responseHeaders?: Record<string, string>,
-        statusCode?: number,
+        method?: string | ((method: string) => boolean),
+        headers?: Record<string, string> | ((headers: Record<string, string>) => boolean),
+        responseHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
+        statusCode?: number | ((statusCode: number) => boolean),
         postData?: string | ((payload: string | undefined) => boolean)
     }
 
