@@ -1,4 +1,3 @@
-// @ts-ignore
 import logger from '@wdio/logger'
 
 import { writeFile, deleteFile, getPidPath } from './utils'

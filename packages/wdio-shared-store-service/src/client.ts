@@ -1,5 +1,4 @@
 import got, { Response } from 'got'
-// @ts-ignore
 import logger from '@wdio/logger'
 
 const log = logger('@wdio/shared-store-service')
