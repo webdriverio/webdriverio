@@ -124,7 +124,7 @@ $ npm wdio wdio.conf.js --baseUrl foobar.com
 ```
 
 ```js
-console.log(browser.config.baseUrl) // 'foobar.com'
+console.log(browser.config.baseUrl) // 'foobar.com', despite being set as 'example.com'
 console.log(browser.options.baseUrl) // 'foobar.com'
 ```
 
