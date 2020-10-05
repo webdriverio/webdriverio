@@ -1,12 +1,18 @@
-declare module WebdriverIO {
-    interface ServiceOption extends StaticServerOptions {}
+export interface MiddleWareOption {
+    mount: string,
+    middleware: string;
+}
+
+export interface FolderOption {
+    mount: string,
+    path: string
 }
 
 export interface StaticServerOptions {
     /**
      * Array of folder paths and mount points.
      */
-    folders?: Array<object>;
+    folders?: FolderOption[];
     /**
      * Port to bind the server.
      */
@@ -15,5 +21,5 @@ export interface StaticServerOptions {
      * Array of middleware objects. Load and instatiate these in the config,
      * and pass them in for the static server to use.
      */
-    middleware?: Array<object>;
+    middleware?: MiddleWareOption[];
 }
