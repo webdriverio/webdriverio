@@ -101,7 +101,6 @@ browser.options.baseUrl; // WebdriverIO option
 
 When using the WDIO testrunner, if keys conflict in name (e.g. `baseUrl` above) the option value will take precedence and overwrite the config value.
 
-
 ## Mobile Flags
 
 If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check.
