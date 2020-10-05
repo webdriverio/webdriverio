@@ -83,7 +83,7 @@ export default class DevtoolsInterception extends Interception {
                     let responseCode = params.statusCode || responseStatusCode
                     let responseHeaders = [
                         ...event.responseHeaders,
-                        ...Object.entries(params.headers || {}).map(([key, value]) => { key, value })
+                        ...Object.entries(params.headers || {}).map(([name, value]) => ({ name, value }))
                     ]
 
                     /**
