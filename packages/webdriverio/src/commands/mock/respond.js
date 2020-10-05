@@ -26,6 +26,17 @@
         console.log($$('#todo-list li').map(el => el.getText()))
         // outputs: "[ 'Injected (non) completed Todo', 'Injected completed Todo' ]"
     })
+
+    it('should demonstrate comparator function', () => {
+        const mock = browser.mock('https://todo-backend-express-knex.herokuapp.com/')
+
+        mock.respond((request) => {
+            if (body.username === 'test') {
+                return { ...body, foo: 'bar' }
+            }
+            return body
+        })
+    })
  * </example>
  *
  * @alias mock.respond

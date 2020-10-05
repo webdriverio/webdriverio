@@ -187,6 +187,18 @@ test('launch Firefox Nightly without Puppeteer default args', async () => {
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })
 
+test('launch Firefox Nightly binary without Puppeteer default args', async () => {
+    await launch({
+        browserName: 'firefox',
+        'moz:firefoxOptions': {
+            binary: 'firefox',
+            headless: true
+        },
+        ignoreDefaultArgs: true
+    })
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+})
+
 test('launch Firefox without Puppeteer default args', async () => {
     expect.assertions(1)
 
