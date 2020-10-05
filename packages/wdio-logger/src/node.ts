@@ -83,7 +83,7 @@ const wdioLoggerMethodFactory = function (this: log.Logger, methodName: string, 
             return arg
         })
 
-        const logText = ansiStrip(`${util.format.apply(this, args as [string, ...params: string[]])}\n`)
+        const logText = ansiStrip(`${util.format.apply(this, args as [format: string, ...params: string[]])}\n`)
         if (logFile && logFile.writable) {
             /**
              * empty logging cache if stuff got logged before
