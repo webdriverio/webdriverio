@@ -1,8 +1,7 @@
-import fs from 'fs'
+import fse from 'fs-extra'
 import path from 'path'
 import atob from 'atob'
 import minimatch from 'minimatch'
-import { canAccess } from '@wdio/utils'
 
 import Interception from './'
 import { containsHeaderObject } from '..'
@@ -76,7 +75,7 @@ export default class DevtoolsInterception extends Interception {
                         newBody = await overwrite(request, client)
                     }
 
-                    if (typeof newBody === undefined) {
+                    if (typeof newBody === 'undefined') {
                         newBody = ''
                     }
 
@@ -94,8 +93,8 @@ export default class DevtoolsInterception extends Interception {
                      * check if local file and load it
                      */
                     const responseFilePath = path.isAbsolute(newBody) ? newBody : path.join(process.cwd(), newBody)
-                    if (responseFilePath.length > 0 && fs.existsSync(responseFilePath) && canAccess(responseFilePath)) {
-                        newBody = fs.readFileSync(responseFilePath).toString()
+                    if (newBody.length > 0 && await fse.pathExists(responseFilePath) && await canAccess(responseFilePath)) {
+                        newBody = (await fse.readFile(responseFilePath)).toString()
                     } else if (newBody.startsWith('http')) {
                         responseCode = 301
                         /**
@@ -229,4 +228,18 @@ const filterStatusCode = (statusCode, expected) => {
         return expected(statusCode) !== true
     }
     return statusCode !== expected
+}
+
+/**
+ * Helper utility to check file access
+ * @param {String} file file to check access for
+ * @return              Promise<true> if file can be accessed
+ */
+const canAccess = async (filepath) => {
+    try {
+        await fse.access(filepath)
+        return true
+    } catch {
+        return false
+    }
 }
