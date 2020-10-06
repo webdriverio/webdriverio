@@ -111,7 +111,7 @@ export default class DevtoolsInterception extends Interception {
                         requestId,
                         responseCode,
                         responseHeaders,
-                        body: newBody ? Buffer.from(newBody).toString('base64') : undefined
+                        body: newBody ? Buffer.from(newBody, 'binary').toString('base64') : undefined
                     })
                 }
 
