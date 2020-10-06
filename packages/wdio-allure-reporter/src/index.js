@@ -114,7 +114,7 @@ class AllureReporter extends WDIOReporter {
             let targetName = browserName || deviceName || cid
             // custom mobile grids can have device information in a `desired` cap
             if (desired && desired.deviceName && desired.platformVersion) {
-                targetName = `${desired.deviceName} ${desired.platformVersion}`
+                targetName = `${desired.device} || ${desired.deviceName} ${desired.platformVersion}`
             }
             const browserstackVersion = this.capabilities.os_version || this.capabilities.osVersion
             const version = browserstackVersion || this.capabilities.browserVersion || this.capabilities.version || this.capabilities.platformVersion || ''
