@@ -214,6 +214,28 @@ test('decodes base64 responses', async () => {
     expect(mock.calls[1].body).toBe('{"foo":"bar"}')
 })
 
+test('undefined response', async () => {
+    const mock = new NetworkInterception('**/foobar/**')
+    cdpClient.send.mockReturnValueOnce(Promise.resolve({}))
+    await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+        request: { url: 'http://test.com/foobar/test.html' },
+        responseHeaders: [{ name: 'content-Type', value: 'application/json' }]
+    })
+
+    expect(mock.calls[0].body).toBeUndefined()
+})
+
+test('null response', async () => {
+    const mock = new NetworkInterception('**/foobar/**')
+    cdpClient.send.mockReturnValueOnce(Promise.resolve({ body: 'null' }))
+    await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+        request: { url: 'http://test.com/foobar/test.html' },
+        responseHeaders: [{ name: 'content-Type', value: 'application/json' }]
+    })
+
+    expect(mock.calls[0].body).toBe('null')
+})
+
 test('abort request', async () => {
     const request = {
         requestId: 123,

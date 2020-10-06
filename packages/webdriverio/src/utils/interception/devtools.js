@@ -46,12 +46,12 @@ export default class DevtoolsInterception extends Interception {
                 const { body, base64Encoded } = await client.send(
                     'Fetch.getResponseBody',
                     { requestId }
-                ).catch(() => ({}))
+                ).catch(/* istanbul ignore next */() => ({}))
 
                 request.body = base64Encoded ? atob(body) : body
                 const responseContentType = responseHeaders[Object.keys(responseHeaders).find(h => h.toLowerCase() === 'content-type')]
                 request.body = responseContentType && responseContentType.includes('application/json')
-                    ? JSON.parse(request.body)
+                    ? tryParseJson(request.body)
                     : request.body
                 mock.matches.push(request)
 
@@ -113,7 +113,7 @@ export default class DevtoolsInterception extends Interception {
                         responseHeaders,
                         /** do not mock body if it's undefined */
                         body: isBodyUndefined ? undefined : Buffer.from(newBody, 'binary').toString('base64')
-                    })
+                    }).catch(/* istanbul ignore next */() => {})
                 }
 
                 /**
@@ -123,11 +123,11 @@ export default class DevtoolsInterception extends Interception {
                     return client.send('Fetch.failRequest', {
                         requestId,
                         errorReason
-                    })
+                    }).catch(/* istanbul ignore next */() => {})
                 }
             }
 
-            return client.send('Fetch.continueRequest', { requestId })
+            return client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */() => {})
         }
     }
 
@@ -243,5 +243,13 @@ const canAccess = async (filepath) => {
         return true
     } catch {
         return false
+    }
+}
+
+const tryParseJson = (body) => {
+    try {
+        return JSON.parse(body) || body
+    } catch {
+        return body
     }
 }
