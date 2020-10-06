@@ -3,9 +3,12 @@ import path from 'path'
 import atob from 'atob'
 import minimatch from 'minimatch'
 
+import logger from '@wdio/logger'
 import Interception from './'
 import { containsHeaderObject } from '..'
 import { ERROR_REASON } from '../../constants'
+
+const log = logger('webdriverio')
 
 export default class DevtoolsInterception extends Interception {
     static handleRequestInterception (client, mocks) {
@@ -113,7 +116,7 @@ export default class DevtoolsInterception extends Interception {
                         responseHeaders,
                         /** do not mock body if it's undefined */
                         body: isBodyUndefined ? undefined : Buffer.from(newBody, 'binary').toString('base64')
-                    }).catch(/* istanbul ignore next */() => {})
+                    }).catch(/* istanbul ignore next */logFetchError)
                 }
 
                 /**
@@ -123,11 +126,11 @@ export default class DevtoolsInterception extends Interception {
                     return client.send('Fetch.failRequest', {
                         requestId,
                         errorReason
-                    }).catch(/* istanbul ignore next */() => {})
+                    }).catch(/* istanbul ignore next */logFetchError)
                 }
             }
 
-            return client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */() => {})
+            return client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */logFetchError)
         }
     }
 
@@ -252,4 +255,9 @@ const tryParseJson = (body) => {
     } catch {
         return body
     }
+}
+
+const logFetchError = (err) => {
+    /* istanbul ignore next */
+    log.debug(err && err.message ? err.message : err)
 }
