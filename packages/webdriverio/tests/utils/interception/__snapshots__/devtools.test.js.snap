@@ -43,6 +43,23 @@ Array [
 ]
 `;
 
+exports[`stub request with a function returning empty body 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "",
+    "requestId": 123,
+    "responseCode": undefined,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+    ],
+  },
+]
+`;
+
 exports[`stub request with a function returning undefined 1`] = `
 Array [
   "Fetch.fulfillRequest",

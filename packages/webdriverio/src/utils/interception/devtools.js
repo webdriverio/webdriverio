@@ -75,7 +75,8 @@ export default class DevtoolsInterception extends Interception {
                         newBody = await overwrite(request, client)
                     }
 
-                    if (typeof newBody === 'undefined') {
+                    const isBodyUndefined = typeof newBody === 'undefined'
+                    if (isBodyUndefined) {
                         newBody = ''
                     }
 
@@ -110,7 +111,8 @@ export default class DevtoolsInterception extends Interception {
                         requestId,
                         responseCode,
                         responseHeaders,
-                        body: newBody ? Buffer.from(newBody, 'binary').toString('base64') : undefined
+                        /** do not mock body if it's undefined */
+                        body: isBodyUndefined ? undefined : Buffer.from(newBody, 'binary').toString('base64')
                     })
                 }
 
