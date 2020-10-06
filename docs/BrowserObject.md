@@ -79,7 +79,6 @@ console.log(browser.config)
         waitforTimeout: 10000,
         waitforInterval: 250,
         logLevel: 'debug',
-        baseUrl: 'http://localhost',
         connectionRetryTimeout: 120000,
         connectionRetryCount: 3,
         specs: [ 'err.js' ],
