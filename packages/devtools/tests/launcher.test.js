@@ -153,7 +153,7 @@ test('launch Edge with default values', async () => {
 test('launch Edge with custom arguments', async () => {
     await launch({
         browserName: 'edge',
-        'ms:edgeOptions': {
+        'goog:chromeOptions': {
             args: ['foobar'],
             headless: true,
             defaultViewport: {
@@ -220,7 +220,7 @@ test('launch Edge without Puppeteer default args', async () => {
     await launch({
         browserName: 'edge',
         ignoreDefaultArgs: true,
-        'ms:edgeOptions': {
+        'goog:chromeOptions': {
             headless: true
         }
     })
