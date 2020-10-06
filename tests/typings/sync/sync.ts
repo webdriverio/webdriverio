@@ -112,6 +112,16 @@ const el5 = el4.$('')
 el4.getAttribute('class')
 el5.scrollIntoView(false)
 
+// An examples of addValue command with enabled/disabled translation to Unicode
+const el = $('')
+el.addValue('Delete', { translateToUnicode: true })
+el.addValue('Delete', { translateToUnicode: false })
+
+// An examples of setValue command with enabled/disabled translation to Unicode
+const elem1 = $('')
+elem1.setValue('Delete', { translateToUnicode: true })
+elem1.setValue('Delete', { translateToUnicode: false })
+
 const selector$$: string | Function = elems.selector
 const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
 
