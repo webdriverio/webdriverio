@@ -114,11 +114,11 @@ class AllureReporter extends WDIOReporter {
             let targetName = device || browserName || deviceName || cid
             // custom mobile grids can have device information in a `desired` cap
             if (desired && desired.deviceName && desired.platformVersion) {
-                targetName = `${desired.device} || ${desired.deviceName} ${desired.platformVersion}`
+                targetName = `${device} || ${desired.deviceName} ${desired.platformVersion}`
             }
             const browserstackVersion = this.capabilities.os_version || this.capabilities.osVersion
             const version = browserstackVersion || this.capabilities.browserVersion || this.capabilities.version || this.capabilities.platformVersion || ''
-            const paramName = (deviceName || desired.device) ? 'device' : 'browser'
+            const paramName = (deviceName || device) ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
             currentTest.addParameter('argument', paramName, paramValue)
         } else {
