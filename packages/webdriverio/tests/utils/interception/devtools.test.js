@@ -1,5 +1,3 @@
-import { canAccess } from '@wdio/utils'
-
 import NetworkInterception from '../../../src/utils/interception/devtools'
 
 const fse = jest.requireActual('fs-extra')
@@ -257,147 +255,102 @@ test('abort request', async () => {
 })
 
 describe('stub request', () => {
-    test('with a function', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
-        mock.respond(() => 'foobar')
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+    let mock
+    const handleRequestInterception = (responseHeaders = [{ name: 'Content-Type', value: 'application/json' }]) =>
+        NetworkInterception.handleRequestInterception(cdpClient, [mock])({
             requestId: 123,
             request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
+            responseHeaders
         })
+
+    beforeEach(() => {
+        mock = new NetworkInterception('**/foobar/**')
+    })
+
+    test('with a function', async () => {
+        mock.respond(() => 'foobar')
+        await handleRequestInterception()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
     })
 
     test('with a function returning undefined', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
         mock.respond(() => undefined)
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-            requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
-        })
+        await handleRequestInterception()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
     })
 
     test('with a function returning empty body', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
         mock.respond(() => '')
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-            requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
-        })
+        await handleRequestInterception()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
     })
 
     test('with an object', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
         mock.respond({ foo: 'bar' })
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-            requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
-        })
+        await handleRequestInterception()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
     })
 
     test('with a text', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
         mock.respond('foobar')
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-            requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
-        })
+        await handleRequestInterception()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
     })
 
     test('with a file', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
         const fileContent = (await fse.readFileSync(__filename)).toString('base64')
         mock.respond(__filename)
-        canAccess.mockImplementation(() => true)
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-            requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
-        })
+        await handleRequestInterception()
 
         const response = cdpClient.send.mock.calls.pop()[1]
         expect(response.body).toEqual(fileContent)
     })
 
     test('with a missing file', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
         const filepath = __filename + '/missing/mock-file.txt'
         mock.respond(filepath)
-        canAccess.mockImplementation(() => true)
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-            requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
-        })
+        await handleRequestInterception()
 
         const response = cdpClient.send.mock.calls.pop()[1]
         expect(response.body).toEqual(Buffer.from(filepath, 'binary').toString('base64'))
     })
 
     test('with a different web resource', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
         mock.respond('http://json.org/image.svg')
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-            requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
-        })
+        await handleRequestInterception()
 
         expect(cdpClient.send.mock.calls.pop()[1].responseHeaders).toMatchSnapshot()
     })
 
     test('with a different web resource containing different location header', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
         mock.respond('http://json.org/image.svg')
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-            requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders: [
-                { name: 'Location', value: 'http://some.other/picture.png' },
-                { name: 'Content-Type', value: 'application/json' }
-            ]
-        })
+        const responseHeaders = [
+            { name: 'Location', value: 'http://some.other/picture.png' },
+            { name: 'Content-Type', value: 'application/json' }
+        ]
+        await handleRequestInterception(responseHeaders)
 
         expect(cdpClient.send.mock.calls.pop()[1].responseHeaders).toMatchSnapshot()
     })
 
     test('with modified headers', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
         mock.respond((r) => r.body, { headers: {
             removed: undefined,
             added: 'string'
         } })
-        const responseHeaders = [{ name: 'Content-Type', value: 'application/json' }]
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-            requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders
-        })
+        await handleRequestInterception()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
     })
 
     test('with modified status code', async () => {
-        const mock = new NetworkInterception('**/foobar/**')
         mock.respond((r) => r.body, { statusCode: 1234 })
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
-            requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders: [{ name: 'Content-Type', value: 'application/json' }]
-        })
+        await handleRequestInterception()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
     })
