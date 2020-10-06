@@ -1,17 +1,21 @@
+import fse from 'fs-extra'
 import NetworkInterception from '../../../src/utils/interception/devtools'
 
-const fse = jest.requireActual('fs-extra')
-
 jest.mock('fs-extra', () => {
-    const fseOrig = jest.requireActual('fs-extra')
-    const pathExists = fseOrig.pathExists
-    fseOrig.pathExists = async (filepath) => {
-        if (filepath.endsWith('/missing/mock-file.txt')) {
-            return true
-        }
-        return pathExists(filepath)
+    return {
+        pathExists: async (filepath) => {
+            if (filepath.endsWith('/missing/mock-file.txt') || filepath === __filename) {
+                return true
+            }
+            return false
+        },
+        access: async (filepath) => {
+            if (filepath.endsWith('/missing/mock-file.txt')) {
+                throw new Error('fse mock')
+            }
+        },
+        readFile: async () => Buffer.from('<89>PNG\r^Z\n^@^@^@^MI', 'binary')
     }
-    return fseOrig
 })
 
 const cdpClient = {
@@ -325,7 +329,7 @@ describe('stub request', () => {
     })
 
     test('with a file', async () => {
-        const fileContent = (await fse.readFileSync(__filename)).toString('base64')
+        const fileContent = (await fse.readFile(__filename)).toString('base64')
         mock.respond(__filename)
         await handleRequestInterception()
 
