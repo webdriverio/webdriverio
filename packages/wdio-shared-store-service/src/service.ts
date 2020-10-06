@@ -23,6 +23,6 @@ export default class SharedStoreService {
             }
         })
 
-        global.browser.sharedStore = sharedStore
+        globalAny.browser.sharedStore = sharedStore
     }
 }
