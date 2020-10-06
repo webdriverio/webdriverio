@@ -1,4 +1,3 @@
-// @ts-ignore
 import logger from '@wdio/logger'
 
 // @ts-ignore
@@ -7,19 +6,19 @@ import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
 import { DEFAULTS } from './constants'
-import { Options, BaseClient, AttachOptions, SessionFlags } from './types'
+import { Options, Client, AttachOptions, SessionFlags } from './types'
 import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
 
 const log = logger('webdriver')
 
 export default class WebDriver {
     static async newSession (
-        options: Options = {},
+        options: Partial<Options> = {},
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
-    ) {
-        const params: Options = validateConfig(DEFAULTS, options)
+    ): Promise<Client> {
+        const params: Options = validateConfig(DEFAULTS, options) as Options
 
         if (!options.logLevels || !options.logLevels.webdriver) {
             logger.setLevel('webdriver', params.logLevel)
@@ -60,14 +59,14 @@ export default class WebDriver {
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         commandWrapper?: (...args: any[]) => any
-    ) {
+    ): Client {
         if (!options || typeof options.sessionId !== 'string') {
             throw new Error('sessionId is required to attach to existing session')
         }
 
         // logLevel can be undefined in watch mode when SIGINT is called
-        if ((options as Options).logLevel !== undefined) {
-            logger.setLevel('webdriver', (options as Options).logLevel)
+        if (options.logLevel !== undefined) {
+            logger.setLevel('webdriver', options.logLevel)
         }
 
         options.capabilities = options.capabilities || {}
@@ -87,7 +86,7 @@ export default class WebDriver {
      * @param   {Object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
     */
-    static async reloadSession (instance: BaseClient) {
+    static async reloadSession (instance: Client) {
         const params = {
             ...instance.options,
             capabilities: instance.requestedCapabilities

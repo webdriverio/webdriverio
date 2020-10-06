@@ -1,10 +1,9 @@
-// @ts-ignore
 import logger from '@wdio/logger'
 // @ts-ignore
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import Protocols from '@wdio/protocols'
 
-import WebDriverRequest from './request'
+import WebDriverRequest, { WebDriverResponse } from './request'
 import { BaseClient } from './types'
 
 const log = logger('webdriver')
@@ -17,7 +16,7 @@ export default function (
 ) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return function protocolCommand (this: BaseClient, ...args: any[]) {
+    return function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse> {
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**

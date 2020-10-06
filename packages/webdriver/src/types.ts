@@ -240,7 +240,7 @@ export interface Capabilities {
 
 export interface W3CCapabilities {
     alwaysMatch: Capabilities;
-    firstMatch: Capabilities;
+    firstMatch: Capabilities[];
 }
 
 export interface DesiredCapabilities extends Capabilities {
@@ -532,7 +532,7 @@ export interface Options {
     /**
      * Level of logging verbosity.
      */
-    logLevel?: WebDriverLogTypes;
+    logLevel: WebDriverLogTypes;
     /**
      * Set specific log levels per logger
      * use 'silent' level to disable logger
@@ -602,6 +602,14 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     requestedCapabilities: DesiredCapabilities | W3CCapabilities;
     // framework options
     options: Options
+}
+
+export interface Client extends BaseClient {}
+export interface ClientAsync extends AsyncClient, BaseClient { }
+
+type AsyncClient = {
+    [K in keyof Pick<Client, Exclude<keyof Client, keyof BaseClient>>]:
+    (...args: Parameters<Client[K]>) => Promise<ReturnType<Client[K]>>;
 }
 
 export interface AttachOptions extends Partial<SessionFlags>, Partial<Options> {

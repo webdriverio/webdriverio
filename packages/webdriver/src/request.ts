@@ -4,14 +4,14 @@ import https from 'https'
 import { EventEmitter } from 'events'
 
 import * as got from 'got'
-// @ts-ignore
 import logger from '@wdio/logger'
 // @ts-ignore
 import { transformCommandLogResult } from '@wdio/utils'
 
 import { Options } from './types'
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
-import pkg from '../package.json'
+
+const pkg = require('../package.json')
 
 export interface WebDriverResponse {
     value: any
@@ -35,19 +35,19 @@ const agents = {
 }
 
 export default class WebDriverRequest extends EventEmitter {
-    body: Record<string, unknown>
+    body?: Record<string, unknown>
     method: string
     endpoint: string
     isHubCommand: boolean
     requiresSessionId: boolean
-    defaultOptions = {
+    defaultOptions: got.Options = {
         retry: 0, // we have our own retry mechanism
         followRedirect: true,
         responseType: 'json',
         throwHttpErrors: false
     }
 
-    constructor (method: string, endpoint: string, body: object, isHubCommand: boolean = false) {
+    constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false) {
         super()
         this.body = body
         this.method = method
@@ -105,8 +105,8 @@ export default class WebDriverRequest extends EventEmitter {
         requestOptions.url = new URL(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
-            this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint)
-        )
+            (this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint))
+        ) as import('url').URL
 
         /**
          * send authentication credentials only when creating new session
@@ -139,7 +139,8 @@ export default class WebDriverRequest extends EventEmitter {
             log.info('DATA', transformCommandLogResult(fullRequestOptions.json))
         }
 
-        let response = await got.default(fullRequestOptions.url!, { ...fullRequestOptions })
+        const { url, ...gotOptions } = fullRequestOptions
+        let response = await got.default(url!, gotOptions)
             // @ts-ignore
             .catch((err: got.RequestError) => err)
 

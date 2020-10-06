@@ -1,5 +1,3 @@
-/// <reference types="node"/>
-
 declare namespace WDIOProtocols {
     type CommandPath = 'string'
     type CommandMethod = 'POST' | 'GET' | 'DELETE'
@@ -36,7 +34,17 @@ declare namespace WDIOProtocols {
         /**
          * set to true if command is only supported in Selenium Hub Node
          */
-        isHubCommand?: boolean
+        isHubCommand?: boolean,
+        /**
+         * information on return data
+         */
+        returns?: CommandReturnObject
+    }
+
+    interface CommandReturnObject {
+        type: string
+        name: string
+        description: string
     }
 
     interface CommandPathVariables {

@@ -153,7 +153,11 @@ describe('utils', () => {
         })
 
         it('ECONNREFUSED', () => {
-            expect(getSessionError(new Error('ECONNREFUSED 127.0.0.1:4444'), {
+            expect(getSessionError({
+                name: 'Some Error',
+                code: 'ECONNREFUSED',
+                message: 'ECONNREFUSED 127.0.0.1:4444'
+            }, {
                 protocol: 'https',
                 hostname: 'foobar',
                 port: 1234,
@@ -202,6 +206,7 @@ describe('utils', () => {
                 port: 4444,
                 path: '/',
                 protocol: 'http',
+                logLevel: 'warn',
                 capabilities: {
                     browserName: 'chrome',
                 }
@@ -216,7 +221,9 @@ describe('utils', () => {
         })
 
         it('should handle sessionRequest error', async () => {
-            let error = await startWebDriverSession({}).catch((err) => err)
+            let error = await startWebDriverSession({
+                logLevel: 'warn'
+            }).catch((err) => err)
             expect(error.message).toContain('Failed to create session')
         })
     })
