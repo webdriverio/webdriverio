@@ -75,4 +75,11 @@ declare namespace WDIOProtocols {
 
 declare module "@wdio/protocols" {
     export default WDIOProtocols
+    export const WebDriverProtocol: WDIOProtocols.Protocol
+    export const MJsonWProtocol: WDIOProtocols.Protocol
+    export const JsonWProtocol: WDIOProtocols.Protocol
+    export const AppiumProtocol: WDIOProtocols.Protocol
+    export const ChromiumProtocol: WDIOProtocols.Protocol
+    export const SauceLabsProtocol: WDIOProtocols.Protocol
+    export const SeleniumProtocol: WDIOProtocols.Protocol
 }

@@ -1,9 +1,7 @@
 import merge from 'lodash.merge'
 import logger from '@wdio/logger'
 import {
-    // @ts-ignore
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
-    // @ts-ignore
     SauceLabsProtocol, SeleniumProtocol
 } from '@wdio/protocols'
 import Protocols from '@wdio/protocols'
