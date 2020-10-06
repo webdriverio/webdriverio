@@ -22,14 +22,12 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@types/lodash.merge": "^4.6.6",
     "@wdio/config": "6.4.7",
     "@wdio/logger": "6.4.7",
     "@wdio/protocols": "6.3.6",
     "@wdio/utils": "6.5.0",
     "got": "^11.0.2",
     "lodash.merge": "^4.6.1"
-  },
-  "devDependencies": {
-    "@types/lodash.merge": "^4.6.6"
   }
 }
