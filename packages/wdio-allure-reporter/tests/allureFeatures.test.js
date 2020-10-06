@@ -351,7 +351,7 @@ describe('reporter runtime implementation', () => {
             reporter.onRunnerStart({ config: {}, capabilities: { device: 'Google Pixel 3', platformVersion: '9.0' } })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
-            expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'google pixel 3-8.0')
+            expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Google Pixel 3-9.0')
         })
 
         it('should correctly add argument for multiremote', () => {
