@@ -21,7 +21,7 @@
  *
  * @alias element.addValue
  * @param {string | number | boolean | object | Array<any>}      value     value to be added
- * @param {AddValueOptions} options                    command options (optional)
+ * @param {AddValueOptions=} options                    command options (optional)
  * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
  *
  */
