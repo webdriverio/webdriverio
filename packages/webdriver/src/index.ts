@@ -1,16 +1,26 @@
 import logger from '@wdio/logger'
 
+// @ts-ignore
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
+// @ts-ignore
 import { validateConfig } from '@wdio/config'
 
 import { DEFAULTS } from './constants'
-import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
+import { Options, Client, AttachOptions, SessionFlags } from './types'
+import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
+
+const log = logger('webdriver')
 
 export default class WebDriver {
-    static async newSession (options = {}, modifier, userPrototype = {}, customCommandWrapper) {
-        const params = validateConfig(DEFAULTS, options)
+    static async newSession (
+        options: Partial<Options> = {},
+        modifier?: (...args: any[]) => any,
+        userPrototype = {},
+        customCommandWrapper?: (...args: any[]) => any
+    ): Promise<Client> {
+        const params: Options = validateConfig(DEFAULTS, options) as Options
 
-        if (!options.logLevels || !options.logLevels['webdriver']) {
+        if (!options.logLevels || !options.logLevels.webdriver) {
             logger.setLevel('webdriver', params.logLevel)
         }
 
@@ -21,8 +31,14 @@ export default class WebDriver {
          * for example). But only do this if the user has enabled this
          * behavior in the first place.
          */
-        if (params.enableDirectConnect) {
-            setupDirectConnect(params)
+        const { directConnectProtocol, directConnectHost, directConnectPort, directConnectPath } = params
+        if (directConnectProtocol && directConnectHost && directConnectPort && (directConnectPath || directConnectPath === '')) {
+            log.info('Found direct connect information in new session response. ' +
+                `Will connect to server at ${directConnectProtocol}://${directConnectHost}:${directConnectPort}/${directConnectPath}`)
+            params.protocol = directConnectProtocol
+            params.hostname = directConnectHost
+            params.port = directConnectPort
+            params.path = directConnectPath
         }
 
         const sessionId = await startWebDriverSession(params)
@@ -38,8 +54,13 @@ export default class WebDriver {
     /**
      * allows user to attach to existing sessions
      */
-    static attachToSession (options = {}, modifier, userPrototype = {}, commandWrapper) {
-        if (typeof options.sessionId !== 'string') {
+    static attachToSession (
+        options?: AttachOptions,
+        modifier?: (...args: any[]) => any,
+        userPrototype = {},
+        commandWrapper?: (...args: any[]) => any
+    ): Client {
+        if (!options || typeof options.sessionId !== 'string') {
             throw new Error('sessionId is required to attach to existing session')
         }
 
@@ -51,8 +72,8 @@ export default class WebDriver {
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C === false ? false : true
 
-        const environmentPrototype = getEnvironmentVars(options)
-        const protocolCommands = getPrototype(options)
+        const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
+        const protocolCommands = getPrototype(options as Partial<SessionFlags>)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)
@@ -65,7 +86,7 @@ export default class WebDriver {
      * @param   {Object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
     */
-    static async reloadSession (instance) {
+    static async reloadSession (instance: Client) {
         const params = {
             ...instance.options,
             capabilities: instance.requestedCapabilities
@@ -79,12 +100,9 @@ export default class WebDriver {
     static get WebDriver () {
         return WebDriver
     }
-    static get DEFAULTS () {
-        return DEFAULTS
-    }
 }
 
 /**
  * Helper methods consumed by webdriverio package
  */
-export { getPrototype }
+export { getPrototype, DEFAULTS }

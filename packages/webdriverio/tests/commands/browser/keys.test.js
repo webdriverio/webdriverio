@@ -11,7 +11,7 @@ describe('keys', () => {
         })
 
         await browser.keys('foobar')
-        expect(got.mock.calls[1][1].uri.pathname)
+        expect(got.mock.calls[1][0].pathname)
             .toContain('/actions')
         expect(got.mock.calls[1][1].json.actions)
             .toHaveLength(1)
@@ -34,11 +34,11 @@ describe('keys', () => {
         })
 
         await browser.keys('foobar')
-        expect(got.mock.calls[1][1].uri.pathname).toContain('/keys')
+        expect(got.mock.calls[1][0].pathname).toContain('/keys')
         expect(got.mock.calls[1][1].json.value).toEqual(['f', 'o', 'o', 'b', 'a', 'r'])
 
         await browser.keys('Enter')
-        expect(got.mock.calls[2][1].uri.pathname).toContain('/keys')
+        expect(got.mock.calls[2][0].pathname).toContain('/keys')
         expect(got.mock.calls[2][1].json.value).toEqual(['\uE007'])
     })
 
@@ -51,11 +51,11 @@ describe('keys', () => {
         })
 
         await browser.keys(['f', 'o', 'Enter', 'b', 'a', 'r'])
-        expect(got.mock.calls[1][1].uri.pathname).toContain('/keys')
+        expect(got.mock.calls[1][0].pathname).toContain('/keys')
         expect(got.mock.calls[1][1].json.value).toEqual(['f', 'o', '\uE007', 'b', 'a', 'r'])
 
         await browser.keys('Enter')
-        expect(got.mock.calls[2][1].uri.pathname).toContain('/keys')
+        expect(got.mock.calls[2][0].pathname).toContain('/keys')
         expect(got.mock.calls[2][1].json.value).toEqual(['\uE007'])
     })
 

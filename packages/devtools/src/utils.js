@@ -113,7 +113,15 @@ export async function findElement (context, using, value) {
     }
 
     const elementId = this.elementStore.set(element)
-    return { [ELEMENT_KEY]: elementId }
+
+    /**
+     * return value has to be defined this way because of
+     * https://github.com/microsoft/TypeScript/issues/37832
+     */
+    const returnValue = {}
+    returnValue[ELEMENT_KEY] = elementId
+
+    return returnValue
 }
 
 export async function findElements (context, using, value) {

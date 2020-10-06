@@ -42,7 +42,7 @@ describe('saveRecordingScreen', () => {
 
         // request
         expect(got.mock.calls[1][1].method).toBe('POST')
-        expect(got.mock.calls[1][1].uri.pathname)
+        expect(got.mock.calls[1][0].pathname)
             .toBe('/session/foobar-123/appium/stop_recording_screen')
         expect(video.toString()).toBe('some screenshot')
 
