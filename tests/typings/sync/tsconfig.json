@@ -4,6 +4,7 @@
     "noImplicitAny": true,
     "types": [
       "@wdio/sync",
+      "@wdio/protocols",
       "@wdio/allure-reporter",
       "@wdio/shared-store-service",
       "@wdio/appium-service"
