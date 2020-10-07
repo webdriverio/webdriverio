@@ -33,6 +33,7 @@ jobs:
             name: job-artifact
             path: ${{ github.workspace }}
   e2e:
+    runs-on: ubuntu-latest
     container: hildjj/firefox-nightly
     needs: test
     steps:
