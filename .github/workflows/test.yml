@@ -35,7 +35,7 @@ jobs:
           sudo add-apt-repository ppa:ubuntu-mozilla-daily/ppa
           sudo apt-get update
           sudo apt-get install firefox-trunk
-          run: npm run test:e2e:firefox
+          npm run test:e2e:firefox
   e2e-windows:
     runs-on: windows-latest
     steps:
