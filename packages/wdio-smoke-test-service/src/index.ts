@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 
 export default class SmokeService {
+    logFile: fs.WriteStream
     constructor () {
         this.logFile = fs.createWriteStream(path.join(process.cwd(), 'tests', 'helpers', 'service.log'))
     }
@@ -20,6 +21,7 @@ export default class SmokeService {
 }
 
 class SmokeServiceLauncher {
+    logFile: fs.WriteStream
     constructor () {
         this.logFile = fs.createWriteStream(path.join(process.cwd(), 'tests', 'helpers', 'launcher.log'))
     }
