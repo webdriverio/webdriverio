@@ -2,29 +2,26 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 name: Test
 
-on:
-  push:
-    tags:
-      - v*
-    branches:
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-          node-version: [10.x, 12.x, 14.x]
+        node-version: [10.x, 12.x, 14.x]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
-        run: npm install
+        run: |
+          npm ci
+          npm install
       - name: Bootstrap Packages
         run: npm run setup-full
-      - name: Lint & Unit Tests
+      - name: Lint / Dependencies / Unit / Smoke Tests
         run: npm run test
       - name: E2E Protocol Tests
         if: ${{ matrix.node-version == '12.x' }}
@@ -44,7 +41,9 @@ jobs:
         with:
           node-version: 12.x
       - name: Install Dependencies
-        run: npm install
+        run: |
+          npm ci
+          npm install
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: E2E Protocol Tests
@@ -59,7 +58,9 @@ jobs:
         with:
           node-version: 12.x
       - name: Install Dependencies
-        run: npm install
+        run: |
+          npm ci
+          npm install
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: E2E Protocol Tests
