@@ -30,6 +30,7 @@ jobs:
         if: ${{ matrix.node-version == '12.x' }}
         run: npm run test:e2e
       - name: E2E Firefox Launch Tests
+        if: ${{ matrix.node-version == '12.x' }}
         run: |
           sudo add-apt-repository ppa:ubuntu-mozilla-daily/ppa
           sudo apt-get update
