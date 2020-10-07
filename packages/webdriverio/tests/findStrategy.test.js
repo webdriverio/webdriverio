@@ -1,5 +1,6 @@
 import { findStrategy } from '../src/utils/findStrategy'
 import fs from 'fs'
+jest.mock('fs')
 
 describe('selector strategies helper', () => {
     it('should find an element using "css selector" method', () => {
@@ -380,21 +381,25 @@ describe('selector strategies helper', () => {
     })
 
     it('should find an mobile element using image string', () => {
-        jest.mock('fs')
-        fs.readFileSync = jest.fn()
+        fs.readFileSync = jest.fn(()=>'random string')
         let element = findStrategy('/test.jpg')
         expect(element.using).toBe('-image')
+        expect(element.value).toBe('random string')
 
         element = findStrategy('path/test.png')
         expect(element.using).toBe('-image')
+        expect(element.value).toBe('random string')
 
         element = findStrategy('path/test.PNG')
         expect(element.using).toBe('-image')
+        expect(element.value).toBe('random string')
 
         element = findStrategy('//path//test.svg')
         expect(element.using).toBe('-image')
+        expect(element.value).toBe('random string')
 
         element = findStrategy('//xpath[@img="/test.png"]')
         expect(element.using).toBe('xpath')
+        expect(element.value).not.toBe('random string')
     })
 })
