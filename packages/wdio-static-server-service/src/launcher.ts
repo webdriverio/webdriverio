@@ -1,4 +1,4 @@
-import path from 'path'
+import { join, resolve } from "path";
 import { promisify } from 'util'
 
 import express from 'express'
@@ -30,14 +30,14 @@ export default class StaticServerLauncher {
         this.server = express()
 
         if (outputDir) {
-            const file = path.join(outputDir, DEFAULT_LOG_NAME)
+            const file = join(outputDir, DEFAULT_LOG_NAME)
             fs.createFileSync(file)
             const stream = fs.createWriteStream(file)
             this.server.use(morgan('tiny', { stream }))
         }
 
         this.folders.forEach((folder: FolderOption) => {
-            log.info('Mounting folder `%s` at `%s`', path.resolve(folder.path), folder.mount)
+            log.info('Mounting folder `%s` at `%s`', resolve(folder.path), folder.mount)
             this.server.use(folder.mount, express.static(folder.path))
         })
 
