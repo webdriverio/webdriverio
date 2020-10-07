@@ -4,7 +4,7 @@ import { ELEMENT_KEY } from '../../packages/devtools/src/constants'
 
 let browser
 
-beforeAll(() => {
+beforeAll(async () => {
     browser = await DevTools.newSession({
         outputDir: __dirname,
         capabilities: {
