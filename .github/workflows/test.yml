@@ -29,24 +29,28 @@ jobs:
       - name: Devtools E2E Tests
         if: ${{ matrix.node-version == '12.x' }}
         run: npm run test:e2e
-  test-windows:
+  e2e-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
+      - name: Install Dependencies
+        run: npm install
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Devtools E2E Tests
         run: npm run test:e2e
-  test-mac:
+  e2e-mac:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
+      - name: Install Dependencies
+        run: npm install
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Devtools E2E Tests
