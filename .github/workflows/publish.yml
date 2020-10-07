@@ -12,6 +12,9 @@ on:
         required: true
         default: 'latest'
 
+env:
+  NPM_TOKEN: ${{secrets.NPM_TOKEN}}
+
 jobs:
   authorize:
     runs-on: ubuntu-latest
@@ -31,7 +34,16 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      # - name: Install Dependencies
-      #   run: npm install
-      # - name: Release
-      #   run: npm run release -- --yes ${{github.event.inputs.releaseType}} --dist-tag ${{github.event.inputs.distTag}}
+      - name: NPM Setup
+        run: |
+          npm set registry "https://registry.npmjs.org/"
+          npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
+          npm whoami
+      - name: Git Setup
+        run: |
+          git config --global user.email "christian+webdriverio-release@saucelabs.com"
+          git config --global user.name "WebdriverIO Release Bot"
+      - name: Install Dependencies
+        run: npm install
+      - name: Release
+        run: npm run release -- --yes ${{github.event.inputs.releaseType}} --dist-tag ${{github.event.inputs.distTag}}
