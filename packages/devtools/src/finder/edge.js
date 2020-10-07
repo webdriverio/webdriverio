@@ -6,6 +6,7 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 import path from 'path'
+import { getEdgePath }from 'edge-paths'
 import { execSync } from 'child_process'
 import { canAccess } from '@wdio/utils'
 
@@ -74,7 +75,9 @@ function linux() {
 function win32() {
     const installations = []
     const suffixes = [
-        `${path.sep}Microsoft${path.sep}Edge${path.sep}Application${path.sep}edge.exe`
+        `${path.sep}Microsoft${path.sep}Edge${path.sep}Application${path.sep}edge.exe`,
+        `${path.sep}Microsoft${path.sep}Edge${path.sep}Application${path.sep}msedge.exe`,
+        `${path.sep}Microsoft${path.sep}Edge Dev${path.sep}Application${path.sep}msedge.exe`
     ]
 
     const prefixes = [
@@ -87,6 +90,16 @@ function win32() {
             installations.push(edgePath)
         }
     }))
+
+    /**
+     * fallback using edge-path
+     */
+    if (installations.length === 0) {
+        const edgePath = getEdgePath()
+        if (canAccess(edgePath)) {
+            installations.push(edgePath)
+        }
+    }
 
     return installations
 }

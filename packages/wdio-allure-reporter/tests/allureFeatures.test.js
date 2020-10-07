@@ -334,7 +334,7 @@ describe('reporter runtime implementation', () => {
         })
 
         it('should correctly set proper browser version for chrome headless in devtools', () => {
-            reporter.onRunnerStart({ config: { }, capabilities: { browserName: 'Chrome Headless', browserVersion: '85.0.4183.84' } })
+            reporter.onRunnerStart({ config: {}, capabilities: { browserName: 'Chrome Headless', browserVersion: '85.0.4183.84' } })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
             expect(addParameter).toHaveBeenCalledWith('argument', 'browser', 'Chrome Headless-85.0.4183.84')
@@ -345,6 +345,13 @@ describe('reporter runtime implementation', () => {
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
             expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Android Emulator-8.0')
+        })
+
+        it('should correctly add device name when run on BrowserStack', () => {
+            reporter.onRunnerStart({ config: {}, capabilities: { device: 'Google Pixel 3', platformVersion: '9.0' } })
+            reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
+            expect(addParameter).toHaveBeenCalledTimes(1)
+            expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Google Pixel 3-9.0')
         })
 
         it('should correctly add argument for multiremote', () => {

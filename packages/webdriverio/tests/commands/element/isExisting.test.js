@@ -16,14 +16,14 @@ describe('isExisting test', () => {
     it('should allow to check if an element is enabled', async () => {
         const elem = await browser.$('#foo')
         await elem.isExisting()
-        expect(got.mock.calls[2][1].uri.pathname)
+        expect(got.mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/elements')
     })
 
     it('should allow to check an react element', async () => {
         const elem = await browser.react$('#foo')
         await elem.isExisting()
-        expect(got.mock.calls[2][1].uri.pathname)
+        expect(got.mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/execute/sync')
     })
 

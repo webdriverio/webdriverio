@@ -12,6 +12,8 @@ jest.mock('../src/utils', () => ({
     getPidPath: jest.fn(),
 }))
 
+const globalAny:any = global
+
 const storeService = new SharedStoreService()
 
 describe('SharedStoreService', () => {
@@ -22,12 +24,11 @@ describe('SharedStoreService', () => {
     })
 
     it('beforeSession', () => {
-        // @ts-ignore global.browser doesn't exist within test
-        global.browser = { call: fn => fn() }
+        globalAny.browser = { call: (fn: Function) => fn() }
 
         storeService.before()
-        global.browser.sharedStore.get('foobar')
-        global.browser.sharedStore.set('foo', 'bar')
+        globalAny.browser.sharedStore.get('foobar')
+        globalAny.browser.sharedStore.set('foo', 'bar')
         expect(getValue).toBeCalledWith('foobar')
         expect(setValue).toBeCalledWith('foo', 'bar')
     })
@@ -38,7 +39,6 @@ describe('SharedStoreService', () => {
         ;(getValue as jest.Mock).mockClear()
         ;(setValue as jest.Mock).mockClear()
 
-        // @ts-ignore cleanup
-        delete global.browser
+        delete globalAny.browser
     })
 })

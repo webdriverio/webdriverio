@@ -39,13 +39,13 @@ describe('validateConfig', () => {
         }
 
         expect(() => validateConfig({
-            foobar: { type: errorCheck }
+            foobar: { type: 'object', validate: errorCheck }
         }, {
             foobar: { message: 'foobar', stack: 'barfoo' }
         })).toThrowError(/Type check for option "foobar" failed: not an error/)
 
         expect(Object.prototype.hasOwnProperty.call(validateConfig({
-            foobar: { type: errorCheck }
+            foobar: { type: 'object', validate: errorCheck }
         }, {
             foobar: new Error('foobar')
         }), 'foobar')).toBe(true)

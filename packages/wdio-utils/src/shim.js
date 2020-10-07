@@ -94,7 +94,7 @@ let wrapCommand = function wrapCommand(commandName, fn) {
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-let executeSync = async function executeSync(fn, retries, args = []) {
+async function executeSyncFn(fn, retries, args = []) {
     this.wdioRetries = retries.attempts
 
     try {
@@ -127,7 +127,7 @@ let executeSync = async function executeSync(fn, retries, args = []) {
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-const executeAsync = async function executeAsync(fn, retries, args = []) {
+async function executeAsync(fn, retries, args = []) {
     this.wdioRetries = retries.attempts
 
     try {
@@ -141,6 +141,8 @@ const executeAsync = async function executeAsync(fn, retries, args = []) {
         throw e
     }
 }
+
+let executeSync = executeSyncFn
 
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency

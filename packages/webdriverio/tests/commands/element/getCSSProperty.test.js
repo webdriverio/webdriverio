@@ -12,7 +12,7 @@ describe('getCSSProperty test', () => {
         const elem = await browser.$('#foo')
         const property = await elem.getCSSProperty('width')
 
-        expect(got.mock.calls[2][1].uri.pathname)
+        expect(got.mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/css/width')
         expect(property.value).toBe('1250px')
         expect(property.parsed.value).toBe(1250)

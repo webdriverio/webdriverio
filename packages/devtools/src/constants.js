@@ -128,3 +128,4 @@ export const VENDOR_PREFIX = {
 }
 
 export const CHANNEL_FIREFOX_NIGHTLY = 'nightly'
+export const CHANNEL_FIREFOX_TRUNK = 'trunk'

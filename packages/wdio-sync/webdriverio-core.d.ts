@@ -613,7 +613,7 @@ declare namespace WebdriverIO {
          */
         addValue(
             value: string | number | boolean | object | any[],
-            options: AddValueOptions
+            options?: AddValueOptions
         ): void;
 
         /**
@@ -858,7 +858,7 @@ declare namespace WebdriverIO {
          */
         setValue(
             value: string | number | boolean | object | any[],
-            options: AddValueOptions
+            options?: AddValueOptions
         ): void;
 
         /**

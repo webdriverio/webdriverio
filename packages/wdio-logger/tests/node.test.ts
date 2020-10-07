@@ -2,6 +2,8 @@ import fs from 'fs'
 import nodeLogger from '../src/node'
 import nodeLogger2 from '../build/node'
 
+import type log from 'loglevel'
+
 jest.useFakeTimers()
 
 describe('wdio-logger node', () => {
@@ -12,7 +14,10 @@ describe('wdio-logger node', () => {
             expect(log.getLevel()).toEqual(0)
         })
 
-        const scenarios = [{
+        const scenarios: {
+            level: log.LogLevelDesc,
+            logLevel: log.LogLevelNumbers
+        }[] = [{
             level: 'trace',
             logLevel: 0
         }, {
@@ -54,7 +59,12 @@ describe('wdio-logger node', () => {
     })
 
     describe('setLogLevelsConfig', () => {
-        const scenarios = [{
+        const scenarios: {
+            name: string
+            logger: string
+            config?: Record<string, log.LogLevelDesc>
+            logLevel: number
+        }[] = [{
             name: 'should be possible to set logLevel in config',
             logger: 'test-setLogLevelsConfig-3',
             config: { 'test-setLogLevelsConfig-3': 'silent' },
@@ -72,13 +82,13 @@ describe('wdio-logger node', () => {
             logger: 'test-setLogLevelsConfig-5',
             get config() {
                 process.env.WDIO_LOG_LEVEL = 'info'
-                return { 'test-setLogLevelsConfig-5': 'warn' }
+                return { 'test-setLogLevelsConfig-5': 'warn' as log.LogLevelDesc }
             },
             logLevel: 3
         }, {
             name: 'should be possible to set logLevel in config for all sub levels',
             logger: 'test-setLogLevelsConfig-6:foo',
-            config: { 'test-setLogLevelsConfig-6:bar': 'error' },
+            config: { 'test-setLogLevelsConfig-6:bar': 'error' as log.LogLevelDesc },
             logLevel: 4
         }]
 
@@ -130,12 +140,14 @@ describe('wdio-logger node', () => {
         const logInfoSpy = jest.spyOn(fs, 'createWriteStream')
         const logCacheAddSpy = jest.spyOn(Set.prototype, 'add')
         const logCacheForEachSpy = jest.spyOn(Set.prototype, 'forEach')
-        let writableBuffer = null
-        logInfoSpy.mockImplementation((path) => ({
-            path,
+        let writableBuffer: any = null
+        logInfoSpy.mockImplementation((path: fs.PathLike): fs.WriteStream => ({
+            path: path as string,
             write,
-            writable: jest.fn(),
-            get writableBuffer() {
+            writable: true,
+            // @ts-ignore
+            get writableBuffer () {
+                // @ts-ignore
                 return writableBuffer
             }
         }))

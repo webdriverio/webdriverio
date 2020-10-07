@@ -3,7 +3,6 @@
 /**
  * environment check to allow to use this package in a web context
  */
-
 // By default, import the web code using a literal require, so that in webpack
 // contexts, it will always be bundled
 let mode = require('./web').default
