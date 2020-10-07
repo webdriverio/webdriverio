@@ -2,8 +2,10 @@ import DevTools from '../../packages/devtools/src/index'
 
 import { ELEMENT_KEY } from '../../packages/devtools/src/constants'
 
-test('running session with Chromium Edge', async () => {
-    const browser = await DevTools.newSession({
+let browser
+
+beforeAll(() => {
+    browser = await DevTools.newSession({
         outputDir: __dirname,
         capabilities: {
             browserName: 'edge',
@@ -12,6 +14,9 @@ test('running session with Chromium Edge', async () => {
             }
         }
     })
+})
+
+test('running session with Chromium Edge', async () => {
     await browser.navigateTo('https://www.whatismybrowser.com/detect/what-is-my-user-agent')
 
     const elem = await browser.findElement('css selector', '#detected_value')
@@ -19,4 +24,8 @@ test('running session with Chromium Edge', async () => {
 
     console.log('Detected user agent:', userAgent)
     expect(userAgent).toContain('Edge')
+})
+
+afterAll(async () => {
+    await browser.deleteSession()
 })
