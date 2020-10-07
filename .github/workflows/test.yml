@@ -1,6 +1,6 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-name: Docs Deploy
+name: Test
 
 on:
   push:
@@ -10,17 +10,37 @@ on:
   pull_request:
 
 jobs:
-  test-linux:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+          node-version: [10.x, 12.x, 14.x]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: '12.x'
+          node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
         run: npm install
-      - name: Run CI Build
-        run: npm run ci
+      - name: Bootstrap Packages
+        run: npm run setup-full
+      - name: Lint & Unit Tests
+        run: npm run test
+      - name: Store Workspace
+        uses: 'actions/upload-artifact@v2'
+        if: ${{ matrix.node-version == '12.x' }}
+        with:
+            name: job-artifact
+            path: ${{ github.workspace }}
+  e2e:
+    container: hildjj/firefox-nightly
+    needs: test
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: job-artifact
+      - name: Devtools E2E Tests
+        run: npm run test:e2e
   # test-windows:
   #   runs-on: windows-latest
   #   steps:
