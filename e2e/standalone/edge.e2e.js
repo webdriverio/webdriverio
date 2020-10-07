@@ -1,6 +1,6 @@
-import DevTools from '../packages/devtools/src/index'
+import DevTools from '../../packages/devtools/src/index'
 
-import { ELEMENT_KEY } from '../packages/devtools/src/constants'
+import { ELEMENT_KEY } from '../../packages/devtools/src/constants'
 
 test('running session with Chromium Edge', async () => {
     const browser = await DevTools.newSession({
