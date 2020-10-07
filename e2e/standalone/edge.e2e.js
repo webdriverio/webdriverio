@@ -19,7 +19,7 @@ beforeAll(async () => {
 test('running session with Chromium Edge', async () => {
     await browser.navigateTo('https://www.whatismybrowser.com/detect/what-is-my-user-agent')
 
-    const elem = await browser.findElement('css selector', '#detected_value')
+    const elem = await browser.findElement('css selector', '#detected_value a')
     const userAgent = await browser.getElementText(elem[ELEMENT_KEY])
 
     console.log('Detected user agent:', userAgent)

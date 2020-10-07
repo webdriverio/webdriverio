@@ -7,6 +7,7 @@
  */
 import fs from 'fs'
 import path from 'path'
+import { getEdgePath }from 'edge-paths'
 import { execSync } from 'child_process'
 import { canAccess } from '@wdio/utils'
 
@@ -75,7 +76,9 @@ function linux() {
 function win32() {
     const installations = []
     const suffixes = [
-        `${path.sep}Microsoft${path.sep}Edge${path.sep}Application${path.sep}edge.exe`
+        `${path.sep}Microsoft${path.sep}Edge${path.sep}Application${path.sep}edge.exe`,
+        `${path.sep}Microsoft${path.sep}Edge${path.sep}Application${path.sep}msedge.exe`,
+        `${path.sep}Microsoft${path.sep}Edge Dev${path.sep}Application${path.sep}msedge.exe`
     ]
 
     const prefixes = [
@@ -89,6 +92,16 @@ function win32() {
             installations.push(edgePath)
         }
     }))
+
+    /**
+     * fallback using edge-path
+     */
+    if (installations.length === 0) {
+        const edgePath = getEdgePath()
+        if (canAccess(edgePath)) {
+            installations.push(edgePath)
+        }
+    }
 
     return installations
 }
