@@ -26,27 +26,28 @@ jobs:
         run: npm run setup-full
       - name: Lint & Unit Tests
         run: npm run test
-      - name: Store Workspace
-        uses: 'actions/upload-artifact@v2'
+      - name: Devtools E2E Tests
         if: ${{ matrix.node-version == '12.x' }}
-        with:
-            name: job-artifact
-            path: ${{ github.workspace }}
-  e2e:
-    runs-on: ubuntu-latest
-    container: hildjj/firefox-nightly
-    needs: test
+        run: npm run test:e2e
+  test-windows:
+    runs-on: windows-latest
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
         with:
-          name: job-artifact
+          node-version: 12.x
+      - name: Bootstrap Packages
+        run: npm run setup-full
       - name: Devtools E2E Tests
         run: npm run test:e2e
-  # test-windows:
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  # test-mac:
-  #   runs-on: macos-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
+  test-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Bootstrap Packages
+        run: npm run setup-full
+      - name: Devtools E2E Tests
+        run: npm run test:e2e
