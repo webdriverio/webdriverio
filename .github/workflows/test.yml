@@ -26,9 +26,15 @@ jobs:
         run: npm run setup-full
       - name: Lint & Unit Tests
         run: npm run test
-      - name: Devtools E2E Tests
+      - name: E2E Protocol Tests
         if: ${{ matrix.node-version == '12.x' }}
         run: npm run test:e2e
+      - name: E2E Firefox Launch Tests
+        run: |
+          sudo add-apt-repository ppa:ubuntu-mozilla-daily/ppa
+          sudo apt-get update
+          sudo apt-get install firefox-trunk
+          run: npm run test:e2e:firefox
   e2e-windows:
     runs-on: windows-latest
     steps:
@@ -40,8 +46,10 @@ jobs:
         run: npm install
       - name: Bootstrap Packages
         run: npm run setup-full
-      - name: Devtools E2E Tests
+      - name: E2E Protocol Tests
         run: npm run test:e2e
+      - name: E2E Edge Launch Tests
+        run: npm run test:e2e:edge
   e2e-mac:
     runs-on: macos-latest
     steps:
@@ -53,5 +61,5 @@ jobs:
         run: npm install
       - name: Bootstrap Packages
         run: npm run setup-full
-      - name: Devtools E2E Tests
+      - name: E2E Protocol Tests
         run: npm run test:e2e
