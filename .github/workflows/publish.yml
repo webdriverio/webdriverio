@@ -1,0 +1,37 @@
+name: Manual NPM Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        description: 'Release type - major, minor or patch'
+        required: true
+        default: 'patch'
+      distTag:
+        description: 'NPM tag (e.g. use "next" to release a test version)'
+        required: true
+        default: 'latest'
+
+jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/request-action@v2.0.0
+        with:
+          route: GET /orgs/:organisation/teams/:team/memberships/${{ github.actor }}
+          team: technical-steering-committee
+          organisation: webdriverio
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  test:
+    needs: [authorize]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      # - name: Install Dependencies
+      #   run: npm install
+      # - name: Release
+      #   run: npm run release -- --yes ${{github.event.inputs.releaseType}} --dist-tag ${{github.event.inputs.distTag}}
