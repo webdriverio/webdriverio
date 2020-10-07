@@ -2,7 +2,7 @@ import DevTools from '../../packages/devtools/src/index'
 
 import { ELEMENT_KEY } from '../../packages/devtools/src/constants'
 
-test('running session with Chromium Edge', async () => {
+test('running session with Firefox', async () => {
     const browser = await DevTools.newSession({
         outputDir: __dirname,
         capabilities: {

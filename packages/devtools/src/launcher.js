@@ -16,6 +16,7 @@ import {
     DEFAULT_Y_POSITION,
     VENDOR_PREFIX,
     CHANNEL_FIREFOX_NIGHTLY,
+    CHANNEL_FIREFOX_TRUNK,
     BROWSER_ERROR_MESSAGES
 } from './constants'
 
@@ -134,7 +135,12 @@ function launchBrowser (capabilities, product) {
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
-    } else if (product === BROWSER_TYPE.firefox && executablePath !== 'firefox' && !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY)) {
+    } else if (
+        product === BROWSER_TYPE.firefox &&
+        executablePath !== 'firefox' &&
+        !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY) &&
+        !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_TRUNK)
+    ) {
         throw new Error(BROWSER_ERROR_MESSAGES.firefoxNightly)
     }
 
