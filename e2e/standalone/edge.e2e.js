@@ -17,13 +17,13 @@ beforeAll(async () => {
 })
 
 test('running session with Chromium Edge', async () => {
-    await browser.navigateTo('https://www.whatismybrowser.com/detect/what-is-my-user-agent')
+    await browser.navigateTo('https://www.whatsmyua.info/')
 
-    const elem = await browser.findElement('css selector', '#detected_value a')
-    const userAgent = await browser.getElementText(elem[ELEMENT_KEY])
+    const elem = await browser.findElement('css selector', '#custom-ua-string')
+    const userAgent = await browser.getElementProperty(elem[ELEMENT_KEY], 'value')
 
     console.log('Detected user agent:', userAgent)
-    expect(userAgent).toContain('Edge')
+    expect(userAgent).toContain('Edg/')
 })
 
 afterAll(async () => {
