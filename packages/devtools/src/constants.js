@@ -125,6 +125,7 @@ export const BROWSER_ERROR_MESSAGES = {
 export const VENDOR_PREFIX = {
     chrome: 'goog:chromeOptions',
     firefox: 'moz:firefoxOptions',
+    edge: 'ms:edgeOptions'
 }
 
 export const CHANNEL_FIREFOX_NIGHTLY = 'nightly'
