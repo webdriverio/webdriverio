@@ -101,7 +101,6 @@ The maintainers of WebdriverIO and thousands of other packages are working with 
 ### Runner
 
 - [@wdio/local-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-local-runner) - A WebdriverIO runner to run tests locally
-- [@wdio/lambda-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-lambda-runner) - A WebdriverIO plugin that allows you to run tests on Lambda functions (experimental)
 
 ### Framework Adapters
 
