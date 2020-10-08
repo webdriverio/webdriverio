@@ -1,19 +1,47 @@
 import Timer from '../Timer'
 
+type FilterOptions = {
+    method?: string;
+    header?: object;
+    responseHeaders?: object;
+};
+
+type Browser = {
+    options: {
+        waitforTimeout: number;
+        waitforInterval: number;
+    };
+    call: (cb: () => void) => void;
+};
+
+type WaitForResponseFn = {
+    timeout?: number;
+    interval?: number;
+    timeoutMsg?: string;
+}
+
 export default class Interception {
-    constructor (url, filterOptions = {}, browser) {
+    url: string;
+    filterOptions: FilterOptions;
+    browser: Browser;
+    respondOverwrites: any[];
+    matches: any[];
+    calls: any[];
+
+    constructor (url: string, filterOptions = {}, browser: Browser) {
         this.url = url
         this.filterOptions = filterOptions
         this.browser = browser
         this.respondOverwrites = []
         this.matches = []
+        this.calls = []
     }
 
     waitForResponse ({
         timeout = this.browser.options.waitforTimeout,
         interval = this.browser.options.waitforInterval,
-        timeoutMsg
-    } = {}) {
+        timeoutMsg,
+    }: WaitForResponseFn = {}) {
         /*!
          * ensure that timeout and interval are set properly
          */
@@ -26,7 +54,7 @@ export default class Interception {
         }
 
         const fn = () => this.calls.length > 0
-        const timer = new Timer(interval, timeout, fn, true)
+        const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<void>
 
         return this.browser.call(() => timer.catch((e) => {
             if (e.message === 'timeout') {
