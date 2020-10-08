@@ -25,7 +25,7 @@ jobs:
           team: technical-steering-committee
           organisation: webdriverio
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
   test:
     needs: [authorize]
     runs-on: ubuntu-latest
