@@ -171,7 +171,7 @@ const AutomationProtocolSupport = () => (
         {[
             {
                 content: '' +
-                    'WebdriverIO is always up to date with the latest automation frameworks and therefor supports not only capabilities ' +
+                    'WebdriverIO is always up to date with the latest automation frameworks and therefore, supports not only capabilities ' +
                     'of the <a href="https://w3c.github.io/webdriver/">WebDriver</a> but also commands of the <a href="https://chromedevtools.github.io/devtools-protocol/">Chrome DevTools</a> ' +
                     'protocol using tools like <a href="https://pptr.dev/">Puppeteer</a>. The framework allows you to freely switch between ' +
                     'running remote WebDriver commands as well stubbing and mocking features of Puppeteer. Have a look into the <a href="https://github.com/webdriverio/webdriverio/blob/master/examples/devtools/intercept.js">examples</a> ' +
@@ -194,7 +194,7 @@ const ReactSupport = () => (
                     'or [Vue.js](https://vuejs.org/) as well as native mobile applications for Android and iOS.<br><br>' +
                     'It comes with smart selector strategies that can, e.g. using the [`react$`](/docs/api/element/react$.html) ' +
                     'command, fetch React components by its component name and filter it by its props or states. A similar command called ' +
-                    '[`$shadow`](/docs/api/element/shadow$.html) provides the ability to fetch elements within the shadow ' +
+                    '[`$shadow`](/docs/api/element/shadow$.html) provides the ability to fetch elements within the ' +
                     '[shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM) of a web component.<br>' +
                     '<br>' +
                     '<p>Native Support for:<p>' +
@@ -440,7 +440,7 @@ class Index extends React.Component {
                             }, {
                                 content: (
                                     <translate>
-                                        The huge of variety of community plugins allows you to easily integrate
+                                        The huge variety of community plugins allows you to easily integrate
                                         and extend your setup to fulfill your requirements.
                                     </translate>
                                 ),
