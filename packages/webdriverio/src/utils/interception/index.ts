@@ -31,7 +31,7 @@ export default class Interception {
         errorReason: string;
     }[];
     matches: any[];
-    calls: any[];
+    calls?: any[];
 
     constructor (url: string, filterOptions = {}, browser: Browser) {
         this.url = url
@@ -39,7 +39,6 @@ export default class Interception {
         this.browser = browser
         this.respondOverwrites = []
         this.matches = []
-        this.calls = []
     }
 
     waitForResponse ({
@@ -58,7 +57,7 @@ export default class Interception {
             interval = this.browser.options.waitforInterval
         }
 
-        const fn = () => this.calls.length > 0
+        const fn = () => this.calls && this.calls.length > 0
         const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<void>
 
         return this.browser.call(() => timer.catch((e) => {
