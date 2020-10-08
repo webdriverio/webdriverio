@@ -46,4 +46,4 @@ jobs:
       - name: Install Dependencies
         run: npm install
       - name: Release
-        run: npm run release -- --yes ${{github.event.inputs.releaseType}} --dist-tag ${{github.event.inputs.distTag}}
+        run: npm run release -- ${{github.event.inputs.releaseType}} --yes --dist-tag ${{github.event.inputs.distTag}}
