@@ -17,6 +17,34 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.6.1 (2020-10-08)
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#5941](https://github.com/webdriverio/webdriverio/pull/5941) Fix to display device name when run on BrowserStack ([@shawnlobo96](https://github.com/shawnlobo96))
+
+#### :memo: Documentation
+* Other
+  * [#5954](https://github.com/webdriverio/webdriverio/pull/5954) Fixing a few typos on homepage ([@jeremykao](https://github.com/jeremykao))
+* `devtools`
+  * [#5943](https://github.com/webdriverio/webdriverio/pull/5943) Suppress warning when running tests in Edge and update docs ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `devtools`, `wdio-shared-store-service`
+  * [#5947](https://github.com/webdriverio/webdriverio/pull/5947) Move WebdriverIO pipeline to GitHub Action ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-smoke-test-reporter`
+  * [#5949](https://github.com/webdriverio/webdriverio/pull/5949) Tracking doc: rewrite `wdio-smoke-test-reporter` package into TypeScript ([@suniljaiswal01](https://github.com/suniljaiswal01))
+* `wdio-smoke-test-service`
+  * [#5948](https://github.com/webdriverio/webdriverio/pull/5948) Tracking doc: rewrite `wdio-smoke-test-service` package into TypeScript ([@suniljaiswal01](https://github.com/suniljaiswal01))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jeremy Kao ([@jeremykao](https://github.com/jeremykao))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Shawn Lobo ([@shawnlobo96](https://github.com/shawnlobo96))
+- Sunil Jaiswal ([@suniljaiswal01](https://github.com/suniljaiswal01))
+
+
 ## v6.6.0 (2020-10-06)
 
 #### :rocket: New Feature
