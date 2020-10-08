@@ -19,6 +19,13 @@ declare namespace WebDriver {
          */
         headless?: boolean;
     }
+
+    interface MicrosoftEdgeOptions {
+        /**
+         * `devtools` only, switch headless mode by either `headless` flag or `--headless` argument but not both
+         */
+        headless?: boolean;
+    }
 }
 
 declare namespace DevTools {
