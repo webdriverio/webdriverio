@@ -24,7 +24,12 @@ export default class Interception {
     url: string;
     filterOptions: FilterOptions;
     browser: Browser;
-    respondOverwrites: any[];
+    respondOverwrites: {
+        overwrite: any;
+        params: object;
+        sticky: boolean;
+        errorReason: string;
+    }[];
     matches: any[];
     calls: any[];
 
