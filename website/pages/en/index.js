@@ -75,7 +75,7 @@ const Badges = () => (
     <section>
         <div className="badges">
             <a href="https://badge.fury.io/js/webdriverio" data-bindattr-34="34"><img src="https://badge.fury.io/js/webdriverio.svg" data-bindattr-35="35" className="retina-badge" /></a>
-            <a href="https://travis-ci.org/webdriverio/webdriverio"><img src="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master" alt="Build Status" /></a>
+            <a href="https://github.com/webdriverio/webdriverio/actions?query=workflow%3ATest"><img src="https://github.com/webdriverio/webdriverio/workflows/Test/badge.svg?branch=master" alt="Build Status" /></a>
             <a href="https://codecov.io/gh/webdriverio/webdriverio"><img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg" /></a>
         </div>
         <div>
