@@ -111,7 +111,7 @@ async function launchChrome (capabilities) {
 
 function launchBrowser (capabilities, browserType) {
     const product = browserType === BROWSER_TYPE.firefox ? BROWSER_TYPE.firefox : BROWSER_TYPE.chrome
-    const vendorCapKey = VENDOR_PREFIX[product]
+    const vendorCapKey = VENDOR_PREFIX[browserType]
     const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
     if (!capabilities[vendorCapKey]) {
