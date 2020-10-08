@@ -52,3 +52,4 @@ jobs:
           npm run pushReleaseTag
         env:
           NODE_ENV: production
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
