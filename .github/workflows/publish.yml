@@ -46,4 +46,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
       - name: Release
-        run: npm run release -- ${{github.event.inputs.releaseType}} --yes --dist-tag ${{github.event.inputs.distTag}}
+        run: |
+          npx run-s setup-full generate:typings
+          npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
+          npm run pushReleaseTag
+        env:
+          NODE_ENV: production
