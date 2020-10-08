@@ -172,6 +172,11 @@ declare namespace WebDriver {
         windowTypes?: string[];
     }
 
+    /**
+     * Chromium Edge
+     */
+    interface MicrosoftEdgeOptions extends ChromeOptions {}
+
     interface FirefoxLogObject {
         level: FirefoxLogLevels
     }
@@ -359,6 +364,9 @@ declare namespace WebDriver {
         chromeOptions?: ChromeOptions;
         'goog:chromeOptions'?: ChromeOptions;
         mobileEmulationEnabled?: boolean;
+
+        // Edge chromium specific
+        'ms:edgeOptions'?: MicrosoftEdgeOptions;
 
         // webdriverio specific
         specs?: string[];
