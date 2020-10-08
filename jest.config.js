@@ -52,7 +52,6 @@ module.exports = {
         'packages/wdio-cucumber-framework/tests/fixtures',
         'packages/wdio-logger/build',
         'packages/wdio-webdriver-mock-service',
-        'packages/wdio-lambda-runner',
         'packages/wdio-smoke-test-reporter',
         'packages/wdio-smoke-test-service'
     ]
