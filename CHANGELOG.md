@@ -17,6 +17,21 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.6.2 (2020-10-08)
+
+#### :memo: Documentation
+* `wdio-selenium-standalone-service`, `webdriver`
+  * [#5956](https://github.com/webdriverio/webdriverio/pull/5956) Edge types and selenium-standalone docs ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `wdio-cli`, `wdio-lambda-runner`
+  * [#5953](https://github.com/webdriverio/webdriverio/pull/5953) Remove existence of lambda runner ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v6.6.1 (2020-10-08)
 
 #### :nail_care: Polish
