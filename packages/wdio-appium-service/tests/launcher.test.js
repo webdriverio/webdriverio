@@ -70,10 +70,11 @@ describe('Appium launcher', () => {
     })
 
     describe('onPrepare', () => {
+        const isWindows = process.platform === 'win32'
         test('should set correct config properties', async () => {
             const options = {
                 logPath: './',
-                command: 'path/to/my_custom_appium',
+                command:'path/to/my_custom_appium',
                 args: { foo: 'bar' }
             }
             const capabilities = [{ port: 1234 }]
@@ -83,8 +84,12 @@ describe('Appium launcher', () => {
 
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
-            expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toMatchSnapshot()
+            if(isWindows){
+                expect(launcher.command).toBe('cmd')
+            }else{
+                expect(launcher.command).toBe('path/to/my_custom_appium')
+                expect(launcher.appiumArgs).toMatchSnapshot()
+            }
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
             expect(capabilities[0].port).toBe(1234)
@@ -128,8 +133,12 @@ describe('Appium launcher', () => {
 
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
-            expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toMatchSnapshot()
+            if(isWindows){
+                expect(launcher.command).toBe('cmd')
+            }else{
+                expect(launcher.command).toBe('path/to/my_custom_appium')
+                expect(launcher.appiumArgs).toMatchSnapshot()
+            }
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
             expect(capabilities[0].port).toBe(1234)
@@ -150,8 +159,12 @@ describe('Appium launcher', () => {
 
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
-            expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toMatchSnapshot()
+            if(isWindows){
+                expect(launcher.command).toBe('cmd')
+            }else{
+                expect(launcher.command).toBe('path/to/my_custom_appium')
+                expect(launcher.appiumArgs).toMatchSnapshot()
+            }
 
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
@@ -180,15 +193,19 @@ describe('Appium launcher', () => {
             await launcher.onPrepare()
 
             expect(launcher.logPath).toBe(undefined)
-            expect(launcher.command).toBe('node')
-            expect(launcher.appiumArgs).toMatchSnapshot()
+            if(isWindows){
+                expect(launcher.command).toBe('cmd')
+            }else{
+                expect(launcher.command).toBe('node')
+                expect(launcher.appiumArgs).toMatchSnapshot()
+            }
         })
 
         test('should start Appium', async () => {
             const launcher = new AppiumLauncher({ args: { superspeed: true } }, [], {})
             await launcher.onPrepare()
-
-            expect(childProcess.spawn.mock.calls[0]).toMatchSnapshot()
+            if(!isWindows)
+                expect(childProcess.spawn.mock.calls[0]).toMatchSnapshot()
         })
 
         test('should fail if Appium exits', async () => {

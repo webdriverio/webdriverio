@@ -1,4 +1,5 @@
 import { canAccess } from '@wdio/utils'
+import path from 'path'
 
 import { darwinGetAppPaths, darwinGetInstallations } from '../../src/finder/finder'
 
@@ -22,9 +23,9 @@ describe('darwinGetAppPaths', () => {
 
 describe('darwinGetInstallations', () => {
     beforeAll(() => {
-        canAccess.mockImplementation((s = '') => s.startsWith('/ok'))
+        canAccess.mockImplementation((s = '') => s.startsWith(path.join('/', 'ok')))
     })
     test('darwinGetInstallations', () => {
-        expect(darwinGetInstallations(['/ok', '/not-ok'], ['foobar'])).toEqual(['/ok/foobar'])
+        expect(darwinGetInstallations([path.join('/', 'ok'), path.join('/', 'not-ok')], ['foobar'])).toEqual([path.join('/ok', 'foobar')])
     })
 })
