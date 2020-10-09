@@ -1,13 +1,15 @@
 import fs from 'fs'
 import path from 'path'
 
+import type { Client } from 'webdriver'
+
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 
 /**
  * overwrite native element commands with user defined
  * @param {object} propertiesObject propertiesObject
  */
-export function overwriteElementCommands(propertiesObject) {
+export function overwriteElementCommands(propertiesObject: any) {
     const elementOverrides = propertiesObject['__elementOverrides__'] ? propertiesObject['__elementOverrides__'].value : {}
 
     for (const [commandName, userDefinedCommand] of Object.entries(elementOverrides)) {
@@ -26,10 +28,10 @@ export function overwriteElementCommands(propertiesObject) {
         const origCommand = propertiesObject[commandName].value
         delete propertiesObject[commandName]
 
-        const newCommand = function (...args) {
+        const newCommand = function (this: Client, ...args: any[]) {
             const element = this
             return userDefinedCommand.apply(element, [
-                function origCommandFunction() {
+                function origCommandFunction (this: Client) {
                     const context = this || element // respect explicite context binding, use element as default
                     return origCommand.apply(context, arguments)
                 },
@@ -51,7 +53,7 @@ export function overwriteElementCommands(propertiesObject) {
  * get command call structure
  * (for logging purposes)
  */
-export function commandCallStructure (commandName, args) {
+export function commandCallStructure (commandName: string, args: any[]) {
     const callArgs = args.map((arg) => {
         if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function'))) {
             arg = '<fn>'
@@ -89,7 +91,7 @@ export function commandCallStructure (commandName, args) {
  * result strings e.g. if it contains a screenshot
  * @param {Object} result WebDriver response body
  */
-export function transformCommandLogResult (result) {
+export function transformCommandLogResult (result: { file: string }) {
     if (typeof result.file === 'string' && isBase64(result.file)) {
         return SCREENSHOT_REPLACEMENT
     }
@@ -104,7 +106,7 @@ export function transformCommandLogResult (result) {
  * @param  {Object}  expectedType  parameter type (e.g. `number`, `string[]` or `(number|string)`)
  * @return {Boolean}               true if argument is valid
  */
-export function isValidParameter (arg, expectedType) {
+export function isValidParameter (arg: any, expectedType: string) {
     let shouldBeArray = false
 
     if (expectedType.slice(-2) === '[]') {
@@ -139,7 +141,7 @@ export function isValidParameter (arg, expectedType) {
 /**
  * get type of command argument
  */
-export function getArgumentType (arg) {
+export function getArgumentType (arg: any) {
     return arg === null ? 'null' : typeof arg
 }
 
@@ -149,7 +151,7 @@ export function getArgumentType (arg) {
  * @param  {string} name  of package
  * @return {object}       package content
  */
-export function safeRequire (name) {
+export function safeRequire (name: string): Function | { default: Function } | null {
     let requirePath
     try {
         /**
@@ -162,7 +164,7 @@ export function safeRequire (name) {
          */
         const localNodeModules = path.join(process.cwd(), '/node_modules')
         /* istanbul ignore if */
-        if (!require.main.paths.includes(localNodeModules)) {
+        if (require && require.main && !require.main.paths.includes(localNodeModules)) {
             require.main.paths.push(localNodeModules)
 
             /**
@@ -192,7 +194,7 @@ export function safeRequire (name) {
  * @param  {Function} fn  function to check
  * @return {Boolean}      true provided function is async
  */
-export function isFunctionAsync (fn) {
+export function isFunctionAsync (fn: Function) {
     return (fn.constructor && fn.constructor.name === 'AsyncFunction') || fn.name === 'async'
 }
 
@@ -200,7 +202,7 @@ export function isFunctionAsync (fn) {
  * filter out arguments passed to specFn & hookFn, don't allow callbacks
  * as there is no need for user to call e.g. `done()`
  */
-export function filterSpecArgs (args) {
+export function filterSpecArgs (args: any[]) {
     return args.filter((arg) => typeof arg !== 'function')
 }
 
@@ -209,9 +211,9 @@ export function filterSpecArgs (args) {
  * @param  {String} str  string in base64 to check
  * @return {Boolean} true if the provided string is Base64
  */
-export function isBase64(str) {
+export function isBase64(str: string) {
     var notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
-    const isString = (typeof str === 'string' || str instanceof String)
+    const isString = (typeof str === 'string' || (str as object) instanceof String)
     if (!isString) {
         throw new Error('Expected string but received invalid type.')
     }
@@ -230,7 +232,7 @@ export function isBase64(str) {
  * @param {String} file file to check access for
  * @return              true if file can be accessed
  */
-export const canAccess = (file) => {
+export const canAccess = (file: string) => {
     if (!file) {
         return false
     }

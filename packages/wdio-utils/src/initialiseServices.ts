@@ -1,8 +1,19 @@
 import logger from '@wdio/logger'
+import type { DesiredCapabilities } from 'webdriver/build/types'
 
 import initialisePlugin from './initialisePlugin'
 
 const log = logger('@wdio/utils:initialiseServices')
+
+type IntialisedService = (
+    [ServiceClass | { default: Function }, WebdriverIO.ServiceOption, string] |
+    [WebdriverIO.HookFunctions, object] |
+    [ServiceClass, WebdriverIO.ServiceOption]
+)
+
+interface ServiceClass {
+    new(options: WebdriverIO.ServiceOption, caps: DesiredCapabilities, config: WebdriverIO.Options): void
+}
 
 /**
  * Maps list of services of a config file into a list of actionable objects
@@ -10,8 +21,8 @@ const log = logger('@wdio/utils:initialiseServices')
  * @param  {Object}    caps              capabilities of running session
  * @return {[(Object|Class), Object][]}  list of services with their config objects
  */
-function initialiseServices (services) {
-    const initialisedServices = []
+function initialiseServices (services: [WebdriverIO.ServiceEntry, WebdriverIO.ServiceOption][]): IntialisedService[] {
+    const initialisedServices: IntialisedService[] = []
     for (let [serviceName, serviceConfig = {}] of services) {
         /**
          * allow custom services that are already initialised, e.g.
@@ -24,7 +35,7 @@ function initialiseServices (services) {
          */
         if (typeof serviceName === 'object') {
             log.debug('initialise custom initiated service')
-            initialisedServices.push([serviceName, {}])
+            initialisedServices.push([serviceName as WebdriverIO.HookFunctions, {}])
             continue
         }
 
@@ -42,8 +53,8 @@ function initialiseServices (services) {
          * ```
          */
         if (typeof serviceName === 'function') {
-            log.debug(`initialise custom service "${serviceName.name}"`)
-            initialisedServices.push([serviceName, serviceConfig])
+            log.debug(`initialise custom service "${(serviceName as Function).name}"`)
+            initialisedServices.push([serviceName as ServiceClass, serviceConfig])
             continue
         }
 
@@ -56,7 +67,7 @@ function initialiseServices (services) {
          */
         log.debug(`initialise service "${serviceName}" as NPM package`)
         const service = initialisePlugin(serviceName, 'service')
-        initialisedServices.push([service, serviceConfig, serviceName])
+        initialisedServices.push([service as ServiceClass, serviceConfig, serviceName])
     }
 
     return initialisedServices
@@ -69,7 +80,7 @@ function initialiseServices (services) {
  * @param  {[Any]} service               list of services from config file
  * @return {[service, serviceConfig][]}  formatted list of services
  */
-function sanitizeServiceArray (service) {
+function sanitizeServiceArray (service: WebdriverIO.ServiceEntry): [WebdriverIO.ServiceEntry, WebdriverIO.ServiceOption] {
     return Array.isArray(service) ? service : [service, {}]
 }
 
@@ -81,7 +92,7 @@ function sanitizeServiceArray (service) {
  *                            as a list of services that don't need to be
  *                            required in the worker
  */
-export function initialiseLauncherService (config, caps) {
+export function initialiseLauncherService (config: WebdriverIO.Config, caps: DesiredCapabilities) {
     const ignoredWorkerServices = []
     const launcherServices = []
 
@@ -99,7 +110,7 @@ export function initialiseLauncherService (config, caps) {
             /**
              * add class service
              */
-            const Launcher = service.launcher || service
+            const Launcher = (service as WebdriverIO.ServiceLauncher).launcher || service
             if (typeof Launcher === 'function') {
                 launcherServices.push(new Launcher(serviceConfig, caps, config))
             }
@@ -109,7 +120,7 @@ export function initialiseLauncherService (config, caps) {
              */
             if (
                 serviceName &&
-                typeof service.default !== 'function' &&
+                typeof (service as { default: Function }).default !== 'function' &&
                 typeof service !== 'function'
             ) {
                 ignoredWorkerServices.push(serviceName)
@@ -133,10 +144,10 @@ export function initialiseLauncherService (config, caps) {
  *                                         as they don't export a service for it
  * @return {Object[]}                      list if worker initiated worker services
  */
-export function initialiseWorkerService (config, caps, ignoredWorkerServices = []) {
+export function initialiseWorkerService (config: WebdriverIO.Config, caps: DesiredCapabilities, ignoredWorkerServices: string[] = []) {
     const workerServices = config.services
         .map(sanitizeServiceArray)
-        .filter(([serviceName]) => !ignoredWorkerServices.includes(serviceName))
+        .filter(([serviceName]) => !ignoredWorkerServices.includes(serviceName as string))
 
     try {
         const services = initialiseServices(workerServices)
@@ -148,7 +159,7 @@ export function initialiseWorkerService (config, caps, ignoredWorkerServices = [
                 return service
             }
 
-            const Service = service.default || service
+            const Service = (service as { default: ServiceClass }).default || service as ServiceClass
             if (typeof Service === 'function') {
                 return new Service(serviceConfig, caps, config)
             }

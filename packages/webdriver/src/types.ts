@@ -162,6 +162,17 @@ export interface FirefoxLogObject {
     level: FirefoxLogLevels
 }
 
+export interface GeckodriverCapabilities {
+    'firefox_binary'?: string;
+    firefoxProfileTemplate?: string;
+    captureNetworkTraffic?: boolean;
+    addCustomRequestHeaders?: boolean;
+    trustAllSSLCertificates?: boolean;
+    changeMaxConnections?: boolean;
+    profile?: string;
+    pageLoadingStrategy?: string;
+}
+
 export interface FirefoxOptions {
     binary?: string,
     args?: string[],
@@ -195,7 +206,7 @@ export interface SelenoidOptions {
     s3KeyPattern?: string
 }
 
-export interface Capabilities {
+export interface Capabilities extends VendorExtensions {
     /**
      * Identifies the user agent.
      */
@@ -243,12 +254,19 @@ export interface W3CCapabilities {
     firstMatch: Capabilities[];
 }
 
-export interface DesiredCapabilities extends Capabilities {
+export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
     handlesAlerts?: boolean;
     version?: string;
     platform?: string;
+
+    loggingPrefs?: {
+        browser?: LoggingPreferences;
+        driver?: LoggingPreferences;
+        server?: LoggingPreferences;
+        client?: LoggingPreferences;
+    };
 
     // Read-write capabilities
     javascriptEnabled?: boolean;
@@ -263,26 +281,6 @@ export interface DesiredCapabilities extends Capabilities {
     unexpectedAlertBehaviour?: string;
     elementScrollBehavior?: number;
 
-    // Grid-specific
-    seleniumProtocol?: string;
-    maxInstances?: number;
-    environment?: string;
-
-    // Selenium RC (1.0) only
-    commandLineFlags?: string;
-    executablePath?: string;
-    timeoutInSeconds?: number;
-    onlyProxySeleniumTraffic?: boolean;
-    avoidProxy?: boolean;
-    proxyEverything?: boolean;
-    proxyRequired?: boolean;
-    browserSideLog?: boolean;
-    optionsSet?: boolean;
-    singleWindow?: boolean;
-    dontInjectRegex?: RegExp;
-    userJSInjection?: boolean;
-    userExtensions?: string;
-
     // RemoteWebDriver specific
     'webdriver.remote.sessionid'?: string;
     'webdriver.remote.quietExceptions'?: boolean;
@@ -290,89 +288,58 @@ export interface DesiredCapabilities extends Capabilities {
     // Selenese-Backed-WebDriver specific
     'selenium.server.url'?: string;
 
-    loggingPrefs?: {
-        browser?: LoggingPreferences;
-        driver?: LoggingPreferences;
-        server?: LoggingPreferences;
-        client?: LoggingPreferences;
-    };
-
-    // Firefox
-    // eslint-disable-next-line
-    firefox_binary?: string;
-    firefoxProfileTemplate?: string;
-    captureNetworkTraffic?: boolean;
-    addCustomRequestHeaders?: boolean;
-    trustAllSSLCertificates?: boolean;
-    changeMaxConnections?: boolean;
-    profile?: string;
-    pageLoadingStrategy?: string;
-    'moz:firefoxOptions'?: FirefoxOptions;
-
-    // Edge specific
-    'ms:inPrivate'?: boolean;
-    'ms:extensionPaths'?: string[];
-    'ms:startPage'?: string;
-
-    // IE specific
-    'ie.forceCreateProcessApi'?: boolean;
-    'ie.browserCommandLineSwitches'?: string;
-    'ie.usePerProcessProxy'?: boolean;
-    'ie.ensureCleanSession'?: boolean;
-    'ie.setProxyByServer'?: boolean;
-    'ie.fileUploadDialogTimeout'?: number;
-    'ie.edgechromium'?: boolean;
-    'ie.edgepath'?: string;
-    ignoreProtectedModeSettings?: boolean;
-    ignoreZoomSetting?: boolean;
-    initialBrowserUrl?: string;
-    enablePersistentHover?: boolean;
-    enableElementCacheCleanup?: boolean;
-    requireWindowFocus?: boolean;
-    browserAttachTimeout?: number;
-    logFile?: string;
-    logLevel?: string;
-    host?: string;
-    extractPath?: string;
-    silent?: string;
-    killProcessesByName?: boolean;
-
     // Safari specific
     'safari.options'?: {
         [name: string]: any;
     };
 
-    // Chrome specific
-    chromeOptions?: ChromeOptions;
-    'goog:chromeOptions'?: ChromeOptions;
-    mobileEmulationEnabled?: boolean;
-
     // webdriverio specific
     specs?: string[];
     exclude?: string[];
+}
 
-    // wdio-sauce-service specific
-    build?: string;
-
-    // Saucelabs w3c specific
-    'sauce:options'?: {
-        [name: string]: any;
-    };
-
-    // Browserstack w3c specific
-    'bstack:options'?: {
-        [name: string]: any;
-    };
-
+export interface VendorExtensions extends EdgeCapabilities {
+    // Selenoid specific
+    'selenoid:options'?: SelenoidOptions
     // Testingbot w3c specific
     'tb:options'?: {
-        [name: string]: any;
-    };
+        [name: string]: any
+    }
+    // Saucelabs w3c specific
+    'sauce:options'?: SauceLabsCapabilities
+    // Browserstack w3c specific
+    'bstack:options'?: {
+        [name: string]: any
+    }
 
-    // Selenoid specific
-    'selenoid:options'?: SelenoidOptions,
+    'goog:chromeOptions'?: ChromeOptions;
+    'moz:firefoxOptions'?: FirefoxOptions;
+}
 
-    // Appium General Capabilities
+// Selenium Grid specific
+export interface GridCapabilities {
+    // Grid-specific
+    seleniumProtocol?: string;
+    maxInstances?: number;
+    environment?: string;
+}
+
+// Edge specific
+export interface EdgeCapabilities {
+    'ms:inPrivate'?: boolean;
+    'ms:extensionPaths'?: string[];
+    'ms:startPage'?: string;
+}
+
+// Chrome specific
+export interface ChromeCapabilities {
+    chrome?: string;
+    chromeOptions?: ChromeOptions;
+    mobileEmulationEnabled?: boolean;
+}
+
+// Appium General Capabilities
+export interface AppiumCapabilities {
     automationName?: string;
     platformVersion?: string;
     deviceName?: string;
@@ -388,8 +355,11 @@ export interface DesiredCapabilities extends Capabilities {
     eventTimings?: boolean;
     enablePerformanceLogging?: boolean;
     printPageSourceOnFindFailure?: boolean;
+}
 
+export interface AppiumAndroidCapabilities {
     // Appium Android Only
+    appiumVersion?: string;
     appActivity?: string;
     appPackage?: string;
     appWaitActivity?: string;
@@ -456,8 +426,10 @@ export interface DesiredCapabilities extends Capabilities {
     uiautomator2ServerInstallTimeout?: number;
     skipServerInstallation?: boolean;
     espressoServerLaunchTimeout?: number;
+}
 
-    // Appium iOS Only
+// Appium iOS Only
+export interface AppiumIOSCapabilities {
     calendarFormat?: string;
     bundleId?: string;
     launchTimeout?: number;
@@ -487,6 +459,86 @@ export interface DesiredCapabilities extends Capabilities {
     enableAsyncExecuteFromHttps?: boolean;
     skipLogCapture?: boolean;
     webkitDebugProxyPort?: number;
+}
+
+// IE specific
+export interface IECapabilities {
+    'ie.forceCreateProcessApi'?: boolean;
+    'ie.browserCommandLineSwitches'?: string;
+    'ie.usePerProcessProxy'?: boolean;
+    'ie.ensureCleanSession'?: boolean;
+    'ie.setProxyByServer'?: boolean;
+    'ie.fileUploadDialogTimeout'?: number;
+    'ie.edgechromium'?: boolean;
+    'ie.edgepath'?: string;
+    ignoreProtectedModeSettings?: boolean;
+    ignoreZoomSetting?: boolean;
+    initialBrowserUrl?: string;
+    enablePersistentHover?: boolean;
+    enableElementCacheCleanup?: boolean;
+    requireWindowFocus?: boolean;
+    browserAttachTimeout?: number;
+    logFile?: string;
+    logLevel?: string;
+    host?: string;
+    extractPath?: string;
+    silent?: string;
+    killProcessesByName?: boolean;
+}
+
+/**
+ * see also https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
+ */
+export interface SauceLabsCapabilities {
+    // Sauce Labs Custom Testing Options
+    tunnelIdentifier?: string
+    parentTunnel?: string
+    screenResolution?: string
+    timeZone?: string
+    avoidProxy?: boolean
+    public?: string
+    prerun?: {
+        executable: string
+        args: string[]
+        background: boolean
+        timeout: number
+    }
+
+    // Optional Sauce Labs Testing Features
+    recordVideo?: boolean
+    videoUploadOnPass?: boolean
+    recordScreenshots?: boolean
+    recordLogs?: boolean
+    priority?: number
+    extendedDebugging?: boolean
+    capturePerformance?: boolean
+
+    // Optional Selenium Capabilities for Sauce Labs Tests
+    seleniumVersion?: string
+    chromedriverVersion?: string
+    iedriverVersion?: string
+
+    // timeouts
+    maxDuration?: number
+    commandTimeout?: number
+    idleTimeout?: number
+}
+
+export interface SeleniumRCCapabilities {
+    // Selenium RC (1.0) only
+    commandLineFlags?: string;
+    executablePath?: string;
+    timeoutInSeconds?: number;
+    onlyProxySeleniumTraffic?: boolean;
+    avoidProxy?: boolean;
+    proxyEverything?: boolean;
+    proxyRequired?: boolean;
+    browserSideLog?: boolean;
+    optionsSet?: boolean;
+    singleWindow?: boolean;
+    dontInjectRegex?: RegExp;
+    userJSInjection?: boolean;
+    userExtensions?: string;
 }
 
 export interface Options {

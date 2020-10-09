@@ -94,3 +94,4 @@ wallaby.conf.js
 tags
 tests/.retry_succeeded
 .sass-cache
+*.tsbuildinfo

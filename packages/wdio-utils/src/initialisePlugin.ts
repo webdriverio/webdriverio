@@ -7,7 +7,7 @@ import { safeRequire } from './utils'
  * 2. otherwise try to require "@wdio/<name>-<type>"
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
-export default function initialisePlugin (name, type) {
+export default function initialisePlugin (name: string, type: string) {
     /**
      * directly import packages that are scoped or start with an absolute path
      */

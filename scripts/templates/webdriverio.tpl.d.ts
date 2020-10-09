@@ -52,7 +52,13 @@ declare namespace WebdriverIO {
     interface ServiceOption {
         [key: string]: any;
     }
-    type ServiceEntry = string | HookFunctions | [string, ServiceOption] | object
+
+    interface ServiceLauncher {
+        launcher: function
+    }
+
+    type ServiceEntry = string | HookFunctions | [string, ServiceOption] | object | ServiceLauncher
+
 
     interface Options {
         /**
