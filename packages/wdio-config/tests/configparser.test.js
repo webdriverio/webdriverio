@@ -41,6 +41,7 @@ describe('ConfigParser', () => {
     })
 
     describe('merge', () => {
+        const isWindows = process.platform === 'win32'
         it('should overwrite specs if piped into cli command', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
@@ -68,7 +69,7 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
             let featureFileWithoutLine = ''
-            if(FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':').length > 2){
+            if(isWindows){
                 featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[1]
             }else{
                 featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0]
@@ -84,7 +85,7 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
             let featureFileWithoutLine = ''
-            if(FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':').length > 2){
+            if(isWindows){
                 featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[1]
             }else{
                 featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[0]
@@ -101,7 +102,7 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(2)
             let featureFileA = ''
             let featureFileB = ''
-            if(FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':').length > 2){
+            if(isWindows){
                 featureFileA = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[1]
                 featureFileB = FIXTURES_CUCUMBER_FEATURE_B_LINE_7.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_B_LINE_7.split(':')[1]
             }else{
