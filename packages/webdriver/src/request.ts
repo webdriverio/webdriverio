@@ -23,6 +23,7 @@ export interface WebDriverResponse {
 }
 
 const DEFAULT_HEADERS = {
+    'Content-Type': 'application/json; charset=utf-8',
     'Connection': 'keep-alive',
     'Accept': 'application/json',
     'User-Agent': 'webdriver/' + pkg.version
