@@ -20,7 +20,6 @@
         const form = $('form');
         const message = $('.message');
         form.$(".send").click();
-        // passing 'undefined' allows us to keep the default timeout value without overwriting it
         message.waitForExist({ reverse: true });
     });
  * </example>
