@@ -98,6 +98,9 @@ export default class SauceLauncher {
             ) {
                 throw err
             }
+            log.debug(`Failed to start Sauce Connect Proxy due to ${err.stack}`)
+            log.debug(`Retrying ${this.scStartTrials}/${MAX_SC_START_TRIALS}`)
+            this.sauceConnectProcess = await this.api.startSauceConnect(this.sauceConnectOpts)
         }
         performance.mark('sauceConnectEnd')
         performance.measure('bootTime', 'sauceConnectStart', 'sauceConnectEnd')
