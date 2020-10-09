@@ -10,12 +10,14 @@ const SC_RELAY_DEPCRECATION_WARNING = [
     'with the upcoming versions of @wdio/sauce-service. Please',
     'remove the option as tests should work identically without it.'
 ].join(' ')
+const MAX_SC_START_TRIALS = 3
 
 const log = logger('@wdio/sauce-service')
 export default class SauceLauncher {
     constructor (options, capabilities, config) {
         this.options = options
         this.api = new SauceLabs(config)
+        this.scStartTrials = 0
     }
 
     /**
@@ -75,7 +77,28 @@ export default class SauceLauncher {
         obs.observe({ entryTypes: ['measure'], buffered: false })
 
         performance.mark('sauceConnectStart')
-        this.sauceConnectProcess = await this.api.startSauceConnect(this.sauceConnectOpts)
+
+        try {
+            this.sauceConnectProcess = await this.api.startSauceConnect(this.sauceConnectOpts)
+        } catch (err) {
+            ++this.scStartTrials
+            /**
+             * fail starting Sauce Connect eventually
+             */
+            if (
+                /**
+                 * only fail for ENOENT errors due to racing condition
+                 * see: https://github.com/saucelabs/node-saucelabs/issues/86
+                 */
+                !err.message.includes('ENOENT') ||
+                /**
+                 * or if we reached the maximum rety count
+                 */
+                this.scStartTrials >= MAX_SC_START_TRIALS
+            ) {
+                throw err
+            }
+        }
         performance.mark('sauceConnectEnd')
         performance.measure('bootTime', 'sauceConnectStart', 'sauceConnectEnd')
     }
