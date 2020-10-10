@@ -7,6 +7,7 @@ describe('Dot Reporter', () => {
         const logFile = tmp.fileSync()
         const reporter = new DotReporter({ logFile: logFile.name })
         reporter.write = jest.fn()
+        reporter.outputStream.write = jest.fn()
 
         reporter.onTestSkip()
         expect((reporter.write as jest.Mock).mock.calls[0][0]).toBe('cyanBright .');
@@ -33,6 +34,6 @@ describe('Dot Reporter', () => {
             stdout: false
         })
         reporter.write(1)
-        expect(reporter.outputStream.write.mock.calls[0]).toEqual([1])
+        expect((reporter.outputStream.write as jest.Mock).mock.calls[0]).toEqual([1])
     })
 })

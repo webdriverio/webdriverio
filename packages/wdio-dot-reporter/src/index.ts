@@ -1,13 +1,14 @@
 import chalk from 'chalk'
 import WDIOReporter from '@wdio/reporter'
+import fs from 'fs'
 
 /**
  * Initialize a new `Dot` matrix test reporter.
  */
 export default class DotReporter extends WDIOReporter {
     options!: WDIOReporter.Options;
-    outputStream: any;
-    
+    outputStream!: fs.WriteStream;
+
     constructor(options: WDIOReporter.Options) {
         /**
          * make dot reporter to write to output stream by default

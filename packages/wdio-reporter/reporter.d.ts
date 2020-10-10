@@ -26,9 +26,9 @@ declare namespace WDIOReporter {
     }
 
     interface Options {
-        configFile: string;
-        logFile: string;
-        logLevel: string;
+        configFile?: string;
+        logFile?: string;
+        logLevel?: string;
         stdout?: boolean;
     }
 
