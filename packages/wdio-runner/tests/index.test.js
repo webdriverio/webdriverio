@@ -134,6 +134,17 @@ describe('wdio-runner', () => {
             expect(hook).toBeCalledTimes(0)
         })
 
+        it('should do nothing when triggered by run method with session that does not exist anymore', async () => {
+            const runner = new WDIORunner()
+            runner._shutdown = jest.fn()
+            global.browser = {
+                deleteSession: jest.fn().mockImplementation(() => Promise.reject(new Error('404 session not found'))),
+                sessionId: '123'
+            }
+            expect(runner.endSession()).not.reject
+            expect(global.browser.deleteSession).toBeCalledTimes(1)
+        })
+
         it('should work normally when called after framework run in multiremote', async () => {
             const hook = jest.fn()
             const runner = new WDIORunner()

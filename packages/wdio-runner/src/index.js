@@ -347,7 +347,19 @@ export default class Runner extends EventEmitter {
             global.browser.instances.forEach(i => { capabilities[i] = global.browser[i].capabilities })
         }
 
-        await global.browser.deleteSession()
+        /**
+         * end current running session, if session already gone suppress exceptions
+         */
+        try {
+            await global.browser.deleteSession()
+        } catch (err) {
+            /**
+             * ignoring all exceptions that could be caused by browser.deleteSession()
+             * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)
+             * this can be worked around in code but requires a lot of overhead
+             */
+            log.warn(`Suppressing error closing the session: ${err.stack}`)
+        }
 
         /**
          * delete session(s)
