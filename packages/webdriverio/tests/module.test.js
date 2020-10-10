@@ -7,7 +7,7 @@ import { runFnInFiberContext } from '@wdio/utils'
 import { remote, multiremote, attach } from '../src'
 
 jest.mock('webdriver', () => {
-    const WebDriver = jest.requireActual('webdriver').default
+    const WebDriverModule = jest.requireActual('webdriver')
     const client = {
         sessionId: 'foobar-123',
         addCommand: jest.fn(),
@@ -28,7 +28,7 @@ jest.mock('webdriver', () => {
     const module = {
         newSession: newSessionMock,
         attachToSession: jest.fn().mockReturnValue(client),
-        DEFAULTS: WebDriver.DEFAULTS
+        DEFAULTS: WebDriverModule.DEFAULTS
     }
 
     return {

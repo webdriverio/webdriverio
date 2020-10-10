@@ -16,6 +16,7 @@ import {
     DEFAULT_Y_POSITION,
     VENDOR_PREFIX,
     CHANNEL_FIREFOX_NIGHTLY,
+    CHANNEL_FIREFOX_TRUNK,
     BROWSER_ERROR_MESSAGES
 } from './constants'
 
@@ -108,8 +109,9 @@ async function launchChrome (capabilities) {
     return browser
 }
 
-function launchBrowser (capabilities, product) {
-    const vendorCapKey = VENDOR_PREFIX[product]
+function launchBrowser (capabilities, browserType) {
+    const product = browserType === BROWSER_TYPE.firefox ? BROWSER_TYPE.firefox : BROWSER_TYPE.chrome
+    const vendorCapKey = VENDOR_PREFIX[browserType]
     const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
 
     if (!capabilities[vendorCapKey]) {
@@ -118,7 +120,7 @@ function launchBrowser (capabilities, product) {
 
     const executablePath = (
         capabilities[vendorCapKey].binary ||
-        browserFinder[product][process.platform]()[0]
+        browserFinder[browserType][process.platform]()[0]
     )
 
     const puppeteerOptions = Object.assign({
@@ -134,7 +136,12 @@ function launchBrowser (capabilities, product) {
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
-    } else if (product === BROWSER_TYPE.firefox && executablePath !== 'firefox' && !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY)) {
+    } else if (
+        browserType === BROWSER_TYPE.firefox &&
+        executablePath !== 'firefox' &&
+        !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY) &&
+        !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_TRUNK)
+    ) {
         throw new Error(BROWSER_ERROR_MESSAGES.firefoxNightly)
     }
 

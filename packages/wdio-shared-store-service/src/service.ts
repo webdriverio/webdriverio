@@ -1,6 +1,8 @@
 import { readFile, getPidPath } from './utils'
 import { getValue, setValue, setPort } from './client'
 
+const globalAny:any = global
+
 export default class SharedStoreService {
     async beforeSession () {
         /**
@@ -14,13 +16,13 @@ export default class SharedStoreService {
     before () {
         const sharedStore = Object.create({}, {
             get: {
-                value: (key: string) => global.browser.call(() => getValue(key))
+                value: (key: string) => globalAny.browser.call(() => getValue(key))
             },
             set: {
-                value: (key: string, value: WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive) => global.browser.call(() => setValue(key, value))
+                value: (key: string, value: WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive) => globalAny.browser.call(() => setValue(key, value))
             }
         })
 
-        global.browser.sharedStore = sharedStore
+        globalAny.browser.sharedStore = sharedStore
     }
 }

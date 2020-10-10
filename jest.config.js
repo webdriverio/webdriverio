@@ -37,7 +37,7 @@ module.exports = {
             branches: 95,
             functions: 98,
             lines: 99,
-            statements: 98
+            statements: 99
         }
     },
     testEnvironment: 'node',
@@ -52,7 +52,6 @@ module.exports = {
         'packages/wdio-cucumber-framework/tests/fixtures',
         'packages/wdio-logger/build',
         'packages/wdio-webdriver-mock-service',
-        'packages/wdio-lambda-runner',
         'packages/wdio-smoke-test-reporter',
         'packages/wdio-smoke-test-service'
     ]
