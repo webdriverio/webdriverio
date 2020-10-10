@@ -6,10 +6,10 @@ import logger from '@wdio/logger'
 jest.useFakeTimers()
 
 describe('wdio-sumologic-reporter', () => {
-    let reporter
+    let reporter: SumoLogicReporter
 
     beforeEach(() => {
-        got.mockClear()
+        (got as unknown as jest.Mock).mockClear()
         logger().error.mockClear()
         reporter = new SumoLogicReporter()
     })
@@ -67,18 +67,18 @@ describe('wdio-sumologic-reporter', () => {
         it('is currently syncing data', async () => {
             reporter.inSync = true
             await reporter.sync()
-            expect(got.mock.calls).toHaveLength(0)
+            expect((got as unknown as jest.Mock).mock.calls).toHaveLength(0)
         })
 
         it('has no data to sync', async () => {
             await reporter.sync()
-            expect(got.mock.calls).toHaveLength(0)
+            expect((got as unknown as jest.Mock).mock.calls).toHaveLength(0)
         })
 
         it('has no source address set up', async () => {
             reporter.onRunnerStart('onRunnerStart')
             await reporter.sync()
-            expect(got.mock.calls).toHaveLength(0)
+            expect((got as unknown as jest.Mock).mock.calls).toHaveLength(0)
         })
     })
 
@@ -87,10 +87,10 @@ describe('wdio-sumologic-reporter', () => {
         reporter.onRunnerStart('onRunnerStart')
         await reporter.sync()
 
-        expect(got.mock.calls).toHaveLength(1)
-        expect(got.mock.calls[0][1].method).toBe('POST')
-        expect(got.mock.calls[0][0]).toBe('http://localhost:1234')
-        expect(got.mock.calls[0][1].json).toContain('"event":"runner:start","data":"onRunnerStart"')
+        expect((got as unknown as jest.Mock).mock.calls).toHaveLength(1)
+        expect((got as unknown as jest.Mock).mock.calls[0][1].method).toBe('POST')
+        expect((got as unknown as jest.Mock).mock.calls[0][0]).toBe('http://localhost:1234')
+        expect((got as unknown as jest.Mock).mock.calls[0][1].json).toContain('"event":"runner:start","data":"onRunnerStart"')
 
         expect(reporter.unsynced).toHaveLength(0)
     })

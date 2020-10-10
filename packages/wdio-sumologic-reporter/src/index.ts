@@ -10,11 +10,24 @@ const log = logger('@wdio/sumologic-reporter')
 const MAX_LINES = 100
 const DATE_FORMAT = 'yyyy-mm-dd HH:mm:ss,l o'
 
+export interface Options {
+    stdout?: boolean,
+    syncInterval?: number,
+    sourceAddress: string
+}
+
 /**
  * Initialize a new sumologic test reporter.
  */
 export default class SumoLogicReporter extends WDIOReporter {
-    constructor(options) {
+    options: Options
+    unsynced: any
+    isSynchronising: boolean
+    errorCount: number
+    specs: {}
+    results: {}
+    interval: number
+    constructor(options?: Options) {
         options = Object.assign({
             // don't create a log file
             stdout: true,
@@ -44,7 +57,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         return this.unsynced.length === 0
     }
 
-    onRunnerStart(runner) {
+    onRunnerStart(runner: any) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'runner:start',
@@ -52,7 +65,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onSuiteStart(suite) {
+    onSuiteStart(suite: WDIOReporter.Suite) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'suite:start',
@@ -60,7 +73,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onTestStart(test) {
+    onTestStart(test: WDIOReporter.Test) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'test:start',
@@ -68,7 +81,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onTestSkip(test) {
+    onTestSkip(test: WDIOReporter.Test) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'test:skip',
@@ -76,7 +89,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onTestPass(test) {
+    onTestPass(test: WDIOReporter.Test) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'test:pass',
@@ -84,7 +97,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onTestFail(test) {
+    onTestFail(test: WDIOReporter.Test) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'test:fail',
@@ -92,7 +105,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onTestEnd(test) {
+    onTestEnd(test: WDIOReporter.Test) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'test:end',
@@ -100,7 +113,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onSuiteEnd(suite) {
+    onSuiteEnd(suite: WDIOReporter.Suite) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'suite:end',
@@ -108,7 +121,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onRunnerEnd(runner) {
+    onRunnerEnd(runner: any) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'runner:end',
