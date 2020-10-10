@@ -41,7 +41,7 @@ export default class StaticServerLauncher {
         })
 
         this.middleware.forEach(
-            (ware: MiddleWareOption) => this.server.use(ware.mount, ware.middleware))
+            (ware: MiddleWareOption) => this.server.use(ware.mount, ware.middleware as unknown as express.Application))
 
         const listenServer = this.server.listen.bind(this.server)
         listenServer(this.port)

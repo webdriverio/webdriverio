@@ -1,8 +1,6 @@
-import { Application } from 'express'
-
 export interface MiddleWareOption {
     mount: string,
-    middleware: Application
+    middleware: string
 }
 
 export interface FolderOption {
