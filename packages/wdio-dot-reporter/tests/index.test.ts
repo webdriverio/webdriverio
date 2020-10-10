@@ -10,15 +10,15 @@ describe('Dot Reporter', () => {
         const mockReporter = reporter.write as jest.Mock
 
         reporter.onTestSkip()
-        expect(mockReporter.mock.calls[0][0]).toBe('cyanBright .');
+        expect(mockReporter.mock.calls[0][0]).toBe('cyanBright .')
         mockReporter.mockClear()
 
         reporter.onTestPass()
-        expect(mockReporter.mock.calls[0][0]).toBe('greenBright .');
+        expect(mockReporter.mock.calls[0][0]).toBe('greenBright .')
         mockReporter.mockClear()
 
         reporter.onTestFail()
-        expect(mockReporter.mock.calls[0][0]).toBe('redBright F');
+        expect(mockReporter.mock.calls[0][0]).toBe('redBright F')
         mockReporter.mockClear()
     })
 
