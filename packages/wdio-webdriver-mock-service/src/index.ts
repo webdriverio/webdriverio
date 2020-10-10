@@ -11,6 +11,10 @@ const ELEMENT_REFETCHED = '80d860d0-b829-f540-812e-7078eb983795'
 const ELEMENT_ALT = '8bf4d107-a363-40d1-b823-d94bdbc58afb'
 
 export default class WebdriverMockService {
+    mock!: WebDriverMock
+    command: any
+    mocks: any
+    globalAny: any = global
     constructor() {
         this.init()
     }
@@ -37,20 +41,20 @@ export default class WebdriverMockService {
         /**
          * assign mocks to browser object to tweak responses
          */
-        global.browser.mocks = this.mocks
+        this.globalAny.browser.mocks = this.mocks
 
         /**
          * register request interceptors for specific scenarios
          */
-        global.browser.addCommand('waitForElementScenario', this.waitForElementScenario.bind(this))
-        global.browser.addCommand('isNeverDisplayedScenario', this.isNeverDisplayedScenario.bind(this))
-        global.browser.addCommand('isEventuallyDisplayedScenario', this.isEventuallyDisplayedScenario.bind(this))
-        global.browser.addCommand('staleElementRefetchScenario', this.staleElementRefetchScenario.bind(this))
-        global.browser.addCommand('customCommandScenario', this.customCommandScenario.bind(this))
-        global.browser.addCommand('waitForDisplayedScenario', this.waitForDisplayedScenario.bind(this))
-        global.browser.addCommand('cucumberScenario', this.cucumberScenario.bind(this))
-        global.browser.addCommand('clickScenario', this.clickScenario.bind(this))
-        global.browser.addCommand('isExistingScenario', this.isExistingScenario.bind(this))
+        this.globalAny.browser.addCommand('waitForElementScenario', this.waitForElementScenario.bind(this))
+        this.globalAny.browser.addCommand('isNeverDisplayedScenario', this.isNeverDisplayedScenario.bind(this))
+        this.globalAny.browser.addCommand('isEventuallyDisplayedScenario', this.isEventuallyDisplayedScenario.bind(this))
+        this.globalAny.browser.addCommand('staleElementRefetchScenario', this.staleElementRefetchScenario.bind(this))
+        this.globalAny.browser.addCommand('customCommandScenario', this.customCommandScenario.bind(this))
+        this.globalAny.browser.addCommand('waitForDisplayedScenario', this.waitForDisplayedScenario.bind(this))
+        this.globalAny.browser.addCommand('cucumberScenario', this.cucumberScenario.bind(this))
+        this.globalAny.browser.addCommand('clickScenario', this.clickScenario.bind(this))
+        this.globalAny.browser.addCommand('isExistingScenario', this.isExistingScenario.bind(this))
     }
 
     clickScenario() {
