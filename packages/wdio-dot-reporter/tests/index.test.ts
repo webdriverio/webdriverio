@@ -7,19 +7,19 @@ describe('Dot Reporter', () => {
         const logFile = tmp.fileSync()
         const reporter = new DotReporter({ logFile: logFile.name })
         reporter.write = jest.fn()
-        reporter.outputStream.write = jest.fn()
+        const mockReporter = reporter.write as jest.Mock
 
         reporter.onTestSkip()
-        expect((reporter.write as jest.Mock).mock.calls[0][0]).toBe('cyanBright .');
-        (reporter.write as jest.Mock).mockClear()
+        expect(mockReporter.mock.calls[0][0]).toBe('cyanBright .');
+        mockReporter.mockClear()
 
         reporter.onTestPass()
-        expect((reporter.write as jest.Mock).mock.calls[0][0]).toBe('greenBright .');
-        (reporter.write as jest.Mock).mockClear()
+        expect(mockReporter.mock.calls[0][0]).toBe('greenBright .');
+        mockReporter.mockClear()
 
         reporter.onTestFail()
-        expect((reporter.write as jest.Mock).mock.calls[0][0]).toBe('redBright F');
-        (reporter.write as jest.Mock).mockClear()
+        expect(mockReporter.mock.calls[0][0]).toBe('redBright F');
+        mockReporter.mockClear()
     })
 
     it('should write to stdout per default', () => {
