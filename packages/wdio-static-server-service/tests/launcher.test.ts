@@ -17,7 +17,7 @@ test('should be able to start server', async () => {
         folders: { mount: 'foo', path: 'bar' }
     })
     await service.onPrepare({});
-    (service.server.listen as jest.Mock).mock.calls[0][1]()
+    (service.server.listen as jest.Mock).mock.calls[0][1]
     expect(express).toBeCalledTimes(1)
     expect(service.server.use).toBeCalledWith('foo', undefined)
     expect(express.static).toBeCalledWith('bar')
@@ -31,7 +31,7 @@ test('should be able to mount multiple folder', async () => {
         ]
     })
     await service.onPrepare({});
-    (service.server.listen as jest.Mock).mock.calls[0][1]()
+    (service.server.listen as jest.Mock).mock.calls[0][1]
     expect(express).toBeCalledTimes(1)
     expect(service.server.use).toBeCalledWith('foo', undefined)
     expect(express.static).toBeCalledWith('bar')
