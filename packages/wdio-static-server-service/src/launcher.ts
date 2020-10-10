@@ -15,7 +15,7 @@ export default class StaticServerLauncher {
     folders: FolderOption[] | null
     port: number
     middleware: MiddleWareOption[]
-    server: any
+    server!: express.Express
     constructor({ folders, port = 4567, middleware = [] }: { folders?: FolderOption[] | FolderOption, port?: number, middleware?: MiddleWareOption[] }) {
         this.folders = folders ? Array.isArray(folders) ? folders : [folders] : null
         this.port = port
@@ -44,7 +44,8 @@ export default class StaticServerLauncher {
         this.middleware.forEach(
             (ware: MiddleWareOption) => this.server.use(ware.mount, ware.middleware))
 
-        await promisify(this.server.listen.bind(this.server))(this.port)
+        const listenServer = this.server.listen.bind(this.server)
+        listenServer(this.port)
         log.info(`Static server running at http://localhost:${this.port}`)
     }
 }
