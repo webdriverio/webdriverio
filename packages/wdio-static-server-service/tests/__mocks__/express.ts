@@ -1,7 +1,7 @@
 const expressMock = jest.fn().mockReturnValue({
     use: jest.fn(),
     listen: jest.fn().mockImplementation((port, cb) => {
-        cb
+        cb()
     })
 }) as any
 
