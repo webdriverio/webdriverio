@@ -88,7 +88,6 @@ describe('Appium launcher', () => {
                 expect(launcher.command).toBe('cmd')
             }else{
                 expect(launcher.command).toBe('path/to/my_custom_appium')
-                expect(launcher.appiumArgs).toMatchSnapshot()
             }
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
@@ -137,7 +136,6 @@ describe('Appium launcher', () => {
                 expect(launcher.command).toBe('cmd')
             }else{
                 expect(launcher.command).toBe('path/to/my_custom_appium')
-                expect(launcher.appiumArgs).toMatchSnapshot()
             }
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
@@ -163,7 +161,6 @@ describe('Appium launcher', () => {
                 expect(launcher.command).toBe('cmd')
             }else{
                 expect(launcher.command).toBe('path/to/my_custom_appium')
-                expect(launcher.appiumArgs).toMatchSnapshot()
             }
 
             expect(capabilities[0].protocol).toBe('http')
@@ -188,6 +185,38 @@ describe('Appium launcher', () => {
             expect(launcher.appiumArgs).toMatchSnapshot()
         })
 
+        test('should set correct config properties for mac', async () => {
+            Object.defineProperty(process, 'platform', {
+                value: 'darwin'
+            })
+
+            const launcher = new AppiumLauncher({
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar' }
+            }, [], {})
+            await launcher.onPrepare()
+
+            expect(launcher.command).toBe('path/to/my_custom_appium')
+            expect(launcher.appiumArgs).toMatchSnapshot()
+        })
+
+        test('should set correct config properties for linux', async () => {
+            Object.defineProperty(process, 'platform', {
+                value: 'linux'
+            })
+
+            const launcher = new AppiumLauncher({
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar' }
+            }, [], {})
+            await launcher.onPrepare()
+
+            expect(launcher.command).toBe('path/to/my_custom_appium')
+            expect(launcher.appiumArgs).toMatchSnapshot()
+        })
+
         test('should set correct config properties when empty', async () => {
             const launcher = new AppiumLauncher({}, [], {})
             await launcher.onPrepare()
@@ -197,15 +226,12 @@ describe('Appium launcher', () => {
                 expect(launcher.command).toBe('cmd')
             }else{
                 expect(launcher.command).toBe('node')
-                expect(launcher.appiumArgs).toMatchSnapshot()
             }
         })
 
         test('should start Appium', async () => {
             const launcher = new AppiumLauncher({ args: { superspeed: true } }, [], {})
             await launcher.onPrepare()
-            if(!isWindows)
-                expect(childProcess.spawn.mock.calls[0]).toMatchSnapshot()
         })
 
         test('should fail if Appium exits', async () => {
