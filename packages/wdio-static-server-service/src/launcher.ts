@@ -1,5 +1,4 @@
 import { join, resolve } from 'path'
-import { promisify } from 'util'
 
 import express from 'express'
 import fs from 'fs-extra'
