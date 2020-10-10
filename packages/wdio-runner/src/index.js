@@ -356,7 +356,6 @@ export default class Runner extends EventEmitter {
             /**
              * ignoring all exceptions that could be caused by browser.deleteSession()
              * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)
-             * this can be worked around in code but requires a lot of overhead
              */
             log.warn(`Suppressing error closing the session: ${err.stack}`)
         }
