@@ -4,8 +4,8 @@ exports.config = {
     /**
      * server configurations
      */
-    hostname: 'localhost',
-    port: 4444,
+    // hostname: 'localhost',
+    // port: 4444,
 
     /**
      * specify test files

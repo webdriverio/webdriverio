@@ -39,6 +39,8 @@ export default class WDIOReporter extends EventEmitter {
 
         let currentTest
 
+        this.contentPresent = false
+
         const rootSuite = new SuiteStats({
             title: '(root)',
             fullTitle: '(root)',
@@ -146,11 +148,16 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('runner:end',  /* istanbul ignore next */ (runner) => {
-            rootSuite.complete()
-            this.runnerStat.failures = runner.failures
-            this.runnerStat.retries = runner.retries
-            this.runnerStat.complete()
-            this.onRunnerEnd(this.runnerStat)
+            if(this.runnerStat) {
+                rootSuite.complete()
+                this.runnerStat.failures = runner.failures
+                this.runnerStat.retries = runner.retries
+                this.runnerStat.complete()
+                this.onRunnerEnd(this.runnerStat)
+            }
+            if(!this.contentPresent && this.options.logFile) {
+                fs.unlinkSync(this.options.logFile)
+            }
         })
 
         /**
@@ -182,6 +189,7 @@ export default class WDIOReporter extends EventEmitter {
      * function to write to reporters output stream
      */
     write (content) {
+        if(content) this.contentPresent = true
         this.outputStream.write(content)
     }
 
