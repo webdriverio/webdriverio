@@ -7,7 +7,7 @@ import { sanitizeErrorMessage } from './utils'
 const log = logger('@wdio/sync')
 
 let inCommandHook = false
-const timers = []
+const timers: any = []
 const elements = new Set()
 
 /**
@@ -21,7 +21,7 @@ process.on('WDIO_TIMER', (payload) => {
         while (timers.pop() !== payload.id);
     }
     if (payload.timeout) {
-        elements.forEach(element => { delete element._NOT_FIBER })
+        elements.forEach((element: any) => { delete element._NOT_FIBER })
     }
     if (timers.length === 0) {
         elements.clear()
@@ -31,13 +31,11 @@ process.on('WDIO_TIMER', (payload) => {
 /**
  * wraps a function into a Fiber ready context to enable sync execution and hooks
  * @param  {Function}   fn             function to be executed
- * @param  {String}     commandName    name of that function
- * @param  {Function[]} beforeCommand  method to be executed before calling the actual function
- * @param  {Function[]} afterCommand   method to be executed after calling the actual function
+ * @param  {string}     commandName    name of that function
  * @return {Function}   actual wrapped function
  */
-export default function wrapCommand(commandName, fn) {
-    return function wrapCommandFn(...args) {
+export default function wrapCommand(commandName: string, fn: Function): Function {
+    return function wrapCommandFn(this: any, ...args: unknown[]) {
         /**
          * print error if a user is using a fiberized command outside of the Fibers context
          */
@@ -101,7 +99,7 @@ export default function wrapCommand(commandName, fn) {
 /**
  * helper method that runs the command with before/afterCommand hook
  */
-async function runCommandWithHooks(commandName, fn, ...args) {
+async function runCommandWithHooks(this: any, commandName: string, fn: Function, ...args: unknown[]) {
     // save error for getting full stack in case of failure
     // should be before any async calls
     const stackError = new Error()
@@ -125,7 +123,7 @@ async function runCommandWithHooks(commandName, fn, ...args) {
     return commandResult
 }
 
-async function runCommandHook(hookFn, args) {
+async function runCommandHook(hookFn: Function | Function[], args: object | object[]) {
     if (!inCommandHook) {
         inCommandHook = true
         await executeHooksWithArgs(hookFn, args)
@@ -139,7 +137,7 @@ async function runCommandHook(hookFn, args) {
  * @param {object} context browser or element
  * @param {string} fnName function name
  */
-function isNotInFiber(context, fnName) {
+function isNotInFiber(context: any, fnName: string) {
     return fnName !== '' && !!(context.elementId || (context.parent && context.parent.elementId))
 }
 
@@ -147,9 +145,9 @@ function isNotInFiber(context, fnName) {
  * set `_NOT_FIBER` to `false` for element and its parents
  * @param {object} context browser or element
  */
-function inFiber(context) {
+function inFiber(context: any) {
     if (context.constructor.name === 'MultiRemoteDriver') {
-        return context.instances.forEach(instance => {
+        return context.instances.forEach((instance: any) => {
             context[instance]._NOT_FIBER = false
             let parent = context[instance].parent
             while (parent && parent._NOT_FIBER) {

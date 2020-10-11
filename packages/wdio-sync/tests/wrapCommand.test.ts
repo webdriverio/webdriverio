@@ -2,13 +2,18 @@ import { Future } from '../src/fibers'
 import wrapCommand from '../src/wrapCommand'
 import { anotherError } from './__mocks__/errors'
 
+/**
+ * workaround as typescript compiler uses expect-webdriverio as global
+ */
+const expect: jest.Expect = global.expect as unknown as jest.Expect
+
 jest.mock('../src/executeHooksWithArgs', () => ({
     __esModule: true,
     default: jest.fn().mockImplementation(() => true)
 }))
 
-const futureWait = Future.wait
-const futurePrototypeWait = Future.prototype.wait
+const futureWait = Future?.wait
+const futurePrototypeWait = Future?.prototype?.wait
 
 describe('wrapCommand:runCommand', () => {
     beforeEach(() => {
@@ -16,12 +21,12 @@ describe('wrapCommand:runCommand', () => {
     })
 
     it('should return result', async () => {
-        process.emit('WDIO_TIMER', { id: 0, start: true })
+        (process.emit as Function)('WDIO_TIMER', { id: 0, start: true })
         const fn = jest.fn(x => (x + x))
         const runCommand = wrapCommand('foo', fn)
         const result = await runCommand.call({ options: {} }, 'bar')
-        expect(result).toEqual('barbar')
-        process.emit('WDIO_TIMER', { id: 0 })
+        expect(result).toEqual('barbar');
+        (process.emit as Function)('WDIO_TIMER', { id: 0 })
     })
 
     it('should set _NOT_FIBER to false if elementId is missing', async () => {
@@ -59,7 +64,7 @@ describe('wrapCommand:runCommand', () => {
         Future.prototype.wait = () => {}
         const runCommand = wrapCommand('foo', jest.fn())
 
-        const context = {
+        const context: any = {
             options: {}, elementId: 'foo', parent: { _NOT_FIBER: true }
         }
 
@@ -72,7 +77,7 @@ describe('wrapCommand:runCommand', () => {
         Future.prototype.wait = () => {}
         const runCommand = wrapCommand('foo', () => {})
 
-        const context = {
+        const context: any = {
             options: {}, elementId: 'foo', _hidden_: null, _hidden_changes_: [],
             get _NOT_FIBER () { return this._hidden_ },
             set _NOT_FIBER (val) {
@@ -89,7 +94,7 @@ describe('wrapCommand:runCommand', () => {
         Future.prototype.wait = () => {}
         const runCommand = wrapCommand('waitUntil', jest.fn())
 
-        const context = {
+        const context: any = {
             _hidden_changes_: [],
             constructor: { name: 'MultiRemoteDriver' },
             instances: ['browserA', 'browserB'],
@@ -139,7 +144,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error('AnotherError'))
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(3)
+            expect(err.stack.split('wrapCommand.test.ts')).toHaveLength(3)
             expect(err.stack).toContain('__mocks__')
         }
         expect.assertions(4)
@@ -154,7 +159,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error('bar'))
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
+            expect(err.stack.split('wrapCommand.test.ts')).toHaveLength(2)
         }
         expect.assertions(3)
     })
@@ -168,7 +173,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error())
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
+            expect(err.stack.split('wrapCommand.test.ts')).toHaveLength(2)
         }
         expect.assertions(3)
     })
@@ -181,7 +186,7 @@ describe('wrapCommand:runCommand', () => {
         it('should throw regular error', () => {
             const fn = jest.fn(() => {})
             const runCommand = wrapCommand('foo', fn)
-            const context = { options: {} }
+            const context: any = { options: {} }
             try {
                 runCommand.call(context, 'bar')
             } catch (err) {
@@ -198,12 +203,12 @@ describe('wrapCommand:runCommand', () => {
      */
     describe('WDIO_TIMER', () => {
         it('WDIO_TIMER listener', () => {
-            process.emit('WDIO_TIMER', { id: 1, start: true })
-            process.emit('WDIO_TIMER', { id: 1 })
+            (process.emit as Function)('WDIO_TIMER', { id: 1, start: true });
+            (process.emit as Function)('WDIO_TIMER', { id: 1 });
 
-            process.emit('WDIO_TIMER', { id: 2, start: true })
-            process.emit('WDIO_TIMER', { id: 3, start: true })
-            process.emit('WDIO_TIMER', { id: 2, timeout: true })
+            (process.emit as Function)('WDIO_TIMER', { id: 2, start: true });
+            (process.emit as Function)('WDIO_TIMER', { id: 3, start: true });
+            (process.emit as Function)('WDIO_TIMER', { id: 2, timeout: true })
         })
     })
 

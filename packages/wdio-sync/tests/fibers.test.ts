@@ -1,15 +1,17 @@
-global.requireFibers = true
-global.requireFibers8 = true
+const globalAny: any = global
+
+globalAny.requireFibers = true
+globalAny.requireFibers8 = true
 
 const mockFibers = () => {
     jest.mock('fibers', () => {
-        if (!global.requireFibers) {
+        if (!globalAny.requireFibers) {
             throw new Error('package not found')
         }
         return { version: 4 }
     })
     jest.mock('fibers/future', () => {
-        if (!global.requireFibers) {
+        if (!globalAny.requireFibers) {
             throw new Error('package not found')
         }
         return { version: 4 }
@@ -23,7 +25,7 @@ test('should load fibers 4', () => {
 })
 
 test('should throw error if package can not be installed', () => {
-    global.requireFibers = false
+    globalAny.requireFibers = false
     jest.resetModules()
     mockFibers()
     expect(() => require('../src/fibers'))
@@ -31,5 +33,5 @@ test('should throw error if package can not be installed', () => {
 })
 
 afterEach(() => {
-    delete global.requireFibers
+    delete globalAny.requireFibers
 })

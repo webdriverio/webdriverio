@@ -1,7 +1,9 @@
 import sync, { executeSync, runSync } from '../src'
 
+const globalAny: any = global
+
 beforeEach(() => {
-    global.browser = {}
+    globalAny.browser = {}
 })
 
 it('exports a function to make async tests sync', async () => {
@@ -11,33 +13,33 @@ it('exports a function to make async tests sync', async () => {
 
 describe('executeSync', () => {
     it('should pass with default values and regular fn', async () => {
-        global.browser._NOT_FIBER = true
-        expect(await executeSync.call({}, () => 1, {})).toEqual(1)
-        expect(global.browser._NOT_FIBER).toBe(undefined)
+        globalAny.browser._NOT_FIBER = true
+        expect(await executeSync.call({}, () => 1)).toEqual(1)
+        expect(globalAny.browser._NOT_FIBER).toBe(undefined)
     })
 
     it('should pass with args and async fn', async () => {
-        const fn = async arg => arg
-        const scope = {}
+        const fn = async (arg: any) => arg
+        const scope: any = {}
         expect(await executeSync.call(scope, fn, { limit: 1, attempts: 0 }, [2])).toEqual(2)
         expect(scope.wdioRetries).toBe(0)
     })
 
     it('should pass without scope', async () => {
-        const fn = async arg => arg
+        const fn = async (arg: any) => arg
         expect(await executeSync(fn, { limit: 1, attempts: 0 }, [2])).toEqual(2)
     })
 
     it('should filter stack on failure', async () => {
-        global.browser._NOT_FIBER = true
+        globalAny.browser._NOT_FIBER = true
         let error
         try {
-            await executeSync.call({}, () => { throw new Error('foobar') }, {})
+            await executeSync.call({}, () => { throw new Error('foobar') })
         } catch (err) {
             error = err
         }
         expect(error.stack).not.toContain('at new Promise (<anonymous>)')
-        expect(global.browser._NOT_FIBER).toBe(undefined)
+        expect(globalAny.browser._NOT_FIBER).toBe(undefined)
     })
 
     it('should not filter stack on failure if it is missing', async () => {
@@ -45,18 +47,18 @@ describe('executeSync', () => {
         try {
             await executeSync.call({}, () => {
                 const err = new Error('foobar')
-                err.stack = false
+                err.stack = ''
                 throw err
-            }, {})
+            })
         } catch (err) {
             error = err
         }
-        expect(error.stack).toEqual(false)
+        expect(error.stack).toEqual('')
     })
 
     it('should repeat step on failure', async () => {
         let counter = 3
-        const scope = {}
+        const scope: any = {}
         const repeatTest = { limit: counter, attempts: 0 }
 
         const fn = () => {
@@ -75,7 +77,7 @@ describe('executeSync', () => {
 
     it('should throw if repeatTest attempts exceeded', async () => {
         let counter = 3
-        const scope = {}
+        const scope: any = {}
         const repeatTest = { limit: counter - 1, attempts: 0 }
         let error
         try {
@@ -101,7 +103,7 @@ describe('runSync', () => {
         const rejectFn = jest.fn()
 
         const scope = {}
-        const fibersFn = runSync.call(scope, (arg) => 'foo' + arg, {}, ['bar'])
+        const fibersFn = runSync.call(scope, (arg: any) => 'foo' + arg, undefined, ['bar'])
         await fibersFn(resolveFn, rejectFn)
 
         expect(rejectFn).not.toBeCalled()
@@ -125,5 +127,5 @@ describe('runSync', () => {
 })
 
 afterEach(() => {
-    delete global.browser
+    delete globalAny.browser
 })

@@ -6,7 +6,7 @@ import { STACKTRACE_FILTER_FN } from './constants'
  * @param {Error}   savedError      Error with root stack trace
  * @returns {Error}
  */
-export function sanitizeErrorMessage (commandError, savedError) {
+export function sanitizeErrorMessage (commandError: Error | any, savedError: Error): Error {
     let name, stack, message
     if (commandError instanceof Error) {
         ({ name, message, stack } = commandError)
@@ -18,7 +18,11 @@ export function sanitizeErrorMessage (commandError, savedError) {
     const err = new Error(message)
     err.name = name
 
-    let stackArr = savedError.stack.split('\n')
+    let stackArr: string | string[] | undefined = savedError.stack
+
+    if (stackArr) {
+        stackArr = stackArr.split('\n')
+    }
 
     /**
      * merge stack traces if `commandError` has stack trace
@@ -26,17 +30,19 @@ export function sanitizeErrorMessage (commandError, savedError) {
     if (stack) {
         // remove duplicated error name from stack trace
         stack = stack.replace(`${err.name}: ${err.name}`, err.name)
-        // remove first stack trace line from second stack trace
-        stackArr[0] = '\n'
-        // merge
-        stackArr = [...stack.split('\n'), ...stackArr]
+        if (stackArr && stackArr.length) {
+            // remove first stack trace line from second stack trace
+            (stackArr as string[])[0] = '\n'
+            // merge
+            stackArr = [...stack.split('\n'), ...stackArr]
+        }
     }
 
-    err.stack = stackArr
+    err.stack = (stackArr as string[])
         // filter stack trace
         .filter(STACKTRACE_FILTER_FN)
         // remove duplicates from stack traces
-        .reduce((acc, currentValue) => {
+        .reduce((acc: string, currentValue: string) => {
             return acc.includes(currentValue) ? acc : `${acc}\n${currentValue}`
         }, '')
         .trim()

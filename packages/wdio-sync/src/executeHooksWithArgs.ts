@@ -9,10 +9,10 @@ const log = logger('@wdio/sync')
  * actual test process.
  *
  * @param  {Function|Function[]} hooks  list of hooks
- * @param  {Object[]} args  list of parameter for hook functions
+ * @param  {object|object[]} args  list of parameter for hook functions
  * @return {Promise}  promise that gets resolved once all hooks finished running
  */
-export default function executeHooksWithArgs (hooks = [], args) {
+export default function executeHooksWithArgs<T> (hooks: Function | Function[] = [], args: object | object[] = {}): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */
@@ -27,7 +27,7 @@ export default function executeHooksWithArgs (hooks = [], args) {
         args = [args]
     }
 
-    hooks = hooks.map((hook) => new Promise((resolve) => {
+    const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve) => {
         let result
 
         const execHook = () => {
@@ -40,7 +40,7 @@ export default function executeHooksWithArgs (hooks = [], args) {
                 return resolve(e)
             }
             if (result && typeof result.then === 'function') {
-                return result.then(resolve, (e) => {
+                return result.then(resolve, (e: Error) => {
                     log.error(e.stack)
                     resolve(e)
                 })
@@ -55,5 +55,5 @@ export default function executeHooksWithArgs (hooks = [], args) {
         return hook.constructor.name === 'AsyncFunction' ? execHook() : Fiber(execHook).run()
     }))
 
-    return Promise.all(hooks)
+    return Promise.all(hooksPromises)
 }

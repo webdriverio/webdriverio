@@ -5,17 +5,35 @@ import runFnInFiberContext from './runFnInFiberContext'
 import wrapCommand from './wrapCommand'
 
 import { STACKTRACE_FILTER_FN } from './constants'
-const defaultRetries = { attempts: 0, limit: 0 }
+
+declare global {
+  namespace NodeJS {
+      interface Global {
+          _HAS_FIBER_CONTEXT: boolean
+          WDIO_WORKER: boolean
+          browser: {
+              _NOT_FIBER?: boolean
+          }
+      }
+  }
+}
+
+export type Retries = {
+    attempts: number;
+    limit: number;
+}
+
+const defaultRetries: Retries = { attempts: 0, limit: 0 }
 
 /**
  * execute test or hook synchronously
  *
  * @param  {Function} fn         spec or hook method
- * @param  {Number}   retries    { limit: number, attempts: number }
+ * @param  {Retries}   retries    { limit: number, attempts: number }
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-async function executeSync(fn, retries = defaultRetries, args = []) {
+async function executeSync<T>(this: any, fn: Function, retries = defaultRetries, args: unknown[] = []): Promise<T> {
     /**
      * User can also use the `@wdio/sync` package directly to run commands
      * synchronously in standalone mode. In this case we neither have
@@ -45,7 +63,7 @@ async function executeSync(fn, retries = defaultRetries, args = []) {
     } catch (e) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
-            return await executeSync.call(this, fn, retries, args)
+            return await executeSync.call(this, fn, retries, args) as Promise<T>
         }
 
         /**
@@ -63,8 +81,8 @@ async function executeSync(fn, retries = defaultRetries, args = []) {
 /**
  * run hook or spec via executeSync
  */
-function runSync(fn, repeatTest = 0, args = []) {
-    return (resolve, reject) =>
+function runSync(this: unknown, fn: Function, repeatTest = defaultRetries, args: unknown[] = []) {
+    return (resolve: any, reject: any) =>
         Fiber(() => executeSync.call(this, fn, repeatTest, args).then(resolve, reject)).run()
 }
 
@@ -76,7 +94,7 @@ export {
     runSync,
 }
 
-export default function sync(testFn) {
+export default function sync(testFn: Function) {
     return new Promise((resolve, reject) => {
         return runSync(testFn)(resolve, reject)
     })

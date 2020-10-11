@@ -27,7 +27,7 @@ const STACKTRACE_FILTER = [
  * @param {string} stackRow
  * @returns {boolean}
  */
-export const STACKTRACE_FILTER_FN = (stackRow) => {
+export const STACKTRACE_FILTER_FN = (stackRow: string): boolean => {
     if (stackRow.match(STACK_START)) {
         return !STACKTRACE_FILTER.some(r => stackRow.includes(r))
     }
