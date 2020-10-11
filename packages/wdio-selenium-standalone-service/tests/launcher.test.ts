@@ -4,24 +4,24 @@ import Selenium from 'selenium-standalone'
 import SeleniumStandaloneLauncher from '../src/launcher'
 
 jest.mock('fs-extra', () => ({
-    createWriteStream : jest.fn(),
-    ensureFileSync : jest.fn(),
+    createWriteStream: jest.fn(),
+    ensureFileSync: jest.fn(),
 }))
 
 describe('Selenium standalone launcher', () => {
     beforeEach(() => {
-        (Selenium.install as jest.Mock).mockClear()
+        (Selenium.install as jest.Mock).mockClear();
         (Selenium.start as jest.Mock).mockClear()
     })
 
     describe('onPrepare', () => {
         test('should set correct config properties', async () => {
             const options = {
-                logPath : './',
-                args : { foo : 'foo' },
-                installArgs : { bar : 'bar' },
+                logPath: './',
+                args: { foo: 'foo' },
+                installArgs: { bar: 'bar' },
             }
-            const capabilities = [{ port: 1234 }]
+            const capabilities: any = [{ port: 1234 }]
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true })
@@ -39,11 +39,11 @@ describe('Selenium standalone launcher', () => {
 
         test('should set correct config properties using multiremote', async () => {
             const options = {
-                logPath : './',
-                args : { foo : 'foo' },
-                installArgs : { bar : 'bar' },
+                logPath: './',
+                args: { foo: 'foo' },
+                installArgs: { bar: 'bar' },
             }
-            const capabilities = {
+            const capabilities: any = {
                 browserA: { port: 1234 },
                 browserB: { port: 4321 }
             }
@@ -62,23 +62,23 @@ describe('Selenium standalone launcher', () => {
 
         test('should call selenium install and start', async () => {
             const options = {
-                logPath : './',
-                installArgs : {
-                    version : '3.9.1',
-                    baseURL : 'https://selenium-release.storage.googleapis.com',
-                    drivers : {
-                        chrome : {
-                            version : '2.38',
-                            arch : process.arch,
-                            baseURL : 'https://chromedriver.storage.googleapis.com',
+                logPath: './',
+                installArgs: {
+                    version: '3.9.1',
+                    baseURL: 'https://selenium-release.storage.googleapis.com',
+                    drivers: {
+                        chrome: {
+                            version: '2.38',
+                            arch: process.arch,
+                            baseURL: 'https://chromedriver.storage.googleapis.com',
                         }
                     }
                 },
                 args: {
-                    version : '3.9.1',
-                    drivers : {
-                        chrome : {
-                            version : '2.38',
+                    version: '3.9.1',
+                    drivers: {
+                        chrome: {
+                            version: '2.38',
                         }
                     }
                 }
@@ -94,12 +94,12 @@ describe('Selenium standalone launcher', () => {
 
         test('should skip selenium install', async () => {
             const options = {
-                logPath : './',
+                logPath: './',
                 args: {
-                    version : '3.9.1',
-                    drivers : {
-                        chrome : {
-                            version : '2.38',
+                    version: '3.9.1',
+                    drivers: {
+                        chrome: {
+                            version: '2.38',
                         }
                     }
                 },
@@ -116,8 +116,8 @@ describe('Selenium standalone launcher', () => {
 
         test('should not output the log file', async () => {
             const launcher = new SeleniumStandaloneLauncher({
-                installArgs : {},
-                args : {},
+                installArgs: {},
+                args: {},
             }, [], {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({})
@@ -129,8 +129,8 @@ describe('Selenium standalone launcher', () => {
             const processOnSpy = jest.spyOn(process, 'on')
 
             const launcher = new SeleniumStandaloneLauncher({
-                installArgs : {},
-                args : {}
+                installArgs: {},
+                args: {}
             }, [], {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true })
@@ -144,8 +144,8 @@ describe('Selenium standalone launcher', () => {
     describe('onComplete', () => {
         test('should call process.kill', async () => {
             const launcher = new SeleniumStandaloneLauncher({
-                installArgs : {},
-                args : {},
+                installArgs: {},
+                args: {},
             }, [], {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({})
@@ -163,8 +163,8 @@ describe('Selenium standalone launcher', () => {
 
         test('should not call process.kill in watch mode', async () => {
             const launcher = new SeleniumStandaloneLauncher({
-                installArgs : {},
-                args : {}
+                installArgs: {},
+                args: {}
             }, [], {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true })
@@ -177,9 +177,9 @@ describe('Selenium standalone launcher', () => {
     describe('_redirectLogStream', () => {
         test('should write output to file', async () => {
             const launcher = new SeleniumStandaloneLauncher({
-                logPath : './',
-                installArgs : {},
-                args : {},
+                logPath: './',
+                installArgs: {},
+                args: {},
             }, [], {})
             await launcher.onPrepare({})
 

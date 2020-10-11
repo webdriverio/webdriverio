@@ -2,8 +2,8 @@ import { getFilePath } from '../src/utils'
 import path from 'path'
 
 describe('getFilePath', () => {
-    let basePath = null
-    let defaultFilename = null
+    let basePath: string
+    let defaultFilename: string
 
     beforeAll(() => {
         basePath = process.cwd()

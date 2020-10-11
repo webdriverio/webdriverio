@@ -1,6 +1,8 @@
-import { logger } from '@wdio/logger'
+import logger from '@wdio/logger'
 
-
+declare module 'util' {
+    function promisify<T1, TResult>(fn: (arg1: T1, callback: (err: any, result: TResult) => void) => void): (arg1: T1) => Promise<TResult>;
+}
 import { promisify } from 'util'
 import fs from 'fs-extra'
 import SeleniumStandalone from 'selenium-standalone'
@@ -17,14 +19,12 @@ const DEFAULT_CONNECTION = {
     path: '/wd/hub'
 }
 
-
 export interface Config {
     outputDir?: string,
     watch?: boolean,
 }
 
 export interface SeleniumStandaloneOptions {
-
     logPath?: string;
     installArgs?: any;
     args?: any;
@@ -52,7 +52,7 @@ export default class SeleniumStandaloneLauncher {
         this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
-            await promisify(SeleniumStandalone.install.bind(this.installArgs))
+            await promisify(SeleniumStandalone.install)(this.installArgs)
         }
 
         /**
@@ -68,7 +68,7 @@ export default class SeleniumStandaloneLauncher {
         /**
          * start Selenium Standalone server
          */
-        this.process = promisify(SeleniumStandalone.start.bind(this.args))
+        this.process = await promisify(SeleniumStandalone.start)(this.args)
 
         if (typeof this.logPath === 'string') {
             this._redirectLogStream()
