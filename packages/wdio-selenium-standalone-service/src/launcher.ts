@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { Capabilities } from 'webdriver'
 
 declare module 'util' {
     function promisify<T1, TResult>(fn: (arg1: T1, callback: (err: any, result: TResult) => void) => void): (arg1: T1) => Promise<TResult>;
@@ -30,9 +31,10 @@ export interface SeleniumStandaloneOptions {
     args?: any;
     skipSeleniumInstall?: boolean;
 }
+
 export default class SeleniumStandaloneLauncher {
 
-    capabilities: any
+    capabilities: Capabilities[]
     logPath?: string
     args: Partial<import('selenium-standalone').StartOpts>;
     installArgs: Partial<import('selenium-standalone').InstallOpts>;
@@ -40,7 +42,8 @@ export default class SeleniumStandaloneLauncher {
     watchMode: boolean = false
     process!: SeleniumStandalone.ChildProcess
 
-    constructor(options: SeleniumStandaloneOptions, capabilities: any, config: Config) {
+    constructor(options: SeleniumStandaloneOptions, capabilities: Capabilities[], config: Config) {
+
         this.capabilities = capabilities
         this.logPath = options.logPath || config.outputDir
         this.args = options.args || {}
@@ -63,7 +66,7 @@ export default class SeleniumStandaloneLauncher {
             Array.isArray(this.capabilities)
                 ? this.capabilities
                 : Object.values(this.capabilities)
-        ).forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+        ).forEach((cap: any) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
 
         /**
          * start Selenium Standalone server
