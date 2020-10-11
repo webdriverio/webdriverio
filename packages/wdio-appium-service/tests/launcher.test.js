@@ -2,6 +2,7 @@ import AppiumLauncher from '../src/launcher'
 import childProcess from 'child_process'
 import fs from 'fs-extra'
 
+jest.unmock('@wdio/config')
 jest.mock('child_process', () => ({
     spawn: jest.fn(),
 }))
@@ -112,6 +113,29 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.hostname).toBe('localhost')
             expect(capabilities.browserB.port).toBe(4723)
             expect(capabilities.browserB.path).toBe('/')
+        })
+
+        test('should not override cloud config using multiremote', async () => {
+            const options = {
+                logPath : './',
+                args : { foo : 'foo' },
+                installArgs : { bar : 'bar' },
+            }
+            const capabilities = {
+                browserA: { port: 1234 },
+                browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
+            }
+            const launcher = new AppiumLauncher(options, capabilities, {})
+            launcher._redirectLogStream = jest.fn()
+            await launcher.onPrepare({ watch: true })
+            expect(capabilities.browserA.protocol).toBe('http')
+            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.port).toBe(1234)
+            expect(capabilities.browserA.path).toBe('/')
+            expect(capabilities.browserB.protocol).toBeUndefined()
+            expect(capabilities.browserB.hostname).toBeUndefined()
+            expect(capabilities.browserB.port).toBe(4321)
+            expect(capabilities.browserB.path).toBeUndefined()
         })
 
         test('should respect custom Appium port', async () => {

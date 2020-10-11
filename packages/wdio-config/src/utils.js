@@ -47,6 +47,10 @@ export function isCucumberFeatureWithLineNumber(spec) {
     return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
 }
 
+export function isCloudCapability(cap) {
+    return Boolean(cap && (cap['bstack:options'] || cap['sauce:options'] || cap['tb:options']))
+}
+
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
