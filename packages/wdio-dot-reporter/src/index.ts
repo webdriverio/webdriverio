@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import WDIOReporter from '@wdio/reporter'
-import fs from 'fs'
+import type fs from 'fs'
 
 /**
  * Initialize a new `Dot` matrix test reporter.
