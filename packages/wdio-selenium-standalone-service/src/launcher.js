@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { isCloudCapability } from '@wdio/config'
 
 import { promisify } from 'util'
 import fs from 'fs-extra'
@@ -40,7 +41,7 @@ export default class SeleniumStandaloneLauncher {
             Array.isArray(this.capabilities)
                 ? this.capabilities
                 : Object.values(this.capabilities)
-        ).forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+        ).forEach((cap) => !isCloudCapability(cap.capabilities) && Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
 
         /**
          * start Selenium Standalone server
