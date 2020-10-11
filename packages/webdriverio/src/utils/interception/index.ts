@@ -38,7 +38,6 @@ export default class Interception {
         }
 
         const fn = () => this.calls && this.calls.length > 0
-        // TODO: fix unknown type when Timer is typed
         const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<void>
 
         return this.browser.call(() => timer.catch((e) => {
