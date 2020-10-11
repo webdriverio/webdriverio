@@ -1,3 +1,4 @@
+/// <reference types="webdriverio/webdriverio"/>
 import path from 'path'
 import logger from '@wdio/logger'
 import WebDriver, { DEFAULTS } from 'webdriver'

@@ -1,4 +1,3 @@
-/// <reference types="webdriverio/webdriverio"/>
 import Timer from '../Timer'
 
 type FilterOptions = {
