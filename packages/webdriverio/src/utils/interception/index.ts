@@ -1,17 +1,10 @@
+/// <reference types="webdriverio/webdriverio"/>
 import Timer from '../Timer'
 
 type FilterOptions = {
     method?: string;
     header?: object;
     responseHeaders?: object;
-};
-
-type Browser = {
-    options: {
-        waitforTimeout: number;
-        waitforInterval: number;
-    };
-    call: (cb: () => void) => void;
 };
 
 type WaitForResponseFn = {
@@ -23,7 +16,7 @@ type WaitForResponseFn = {
 export default class Interception {
     url: string;
     filterOptions: FilterOptions;
-    browser: Browser;
+    browser: WebdriverIO.Browser;
     respondOverwrites: {
         overwrite: any;
         params: object;
@@ -33,7 +26,7 @@ export default class Interception {
     matches: any[];
     calls?: any[];
 
-    constructor (url: string, filterOptions = {}, browser: Browser) {
+    constructor (url: string, filterOptions = {}, browser: WebdriverIO.Browser) {
         this.url = url
         this.filterOptions = filterOptions
         this.browser = browser
