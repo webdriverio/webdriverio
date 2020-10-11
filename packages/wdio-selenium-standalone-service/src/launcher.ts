@@ -75,9 +75,9 @@ export default class SeleniumStandaloneLauncher {
         }
 
         if (this.watchMode) {
-            this.process.on('SIGINT', this._stopProcess)
-            this.process.on('exit', this._stopProcess)
-            this.process.on('uncaughtException', this._stopProcess)
+            process.on('SIGINT', this._stopProcess)
+            process.on('exit', this._stopProcess)
+            process.on('uncaughtException', this._stopProcess)
         }
     }
 
