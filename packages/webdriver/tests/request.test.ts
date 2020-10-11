@@ -115,7 +115,7 @@ describe('webdriver request', () => {
             expect((options.url! as URL).href)
                 .toBe('https://localhost:4445/session/foobar12345/element')
             expect(Object.keys(options.headers as Record<string, string>))
-                .toEqual(['Connection', 'Accept', 'User-Agent', 'foo', 'Content-Length'])
+                .toEqual(['Content-Type', 'Connection', 'Accept', 'User-Agent', 'foo', 'Content-Length'])
             expect(options.timeout).toBe(10 * 1000)
         })
 
@@ -202,7 +202,7 @@ describe('webdriver request', () => {
                 logLevel: 'warn'
             })
             expect(Object.keys(options.headers as Record<string, string>))
-                .toEqual(['Connection', 'Accept', 'User-Agent', 'Content-Length'])
+                .toEqual(['Content-Type', 'Connection', 'Accept', 'User-Agent', 'Content-Length'])
             expect((options.headers as Record<string, string>)['Content-Length']).toBe('13')
         })
 
