@@ -1,29 +1,17 @@
 import Timer from '../Timer'
 
-type FilterOptions = {
-    method?: string;
-    header?: object;
-    responseHeaders?: object;
-};
-
-type WaitForResponseFn = {
-    timeout?: number;
-    interval?: number;
-    timeoutMsg?: string;
-}
-
 export default class Interception {
     url: string;
-    filterOptions: FilterOptions;
+    filterOptions: WebdriverIO.MockFilterOptions;
     browser: WebdriverIO.Browser;
     respondOverwrites: {
-        overwrite: any;
-        params: object;
-        sticky: boolean;
-        errorReason: string;
+        overwrite?: WebdriverIO.MockOverwrite;
+        params?: WebdriverIO.MockResponseParams;
+        sticky?: boolean;
+        errorReason?: string;
     }[];
-    matches: any[];
-    calls?: any[];
+    matches: WebdriverIO.Matches[];
+    calls?: WebdriverIO.Matches[];
 
     constructor (url: string, filterOptions = {}, browser: WebdriverIO.Browser) {
         this.url = url
@@ -37,7 +25,7 @@ export default class Interception {
         timeout = this.browser.options.waitforTimeout,
         interval = this.browser.options.waitforInterval,
         timeoutMsg,
-    }: WaitForResponseFn = {}) {
+    }: WebdriverIO.WaitForOptions = {}) {
         /*!
          * ensure that timeout and interval are set properly
          */
@@ -50,6 +38,7 @@ export default class Interception {
         }
 
         const fn = () => this.calls && this.calls.length > 0
+        // TODO: fix unknown type when Timer is typed
         const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<void>
 
         return this.browser.call(() => timer.catch((e) => {
