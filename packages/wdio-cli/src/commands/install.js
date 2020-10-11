@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 import yarnInstall from 'yarn-install'
 
@@ -7,9 +7,9 @@ import {
     replaceConfig,
     findInConfig,
     addServiceDeps,
-    convertPackageHashToObject,
-    missingConfigurationPrompt
+    convertPackageHashToObject
 } from '../utils'
+import { missingConfigurationPrompt } from './config'
 
 import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants'
 

@@ -35,9 +35,6 @@
       "junit-reporter": {
         "title": "Junit Reporter"
       },
-      "rpii-wdio-html-reporter": {
-        "title": "HTML Reporter"
-      },
       "sauce-service": {
         "title": "Sauce Service"
       },
@@ -59,57 +56,6 @@
       "testingbot-service": {
         "title": "Testingbot Service"
       },
-      "wdio-chromedriver-service": {
-        "title": "ChromeDriver Service"
-      },
-      "wdio-cucumberjs-json-reporter": {
-        "title": "CucumberJS JSON Reporter"
-      },
-      "wdio-docker-service": {
-        "title": "Docker Service"
-      },
-      "wdio-image-comparison-service": {
-        "title": "Visual Regression Testing Service"
-      },
-      "wdio-intercept-service": {
-        "title": "Intercept Service"
-      },
-      "wdio-json-reporter": {
-        "title": "JSON Reporter"
-      },
-      "wdio-lambdatest-service": {
-        "title": "LambdaTest Service"
-      },
-      "wdio-markdown-reporter": {
-        "title": "Markdown Reporter"
-      },
-      "wdio-mochawesome-reporter": {
-        "title": "Mochawesome Reporter"
-      },
-      "wdio-ng-apimock-service": {
-        "title": "Ng-apimock Service"
-      },
-      "wdio-reportportal-reporter": {
-        "title": "Report Portal Reporter"
-      },
-      "wdio-reportportal-service": {
-        "title": "Report Portal Service"
-      },
-      "wdio-slack-service": {
-        "title": "Slack Service"
-      },
-      "wdio-timeline-reporter": {
-        "title": "Timeline Reporter"
-      },
-      "wdio-video-reporter": {
-        "title": "Video Reporter"
-      },
-      "wdio-wiremock-service": {
-        "title": "WireMock Service"
-      },
-      "wdio-zafira-listener-service": {
-        "title": "Zafira Listener Service"
-      },
       "webdriver-mock-service": {
         "title": "Webdriver Mock Service"
       },
@@ -121,6 +67,9 @@
       },
       "api/chromium": {
         "title": "Chromium"
+      },
+      "api/expect-webdriverio": {
+        "title": "Expect"
       },
       "api/jsonwp": {
         "title": "JSON Wire Protocol"
@@ -142,6 +91,9 @@
       },
       "api/browser/$$": {
         "title": "$$"
+      },
+      "api/browser/addCommand": {
+        "title": "addCommand"
       },
       "api/browser/call": {
         "title": "call"
@@ -167,14 +119,23 @@
       "api/browser/getCookies": {
         "title": "getCookies"
       },
+      "api/browser/getPuppeteer": {
+        "title": "getPuppeteer"
+      },
       "api/browser/getWindowSize": {
         "title": "getWindowSize"
       },
       "api/browser/keys": {
         "title": "keys"
       },
+      "api/browser/mock": {
+        "title": "mock"
+      },
       "api/browser/newWindow": {
         "title": "newWindow"
+      },
+      "api/browser/overwriteCommand": {
+        "title": "overwriteCommand"
       },
       "api/browser/pause": {
         "title": "pause"
@@ -205,6 +166,9 @@
       },
       "api/browser/switchWindow": {
         "title": "switchWindow"
+      },
+      "api/browser/throttle": {
+        "title": "throttle"
       },
       "api/browser/touchAction": {
         "title": "touchAction"
@@ -347,8 +311,23 @@
       "api/element/waitUntil": {
         "title": "waitUntil"
       },
-      "api/expect": {
-        "title": "Expect"
+      "api/mock/abort": {
+        "title": "abort"
+      },
+      "api/mock/abortOnce": {
+        "title": "abortOnce"
+      },
+      "api/mock/clear": {
+        "title": "clear"
+      },
+      "api/mock/respond": {
+        "title": "respond"
+      },
+      "api/mock/respondOnce": {
+        "title": "respondOnce"
+      },
+      "api/mock/restore": {
+        "title": "restore"
       },
       "assertion": {
         "title": "Assertion"
@@ -361,6 +340,9 @@
       },
       "babel": {
         "title": "Babel Setup"
+      },
+      "bamboo": {
+        "title": "Bamboo Integration"
       },
       "boilerplate": {
         "title": "Boilerplate Projects"
@@ -392,6 +374,66 @@
       "debugging": {
         "title": "Debugging"
       },
+      "docs/rpii-wdio-html-reporter": {
+        "title": "HTML Reporter"
+      },
+      "docs/wdio-chromedriver-service": {
+        "title": "ChromeDriver Service"
+      },
+      "docs/wdio-cucumberjs-json-reporter": {
+        "title": "CucumberJS JSON Reporter"
+      },
+      "docs/wdio-docker-service": {
+        "title": "Docker Service"
+      },
+      "docs/wdio-image-comparison-service": {
+        "title": "Visual Regression Testing Service"
+      },
+      "docs/wdio-intercept-service": {
+        "title": "Intercept Service"
+      },
+      "docs/wdio-json-reporter": {
+        "title": "JSON Reporter"
+      },
+      "docs/wdio-lambdatest-service": {
+        "title": "LambdaTest Service"
+      },
+      "docs/wdio-markdown-reporter": {
+        "title": "Markdown Reporter"
+      },
+      "docs/wdio-mochawesome-reporter": {
+        "title": "Mochawesome Reporter"
+      },
+      "docs/wdio-ng-apimock-service": {
+        "title": "Ng-apimock Service"
+      },
+      "docs/wdio-novus-visual-regression-service": {
+        "title": "Novus Visual Regression Service"
+      },
+      "docs/wdio-reportportal-reporter": {
+        "title": "Report Portal Reporter"
+      },
+      "docs/wdio-reportportal-service": {
+        "title": "Report Portal Service"
+      },
+      "docs/wdio-rerun-service": {
+        "title": "Re-run Service"
+      },
+      "docs/wdio-slack-service": {
+        "title": "Slack Service"
+      },
+      "docs/wdio-timeline-reporter": {
+        "title": "Timeline Reporter"
+      },
+      "docs/wdio-video-reporter": {
+        "title": "Video Reporter"
+      },
+      "docs/wdio-wiremock-service": {
+        "title": "WireMock Service"
+      },
+      "docs/wdio-zafira-listener-service": {
+        "title": "Zafira Listener Service"
+      },
       "driverbinaries": {
         "title": "Driver Binaries"
       },
@@ -419,8 +461,14 @@
       "gettingstarted": {
         "title": "Getting Started"
       },
+      "githubactions": {
+        "title": "Github Actions"
+      },
       "jenkins": {
         "title": "Jenkins Integration"
+      },
+      "mocksandspies": {
+        "title": "Mocks and Spies (Beta)"
       },
       "multiremote": {
         "title": "Multiremote"
@@ -488,6 +536,7 @@
       "Protocols": "Protocols",
       "browser": "browser",
       "element": "element",
+      "mock": "mock",
       "Flowcharts": "Flowcharts"
     }
   },

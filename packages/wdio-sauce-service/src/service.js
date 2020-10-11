@@ -1,5 +1,6 @@
 import SauceLabs from 'saucelabs'
 import logger from '@wdio/logger'
+import { isUnifiedPlatform } from './utils'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 
@@ -37,15 +38,23 @@ export default class SauceService {
         }
     }
 
+    before() {
+        this.isUP = isUnifiedPlatform(global.browser.capabilities)
+    }
+
     beforeSuite (suite) {
         this.suiteTitle = suite.title
-        if (this.options.setJobNameInBeforeSuite) {
+        if (this.options.setJobNameInBeforeSuite && !this.isUP) {
             global.browser.execute('sauce:job-name=' + this.suiteTitle)
         }
     }
 
     beforeTest (test) {
-        if (!this.isServiceEnabled || this.isRDC) {
+        /**
+         * Date:    20200714
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
+        if (!this.isServiceEnabled || this.isRDC || this.isUP) {
             return
         }
 
@@ -56,7 +65,7 @@ export default class SauceService {
          */
         /* istanbul ignore if */
         if (this.suiteTitle === 'Jasmine__TopLevel__Suite') {
-            this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
+            this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.description) - 1)
         }
 
         const fullTitle = (
@@ -88,7 +97,11 @@ export default class SauceService {
      * For CucumberJS
      */
     beforeFeature (uri, feature) {
-        if (!this.isServiceEnabled || this.isRDC) {
+        /**
+         * Date:    20200714
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
+        if (!this.isServiceEnabled || this.isRDC || this.isUP) {
             return
         }
 
@@ -97,7 +110,11 @@ export default class SauceService {
     }
 
     beforeScenario (uri, feature, scenario) {
-        if (!this.isServiceEnabled || this.isRDC) {
+        /**
+         * Date:    20200714
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
+        if (!this.isServiceEnabled || this.isRDC || this.isUP) {
             return
         }
 
@@ -130,15 +147,14 @@ export default class SauceService {
         }
 
         const status = 'status: ' + (failures > 0 ? 'failing' : 'passing')
-
         if (!global.browser.isMultiremote) {
             log.info(`Update job with sessionId ${global.browser.sessionId}, ${status}`)
-            return this.updateJob(global.browser.sessionId, failures)
+            return this.isUP ? this.updateUP(failures) : this.updateJob(global.browser.sessionId, failures)
         }
 
         return Promise.all(Object.keys(this.capabilities).map((browserName) => {
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${global.browser[browserName].sessionId}, ${status}`)
-            return this.updateJob(global.browser[browserName].sessionId, failures, false, browserName)
+            return this.isUP ? this.updateUP(failures) : this.updateJob(global.browser[browserName].sessionId, failures, false, browserName)
         }))
     }
 
@@ -212,5 +228,14 @@ export default class SauceService {
 
         body.passed = failures === 0
         return body
+    }
+
+    /**
+     * Update the UP with the JS-executor
+     * @param {number} failures
+     * @returns {*}
+     */
+    updateUP(failures){
+        return global.browser.execute(`sauce:job-result=${failures === 0}`)
     }
 }

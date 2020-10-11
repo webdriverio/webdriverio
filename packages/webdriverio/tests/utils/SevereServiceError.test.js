@@ -8,7 +8,7 @@ describe('SevereServiceError', () => {
 
     it('should provide a default error message', () => {
         const err = new SevereServiceError()
-        expect(err.message).toBe('Sever Service Error occurred.')
+        expect(err.message).toBe('Severe Service Error occurred.')
     })
 
     it('should accept a custom error message', () => {

@@ -51,11 +51,11 @@ it('should test something', () => {
 })
 ```
 
-If you want to run something asynchronously, you can either use the [`browser.call`](call) command or [custom commands](CustomCommands.md).
+If you want to run something asynchronously, you can either use the [`browser.call`](api/browser/call.html) command or [custom commands](CustomCommands.md).
 
 ### Mocha Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment:
+The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. The following options however are supported:
 
 #### require
 The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).

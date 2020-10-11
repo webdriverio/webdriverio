@@ -17,7 +17,8 @@ title: <?= method.command ?>
 
 ```js
 <? if (method.isElementScope) {
-?>$(selector).<?= method.command ?>(<?= method.paramString ?>)<? } else {
+?>$(selector).<?= method.command ?>(<?= method.paramString ?>)<? } else if (method.isMockScope) {
+?>mock.<?= method.command ?>(<?= method.paramString ?>)<? } else {
 ?><?= method.isMobile ? 'driver' : 'browser' ?>.<?= method.command ?>(<?= method.paramString ?>)<? } ?>
 ```
 
@@ -27,7 +28,9 @@ title: <?= method.command ?>
 | Name | Type | Details |
 | ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
-    var paramKey = (paramTag.types && paramTag.typesDescription) ? paramTag.typesDescription : paramTag.type
+    var paramKey = paramTag.types
+        ? paramTag.types.map((type) => `<code>${type.replace(/>/g, "&gt;").replace(/</g, "&lt;")}</code>`).join('|')
+        : paramTag.type
     ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br><span class="label labelWarning">optional</span><? }
     ?> | <?= paramKey.split('|').join(', ').replace('(', '').replace(')', '')
     ?> | <?= paramTag.description ?> |

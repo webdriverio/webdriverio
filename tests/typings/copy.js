@@ -32,11 +32,13 @@ const packages = {
     '@wdio/firefox-profile-service': 'packages/wdio-firefox-profile-service',
     '@wdio/jasmine-framework': 'packages/wdio-jasmine-framework',
     '@wdio/mocha-framework': 'packages/wdio-mocha-framework',
+    '@wdio/protocols': 'packages/wdio-protocols',
     '@wdio/sauce-service': 'packages/wdio-sauce-service',
     '@wdio/selenium-standalone-service': 'packages/wdio-selenium-standalone-service',
     '@wdio/shared-store-service': 'packages/wdio-shared-store-service',
     '@wdio/static-server-service': 'packages/wdio-static-server-service',
-    '@wdio/testingbot-service': 'packages/wdio-testingbot-service'
+    '@wdio/testingbot-service': 'packages/wdio-testingbot-service',
+    '@types/puppeteer': 'packages/webdriverio/node_modules/@types/puppeteer'
 }
 
 const artifactDirs = ['node_modules', 'dist']

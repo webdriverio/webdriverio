@@ -14,7 +14,7 @@ The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependenc
 ```json
 {
     "devDependencies": {
-        "@wdio/selenium-standalone-service": "^5.0.0"
+        "@wdio/selenium-standalone-service": "^6.6.1"
     }
 }
 ```
@@ -33,23 +33,19 @@ By default, Google Chrome and Firefox are available when installed on the host s
 
 ```js
 // wdio.conf.js
+const drivers = {
+    chrome: { version: '86.0.4240.22' }, // https://chromedriver.chromium.org/
+    firefox: { version: '0.27.0' } // https://github.com/mozilla/geckodriver/releases
+    chromiumedge: { version: '85.0.564.70' } // https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
+}
+
 export.config = {
     // ...
     services: [
         ['selenium-standalone', {
             logPath: 'logs',
-            installArgs: {
-                drivers: {
-                    chrome: { version: '79.0.3945.88' },
-                    firefox: { version: '0.26.0' }
-                }
-            },
-            args: {
-                drivers: {
-                    chrome: { version: '79.0.3945.88' },
-                    firefox: { version: '0.26.0' }
-                }
-            },
+            installArgs: { drivers },
+            args: { drivers },
         }]
     ],
     // ...
@@ -78,6 +74,9 @@ export.config = {
         port: 5555
     }, {
         browserName: 'firefox',
+        port: 5555
+    }, {
+        browserName: 'MicrosoftEdge',
         port: 5555
     }]
     // ...
@@ -114,7 +113,7 @@ args: {
     version : "3.141.59",
     drivers : {
         chrome : {
-            version : "79.0.3945.88",
+            version : "86.0.4240.22",
             arch    : process.arch,
         }
     }
@@ -137,7 +136,7 @@ installArgs: {
     baseURL : "https://selenium-release.storage.googleapis.com",
     drivers : {
         chrome : {
-            version : "77.0.3865.40",
+            version : "86.0.4240.22",
             arch    : process.arch,
             baseURL : "https://chromedriver.storage.googleapis.com",
         }

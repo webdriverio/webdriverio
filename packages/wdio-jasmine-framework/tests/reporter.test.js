@@ -1,4 +1,8 @@
+import logger from '@wdio/logger'
+
 import JasmineReporter from '../src/reporter'
+
+const log = logger()
 
 let jasmineReporter
 let runnerReporter
@@ -34,6 +38,12 @@ test('specStarted', () => {
     expect(runnerReporter.emit.mock.calls[1][1].title).toBe('some test spec')
     expect(runnerReporter.emit.mock.calls[1][1].type).toBe('test')
     expect(jasmineReporter.parent[0].tests).toBe(1)
+})
+
+test('specStarted without root describe', () => {
+    jasmineReporter.specStarted({ id: 24, description: 'some test spec' })
+    expect(jasmineReporter.parent).toHaveLength(0)
+    expect(log.warn).toBeCalledTimes(1)
 })
 
 test('specDone', () => {

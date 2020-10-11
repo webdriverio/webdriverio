@@ -1,5 +1,7 @@
+import fs from 'fs'
 import http from 'http'
 import path from 'path'
+
 import { ELEMENT_KEY } from '../src/constants'
 import {
     getElementFromResponse,
@@ -14,7 +16,8 @@ import {
     getAbsoluteFilepath,
     assertDirectoryExists,
     validateUrl,
-    getAutomationProtocol
+    getAutomationProtocol,
+    updateCapabilities
 } from '../src/utils'
 
 jest.mock('http', () => {
@@ -31,8 +34,9 @@ jest.mock('http', () => {
     }
 })
 
-describe('utils', () => {
+jest.mock('fs')
 
+describe('utils', () => {
     describe('getElementFromResponse', () => {
         it('should return null if response is null', () => {
             expect(getElementFromResponse(null)).toBe(null)
@@ -105,6 +109,24 @@ describe('utils', () => {
             expect(transformToCharString('Back space')).toEqual(['\uE003'])
             expect(transformToCharString('Backspace')).toEqual(['\uE003'])
             expect(transformToCharString('Pageup')).toEqual(['\uE00E'])
+        })
+
+        it('should transform string without converting to unicode', () => {
+            expect(transformToCharString('Delete', false)).toEqual(
+                ['D', 'e', 'l', 'e', 't', 'e'])
+            expect(transformToCharString('Back space', false)).toEqual(
+                ['B', 'a', 'c', 'k', ' ', 's', 'p', 'a', 'c', 'e'])
+            expect(transformToCharString('Backspace', false)).toEqual(
+                ['B', 'a', 'c', 'k', 's', 'p', 'a', 'c', 'e'])
+            expect(transformToCharString('Pageup', false)).toEqual(
+                ['P', 'a', 'g', 'e', 'u', 'p'])
+        })
+
+        it('should transform string with converting to unicode', () => {
+            expect(transformToCharString('Delete', true)).toEqual(['\uE017'])
+            expect(transformToCharString('Back space', true)).toEqual(['\uE003'])
+            expect(transformToCharString('Backspace', true)).toEqual(['\uE003'])
+            expect(transformToCharString('Pageup', true)).toEqual(['\uE00E'])
         })
     })
 
@@ -458,6 +480,11 @@ describe('utils', () => {
     })
 
     describe('assertDirectoryExists', () => {
+        beforeEach(() => {
+            const fsOrig = jest.requireActual('fs')
+            fs.existsSync.mockImplementation(fsOrig.existsSync.bind(fsOrig))
+        })
+
         it('should fail if not existing directory', () => {
             expect(() => assertDirectoryExists('/i/dont/exist.png')).toThrowError(new Error('directory (/i/dont) doesn\'t exist'))
         })
@@ -509,6 +536,39 @@ describe('utils', () => {
             http.setResponse({ statusCode: 404 })
             expect(await getAutomationProtocol({ capabilities: { browserName: 'foobar' } }))
                 .toBe('webdriver')
+        })
+    })
+
+    describe('updateCapabilities', () => {
+        it('should do nothing if no browser specified', async () => {
+            const params = { capabilities: {} }
+            await updateCapabilities(params)
+            expect(params).toMatchSnapshot()
+        })
+
+        describe('setting devtools port in Firefox', () => {
+            it('should set firefox options if there aren\'t any', async () => {
+                const params = { capabilities: { browserName: 'firefox' } }
+                await updateCapabilities(params, 'webdriver')
+                expect(params).toMatchSnapshot()
+
+                const params2 = { capabilities: { browserName: 'firefox' } }
+                await updateCapabilities(params2, 'devtools')
+                expect(params2).toMatchSnapshot()
+            })
+
+            it('should not overwrite if already set', async () => {
+                const params = {
+                    capabilities: {
+                        browserName: 'firefox',
+                        'moz:firefoxOptions': {
+                            args: ['foo', 'bar', '-remote-debugging-port', 1234, 'barfoo']
+                        }
+                    }
+                }
+                await updateCapabilities(params)
+                expect(params).toMatchSnapshot()
+            })
         })
     })
 })

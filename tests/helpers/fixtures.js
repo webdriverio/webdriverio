@@ -41,6 +41,9 @@ onRunnerEnd
 export const JASMINE_REPORTER_LOGS = `onRunnerStart
 onHookStart
 onHookEnd
+onTestStart
+onTestPass
+onTestEnd
 onSuiteStart
 onHookStart
 onHookEnd

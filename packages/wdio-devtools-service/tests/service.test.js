@@ -5,7 +5,6 @@ import DevToolsService from '../src'
 import Auditor from '../src/auditor'
 
 import logger from '@wdio/logger'
-import { getCDPClient } from '../src/utils'
 
 jest.mock('../src/commands', () => {
     class CommandHandlerMock {
@@ -32,13 +31,6 @@ jest.mock('../src/utils', () => {
     const { isBrowserSupported } = jest.requireActual('../src/utils')
     let wasCalled = false
 
-    const cdpClientMock = {
-        Network: { enable: jest.fn() },
-        Console: { enable: jest.fn() },
-        Page: { enable: jest.fn() },
-        on: jest.fn()
-    }
-
     return {
         findCDPInterface: jest.fn().mockImplementation(() => {
             if (!wasCalled) {
@@ -47,14 +39,26 @@ jest.mock('../src/utils', () => {
             }
             throw new Error('boom')
         }),
-        getCDPClient: jest.fn().mockReturnValue(cdpClientMock),
-        isBrowserSupported
+        isBrowserSupported,
+        setUnsupportedCommand: jest.fn()
     }
 })
 
+const pageMock = {
+    setCacheEnabled: jest.fn(),
+    emulate: jest.fn()
+}
+const sessionMock = { send: jest.fn() }
 const log = logger()
 
 beforeEach(() => {
+    global.browser = {
+        getPuppeteer: jest.fn(() => puppeteer.connect({})),
+        addCommand: jest.fn(),
+        emit: jest.fn()
+    }
+
+    sessionMock.send.mockClear()
     log.error.mockClear()
 })
 
@@ -76,66 +80,38 @@ test('beforeSession', () => {
 })
 
 test('if not supported by browser', async () => {
-    global.browser = { addCommand: jest.fn() }
-
     const service = new DevToolsService({}, [{}], {})
     service.isSupported = false
 
-    await service.before()
-    expect(global.browser.addCommand.mock.calls).toHaveLength(1)
-    expect(global.browser.addCommand.mock.calls[0][0]).toBe('cdp')
-    expect(global.browser.addCommand.mock.calls[0][1].toString()).toContain('throw new Error')
+    await service._setupHandler()
+    expect(global.browser.addCommand.mock.calls).toHaveLength(0)
 })
 
 test('if supported by browser', async () => {
-    global.browser = { addCommand: jest.fn() }
     const service = new DevToolsService({}, [{}], {})
     service.isSupported = true
-    await service.before()
-    expect(service.client.Network.enable).toBeCalledTimes(1)
-    service.client.Network.enable.mockClear()
-    expect(service.client.Console.enable).toBeCalledTimes(1)
-    service.client.Console.enable.mockClear()
-    expect(service.client.Page.enable).toBeCalledTimes(1)
-    service.client.Page.enable.mockClear()
-})
-
-test('initialised with the debuggerAddress as option', async () => {
-    const options = {
-        debuggerAddress: 'localhost:4444'
-    }
-    global.browser = { addCommand: jest.fn() }
-    const service = new DevToolsService(options)
-    service.isSupported = true
-    await service.before()
-    expect(getCDPClient).toBeCalledWith({ host: 'localhost', port: 4444 })
-    expect(service.client.Network.enable).toBeCalledTimes(1)
-    expect(service.client.Console.enable).toBeCalledTimes(1)
-    expect(service.client.Page.enable).toBeCalledTimes(1)
-
+    await service._setupHandler()
+    expect(service.session.send).toBeCalledWith('Network.enable')
+    expect(service.session.send).toBeCalledWith('Console.enable')
+    expect(service.session.send).toBeCalledWith('Page.enable')
     expect(global.browser.addCommand).toBeCalledWith(
         'enablePerformanceAudits', expect.any(Function))
     expect(global.browser.addCommand).toBeCalledWith(
         'disablePerformanceAudits', expect.any(Function))
     expect(global.browser.addCommand).toBeCalledWith(
         'emulateDevice', expect.any(Function))
-    expect(global.browser.addCommand).toBeCalledWith(
-        'getPuppeteer', expect.any(Function))
 
-    // returns puppeteer instance
-    const getPuppeteerFn = global.browser.addCommand.mock.calls.pop().pop()
-    expect(getPuppeteerFn().constructor.name).toBe('DevToolsDriver')
-})
+    const rawEventListener = service.puppeteer._connection._transport._ws.addEventListener
+    expect(rawEventListener).toBeCalledTimes(1)
+    expect(rawEventListener).toBeCalledWith('message', expect.any(Function))
 
-test('initialization fails', async () => {
-    global.browser = { addCommand: jest.fn() }
-
-    const service = new DevToolsService({}, [{}], {})
-    service.isSupported = true
-    await service.before()
-
-    expect(service.commandHandler).toBe(undefined)
-    expect(log.error.mock.calls.pop()[0]).toContain('Couldn\'t connect to chrome: Error: boom')
+    const rawWsEvent = rawEventListener.mock.calls.pop().pop()
+    service.devtoolsGatherer = { onMessage: jest.fn() }
+    rawWsEvent({ data: '{"method": "foo", "params": "bar"}' })
+    expect(service.devtoolsGatherer.onMessage).toBeCalledTimes(1)
+    expect(service.devtoolsGatherer.onMessage).toBeCalledWith({ method:'foo', params: 'bar' })
+    expect(global.browser.emit).toBeCalledTimes(1)
+    expect(global.browser.emit).toBeCalledWith('foo', 'bar')
 })
 
 test('beforeCommand', () => {
@@ -207,7 +183,6 @@ test('afterCommand: should create a new auditor instance and should update the b
 
     const auditor = new Auditor()
     expect(auditor.updateCommands).toBeCalledWith('some browser')
-    delete global.browser
 })
 
 test('afterCommand: should update browser commands even if failed', () => {
@@ -221,7 +196,6 @@ test('afterCommand: should update browser commands even if failed', () => {
 
     const auditor = new Auditor()
     expect(auditor.updateCommands).toBeCalledWith('some browser', expect.any(Function))
-    delete global.browser
 })
 
 test('afterCommand: should continue with command after tracingFinished was emitted', async () => {
@@ -282,17 +256,14 @@ test('_disablePerformanceAudits', () => {
 })
 
 test('_setThrottlingProfile', async () => {
-    const pageMock = { setCacheEnabled: jest.fn() }
     const service = new DevToolsService({}, [{}], {})
-    service.devtoolsDriver = {
-        getActivePage: jest.fn().mockReturnValue(Promise.resolve(pageMock)),
-        send: jest.fn()
-    }
+    service.page = pageMock
+    service.session = sessionMock
 
     await service._setThrottlingProfile('Good 3G', 4, true)
     expect(pageMock.setCacheEnabled).toBeCalledWith(true)
-    expect(service.devtoolsDriver.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 4 })
-    expect(service.devtoolsDriver.send).toBeCalledWith('Network.emulateNetworkConditions', {
+    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 4 })
+    expect(sessionMock.send).toBeCalledWith('Network.emulateNetworkConditions', {
         downloadThroughput: 188743,
         latency: 562.5,
         offline: false,
@@ -302,16 +273,14 @@ test('_setThrottlingProfile', async () => {
 
 test('_emulateDevice', async () => {
     const service = new DevToolsService({}, [{}], {})
-    service.devtoolsDriver = await puppeteer.connect()
-    service.devtoolsDriver.devices = puppeteer.devices
+    service.page = pageMock
+    service.session = sessionMock
     await service._emulateDevice('Nexus 6P')
 
-    const page = service.devtoolsDriver.getActivePage()
-    expect(page.emulate.mock.calls).toMatchSnapshot()
-
-    page.emulate.mockClear()
+    expect(pageMock.emulate.mock.calls).toMatchSnapshot()
+    pageMock.emulate.mockClear()
     await service._emulateDevice({ foo: 'bar' })
-    expect(page.emulate.mock.calls).toEqual([[{ foo: 'bar' }]])
+    expect(pageMock.emulate.mock.calls).toEqual([[{ foo: 'bar' }]])
 
     const isSuccessful = await service._emulateDevice('not existing').then(
         () => true,
@@ -319,6 +288,19 @@ test('_emulateDevice', async () => {
     expect(isSuccessful).toBe(false)
 })
 
+test('before hook', async () => {
+    const service = new DevToolsService({}, [{}], {})
+    service._setupHandler = jest.fn()
+    service.before()
+    expect(service._setupHandler).toBeCalledTimes(1)
+})
+
+test('onReload hook', async () => {
+    const service = new DevToolsService({}, [{}], {})
+    service._setupHandler = jest.fn()
+    service.onReload()
+    expect(service._setupHandler).toBeCalledTimes(1)
+})
+
 afterEach(() => {
-    delete global.browser
 })

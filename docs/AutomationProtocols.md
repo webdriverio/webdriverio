@@ -42,6 +42,7 @@ There are also plenty of services that allow you to run your automation test in 
 
 - Not designed for in-depth browser analysis (e.g., tracing or intercepting network events)
 - Limited set of automation capabilities (e.g., no support to throttle CPU or network)
+- Additional effort to set up browser driver with selenium-standalone/chromedriver/etc
 
 ## DevTools Protocol
 
@@ -55,13 +56,7 @@ The communication happens without any proxy, directly to the browser using WebSo
 
 WebdriverIO allows you to use the DevTools capabilities as an alternative automation technology for WebDriver if you have special requirements to automate the browser. With the [`devtools`](https://www.npmjs.com/package/devtools) NPM package, you can use the same commands that WebDriver provides, which then can be used by WebdriverIO and the WDIO testrunner to run its useful commands on top of that protocol. It uses Puppeteer to under the hood and allows you to run a sequence of commands with Puppeteer if needed.
 
-To use DevTools as your automation protocol, you have to install the NPM package as follows:
-
-```sh
-$ npm i --save-dev devtools
-```
-
-In your WebdriverIO options you then just need to switch the `automationProtocol` flag to `devtools` in your `wdio.conf.js`:
+To use DevTools as your automation protocol switch the `automationProtocol` flag to `devtools` in your `wdio.conf.js`:
 
 ```js
 // wdio.conf.js
@@ -71,6 +66,8 @@ exports.config = {
     // ...
 }
 ```
+
+NOTE: there is no need to have neither `selenium-standalone` nor `chromedriver` services installed.
 
 Now you can run a test (as shown below).
 
@@ -83,9 +80,11 @@ describe('my test', () => {
         // WebDriver command
         browser.url('https://webdriver.io')
 
+        // get <Puppeteer.Browser> instance (https://pptr.dev/#?product=Puppeteer&version=v5.2.1&show=api-class-browser)
+        const puppeteerBrowser = browser.getPuppeteer()
+
         // switch to Puppeteer to intercept requests
         browser.call(async () => {
-            const puppeteerBrowser = browser.getPuppeteer()
             const page = (await puppeteerBrowser.pages())[0]
             await page.setRequestInterception(true)
             page.on('request', interceptedRequest => {

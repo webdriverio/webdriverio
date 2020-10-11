@@ -1,3 +1,5 @@
+import fs from 'fs'
+
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 
 /**
@@ -221,3 +223,27 @@ export function isBase64(str) {
       firstPaddingChar === len - 1 ||
       (firstPaddingChar === len - 2 && str[len - 1] === '=')
 }
+
+/**
+ * Helper utility to check file access
+ * @param {String} file file to check access for
+ * @return              true if file can be accessed
+ */
+export const canAccess = (file) => {
+    if (!file) {
+        return false
+    }
+
+    try {
+        fs.accessSync(file)
+        return true
+    } catch (e) {
+        return false
+    }
+}
+
+/**
+ * sleep
+ * @param {number=0} ms number in ms to sleep
+ */
+export const sleep = (ms = 0) => new Promise((r) => setTimeout(r, ms))

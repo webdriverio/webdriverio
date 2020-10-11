@@ -35,7 +35,7 @@ export default async function executeAsyncScript ({ script, args }) {
         scriptTimeout,
         SERIALIZE_PROPERTY,
         SERIALIZE_FLAG,
-        ...transformExecuteArgs.call(this, args)
+        ...(await transformExecuteArgs.call(this, args))
     )
 
     return transformExecuteResult.call(this, page, result)

@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import yargs from 'yargs'
 import * as runCmd from './../../src/commands/run'
-import * as utils from './../../src/utils'
+import * as configCmd from './../../src/commands/config'
 
 jest.mock('./../../src/launcher', () => class LauncherMock {
     run() {
@@ -26,7 +26,8 @@ describe('Command: run', () => {
 
     beforeEach(() => {
         fs.existsSync.mockImplementation(() => true)
-        jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => {})
+        fs.existsSync.mockClear()
+        jest.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => {})
         jest.spyOn(console, 'error')
         jest.spyOn(process, 'openStdin').mockImplementation(
             () => ({ setEncoding: setEncodingMock, on: onMock }))
@@ -36,11 +37,17 @@ describe('Command: run', () => {
         fs.existsSync.mockImplementation(() => false)
         await runCmd.handler({ configPath: 'foo/bar' })
 
-        expect(utils.missingConfigurationPrompt).toHaveBeenCalled()
-        expect(utils.missingConfigurationPrompt)
+        expect(configCmd.missingConfigurationPrompt).toHaveBeenCalled()
+        expect(configCmd.missingConfigurationPrompt)
             .toHaveBeenCalledWith('run', 'No WebdriverIO configuration found in "foo/bar"')
 
         fs.existsSync.mockClear()
+    })
+
+    it('should use local conf if nothing defined', async () => {
+        fs.existsSync.mockImplementation(() => true)
+        await runCmd.handler({})
+        expect(fs.existsSync).toBeCalledTimes(2)
     })
 
     it('should use Watcher if "--watch" flag is passed', async () => {
@@ -83,6 +90,6 @@ describe('Command: run', () => {
         process.openStdin.mockReset()
         console.error.mockReset()
         fs.existsSync.mockClear()
-        utils.missingConfigurationPrompt.mockClear()
+        configCmd.missingConfigurationPrompt.mockClear()
     })
 })

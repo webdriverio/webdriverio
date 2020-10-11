@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { execFileSync } from 'child_process'
 import logger from '@wdio/logger'
-import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
+import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
 
 import cleanUp from './scripts/cleanUpSerializationSelector'
@@ -113,7 +113,15 @@ export async function findElement (context, using, value) {
     }
 
     const elementId = this.elementStore.set(element)
-    return { [ELEMENT_KEY]: elementId }
+
+    /**
+     * return value has to be defined this way because of
+     * https://github.com/microsoft/TypeScript/issues/37832
+     */
+    const returnValue = {}
+    returnValue[ELEMENT_KEY] = elementId
+
+    return returnValue
 }
 
 export async function findElements (context, using, value) {
@@ -162,10 +170,10 @@ export function sanitizeError (err) {
 /**
  * transform elements in argument list to Puppeteer element handles
  */
-export function transformExecuteArgs (args = []) {
-    return args.map((arg) => {
+export async function transformExecuteArgs (args = []) {
+    return Promise.all(args.map(async (arg) => {
         if (arg[ELEMENT_KEY]) {
-            const elementHandle = this.elementStore.get(arg[ELEMENT_KEY])
+            const elementHandle = await this.elementStore.get(arg[ELEMENT_KEY])
 
             if (!elementHandle) {
                 throw getStaleElementError(arg[ELEMENT_KEY])
@@ -175,7 +183,7 @@ export function transformExecuteArgs (args = []) {
         }
 
         return arg
-    })
+    }))
 }
 
 /**
@@ -252,20 +260,6 @@ export function sort(installations, priorities) {
         .sort((a, b) => (b.weight - a.weight))
         // remove priority flag
         .map(pair => pair.path)
-}
-
-/**
- * helper utility to check if binary is accessible
- * @param  {String}  file  path to browser binary
- * @return {Boolean}       true if browser is accessible
- */
-export function canAccess(file) {
-    try {
-        fs.accessSync(file)
-        return true
-    } catch (e) {
-        return false
-    }
 }
 
 /**

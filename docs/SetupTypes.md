@@ -46,7 +46,7 @@ const { remote } = require('webdriverio')
 const sync = require('@wdio/sync').default
 
 remote({
-    runner: true,
+    runner: 'local',
     outputDir: __dirname,
     capabilities: {
         browserName: 'chrome'

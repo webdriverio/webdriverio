@@ -10,8 +10,19 @@ export default class ElementStore {
         return index
     }
 
-    get (index) {
-        return this.elementMap.get(index)
+    async get (index) {
+        const elementHandle = this.elementMap.get(index)
+
+        if (!elementHandle) {
+            return elementHandle
+        }
+
+        const isElementAttachedToDOM = await elementHandle.evaluate(el => {
+            // https://developer.mozilla.org/en-US/docs/Web/API/Node/isConnected
+            return el.isConnected
+        })
+
+        return isElementAttachedToDOM ? elementHandle : undefined
     }
 
     clear () {

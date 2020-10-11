@@ -7,8 +7,10 @@
  */
 import path from 'path'
 import { execSync } from 'child_process'
+import { canAccess } from '@wdio/utils'
 
-import { sort, canAccess, findByWhich } from '../utils'
+import { sort, findByWhich } from '../utils'
+import { darwinGetAppPaths, darwinGetInstallations } from './finder'
 
 const newLineRegex = /\r?\n/
 
@@ -17,27 +19,16 @@ function darwin() {
         '/Contents/MacOS/firefox-bin'
     ]
 
-    const LSREGISTER = '/System/Library/Frameworks/CoreServices.framework' +
-        '/Versions/A/Frameworks/LaunchServices.framework' +
-        '/Versions/A/Support/lsregister'
+    const appName = 'Firefox Nightly'
+    const defaultPath = `/Applications/${appName}.app${suffixes[0]}`
 
-    const installations = []
-
-    execSync(
-        `${LSREGISTER} -dump` +
-        ' | grep -i \'firefox\\?.app.*$\'' +
-        ' | awk \'{$1=""; print $0}\''
-    )
-        .toString()
-        .split(newLineRegex)
-        .forEach((inst) => {
-            suffixes.forEach(suffix => {
-                const execPath = path.join(inst.substring(0, inst.indexOf('.app') + 4).trim(), suffix)
-                if (canAccess(execPath) && installations.indexOf(execPath) === -1) {
-                    installations.push(execPath)
-                }
-            })
-        })
+    let installations
+    if (canAccess(defaultPath)) {
+        installations = [defaultPath]
+    } else {
+        const appPaths = darwinGetAppPaths(appName)
+        installations = darwinGetInstallations(appPaths, suffixes)
+    }
 
     /**
      * Retains one per line to maintain readability.
@@ -49,8 +40,8 @@ function darwin() {
     ]
 
     const whichFinds = findByWhich(
-        ['firefox'],
-        [{ regex: /firefox/, weight: 51 }]
+        ['firefox-nightly', 'firefox-trunk'],
+        [{ regex: /firefox-nightly/, weight: 51 }]
     )
     const installFinds = sort(installations, priorities)
     return [...installFinds, ...whichFinds]
@@ -70,19 +61,20 @@ function linux() {
         '/usr/share/applications/',
     ]
     desktopInstallationFolders.forEach(folder => {
-        installations = installations.concat(findEdgeExecutables(folder))
+        installations = installations.concat(findFirefoxExecutables(folder))
     })
 
-    return findByWhich(
-        ['firefox'],
+    const whichFinds = findByWhich(
+        ['firefox-nightly', 'firefox-trunk', 'firefox'],
         [{ regex: /firefox/, weight: 51 }]
     )
+    return [...installations, ...whichFinds]
 }
 
 function win32() {
     const installations = []
     const suffixes = [
-        `${path.sep}Firefox${path.sep}Application${path.sep}firefox.exe`
+        `${path.sep}Firefox Nightly${path.sep}Application${path.sep}firefox.exe`
     ]
 
     const prefixes = [
@@ -99,7 +91,7 @@ function win32() {
     return installations
 }
 
-function findEdgeExecutables(folder) {
+function findFirefoxExecutables(folder) {
     const argumentsRegex = /(^[^ ]+).*/ // Take everything up to the first space
     const edgeExecRegex = '^Exec=/.*/(firefox)-.*'
 

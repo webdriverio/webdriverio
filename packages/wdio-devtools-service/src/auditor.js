@@ -1,35 +1,18 @@
-import weightedMean from 'weighted-mean'
-
 import Diagnostics from 'lighthouse/lighthouse-core/audits/diagnostics'
 import MainThreadWorkBreakdown from 'lighthouse/lighthouse-core/audits/mainthread-work-breakdown'
 import Metrics from 'lighthouse/lighthouse-core/audits/metrics'
-import TTFBMetric from 'lighthouse/lighthouse-core/audits/time-to-first-byte'
-
-import { quantileAtValue } from './utils'
+import ServerResponseTime from 'lighthouse/lighthouse-core/audits/server-response-time'
+import CumulativeLayoutShift from 'lighthouse/lighthouse-core/audits/metrics/cumulative-layout-shift'
+import FirstContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/first-contentful-paint'
+import LargestContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/largest-contentful-paint'
+import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index'
+import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive'
+import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time'
+import ReportScoring from 'lighthouse/lighthouse-core/scoring'
+import defaultConfig from 'lighthouse/lighthouse-core/config/default-config'
 import logger from '@wdio/logger'
 
 const log = logger('@wdio/devtools-service:Auditor')
-
-/**
- * metric scoring to calculate Lighthouse Performance Score
- * contains: [media, falloff]
- * see https://docs.google.com/spreadsheets/d/1_iDW0B870vZF6dAhf1Icdher0gX_KFxCd6Df0_fZ6do/edit#gid=283330180
- */
-const METRIC_SCORING = {
-    FMP: [4000, 1600], // first meaningful paint
-    FI: [10000, 1700], // first interactive
-    CI: [10000, 1700], // consistently interactive
-    SI: [5500, 1250], // speed index
-    EIL: [100, 50] // estimated input latency
-}
-
-const WEIGHT_WITHIN_CATEGORY = {
-    FMP: 5,
-    FI: 5,
-    CI: 5,
-    SI: 1,
-    EIL: 1
-}
 
 const SHARED_AUDIT_CONTEXT = {
     settings: { throttlingMethod: 'devtools' },
@@ -38,14 +21,14 @@ const SHARED_AUDIT_CONTEXT = {
 }
 
 export default class Auditor {
-    constructor (traceLogs, devtoolsLogs) {
+    constructor(traceLogs, devtoolsLogs) {
         this.devtoolsLogs = devtoolsLogs
         this.traceLogs = traceLogs
         this.url = traceLogs.pageUrl
         this.loaderId = traceLogs.loaderId
     }
 
-    _audit (AUDIT, params = {}) {
+    _audit(AUDIT, params = {}) {
         const auditContext = {
             options: { ...AUDIT.defaultOptions },
             ...SHARED_AUDIT_CONTEXT
@@ -55,6 +38,7 @@ export default class Auditor {
             return AUDIT.audit({
                 traces: { defaultPass: this.traceLogs },
                 devtoolsLogs: { defaultPass: this.devtoolsLogs },
+                TestedAsMobileDevice: true,
                 ...params
             }, auditContext)
         } catch (e) {
@@ -67,20 +51,20 @@ export default class Auditor {
      * an Auditor instance is created for every trace so provide an updateCommands
      * function to receive the latest performance metrics with the browser instance
      */
-    updateCommands (browser, customFn) {
+    updateCommands(browser, customFn) {
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && fnName !== 'updateCommands' && !fnName.startsWith('_'))
-        commands.forEach(fnName => browser.addCommand(fnName, customFn || ::this[fnName]))
+        commands.forEach(fnName => browser.addCommand(fnName, customFn || this[fnName].bind(this)))
     }
 
-    async getMainThreadWorkBreakdown () {
+    async getMainThreadWorkBreakdown() {
         const result = await this._audit(MainThreadWorkBreakdown)
         return result.details.items.map(
             ({ group, duration }) => ({ group, duration })
         )
     }
 
-    async getDiagnostics () {
+    async getDiagnostics() {
         const result = await this._audit(Diagnostics)
 
         /**
@@ -94,50 +78,52 @@ export default class Auditor {
     }
 
     async getMetrics () {
-        const timeToFirstByte = await this._audit(TTFBMetric, { URL: this.url })
+        const serverResponseTime = await this._audit(ServerResponseTime, { URL: this.url })
+        const cumulativeLayoutShift = await this._audit(CumulativeLayoutShift)
         const result = await this._audit(Metrics)
         const metrics = result.details.items[0] || {}
         return {
             estimatedInputLatency: metrics.estimatedInputLatency,
-            timeToFirstByte: Math.round(timeToFirstByte.numericValue, 10),
+            /**
+             * keeping TTFB for backwards compatibility
+             */
+            timeToFirstByte: Math.round(serverResponseTime.numericValue, 10),
+            serverResponseTime: Math.round(serverResponseTime.numericValue, 10),
             domContentLoaded: metrics.observedDomContentLoaded,
             firstVisualChange: metrics.observedFirstVisualChange,
             firstPaint: metrics.observedFirstPaint,
             firstContentfulPaint: metrics.firstContentfulPaint,
             firstMeaningfulPaint: metrics.firstMeaningfulPaint,
+            largestContentfulPaint: metrics.largestContentfulPaint,
             lastVisualChange: metrics.observedLastVisualChange,
             firstCPUIdle: metrics.firstCPUIdle,
             firstInteractive: metrics.interactive,
             load: metrics.observedLoad,
-            speedIndex: metrics.speedIndex
+            speedIndex: metrics.speedIndex,
+            totalBlockingTime: metrics.totalBlockingTime,
+            cumulativeLayoutShift: cumulativeLayoutShift.numericValue,
         }
     }
 
-    async getPerformanceScore () {
-        const {
-            firstMeaningfulPaint, firstCPUIdle, firstInteractive, speedIndex, estimatedInputLatency
-        } = await this.getMetrics()
+    async getPerformanceScore() {
+        const auditResults = {}
+        auditResults['speed-index'] =  await this._audit(SpeedIndex)
+        auditResults['first-contentful-paint'] =  await this._audit(FirstContentfulPaint)
+        auditResults['largest-contentful-paint'] =  await this._audit(LargestContentfulPaint)
+        auditResults['cumulative-layout-shift'] =  await this._audit(CumulativeLayoutShift)
+        auditResults['total-blocking-time'] =  await this._audit(TotalBlockingTime)
+        auditResults.interactive = await this._audit(InteractiveMetric)
 
-        /**
-         * return null if any of the metrics could not bet calculated and
-         * therefor are undefined
-         */
-        if (!firstMeaningfulPaint || !firstCPUIdle || !firstInteractive || !speedIndex || !estimatedInputLatency) {
+        if (!auditResults.interactive || !auditResults['cumulative-layout-shift'] || !auditResults['first-contentful-paint'] ||
+            !auditResults['largest-contentful-paint'] || !auditResults['speed-index'] || !auditResults['total-blocking-time']) {
             log.info('One or multiple required metrics couldn\'t be found, setting performance score to: null')
             return null
         }
 
-        const FMPScore = quantileAtValue(...METRIC_SCORING.FMP, firstMeaningfulPaint)
-        const FIScore = quantileAtValue(...METRIC_SCORING.FI, firstCPUIdle)
-        const CIScore = quantileAtValue(...METRIC_SCORING.CI, firstInteractive)
-        const SIScore = quantileAtValue(...METRIC_SCORING.SI, speedIndex)
-        const EILScore = quantileAtValue(...METRIC_SCORING.EIL, estimatedInputLatency)
-        return weightedMean([
-            [FMPScore, WEIGHT_WITHIN_CATEGORY.FMP],
-            [FIScore, WEIGHT_WITHIN_CATEGORY.FI],
-            [CIScore, WEIGHT_WITHIN_CATEGORY.CI],
-            [SIScore, WEIGHT_WITHIN_CATEGORY.SI],
-            [EILScore, WEIGHT_WITHIN_CATEGORY.EIL]
-        ])
+        const scores = defaultConfig.categories.performance.auditRefs.filter((auditRef) => auditRef.weight).map((auditRef) => ({
+            score: auditResults[auditRef.id].score,
+            weight: auditRef.weight,
+        }))
+        return ReportScoring.arithmeticMean(scores)
     }
 }

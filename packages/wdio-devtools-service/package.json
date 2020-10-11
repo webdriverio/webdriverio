@@ -1,6 +1,6 @@
 {
   "name": "@wdio/devtools-service",
-  "version": "6.1.24",
+  "version": "6.6.0",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-devtools-service",
@@ -8,14 +8,6 @@
   "main": "./build/index",
   "engines": {
     "node": ">=10.0.0"
-  },
-  "scripts": {
-    "build": "run-s clean compile",
-    "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src test",
-    "test:unit": "jest"
   },
   "repository": {
     "type": "git",
@@ -34,14 +26,13 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "6.0.16",
-    "chrome-remote-interface": "^0.28.0",
+    "@types/puppeteer": "^3.0.1",
+    "@wdio/logger": "6.6.0",
     "core-js": "~3.6.0",
-    "lighthouse": "^5.1.0",
-    "puppeteer-core": "^4.0.0",
+    "lighthouse": "^6.4.1",
+    "puppeteer-core": "^5.1.0",
     "speedline": "^1.4.1",
-    "stable": "^0.1.8",
-    "weighted-mean": "^1.0.2"
+    "stable": "^0.1.8"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"

@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-    <a href="https://travis-ci.org/webdriverio/webdriverio">
-        <img alt="Build Status" src="https://travis-ci.org/webdriverio/webdriverio.svg?branch=master">
+    <a href="https://github.com/webdriverio/webdriverio/actions?query=workflow%3ATest">
+        <img alt="Build Status" src="https://github.com/webdriverio/webdriverio/workflows/Test/badge.svg?branch=master">
     </a>
     <a href="https://travis-ci.org/webdriverio/webdriverio/branches">
         <img alt="LTS v5 Build Status" src="https://img.shields.io/travis/webdriverio/webdriverio/v5.svg?label=LTS%20v5%20build">
@@ -101,7 +101,6 @@ The maintainers of WebdriverIO and thousands of other packages are working with 
 ### Runner
 
 - [@wdio/local-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-local-runner) - A WebdriverIO runner to run tests locally
-- [@wdio/lambda-runner](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-lambda-runner) - A WebdriverIO plugin that allows you to run tests on Lambda functions (experimental)
 
 ### Framework Adapters
 

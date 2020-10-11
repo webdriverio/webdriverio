@@ -41,7 +41,7 @@ test('launch chrome with chrome arguments', async () => {
             binary: '/foo/bar',
             args: ['--window-size=222,333'],
             mobileEmulation: {
-                deviceName: 'Nexus 5'
+                deviceName: 'Nexus 6P'
             }
         }
     })
@@ -50,9 +50,9 @@ test('launch chrome with chrome arguments', async () => {
 
     const pages = await browser.pages()
     expect(pages[0].setViewport).toBeCalledWith({
-        height: 640,
-        pixelRatio: 3,
-        width: 360
+        height: 732,
+        pixelRatio: 3.5,
+        width: 412
     })
 })
 
@@ -187,6 +187,18 @@ test('launch Firefox Nightly without Puppeteer default args', async () => {
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })
 
+test('launch Firefox Nightly binary without Puppeteer default args', async () => {
+    await launch({
+        browserName: 'firefox',
+        'moz:firefoxOptions': {
+            binary: 'firefox',
+            headless: true
+        },
+        ignoreDefaultArgs: true
+    })
+    expect(puppeteer.launch.mock.calls).toMatchSnapshot()
+})
+
 test('launch Firefox without Puppeteer default args', async () => {
     expect.assertions(1)
 
@@ -207,7 +219,10 @@ test('launch Firefox without Puppeteer default args', async () => {
 test('launch Edge without Puppeteer default args', async () => {
     await launch({
         browserName: 'edge',
-        ignoreDefaultArgs: true
+        ignoreDefaultArgs: true,
+        'ms:edgeOptions': {
+            headless: true
+        }
     })
     expect(puppeteer.launch.mock.calls).toMatchSnapshot()
 })

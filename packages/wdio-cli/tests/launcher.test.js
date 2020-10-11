@@ -1,5 +1,6 @@
 import Launcher from '../src/launcher'
 import logger from '@wdio/logger'
+import { sleep } from '@wdio/utils'
 import fs from 'fs-extra'
 
 const caps = { maxInstances: 1, browserName: 'chrome' }
@@ -442,6 +443,7 @@ describe('launcher', () => {
                 0
             )
 
+            expect(sleep).not.toHaveBeenCalled()
             expect(launcher.runnerStarted).toBe(1)
             expect(launcher.runner.run.mock.calls[0][0]).toHaveProperty('cid', '0-5')
             expect(launcher.getRunnerId(0)).toBe('0-0')
@@ -451,11 +453,72 @@ describe('launcher', () => {
                 caps,
                 ['/foo.test.js'],
                 { hostname: '127.0.0.2' },
-                [
-                    // this comes from the way we call Jest test
-                    '--max-old-space-size=8192',
-                    '--foo', 'bar'
-                ]
+                expect.arrayContaining(['--foo', 'bar'])
+            )
+        })
+
+        it('should wait before starting an instance on retry', async () => {
+            const onWorkerStartMock = jest.fn()
+            const caps = {
+                browserName: 'chrome',
+                execArgv: ['--foo', 'bar']
+            }
+            launcher.configParser = { getConfig: jest.fn().mockReturnValue({
+                onWorkerStart: onWorkerStartMock,
+                specFileRetries: 2,
+                specFileRetriesDelay: 0.01
+            }) }
+            launcher.args.hostname = '127.0.0.3'
+
+            await launcher.startInstance(
+                ['/foo.test.js'],
+                caps,
+                0,
+                '0-6',
+                3
+            )
+
+            expect(sleep).toHaveBeenCalledTimes(1)
+            expect(sleep).toHaveBeenCalledWith(10)
+
+            expect(onWorkerStartMock).toHaveBeenCalledWith(
+                '0-6',
+                caps,
+                ['/foo.test.js'],
+                { hostname: '127.0.0.3' },
+                expect.arrayContaining(['--foo', 'bar'])
+            )
+        })
+
+        it('should not wait before starting an instance on the first run', async () => {
+            const onWorkerStartMock = jest.fn()
+            const caps = {
+                browserName: 'chrome',
+                execArgv: ['--foo', 'bar']
+            }
+            launcher.configParser = { getConfig: jest.fn().mockReturnValue({
+                onWorkerStart: onWorkerStartMock,
+                specFileRetries: 4,
+                specFileRetriesDelay: 0.01
+            }) }
+            launcher.args.hostname = '127.0.0.4'
+
+            await launcher.startInstance(
+                ['/foo.test.js'],
+                caps,
+                0,
+                '0-7',
+                4
+            )
+
+            expect(sleep).not.toHaveBeenCalled()
+
+            expect(onWorkerStartMock).toHaveBeenCalledWith(
+                '0-7',
+                caps,
+                ['/foo.test.js'],
+                { hostname: '127.0.0.4' },
+                expect.arrayContaining(['--foo', 'bar'])
             )
         })
     })
@@ -541,5 +604,6 @@ describe('launcher', () => {
 
     afterEach(() => {
         global.console.log.mockRestore()
+        sleep.mockClear()
     })
 })

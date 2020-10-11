@@ -14,7 +14,7 @@ Array [
       "executablePath": "/path/to/edge",
       "headless": true,
       "ignoreDefaultArgs": undefined,
-      "product": "edge",
+      "product": "chrome",
     },
   ],
 ]
@@ -29,8 +29,9 @@ Array [
         "width": 1200,
       },
       "executablePath": "/path/to/edge",
+      "headless": false,
       "ignoreDefaultArgs": undefined,
-      "product": "edge",
+      "product": "chrome",
     },
   ],
 ]
@@ -45,8 +46,27 @@ Array [
         "width": 1200,
       },
       "executablePath": "/path/to/edge",
+      "headless": true,
       "ignoreDefaultArgs": true,
-      "product": "edge",
+      "product": "chrome",
+    },
+  ],
+]
+`;
+
+exports[`launch Firefox Nightly binary without Puppeteer default args 1`] = `
+Array [
+  Array [
+    Object {
+      "binary": "firefox",
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "executablePath": "firefox",
+      "headless": true,
+      "ignoreDefaultArgs": true,
+      "product": "firefox",
     },
   ],
 ]
@@ -96,6 +116,8 @@ Array [
   Array [
     Object {
       "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
         "--disable-extensions",
         "--disable-background-networking",
         "--disable-background-timer-throttling",
@@ -105,6 +127,7 @@ Array [
         "--disable-default-apps",
         "--mute-audio",
         "--no-first-run",
+        "--no-default-browser-check",
         "--disable-hang-monitor",
         "--disable-prompt-on-repost",
         "--disable-client-side-phishing-detection",
@@ -115,6 +138,7 @@ Array [
         "--disable-dev-shm-usage",
         "--disable-ipc-flooding-protection",
         "--disable-renderer-backgrounding",
+        "--force-fieldtrials=*BackgroundTracing/default/",
         "--enable-features=NetworkService,NetworkServiceInProcess",
         "--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees",
         "--window-position=0,0",
@@ -122,11 +146,11 @@ Array [
         "--headless",
         "--no-sandbox",
         "--window-size=222,333",
-        "--device-scale-factor=3",
-        "--user-agent=Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",
+        "--device-scale-factor=3.5",
+        "--user-agent=Mozilla/5.0 (Linux; Android 8.0.0; Nexus 6P Build/OPP3.170518.006) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",
       ],
       "chromePath": "/foo/bar",
-      "ignoreDefaultArgs": undefined,
+      "ignoreDefaultFlags": true,
     },
   ],
 ]
@@ -137,6 +161,8 @@ Array [
   Array [
     Object {
       "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
         "--disable-extensions",
         "--disable-background-networking",
         "--disable-background-timer-throttling",
@@ -146,6 +172,7 @@ Array [
         "--disable-default-apps",
         "--mute-audio",
         "--no-first-run",
+        "--no-default-browser-check",
         "--disable-hang-monitor",
         "--disable-prompt-on-repost",
         "--disable-client-side-phishing-detection",
@@ -156,13 +183,14 @@ Array [
         "--disable-dev-shm-usage",
         "--disable-ipc-flooding-protection",
         "--disable-renderer-backgrounding",
+        "--force-fieldtrials=*BackgroundTracing/default/",
         "--enable-features=NetworkService,NetworkServiceInProcess",
         "--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees",
         "--window-position=0,0",
         "--window-size=1200,900",
       ],
       "chromePath": undefined,
-      "ignoreDefaultArgs": undefined,
+      "ignoreDefaultFlags": true,
     },
   ],
 ]
@@ -188,7 +216,7 @@ Array [
         "--window-size=1200,900",
       ],
       "chromePath": undefined,
-      "ignoreDefaultArgs": true,
+      "ignoreDefaultFlags": true,
     },
   ],
 ]
@@ -210,6 +238,8 @@ Array [
   Array [
     Object {
       "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
         "--disable-extensions",
         "--disable-background-networking",
         "--disable-background-timer-throttling",
@@ -218,6 +248,7 @@ Array [
         "--disable-default-apps",
         "--mute-audio",
         "--no-first-run",
+        "--no-default-browser-check",
         "--disable-hang-monitor",
         "--disable-prompt-on-repost",
         "--disable-client-side-phishing-detection",
@@ -228,16 +259,14 @@ Array [
         "--disable-dev-shm-usage",
         "--disable-ipc-flooding-protection",
         "--disable-renderer-backgrounding",
+        "--force-fieldtrials=*BackgroundTracing/default/",
         "--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees",
         "--window-position=0,0",
         "--window-size=1200,900",
         "--enable-features=NetworkService",
       ],
       "chromePath": undefined,
-      "ignoreDefaultArgs": Array [
-        "--disable-sync",
-        "--enable-features=NetworkService,NetworkServiceInProcess",
-      ],
+      "ignoreDefaultFlags": true,
     },
   ],
 ]

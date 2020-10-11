@@ -18,6 +18,7 @@ export default class BrowserstackService {
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
         this.failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown']
         this.strict && this.failureStatuses.push('pending')
+        this.caps = caps
     }
 
     /**
@@ -40,7 +41,7 @@ export default class BrowserstackService {
     before() {
         this.sessionId = global.browser.sessionId
 
-        if (global.browser.capabilities.app) {
+        if (global.browser.capabilities.app || this.caps.app) {
             this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
 

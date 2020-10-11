@@ -1,18 +1,16 @@
 /**
- * in order to run this file make sure you have `webdriverio` and `devtools`
+ * in order to run this file make sure you have `webdriverio`
  * installed using NPM before running it:
  *
- *   $ npm install devtools webdriverio
+ *   $ npm install webdriverio
  *
  */
-// eslint-disable-next-line import/no-unresolved
-const { remote } = require('../../packages/webdriverio')
+const { remote } = require('webdriverio')
 
 let browser;
 
 (async () => {
     browser = await remote({
-        automationProtocol: 'devtools',
         capabilities: {
             browserName: 'chrome'
         }
@@ -21,7 +19,7 @@ let browser;
     await browser.url('https://webdriver.io')
 
     await browser.call(async () => {
-        const puppeteerBrowser = browser.getPuppeteer()
+        const puppeteerBrowser = await browser.getPuppeteer()
         const page = (await puppeteerBrowser.pages())[0]
         await page.setRequestInterception(true)
         page.on('request', interceptedRequest => {

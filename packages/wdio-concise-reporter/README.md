@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/concise-reporter` as a devDependency in your `
 ```json
 {
   "devDependencies": {
-    "@wdio/concise-reporter": "^5.0.0"
+    "@wdio/concise-reporter": "^6.3.6"
   }
 }
 ```

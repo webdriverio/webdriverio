@@ -216,6 +216,7 @@ TestStats {
   cid: '0-0',
   title: 'passing test',
   fullTitle: 'passing test',
+  retries: 0,
   state: 'pending' } }
 ```
 
@@ -293,6 +294,7 @@ TestStats {
   cid: '0-0',
   title: 'skipped test',
   fullTitle: 'skipped test',
+  retries: 0,
   state: 'skipped' }
 ```
 
@@ -307,8 +309,32 @@ TestStats {
   cid: '0-0',
   title: 'passing test',
   fullTitle: 'passing test',
+  retries: 0,
   state: 'passed',
   end: '2018-02-09T14:11:29.578Z' } }
+```
+
+##### onTestRetry
+
+```js
+TestStats {
+  type: 'test',
+  start: 2020-09-23T07:54:34.601Z,
+  _duration: 2495,
+  uid: 'test-00-0',
+  cid: '0-0',
+  title: 'test fails and retries',
+  fullTitle: 'test fails and retries',
+  retries: 0,
+  state: 'failed',
+  end: 2020-09-23T07:54:37.096Z,
+  error:
+      { message: 'some error',
+        stack: `Error: some error\n    at Context.it (/path/to/project/test/b.js:17:19)\n
+  at /path/to/project/packages/wdio-sync/src/index.js:490:28\n    at Promise (<anonymous>)\
+n    at F (/path/to/project/node_modules/core-js/library/modules/_export.js:35:28)\n    at
+Context.executeSync (/path/to/project/packages/wdio-sync/src/index.js:488:12)\n    at /path/to/project/packages/wdio-sync/src/index.js:623:33`,
+        type: 'Error' } } }
 ```
 
 ##### onTestFail
@@ -322,6 +348,7 @@ TestStats {
      cid: '0-0',
      title: 'failing test',
      fullTitle: 'failing test',
+     retries: 0,
      state: 'failed',
      end: '2018-02-09T14:11:29.602Z',
      error:
@@ -344,6 +371,7 @@ TestStats {
   cid: '0-0',
   title: 'passing test',
   fullTitle: 'passing test',
+  retries: 0,
   state: 'passed',
   end: '2018-02-09T14:11:29.578Z' } }
 ```

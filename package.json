@@ -6,8 +6,7 @@
     "backport": "node ./scripts/backport.js",
     "bootstrap-full": "npm run clean && lerna bootstrap --no-ci && npm run link",
     "bootstrap": "run-p clean:* && lerna bootstrap --force-local && npm run link",
-    "build-full": "lerna run --parallel build",
-    "build": "npm run clean:build && lerna run --parallel compile && lerna run --parallel copy",
+    "build": "run-s clean:build compile copy",
     "changelog": "node ./scripts/changelog.js",
     "ci": "run-s setup-full test test:e2e",
     "clean": "run-p clean-full:* clean:*",
@@ -16,27 +15,30 @@
     "clean:tgz": "rimraf ./packages/*/*.tgz",
     "clean:node_modules": "rimraf ./packages/node_modules",
     "clean:website": "rimraf docs/_*.md docs/api/_*.md docs/api/**/_*.md website/sidebars.json",
-    "clean:tests": "rimraf tests/typings/**/node_modules && rimraf tests/typings/**/dist",
+    "clean:tests": "rimraf tests/typings/**/node_modules tests/typings/**/dist ./coverage",
     "clean:cache": "rimraf .eslintcache",
     "clean-full:package_modules": "rimraf ./packages/*/node_modules",
+    "compile": "node ./scripts/build",
+    "copy": "lerna run --parallel copy",
     "generate:typings": "node ./scripts/type-generation/generate-all-typings.js",
     "link": "node ./scripts/link",
-    "release": "NODE_ENV=production npm run setup-full && npm run generate:typings && lerna publish --exact",
-    "release:next": "npm run release -- --dist-tag next",
-    "setup-full": "run-s bootstrap-full build-full",
+    "pushReleaseTag": "node ./scripts/pushTags.js",
+    "setup-full": "run-s bootstrap-full build",
     "setup": "run-s bootstrap build",
     "docs": "run-s docs:*",
     "docs:setup": "cd ./website && npm install && cd ..",
-    "docs:generate": "npm run clean:website && ./scripts/docs-generation/generateDocs.js",
+    "docs:generate": "npm run clean:website && node ./scripts/docs-generation/generateDocs.js",
     "docs:build": "cd ./website && npm run build && cd ..",
-    "docs:deploy": "./scripts/updateDocs.js",
+    "docs:deploy": "node ./scripts/updateDocs.js",
     "test": "run-s test:depcheck test:eslint test:typings test:coverage test:smoke",
     "test:depcheck": "node ./scripts/depcheck.js",
     "test:eslint": "eslint --cache packages examples scripts tests",
     "test:typings": "npm run generate:typings && node tests/typings/copy && npm run ts && npm run clean:tests",
-    "test:coverage": "node --max-old-space-size=8192 ./node_modules/.bin/jest --coverage --logHeapUsage",
-    "test:smoke": "babel-node ./tests/smoke.runner.js",
+    "test:coverage": "node --max-old-space-size=8192 ./node_modules/jest/bin/jest.js --coverage --logHeapUsage",
+    "test:smoke": "ts-node ./tests/smoke.runner.js",
     "test:e2e": "jest --config e2e/jest.config.js",
+    "test:e2e:edge": "npm run test:e2e -- --testMatch '**/edge.e2e.js'",
+    "test:e2e:firefox": "npm run test:e2e -- --testMatch '<rootDir>/standalone/firefox.e2e.js'",
     "ts": "run-p ts:*",
     "ts:sync": "cd tests/typings/sync && tsc --incremental",
     "ts:devtools": "cd tests/typings/devtools && tsc --incremental",
@@ -56,37 +58,26 @@
     "ts:webdriverio-mocha": "cd tests/typings/webdriverio-mocha && tsc --incremental",
     "ts:webdriverio-jasmine": "cd tests/typings/webdriverio-jasmine && tsc --incremental",
     "ts:webdriverio-reporter": "cd tests/typings/webdriverio-reporter && tsc --incremental",
-    "watch": "node ./scripts/watch",
-    "watch:pkg": "lerna exec 'npm run compile -- --watch' --scope",
+    "watch": "node ./scripts/build --watch",
     "version": "npm run changelog && git add CHANGELOG.md"
   },
   "devDependencies": {
-    "@babel/cli": "^7.6.2",
-    "@babel/core": "^7.6.2",
-    "@babel/node": "^7.6.2",
-    "@babel/plugin-proposal-class-properties": "^7.5.5",
-    "@babel/plugin-proposal-function-bind": "^7.2.0",
-    "@babel/plugin-proposal-optional-catch-binding": "^7.2.0",
-    "@babel/plugin-syntax-export-default-from": "^7.2.0",
-    "@babel/preset-env": "^7.6.2",
-    "@babel/register": "^7.6.2",
     "@octokit/rest": "^18.0.0",
+    "@tsconfig/node10": "^1.0.7",
     "@types/jest": "^26.0.0",
+    "@types/node": "^10.17.35",
+    "@typescript-eslint/eslint-plugin": "^4.4.0",
+    "@typescript-eslint/parser": "^4.4.0",
     "aws-sdk": "^2.539.0",
-    "babel-core": "^6.26.3",
-    "babel-eslint": "^10.0.3",
-    "babel-jest": "^26.0.1",
-    "babel-plugin-source-map-support": "^2.1.1",
     "cheerio": "^1.0.0-rc.3",
     "codecov": "^3.6.1",
     "copyfiles": "^2.1.1",
     "cucumber": "^6.0.5",
     "del": "^5.1.0",
-    "depcheck": "^0.9.2",
+    "depcheck": "^1.0.0",
     "dox": "^0.9.0",
     "ejs": "^3.0.2",
-    "eslint": "^7.2.0",
-    "eslint-plugin-import": "^2.18.2",
+    "eslint": "^7.10.0",
     "husky": "^4.2.3",
     "inquirer": "^7.0.0",
     "jest": "^26.0.1",
@@ -100,60 +91,16 @@
     "rimraf": "^3.0.0",
     "sass": "^1.26.5",
     "shelljs": "^0.8.3",
-    "source-map-support": "^0.5.13",
-    "tempy": "^0.5.0",
-    "typescript": "^3.6.3",
+    "tempy": "^0.7.0",
+    "ts-jest": "^26.3.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.2",
     "url-join": "^4.0.1"
   },
   "husky": {
     "hooks": {
       "pre-commit": "git diff-index --name-only --diff-filter=d HEAD | grep -E \"(.*)\\.js$\" | xargs node_modules/eslint/bin/eslint.js -c .eslintrc.js",
       "pre-push": "npm run test:eslint"
-    }
-  },
-  "jest": {
-    "testMatch": [
-      "**/tests/**/*.test.js"
-    ],
-    "testPathIgnorePatterns": [
-      "<rootDir>/tests/",
-      "<rootDir>/node_modules/"
-    ],
-    "collectCoverageFrom": [
-      "packages/**/src/*.js"
-    ],
-    "moduleNameMapper": {
-      "graceful-fs": "<rootDir>/tests/helpers/fs.js"
-    },
-    "coverageDirectory": "./coverage/",
-    "collectCoverage": true,
-    "coverageThreshold": {
-      "global": {
-        "branches": 96,
-        "functions": 98,
-        "lines": 99,
-        "statements": 99
-      }
-    },
-    "testEnvironment": "node",
-    "coveragePathIgnorePatterns": [
-      "node_modules/",
-      "packages/devtools/src/scripts",
-      "packages/webdriverio/src/scripts",
-      "packages/wdio-devtools-service/src/scripts",
-      "packages/webdriverio/build",
-      "packages/webdriver/build",
-      "packages/wdio-cucumber-framework/tests/fixtures",
-      "packages/wdio-logger/build",
-      "packages/wdio-webdriver-mock-service",
-      "packages/wdio-lambda-runner",
-      "packages/wdio-smoke-test-reporter",
-      "packages/wdio-smoke-test-service"
-    ]
-  },
-  "greenkeeper": {
-    "lockfiles": {
-      "outOfRangeUpdatesOnly": true
     }
   },
   "dependencies": {}

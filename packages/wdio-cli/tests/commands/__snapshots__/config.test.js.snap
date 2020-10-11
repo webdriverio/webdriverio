@@ -34,5 +34,12 @@ Packages installed successfully, creating configuration file...",
 For for information on TypeScript integration check out: https://webdriver.io/docs/typescript.html
 ",
   ],
+  Array [
+    "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.js
+",
+  ],
 ]
 `;

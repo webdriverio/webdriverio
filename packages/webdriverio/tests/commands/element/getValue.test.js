@@ -17,7 +17,7 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        expect(got.mock.calls[2][1].uri.pathname)
+        expect(got.mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/property/value')
     })
 
@@ -32,7 +32,7 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        expect(got.mock.calls[2][1].uri.pathname)
+        expect(got.mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/attribute/value')
     })
 
@@ -47,7 +47,7 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        expect(got.mock.calls[2][1].uri.pathname)
+        expect(got.mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/attribute/value')
     })
 })

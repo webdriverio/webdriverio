@@ -46,8 +46,8 @@ export default function debug(commandTimeout = 5000) {
         const context = {
             browser: this,
             driver: this,
-            $: ::this.$,
-            $$: ::this.$$
+            $: this.$.bind(this),
+            $$: this.$$.bind(this)
         }
         return repl.start(context)
     }
@@ -66,7 +66,7 @@ export default function debug(commandTimeout = 5000) {
         params: { commandTimeout, introMessage }
     })
 
-    let commandResolve = /* istanbul ignore next */ () => {}
+    let commandResolve = /* istanbul ignore next */ () => { }
     process.on('message', (m) => {
         if (m.origin !== 'debugger') {
             return

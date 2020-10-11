@@ -1,7 +1,7 @@
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote } from 'webdriverio'
+import { remote, multiremote, MockOverwriteFunction, SevereServiceError } from 'webdriverio'
 
-// An example of adding command withing ts file to WebdriverIO (async)
+// An example of adding command within ts file to WebdriverIO (async)
 declare module "webdriverio" {
     interface Browser {
         browserCustomCommand: (arg: unknown) => Promise<void>
@@ -15,6 +15,12 @@ async function bar() {
             browserName: 'chrome'
         }
     })
+
+    multiremote({
+        myBrowserInstance: {
+            browserName: 'chrome'
+        }
+    }).then(() => {}, () => {})
 
     // interact with specific instance
     const mrSingleElem = await mr.myBrowserInstance.$('')
@@ -31,6 +37,8 @@ async function bar() {
 
     // remote
     const r = await remote({ capabilities: { browserName: 'chrome' } })
+    remote({ capabilities: { browserName: 'chrome' } }).then(
+        () => {}, () => {})
     const rElem = await r.$('')
     await rElem.click()
 
@@ -42,6 +50,12 @@ async function bar() {
         windowName: 'some name',
         windowFeatures: 'some features'
     })
+
+    await browser.createWindow('tab')
+    await browser.createWindow('window')
+    // @ts-expect-error
+    await browser.createWindow('something else')
+
     const waitUntil: boolean = await browser.waitUntil(
         () => Promise.resolve(true),
         {
@@ -95,10 +109,6 @@ async function bar() {
     // browser custom command
     await browser.browserCustomCommand(14)
 
-    browser.overwriteCommand('click', function (origCommand) {
-        return origCommand()
-    })
-
     // $
     const el1 = await $('')
     const strFunction = (str: string) => str
@@ -143,6 +153,16 @@ async function bar() {
     const el5 = await el4.$('')
     await el4.getAttribute('class')
     await el5.scrollIntoView(false)
+
+    // An examples of addValue command with enabled/disabled translation to Unicode
+    const elem = await $('')
+    await elem.addValue('Delete', { translateToUnicode: true })
+    await elem.addValue('Delete', { translateToUnicode: false })
+
+    // An examples of setValue command with enabled/disabled translation to Unicode
+    const elem1 = await $('')
+    elem1.setValue('Delete', { translateToUnicode: true })
+    elem1.setValue('Delete', { translateToUnicode: false })
 
     const selector$$: string | Function = elems.selector
     const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
@@ -199,7 +219,93 @@ async function bar() {
     browser.isMobile
     browser.isAndroid
     browser.isIOS
+
+    // network mocking
+    browser.throttle('Regular2G')
+    browser.throttle({
+        offline: false,
+        downloadThroughput: 50 * 1024 / 8,
+        uploadThroughput: 20 * 1024 / 8,
+        latency: 500
+    })
+    browser.mock('**/image.jpg')
+    const mock = await browser.mock('**/image.jpg', {
+        method: 'get',
+        headers: { foo: 'bar' }
+    })
+    mock.abort('Aborted')
+    mock.abortOnce('AccessDenied')
+    mock.clear()
+    mock.respond('/other/resource.jpg')
+    mock.respond('/other/resource.jpg', {
+        statusCode: 100,
+        headers: { foo: 'bar' }
+    })
+    const res: MockOverwriteFunction = async function (req, client) {
+        const url:string = req.url
+        await client.send('foo', { bar: 1 })
+        return url
+    }
+    mock.respond(res)
+    mock.respond(async (req, client) => {
+        const url:string = req.url
+        await client.send('foo', { bar: 1 })
+        return true
+    })
+    mock.respondOnce('/other/resource.jpg')
+    mock.respondOnce('/other/resource.jpg', {
+        statusCode: 100,
+        headers: { foo: 'bar' }
+    })
+    mock.restore()
+    const match = mock.calls[0]
+    match.body
+    match.headers
 }
+
+function testSevereServiceError_noParameters() {
+    throw new SevereServiceError();
+}
+
+function testSevereServiceError_stringParameter() {
+    throw new SevereServiceError("Something happened.");
+}
+
+// addCommand
+
+// element
+browser.addCommand('getClass', async function () {
+    return this.getAttribute('class').catch()
+}, true)
+
+// browser
+browser.addCommand('sleep', async function (ms: number) {
+    return this.pause(ms).catch()
+}, false)
+
+browser.addCommand('sleep', async function (ms: number) {
+    return this.pause(ms).catch()
+})
+
+// overwriteCommand
+
+// element
+type ClickOptionsExtended = WebdriverIO.ClickOptions & { wait?: boolean }
+browser.overwriteCommand('click', async function (clickFn, opts: ClickOptionsExtended = {}) {
+    if (opts.wait) {
+        await this.waitForClickable().catch()
+    }
+    return clickFn(opts).catch()
+}, true)
+
+// browser
+browser.overwriteCommand('pause', async function (pause, ms = 1000) {
+    return pause(ms).catch()
+}, false)
+
+browser.overwriteCommand('pause', async function (pause, ms = 1000) {
+    return pause(ms).catch()
+})
 
 // allure-reporter
 allure.addFeature('')

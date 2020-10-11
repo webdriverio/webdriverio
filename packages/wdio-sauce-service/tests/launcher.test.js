@@ -366,6 +366,70 @@ test('onPrepare with tunnel identifier and with w3c caps ', async () => {
     expect(service.sauceConnectProcess).not.toBeUndefined()
 })
 
+test('onPrepare with tunnel identifier and without w3c caps ', async () => {
+    const options = {
+        sauceConnect: true,
+        scRelay: true,
+        sauceConnectOpts: {
+            port: 4446,
+            tunnelIdentifier: 'my-tunnel'
+        }
+    }
+    const caps = [{
+        browserName: 'internet explorer',
+        platform: 'Windows 7',
+        tunnelIdentifier: 'fish'
+    }, {
+        browserName: 'internet explorer',
+        version: '9'
+    }, {
+        deviceName: 'iPhone',
+        platformName: 'iOS',
+        tunnelIdentifier: 'fish-bar'
+    }, {
+        deviceName: 'iPhone',
+        platformName: 'iOS',
+    }]
+    const config = {
+        user: 'foobaruser',
+        key: '12345'
+    }
+    const service = new SauceServiceLauncher(options)
+    expect(service.sauceConnectProcess).toBeUndefined()
+    await service.onPrepare(config, caps)
+
+    expect(caps).toEqual([{
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4446,
+        browserName: 'internet explorer',
+        platform: 'Windows 7',
+        tunnelIdentifier: 'fish'
+    }, {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4446,
+        browserName: 'internet explorer',
+        version: '9',
+        tunnelIdentifier: 'my-tunnel'
+    }, {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4446,
+        deviceName: 'iPhone',
+        platformName: 'iOS',
+        tunnelIdentifier: 'fish-bar'
+    }, {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4446,
+        deviceName: 'iPhone',
+        platformName: 'iOS',
+        tunnelIdentifier: 'my-tunnel'
+    }])
+    expect(service.sauceConnectProcess).not.toBeUndefined()
+})
+
 test('onComplete', async () => {
     const service = new SauceServiceLauncher({}, [], {})
     expect(service.onComplete()).toBeUndefined()

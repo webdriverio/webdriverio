@@ -12,7 +12,7 @@ The easiest way is to keep `@wdio/sumologic-reporter` as a devDependency in your
 ```json
 {
   "devDependencies": {
-    "@wdio/sumologic-reporter": "^5.0.0"
+    "@wdio/sumologic-reporter": "^6.3.6"
   }
 }
 ```

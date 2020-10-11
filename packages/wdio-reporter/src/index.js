@@ -11,7 +11,7 @@ import TestStats from './stats/test'
 import RunnerStats from './stats/runner'
 
 export default class WDIOReporter extends EventEmitter {
-    constructor (options) {
+    constructor(options) {
         super()
         this.options = options
 
@@ -36,6 +36,7 @@ export default class WDIOReporter extends EventEmitter {
             skipping: 0,
             failures: 0
         }
+        this.retries = 0
 
         let currentTest
 
@@ -47,16 +48,16 @@ export default class WDIOReporter extends EventEmitter {
         })
         this.currentSuites.push(rootSuite)
 
-        this.on('client:beforeCommand', ::this.onBeforeCommand)
-        this.on('client:afterCommand', ::this.onAfterCommand)
+        this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
+        this.on('client:afterCommand', this.onAfterCommand.bind(this))
 
-        this.on('runner:start',  /* istanbul ignore next */ (runner) => {
+        this.on('runner:start',  /* istanbul ignore next */(runner) => {
             rootSuite.cid = runner.cid
             this.runnerStat = new RunnerStats(runner)
             this.onRunnerStart(this.runnerStat)
         })
 
-        this.on('suite:start',  /* istanbul ignore next */ (params) => {
+        this.on('suite:start',  /* istanbul ignore next */(params) => {
             const suite = new SuiteStats(params)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.suites.push(suite)
@@ -65,7 +66,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteStart(suite)
         })
 
-        this.on('hook:start',  /* istanbul ignore next */ (hook) => {
+        this.on('hook:start',  /* istanbul ignore next */(hook) => {
             const hookStat = new HookStats(hook)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.hooks.push(hookStat)
@@ -74,14 +75,15 @@ export default class WDIOReporter extends EventEmitter {
             this.onHookStart(hookStat)
         })
 
-        this.on('hook:end',  /* istanbul ignore next */ (hook) => {
+        this.on('hook:end',  /* istanbul ignore next */(hook) => {
             const hookStat = this.hooks[hook.uid]
             hookStat.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
             this.onHookEnd(hookStat)
         })
 
-        this.on('test:start',  /* istanbul ignore next */ (test) => {
+        this.on('test:start',  /* istanbul ignore next */(test) => {
+            test.retries = this.retries
             currentTest = new TestStats(test)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.tests.push(currentTest)
@@ -90,7 +92,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestStart(currentTest)
         })
 
-        this.on('test:pass',  /* istanbul ignore next */ (test) => {
+        this.on('test:pass',  /* istanbul ignore next */(test) => {
             const testStat = this.tests[test.uid]
             testStat.pass()
             this.counts.passes++
@@ -98,7 +100,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestPass(testStat)
         })
 
-        this.on('test:fail',  /* istanbul ignore next */ (test) => {
+        this.on('test:fail',  /* istanbul ignore next */(test) => {
             const testStat = this.tests[test.uid]
 
             testStat.fail(getErrorsFromEvent(test))
@@ -107,7 +109,16 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestFail(testStat)
         })
 
+        this.on('test:retry', (test) => {
+            const testStat = this.tests[test.uid]
+
+            testStat.fail(getErrorsFromEvent(test))
+            this.onTestRetry(testStat)
+            this.retries++
+        })
+
         this.on('test:pending', (test) => {
+            test.retries = this.retries
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentTest = new TestStats(test)
 
@@ -135,12 +146,13 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestSkip(currentTest)
         })
 
-        this.on('test:end',  /* istanbul ignore next */ (test) => {
+        this.on('test:end',  /* istanbul ignore next */(test) => {
             const testStat = this.tests[test.uid]
+            this.retries = 0
             this.onTestEnd(testStat)
         })
 
-        this.on('suite:end',  /* istanbul ignore next */ (suite) => {
+        this.on('suite:end',  /* istanbul ignore next */(suite) => {
             const suiteStat = this.suites[suite.uid]
             suiteStat.complete()
             this.currentSuites.pop()
@@ -163,13 +175,13 @@ export default class WDIOReporter extends EventEmitter {
         /**
          * browser client event handlers
          */
-        this.on('client:beforeCommand',  /* istanbul ignore next */ (payload) => {
+        this.on('client:beforeCommand',  /* istanbul ignore next */(payload) => {
             if (!currentTest) {
                 return
             }
             currentTest.output.push(Object.assign(payload, { type: 'command' }))
         })
-        this.on('client:afterCommand',  /* istanbul ignore next */ (payload) => {
+        this.on('client:afterCommand',  /* istanbul ignore next */(payload) => {
             if (!currentTest) {
                 return
             }
@@ -181,7 +193,7 @@ export default class WDIOReporter extends EventEmitter {
      * allows reporter to stale process shutdown process until required sync work
      * is done (e.g. when having to send data to some server or any other async work)
      */
-    get isSynchronised () {
+    get isSynchronised() {
         return true
     }
 
@@ -194,31 +206,33 @@ export default class WDIOReporter extends EventEmitter {
     }
 
     /* istanbul ignore next */
-    onRunnerStart () {}
+    onRunnerStart() { }
     /* istanbul ignore next */
-    onBeforeCommand () {}
+    onBeforeCommand() { }
     /* istanbul ignore next */
-    onAfterCommand () {}
+    onAfterCommand() { }
     /* istanbul ignore next */
-    onScreenshot () {}
+    onScreenshot() { }
     /* istanbul ignore next */
-    onSuiteStart () {}
+    onSuiteStart() { }
     /* istanbul ignore next */
-    onHookStart () {}
+    onHookStart() { }
     /* istanbul ignore next */
-    onHookEnd () {}
+    onHookEnd() { }
     /* istanbul ignore next */
-    onTestStart () {}
+    onTestStart() { }
     /* istanbul ignore next */
-    onTestPass () {}
+    onTestPass() { }
     /* istanbul ignore next */
-    onTestFail () {}
+    onTestFail() { }
     /* istanbul ignore next */
-    onTestSkip () {}
+    onTestRetry() { }
     /* istanbul ignore next */
-    onTestEnd () {}
+    onTestSkip() { }
     /* istanbul ignore next */
-    onSuiteEnd () {}
+    onTestEnd() { }
     /* istanbul ignore next */
-    onRunnerEnd () {}
+    onSuiteEnd() { }
+    /* istanbul ignore next */
+    onRunnerEnd() { }
 }

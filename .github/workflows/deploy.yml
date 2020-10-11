@@ -3,9 +3,9 @@
 name: Docs Deploy
 
 on:
-  push:
-    tags:
-      - v*
+  release:
+    types:
+      - created
 
 jobs:
   deploy:
