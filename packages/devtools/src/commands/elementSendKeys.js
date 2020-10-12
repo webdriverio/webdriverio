@@ -25,7 +25,7 @@ export default async function elementSendKeys ({ elementId, text }) {
     const tagName = await (await elementHandle.getProperty('tagName')).jsonValue()
     const type = await (await elementHandle.getProperty('type')).jsonValue()
 
-    if(tagName === 'INPUT' && type === 'file'){
+    if (tagName === 'INPUT' && type === 'file'){
         const paths = (text || '').split('\n').map(p => path.resolve(p))
         await elementHandle.uploadFile(...paths)
     } else {

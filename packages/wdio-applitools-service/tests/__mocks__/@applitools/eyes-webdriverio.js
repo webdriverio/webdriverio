@@ -1,7 +1,7 @@
 const Target = {
     window: jest.fn().mockReturnValue('some window'),
     region: jest.fn().mockImplementation((region, frame) => {
-        if(frame) {
+        if (frame) {
             return 'foobarRegionWithFrame'
         }
         return 'foobarRegion'

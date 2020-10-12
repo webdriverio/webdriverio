@@ -72,14 +72,14 @@ export const tellReporter = (event, msg = {}) => {
  */
 export const getErrorFromFailedTest = (test) => {
     if (test.errors && Array.isArray(test.errors)) {
-        for(let i = 0; i < test.errors.length; i += 1){
-            if(test.errors[i].message) test.errors[i].message = stripAnsi(test.errors[i].message)
-            if(test.errors[i].stack) test.errors[i].stack = stripAnsi(test.errors[i].stack)
+        for (let i = 0; i < test.errors.length; i += 1){
+            if (test.errors[i].message) test.errors[i].message = stripAnsi(test.errors[i].message)
+            if (test.errors[i].stack) test.errors[i].stack = stripAnsi(test.errors[i].stack)
         }
         return test.errors.length === 1 ? test.errors[0] : new CompoundError(...test.errors)
     }
-    if(test.error.message) test.error.message = stripAnsi(test.error.message)
-    if(test.error.stack) test.error.stack = stripAnsi(test.error.stack)
+    if (test.error.message) test.error.message = stripAnsi(test.error.message)
+    if (test.error.stack) test.error.stack = stripAnsi(test.error.stack)
     return test.error
 }
 
@@ -94,7 +94,7 @@ export const getLinkByTemplate = (template, id) => {
     if (typeof template !== 'string') {
         return id
     }
-    if(!template.includes(linkPlaceholder)) {
+    if (!template.includes(linkPlaceholder)) {
         throw Error(`The link template "${template}" must contain ${linkPlaceholder} substring.`)
     }
     return template.replace(linkPlaceholder, id)
