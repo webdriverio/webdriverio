@@ -9,6 +9,14 @@ const Target = {
 }
 
 class Eyes {
+    setApiKey: any;
+    setServerUrl: any;
+    setProxy: any;
+    check: any;
+    open: any;
+    close: any;
+    abortIfNotClosed: any;
+
     constructor () {
         this.setApiKey = jest.fn()
         this.setServerUrl = jest.fn()

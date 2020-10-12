@@ -77,8 +77,8 @@ export default class ApplitoolsService {
         })
     }
 
-    beforeTest(test: { title: string, parent: string }) {
-        if (!this.isConfigured) {
+    beforeTest(test?: { title: string, parent: string }) {
+        if (!test || !this.isConfigured) {
             return
         }
 
