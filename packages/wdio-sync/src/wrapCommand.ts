@@ -99,7 +99,7 @@ export default function wrapCommand(commandName: string, fn: Function): Function
 /**
  * helper method that runs the command with before/afterCommand hook
  */
-async function runCommandWithHooks(this: any, commandName: string, fn: Function, ...args: unknown[]) {
+async function runCommandWithHooks(this: WebdriverIO.BrowserObject, commandName: string, fn: Function, ...args: unknown[]) {
     // save error for getting full stack in case of failure
     // should be before any async calls
     const stackError = new Error()
