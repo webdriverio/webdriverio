@@ -147,7 +147,7 @@ function isNotInFiber(context: WebdriverIO.BrowserObject, fnName: string) {
  */
 function inFiber(context: WebdriverIO.BrowserObject) {
     if (context.constructor.name === 'MultiRemoteDriver') {
-        return context.instances.forEach((instance: any) => {
+        return context.instances.forEach((instance: WebdriverIO.BrowserObject) => {
             context[instance]._NOT_FIBER = false
             let parent = context[instance].parent
             while (parent && parent._NOT_FIBER) {
