@@ -1,9 +1,4 @@
 import { join, resolve } from 'path'
-
-declare module 'util' {
-    function promisify<T1>(fn: (arg1: T1, callback: (err?: any) => void) => void): (arg1: T1) => Promise<void>;
-}
-
 import { promisify } from 'util'
 import express from 'express'
 import fs from 'fs-extra'
@@ -48,7 +43,8 @@ export default class StaticServerLauncher {
         this.middleware.forEach(
             (ware: MiddleWareOption) => this.server.use(ware.mount, ware.middleware as unknown as express.Application))
 
-        await promisify(this.server.listen.bind(this.server))(this.port)
+        const listen: (port: number) => Promise<any> = promisify(this.server.listen)
+        await listen(this.port)
         log.info(`Static server running at http://localhost:${this.port}`)
     }
 }
