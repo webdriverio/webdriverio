@@ -1,4 +1,5 @@
 /// <reference types="@applitools/visual-grid-client"/>
+/// <reference types="@applitools/eyes-sdk-core"/>
 
 declare module WebdriverIO {
     interface ServiceOption extends ApplitoolsConfig {}
@@ -25,12 +26,7 @@ interface ApplitoolsConfig {
     /**
      * Use proxy for http/https connections with Applitools.
      */
-    proxy?: {
-        url: string;
-        username?: string;
-        password?: string;
-        isHttpOnly?: boolean;
-    };
+    proxy?: ProxySettings;
 }
 
 interface ApplitoolsBrowser {

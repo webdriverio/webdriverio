@@ -9,7 +9,12 @@ const DEFAULT_VIEWPORT = {
 }
 
 export default class ApplitoolsService {
-    constructor(options) {
+    options: ApplitoolsConfig;
+    isConfigured: boolean = false;
+    viewport: ApplitoolsConfig['viewport'];
+    eyes: Eyes;
+
+    constructor(options: ApplitoolsConfig) {
         this.options = options
         this.eyes = new Eyes()
     }
