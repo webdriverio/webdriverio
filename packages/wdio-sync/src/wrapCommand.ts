@@ -137,7 +137,7 @@ async function runCommandHook(hookFn: Function | Function[], args: object | obje
  * @param {object} context browser or element
  * @param {string} fnName function name
  */
-function isNotInFiber(context: any, fnName: string) {
+function isNotInFiber(context: WebdriverIO.BrowserObject, fnName: string) {
     return fnName !== '' && !!(context.elementId || (context.parent && context.parent.elementId))
 }
 
