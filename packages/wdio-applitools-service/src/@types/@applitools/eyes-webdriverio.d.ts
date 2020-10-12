@@ -1,17 +1,23 @@
 /// <reference types="@applitools/visual-grid-client"/>
-/// <reference types="@applitools/eyes-sdk-core"/>
 
 declare module '@applitools/eyes-webdriverio';
 
 type Region = Eyes.Check.Region | WebdriverIO.Element | string;
 type Frame = WebdriverIO.Element | string;
 
+interface ProxyOptions {
+    uri: string | boolean;
+    username: string;
+    password: string;
+    isHttpOnly: boolean;
+}
+
 interface Eyes {
     new(serverUrl: string, isDisabled: boolean): Eyes;
 
     setServerUrl(value: string): void;
     setApiKey(value: string): void;
-    setProxy(value: ProxySettings): void;
+    setProxy(value: ProxyOptions): void;
 
     open(driver: WebdriverIO, appName: string, testName: string, viewportSize?: { width: number, height: number }): Promise<WebdriverIO>;
     check(name: string, target: any): Promise<boolean>;

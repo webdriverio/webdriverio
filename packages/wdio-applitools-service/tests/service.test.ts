@@ -3,6 +3,7 @@ import ApplitoolsService from '../src'
 const globalAny: any = global
 
 class BrowserMock {
+    [key: string]: any;
     addCommand: any;
     call: any;
 

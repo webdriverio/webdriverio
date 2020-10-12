@@ -1,12 +1,10 @@
 /// <reference types="webdriverio/webdriverio"/>
 /// <reference types="@applitools/visual-grid-client"/>
-/// <reference types="@applitools/eyes-sdk-core"/>
 
-// declare global {
-//     interface Global {
-//         browser: WebdriverIO;
-//     }
-// }
+declare module WebdriverIO {
+    interface ServiceOption extends ApplitoolsConfig {}
+    interface Browser extends ApplitoolsBrowser {}
+}
 
 declare module NodeJS {
     interface Global {
@@ -28,8 +26,8 @@ interface ApplitoolsConfig {
      * Viewport with which the screenshots should be taken.
      */
     viewport?: {
-        width: number;
-        height: number;
+        width?: number;
+        height?: number;
     };
     /**
      * Use proxy for http/https connections with Applitools.

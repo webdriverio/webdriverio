@@ -11,7 +11,7 @@ const DEFAULT_VIEWPORT = {
 export default class ApplitoolsService {
     options: ApplitoolsConfig;
     isConfigured: boolean = false;
-    viewport: ApplitoolsConfig['viewport'];
+    viewport: Required<ApplitoolsConfig['viewport']>;
     eyes: Eyes;
 
     constructor(options: ApplitoolsConfig) {
