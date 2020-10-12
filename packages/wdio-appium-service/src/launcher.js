@@ -79,7 +79,7 @@ export default class AppiumLauncher {
     }
 
     onComplete() {
-        if(this.process) {
+        if (this.process) {
             log.debug(`Appium (pid: ${process.pid}) killed`)
             this.process.kill()
         }

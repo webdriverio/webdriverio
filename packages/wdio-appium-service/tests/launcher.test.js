@@ -84,9 +84,9 @@ describe('Appium launcher', () => {
 
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
-            if(isWindows){
+            if (isWindows) {
                 expect(launcher.command).toBe('cmd')
-            }else{
+            } else {
                 expect(launcher.command).toBe('path/to/my_custom_appium')
             }
             expect(capabilities[0].protocol).toBe('http')
@@ -132,9 +132,9 @@ describe('Appium launcher', () => {
 
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
-            if(isWindows){
+            if (isWindows) {
                 expect(launcher.command).toBe('cmd')
-            }else{
+            } else {
                 expect(launcher.command).toBe('path/to/my_custom_appium')
             }
             expect(capabilities[0].protocol).toBe('http')
@@ -157,9 +157,9 @@ describe('Appium launcher', () => {
 
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
-            if(isWindows){
+            if (isWindows) {
                 expect(launcher.command).toBe('cmd')
-            }else{
+            } else {
                 expect(launcher.command).toBe('path/to/my_custom_appium')
             }
 
@@ -222,9 +222,9 @@ describe('Appium launcher', () => {
             await launcher.onPrepare()
 
             expect(launcher.logPath).toBe(undefined)
-            if(isWindows){
+            if (isWindows) {
                 expect(launcher.command).toBe('cmd')
-            }else{
+            } else {
                 expect(launcher.command).toBe('node')
             }
         })

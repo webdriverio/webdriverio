@@ -69,9 +69,9 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
             let featureFileWithoutLine = ''
-            if(isWindows){
+            if (isWindows){
                 featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[1]
-            }else{
+            } else {
                 featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0]
             }
             expect(specs).toContain(featureFileWithoutLine)
@@ -85,9 +85,9 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
             let featureFileWithoutLine = ''
-            if(isWindows){
+            if (isWindows){
                 featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[1]
-            }else{
+            } else {
                 featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[0]
             }
             expect(specs).toContain(featureFileWithoutLine)
@@ -102,10 +102,10 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(2)
             let featureFileA = ''
             let featureFileB = ''
-            if(isWindows){
+            if (isWindows){
                 featureFileA = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[1]
                 featureFileB = FIXTURES_CUCUMBER_FEATURE_B_LINE_7.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_B_LINE_7.split(':')[1]
-            }else{
+            } else {
                 featureFileA = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0]
                 featureFileB = FIXTURES_CUCUMBER_FEATURE_B_LINE_7.split(':')[0]
             }

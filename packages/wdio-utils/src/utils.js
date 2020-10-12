@@ -160,7 +160,7 @@ export function safeRequire (name) {
          * also allows to link the package to a random place and have plugins
          * imported correctly (for dev purposes).
          */
-        const localNodeModules = path.join(`${process.cwd()}`, '/node_modules')
+        const localNodeModules = path.join(process.cwd(), '/node_modules')
         /* istanbul ignore if */
         if (!require.main.paths.includes(localNodeModules)) {
             require.main.paths.push(localNodeModules)
