@@ -41,8 +41,6 @@
   },
   "types": "selenium-standalone-service.d.ts",
   "devDependencies": {
-    "@types/fs-extra": "^9.0.1",
-    "webdriver": "^6.6.2",
-    "webdriverio": "^6.6.2"
+    "@types/fs-extra": "^9.0.1"
   }
 }

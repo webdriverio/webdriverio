@@ -21,7 +21,7 @@ describe('Selenium standalone launcher', () => {
                 args: { drivers: { chrome: {} } },
                 installArgs: { drivers: { chrome: {} } },
             }
-            const capabilities: any = [{ port: 1234 }]
+            const capabilities: Record<string, WebDriver.Capabilities & WebDriver.Options> = [{ port: 1234 }]
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true })
@@ -43,7 +43,7 @@ describe('Selenium standalone launcher', () => {
                 args: { drivers: { chrome: {} } },
                 installArgs: { drivers: { chrome: {} } },
             }
-            const capabilities: any = {
+            const capabilities: Record<string, WebDriver.Capabilities & WebDriver.Options> = {
                 browserA: { port: 1234 },
                 browserB: { port: 4321 }
             }
@@ -62,7 +62,7 @@ describe('Selenium standalone launcher', () => {
 
         test('should not override cloud config using multiremote', async () => {
             const options = {
-                logPath : './',
+                logPath: './',
                 args: { drivers: { chrome: {} } },
                 installArgs: { drivers: { chrome: {} } },
             }
