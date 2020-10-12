@@ -4,7 +4,6 @@ import { isCloudCapability } from '@wdio/config'
 import { promisify } from 'util'
 import fs from 'fs-extra'
 import SeleniumStandalone from 'selenium-standalone'
-import type { ChildProcess } from 'child_process'
 
 import { getFilePath } from './utils'
 
@@ -58,7 +57,7 @@ export default class SeleniumStandaloneLauncher {
         /**
          * start Selenium Standalone server
          */
-        const start: (opts: SeleniumStandalone.StartOpts) => Promise<ChildProcess> = promisify(SeleniumStandalone.start)
+        const start: (opts: SeleniumStandalone.StartOpts) => Promise<SeleniumStandalone.ChildProcess> = promisify(SeleniumStandalone.start)
         this.process = await start(this.args)
 
         if (typeof this.logPath === 'string') {
