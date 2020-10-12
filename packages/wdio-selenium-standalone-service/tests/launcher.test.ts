@@ -21,7 +21,7 @@ describe('Selenium standalone launcher', () => {
                 args: { drivers: { chrome: {} } },
                 installArgs: { drivers: { chrome: {} } },
             }
-            const capabilities: Record<string, WebDriver.Capabilities & WebDriver.Options> = [{ port: 1234 }]
+            const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{ port: 1234 }]
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true })
