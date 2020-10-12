@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@wdio/logger": "6.6.0",
+    "@wdio/config": "6.6.0",
     "fs-extra": "^9.0.0",
     "param-case": "^3.0.0"
   },

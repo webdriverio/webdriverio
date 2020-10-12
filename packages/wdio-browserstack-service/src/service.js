@@ -41,7 +41,9 @@ export default class BrowserstackService {
     before() {
         this.sessionId = global.browser.sessionId
 
-        if (global.browser.capabilities.app || this.caps.app) {
+        // Ensure capabilities are not null in case of multiremote
+        const capabilities = global.browser.capabilities || {}
+        if (capabilities.app || this.caps.app) {
             this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
 
@@ -82,7 +84,7 @@ export default class BrowserstackService {
     after(result) {
         // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
         // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
-        if(this.preferScenarioName && this.scenariosThatRan.length === 1){
+        if (this.preferScenarioName && this.scenariosThatRan.length === 1){
             this.fullTitle = this.scenariosThatRan.pop()
         }
 
@@ -139,7 +141,8 @@ export default class BrowserstackService {
     }
 
     async _printSessionURL() {
-        const capabilities = global.browser.capabilities
+        // Ensure capabilities are not null in case of multiremote
+        const capabilities = global.browser.capabilities || {}
 
         const response = await got(`${this.sessionBaseUrl}/${this.sessionId}.json`, {
             username: this.config.user,

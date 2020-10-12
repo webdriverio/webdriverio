@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import Selenium from 'selenium-standalone'
 import SeleniumStandaloneLauncher from '../src/launcher'
-
+jest.unmock('@wdio/config')
 jest.mock('fs-extra', () => ({
     createWriteStream: jest.fn(),
     ensureFileSync: jest.fn(),
@@ -58,6 +58,29 @@ describe('Selenium standalone launcher', () => {
             expect(capabilities.browserB.hostname).toBe('localhost')
             expect(capabilities.browserB.port).toBe(4321)
             expect(capabilities.browserB.path).toBe('/wd/hub')
+        })
+
+        test('should not override cloud config using multiremote', async () => {
+            const options = {
+                logPath : './',
+                args: { drivers: { chrome: {} } },
+                installArgs: { drivers: { chrome: {} } },
+            }
+            const capabilities: Record<string, WebDriver.Capabilities & WebDriver.Options> = {
+                browserA: { port: 1234 },
+                browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
+            }
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+            launcher._redirectLogStream = jest.fn()
+            await launcher.onPrepare({ watch: true })
+            expect(capabilities.browserA.protocol).toBe('http')
+            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.port).toBe(1234)
+            expect(capabilities.browserA.path).toBe('/wd/hub')
+            expect(capabilities.browserB.protocol).toBeUndefined()
+            expect(capabilities.browserB.hostname).toBeUndefined()
+            expect(capabilities.browserB.port).toBe(4321)
+            expect(capabilities.browserB.path).toBeUndefined()
         })
 
         test('should call selenium install and start', async () => {

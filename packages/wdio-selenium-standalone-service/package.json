@@ -29,6 +29,7 @@
   "dependencies": {
     "@types/selenium-standalone": "^6.15.2",
     "@wdio/logger": "6.6.0",
+    "@wdio/config": "6.6.0",
     "fs-extra": "^9.0.1",
     "selenium-standalone": "^6.20.1"
   },

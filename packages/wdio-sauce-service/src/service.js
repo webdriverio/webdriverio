@@ -39,7 +39,9 @@ export default class SauceService {
     }
 
     before() {
-        this.isUP = isUnifiedPlatform(global.browser.capabilities)
+        // Ensure capabilities are not null in case of multiremote
+        const capabilities = global.browser.capabilities || {}
+        this.isUP = isUnifiedPlatform(capabilities)
     }
 
     beforeSuite (suite) {

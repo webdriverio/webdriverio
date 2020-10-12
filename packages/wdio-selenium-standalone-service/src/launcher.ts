@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { isCloudCapability } from '@wdio/config'
 
 import { promisify } from 'util'
 import fs from 'fs-extra'
@@ -19,7 +20,7 @@ const DEFAULT_CONNECTION = {
 
 export default class SeleniumStandaloneLauncher {
 
-    capabilities: WebDriver.Capabilities[]
+    capabilities: WebDriver.Capabilities[] | Record<string, WebDriver.Capabilities>
     logPath?: string
     args: Partial<import('selenium-standalone').StartOpts>;
     installArgs: Partial<import('selenium-standalone').InstallOpts>;
@@ -27,7 +28,7 @@ export default class SeleniumStandaloneLauncher {
     watchMode: boolean = false
     process!: SeleniumStandalone.ChildProcess
 
-    constructor(options: WebdriverIO.ServiceOption, capabilities: WebDriver.Capabilities[], config: WebdriverIO.Config) {
+    constructor(options: WebdriverIO.ServiceOption, capabilities: WebDriver.Capabilities[] | Record<string, WebDriver.Capabilities>, config: WebdriverIO.Config) {
 
         this.capabilities = capabilities
         this.logPath = options.logPath || config.outputDir
@@ -52,7 +53,7 @@ export default class SeleniumStandaloneLauncher {
             Array.isArray(this.capabilities)
                 ? this.capabilities
                 : Object.values(this.capabilities)
-        ).forEach((cap: any) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+        ).forEach((cap) => !isCloudCapability((cap as Record<string, WebDriver.Capabilities>).capabilities) && Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
 
         /**
          * start Selenium Standalone server

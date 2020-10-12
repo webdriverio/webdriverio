@@ -32,6 +32,7 @@ module.exports = {
         quotes: ['error', 'single', { avoidEscape: true }],
         'unicode-bom': ['error', 'never'],
         'object-curly-spacing': ['error', 'always'],
+        'keyword-spacing':['error'],
         'require-atomic-updates': 0
     },
     overrides: [{
