@@ -48,7 +48,7 @@ export async function runServiceHook(launcher, hookName, ...args) {
  * @param {Object} capabilities
  */
 export async function runLauncherHook(hook, ...args) {
-    const catchFn = (e) => log.error(`Error in hook: ${e.stack}`)
+    const catchFn = (e) => log.error(`Error in hook: ${e.stack || e}`)
 
     if (typeof hook === 'function') {
         hook = [hook]
