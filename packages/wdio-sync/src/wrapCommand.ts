@@ -145,7 +145,7 @@ function isNotInFiber(context: WebdriverIO.BrowserObject, fnName: string) {
  * set `_NOT_FIBER` to `false` for element and its parents
  * @param {object} context browser or element
  */
-function inFiber(context: any) {
+function inFiber(context: WebdriverIO.BrowserObject) {
     if (context.constructor.name === 'MultiRemoteDriver') {
         return context.instances.forEach((instance: any) => {
             context[instance]._NOT_FIBER = false
