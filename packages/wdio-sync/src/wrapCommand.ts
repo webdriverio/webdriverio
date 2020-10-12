@@ -35,7 +35,7 @@ process.on('WDIO_TIMER', (payload) => {
  * @return {Function}   actual wrapped function
  */
 export default function wrapCommand(commandName: string, fn: Function): Function {
-    return function wrapCommandFn(this: any, ...args: unknown[]) {
+    return function wrapCommandFn(this: WebdriverIO.Client, ...args: unknown[]) {
         /**
          * print error if a user is using a fiberized command outside of the Fibers context
          */
