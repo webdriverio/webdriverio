@@ -18,8 +18,8 @@ describe('Selenium standalone launcher', () => {
         test('should set correct config properties', async () => {
             const options = {
                 logPath: './',
-                args: { foo: 'foo' },
-                installArgs: { bar: 'bar' },
+                args: { drivers: { chrome: {} } },
+                installArgs: { drivers: { chrome: {} } },
             }
             const capabilities: any = [{ port: 1234 }]
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
@@ -40,8 +40,8 @@ describe('Selenium standalone launcher', () => {
         test('should set correct config properties using multiremote', async () => {
             const options = {
                 logPath: './',
-                args: { foo: 'foo' },
-                installArgs: { bar: 'bar' },
+                args: { drivers: { chrome: {} } },
+                installArgs: { drivers: { chrome: {} } },
             }
             const capabilities: any = {
                 browserA: { port: 1234 },

@@ -30,7 +30,6 @@
     "@types/selenium-standalone": "^6.15.2",
     "@wdio/logger": "6.6.0",
     "fs-extra": "^9.0.1",
-    "webdriver": "6.6.2",
     "selenium-standalone": "^6.20.1"
   },
   "peerDependencies": {
@@ -41,6 +40,8 @@
   },
   "types": "selenium-standalone-service.d.ts",
   "devDependencies": {
-    "@types/fs-extra": "^9.0.1"
+    "@types/fs-extra": "^9.0.1",
+    "webdriver": "^6.6.2",
+    "webdriverio": "^6.6.2"
   }
 }

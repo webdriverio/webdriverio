@@ -1,12 +1,9 @@
 import logger from '@wdio/logger'
-import { Capabilities } from 'webdriver'
 
-declare module 'util' {
-    function promisify<T1, TResult>(fn: (arg1: T1, callback: (err: any, result: TResult) => void) => void): (arg1: T1) => Promise<TResult>;
-}
 import { promisify } from 'util'
 import fs from 'fs-extra'
 import SeleniumStandalone from 'selenium-standalone'
+import type { ChildProcess } from 'child_process'
 
 import { getFilePath } from './utils'
 
@@ -20,21 +17,9 @@ const DEFAULT_CONNECTION = {
     path: '/wd/hub'
 }
 
-export interface Config {
-    outputDir?: string,
-    watch?: boolean,
-}
-
-export interface SeleniumStandaloneOptions {
-    logPath?: string;
-    installArgs?: any;
-    args?: any;
-    skipSeleniumInstall?: boolean;
-}
-
 export default class SeleniumStandaloneLauncher {
 
-    capabilities: Capabilities[]
+    capabilities: WebDriver.Capabilities[]
     logPath?: string
     args: Partial<import('selenium-standalone').StartOpts>;
     installArgs: Partial<import('selenium-standalone').InstallOpts>;
@@ -42,7 +27,7 @@ export default class SeleniumStandaloneLauncher {
     watchMode: boolean = false
     process!: SeleniumStandalone.ChildProcess
 
-    constructor(options: SeleniumStandaloneOptions, capabilities: Capabilities[], config: Config) {
+    constructor(options: WebdriverIO.ServiceOption, capabilities: WebDriver.Capabilities[], config: WebdriverIO.Config) {
 
         this.capabilities = capabilities
         this.logPath = options.logPath || config.outputDir
@@ -51,11 +36,12 @@ export default class SeleniumStandaloneLauncher {
         this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
     }
 
-    async onPrepare(config: Config): Promise<void> {
+    async onPrepare(config: WebdriverIO.Config): Promise<void> {
         this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
-            await promisify(SeleniumStandalone.install)(this.installArgs)
+            const install: (opts: SeleniumStandalone.InstallOpts) => Promise<unknown> = promisify(SeleniumStandalone.install)
+            await install(this.installArgs)
         }
 
         /**
@@ -71,7 +57,8 @@ export default class SeleniumStandaloneLauncher {
         /**
          * start Selenium Standalone server
          */
-        this.process = await promisify(SeleniumStandalone.start)(this.args)
+        const start: (opts: SeleniumStandalone.StartOpts) => Promise<ChildProcess> = promisify(SeleniumStandalone.start)
+        this.process = await start(this.args)
 
         if (typeof this.logPath === 'string') {
             this._redirectLogStream()
