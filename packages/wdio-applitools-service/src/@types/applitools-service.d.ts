@@ -1,9 +1,17 @@
+/// <reference types="webdriverio/webdriverio"/>
 /// <reference types="@applitools/visual-grid-client"/>
 /// <reference types="@applitools/eyes-sdk-core"/>
 
-declare module WebdriverIO {
-    interface ServiceOption extends ApplitoolsConfig {}
-    interface Browser extends ApplitoolsBrowser {}
+// declare global {
+//     interface Global {
+//         browser: WebdriverIO;
+//     }
+// }
+
+declare module NodeJS {
+    interface Global {
+        browser: WebdriverIO.Browser;
+    }
 }
 
 interface ApplitoolsConfig {
