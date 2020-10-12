@@ -17,6 +17,75 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.6.3 (2020-10-12)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-browserstack-service`, `wdio-config`, `wdio-sauce-service`, `wdio-selenium-standalone-service`
+  * [#5960](https://github.com/webdriverio/webdriverio/pull/5960) Fix multi remote capabilities for mixed backends ([@hieuxlu](https://github.com/hieuxlu))
+* `webdriver`
+  * [#5967](https://github.com/webdriverio/webdriverio/pull/5967) fix request header of webdirver io ([@link89](https://github.com/link89))
+
+#### :memo: Documentation
+* Other
+  * [#5971](https://github.com/webdriverio/webdriverio/pull/5971) Correct wrong example for `watch` in `CONTRIBUTING.md` ([@martinfrancois](https://github.com/martinfrancois))
+* `webdriverio`
+  * [#5963](https://github.com/webdriverio/webdriverio/pull/5963) waitForExist/waitForDisplayed: adjust examples ([@wiese](https://github.com/wiese))
+
+#### :house: Internal
+* `devtools`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-spec-reporter`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#5965](https://github.com/webdriverio/webdriverio/pull/5965) Fixes unit tests in windows ([@logesr](https://github.com/logesr))
+
+#### Committers: 5
+- François Martin ([@martinfrancois](https://github.com/martinfrancois))
+- Hieu Do ([@hieuxlu](https://github.com/hieuxlu))
+- Loges R ([@logesr](https://github.com/logesr))
+- [@link89](https://github.com/link89)
+- [@wiese](https://github.com/wiese)
+
+
+## v6.6.2 (2020-10-08)
+
+#### :memo: Documentation
+* `wdio-selenium-standalone-service`, `webdriver`
+  * [#5956](https://github.com/webdriverio/webdriverio/pull/5956) Edge types and selenium-standalone docs ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `wdio-cli`, `wdio-lambda-runner`
+  * [#5953](https://github.com/webdriverio/webdriverio/pull/5953) Remove existence of lambda runner ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v6.6.1 (2020-10-08)
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#5941](https://github.com/webdriverio/webdriverio/pull/5941) Fix to display device name when run on BrowserStack ([@shawnlobo96](https://github.com/shawnlobo96))
+
+#### :memo: Documentation
+* Other
+  * [#5954](https://github.com/webdriverio/webdriverio/pull/5954) Fixing a few typos on homepage ([@jeremykao](https://github.com/jeremykao))
+* `devtools`
+  * [#5943](https://github.com/webdriverio/webdriverio/pull/5943) Suppress warning when running tests in Edge and update docs ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `devtools`, `wdio-shared-store-service`
+  * [#5947](https://github.com/webdriverio/webdriverio/pull/5947) Move WebdriverIO pipeline to GitHub Action ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-smoke-test-reporter`
+  * [#5949](https://github.com/webdriverio/webdriverio/pull/5949) Tracking doc: rewrite `wdio-smoke-test-reporter` package into TypeScript ([@suniljaiswal01](https://github.com/suniljaiswal01))
+* `wdio-smoke-test-service`
+  * [#5948](https://github.com/webdriverio/webdriverio/pull/5948) Tracking doc: rewrite `wdio-smoke-test-service` package into TypeScript ([@suniljaiswal01](https://github.com/suniljaiswal01))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jeremy Kao ([@jeremykao](https://github.com/jeremykao))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Shawn Lobo ([@shawnlobo96](https://github.com/shawnlobo96))
+- Sunil Jaiswal ([@suniljaiswal01](https://github.com/suniljaiswal01))
+
+
 ## v6.6.0 (2020-10-06)
 
 #### :rocket: New Feature

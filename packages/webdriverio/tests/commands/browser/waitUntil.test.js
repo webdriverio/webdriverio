@@ -24,9 +24,9 @@ describe('waitUntil', () => {
                 timeoutMsg: 'Timed Out',
                 interval: 200
             })
-        } catch(e) {
+        } catch (e) {
             error = e
-        } finally{
+        } finally {
             expect(error.message).toContain('Condition is not a function')
         }
     })
@@ -47,9 +47,9 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch(e) {
+        } catch (e) {
             error = e
-        } finally{
+        } finally {
             expect(error.message).toContain('Timed Out')
         }
     })
@@ -70,9 +70,9 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch(e) {
+        } catch (e) {
             error = e
-        } finally{
+        } finally {
             expect(error.message).toContain('waitUntil condition failed with the following reason: foobar')
         }
     })
@@ -90,7 +90,7 @@ describe('waitUntil', () => {
                     timeout: 500
                 }
             )
-        } catch(e) {
+        } catch (e) {
             expect(e.message).toContain('waitUntil condition failed with the following reason: Error')
         }
     })
@@ -110,9 +110,9 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch(e) {
+        } catch (e) {
             error = e
-        } finally{
+        } finally {
             expect(error.message).toMatch(/waitUntil condition timed out after \d+ms/)
         }
     })
@@ -133,9 +133,9 @@ describe('waitUntil', () => {
                     interval: 'blah'
                 }
             )
-        } catch(e) {
+        } catch (e) {
             error = e
-        } finally{
+        } finally {
             expect(error.message).toContain('Timed Out')
         }
     })
@@ -156,9 +156,9 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch(e) {
+        } catch (e) {
             error = e
-        } finally{
+        } finally {
             expect(error).toBeUndefined()
         }
     })

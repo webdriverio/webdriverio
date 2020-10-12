@@ -1,0 +1,67 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+name: Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install Dependencies
+        run: npm ci
+      - name: Bootstrap Packages
+        run: npm run setup-full
+      - name: Lint / Dependencies / Unit / Smoke Tests
+        run: npm run test
+      - name: E2E Protocol Tests
+        if: ${{ matrix.node-version == '12.x' }}
+        run: npm run test:e2e
+      - name: E2E Firefox Launch Tests
+        if: ${{ matrix.node-version == '12.x' }}
+        run: |
+          sudo add-apt-repository ppa:ubuntu-mozilla-daily/ppa
+          sudo apt-get update
+          sudo apt-get install firefox-trunk
+          npm run test:e2e:firefox
+  e2e-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Install Dependencies
+        run: npm ci
+      - name: Bootstrap Packages
+        run: npm run setup-full
+      - name: Lint / Dependencies / Unit / Smoke Tests
+        run: npm run test
+      - name: E2E Protocol Tests
+        run: npm run test:e2e
+      - name: E2E Edge Launch Tests
+        run: npm run test:e2e:edge
+  e2e-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Install Dependencies
+        run: npm ci
+      - name: Bootstrap Packages
+        run: npm run setup-full
+      - name: E2E Protocol Tests
+        run: npm run test:e2e
