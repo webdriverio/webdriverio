@@ -6,7 +6,7 @@ type Region = Eyes.Check.Region | WebdriverIO.Element | string;
 type Frame = WebdriverIO.Element | string;
 
 interface ProxyOptions {
-    uri: string | boolean;
+    url: string | boolean;
     username: string;
     password: string;
     isHttpOnly: boolean;
@@ -19,7 +19,7 @@ interface Eyes {
     setApiKey(value: string): void;
     setProxy(value: ProxyOptions): void;
 
-    open(driver: WebdriverIO, appName: string, testName: string, viewportSize?: { width: number, height: number }): Promise<WebdriverIO>;
+    open(driver: any, appName: string, testName: string, viewportSize?: { width: number, height: number }): Promise<any>;
     check(name: string, target: any): Promise<boolean>;
     close(throwEx?: boolean): Promise<any>;
     abortIfNotClosed(): any;

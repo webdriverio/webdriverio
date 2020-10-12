@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { Eyes, Target } from '@applitools/eyes-webdriverio'
+import { Eyes, Target, ProxyOptions } from '@applitools/eyes-webdriverio'
 
 const log = logger('@wdio/applitools-service')
 
@@ -8,13 +8,44 @@ const DEFAULT_VIEWPORT = {
     height: 900
 }
 
+declare global {
+    namespace NodeJS {
+        interface Global {
+            browser: any;
+        }
+    }
+}
+
+interface ServiceConfig {
+    /**
+     * Applitools API key to be used. Can be passed via wdio config or via environment
+     * variable `APPLITOOLS_KEY`
+     */
+    key?: string;
+    /**
+     * Applitools server URL to be used.
+     */
+    serverUrl?: string;
+    /**
+     * Viewport with which the screenshots should be taken.
+     */
+    viewport?: {
+        width?: number;
+        height?: number;
+    };
+    /**
+     * Use proxy for http/https connections with Applitools.
+     */
+    proxy?: ProxyOptions;
+}
+
 export default class ApplitoolsService {
-    options: ApplitoolsConfig;
+    options: ServiceConfig;
     isConfigured: boolean = false;
-    viewport: Required<ApplitoolsConfig['viewport']>;
+    viewport: Required<ServiceConfig['viewport']>;
     eyes: Eyes;
 
-    constructor(options: ApplitoolsConfig) {
+    constructor(options: ServiceConfig) {
         this.options = options
         this.eyes = new Eyes()
     }
