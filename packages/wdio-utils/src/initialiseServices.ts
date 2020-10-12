@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { DesiredCapabilities } from 'webdriver/build/types'
+import type { DesiredCapabilities } from 'webdriver'
 
 import initialisePlugin from './initialisePlugin'
 
@@ -97,7 +97,7 @@ export function initialiseLauncherService (config: WebdriverIO.Config, caps: Des
     const launcherServices = []
 
     try {
-        const services = initialiseServices(config.services.map(sanitizeServiceArray))
+        const services = initialiseServices(config.services!.map(sanitizeServiceArray))
         for (const [service, serviceConfig, serviceName] of services) {
             /**
              * add custom services as object or function
@@ -145,7 +145,7 @@ export function initialiseLauncherService (config: WebdriverIO.Config, caps: Des
  * @return {Object[]}                      list if worker initiated worker services
  */
 export function initialiseWorkerService (config: WebdriverIO.Config, caps: DesiredCapabilities, ignoredWorkerServices: string[] = []) {
-    const workerServices = config.services
+    const workerServices = config.services!
         .map(sanitizeServiceArray)
         .filter(([serviceName]) => !ignoredWorkerServices.includes(serviceName as string))
 
