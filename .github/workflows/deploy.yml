@@ -3,9 +3,9 @@
 name: Docs Deploy
 
 on:
-  release:
-    types:
-      - created
+  repository_dispatch:
+    types: [docs_release]
+  workflow_dispatch:
 
 jobs:
   deploy:
