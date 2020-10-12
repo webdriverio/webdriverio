@@ -238,21 +238,21 @@ class SpecReporter extends WDIOReporter {
         const output = []
 
         // Get the passes
-        if(this.stateCounts.passed > 0) {
+        if (this.stateCounts.passed > 0) {
             const text = `${this.stateCounts.passed} passing ${duration}`
             output.push(this.chalk[this.getColor('passed')](text))
             duration = ''
         }
 
         // Get the failures
-        if(this.stateCounts.failed > 0) {
+        if (this.stateCounts.failed > 0) {
             const text = `${this.stateCounts.failed} failing ${duration}`.trim()
             output.push(this.chalk[this.getColor('failed')](text))
             duration = ''
         }
 
         // Get the skipped tests
-        if(this.stateCounts.skipped > 0) {
+        if (this.stateCounts.skipped > 0) {
             const text = `${this.stateCounts.skipped} skipped ${duration}`.trim()
             output.push(this.chalk[this.getColor('skipped')](text))
         }
@@ -273,7 +273,7 @@ class SpecReporter extends WDIOReporter {
             const suiteTitle = suite.title
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
-                if(test.state !== 'failed') {
+                if (test.state !== 'failed') {
                     continue
                 }
 

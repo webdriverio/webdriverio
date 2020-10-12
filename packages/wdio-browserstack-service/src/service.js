@@ -84,7 +84,7 @@ export default class BrowserstackService {
     after(result) {
         // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
         // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
-        if(this.preferScenarioName && this.scenariosThatRan.length === 1){
+        if (this.preferScenarioName && this.scenariosThatRan.length === 1){
             this.fullTitle = this.scenariosThatRan.pop()
         }
 
