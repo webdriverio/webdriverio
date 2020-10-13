@@ -1,3 +1,4 @@
+// @ts-ignore
 import junit from 'junit-report-builder'
 import WDIOReporter from '@wdio/reporter'
 import { limit } from './utils'
@@ -8,12 +9,19 @@ import { limit } from './utils'
  * generated from this reporter should conform to the standard JUnit report schema
  * (https://github.com/junit-team/junit5/blob/master/platform-tests/src/test/resources/jenkins-junit.xsd).
  */
-class JunitReporter extends WDIOReporter {
-    constructor (options) {
+
+export interface WDIOReporterOptions {
+    outputDir: string
+    logFile: string
+    stdout: boolean
+    writeStream: fs.WriteStream
+}
+
+export default class JunitReporter extends WDIOReporter {
+    private suiteNameRegEx: RegExp;
+    constructor (options : WDIOReporter.Options) {
         super(options)
-        this.suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp
-            ? this.options.suiteNameFormat
-            : /[^a-zA-Z0-9]+/
+        this.suiteNameRegEx = options.suiteNameFormat instanceof RegExp ? options.suiteNameFormat : /[^a-zA-Z0-9]+/
     }
 
     onRunnerEnd (runner) {
@@ -239,9 +247,7 @@ class JunitReporter extends WDIOReporter {
         return standardOutput.length ? standardOutput.join('\n') : ''
     }
 
-    format (val) {
+    format (val : string) {
         return JSON.stringify(limit(val))
     }
 }
-
-export default JunitReporter
