@@ -7,7 +7,7 @@ import { sanitizeErrorMessage } from './utils'
 const log = logger('@wdio/sync')
 
 let inCommandHook = false
-const timers: any = []
+const timers: number[] = []
 const elements = new Set()
 
 /**
