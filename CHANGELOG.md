@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.6.5 (2020-10-13)
+
+#### :bug: Bug Fix
+* `wdio-selenium-standalone-service`
+  * [#5985](https://github.com/webdriverio/webdriverio/pull/5985) Move @types/fs-extra to dependency section ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v6.6.4 (2020-10-13)
 
 #### :bug: Bug Fix
