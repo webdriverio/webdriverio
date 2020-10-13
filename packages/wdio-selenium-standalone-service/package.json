@@ -27,6 +27,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@types/fs-extra": "^9.0.1",
     "@types/selenium-standalone": "^6.15.2",
     "@wdio/config": "6.6.3",
     "@wdio/logger": "6.6.0",
@@ -39,8 +40,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "selenium-standalone-service.d.ts",
-  "devDependencies": {
-    "@types/fs-extra": "^9.0.1"
-  }
+  "types": "selenium-standalone-service.d.ts"
 }
