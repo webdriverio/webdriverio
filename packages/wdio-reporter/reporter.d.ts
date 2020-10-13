@@ -31,6 +31,7 @@ declare namespace WDIOReporter {
         logLevel: string;
         stdout?: boolean;
         suiteNameFormat?: RegExp
+        packageName?: string
     }
 
     interface Suite {

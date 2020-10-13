@@ -10,21 +10,36 @@ import { limit } from './utils'
  * (https://github.com/junit-team/junit5/blob/master/platform-tests/src/test/resources/jenkins-junit.xsd).
  */
 
-export interface WDIOReporterOptions {
-    outputDir: string
-    logFile: string
-    stdout: boolean
-    writeStream: fs.WriteStream
+export interface Capabilities {
+    device: string
+    os : string
+    os_version: string
+}
+
+export interface Runner {
+    specs: string[];
+    capabilities: Capabilities
+    //TODO check .hostname
+    config: any
+    sanitizedCapabilities : string
 }
 
 export default class JunitReporter extends WDIOReporter {
     private suiteNameRegEx: RegExp;
+    private options: WDIOReporter.Options;
+    private packageName! : string;
+    private isCucumberFrameworkRunner: boolean = false;
+    private suiteTitleLabel!: string;
+    private fileNameLabel!: string;
+    //TODO check any
+    private suites: any;
     constructor (options : WDIOReporter.Options) {
         super(options)
+        this.options = options
         this.suiteNameRegEx = options.suiteNameFormat instanceof RegExp ? options.suiteNameFormat : /[^a-zA-Z0-9]+/
     }
 
-    onRunnerEnd (runner) {
+    onRunnerEnd (runner : Runner ) {
         const xml = this.buildJunitXml(runner)
         this.write(xml)
     }
@@ -175,7 +190,7 @@ export default class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    buildJunitXml (runner) {
+    buildJunitXml (runner : Runner) {
         let builder = junit.newBuilder()
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
