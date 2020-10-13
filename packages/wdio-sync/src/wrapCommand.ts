@@ -123,7 +123,7 @@ async function runCommandWithHooks(this: WebdriverIO.BrowserObject, commandName:
     return commandResult
 }
 
-async function runCommandHook(hookFn: Function | Function[], args: object | object[]) {
+async function runCommandHook(hookFn: Function | Function[], args: unknown[]) {
     if (!inCommandHook) {
         inCommandHook = true
         await executeHooksWithArgs(hookFn, args)
