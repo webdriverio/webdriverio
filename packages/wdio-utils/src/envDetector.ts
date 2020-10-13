@@ -205,13 +205,10 @@ export function devtoolsEnvironmentDetector ({ browserName }: Capabilities) {
  */
 export function webdriverEnvironmentDetector (capabilities: Capabilities) {
     return {
-        isDevTools: false,
-        isW3C: isW3C(capabilities),
-        isMobile: isMobile(capabilities),
-        isAndroid: isAndroid(capabilities),
         isChrome: isChrome(capabilities),
-        isSauce: isSauce(capabilities),
+        isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
-        isSeleniumStandalone: isSeleniumStandalone(capabilities)
+        isAndroid: isAndroid(capabilities),
+        isSauce: isSauce(capabilities)
     }
 }

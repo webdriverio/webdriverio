@@ -7,7 +7,7 @@ const log = logger('@wdio/utils:initialiseServices')
 
 type IntialisedService = (
     [ServiceClass | { default: Function }, WebdriverIO.ServiceOption, string] |
-    [WebdriverIO.HookFunctions, object] |
+    [WebdriverIO.HookFunctions, Record<string, any>] |
     [ServiceClass, WebdriverIO.ServiceOption]
 )
 

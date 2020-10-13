@@ -9,7 +9,7 @@ class CustomService {
     options: Record<string, any>
     config: Config
     caps: WebDriver.Capabilities
-    constructor (options, caps, config) {
+    constructor (options: Record<string, any>, caps: WebDriver.Capabilities, config: Config) {
         this.options = options
         this.config = config
         this.caps = caps
@@ -64,7 +64,7 @@ describe('initialiseLauncherService', () => {
         )
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(launcherServices).toHaveLength(1)
-        expect(launcherServices[0].options.baseUrl).toBe('foo')
+        expect(launcherServices[0].options.foo).toBe('foo')
         expect(launcherServices[0].config.baseUrl).toBe('foobar')
     })
 
@@ -138,7 +138,7 @@ describe('initialiseWorkerService', () => {
             {}
         )
         expect(services).toHaveLength(1)
-        expect(services[0].options.baseUrl).toBe('foo')
+        expect(services[0].options.foo).toBe('foo')
         expect(services[0].config.baseUrl).toBe('foobar')
     })
 

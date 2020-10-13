@@ -39,7 +39,7 @@ describe('utils', () => {
     })
 
     it('transformCommandLogResult', () => {
-        expect(transformCommandLogResult({ foo: 'bar' })).toEqual({ foo: 'bar' })
+        expect(transformCommandLogResult({ file: 'bar' })).toEqual({ file: 'bar' })
         expect(transformCommandLogResult({ file: (Buffer.from('some screenshot')).toString('base64') }))
             .toBe('"<Screenshot[base64]>"')
     })
@@ -47,37 +47,43 @@ describe('utils', () => {
     describe('overwriteElementCommands', () => {
         it('should overwrite command', function () {
             const context = {}
-            const origFnMock = jest.fn(() => 1)
+            const origFnMock: (arg: any) => void = jest.fn(() => 1)
             const propertiesObject = {
                 foo: { value: origFnMock },
                 __elementOverrides__: {
-                    value: { foo(origCmd, arg) { return [origCmd(), arg] } }
+                    value: { foo(origCmd: Function, arg: any) { return [origCmd(), arg] } }
                 }
             }
             overwriteElementCommands.call(context, propertiesObject)
-            expect(propertiesObject.foo.value(5)).toEqual([1, 5])
-            expect(origFnMock.mock.calls.length).toBe(1)
-            expect(origFnMock.mock.instances[0]).toBe(propertiesObject.foo)
+            expect(propertiesObject.foo.value(5))
+                .toEqual([1, 5])
+            expect((origFnMock as jest.Mock).mock.calls.length)
+                .toBe(1)
+            expect((origFnMock as jest.Mock).mock.instances[0])
+                .toBe(propertiesObject.foo)
         })
 
         it('should support rebinding when invoking original fn', function () {
             const context = {}
-            const origFnMock = jest.fn(() => 1)
+            const origFnMock: (arg: any) => void = jest.fn(() => 1)
             const origFnContext = {}
             const propertiesObject = {
                 foo: { value: origFnMock },
                 __elementOverrides__: {
-                    value: { foo(origCmd, arg) { return [origCmd.call(origFnContext), arg] } }
+                    value: { foo(origCmd: Function, arg: any) { return [origCmd.call(origFnContext), arg] } }
                 }
             }
             overwriteElementCommands.call(context, propertiesObject)
-            expect(propertiesObject.foo.value(5)).toEqual([1, 5])
-            expect(origFnMock.mock.calls.length).toBe(1)
-            expect(origFnMock.mock.instances[0]).toBe(origFnContext)
+            expect(propertiesObject.foo.value(5))
+                .toEqual([1, 5])
+            expect((origFnMock as jest.Mock).mock.calls.length)
+                .toBe(1)
+            expect((origFnMock as jest.Mock).mock.instances[0])
+                .toBe(origFnContext)
         })
 
         it('should create __elementOverrides__ if not exists', function () {
-            const propertiesObject = {}
+            const propertiesObject = { __elementOverrides__: undefined }
             overwriteElementCommands.call(null, propertiesObject)
             expect(propertiesObject.__elementOverrides__).toBeTruthy()
         })
@@ -161,7 +167,7 @@ describe('utils', () => {
         })
 
         it('should return false if some special object is passed instead of function', () => {
-            expect(isFunctionAsync({})).toBe(false)
+            expect(isFunctionAsync({} as unknown as Function)).toBe(false)
         })
     })
 })
@@ -191,9 +197,11 @@ describe('utils:isBase64', () => {
         expect(isBase64(inValidBase64)).toBe(false)
     })
     it('should throw if there no input to be checked', () => {
+        // @ts-ignore
         expect(() => isBase64()).toThrow('Expected string but received invalid type.')
     })
     it('should throw if input type not a string', () => {
+        // @ts-ignore
         expect(() => isBase64(null)).toThrow('Expected string but received invalid type.')
     })
 })
@@ -203,6 +211,7 @@ describe('utils:canAccess', () => {
         expect(canAccess('/foobar')).toBe(true)
         expect(fs.accessSync).toBeCalledWith('/foobar')
 
+        // @ts-ignore
         fs.accessSync.mockImplementation(() => {
             throw new Error('upps')
         })

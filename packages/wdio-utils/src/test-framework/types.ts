@@ -24,7 +24,7 @@ export interface AfterHookParam<T> {
 }
 
 export interface JasmineContext {
-    failedExpectations: object[]
+    failedExpectations: Array<Record<string, unknown>>
 }
 
 export type SpecArguments = (

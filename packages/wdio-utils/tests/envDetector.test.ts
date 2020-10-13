@@ -154,8 +154,8 @@ describe('capabilitiesEnvironmentDetector', () => {
     it('should return devtools env flags if automationProtocol is devtools', () => {
         const capabilitiesFlags = capabilitiesEnvironmentDetector({}, 'devtools')
 
-        expect(capabilitiesFlags.isDevTools).toBe(true)
-        expect(capabilitiesFlags.isSeleniumStandalone).toBe(false)
+        expect((capabilitiesFlags as any).isDevTools).toBe(true)
+        expect((capabilitiesFlags as any).isSeleniumStandalone).toBe(false)
         expect(capabilitiesFlags.isChrome).toBe(false)
         expect(capabilitiesFlags.isMobile).toBe(false)
     })

@@ -45,6 +45,6 @@ describe('initialisePlugin', () => {
         expect(() => initialisePlugin('borked', 'framework'))
             .toThrow(/Error: foobar/)
         expect(() => initialisePlugin('foobar'))
-            .toThrow(/Error: No plugin type provided/)
+            .toThrow(/No plugin type provided/)
     })
 })

@@ -17,7 +17,7 @@ import type {
     SpecArguments
 } from './types'
 
-const MOCHA_COMMANDS = ['skip', 'only']
+const MOCHA_COMMANDS: ['skip', 'only'] = ['skip', 'only']
 
 /**
  * runs a hook within fibers context (if function name is not async)
@@ -230,13 +230,19 @@ export const runTestInFiberContext = function (
     addMochaCommands(origFn, (scope as any)[fnName])
 }
 
+type ItFn = {
+    (): ItFn
+    skip: Function
+    only: Function
+}
+
 /**
  * support `it.skip` and `it.only` for the Mocha framework
  * @param {Function} origFn original function
  * @param {function} newFn  wrapped function
  */
-function addMochaCommands (origFn: any, newFn: any) {
-    MOCHA_COMMANDS.forEach((commandName) => {
+function addMochaCommands (origFn: ItFn, newFn: ItFn) {
+    MOCHA_COMMANDS.forEach((commandName: 'skip' | 'only') => {
         if (typeof origFn[commandName] === 'function') {
             newFn[commandName] = origFn[commandName]
         }
