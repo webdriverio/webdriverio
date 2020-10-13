@@ -1,9 +1,16 @@
 /// <reference types="@applitools/visual-grid-client"/>
 
-declare module WebdriverIO {
+declare namespace WebdriverIO {
     interface ServiceOption extends ApplitoolsConfig {}
     interface Browser extends ApplitoolsBrowser {}
     interface Element {}
+}
+
+interface ProxySettings {
+    url: string | boolean;
+    username: string;
+    password: string;
+    isHttpOnly: boolean;
 }
 
 interface ApplitoolsConfig {
@@ -26,12 +33,7 @@ interface ApplitoolsConfig {
     /**
      * Use proxy for http/https connections with Applitools.
      */
-    proxy?: {
-        url: string;
-        username: string;
-        password: string;
-        isHttpOnly: boolean;
-    };
+    proxy?: ProxySettings;
 }
 
 interface ApplitoolsBrowser {

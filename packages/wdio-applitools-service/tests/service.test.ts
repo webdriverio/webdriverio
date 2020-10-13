@@ -4,8 +4,6 @@ const globalAny: any = global
 
 class BrowserMock {
     [key: string]: any;
-    addCommand: any;
-    call: any;
 
     constructor () {
         this.addCommand = jest.fn().mockImplementation((name, fn) => {
