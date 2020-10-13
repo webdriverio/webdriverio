@@ -3,6 +3,8 @@ import path from 'path'
 
 import type { Client } from 'webdriver'
 
+import type { ServiceClass } from './initialiseServices'
+
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 
 /**
@@ -145,13 +147,16 @@ export function getArgumentType (arg: any) {
     return arg === null ? 'null' : typeof arg
 }
 
+export type AMDExport = { default: ServiceClass }
+export type ImportValue = ServiceClass | AMDExport | null
+
 /**
  * Allows to safely require a package, it only throws if the package was found
  * but failed to load due to syntax errors
  * @param  {string} name  of package
  * @return {object}       package content
  */
-export function safeRequire (name: string): Function | { default: Function } | null {
+export function safeRequire (name: string): ImportValue {
     let requirePath
     try {
         /**

@@ -13,6 +13,8 @@ import {
 } from '../../../src/envDetector'
 
 class DotReporter {
+    options: any
+    emit: any
     constructor (options) {
         this.options = options
         this.emit = jest.fn()

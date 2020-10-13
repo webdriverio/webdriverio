@@ -1,4 +1,5 @@
 class Launcher {
+    isLauncher: boolean
     constructor () {
         this.isLauncher = true
     }

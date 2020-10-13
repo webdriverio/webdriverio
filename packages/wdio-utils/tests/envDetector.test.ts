@@ -9,27 +9,28 @@ import safaridriverResponse from './__fixtures__/safaridriver.response.json'
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
 import edgedriverResponse from './__fixtures__/edgedriver.response.json'
 import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json'
+import { Capabilities, DesiredCapabilities } from 'webdriver/build/types'
 
 describe('sessionEnvironmentDetector', () => {
-    const chromeCaps = chromedriverResponse.value
-    const appiumCaps = appiumResponse.value.capabilities
-    const experitestAppiumCaps = experitestResponse.appium.capabilities
-    const geckoCaps = geckodriverResponse.value.capabilities
-    const edgeCaps = edgedriverResponse.value.capabilities
-    const phantomCaps = ghostdriverResponse.value
-    const safariCaps = safaridriverResponse.value.capabilities
-    const safariLegacyCaps = safaridriverLegacyResponse.value
-    const standaloneCaps = seleniumstandaloneResponse.value
+    const chromeCaps = chromedriverResponse.value as unknown as Capabilities
+    const appiumCaps = appiumResponse.value.capabilities as Capabilities
+    const experitestAppiumCaps = experitestResponse.appium.capabilities as Capabilities
+    const geckoCaps = geckodriverResponse.value.capabilities as Capabilities
+    const edgeCaps = edgedriverResponse.value.capabilities as Capabilities
+    const phantomCaps = ghostdriverResponse.value as Capabilities
+    const safariCaps = safaridriverResponse.value.capabilities as Capabilities
+    const safariLegacyCaps = safaridriverLegacyResponse.value as Capabilities
+    const standaloneCaps = seleniumstandaloneResponse.value as unknown as DesiredCapabilities
 
     it('isMobile', () => {
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isMobile).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isMobile).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isMobile).toBe(false)
     })
 
     it('isW3C', () => {
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(true)
@@ -38,11 +39,11 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: safariLegacyCaps, requestedCapabilities }).isW3C).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isW3C).toBe(false)
-        expect(sessionEnvironmentDetector({ requestedCapabilities }).isW3C).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities }).isW3C).toBe(false)
     })
 
     it('isChrome', () => {
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChrome).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
@@ -51,24 +52,22 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isSauce', () => {
         const capabilities = { browserName: 'chrome' }
-        let requestedCapabilities = {}
-        let hostname = 'localhost' // isSauce should also be true if run through Sauce Connect
+        let requestedCapabilities: DesiredCapabilities = {}
 
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
-        expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(false)
 
         requestedCapabilities.extendedDebugging = true
-        expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
         requestedCapabilities = {}
-        expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
 
         requestedCapabilities['sauce:options'] = { extendedDebugging: true }
-        expect(sessionEnvironmentDetector({ capabilities, hostname, requestedCapabilities }).isSauce).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
     })
 
     it('isSeleniumStandalone', () => {
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        const requestedCapabilities = { browserName: '' }
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
@@ -76,7 +75,7 @@ describe('sessionEnvironmentDetector', () => {
     })
 
     it('should not detect mobile app for browserName===undefined', function () {
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        const requestedCapabilities = { browserName: '' }
         const capabilities = {}
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(false)
@@ -86,7 +85,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('should not detect mobile app for browserName==="firefox"', function () {
         const capabilities = { browserName: 'firefox' }
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(false)
         expect(isIOS).toEqual(false)
@@ -95,7 +94,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('should not detect mobile app for browserName==="chrome"', function () {
         const capabilities = { browserName: 'chrome' }
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(false)
         expect(isIOS).toEqual(false)
@@ -104,7 +103,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('should detect mobile app for browserName===""', function () {
         const capabilities = { browserName: '' }
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
         expect(isIOS).toEqual(false)
@@ -118,7 +117,7 @@ describe('sessionEnvironmentDetector', () => {
             deviceName: 'LGVS450PP2a16334',
             app: 'foo.apk'
         }
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
         expect(isIOS).toEqual(false)
@@ -135,7 +134,7 @@ describe('sessionEnvironmentDetector', () => {
             noReset: true,
             appWaitActivity: 'com.example.gui.LauncherActivity'
         }
-        const requestedCapabilities = { w3cCaps: { alwaysMatch: {} } }
+        const requestedCapabilities = { browserName: '' }
         const { isMobile, isIOS, isAndroid } = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         expect(isMobile).toEqual(true)
         expect(isIOS).toEqual(false)
@@ -145,8 +144,8 @@ describe('sessionEnvironmentDetector', () => {
 
 describe('capabilitiesEnvironmentDetector', () => {
     it('should return env flags without isW3C and isSeleniumStandalone', () => {
-        const sessionFlags = sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: { w3cCaps: { alwaysMatch : {} } } })
-        const capabilitiesFlags = capabilitiesEnvironmentDetector({})
+        const sessionFlags = sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: { browserName: '' } })
+        const capabilitiesFlags = capabilitiesEnvironmentDetector({}, 'webdriver')
 
         const expectedFlags = Object.keys(sessionFlags).filter(flagName => !['isW3C', 'isSeleniumStandalone'].includes(flagName))
         expect(Object.keys(capabilitiesFlags)).toEqual(expectedFlags)

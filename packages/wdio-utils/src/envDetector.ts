@@ -48,7 +48,7 @@ export function isW3C (capabilities: DesiredCapabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Chromedriver
  */
-function isChrome (capabilities: DesiredCapabilities) {
+function isChrome (capabilities?: DesiredCapabilities) {
     if (!capabilities) {
         return false
     }
@@ -205,10 +205,13 @@ export function devtoolsEnvironmentDetector ({ browserName }: Capabilities) {
  */
 export function webdriverEnvironmentDetector (capabilities: Capabilities) {
     return {
-        isChrome: isChrome(capabilities),
+        isDevTools: false,
+        isW3C: isW3C(capabilities),
         isMobile: isMobile(capabilities),
-        isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(capabilities)
+        isChrome: isChrome(capabilities),
+        isSauce: isSauce(capabilities),
+        isIOS: isIOS(capabilities),
+        isSeleniumStandalone: isSeleniumStandalone(capabilities)
     }
 }

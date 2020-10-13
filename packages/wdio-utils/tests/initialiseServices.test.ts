@@ -1,8 +1,14 @@
-import { logMock } from '@wdio/logger'
+import logger from '@wdio/logger'
+import type { Config } from 'webdriverio'
 
 import { initialiseLauncherService, initialiseWorkerService } from '../src/initialiseServices'
 
+const log = logger('test')
+
 class CustomService {
+    options: Record<string, any>
+    config: Config
+    caps: WebDriver.Capabilities
     constructor (options, caps, config) {
         this.options = options
         this.config = config
@@ -11,7 +17,7 @@ class CustomService {
 }
 
 beforeEach(() => {
-    logMock.error.mockClear()
+    (log.error as jest.Mock).mockClear()
 })
 
 describe('initialiseLauncherService', () => {
@@ -42,12 +48,11 @@ describe('initialiseLauncherService', () => {
             launcherServices,
             ignoredWorkerServices
         } = initialiseLauncherService(
-            { services: [CustomService], foo: 'bar' },
-            ['./spec.js']
+            { services: [CustomService], baseUrl: 'foobar' },
         )
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(launcherServices).toHaveLength(1)
-        expect(launcherServices[0].config.foo).toBe('bar')
+        expect(launcherServices[0].config.baseUrl).toBe('foobar')
     })
 
     it('should allow custom services with options', () => {
@@ -55,22 +60,20 @@ describe('initialiseLauncherService', () => {
             launcherServices,
             ignoredWorkerServices
         } = initialiseLauncherService(
-            { services: [[CustomService, { foo: 'foo' }]], foo: 'bar' },
-            ['./spec.js']
+            { services: [[CustomService, { foo: 'foo' }]], baseUrl: 'foobar' },
         )
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(launcherServices).toHaveLength(1)
-        expect(launcherServices[0].options.foo).toBe('foo')
-        expect(launcherServices[0].config.foo).toBe('bar')
+        expect(launcherServices[0].options.baseUrl).toBe('foo')
+        expect(launcherServices[0].config.baseUrl).toBe('foobar')
     })
 
     it('should allow custom services with empty options', () => {
         const { launcherServices } = initialiseLauncherService(
-            { services: [[CustomService]], foo: 'bar' },
-            ['./spec.js']
+            { services: [[CustomService]], baseUrl: 'foobar' },
         )
         expect(launcherServices).toHaveLength(1)
-        expect(launcherServices[0].config.foo).toBe('bar')
+        expect(launcherServices[0].config.baseUrl).toBe('foobar')
         expect(launcherServices[0].options).toEqual({})
     })
 
@@ -100,13 +103,13 @@ describe('initialiseLauncherService', () => {
         } = initialiseLauncherService({ services: ['borked'] })
         expect(launcherServices).toHaveLength(0)
         expect(ignoredWorkerServices).toHaveLength(0)
-        expect(logMock.error).toHaveBeenCalledTimes(1)
+        expect(log.error).toHaveBeenCalledTimes(1)
     })
 })
 
 describe('initialiseWorkerService', () => {
     it('should return empty array if no services prop is given', () => {
-        expect(initialiseWorkerService({ services: [] })).toEqual([])
+        expect(initialiseWorkerService({ services: [] }, {})).toEqual([])
     })
 
     it('should be able to add initialised services', () => {
@@ -115,48 +118,54 @@ describe('initialiseWorkerService', () => {
             afterTest: jest.fn()
         }
 
-        const services = initialiseWorkerService({ services: [service] })
+        const services = initialiseWorkerService({ services: [service] }, {})
         expect(services).toHaveLength(1)
         expect(services[0]).toEqual(service)
     })
 
     it('should allow custom services without options', () => {
         const services = initialiseWorkerService(
-            { services: [CustomService], foo: 'bar' },
-            ['./spec.js']
+            { services: [CustomService], baseUrl: 'foobar' },
+            {}
         )
         expect(services).toHaveLength(1)
-        expect(services[0].config.foo).toBe('bar')
+        expect(services[0].config.baseUrl).toBe('foobar')
     })
 
     it('should allow custom services with options', () => {
         const services = initialiseWorkerService(
-            { services: [[CustomService, { foo: 'foo' }]], foo: 'bar' },
-            ['./spec.js']
+            { services: [[CustomService, { foo: 'foo' }]], baseUrl: 'foobar' },
+            {}
         )
         expect(services).toHaveLength(1)
-        expect(services[0].options.foo).toBe('foo')
-        expect(services[0].config.foo).toBe('bar')
+        expect(services[0].options.baseUrl).toBe('foo')
+        expect(services[0].config.baseUrl).toBe('foobar')
     })
 
     it('should allow custom services with empty options', () => {
         const services = initialiseWorkerService(
-            { services: [[CustomService]], foo: 'bar' },
-            ['./spec.js']
+            { services: [[CustomService]], baseUrl: 'foobar' },
+            {}
         )
         expect(services).toHaveLength(1)
-        expect(services[0].config.foo).toBe('bar')
+        expect(services[0].config.baseUrl).toBe('foobar')
     })
 
     it('should ignore service with launcher only', () => {
-        const services = initialiseWorkerService({ services: ['launcher-only'] })
+        const services = initialiseWorkerService(
+            { services: ['launcher-only'] },
+            {}
+        )
         expect(services).toHaveLength(0)
-        expect(logMock.error).toHaveBeenCalledTimes(0)
+        expect(log.error).toHaveBeenCalledTimes(0)
     })
 
     it('should not fail if service is borked', () => {
-        const services = initialiseWorkerService({ services: ['borked'] })
+        const services = initialiseWorkerService(
+            { services: ['borked'] },
+            {}
+        )
         expect(services).toHaveLength(0)
-        expect(logMock.error).toHaveBeenCalledTimes(1)
+        expect(log.error).toHaveBeenCalledTimes(1)
     })
 })

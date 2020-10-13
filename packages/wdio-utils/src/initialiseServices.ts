@@ -11,8 +11,8 @@ type IntialisedService = (
     [ServiceClass, WebdriverIO.ServiceOption]
 )
 
-interface ServiceClass {
-    new(options: WebdriverIO.ServiceOption, caps: DesiredCapabilities, config: WebdriverIO.Options): void
+export interface ServiceClass {
+    new(options: WebdriverIO.ServiceOption, caps: DesiredCapabilities, config: WebdriverIO.Options): any
 }
 
 /**
@@ -92,7 +92,7 @@ function sanitizeServiceArray (service: WebdriverIO.ServiceEntry): [WebdriverIO.
  *                            as a list of services that don't need to be
  *                            required in the worker
  */
-export function initialiseLauncherService (config: WebdriverIO.Config, caps: DesiredCapabilities) {
+export function initialiseLauncherService (config: WebdriverIO.Config, caps?: DesiredCapabilities) {
     const ignoredWorkerServices = []
     const launcherServices = []
 

@@ -13,7 +13,7 @@ export type LoggingPreferenceType =
 export type FirefoxLogLevels =
     'trace' | 'debug' | 'config' |
     'info' | 'warn' | 'error' | 'fatal';
-export type Timeouts = 'script' | 'pageLoad' | 'implicit';
+export type Timeouts = Record<'script' | 'pageLoad' | 'implicit', number>;
 export type SameSiteOptions = 'Lax' | 'Strict';
 
 export interface ProxyObject {

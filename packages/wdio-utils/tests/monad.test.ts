@@ -1,6 +1,7 @@
 import webdriverMonad from '../src/monad'
 
 const prototype = {
+    scope: undefined,
     someFunc: { value: jest.fn().mockImplementation((arg) => `result-${arg.toString()}`) }
 }
 const sessionId = 'c5fa4320-07d5-48f5-b7c2-922d4405e17f'
@@ -8,7 +9,7 @@ const sessionId = 'c5fa4320-07d5-48f5-b7c2-922d4405e17f'
 describe('monad', () => {
     it('should be able to initialize client with prototype with commands', () => {
         const modifier = jest.fn()
-        const monad = webdriverMonad({ some: 'option' }, (client) => {
+        const monad = webdriverMonad({ baseUrl: 'option' }, (client) => {
             modifier()
             return client
         }, prototype)
@@ -27,13 +28,13 @@ describe('monad', () => {
 
     it('should allow to set element scope name', () => {
         prototype.scope = 'element'
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
+        const monad = webdriverMonad({}, (client) => client, prototype)
         const client = monad(sessionId)
         expect(client.constructor.name).toBe('Element')
     })
 
     it('should allow to extend base prototype', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
+        const monad = webdriverMonad({}, (client) => client, prototype)
         const commandWrapperMock = jest.fn().mockImplementation((name, fn) => fn)
         const client = monad(sessionId, commandWrapperMock)
         const fn = () => 'bar'
@@ -43,7 +44,7 @@ describe('monad', () => {
     })
 
     it('should allow to overwrite command in base prototype', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, { ...prototype })
+        const monad = webdriverMonad({}, (client) => client, { ...prototype })
         const commandWrapperMock = jest.fn().mockImplementation((name, fn) => fn)
         const client = monad(sessionId, commandWrapperMock)
         const fn = () => 'bar'
@@ -53,7 +54,7 @@ describe('monad', () => {
     })
 
     it('should throw if there is no command to be overwritten', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, { ...prototype })
+        const monad = webdriverMonad({}, (client) => client, { ...prototype })
         const commandWrapperMock = jest.fn().mockImplementation((name, fn) => fn)
         const client = monad(sessionId, commandWrapperMock)
         const fn = () => 'bar'
@@ -63,7 +64,7 @@ describe('monad', () => {
     })
 
     it('should add element commands to the __propertiesObject__ cache', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
+        const monad = webdriverMonad({}, (client) => client, prototype)
         const client = monad(sessionId)
 
         const func = function (x, y) { return x + y }
@@ -74,7 +75,7 @@ describe('monad', () => {
     })
 
     it('should add element commands for override to the __propertiesObject__.__elementOverrides__ cache', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, { ...prototype })
+        const monad = webdriverMonad({}, (client) => client, { ...prototype })
         const client = monad(sessionId)
 
         const func = function (x, y) { return x + y }
@@ -84,9 +85,9 @@ describe('monad', () => {
     })
 
     it('should add element commands to the __propertiesObject__ cache in multiremote', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
+        const monad = webdriverMonad({}, (client) => client, prototype)
         const client = monad(sessionId)
-        const instances = { foo: { __propertiesObject__: {} } }
+        const instances = { foo: { __propertiesObject__: { myCustomElementCommand: undefined } } }
 
         const func = function (x, y) { return x + y }
 
@@ -96,9 +97,9 @@ describe('monad', () => {
     })
 
     it('should add element commands for override to the __propertiesObject__.__elementOverrides__ cache in multiremote', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, { ...prototype })
+        const monad = webdriverMonad({}, (client) => client, { ...prototype })
         const client = monad(sessionId)
-        const instances = { foo: { __propertiesObject__: { __elementOverrides__: { value: {} } } } }
+        const instances = { foo: { __propertiesObject__: { __elementOverrides__: { value: { someFunc: undefined } } } } }
 
         const func = function (x, y) { return x + y }
 
@@ -107,7 +108,7 @@ describe('monad', () => {
     })
 
     it('allows to use custom command wrapper', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client, prototype)
+        const monad = webdriverMonad({}, (client) => client, prototype)
         const client = monad(sessionId, (commandName, commandFn) => {
             return (...args) => {
                 return `${commandName}(${args.join(', ')}) = ${commandFn(...args)}`
@@ -117,13 +118,13 @@ describe('monad', () => {
     })
 
     it('should allow empty prototype object', () => {
-        const monad = webdriverMonad({ isW3C: true }, (client) => client)
+        const monad = webdriverMonad({}, (client) => client)
         const client = monad(sessionId)
         expect(client.commandList).toHaveLength(0)
     })
 
     it('should be ok without modifier', () => {
-        const monad = webdriverMonad({ isW3C: true })
+        const monad = webdriverMonad({})
         const client = monad(sessionId)
         expect(client.commandList).toHaveLength(0)
     })
