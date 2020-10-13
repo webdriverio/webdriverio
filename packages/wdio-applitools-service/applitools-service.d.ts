@@ -27,7 +27,7 @@ interface ApplitoolsConfig {
      * Use proxy for http/https connections with Applitools.
      */
     proxy?: {
-        url: string | boolean;
+        url: string;
         username: string;
         password: string;
         isHttpOnly: boolean;
