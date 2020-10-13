@@ -1,4 +1,4 @@
-import { removeLineNumbers, validObjectOrArray } from '../src/utils'
+import { isCloudCapability, removeLineNumbers, validObjectOrArray } from '../src/utils'
 
 describe('utils', () => {
     describe('removeLineNumbers', () => {
@@ -40,6 +40,29 @@ describe('utils', () => {
             it('returns false if empty', () => {
                 expect(validObjectOrArray([])).toBeFalsy()
             })
+        })
+    })
+
+    describe('isCloudCapability', () => {
+        it('should detect Browserstack capabilities', ()  => {
+            expect(isCloudCapability({ 'bstack:options': {} })).toBe(true)
+        })
+
+        it('should detect Saucelabs capabilities', ()  => {
+            expect(isCloudCapability({ 'sauce:options': {} })).toBe(true)
+        })
+
+        it('should detect Testingbot capabilities', ()  => {
+            expect(isCloudCapability({ 'tb:options': {} })).toBe(true)
+        })
+
+        it('should detect non-cloud capabilities', ()  => {
+            expect(isCloudCapability({ 'selenoid:options': {} })).toBe(false)
+        })
+
+        it('should handle null or empty capabilities', ()  => {
+            expect(isCloudCapability()).toBe(false)
+            expect(isCloudCapability({})).toBe(false)
         })
     })
 })

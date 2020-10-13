@@ -3,10 +3,16 @@ describe('multiremote example', () => {
         browser.url('https://socketio-chat-h9jt.herokuapp.com/')
     })
 
-    it('should login the browser', () => {
-        const nameInput = $('.usernameInput')
+    it('should login the browser A', () => {
+        const nameInput = browserA.$('.usernameInput')
         nameInput.addValue('Browser A')
-        browser.keys('Enter')
+        browserA.keys('Enter')
+    })
+
+    it('should login the browser B', () => {
+        const nameInput = browserB.$('.usernameInput')
+        nameInput.addValue('Browser B')
+        browserB.keys('Enter')
     })
 
     it('should post something in browserA', () => {
@@ -21,7 +27,7 @@ describe('multiremote example', () => {
     })
 
     it('should read the message in browserB', () => {
-        const msgElemBrowserB = browserA.$('.inputMessage')
+        const msgElemBrowserB = browserB.$('.inputMessage')
         const chatLineBrowserB = browserB.$('.messageBody*=My name is')
         const message = chatLineBrowserB.getText()
         const name = message.slice(11)

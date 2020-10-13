@@ -7,10 +7,8 @@ This package provides a low level interface to run browser automation scripts ba
 
 ## Install
 
-To install this package from NPM run:
-
 ```sh
-$ npm i devtools webdriverio
+$ npm i webdriverio
 ```
 
 ## Example
@@ -65,10 +63,6 @@ let browser;
 })
 ```
 
-## Support
-
-This package is work in progress. We are working on extending the support to include all possible commands, selector strategies and browser.
-
 ### Commands
 
 The following commands are already supported:
@@ -121,8 +115,8 @@ The following commands are already supported:
 - [x] [addCookie](https://w3c.github.io/webdriver/#add-cookie)
 - [x] [deleteAllCookies](https://w3c.github.io/webdriver/#delete-all-cookies)
 - [x] [deleteCookie](https://w3c.github.io/webdriver/#delete-cookie)
-- [ ] [performActions](https://w3c.github.io/webdriver/#perform-actions) ([#4457](https://github.com/webdriverio/webdriverio/issues/4457))
-- [ ] [releaseActions](https://w3c.github.io/webdriver/#release-actions) ([#4457](https://github.com/webdriverio/webdriverio/issues/4457))
+- [x] [performActions](https://w3c.github.io/webdriver/#perform-actions)
+- [x] [releaseActions](https://w3c.github.io/webdriver/#release-actions)
 - [x] [dismissAlert](https://w3c.github.io/webdriver/#dismiss-alert)
 - [x] [acceptAlert](https://w3c.github.io/webdriver/#accept-alert)
 - [x] [getAlertText](https://w3c.github.io/webdriver/#get-alert-text)
@@ -142,5 +136,5 @@ The following commands are already supported:
 
 - [x] Chrome
 - [x] Firefox (nightly only)
-- [ ] Edge
+- [x] Edge
 - [ ] Safari

@@ -1,0 +1,63 @@
+name: Manual NPM Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        description: 'Release type - major, minor or patch'
+        required: true
+        default: 'patch'
+      distTag:
+        description: 'NPM tag (e.g. use "next" to release a test version)'
+        required: true
+        default: 'latest'
+
+env:
+  NPM_TOKEN: ${{secrets.NPM_TOKEN}}
+
+jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/request-action@v2.0.0
+        with:
+          route: GET /orgs/:organisation/teams/:team/memberships/${{ github.actor }}
+          team: technical-steering-committee
+          organisation: webdriverio
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+  release:
+    needs: [authorize]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: 'master'
+          fetch-depth: 0
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: NPM Setup
+        run: |
+          npm set registry "https://registry.npmjs.org/"
+          npm set //registry.npmjs.org/:_authToken $NPM_TOKEN
+          npm whoami
+      - name: Git Setup
+        run: |
+          git config --global user.email "christian+webdriverio-release@saucelabs.com"
+          git config --global user.name "WebdriverIO Release Bot"
+      - name: Install Dependencies
+        run: npm install
+      - name: Release
+        run: |
+          npx run-s setup-full generate:typings
+          npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
+          npm run pushReleaseTag
+        env:
+          NODE_ENV: production
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trigger docs release
+        uses: mvasigh/dispatch-action@main
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          event_type: docs_release

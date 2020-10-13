@@ -39,7 +39,7 @@ describe('saveScreenshot', () => {
 
         // request
         expect(got.mock.calls[1][1].method).toBe('GET')
-        expect(got.mock.calls[1][1].uri.pathname)
+        expect(got.mock.calls[1][0].pathname)
             .toBe('/session/foobar-123/screenshot')
         expect(screenshot.toString()).toBe('some screenshot')
 

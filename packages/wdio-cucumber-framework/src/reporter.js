@@ -22,7 +22,7 @@ class CucumberReporter {
             .on('after-scenario', this.handleAfterScenario.bind(this))
             .on('after-feature', this.handleAfterFeature.bind(this))
 
-        if(!this.scenarioLevelReport) {
+        if (!this.scenarioLevelReport) {
             this.eventListener
                 .on('before-step', this.handleBeforeStep.bind(this))
                 .on('after-step', this.handleAfterStep.bind(this))
@@ -165,7 +165,7 @@ class CucumberReporter {
     }
 
     handleAfterScenario (uri, feature, scenario, result, sourceLocation) {
-        if(this.scenarioLevelReport) {
+        if (this.scenarioLevelReport) {
             return this.afterTest(uri, feature, scenario, undefined, result, sourceLocation)
         }
 

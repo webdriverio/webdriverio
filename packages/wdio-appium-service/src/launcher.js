@@ -1,4 +1,6 @@
 import logger from '@wdio/logger'
+import { isCloudCapability } from '@wdio/config'
+
 import { spawn } from 'child_process'
 import { createWriteStream, ensureFileSync } from 'fs-extra'
 import { promisify } from 'util'
@@ -60,7 +62,7 @@ export default class AppiumLauncher {
             Array.isArray(this.capabilities)
                 ? this.capabilities
                 : Object.values(this.capabilities)
-        ).forEach((cap) => Object.assign(
+        ).forEach((cap) => !isCloudCapability(cap.capabilities) && Object.assign(
             cap,
             DEFAULT_CONNECTION,
             this.args.port ? { port: this.args.port } : {},
@@ -79,7 +81,7 @@ export default class AppiumLauncher {
     }
 
     onComplete() {
-        if(this.process) {
+        if (this.process) {
             log.debug(`Appium (pid: ${process.pid}) killed`)
             this.process.kill()
         }

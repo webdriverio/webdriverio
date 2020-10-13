@@ -19,7 +19,6 @@
     });
     it('should detect when element is no longer visible', () => {
         const elem = $('#elem')
-        // passing 'undefined' allows us to keep the default timeout value without overwriting it
         elem.waitForDisplayed({ reverse: true });
     });
  * </example>

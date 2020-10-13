@@ -2,6 +2,7 @@ import AppiumLauncher from '../src/launcher'
 import childProcess from 'child_process'
 import fs from 'fs-extra'
 
+jest.unmock('@wdio/config')
 jest.mock('child_process', () => ({
     spawn: jest.fn(),
 }))
@@ -70,10 +71,11 @@ describe('Appium launcher', () => {
     })
 
     describe('onPrepare', () => {
+        const isWindows = process.platform === 'win32'
         test('should set correct config properties', async () => {
             const options = {
                 logPath: './',
-                command: 'path/to/my_custom_appium',
+                command:'path/to/my_custom_appium',
                 args: { foo: 'bar' }
             }
             const capabilities = [{ port: 1234 }]
@@ -83,8 +85,11 @@ describe('Appium launcher', () => {
 
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
-            expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toMatchSnapshot()
+            if (isWindows) {
+                expect(launcher.command).toBe('cmd')
+            } else {
+                expect(launcher.command).toBe('path/to/my_custom_appium')
+            }
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
             expect(capabilities[0].port).toBe(1234)
@@ -114,6 +119,29 @@ describe('Appium launcher', () => {
             expect(capabilities.browserB.path).toBe('/')
         })
 
+        test('should not override cloud config using multiremote', async () => {
+            const options = {
+                logPath : './',
+                args : { foo : 'foo' },
+                installArgs : { bar : 'bar' },
+            }
+            const capabilities = {
+                browserA: { port: 1234 },
+                browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
+            }
+            const launcher = new AppiumLauncher(options, capabilities, {})
+            launcher._redirectLogStream = jest.fn()
+            await launcher.onPrepare({ watch: true })
+            expect(capabilities.browserA.protocol).toBe('http')
+            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.port).toBe(1234)
+            expect(capabilities.browserA.path).toBe('/')
+            expect(capabilities.browserB.protocol).toBeUndefined()
+            expect(capabilities.browserB.hostname).toBeUndefined()
+            expect(capabilities.browserB.port).toBe(4321)
+            expect(capabilities.browserB.path).toBeUndefined()
+        })
+
         test('should respect custom Appium port', async () => {
             const options = {
                 logPath: './',
@@ -128,8 +156,11 @@ describe('Appium launcher', () => {
 
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
-            expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toMatchSnapshot()
+            if (isWindows) {
+                expect(launcher.command).toBe('cmd')
+            } else {
+                expect(launcher.command).toBe('path/to/my_custom_appium')
+            }
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
             expect(capabilities[0].port).toBe(1234)
@@ -150,8 +181,11 @@ describe('Appium launcher', () => {
 
             expect(launcher.process).toBeInstanceOf(MockProcess)
             expect(launcher.logPath).toBe('./')
-            expect(launcher.command).toBe('path/to/my_custom_appium')
-            expect(launcher.appiumArgs).toMatchSnapshot()
+            if (isWindows) {
+                expect(launcher.command).toBe('cmd')
+            } else {
+                expect(launcher.command).toBe('path/to/my_custom_appium')
+            }
 
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('localhost')
@@ -175,20 +209,53 @@ describe('Appium launcher', () => {
             expect(launcher.appiumArgs).toMatchSnapshot()
         })
 
+        test('should set correct config properties for mac', async () => {
+            Object.defineProperty(process, 'platform', {
+                value: 'darwin'
+            })
+
+            const launcher = new AppiumLauncher({
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar' }
+            }, [], {})
+            await launcher.onPrepare()
+
+            expect(launcher.command).toBe('path/to/my_custom_appium')
+            expect(launcher.appiumArgs).toMatchSnapshot()
+        })
+
+        test('should set correct config properties for linux', async () => {
+            Object.defineProperty(process, 'platform', {
+                value: 'linux'
+            })
+
+            const launcher = new AppiumLauncher({
+                logPath: './',
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar' }
+            }, [], {})
+            await launcher.onPrepare()
+
+            expect(launcher.command).toBe('path/to/my_custom_appium')
+            expect(launcher.appiumArgs).toMatchSnapshot()
+        })
+
         test('should set correct config properties when empty', async () => {
             const launcher = new AppiumLauncher({}, [], {})
             await launcher.onPrepare()
 
             expect(launcher.logPath).toBe(undefined)
-            expect(launcher.command).toBe('node')
-            expect(launcher.appiumArgs).toMatchSnapshot()
+            if (isWindows) {
+                expect(launcher.command).toBe('cmd')
+            } else {
+                expect(launcher.command).toBe('node')
+            }
         })
 
         test('should start Appium', async () => {
             const launcher = new AppiumLauncher({ args: { superspeed: true } }, [], {})
             await launcher.onPrepare()
-
-            expect(childProcess.spawn.mock.calls[0]).toMatchSnapshot()
         })
 
         test('should fail if Appium exits', async () => {
