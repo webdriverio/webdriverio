@@ -273,6 +273,14 @@ describe('utils', () => {
     })
 
     describe('getUniqueIdentifier', () => {
+        const consoleWarn = console.warn
+        beforeAll(() => {
+            console.warn = jest.fn()
+        })
+        afterAll(() => {
+            console.warn = consoleWarn
+        })
+
         it('Hook', () => {
             expect(getUniqueIdentifier({
                 type: 'Hook',
@@ -288,6 +296,12 @@ describe('utils', () => {
                 type: 'ScenarioOutline',
                 text: 'no-name'
             }, {})).toBe('no-name')
+        })
+
+        it('ScenarioOutline without name', () => {
+            expect(getUniqueIdentifier({
+                type: 'ScenarioOutline',
+            }, { uri: 'some.feature', line: 3 })).toBe('some.feature3')
         })
 
         it('ScenarioOutline with <>', () => {
