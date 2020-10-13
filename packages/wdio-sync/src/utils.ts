@@ -30,9 +30,9 @@ export function sanitizeErrorMessage (commandError: Error | any, savedError: Err
     if (stack) {
         // remove duplicated error name from stack trace
         stack = stack.replace(`${err.name}: ${err.name}`, err.name)
-        if (stackArr && stackArr.length) {
+        if (Array.isArray(stackArr)) {
             // remove first stack trace line from second stack trace
-            (stackArr as string[])[0] = '\n'
+            stackArr[0] = '\n'
             // merge
             stackArr = [...stack.split('\n'), ...stackArr]
         }
