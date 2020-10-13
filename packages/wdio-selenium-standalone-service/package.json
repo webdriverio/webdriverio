@@ -39,5 +39,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "selenium-standalone-service.d.ts"
+  "types": "selenium-standalone-service.d.ts",
+  "devDependencies": {
+    "@types/fs-extra": "^9.0.1"
+  }
 }
