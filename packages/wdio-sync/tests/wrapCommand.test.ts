@@ -16,17 +16,19 @@ const futureWait = Future?.wait
 const futurePrototypeWait = Future?.prototype?.wait
 
 describe('wrapCommand:runCommand', () => {
+    const emit = (process.emit as Function)
+
     beforeEach(() => {
         jest.resetAllMocks()
     })
 
     it('should return result', async () => {
-        (process.emit as Function)('WDIO_TIMER', { id: 0, start: true })
+        emit('WDIO_TIMER', { id: 0, start: true })
         const fn = jest.fn(x => (x + x))
         const runCommand = wrapCommand('foo', fn)
         const result = await runCommand.call({ options: {} }, 'bar')
-        expect(result).toEqual('barbar');
-        (process.emit as Function)('WDIO_TIMER', { id: 0 })
+        expect(result).toEqual('barbar')
+        emit('WDIO_TIMER', { id: 0 })
     })
 
     it('should set _NOT_FIBER to false if elementId is missing', async () => {
@@ -203,12 +205,12 @@ describe('wrapCommand:runCommand', () => {
      */
     describe('WDIO_TIMER', () => {
         it('WDIO_TIMER listener', () => {
-            (process.emit as Function)('WDIO_TIMER', { id: 1, start: true });
-            (process.emit as Function)('WDIO_TIMER', { id: 1 });
+            emit('WDIO_TIMER', { id: 1, start: true })
+            emit('WDIO_TIMER', { id: 1 })
 
-            (process.emit as Function)('WDIO_TIMER', { id: 2, start: true });
-            (process.emit as Function)('WDIO_TIMER', { id: 3, start: true });
-            (process.emit as Function)('WDIO_TIMER', { id: 2, timeout: true })
+            emit('WDIO_TIMER', { id: 2, start: true })
+            emit('WDIO_TIMER', { id: 3, start: true })
+            emit('WDIO_TIMER', { id: 2, timeout: true })
         })
     })
 
