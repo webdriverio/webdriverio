@@ -1262,7 +1262,12 @@ declare namespace WebdriverIO {
         ): boolean;
     }
 
-    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
+    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
+         /**
+         * internal usage only. To run in watch mode see https://webdriver.io/docs/watcher.html
+         */
+        watch?: never;
+    }
 
     interface AddValueOptions {
         translateToUnicode?: boolean
