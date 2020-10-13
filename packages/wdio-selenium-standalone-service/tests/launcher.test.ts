@@ -24,7 +24,7 @@ describe('Selenium standalone launcher', () => {
             const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{ port: 1234 }]
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
             launcher._redirectLogStream = jest.fn()
-            await launcher.onPrepare({ watch: true })
+            await launcher.onPrepare({ watch: true } as never)
 
             expect(launcher.logPath).toBe(options.logPath)
             expect(launcher.installArgs).toBe(options.installArgs)
@@ -49,7 +49,7 @@ describe('Selenium standalone launcher', () => {
             }
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
             launcher._redirectLogStream = jest.fn()
-            await launcher.onPrepare({ watch: true })
+            await launcher.onPrepare({ watch: true } as never)
             expect(capabilities.browserA.protocol).toBe('http')
             expect(capabilities.browserA.hostname).toBe('localhost')
             expect(capabilities.browserA.port).toBe(1234)
@@ -72,7 +72,7 @@ describe('Selenium standalone launcher', () => {
             }
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
             launcher._redirectLogStream = jest.fn()
-            await launcher.onPrepare({ watch: true })
+            await launcher.onPrepare({ watch: true } as never)
             expect(capabilities.browserA.protocol).toBe('http')
             expect(capabilities.browserA.hostname).toBe('localhost')
             expect(capabilities.browserA.port).toBe(1234)
@@ -156,7 +156,7 @@ describe('Selenium standalone launcher', () => {
                 args: {}
             }, [], {})
             launcher._redirectLogStream = jest.fn()
-            await launcher.onPrepare({ watch: true })
+            await launcher.onPrepare({ watch: true } as never)
 
             expect(processOnSpy).toHaveBeenCalledWith('SIGINT', launcher._stopProcess)
             expect(processOnSpy).toHaveBeenCalledWith('exit', launcher._stopProcess)
@@ -190,7 +190,7 @@ describe('Selenium standalone launcher', () => {
                 args: {}
             }, [], {})
             launcher._redirectLogStream = jest.fn()
-            await launcher.onPrepare({ watch: true })
+            await launcher.onPrepare({ watch: true } as never)
             launcher.onComplete()
 
             expect(launcher.process.kill).not.toBeCalled()
