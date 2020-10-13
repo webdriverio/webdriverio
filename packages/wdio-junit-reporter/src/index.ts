@@ -13,6 +13,7 @@ import { limit } from './utils'
 export interface Capabilities {
     device: string
     os : string
+    // eslint-disable-next-line camelcase
     os_version: string
 }
 
