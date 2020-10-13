@@ -33,7 +33,7 @@ const defaultRetries: Retries = { attempts: 0, limit: 0 }
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-async function executeSync<T>(this: any, fn: Function, retries = defaultRetries, args: unknown[] = []): Promise<T> {
+async function executeSync<T>(this: any, fn: Function, retries = { attempts: 0, limit: 0 }, args: unknown[] = []): Promise<T> {
     /**
      * User can also use the `@wdio/sync` package directly to run commands
      * synchronously in standalone mode. In this case we neither have
