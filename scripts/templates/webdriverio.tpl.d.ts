@@ -633,7 +633,9 @@ declare namespace WebdriverIO {
         // ... browser commands ...
     }
 
-    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
+    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
+        watch?: boolean
+    }
 
     interface AddValueOptions {
         translateToUnicode?: boolean
