@@ -56,3 +56,8 @@ jobs:
         env:
           NODE_ENV: production
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trigger docs release
+        uses: mvasigh/dispatch-action@main
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          event_type: docs_release

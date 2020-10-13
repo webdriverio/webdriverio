@@ -17,6 +17,32 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.6.3 (2020-10-12)
+
+#### :bug: Bug Fix
+* `wdio-appium-service`, `wdio-browserstack-service`, `wdio-config`, `wdio-sauce-service`, `wdio-selenium-standalone-service`
+  * [#5960](https://github.com/webdriverio/webdriverio/pull/5960) Fix multi remote capabilities for mixed backends ([@hieuxlu](https://github.com/hieuxlu))
+* `webdriver`
+  * [#5967](https://github.com/webdriverio/webdriverio/pull/5967) fix request header of webdirver io ([@link89](https://github.com/link89))
+
+#### :memo: Documentation
+* Other
+  * [#5971](https://github.com/webdriverio/webdriverio/pull/5971) Correct wrong example for `watch` in `CONTRIBUTING.md` ([@martinfrancois](https://github.com/martinfrancois))
+* `webdriverio`
+  * [#5963](https://github.com/webdriverio/webdriverio/pull/5963) waitForExist/waitForDisplayed: adjust examples ([@wiese](https://github.com/wiese))
+
+#### :house: Internal
+* `devtools`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-spec-reporter`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#5965](https://github.com/webdriverio/webdriverio/pull/5965) Fixes unit tests in windows ([@logesr](https://github.com/logesr))
+
+#### Committers: 5
+- François Martin ([@martinfrancois](https://github.com/martinfrancois))
+- Hieu Do ([@hieuxlu](https://github.com/hieuxlu))
+- Loges R ([@logesr](https://github.com/logesr))
+- [@link89](https://github.com/link89)
+- [@wiese](https://github.com/wiese)
+
+
 ## v6.6.2 (2020-10-08)
 
 #### :memo: Documentation
