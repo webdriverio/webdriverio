@@ -634,7 +634,10 @@ declare namespace WebdriverIO {
     }
 
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
-        watch?: boolean
+         /**
+         * internal usage only. To run in watch mode see https://webdriver.io/docs/watcher.html
+         */
+        watch?: never;
     }
 
     interface AddValueOptions {
