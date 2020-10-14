@@ -3,14 +3,14 @@ import RunnableStats from './runnable'
 import TestStats from './test'
 
 export interface Suite {
-    type?: string | 'suite:start' | 'suite:end'
+    type: string | 'suite:start' | 'suite:end'
     title: string
     parent: string
     fullTitle: string
     pending: boolean
     file: string
     duration?: number
-    cid?: string
+    cid: string
     specs: string[]
     uid: string
     tags?: string[]
