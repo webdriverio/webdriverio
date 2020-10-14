@@ -15,7 +15,7 @@ import {
 class DotReporter {
     options: any
     emit: any
-    constructor (options) {
+    constructor (options: any) {
         this.options = options
         this.emit = jest.fn()
     }
@@ -46,7 +46,7 @@ const frameworkMocks = {
     testNoTests: {
         init () { return this },
         hasTests () { return false }
-    },
+    }
 }
 
 const pluginMocks = {
