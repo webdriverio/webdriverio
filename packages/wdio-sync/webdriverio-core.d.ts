@@ -7,8 +7,6 @@
 /// <reference types="node"/>
 /// <reference types="webdriver"/>
 
-import { DesiredCapabilities } from 'webdriver';
-
 // See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/24419
 interface Element { }
 interface Node { }
@@ -64,7 +62,7 @@ declare namespace WebdriverIO {
     interface ServiceLauncher {
         launcher: (
             options: Record<string, any>,
-            capabilities: DesiredCapabilities,
+            capabilities: WebDriver.DesiredCapabilities,
             config: Config
         ) => void
     }

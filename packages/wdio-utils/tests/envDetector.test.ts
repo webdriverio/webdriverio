@@ -24,6 +24,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isMobile', () => {
         const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({}).isMobile).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isMobile).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isMobile).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isMobile).toBe(false)
@@ -31,6 +32,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isW3C', () => {
         const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({}).isW3C).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(true)
@@ -44,6 +46,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isChrome', () => {
         const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({}).isChrome).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChrome).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
@@ -54,6 +57,7 @@ describe('sessionEnvironmentDetector', () => {
         const capabilities = { browserName: 'chrome' }
         let requestedCapabilities: DesiredCapabilities = {}
 
+        expect(sessionEnvironmentDetector({}).isSauce).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
 
         requestedCapabilities.extendedDebugging = true
@@ -68,6 +72,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isSeleniumStandalone', () => {
         const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({}).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)

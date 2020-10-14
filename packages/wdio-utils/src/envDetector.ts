@@ -11,7 +11,7 @@ const MOBILE_CAPABILITIES = [
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if W3C (browser)
  */
-export function isW3C (capabilities: DesiredCapabilities) {
+export function isW3C (capabilities?: DesiredCapabilities) {
     /**
      * JSONWire protocol doesn't return a property `capabilities`.
      * Also check for Appium response as it is using JSONWire protocol for most of the part.
@@ -64,7 +64,7 @@ function isChrome (capabilities?: DesiredCapabilities) {
  * @param  {Object}  caps  capabilities
  * @return {Boolean}       true if platform is mobile device
  */
-function isMobile (capabilities: Capabilities) {
+function isMobile (capabilities?: Capabilities) {
     if (!capabilities) {
         return false
     }
@@ -94,7 +94,7 @@ function isMobile (capabilities: Capabilities) {
  * @param  {Object}  capabilities  of session response
  * @return {Boolean}               true if run on iOS device
  */
-function isIOS (capabilities: DesiredCapabilities) {
+function isIOS (capabilities?: DesiredCapabilities) {
     if (!capabilities) {
         return false
     }
@@ -110,7 +110,7 @@ function isIOS (capabilities: DesiredCapabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run on Android device
  */
-function isAndroid (capabilities: Capabilities) {
+function isAndroid (capabilities?: Capabilities) {
     if (!capabilities) {
         return false
     }
@@ -127,7 +127,11 @@ function isAndroid (capabilities: Capabilities) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
  */
-function isSauce (capabilities: DesiredCapabilities) {
+function isSauce (capabilities?: DesiredCapabilities) {
+    if (!capabilities) {
+        return false
+    }
+
     return Boolean(
         capabilities.extendedDebugging ||
         (
@@ -142,7 +146,7 @@ function isSauce (capabilities: DesiredCapabilities) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is run with Selenium Standalone Server
  */
-function isSeleniumStandalone (capabilities: DesiredCapabilities) {
+function isSeleniumStandalone (capabilities?: DesiredCapabilities) {
     if (!capabilities) {
         return false
     }
@@ -167,7 +171,7 @@ export function capabilitiesEnvironmentDetector (capabilities: Capabilities, aut
  * @param  {Object}  requestedCapabilities
  * @return {Object}                         object with environment flags
  */
-export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities: Capabilities, requestedCapabilities: Capabilities }) {
+export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities?: Capabilities, requestedCapabilities?: Capabilities }) {
     return {
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),
