@@ -62,14 +62,6 @@ class CucumberAdapter {
             throw runtimeError
         }
 
-        return this
-    }
-
-    hasTests() {
-        return this._hasTests
-    }
-
-    async run() {
         /**
          * import and set options for `expect-webdriverio` assertion lib once
          * the framework was initiated so that it can detect the environment
@@ -80,6 +72,14 @@ class CucumberAdapter {
             interval: this.config.waitforInterval, // interval between attempts
         })
 
+        return this
+    }
+
+    hasTests() {
+        return this._hasTests
+    }
+
+    async run() {
         let runtimeError
         let result
         try {
