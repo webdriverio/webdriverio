@@ -12,7 +12,8 @@ const protocols = [
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
 ]
 
-const protocolFlattened = new Map<string, { method: string, endpoint: string, commandData: WDIOProtocols.CommandEndpoint }>()
+type protocolFlattenedType = { method: string, endpoint: string, commandData: WDIOProtocols.CommandEndpoint }
+const protocolFlattened: Map<string, protocolFlattenedType> = new Map()
 
 for (const protocol of protocols) {
     for (const [endpoint, methods] of Object.entries(protocol)) {
@@ -62,10 +63,7 @@ export default class WebDriverMock {
 
     get(obj: any, commandName: string) {
 
-        const protocolFltattenedValues = protocolFlattened.get(commandName)
-        const method = protocolFltattenedValues!.method
-        const endpoint = protocolFltattenedValues!.endpoint
-        const commandData = protocolFltattenedValues!.commandData
+        const { method, endpoint, commandData } = protocolFlattened.get(commandName) as protocolFlattenedType
 
         return (...args: any[]) => {
             let urlPath = endpoint
