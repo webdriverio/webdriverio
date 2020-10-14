@@ -12,8 +12,7 @@ const ELEMENT_ALT = '8bf4d107-a363-40d1-b823-d94bdbc58afb'
 
 export default class WebdriverMockService {
     mock!: WebDriverMock
-    command: any
-    mocks: any
+    command:any
     globalAny: any = global
     constructor() {
         this.init()
@@ -38,11 +37,6 @@ export default class WebdriverMockService {
     }
 
     before() {
-        /**
-         * assign mocks to browser object to tweak responses
-         */
-        this.globalAny.browser.mocks = this.mocks
-
         /**
          * register request interceptors for specific scenarios
          */
