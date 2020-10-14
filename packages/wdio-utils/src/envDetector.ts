@@ -169,7 +169,7 @@ export function capabilitiesEnvironmentDetector (capabilities: WebDriver.Capabil
  * @param  {Object}  requestedCapabilities
  * @return {Object}                         object with environment flags
  */
-export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities?: WebDriver.Capabilities, requestedCapabilities?: WebDriver.Capabilities }) {
+export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities?: WebDriver.DesiredCapabilities, requestedCapabilities?: WebDriver.DesiredCapabilities }) {
     return {
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),

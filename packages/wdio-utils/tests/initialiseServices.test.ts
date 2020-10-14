@@ -14,6 +14,8 @@ class CustomService {
         this.config = config
         this.caps = caps
     }
+
+    onPrepare () {}
 }
 
 beforeEach(() => {
@@ -22,7 +24,7 @@ beforeEach(() => {
 
 describe('initialiseLauncherService', () => {
     it('should return empty array if no services prop is given', () => {
-        expect(initialiseLauncherService({ services: [] })).toEqual({
+        expect(initialiseLauncherService({ services: [] }, {})).toEqual({
             ignoredWorkerServices: [],
             launcherServices: []
         })
@@ -37,7 +39,7 @@ describe('initialiseLauncherService', () => {
         const {
             launcherServices,
             ignoredWorkerServices
-        } = initialiseLauncherService({ services: [service] })
+        } = initialiseLauncherService({ services: [service] }, {})
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(launcherServices).toHaveLength(1)
         expect(launcherServices[0]).toEqual(service)
@@ -49,6 +51,7 @@ describe('initialiseLauncherService', () => {
             ignoredWorkerServices
         } = initialiseLauncherService(
             { services: [CustomService], baseUrl: 'foobar' },
+            {}
         )
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(launcherServices).toHaveLength(1)
@@ -61,6 +64,7 @@ describe('initialiseLauncherService', () => {
             ignoredWorkerServices
         } = initialiseLauncherService(
             { services: [[CustomService, { foo: 'foo' }]], baseUrl: 'foobar' },
+            {}
         )
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(launcherServices).toHaveLength(1)
@@ -70,7 +74,13 @@ describe('initialiseLauncherService', () => {
 
     it('should allow custom services with empty options', () => {
         const { launcherServices } = initialiseLauncherService(
-            { services: [[CustomService]], baseUrl: 'foobar' },
+            {
+                services: [
+                    [CustomService, {}]
+                ],
+                baseUrl: 'foobar'
+            },
+            {}
         )
         expect(launcherServices).toHaveLength(1)
         expect(launcherServices[0].config.baseUrl).toBe('foobar')
@@ -81,7 +91,7 @@ describe('initialiseLauncherService', () => {
         const {
             launcherServices,
             ignoredWorkerServices
-        } = initialiseLauncherService({ services: ['launcher-only'] })
+        } = initialiseLauncherService({ services: ['launcher-only'] }, {})
         expect(launcherServices).toHaveLength(1)
         expect(launcherServices[0].isLauncher).toBe(true)
         expect(ignoredWorkerServices).toEqual(['launcher-only'])
@@ -91,7 +101,7 @@ describe('initialiseLauncherService', () => {
         const {
             launcherServices,
             ignoredWorkerServices
-        } = initialiseLauncherService({ services: ['scoped'] })
+        } = initialiseLauncherService({ services: ['scoped'] }, {})
         expect(launcherServices).toHaveLength(0)
         expect(ignoredWorkerServices).toHaveLength(0)
     })
@@ -100,7 +110,7 @@ describe('initialiseLauncherService', () => {
         const {
             launcherServices,
             ignoredWorkerServices
-        } = initialiseLauncherService({ services: ['borked'] })
+        } = initialiseLauncherService({ services: ['borked'] }, {})
         expect(launcherServices).toHaveLength(0)
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(log.error).toHaveBeenCalledTimes(1)

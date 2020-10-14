@@ -1,10 +1,6 @@
 import fs from 'fs'
 import path from 'path'
 
-import type { Client } from 'webdriver'
-
-import type { ServiceClass } from './initialiseServices'
-
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 
 /**
@@ -30,10 +26,10 @@ export function overwriteElementCommands(propertiesObject: any) {
         const origCommand = propertiesObject[commandName].value
         delete propertiesObject[commandName]
 
-        const newCommand = function (this: Client, ...args: any[]) {
+        const newCommand = function (this: WebDriver.Client, ...args: any[]) {
             const element = this
             return userDefinedCommand.apply(element, [
-                function origCommandFunction (this: Client) {
+                function origCommandFunction (this: WebDriver.Client) {
                     const context = this || element // respect explicite context binding, use element as default
                     return origCommand.apply(context, arguments)
                 },
@@ -93,7 +89,7 @@ export function commandCallStructure (commandName: string, args: any[]) {
  * result strings e.g. if it contains a screenshot
  * @param {Object} result WebDriver response body
  */
-export function transformCommandLogResult (result: { file: string }) {
+export function transformCommandLogResult (result: { file?: string }) {
     if (typeof result.file === 'string' && isBase64(result.file)) {
         return SCREENSHOT_REPLACEMENT
     }
@@ -147,8 +143,8 @@ export function getArgumentType (arg: any) {
     return arg === null ? 'null' : typeof arg
 }
 
-export type AMDExport = { default: ServiceClass }
-export type ImportValue = ServiceClass | AMDExport | null
+export type AMDExport = { default: WebdriverIO.ServiceClass }
+export type ImportValue = WebdriverIO.ServiceClass | AMDExport | null
 
 /**
  * Allows to safely require a package, it only throws if the package was found

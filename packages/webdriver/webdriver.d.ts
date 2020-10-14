@@ -27,7 +27,7 @@ declare namespace WebDriver {
     type FirefoxLogLevels =
         'trace' | 'debug' | 'config' |
         'info' | 'warn' | 'error' | 'fatal';
-    type Timeouts = 'script' | 'pageLoad' | 'implicit';
+    export type Timeouts = Record<'script' | 'pageLoad' | 'implicit', number>;
     export type SameSiteOptions = 'Lax' | 'Strict';
 
     interface ProxyObject {
@@ -179,6 +179,17 @@ declare namespace WebDriver {
 
     interface FirefoxLogObject {
         level: FirefoxLogLevels
+    }
+
+    export interface GeckodriverCapabilities {
+        'firefox_binary'?: string;
+        firefoxProfileTemplate?: string;
+        captureNetworkTraffic?: boolean;
+        addCustomRequestHeaders?: boolean;
+        trustAllSSLCertificates?: boolean;
+        changeMaxConnections?: boolean;
+        profile?: string;
+        pageLoadingStrategy?: string;
     }
 
     interface FirefoxOptions {

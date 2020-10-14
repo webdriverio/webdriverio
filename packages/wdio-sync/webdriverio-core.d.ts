@@ -59,16 +59,47 @@ declare namespace WebdriverIO {
         [key: string]: any;
     }
 
-    interface ServiceLauncher {
-        launcher: (
+    interface ServiceClass {
+        new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
+    }
+
+    interface ServiceLauncher extends ServiceClass {
+        default?: ServiceClass
+        launcher?: (
             options: Record<string, any>,
             capabilities: WebDriver.DesiredCapabilities,
             config: Config
-        ) => void
+        ) => ServiceInstance
     }
 
-    type ServiceEntry = string | HookFunctions | [string, ServiceOption] | Record<string, Function> | ServiceLauncher
+    interface ServiceInstance extends HookFunctions {
+        options?: Record<string, any>,
+        capabilities?: WebDriver.DesiredCapabilities,
+        config?: Config
+    }
 
+    type ServiceEntry = (
+        /**
+         * e.g. `services: ['@wdio/sauce-service']`
+         */
+        string |
+        /**
+         * e.g. `services: [{ onPrepare: () => { ... } }]`
+         */
+        HookFunctions |
+        /**
+         * e.g. `services: [CustomClass]`
+         */
+        ServiceLauncher |
+        /**
+         * e.g. `services: [['@wdio/sauce-service', { ... }]]`
+         */
+        [string, ServiceOption] |
+        /**
+         * e.g. `services: [[CustomClass, { ... }]]`
+         */
+        [ServiceClass, ServiceOption]
+    )
 
     interface Options {
         /**
@@ -197,7 +228,7 @@ declare namespace WebdriverIO {
         execArgv?: string[];
     }
 
-    interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }
+    interface RemoteOptions extends WebDriver.Options, HookFunctions, Omit<Options, 'capabilities'> { }
 
     interface MultiRemoteOptions {
         [instanceName: string]: WebDriver.DesiredCapabilities;
@@ -596,7 +627,7 @@ declare namespace WebdriverIO {
             name: string,
             func: AddCommandFn<false>
         ): void;
-
+        
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
@@ -952,7 +983,7 @@ declare namespace WebdriverIO {
          */
         calls: Matches[];
 
-
+        
         /**
          * Abort the request with one of the following error codes:
          * `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`,
@@ -1047,7 +1078,7 @@ declare namespace WebdriverIO {
             name: string,
             func: (elementFetchingMethod: (selector: string) => any) => void
         ): void
-
+        
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page. It returns an array with element results that will have an

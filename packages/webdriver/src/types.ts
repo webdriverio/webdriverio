@@ -579,8 +579,8 @@ export interface Options {
     /**
      * Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your Selenium session.
      */
-    capabilities?: DesiredCapabilities | W3CCapabilities;
-    requestedCapabilities?: DesiredCapabilities | W3CCapabilities;
+    capabilities?: DesiredCapabilities;
+    requestedCapabilities?: DesiredCapabilities;
     /**
      * Level of logging verbosity.
      */
@@ -666,6 +666,6 @@ type AsyncClient = {
 
 export interface AttachOptions extends Partial<SessionFlags>, Partial<Options> {
     sessionId: string
-    capabilities?: DesiredCapabilities | W3CCapabilities;
-    isW3C?: boolean;
+    capabilities?: DesiredCapabilities
+    isW3C?: boolean
 }
