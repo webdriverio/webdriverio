@@ -158,9 +158,9 @@ export function initialiseWorkerService (config: WebdriverIO.Config, caps: WebDr
             if (typeof Service === 'function') {
                 return new Service(serviceConfig, caps, config)
             }
-
-            throw new Error(`Invalid service entry: ${service}`)
-        }).filter(Boolean)
+        }).filter<WebdriverIO.ServiceInstance>(
+            (service: WebdriverIO.ServiceInstance | undefined): service is WebdriverIO.ServiceInstance => Boolean(service)
+        )
     } catch (err) {
         /**
          * don't break if service can't be initiated

@@ -125,16 +125,20 @@ function isAndroid (capabilities?: WebDriver.Capabilities) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
  */
-function isSauce (capabilities?: WebDriver.DesiredCapabilities) {
+function isSauce (capabilities?: WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities) {
     if (!capabilities) {
         return false
     }
 
+    const caps: WebDriver.DesiredCapabilities = (capabilities as WebDriver.W3CCapabilities).alwaysMatch
+        ? (capabilities as WebDriver.W3CCapabilities).alwaysMatch
+        : capabilities as WebDriver.DesiredCapabilities
+
     return Boolean(
-        capabilities.extendedDebugging ||
+        caps.extendedDebugging ||
         (
-            capabilities['sauce:options'] &&
-            capabilities['sauce:options'].extendedDebugging
+            caps['sauce:options'] &&
+            caps['sauce:options'].extendedDebugging
         )
     )
 }
@@ -169,7 +173,7 @@ export function capabilitiesEnvironmentDetector (capabilities: WebDriver.Capabil
  * @param  {Object}  requestedCapabilities
  * @return {Object}                         object with environment flags
  */
-export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities?: WebDriver.DesiredCapabilities, requestedCapabilities?: WebDriver.DesiredCapabilities }) {
+export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities?: WebDriver.DesiredCapabilities, requestedCapabilities?: WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities }) {
     return {
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),

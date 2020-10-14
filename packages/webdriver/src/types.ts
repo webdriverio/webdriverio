@@ -579,8 +579,8 @@ export interface Options {
     /**
      * Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your Selenium session.
      */
-    capabilities?: DesiredCapabilities;
-    requestedCapabilities?: DesiredCapabilities;
+    capabilities?: DesiredCapabilities | W3CCapabilities;
+    requestedCapabilities?: DesiredCapabilities | W3CCapabilities;
     /**
      * Level of logging verbosity.
      */

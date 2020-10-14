@@ -8,7 +8,7 @@ import Protocols from '@wdio/protocols'
 
 import WebDriverRequest, { WebDriverResponse } from './request'
 import command from './command'
-import { Options, JSONWPCommandError, W3CCapabilities, SessionFlags } from './types'
+import { Options, JSONWPCommandError, W3CCapabilities, SessionFlags, DesiredCapabilities } from './types'
 
 const log = logger('webdriver')
 
@@ -22,7 +22,7 @@ const BROWSER_DRIVER_ERRORS = [
 /**
  * start browser session with WebDriver protocol
  */
-export async function startWebDriverSession (params: Options): Promise<string> {
+export async function startWebDriverSession (params: Options): Promise<{ sessionId: string, capabilities: DesiredCapabilities }> {
     /**
      * the user could have passed in either w3c style or jsonwp style caps
      * and we want to pass both styles to the server, which means we need
@@ -69,7 +69,7 @@ export async function startWebDriverSession (params: Options): Promise<string> {
      */
     params.capabilities = response.value.capabilities || response.value
 
-    return sessionId
+    return { sessionId, capabilities: params.capabilities as DesiredCapabilities }
 }
 
 /**

@@ -66,7 +66,22 @@ describe('sessionEnvironmentDetector', () => {
 
         requestedCapabilities['sauce:options'] = { extendedDebugging: true }
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
+    })
+
+    it('isSauce (w3c)', () => {
+        const capabilities = { browserName: 'chrome' }
+        let requestedCapabilities: WebDriver.W3CCapabilities = {
+            alwaysMatch: {},
+            firstMatch: []
+        }
+
+        expect(sessionEnvironmentDetector({}).isSauce).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
+
+        requestedCapabilities.alwaysMatch = { 'sauce:options': { extendedDebugging: true } }
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(true)
+        requestedCapabilities.alwaysMatch = { 'sauce:options': {} }
+        expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
     })
 
     it('isSeleniumStandalone', () => {

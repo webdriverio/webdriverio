@@ -5,6 +5,10 @@ import { initialiseLauncherService, initialiseWorkerService } from '../src/initi
 
 const log = logger('test')
 
+interface TestLauncherService extends WebdriverIO.ServiceInstance {
+    isLauncher: boolean
+}
+
 class CustomService {
     options: Record<string, any>
     config: Config
@@ -55,7 +59,7 @@ describe('initialiseLauncherService', () => {
         )
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(launcherServices).toHaveLength(1)
-        expect(launcherServices[0].config.baseUrl).toBe('foobar')
+        expect((launcherServices as CustomService[])[0].config.baseUrl).toBe('foobar')
     })
 
     it('should allow custom services with options', () => {
@@ -68,8 +72,8 @@ describe('initialiseLauncherService', () => {
         )
         expect(ignoredWorkerServices).toHaveLength(0)
         expect(launcherServices).toHaveLength(1)
-        expect(launcherServices[0].options.foo).toBe('foo')
-        expect(launcherServices[0].config.baseUrl).toBe('foobar')
+        expect((launcherServices as CustomService[])[0].options.foo).toBe('foo')
+        expect((launcherServices as CustomService[])[0].config.baseUrl).toBe('foobar')
     })
 
     it('should allow custom services with empty options', () => {
@@ -83,8 +87,8 @@ describe('initialiseLauncherService', () => {
             {}
         )
         expect(launcherServices).toHaveLength(1)
-        expect(launcherServices[0].config.baseUrl).toBe('foobar')
-        expect(launcherServices[0].options).toEqual({})
+        expect((launcherServices as CustomService[])[0].config.baseUrl).toBe('foobar')
+        expect((launcherServices as CustomService[])[0].options).toEqual({})
     })
 
     it('should propagate services that have launcher only capabilities', () => {
@@ -93,7 +97,7 @@ describe('initialiseLauncherService', () => {
             ignoredWorkerServices
         } = initialiseLauncherService({ services: ['launcher-only'] }, {})
         expect(launcherServices).toHaveLength(1)
-        expect(launcherServices[0].isLauncher).toBe(true)
+        expect((launcherServices[0] as TestLauncherService).isLauncher).toBe(true)
         expect(ignoredWorkerServices).toEqual(['launcher-only'])
     })
 
@@ -139,7 +143,7 @@ describe('initialiseWorkerService', () => {
             {}
         )
         expect(services).toHaveLength(1)
-        expect(services[0].config.baseUrl).toBe('foobar')
+        expect((services as CustomService[])[0].config.baseUrl).toBe('foobar')
     })
 
     it('should allow custom services with options', () => {
@@ -148,17 +152,8 @@ describe('initialiseWorkerService', () => {
             {}
         )
         expect(services).toHaveLength(1)
-        expect(services[0].options.foo).toBe('foo')
-        expect(services[0].config.baseUrl).toBe('foobar')
-    })
-
-    it('should allow custom services with empty options', () => {
-        const services = initialiseWorkerService(
-            { services: [[CustomService]], baseUrl: 'foobar' },
-            {}
-        )
-        expect(services).toHaveLength(1)
-        expect(services[0].config.baseUrl).toBe('foobar')
+        expect((services as CustomService[])[0].options.foo).toBe('foo')
+        expect((services as CustomService[])[0].config.baseUrl).toBe('foobar')
     })
 
     it('should ignore service with launcher only', () => {

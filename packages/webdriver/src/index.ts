@@ -41,8 +41,8 @@ export default class WebDriver {
             params.path = directConnectPath
         }
 
-        const sessionId = await startWebDriverSession(params)
-        const environment = sessionEnvironmentDetector(params)
+        const { sessionId, capabilities } = await startWebDriverSession(params)
+        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities: params.capabilities })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
@@ -91,9 +91,9 @@ export default class WebDriver {
             ...instance.options,
             capabilities: instance.requestedCapabilities as WebDriver.DesiredCapabilities
         }
-        const sessionId = await startWebDriverSession(params)
+        const { sessionId, capabilities } = await startWebDriverSession(params)
         instance.sessionId = sessionId
-        instance.capabilities = params.capabilities as WebDriver.DesiredCapabilities
+        instance.capabilities = capabilities
         return sessionId
     }
 
