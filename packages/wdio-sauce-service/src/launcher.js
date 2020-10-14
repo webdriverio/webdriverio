@@ -79,7 +79,7 @@ export default class SauceLauncher {
         performance.mark('sauceConnectStart')
 
         try {
-            this.sauceConnectProcess = await this.api.startSauceConnect(this.sauceConnectOpts)
+            this.sauceConnectProcess = await this.startTunnel()
         } catch (err) {
             ++this.scStartTrials
             /**
@@ -100,10 +100,14 @@ export default class SauceLauncher {
             }
             log.debug(`Failed to start Sauce Connect Proxy due to ${err.stack}`)
             log.debug(`Retrying ${this.scStartTrials}/${MAX_SC_START_TRIALS}`)
-            this.sauceConnectProcess = await this.api.startSauceConnect(this.sauceConnectOpts)
+            this.sauceConnectProcess = await this.startTunnel()
         }
         performance.mark('sauceConnectEnd')
         performance.measure('bootTime', 'sauceConnectStart', 'sauceConnectEnd')
+    }
+
+    startTunnel() {
+        return this.api.startSauceConnect(this.sauceConnectOpts)
     }
 
     /**
