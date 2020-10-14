@@ -54,7 +54,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hooks: Fu
 }
 
 let runFnInFiberContext = function (fn: Function) {
-    return function (this: WebDriver.Client, ...args: any[]) {
+    return function (this: any, ...args: any[]) {
         return Promise.resolve(fn.apply(this, args))
     }
 }
