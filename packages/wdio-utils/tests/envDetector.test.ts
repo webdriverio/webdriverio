@@ -9,18 +9,17 @@ import safaridriverResponse from './__fixtures__/safaridriver.response.json'
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
 import edgedriverResponse from './__fixtures__/edgedriver.response.json'
 import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json'
-import { Capabilities, DesiredCapabilities } from 'webdriver/build/types'
 
 describe('sessionEnvironmentDetector', () => {
-    const chromeCaps = chromedriverResponse.value as unknown as Capabilities
-    const appiumCaps = appiumResponse.value.capabilities as Capabilities
-    const experitestAppiumCaps = experitestResponse.appium.capabilities as Capabilities
-    const geckoCaps = geckodriverResponse.value.capabilities as Capabilities
-    const edgeCaps = edgedriverResponse.value.capabilities as Capabilities
-    const phantomCaps = ghostdriverResponse.value as Capabilities
-    const safariCaps = safaridriverResponse.value.capabilities as Capabilities
-    const safariLegacyCaps = safaridriverLegacyResponse.value as Capabilities
-    const standaloneCaps = seleniumstandaloneResponse.value as unknown as DesiredCapabilities
+    const chromeCaps = chromedriverResponse.value as unknown as WebDriver.Capabilities
+    const appiumCaps = appiumResponse.value.capabilities as WebDriver.Capabilities
+    const experitestAppiumCaps = experitestResponse.appium.capabilities as WebDriver.Capabilities
+    const geckoCaps = geckodriverResponse.value.capabilities as WebDriver.Capabilities
+    const edgeCaps = edgedriverResponse.value.capabilities as WebDriver.Capabilities
+    const phantomCaps = ghostdriverResponse.value as WebDriver.Capabilities
+    const safariCaps = safaridriverResponse.value.capabilities as WebDriver.Capabilities
+    const safariLegacyCaps = safaridriverLegacyResponse.value as WebDriver.Capabilities
+    const standaloneCaps = seleniumstandaloneResponse.value as unknown as WebDriver.DesiredCapabilities
 
     it('isMobile', () => {
         const requestedCapabilities = { browserName: '' }
@@ -55,7 +54,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isSauce', () => {
         const capabilities = { browserName: 'chrome' }
-        let requestedCapabilities: DesiredCapabilities = {}
+        let requestedCapabilities: WebDriver.DesiredCapabilities = {}
 
         expect(sessionEnvironmentDetector({}).isSauce).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
