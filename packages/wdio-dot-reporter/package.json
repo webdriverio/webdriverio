@@ -26,6 +26,7 @@
     "chalk": "^4.0.0"
   },
   "devDependencies": {
+    "@types/tmp": "^0.2.0",
     "tmp": "^0.2.0"
   },
   "peerDependencies": {
