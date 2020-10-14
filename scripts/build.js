@@ -28,4 +28,8 @@ shell.cd(path.join(__dirname, '..'))
 const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`).join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
 
 console.log(cmd)
-shell.exec(cmd)
+const { code } = shell.exec(cmd)
+
+if (code) {
+    throw new Error('Failed compiling TypeScript files!')
+}
