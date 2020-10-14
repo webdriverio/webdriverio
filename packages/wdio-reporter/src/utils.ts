@@ -59,7 +59,7 @@ export function sanitizeCaps (caps: DesiredCapabilities) {
  * have a hard assertion model (Mocha)
  * @param {*} e  An event emitted by a framework adapter
  */
-export function getErrorsFromEvent(e: { errors: any; error: any }) {
+export function getErrorsFromEvent(e: { errors?: any; error?: any }) {
     if (e.errors) return e.errors
     if (e.error) return [e.error]
     return []

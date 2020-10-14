@@ -1,16 +1,21 @@
-import RunnableStats, { RunnableError, Runnable } from './runnable'
+import RunnableStats, { RunnableError } from './runnable'
 
-export interface Test extends Runnable {
-    cid: string
+export interface Test {
+    type: 'test:start' | 'test:pass' | 'test:fail' | 'test:retry' | 'test:pending' | 'test:end'
+    title: string
+    parent: string
     fullTitle: string
-    output: []
+    pending: boolean
+    file: string
+    duration?: number
+    cid: string
+    specs: string[]
+    uid: string
+    pendingReason: string
+    error?: RunnableError
+    errors?: RunnableError[]
+    retries?: number
     argument?: Argument
-    retries: number
-    /**
-     * initial test state is pending
-     * the state can change to the following: passed, skipped, failed
-     */
-    state: 'pending' | 'passed' | 'skipped' | 'failed'
 }
 
 interface Argument {
@@ -28,12 +33,13 @@ interface Argument {
  * captures data on a test.
  */
 export default class TestStats extends RunnableStats {
+    uid: string
     cid: string
     title: string
     fullTitle: string
     output: {}[]
     argument?: Argument
-    retries: number
+    retries?: number
     /**
      * initial test state is pending
      * the state can change to the following: passed, skipped, failed

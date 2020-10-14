@@ -1,17 +1,19 @@
 import HookStats from './hook'
-import RunnableStats, { Runnable } from './runnable'
+import RunnableStats from './runnable'
 import TestStats from './test'
 
-export interface Suite extends Runnable {
-    type?: string
-    cid?: string
+export interface Suite {
+    type?: string | 'suite:start' | 'suite:end'
     title: string
+    parent: string
     fullTitle: string
+    pending: boolean
+    file: string
+    duration?: number
+    cid?: string
+    specs: string[]
+    uid: string
     tags?: string[]
-    tests?: TestStats[]
-    hooks?: HookStats[]
-    suites?: SuiteStats[]
-    hooksAndTests?: (HookStats | TestStats)[]
     description?: string
 }
 
@@ -19,6 +21,7 @@ export interface Suite extends Runnable {
  * Class describing statistics about a single suite.
  */
 export default class SuiteStats extends RunnableStats {
+    uid: string
     cid?: string
     title: string
     fullTitle: string

@@ -1,18 +1,18 @@
-import RunnableStats, { Runnable } from './runnable'
+import RunnableStats from './runnable'
 import { sanitizeCaps } from '../utils'
 import { DesiredCapabilities } from '../types'
 import { WDIOReporterOptions } from '..'
 
-export interface Runner extends Runnable {
+export interface Runner {
     cid: string
-    capabilities: DesiredCapabilities
-    config: WDIOReporterOptions
     specs: string[]
-    sessionId: string
+    config: WDIOReporterOptions
     isMultiremote: boolean
+    sessionId: string
+    capabilities: DesiredCapabilities
     retry: number
-    failures: number
-    retries: number
+    failures?: number
+    retries?: number
 }
 
 /**

@@ -1,14 +1,12 @@
 import fs from 'fs'
 import fse from 'fs-extra'
 import { EventEmitter } from 'events'
-
 import { getErrorsFromEvent } from './utils'
-
 import SuiteStats, { Suite } from './stats/suite'
 import HookStats, { Hook } from './stats/hook'
 import TestStats, { Test } from './stats/test'
-
 import RunnerStats, { Runner } from './stats/runner'
+import { AfterCommandArgs, BeforeCommandArgs } from './types'
 
 export interface WDIOReporterOptions {
     outputDir: string
@@ -18,12 +16,11 @@ export interface WDIOReporterOptions {
 }
 
 export default class WDIOReporter extends EventEmitter {
-
     outputStream: fs.WriteStream
     failures = 0
-    suites?: SuiteStats[]
-    hooks: HookStats[] = []
-    tests: TestStats[] = []
+    suites: Record<string, SuiteStats> = {}
+    hooks: Record<string, HookStats> = {}
+    tests: Record<string, TestStats> ={}
     currentSuites: SuiteStats[] = []
     counts = {
         suites: 0,
@@ -76,19 +73,19 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('hook:start',  /* istanbul ignore next */(hook: Hook) => {
-            const hookStat = new HookStats(hook)
+            const hookStats = new HookStats(hook)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
-            currentSuite.hooks.push(hookStat)
-            currentSuite.hooksAndTests.push(hookStat)
-            this.hooks[hook.uid] = hookStat
-            this.onHookStart(hookStat)
+            currentSuite.hooks.push(hookStats)
+            currentSuite.hooksAndTests.push(hookStats)
+            this.hooks[hook.uid] = hookStats
+            this.onHookStart(hookStats)
         })
 
         this.on('hook:end',  /* istanbul ignore next */(hook: Hook) => {
-            const hookStat = this.hooks[hook.uid]
-            hookStat.complete(getErrorsFromEvent(hook))
+            const hookStats = this.hooks[hook.uid]
+            hookStats.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
-            this.onHookEnd(hookStat)
+            this.onHookEnd(hookStats)
         })
 
         this.on('test:start',  /* istanbul ignore next */(test: Test) => {
@@ -170,10 +167,12 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('runner:end',  /* istanbul ignore next */(runner: Runner) => {
             rootSuite.complete()
-            this.runnerStat!.failures = runner.failures
-            this.runnerStat!.retries = runner.retries
-            this.runnerStat!.complete()
-            this.onRunnerEnd(this.runnerStat)
+            if(this.runnerStat) {
+                this.runnerStat.failures = runner.failures
+                this.runnerStat.retries = runner.retries
+                this.runnerStat.complete()
+                this.onRunnerEnd(this.runnerStat)
+            }
         })
 
         /**
@@ -204,38 +203,50 @@ export default class WDIOReporter extends EventEmitter {
     /**
      * function to write to reporters output stream
      */
-    write(content) {
+    write(content: any) {
         this.outputStream.write(content)
     }
 
     /* istanbul ignore next */
-    onRunnerStart() { }
+    // eslint-disable-next-line no-unused-vars
+    onRunnerStart(runnerStats: RunnerStats) { }
     /* istanbul ignore next */
-    onBeforeCommand() { }
+    // eslint-disable-next-line no-unused-vars
+    onBeforeCommand(commandArgs: BeforeCommandArgs) { }
     /* istanbul ignore next */
-    onAfterCommand() { }
+    // eslint-disable-next-line no-unused-vars
+    onAfterCommand(commandArgs: AfterCommandArgs) { }
     /* istanbul ignore next */
-    onScreenshot() { }
+    // eslint-disable-next-line no-unused-vars
+    onSuiteStart(suiteStats: SuiteStats) { }
     /* istanbul ignore next */
-    onSuiteStart() { }
+    // eslint-disable-next-line no-unused-vars
+    onHookStart(hookStat: HookStats) { }
     /* istanbul ignore next */
-    onHookStart() { }
+    // eslint-disable-next-line no-unused-vars
+    onHookEnd(hookStats: HookStats) { }
     /* istanbul ignore next */
-    onHookEnd() { }
+    // eslint-disable-next-line no-unused-vars
+    onTestStart(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestStart() { }
+    // eslint-disable-next-line no-unused-vars
+    onTestPass(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestPass() { }
+    // eslint-disable-next-line no-unused-vars
+    onTestFail(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestFail() { }
+    // eslint-disable-next-line no-unused-vars
+    onTestRetry(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestRetry() { }
+    // eslint-disable-next-line no-unused-vars
+    onTestSkip(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestSkip() { }
+    // eslint-disable-next-line no-unused-vars
+    onTestEnd(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestEnd() { }
+    // eslint-disable-next-line no-unused-vars
+    onSuiteEnd(suiteStats: SuiteStats) { }
     /* istanbul ignore next */
-    onSuiteEnd() { }
-    /* istanbul ignore next */
-    onRunnerEnd() { }
+    // eslint-disable-next-line no-unused-vars
+    onRunnerEnd(runnerStats: RunnerStats) { }
 }

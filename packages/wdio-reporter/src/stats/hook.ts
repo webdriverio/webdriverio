@@ -1,11 +1,22 @@
-import RunnableStats, { Runnable, RunnableError } from './runnable'
+import RunnableStats, { RunnableError } from './runnable'
 
-export interface Hook extends Runnable {
-    cid: string
+export interface Hook {
+    type: 'hook:start' | 'hook:end'
+    title: string
     parent: string
+    fullTitle: string
+    pending: boolean
+    file?: string
+    duration?: number
+    cid: string
+    specs: string[]
+    uid: string
+    errors?: RunnableError[]
+    error?: RunnableError
 }
 
 export default class HookStats extends RunnableStats {
+    uid: string
     cid: string
     title: string
     parent: string

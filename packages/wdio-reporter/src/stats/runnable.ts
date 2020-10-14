@@ -2,20 +2,15 @@
  * Main class for a runnable class (e.g. test, suite or a hook)
  * mainly used to capture its running duration
  */
-
-export interface Runnable {
-    uid?: string
-    title: string
-}
-
 export interface RunnableError {
     message: string
     stack: string
     type: string
+    expected?: any
+    actual?: any
 }
 
 export default abstract class RunnableStats {
-    uid?: string
     type: string
     start: number
     end?: number
@@ -42,7 +37,7 @@ export default abstract class RunnableStats {
     /**
      * ToDo: we should always rely on uid
      */
-    static getIdentifier (runner: Runnable) {
+    static getIdentifier (runner: {uid?:string, title: string}) {
         return runner.uid || runner.title
     }
 }

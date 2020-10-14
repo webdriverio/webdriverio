@@ -35,8 +35,6 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onAfterCommand () {}
     /* istanbul ignore next */
-    onScreenshot () {}
-    /* istanbul ignore next */
     onSuiteStart () {}
     /* istanbul ignore next */
     onHookStart () {}

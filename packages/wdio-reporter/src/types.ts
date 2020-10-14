@@ -1,7 +1,20 @@
-import * as got from 'got'
 import http from 'http'
 import https from 'https'
 import { EventEmitter } from 'events'
+
+interface CommandArgs {
+    sessionId: string
+    method: string
+    endpoint: string
+}
+
+export interface BeforeCommandArgs extends CommandArgs {
+    body:any
+}
+
+export interface AfterCommandArgs extends CommandArgs {
+    result:any
+}
 
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
 export type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual';
