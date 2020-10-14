@@ -28,6 +28,18 @@ interface Argument {
     }]
 }
 
+interface Output {
+    method: 'PUT' | 'POST' | 'GET' | 'DELETE'
+    endpoint: string
+    body: {}
+    result: {
+        value: string | null
+    }
+    sessionId: string
+    cid: string
+    type: 'command' | 'result'
+}
+
 /**
  * TestStats class
  * captures data on a test.
@@ -37,7 +49,7 @@ export default class TestStats extends RunnableStats {
     cid: string
     title: string
     fullTitle: string
-    output: {}[]
+    output: Output[]
     argument?: Argument
     retries?: number
     /**
