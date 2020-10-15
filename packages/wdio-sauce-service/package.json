@@ -25,7 +25,7 @@
   "dependencies": {
     "@wdio/logger": "6.6.0",
     "@wdio/utils": "6.7.0",
-    "saucelabs": "^4.2.0"
+    "saucelabs": "^4.5.1"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"
