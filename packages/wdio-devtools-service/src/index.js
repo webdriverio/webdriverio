@@ -25,6 +25,8 @@ export default class DevToolsService {
     }
 
     async onReload() {
+        // resetting puppeteer on sessionReload, so a new puppeteer session will be attached
+        global.browser.puppeteer = null
         return this._setupHandler()
     }
 
