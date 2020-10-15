@@ -48,7 +48,7 @@ function initialiseServices (services: [WebdriverIO.ServiceEntry | WebdriverIO.S
          * ```
          */
         if (typeof serviceName === 'function') {
-            log.debug(`initialise custom service "${(serviceName as Function).name}"`)
+            log.debug(`initialise custom service "${serviceName.name}"`)
             initialisedServices.push([serviceName as WebdriverIO.ServiceClass, serviceConfig])
             continue
         }
