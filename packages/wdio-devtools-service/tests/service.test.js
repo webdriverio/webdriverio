@@ -298,8 +298,10 @@ test('before hook', async () => {
 test('onReload hook', async () => {
     const service = new DevToolsService({}, [{}], {})
     service._setupHandler = jest.fn()
+    global.browser.puppeteer = 'suppose to be reset after reload'
     service.onReload()
     expect(service._setupHandler).toBeCalledTimes(1)
+    expect(global.browser.puppeteer).toBeNull()
 })
 
 afterEach(() => {
