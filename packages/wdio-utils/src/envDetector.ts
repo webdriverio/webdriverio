@@ -50,10 +50,7 @@ function isChrome (capabilities?: WebDriver.DesiredCapabilities) {
     if (!capabilities) {
         return false
     }
-    return (
-        Boolean(capabilities.chrome) ||
-        Boolean(capabilities['goog:chromeOptions'])
-    )
+    return Boolean(capabilities.chrome || capabilities['goog:chromeOptions'])
 }
 
 /**
