@@ -65,7 +65,7 @@
     "lodash.zip": "^4.2.0",
     "minimatch": "^3.0.4",
     "puppeteer-core": "^5.1.0",
-    "resq": "^1.6.0",
+    "resq": "^1.9.1",
     "rgb2hex": "^0.2.0",
     "serialize-error": "^7.0.0",
     "webdriver": "6.6.3"
