@@ -9,7 +9,6 @@
     :pause.js
     it('should calculate 7 * 6', () => {
         browser.url('https://ahfarmer.github.io/calculator/');
-        const appWrapper = browser.$('div#root')
 
         const orangeButtons = browser.react$$('t', {
             props: { orange: true }
