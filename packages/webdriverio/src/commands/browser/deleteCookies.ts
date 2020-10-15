@@ -42,12 +42,12 @@
  *
  */
 
-export default function deleteCookies(names) {
-    const namesList = typeof names !== 'undefined' && !Array.isArray(names) ? [names] : names
-
-    if (typeof namesList === 'undefined') {
+export default function deleteCookies(this: WebdriverIO.BrowserObject, names?: string | string[]) {
+    if (typeof names === 'undefined') {
         return this.deleteAllCookies()
     }
+
+    const namesList = !Array.isArray(names) ? [names] : names
 
     if (namesList.every(obj => typeof obj !== 'string')) {
         return Promise.reject(new Error('Invalid input (see https://webdriver.io/docs/api/browser/deleteCookies.html for documentation.'))

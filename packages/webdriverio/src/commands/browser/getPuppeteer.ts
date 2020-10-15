@@ -10,7 +10,7 @@
 import puppeteer from 'puppeteer-core'
 import { FF_REMOTE_DEBUG_ARG } from '../../constants'
 
-export default async function getPuppeteer () {
+export default async function getPuppeteer (this: WebdriverIO.BrowserObject) {
     /**
      * check if we already connected Puppeteer and if so return
      * that instance
@@ -34,15 +34,26 @@ export default async function getPuppeteer () {
     /**
      * attach to Firefox debugger session
      */
-    if (this.capabilities.browserName.toLowerCase() === 'firefox') {
-        const majorVersion = parseInt(this.capabilities.browserVersion.split('.').shift(), 10)
+    if (this.capabilities.browserName && this.capabilities.browserName.toLowerCase() === 'firefox') {
+        if (!this.capabilities.browserVersion) {
+            throw new Error('Can\'t find "browserVersion" in capabilities')
+        }
+
+        const majorVersion = parseInt(this.capabilities.browserVersion.split('.').shift() || '', 10)
         if (majorVersion >= 79) {
             const ffOptions = this.capabilities['moz:firefoxOptions']
-            const ffArgs = this.requestedCapabilities['moz:firefoxOptions'].args
+            const ffArgs = this.requestedCapabilities['moz:firefoxOptions']?.args
 
             const rdPort = ffOptions && ffOptions.debuggerAddress
                 ? ffOptions.debuggerAddress
-                : ffArgs[ffArgs.findIndex((arg) => arg === FF_REMOTE_DEBUG_ARG) + 1]
+                : ffArgs
+                    ? ffArgs[ffArgs.findIndex((arg) => arg === FF_REMOTE_DEBUG_ARG) + 1]
+                    : null
+
+            if (!rdPort) {
+                throw new Error('Could\'t find remote debug port in Firefox options')
+            }
+
             this.puppeteer = await puppeteer.connect({
                 browserURL: `http://localhost:${rdPort}`,
                 defaultViewport: null

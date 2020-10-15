@@ -1,9 +1,10 @@
 import { webdriverMonad, wrapCommand, runFnInFiberContext } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 
-import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '../utils'
+import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '.'
 import { elementErrorHandler } from '../middlewares'
 import { ELEMENT_KEY } from '../constants'
+import type { ElementReference, ElementObject } from '../types'
 
 /**
  * transforms a findElement response into a WDIO element
@@ -11,7 +12,7 @@ import { ELEMENT_KEY } from '../constants'
  * @param  {Object} res       findElement response
  * @return {Object}           WDIO element object
  */
-export const getElement = function findElement(selector, res, isReactElement = false) {
+export const getElement = function findElement(this: WebdriverIO.BrowserObject, selector?: string, res?: ElementReference | Error, isReactElement = false) {
     const browser = getBrowserObject(this)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
@@ -19,7 +20,7 @@ export const getElement = function findElement(selector, res, isReactElement = f
         scope: 'element'
     }
 
-    const element = webdriverMonad(this.options, (client) => {
+    const element = webdriverMonad(this.options, (client: ElementObject) => {
         const elementId = getElementFromResponse(res)
 
         if (elementId) {
@@ -32,12 +33,12 @@ export const getElement = function findElement(selector, res, isReactElement = f
              * set element id with proper key so element can be passed into execute commands
              */
             if (this.isW3C) {
-                client[ELEMENT_KEY] = elementId
+                (client as any)[ELEMENT_KEY] = elementId
             } else {
                 client.ELEMENT = elementId
             }
         } else {
-            client.error = res
+            client.error = res as Error
         }
 
         client.selector = selector
@@ -51,7 +52,7 @@ export const getElement = function findElement(selector, res, isReactElement = f
     const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
 
     const origAddCommand = elementInstance.addCommand.bind(elementInstance)
-    elementInstance.addCommand = (name, fn) => {
+    elementInstance.addCommand = (name: string, fn: Function) => {
         browser.__propertiesObject__[name] = { value: fn }
         origAddCommand(name, runFnInFiberContext(fn))
     }
@@ -65,16 +66,16 @@ export const getElement = function findElement(selector, res, isReactElement = f
  * @param  {Object} res       findElements response
  * @return {Array}            array of WDIO elements
  */
-export const getElements = function getElements(selector, elemResponse, isReactElement = false) {
+export const getElements = function getElements(this: WebdriverIO.BrowserObject, selector: string, elemResponse: ElementReference[] | Error, isReactElement = false) {
     const browser = getBrowserObject(this)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
         ...getWDIOPrototype('element')
     }
 
-    const elements = elemResponse.map((res, i) => {
+    const elements = (elemResponse as ElementReference[]).map((res, i) => {
         propertiesObject.scope = 'element'
-        const element = webdriverMonad(this.options, (client) => {
+        const element = webdriverMonad(this.options, (client: ElementObject) => {
             const elementId = getElementFromResponse(res)
 
             if (elementId) {
@@ -87,18 +88,18 @@ export const getElements = function getElements(selector, elemResponse, isReactE
                  * set element id with proper key so element can be passed into execute commands
                  */
                 if (this.isW3C) {
-                    client[ELEMENT_KEY] = elementId
+                    (client as any)[ELEMENT_KEY] = elementId
                 } else {
                     client.ELEMENT = elementId
                 }
             } else {
-                client.error = res
+                client.error = res as unknown as Error
             }
 
             client.selector = selector
             client.parent = this
             client.index = i
-            client.emit = this.emit.bind(this)
+            client.emit = this.emit?.bind(this)
             client.isReactElement = isReactElement
 
             return client
@@ -107,7 +108,7 @@ export const getElements = function getElements(selector, elemResponse, isReactE
         const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
 
         const origAddCommand = elementInstance.addCommand.bind(elementInstance)
-        elementInstance.addCommand = (name, fn) => {
+        elementInstance.addCommand = (name: string, fn: Function) => {
             browser.__propertiesObject__[name] = { value: fn }
             origAddCommand(name, runFnInFiberContext(fn))
         }

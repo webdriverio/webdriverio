@@ -24,15 +24,16 @@
 import { enhanceElementsArray } from '../../utils'
 import { getElements } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
+import type { ElementReference } from '../../types'
 
-async function custom$$ (strategyName, strategyArgument) {
+async function custom$$ (this: WebdriverIO.BrowserObject, strategyName: string, ...strategyArguments: any[]) {
     const strategy = this.strategies.get(strategyName)
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
     }
 
-    let res = await this.execute(strategy, strategyArgument)
+    let res = await this.execute(strategy, ...strategyArguments) as (ElementReference | ElementReference[])
 
     /**
      * if the user's script return just one element
@@ -45,8 +46,8 @@ async function custom$$ (strategyName, strategyArgument) {
 
     res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategy, res) : []
-    return enhanceElementsArray(elements, this, strategyName, 'custom$$', [strategyArgument])
+    const elements = res.length ? await getElements.call(this, strategy.toString(), res) : []
+    return enhanceElementsArray(elements, this, strategyName, 'custom$$', [strategyArguments])
 }
 
 export default custom$$

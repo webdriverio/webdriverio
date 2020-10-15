@@ -33,14 +33,14 @@
 import { serializeError } from 'serialize-error'
 import WDIORepl from '@wdio/repl'
 
-export default function debug(commandTimeout = 5000) {
+export default function debug(this: WebdriverIO.BrowserObject, commandTimeout = 5000) {
     const repl = new WDIORepl()
     const { introMessage } = WDIORepl
 
     /**
      * run repl in standalone mode
      */
-    if (!process.env.WDIO_WORKER) {
+    if (!process.env.WDIO_WORKER || typeof process.send !== 'function') {
         // eslint-disable-next-line
         console.log(WDIORepl.introMessage)
         const context = {
@@ -55,7 +55,7 @@ export default function debug(commandTimeout = 5000) {
     /**
      * register worker process as debugger target
      */
-    process._debugProcess(process.pid)
+    (process as any)._debugProcess(process.pid)
 
     /**
      * initialise repl in testrunner
@@ -73,13 +73,17 @@ export default function debug(commandTimeout = 5000) {
         }
 
         if (m.name === 'stop') {
-            process._debugEnd(process.pid)
+            (process as any)._debugEnd(process.pid)
             return commandResolve()
         }
 
         /* istanbul ignore if */
         if (m.name === 'eval') {
-            repl.eval(m.content.cmd, global, null, (e, result) => {
+            repl.eval(m.content.cmd, global, undefined, (e, result) => {
+                if (typeof process.send !== 'function') {
+                    return
+                }
+
                 if (e) {
                     process.send({
                         origin: 'debugger',

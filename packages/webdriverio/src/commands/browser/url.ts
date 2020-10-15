@@ -35,7 +35,7 @@
 import nodeUrl from 'url'
 import { validateUrl } from '../../utils'
 
-export default function url (path) {
+export default function url (this: WebdriverIO.BrowserObject, path: string) {
     if (typeof path !== 'string') {
         throw new Error('Parameter for "url" command needs to be type of string')
     }
@@ -44,5 +44,5 @@ export default function url (path) {
         path = nodeUrl.resolve(this.options.baseUrl, path)
     }
 
-    return this.navigateTo(validateUrl(path))
+    return this.navigateTo(validateUrl(path, null))
 }

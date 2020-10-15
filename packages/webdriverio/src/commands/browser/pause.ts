@@ -20,6 +20,6 @@
  *
  */
 
-export default function pause (milliseconds = 1000) {
+export default function pause (this: WebdriverIO.BrowserObject, milliseconds = 1000) {
     return new Promise((resolve) => setTimeout(resolve, milliseconds))
 }

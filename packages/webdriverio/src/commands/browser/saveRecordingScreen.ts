@@ -22,7 +22,7 @@
 import fs from 'fs'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
 
-export default async function saveRecordingScreen (filepath) {
+export default async function saveRecordingScreen (this: WebdriverIO.BrowserObject, filepath: string) {
     /**
      * type check
      */

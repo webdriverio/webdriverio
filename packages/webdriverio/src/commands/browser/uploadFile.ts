@@ -26,7 +26,7 @@ import fs from 'fs'
 import path from 'path'
 import archiver from 'archiver'
 
-export default async function uploadFile (localPath) {
+export default async function uploadFile (this: WebdriverIO.BrowserObject, localPath: string) {
     /**
      * parameter check
      */
@@ -41,20 +41,15 @@ export default async function uploadFile (localPath) {
         throw new Error(`The uploadFile command is not available in ${this.capabilities.browserName}`)
     }
 
-    let zipData = []
+    let zipData: Uint8Array[] = []
     let source = fs.createReadStream(localPath)
 
     return new Promise((resolve, reject) => {
         archiver('zip')
-            .on('error', (err) => reject(err))
-            .on('data', (data) => zipData.push(data))
+            .on('error', (err: Error) => reject(err))
+            .on('data', (data: Uint8Array) => zipData.push(data))
             .on('end', () => this.file(Buffer.concat(zipData).toString('base64')).then(resolve, reject))
             .append(source, { name: path.basename(localPath) })
-            .finalize((err) => {
-                /* istanbul ignore next */
-                if (err) {
-                    reject(err)
-                }
-            })
+            .finalize()
     })
 }

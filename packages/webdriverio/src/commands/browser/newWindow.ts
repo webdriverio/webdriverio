@@ -36,7 +36,7 @@
 
 import newWindowHelper from '../../scripts/newWindow'
 
-export default async function newWindow (url, { windowName = 'New Window', windowFeatures = '' } = {}) {
+export default async function newWindow (this: WebdriverIO.BrowserObject, url: string, { windowName = 'New Window', windowFeatures = '' }: WebdriverIO.NewWindowOptions = {}) {
     /*!
      * parameter check
      */
@@ -55,6 +55,10 @@ export default async function newWindow (url, { windowName = 'New Window', windo
 
     const tabs = await this.getWindowHandles()
     const newTab = tabs.pop()
+
+    if (!newTab) {
+        throw new Error('No window handle was found to switcht to')
+    }
 
     await this.switchToWindow(newTab)
     return newTab

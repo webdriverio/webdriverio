@@ -193,6 +193,7 @@ declare namespace WebDriver {
     }
 
     interface FirefoxOptions {
+        debuggerAddress: string
         binary?: string,
         args?: string[],
         profile?: string,
@@ -670,6 +671,7 @@ declare namespace WebDriver {
         isAndroid: boolean;
         isMobile: boolean;
         isIOS: boolean;
+        isSauce: boolean;
         sessionId: string;
     }
 

@@ -99,9 +99,9 @@ import DevtoolsNetworkInterception from '../../utils/interception/devtools'
 import WebDriverNetworkInterception from '../../utils/interception/webdriver'
 import { getBrowserObject } from '../../utils'
 
-const SESSION_MOCKS = new Set()
+const SESSION_MOCKS: Set<WebDriverNetworkInterception | DevtoolsNetworkInterception> = new Set()
 
-export default async function mock (url, filterOptions) {
+export default async function mock (this: WebdriverIO.BrowserObject, url: string, filterOptions: WebdriverIO.MockFilterOptions) {
     const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
 
     if (!this.isSauce) {
@@ -119,7 +119,8 @@ export default async function mock (url, filterOptions) {
         })
         client.on(
             'Fetch.requestPaused',
-            NetworkInterception.handleRequestInterception(client, SESSION_MOCKS)
+            (NetworkInterception as unknown as typeof DevtoolsNetworkInterception)
+                .handleRequestInterception(client, SESSION_MOCKS)
         )
     }
 
@@ -128,7 +129,7 @@ export default async function mock (url, filterOptions) {
     SESSION_MOCKS.add(networkInterception)
 
     if (this.isSauce) {
-        await networkInterception.init()
+        await (networkInterception as WebDriverNetworkInterception).init()
     }
 
     return networkInterception

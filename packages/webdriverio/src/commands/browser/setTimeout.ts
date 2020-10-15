@@ -27,7 +27,7 @@
  *
  */
 
-export default async function setTimeout(timeouts) {
+export default async function setTimeout(this: WebdriverIO.BrowserObject, timeouts: WebDriver.Timeouts) {
     if (typeof timeouts !== 'object') {
         throw new Error('Parameter for "setTimeout" command needs to be an object')
     }
@@ -43,7 +43,7 @@ export default async function setTimeout(timeouts) {
 
     const implicit = timeouts.implicit
     // Previously also known as `page load` with JsonWireProtocol
-    const pageLoad = timeouts['page load'] || timeouts.pageLoad
+    const pageLoad = (timeouts as any)['page load'] || timeouts.pageLoad
     const script = timeouts.script
 
     /**
@@ -51,11 +51,11 @@ export default async function setTimeout(timeouts) {
      */
     if (!this.isW3C) {
         return Promise.all([
-            isFinite(implicit) && this.setTimeouts('implicit', implicit),
-            isFinite(pageLoad) && this.setTimeouts('page load', pageLoad),
-            isFinite(script) && this.setTimeouts('script', script),
+            isFinite(implicit) && (this.setTimeouts as any)('implicit', implicit),
+            isFinite(pageLoad) && (this.setTimeouts as any)('page load', pageLoad),
+            isFinite(script) && (this.setTimeouts as any)('script', script),
         ].filter(Boolean))
     }
 
-    return this.setTimeouts(implicit, pageLoad, script)
+    return (this.setTimeouts as any)(implicit, pageLoad, script)
 }

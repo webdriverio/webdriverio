@@ -14,7 +14,13 @@ declare namespace WebdriverIO {
         options: MultiRemoteOptions
     ): Promise<BrowserObject>;
 
+    type ExecuteFunction = (...arguments: any[]) => T
+
     interface Browser {
+        emit: Function
+        strategies: Map<string, ExecuteFunction>
+        puppeteer?: any
+
         /**
          * execute any async action within your test spec
          */
@@ -25,7 +31,7 @@ declare namespace WebdriverIO {
          * The executed script is assumed to be synchronous and the result of evaluating the script is returned to
          * the client.
          */
-        execute: <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]) => Promise<T>;
+        execute: <T>(script: string | ExecuteFunction, ...arguments: any[]) => Promise<T>;
 
         // there is no way to add callback as last parameter after `...args`.
         // https://github.com/Microsoft/TypeScript/issues/1360

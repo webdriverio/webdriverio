@@ -37,6 +37,10 @@
  *
  */
 
-export default function call (fn = () => {}) {
-    return fn()
+export default function call<T> (fn: () => T) {
+    if (typeof fn === 'function') {
+        return fn()
+    }
+
+    throw new Error('Command argument for "call" needs to be a function')
 }

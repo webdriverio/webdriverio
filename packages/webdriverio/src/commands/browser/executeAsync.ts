@@ -43,9 +43,7 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  *
  */
 
-export default function executeAsync (...args) {
-    let script = args.shift()
-
+export default function executeAsync (this: WebdriverIO.BrowserObject, script: string | WebdriverIO.ExecuteFunction, ...args: any[]) {
     /*!
      * parameter check
      */

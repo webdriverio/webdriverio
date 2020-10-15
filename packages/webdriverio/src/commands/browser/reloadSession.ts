@@ -22,7 +22,7 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export default async function reloadSession () {
+export default async function reloadSession (this: WebdriverIO.BrowserObject) {
     const oldSessionId = this.sessionId
 
     /**
@@ -39,7 +39,7 @@ export default async function reloadSession () {
         log.warn(`Suppressing error closing the session: ${err.stack}`)
     }
 
-    const ProtocolDriver = require(this.options.automationProtocol).default
+    const ProtocolDriver = require(this.options.automationProtocol!).default
     await ProtocolDriver.reloadSession(this)
 
     if (Array.isArray(this.options.onReload) && this.options.onReload.length) {

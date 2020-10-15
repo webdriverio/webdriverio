@@ -47,9 +47,11 @@
   "types": "./webdriverio.d.ts",
   "typeScriptVersion": "3.7.3",
   "dependencies": {
+    "@types/archiver": "^3.1.1",
     "@types/atob": "^2.1.2",
     "@types/fs-extra": "^9.0.2",
     "@types/lodash.isplainobject": "^4.0.6",
+    "@types/lodash.clonedeep": "^4.5.6",
     "@types/puppeteer": "^3.0.1",
     "@wdio/config": "6.6.3",
     "@wdio/logger": "6.6.0",

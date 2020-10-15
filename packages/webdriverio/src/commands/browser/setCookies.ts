@@ -52,12 +52,16 @@
  * @type cookie
  *
  */
-export default async function setCookies(cookieObjs) {
+export default async function setCookies(
+    this: WebdriverIO.BrowserObject,
+    cookieObjs: WebDriver.Cookie | WebDriver.Cookie[]
+) {
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
 
     if (cookieObjsList.some(obj => (typeof obj !== 'object'))) {
         throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies.html for documentation.')
     }
 
-    return Promise.all(cookieObjsList.map(cookieObj => this.addCookie(cookieObj)))
+    return Promise.all(cookieObjsList
+        .map(cookieObj => this.addCookie(cookieObj)))
 }

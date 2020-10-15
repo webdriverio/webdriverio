@@ -27,7 +27,7 @@
  *
  */
 
-export default async function switchWindow (urlOrTitleToMatch) {
+export default async function switchWindow (this: WebdriverIO.BrowserObject, urlOrTitleToMatch: string | RegExp) {
     /*!
      * parameter check
      */

@@ -21,7 +21,7 @@
 
 import { getBrowserObject } from '../../utils'
 
-export default function getWindowSize() {
+export default function getWindowSize(this: WebdriverIO.BrowserObject) {
     const browser = getBrowserObject(this)
 
     if (!browser.isW3C) {

@@ -27,8 +27,8 @@
 
 import { checkUnicode } from '../../utils'
 
-export default function keys (value) {
-    let keySequence = []
+export default function keys (this: WebdriverIO.BrowserObject, value: string | string[]) {
+    let keySequence: string[] = []
 
     /**
      * replace key with corresponding unicode character

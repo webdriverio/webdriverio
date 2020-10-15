@@ -30,18 +30,17 @@
  * @uses webdriver/getAllCookies
  *
  */
-export default async function getCookies(names) {
-    const namesList = typeof names !== 'undefined' && !Array.isArray(names) ? [names] : names
-
-    if (typeof namesList === 'undefined') {
+export default async function getCookies(this: WebdriverIO.BrowserObject, names?: string | string[]) {
+    if (typeof names === 'undefined') {
         return this.getAllCookies()
     }
+
+    const namesList = !Array.isArray(names) ? [names] : names
 
     if (namesList.every(obj => typeof obj !== 'string')) {
         throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/getCookies.html for documentation.')
     }
 
-    const allCookies = await this.getAllCookies()
-
+    const allCookies: WebDriver.Cookie[] = await this.getAllCookies() as unknown as WebDriver.Cookie[]
     return allCookies.filter(cookie => namesList.includes(cookie.name))
 }
