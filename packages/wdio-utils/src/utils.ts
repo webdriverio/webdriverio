@@ -7,7 +7,7 @@ const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
  * overwrite native element commands with user defined
  * @param {object} propertiesObject propertiesObject
  */
-export function overwriteElementCommands(propertiesObject: any) {
+export function overwriteElementCommands(propertiesObject: { '__elementOverrides__'?: { value: any }, [key: string]: any }) {
     const elementOverrides = propertiesObject['__elementOverrides__'] ? propertiesObject['__elementOverrides__'].value : {}
 
     for (const [commandName, userDefinedCommand] of Object.entries(elementOverrides)) {
