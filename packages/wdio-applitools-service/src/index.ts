@@ -11,7 +11,7 @@ const DEFAULT_VIEWPORT = {
 declare global {
     namespace NodeJS {
         interface Global {
-            browser: any;
+            browser: WebdriverIO.BrowserObject;
         }
     }
 }
