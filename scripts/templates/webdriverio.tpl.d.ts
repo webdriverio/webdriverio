@@ -233,6 +233,14 @@ declare namespace WebdriverIO {
         failed: number
     }
 
+    interface TestResult {
+        error?: any,
+        result?: any,
+        passed: boolean,
+        duration: number,
+        retries: { limit: number, attempts: number }
+    }
+
     interface HookFunctions {
         /**
          * Gets executed once before all workers get launched.
@@ -352,13 +360,7 @@ declare namespace WebdriverIO {
          * @param stepData  Cucumber step data
          * @param world     Cucumber world
          */
-        afterHook?(test: any, context: any, result: {
-            error?: any,
-            result?: any,
-            passed: boolean,
-            duration: number,
-            retries: { limit: number, attempts: number }
-        }, stepData?: any, world?: any): void;
+        afterHook?(test: any, context: any, result: TestResult, stepData?: any, world?: any): void;
 
         /**
          * Gets executed after all tests are done. You still have access to all global variables from
@@ -411,13 +413,7 @@ declare namespace WebdriverIO {
          * @param context   context to current running test
          * @param result    test result
          */
-        afterTest?(test: Test, context: any, result: {
-            error?: any,
-            result?: any,
-            passed: boolean,
-            duration: number,
-            retries: { limit: number, attempts: number }
-        }): void;
+        afterTest?(test: Test, context: any, result: TestResult): void;
     }
     type _HooksArray = {
         [K in keyof Pick<HookFunctions, "onPrepare" | "onWorkerStart" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
