@@ -143,16 +143,13 @@ export function getArgumentType (arg: any) {
     return arg === null ? 'null' : typeof arg
 }
 
-export type AMDExport = { default: WebdriverIO.ServiceClass }
-export type ImportValue = WebdriverIO.ServiceClass | AMDExport | null
-
 /**
  * Allows to safely require a package, it only throws if the package was found
  * but failed to load due to syntax errors
  * @param  {string} name  of package
  * @return {object}       package content
  */
-export function safeRequire (name: string): ImportValue {
+export function safeRequire (name: string): WebdriverIO.ServiceClass | null {
     let requirePath
     try {
         /**
@@ -214,8 +211,7 @@ export function filterSpecArgs (args: any[]) {
  */
 export function isBase64(str: string) {
     var notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
-    const isString = (typeof str === 'string' || (str as object) instanceof String)
-    if (!isString) {
+    if (typeof str !== 'string') {
         throw new Error('Expected string but received invalid type.')
     }
     const len = str.length

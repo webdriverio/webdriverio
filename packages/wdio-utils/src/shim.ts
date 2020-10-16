@@ -11,7 +11,7 @@ interface Retries {
     attempts: number
 }
 
-let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hooks: Function | Function[] = [], args: object | object[] = {}): Promise<(T | Error)[]> {
+let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hooks: Function | Function[] = [], args: any | any[] = {}): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */

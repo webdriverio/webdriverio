@@ -11,7 +11,7 @@ import edgedriverResponse from './__fixtures__/edgedriver.response.json'
 import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json'
 
 describe('sessionEnvironmentDetector', () => {
-    const chromeCaps = chromedriverResponse.value as unknown as WebDriver.Capabilities
+    const chromeCaps = chromedriverResponse.value as WebDriver.Capabilities
     const appiumCaps = appiumResponse.value.capabilities as WebDriver.Capabilities
     const experitestAppiumCaps = experitestResponse.appium.capabilities as WebDriver.Capabilities
     const geckoCaps = geckodriverResponse.value.capabilities as WebDriver.Capabilities
@@ -19,7 +19,7 @@ describe('sessionEnvironmentDetector', () => {
     const phantomCaps = ghostdriverResponse.value as WebDriver.Capabilities
     const safariCaps = safaridriverResponse.value.capabilities as WebDriver.Capabilities
     const safariLegacyCaps = safaridriverLegacyResponse.value as WebDriver.Capabilities
-    const standaloneCaps = seleniumstandaloneResponse.value as unknown as WebDriver.DesiredCapabilities
+    const standaloneCaps = seleniumstandaloneResponse.value as WebDriver.DesiredCapabilities
 
     it('isMobile', () => {
         const requestedCapabilities = { browserName: '' }
