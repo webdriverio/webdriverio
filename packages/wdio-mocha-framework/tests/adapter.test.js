@@ -151,10 +151,8 @@ test('prepareMessage', async () => {
     await adapter.init()
     await adapter.run()
 
-    adapter.lastError = new Error('uuups')
     let result = adapter.prepareMessage('beforeSuite')
     expect(result.type).toBe('beforeSuite')
-    expect(result.error.message).toBe('uuups')
 
     adapter.runner.test = { title: 'foobar', file: '/foo/bar.test.js' }
     result = adapter.prepareMessage('afterTest')
