@@ -2,4 +2,4 @@ class Launcher {
     isLauncher = true
 }
 
-export const launcher = Launcher
+exports.launcher = Launcher
