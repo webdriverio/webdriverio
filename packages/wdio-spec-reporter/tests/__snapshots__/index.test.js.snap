@@ -62,35 +62,35 @@ exports[`SpecReporter printReport with normal setup should print jobs of all ins
 Array [
   Array [
     "------------------------------------------------------------------
-[MultiremoteBrowser (unknown) #0-0] Spec: /foo/bar/baz.js
-[MultiremoteBrowser (unknown) #0-0] Running: MultiremoteBrowser on (unknown)
-[MultiremoteBrowser (unknown) #0-0]
-[MultiremoteBrowser (unknown) #0-0] Foo test
-[MultiremoteBrowser (unknown) #0-0]    green ✓ foo
-[MultiremoteBrowser (unknown) #0-0]    green ✓ bar
-[MultiremoteBrowser (unknown) #0-0]
-[MultiremoteBrowser (unknown) #0-0] Bar test
-[MultiremoteBrowser (unknown) #0-0]    green ✓ some test
-[MultiremoteBrowser (unknown) #0-0]    red ✖ a failed test
-[MultiremoteBrowser (unknown) #0-0]    red ✖ a failed test with no stack
-[MultiremoteBrowser (unknown) #0-0]
-[MultiremoteBrowser (unknown) #0-0] Baz test
-[MultiremoteBrowser (unknown) #0-0]    green ✓ foo bar baz
-[MultiremoteBrowser (unknown) #0-0]    cyan - a skipped test
-[MultiremoteBrowser (unknown) #0-0]
-[MultiremoteBrowser (unknown) #0-0] green 4 passing (5s)
-[MultiremoteBrowser (unknown) #0-0] red 1 failing
-[MultiremoteBrowser (unknown) #0-0] cyan 1 skipped
-[MultiremoteBrowser (unknown) #0-0]
-[MultiremoteBrowser (unknown) #0-0] 1) Bar test a failed test
-[MultiremoteBrowser (unknown) #0-0] red expected foo to equal bar
-[MultiremoteBrowser (unknown) #0-0] gray Failed test stack trace
-[MultiremoteBrowser (unknown) #0-0]
-[MultiremoteBrowser (unknown) #0-0] 2) Bar test a failed test with no stack
-[MultiremoteBrowser (unknown) #0-0] red expected foo to equal bar
-[MultiremoteBrowser (unknown) #0-0]
-[MultiremoteBrowser (unknown) #0-0] Check out browserA job at https://app.saucelabs.com/tests/foobar
-[MultiremoteBrowser (unknown) #0-0] Check out browserB job at https://app.saucelabs.com/tests/barfoo
+[MultiremoteBrowser #0-0] Spec: /foo/bar/baz.js
+[MultiremoteBrowser #0-0] Running: MultiremoteBrowser
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] Foo test
+[MultiremoteBrowser #0-0]    green ✓ foo
+[MultiremoteBrowser #0-0]    green ✓ bar
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] Bar test
+[MultiremoteBrowser #0-0]    green ✓ some test
+[MultiremoteBrowser #0-0]    red ✖ a failed test
+[MultiremoteBrowser #0-0]    red ✖ a failed test with no stack
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] Baz test
+[MultiremoteBrowser #0-0]    green ✓ foo bar baz
+[MultiremoteBrowser #0-0]    cyan - a skipped test
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] green 4 passing (5s)
+[MultiremoteBrowser #0-0] red 1 failing
+[MultiremoteBrowser #0-0] cyan 1 skipped
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] 1) Bar test a failed test
+[MultiremoteBrowser #0-0] red expected foo to equal bar
+[MultiremoteBrowser #0-0] gray Failed test stack trace
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] 2) Bar test a failed test with no stack
+[MultiremoteBrowser #0-0] red expected foo to equal bar
+[MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] Check out browserA job at https://app.saucelabs.com/tests/foobar
+[MultiremoteBrowser #0-0] Check out browserB job at https://app.saucelabs.com/tests/barfoo
 ",
   ],
 ]

@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import SpecReporter from '../src'
+import { AnyCapabilites } from '../src'
 import {
     RUNNER,
     SUITE_UIDS,
@@ -10,21 +11,31 @@ import {
     SUITES_MULTIPLE_ERRORS
 } from './__fixtures__/testdata'
 
+export interface RunnerConfigOptions {
+    sessionId?: string;
+    isMultiremote?: boolean;
+    capabilities?: AnyCapabilites;
+    hostname?: string;
+}
+
 const reporter = new SpecReporter({})
 
 const defaultCaps = { browserName: 'loremipsum', version: 50, platform: 'Windows 10', sessionId: 'foobar' }
+const defaultMultiCaps = { 'fake-instance': defaultCaps }
 const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
-const getRunnerConfig = (config = {}) => {
+const getRunnerConfig = (config: RunnerConfigOptions = {}) => {
+    const isMultiremote = Boolean(config.isMultiremote)
+    const defCaps = isMultiremote ? defaultMultiCaps : defaultCaps
     return Object.assign({}, RUNNER, {
-        capabilities: config.capabilities || defaultCaps,
+        capabilities: config.capabilities || defCaps,
         config,
         sessionId: fakeSessionId,
-        isMultiremote: Boolean(config.isMultiremote)
+        isMultiremote,
     })
 }
 
 describe('SpecReporter', () => {
-    let tmpReporter = null
+    let tmpReporter: SpecReporter = new SpecReporter({})
 
     beforeEach(() => {
         tmpReporter = new SpecReporter({})
@@ -67,7 +78,12 @@ describe('SpecReporter', () => {
     describe('onHookEnd', () => {
         it('should increase stateCount failures if hook failed', () => {
             expect(tmpReporter.stateCounts.failed).toBe(0)
-            tmpReporter.onHookEnd({})
+            tmpReporter.onHookEnd({
+                uid: 'foo1',
+                title: 'foo',
+                state: 'passed',
+                type: 'test',
+            })
             expect(tmpReporter.stateCounts.failed).toBe(0)
             tmpReporter.onHookEnd({ error: new Error('boom!') })
             expect(tmpReporter.stateCounts.failed).toBe(1)
@@ -275,9 +291,9 @@ describe('SpecReporter', () => {
             const result = tmpReporter.getHeaderDisplay(
                 getRunnerConfig({ isMultiremote: true }))
 
-            expect(result.length).toBe(3)
+            expect(result.length).toBe(2)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: MultiremoteBrowser (v50) on Windows 10')
+            expect(result[1]).toBe('Running: MultiremoteBrowser')
         })
     })
 
@@ -473,7 +489,7 @@ describe('SpecReporter', () => {
     })
 
     describe('custom getSymbol', () => {
-        const options = { symbols: { passed: 'Y', failed: 'N' } }
+        const options = { symbols: { passed: 'Y', failed: 'N', skipped: 'S', pending: 'P' } }
         beforeEach(() => {
             tmpReporter = new SpecReporter(options)
         })
@@ -515,13 +531,13 @@ describe('SpecReporter', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
                 platform: 'Windows 8.1'
-            }, true, true)).toBe('MultiremoteBrowser on Windows 8.1')
+            }, true, true)).toBe('MultiremoteBrowser')
         })
 
         it('should return Multibrowser as capability if multiremote is used without platform', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
-            }, true, true)).toBe('MultiremoteBrowser on (unknown)')
+            }, true, true)).toBe('MultiremoteBrowser')
         })
 
         it('should return verbose desktop combo', () => {

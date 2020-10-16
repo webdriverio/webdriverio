@@ -1,17 +1,19 @@
-export const RUNNER = {
+import { Runner, Suite } from '../../src'
+
+export const RUNNER: Runner= {
     cid: '0-0',
     _duration: 5032,
     config: { hostname: 'localhost' },
     specs: ['/foo/bar/baz.js'],
 }
 
-export const SUITE_UIDS = [
+export const SUITE_UIDS: string[] = [
     'Foo test1',
     'Bar test2',
     'Baz test3',
 ]
 
-export const SUITES = [{
+export const SUITES: Suite[] = [{
     uid: SUITE_UIDS[0],
     title: SUITE_UIDS[0].slice(0, -1),
     hooks: [],
@@ -72,7 +74,7 @@ SUITES.forEach(suite => {
     suite.hooksAndTests = [...suite.tests]
 })
 
-export const SUITES_WITH_DATA_TABLE = [{
+export const SUITES_WITH_DATA_TABLE: Suite[] = [{
     uid: SUITE_UIDS[0],
     title: SUITE_UIDS[0].slice(0, -1),
     description: '\tSome important\ndescription to read!',
@@ -124,7 +126,7 @@ SUITES_WITH_DATA_TABLE.forEach(suite => {
     suite.hooksAndTests = [...suite.tests]
 })
 
-export const SUITES_MULTIPLE_ERRORS = [{
+export const SUITES_MULTIPLE_ERRORS: Suite[] = [{
     uid: SUITE_UIDS[0],
     title: SUITE_UIDS[0].slice(0, -1),
     hooks: [],
@@ -166,7 +168,7 @@ SUITES_MULTIPLE_ERRORS.forEach(suite => {
     suite.hooksAndTests = [...suite.tests]
 })
 
-export const SUITES_NO_TESTS = [{
+export const SUITES_NO_TESTS: Suite[] = [{
     uid: SUITE_UIDS[0],
     title: SUITE_UIDS[0].slice(0, -1),
     tests: [],
@@ -175,7 +177,7 @@ export const SUITES_NO_TESTS = [{
     hooksAndTests: []
 }]
 
-export const SUITES_NO_TESTS_WITH_HOOK_ERROR = [{
+export const SUITES_NO_TESTS_WITH_HOOK_ERROR: Suite[] = [{
     uid: SUITE_UIDS[0],
     title: SUITE_UIDS[0].slice(0, -1),
     tests: [],
