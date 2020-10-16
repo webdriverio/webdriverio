@@ -19,7 +19,9 @@ ${INDENTATION} */`
 
 const gatherCommands = (commandPath, commandFile, promisify = false) => {
     const allTypeLines = []
-    const commandName = commandFile.substr(0, commandFile.indexOf('.js'))
+    const commandName = commandFile.substr(0, commandFile.endsWith('.js')
+        ? commandFile.indexOf('.js')
+        : commandFile.indexOf('.ts'))
 
     if (specifics[commandName]) {
         const specificCommand = specifics[commandName]
