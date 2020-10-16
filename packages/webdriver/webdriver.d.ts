@@ -672,6 +672,7 @@ declare namespace WebDriver {
         isMobile: boolean;
         isIOS: boolean;
         isSauce: boolean;
+        isDevTools: boolean;
         sessionId: string;
     }
 
