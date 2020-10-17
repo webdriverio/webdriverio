@@ -25,9 +25,21 @@ beforeEach(() => {
             os: 'OS X',
             os_version: 'Sierra',
             browserName: 'chrome'
-        }
+        },
+        instances: ['browserA', 'browserB'],
+        isMultiremote: false,
+        browserA: {
+            sessionId: 'session456',
+            capabilities: { 'bstack:options': {
+                device: '',
+                os: 'Windows',
+                osVersion: 10,
+                browserName: 'chrome'
+            } }
+        },
+        browserB: {}
     }
-    global.browser.sessionId = 12
+    global.browser.sessionId = 'session123'
     service = new BrowserstackService({}, [], { user: 'foo', key: 'bar' })
 })
 
@@ -40,6 +52,15 @@ it('should initialize correctly', () => {
 
 describe('onReload()', () => {
     it('should update and get session', async () => {
+        const updateSpy = jest.spyOn(service, '_update')
+        await service.onReload(1, 2)
+        expect(updateSpy).toHaveBeenCalled()
+        expect(got.put).toHaveBeenCalled()
+        expect(got).toHaveBeenCalled()
+    })
+
+    it('should update and get multiremote session', async () => {
+        global.browser.isMultiremote = true
         const updateSpy = jest.spyOn(service, '_update')
         await service.onReload(1, 2)
         expect(updateSpy).toHaveBeenCalled()
@@ -80,8 +101,6 @@ describe('beforeSession', () => {
 describe('_printSessionURL', () => {
     it('should get and log session details', async () => {
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
-
-        service.sessionId = 'session123'
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
             'https://api.browserstack.com/automate/sessions/session123.json',
@@ -89,6 +108,19 @@ describe('_printSessionURL', () => {
         expect(logInfoSpy).toHaveBeenCalled()
         expect(logInfoSpy).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2'
+        )
+    })
+
+    it('should get and log multi remote session details', async () => {
+        global.browser.isMultiremote = true
+        const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
+        await service._printSessionURL()
+        expect(got).toHaveBeenCalledWith(
+            'https://api.browserstack.com/automate/sessions/session456.json',
+            { username: 'foo', password: 'bar', responseType: 'json' })
+        expect(logInfoSpy).toHaveBeenCalled()
+        expect(logInfoSpy).toHaveBeenCalledWith(
+            'Windows 10 chrome session: https://www.browserstack.com/automate/builds/1/sessions/2'
         )
     })
 })
@@ -136,7 +168,6 @@ describe('before', () => {
         await service.beforeSession({})
         await service.before()
 
-        expect(service.sessionId).toEqual(12)
         expect(service.failReasons).toEqual([])
         expect(service.config.user).toEqual('NotSetUser')
         expect(service.config.key).toEqual('NotSetKey')
@@ -145,7 +176,6 @@ describe('before', () => {
         service.beforeSession({ user: 'blah' })
         await service.before()
 
-        expect(service.sessionId).toEqual(12)
         expect(service.failReasons).toEqual([])
 
         expect(service.config.user).toEqual('blah')
@@ -154,7 +184,6 @@ describe('before', () => {
         service.beforeSession({ key: 'blah' })
         await service.before()
 
-        expect(service.sessionId).toEqual(12)
         expect(service.failReasons).toEqual([])
         expect(service.config.user).toEqual('NotSetUser')
         expect(service.config.key).toEqual('blah')
@@ -168,7 +197,19 @@ describe('before', () => {
         })
         service.before()
 
-        expect(service.sessionId).toEqual(12)
+        expect(service.failReasons).toEqual([])
+        expect(service.sessionBaseUrl).toEqual('https://api.browserstack.com/automate/sessions')
+    })
+
+    it('should initialize correctly for multiremote', () => {
+        global.browser.capabilities = undefined
+        const service = new BrowserstackService(undefined, [{}], {
+            user: 'foo',
+            key: 'bar',
+            capabilities: {}
+        })
+        service.before()
+
         expect(service.failReasons).toEqual([])
         expect(service.sessionBaseUrl).toEqual('https://api.browserstack.com/automate/sessions')
     })
@@ -192,7 +233,6 @@ describe('before', () => {
         })
         service.before()
 
-        expect(service.sessionId).toEqual(12)
         expect(service.failReasons).toEqual([])
         expect(service.sessionBaseUrl).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
     })
@@ -209,7 +249,6 @@ describe('before', () => {
         })
         service.before()
 
-        expect(service.sessionId).toEqual(12)
         expect(service.failReasons).toEqual([])
         expect(service.sessionBaseUrl).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
     })
@@ -375,13 +414,12 @@ describe('after', () => {
     it('should call _update when session has no errors (exit code 0)', async () => {
         const updateSpy = jest.spyOn(service, '_update')
 
-        service.sessionId = 'session123'
         service.failReasons = []
         service.fullTitle = 'foo - bar'
 
         await service.after(0)
 
-        expect(updateSpy).toHaveBeenCalledWith(service.sessionId,
+        expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId,
             {
                 status: 'passed',
                 name: 'foo - bar',
@@ -399,12 +437,11 @@ describe('after', () => {
     it('should call _update when session has errors (exit code 1)', async () => {
         const updateSpy = jest.spyOn(service, '_update')
 
-        service.sessionId = 'session123'
         service.fullTitle = 'foo - bar'
         service.failReasons = ['I am failure']
         await service.after(1)
 
-        expect(updateSpy).toHaveBeenCalledWith(service.sessionId,
+        expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId,
             {
                 status: 'failed',
                 name: 'foo - bar',
@@ -424,7 +461,6 @@ describe('after', () => {
         it('should call _update with status "failed" if strict mode is "on" and all tests are pending', async () => {
             service = new BrowserstackService({}, [],
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } })
-            service.sessionId = 'session123'
 
             const updateSpy = jest.spyOn(service, '_update')
 
@@ -439,7 +475,7 @@ describe('after', () => {
 
             await service.after(1)
 
-            expect(updateSpy).toHaveBeenLastCalledWith(service.sessionId, {
+            expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
                 name: 'Feature1',
                 reason: 'Some steps/hooks are pending for scenario "Can do something but pending 1"' + '\n' +
                         'Some steps/hooks are pending for scenario "Can do something but pending 2"' + '\n' +
@@ -453,7 +489,6 @@ describe('after', () => {
             async () => {
                 service = new BrowserstackService({}, [],
                     { user: 'foo', key: 'bar', cucumberOpts: { strict: false } })
-                service.sessionId = 'session123'
 
                 const updateSpy = jest.spyOn(service, '_update')
 
@@ -469,7 +504,7 @@ describe('after', () => {
                 await service.after(0)
 
                 expect(updateSpy).toHaveBeenCalled()
-                expect(updateSpy).toHaveBeenLastCalledWith(service.sessionId, {
+                expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
                     name: 'Feature1',
                     reason: undefined,
                     status: 'passed',
@@ -480,7 +515,6 @@ describe('after', () => {
             async () => {
                 service = new BrowserstackService({}, [],
                     { user: 'foo', key: 'bar', cucumberOpts: { strict: true } })
-                service.sessionId = 'session123'
 
                 const updateSpy = jest.spyOn(service, '_update')
 
@@ -496,7 +530,7 @@ describe('after', () => {
                 await service.after(1)
 
                 expect(updateSpy).toHaveBeenCalled()
-                expect(updateSpy).toHaveBeenCalledWith(service.sessionId, {
+                expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId, {
                     name: 'Feature1',
                     reason: 'Some steps/hooks are pending for scenario "Can do something but pending"',
                     status: 'failed',
@@ -507,7 +541,6 @@ describe('after', () => {
             async () => {
                 const updateSpy = jest.spyOn(service, '_update')
 
-                service.sessionId = 'session123'
                 service.strict = true
 
                 await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
@@ -521,7 +554,7 @@ describe('after', () => {
 
                 await service.after(0)
 
-                expect(updateSpy).toHaveBeenCalledWith(service.sessionId, {
+                expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId, {
                     name: 'Feature1',
                     reason: undefined,
                     status: 'passed',
@@ -532,7 +565,6 @@ describe('after', () => {
             async () => {
                 service = new BrowserstackService({}, [],
                     { user: 'foo', key: 'bar', cucumberOpts: { strict: true } })
-                service.sessionId = 'session123'
 
                 const updateSpy = jest.spyOn(service, '_update')
                 const afterSpy = jest.spyOn(service, 'after')
@@ -541,7 +573,7 @@ describe('after', () => {
                 await service.before(service.config)
                 await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
-                expect(updateSpy).toHaveBeenCalledWith(service.sessionId, {
+                expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId, {
                     name: 'Feature1'
                 })
 
@@ -556,7 +588,7 @@ describe('after', () => {
 
                 expect(updateSpy).toHaveBeenCalledTimes(2)
                 expect(updateSpy).toHaveBeenLastCalledWith(
-                    service.sessionId, {
+                    global.browser.sessionId, {
                         name: 'Feature1',
                         reason:
                             'I am error, hear me roar' +
@@ -571,14 +603,13 @@ describe('after', () => {
             async () => {
                 const updateSpy = jest.spyOn(service, '_update')
 
-                service.sessionId = 'session123'
                 service.strict = false
 
                 await service.beforeSession(service.config)
                 await service.before(service.config)
                 await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
-                expect(updateSpy).toHaveBeenCalledWith(service.sessionId, {
+                expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId, {
                     name: 'Feature1'
                 })
 
@@ -593,7 +624,7 @@ describe('after', () => {
 
                 expect(updateSpy).toHaveBeenCalledTimes(2)
                 expect(updateSpy).toHaveBeenLastCalledWith(
-                    service.sessionId, {
+                    global.browser.sessionId, {
                         name: 'Feature1',
                         reason: 'I am error, hear me roar',
                         status: 'failed',
@@ -607,7 +638,6 @@ describe('after', () => {
                         async () => {
                             service = new BrowserstackService({ preferScenarioName : true }, [],
                                 { user: 'foo', key: 'bar', cucumberOpts: { strict: false } })
-                            service.sessionId = 'session123'
 
                             const updateSpy = jest.spyOn(service, '_update')
 
@@ -618,7 +648,7 @@ describe('after', () => {
 
                             await service.after(1)
 
-                            expect(updateSpy).toHaveBeenLastCalledWith(service.sessionId, {
+                            expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
                                 name: 'Can do something single',
                                 reason: 'Unknown Error',
                                 status: 'failed',
@@ -630,7 +660,6 @@ describe('after', () => {
                     async () => {
                         service = new BrowserstackService({ preferScenarioName : true }, [],
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } })
-                        service.sessionId = 'session123'
 
                         const updateSpy = jest.spyOn(service, '_update')
 
@@ -641,7 +670,7 @@ describe('after', () => {
 
                         await service.after(0)
 
-                        expect(updateSpy).toHaveBeenLastCalledWith(service.sessionId, {
+                        expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
                             name: 'Can do something single',
                             reason: undefined,
                             status: 'passed',
@@ -655,7 +684,6 @@ describe('after', () => {
                         async () => {
                             service = new BrowserstackService({ preferScenarioName : false }, [],
                                 { user: 'foo', key: 'bar', cucumberOpts: { strict: false } })
-                            service.sessionId = 'session123'
 
                             const updateSpy = jest.spyOn(service, '_update')
 
@@ -666,7 +694,7 @@ describe('after', () => {
 
                             await service.after(1)
 
-                            expect(updateSpy).toHaveBeenLastCalledWith(service.sessionId, {
+                            expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
                                 name: 'Feature1',
                                 reason: 'Unknown Error',
                                 status: 'failed',
@@ -678,7 +706,6 @@ describe('after', () => {
                     async () => {
                         service = new BrowserstackService({ preferScenarioName : false }, [],
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } })
-                        service.sessionId = 'session123'
 
                         const updateSpy = jest.spyOn(service, '_update')
 
@@ -689,7 +716,7 @@ describe('after', () => {
 
                         await service.after(0)
 
-                        expect(updateSpy).toHaveBeenLastCalledWith(service.sessionId, {
+                        expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
                             name: 'Feature1',
                             reason: undefined,
                             status: 'passed',
