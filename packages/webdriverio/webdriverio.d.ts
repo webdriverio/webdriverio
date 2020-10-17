@@ -14,11 +14,18 @@ declare namespace WebdriverIO {
         options: MultiRemoteOptions
     ): Promise<BrowserObject>;
 
+    // object with no match
+    interface ProtocolCommandResponse {
+        [key: string]: any;
+    }
+
     interface Browser {
         /**
          * execute any async action within your test spec
          */
         call: <T>(callback: (...args: any[]) => Promise<T>) => Promise<T>;
+
+        clearMockCalls(mockId: number, restore?: boolean): Promise<void>;
 
         /**
          * Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
@@ -37,6 +44,12 @@ declare namespace WebdriverIO {
          * to this callback will be returned to the client.
          */
         executeAsync: (script: string | ((...arguments: any[]) => void), ...arguments: any[]) => Promise<any>;
+
+        mockCalls(mockId: number): Promise<void>;
+
+        mockRequest(url: string, filterOptions: MockFilterOptions): { mockId: number };
+
+        respondMock(mockId: number, payload: object): Promise<void>;
     }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser { }
