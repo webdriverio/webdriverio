@@ -91,7 +91,7 @@ export default class SauceService {
 
     afterTest (test, context, results) {
         /**
-         * remove failure if test was retried and passted
+         * remove failure if test was retried and passed
          * > Mocha only
          */
         if (test._retriedTest && results.passed) {
