@@ -14,11 +14,6 @@ declare namespace WebdriverIO {
         options: MultiRemoteOptions
     ): Promise<BrowserObject>;
 
-    // object with no match
-    interface ProtocolCommandResponse {
-        [key: string]: any;
-    }
-
     interface Browser {
         /**
          * execute any async action within your test spec
