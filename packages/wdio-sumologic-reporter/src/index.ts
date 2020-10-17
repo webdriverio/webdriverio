@@ -10,7 +10,7 @@ const log = logger('@wdio/sumologic-reporter')
 const MAX_LINES = 100
 const DATE_FORMAT = 'yyyy-mm-dd HH:mm:ss,l o'
 
-export interface Options {
+interface Options {
     stdout?: boolean,
     syncInterval?: number,
     sourceAddress: string
@@ -21,12 +21,11 @@ export interface Options {
  */
 export default class SumoLogicReporter extends WDIOReporter {
     options: Options
-    unsynced: any
+    unsynced: Array<string>
     isSynchronising: boolean
     errorCount: number
-    specs: {}
-    results: {}
     interval: number
+    inSync?: boolean
     constructor(options?: Options) {
         options = Object.assign({
             // don't create a log file
@@ -48,8 +47,6 @@ export default class SumoLogicReporter extends WDIOReporter {
         this.isSynchronising = false
 
         this.errorCount = 0
-        this.specs = {}
-        this.results = {}
         this.interval = setInterval(this.sync.bind(this), this.options.syncInterval)
     }
 
@@ -57,7 +54,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         return this.unsynced.length === 0
     }
 
-    onRunnerStart(runner: any) {
+    onRunnerStart(runner: string) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'runner:start',
@@ -65,7 +62,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onSuiteStart(suite: WDIOReporter.Suite) {
+    onSuiteStart(suite: WDIOReporter.Suite | string) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'suite:start',
@@ -73,7 +70,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onTestStart(test: WDIOReporter.Test) {
+    onTestStart(test: WDIOReporter.Test | string) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'test:start',
@@ -81,7 +78,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onTestSkip(test: WDIOReporter.Test) {
+    onTestSkip(test: WDIOReporter.Test | string) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'test:skip',
@@ -89,7 +86,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onTestPass(test: WDIOReporter.Test) {
+    onTestPass(test: WDIOReporter.Test | string) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'test:pass',
@@ -97,7 +94,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onTestFail(test: WDIOReporter.Test) {
+    onTestFail(test: WDIOReporter.Test | string) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'test:fail',
@@ -105,7 +102,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onTestEnd(test: WDIOReporter.Test) {
+    onTestEnd(test: WDIOReporter.Test | string) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'test:end',
@@ -113,7 +110,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onSuiteEnd(suite: WDIOReporter.Suite) {
+    onSuiteEnd(suite: WDIOReporter.Suite | string) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'suite:end',
@@ -121,7 +118,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onRunnerEnd(runner: any) {
+    onRunnerEnd(runner: string) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'runner:end',
@@ -140,7 +137,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        const logLines = this.unsynced.slice(0, MAX_LINES).join('\n')
+        const logLines: any = this.unsynced.slice(0, MAX_LINES).join('\n')
 
         /**
          * set `isSynchronising` to true so we don't sync when a request is being made

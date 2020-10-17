@@ -20,7 +20,10 @@ declare namespace WDIOReporter {
         onSuiteEnd(suite: Suite): void;
         onRunnerEnd(runner: any): void;
 
-        isSynchronised: boolean;
+        private _isSynchronised: boolean;
+        public get isSynchronised(): boolean {
+            return this._isSynchronised;
+        }
 
         write(content: any): void;
     }

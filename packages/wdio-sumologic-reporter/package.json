@@ -33,5 +33,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@types/dateformat": "^3.0.1",
+    "@types/json-stringify-safe": "^5.0.0"
   }
 }

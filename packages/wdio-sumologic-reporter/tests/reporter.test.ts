@@ -1,16 +1,20 @@
-import got from 'got'
+import gotMock from 'got'
 import SumoLogicReporter from '../src'
 
 import logger from '@wdio/logger'
 
 jest.useFakeTimers()
+const got = gotMock as unknown as jest.Mock
+
+const log = logger('@wdio/sumologic-reporter')
+const logError = log.error as jest.Mock;
 
 describe('wdio-sumologic-reporter', () => {
     let reporter: SumoLogicReporter
 
     beforeEach(() => {
-        (got as unknown as jest.Mock).mockClear()
-        logger().error.mockClear()
+        got.mockClear()
+        logError.mockClear()
         reporter = new SumoLogicReporter()
     })
 
@@ -20,7 +24,7 @@ describe('wdio-sumologic-reporter', () => {
     })
 
     it('should log error if sourceAddress is not defined', () => {
-        expect(logger().error.mock.calls).toHaveLength(1)
+        expect(logError.mock.calls).toHaveLength(1)
     })
 
     it('should push to event bucket for every event', () => {
@@ -67,18 +71,18 @@ describe('wdio-sumologic-reporter', () => {
         it('is currently syncing data', async () => {
             reporter.inSync = true
             await reporter.sync()
-            expect((got as unknown as jest.Mock).mock.calls).toHaveLength(0)
+            expect(got.mock.calls).toHaveLength(0)
         })
 
         it('has no data to sync', async () => {
             await reporter.sync()
-            expect((got as unknown as jest.Mock).mock.calls).toHaveLength(0)
+            expect(got.mock.calls).toHaveLength(0)
         })
 
         it('has no source address set up', async () => {
             reporter.onRunnerStart('onRunnerStart')
             await reporter.sync()
-            expect((got as unknown as jest.Mock).mock.calls).toHaveLength(0)
+            expect(got.mock.calls).toHaveLength(0)
         })
     })
 
@@ -87,24 +91,24 @@ describe('wdio-sumologic-reporter', () => {
         reporter.onRunnerStart('onRunnerStart')
         await reporter.sync()
 
-        expect((got as unknown as jest.Mock).mock.calls).toHaveLength(1)
-        expect((got as unknown as jest.Mock).mock.calls[0][1].method).toBe('POST')
-        expect((got as unknown as jest.Mock).mock.calls[0][0]).toBe('http://localhost:1234')
-        expect((got as unknown as jest.Mock).mock.calls[0][1].json).toContain('"event":"runner:start","data":"onRunnerStart"')
+        expect(got.mock.calls).toHaveLength(1)
+        expect(got.mock.calls[0][1].method).toBe('POST')
+        expect(got.mock.calls[0][0]).toBe('http://localhost:1234')
+        expect(got.mock.calls[0][1].json).toContain('"event":"runner:start","data":"onRunnerStart"')
 
         expect(reporter.unsynced).toHaveLength(0)
     })
 
     it('should log if it fails syncing', async () => {
-        logger().error.mockClear()
+        logError.mockClear()
 
         reporter.options.sourceAddress = 'http://localhost:1234/sumoerror'
         reporter.onRunnerStart('onRunnerStart')
 
         await reporter.sync()
 
-        expect(logger().error.mock.calls).toHaveLength(1)
-        expect(logger().error.mock.calls[0][0]).toContain('failed send data to Sumo Logic')
+        expect(logError.mock.calls).toHaveLength(1)
+        expect(logError.mock.calls[0][0]).toContain('failed send data to Sumo Logic')
     })
 
     it('should be synchronised when no unsynced messages', async () => {
