@@ -25,6 +25,8 @@ export default class DevToolsService {
     }
 
     async onReload() {
+        // resetting puppeteer on sessionReload, so a new puppeteer session will be attached
+        global.browser.puppeteer = null
         return this._setupHandler()
     }
 
@@ -150,7 +152,7 @@ export default class DevToolsService {
         this.session = await this.target.createCDPSession()
 
         this.commandHandler = new CommandHandler(this.session, this.page)
-        this.traceGatherer = new TraceGatherer(this.puppeteer, this.session, this.page)
+        this.traceGatherer = new TraceGatherer(this.session, this.page)
 
         this.session.on('Page.loadEventFired', this.traceGatherer.onLoadEventFired.bind(this.traceGatherer))
         this.session.on('Page.frameNavigated', this.traceGatherer.onFrameNavigated.bind(this.traceGatherer))

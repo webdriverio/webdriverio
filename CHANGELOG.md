@@ -17,6 +17,64 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.6.6 (2020-10-15)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#5993](https://github.com/webdriverio/webdriverio/pull/5993) fix for issue #5723 ([@HananArgov](https://github.com/HananArgov))
+* `wdio-cucumber-framework`, `wdio-jasmine-framework`, `wdio-mocha-framework`
+  * [#5988](https://github.com/webdriverio/webdriverio/pull/5988) init expect-webdriverio before framework run ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `wdio-sauce-service`
+  * [#5987](https://github.com/webdriverio/webdriverio/pull/5987) Fix spelling error from simple to simply ([@nadvolod](https://github.com/nadvolod))
+
+#### :house: Internal
+* `webdriverio`
+  * [#5994](https://github.com/webdriverio/webdriverio/pull/5994) webdriverio: update resq ([@mgrybyk](https://github.com/mgrybyk))
+  * [#5957](https://github.com/webdriverio/webdriverio/pull/5957) Refactor webdriverio utils interception index to TS ([@Fabianopb](https://github.com/Fabianopb))
+* `wdio-dot-reporter`, `wdio-reporter`
+  * [#5962](https://github.com/webdriverio/webdriverio/pull/5962) Tracking doc: rewrite `@wdio/dot-reporter` package into TypeScript ([@suniljaiswal01](https://github.com/suniljaiswal01))
+
+#### Committers: 5
+- DOA ([@HananArgov](https://github.com/HananArgov))
+- Fabiano Brito ([@Fabianopb](https://github.com/Fabianopb))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Sunil Jaiswal ([@suniljaiswal01](https://github.com/suniljaiswal01))
+- [@nadvolod](https://github.com/nadvolod)
+
+
+## v6.6.5 (2020-10-13)
+
+#### :bug: Bug Fix
+* `wdio-selenium-standalone-service`
+  * [#5985](https://github.com/webdriverio/webdriverio/pull/5985) Move @types/fs-extra to dependency section ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v6.6.4 (2020-10-13)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`, `wdio-sync`
+  * [#5984](https://github.com/webdriverio/webdriverio/pull/5984) Fix devtools-service ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-cucumber-framework`
+  * [#5982](https://github.com/webdriverio/webdriverio/pull/5982) cucumber framework: warn if scenario outline name is missing ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `wdio-selenium-standalone-service`, `webdriverio`
+  * [#5913](https://github.com/webdriverio/webdriverio/pull/5913) Tracking doc: rewrite `@wdio/selenium-standalone-service` package into TypeScriptTs selenium standlone service ([@suniljaiswal01](https://github.com/suniljaiswal01))
+* Other
+  * [#5975](https://github.com/webdriverio/webdriverio/pull/5975) Dispatch event to trigger docs release ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Sunil Jaiswal ([@suniljaiswal01](https://github.com/suniljaiswal01))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.6.3 (2020-10-12)
 
 #### :bug: Bug Fix

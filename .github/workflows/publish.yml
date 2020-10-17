@@ -56,3 +56,12 @@ jobs:
         env:
           NODE_ENV: production
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trigger docs release
+        run: |
+          curl -X POST https://api.github.com/repos/webdriverio/webdriverio/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -u $ACTOR:$GITHUB_TOKEN \
+          --data "{\"event_type\": \"docs_release\"}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
