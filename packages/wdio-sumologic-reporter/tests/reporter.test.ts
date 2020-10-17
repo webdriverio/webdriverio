@@ -7,7 +7,7 @@ jest.useFakeTimers()
 const got = gotMock as unknown as jest.Mock
 
 const log = logger('@wdio/sumologic-reporter')
-const logError = log.error as jest.Mock;
+const logError = log.error as jest.Mock
 
 describe('wdio-sumologic-reporter', () => {
     let reporter: SumoLogicReporter
