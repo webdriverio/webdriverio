@@ -1,4 +1,6 @@
 import { isW3C } from '@wdio/utils'
+import { DesiredCapabilities, Options } from 'webdriver'
+import { SauceConnectOptions } from 'saucelabs'
 
 /**
  * Determine if the current instance is a Unified Platform instance
@@ -39,17 +41,17 @@ import { isW3C } from '@wdio/utils'
  *  deviceContextId: ''
  * }
  */
-export function isUnifiedPlatform({ deviceName = '', platformName = '' }){
+export function isUnifiedPlatform({ deviceName = '', platformName = '' }: DesiredCapabilities){
     // If the string contains `simulator` or `emulator` it's a EMU/SIM session
     return !deviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
 }
 
 /** Ensure capabilities are in the correct format for Sauce Labs
  * @param {string} tunnelIdentifier - The default Sauce Connect tunnel identifier
- * @param {object} options - Additional options to set on the capability
- * @returns {function(object): void} - A function that mutates a single capability
+ * @param {Options} options - Additional options to set on the capability
+ * @returns {function(Options): void} - A function that mutates a single capability
  */
-export function makeCapabilityFactory(tunnelIdentifier, options) {
+export function makeCapabilityFactory(tunnelIdentifier: string, options: Options): (capability: DesiredCapabilities & SauceConnectOptions) => void {
     return capability => {
         // If the capability appears to be using the legacy JSON Wire Protocol
         // we need to make sure the key 'sauce:options' is not present
@@ -66,7 +68,7 @@ export function makeCapabilityFactory(tunnelIdentifier, options) {
 
         Object.assign(capability, options)
 
-        const sauceOptions = !isLegacy && !isUnifiedPlatform(capability) ? capability['sauce:options'] : capability
+        const sauceOptions: SauceConnectOptions = !isLegacy && !isUnifiedPlatform(capability) ? capability['sauce:options'] as SauceConnectOptions : capability
         sauceOptions.tunnelIdentifier = (
             capability.tunnelIdentifier ||
             sauceOptions.tunnelIdentifier ||

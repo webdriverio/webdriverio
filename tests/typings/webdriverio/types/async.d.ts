@@ -6,7 +6,7 @@
 declare module WebdriverIO {
     interface BrowserObject {
         // multiremote
-        instances: ['myBrowserInstance']
+        instances: string[]
         myBrowserInstance: BrowserObject
     }
 

@@ -1,9 +1,11 @@
 import { performance, PerformanceObserver } from 'perf_hooks'
 
 import logger from '@wdio/logger'
-import SauceLabs from 'saucelabs'
+import SauceLabs, { SauceConnectInstance, SauceLabsOptions } from 'saucelabs'
 
-import { makeCapabilityFactory } from './utils.js'
+import { makeCapabilityFactory } from './utils'
+import { SauceServiceConfig } from './service'
+import { DesiredCapabilities } from 'webdriver'
 
 const SC_RELAY_DEPCRECATION_WARNING = [
     'The "scRelay" option is depcrecated and will be removed',
@@ -13,15 +15,19 @@ const SC_RELAY_DEPCRECATION_WARNING = [
 
 const log = logger('@wdio/sauce-service')
 export default class SauceLauncher {
-    constructor (options, capabilities, config) {
+    options: SauceServiceConfig;
+    api: SauceLabs;
+    sauceConnectProcess?: SauceConnectInstance;
+
+    constructor (options: SauceServiceConfig, capabilities?: DesiredCapabilities | Array<DesiredCapabilities>, config?: SauceLabsOptions) {
         this.options = options
-        this.api = new SauceLabs(config)
+        this.api = new SauceLabs(config as SauceLabsOptions)
     }
 
     /**
      * modify config and launch sauce connect
      */
-    async onPrepare (config, capabilities) {
+    async onPrepare (config: SauceLabsOptions, capabilities: Array<DesiredCapabilities>) {
         if (!this.options.sauceConnect) {
             return
         }
@@ -34,18 +40,15 @@ export default class SauceLauncher {
              */
             `SC-tunnel-${Math.random().toString().slice(2)}`)
 
-        this.sauceConnectOpts = {
-            noAutodetect: true,
-            tunnelIdentifier: sauceConnectTunnelIdentifier,
-            ...sauceConnectOpts
-        }
+        sauceConnectOpts.noAutodetect = true
+        sauceConnectOpts.tunnelIdentifier = sauceConnectTunnelIdentifier
 
         let endpointConfigurations = {}
         if (this.options.scRelay) {
             log.warn(SC_RELAY_DEPCRECATION_WARNING)
 
-            const scRelayPort = this.sauceConnectOpts.port || 4445
-            this.sauceConnectOpts.sePort = scRelayPort
+            const scRelayPort = sauceConnectOpts.sePort || 4445
+            sauceConnectOpts.sePort = scRelayPort
             endpointConfigurations = {
                 protocol: 'http',
                 hostname: 'localhost',
@@ -60,8 +63,9 @@ export default class SauceLauncher {
                 prepareCapability(capability)
             }
         } else {
-            for (const browserName of Object.keys(capabilities)) {
-                prepareCapability(capabilities[browserName].capabilities)
+            for (const browserName in capabilities as object) {
+                const browserCap = capabilities[browserName as keyof typeof capabilities] as Record<string, any>
+                prepareCapability(browserCap['capabilities'])
             }
         }
 
@@ -75,7 +79,7 @@ export default class SauceLauncher {
         obs.observe({ entryTypes: ['measure'], buffered: false })
 
         performance.mark('sauceConnectStart')
-        this.sauceConnectProcess = await this.api.startSauceConnect(this.sauceConnectOpts)
+        this.sauceConnectProcess = await this.api.startSauceConnect(sauceConnectOpts)
         performance.mark('sauceConnectEnd')
         performance.measure('bootTime', 'sauceConnectStart', 'sauceConnectEnd')
     }

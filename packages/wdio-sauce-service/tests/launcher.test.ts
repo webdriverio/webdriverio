@@ -1,11 +1,14 @@
 import logger from '@wdio/logger'
-import SauceLabs from 'saucelabs'
+import SauceLabsDependency from 'saucelabs'
 import SauceServiceLauncher from '../src/launcher'
 
 jest.mock('saucelabs', () => {
     return class SauceLabsMock {
-        static instances = []
-        constructor (options) {
+        static instances: any[] = []
+        private options: any;
+        private stop: jest.Mock;
+        private startSauceConnect: jest.Mock;
+        constructor (options: any) {
             this.options = options
             this.stop = jest.fn()
             this.startSauceConnect = jest.fn().mockReturnValue(this)
@@ -14,13 +17,17 @@ jest.mock('saucelabs', () => {
     }
 })
 
-const log = logger()
+// ignore errors when accessing `instance`
+const SauceLabs: any = SauceLabsDependency
+
+// ignore `log.info.mock` errors
+const log: any = logger('launcher test')
 
 test('onPrepare', async () => {
     const options = {
         sauceConnect: true,
         sauceConnectOpts: {
-            port: 4446,
+            sePort: 4446,
             tunnelIdentifier: 'my-tunnel'
         }
     }
@@ -45,7 +52,7 @@ test('onPrepare w/o identifier', async () => {
     const options = {
         sauceConnect: true
     }
-    const caps = [{}]
+    const caps: any[] = [{}]
     const config = {
         user: 'foobaruser',
         key: '12345'
@@ -66,7 +73,7 @@ test('onPrepare w/ SauceConnect w/o scRelay', async () => {
         sauceConnect: true
     }
     const caps = [{}]
-    const config = {
+    const config: any = {
         user: 'foobaruser',
         key: '12345',
         sauceConnect: true
@@ -87,8 +94,8 @@ test('onPrepare w/ SauceConnect w/ scRelay w/ default port', async () => {
         sauceConnect: true,
         sauceConnectOpts: { tunnelIdentifier: 'test123' }
     }
-    const caps = [{}]
-    const config = {}
+    const caps: any = [{}]
+    const config: any = {}
     const service = new SauceServiceLauncher(options)
     expect(service.sauceConnectProcess).toBeUndefined()
     await service.onPrepare(config, caps)
@@ -108,7 +115,7 @@ test('onPrepare w/ SauceConnect w/ region EU', async () => {
         sauceConnect: true
     }
     const caps = [{}]
-    const config = {
+    const config: any = {
         user: 'foobaruser',
         key: '12345',
         region: 'eu'
@@ -127,11 +134,11 @@ test('onPrepare multiremote', async () => {
         sauceConnect: true,
         scRelay: true,
         sauceConnectOpts: {
-            port: 4446,
+            sePort: 4446,
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps = {
+    const caps: any = {
         browserA: {
             capabilities: { browserName: 'chrome' }
         },
@@ -173,7 +180,7 @@ test('onPrepare multiremote', async () => {
 test('onPrepare if sauceTunnel is not set', async () => {
     const options = {
         sauceConnectOpts: {
-            port: 4446,
+            sePort: 4446,
             tunnelIdentifier: 'my-tunnel'
         }
     }
@@ -199,7 +206,7 @@ test('onPrepare multiremote with tunnel identifier and with w3c caps ', async ()
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps = {
+    const caps: any = {
         browserA: {
             capabilities: {
                 browserName: 'chrome',
@@ -320,7 +327,7 @@ test('onPrepare with tunnel identifier and with w3c caps ', async () => {
         sauceConnect: true,
         scRelay: true,
         sauceConnectOpts: {
-            port: 4446,
+            sePort: 4446,
             tunnelIdentifier: 'my-tunnel'
         }
     }
@@ -371,7 +378,7 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
         sauceConnect: true,
         scRelay: true,
         sauceConnectOpts: {
-            port: 4446,
+            sePort: 4446,
             tunnelIdentifier: 'my-tunnel'
         }
     }
@@ -431,10 +438,10 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
 })
 
 test('onComplete', async () => {
-    const service = new SauceServiceLauncher({}, [], {})
+    const service: any = new SauceServiceLauncher({}, [], { key: '', user: '' })
     expect(service.onComplete()).toBeUndefined()
 
-    service.sauceConnectProcess = { close: jest.fn() }
+    service['sauceConnectProcess'] = { close: jest.fn() }
     service.onComplete()
     expect(service.sauceConnectProcess.close).toBeCalled()
 })
