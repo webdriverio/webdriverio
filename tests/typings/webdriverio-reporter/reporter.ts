@@ -34,7 +34,6 @@ const test: WDIOReporter.Test = {
 }
 
 const options: WDIOReporter.Options = {
-    configFile: '',
     logFile: '',
     logLevel: ''
 }
