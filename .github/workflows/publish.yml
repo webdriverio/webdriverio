@@ -25,12 +25,15 @@ jobs:
           team: technical-steering-committee
           organisation: webdriverio
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  test:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+  release:
     needs: [authorize]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: 'master'
+          fetch-depth: 0
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
@@ -46,4 +49,19 @@ jobs:
       - name: Install Dependencies
         run: npm install
       - name: Release
-        run: npm run release -- --yes ${{github.event.inputs.releaseType}} --dist-tag ${{github.event.inputs.distTag}}
+        run: |
+          npx run-s setup-full generate:typings
+          npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
+          npm run pushReleaseTag
+        env:
+          NODE_ENV: production
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trigger docs release
+        run: |
+          curl -X POST https://api.github.com/repos/webdriverio/webdriverio/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -u $ACTOR:$GITHUB_TOKEN \
+          --data "{\"event_type\": \"docs_release\"}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}

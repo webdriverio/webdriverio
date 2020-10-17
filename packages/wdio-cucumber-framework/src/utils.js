@@ -66,7 +66,10 @@ export function getUniqueIdentifier (target, sourceLocation) {
         let name = target.name || target.text
         const line = sourceLocation.line || ''
 
-        if (Array.isArray(target.examples)) {
+        if (!name) {
+            console.warn('missing name for ScenarioOutline:', sourceLocation.uri)
+            name = path.basename(sourceLocation.uri)
+        } else if (Array.isArray(target.examples)) {
             target.examples.forEach((example) => {
                 example.tableHeader.cells.forEach((header, idx) => {
                     if (name.indexOf('<' + header.value + '>') === -1) {

@@ -139,6 +139,16 @@ class JasmineAdapter {
 
         this._loadFiles()
 
+        /**
+         * import and set options for `expect-webdriverio` assertion lib once
+         * the framework was initiated so that it can detect the environment
+         */
+        const { setOptions } = require('expect-webdriverio')
+        setOptions({
+            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
+            interval: this.config.waitforInterval, // interval between attempts
+        })
+
         return this
     }
 
@@ -182,16 +192,6 @@ class JasmineAdapter {
     }
 
     async run() {
-        /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
-         */
-        const { setOptions } = require('expect-webdriverio')
-        setOptions({
-            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this.config.waitforInterval, // interval between attempts
-        })
-
         const result = await new Promise((resolve) => {
             this.jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
             this.jrunner.env.afterAll(this.wrapHook('afterSuite'))

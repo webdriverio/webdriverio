@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { isCloudCapability } from '@wdio/config'
 
 import { promisify } from 'util'
 import fs from 'fs-extra'
@@ -17,7 +18,17 @@ const DEFAULT_CONNECTION = {
 }
 
 export default class SeleniumStandaloneLauncher {
-    constructor (options, capabilities, config) {
+
+    capabilities: WebDriver.Capabilities[] | Record<string, WebDriver.Capabilities>
+    logPath?: string
+    args: Partial<import('selenium-standalone').StartOpts>;
+    installArgs: Partial<import('selenium-standalone').InstallOpts>;
+    skipSeleniumInstall: boolean
+    watchMode: boolean = false
+    process!: SeleniumStandalone.ChildProcess
+
+    constructor(options: WebdriverIO.ServiceOption, capabilities: WebDriver.Capabilities[] | Record<string, WebDriver.Capabilities>, config: WebdriverIO.Config) {
+
         this.capabilities = capabilities
         this.logPath = options.logPath || config.outputDir
         this.args = options.args || {}
@@ -25,11 +36,12 @@ export default class SeleniumStandaloneLauncher {
         this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
     }
 
-    async onPrepare (config) {
+    async onPrepare(config: WebdriverIO.Config): Promise<void> {
         this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
-            await promisify(SeleniumStandalone.install)(this.installArgs)
+            const install: (opts: SeleniumStandalone.InstallOpts) => Promise<unknown> = promisify(SeleniumStandalone.install)
+            await install(this.installArgs)
         }
 
         /**
@@ -40,12 +52,13 @@ export default class SeleniumStandaloneLauncher {
             Array.isArray(this.capabilities)
                 ? this.capabilities
                 : Object.values(this.capabilities)
-        ).forEach((cap) => Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+        ).forEach((cap) => !isCloudCapability((cap as Record<string, WebDriver.Capabilities>).capabilities) && Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
 
         /**
          * start Selenium Standalone server
          */
-        this.process = await promisify(SeleniumStandalone.start)(this.args)
+        const start: (opts: SeleniumStandalone.StartOpts) => Promise<SeleniumStandalone.ChildProcess> = promisify(SeleniumStandalone.start)
+        this.process = await start(this.args)
 
         if (typeof this.logPath === 'string') {
             this._redirectLogStream()
@@ -58,25 +71,25 @@ export default class SeleniumStandaloneLauncher {
         }
     }
 
-    onComplete () {
+    onComplete(): void {
         // selenium should not be killed in watch mode
         if (!this.watchMode) {
             this._stopProcess()
         }
     }
 
-    _redirectLogStream () {
-        const logFile = getFilePath(this.logPath, DEFAULT_LOG_FILENAME)
+    _redirectLogStream(): void {
+        const logFile = getFilePath(this.logPath!, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
         fs.ensureFileSync(logFile)
 
         const logStream = fs.createWriteStream(logFile, { flags: 'w' })
-        this.process.stdout.pipe(logStream)
-        this.process.stderr.pipe(logStream)
+        this.process.stdout?.pipe(logStream)
+        this.process.stderr?.pipe(logStream)
     }
 
-    _stopProcess = () => {
+    _stopProcess = (): void => {
         if (this.process) {
             log.info('shutting down all browsers')
             this.process.kill()

@@ -97,7 +97,7 @@ describe('runServiceHook', () => {
                 { onPrepare: asyncHookSuccess },
                 { onPrepare: hookFailing },
             ], 'onPrepare', 1, true, 'abc')
-        } catch(err) {
+        } catch (err) {
             expect(err).toEqual(expect.stringContaining('SevereServiceError'))
             expect(err).toEqual(expect.stringContaining('Stopping runner...'))
             expect(hookSuccess).toBeCalledTimes(1)

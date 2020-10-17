@@ -23,6 +23,7 @@ export interface WebDriverResponse {
 }
 
 const DEFAULT_HEADERS = {
+    'Content-Type': 'application/json; charset=utf-8',
     'Connection': 'keep-alive',
     'Accept': 'application/json',
     'User-Agent': 'webdriver/' + pkg.version
@@ -218,7 +219,7 @@ export default class WebDriverRequest extends EventEmitter {
          *  stop retrying as this will never be successful.
          *  we will handle this at the elementErrorHandler
          */
-        if(error.name === 'stale element reference') {
+        if (error.name === 'stale element reference') {
             log.warn('Request encountered a stale element - terminating request')
             this.emit('response', { error })
             throw error
