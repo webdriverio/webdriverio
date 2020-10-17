@@ -40,7 +40,7 @@ export default class WebDriverMock {
      * @param   {String}   expectedPath path to match against
      * @returns {Function}              to be called by Nock to match actual path
      */
-    static pathMatcher(expectedPath: string): Function {
+    static pathMatcher(expectedPath: string): (path:string) =>boolean {
         return (path: string) => {
             const sessionId = path.match(REGEXP_SESSION_ID)
 

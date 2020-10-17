@@ -11,15 +11,15 @@ const ELEMENT_REFETCHED = '80d860d0-b829-f540-812e-7078eb983795'
 const ELEMENT_ALT = '8bf4d107-a363-40d1-b823-d94bdbc58afb'
 
 export default class WebdriverMockService {
-    mock!: WebDriverMock
+    mock: WebDriverMock
     command:any
     globalAny: any = global
     constructor() {
+        this.mock = new WebDriverMock()
         this.init()
     }
 
     init() {
-        this.mock = new WebDriverMock()
         this.command = this.mock.command
 
         // define required responses
