@@ -29,7 +29,7 @@ export default class WebDriverInterception extends Interception {
      */
     clear () {
         return this.browser.call(
-            async () => this.browser.clearMockCalls(this.mockId, false))
+            async () => this.browser.clearMockCalls(this.mockId))
     }
 
     /**
