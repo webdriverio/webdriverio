@@ -12,9 +12,9 @@ class SpecReporter extends WDIOReporter {
         super(options)
 
         this.symbols = {
-            passed: options.symbol.passed ||'✓',
-            skipped: options.symbol.skipped || '-',
-            failed: options.symbol.passed || '✖'
+            passed: options.symbols.passed ||'✓',
+            skipped: options.symbols.skipped || '-',
+            failed: options.symbols.passed || '✖'
         }
 
         // Keep track of the order that suites were called
