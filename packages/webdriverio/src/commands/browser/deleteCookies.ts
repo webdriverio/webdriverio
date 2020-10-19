@@ -43,7 +43,7 @@
  */
 
 export default function deleteCookies(this: WebdriverIO.BrowserObject, names?: string | string[]) {
-    if (typeof names === 'undefined') {
+    if (names === undefined) {
         return this.deleteAllCookies()
     }
 
