@@ -31,7 +31,7 @@
  *
  */
 export default async function getCookies(this: WebdriverIO.BrowserObject, names?: string | string[]) {
-    if (typeof names === 'undefined') {
+    if (names === undefined) {
         return this.getAllCookies()
     }
 
