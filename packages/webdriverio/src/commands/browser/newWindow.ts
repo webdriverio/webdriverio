@@ -57,7 +57,7 @@ export default async function newWindow (this: WebdriverIO.BrowserObject, url: s
     const newTab = tabs.pop()
 
     if (!newTab) {
-        throw new Error('No window handle was found to switcht to')
+        throw new Error('No window handle was found to switch to')
     }
 
     await this.switchToWindow(newTab)
