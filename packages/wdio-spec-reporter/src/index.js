@@ -11,6 +11,12 @@ class SpecReporter extends WDIOReporter {
         options = Object.assign({ stdout: true }, options)
         super(options)
 
+        this.symbols = {
+            passed: options.symbol.passed ||'✓',
+            skipped: options.symbol.skipped || '-',
+            failed: options.symbol.passed || '✖'
+        }
+
         // Keep track of the order that suites were called
         this.suiteUids = []
 
@@ -336,21 +342,7 @@ class SpecReporter extends WDIOReporter {
      * @return {String}       Symbol to display
      */
     getSymbol (state) {
-        let symbol = '?' // in case of an unknown state
-
-        switch (state) {
-        case 'passed':
-            symbol = '✓'
-            break
-        case 'skipped':
-            symbol = '-'
-            break
-        case 'failed':
-            symbol = '✖'
-            break
-        }
-
-        return symbol
+        return this.symbols[state] || '?'
     }
 
     /**
