@@ -27,7 +27,13 @@ export default class DevtoolsInterception extends Interception {
                 /**
                  * skip response mocks in Request stage
                  */
-                if (isRequest && mock.filterOptions.fetchResponse !== false) {
+                if (isRequest && (
+                    mock.respondOverwrites.length === 0 || // nothing to do in Request stage
+                    (!mock.respondOverwrites[0].errorReason && // skip if not going to abort a request
+                    // or want to fetch response
+                    mock.respondOverwrites[0].params &&
+                    mock.respondOverwrites[0].params.fetchResponse !== false)
+                )) {
                     continue
                 }
 
