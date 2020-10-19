@@ -84,14 +84,14 @@
  * </example>
  *
  * @alias browser.mock
- * @param {String}             url                            url to mock
- * @param {MockFilterOptions=} filterOptions                  filter mock resource by additional options
- * @param {String=}            filterOptions.method           filter resource by HTTP method
- * @param {Object=}            filterOptions.headers          filter resource by specific request headers
- * @param {Object=}            filterOptions.responseHeaders  filter resource by specific response headers
- * @param {Object=}            filterOptions.postData         filter resource by request postData
- * @param {Object=}            filterOptions.statusCode       filter resource by response statusCode
- * @return {Mock}                                             a mock object to modify the response
+ * @param {String}              url                             url to mock
+ * @param {MockFilterOptions=}  filterOptions                   filter mock resource by additional options
+ * @param {String|Function=}    filterOptions.method            filter resource by HTTP method
+ * @param {Object|Function=}    filterOptions.headers           filter resource by specific request headers
+ * @param {Object|Function=}    filterOptions.responseHeaders   filter resource by specific response headers
+ * @param {String|Function=}    filterOptions.postData          filter resource by request postData
+ * @param {Number|Function=}    filterOptions.statusCode        filter resource by response statusCode
+ * @return {Mock}                                               a mock object to modify the response
  * @type utility
  *
  */

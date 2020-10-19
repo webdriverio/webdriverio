@@ -48,9 +48,10 @@
  * </example>
  *
  * @alias mock.respondOnce
- * @param {MockOverwrite}       overwrites         payload to overwrite the response
- * @param {MockResponseParams=} params             additional respond parameters to overwrite
- * @param {Object=}             params.header      overwrite specific headers
- * @param {Number=}             params.statusCode  overwrite response status code
+ * @param {MockOverwrite}       overwrites              payload to overwrite the response
+ * @param {MockResponseParams=} params                  additional respond parameters to overwrite
+ * @param {Object=}             params.header           overwrite specific headers
+ * @param {Number=}             params.statusCode       overwrite response status code
+ * @param {Boolean=}            params.fetchResponse    fetch real response before responding with mocked data
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception
