@@ -1,8 +1,12 @@
-import fs from 'fs'
 import tmp from 'tmp'
 import fse from 'fs-extra'
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
 import WDIOReporter from '../src'
+import { WriteStream } from 'fs'
+
+const writeStream = (() => ({ write: jest.fn() })) as unknown as WriteStream
+
+import fs from 'fs'
 
 describe('WDIOReporter', () => {
     const eventsOnSpy = jest.spyOn(EventEmitter.prototype, 'on')
@@ -35,8 +39,6 @@ describe('WDIOReporter', () => {
     })
 
     it('should provide a function to write to output stream', () => {
-        expect.assertions(1)
-
         const tmpobj = tmp.fileSync()
         const reporter = new WDIOReporter({ logFile: tmpobj.name })
         reporter.write('foobar')
@@ -59,8 +61,8 @@ describe('WDIOReporter', () => {
         }))
     })
 
-    it('should not create log file if not file name is given', () => {
-        const options = { writeStream: { write: jest.fn() } }
+    it('should not create log file if no file name is given', () => {
+        const options = { stdout: true, writeStream }
         const reporter = new WDIOReporter(options)
         reporter.write('foobar')
         expect(options.writeStream.write).toBeCalledWith('foobar')
@@ -68,14 +70,12 @@ describe('WDIOReporter', () => {
 
     describe('outputDir options', () => {
         jest.mock('fs-extra')
-        let ensureDirSyncSpy
+        let ensureDirSyncSpy: jest.SpyInstance
         beforeEach(() => {
             ensureDirSyncSpy = jest.spyOn(fse, 'ensureDirSync')
         })
         it('should create directory if outputDir given and not existing', () => {
-            const outputDir = './tempDir'
-
-            const options = { outputDir }
+            const options = { outputDir: './tempDir', logFile: '' }
             new WDIOReporter(options)
 
             expect(ensureDirSyncSpy).toHaveBeenCalled()
@@ -83,6 +83,7 @@ describe('WDIOReporter', () => {
         })
         it('should handle invalid directory for outputDir', () => {
             expect(() => {
+                // @ts-expect-error
                 new WDIOReporter({ outputDir: true })
             }).toThrowError()
         })

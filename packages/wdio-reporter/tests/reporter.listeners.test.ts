@@ -1,9 +1,24 @@
 import WDIOReporter from '../src'
 import tmp from 'tmp'
-import TestStats from '../src/stats/test'
+import TestStats, { Test } from '../src/stats/test'
+import { Runner } from '../src/stats/runner'
+import { Suite } from '../src/stats/suite'
+import { Hook } from '../src/stats/hook'
 
 describe('WDIOReporter Listeners', () => {
-    let reporter
+    let reporter: WDIOReporter
+    let testStartEvent: Test
+    let runnerStartEvent: Runner
+    let suiteStartEvent: Suite
+    let hookStartEvent: Hook
+    let hookEndEvent: Hook
+    let testPassEvent: Test
+    let testStartFirstEvent: Test
+    let testRetryEvent: Test
+    let testStartSecondEvent: Test
+    let testFailEvent: Test
+    let testEndEvent: Test
+    let stat: Test
 
     beforeEach(() => {
         const tmpobj = tmp.fileSync()
@@ -11,9 +26,8 @@ describe('WDIOReporter Listeners', () => {
     })
 
     describe('Pending Listener', () => {
-        let stat
-        let spy
-        let spy2
+        let spy: jest.SpyInstance
+        let spy2: jest.SpyInstance
 
         beforeEach(() => {
             spy = jest.spyOn(WDIOReporter.prototype, 'onTestSkip')
@@ -29,7 +43,7 @@ describe('WDIOReporter Listeners', () => {
                 uid: '0-0'
             }
 
-            stat.complete = jest.fn()
+            // stat.complete = jest.fn()
         })
 
         afterEach(() => {
@@ -145,15 +159,13 @@ describe('WDIOReporter Listeners', () => {
 
     describe('handling runner:start', () => {
 
-        let runnerStartEvent
-
         beforeEach(() => {
             runnerStartEvent = {
                 cid: 'runnerid',
                 capabilities: {
                     browserName: 'Chrome'
                 }
-            }
+            } as Runner
             reporter.onRunnerStart = jest.fn()
         })
 
@@ -165,7 +177,7 @@ describe('WDIOReporter Listeners', () => {
         it('should set the runner stat', () => {
             reporter.emit('runner:start', runnerStartEvent)
             expect(reporter.runnerStat).toBeDefined()
-            expect(reporter.runnerStat.capabilities).toEqual(runnerStartEvent.capabilities)
+            expect(reporter.runnerStat!.capabilities).toEqual(runnerStartEvent.capabilities)
         })
 
         it('should call onRunnerStart', () => {
@@ -175,19 +187,18 @@ describe('WDIOReporter Listeners', () => {
     })
 
     describe('handling suite:start', () => {
-        let suiteStartEvent
-        let runnerStartEvent
+
         beforeEach(() => {
             runnerStartEvent = {
                 cid: 'runnerid',
                 capabilities: {
                     browserName: 'Chrome'
                 }
-            }
+            } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
-            }
+            } as Suite
             reporter.onSuiteStart = jest.fn()
         })
 
@@ -211,22 +222,19 @@ describe('WDIOReporter Listeners', () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
 
-            expect(reporter.suites[suiteStartEvent.uid]).toBeDefined()
-            expect(reporter.suites[suiteStartEvent.uid].title).toBe(suiteStartEvent.title)
+            expect(reporter.suites[suiteStartEvent.uid!]).toBeDefined()
+            expect(reporter.suites[suiteStartEvent.uid!].title).toBe(suiteStartEvent.title)
         })
 
         it('should call onSuiteStart with the suite stat', () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
 
-            expect(reporter.onSuiteStart).toBeCalledWith(reporter.suites[suiteStartEvent.uid])
+            expect(reporter.onSuiteStart).toBeCalledWith(reporter.suites[suiteStartEvent.uid!])
         })
     })
 
     describe('handling hook:start', () => {
-        let hookStartEvent
-        let suiteStartEvent
-        let runnerStartEvent
 
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
@@ -240,15 +248,15 @@ describe('WDIOReporter Listeners', () => {
                 capabilities: {
                     browserName: 'Chrome'
                 }
-            }
+            } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
-            }
+            } as Suite
             hookStartEvent = {
                 uid: 'hookid',
                 title: 'beforeAll'
-            }
+            } as Hook
         })
 
         it('should attach the hook stats to the current suite stats', () => {
@@ -259,22 +267,17 @@ describe('WDIOReporter Listeners', () => {
 
         it('should add the hook stats to the lookup object of hook stats', () => {
             emitEvents()
-            expect(reporter.hooks[hookStartEvent.uid].title).toBe(hookStartEvent.title)
+            expect(reporter.hooks[hookStartEvent.uid!].title).toBe(hookStartEvent.title)
         })
 
         it('should call on hook start with the hook stat', () => {
             reporter.onHookStart = jest.fn()
             emitEvents()
-            expect(reporter.onHookStart).toBeCalledWith(reporter.hooks[hookStartEvent.uid])
+            expect(reporter.onHookStart).toBeCalledWith(reporter.hooks[hookStartEvent.uid!])
         })
     })
 
     describe('handling hook:end', () => {
-
-        let hookEndEvent
-        let hookStartEvent
-        let suiteStartEvent
-        let runnerStartEvent
 
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
@@ -289,69 +292,69 @@ describe('WDIOReporter Listeners', () => {
                 capabilities: {
                     browserName: 'Chrome'
                 }
-            }
+            } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
-            }
+            } as Suite
             hookStartEvent = {
                 uid: 'hookid',
                 title: 'beforeAll'
-            }
+            } as Hook
             hookEndEvent = {
                 uid: 'hookid',
                 title: 'beforeAll'
-            }
+            } as Hook
         })
 
         it('should complete the hook if the hook passes', () => {
             emitEvents()
 
-            expect(reporter.hooks[hookStartEvent.uid]).toBeDefined()
-            expect(reporter.hooks[hookStartEvent.uid].end instanceof Date).toBe(true)
-            expect(reporter.hooks[hookStartEvent.uid].state).not.toBe('failed')
+            expect(reporter.hooks[hookStartEvent.uid!]).toBeDefined()
+            expect(reporter.hooks[hookStartEvent.uid!].end instanceof Date).toBe(true)
+            expect(reporter.hooks[hookStartEvent.uid!].state).not.toBe('failed')
         })
 
         it('should complete the hook if the hook if the hook passes and has an empty errors property', () => {
             hookEndEvent.errors = []
             emitEvents()
 
-            expect(reporter.hooks[hookStartEvent.uid]).toBeDefined()
-            expect(reporter.hooks[hookStartEvent.uid].end instanceof Date).toBe(true)
-            expect(reporter.hooks[hookStartEvent.uid].state).not.toBe('failed')
-            expect(reporter.hooks[hookStartEvent.uid].error).toBeUndefined()
+            expect(reporter.hooks[hookStartEvent.uid!]).toBeDefined()
+            expect(reporter.hooks[hookStartEvent.uid!].end instanceof Date).toBe(true)
+            expect(reporter.hooks[hookStartEvent.uid!].state).not.toBe('failed')
+            expect(reporter.hooks[hookStartEvent.uid!].error).toBeUndefined()
         })
 
         it('should complete the hook if the hook fails with a single error and mark it failed (Mocha-style)', () => {
             hookEndEvent.error = new Error('Boom')
             emitEvents()
 
-            expect(reporter.hooks[hookStartEvent.uid]).toBeDefined()
-            expect(reporter.hooks[hookStartEvent.uid].end instanceof Date).toBe(true)
-            expect(reporter.hooks[hookStartEvent.uid].state).toBe('failed')
-            expect(reporter.hooks[hookStartEvent.uid].error.message).toBe('Boom')
-            expect(reporter.hooks[hookStartEvent.uid].errors.length).toBe(1)
-            expect(reporter.hooks[hookStartEvent.uid].errors[0].message).toBe('Boom')
+            expect(reporter.hooks[hookStartEvent.uid!]).toBeDefined()
+            expect(reporter.hooks[hookStartEvent.uid!].end instanceof Date).toBe(true)
+            expect(reporter.hooks[hookStartEvent.uid!].state).toBe('failed')
+            expect(reporter.hooks[hookStartEvent.uid!].error!.message).toBe('Boom')
+            expect(reporter.hooks[hookStartEvent.uid!].errors!.length).toBe(1)
+            expect(reporter.hooks[hookStartEvent.uid!].errors![0].message).toBe('Boom')
         })
 
         it('should complete the hook if the hook fails with multiple errors and mark it failed (Jasmine-style)', () => {
-            hookEndEvent.errors = [{ message: 'SoftFail' }, { message: 'anotherfail' }]
+            hookEndEvent.errors = [{ message: 'SoftFail' } as Error, { message: 'anotherfail' } as Error]
             emitEvents()
 
-            expect(reporter.hooks[hookStartEvent.uid]).toBeDefined()
-            expect(reporter.hooks[hookStartEvent.uid].end instanceof Date).toBe(true)
-            expect(reporter.hooks[hookStartEvent.uid].state).toBe('failed')
-            expect(reporter.hooks[hookStartEvent.uid].error.message).toBe('SoftFail')
-            expect(reporter.hooks[hookStartEvent.uid].errors.length).toBe(2)
-            expect(reporter.hooks[hookStartEvent.uid].errors[0].message).toBe('SoftFail')
-            expect(reporter.hooks[hookStartEvent.uid].errors[1].message).toBe('anotherfail')
+            expect(reporter.hooks[hookStartEvent.uid!]).toBeDefined()
+            expect(reporter.hooks[hookStartEvent.uid!].end instanceof Date).toBe(true)
+            expect(reporter.hooks[hookStartEvent.uid!].state).toBe('failed')
+            expect(reporter.hooks[hookStartEvent.uid!].error!.message).toBe('SoftFail')
+            expect(reporter.hooks[hookStartEvent.uid!].errors!.length).toBe(2)
+            expect(reporter.hooks[hookStartEvent.uid!].errors![0].message).toBe('SoftFail')
+            expect(reporter.hooks[hookStartEvent.uid!].errors![1].message).toBe('anotherfail')
         })
 
         it('should call onHookEnd with the hook stats', () => {
             reporter.onHookEnd = jest.fn()
             emitEvents()
 
-            expect(reporter.onHookEnd).toHaveBeenCalledWith(reporter.hooks[hookStartEvent.uid])
+            expect(reporter.onHookEnd).toHaveBeenCalledWith(reporter.hooks[hookStartEvent.uid!])
         })
 
         it('should increment the hook count', () => {
@@ -361,10 +364,6 @@ describe('WDIOReporter Listeners', () => {
     })
 
     describe('handling test:start', () => {
-
-        let testStartEvent
-        let suiteStartEvent
-        let runnerStartEvent
 
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
@@ -378,21 +377,21 @@ describe('WDIOReporter Listeners', () => {
                 capabilities: {
                     browserName: 'Chrome'
                 }
-            }
+            } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
-            }
+            } as Suite
             testStartEvent = {
                 uid: 'testid',
                 title: 'should do the needful'
-            }
+            } as Test
         })
 
         it('should add the test stat to the current suite stat', () => {
             emitEvents()
-            expect(reporter.suites[suiteStartEvent.uid].tests.length).toBe(1)
-            expect(reporter.suites[suiteStartEvent.uid].tests[0].title).toBe(testStartEvent.title)
+            expect(reporter.suites[suiteStartEvent.uid!].tests.length).toBe(1)
+            expect(reporter.suites[suiteStartEvent.uid!].tests[0].title).toBe(testStartEvent.title)
         })
 
         it('should add the test stat to the lookup object of test stats', () => {
@@ -409,11 +408,6 @@ describe('WDIOReporter Listeners', () => {
 
     describe('handling test:pass', () => {
 
-        let testPassEvent
-        let testStartEvent
-        let suiteStartEvent
-        let runnerStartEvent
-
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
@@ -427,18 +421,18 @@ describe('WDIOReporter Listeners', () => {
                 capabilities: {
                     browserName: 'Chrome'
                 }
-            }
+            } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
-            }
+            } as Suite
             testStartEvent = {
                 uid: 'testid',
                 title: 'should do the needful'
-            }
+            } as Test
             testPassEvent = {
                 uid: 'testid',
-            }
+            } as Test
         })
 
         it('should flag the test stat as passed and complete', () => {
@@ -465,11 +459,6 @@ describe('WDIOReporter Listeners', () => {
 
     describe('handling test:fail', () => {
 
-        let testStartEvent
-        let testFailEvent
-        let suiteStartEvent
-        let runnerStartEvent
-
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
@@ -483,19 +472,18 @@ describe('WDIOReporter Listeners', () => {
                 capabilities: {
                     browserName: 'Chrome'
                 }
-            }
+            } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the softare'
-            }
+            } as Suite
             testStartEvent = {
                 uid: 'testid',
                 title: 'should do the needful'
-            }
-
+            } as Test
             testFailEvent = {
                 uid: 'testid'
-            }
+            } as Test
         })
 
         it('Should flag the test as failed and complete if the test somehow has no error', () => {
@@ -510,21 +498,21 @@ describe('WDIOReporter Listeners', () => {
 
             expect(reporter.tests[testStartEvent.uid].state).toBe('failed')
             expect(reporter.tests[testStartEvent.uid].end instanceof Date).toBe(true)
-            expect(reporter.tests[testStartEvent.uid].error.message).toBe('Boom')
-            expect(reporter.tests[testStartEvent.uid].errors.length).toBe(1)
-            expect(reporter.tests[testStartEvent.uid].errors[0].message).toBe('Boom')
+            expect(reporter.tests[testStartEvent.uid!].error!.message).toBe('Boom')
+            expect(reporter.tests[testStartEvent.uid!].errors!.length).toBe(1)
+            expect(reporter.tests[testStartEvent.uid!].errors![0].message).toBe('Boom')
         })
 
         it('should flag the test as failed and complete the test if the test has multiple errors (Jasmine style)', () => {
-            testFailEvent.errors = [{ message: 'SoftFail' }, { message: 'anotherfail' }]
+            testFailEvent.errors = [{ message: 'SoftFail' } as Error, { message: 'anotherfail' } as Error]
             emitEvents()
 
             expect(reporter.tests[testStartEvent.uid].state).toBe('failed')
             expect(reporter.tests[testStartEvent.uid].end instanceof Date).toBe(true)
-            expect(reporter.tests[testStartEvent.uid].error.message).toBe('SoftFail')
-            expect(reporter.tests[testStartEvent.uid].errors.length).toBe(2)
-            expect(reporter.tests[testStartEvent.uid].errors[0].message).toBe('SoftFail')
-            expect(reporter.tests[testStartEvent.uid].errors[1].message).toBe('anotherfail')
+            expect(reporter.tests[testStartEvent.uid!].error!.message).toBe('SoftFail')
+            expect(reporter.tests[testStartEvent.uid!].errors!.length).toBe(2)
+            expect(reporter.tests[testStartEvent.uid!].errors![0].message).toBe('SoftFail')
+            expect(reporter.tests[testStartEvent.uid!].errors![1].message).toBe('anotherfail')
         })
 
         it('should call onTestFail with the test stat', () => {
@@ -542,15 +530,6 @@ describe('WDIOReporter Listeners', () => {
     })
 
     describe('handling test:retry', () => {
-
-        let runnerStartEvent
-        let suiteStartEvent
-        let testStartFirstEvent
-        let testRetryEvent
-        let testStartSecondEvent
-        let testPassEvent
-        let testFailEvent
-        let testEndEvent
 
         const emitEventsFirstTry = () => {
             reporter.emit('runner:start', runnerStartEvent)
@@ -577,31 +556,31 @@ describe('WDIOReporter Listeners', () => {
                 capabilities: {
                     browserName: 'Chrome'
                 }
-            }
+            } as Runner
             suiteStartEvent = {
                 uid: 'suite-id',
                 title: 'the software'
-            }
+            } as Suite
             testStartFirstEvent = {
                 uid: 'test-id',
                 title: 'should do the needful'
-            }
+            } as Test
             testRetryEvent = {
                 uid: 'test-id'
-            }
+            } as Test
             testStartSecondEvent = {
                 uid: 'test-retry-id',
                 title: 'should do the needful'
-            }
+            } as Test
             testPassEvent = {
                 uid: 'test-retry-id'
-            }
+            } as Test
             testFailEvent = {
                 uid: 'test-retry-id'
-            }
+            } as Test
             testEndEvent = {
                 uid: 'test-retry-id'
-            }
+            } as Test
         })
 
         it('should call test retry with the test stat', () => {
@@ -655,12 +634,6 @@ describe('WDIOReporter Listeners', () => {
 
     describe('handling test:end', () => {
 
-        let testPassEvent
-        let testStartEvent
-        let suiteStartEvent
-        let runnerStartEvent
-        let testEndEvent
-
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
@@ -675,21 +648,21 @@ describe('WDIOReporter Listeners', () => {
                 capabilities: {
                     browserName: 'Chrome'
                 }
-            }
+            } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
-            }
+            } as Suite
             testStartEvent = {
                 uid: 'testid',
                 title: 'should do the needful'
-            }
+            } as Test
             testPassEvent = {
                 uid: 'testid',
-            },
+            } as Test
             testEndEvent = {
                 uid: 'testid'
-            }
+            } as Test
         })
 
         it('should call test end with the test stat', () => {

@@ -3,16 +3,16 @@ import RunnableStats from './runnable'
 import TestStats from './test'
 
 export interface Suite {
-    type: string | 'suite:start' | 'suite:end'
+    type?: string
     title: string
-    parent: string
+    parent?: string
     fullTitle: string
-    pending: boolean
-    file: string
+    pending?: boolean
+    fil?: string
     duration?: number
-    cid: string
-    specs: string[]
-    uid: string
+    cid?: string
+    specs?: string[]
+    uid?: string
     tags?: string[]
     description?: string
 }

@@ -575,11 +575,11 @@ export interface Options {
     /**
      * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
      */
-    transformRequest?: (requestOptions: got.HTTPSOptions) => got.HTTPSOptions;
+    transformRequest?: (requestOptions: any) => any;
     /**
      * Function intercepting HTTP response objects after a WebDriver response has arrived.
      */
-    transformResponse?: (response: got.Response, requestOptions: got.HTTPSOptions) => got.Response;
+    transformResponse?: (response: any, requestOptions: any) => any;
 
     /**
      * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)

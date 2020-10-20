@@ -1,4 +1,5 @@
-import RunnableStats, { RunnableError } from './runnable'
+import { pickle } from 'cucumber'
+import RunnableStats from './runnable'
 
 export interface Test {
     type: 'test:start' | 'test:pass' | 'test:fail' | 'test:retry' | 'test:pending' | 'test:end'
@@ -6,26 +7,16 @@ export interface Test {
     parent: string
     fullTitle: string
     pending: boolean
-    file: string
+    file?: string
     duration?: number
     cid: string
     specs: string[]
     uid: string
-    pendingReason: string
-    error?: RunnableError
-    errors?: RunnableError[]
+    pendingReason?: string
+    error?: Error
+    errors?: Error[]
     retries?: number
-    argument?: Argument
-}
-
-interface Argument {
-    rows: [{
-        cells: string[]
-        locations: [{
-            line: number
-            column: number
-        }]
-    }]
+    argument?: pickle.Argument
 }
 
 interface Output {
@@ -50,7 +41,7 @@ export default class TestStats extends RunnableStats {
     title: string
     fullTitle: string
     output: Output[]
-    argument?: Argument
+    argument?: pickle.Argument
     retries?: number
     /**
      * initial test state is pending
@@ -58,8 +49,8 @@ export default class TestStats extends RunnableStats {
      */
     state: 'pending' | 'passed' | 'skipped' | 'failed'
     pendingReason?: string
-    errors?: RunnableError[]
-    error?: RunnableError
+    errors?: Error[]
+    error?: Error
 
     constructor(test: Test) {
         super('test')
@@ -88,7 +79,7 @@ export default class TestStats extends RunnableStats {
         this.state = 'skipped'
     }
 
-    fail(errors: RunnableError[]) {
+    fail(errors?: Error[]) {
         this.complete()
         this.state = 'failed'
         this.errors = errors

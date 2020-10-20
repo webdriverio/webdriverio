@@ -8,9 +8,9 @@ export interface Runner {
     specs: string[]
     config: WDIOReporterOptions
     isMultiremote: boolean
-    sessionId: string
+    sessionId?: string
     capabilities: DesiredCapabilities
-    retry: number
+    retry?: number
     failures?: number
     retries?: number
 }
@@ -25,9 +25,9 @@ export default class RunnerStats extends RunnableStats {
     sanitizedCapabilities: string
     config: WDIOReporterOptions
     specs: string[]
-    sessionId: string
+    sessionId?: string
     isMultiremote: boolean
-    retry: number
+    retry?: number
     failures?: number
     retries?: number
 

@@ -21,7 +21,7 @@ export function sanitizeString (str?: string) {
  * formats capability object into sanitized string for e.g.filenames
  * @param {Object} caps  Selenium capabilities
  */
-export function sanitizeCaps (caps: DesiredCapabilities) {
+export function sanitizeCaps (caps?: DesiredCapabilities) {
     if (!caps) {
         return ''
     }

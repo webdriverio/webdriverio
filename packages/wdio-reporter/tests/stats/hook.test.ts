@@ -4,7 +4,7 @@ test('should get initialised', () => {
     const hook = new HookStats({
         cid: '0-0',
         title: 'foobar',
-        parent: 'barfoo'
+        parent: 'barfoo',
     })
     expect(hook.type).toBe('hook')
     expect(hook.cid).toBe('0-0')
@@ -32,7 +32,7 @@ test('should mark hook as failed if onComplete has errors', () => {
     const errors = [new Error('boom')]
     hook.complete(errors)
     expect(hook.errors).toBe(errors)
-    expect(hook.error.message).toBe('boom')
+    expect(hook.error!.message).toBe('boom')
     expect(hook.state).toBe('failed')
 })
 
@@ -42,7 +42,7 @@ test('Should not mark hook as failed if onComplete has no errors', () => {
         title: 'foobar',
         parent: 'barfoo'
     })
-    const errors = []
+    const errors: [] = []
     hook.complete(errors)
     expect(hook.errors).toBe(errors)
     expect(hook.error).toBeUndefined()

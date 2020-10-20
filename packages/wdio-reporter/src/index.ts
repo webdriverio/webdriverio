@@ -1,5 +1,5 @@
-import fs from 'fs'
-import fse from 'fs-extra'
+import { WriteStream } from 'fs'
+import { createWriteStream, ensureDirSync } from 'fs-extra'
 import { EventEmitter } from 'events'
 import { getErrorsFromEvent } from './utils'
 import SuiteStats, { Suite } from './stats/suite'
@@ -8,15 +8,23 @@ import TestStats, { Test } from './stats/test'
 import RunnerStats, { Runner } from './stats/runner'
 import { AfterCommandArgs, BeforeCommandArgs } from './types'
 
-export interface WDIOReporterOptions {
-    outputDir: string
-    logFile: string
-    stdout: boolean
-    writeStream: fs.WriteStream
+interface WDIOReporterBaseOptions {
+    outputDir?: string
 }
 
+export interface WDIOReporterOptionsFromStdout extends WDIOReporterBaseOptions {
+    stdout: boolean
+    writeStream: WriteStream
+}
+
+export interface WDIOReporterOptionsFromLogFile extends WDIOReporterBaseOptions {
+    logFile: string
+}
+
+export type WDIOReporterOptions = WDIOReporterOptionsFromLogFile | WDIOReporterOptionsFromStdout
+
 export default class WDIOReporter extends EventEmitter {
-    outputStream: fs.WriteStream
+    outputStream: WriteStream
     failures = 0
     suites: Record<string, SuiteStats> = {}
     hooks: Record<string, HookStats> = {}
@@ -35,16 +43,15 @@ export default class WDIOReporter extends EventEmitter {
 
     constructor(public options: WDIOReporterOptions) {
         super()
-        this.options = options
 
         // ensure the report directory exists
         if (this.options.outputDir) {
-            fse.ensureDirSync(this.options.outputDir)
+            ensureDirSync(this.options.outputDir)
         }
 
-        this.outputStream = this.options.stdout || !this.options.logFile
-            ? options.writeStream
-            : fs.createWriteStream(this.options.logFile)
+        this.outputStream = (this.options as WDIOReporterOptionsFromStdout).stdout || !(this.options as WDIOReporterOptionsFromLogFile).logFile
+            ? (this.options as WDIOReporterOptionsFromStdout).writeStream
+            : createWriteStream((this.options as WDIOReporterOptionsFromLogFile).logFile)
 
         let currentTest: TestStats
 
@@ -77,12 +84,12 @@ export default class WDIOReporter extends EventEmitter {
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.hooks.push(hookStats)
             currentSuite.hooksAndTests.push(hookStats)
-            this.hooks[hook.uid] = hookStats
+            this.hooks[hook.uid!] = hookStats
             this.onHookStart(hookStats)
         })
 
         this.on('hook:end',  /* istanbul ignore next */(hook: Hook) => {
-            const hookStats = this.hooks[hook.uid]
+            const hookStats = this.hooks[hook.uid!]
             hookStats.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
             this.onHookEnd(hookStats)
@@ -146,7 +153,7 @@ export default class WDIOReporter extends EventEmitter {
             }
 
             this.tests[currentTest.uid] = currentTest
-            currentTest.skip(test.pendingReason)
+            currentTest.skip(test.pendingReason!)
             this.counts.skipping++
             this.counts.tests++
             this.onTestSkip(currentTest)
@@ -159,7 +166,7 @@ export default class WDIOReporter extends EventEmitter {
         })
 
         this.on('suite:end',  /* istanbul ignore next */(suite: Suite) => {
-            const suiteStat = this.suites[suite.uid]
+            const suiteStat = this.suites[suite.uid!]
             suiteStat.complete()
             this.currentSuites.pop()
             this.onSuiteEnd(suiteStat)
@@ -167,7 +174,7 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('runner:end',  /* istanbul ignore next */(runner: Runner) => {
             rootSuite.complete()
-            if(this.runnerStat) {
+            if (this.runnerStat) {
                 this.runnerStat.failures = runner.failures
                 this.runnerStat.retries = runner.retries
                 this.runnerStat.complete()
@@ -208,45 +215,45 @@ export default class WDIOReporter extends EventEmitter {
     }
 
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onRunnerStart(runnerStats: RunnerStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onBeforeCommand(commandArgs: BeforeCommandArgs) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onAfterCommand(commandArgs: AfterCommandArgs) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSuiteStart(suiteStats: SuiteStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onHookStart(hookStat: HookStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onHookEnd(hookStats: HookStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onTestStart(testStats: TestStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onTestPass(testStats: TestStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onTestFail(testStats: TestStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onTestRetry(testStats: TestStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onTestSkip(testStats: TestStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onTestEnd(testStats: TestStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSuiteEnd(suiteStats: SuiteStats) { }
     /* istanbul ignore next */
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onRunnerEnd(runnerStats: RunnerStats) { }
 }

@@ -1,18 +1,18 @@
-import RunnableStats, { RunnableError } from './runnable'
+import RunnableStats from './runnable'
 
 export interface Hook {
-    type: 'hook:start' | 'hook:end'
+    type?: string
     title: string
     parent: string
-    fullTitle: string
-    pending: boolean
+    fullTitle?: string
+    pending?: boolean
     file?: string
     duration?: number
     cid: string
-    specs: string[]
-    uid: string
-    errors?: RunnableError[]
-    error?: RunnableError
+    specs?: string[]
+    uid?: string
+    errors?: Error[]
+    error?: Error
 }
 
 export default class HookStats extends RunnableStats {
@@ -20,8 +20,8 @@ export default class HookStats extends RunnableStats {
     cid: string
     title: string
     parent: string
-    errors?: RunnableError[]
-    error?: RunnableError
+    errors?: Error[]
+    error?: Error
     state?: 'failed'
 
     constructor (runner: Hook) {
@@ -32,7 +32,7 @@ export default class HookStats extends RunnableStats {
         this.parent = runner.parent
     }
 
-    complete (errors?: RunnableError[]) {
+    complete (errors?: Error[]) {
         this.errors = errors
         if (errors && errors.length) {
             this.error = errors[0]

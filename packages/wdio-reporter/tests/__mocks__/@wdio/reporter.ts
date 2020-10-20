@@ -1,11 +1,32 @@
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
+import { WDIOReporterOptions } from '../../../src'
+import HookStats from '../../../src/stats/hook'
+import RunnerStats from '../../../src/stats/runner'
+import SuiteStats from '../../../src/stats/suite'
+import TestStats from '../../../src/stats/test'
 
 export default class WDIOReporter extends EventEmitter {
-    constructor (options) {
+    outputStream: { write: jest.Mock<any, any> }
+    failures: number
+    suites: Record<string, SuiteStats>
+    hooks: Record<string, HookStats>
+    tests: Record<string, TestStats>
+    currentSuites: SuiteStats[]
+    counts: {
+        suites: number
+        tests: number
+        hooks: number
+        passes: number
+        skipping: number
+        failures: number
+    }
+    retries: number
+    runnerStat?: RunnerStats
+    constructor (public options: WDIOReporterOptions) {
         super()
         this.options = options
         this.outputStream = { write: jest.fn() }
-        this.failures = []
+        this.failures = 0
         this.suites = {}
         this.hooks = {}
         this.tests = {}
@@ -18,13 +39,14 @@ export default class WDIOReporter extends EventEmitter {
             skipping: 0,
             failures: 0
         }
+        this.retries = 0
     }
 
     get isSynchronised () {
         return true
     }
 
-    write (content) {
+    write (content: any) {
         this.outputStream.write(content)
     }
 
