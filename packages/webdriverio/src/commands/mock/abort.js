@@ -1,11 +1,11 @@
 /**
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
- *
  * Abort the request with one of the following error codes:
  * `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`,
  * `ConnectionReset`, `ConnectionRefused`, `ConnectionAborted`,
  * `ConnectionFailed`, `NameNotResolved`, `InternetDisconnected`,
  * `AddressUnreachable`, `BlockedByClient`, `BlockedByResponse`.
+ *
+ * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
  *
  * <example>
     :abort.js

@@ -525,7 +525,11 @@ declare namespace WebdriverIO {
 
     type MockResponseParams = {
         statusCode?: number,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
+        /**
+         * fetch real response before responding with mocked data. Default: true
+         */
+        fetchResponse?: boolean
     }
 
     type MockFilterOptions = {
@@ -940,26 +944,34 @@ declare namespace WebdriverIO {
 
         
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Abort the request with one of the following error codes:
+         * `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`,
+         * `ConnectionReset`, `ConnectionRefused`, `ConnectionAborted`,
+         * `ConnectionFailed`, `NameNotResolved`, `InternetDisconnected`,
+         * `AddressUnreachable`, `BlockedByClient`, `BlockedByResponse`.
          */
         abort(
             errorCode: ErrorCode
         ): void;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Abort the request once with one of the following error codes:
+         * `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`,
+         * `ConnectionReset`, `ConnectionRefused`, `ConnectionAborted`,
+         * `ConnectionFailed`, `NameNotResolved`, `InternetDisconnected`,
+         * `AddressUnreachable`, `BlockedByClient`, `BlockedByResponse`.
          */
         abortOnce(
             errorCode: ErrorCode
         ): void;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Resets all information stored in the `mock.calls` array.
          */
         clear(): void;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Always respond with same overwrite.
          */
         respond(
             overwrites: MockOverwrite,
@@ -967,7 +979,10 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Only respond once with given overwrite. You can call `respondOnce` multiple
+         * consecutive times and it will start with the respond you defined last. If you
+         * only use `respondOnce` and the resource is called more times a mock has been
+         * defined than it defaults back to the original resource.
          */
         respondOnce(
             overwrites: MockOverwrite,
@@ -975,7 +990,7 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Does everything that `mock.clear()` does, and also removes any mocked return values or implementations.
          */
         restore(): void;
     }
@@ -1111,7 +1126,10 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
+         * Mock the response of a request. You can define a mock based on a matching
+         * glob and corresponding header and status code. Calling the mock method
+         * returns a stub object that you can use to modify the response of the
+         * web resource.
          */
         mock(
             url: string,

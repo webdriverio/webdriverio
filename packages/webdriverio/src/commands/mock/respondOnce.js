@@ -1,10 +1,10 @@
 /**
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
- *
  * Only respond once with given overwrite. You can call `respondOnce` multiple
  * consecutive times and it will start with the respond you defined last. If you
  * only use `respondOnce` and the resource is called more times a mock has been
  * defined than it defaults back to the original resource.
+ *
+ * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
  *
  * <example>
     :respondOnce.js
@@ -48,9 +48,10 @@
  * </example>
  *
  * @alias mock.respondOnce
- * @param {MockOverwrite}       overwrites         payload to overwrite the response
- * @param {MockResponseParams=} params             additional respond parameters to overwrite
- * @param {Object=}             params.header      overwrite specific headers
- * @param {Number=}             params.statusCode  overwrite response status code
+ * @param {MockOverwrite}       overwrites              payload to overwrite the response
+ * @param {MockResponseParams=} params                  additional respond parameters to overwrite
+ * @param {Object=}             params.header           overwrite specific headers
+ * @param {Number=}             params.statusCode       overwrite response status code
+ * @param {Boolean=}            params.fetchResponse    fetch real response before responding with mocked data
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception

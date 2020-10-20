@@ -13,13 +13,30 @@ const log = logger('webdriverio')
 export default class DevtoolsInterception extends Interception {
     static handleRequestInterception (client, mocks) {
         return async (event) => {
-            const responseHeaders = event.responseHeaders.reduce((headers, { name, value }) => {
+            // responseHeaders and responseStatusCode are only present in Response stage
+            // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
+            const isRequest = !event.responseHeaders
+            const eventResponseHeaders = event.responseHeaders || []
+            const responseHeaders = eventResponseHeaders.reduce((headers, { name, value }) => {
                 headers[name] = value
                 return headers
             }, {})
-            const { requestId, request, responseStatusCode } = event
+            const { requestId, request, responseStatusCode = 200 } = event
 
             for (const mock of mocks) {
+                /**
+                 * skip response mocks in Request stage
+                 */
+                if (isRequest && (
+                    mock.respondOverwrites.length === 0 || // nothing to do in Request stage
+                    (!mock.respondOverwrites[0].errorReason && // skip if not going to abort a request
+                    // or want to fetch response
+                    mock.respondOverwrites[0].params &&
+                    mock.respondOverwrites[0].params.fetchResponse !== false)
+                )) {
+                    continue
+                }
+
                 /**
                  * match mock url
                  */
@@ -46,7 +63,7 @@ export default class DevtoolsInterception extends Interception {
                     continue
                 }
 
-                const { body, base64Encoded } = await client.send(
+                const { body, base64Encoded } = isRequest ? { body: '' } : await client.send(
                     'Fetch.getResponseBody',
                     { requestId }
                 ).catch(/* istanbul ignore next */() => ({}))
@@ -89,7 +106,7 @@ export default class DevtoolsInterception extends Interception {
 
                     let responseCode = params.statusCode || responseStatusCode
                     let responseHeaders = [
-                        ...event.responseHeaders,
+                        ...eventResponseHeaders,
                         ...Object.entries(params.headers || {}).map(([name, value]) => ({ name, value }))
                     ]
 

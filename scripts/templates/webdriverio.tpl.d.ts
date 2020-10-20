@@ -519,7 +519,11 @@ declare namespace WebdriverIO {
 
     type MockResponseParams = {
         statusCode?: number,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
+        /**
+         * fetch real response before responding with mocked data. Default: true
+         */
+        fetchResponse?: boolean
     }
 
     type MockFilterOptions = {
