@@ -451,6 +451,40 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
     expect(service.sauceConnectProcess).not.toBeUndefined()
 })
 
+test('startTunnel fail twice and recover', async ()=> {
+    const options = {
+        sauceConnect: true,
+        sauceConnectOpts: {
+            tunnelIdentifier: 'my-tunnel'
+        }
+    }
+    const service = new SauceServiceLauncher(options)
+    service.api.startSauceConnect
+        .mockRejectedValueOnce(new Error('ENOENT'))
+        .mockRejectedValueOnce(new Error('ENOENT'))
+    await service.startTunnel()
+
+    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(3)
+})
+
+test('startTunnel fail three and throws error', async ()=> {
+    const options = {
+        sauceConnect: true,
+        sauceConnectOpts: {
+            tunnelIdentifier: 'my-tunnel'
+        }
+    }
+    const service = new SauceServiceLauncher(options)
+    service.api.startSauceConnect
+        .mockRejectedValue(new Error('ENOENT'))
+
+    // await service.startTunnel()
+    expect(async () => {
+        await service.startTunnel()
+    }).rejects.toThrowError('ENOENT')
+
+})
+
 test('onComplete', async () => {
     const service = new SauceServiceLauncher({}, [], {})
     expect(service.onComplete()).toBeUndefined()
