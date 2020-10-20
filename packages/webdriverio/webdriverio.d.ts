@@ -38,7 +38,7 @@ declare namespace WebdriverIO {
          */
         executeAsync: (script: string | ((...arguments: any[]) => void), ...arguments: any[]) => Promise<any>;
 
-        mockCalls(mockId: number): void;
+        mockCalls(mockId: string): void;
     }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser { }

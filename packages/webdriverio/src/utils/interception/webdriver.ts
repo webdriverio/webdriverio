@@ -8,7 +8,7 @@ import { ERROR_REASON } from '../../constants'
  * compliant backend.
  */
 export default class WebDriverInterception extends Interception {
-    mockId: number = NaN;
+    mockId: string = '';
 
     async init () {
         const { mockId } = await this.browser.mockRequest(this.url, this.filterOptions)

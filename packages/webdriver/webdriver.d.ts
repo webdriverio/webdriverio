@@ -2504,21 +2504,21 @@ declare namespace WebDriver {
          * Receive request information about requests that match the mocked resource.
          * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
          */
-        getMockCalls(mockId: number): ProtocolCommandResponse;
+        getMockCalls(mockId: string): ProtocolCommandResponse;
 
         /**
          * [saucelabs]
          * Clear list of mock calls.
          * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
          */
-        clearMockCalls(mockId: number, restore?: boolean): void;
+        clearMockCalls(mockId: string, restore?: boolean): void;
 
         /**
          * [saucelabs]
          * Respond if mock matches a specific resource.
          * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
          */
-        respondMock(mockId: number, payload: object): void;
+        respondMock(mockId: string, payload: object): void;
     }
 
     // selenium types
