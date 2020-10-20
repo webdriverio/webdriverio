@@ -8,7 +8,7 @@ import { ERROR_REASON } from '../../constants'
  * compliant backend.
  */
 export default class WebDriverInterception extends Interception {
-    mockId: string = '';
+    mockId?: string;
 
     async init () {
         const { mockId } = await this.browser.mockRequest(this.url, this.filterOptions)
@@ -21,7 +21,7 @@ export default class WebDriverInterception extends Interception {
     // @ts-ignore
     get calls () {
         return this.browser.call(
-            async () => this.browser.mockCalls(this.mockId))
+            async () => this.browser.mockCalls(this.mockId as string))
     }
 
     /**
@@ -29,7 +29,7 @@ export default class WebDriverInterception extends Interception {
      */
     clear () {
         return this.browser.call(
-            async () => this.browser.clearMockCalls(this.mockId))
+            async () => this.browser.clearMockCalls(this.mockId as string))
     }
 
     /**
@@ -38,7 +38,7 @@ export default class WebDriverInterception extends Interception {
      */
     restore () {
         return this.browser.call(
-            async () => this.browser.clearMockCalls(this.mockId, true))
+            async () => this.browser.clearMockCalls(this.mockId as string, true))
     }
 
     /**
@@ -49,7 +49,7 @@ export default class WebDriverInterception extends Interception {
     respond (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
         return this.browser.call(
             async () => this.browser.respondMock(
-                this.mockId,
+                this.mockId as string,
                 { overwrite, params, sticky: true }
             )
         )
@@ -63,7 +63,7 @@ export default class WebDriverInterception extends Interception {
     respondOnce (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
         return this.browser.call(
             async () => this.browser.respondMock(
-                this.mockId,
+                this.mockId as string,
                 { overwrite, params }
             )
         )
@@ -79,7 +79,7 @@ export default class WebDriverInterception extends Interception {
         }
         return this.browser.call(
             async () => this.browser.respondMock(
-                this.mockId,
+                this.mockId as string,
                 { errorReason, sticky }
             )
         )
