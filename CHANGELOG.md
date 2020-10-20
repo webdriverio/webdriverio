@@ -17,6 +17,20 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.6.8 (2020-10-20)
+
+#### :rocket: New Feature
+* `wdio-spec-reporter`
+  * [#6005](https://github.com/webdriverio/webdriverio/pull/6005) Spec Reporter - custom symbols for report ([@unickq](https://github.com/unickq))
+
+#### :house: Internal
+* [#6013](https://github.com/webdriverio/webdriverio/pull/6013) Changed workflow setup for docs ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Nick ([@unickq](https://github.com/unickq))
+
+
 ## v6.6.7 (2020-10-20)
 
 #### :rocket: New Feature
