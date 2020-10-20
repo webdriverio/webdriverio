@@ -476,7 +476,9 @@ test('startTunnel fail three and throws error', async ()=> {
     }
     const service = new SauceServiceLauncher(options)
     service.api.startSauceConnect
-        .mockRejectedValue(new Error('ENOENT'))
+        .mockRejectedValueOnce(new Error('ENOENT'))
+        .mockRejectedValueOnce(new Error('ENOENT'))
+        .mockRejectedValueOnce(new Error('ENOENT'))
 
     expect(async () => {
         await service.startTunnel()
