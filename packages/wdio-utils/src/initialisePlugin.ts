@@ -7,13 +7,20 @@ import { safeRequire } from './utils'
  * 2. otherwise try to require "@wdio/<name>-<type>"
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
-export default function initialisePlugin (name, type) {
+export default function initialisePlugin (name: string, type?: string): WebdriverIO.ServiceClass {
     /**
      * directly import packages that are scoped or start with an absolute path
      */
     if (name[0] === '@' || path.isAbsolute(name)) {
         const service = safeRequire(name)
-        return service
+
+        if (service) {
+            return service
+        }
+    }
+
+    if (typeof type !== 'string') {
+        throw new Error('No plugin type provided')
     }
 
     /**

@@ -18,7 +18,6 @@
       "platformVersion": "17.7.0",
       "rotatable": false,
       "setWindowRect": true,
-      "timeouts": [{}],
       "unhandledPromptBehavior": "dismiss and notify"
     }
   }

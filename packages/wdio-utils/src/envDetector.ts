@@ -9,7 +9,7 @@ const MOBILE_CAPABILITIES = [
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if W3C (browser)
  */
-export function isW3C (capabilities) {
+export function isW3C (capabilities?: WebDriver.DesiredCapabilities) {
     /**
      * JSONWire protocol doesn't return a property `capabilities`.
      * Also check for Appium response as it is using JSONWire protocol for most of the part.
@@ -24,8 +24,12 @@ export function isW3C (capabilities) {
      *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
      * - it is an Appium session (since Appium is full W3C compliant)
      */
-    const isAppium = capabilities.automationName || capabilities.deviceName || (capabilities.appiumVersion)
-    const hasW3CCaps = (
+    const isAppium = Boolean(
+        capabilities.automationName ||
+        capabilities.deviceName ||
+        capabilities.appiumVersion
+    )
+    const hasW3CCaps = Boolean(
         capabilities.platformName &&
         capabilities.browserVersion &&
         /**
@@ -42,14 +46,11 @@ export function isW3C (capabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Chromedriver
  */
-function isChrome (caps) {
-    if (!caps) {
+function isChrome (capabilities?: WebDriver.DesiredCapabilities) {
+    if (!capabilities) {
         return false
     }
-    return (
-        Boolean(caps.chrome) ||
-        Boolean(caps['goog:chromeOptions'])
-    )
+    return Boolean(capabilities.chrome || capabilities['goog:chromeOptions'])
 }
 
 /**
@@ -58,24 +59,24 @@ function isChrome (caps) {
  * @param  {Object}  caps  capabilities
  * @return {Boolean}       true if platform is mobile device
  */
-function isMobile (caps) {
-    if (!caps) {
+function isMobile (capabilities?: WebDriver.Capabilities) {
+    if (!capabilities) {
         return false
     }
-    const browserName = (caps.browserName || '').toLowerCase()
+    const browserName = (capabilities.browserName || '').toLowerCase()
 
     /**
-     * we have mobile caps if
+     * we have mobile capabilities if
      */
     return Boolean(
         /**
          * capabilities contain mobile only specific capabilities
          */
-        Object.keys(caps).find((cap) => MOBILE_CAPABILITIES.includes(cap)) ||
+        Object.keys(capabilities).find((cap) => MOBILE_CAPABILITIES.includes(cap)) ||
         /**
          * browserName is empty (and eventually app is defined)
          */
-        caps.browserName === '' ||
+        capabilities.browserName === '' ||
         /**
          * browserName is a mobile browser
          */
@@ -85,16 +86,17 @@ function isMobile (caps) {
 
 /**
  * check if session is run on iOS device
- * @param  {Object}  capabilities  caps of session response
+ * @param  {Object}  capabilities  of session response
  * @return {Boolean}               true if run on iOS device
  */
-function isIOS (caps) {
-    if (!caps) {
+function isIOS (capabilities?: WebDriver.DesiredCapabilities) {
+    if (!capabilities) {
         return false
     }
+
     return Boolean(
-        (caps.platformName && caps.platformName.match(/iOS/i)) ||
-        (caps.deviceName && caps.deviceName.match(/(iPad|iPhone)/i))
+        (capabilities.platformName && capabilities.platformName.match(/iOS/i)) ||
+        (capabilities.deviceName && capabilities.deviceName.match(/(iPad|iPhone)/i))
     )
 }
 
@@ -103,13 +105,14 @@ function isIOS (caps) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run on Android device
  */
-function isAndroid (caps) {
-    if (!caps) {
+function isAndroid (capabilities?: WebDriver.Capabilities) {
+    if (!capabilities) {
         return false
     }
+
     return Boolean(
-        (caps.platformName && caps.platformName.match(/Android/i)) ||
-        (caps.browserName && caps.browserName.match(/Android/i))
+        (capabilities.platformName && capabilities.platformName.match(/Android/i)) ||
+        (capabilities.browserName && capabilities.browserName.match(/Android/i))
     )
 }
 
@@ -119,7 +122,15 @@ function isAndroid (caps) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
  */
-function isSauce (caps) {
+function isSauce (capabilities?: WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities) {
+    if (!capabilities) {
+        return false
+    }
+
+    const caps: WebDriver.DesiredCapabilities = (capabilities as WebDriver.W3CCapabilities).alwaysMatch
+        ? (capabilities as WebDriver.W3CCapabilities).alwaysMatch
+        : capabilities as WebDriver.DesiredCapabilities
+
     return Boolean(
         caps.extendedDebugging ||
         (
@@ -134,11 +145,11 @@ function isSauce (caps) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is run with Selenium Standalone Server
  */
-function isSeleniumStandalone (caps) {
-    if (!caps) {
+function isSeleniumStandalone (capabilities?: WebDriver.DesiredCapabilities) {
+    if (!capabilities) {
         return false
     }
-    return Boolean(caps['webdriver.remote.sessionid'])
+    return Boolean(capabilities['webdriver.remote.sessionid'])
 }
 
 /**
@@ -147,8 +158,10 @@ function isSeleniumStandalone (caps) {
  * @param  {string=} automationProtocol     `devtools`
  * @return {Object}                         object with environment flags
  */
-export function capabilitiesEnvironmentDetector (capabilities, automationProtocol) {
-    return automationProtocol === 'devtools' ? devtoolsEnvironmentDetector(capabilities) : webdriverEnvironmentDetector(capabilities)
+export function capabilitiesEnvironmentDetector (capabilities: WebDriver.Capabilities, automationProtocol: string) {
+    return automationProtocol === 'devtools'
+        ? devtoolsEnvironmentDetector(capabilities)
+        : webdriverEnvironmentDetector(capabilities)
 }
 
 /**
@@ -157,7 +170,7 @@ export function capabilitiesEnvironmentDetector (capabilities, automationProtoco
  * @param  {Object}  requestedCapabilities
  * @return {Object}                         object with environment flags
  */
-export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }) {
+export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities?: WebDriver.DesiredCapabilities, requestedCapabilities?: WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities }) {
     return {
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),
@@ -174,7 +187,7 @@ export function sessionEnvironmentDetector ({ capabilities, requestedCapabilitie
  * @param  {Object}  capabilities           caps of session response
  * @return {Object}                         object with environment flags
  */
-export function devtoolsEnvironmentDetector ({ browserName }) {
+export function devtoolsEnvironmentDetector ({ browserName }: WebDriver.Capabilities) {
     return {
         isDevTools: true,
         isW3C: true,
@@ -193,7 +206,7 @@ export function devtoolsEnvironmentDetector ({ browserName }) {
  * @param  {Object}  capabilities           caps provided by user
  * @return {Object}                         object with environment flags
  */
-export function webdriverEnvironmentDetector (capabilities) {
+export function webdriverEnvironmentDetector (capabilities: WebDriver.Capabilities) {
     return {
         isChrome: isChrome(capabilities),
         isMobile: isMobile(capabilities),

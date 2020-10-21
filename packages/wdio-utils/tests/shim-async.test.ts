@@ -7,12 +7,14 @@ jest.mock('@wdio/sync', () => {
     throw new Error('Does not exist')
 })
 
+const globalAny: any = global
+
 beforeEach(() => {
-    global.browser = {}
+    globalAny.browser = {}
 })
 
 afterEach(() => {
-    delete global.browser
+    delete globalAny.browser
 })
 
 describe('executeHooksWithArgs', () => {
@@ -61,10 +63,11 @@ describe('executeHooksWithArgs', () => {
 
 describe('runFnInFiberContext', () => {
     it('should return fn that returns Promise', async () => {
-        const fn = runFnInFiberContext(function (bar) {
+        const fn = runFnInFiberContext(function (this: any, bar: string) {
             return this.foo + bar
         }.bind({ foo: 3 }))
 
+        // @ts-ignore
         expect(await fn(4)).toBe(7)
     })
 })
@@ -77,12 +80,12 @@ describe('hasWdioSyncSupport', () => {
 
 describe('executeSync', () => {
     it('should pass with args and async fn', async () => {
-        expect(await executeSync.call({}, async arg => arg, { limit: 1, attempts: 0 }, [2])).toEqual(2)
+        expect(await executeSync.call({}, async (arg: any) => arg, { limit: 1, attempts: 0 }, [2])).toEqual(2)
     })
 
     it('should repeat step on failure', async () => {
         let counter = 3
-        const scope = {}
+        const scope = { wdioRetries: undefined }
         const repeatTest = { limit: counter, attempts: 0 }
         expect(await executeSync.call(scope, () => {
             if (counter > 0) {
@@ -98,7 +101,7 @@ describe('executeSync', () => {
 
     it('should throw if repeatTest attempts exceeded', async () => {
         let counter = 3
-        const scope = {}
+        const scope = { wdioRetries: undefined }
         const repeatTest = { limit: counter - 1, attempts: 0 }
         let error
         try {
@@ -120,12 +123,12 @@ describe('executeSync', () => {
 
 describe('executeAsync', () => {
     it('should pass with default values and fn returning synchronous value', async () => {
-        const result = await executeAsync.call({}, () => 'foo', {})
+        const result = await executeAsync.call({}, () => 'foo', { limit: 0, attempts: 0 })
         expect(result).toEqual('foo')
     })
 
     it('should pass when optional arguments are passed', async () => {
-        const result = await executeAsync.call({}, async arg => arg, { limit: 1, attempts: 0 }, ['foo'])
+        const result = await executeAsync.call({}, async (arg: unknown) => arg, { limit: 1, attempts: 0 }, ['foo'])
         expect(result).toEqual('foo')
     })
 
@@ -133,7 +136,7 @@ describe('executeAsync', () => {
         let error
         const fn = () => { throw new Error('foo') }
         try {
-            await executeAsync.call({}, fn, {})
+            await executeAsync.call({}, fn, { limit: 0, attempts: 0 })
         } catch (e) {
             error = e
         }
@@ -142,7 +145,7 @@ describe('executeAsync', () => {
 
     it('should repeat if fn throws error directly and repeatTest provided', async () => {
         let counter = 3
-        const scope = {}
+        const scope = { wdioRetries: undefined }
         const repeatTest = { limit: counter, attempts: 0 }
         const result = await executeAsync.call(scope, () => {
             if (counter > 0) {
@@ -159,7 +162,7 @@ describe('executeAsync', () => {
 
     it('should repeat if fn rejects and repeatTest provided', async () => {
         let counter = 3
-        const scope = {}
+        const scope = { wdioRetries: undefined }
         const repeatTest = { limit: counter, attempts: 0 }
         const result = await executeAsync.call(scope, () => {
             if (counter > 0) {
@@ -177,7 +180,7 @@ describe('executeAsync', () => {
 
 describe('runSync', () => {
     it('should be null', () => {
-        expect(runSync).toBeNull()
+        expect(runSync).toBeUndefined()
     })
 })
 
@@ -186,7 +189,7 @@ describe('wrapCommand', () => {
         const rawCommand = jest.fn().mockReturnValue(Promise.resolve('Yayy!'))
         const commandA = wrapCommand('foobar', rawCommand)
         const commandB = wrapCommand('barfoo', rawCommand)
-        const scope = {
+        const scope: Partial<WebdriverIO.BrowserObject> = {
             options: {
                 beforeCommand: jest.fn(),
                 afterCommand: jest.fn().mockImplementation(
@@ -195,8 +198,8 @@ describe('wrapCommand', () => {
         }
 
         expect(await commandA.call(scope, true, false, '!!')).toBe('Yayy!')
-        expect(scope.options.beforeCommand).toBeCalledTimes(1)
-        expect(scope.options.afterCommand).toBeCalledTimes(1)
+        expect(scope.options!.beforeCommand).toBeCalledTimes(1)
+        expect(scope.options!.afterCommand).toBeCalledTimes(1)
         expect(rawCommand).toBeCalledTimes(2)
     })
 
@@ -205,7 +208,7 @@ describe('wrapCommand', () => {
             Promise.reject(new Error('Uppsi!')))
         const commandA = wrapCommand('foobar', rawCommand)
         const commandB = wrapCommand('barfoo', rawCommand)
-        const scope = {
+        const scope: Partial<WebdriverIO.BrowserObject> = {
             options: {
                 beforeCommand: jest.fn(),
                 afterCommand: jest.fn().mockImplementation(
@@ -213,10 +216,11 @@ describe('wrapCommand', () => {
             }
         }
 
-        const error = await commandA.call(scope, true, false, '!!').catch((err) => err)
-        expect(error.message).toBe('Uppsi!')
-        expect(scope.options.beforeCommand).toBeCalledTimes(1)
-        expect(scope.options.afterCommand).toBeCalledTimes(1)
+        const error = await commandA.call(scope, true, false, '!!')
+            .catch((err: Error) => err)
+        expect((error as Error).message).toBe('Uppsi!')
+        expect(scope.options!.beforeCommand).toBeCalledTimes(1)
+        expect(scope.options!.afterCommand).toBeCalledTimes(1)
         expect(rawCommand).toBeCalledTimes(2)
     })
 })

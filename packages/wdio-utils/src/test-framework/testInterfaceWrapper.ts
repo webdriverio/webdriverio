@@ -9,7 +9,15 @@
 import { filterSpecArgs } from '../utils'
 import { testFnWrapper } from './testFnWrapper'
 
-const MOCHA_COMMANDS = ['skip', 'only']
+import type {
+    HookFnArgs,
+    SpecFunction,
+    BeforeHookParam,
+    AfterHookParam,
+    SpecArguments
+} from './types'
+
+const MOCHA_COMMANDS: ['skip', 'only'] = ['skip', 'only']
 
 /**
  * runs a hook within fibers context (if function name is not async)
@@ -25,9 +33,46 @@ const MOCHA_COMMANDS = ['skip', 'only']
  * @param  {Number}   repeatTest    number of retries if hook fails
  * @return {Function}               wrapped framework hook function
  */
-export const runHook = function (hookFn, origFn, beforeFn, beforeFnArgs, afterFn, afterFnArgs, cid, repeatTest) {
-    return origFn(function (...hookFnArgs) {
-        return testFnWrapper.call(this, 'Hook', { specFn: hookFn, specFnArgs: filterSpecArgs(hookFnArgs) }, { beforeFn, beforeFnArgs }, { afterFn, afterFnArgs }, cid, repeatTest)
+export const runHook = function (
+    this: unknown,
+    hookFn: Function,
+    origFn: Function,
+    beforeFn: Function,
+    beforeFnArgs: HookFnArgs<unknown>,
+    afterFn: Function,
+    afterFnArgs: HookFnArgs<unknown>,
+    cid: string,
+    repeatTest: number
+) {
+    return origFn(function (
+        this: unknown,
+        ...hookFnArgs: [
+            string,
+            SpecFunction,
+            BeforeHookParam<unknown>,
+            AfterHookParam<unknown>,
+            string,
+            number
+        ]
+    ) {
+        return testFnWrapper.call(
+            this,
+            'Hook',
+            {
+                specFn: hookFn,
+                specFnArgs: filterSpecArgs(hookFnArgs)
+            },
+            {
+                beforeFn,
+                beforeFnArgs
+            },
+            {
+                afterFn,
+                afterFnArgs
+            },
+            cid,
+            repeatTest
+        )
     })
 }
 
@@ -45,9 +90,47 @@ export const runHook = function (hookFn, origFn, beforeFn, beforeFnArgs, afterFn
  * @param  {Number}   repeatTest    number of retries if test fails
  * @return {Function}               wrapped test function
  */
-export const runSpec = function (specTitle, specFn, origFn, beforeFn, beforeFnArgs, afterFn, afterFnArgs, cid, repeatTest) {
-    return origFn(specTitle, function (...specFnArgs) {
-        return testFnWrapper.call(this, 'Test', { specFn, specFnArgs: filterSpecArgs(specFnArgs) }, { beforeFn, beforeFnArgs }, { afterFn, afterFnArgs }, cid, repeatTest)
+export const runSpec = function (
+    this: unknown,
+    specTitle: string,
+    specFn: Function,
+    origFn: Function,
+    beforeFn: Function,
+    beforeFnArgs: HookFnArgs<unknown>,
+    afterFn: Function,
+    afterFnArgs: HookFnArgs<unknown>,
+    cid: string,
+    repeatTest: number
+) {
+    return origFn(specTitle, function (
+        this: unknown,
+        ...specFnArgs: [
+            string,
+            SpecFunction,
+            BeforeHookParam<unknown>,
+            AfterHookParam<unknown>,
+            string,
+            number
+        ]
+    ) {
+        return testFnWrapper.call(
+            this,
+            'Test',
+            {
+                specFn,
+                specFnArgs: filterSpecArgs(specFnArgs)
+            },
+            {
+                beforeFn,
+                beforeFnArgs
+            },
+            {
+                afterFn,
+                afterFnArgs
+            },
+            cid,
+            repeatTest
+        )
     })
 }
 
@@ -55,6 +138,7 @@ export const runSpec = function (specTitle, specFn, origFn, beforeFn, beforeFnAr
  * wraps hooks and test function of a framework within a fiber context
  *
  * @param  {Function} origFn               original framework function
+ * @param  {Boolean}  isSpec               whether or not origFn is a spec
  * @param  {String[]} testInterfaceFnNames command that runs specs, e.g. `it`, `it.only` or `fit`
  * @param  {Function} beforeFn             before hook
  * @param  {Function} beforeFnArgs         function that returns args for `beforeFn`
@@ -63,8 +147,17 @@ export const runSpec = function (specTitle, specFn, origFn, beforeFn, beforeFnAr
  * @param  {String}   cid                  cid
  * @return {Function}                      wrapped test/hook function
  */
-export const wrapTestFunction = function (origFn, isSpec, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid) {
-    return function (...specArguments) {
+export const wrapTestFunction = function (
+    this: unknown,
+    origFn: Function,
+    isSpec: boolean,
+    beforeFn: Function,
+    beforeArgsFn: HookFnArgs<unknown>,
+    afterFn: Function,
+    afterArgsFn: HookFnArgs<unknown>,
+    cid: string
+) {
+    return function (...specArguments: SpecArguments) {
         /**
          * Variadic arguments:
          * [title, fn], [title], [fn]
@@ -76,7 +169,19 @@ export const wrapTestFunction = function (origFn, isSpec, beforeFn, beforeArgsFn
         const specTitle = specArguments[0]
 
         if (isSpec) {
-            if (specFn) return runSpec(specTitle, specFn, origFn, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid, retryCnt)
+            if (specFn) {
+                return runSpec(
+                    specTitle as string,
+                    specFn as Function,
+                    origFn,
+                    beforeFn,
+                    beforeArgsFn,
+                    afterFn,
+                    afterArgsFn,
+                    cid,
+                    retryCnt as number
+                )
+            }
 
             /**
              * if specFn is undefined we are dealing with a pending function
@@ -84,7 +189,7 @@ export const wrapTestFunction = function (origFn, isSpec, beforeFn, beforeArgsFn
             return origFn(specTitle)
         }
 
-        return runHook(specFn, origFn, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid, retryCnt)
+        return runHook(specFn as Function, origFn, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid, retryCnt as number)
     }
 }
 
@@ -102,10 +207,33 @@ export const wrapTestFunction = function (origFn, isSpec, beforeFn, beforeArgsFn
  * @param  {String}   cid           cid
  * @param  {Object}   scope         the scope to run command from, defaults to global
  */
-export const runTestInFiberContext = function (isSpec, beforeFn, beforeArgsFn, afterFn, afterArgsFn, fnName, cid, scope = global) {
-    const origFn = scope[fnName]
-    scope[fnName] = wrapTestFunction(origFn, isSpec, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid)
-    addMochaCommands(origFn, scope[fnName])
+export const runTestInFiberContext = function (
+    this: unknown,
+    isSpec: boolean,
+    beforeFn: Function,
+    beforeArgsFn: HookFnArgs<unknown>,
+    afterFn: Function,
+    afterArgsFn: HookFnArgs<unknown>,
+    fnName: string,
+    cid: string,
+    scope = global) {
+    const origFn = (scope as any)[fnName];
+    (scope as any)[fnName] = wrapTestFunction(
+        origFn,
+        isSpec,
+        beforeFn,
+        beforeArgsFn,
+        afterFn,
+        afterArgsFn,
+        cid
+    )
+    addMochaCommands(origFn, (scope as any)[fnName])
+}
+
+type ItFn = {
+    (): ItFn
+    skip: Function
+    only: Function
 }
 
 /**
@@ -113,8 +241,8 @@ export const runTestInFiberContext = function (isSpec, beforeFn, beforeArgsFn, a
  * @param {Function} origFn original function
  * @param {function} newFn  wrapped function
  */
-function addMochaCommands (origFn, newFn) {
-    MOCHA_COMMANDS.forEach((commandName) => {
+function addMochaCommands (origFn: ItFn, newFn: ItFn) {
+    MOCHA_COMMANDS.forEach((commandName: 'skip' | 'only') => {
         if (typeof origFn[commandName] === 'function') {
             newFn[commandName] = origFn[commandName]
         }

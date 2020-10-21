@@ -4,9 +4,14 @@ const log = logger('@wdio/utils:shim')
 
 let inCommandHook = false
 let hasWdioSyncSupport = false
-let runSync = null
+let runSync: (this: unknown, fn: Function, repeatTest: any, args: unknown[]) => (resolve: Function, reject: Function) => unknown
 
-let executeHooksWithArgs = async function executeHooksWithArgsShim(hooks, args) {
+interface Retries {
+    limit: number
+    attempts: number
+}
+
+let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hooks: Function | Function[] = [], args: any | any[] = []): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */
@@ -21,7 +26,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim(hooks, args) 
         args = [args]
     }
 
-    hooks = hooks.map((hook) => new Promise((resolve) => {
+    const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve) => {
         let result
 
         try {
@@ -36,7 +41,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim(hooks, args) 
          * so in case of a rejection it won't cause the hook to fail
          */
         if (result && typeof result.then === 'function') {
-            return result.then(resolve, (e) => {
+            return result.then(resolve, (e: Error) => {
                 log.error(e.stack)
                 resolve(e)
             })
@@ -45,17 +50,22 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim(hooks, args) 
         resolve(result)
     }))
 
-    return Promise.all(hooks)
+    return Promise.all(hooksPromises)
 }
 
-let runFnInFiberContext = function (fn) {
-    return function (...args) {
+let runFnInFiberContext = function (fn: Function) {
+    return function (this: any, ...args: any[]) {
         return Promise.resolve(fn.apply(this, args))
     }
 }
 
-let wrapCommand = function wrapCommand(commandName, fn) {
-    return async function wrapCommandFn(...args) {
+/**
+ * wrap command to enable before and after command to be executed
+ * @param commandName name of the command (e.g. getTitle)
+ * @param fn          command function
+ */
+let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
+    return async function wrapCommandFn(this: WebdriverIO.BrowserObject, ...args: any[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
             inCommandHook = true
@@ -94,7 +104,7 @@ let wrapCommand = function wrapCommand(commandName, fn) {
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-async function executeSyncFn(fn, retries, args = []) {
+async function executeSyncFn (this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
     try {
@@ -127,7 +137,7 @@ async function executeSyncFn(fn, retries, args = []) {
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-async function executeAsync(fn, retries, args = []) {
+async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
     try {

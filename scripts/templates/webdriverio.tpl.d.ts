@@ -52,7 +52,44 @@ declare namespace WebdriverIO {
     interface ServiceOption {
         [key: string]: any;
     }
-    type ServiceEntry = string | HookFunctions | [string, ServiceOption] | object
+
+    interface ServiceClass {
+        new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
+    }
+
+    interface ServiceLauncher extends ServiceClass {
+        default?: ServiceClass
+        launcher?: ServiceClass
+    }
+
+    interface ServiceInstance extends HookFunctions {
+        options?: Record<string, any>,
+        capabilities?: WebDriver.DesiredCapabilities,
+        config?: Config
+    }
+
+    type ServiceEntry = (
+        /**
+         * e.g. `services: ['@wdio/sauce-service']`
+         */
+        string |
+        /**
+         * e.g. `services: [{ onPrepare: () => { ... } }]`
+         */
+        HookFunctions |
+        /**
+         * e.g. `services: [CustomClass]`
+         */
+        ServiceLauncher |
+        /**
+         * e.g. `services: [['@wdio/sauce-service', { ... }]]`
+         */
+        [string, ServiceOption] |
+        /**
+         * e.g. `services: [[CustomClass, { ... }]]`
+         */
+        [ServiceClass, ServiceOption]
+    )
 
     interface Options {
         /**
@@ -181,7 +218,7 @@ declare namespace WebdriverIO {
         execArgv?: string[];
     }
 
-    interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }
+    interface RemoteOptions extends WebDriver.Options, HookFunctions, Omit<Options, 'capabilities'> { }
 
     interface MultiRemoteOptions {
         [instanceName: string]: WebDriver.DesiredCapabilities;

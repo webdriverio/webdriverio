@@ -3,18 +3,33 @@ import logger from '@wdio/logger'
 
 import { commandCallStructure, overwriteElementCommands } from './utils'
 
-const SCOPE_TYPES = {
-    'browser': /* istanbul ignore next */ function Browser () {},
-    'element': /* istanbul ignore next */ function Element () {}
+const SCOPE_TYPES: Record<string, Function> = {
+    browser: /* istanbul ignore next */ function Browser () {},
+    element: /* istanbul ignore next */ function Element () {}
 }
 
-export default function WebDriver (options, modifier, propertiesObject = {}) {
+interface PropertiesObject {
+    scope?: string
+    commandList?: {
+        value: string[]
+    }
+    options?: {
+        value: Record<string, any>
+    }
+    requestedCapabilities?: {
+        value?: Record<string, any>
+    }
+    puppeteer?: any
+    [key: string]: any
+}
+
+export default function WebDriver (options: WebDriver.Options | WebdriverIO.Config, modifier?: Function, propertiesObject: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional
      * advantages just provides better description of objects when debugging them
      */
-    const scopeType = SCOPE_TYPES[propertiesObject.scope] || SCOPE_TYPES['browser']
+    const scopeType = SCOPE_TYPES[propertiesObject.scope || 'browser']
     delete propertiesObject.scope
 
     const prototype = Object.create(scopeType.prototype)
@@ -26,7 +41,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
     /**
      * WebDriver monad
      */
-    function unit (sessionId, commandWrapper) {
+    function unit (this: void, sessionId: string, commandWrapper?: Function) {
         /**
          * capabilities attached to the instance prototype not being shown if
          * logging the instance
@@ -58,7 +73,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
         /**
          * assign propertiesObject to itself so the client can be recreated
          */
-        // eslint-disable-next-line no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { puppeteer, ...propertiesObjectWithoutPuppeteer } = propertiesObject
         propertiesObject['__propertiesObject__'] = { value: propertiesObjectWithoutPuppeteer }
 
@@ -76,7 +91,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name, func, attachToElement = false, proto, instances) {
+        client.addCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: WebDriver.Client) {
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
@@ -107,7 +122,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
          * @param  {Object=}  proto             prototype to add function to (optional)
          * @param  {Object=}  instances         multiremote instances
          */
-        client.overwriteCommand = function (name, func, attachToElement = false, proto, instances) {
+        client.overwriteCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: WebDriver.Client) {
             let customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
@@ -128,7 +143,7 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
             } else if (client[name]) {
                 const origCommand = client[name]
                 delete client[name]
-                unit.lift(name, customCommand, proto, (...args) => origCommand.apply(this, args))
+                unit.lift(name, customCommand, proto, (...args: any[]) => origCommand.apply(this, args))
             } else {
                 throw new Error('overwriteCommand: no command to be overwritten: ' + name)
             }
@@ -144,8 +159,8 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
      * @param  {Object}   proto         prototype to add function to (optional)
      * @param  {Function} origCommand   original command to be passed to custom command as first argument
      */
-    unit.lift = function (name, func, proto, origCommand) {
-        (proto || prototype)[name] = function next (...args) {
+    unit.lift = function (name: string, func: Function, proto: Record<string, any>, origCommand?: Function) {
+        (proto || prototype)[name] = function next (...args: any[]) {
             log.info('COMMAND', commandCallStructure(name, args))
 
             /**
@@ -175,8 +190,8 @@ export default function WebDriver (options, modifier, propertiesObject = {}) {
      * register event emitter
      */
     for (let eventCommand in EVENTHANDLER_FUNCTIONS) {
-        prototype[eventCommand] = function (...args) {
-            eventHandler[eventCommand](...args)
+        prototype[eventCommand] = function (...args: [any, any]) {
+            eventHandler[eventCommand as keyof EventEmitter](...args as [never, any])
             return this
         }
     }

@@ -13,7 +13,9 @@ import {
 } from '../../../src/envDetector'
 
 class DotReporter {
-    constructor (options) {
+    options: any
+    emit: any
+    constructor (options: any) {
         this.options = options
         this.emit = jest.fn()
     }
@@ -23,6 +25,28 @@ class RunnerMock {}
 class FoobarServiceMock {
     beforeSuite () {}
     afterCommand () {}
+}
+
+const frameworkMocks = {
+    testNoFailures: {
+        init () { return this },
+        hasTests () { return true },
+        run() { return 0 }
+    },
+    testWithFailures: {
+        init () { return this },
+        hasTests () { return true },
+        run() { return 123 }
+    },
+    testThrows: {
+        init () { return this },
+        hasTests () { return true },
+        run() { throw new Error('framework testThrows failed') }
+    },
+    testNoTests: {
+        init () { return this },
+        hasTests () { return false }
+    }
 }
 
 const pluginMocks = {
@@ -35,31 +59,14 @@ const pluginMocks = {
     runner: {
         local: RunnerMock
     },
-    framework: {
-        testNoFailures: {
-            init () { return this },
-            hasTests () { return true },
-            run() { return 0 }
-        },
-        testWithFailures: {
-            init () { return this },
-            hasTests () { return true },
-            run() { return 123 }
-        },
-        testThrows: {
-            init () { return this },
-            hasTests () { return true },
-            run() { throw new Error('framework testThrows failed') }
-        },
-        testNoTests: {
-            init () { return this },
-            hasTests () { return false }
-        },
-    }
+    framework: frameworkMocks
 }
 
 export const initialisePlugin = jest.fn().mockImplementation(
-    (name, type) => ({ default: pluginMocks[type][name] }))
+    (name: keyof typeof frameworkMocks, type: keyof typeof pluginMocks) => (
+        { default: (pluginMocks[type] as any)[name] }
+    )
+)
 export const initialiseWorkerService = jest.fn().mockReturnValue([])
 export const initialiseLauncherService = jest.fn().mockReturnValue({
     launcherServices: [],
@@ -77,15 +84,15 @@ export const getArgumentType = getArgumentTypeOrig
  */
 export const executeSync = jest.fn()
 export const executeAsync = jest.fn()
-export const wrapCommand = (_, origFn) => origFn
+export const wrapCommand = (_: any, origFn: any) => origFn
 export const runTestInFiberContext = jest.fn().mockReturnValue(jest.fn())
 export const executeHooksWithArgs = jest.fn()
 export const runFnInFiberContext = jest.fn().mockImplementation((fn) => {
-    return function (...args) {
+    return function (this: unknown, ...args: any[]) {
         return Promise.resolve(fn.apply(this, args))
     }
 })
-export const setWdioSyncSupport = value => { hasWdioSyncSupport = value }
+export const setWdioSyncSupport = (value: boolean) => { hasWdioSyncSupport = value }
 export let hasWdioSyncSupport = false
 export const testFnWrapper = jest.fn()
 export const isW3C = isW3cOrig

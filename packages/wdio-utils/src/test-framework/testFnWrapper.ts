@@ -2,6 +2,14 @@ import { isFunctionAsync } from '../utils'
 import { logHookError } from './errorHandler'
 import { executeHooksWithArgs, executeAsync, runSync } from '../shim'
 
+import type {
+    WrapperMethods,
+    SpecFunction,
+    BeforeHookParam,
+    AfterHookParam,
+    JasmineContext
+} from './types'
+
 /**
  * wraps test framework spec/hook function with WebdriverIO before/after hooks
  *
@@ -13,7 +21,17 @@ import { executeHooksWithArgs, executeAsync, runSync } from '../shim'
  * @param   {number} repeatTest     number of retries if test fails
  * @return  {*}                     specFn result
  */
-export const testFnWrapper = function (...args) {
+export const testFnWrapper = function (
+    this: unknown,
+    ...args: [
+        string,
+        SpecFunction,
+        BeforeHookParam<unknown>,
+        AfterHookParam<unknown>,
+        string,
+        number
+    ]
+) {
     return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync, runSync }, ...args)
 }
 
@@ -30,12 +48,15 @@ export const testFnWrapper = function (...args) {
  * @return  {*}                     specFn result
  */
 export const testFrameworkFnWrapper = async function (
-    { executeHooksWithArgs, executeAsync, runSync },
-    type,
-    { specFn, specFnArgs },
-    { beforeFn, beforeFnArgs },
-    { afterFn, afterFnArgs },
-    cid, repeatTest = 0) {
+    this: unknown,
+    { executeHooksWithArgs, executeAsync, runSync }: WrapperMethods,
+    type: string,
+    { specFn, specFnArgs }: SpecFunction,
+    { beforeFn, beforeFnArgs }: BeforeHookParam<unknown>,
+    { afterFn, afterFnArgs }: AfterHookParam<unknown>,
+    cid: string,
+    repeatTest = 0
+) {
     const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = beforeFnArgs(this)
     await logHookError(`Before${type}`, await executeHooksWithArgs(beforeFn, beforeArgs), cid)
@@ -66,8 +87,8 @@ export const testFrameworkFnWrapper = async function (
      * (in Jasmine failing assertions are not causing the test to throw as
      * oppose to other common assertion libraries like chai)
      */
-    if (!error && afterArgs[0] && afterArgs[0].failedExpectations && afterArgs[0].failedExpectations.length) {
-        error = afterArgs[0].failedExpectations[0]
+    if (!error && afterArgs[0] && (afterArgs as [JasmineContext, unknown])[0].failedExpectations && (afterArgs as [JasmineContext, unknown])[0].failedExpectations.length) {
+        error = (afterArgs as [JasmineContext, unknown])[0].failedExpectations[0]
     }
 
     afterArgs.push({
