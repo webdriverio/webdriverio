@@ -40,7 +40,7 @@ export default class TestStats extends RunnableStats {
     title: string
     fullTitle: string
     output: Output[]
-    argument?: pickle.Argument
+    argument?: Cucumber.pickle.Argument
     retries?: number
     /**
      * initial test state is pending
