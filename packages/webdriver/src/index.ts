@@ -6,8 +6,11 @@ import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
 import { DEFAULTS } from './constants'
-import { Options, Client, AttachOptions, SessionFlags } from './types'
 import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
+import type {
+    Options, Client, AttachOptions, SessionFlags,
+    DesiredCapabilities
+} from './types'
 
 const log = logger('webdriver')
 
@@ -89,7 +92,7 @@ export default class WebDriver {
     static async reloadSession (instance: Client) {
         const params: Options = {
             ...instance.options,
-            capabilities: instance.requestedCapabilities as WebDriver.DesiredCapabilities
+            capabilities: instance.requestedCapabilities as DesiredCapabilities
         }
         const { sessionId, capabilities } = await startWebDriverSession(params)
         instance.sessionId = sessionId
