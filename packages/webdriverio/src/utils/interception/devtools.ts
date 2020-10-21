@@ -4,14 +4,26 @@ import atob from 'atob'
 import minimatch from 'minimatch'
 
 import logger from '@wdio/logger'
-import Interception from './'
+import Interception from '.'
 import { containsHeaderObject } from '..'
 import { ERROR_REASON } from '../../constants'
 
 const log = logger('webdriverio')
 
+type RequestOptions = {
+    requestId: string;
+    responseCode?: number;
+    responseHeaders?: any[];
+    body?: string;
+    errorReason?: string;
+}
+
+type Client = {
+    send: (requestName: string, requestOptions: RequestOptions) => Promise<{ body: string; base64Encoded?: boolean }>;
+}
+
 export default class DevtoolsInterception extends Interception {
-    static handleRequestInterception (client, mocks) {
+    static handleRequestInterception (client: Client, mocks) {
         return async (event) => {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
@@ -63,12 +75,16 @@ export default class DevtoolsInterception extends Interception {
                     continue
                 }
 
-                const { body, base64Encoded } = isRequest ? { body: '' } : await client.send(
-                    'Fetch.getResponseBody',
-                    { requestId }
-                ).catch(/* istanbul ignore next */() => ({}))
+                try {
+                    const { body, base64Encoded = undefined } = isRequest ? { body: '' } : await client.send(
+                        'Fetch.getResponseBody',
+                        { requestId }
+                    )
+                    request.body = base64Encoded ? atob(body) : body
+                } catch (error) {
+                    // istanbul ignore next
+                }
 
-                request.body = base64Encoded ? atob(body) : body
                 const responseContentType = responseHeaders[Object.keys(responseHeaders).find(h => h.toLowerCase() === 'content-type')]
                 request.body = responseContentType && responseContentType.includes('application/json')
                     ? tryParseJson(request.body)
