@@ -21,8 +21,7 @@ describe('WDIOReporter Listeners', () => {
     let stat: Test
 
     beforeEach(() => {
-        const tmpobj = tmp.fileSync()
-        reporter = new WDIOReporter({ logFile: tmpobj.name })
+        reporter = new WDIOReporter({ logFile: tmp.fileSync().name })
     })
 
     describe('Pending Listener', () => {
@@ -42,8 +41,6 @@ describe('WDIOReporter Listeners', () => {
                 specs: ['/path/to/test/specs/sync.spec.js'],
                 uid: '0-0'
             }
-
-            // stat.complete = jest.fn()
         })
 
         afterEach(() => {

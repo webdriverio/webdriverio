@@ -3,9 +3,6 @@ import fse from 'fs-extra'
 import { EventEmitter } from 'events'
 import WDIOReporter from '../src'
 import { WriteStream } from 'fs'
-
-const writeStream = (() => ({ write: jest.fn() })) as unknown as WriteStream
-
 import fs from 'fs'
 
 describe('WDIOReporter', () => {
@@ -62,7 +59,7 @@ describe('WDIOReporter', () => {
     })
 
     it('should not create log file if no file name is given', () => {
-        const options = { stdout: true, writeStream }
+        const options = { stdout: true, writeStream: { write: jest.fn() } as unknown as WriteStream }
         const reporter = new WDIOReporter(options)
         reporter.write('foobar')
         expect(options.writeStream.write).toBeCalledWith('foobar')
