@@ -43,7 +43,7 @@ export default class StaticServerLauncher {
         this.middleware.forEach(
             (ware: MiddleWareOption) => this.server.use(ware.mount, ware.middleware as unknown as express.Application))
 
-        const listen: (port: number) => Promise<any> = promisify(this.server.listen)
+        const listen = <(port: number) => Promise<any>> promisify(this.server.listen)
         await listen(this.port)
         log.info(`Static server running at http://localhost:${this.port}`)
     }
