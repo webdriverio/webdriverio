@@ -13,4 +13,20 @@ describe('next element sibling test', () => {
 
         expect(nextEl.elementId).toBe('some-next-elem')
     })
+
+    it('should throw error if next element does not exist', async () => {
+        const browser = await remote({
+            waitforInterval: 1,
+            waitforTimeout: 1,
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$$('#foo')
+        const prevElem = await elem[2].nextElement()
+
+        const err = await prevElem.click().catch((err) => err)
+        expect(err.message)
+            .toContain('next element of element with selector "#foo"')
+    })
 })

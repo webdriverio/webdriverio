@@ -10,7 +10,6 @@ const log = logger('webdriverio')
  * @return {Promise} resolves with element after any necessary waiting
  */
 export default async function implicitWait (currentElement, commandName) {
-
     if (!currentElement.elementId && !commandName.match(/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/)) {
         log.debug(
             `command ${commandName} was called on an element ("${currentElement.selector}") ` +
@@ -24,12 +23,12 @@ export default async function implicitWait (currentElement, commandName) {
              */
             return await currentElement.parent.$(currentElement.selector)
         } catch {
-            if(currentElement.selector === 'function () { return this.previousElementSibling; }'){
+            if (currentElement.selector.toString() === '() => { return this.previousElementSibling; }') {
                 throw new Error(
                     `Can't call ${commandName} on previous element of element with selector "${currentElement.parent.selector}" because it wasn't found`)
             }
 
-            if(currentElement.selector === 'function () { return this.nextElementSibling; }'){
+            if (currentElement.selector.toString() === '() => { return this.nextElementSibling; }') {
                 throw new Error(
                     `Can't call ${commandName} on next element of element with selector "${currentElement.parent.selector}" because it wasn't found`)
             }
