@@ -1,4 +1,3 @@
-import type { pickle } from 'cucumber'
 import RunnableStats from './runnable'
 
 export interface Test {
