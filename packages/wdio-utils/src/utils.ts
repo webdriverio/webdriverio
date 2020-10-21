@@ -162,8 +162,8 @@ export function safeRequire (name: string): WebdriverIO.ServiceClass | null {
          */
         const localNodeModules = path.join(process.cwd(), '/node_modules')
         /* istanbul ignore if */
-        if (require && require.main && !require.main.paths.includes(localNodeModules)) {
-            require.main.paths.push(localNodeModules)
+        if (!require?.main?.paths.includes(localNodeModules)) {
+            require?.main?.paths.push(localNodeModules)
 
             /**
              * don't set requireOpts when running unit tests as it
@@ -171,7 +171,7 @@ export function safeRequire (name: string): WebdriverIO.ServiceClass | null {
              */
             const requireOpts = process.env.JEST_WORKER_ID
                 ? {}
-                : { paths: require.main.paths }
+                : { paths: require?.main?.paths }
             requirePath = require.resolve(name, requireOpts)
         } else {
             requirePath = require.resolve(name)
