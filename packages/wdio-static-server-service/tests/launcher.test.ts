@@ -16,8 +16,8 @@ test('should be able to start server', async () => {
     const service = new StaticServerLauncher({
         folders: { mount: 'foo', path: 'bar' }
     })
-    await service.onPrepare({})
-    service.server.listen.mock.calls[0][1]()
+    await service.onPrepare({});
+    (service.server.listen as jest.Mock).mock.calls[0][1]
     expect(express).toBeCalledTimes(1)
     expect(service.server.use).toBeCalledWith('foo', undefined)
     expect(express.static).toBeCalledWith('bar')
@@ -30,8 +30,8 @@ test('should be able to mount multiple folder', async () => {
             { mount: 'foo2', path: 'bar2' }
         ]
     })
-    await service.onPrepare({})
-    service.server.listen.mock.calls[0][1]()
+    await service.onPrepare({});
+    (service.server.listen as jest.Mock).mock.calls[0][1]
     expect(express).toBeCalledTimes(1)
     expect(service.server.use).toBeCalledWith('foo', undefined)
     expect(express.static).toBeCalledWith('bar')
@@ -64,5 +64,5 @@ test('should register middlewares', async () => {
 })
 
 afterEach(() => {
-    express.mockClear()
+    (express as unknown as jest.Mock).mockClear()
 })
