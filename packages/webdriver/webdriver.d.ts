@@ -2511,7 +2511,7 @@ declare namespace WebDriver {
          * Clear list of mock calls.
          * https://wiki.saucelabs.com/display/DOCS/Custom+Sauce+Labs+WebDriver+Extensions+for+Network+and+Log+Commands
          */
-        clearMockCalls(mockId: string, restore: boolean): void;
+        clearMockCalls(mockId: string, restore?: boolean): void;
 
         /**
          * [saucelabs]

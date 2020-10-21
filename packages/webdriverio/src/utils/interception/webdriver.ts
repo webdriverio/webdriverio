@@ -1,4 +1,4 @@
-import Interception from './'
+import Interception from '.'
 import { ERROR_REASON } from '../../constants'
 
 /**
@@ -8,6 +8,8 @@ import { ERROR_REASON } from '../../constants'
  * compliant backend.
  */
 export default class WebDriverInterception extends Interception {
+    mockId?: string;
+
     async init () {
         const { mockId } = await this.browser.mockRequest(this.url, this.filterOptions)
         this.mockId = mockId
@@ -16,9 +18,10 @@ export default class WebDriverInterception extends Interception {
     /**
      * allows access to all requests made with given pattern
      */
+    // @ts-ignore
     get calls () {
         return this.browser.call(
-            () => this.browser.mockCalls(this.mockId))
+            async () => this.browser.getMockCalls(this.mockId as string))
     }
 
     /**
@@ -26,7 +29,7 @@ export default class WebDriverInterception extends Interception {
      */
     clear () {
         return this.browser.call(
-            () => this.browser.clearMockCalls(this.mockId))
+            async () => this.browser.clearMockCalls(this.mockId as string))
     }
 
     /**
@@ -35,7 +38,7 @@ export default class WebDriverInterception extends Interception {
      */
     restore () {
         return this.browser.call(
-            () => this.browser.clearMockCalls(this.mockId, true))
+            async () => this.browser.clearMockCalls(this.mockId as string, true))
     }
 
     /**
@@ -43,10 +46,10 @@ export default class WebDriverInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respond (overwrite, params = {}) {
+    respond (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
         return this.browser.call(
-            () => this.browser.respondMock(
-                this.mockId,
+            async () => this.browser.respondMock(
+                this.mockId as string,
                 { overwrite, params, sticky: true }
             )
         )
@@ -57,10 +60,10 @@ export default class WebDriverInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respondOnce (overwrite, params = {}) {
+    respondOnce (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
         return this.browser.call(
-            () => this.browser.respondMock(
-                this.mockId,
+            async () => this.browser.respondMock(
+                this.mockId as string,
                 { overwrite, params }
             )
         )
@@ -70,13 +73,13 @@ export default class WebDriverInterception extends Interception {
      * Abort the request with an error code
      * @param {string} errorCode  error code of the response
      */
-    abort (errorReason, sticky = true) {
+    abort (errorReason: string, sticky: boolean = true) {
         if (typeof errorReason !== 'string' || !ERROR_REASON.includes(errorReason)) {
             throw new Error(`Invalid value for errorReason, allowed are: ${ERROR_REASON.join(', ')}`)
         }
         return this.browser.call(
-            () => this.browser.respondMock(
-                this.mockId,
+            async () => this.browser.respondMock(
+                this.mockId as string,
                 { errorReason, sticky }
             )
         )
@@ -86,7 +89,7 @@ export default class WebDriverInterception extends Interception {
      * Abort the request once with an error code
      * @param {string} errorReason  error code of the response
      */
-    abortOnce (errorReason) {
+    abortOnce (errorReason: string) {
         return this.abort(errorReason, false)
     }
 }
