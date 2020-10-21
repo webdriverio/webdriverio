@@ -14,12 +14,20 @@ require('events').EventEmitter.defaultMaxListeners = packages.length + 3
 
 const ROOT_DIR = path.join(__dirname, '..')
 const EXEC_OPTIONS = { silent: true, async: true }
+const IGNORE_PACKAGES = {
+    'wdio-reporter': ['cucumber']
+}
 
 ;(async () => {
     shell.cd(ROOT_DIR)
     const brokenPackages = (await Promise.all(packages.map(async (pkg) => {
         const packagePath = path.join(ROOT_DIR, 'packages', pkg)
-        const shellScript = `npx depcheck ${packagePath} --json --ignore-dirs build,tests`
+        let shellScript = `npx depcheck ${packagePath} --json --ignore-dirs build,tests`
+
+        if (IGNORE_PACKAGES[pkg]) {
+            shellScript += ` --ignores="${IGNORE_PACKAGES[pkg].join(',')}"`
+        }
+
         const shellResult = await new Promise((resolve, reject) => shell.exec(shellScript, EXEC_OPTIONS, (code, stdout, stderr) => {
             if (stderr) {
                 return reject(stderr)

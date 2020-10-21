@@ -4,7 +4,6 @@
     "baseUrl": ".",
     "outDir": "./build",
     "rootDir": "./src",
-    "types": ["@types/cucumber"]
   },
   "include": [
     "src/**/*"
