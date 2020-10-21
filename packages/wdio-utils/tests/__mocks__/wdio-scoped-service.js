@@ -1,3 +1,3 @@
-module.exports = class MyService {
+export default class MyService {
     isScoped = false
 }

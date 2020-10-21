@@ -103,11 +103,18 @@ export function initialiseLauncherService (config: WebdriverIO.Config, caps: Web
             }
 
             /**
-             * add class service
+             * add class service from imported package
              */
-            const Launcher = (service as WebdriverIO.ServiceLauncher).launcher || service
-            if (typeof Launcher === 'function') {
-                launcherServices.push(new (Launcher as WebdriverIO.ServiceLauncher)(serviceConfig, caps, config))
+            const Launcher = (service as WebdriverIO.ServiceLauncher).launcher
+            if (typeof Launcher === 'function' && serviceName) {
+                launcherServices.push(new Launcher(serviceConfig, caps, config))
+            }
+
+            /**
+             * add class service from passed in class
+             */
+            if (typeof service === 'function' && !serviceName) {
+                launcherServices.push(new service(serviceConfig, caps, config))
             }
 
             /**
