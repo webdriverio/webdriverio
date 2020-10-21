@@ -95,7 +95,7 @@ export function getBrowserObject (elem) {
 /**
  * transform whatever value is into an array of char strings
  */
-export function transformToCharString (value) {
+export function transformToCharString (value, translateToUnicode = true) {
     const ret = []
 
     if (!Array.isArray(value)) {
@@ -104,7 +104,7 @@ export function transformToCharString (value) {
 
     for (const val of value) {
         if (typeof val === 'string') {
-            ret.push(...checkUnicode(val))
+            translateToUnicode ? ret.push(...checkUnicode(val)) : ret.push(...`${val}`.split(''))
         } else if (typeof val === 'number') {
             const entry = `${val}`.split('')
             ret.push(...entry)

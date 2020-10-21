@@ -39,7 +39,9 @@ export default class SauceService {
     }
 
     before() {
-        this.isUP = isUnifiedPlatform(global.browser.capabilities)
+        // Ensure capabilities are not null in case of multiremote
+        const capabilities = global.browser.capabilities || {}
+        this.isUP = isUnifiedPlatform(capabilities)
     }
 
     beforeSuite (suite) {
@@ -88,6 +90,23 @@ export default class SauceService {
     }
 
     afterTest (test, context, results) {
+        /**
+         * remove failure if test was retried and passed
+         * > Mocha only
+         */
+        if (test._retriedTest && results.passed) {
+            --this.failures
+            return
+        }
+
+        /**
+         * don't bump failure number if test was retried and still failed
+         * > Mocha only
+         */
+        if (test._retriedTest && !results.passed && test._currentRetry < test._retries) {
+            return
+        }
+
         if (!results.passed) {
             ++this.failures
         }

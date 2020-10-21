@@ -45,7 +45,7 @@ describe('custom$', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'devtools',
+                browserName: 'chrome',
                 'sauce:options': {
                     extendedDebugging: true
                 }

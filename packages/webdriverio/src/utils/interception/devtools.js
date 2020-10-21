@@ -1,23 +1,42 @@
-import fs from 'fs'
+import fse from 'fs-extra'
 import path from 'path'
 import atob from 'atob'
 import minimatch from 'minimatch'
-import { canAccess } from '@wdio/utils'
 
+import logger from '@wdio/logger'
 import Interception from './'
 import { containsHeaderObject } from '..'
 import { ERROR_REASON } from '../../constants'
 
+const log = logger('webdriverio')
+
 export default class DevtoolsInterception extends Interception {
     static handleRequestInterception (client, mocks) {
         return async (event) => {
-            const responseHeaders = event.responseHeaders.reduce((headers, { name, value }) => {
+            // responseHeaders and responseStatusCode are only present in Response stage
+            // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
+            const isRequest = !event.responseHeaders
+            const eventResponseHeaders = event.responseHeaders || []
+            const responseHeaders = eventResponseHeaders.reduce((headers, { name, value }) => {
                 headers[name] = value
                 return headers
             }, {})
-            const { requestId, request, responseStatusCode } = event
+            const { requestId, request, responseStatusCode = 200 } = event
 
             for (const mock of mocks) {
+                /**
+                 * skip response mocks in Request stage
+                 */
+                if (isRequest && (
+                    mock.respondOverwrites.length === 0 || // nothing to do in Request stage
+                    (!mock.respondOverwrites[0].errorReason && // skip if not going to abort a request
+                    // or want to fetch response
+                    mock.respondOverwrites[0].params &&
+                    mock.respondOverwrites[0].params.fetchResponse !== false)
+                )) {
+                    continue
+                }
+
                 /**
                  * match mock url
                  */
@@ -44,14 +63,15 @@ export default class DevtoolsInterception extends Interception {
                     continue
                 }
 
-                const { body, base64Encoded } = await client.send(
+                const { body, base64Encoded } = isRequest ? { body: '' } : await client.send(
                     'Fetch.getResponseBody',
                     { requestId }
-                ).catch(() => ({}))
+                ).catch(/* istanbul ignore next */() => ({}))
 
                 request.body = base64Encoded ? atob(body) : body
-                request.body = responseHeaders['Content-Type'] && responseHeaders['Content-Type'].includes('application/json')
-                    ? JSON.parse(request.body)
+                const responseContentType = responseHeaders[Object.keys(responseHeaders).find(h => h.toLowerCase() === 'content-type')]
+                request.body = responseContentType && responseContentType.includes('application/json')
+                    ? tryParseJson(request.body)
                     : request.body
                 mock.matches.push(request)
 
@@ -75,22 +95,27 @@ export default class DevtoolsInterception extends Interception {
                         newBody = await overwrite(request, client)
                     }
 
+                    const isBodyUndefined = typeof newBody === 'undefined'
+                    if (isBodyUndefined) {
+                        newBody = ''
+                    }
+
                     if (typeof newBody !== 'string') {
                         newBody = JSON.stringify(newBody)
                     }
 
                     let responseCode = params.statusCode || responseStatusCode
                     let responseHeaders = [
-                        ...event.responseHeaders,
-                        ...Object.entries(params.headers || {}).map(([key, value]) => { key, value })
+                        ...eventResponseHeaders,
+                        ...Object.entries(params.headers || {}).map(([name, value]) => ({ name, value }))
                     ]
 
                     /**
                      * check if local file and load it
                      */
                     const responseFilePath = path.isAbsolute(newBody) ? newBody : path.join(process.cwd(), newBody)
-                    if (fs.existsSync(responseFilePath) && canAccess(responseFilePath)) {
-                        newBody = fs.readFileSync(responseFilePath).toString()
+                    if (newBody.length > 0 && await fse.pathExists(responseFilePath) && await canAccess(responseFilePath)) {
+                        newBody = (await fse.readFile(responseFilePath)).toString()
                     } else if (newBody.startsWith('http')) {
                         responseCode = 301
                         /**
@@ -106,8 +131,9 @@ export default class DevtoolsInterception extends Interception {
                         requestId,
                         responseCode,
                         responseHeaders,
-                        body: Buffer.from(newBody).toString('base64')
-                    })
+                        /** do not mock body if it's undefined */
+                        body: isBodyUndefined ? undefined : Buffer.from(newBody, 'binary').toString('base64')
+                    }).catch(/* istanbul ignore next */logFetchError)
                 }
 
                 /**
@@ -117,11 +143,11 @@ export default class DevtoolsInterception extends Interception {
                     return client.send('Fetch.failRequest', {
                         requestId,
                         errorReason
-                    })
+                    }).catch(/* istanbul ignore next */logFetchError)
                 }
             }
 
-            return client.send('Fetch.continueRequest', { requestId })
+            return client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */logFetchError)
         }
     }
 
@@ -187,11 +213,23 @@ export default class DevtoolsInterception extends Interception {
 }
 
 const filterMethod = (method, expected) => {
-    return expected && expected.toLowerCase() !== method.toLowerCase()
+    if (typeof expected === 'undefined') {
+        return false
+    }
+    if (typeof expected === 'function') {
+        return expected(method) !== true
+    }
+    return expected.toLowerCase() !== method.toLowerCase()
 }
 
 const filterHeaders = (responseHeaders, expected) => {
-    return expected && !containsHeaderObject(responseHeaders, expected)
+    if (typeof expected === 'undefined') {
+        return false
+    }
+    if (typeof expected === 'function') {
+        return expected(responseHeaders) !== true
+    }
+    return !containsHeaderObject(responseHeaders, expected)
 }
 
 const filterRequest = (postData, expected) => {
@@ -205,5 +243,38 @@ const filterRequest = (postData, expected) => {
 }
 
 const filterStatusCode = (statusCode, expected) => {
-    return typeof expected === 'number' && statusCode !== expected
+    if (typeof expected === 'undefined') {
+        return false
+    }
+    if (typeof expected === 'function') {
+        return expected(statusCode) !== true
+    }
+    return statusCode !== expected
+}
+
+/**
+ * Helper utility to check file access
+ * @param {String} file file to check access for
+ * @return              Promise<true> if file can be accessed
+ */
+const canAccess = async (filepath) => {
+    try {
+        await fse.access(filepath)
+        return true
+    } catch {
+        return false
+    }
+}
+
+const tryParseJson = (body) => {
+    try {
+        return JSON.parse(body) || body
+    } catch {
+        return body
+    }
+}
+
+const logFetchError = (err) => {
+    /* istanbul ignore next */
+    log.debug(err && err.message ? err.message : err)
 }

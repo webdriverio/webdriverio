@@ -17,7 +17,7 @@ describe('getCookies', () => {
         const cookies = await browser.getCookies()
 
         expect(got.mock.calls[1][1].method).toBe('GET')
-        expect(got.mock.calls[1][1].uri.pathname)
+        expect(got.mock.calls[1][0].pathname)
             .toBe('/session/foobar-123/cookie')
         expect(cookies).toEqual([
             { name: 'cookie1', value: 'dummy-value-1' },
@@ -30,7 +30,7 @@ describe('getCookies', () => {
         const cookies = await browser.getCookies('cookie1')
 
         expect(got.mock.calls[0][1].method).toBe('GET')
-        expect(got.mock.calls[0][1].uri.pathname)
+        expect(got.mock.calls[0][0].pathname)
             .toBe('/session/foobar-123/cookie')
         expect(cookies).toEqual([{ name: 'cookie1', value: 'dummy-value-1' }])
     })
@@ -39,7 +39,7 @@ describe('getCookies', () => {
         const cookies = await browser.getCookies(['cookie1'])
 
         expect(got.mock.calls[0][1].method).toBe('GET')
-        expect(got.mock.calls[0][1].uri.pathname)
+        expect(got.mock.calls[0][0].pathname)
             .toBe('/session/foobar-123/cookie')
         expect(cookies).toEqual([{ name: 'cookie1', value: 'dummy-value-1' }])
     })
@@ -49,7 +49,7 @@ describe('getCookies', () => {
         const cookies = await browser.getCookies(cookieNames)
 
         expect(got.mock.calls[0][1].method).toBe('GET')
-        expect(got.mock.calls[0][1].uri.pathname)
+        expect(got.mock.calls[0][0].pathname)
             .toBe('/session/foobar-123/cookie')
         expect(cookies).toEqual([
             { name: 'cookie1', value: 'dummy-value-1' },

@@ -80,6 +80,14 @@ test('should throw runtime error if spec is invalid', async () => {
     await expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
+test('should throw runtime error if spec could not be loaded', async () => {
+    const runtimeError = new Error('Uuups')
+    const adapter = adapterFactory({ mochaOpts: { mockFailureCount: 0 } })
+    await adapter.init()
+    adapter.specLoadError = runtimeError
+    await expect(adapter.run()).rejects.toEqual(runtimeError)
+})
+
 test('options', () => {
     const adapter = adapterFactory()
     adapter.requireExternalModules = jest.fn()
@@ -143,10 +151,8 @@ test('prepareMessage', async () => {
     await adapter.init()
     await adapter.run()
 
-    adapter.lastError = new Error('uuups')
     let result = adapter.prepareMessage('beforeSuite')
     expect(result.type).toBe('beforeSuite')
-    expect(result.error.message).toBe('uuups')
 
     adapter.runner.test = { title: 'foobar', file: '/foo/bar.test.js' }
     result = adapter.prepareMessage('afterTest')
@@ -380,7 +386,7 @@ describe('loadFiles', () => {
         expect(adapter._hasTests).toBe(false)
     })
 
-    test('should not fail on exception', async () => {
+    test('should propagate error', async () => {
         const adapter = adapterFactory({})
         adapter._hasTests = null
         adapter.mocha = {
@@ -391,6 +397,8 @@ describe('loadFiles', () => {
         await adapter._loadFiles({})
         expect(adapter.mocha.loadFilesAsync).toBeCalled()
         expect(adapter._hasTests).toBe(null)
+        expect(adapter.specLoadError.message)
+            .toContain('Unable to load spec files')
     })
 })
 

@@ -1,7 +1,5 @@
 class Launcher {
-    constructor () {
-        this.isLauncher = true
-    }
+    isLauncher = true
 }
 
-export const launcher = Launcher
+exports.launcher = Launcher

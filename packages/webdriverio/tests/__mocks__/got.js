@@ -54,6 +54,14 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
         sessionResponse.capabilities.browserName = params.json.capabilities.alwaysMatch.browserName
     }
 
+    if (
+        params.json &&
+        params.json.desiredCapabilities &&
+        params.json.desiredCapabilities['sauce:options']
+    ) {
+        sessionResponse.capabilities['sauce:options'] = params.json.desiredCapabilities['sauce:options']
+    }
+
     switch (uri.pathname) {
     case path:
         value = sessionResponse

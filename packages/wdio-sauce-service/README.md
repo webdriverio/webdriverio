@@ -17,7 +17,7 @@ The easiest way is to keep `@wdio/sauce-service` as a devDependency in your `pac
 }
 ```
 
-You can simple do it by:
+You can simply do it by:
 
 ```bash
 npm install @wdio/sauce-service --save-dev

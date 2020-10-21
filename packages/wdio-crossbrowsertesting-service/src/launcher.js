@@ -40,7 +40,7 @@ export default class CrossBrowserTestingLauncher {
     }
 
     onComplete () {
-        if(!this.tunnel){
+        if (!this.tunnel){
             return
         }
 
