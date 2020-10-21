@@ -7,12 +7,15 @@ import logger from '@wdio/logger'
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackLauncherService {
-    constructor (options, capabilities, config) {
+    options: any
+    config: any
+    browserstackLocal: BrowserstackLocalLauncher.Local | any
+    constructor (options: any, capabilities: any, config: any) {
         this.options = options
         this.config = config
     }
 
-    onPrepare (config, capabilities) {
+    onPrepare (config: any, capabilities = [] as  any) {
         if (!this.options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
@@ -45,7 +48,7 @@ export default class BrowserstackLauncherService {
         })
         obs.observe({ entryTypes: ['measure'], buffered: false })
 
-        let timer
+        let timer:any
         performance.mark('tbTunnelStart')
         return Promise.race([
             promisify(this.browserstackLocal.start.bind(this.browserstackLocal))(opts),
@@ -75,10 +78,10 @@ export default class BrowserstackLauncherService {
             return process.kill(this.browserstackLocal.pid)
         }
 
-        let timer
+        let timer:any
         return Promise.race([
             new Promise((resolve, reject) => {
-                this.browserstackLocal.stop((err) => {
+                this.browserstackLocal.stop((err: any) => {
                     if (err) {
                         return reject(err)
                     }
