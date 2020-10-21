@@ -5,7 +5,7 @@ describe('Firefox profile service', () => {
     describe('onPrepare', () => {
         test('should return when no firefoxProfile set in the config', async () => {
             const options = {}
-            const capabilities = [{}]
+            const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{}]
 
             const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
@@ -17,8 +17,8 @@ describe('Firefox profile service', () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
-            const capabilities = [{
-                browserName : 'firefox',
+            const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{
+                browserName: 'firefox',
             }]
 
             const service = new Launcher(options)
@@ -30,7 +30,7 @@ describe('Firefox profile service', () => {
             expect(service.profile.addExtensions).not.toHaveBeenCalled()
 
             expect(capabilities[0].firefox_profile).toBe(undefined)
-            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile: 'foobar' })
         })
 
         test('should set preferences with no extensions - legacy', async () => {
@@ -38,8 +38,8 @@ describe('Firefox profile service', () => {
                 'browser.startup.homepage': 'https://webdriver.io',
                 legacy: true
             }
-            const capabilities = [{
-                browserName : 'firefox',
+            const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{
+                browserName: 'firefox',
             }]
 
             const service = new Launcher(options)
@@ -58,8 +58,8 @@ describe('Firefox profile service', () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
-            const capabilities = [{
-                browserName : 'firefox',
+            const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{
+                browserName: 'firefox',
                 'moz:firefoxOptions': {
                     args: ['-headless']
                 }
@@ -73,17 +73,17 @@ describe('Firefox profile service', () => {
             expect(service.profile.updatePreferences).toHaveBeenCalled()
             expect(service.profile.addExtensions).not.toHaveBeenCalled()
 
-            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ args: ['-headless'], profile : 'foobar' })
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ args: ['-headless'], profile: 'foobar' })
         })
 
         test('should set preferences with extensions', async () => {
-            const options = { extensions : ['/foo/bar.xpi'] }
-            const capabilities = [{ browserName : 'firefox' }]
+            const options = { extensions: ['/foo/bar.xpi'] }
+            const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{ browserName: 'firefox' }]
 
             const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
 
-            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile: 'foobar' })
             expect(service.profile.addExtensions.mock.calls[0][0]).toBe(options.extensions)
         })
 
@@ -91,16 +91,16 @@ describe('Firefox profile service', () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
-            const capabilities = [{
-                browserName : 'firefox',
+            const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{
+                browserName: 'firefox',
             }, {
-                browserName : 'chrome'
+                browserName: 'chrome'
             }]
 
             const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
 
-            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
+            expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile: 'foobar' })
             expect(capabilities[1]).not.toHaveProperty('firefox_profile')
             expect(capabilities[1]).not.toHaveProperty('moz:firefoxOptions')
         })
@@ -109,10 +109,10 @@ describe('Firefox profile service', () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
-            const capabilities = {
-                firefox : {
-                    capabilities : {
-                        browserName : 'firefox',
+            const capabilities: Record<string, WebDriver.Capabilities & WebDriver.Options> = {
+                firefox: {
+                    capabilities: {
+                        browserName: 'firefox',
                     }
                 }
             }
@@ -120,17 +120,17 @@ describe('Firefox profile service', () => {
             const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
 
-            expect(capabilities.firefox.capabilities['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
+            expect(capabilities.firefox.capabilities['moz:firefoxOptions']).toEqual({ profile: 'foobar' })
         })
 
         test('should not set capabilities when an object and not firefox', async () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
-            const capabilities = {
-                foo : {
-                    capabilities : {
-                        browserName : 'chrome',
+            const capabilities: Record<string, WebDriver.Capabilities & WebDriver.Options> = {
+                foo: {
+                    capabilities: {
+                        browserName: 'chrome',
                     }
                 }
             }
@@ -144,12 +144,12 @@ describe('Firefox profile service', () => {
 
         test('should set proxy', async () => {
             const options = {
-                extensions : ['/foo/bar.xpi'],
+                extensions: ['/foo/bar.xpi'],
                 'browser.startup.homepage': 'https://webdriver.io',
-                proxy : 'foo'
+                proxy: 'foo'
             }
-            const capabilities = [{
-                browserName : 'firefox',
+            const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{
+                browserName: 'firefox',
             }]
 
             const service = new Launcher(options)
@@ -167,8 +167,8 @@ describe('Firefox profile service', () => {
             const options = {
                 profileDirectory: '/tmp/firefox-profile',
             }
-            const capabilities = [{
-                browserName : 'firefox',
+            const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{
+                browserName: 'firefox',
             }]
 
             const service = new Launcher(options)

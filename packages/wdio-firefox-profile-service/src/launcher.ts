@@ -2,11 +2,13 @@ import Profile from 'firefox-profile'
 import { promisify } from 'util'
 
 export default class FirefoxProfileLauncher {
-    constructor(options) {
+    options: WebdriverIO.ServiceOption
+    profile!: Profile
+    constructor(options: WebdriverIO.ServiceOption) {
         this.options = options
     }
 
-    async onPrepare(config, capabilities) {
+    async onPrepare(config:WebdriverIO.Config, capabilities:WebDriver.Capabilities[] | Record<string, WebDriver.Capabilities & WebDriver.Options>) {
         /**
          * Return if no profile options were specified
          */
@@ -51,8 +53,9 @@ export default class FirefoxProfileLauncher {
         this.profile.updatePreferences()
     }
 
-    async _buildExtension(capabilities) {
-        const zippedProfile = await promisify(this.profile.encoded.bind(this.profile))()
+    async _buildExtension(capabilities:WebDriver.Capabilities[] | Record<string, WebDriver.Capabilities & WebDriver.Options>) {
+        const profile: () => Promise<any> =  promisify(this.profile.encoded.bind(this.profile))
+        const zippedProfile = await profile()
 
         if (Array.isArray(capabilities)) {
             capabilities
