@@ -37,8 +37,6 @@ declare namespace WebdriverIO {
          * to this callback will be returned to the client.
          */
         executeAsync: (script: string | ((...arguments: any[]) => void), ...arguments: any[]) => Promise<any>;
-
-        mockCalls(mockId: string): void;
     }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser { }
