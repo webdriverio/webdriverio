@@ -21,7 +21,7 @@ export default class WebDriverInterception extends Interception {
     // @ts-ignore
     get calls () {
         return this.browser.call(
-            async () => this.browser.mockCalls(this.mockId as string))
+            async () => this.browser.getMockCalls(this.mockId as string))
     }
 
     /**
