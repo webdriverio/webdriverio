@@ -22,6 +22,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
+    "@types/cucumber": "^6.0.1",
+    "@types/fs-extra": "^9.0.1",
+    "@types/tmp": "^0.2.0",
     "tmp": "^0.2.0"
   },
   "publishConfig": {

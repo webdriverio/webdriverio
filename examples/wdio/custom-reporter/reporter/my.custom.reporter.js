@@ -13,7 +13,6 @@ module.exports = class CustomReporter extends WDIOReporter {
     onRunnerStart() { console.log('onRunnerStart') }
     onBeforeCommand() { console.log('onBeforeCommand') }
     onAfterCommand() { console.log('onAfterCommand') }
-    onScreenshot() { console.log('onScreenshot') }
     onSuiteStart() { console.log('onSuiteStart') }
     onHookStart() { console.log('onHookStart') }
     onHookEnd() { console.log('onHookEnd') }

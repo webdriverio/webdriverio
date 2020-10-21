@@ -10,9 +10,6 @@ export default class CustomSmokeTestReporter extends WDIOReporter {
     onAfterCommand () {
         this.write('onAfterCommand\n')
     }
-    onScreenshot () {
-        this.write('onScreenshot\n')
-    }
     onSuiteStart () {
         this.write('onSuiteStart\n')
     }
