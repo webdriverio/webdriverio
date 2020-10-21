@@ -15,7 +15,7 @@ export interface Test {
     error?: Error
     errors?: Error[]
     retries?: number
-    argument?: pickle.Argument
+    argument?: Cucumber.pickle.Argument
 }
 
 interface Output {
