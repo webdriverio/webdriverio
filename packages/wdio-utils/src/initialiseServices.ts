@@ -10,13 +10,16 @@ type IntialisedService = (
     [WebdriverIO.ServiceClass, WebdriverIO.ServiceOption]
 )
 
+type Service = WebdriverIO.ServiceEntry | WebdriverIO.ServiceClass
+type ServiceWithOptions = [Service, WebdriverIO.ServiceOption]
+
 /**
  * Maps list of services of a config file into a list of actionable objects
  * @param  {Object}    config            config of running session
  * @param  {Object}    caps              capabilities of running session
  * @return {[(Object|Class), Object][]}  list of services with their config objects
  */
-function initialiseServices (services: [WebdriverIO.ServiceEntry | WebdriverIO.ServiceClass, WebdriverIO.ServiceOption][]): IntialisedService[] {
+function initialiseServices (services: ServiceWithOptions[]): IntialisedService[] {
     const initialisedServices: IntialisedService[] = []
     for (let [serviceName, serviceConfig = {}] of services) {
         /**
@@ -75,7 +78,7 @@ function initialiseServices (services: [WebdriverIO.ServiceEntry | WebdriverIO.S
  * @param  {[Any]} service               list of services from config file
  * @return {[service, serviceConfig][]}  formatted list of services
  */
-function sanitizeServiceArray (service: WebdriverIO.ServiceEntry): [WebdriverIO.ServiceEntry | WebdriverIO.ServiceClass, WebdriverIO.ServiceOption] {
+function sanitizeServiceArray (service: WebdriverIO.ServiceEntry): ServiceWithOptions {
     return Array.isArray(service) ? service : [service, {}]
 }
 
