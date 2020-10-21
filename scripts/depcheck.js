@@ -24,6 +24,7 @@ const IGNORE_PACKAGES = {
         const packagePath = path.join(ROOT_DIR, 'packages', pkg)
         let shellScript = `npx depcheck ${packagePath} --json --ignore-dirs build,tests`
 
+        // Workaround for depcheck issue: https://github.com/depcheck/depcheck/issues/526
         if (IGNORE_PACKAGES[pkg]) {
             shellScript += ` --ignores="${IGNORE_PACKAGES[pkg].join(',')}"`
         }
