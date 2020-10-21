@@ -65,11 +65,7 @@ declare namespace WebdriverIO {
 
     interface ServiceLauncher extends ServiceClass {
         default?: ServiceClass
-        launcher?: (
-            options: Record<string, any>,
-            capabilities: WebDriver.DesiredCapabilities,
-            config: Config
-        ) => ServiceInstance
+        launcher?: ServiceClass
     }
 
     interface ServiceInstance extends HookFunctions {
