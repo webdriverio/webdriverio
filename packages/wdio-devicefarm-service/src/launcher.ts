@@ -1,9 +1,9 @@
 import WebDriver from 'webdriver'
 import WebdriverIO, { SevereServiceError } from 'webdriverio'
 import * as AWS from 'aws-sdk'
-import logger from '@wdio/logger'
+import getLogger from '@wdio/logger'
 
-const log = logger('@wdio/devicefarm-service')
+const log = getLogger('@wdio/devicefarm-service')
 
 interface DeviceFarmConfig {
   projectArn: string;
@@ -20,7 +20,7 @@ export default class DeviceFarmLauncher implements WebdriverIO.HookFunctions {
     }
 
     public async onPrepare(
-        config: WebdriverIO.Config,
+        _config: WebdriverIO.Config,
         capabilities: WebDriver.DesiredCapabilities[]
     ): Promise<void> {
         for (const cap of capabilities) {

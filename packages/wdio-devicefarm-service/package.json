@@ -1,6 +1,6 @@
 {
   "name": "@wdio/devicefarm-service",
-  "version": "0.0.0",
+  "version": "6.6.0",
   "description": "A WebdriverIO service that provides AWS Device Farm support",
   "author": "TBD",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-devicefarm-service",
@@ -14,7 +14,7 @@
     "url": "git://github.com/webdriverio/webdriverio.git"
   },
   "keywords": [
-    "webdriver",
+    "webdriverio",
     "wdio",
     "devicefarm",
     "wdio-service"
@@ -22,9 +22,10 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "types": "./build/index.d.ts",
   "dependencies": {
     "aws-sdk": "^2.764.0",
-    "@wdio/logger": "6.4.7"
+    "@wdio/logger": "6.6.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"
