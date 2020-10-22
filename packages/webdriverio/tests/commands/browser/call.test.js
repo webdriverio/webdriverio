@@ -20,6 +20,7 @@ describe('call command', () => {
     })
 
     it('should not fail if nothing is applied', () => {
-        browser.call()
+        expect(() => browser.call())
+            .toThrow(/needs to be a function/)
     })
 })

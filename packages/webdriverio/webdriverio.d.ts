@@ -14,7 +14,7 @@ declare namespace WebdriverIO {
         options: MultiRemoteOptions
     ): Promise<BrowserObject>;
 
-    type ExecuteFunction = (...arguments: any[]) => T
+    type ExecuteFunction = (...arguments: any[]) => any
 
     interface Browser {
         emit: Function

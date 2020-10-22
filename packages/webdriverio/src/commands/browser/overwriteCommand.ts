@@ -18,7 +18,6 @@
         browser.pause(1000) //outputs "Sleeping for 1000"
     })
  * </example>
-
  * @alias browser.overwriteCommand
  * @param {String} name name of the original command
  * @param {Function} callback  pass original function

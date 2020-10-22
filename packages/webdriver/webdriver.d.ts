@@ -334,6 +334,8 @@ declare namespace WebDriver {
 
         'goog:chromeOptions'?: ChromeOptions;
         'moz:firefoxOptions'?: FirefoxOptions;
+        'ms:edgeOptions'?: MicrosoftEdgeOptions;
+        'ms:edgeChromium'?: MicrosoftEdgeOptions;
     }
 
     // Selenium Grid specific

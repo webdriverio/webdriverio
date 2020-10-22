@@ -22,7 +22,6 @@
         assert.strictEqual(result.customParam, 'foobar')
     })
  * </example>
-
  * @alias browser.addCommand
  * @param {String} name name of the custom command
  * @param {Function} callback  function to be called

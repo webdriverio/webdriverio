@@ -86,7 +86,7 @@ async function bar() {
 
     const executeResult = await browser.execute(function (x: number) {
         return x
-    }, 4)
+    }, 4) as number
     executeResult.toFixed(2)
 
     const callResult = <number>await browser.call(() =>
