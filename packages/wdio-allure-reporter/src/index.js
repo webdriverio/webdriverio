@@ -22,6 +22,8 @@ class AllureReporter extends WDIOReporter {
 
         this.allure.setOptions({ targetDir: outputDir })
         this.registerListeners()
+
+        this.lastScreenshot = undefined
     }
 
     registerListeners() {
@@ -207,16 +209,23 @@ class AllureReporter extends WDIOReporter {
     }
 
     onAfterCommand(command) {
-        if (!this.isAnyTestRunning() || this.isMultiremote) {
+        if (this.isMultiremote) {
             return
         }
 
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting, useCucumberStepReporter } = this.options
         if (this.isScreenshotCommand(command) && command.result.value) {
             if (!disableWebdriverScreenshotsReporting) {
-                this.allure.addAttachment('Screenshot', Buffer.from(command.result.value, 'base64'))
+                this.lastScreenshot = command.result.value
             }
         }
+
+        if (!this.isAnyTestRunning()) {
+            return
+        }
+
+        this.attachScreenshot()
+
         if (!disableWebdriverStepsReporting && !useCucumberStepReporter) {
             if (command.result && command.result.value && !this.isScreenshotCommand(command)) {
                 this.dumpJSON('Response', command.result.value)
@@ -274,6 +283,7 @@ class AllureReporter extends WDIOReporter {
         if (hook.error) {
             if (this.options.disableMochaHooks && isMochaAllHooks(hook.title)) {
                 this.onTestStart(hook)
+                this.attachScreenshot()
             }
             this.onTestFail(hook)
         } else if (this.options.disableMochaHooks || this.options.useCucumberStepReporter) {
@@ -433,6 +443,13 @@ class AllureReporter extends WDIOReporter {
 
     dumpJSON(name, json) {
         this.allure.addAttachment(name, JSON.stringify(json, null, 2), 'application/json')
+    }
+
+    attachScreenshot() {
+        if (this.lastScreenshot && !this.options.disableWebdriverScreenshotsReporting) {
+            this.allure.addAttachment('Screenshot', Buffer.from(this.lastScreenshot, 'base64'))
+            this.lastScreenshot = undefined
+        }
     }
 
     /**
