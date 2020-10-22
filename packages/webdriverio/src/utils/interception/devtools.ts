@@ -27,20 +27,6 @@ type Client = {
     send: (requestName: string, requestOptions: RequestOptions) => Promise<ClientResponse>;
 }
 
-type Mock = {
-    url: string;
-    filterOptions: WebdriverIO.MockFilterOptions;
-    browser: WebdriverIO.BrowserObject;
-    respondOverwrites: {
-        overwrite?: WebdriverIO.MockOverwrite;
-        params?: WebdriverIO.MockResponseParams;
-        sticky?: boolean;
-        errorReason?: string;
-    }[];
-    matches: WebdriverIO.Matches[];
-    calls?: WebdriverIO.Matches[];
-}
-
 type Event = {
     // requestHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
     requestId: string;
@@ -50,7 +36,7 @@ type Event = {
 }
 
 export default class DevtoolsInterception extends Interception {
-    static handleRequestInterception (client: Client, mocks: Mock[]): (event: Event) => Promise<void | ClientResponse> {
+    static handleRequestInterception (client: Client, mocks: Interception[]): (event: Event) => Promise<void | ClientResponse> {
         return async (event) => {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
