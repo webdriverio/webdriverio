@@ -1,5 +1,7 @@
-import { W3C_SELECTOR_STRATEGIES } from '../constants'
+import fs from 'fs'
 import isPlainObject from 'lodash.isplainobject'
+
+import { W3C_SELECTOR_STRATEGIES } from '../constants'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -38,7 +40,7 @@ const defineStrategy = function (selector) {
         return 'directly'
     }
     // Use appium image strategy if selector ends with certain text(.jpg,.gif..)
-    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path=> selector.toLowerCase().endsWith(path))) {
+    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path => selector.toLowerCase().endsWith(path))) {
         return '-image'
     }
     // Use xPath strategy if selector starts with //
@@ -201,6 +203,7 @@ export const findStrategy = function (selector, isW3C, isMobile) {
     }
     case '-image': {
         using = '-image'
+        value = fs.readFileSync(selector, { encoding: 'base64' })
         break
     }
     }

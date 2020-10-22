@@ -8,7 +8,6 @@ declare namespace WDIOReporter {
         onRunnerStart(runner: any): void;
         onBeforeCommand(command: BeforeCommand): void;
         onAfterCommand(command: AfterCommand): void;
-        onScreenshot(): void;
         onSuiteStart(suite: Suite): void;
         onHookStart(hook: Hook): void;
         onHookEnd(hook: Hook): void;

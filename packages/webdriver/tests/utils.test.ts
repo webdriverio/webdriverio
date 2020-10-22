@@ -211,9 +211,9 @@ describe('utils', () => {
                     browserName: 'chrome',
                 }
             }
-            const sessionId = await startWebDriverSession(params)
+            const { sessionId, capabilities } = await startWebDriverSession(params)
             expect(sessionId).toBe('foobar-123')
-            expect((params.capabilities as DesiredCapabilities).browserName)
+            expect(capabilities.browserName)
                 .toBe('mockBrowser')
             expect((params.requestedCapabilities as DesiredCapabilities).browserName)
                 .toBe('chrome')

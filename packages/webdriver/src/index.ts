@@ -6,8 +6,11 @@ import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 
 import { DEFAULTS } from './constants'
-import { Options, Client, AttachOptions, SessionFlags } from './types'
 import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
+import type {
+    Options, Client, AttachOptions, SessionFlags,
+    DesiredCapabilities
+} from './types'
 
 const log = logger('webdriver')
 
@@ -41,8 +44,8 @@ export default class WebDriver {
             params.path = directConnectPath
         }
 
-        const sessionId = await startWebDriverSession(params)
-        const environment = sessionEnvironmentDetector(params)
+        const { sessionId, capabilities } = await startWebDriverSession(params)
+        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities: params.capabilities })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
@@ -87,13 +90,13 @@ export default class WebDriver {
      * @returns {string}           the new session id of the browser
     */
     static async reloadSession (instance: Client) {
-        const params = {
+        const params: Options = {
             ...instance.options,
-            capabilities: instance.requestedCapabilities
+            capabilities: instance.requestedCapabilities as DesiredCapabilities
         }
-        const sessionId = await startWebDriverSession(params)
+        const { sessionId, capabilities } = await startWebDriverSession(params)
         instance.sessionId = sessionId
-        instance.capabilities = params.capabilities
+        instance.capabilities = capabilities
         return sessionId
     }
 

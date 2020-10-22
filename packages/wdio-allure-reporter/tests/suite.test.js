@@ -12,6 +12,7 @@ import { runnerEnd, runnerStart } from './__fixtures__/runner'
 import { suiteEnd, suiteStart } from './__fixtures__/suite'
 import {
     testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors,
+    hookStart, hookFailed,
     testFailedWithAssertionErrorFromExpectWebdriverIO
 } from './__fixtures__/testState'
 import {
@@ -523,6 +524,28 @@ for (const protocol of ['webdriver', 'devtools']) {
             expect(allureXml('step > title').eq(0).text()).toEqual(assertionResults[protocol].screenshotTitle)
             expect(allureXml('test-case attachment[title="Screenshot"]')).toHaveLength(0)
             expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
+        })
+
+        it('should attach screenshot on hook failure', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableMochaHooks: true,
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            reporter.onHookStart(hookStart())
+            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
+            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onHookEnd(hookFailed())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+            expect(allureXml('test-case attachment[title="Screenshot"]')).toHaveLength(1)
         })
     })
 }

@@ -72,7 +72,6 @@ export default class CustomReporter extends WDIOReporter {
     onRunnerStart() {}
     onBeforeCommand() {}
     onAfterCommand() {}
-    onScreenshot() {}
     onSuiteStart() {}
     onHookStart() {}
     onHookEnd() {}

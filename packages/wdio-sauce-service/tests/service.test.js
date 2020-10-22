@@ -154,6 +154,24 @@ test('afterTest', () => {
 
     service.afterTest({}, {}, { passed: false })
     expect(service.failures).toBe(1)
+
+    service.afterTest({ _retriedTest: {} }, {}, { passed: true })
+    expect(service.failures).toBe(0)
+
+    service.afterTest({}, {}, { passed: false })
+    expect(service.failures).toBe(1)
+    service.afterTest({
+        _retriedTest: {},
+        _currentRetry: 1,
+        _retries: 2
+    }, {}, { passed: false })
+    expect(service.failures).toBe(1)
+    service.afterTest({
+        _retriedTest: {},
+        _currentRetry: 2,
+        _retries: 2
+    }, {}, { passed: false })
+    expect(service.failures).toBe(2)
 })
 
 test('beforeFeature should set context', () => {

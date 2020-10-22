@@ -90,6 +90,23 @@ export default class SauceService {
     }
 
     afterTest (test, context, results) {
+        /**
+         * remove failure if test was retried and passed
+         * > Mocha only
+         */
+        if (test._retriedTest && results.passed) {
+            --this.failures
+            return
+        }
+
+        /**
+         * don't bump failure number if test was retried and still failed
+         * > Mocha only
+         */
+        if (test._retriedTest && !results.passed && test._currentRetry < test._retries) {
+            return
+        }
+
         if (!results.passed) {
             ++this.failures
         }

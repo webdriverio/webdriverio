@@ -472,6 +472,25 @@ describe('SpecReporter', () => {
         })
     })
 
+    describe('custom getSymbol', () => {
+        const options = { symbols: { passed: 'Y', failed: 'N' } }
+        beforeEach(() => {
+            tmpReporter = new SpecReporter(options)
+        })
+
+        it('should get new passed symbol', () => {
+            expect(tmpReporter.getSymbol('passed')).toBe(options.symbols.passed)
+        })
+
+        it('should get new failed symbol', () => {
+            expect(tmpReporter.getSymbol('failed')).toBe(options.symbols.failed)
+        })
+
+        it('should get the skipped symbol that is not set', () => {
+            expect(tmpReporter.getSymbol('skipped')).toBe('-')
+        })
+    })
+
     describe('getColor', () => {
         it('should get green', () => {
             expect(tmpReporter.getColor('passed')).toBe('green')
