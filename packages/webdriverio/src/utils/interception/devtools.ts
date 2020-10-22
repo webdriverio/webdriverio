@@ -13,7 +13,7 @@ const log = logger('webdriverio')
 type RequestOptions = {
     requestId: string;
     responseCode?: number;
-    responseHeaders?: any[];
+    responseHeaders?: { name: string, value: string }[];
     body?: string | WebdriverIO.JsonCompatible;
     errorReason?: string;
 }
@@ -269,7 +269,7 @@ const filterMethod = (method: string, expected?: ((method: string) => boolean) |
     return expected.toLowerCase() !== method.toLowerCase()
 }
 
-const filterHeaders = (responseHeaders: object, expected?: ((responseHeaders: object) => boolean) | object) => {
+const filterHeaders = (responseHeaders: Record<string, string>, expected?: ((responseHeaders: Record<string, string>) => boolean) | Record<string, string>) => {
     if (typeof expected === 'undefined') {
         return false
     }
