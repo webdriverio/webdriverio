@@ -14,9 +14,6 @@ type CurrentElement = {
  * wait on element if:
  *  - elementId couldn't be fetched in the first place
  *  - command is not explicit wait command for existance or displayedness
- * @param  {Object}  currentElement  element to wait on if necessary
- * @param  {string}  commandName  name of the command that called this
- * @return {Promise} resolves with element after any necessary waiting
  */
 export default async function implicitWait (currentElement: CurrentElement, commandName: string): Promise<void | CurrentElement> {
 
