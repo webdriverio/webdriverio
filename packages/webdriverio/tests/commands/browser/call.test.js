@@ -23,4 +23,9 @@ describe('call command', () => {
         expect(() => browser.call())
             .toThrow(/needs to be a function/)
     })
+
+    it('should fail if parameter is not a function', () => {
+        expect(() => browser.call(123))
+            .toThrow(/needs to be a function/)
+    })
 })
