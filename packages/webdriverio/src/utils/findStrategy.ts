@@ -25,7 +25,7 @@ const IMAGEPATH_MOBILE_SELECTORS_ENDSWITH = [
     '.jpg', '.jpeg', '.gif', '.png', '.bmp', '.svg'
 ]
 
-const defineStrategy = function (selector) {
+const defineStrategy = function (selector: string) {
     // Condition with checking isPlainObject(selector) should be first because
     // in case of "selector" argument is a plain object then .match() will cause
     // an error like "selector.match is not a function"
@@ -98,7 +98,7 @@ const defineStrategy = function (selector) {
         return 'xpath extended'
     }
 }
-export const findStrategy = function (selector, isW3C, isMobile) {
+export const findStrategy = function (selector: string, isW3C: boolean, isMobile: boolean) {
     let using = DEFAULT_STRATEGY
     let value = selector
 
@@ -106,7 +106,7 @@ export const findStrategy = function (selector, isW3C, isMobile) {
     // user has specified locator strategy directly
     case 'directly': {
         const match = selector.match(DIRECT_SELECTOR_REGEXP)
-        if (!isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
+        if (!match || !isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
             throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
         }
         using = match[1]
@@ -168,15 +168,22 @@ export const findStrategy = function (selector, isW3C, isMobile) {
     }
     case 'name': {
         if (isMobile || !isW3C) {
+            const match = selector.match(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/)
+            if (!match) {
+                throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
+            }
             using = 'name'
-            value = selector.match(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/)[2]
+            value = match[2]
         }
         break
     }
     case 'xpath extended': {
         using = 'xpath'
         const match = selector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))
-        const PREFIX_NAME = { '.': 'class', '#': 'id' }
+        if (!match) {
+            throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
+        }
+        const PREFIX_NAME: Record<string, string> = { '.': 'class', '#': 'id' }
         const conditions = []
         const [
             tag,
