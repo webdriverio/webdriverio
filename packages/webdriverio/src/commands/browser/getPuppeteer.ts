@@ -34,7 +34,7 @@ export default async function getPuppeteer (this: WebdriverIO.BrowserObject) {
     /**
      * attach to Firefox debugger session
      */
-    if (this.capabilities.browserName && this.capabilities.browserName.toLowerCase() === 'firefox') {
+    if (this.capabilities.browserName?.toLowerCase() === 'firefox') {
         if (!this.capabilities.browserVersion) {
             throw new Error('Can\'t find "browserVersion" in capabilities')
         }
