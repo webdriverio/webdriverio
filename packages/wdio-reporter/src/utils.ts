@@ -1,5 +1,3 @@
-import { DesiredCapabilities } from './types'
-
 /**
  * replaces whitespaces with underscore and removes dots
  * @param  {String} str  variable to sanitize
@@ -21,7 +19,7 @@ export function sanitizeString (str?: string) {
  * formats capability object into sanitized string for e.g.filenames
  * @param {Object} caps  Selenium capabilities
  */
-export function sanitizeCaps (caps?: DesiredCapabilities) {
+export function sanitizeCaps (caps?: WebDriver.DesiredCapabilities) {
     if (!caps) {
         return ''
     }

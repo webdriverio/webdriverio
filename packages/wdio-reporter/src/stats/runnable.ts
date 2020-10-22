@@ -9,11 +9,10 @@ import { Test } from './test'
 export default abstract class RunnableStats {
     start?: Date
     end?: Date
-    _duration: number
+    _duration = 0
 
     constructor (public type: string) {
         this.start = new Date()
-        this._duration = 0
     }
 
     complete () {
