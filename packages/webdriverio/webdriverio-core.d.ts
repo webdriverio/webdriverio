@@ -535,6 +535,7 @@ declare namespace WebdriverIO {
     type MockFilterOptions = {
         method?: string | ((method: string) => boolean),
         headers?: Record<string, string> | ((headers: Record<string, string>) => boolean),
+        requestHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
         responseHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
         statusCode?: number | ((statusCode: number) => boolean),
         postData?: string | ((payload: string | undefined) => boolean)
