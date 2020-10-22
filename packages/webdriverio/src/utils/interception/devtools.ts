@@ -34,6 +34,8 @@ type Event = {
     responseHeaders: Record<string, string>[],
 }
 
+type ExpectParameter<T> = ((param: T) => boolean) | T;
+
 export default class DevtoolsInterception extends Interception {
     static handleRequestInterception (client: Client, mocks: Interception[]): (event: Event) => Promise<void | ClientResponse> {
         return async (event) => {
@@ -239,7 +241,7 @@ export default class DevtoolsInterception extends Interception {
     }
 }
 
-const filterMethod = (method: string, expected?: ((method: string) => boolean) | string) => {
+const filterMethod = (method: string, expected?: ExpectParameter<string>) => {
     if (typeof expected === 'undefined') {
         return false
     }
@@ -249,7 +251,7 @@ const filterMethod = (method: string, expected?: ((method: string) => boolean) |
     return expected.toLowerCase() !== method.toLowerCase()
 }
 
-const filterHeaders = (responseHeaders: Record<string, string>, expected?: ((responseHeaders: Record<string, string>) => boolean) | Record<string, string>) => {
+const filterHeaders = (responseHeaders: Record<string, string>, expected?: ExpectParameter<Record<string, string>>) => {
     if (typeof expected === 'undefined') {
         return false
     }
@@ -259,7 +261,7 @@ const filterHeaders = (responseHeaders: Record<string, string>, expected?: ((res
     return !containsHeaderObject(responseHeaders, expected)
 }
 
-const filterRequest = (postData?: string, expected?: ((postData?: string) => boolean) | string) => {
+const filterRequest = (postData?: string, expected?: ExpectParameter<string | undefined>) => {
     if (typeof expected === 'undefined') {
         return false
     }
@@ -269,7 +271,7 @@ const filterRequest = (postData?: string, expected?: ((postData?: string) => boo
     return postData !== expected
 }
 
-const filterStatusCode = (statusCode: number, expected?: ((statusCode: number) => boolean) | number) => {
+const filterStatusCode = (statusCode: number, expected?: ExpectParameter<number>) => {
     if (typeof expected === 'undefined') {
         return false
     }
@@ -303,5 +305,5 @@ const tryParseJson = (body: string) => {
 
 const logFetchError = (err?: Error) => {
     /* istanbul ignore next */
-    log.debug(err && err.message ? err.message : err)
+    log.debug(err?.message)
 }
