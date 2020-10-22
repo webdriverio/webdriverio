@@ -87,15 +87,12 @@ export default class DevtoolsInterception extends Interception {
                     continue
                 }
 
-                try {
-                    const { body, base64Encoded = undefined } = isRequest ? { body: '' } : await client.send(
-                        'Fetch.getResponseBody',
-                        { requestId }
-                    )
-                    request.body = base64Encoded ? atob(body) : body
-                } catch (error) {
-                    // istanbul ignore next
-                }
+                const { body, base64Encoded = undefined } = isRequest ? { body: '' } : await client.send(
+                    'Fetch.getResponseBody',
+                    { requestId }
+                ).catch(/* istanbul ignore next */() => ({} as any))
+
+                request.body = base64Encoded ? atob(body) : body
 
                 const contentTypeHeader = Object.keys(responseHeaders).find(h => h.toLowerCase() === 'content-type') || ''
                 const responseContentType = responseHeaders[contentTypeHeader]
@@ -111,11 +108,9 @@ export default class DevtoolsInterception extends Interception {
                     continue
                 }
 
-                const { errorReason, overwrite, params, sticky } = mock.respondOverwrites[0]
-
-                if (sticky) {
-                    mock.respondOverwrites.shift()
-                }
+                const { errorReason, overwrite, params } = mock.respondOverwrites[0].sticky
+                    ? mock.respondOverwrites[0]
+                    : mock.respondOverwrites.shift() || {}
 
                 /**
                  * when response is modified
