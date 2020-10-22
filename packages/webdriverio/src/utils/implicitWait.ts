@@ -1,12 +1,13 @@
 import logger from '@wdio/logger'
 const log = logger('webdriverio')
 
-type CurrentElement = {
+export type CurrentElement = {
+    index: number;
     elementId: string;
     selector: string;
-    parent: {
-        $: (selector: string) => Promise<void>
-    };
+    parent: CurrentElement;
+    $: (selector: string) => Promise<CurrentElement>
+    $$: (selector: string) => Promise<CurrentElement[]>
     waitForExist: () => Promise<void>
 }
 
@@ -15,7 +16,7 @@ type CurrentElement = {
  *  - elementId couldn't be fetched in the first place
  *  - command is not explicit wait command for existance or displayedness
  */
-export default async function implicitWait (currentElement: CurrentElement, commandName: string): Promise<void | CurrentElement> {
+export default async function implicitWait (currentElement: CurrentElement, commandName: string): Promise<CurrentElement> {
 
     if (!currentElement.elementId && !commandName.match(/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/)) {
         log.debug(
