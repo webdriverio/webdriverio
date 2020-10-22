@@ -18,8 +18,13 @@ type RequestOptions = {
     errorReason?: string;
 }
 
+type ClientResponse = {
+    body: string;
+    base64Encoded?: boolean
+}
+
 type Client = {
-    send: (requestName: string, requestOptions: RequestOptions) => Promise<{ body: string; base64Encoded?: boolean }>;
+    send: (requestName: string, requestOptions: RequestOptions) => Promise<ClientResponse>;
 }
 
 type Mock = {
@@ -45,8 +50,8 @@ type Event = {
 }
 
 export default class DevtoolsInterception extends Interception {
-    static handleRequestInterception (client: Client, mocks: Mock[]) {
-        return async (event: Event) => {
+    static handleRequestInterception (client: Client, mocks: Mock[]): (event: Event) => Promise<void | ClientResponse> {
+        return async (event) => {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
             const isRequest = !event.responseHeaders
