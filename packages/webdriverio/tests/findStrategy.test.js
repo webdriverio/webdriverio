@@ -1,5 +1,6 @@
 import { findStrategy } from '../src/utils/findStrategy'
 import fs from 'fs'
+
 jest.mock('fs')
 
 describe('selector strategies helper', () => {
