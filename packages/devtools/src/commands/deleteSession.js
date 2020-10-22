@@ -8,5 +8,6 @@
 
 export default async function deleteSession () {
     await this.browser.close()
+    this.windows.clear()
     return null
 }
