@@ -71,5 +71,10 @@
     "rgb2hex": "^0.2.0",
     "serialize-error": "^7.0.0",
     "webdriver": "6.7.0"
+  },
+  "devDependencies": {
+    "@types/atob": "^2.1.2",
+    "@types/fs-extra": "^9.0.2",
+    "@types/lodash.isplainobject": "^4.0.6"
   }
 }
