@@ -137,7 +137,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             return
         }
 
-        const logLines: any = this.unsynced.slice(0, MAX_LINES).join('\n')
+        const logLines: JSON = JSON.parse(this.unsynced.slice(0, MAX_LINES).join('\n'))
 
         /**
          * set `isSynchronising` to true so we don't sync when a request is being made

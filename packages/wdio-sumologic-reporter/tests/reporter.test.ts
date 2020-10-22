@@ -94,7 +94,7 @@ describe('wdio-sumologic-reporter', () => {
         expect(got.mock.calls).toHaveLength(1)
         expect(got.mock.calls[0][1].method).toBe('POST')
         expect(got.mock.calls[0][0]).toBe('http://localhost:1234')
-        expect(got.mock.calls[0][1].json).toContain('"event":"runner:start","data":"onRunnerStart"')
+        expect(got.mock.calls[0][1].json).toMatchObject({ 'event': 'runner:start', 'data': 'onRunnerStart' })
 
         expect(reporter.unsynced).toHaveLength(0)
     })
