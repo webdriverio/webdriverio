@@ -14,7 +14,7 @@ type RequestOptions = {
     requestId: string;
     responseCode?: number;
     responseHeaders?: any[];
-    body?: string;
+    body?: string | WebdriverIO.JsonCompatible;
     errorReason?: string;
 }
 
@@ -22,14 +22,36 @@ type Client = {
     send: (requestName: string, requestOptions: RequestOptions) => Promise<{ body: string; base64Encoded?: boolean }>;
 }
 
+type Mock = {
+    url: string;
+    filterOptions: WebdriverIO.MockFilterOptions;
+    browser: WebdriverIO.BrowserObject;
+    respondOverwrites: {
+        overwrite?: WebdriverIO.MockOverwrite;
+        params?: WebdriverIO.MockResponseParams;
+        sticky?: boolean;
+        errorReason?: string;
+    }[];
+    matches: WebdriverIO.Matches[];
+    calls?: WebdriverIO.Matches[];
+}
+
+type Event = {
+    // requestHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
+    requestId: string;
+    request: WebdriverIO.Matches & { mockedResponse: string; };
+    responseStatusCode?: number;
+    responseHeaders: { name: string, value: string }[],
+}
+
 export default class DevtoolsInterception extends Interception {
-    static handleRequestInterception (client: Client, mocks) {
-        return async (event) => {
+    static handleRequestInterception (client: Client, mocks: Mock[]) {
+        return async (event: Event) => {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
             const isRequest = !event.responseHeaders
             const eventResponseHeaders = event.responseHeaders || []
-            const responseHeaders = eventResponseHeaders.reduce((headers, { name, value }) => {
+            const responseHeaders = eventResponseHeaders.reduce<Record<string, string>>((headers, { name, value }) => {
                 headers[name] = value
                 return headers
             }, {})
@@ -85,9 +107,10 @@ export default class DevtoolsInterception extends Interception {
                     // istanbul ignore next
                 }
 
-                const responseContentType = responseHeaders[Object.keys(responseHeaders).find(h => h.toLowerCase() === 'content-type')]
+                const contentTypeHeader = Object.keys(responseHeaders).find(h => h.toLowerCase() === 'content-type') || ''
+                const responseContentType = responseHeaders[contentTypeHeader]
                 request.body = responseContentType && responseContentType.includes('application/json')
-                    ? tryParseJson(request.body)
+                    ? tryParseJson(request.body as string)
                     : request.body
                 mock.matches.push(request)
 
@@ -98,9 +121,11 @@ export default class DevtoolsInterception extends Interception {
                     continue
                 }
 
-                const { errorReason, overwrite, params } = mock.respondOverwrites[0].sticky
-                    ? mock.respondOverwrites[0]
-                    : mock.respondOverwrites.shift()
+                const { errorReason, overwrite, params, sticky } = mock.respondOverwrites[0]
+
+                if (sticky) {
+                    mock.respondOverwrites.shift()
+                }
 
                 /**
                  * when response is modified
@@ -120,10 +145,10 @@ export default class DevtoolsInterception extends Interception {
                         newBody = JSON.stringify(newBody)
                     }
 
-                    let responseCode = params.statusCode || responseStatusCode
+                    let responseCode = params?.statusCode || responseStatusCode
                     let responseHeaders = [
                         ...eventResponseHeaders,
-                        ...Object.entries(params.headers || {}).map(([name, value]) => ({ name, value }))
+                        ...Object.entries(params?.headers || {}).map(([name, value]) => ({ name, value }))
                     ]
 
                     /**
@@ -170,6 +195,7 @@ export default class DevtoolsInterception extends Interception {
     /**
      * allows access to all requests made with given pattern
      */
+    // @ts-ignore
     get calls () {
         return this.matches
     }
@@ -195,7 +221,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respond (overwrite, params = {}) {
+    respond (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
         this.respondOverwrites.push({ overwrite, params, sticky: true })
     }
 
@@ -204,7 +230,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respondOnce (overwrite, params = {}) {
+    respondOnce (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
         this.respondOverwrites.push({ overwrite, params })
     }
 
@@ -212,7 +238,7 @@ export default class DevtoolsInterception extends Interception {
      * Abort the request with an error code
      * @param {string} errorCode  error code of the response
      */
-    abort (errorReason, sticky = true) {
+    abort (errorReason: string, sticky: boolean = true) {
         if (typeof errorReason !== 'string' || !ERROR_REASON.includes(errorReason)) {
             throw new Error(`Invalid value for errorReason, allowed are: ${ERROR_REASON.join(', ')}`)
         }
@@ -223,12 +249,12 @@ export default class DevtoolsInterception extends Interception {
      * Abort the request once with an error code
      * @param {string} errorReason  error code of the response
      */
-    abortOnce (errorReason) {
+    abortOnce (errorReason: string) {
         this.abort(errorReason, false)
     }
 }
 
-const filterMethod = (method, expected) => {
+const filterMethod = (method: string, expected?: ((method: string) => boolean) | string) => {
     if (typeof expected === 'undefined') {
         return false
     }
@@ -238,7 +264,7 @@ const filterMethod = (method, expected) => {
     return expected.toLowerCase() !== method.toLowerCase()
 }
 
-const filterHeaders = (responseHeaders, expected) => {
+const filterHeaders = (responseHeaders: object, expected?: ((responseHeaders: object) => boolean) | object) => {
     if (typeof expected === 'undefined') {
         return false
     }
@@ -248,7 +274,7 @@ const filterHeaders = (responseHeaders, expected) => {
     return !containsHeaderObject(responseHeaders, expected)
 }
 
-const filterRequest = (postData, expected) => {
+const filterRequest = (postData?: string, expected?: ((postData?: string) => boolean) | string) => {
     if (typeof expected === 'undefined') {
         return false
     }
@@ -258,7 +284,7 @@ const filterRequest = (postData, expected) => {
     return postData !== expected
 }
 
-const filterStatusCode = (statusCode, expected) => {
+const filterStatusCode = (statusCode: number, expected?: ((statusCode: number) => boolean) | number) => {
     if (typeof expected === 'undefined') {
         return false
     }
@@ -273,7 +299,7 @@ const filterStatusCode = (statusCode, expected) => {
  * @param {String} file file to check access for
  * @return              Promise<true> if file can be accessed
  */
-const canAccess = async (filepath) => {
+const canAccess = async (filepath: fse.PathLike) => {
     try {
         await fse.access(filepath)
         return true
@@ -282,7 +308,7 @@ const canAccess = async (filepath) => {
     }
 }
 
-const tryParseJson = (body) => {
+const tryParseJson = (body: string) => {
     try {
         return JSON.parse(body) || body
     } catch {
@@ -290,7 +316,7 @@ const tryParseJson = (body) => {
     }
 }
 
-const logFetchError = (err) => {
+const logFetchError = (err?: Error) => {
     /* istanbul ignore next */
     log.debug(err && err.message ? err.message : err)
 }
