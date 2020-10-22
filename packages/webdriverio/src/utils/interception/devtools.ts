@@ -13,7 +13,7 @@ const log = logger('webdriverio')
 type RequestOptions = {
     requestId: string;
     responseCode?: number;
-    responseHeaders?: { name: string, value: string }[];
+    responseHeaders?: Record<string, string>[];
     body?: string | WebdriverIO.JsonCompatible;
     errorReason?: string;
 }
@@ -28,11 +28,10 @@ type Client = {
 }
 
 type Event = {
-    // requestHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
     requestId: string;
     request: WebdriverIO.Matches & { mockedResponse: string; };
     responseStatusCode?: number;
-    responseHeaders: { name: string, value: string }[],
+    responseHeaders: Record<string, string>[],
 }
 
 export default class DevtoolsInterception extends Interception {
@@ -42,7 +41,7 @@ export default class DevtoolsInterception extends Interception {
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
             const isRequest = !event.responseHeaders
             const eventResponseHeaders = event.responseHeaders || []
-            const responseHeaders = eventResponseHeaders.reduce<Record<string, string>>((headers, { name, value }) => {
+            const responseHeaders = eventResponseHeaders.reduce((headers, { name, value }) => {
                 headers[name] = value
                 return headers
             }, {})
