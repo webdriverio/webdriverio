@@ -46,9 +46,7 @@ export default async function getPuppeteer (this: WebdriverIO.BrowserObject) {
 
             const rdPort = ffOptions && ffOptions.debuggerAddress
                 ? ffOptions.debuggerAddress
-                : ffArgs
-                    ? ffArgs[ffArgs.findIndex((arg) => arg === FF_REMOTE_DEBUG_ARG) + 1]
-                    : null
+                : ffArgs?.[ffArgs.findIndex((arg) => arg === FF_REMOTE_DEBUG_ARG) + 1] ?? null
 
             if (!rdPort) {
                 throw new Error('Could\'t find remote debug port in Firefox options')

@@ -55,7 +55,7 @@ export default function debug(this: WebdriverIO.BrowserObject, commandTimeout = 
     /**
      * register worker process as debugger target
      */
-    (process as any)._debugProcess(process.pid)
+    process._debugProcess(process.pid)
 
     /**
      * initialise repl in testrunner
@@ -73,7 +73,7 @@ export default function debug(this: WebdriverIO.BrowserObject, commandTimeout = 
         }
 
         if (m.name === 'stop') {
-            (process as any)._debugEnd(process.pid)
+            process._debugEnd(process.pid)
             return commandResolve()
         }
 

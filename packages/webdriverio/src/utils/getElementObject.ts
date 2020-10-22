@@ -66,14 +66,14 @@ export const getElement = function findElement(this: WebdriverIO.BrowserObject, 
  * @param  {Object} res       findElements response
  * @return {Array}            array of WDIO elements
  */
-export const getElements = function getElements(this: WebdriverIO.BrowserObject, selector: string, elemResponse: ElementReference[] | Error, isReactElement = false) {
+export const getElements = function getElements(this: WebdriverIO.BrowserObject, selector: string, elemResponse: ElementReference[], isReactElement = false) {
     const browser = getBrowserObject(this)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
         ...getWDIOPrototype('element')
     }
 
-    const elements = (elemResponse as ElementReference[]).map((res, i) => {
+    const elements = elemResponse.map((res: ElementReference | Error, i) => {
         propertiesObject.scope = 'element'
         const element = webdriverMonad(this.options, (client: ElementObject) => {
             const elementId = getElementFromResponse(res)
@@ -93,7 +93,7 @@ export const getElements = function getElements(this: WebdriverIO.BrowserObject,
                     client.ELEMENT = elementId
                 }
             } else {
-                client.error = res as unknown as Error
+                client.error = res as Error
             }
 
             client.selector = selector

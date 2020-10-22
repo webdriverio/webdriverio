@@ -41,6 +41,6 @@ export default async function getCookies(this: WebdriverIO.BrowserObject, names?
         throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/getCookies.html for documentation.')
     }
 
-    const allCookies: WebDriver.Cookie[] = await this.getAllCookies() as unknown as WebDriver.Cookie[]
+    const allCookies: WebDriver.Cookie[] = await this.getAllCookies() as WebDriver.Cookie[]
     return allCookies.filter(cookie => namesList.includes(cookie.name))
 }

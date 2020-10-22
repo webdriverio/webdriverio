@@ -57,7 +57,7 @@ export default async function $ (this: WebdriverIO.BrowserObject, selector: stri
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`
      */
-    if (selector && typeof (selector as ElementReference)[ELEMENT_KEY] === 'string') {
+    if (typeof selector !== 'string' && typeof (selector as ElementReference)[ELEMENT_KEY] === 'string') {
         return getElement.call(this, undefined, selector as ElementReference)
     }
 

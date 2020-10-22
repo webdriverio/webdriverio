@@ -33,7 +33,7 @@ async function custom$$ (this: WebdriverIO.BrowserObject, strategyName: string, 
         throw Error('No strategy found for ' + strategyName)
     }
 
-    let res = await this.execute(strategy, ...strategyArguments) as (ElementReference | ElementReference[])
+    let res: ElementReference | ElementReference[] = await this.execute(strategy, ...strategyArguments)
 
     /**
      * if the user's script return just one element

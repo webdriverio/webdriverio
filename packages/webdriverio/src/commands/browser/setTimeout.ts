@@ -45,17 +45,18 @@ export default async function setTimeout(this: WebdriverIO.BrowserObject, timeou
     // Previously also known as `page load` with JsonWireProtocol
     const pageLoad = (timeouts as any)['page load'] || timeouts.pageLoad
     const script = timeouts.script
+    const setTimeouts: any = this.setTimeouts.bind(this)
 
     /**
      * JsonWireProtocol action
      */
     if (!this.isW3C) {
         return Promise.all([
-            isFinite(implicit) && (this.setTimeouts as any)('implicit', implicit),
-            isFinite(pageLoad) && (this.setTimeouts as any)('page load', pageLoad),
-            isFinite(script) && (this.setTimeouts as any)('script', script),
+            isFinite(implicit) && setTimeouts('implicit', implicit),
+            isFinite(pageLoad) && setTimeouts('page load', pageLoad),
+            isFinite(script) && setTimeouts('script', script),
         ].filter(Boolean))
     }
 
-    return (this.setTimeouts as any)(implicit, pageLoad, script)
+    return setTimeouts(implicit, pageLoad, script)
 }
