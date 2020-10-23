@@ -1,11 +1,7 @@
-import TestStats from '../src/stats/test'
-
-class TestClass extends TestStats {
-    complete!: jest.Mock<any, any>
-}
+import TestStats from '../../src/stats/test'
 
 describe('TestStats', () => {
-    let stat: TestClass
+    let stat: TestStats
 
     beforeEach(() => {
         stat = new TestStats({
@@ -18,11 +14,16 @@ describe('TestStats', () => {
             specs: ['/path/to/test/specs/sync.spec.js'],
             uid: 'should can do something3',
             argument: { rows: [{ location: { column: 1, line: 1 }, value: 'hallo' }] }
-        }) as TestClass
+        })
     })
 
     beforeEach(() => {
         jest.resetAllMocks()
+    })
+
+    it('defines a start date', () => {
+        expect(stat.type).toBe('test')
+        expect(stat.start instanceof Date).toBe(true)
     })
 
     it('should be initialised with correct values', () => {
@@ -41,7 +42,7 @@ describe('TestStats', () => {
 
         expect(stat.state).toBe('skipped')
         expect(stat.pendingReason).toBe('for no reason')
-        expect(stat.complete.mock.calls).toHaveLength(0)
+        expect((stat.complete as jest.Mock).mock.calls).toHaveLength(0)
     })
 
     it('can pass', () => {
@@ -49,7 +50,7 @@ describe('TestStats', () => {
         stat.pass()
 
         expect(stat.state).toBe('passed')
-        expect(stat.complete.mock.calls).toHaveLength(1)
+        expect((stat.complete as jest.Mock).mock.calls).toHaveLength(1)
     })
 
     it('can fail', () => {
@@ -61,7 +62,7 @@ describe('TestStats', () => {
         expect(stat.errors![0].message).toBe('oh oh')
 
         expect(stat.error!.message).toBe('oh oh')
-        expect(stat.complete.mock.calls).toHaveLength(1)
+        expect((stat.complete as jest.Mock).mock.calls).toHaveLength(1)
     })
 
     it('should not throw if it fails with no errors somehow', () => {
@@ -77,37 +78,5 @@ describe('TestStats', () => {
         stat.fail(undefined)
 
         expect(stat.state).toBe('failed')
-    })
-
-    it('defines a start date', () => {
-        stat.complete = jest.fn()
-
-        expect(stat.type).toBe('test')
-        expect(stat.start instanceof Date).toBe(true)
-    })
-
-    it('when there\'s no end date, duration should be current time - start time', (done) => {
-        const timeout = 10
-
-        setTimeout(() => {
-            expect(stat.duration).toBeGreaterThanOrEqual(timeout)
-            done()
-        }, timeout)
-    })
-
-    it('when there\'s an end date, duration should be end time - start time', (done) => {
-        expect(typeof stat.duration).toBe('number')
-
-        const currentDuration = stat.duration
-        const timeout = 10
-
-        setTimeout(() => {
-            stat.complete()
-
-            expect(stat.end).toBeInstanceOf(Date)
-            expect(stat.end!.getTime()).toBeGreaterThanOrEqual(stat.start!.getTime() + timeout)
-            expect(stat.duration).toBeGreaterThanOrEqual(currentDuration + timeout)
-            done()
-        }, timeout)
     })
 })

@@ -9,6 +9,7 @@ test('should get initialised', () => {
         tags: ['foo', 'bar']
     })
 
-    delete suite.start
-    expect(suite).toMatchSnapshot()
+    const { start, ...snapshot } = suite
+    expect(snapshot).toMatchSnapshot()
+    expect(start instanceof Date).toBe(true)
 })

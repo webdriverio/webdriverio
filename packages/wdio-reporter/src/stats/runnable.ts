@@ -7,25 +7,22 @@ import { Test } from './test'
  * mainly used to capture its running duration
  */
 export default abstract class RunnableStats {
-    start?: Date
+    start = new Date()
     end?: Date
-    _duration: number
+    _duration = 0
 
-    constructor (public type: string) {
-        this.start = new Date()
-        this._duration = 0
-    }
+    constructor (public type: string) {}
 
     complete () {
         this.end = new Date()
-        this._duration = this.end.getTime() - this.start!.getTime()
+        this._duration = this.end.getTime() - this.start.getTime()
     }
 
     get duration () {
         if (this.end) {
             return this._duration
         }
-        return new Date().getTime() - this.start!.getTime()
+        return new Date().getTime() - this.start.getTime()
     }
 
     /**
