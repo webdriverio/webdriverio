@@ -46,13 +46,7 @@ const packages = getSubPackages()
      */
     .reduce((acc, pkg) => {
         const tokens = pkg.split('-')
-
-        if (tokens.length > 2) {
-            acc[1].push(pkg)
-        } else {
-            acc[0].push(pkg)
-        }
-
+        acc[tokens.length > 2 ? 1 : 0].push(pkg)
         return acc
     }, [[], []])
 
