@@ -36,7 +36,7 @@ Available short handles for regions are `us` (default) and `eu`. These regions a
 > By default the `ondemand.us-west-1.saucelabs.com` US endpoint will be used. This is the new Unified Platform endpoint. If you want to use the *old* endpoint then
 > don't provide a region and add `hostname: ondemand.saucelabs.com` to your configuration file.
 
-If you want to use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)
+If you want WebdriverIO to automatically spin up a [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) tunnel,
 you just need to set `sauceConnect: true`. If you would like to change data center to EU add `region:'eu'` as US data center is set as default (region only works on ^4.14.1 or ^5.0.0).
 
 ```js
@@ -54,6 +54,33 @@ export.config = {
             }
         }]
     ],
+    // ...
+};
+```
+
+If you want to use an existing Sauce Connect tunnel you only need to provide the `tunnelIdentifier` into you capabilites like this
+
+```js
+export.config = {
+    // ...
+    {
+        browserName: 'chrome',
+        platformName: 'Windows 10',
+        browserVersion: 'latest',
+        // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
+        'sauce:options': {
+            tunnelIdentifier: 'your-tunnel-name',
+            
+            // If a parent tunnel is needed use this combination
+            tunnelIdentifier: 'ParentTunnelName',
+            parentTunnel: '<username of parent>,
+            
+            // Example options
+            build: 'your-build-name',
+            screenResolution: '1600x1200',
+            // ...
+        },
+    },
     // ...
 };
 ```
