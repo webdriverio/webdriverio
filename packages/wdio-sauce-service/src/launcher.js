@@ -76,14 +76,14 @@ export default class SauceLauncher {
         obs.observe({ entryTypes: ['measure'], buffered: false })
 
         performance.mark('sauceConnectStart')
-        await this.startTunnel()
+        this.sauceConnectProcess = await this.startTunnel()
         performance.mark('sauceConnectEnd')
         performance.measure('bootTime', 'sauceConnectStart', 'sauceConnectEnd')
     }
 
-    async startTunnel(retryCount = 0) {
+    startTunnel(retryCount = 0) {
         try {
-            this.sauceConnectProcess = await this.api.startSauceConnect(this.sauceConnectOpts)
+            return this.api.startSauceConnect(this.sauceConnectOpts)
         } catch (err) {
             ++retryCount
             /**
@@ -104,7 +104,7 @@ export default class SauceLauncher {
             }
             log.debug(`Failed to start Sauce Connect Proxy due to ${err.stack}`)
             log.debug(`Retrying ${retryCount}/${MAX_SC_START_TRIALS}`)
-            this.sauceConnectProcess = await this.startTunnel(retryCount)
+            return this.startTunnel(retryCount)
         }
     }
 
