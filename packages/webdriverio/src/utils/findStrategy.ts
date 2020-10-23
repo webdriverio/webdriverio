@@ -170,7 +170,7 @@ export const findStrategy = function (selector: string, isW3C: boolean, isMobile
         if (isMobile || !isW3C) {
             const match = selector.match(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/)
             if (!match) {
-                throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
+                throw new Error(`InvalidSelectorMatch. Strategy 'name' has tried to match '${selector}'`)
             }
             using = 'name'
             value = match[2]
@@ -181,7 +181,7 @@ export const findStrategy = function (selector: string, isW3C: boolean, isMobile
         using = 'xpath'
         const match = selector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))
         if (!match) {
-            throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
+            throw new Error(`InvalidSelectorMatch: Strategy 'xpath extended' has tried to match '${selector}'`)
         }
         const PREFIX_NAME: Record<string, string> = { '.': 'class', '#': 'id' }
         const conditions = []
