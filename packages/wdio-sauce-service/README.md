@@ -58,8 +58,10 @@ export.config = {
 };
 ```
 
-If you want to use an existing Sauce Connect tunnel you only need to provide the `tunnelIdentifier` into you capabilites like this
+If you want to use an existing Sauce Connect tunnel you only need to provide, or the `tunnelIdentifier`, or if you are using a parent tunnel the `parentTunnel` into you capabilites like this:
 
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Tunnel Identifier-->
 ```js
 export.config = {
     // ...
@@ -69,9 +71,27 @@ export.config = {
         browserVersion: 'latest',
         // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
         'sauce:options': {
-            tunnelIdentifier: 'your-tunnel-name',
+            tunnelIdentifier: 'YourTunnelName',
             
-            // If a parent tunnel is needed use this combination
+            // Example options
+            build: 'your-build-name',
+            screenResolution: '1600x1200',
+            // ...
+        },
+    },
+    // ...
+};
+```
+<!--Parent Tunnel-->
+```js
+export.config = {
+    // ...
+    {
+        browserName: 'chrome',
+        platformName: 'Windows 10',
+        browserVersion: 'latest',
+        // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
+        'sauce:options': {
             tunnelIdentifier: 'ParentTunnelName',
             parentTunnel: '<username of parent>,
             
@@ -84,6 +104,7 @@ export.config = {
     // ...
 };
 ```
+<!--END_DOCUSAURUS_CODE_TABS-->
 
 If you want to use the Real Device cloud just pass the `testobject_api_key` in the capabilities like this:
 
