@@ -25,7 +25,7 @@ describe('RunnableStats', () => {
 
     it('getIdentifier', () => {
         expect(TestStats.getIdentifier(stat)).toBe('should can do something3')
-        stat.uid = undefined
+        stat.uid = ''
         expect(TestStats.getIdentifier(stat)).toBe('should can do something')
     })
 
