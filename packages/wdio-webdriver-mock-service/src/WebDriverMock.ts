@@ -12,8 +12,13 @@ const protocols = [
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
 ]
 
+type RequestMethods = 'get' | 'post'
 type protocolFlattenedType = { method: string, endpoint: string, commandData: WDIOProtocols.CommandEndpoint }
 const protocolFlattened: Map<string, protocolFlattenedType> = new Map()
+
+export interface CommandMock {
+    [commandName: string]: (...args: any[]) => nock.Interceptor
+}
 
 for (const protocol of protocols) {
     for (const [endpoint, methods] of Object.entries(protocol)) {
@@ -24,11 +29,9 @@ for (const protocol of protocols) {
 }
 
 export default class WebDriverMock {
-    command: ProxyConstructor
-    path: string
-    scope: any
-    constructor(host: string = 'localhost', port: number = 4444, path: string = '/') {
-        this.path = path
+    command: CommandMock
+    scope: nock.Scope
+    constructor(host: string = 'localhost', port: number = 4444, public path: string = '/') {
         this.scope = nock(`http://${host}:${port}`, { 'encodedQueryParams': true })
         this.command = new Proxy({}, { get: this.get.bind(this) })
     }
@@ -72,7 +75,8 @@ export default class WebDriverMock {
             }
 
             if (method === 'POST') {
-                return this.scope[method.toLowerCase()](WebDriverMock.pathMatcher(urlPath), (body: Record<string, any>) => {
+                const reqMethod = method.toLowerCase() as RequestMethods
+                return this.scope[reqMethod](WebDriverMock.pathMatcher(urlPath), (body: Record<string, any>) => {
                     for (const param of commandData.parameters) {
                         /**
                          * check if parameter was set
@@ -96,7 +100,8 @@ export default class WebDriverMock {
                 })
             }
 
-            return this.scope[method.toLowerCase()](WebDriverMock.pathMatcher(urlPath))
+            const reqMethod = method.toLowerCase() as RequestMethods
+            return this.scope[reqMethod](WebDriverMock.pathMatcher(urlPath))
         }
     }
 }
