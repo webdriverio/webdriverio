@@ -203,7 +203,7 @@ describe('wdio-applitools-service', () => {
             const service = new ApplitoolsService({})
             globalAny.browser = new BrowserMock()
 
-            service.beforeTest()
+            service.beforeTest({ title: 'some title', parent: 'some parent' })
             expect(globalAny.browser.call).not.toBeCalled()
         })
 

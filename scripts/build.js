@@ -57,7 +57,7 @@ const packages = getSubPackages()
     }, [[], []])
 
     /**
-     * Concat all groups of packages, with root packages at the start
+     * Concat all groups of packages, with root packages as first
      */
     .reduce((acc, collection) => acc.concat(collection), ROOT_PACKAGES)
 
