@@ -12,7 +12,9 @@ const protocols = [
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
 ]
 
-const protocolFlattened = new Map()
+type protocolFlattenedType = { method: string, endpoint: string, commandData: WDIOProtocols.CommandEndpoint }
+const protocolFlattened: Map<string, protocolFlattenedType> = new Map()
+
 for (const protocol of protocols) {
     for (const [endpoint, methods] of Object.entries(protocol)) {
         for (const [method, commandData] of Object.entries(methods)) {
@@ -22,7 +24,10 @@ for (const protocol of protocols) {
 }
 
 export default class WebDriverMock {
-    constructor(host = 'localhost', port = 4444, path = '/') {
+    command: ProxyConstructor
+    path: string
+    scope: any
+    constructor(host: string = 'localhost', port: number = 4444, path: string = '/') {
         this.path = path
         this.scope = nock(`http://${host}:${port}`, { 'encodedQueryParams': true })
         this.command = new Proxy({}, { get: this.get.bind(this) })
@@ -35,8 +40,8 @@ export default class WebDriverMock {
      * @param   {String}   expectedPath path to match against
      * @returns {Function}              to be called by Nock to match actual path
      */
-    static pathMatcher(expectedPath) {
-        return (path) => {
+    static pathMatcher(expectedPath: string): (path:string) =>boolean {
+        return (path: string) => {
             const sessionId = path.match(REGEXP_SESSION_ID)
 
             /**
@@ -56,17 +61,18 @@ export default class WebDriverMock {
         }
     }
 
-    get(obj, commandName) {
-        const { method, endpoint, commandData } = protocolFlattened.get(commandName)
+    get(obj: any, commandName: string) {
 
-        return (...args) => {
+        const { method, endpoint, commandData } = protocolFlattened.get(commandName) as protocolFlattenedType
+
+        return (...args: any[]) => {
             let urlPath = endpoint
             for (const [i, param] of Object.entries(commandData.variables || [])) {
-                urlPath = urlPath.replace(`:${param.name}`, args[i])
+                urlPath = urlPath.replace(`:${param.name}`, args[parseInt(i)])
             }
 
             if (method === 'POST') {
-                return this.scope[method.toLowerCase()](WebDriverMock.pathMatcher(urlPath), (body) => {
+                return this.scope[method.toLowerCase()](WebDriverMock.pathMatcher(urlPath), (body: Record<string, any>) => {
                     for (const param of commandData.parameters) {
                         /**
                          * check if parameter was set
