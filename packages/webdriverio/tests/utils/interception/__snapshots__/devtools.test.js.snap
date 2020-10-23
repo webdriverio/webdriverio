@@ -1,5 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`stub request do not fetch request 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "Zm9vYmFy",
+    "requestId": 123,
+    "responseCode": 200,
+    "responseHeaders": Array [],
+  },
+]
+`;
+
 exports[`stub request with a different web resource 1`] = `
 Array [
   Object {
@@ -32,7 +44,7 @@ Array [
   Object {
     "body": "Zm9vYmFy",
     "requestId": 123,
-    "responseCode": undefined,
+    "responseCode": 200,
     "responseHeaders": Array [
       Object {
         "name": "Content-Type",
@@ -49,7 +61,7 @@ Array [
   Object {
     "body": "",
     "requestId": 123,
-    "responseCode": undefined,
+    "responseCode": 200,
     "responseHeaders": Array [
       Object {
         "name": "Content-Type",
@@ -66,7 +78,7 @@ Array [
   Object {
     "body": undefined,
     "requestId": 123,
-    "responseCode": undefined,
+    "responseCode": 200,
     "responseHeaders": Array [
       Object {
         "name": "Content-Type",
@@ -83,7 +95,7 @@ Array [
   Object {
     "body": "Zm9vYmFy",
     "requestId": 123,
-    "responseCode": undefined,
+    "responseCode": 200,
     "responseHeaders": Array [
       Object {
         "name": "Content-Type",
@@ -100,7 +112,7 @@ Array [
   Object {
     "body": "eyJmb28iOiJiYXIifQ==",
     "requestId": 123,
-    "responseCode": undefined,
+    "responseCode": 200,
     "responseHeaders": Array [
       Object {
         "name": "Content-Type",
@@ -117,7 +129,7 @@ Array [
   Object {
     "body": "eyJmb28iOiJiYXIifQ==",
     "requestId": 123,
-    "responseCode": undefined,
+    "responseCode": 200,
     "responseHeaders": Array [
       Object {
         "name": "Content-Type",

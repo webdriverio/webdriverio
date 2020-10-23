@@ -1,7 +1,7 @@
 /**
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
- *
  * Always respond with same overwrite.
+ *
+ * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
  *
  * <example>
     :respond.js
@@ -18,7 +18,10 @@
             title: 'Injected completed Todo',
             order: null,
             completed: true
-        }])
+        }], {
+            statusCode: 200,
+            fetchResponse: true // default
+        })
 
         browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
 
@@ -40,9 +43,10 @@
  * </example>
  *
  * @alias mock.respond
- * @param {MockOverwrite}       overwrites         payload to overwrite the response
- * @param {MockResponseParams=} params             additional respond parameters to overwrite
- * @param {Object=}             params.header      overwrite specific headers
- * @param {Number=}              params.statusCode  overwrite response status code
+ * @param {MockOverwrite}       overwrites              payload to overwrite the response
+ * @param {MockResponseParams=} params                  additional respond parameters to overwrite
+ * @param {Object=}             params.header           overwrite specific headers
+ * @param {Number=}             params.statusCode       overwrite response status code
+ * @param {Boolean=}            params.fetchResponse    fetch real response before responding with mocked data
  */
 // actual implementation is located in packages/webdriverio/src/utils/interception

@@ -190,8 +190,6 @@ class MochaAdapter {
             break
         }
 
-        params.err = this.lastError
-        delete this.lastError
         return this.formatMessage(params)
     }
 
@@ -281,10 +279,6 @@ class MochaAdapter {
         message.cid = this.cid
         message.specs = this.specs
         message.uid = this.getUID(message)
-
-        if (message.error) {
-            this.lastError = message.error
-        }
 
         this.reporter.emit(message.type, message)
     }

@@ -1,10 +1,10 @@
 /**
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
- *
  * Mock the response of a request. You can define a mock based on a matching
  * glob and corresponding header and status code. Calling the mock method
  * returns a stub object that you can use to modify the response of the
  * web resource.
+ *
+ * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
  *
  * With the stub object you can then either return a custom response or
  * have the request fail.
@@ -84,12 +84,14 @@
  * </example>
  *
  * @alias browser.mock
- * @param {String}             url                            url to mock
- * @param {MockFilterOptions=} filterOptions                  filter mock resource by additional options
- * @param {String=}            filterOptions.method           filter resource by HTTP method
- * @param {Object=}            filterOptions.headers          filter resource by specific request headers
- * @param {Object=}            filterOptions.responseHeaders  filter resource by specific response headers
- * @return {Mock}                                             a mock object to modify the response
+ * @param {String}              url                             url to mock
+ * @param {MockFilterOptions=}  filterOptions                   filter mock resource by additional options
+ * @param {String|Function=}    filterOptions.method            filter resource by HTTP method
+ * @param {Object|Function=}    filterOptions.headers           filter resource by specific request headers
+ * @param {Object|Function=}    filterOptions.responseHeaders   filter resource by specific response headers
+ * @param {String|Function=}    filterOptions.postData          filter resource by request postData
+ * @param {Number|Function=}    filterOptions.statusCode        filter resource by response statusCode
+ * @return {Mock}                                               a mock object to modify the response
  * @type utility
  *
  */
@@ -113,7 +115,7 @@ export default async function mock (url, filterOptions) {
         const [page] = await this.puppeteer.pages()
         const client = await page.target().createCDPSession()
         await client.send('Fetch.enable', {
-            patterns: [{ requestStage: 'Response' }]
+            patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
         })
         client.on(
             'Fetch.requestPaused',
