@@ -303,13 +303,12 @@ export default class Runner extends EventEmitter {
     /**
      * kill worker session
      */
-    async _shutdown(failures, retries) {
+    async _shutdown (failures, retries) {
         this.reporter.emit('runner:end', {
             failures,
             cid: this.cid,
             retries
         })
-
         try {
             await this.reporter.waitForSync()
         } catch (e) {
