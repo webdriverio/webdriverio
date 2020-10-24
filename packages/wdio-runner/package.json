@@ -33,7 +33,4 @@
   "publishConfig": {
     "access": "public"
   },
-  "devDependencies": {
-    "@babel/plugin-proposal-function-bind": "^7.12.1"
-  }
 }
