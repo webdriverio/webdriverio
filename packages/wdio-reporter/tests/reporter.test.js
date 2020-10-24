@@ -65,6 +65,13 @@ describe('WDIOReporter', () => {
         expect(options.writeStream.write).toBeCalledWith('foobar')
     })
 
+    it('should return true if content is present', () => {
+        const options = { writeStream: { write: jest.fn() } }
+        const reporter = new WDIOReporter(options)
+        reporter.write(123)
+        expect(reporter.contentPresent).toBe(true)
+    })
+
     describe('outputDir options', () => {
         jest.mock('fs-extra')
         let ensureDirSyncSpy
