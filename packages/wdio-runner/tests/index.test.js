@@ -180,7 +180,7 @@ describe('wdio-runner', () => {
                 () => { throw new Error('boom') })
             await runner.run({})
 
-            expect(runner._shutdown).toBeCalledWith(1)
+            expect(runner._shutdown).toBeCalledWith(1, undefined)
         })
 
         it('should fail if init session fails', async () => {
@@ -204,11 +204,12 @@ describe('wdio-runner', () => {
             await runner.run({
                 args: { reporters: [] },
                 cid: '0-0',
+                retries: 2,
                 caps,
                 specs
             })
 
-            expect(runner._shutdown).toBeCalledWith(123)
+            expect(runner._shutdown).toBeCalledWith(123, 2)
             expect(beforeSession).toBeCalledWith(config, caps, specs)
             expect(executeHooksWithArgs).toBeCalledWith(config.before, [caps, specs])
 
@@ -270,7 +271,7 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testThrows',
                 reporters: [],
-                beforeSession: []
+                beforeSession: [],
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner._shutdown = jest.fn()
@@ -281,11 +282,12 @@ describe('wdio-runner', () => {
                 args: { reporters: [] },
                 cid: '0-0',
                 caps,
-                specs
+                specs,
+                retries: 2
             })
 
             expect(runner.endSession).toBeCalledTimes(1)
-            expect(runner._shutdown).toBeCalledWith(0)
+            expect(runner._shutdown).toBeCalledWith(0, 2)
         })
 
         it('should not initSession if there are no tests to run', async () => {
@@ -300,7 +302,7 @@ describe('wdio-runner', () => {
             runner._initSession = jest.fn()
 
             expect(await runner.run({ args: {}, caps: {} })).toBe(0)
-            expect(runner._shutdown).toBeCalledWith(0)
+            expect(runner._shutdown).toBeCalledWith(0, undefined)
             expect(runner._initSession).not.toBeCalled()
         })
 
@@ -410,12 +412,21 @@ describe('wdio-runner', () => {
     describe('_shutdown', () => {
         it('should emit exit', async () => {
             const runner = new WDIORunner()
-            runner.reporter = { waitForSync: jest.fn()
-                .mockReturnValue(Promise.resolve()) }
+            runner.cid = 123
+            runner.reporter = {
+                waitForSync: jest.fn().mockReturnValue(Promise.resolve()),
+                emit: jest.fn()
+
+            }
             runner.emit = jest.fn()
 
-            expect(await runner._shutdown(123)).toBe(123)
+            expect(await runner._shutdown(123, 111)).toBe(123)
             expect(runner.reporter.waitForSync).toBeCalledTimes(1)
+            expect(runner.reporter.emit).toHaveBeenCalledWith('runner:end', {
+                failures: 123,
+                cid: 123,
+                retries: 111
+            })
             expect(runner.emit).toBeCalledWith('exit', 1)
         })
 
@@ -424,10 +435,12 @@ describe('wdio-runner', () => {
             jest.spyOn(log, 'error').mockImplementation((string) => string)
 
             const runner = new WDIORunner()
-            runner.reporter = { waitForSync: jest.fn().mockReturnValue(Promise.reject('foo')) }
+            runner.reporter = {
+                waitForSync: jest.fn().mockReturnValue(Promise.reject('foo')),
+                emit: jest.fn()
+            }
             runner.emit = jest.fn()
-
-            expect(await runner._shutdown(123)).toBe(123)
+            expect(await runner._shutdown(123, 3)).toBe(123)
             expect(runner.reporter.waitForSync).toBeCalledTimes(1)
             expect(runner.emit).toBeCalledWith('exit', 1)
             expect(log.error).toHaveBeenCalledWith('foo')
