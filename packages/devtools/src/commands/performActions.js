@@ -7,7 +7,7 @@
  * @param {object[]} actions  A list of objects, each of which represents an input source and its associated actions.
  */
 
-import { keyDefinitions } from 'puppeteer-core/lib/USKeyboardLayout'
+import { keyDefinitions } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout'
 
 import getElementRect from './getElementRect'
 import { ELEMENT_KEY } from '../constants'
@@ -18,7 +18,7 @@ const POINTER = 'pointer'
 const sleep = (time = 0) => new Promise(
     (resolve) => setTimeout(resolve, time))
 
-export default async function performActions ({ actions }) {
+export default async function performActions({ actions }) {
     const page = this.getPageHandle()
     const lastPointer = {}
 
@@ -43,7 +43,7 @@ export default async function performActions ({ actions }) {
                 }
 
                 const cmd = singleAction.type.slice(KEY.length).toLowerCase()
-                const keyboardFn = ::page.keyboard[cmd]
+                const keyboardFn = page.keyboard[cmd].bind(page.keyboard)
 
                 /**
                  * skip up event as we had to use sendCharacter for non unicode
@@ -82,7 +82,7 @@ export default async function performActions ({ actions }) {
                 }
 
                 const cmd = singleAction.type.slice(POINTER.length).toLowerCase()
-                const keyboardFn = ::page.mouse[cmd]
+                const keyboardFn = page.mouse[cmd].bind(page.mouse)
                 let { x, y, duration, button, origin } = singleAction
 
                 if (cmd === 'move') {

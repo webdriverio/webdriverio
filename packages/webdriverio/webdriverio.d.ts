@@ -4,7 +4,7 @@ declare namespace WebdriverIO {
     function remote(
         options?: RemoteOptions,
         modifier?: (...args: any[]) => any
-    ): BrowserObject;
+    ): Promise<BrowserObject>;
 
     function attach(
         options: WebDriver.AttachSessionOptions,
@@ -12,7 +12,7 @@ declare namespace WebdriverIO {
 
     function multiremote(
         options: MultiRemoteOptions
-    ): BrowserObject;
+    ): Promise<BrowserObject>;
 
     interface Browser {
         /**
@@ -40,6 +40,11 @@ declare namespace WebdriverIO {
     }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser { }
+
+    /**
+     * Error to be thrown when a severe error was encountered when a Service is being ran.
+     */
+    class SevereServiceError extends Error { }
 }
 
 declare var browser: WebdriverIO.BrowserObject;

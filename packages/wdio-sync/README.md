@@ -63,7 +63,7 @@ const { remote } = require('webdriverio')
 const sync = require('@wdio/sync').default
 
 remote({
-    runner: true,
+    runner: 'local',
     outputDir: __dirname,
     capabilities: {
         browserName: 'chrome'
@@ -80,7 +80,7 @@ remote({
 
 ## Switching Between Sync And Async
 
-While using `@wdio/sync` you can still switch between both boths by using the `browser.call()` command. It allows you to run async code and return the result into a synchronous environment. For example:
+While using `@wdio/sync` you can still switch between both by using the `browser.call()` command. It allows you to run async code and return the result into a synchronous environment. For example:
 
 ```js
 describe('webdriver.io page', () => {

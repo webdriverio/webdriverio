@@ -1,5 +1,5 @@
 import TraceGatherer from '../../src/gatherer/trace'
-import { FRAME_LOAD_START_TIMEOUT } from '../../src/constants'
+import { FRAME_LOAD_START_TIMEOUT, CLICK_TRANSITION } from '../../src/constants'
 
 import TRACELOG from '../__fixtures__/tracelog.json'
 
@@ -13,13 +13,12 @@ const pageMock = {
     },
     evaluateOnNewDocument: jest.fn()
 }
+
 const sessionMock = {
     on: jest.fn(),
+    emit: jest.fn(),
+    send: jest.fn(),
     removeListener: jest.fn()
-}
-const driverMock = {
-    getCDPSession: jest.fn().mockReturnValue(Promise.resolve(sessionMock)),
-    getActivePage: jest.fn().mockReturnValue(Promise.resolve(pageMock))
 }
 
 const frame = {
@@ -31,14 +30,12 @@ const frame = {
 jest.useFakeTimers()
 
 beforeEach(() => {
-    driverMock.getCDPSession.mockClear()
-    driverMock.getActivePage.mockClear()
     pageMock.on.mockClear()
     pageMock.tracing.start.mockClear()
     pageMock.tracing.stop.mockClear()
     pageMock.evaluateOnNewDocument.mockClear()
     sessionMock.on.mockClear()
-    traceGatherer = new TraceGatherer(driverMock)
+    traceGatherer = new TraceGatherer(sessionMock, pageMock)
     traceGatherer.emit = jest.fn()
 })
 
@@ -173,7 +170,7 @@ test('startTracing: registers timeout for click events', async () => {
     traceGatherer.waitForCPUIdle = jest.fn()
     traceGatherer.finishTracing = jest.fn()
 
-    await traceGatherer.startTracing('click event')
+    await traceGatherer.startTracing(CLICK_TRANSITION)
     jest.advanceTimersByTime(FRAME_LOAD_START_TIMEOUT + 10)
     expect(pageMock.tracing.stop).toHaveBeenCalledTimes(1)
     await new Promise((resolve) => process.nextTick(resolve))

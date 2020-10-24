@@ -7,7 +7,7 @@ WebdriverIO is not just a binding for the WebDriver protocol (like Selenium). It
 
 WebdriverIO takes the protocol commands and creates smart user commands that makes using the protocol for test automation much easier.
 
-WebdriverIO also enhances the WebDriver package with additional commands. They share the same set of options when run in a standalone script. But when testing starts from `@wdio/cli` (the WDIO testrunner), there are some additional options available for you to use in `wdio.conf.js`.
+WebdriverIO also enhances the WebDriver package with additional commands. They share the same set of options when run in a standalone script. But when testing starts from `@wdio/cli` (the WDIO testrunner), there are some additional options available for you to use in `browser.options`.
 
 ## WebDriver Options
 
@@ -180,6 +180,12 @@ Default: `0` (don't bail; run all tests)
 
 ### specFileRetries
 The number of times to retry an entire specfile when it fails as a whole.
+
+Type: `Number`<br>
+Default: `0`
+
+### specFileRetriesDelay
+Delay in seconds between the spec file retry attempts
 
 Type: `Number`<br>
 Default: `0`

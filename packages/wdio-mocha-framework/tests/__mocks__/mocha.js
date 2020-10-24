@@ -3,6 +3,7 @@ export default class MochaMock {
         this.mochaOpts = mochaOpts
 
         this.loadFiles = jest.fn()
+        this.loadFilesAsync = jest.fn()
         this.reporter = jest.fn()
         this.fullTrace = jest.fn()
         this.addFile = jest.fn()

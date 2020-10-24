@@ -1,6 +1,6 @@
 {
   "name": "@wdio/junit-reporter",
-  "version": "6.1.25",
+  "version": "6.6.0",
   "description": "A WebdriverIO reporter that creates Jenkins compatible XML based JUnit reports",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-junit-reporter",
@@ -8,14 +8,6 @@
   "main": "./build/index",
   "engines": {
     "node": ">=10.0.0"
-  },
-  "scripts": {
-    "build": "run-s clean compile",
-    "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src test",
-    "test:unit": "jest"
   },
   "repository": {
     "type": "git",
@@ -32,9 +24,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/reporter": "6.1.23",
+    "@wdio/reporter": "6.6.0",
     "json-stringify-safe": "^5.0.1",
-    "junit-report-builder": "^2.0.0",
+    "junit-report-builder": "^2.1.0",
     "validator": "^13.0.0"
   },
   "devDependencies": {

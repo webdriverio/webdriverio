@@ -179,6 +179,8 @@ exports.config = {
     //
     // The number of times to retry the entire specfile when it fails as a whole
     specFileRetries: 1,
+    // Delay in seconds between the spec file retry attempts
+    specFileRetriesDelay: 0,
     // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
     specFileRetriesDeferred: false,
     //
@@ -233,7 +235,7 @@ exports.config = {
         source: true,       // <boolean> hide source URIs
         profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tagExpression: [],  // <string[]> (expression) only execute the features or scenarios with tags matching the expression
+        tagExpression: '',  // <string> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 20000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
         scenarioLevelReporter: false // Enable this to make webdriver.io behave as if scenarios and not steps were the tests.

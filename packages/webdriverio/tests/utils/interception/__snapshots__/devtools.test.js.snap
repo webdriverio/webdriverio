@@ -1,0 +1,154 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`stub request with a different web resource 1`] = `
+Array [
+  Object {
+    "name": "Content-Type",
+    "value": "application/json",
+  },
+  Object {
+    "name": "Location",
+    "value": "http://json.org/image.svg",
+  },
+]
+`;
+
+exports[`stub request with a different web resource containing different location header 1`] = `
+Array [
+  Object {
+    "name": "Content-Type",
+    "value": "application/json",
+  },
+  Object {
+    "name": "Location",
+    "value": "http://json.org/image.svg",
+  },
+]
+`;
+
+exports[`stub request with a function 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "Zm9vYmFy",
+    "requestId": 123,
+    "responseCode": undefined,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+    ],
+  },
+]
+`;
+
+exports[`stub request with a function returning empty body 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "",
+    "requestId": 123,
+    "responseCode": undefined,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+    ],
+  },
+]
+`;
+
+exports[`stub request with a function returning undefined 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": undefined,
+    "requestId": 123,
+    "responseCode": undefined,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+    ],
+  },
+]
+`;
+
+exports[`stub request with a text 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "Zm9vYmFy",
+    "requestId": 123,
+    "responseCode": undefined,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+    ],
+  },
+]
+`;
+
+exports[`stub request with an object 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "eyJmb28iOiJiYXIifQ==",
+    "requestId": 123,
+    "responseCode": undefined,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+    ],
+  },
+]
+`;
+
+exports[`stub request with modified headers 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "eyJmb28iOiJiYXIifQ==",
+    "requestId": 123,
+    "responseCode": undefined,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+      Object {
+        "name": "removed",
+        "value": undefined,
+      },
+      Object {
+        "name": "added",
+        "value": "string",
+      },
+    ],
+  },
+]
+`;
+
+exports[`stub request with modified status code 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "eyJmb28iOiJiYXIifQ==",
+    "requestId": 123,
+    "responseCode": 1234,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+    ],
+  },
+]
+`;

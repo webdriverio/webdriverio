@@ -12,7 +12,7 @@ The easiest way is to keep `@wdio/firefox-profile-service` as a devDependency in
 ```json
 {
     "devDependencies": {
-        "@wdio/firefox-profile-service": "^5.0.0"
+        "@wdio/firefox-profile-service": "^6.1.14"
     }
 }
 ```

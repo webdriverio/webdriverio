@@ -6,6 +6,7 @@ import {
 } from '../../../src/utils'
 import webdriverMonadOrig from '../../../src/monad'
 import {
+    isW3C as isW3cOrig,
     sessionEnvironmentDetector as sessionEnvDetector,
     capabilitiesEnvironmentDetector as capabilitiesEnvDetector,
     devtoolsEnvironmentDetector as devtoolsEnvDetector
@@ -87,7 +88,10 @@ export const runFnInFiberContext = jest.fn().mockImplementation((fn) => {
 export const setWdioSyncSupport = value => { hasWdioSyncSupport = value }
 export let hasWdioSyncSupport = false
 export const testFnWrapper = jest.fn()
+export const isW3C = isW3cOrig
 export const sessionEnvironmentDetector = sessionEnvDetector
 export const capabilitiesEnvironmentDetector = capabilitiesEnvDetector
 export const devtoolsEnvironmentDetector = devtoolsEnvDetector
 export const transformCommandLogResult = jest.fn().mockImplementation((data) => data)
+export const canAccess = jest.fn()
+export const sleep = jest.fn().mockImplementation(jest.requireActual('@wdio/utils/src/utils').sleep)

@@ -54,6 +54,47 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
   - Page Object Pattern
   - Sauce Labs integration
 
+### [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
+
+- Framework: Cucumber (v5.x)
+- Features:
+    - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
+    - Examples of multi selector option to query element with more than one selector at a time
+    - Examples of multi browser and headless browser execution using - Chrome and Firefox
+    - Integration with BrowserStack, Sauce Labs
+    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
+    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
+    - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
+    - Task manage through Grunt
+    - Examples with demo app https://search.yahoo.com/  and http://the-internet.herokuapp.com, Chai assertion liberary (expect, assert, should)
+    - `Appium specific .config file for playback on mobile device.` For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+
+### [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
+
+- Framework: Mocha (v5.x)
+- Features:
+    -  Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
+    - Task manage through Grunt
+    -  Examples with demo app https://search.yahoo.com  and http://the-internet.herokuapp.com
+    -  Examples of multi browser and headless browser execution using - Chrome and Firefox
+    -  Examples of Multiple reporting (Spec, Junit, Allure), plus local view of Junit report (.html) format
+    -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
+    -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
+    - `Appium specific .config file for playback on mobile device.` For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+
+### [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
+
+- Framework: Jasmine (v3.x)
+- Features:
+    -  Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
+    -  Task manage through Grunt
+    -  Examples with demo app https://search.yahoo.com  and http://the-internet.herokuapp.com
+    -  Examples of multi browser and headless browser execution using - Chrome and Firefox
+    -  Examples of Multiple reporting (Spec, Junit, Allure), plus local view of Junit report (.html) format
+    -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
+    -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
+     - `Appium specific .config file for playback on mobile device.` For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+
 ### [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
 ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
 
@@ -78,6 +119,45 @@ Build your angular e2e test with wdio. This project uses a new angular cli build
   - Replaces protractor with wdio as e2e runner
   - Completely integrated into angular workspace (angular.json)
   - Allows execution through angular cli (`ng e2e ...`). This allows to build, serve and run wdio test synchronously.
+
+### [WarleyGabriel/demo-webdriverio-cucumber](https://github.com/WarleyGabriel/demo-webdriverio-cucumber)
+
+Boilerplate project to run E2E tests with Cucumber.
+
+- Frameworks:
+    - WebdriverIO (v6)
+    - Cucumber
+- Features:
+    - TypeScript
+    - [Expect-webdriverio](https://github.com/webdriverio/expect-webdriverio)
+    - [Page Object](PageObjects.md) Pattern
+    - [Gherkin lint](https://github.com/vsiakka/gherkin-lint)
+    - Scripts to check undefined and unused steps on step/feature files
+    - [Commit lint](https://github.com/conventional-changelog/commitlint) and [Commitizen](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
+    - ESlint
+    - Prettier
+    - Husky
+    - Github Actions example
+    - Allure report (screenshots on failure) and Timeline report
+
+### [WarleyGabriel/demo-webdriverio-mocha](https://github.com/WarleyGabriel/demo-webdriverio-mocha)
+
+Boilerplate project to run E2E tests with Mocha.
+
+- Frameworks:
+    - WebdriverIO (v6)
+    - Mocha
+- Features:
+    -   TypeScript
+    -   [Expect-webdriverio](https://github.com/webdriverio/expect-webdriverio)
+    -   [Visual regression tests](https://github.com/wswebcreation/wdio-image-comparison-service)
+    -   Page Object Pattern
+    -   [Commit lint](https://github.com/conventional-changelog/commitlint) and [Commitizen](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
+    -   ESlint
+    -   Prettier
+    -   Husky
+    -   Github Actions example
+    -   Allure report (screenshots on failure)
 
 ### [SimitTomar/webdriverio-cucumber-pom-boilerplate](https://github.com/SimitTomar/webdriverio-cucumber-pom-boilerplate)
 
@@ -329,19 +409,6 @@ A powerful boilerplate to run E2E and visual regression tests with Mocha.
     - Chai
     - Multiple reports (Spec, Dot, Allure, Timeline)
     - Visual regression tests (Image comparison service)
-    - Code formatter (ESlint, Prettier)
-    - Husky
-
-### [WarleyGabriel/demo-webdriverio-cucumber](https://github.com/WarleyGabriel/demo-webdriverio-cucumber)
-
-A powerful boilerplate project to run E2E tests with Cucumber.
-
-- Framework: Cucumber (v5.x)
-- Features:
-    - [Page Object](PageObjects.md) Pattern
-    - ES6 style class-based approach, and full ES6–ES8 support through Babel
-    - Chai
-    - Multiple reports (Spec, Dot, Allure, Timeline)
     - Code formatter (ESlint, Prettier)
     - Husky
 

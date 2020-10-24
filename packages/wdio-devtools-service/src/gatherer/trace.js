@@ -9,7 +9,7 @@ import checkTimeSinceLastLongTask from '../scripts/checkTimeSinceLastLongTask'
 
 import {
     DEFAULT_TRACING_CATEGORIES, FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT,
-    MAX_TRACE_WAIT_TIME, CPU_IDLE_TRESHOLD, NETWORK_IDLE_TIMEOUT
+    MAX_TRACE_WAIT_TIME, CPU_IDLE_TRESHOLD, NETWORK_IDLE_TIMEOUT, CLICK_TRANSITION
 } from '../constants'
 import { isSupportedUrl } from '../utils'
 
@@ -26,10 +26,11 @@ const NETWORK_RECORDER_EVENTS = [
 ]
 
 export default class TraceGatherer extends EventEmitter {
-    constructor (driver) {
+    constructor (session, page) {
         super()
+        this.session = session
+        this.page = page
         this.networkListeners = {}
-        this.driver = driver
         this.failingFrameLoadIds = []
         this.pageLoadDetected = false
 
@@ -47,29 +48,27 @@ export default class TraceGatherer extends EventEmitter {
         /**
          * register listener for network status monitoring
          */
-        const session = await this.driver.getCDPSession()
         this.networkStatusMonitor = new NetworkRecorder()
         NETWORK_RECORDER_EVENTS.forEach((method) => {
-            session.on(method, this.networkListeners[method])
+            this.session.on(method, this.networkListeners[method])
         })
 
         this.traceStart = Date.now()
         log.info(`Start tracing frame with url ${url}`)
-        const page = await this.driver.getActivePage()
-        await page.tracing.start({
+        await this.page.tracing.start({
             categories: DEFAULT_TRACING_CATEGORIES,
             screenshots: true
         })
 
         /**
-         * if this tracing was started from a click event
+         * if this tracing was started from a click transition
          * then we want to discard page trace if no load detected
          */
-        if (url === 'click event') {
+        if (url === CLICK_TRANSITION) {
             log.info('Start checking for page load for click')
             this.clickTraceTimeout = setTimeout(async () => {
                 log.info('No page load detected, canceling trace')
-                await page.tracing.stop()
+                await this.page.tracing.stop()
                 return this.finishTracing()
             }, FRAME_LOAD_START_TIMEOUT)
         }
@@ -77,9 +76,9 @@ export default class TraceGatherer extends EventEmitter {
         /**
          * register performance observer
          */
-        await page.evaluateOnNewDocument(registerPerformanceObserverInPage)
+        await this.page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
-        this.waitForNetworkIdleEvent = this.waitForNetworkIdle(session)
+        this.waitForNetworkIdleEvent = this.waitForNetworkIdle(this.session)
         this.waitForCPUIdleEvent = this.waitForCPUIdle()
     }
 
@@ -162,7 +161,7 @@ export default class TraceGatherer extends EventEmitter {
         const loadPromise = Promise.all([
             this.waitForNetworkIdleEvent.promise,
             this.waitForCPUIdleEvent.promise
-        ]).then(() => () => {
+        ]).then(() => async () => {
             /**
              * ensure that we trace at least for 5s to ensure that we can
              * calculate firstInteractive
@@ -170,12 +169,7 @@ export default class TraceGatherer extends EventEmitter {
             const minTraceTime = TRACING_TIMEOUT - (Date.now() - this.traceStart)
             if (minTraceTime > 0) {
                 log.info(`page load happen to quick, waiting ${minTraceTime}ms more`)
-                return new Promise(
-                    (resolve) => setTimeout(
-                        () => resolve(this.completeTracing()),
-                        minTraceTime
-                    )
-                )
+                await new Promise((resolve) => setTimeout(resolve, minTraceTime))
             }
 
             return this.completeTracing()
@@ -206,14 +200,13 @@ export default class TraceGatherer extends EventEmitter {
     async completeTracing () {
         const traceDuration = Date.now() - this.traceStart
         log.info(`Tracing completed after ${traceDuration}ms, capturing performance data for frame ${this.frameId}`)
-        const page = await this.driver.getActivePage()
 
         /**
          * download all tracing data
          * in case it fails, continue without capturing any data
          */
         try {
-            const traceBuffer = await page.tracing.stop()
+            const traceBuffer = await this.page.tracing.stop()
             const traceEvents = JSON.parse(traceBuffer.toString('utf8'))
 
             /**
@@ -265,11 +258,9 @@ export default class TraceGatherer extends EventEmitter {
         /**
          * clean up the listeners
          */
-        this.driver.getCDPSession().then((session) => {
-            NETWORK_RECORDER_EVENTS.forEach(
-                (method) => session.removeListener(method, this.networkListeners[method]))
-            delete this.networkStatusMonitor
-        })
+        NETWORK_RECORDER_EVENTS.forEach(
+            (method) => this.session.removeListener(method, this.networkListeners[method]))
+        delete this.networkStatusMonitor
 
         delete this.traceStart
         delete this.frameId
@@ -393,10 +384,9 @@ export default class TraceGatherer extends EventEmitter {
         const checkForQuietExpression = `(${checkTimeSinceLastLongTask.toString()})()`
         async function checkForQuiet (resolve, reject) {
             if (canceled) return
-            const page = await this.driver.getActivePage()
             let timeSinceLongTask
             try {
-                timeSinceLongTask = await page.evaluate(checkForQuietExpression)
+                timeSinceLongTask = (await this.page.evaluate(checkForQuietExpression)) || 0
             } catch (e) {
                 log.warn(`Page evaluate rejected while evaluating checkForQuietExpression: ${e.stack}`)
                 return setTimeout(() => checkForQuiet.call(this, resolve, reject), 100)
@@ -412,11 +402,9 @@ export default class TraceGatherer extends EventEmitter {
             log.info('Driver', `CPU has been idle for ${timeSinceLongTask} ms`)
 
             if (timeSinceLongTask >= waitForCPUIdle) {
-                log.info('Driver', `CPU has been idle for ${timeSinceLongTask} ms`)
                 return resolve()
             }
 
-            log.info('Driver', `CPU has been idle for ${timeSinceLongTask} ms`)
             const timeToWait = waitForCPUIdle - timeSinceLongTask
             lastTimeout = setTimeout(() => checkForQuiet.call(this, resolve, reject), timeToWait)
         }

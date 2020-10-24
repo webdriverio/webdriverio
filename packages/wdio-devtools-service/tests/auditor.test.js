@@ -28,41 +28,77 @@ test('getPerformanceScore', async () => {
 })
 
 test('getPerformanceScore: returns null if any of the metrics is not available', async () => {
-    auditor.getMetrics = jest.fn().mockReturnValue(Promise.resolve({}))
+    auditor._audit = jest.fn().mockReturnValueOnce(Promise.resolve({}))
     expect(await auditor.getPerformanceScore()).toBe(null)
 
-    auditor.getMetrics = jest.fn().mockReturnValue(Promise.resolve({
-        firstMeaningfulPaint: 1
+    auditor._audit = jest.fn().mockReturnValueOnce(Promise.resolve({
+        'first-contentful-paint': {
+            score: 1
+        },
     }))
     expect(await auditor.getPerformanceScore()).toBe(null)
 
-    auditor.getMetrics = jest.fn().mockReturnValue(Promise.resolve({
-        firstMeaningfulPaint: 1,
-        firstCPUIdle: 2
+    auditor._audit = jest.fn().mockReturnValueOnce(Promise.resolve({
+        'first-contentful-paint': {
+            score: 1
+        },
+        'speed-index': {
+            score: 1
+        },
     }))
     expect(await auditor.getPerformanceScore()).toBe(null)
 
-    auditor.getMetrics = jest.fn().mockReturnValue(Promise.resolve({
-        firstMeaningfulPaint: 1,
-        firstCPUIdle: 2,
-        firstInteractive: 3
+    auditor.getMetrics = jest.fn().mockReturnValueOnce(Promise.resolve({
+        'first-contentful-paint': {
+            score: 1
+        },
+        'speed-index': {
+            score: 1
+        },
+        'largest-contentful-paint': {
+            score: 1
+        },
     }))
     expect(await auditor.getPerformanceScore()).toBe(null)
 
-    auditor.getMetrics = jest.fn().mockReturnValue(Promise.resolve({
-        firstMeaningfulPaint: 1,
-        firstCPUIdle: 2,
-        firstInteractive: 3,
-        speedIndex: 4
+    auditor._audit = jest.fn().mockReturnValueOnce(Promise.resolve({
+        'first-contentful-paint': {
+            score: 1
+        },
+        'speed-index': {
+            score: 1
+        },
+        'largest-contentful-paint': {
+            score: 1
+        },
+        'cumulative-layout-shift': {
+            score: 1
+        },
+        'total-blocking-time': {
+            score: 1
+        }
     }))
     expect(await auditor.getPerformanceScore()).toBe(null)
 
-    auditor.getMetrics = jest.fn().mockReturnValue(Promise.resolve({
-        firstMeaningfulPaint: 1,
-        firstCPUIdle: 2,
-        firstInteractive: 3,
-        speedIndex: 4,
-        estimatedInputLatency: 5
+    auditor._audit = jest.fn().mockReturnValue(Promise.resolve({
+        'first-contentful-paint': {
+            score: 1
+        },
+        'speed-index': {
+            score: 1
+        },
+        'largest-contentful-paint': {
+            score: 1
+        },
+        'cumulative-layout-shift': {
+            score: 1
+        },
+        'total-blocking-time': {
+            score: 1
+        },
+        'interactive': {
+            score: 1
+        },
     }))
     expect(await auditor.getPerformanceScore()).toEqual(expect.any(Number))
 })

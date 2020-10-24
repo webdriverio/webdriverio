@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
 const ejs = require('ejs')
 
@@ -8,11 +8,16 @@ const {
     PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS, PROTOCOL_API_DESCRIPTION
 } = require('../constants')
 
+const category = 'api'
+const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..')
+const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
+
 /**
  * Generate Protocol docs
  * @param {object} sidebars website/sidebars
  */
 exports.generateProtocolDocs = (sidebars) => {
+    fs.ensureDirSync(API_DOCS_ROOT_DIR)
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
     const protocolDocs = {}
 
@@ -75,13 +80,13 @@ exports.generateProtocolDocs = (sidebars) => {
             }
         }
 
-        const docPath = path.join(__dirname, '..', '..', 'docs', 'api', `_${protocolName}.md`)
+        const docPath = path.join(API_DOCS_ROOT_DIR, `_${protocolName}.md`)
         const [preemble, ...apiDocs] = protocolDocs[protocolName]
         fs.writeFileSync(docPath, preemble + apiDocs.join('\n---\n'), { encoding: 'utf-8' })
 
         // eslint-disable-next-line no-console
         console.log(`Generated docs for ${protocolName} protocol`)
 
-        sidebars.api.Protocols.push(`api/${protocolName}`)
+        sidebars[category].Protocols.push(`${category}/${protocolName}`)
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cli",
-  "version": "6.1.25",
+  "version": "6.6.2",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cli",
@@ -13,13 +13,7 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "build": "run-s clean compile copy",
-    "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
-    "copy": "copyfiles -u 1 src/templates/*.ejs ./build/",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src test",
-    "test:unit": "jest"
+    "copy": "copyfiles -u 1 -V \"src/templates/**/*\" ./build/"
   },
   "repository": {
     "type": "git",
@@ -35,9 +29,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/config": "6.1.14",
-    "@wdio/logger": "6.0.16",
-    "@wdio/utils": "6.1.17",
+    "@wdio/config": "6.6.0",
+    "@wdio/logger": "6.6.0",
+    "@wdio/utils": "6.6.0",
     "async-exit-hook": "^2.0.1",
     "chalk": "^4.0.0",
     "chokidar": "^3.0.0",
@@ -48,9 +42,10 @@
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
-    "log-update": "^4.0.0",
-    "webdriverio": "6.1.25",
-    "yargs": "^15.0.1",
+    "mkdirp": "^1.0.4",
+    "recursive-readdir": "^2.2.2",
+    "webdriverio": "6.6.2",
+    "yargs": "^16.0.3",
     "yarn-install": "^1.0.0"
   },
   "publishConfig": {

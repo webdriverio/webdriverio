@@ -2,12 +2,13 @@
 
 const fs = require('fs')
 const path = require('path')
-const { PROTOCOLS, EDIT_WARNING } = require('../constants')
+const { PROTOCOLS } = require('../constants')
 
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'webdriver.tpl.d.ts')
 const returnTypeMap = require('./webdriver-return-types.json')
+const paramTypeMap = require('./webdriver-param-types.json')
 
-const INDENTATION = ' '.repeat(8)
+const INDENTATION = ' '.repeat(4)
 const jsDocTemplate = `
 ${INDENTATION}/**
 ${INDENTATION} * [{PROTOCOL}]
@@ -17,8 +18,8 @@ ${INDENTATION} */`
 
 const lines = []
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
-    lines.push(`    // ${protocolName} types`)
-    lines.push('    interface Client extends BaseClient {')
+    lines.push(`// ${protocolName} types`)
+    lines.push('interface Client extends BaseClient {')
 
     for (const [, methods] of Object.entries(definition)) {
         for (const [, description] of Object.entries(methods)) {
@@ -31,7 +32,12 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 .filter((v) => v.name != 'sessionId')
                 // url params are always type of string
                 .map((v) => `${v.name}: string`)
-            const params = parameters.map((p) => `${p.name}${p.required === false ? '?' : ''}: ${p.type.toLowerCase()}`)
+            const params = parameters.map((p, idx) => {
+                const paramType = paramTypeMap[command] && paramTypeMap[command][idx] && paramTypeMap[command][idx].name === p.name
+                    ? paramTypeMap[command][idx].type
+                    : p.type.toLowerCase()
+                return `${p.name}${p.required === false ? '?' : ''}: ${paramType}`
+            })
             const varsAndParams = vars.concat(params)
             let returnValue = returns ? returns.type.toLowerCase() : 'void'
             returnValue = returnValue === '*' ? 'any' : returnValue
@@ -45,13 +51,15 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
         }
     }
 
-    lines.push('    }\n')
+    lines.push('}')
 }
 
 const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
-const outputFile = path.join(__dirname, '..', '..', 'packages', 'webdriver', 'webdriver.d.ts')
-const generatedTypings = EDIT_WARNING + template.replace('// ... insert here ...', lines.join('\n'))
-fs.writeFileSync(outputFile, generatedTypings, { encoding: 'utf-8' })
+const outputFile = path.join(__dirname, '..', '..', 'packages', 'webdriver', 'build', 'types.d.ts')
+const generatedTypings = template.replace('// ... insert here ...', lines.join('\n'))
+
+const origTypings = fs.readFileSync(outputFile, 'utf8')
+fs.writeFileSync(outputFile, origTypings.replace('export {};', generatedTypings), { encoding: 'utf-8' })
 
 // eslint-disable-next-line no-console
 console.log(`Generated typings file at ${outputFile}`)

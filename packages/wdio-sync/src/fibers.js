@@ -7,7 +7,7 @@ let Future
 
 global._HAS_FIBER_CONTEXT = false
 
-const origErrorFn = ::console.error
+const origErrorFn = console.error.bind(console)
 const errors = []
 console.error = /* istanbul ignore next */ (...args) => errors.push(args)
 
@@ -18,9 +18,7 @@ try {
     /**
      * try original fibers package first
      */
-    // eslint-disable-next-line import/no-unresolved
     Fiber = require('fibers')
-    // eslint-disable-next-line import/no-unresolved
     Future = require('fibers/future')
 } catch (e) {
     log.debug('Couldn\'t load fibers package for Node v10 and above')

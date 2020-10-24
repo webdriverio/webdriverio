@@ -18,9 +18,9 @@ describe('isDisplayedInViewport test', () => {
 
     it('should allow to check if element is displayed', async () => {
         await elem.isDisplayedInViewport()
-        expect(got.mock.calls[0][1].uri.pathname)
+        expect(got.mock.calls[0][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
-        expect(got.mock.calls[1][1].uri.pathname)
+        expect(got.mock.calls[1][0].pathname)
             .toBe('/session/foobar-123/execute/sync')
         expect(got.mock.calls[1][1].json.args[0]).toEqual({
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',

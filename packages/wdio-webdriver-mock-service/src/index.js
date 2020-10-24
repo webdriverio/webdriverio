@@ -11,11 +11,11 @@ const ELEMENT_REFETCHED = '80d860d0-b829-f540-812e-7078eb983795'
 const ELEMENT_ALT = '8bf4d107-a363-40d1-b823-d94bdbc58afb'
 
 export default class WebdriverMockService {
-    constructor () {
+    constructor() {
         this.init()
     }
 
-    init () {
+    init() {
         this.mock = new WebDriverMock()
         this.command = this.mock.command
 
@@ -33,7 +33,7 @@ export default class WebdriverMockService {
         this.command.getLogTypes().reply(200, { value: [] })
     }
 
-    before () {
+    before() {
         /**
          * assign mocks to browser object to tweak responses
          */
@@ -42,15 +42,15 @@ export default class WebdriverMockService {
         /**
          * register request interceptors for specific scenarios
          */
-        global.browser.addCommand('waitForElementScenario', ::this.waitForElementScenario)
-        global.browser.addCommand('isNeverDisplayedScenario', ::this.isNeverDisplayedScenario)
-        global.browser.addCommand('isEventuallyDisplayedScenario', ::this.isEventuallyDisplayedScenario)
-        global.browser.addCommand('staleElementRefetchScenario', ::this.staleElementRefetchScenario)
-        global.browser.addCommand('customCommandScenario', ::this.customCommandScenario)
-        global.browser.addCommand('waitForDisplayedScenario', ::this.waitForDisplayedScenario)
-        global.browser.addCommand('cucumberScenario', ::this.cucumberScenario)
-        global.browser.addCommand('clickScenario', ::this.clickScenario)
-        global.browser.addCommand('isExistingScenario', ::this.isExistingScenario)
+        global.browser.addCommand('waitForElementScenario', this.waitForElementScenario.bind(this))
+        global.browser.addCommand('isNeverDisplayedScenario', this.isNeverDisplayedScenario.bind(this))
+        global.browser.addCommand('isEventuallyDisplayedScenario', this.isEventuallyDisplayedScenario.bind(this))
+        global.browser.addCommand('staleElementRefetchScenario', this.staleElementRefetchScenario.bind(this))
+        global.browser.addCommand('customCommandScenario', this.customCommandScenario.bind(this))
+        global.browser.addCommand('waitForDisplayedScenario', this.waitForDisplayedScenario.bind(this))
+        global.browser.addCommand('cucumberScenario', this.cucumberScenario.bind(this))
+        global.browser.addCommand('clickScenario', this.clickScenario.bind(this))
+        global.browser.addCommand('isExistingScenario', this.isExistingScenario.bind(this))
     }
 
     clickScenario() {
@@ -70,7 +70,7 @@ export default class WebdriverMockService {
         this.command.findElementsFromElement(ELEMENT_ID).times(2).reply(200, { value: [elemResponse] })
     }
 
-    waitForElementScenario () {
+    waitForElementScenario() {
         this.nockReset()
 
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
@@ -102,7 +102,7 @@ export default class WebdriverMockService {
         this.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
     }
 
-    staleElementRefetchScenario () {
+    staleElementRefetchScenario() {
         this.nockReset()
 
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
@@ -118,10 +118,12 @@ export default class WebdriverMockService {
         //First click works
         this.command.elementClick(ELEMENT_ID).once().reply(200, { value: null })
         //Additional clicks won't for the original element
-        this.command.elementClick(ELEMENT_ID).times(4).reply(500, { value: {
-            error: 'stale element reference',
-            message: 'element is not attached to the page document'
-        } })
+        this.command.elementClick(ELEMENT_ID).times(4).reply(500, {
+            value: {
+                error: 'stale element reference',
+                message: 'element is not attached to the page document'
+            }
+        })
         //Clicks on the new element are successful
         this.command.elementClick(ELEMENT_REFETCHED).times(4).reply(200, { value: null })
 
@@ -131,7 +133,7 @@ export default class WebdriverMockService {
         this.command.findElements().times(4).reply(200, { value: [elem2Response] })
     }
 
-    customCommandScenario (times = 1) {
+    customCommandScenario(times = 1) {
         this.nockReset()
 
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
@@ -144,7 +146,7 @@ export default class WebdriverMockService {
         this.command.deleteAllCookies().times(times).reply(200, { value: 'deleteAllCookies' })
     }
 
-    waitForDisplayedScenario () {
+    waitForDisplayedScenario() {
         this.nockReset()
 
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
@@ -153,7 +155,7 @@ export default class WebdriverMockService {
         this.command.isElementDisplayed(ELEMENT_ID).once().reply(200, { value: true })
     }
 
-    cucumberScenario () {
+    cucumberScenario() {
         this.nockReset()
 
         const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
@@ -162,7 +164,7 @@ export default class WebdriverMockService {
         this.command.elementClick(ELEMENT_ID).reply(200, { value: null })
     }
 
-    nockReset () {
+    nockReset() {
         nock.cleanAll()
         this.init()
     }

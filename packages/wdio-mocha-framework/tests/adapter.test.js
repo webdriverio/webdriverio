@@ -51,7 +51,8 @@ test('should properly set up mocha', async () => {
     expect(result).toBe(0)
 
     expect(setOptions).toBeCalledTimes(1)
-    expect(adapter.mocha.loadFiles).toBeCalled()
+    expect(adapter.mocha.loadFiles).not.toBeCalled()
+    expect(adapter.mocha.loadFilesAsync).toBeCalled()
     expect(adapter.mocha.reporter).toBeCalled()
     expect(adapter.mocha.fullTrace).toBeCalled()
     expect(adapter.mocha.run).toBeCalled()
@@ -76,6 +77,14 @@ test('should throw runtime error if spec is invalid', async () => {
     const runtimeError = new Error('Uuups')
     const adapter = adapterFactory({ mochaOpts: { mockRuntimeError: runtimeError } })
     await adapter.init()
+    await expect(adapter.run()).rejects.toEqual(runtimeError)
+})
+
+test('should throw runtime error if spec could not be loaded', async () => {
+    const runtimeError = new Error('Uuups')
+    const adapter = adapterFactory({ mochaOpts: { mockFailureCount: 0 } })
+    await adapter.init()
+    adapter.specLoadError = runtimeError
     await expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
@@ -355,39 +364,43 @@ test('getUID', () => {
 })
 
 describe('loadFiles', () => {
-    test('should set _hasTests to true if there are tests to run', () => {
+    test('should set _hasTests to true if there are tests to run', async () => {
         const adapter = adapterFactory({})
         adapter._hasTests = null
         adapter.mocha = {
-            loadFiles: jest.fn(),
+            loadFilesAsync: jest.fn(),
             suite: 1 // mochaRunner.total
         }
-        adapter._loadFiles({})
+        await adapter._loadFiles({})
         expect(adapter._hasTests).toBe(true)
     })
 
-    test('should set _hasTests to false if there no tests to run', () => {
+    test('should set _hasTests to false if there no tests to run', async () => {
         const adapter = adapterFactory({})
         adapter._hasTests = null
         adapter.mocha = {
-            loadFiles: jest.fn(),
+            loadFilesAsync: jest.fn(),
             options: { grep: 'regexp foo' },
             suite: 0 // mochaRunner.total
         }
-        adapter._loadFiles({ grep: 'foo', invert: 'invert' })
+        await adapter._loadFiles({ grep: 'foo', invert: 'invert' })
         expect(Mocha.Runner.mock.results[0].value.grep).toBeCalledWith('regexp foo', 'invert')
         expect(adapter._hasTests).toBe(false)
     })
 
-    test('should not fail on exception', () => {
+    test('should propagate error', async () => {
         const adapter = adapterFactory({})
         adapter._hasTests = null
         adapter.mocha = {
-            loadFiles: jest.fn().mockImplementation(() => { throw new Error('foo') }),
+            loadFilesAsync: jest.fn().mockImplementation(
+                () => Promise.reject(new Error('foo'))
+            ),
         }
-        adapter._loadFiles({})
-        expect(adapter.mocha.loadFiles).toBeCalled()
+        await adapter._loadFiles({})
+        expect(adapter.mocha.loadFilesAsync).toBeCalled()
         expect(adapter._hasTests).toBe(null)
+        expect(adapter.specLoadError.message)
+            .toContain('Unable to load spec files')
     })
 })
 

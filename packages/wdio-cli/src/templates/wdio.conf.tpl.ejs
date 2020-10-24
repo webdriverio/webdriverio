@@ -22,7 +22,7 @@ exports.config = {
     // =====================
     // Host address of the running Selenium server. This information is usually obsolete as
     // WebdriverIO automatically connects to localhost. Also, if you are using one of the
-    // supported cloud services like Sauce Labs, Browserstack, or Testing Bot you don't
+    // supported cloud services like Sauce Labs, Browserstack, Testing Bot or LambdaTest you don't
     // need to define host and port information because WebdriverIO can figure that out
     // according to your user and key information. However, if you are using a private Selenium
     // backend you should define the host address, port, and path here.
@@ -39,7 +39,7 @@ exports.config = {
     // =================
     // Service Providers
     // =================
-    // WebdriverIO supports Sauce Labs, Browserstack, and Testing Bot (other cloud providers
+    // WebdriverIO supports Sauce Labs, Browserstack, Testing Bot and LambdaTest (other cloud providers
     // should work too though). These services define specific user and key (or access key)
     // values you need to put in here in order to connect to these services.
     //
@@ -98,7 +98,8 @@ exports.config = {
         // 5 instances get started at a time.
         maxInstances: 5,
         //
-        browserName: '<%= answers.services.includes('chromedriver') ? 'chrome' : 'firefox' %>',
+        browserName: 'chrome',
+        acceptInsecureCerts: true
         // If outputDir is provided WebdriverIO can capture driver session logs
         // it is possible to configure which logTypes to include/exclude.
         // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
@@ -118,7 +119,7 @@ exports.config = {
     // - webdriver, webdriverio
     // - @wdio/applitools-service, @wdio/browserstack-service, @wdio/devtools-service, @wdio/sauce-service
     // - @wdio/mocha-framework, @wdio/jasmine-framework
-    // - @wdio/local-runner, @wdio/lambda-runner
+    // - @wdio/local-runner
     // - @wdio/sumologic-reporter
     // - @wdio/cli, @wdio/config, @wdio/sync, @wdio/utils
     // Level of logging verbosity: trace | debug | info | warn | error | silent
@@ -166,6 +167,9 @@ exports.config = {
     //
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
+    //
+    // Delay in seconds between the spec file retry attempts
+    // specFileRetriesDelay: 0,
     //
     // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
     // specFileRetriesDeferred: false,
@@ -337,7 +341,7 @@ exports.config = {
     /**
      * Runs before a Cucumber scenario
      */
-    // beforeScenario: function (uri, feature, scenario, sourceLocation,c ontext) {
+    // beforeScenario: function (uri, feature, scenario, sourceLocation, context) {
     // },
     /**
      * Runs before a Cucumber step

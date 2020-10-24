@@ -34,13 +34,16 @@
       "timeouts",
       "organizingsuites",
       "retry",
+      "mocksandspies",
       "debugging",
       "repl",
       "watcher",
       "jenkins",
+      "bamboo",
       "runprogrammatically",
       "driverbinaries",
-      "flowchartsoverview"
+      "flowchartsoverview",
+      "githubactions"
     ]
   },
   "api": {
@@ -48,9 +51,7 @@
       "api"
     ],
     "Protocols": [],
-    "Testrunner": [
-      "api/expect"
-    ]
+    "Testrunner": []
   },
   "flowcharts": {
       "Flowcharts": [

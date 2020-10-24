@@ -29,6 +29,16 @@ describe('index', () => {
         })
     })
 
+    it('should set default config filename if not set', async () => {
+        yargs.argv = { _: [] }
+        await run().catch()
+
+        expect(handler).toHaveBeenCalledWith({
+            _: [],
+            configPath: join(`${process.cwd()}`, 'wdio.conf.js')
+        })
+    })
+
     it('should work properly with absolute paths', async () => {
         const expectedPath = resolve('/some/absolute/path/here/wdio.conf.js')
         yargs.argv._[0] = expectedPath

@@ -90,7 +90,7 @@ export const touchAction = function (actions) {
     }
 
     const formattedAction = formatArgs(this, actions)
-    const protocolCommand = Array.isArray(actions[0]) ? ::this.multiTouchPerform : ::this.touchPerform
+    const protocolCommand = Array.isArray(actions[0]) ? this.multiTouchPerform.bind(this) : this.touchPerform.bind(this)
     formattedAction.forEach((params) => validateParameters(params))
     return protocolCommand(formattedAction)
 }

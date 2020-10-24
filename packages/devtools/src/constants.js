@@ -5,7 +5,12 @@ export const DEFAULT_Y_POSITION = 0
 
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
+// https://github.com/puppeteer/puppeteer/blob/083ea41e943e2a20014279fcfceb23c98a1e4491/src/node/Launcher.ts#L168
 export const DEFAULT_FLAGS = [
+    // suppresses Save Password prompt window
+    '--enable-automation',
+    // do not block popups
+    '--disable-popup-blocking',
     // Disable all chrome extensions entirely
     '--disable-extensions',
     // Disable various background network services, including extension updating,
@@ -23,6 +28,7 @@ export const DEFAULT_FLAGS = [
     '--mute-audio',
     // Skip first run wizards
     '--no-first-run',
+    '--no-default-browser-check',
     // chromedriver flags
     '--disable-hang-monitor',
     '--disable-prompt-on-repost',
@@ -34,6 +40,7 @@ export const DEFAULT_FLAGS = [
     '--disable-dev-shm-usage',
     '--disable-ipc-flooding-protection',
     '--disable-renderer-backgrounding',
+    '--force-fieldtrials=*BackgroundTracing/default/',
     '--enable-features=NetworkService,NetworkServiceInProcess',
     /**
      * `site-per-process` affects `page.frames()`, see #4471
@@ -122,3 +129,4 @@ export const VENDOR_PREFIX = {
 }
 
 export const CHANNEL_FIREFOX_NIGHTLY = 'nightly'
+export const CHANNEL_FIREFOX_TRUNK = 'trunk'

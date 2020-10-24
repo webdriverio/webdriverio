@@ -26,9 +26,8 @@ class Footer extends React.Component {
                     <h3>BLACK LIVES MATTER</h3>
                     <p>
                         In solidarity, we ask that you consider financially supporting efforts such as
-                        <a href="https://secure.actblue.com/donate/ms_blm_homepage_2019">Black Lives Matter</a>,
                         <a href="https://support.eji.org/give/153413/#!/donation/checkout">The Equal Justice Initiative</a>,
-                        <a href="https://www.naacpldf.org/">NAACP Legal Defense and Education Fund</a>, or your local civil rights charity.
+                        or your local civil rights charity.
                     </p>
                     <button className="close">x</button>
                 </div>
@@ -61,7 +60,7 @@ class Footer extends React.Component {
                                 Stack Overflow
                             </a>
                             <a href="https://gitter.im/webdriverio/webdriverio">Support Chat</a>
-                            <a href="https://seleniumhq.slack.com/join/shared_invite/enQtODAwOTUzOTM5OTEwLTZjZjgzN2ExOTBmZGE0NjkwYzA2Nzc0MjczMGYwYjdiNGQ5YjI0ZjdjYjFhMjVlMjFkZWJmNDYyMmU1OTYyM2Y">Slack</a>
+                            <a href="https://seleniumhq.slack.com/join/shared_invite/zt-f7jwg1n7-RVw4v4sMA7Zjufira_~EVw#/">Slack</a>
                             <a
                                 href="https://twitter.com/webdriverio"
                                 target="_blank"

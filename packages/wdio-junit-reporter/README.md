@@ -10,7 +10,7 @@ The easiest way is to keep `@wdio/junit-reporter` as a devDependency in your `pa
 ```json
 {
   "devDependencies": {
-    "@wdio/junit-reporter": "^5.0.0"
+    "@wdio/junit-reporter": "^6.3.6"
   }
 }
 ```
@@ -189,6 +189,14 @@ Gives the ability to provide custom regex for formatting test suite name (e.g. i
 
 Type: `Regex`,<br>
 Default: `/[^a-z0-9]+/`
+
+### addFileAttribute
+
+Adds a file attribute to each testcase. This config is primarily for CircleCI. This setting provides richer details but may break on other CI platforms.
+
+Type: `Boolean`,<br>
+Default: `false`
+
 
 ### packageName
 

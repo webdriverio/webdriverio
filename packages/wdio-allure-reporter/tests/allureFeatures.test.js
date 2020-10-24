@@ -3,7 +3,7 @@ import { linkPlaceholder } from '../src/constants'
 
 let processOn
 beforeAll(() => {
-    processOn = ::process.on
+    processOn = process.on.bind(process)
     process.on = jest.fn()
 })
 
@@ -327,17 +327,31 @@ describe('reporter runtime implementation', () => {
         })
 
         it('should correctly add argument for selenium', () => {
-            reporter.onRunnerStart({ config: { }, capabilities: { browserName: 'firefox', version: '1.2.3' } })
+            reporter.onRunnerStart({ config: {}, capabilities: { browserName: 'firefox', version: '1.2.3' } })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
             expect(addParameter).toHaveBeenCalledWith('argument', 'browser', 'firefox-1.2.3')
         })
 
+        it('should correctly set proper browser version for chrome headless in devtools', () => {
+            reporter.onRunnerStart({ config: {}, capabilities: { browserName: 'Chrome Headless', browserVersion: '85.0.4183.84' } })
+            reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
+            expect(addParameter).toHaveBeenCalledTimes(1)
+            expect(addParameter).toHaveBeenCalledWith('argument', 'browser', 'Chrome Headless-85.0.4183.84')
+        })
+
         it('should correctly add argument for appium', () => {
-            reporter.onRunnerStart({ config: { }, capabilities: { deviceName: 'Android Emulator', platformVersion: '8.0' } })
+            reporter.onRunnerStart({ config: {}, capabilities: { deviceName: 'Android Emulator', platformVersion: '8.0' } })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
             expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Android Emulator-8.0')
+        })
+
+        it('should correctly add device name when run on BrowserStack', () => {
+            reporter.onRunnerStart({ config: {}, capabilities: { device: 'Google Pixel 3', platformVersion: '9.0' } })
+            reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
+            expect(addParameter).toHaveBeenCalledTimes(1)
+            expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Google Pixel 3-9.0')
         })
 
         it('should correctly add argument for multiremote', () => {
@@ -370,13 +384,35 @@ describe('auxiliary methods', () => {
         expect(addAttachment).toHaveBeenCalledTimes(1)
         expect(addAttachment).toHaveBeenCalledWith('foo', JSON.stringify(json, null, 2), 'application/json')
     })
+
+    it('should populate the correct deviceName', () => {
+        const capabilities = {
+            deviceName: 'emulator',
+            desired: {
+                platformName: 'Android',
+                automationName: 'UiAutomator2',
+                deviceName: 'Android GoogleAPI Emulator',
+                platformVersion: '6.0',
+                noReset: true,
+            }
+        }
+        const reporter = new AllureReporter({ stdout: true })
+        const currentTestMock = { addParameter: jest.fn(), addLabel: jest.fn() }
+        reporter.allure.getCurrentTest = jest.fn().mockReturnValue(currentTestMock)
+        reporter.allure.startCase = jest.fn()
+        reporter.isMultiRemote = false
+        reporter.capabilities = capabilities
+        reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
+        expect(reporter.allure.getCurrentTest).toBeCalledTimes(1)
+        expect(currentTestMock.addParameter).toHaveBeenCalledWith('argument', 'device', 'Android GoogleAPI Emulator 6.0')
+    })
 })
 
 describe('hooks handling disabbled Mocha Hooks', () => {
     let reporter, startCase, endCase, startStep, endStep
     const allureInstance = ({ suite = true, test = { steps: [1] } } = {}) => ({
         getCurrentSuite: jest.fn(() => suite),
-        getCurrentTest: jest.fn(() => {return test}),
+        getCurrentTest: jest.fn(() => { return test }),
         startCase,
         endCase,
         startStep,
@@ -544,7 +580,7 @@ describe('hooks handling default', () => {
     let reporter, startCase, endCase, startStep, endStep
     const allureInstance = ({ suite = true, test = { steps: [1] } } = {}) => ({
         getCurrentSuite: jest.fn(() => suite),
-        getCurrentTest: jest.fn(() => {return test}),
+        getCurrentTest: jest.fn(() => { return test }),
         startCase,
         endCase,
         startStep,
@@ -600,7 +636,7 @@ describe('nested suite naming', () => {
         const reporter = new AllureReporter({ stdout: true })
         const startSuite = jest.fn()
         reporter.allure = {
-            getCurrentSuite: jest.fn(() => {return { name: 'foo' }}),
+            getCurrentSuite: jest.fn(() => { return { name: 'foo' } }),
             startSuite
         }
         reporter.onSuiteStart({ title: 'bar' })

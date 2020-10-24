@@ -22,7 +22,6 @@ module.exports = function (docfile) {
     let tagVersion = ''
     let tagAuthor = ''
     let tagType = ''
-    let isTypeObject = false
 
     for (const tag of javadoc.tags) {
         if (tag.type == 'param') {
@@ -30,7 +29,6 @@ module.exports = function (docfile) {
 
             if (tag.typesDescription.includes('|<code>undefined</code>')) {
                 tag.typesDescription = `<code>${tag.joinedTypes}</code>`
-                isTypeObject = true
             }
 
             paramTags.push(tag)
@@ -148,20 +146,24 @@ module.exports = function (docfile) {
     /**
      * format param strings, from
      * ```
-     * $(selector).waitForDisplayed(options, options.timeout, options.reverse, options.timeoutMsg, options.interval)
+     * browser.waitUntil(condition, options, options.timeout, options.reverse, options.timeoutMsg, options.interval)
      * ```
      * to
      * ```
-     * $(selector).waitForDisplayed({ timeout, reverse, timeoutMsg, interval })
+     * browser.waitUntil(condition, { timeout, reverse, timeoutMsg, interval })
      * ```
      */
-    if (isTypeObject) {
-        paramStr = [`{ ${paramStr.slice(1).map((p) => p.slice(p.indexOf('.') + 1)).join(', ')} }`]
+    const parsedParamStr = paramStr
+        .filter((param, i) => !paramStr[i + 1] || paramStr[i + 1].split('.')[0] !== param)
+        .filter((param) => !param.includes('.'))
+    const paramOptions = paramStr.filter((param) => param.includes('.')).map((param) => param.split('.')[1])
+    if (paramOptions.length) {
+        parsedParamStr.push(`{ ${paramOptions.join(', ')} }`)
     }
 
     const commandDescription = {
         command: name,
-        paramString: paramStr.join(', '),
+        paramString: parsedParamStr.join(', '),
         paramTags: paramTags,
         propertyTags: propertyTags,
         returnTags: returnTags,
@@ -187,6 +189,8 @@ module.exports = function (docfile) {
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
         isElementScope : scope === 'element',
+        isNetworkScope : scope === 'network',
+        isMockScope : scope === 'mock'
     }
 
     return commandDescription

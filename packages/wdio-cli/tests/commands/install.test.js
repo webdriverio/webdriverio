@@ -1,11 +1,12 @@
 import yargs from 'yargs'
-import fs from 'fs'
+import fs from 'fs-extra'
 import * as installCmd from './../../src/commands/install'
+import * as configCmd from './../../src/commands/config'
 import * as utils from './../../src/utils'
 import yarnInstall from 'yarn-install'
 
 jest.mock('yarn-install')
-jest.mock('fs')
+jest.mock('fs-extra')
 
 let findInConfigMock
 
@@ -13,7 +14,7 @@ describe('Command: install', () => {
     beforeEach(() => {
         jest.spyOn(console, 'log')
         jest.spyOn(process, 'exit').mockImplementation(() => {})
-        jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => Promise.resolve())
+        jest.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.resolve())
         jest.spyOn(utils, 'addServiceDeps')
         jest.spyOn(utils, 'replaceConfig')
 
@@ -43,12 +44,12 @@ describe('Command: install', () => {
     })
 
     it('should prompt missing configuration', async () => {
-        jest.spyOn(utils, 'missingConfigurationPrompt').mockImplementation(() => Promise.reject())
+        jest.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.reject())
         fs.existsSync.mockReturnValue(false)
 
         await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' })
 
-        expect(utils.missingConfigurationPrompt).toHaveBeenCalledWith('install', `Cannot install packages without a WebdriverIO configuration.
+        expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledWith('install', `Cannot install packages without a WebdriverIO configuration.
 You can create one by running 'wdio config'`, undefined)
     })
 
@@ -114,6 +115,6 @@ You can create one by running 'wdio config'`, undefined)
         utils.findInConfig.mockClear()
         utils.addServiceDeps.mockClear()
         utils.replaceConfig.mockClear()
-        utils.missingConfigurationPrompt.mockClear()
+        configCmd.missingConfigurationPrompt.mockClear()
     })
 })
