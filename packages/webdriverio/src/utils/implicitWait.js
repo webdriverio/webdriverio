@@ -34,6 +34,11 @@ export default async function implicitWait (currentElement, commandName) {
                     `Can't call ${commandName} on next element of element with selector "${currentElement.parent.selector}" because it wasn't found`)
             }
 
+            if (currentElement.selector.toString().includes('this.parentElement')) {
+                throw new Error(
+                    `Can't call ${commandName} on parent element of element with selector "${currentElement.parent.selector}" because it wasn't found`)
+            }
+
             throw new Error(
                 `Can't call ${commandName} on element with selector "${currentElement.selector}" because element wasn't found`)
         }
