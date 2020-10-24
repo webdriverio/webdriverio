@@ -186,7 +186,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
         } else if (params.json.script.includes('parentElement')) {
             result = params.json.args[0][ELEMENT_KEY] === genericSubElementId
                 ? { [ELEMENT_KEY]: 'some-parent-elem' }
-                : console.log('PARENT ERR | ELEMENT: ', params.json.args[0][ELEMENT_KEY].toString()) 
+                : {}
         } else if (params.json.script.includes('nextElementSibling')) {
             result = params.json.args[0][ELEMENT_KEY] === 'some-elem-123'
                 ? { [ELEMENT_KEY]: 'some-next-elem' }
