@@ -8,8 +8,21 @@ const DEFAULT_VIEWPORT = {
     height: 900
 }
 
+declare global {
+    namespace NodeJS {
+        interface Global {
+            browser: WebdriverIO.BrowserObject;
+        }
+    }
+}
+
 export default class ApplitoolsService {
-    constructor(options) {
+    options: ApplitoolsConfig;
+    isConfigured: boolean = false;
+    viewport: Required<ApplitoolsConfig['viewport']>;
+    eyes: Eyes;
+
+    constructor(options: ApplitoolsConfig) {
         this.options = options
         this.eyes = new Eyes()
     }
@@ -50,7 +63,7 @@ export default class ApplitoolsService {
             return
         }
 
-        global.browser.addCommand('takeSnapshot', (title) => {
+        global.browser.addCommand('takeSnapshot', (title: string) => {
             if (!title) {
                 throw new Error('A title for the Applitools snapshot is missing')
             }
@@ -58,7 +71,7 @@ export default class ApplitoolsService {
             return this.eyes.check(title, Target.window())
         })
 
-        global.browser.addCommand('takeRegionSnapshot', (title, region, frame) => {
+        global.browser.addCommand('takeRegionSnapshot', (title: string, region: Region, frame: Frame) => {
             if (!title) {
                 throw new Error('A title for the Applitools snapshot is missing')
             }
@@ -72,7 +85,7 @@ export default class ApplitoolsService {
         })
     }
 
-    beforeTest(test) {
+    beforeTest(test: { title: string, parent: string }) {
         if (!this.isConfigured) {
             return
         }

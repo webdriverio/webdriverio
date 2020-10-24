@@ -2,7 +2,7 @@ import RunnerStats from '../../src/stats/runner'
 
 test('should get initialised', () => {
     const capabilities = { browserName: 'chrome' }
-    const config = { foo: 'bar' }
+    const config = { outputDir: 'foo', logFile: 'bar' }
     const specs = ['./foo/bar.js']
     const runner = new RunnerStats({
         cid: '0-0',

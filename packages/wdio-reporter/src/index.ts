@@ -1,44 +1,59 @@
-import fs from 'fs'
-import fse from 'fs-extra'
-import EventEmitter from 'events'
-
+import { WriteStream } from 'fs'
+import { createWriteStream, ensureDirSync } from 'fs-extra'
+import { EventEmitter } from 'events'
 import { getErrorsFromEvent } from './utils'
+import SuiteStats, { Suite } from './stats/suite'
+import HookStats, { Hook } from './stats/hook'
+import TestStats, { Test } from './stats/test'
+import RunnerStats, { Runner } from './stats/runner'
+import { AfterCommandArgs, BeforeCommandArgs } from './types'
 
-import SuiteStats from './stats/suite'
-import HookStats from './stats/hook'
-import TestStats from './stats/test'
+interface WDIOReporterBaseOptions {
+    outputDir?: string
+}
 
-import RunnerStats from './stats/runner'
+export interface WDIOReporterOptionsFromStdout extends WDIOReporterBaseOptions {
+    stdout: boolean
+    writeStream: WriteStream
+}
+
+export interface WDIOReporterOptionsFromLogFile extends WDIOReporterBaseOptions {
+    logFile: string
+}
+
+export type WDIOReporterOptions = WDIOReporterOptionsFromLogFile | WDIOReporterOptionsFromStdout
 
 export default class WDIOReporter extends EventEmitter {
-    constructor(options) {
+    outputStream: WriteStream
+    failures = 0
+    suites: Record<string, SuiteStats> = {}
+    hooks: Record<string, HookStats> = {}
+    tests: Record<string, TestStats> ={}
+    currentSuites: SuiteStats[] = []
+    counts = {
+        suites: 0,
+        tests: 0,
+        hooks: 0,
+        passes: 0,
+        skipping: 0,
+        failures: 0
+    }
+    retries = 0
+    runnerStat?: RunnerStats
+
+    constructor(public options: WDIOReporterOptions) {
         super()
-        this.options = options
 
         // ensure the report directory exists
         if (this.options.outputDir) {
-            fse.ensureDirSync(this.options.outputDir)
+            ensureDirSync(this.options.outputDir)
         }
 
-        this.outputStream = this.options.stdout || !this.options.logFile
-            ? options.writeStream
-            : fs.createWriteStream(this.options.logFile)
-        this.failures = []
-        this.suites = {}
-        this.hooks = {}
-        this.tests = {}
-        this.currentSuites = []
-        this.counts = {
-            suites: 0,
-            tests: 0,
-            hooks: 0,
-            passes: 0,
-            skipping: 0,
-            failures: 0
-        }
-        this.retries = 0
+        this.outputStream = (this.options as WDIOReporterOptionsFromStdout).stdout || !(this.options as WDIOReporterOptionsFromLogFile).logFile
+            ? (this.options as WDIOReporterOptionsFromStdout).writeStream
+            : createWriteStream((this.options as WDIOReporterOptionsFromLogFile).logFile)
 
-        let currentTest
+        let currentTest: TestStats
 
         const rootSuite = new SuiteStats({
             title: '(root)',
@@ -49,13 +64,13 @@ export default class WDIOReporter extends EventEmitter {
         this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
         this.on('client:afterCommand', this.onAfterCommand.bind(this))
 
-        this.on('runner:start',  /* istanbul ignore next */(runner) => {
+        this.on('runner:start',  /* istanbul ignore next */(runner: Runner) => {
             rootSuite.cid = runner.cid
             this.runnerStat = new RunnerStats(runner)
             this.onRunnerStart(this.runnerStat)
         })
 
-        this.on('suite:start',  /* istanbul ignore next */(params) => {
+        this.on('suite:start',  /* istanbul ignore next */(params: Suite) => {
             const suite = new SuiteStats(params)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.suites.push(suite)
@@ -64,23 +79,23 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteStart(suite)
         })
 
-        this.on('hook:start',  /* istanbul ignore next */(hook) => {
-            const hookStat = new HookStats(hook)
+        this.on('hook:start',  /* istanbul ignore next */(hook: Hook) => {
+            const hookStats = new HookStats(hook)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
-            currentSuite.hooks.push(hookStat)
-            currentSuite.hooksAndTests.push(hookStat)
-            this.hooks[hook.uid] = hookStat
-            this.onHookStart(hookStat)
+            currentSuite.hooks.push(hookStats)
+            currentSuite.hooksAndTests.push(hookStats)
+            this.hooks[hook.uid!] = hookStats
+            this.onHookStart(hookStats)
         })
 
-        this.on('hook:end',  /* istanbul ignore next */(hook) => {
-            const hookStat = this.hooks[hook.uid]
-            hookStat.complete(getErrorsFromEvent(hook))
+        this.on('hook:end',  /* istanbul ignore next */(hook: Hook) => {
+            const hookStats = this.hooks[hook.uid!]
+            hookStats.complete(getErrorsFromEvent(hook))
             this.counts.hooks++
-            this.onHookEnd(hookStat)
+            this.onHookEnd(hookStats)
         })
 
-        this.on('test:start',  /* istanbul ignore next */(test) => {
+        this.on('test:start',  /* istanbul ignore next */(test: Test) => {
             test.retries = this.retries
             currentTest = new TestStats(test)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
@@ -90,7 +105,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestStart(currentTest)
         })
 
-        this.on('test:pass',  /* istanbul ignore next */(test) => {
+        this.on('test:pass',  /* istanbul ignore next */(test: Test) => {
             const testStat = this.tests[test.uid]
             testStat.pass()
             this.counts.passes++
@@ -98,7 +113,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestPass(testStat)
         })
 
-        this.on('test:fail',  /* istanbul ignore next */(test) => {
+        this.on('test:fail',  /* istanbul ignore next */(test: Test) => {
             const testStat = this.tests[test.uid]
 
             testStat.fail(getErrorsFromEvent(test))
@@ -107,7 +122,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestFail(testStat)
         })
 
-        this.on('test:retry', (test) => {
+        this.on('test:retry', (test: Test) => {
             const testStat = this.tests[test.uid]
 
             testStat.fail(getErrorsFromEvent(test))
@@ -115,7 +130,7 @@ export default class WDIOReporter extends EventEmitter {
             this.retries++
         })
 
-        this.on('test:pending', (test) => {
+        this.on('test:pending', (test: Test) => {
             test.retries = this.retries
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentTest = new TestStats(test)
@@ -138,31 +153,33 @@ export default class WDIOReporter extends EventEmitter {
             }
 
             this.tests[currentTest.uid] = currentTest
-            currentTest.skip(test.pendingReason)
+            currentTest.skip(test.pendingReason!)
             this.counts.skipping++
             this.counts.tests++
             this.onTestSkip(currentTest)
         })
 
-        this.on('test:end',  /* istanbul ignore next */(test) => {
+        this.on('test:end',  /* istanbul ignore next */(test: Test) => {
             const testStat = this.tests[test.uid]
             this.retries = 0
             this.onTestEnd(testStat)
         })
 
-        this.on('suite:end',  /* istanbul ignore next */(suite) => {
-            const suiteStat = this.suites[suite.uid]
+        this.on('suite:end',  /* istanbul ignore next */(suite: Suite) => {
+            const suiteStat = this.suites[suite.uid!]
             suiteStat.complete()
             this.currentSuites.pop()
             this.onSuiteEnd(suiteStat)
         })
 
-        this.on('runner:end',  /* istanbul ignore next */(runner) => {
+        this.on('runner:end',  /* istanbul ignore next */(runner: Runner) => {
             rootSuite.complete()
-            this.runnerStat.failures = runner.failures
-            this.runnerStat.retries = runner.retries
-            this.runnerStat.complete()
-            this.onRunnerEnd(this.runnerStat)
+            if (this.runnerStat) {
+                this.runnerStat.failures = runner.failures
+                this.runnerStat.retries = runner.retries
+                this.runnerStat.complete()
+                this.onRunnerEnd(this.runnerStat)
+            }
         })
 
         /**
@@ -193,38 +210,50 @@ export default class WDIOReporter extends EventEmitter {
     /**
      * function to write to reporters output stream
      */
-    write(content) {
+    write(content: any) {
         this.outputStream.write(content)
     }
 
     /* istanbul ignore next */
-    onRunnerStart() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onRunnerStart(runnerStats: RunnerStats) { }
     /* istanbul ignore next */
-    onBeforeCommand() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onBeforeCommand(commandArgs: BeforeCommandArgs) { }
     /* istanbul ignore next */
-    onAfterCommand() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onAfterCommand(commandArgs: AfterCommandArgs) { }
     /* istanbul ignore next */
-    onScreenshot() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onSuiteStart(suiteStats: SuiteStats) { }
     /* istanbul ignore next */
-    onSuiteStart() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onHookStart(hookStat: HookStats) { }
     /* istanbul ignore next */
-    onHookStart() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onHookEnd(hookStats: HookStats) { }
     /* istanbul ignore next */
-    onHookEnd() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onTestStart(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestStart() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onTestPass(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestPass() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onTestFail(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestFail() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onTestRetry(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestRetry() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onTestSkip(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestSkip() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onTestEnd(testStats: TestStats) { }
     /* istanbul ignore next */
-    onTestEnd() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onSuiteEnd(suiteStats: SuiteStats) { }
     /* istanbul ignore next */
-    onSuiteEnd() { }
-    /* istanbul ignore next */
-    onRunnerEnd() { }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onRunnerEnd(runnerStats: RunnerStats) { }
 }

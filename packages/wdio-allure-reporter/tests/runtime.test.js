@@ -59,15 +59,21 @@ describe('reporter reporter api', () => {
     })
 
     it('should pass correct data from addAttachment', () => {
-        reporter.addAttachment('foo', 'bar', 'baz')
+        reporter.addAttachment('foo', 123, 'baz')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
-        expect(utils.tellReporter).toHaveBeenCalledWith(events.addAttachment, { name: 'foo', content: 'bar', type: 'baz' })
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addAttachment, { name: 'foo', content: 123, type: 'baz' })
     })
 
-    it('should support default type from addAttachment', () => {
+    it('should support default string type from addAttachment', () => {
         reporter.addAttachment('foo', 'bar')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addAttachment, { name: 'foo', content: 'bar', type: 'text/plain' })
+    })
+
+    it('should support default json type from addAttachment', () => {
+        reporter.addAttachment('foo', { foo: 'bar' })
+        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
+        expect(utils.tellReporter).toHaveBeenCalledWith(events.addAttachment, { name: 'foo', content: { foo: 'bar' }, type: 'application/json' })
     })
 
     it('should pass correct data from addStep', () => {
