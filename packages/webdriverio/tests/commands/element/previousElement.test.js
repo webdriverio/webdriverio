@@ -2,7 +2,7 @@
 import { remote } from '../../../src'
 
 describe('previous element sibling test', () => {
-    it('should return previous sibling of an element', async () => {
+    it.skip('should return previous sibling of an element', async () => {
         const browser = await remote({
             capabilities: {
                 browserName: 'foobar'

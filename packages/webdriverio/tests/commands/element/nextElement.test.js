@@ -5,7 +5,7 @@ describe('next element sibling test', () => {
     it('should return next sibling of an element', async () => {
         const browser = await remote({
             capabilities: {
-                browserName: 'foobar'
+                browserName: 'goobar'
             }
         })
         const elem = await browser.$('#foo')
