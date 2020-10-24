@@ -23,9 +23,9 @@ describe('next element sibling test', () => {
             }
         })
         const elem = await browser.$$('#foo')
-        const prevElem = await elem[2].nextElement()
+        const nextElem = await elem[2].nextElement()
 
-        const err = await prevElem.click().catch((err) => err)
+        const err = await nextElem.click().catch((err) => err)
         expect(err.message)
             .toContain('next element of element with selector "#foo"')
     })
