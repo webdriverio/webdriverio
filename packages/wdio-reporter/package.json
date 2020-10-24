@@ -30,6 +30,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-function-bind": "^7.12.1",
     "tmp": "^0.2.0"
   },
   "publishConfig": {
