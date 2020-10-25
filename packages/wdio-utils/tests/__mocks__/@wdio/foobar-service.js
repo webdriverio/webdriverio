@@ -1,4 +1,4 @@
-export default class FoobarService {
+module.exports = class FoobarService {
     constructor () {
         this.foo = 'foobar'
     }

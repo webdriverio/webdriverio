@@ -17,6 +17,39 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.6.8 (2020-10-20)
+
+#### :rocket: New Feature
+* `wdio-spec-reporter`
+  * [#6005](https://github.com/webdriverio/webdriverio/pull/6005) Spec Reporter - custom symbols for report ([@unickq](https://github.com/unickq))
+
+#### :house: Internal
+* [#6013](https://github.com/webdriverio/webdriverio/pull/6013) Changed workflow setup for docs ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 2
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Nick ([@unickq](https://github.com/unickq))
+
+
+## v6.6.7 (2020-10-20)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriverio`
+  * [#6006](https://github.com/webdriverio/webdriverio/pull/6006) webdriverio: mock respond in request stage ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#6000](https://github.com/webdriverio/webdriverio/pull/6000) Add proper multi-remote session support for Browserstack service ([@hieuxlu](https://github.com/hieuxlu))
+* `wdio-mocha-framework`, `wdio-sauce-service`
+  * [#5997](https://github.com/webdriverio/webdriverio/pull/5997) Properly report Sauce job for Mocha retries ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Hieu Do ([@hieuxlu](https://github.com/hieuxlu))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.6.6 (2020-10-15)
 
 #### :bug: Bug Fix

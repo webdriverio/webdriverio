@@ -38,3 +38,14 @@ module.exports = {
   // ...
 };
 ```
+
+### Custom report symbols
+```js
+[
+  "spec",
+  {
+    symbols: { passed: '[PASS]', failed: '[FAIL]' },
+    // skipped set to default '-'
+  }
+]
+```

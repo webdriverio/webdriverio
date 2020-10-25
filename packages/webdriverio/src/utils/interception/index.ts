@@ -3,7 +3,7 @@ import Timer from '../Timer'
 export default class Interception {
     url: string;
     filterOptions: WebdriverIO.MockFilterOptions;
-    browser: WebdriverIO.Browser;
+    browser: WebdriverIO.BrowserObject;
     respondOverwrites: {
         overwrite?: WebdriverIO.MockOverwrite;
         params?: WebdriverIO.MockResponseParams;
@@ -13,7 +13,7 @@ export default class Interception {
     matches: WebdriverIO.Matches[];
     calls?: WebdriverIO.Matches[];
 
-    constructor (url: string, filterOptions = {}, browser: WebdriverIO.Browser) {
+    constructor (url: string, filterOptions = {}, browser: WebdriverIO.BrowserObject) {
         this.url = url
         this.filterOptions = filterOptions
         this.browser = browser

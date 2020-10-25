@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "6.6.6",
+  "version": "6.6.7",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -69,5 +69,9 @@
     "rgb2hex": "^0.2.0",
     "serialize-error": "^7.0.0",
     "webdriver": "6.6.3"
+  },
+  "devDependencies": {
+    "@types/atob": "^2.1.2",
+    "@types/fs-extra": "^9.0.2"
   }
 }
