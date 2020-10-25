@@ -3,7 +3,7 @@ declare namespace WDIOReporter {
     type ErrorType = 'AssertionError' | 'Error';
 
     class Reporter {
-        constructor (options: Options);
+        constructor(options: Options);
 
         onRunnerStart(runner: any): void;
         onBeforeCommand(command: BeforeCommand): void;
@@ -20,9 +20,6 @@ declare namespace WDIOReporter {
         onRunnerEnd(runner: any): void;
 
         private _isSynchronised: boolean;
-        public get isSynchronised(): boolean {
-            return this._isSynchronised;
-        }
 
         write(content: any): void;
     }
