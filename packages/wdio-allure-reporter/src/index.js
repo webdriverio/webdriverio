@@ -209,10 +209,6 @@ class AllureReporter extends WDIOReporter {
     }
 
     onAfterCommand(command) {
-        if (this.isMultiremote) {
-            return
-        }
-
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting, useCucumberStepReporter } = this.options
         if (this.isScreenshotCommand(command) && command.result.value) {
             if (!disableWebdriverScreenshotsReporting) {
@@ -225,6 +221,10 @@ class AllureReporter extends WDIOReporter {
         }
 
         this.attachScreenshot()
+
+        if (this.isMultiremote) {
+            return
+        }
 
         if (!disableWebdriverStepsReporting && !useCucumberStepReporter) {
             if (command.result && command.result.value && !this.isScreenshotCommand(command)) {
