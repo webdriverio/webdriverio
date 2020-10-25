@@ -1,6 +1,5 @@
 import RunnableStats from './runnable'
 import { sanitizeCaps } from '../utils'
-import { DesiredCapabilities } from '../types'
 import { WDIOReporterOptions } from '..'
 
 export interface Runner {
@@ -9,7 +8,7 @@ export interface Runner {
     config: WDIOReporterOptions
     isMultiremote: boolean
     sessionId?: string
-    capabilities: DesiredCapabilities
+    capabilities: WebDriver.DesiredCapabilities
     retry?: number
     failures?: number
     retries?: number
@@ -21,7 +20,7 @@ export interface Runner {
  */
 export default class RunnerStats extends RunnableStats {
     cid: string
-    capabilities: DesiredCapabilities
+    capabilities: WebDriver.DesiredCapabilities
     sanitizedCapabilities: string
     config: WDIOReporterOptions
     specs: string[]

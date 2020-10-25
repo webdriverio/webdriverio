@@ -529,11 +529,14 @@ class AllureReporter extends WDIOReporter {
     /**
      * Add attachment
      * @name addAttachment
-     * @param {string} name - attachment file name
-     * @param {string | Buffer} content - attachment content
-     * @param {string} [type='text/plain'] - attachment mime type
+     * @param {string} name         - attachment file name
+     * @param {*} content           - attachment content
+     * @param {string=} mimeType    - attachment mime type
      */
-    static addAttachment = (name, content, type = 'text/plain') => {
+    static addAttachment = (name, content, type = 'application/json') => {
+        if (typeof content === 'string' || Buffer.isBuffer(content)) {
+            type = 'text/plain'
+        }
         tellReporter(events.addAttachment, { name, content, type })
     }
 
@@ -549,7 +552,7 @@ class AllureReporter extends WDIOReporter {
     /**
      * End current allure step
      * @name endStep
-     * @param {string} [status='passed'] - step status
+     * @param {StepStatus} [status='passed'] - step status
      */
     static endStep = (status = stepStatuses.PASSED) => {
         if (!Object.values(stepStatuses).includes(status)) {
