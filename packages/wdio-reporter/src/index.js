@@ -201,7 +201,10 @@ export default class WDIOReporter extends EventEmitter {
      * function to write to reporters output stream
      */
     write (content) {
-        if(content) this.contentPresent = true
+        if(content) {
+            this.contentPresent = true
+        }
+
         this.outputStream.write(content)
     }
 
