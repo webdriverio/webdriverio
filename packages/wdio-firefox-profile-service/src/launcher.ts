@@ -8,7 +8,7 @@ export default class FirefoxProfileLauncher {
         this.options = options
     }
 
-    async onPrepare(config:WebdriverIO.Config, capabilities:WebDriver.Capabilities[] | Record<string, WebDriver.Capabilities & WebDriver.Options>) {
+    async onPrepare(config: WebdriverIO.Config, capabilities: WebDriver.Capabilities[] | Record<string, WebDriver.Capabilities & WebDriver.Options>) {
         /**
          * Return if no profile options were specified
          */
@@ -17,7 +17,8 @@ export default class FirefoxProfileLauncher {
         }
 
         if (this.options.profileDirectory) {
-            this.profile = await promisify(Profile.copy)(this.options.profileDirectory)
+            const profileCopy : (options: WebdriverIO.ServiceOption | string) => Promise<any> = promisify(Profile.copy)
+            this.profile = await profileCopy(this.options.profileDirectory)
         } else {
             this.profile = new Profile()
         }
@@ -53,8 +54,8 @@ export default class FirefoxProfileLauncher {
         this.profile.updatePreferences()
     }
 
-    async _buildExtension(capabilities:WebDriver.Capabilities[] | Record<string, WebDriver.Capabilities & WebDriver.Options>) {
-        const profile: () => Promise<any> =  promisify(this.profile.encoded.bind(this.profile))
+    async _buildExtension(capabilities: WebDriver.Capabilities[] | Record<string, WebDriver.Capabilities & WebDriver.Options>) {
+        const profile = <() => Promise<string>>promisify(this.profile.encoded.bind(this.profile))
         const zippedProfile = await profile()
 
         if (Array.isArray(capabilities)) {
@@ -63,12 +64,11 @@ export default class FirefoxProfileLauncher {
                 .forEach((capability) => {
                     this._setProfile(capability, zippedProfile)
                 })
-
             return
         }
 
         for (const browser in capabilities) {
-            const capability = capabilities[browser].capabilities
+            const capability: WebDriver.Capabilities = capabilities[browser].capabilities
 
             if (!capability || capability.browserName !== 'firefox') {
                 continue
@@ -78,7 +78,7 @@ export default class FirefoxProfileLauncher {
         }
     }
 
-    _setProfile(capability, zippedProfile) {
+    _setProfile(capability: WebDriver.Capabilities & WebDriver.Options, zippedProfile:string) {
         if (this.options.legacy) {
             // for older firefox and geckodriver versions
             capability.firefox_profile = zippedProfile
