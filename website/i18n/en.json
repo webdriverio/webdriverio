@@ -263,6 +263,15 @@
       "api/element/moveTo": {
         "title": "moveTo"
       },
+      "api/element/nextElement": {
+        "title": "nextElement"
+      },
+      "api/element/parentElement": {
+        "title": "parentElement"
+      },
+      "api/element/previousElement": {
+        "title": "previousElement"
+      },
       "api/element/react$": {
         "title": "react$"
       },
@@ -549,7 +558,7 @@
     "Extendable|no description given": "Extendable",
     "WebdriverIO can be run on the [__WebDriver Protocol__](https://w3c.github.io/webdriver/) for true cross browser testing as well as [__Chrome DevTools Protocol__](https://chromedevtools.github.io/devtools-protocol/) for Chromium based automation using [Puppeteer](https://pptr.dev/).|no description given": "WebdriverIO can be run on the [__WebDriver Protocol__](https://w3c.github.io/webdriver/) for true cross browser testing as well as [__Chrome DevTools Protocol__](https://chromedevtools.github.io/devtools-protocol/) for Chromium based automation using [Puppeteer](https://pptr.dev/).",
     "Compatible|no description given": "Compatible",
-    "The huge of variety of community plugins allows you to easily integrate and extend your setup to fulfill your requirements.|no description given": "The huge of variety of community plugins allows you to easily integrate and extend your setup to fulfill your requirements.",
+    "The huge variety of community plugins allows you to easily integrate and extend your setup to fulfill your requirements.|no description given": "The huge variety of community plugins allows you to easily integrate and extend your setup to fulfill your requirements.",
     "Feature Rich|no description given": "Feature Rich",
     "Help Translate|recruit community translators for your project": "Help Translate",
     "Edit this Doc|recruitment message asking to edit the doc source": "Edit",

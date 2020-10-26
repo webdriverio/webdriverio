@@ -11,7 +11,7 @@
         <p>Sibling Three</p>
     </div>
     :parentElement.js
-    it('should get id from parent element', () => {
+    it('should get class from parent element', () => {
         const elem = $$('p');
         console.log(elem[2].parentElement().getAttribute('class')); // outputs: "parent"
     });
