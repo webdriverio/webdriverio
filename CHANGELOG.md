@@ -17,6 +17,58 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.7.0 (2020-10-26)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriverio`
+  * [#6030](https://github.com/webdriverio/webdriverio/pull/6030) Implement methods to navigate through the DOM easier #4019 ([@dagoud](https://github.com/dagoud))
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#6031](https://github.com/webdriverio/webdriverio/pull/6031) Enable multiremote screenshot capturing for wdio-allure-reporter ([@hieuxlu](https://github.com/hieuxlu))
+  * [#6020](https://github.com/webdriverio/webdriverio/pull/6020) allure-reporter: attach screenshot to 'all' hooks on failure ([@mgrybyk](https://github.com/mgrybyk))
+* `webdriverio`
+  * [#5923](https://github.com/webdriverio/webdriverio/pull/5923) fix appium image locator ([@AlmogH](https://github.com/AlmogH))
+* `devtools`
+  * [#6019](https://github.com/webdriverio/webdriverio/pull/6019) devtools: fix infinite loop on timeout ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `wdio-sauce-service`
+  * [#6027](https://github.com/webdriverio/webdriverio/pull/6027) Clarify Sauce Connect usage ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-allure-reporter`
+  * [#6022](https://github.com/webdriverio/webdriverio/pull/6022) allure-reporter: mime type types ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :house: Internal
+* `wdio-applitools-service`
+  * [#5981](https://github.com/webdriverio/webdriverio/pull/5981) Tracking doc: rewrite `@wdio/applitools-service` package into TypeScript ([@mciastek](https://github.com/mciastek))
+* `wdio-reporter`
+  * [#6026](https://github.com/webdriverio/webdriverio/pull/6026) Minor cleanups after @wdio/reporter migration ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-webdriver-mock-service`
+  * [#5968](https://github.com/webdriverio/webdriverio/pull/5968) Tracking doc: rewrite `@wdio/webdriver-mock-service` package into TypeScript ([@suniljaiswal01](https://github.com/suniljaiswal01))
+* `webdriverio`
+  * [#6021](https://github.com/webdriverio/webdriverio/pull/6021) Refactor webdriverio utils interception devtools to TS ([@Fabianopb](https://github.com/Fabianopb))
+* `wdio-reporter`, `wdio-smoke-test-reporter`
+  * [#5909](https://github.com/webdriverio/webdriverio/pull/5909) Rewrite `@wdio/reporter` package into TypeScript ([@ablok](https://github.com/ablok))
+* `wdio-static-server-service`
+  * [#5922](https://github.com/webdriverio/webdriverio/pull/5922) Tracking doc: rewrite `@wdio/static-server-service` package into TypeScript ([@suniljaiswal01](https://github.com/suniljaiswal01))
+* `wdio-sync`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#5851](https://github.com/webdriverio/webdriverio/pull/5851) Tracking doc: rewrite `@wdio/utils` package into TypeScript ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#5999](https://github.com/webdriverio/webdriverio/pull/5999) Refactor utils interception webdriver to typescript ([@Fabianopb](https://github.com/Fabianopb))
+
+#### Committers: 10
+- Almog ([@AlmogH](https://github.com/AlmogH))
+- Arjan Blok ([@ablok](https://github.com/ablok))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fabiano Brito ([@Fabianopb](https://github.com/Fabianopb))
+- Hieu Do ([@hieuxlu](https://github.com/hieuxlu))
+- Mirek Ciastek ([@mciastek](https://github.com/mciastek))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Sunil Jaiswal ([@suniljaiswal01](https://github.com/suniljaiswal01))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dagoud](https://github.com/dagoud)
+
+
 ## v6.6.8 (2020-10-20)
 
 #### :rocket: New Feature
