@@ -47,6 +47,8 @@
   "types": "./webdriverio.d.ts",
   "typeScriptVersion": "3.7.3",
   "dependencies": {
+    "@types/atob": "^2.1.2",
+    "@types/fs-extra": "^9.0.2",
     "@types/puppeteer": "^3.0.1",
     "@wdio/config": "6.6.3",
     "@wdio/logger": "6.6.0",
@@ -70,8 +72,5 @@
     "serialize-error": "^7.0.0",
     "webdriver": "6.6.3"
   },
-  "devDependencies": {
-    "@types/atob": "^2.1.2",
-    "@types/fs-extra": "^9.0.2"
-  }
+  "devDependencies": {}
 }
