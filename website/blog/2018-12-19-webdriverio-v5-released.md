@@ -22,7 +22,7 @@ Looking into the history of the project, it is humbling to see how much it has b
 
 The next step was to implement a technical infrastructure that would allow the project to grow. By reviewing other successful open source projects such as e.g. [Jest](https://jestjs.io/) or [Babel](https://babeljs.io/), we adapted a monolithic project structure to simplify the process of contributing to WebdriverIO.<br>
 <br>
-We wanted to start this effort completely community driven, and began to gather [feedback](https://github.com/webdriverio/webdriverio/issues/2403) from everyone who was using WebdriverIO on daily basis. We created a [Gitter channel](https://gitter.im/webdriverio/v5) in order to discuss architectural changes, and to organize the work of porting the packages into the new tech stack that was [Lerna](https://lernajs.io/).
+We wanted to start this effort completely community driven, and began to gather [feedback](https://github.com/webdriverio/webdriverio/issues/2403) from everyone who was using WebdriverIO on daily basis. We created a [Gitter channel](https://gitter.im/webdriverio/webdriverio) in order to discuss architectural changes, and to organize the work of porting the packages into the new tech stack that was [Lerna](https://lernajs.io/).
 
 ## New Package Structure
 
