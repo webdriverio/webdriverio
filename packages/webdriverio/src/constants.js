@@ -1,7 +1,8 @@
 /* istanbul ignore next */
 
 const HOOK_DEFINITION = {
-    type: (param) => {
+    type: 'object',
+    validate: (param) => {
         /**
          * option must be an array
          */
@@ -33,10 +34,9 @@ export const WDIO_DEFAULTS = {
      * allows to specify automation protocol
      */
     automationProtocol: {
-        type: (param) => {
-            if (typeof param !== 'string') {
-                throw new Error('the "automationProtocol" option needs to from type strings')
-            } else if (!['webdriver', 'devtools', './protocol-stub'].includes(param.toLowerCase())) {
+        type: 'string',
+        validate: (param) => {
+            if (!['webdriver', 'devtools', './protocol-stub'].includes(param.toLowerCase())) {
                 throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
             }
 
@@ -55,7 +55,8 @@ export const WDIO_DEFAULTS = {
      * define specs for test execution
      */
     specs: {
-        type: (param) => {
+        type: 'object',
+        validate: (param) => {
             if (!Array.isArray(param)) {
                 throw new Error('the "specs" option needs to be a list of strings')
             }
@@ -65,7 +66,8 @@ export const WDIO_DEFAULTS = {
      * exclude specs from test execution
      */
     exclude: {
-        type: (param) => {
+        type: 'object',
+        validate: (param) => {
             if (!Array.isArray(param)) {
                 throw new Error('the "exclude" option needs to be a list of strings')
             }
@@ -82,7 +84,8 @@ export const WDIO_DEFAULTS = {
      * capabilities of WebDriver sessions
      */
     capabilities: {
-        type: (param) => {
+        type: 'object',
+        validate: (param) => {
             /**
              * should be an object
              */
@@ -155,7 +158,8 @@ export const WDIO_DEFAULTS = {
      * ]
      */
     reporters: {
-        type: (param) => {
+        type: 'object',
+        validate: (param) => {
             /**
              * option must be an array
              */
@@ -205,7 +209,8 @@ export const WDIO_DEFAULTS = {
      * set of WDIO services to use
      */
     services: {
-        type: (param) => {
+        type: 'object',
+        validate: (param) => {
             /**
              * should be an array
              */
@@ -233,7 +238,8 @@ export const WDIO_DEFAULTS = {
      * Node arguments to specify when launching child processes
      */
     execArgv: {
-        type: (param) => {
+        type: 'object',
+        validate: (param) => {
             if (!Array.isArray(param)) {
                 throw new Error('the "execArgv" options needs to be a list of strings')
             }
@@ -263,7 +269,8 @@ export const WDIO_DEFAULTS = {
      * list of strings to watch of `wdio` command is called with `--watch` flag
      */
     filesToWatch: {
-        type: (param) => {
+        type: 'object',
+        validate: (param) => {
             if (!Array.isArray(param)) {
                 throw new Error('the "filesToWatch" options needs to be a list of strings')
             }

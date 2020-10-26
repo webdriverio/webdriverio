@@ -39,6 +39,7 @@
       "repl",
       "watcher",
       "jenkins",
+      "bamboo",
       "runprogrammatically",
       "driverbinaries",
       "flowchartsoverview",
@@ -50,9 +51,7 @@
       "api"
     ],
     "Protocols": [],
-    "Testrunner": [
-      "api/expect"
-    ]
+    "Testrunner": []
   },
   "flowcharts": {
       "Flowcharts": [

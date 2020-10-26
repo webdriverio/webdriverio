@@ -382,6 +382,13 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
     }, {
         browserName: 'internet explorer',
         version: '9'
+    }, {
+        deviceName: 'iPhone',
+        platformName: 'iOS',
+        tunnelIdentifier: 'fish-bar'
+    }, {
+        deviceName: 'iPhone',
+        platformName: 'iOS',
     }]
     const config = {
         user: 'foobaruser',
@@ -404,6 +411,20 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
         port: 4446,
         browserName: 'internet explorer',
         version: '9',
+        tunnelIdentifier: 'my-tunnel'
+    }, {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4446,
+        deviceName: 'iPhone',
+        platformName: 'iOS',
+        tunnelIdentifier: 'fish-bar'
+    }, {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4446,
+        deviceName: 'iPhone',
+        platformName: 'iOS',
         tunnelIdentifier: 'my-tunnel'
     }])
     expect(service.sauceConnectProcess).not.toBeUndefined()

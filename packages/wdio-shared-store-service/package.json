@@ -1,6 +1,6 @@
 {
   "name": "@wdio/shared-store-service",
-  "version": "6.4.1",
+  "version": "6.7.0",
   "description": "A WebdriverIO service to exchange data across processes",
   "author": "Mykola Grybyk <mykola.grybyk@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-shared-store-service",
@@ -8,15 +8,6 @@
   "main": "./build",
   "engines": {
     "node": ">=10.0.0"
-  },
-  "scripts": {
-    "tsc": "tsc",
-    "build": "run-s clean compile",
-    "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src test",
-    "test:unit": "jest"
   },
   "repository": {
     "type": "git",
@@ -33,12 +24,15 @@
   },
   "dependencies": {
     "@polka/parse": "^1.0.0-next.0",
-    "@wdio/logger": "6.0.16",
+    "@wdio/logger": "6.6.0",
     "got": "^11.0.2",
     "polka": "^0.5.2"
   },
   "publishConfig": {
     "access": "public"
   },
-  "types": "shared-store-service.d.ts"
+  "types": "shared-store-service.d.ts",
+  "devDependencies": {
+    "webdriverio": "6.7.0"
+  }
 }

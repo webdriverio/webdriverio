@@ -2,7 +2,7 @@ import NetworkInterception from '../../../src/utils/interception/webdriver'
 
 const browserMock = {
     mockRequest: jest.fn().mockReturnValue({ mockId: 123 }),
-    mockCalls: jest.fn().mockReturnValue([1, 2, 3]),
+    getMockCalls: jest.fn().mockReturnValue([1, 2, 3]),
     clearMockCalls: jest.fn().mockReturnValue({}),
     restoreMockCalls: jest.fn().mockReturnValue({}),
     respondMock: jest.fn().mockReturnValue({}),
@@ -11,7 +11,7 @@ const browserMock = {
 
 beforeEach(() => {
     browserMock.mockRequest.mockClear()
-    browserMock.mockCalls.mockClear()
+    browserMock.getMockCalls.mockClear()
     browserMock.clearMockCalls.mockClear()
     browserMock.restoreMockCalls.mockClear()
     browserMock.respondMock.mockClear()
@@ -29,7 +29,7 @@ test('calls', async () => {
     const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
     await mock.init()
     expect(await mock.calls).toEqual([1, 2, 3])
-    expect(browserMock.mockCalls).toBeCalledWith(123)
+    expect(browserMock.getMockCalls).toBeCalledWith(123)
 })
 
 test('clear', async () => {

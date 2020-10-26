@@ -59,20 +59,21 @@ export function makeCapabilityFactory(tunnelIdentifier, options) {
             !capability['sauce:options']
         )
 
-        if (!capability['sauce:options'] && !isLegacy) {
+        // Unified Platform is currently not W3C ready, so the tunnel needs to be on the cap level
+        if (!capability['sauce:options'] && !isLegacy && !isUnifiedPlatform(capability)) {
             capability['sauce:options'] = {}
         }
 
         Object.assign(capability, options)
 
-        const sauceOptions = !isLegacy ? capability['sauce:options'] : capability
+        const sauceOptions = !isLegacy && !isUnifiedPlatform(capability) ? capability['sauce:options'] : capability
         sauceOptions.tunnelIdentifier = (
             capability.tunnelIdentifier ||
             sauceOptions.tunnelIdentifier ||
             tunnelIdentifier
         )
 
-        if (!isLegacy) {
+        if (!isLegacy && !isUnifiedPlatform(capability)) {
             delete capability.tunnelIdentifier
         }
     }

@@ -1,17 +1,17 @@
 /**
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
- *
  * Mock the response of a request. You can define a mock based on a matching
  * glob and corresponding header and status code. Calling the mock method
  * returns a stub object that you can use to modify the response of the
  * web resource.
+ *
+ * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
  *
  * With the stub object you can then either return a custom response or
  * have the request fail.
  *
  * There are 3 ways to modify the response:
  * - return a custom JSON object (for stubbing API request)
- * - replace web resource with a local file (service a modifed JavaScript file) or
+ * - replace web resource with a local file (service a modified JavaScript file) or
  * - redirect resource to a different url
  *
  * <example>
@@ -20,15 +20,27 @@
         // via static string
         const userListMock = browser.mock('**' + '/users/list')
         // you can also specifying the mock even more by filtering resources
-        // by headers or status code, e.g. mock only responses with specific
-        // header set
+        // by request or response headers, status code, postData, e.g. mock only responses with specific
+        // header set and statusCode
         const strictMock = browser.mock('**', {
             // mock all json responses
-            headers: { 'Content-Type': 'application/json' }
+            statusCode: 200,
+            headers: { 'Content-Type': 'application/json' },
+            responseHeaders: { 'Cache-Control': 'no-cache' },
+            postData: 'foobar'
+        })
+
+        // comparator function
+        const apiV1Mock = browser.mock('**' + '/api/v1', {
+            statusCode: (statusCode) => statusCode >= 200 && statusCode <= 203,
+            headers: (headers) => headers['Authorization'] && headers['Authorization'].startsWith('Bearer '),
+            responseHeaders: (headers) => headers['Impersonation'],
+            postData: (data) => typeof data === 'string' && data.includes('foo')
         })
     })
 
     it('should modify API responses', () => {
+        // filter by method
         const todoMock = browser.mock('**' + '/todos', {
             method: 'get'
         })
@@ -72,11 +84,14 @@
  * </example>
  *
  * @alias browser.mock
- * @param {String}             url                    url to mock
- * @param {MockFilterOptions=} filterOptions          filter mock resource by additional options
- * @param {String=}            filterOptions.method   filter resource by HTTP method
- * @param {Object=}            filterOptions.headers  filter resource by specific request headers
- * @return {Mock}                                     a mock object to modify the response
+ * @param {String}              url                             url to mock
+ * @param {MockFilterOptions=}  filterOptions                   filter mock resource by additional options
+ * @param {String|Function=}    filterOptions.method            filter resource by HTTP method
+ * @param {Object|Function=}    filterOptions.headers           filter resource by specific request headers
+ * @param {Object|Function=}    filterOptions.responseHeaders   filter resource by specific response headers
+ * @param {String|Function=}    filterOptions.postData          filter resource by request postData
+ * @param {Number|Function=}    filterOptions.statusCode        filter resource by response statusCode
+ * @return {Mock}                                               a mock object to modify the response
  * @type utility
  *
  */
@@ -100,7 +115,7 @@ export default async function mock (url, filterOptions) {
         const [page] = await this.puppeteer.pages()
         const client = await page.target().createCDPSession()
         await client.send('Fetch.enable', {
-            patterns: [{ requestStage: 'Response' }]
+            patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
         })
         client.on(
             'Fetch.requestPaused',

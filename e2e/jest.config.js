@@ -5,5 +5,8 @@ module.exports = {
         '<rootDir>/*.test.js'
     ],
     moduleFileExtensions: ['js', 'ts'],
-    setupFilesAfterEnv: ['./jest.setup.js']
+    setupFilesAfterEnv: ['./jest.setup.js'],
+    transform: {
+        '^.+\\.(ts|js)$': 'ts-jest'
+    }
 }

@@ -1,0 +1,1 @@
+../../applitools-service.d.ts

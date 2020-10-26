@@ -9,7 +9,7 @@ const sleep = (ms = 100) => new Promise(
     (resolve) => setTimeout(resolve, ms))
 
 let exitHookFn, runner
-const origExit = ::process.exit
+const origExit = process.exit.bind(process)
 
 beforeAll(() => {
     jest.spyOn(process, 'on')

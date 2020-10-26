@@ -103,6 +103,10 @@ module.exports = function () {
      */
     specFileRetries: 1,
     /**
+     * Delay in seconds between the spec file retry attempts
+     */
+    specFileRetriesDelay: 0,
+    /**
      * Retried specfiles are inserted at the beginning of the queue and retried immediately
      */
     specFileRetriesDeferred: false

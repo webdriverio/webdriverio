@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browserstack-service",
-  "version": "6.4.6",
+  "version": "6.6.7",
   "description": "WebdriverIO service for better Browserstack integration",
   "author": "Adam Bjerstedt <abjerstedt@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service",
@@ -8,15 +8,6 @@
   "main": "./build",
   "engines": {
     "node": ">=10.0.0"
-  },
-  "scripts": {
-    "tsc": "tsc",
-    "build": "run-s clean compile",
-    "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src test",
-    "test:unit": "jest"
   },
   "repository": {
     "type": "git",
@@ -32,7 +23,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "6.0.16",
+    "@wdio/logger": "6.6.0",
     "browserstack-local": "^1.4.5",
     "got": "^11.0.2"
   },

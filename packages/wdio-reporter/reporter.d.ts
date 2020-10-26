@@ -8,7 +8,6 @@ declare namespace WDIOReporter {
         onRunnerStart(runner: any): void;
         onBeforeCommand(command: BeforeCommand): void;
         onAfterCommand(command: AfterCommand): void;
-        onScreenshot(): void;
         onSuiteStart(suite: Suite): void;
         onHookStart(hook: Hook): void;
         onHookEnd(hook: Hook): void;
@@ -26,9 +25,8 @@ declare namespace WDIOReporter {
     }
 
     interface Options {
-        configFile: string;
-        logFile: string;
-        logLevel: string;
+        logFile?: string;
+        logLevel?: string;
         stdout?: boolean;
     }
 

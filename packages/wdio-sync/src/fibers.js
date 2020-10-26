@@ -18,9 +18,7 @@ try {
     /**
      * try original fibers package first
      */
-    // eslint-disable-next-line import/no-unresolved
     Fiber = require('fibers')
-    // eslint-disable-next-line import/no-unresolved
     Future = require('fibers/future')
 } catch (e) {
     log.debug('Couldn\'t load fibers package for Node v10 and above')

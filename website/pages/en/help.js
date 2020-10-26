@@ -41,12 +41,24 @@ class Help extends React.Component {
 
         return (
             <div className="docMainWrapper wrapper">
-                <Container className="mainContainer documentContainer postContainer">
+                <Container className="mainContainer documentContainer postContainer paddingBottom">
                     <div className="post">
                         <header className="postHeader">
                             <h1>Need help?</h1>
                         </header>
                         <p>This project is maintained by a dedicated group of people.</p>
+
+                        <p>If you're interested in making a contribution to the WebdriverIO project, check out <a href="./blog/2020/07/01/office-hours.html">the free "Office Hours" program</a> to help you with your efforts.</p>
+
+                        <p>If you're seeking immediate help with your own project, reach out to a trusted WebdriverIO expert:</p>
+
+                        <ul>
+                            <li><a href="https://www.codementor.io/@kevinlamping">Kevin Lamping</a></li>
+                            <li><a href="https://github.com/webdriverio/webdriverio/blob/master/website/pages/en/help.js">Add your name to this list</a></li>
+                        </ul>
+
+                        <p>Otherwise, check out these free resources:</p>
+
                         <GridBlock contents={supportLinks} layout="threeColumn" />
                     </div>
                 </Container>

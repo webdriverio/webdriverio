@@ -22,6 +22,8 @@ class AllureReporter extends WDIOReporter {
 
         this.allure.setOptions({ targetDir: outputDir })
         this.registerListeners()
+
+        this.lastScreenshot = undefined
     }
 
     registerListeners() {
@@ -110,11 +112,15 @@ class AllureReporter extends WDIOReporter {
         const currentTest = this.allure.getCurrentTest()
 
         if (!this.isMultiremote) {
-            const { browserName, deviceName } = this.capabilities
-            const targetName = browserName || deviceName || cid
+            const { browserName, deviceName, desired, device } = this.capabilities
+            let targetName = device || browserName || deviceName || cid
+            // custom mobile grids can have device information in a `desired` cap
+            if (desired && desired.deviceName && desired.platformVersion) {
+                targetName = `${device || desired.deviceName} ${desired.platformVersion}`
+            }
             const browserstackVersion = this.capabilities.os_version || this.capabilities.osVersion
             const version = browserstackVersion || this.capabilities.browserVersion || this.capabilities.version || this.capabilities.platformVersion || ''
-            const paramName = deviceName ? 'device' : 'browser'
+            const paramName = (deviceName || device) ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
             currentTest.addParameter('argument', paramName, paramValue)
         } else {
@@ -203,16 +209,23 @@ class AllureReporter extends WDIOReporter {
     }
 
     onAfterCommand(command) {
-        if (!this.isAnyTestRunning() || this.isMultiremote) {
-            return
-        }
-
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting, useCucumberStepReporter } = this.options
         if (this.isScreenshotCommand(command) && command.result.value) {
             if (!disableWebdriverScreenshotsReporting) {
-                this.allure.addAttachment('Screenshot', Buffer.from(command.result.value, 'base64'))
+                this.lastScreenshot = command.result.value
             }
         }
+
+        if (!this.isAnyTestRunning()) {
+            return
+        }
+
+        this.attachScreenshot()
+
+        if (this.isMultiremote) {
+            return
+        }
+
         if (!disableWebdriverStepsReporting && !useCucumberStepReporter) {
             if (command.result && command.result.value && !this.isScreenshotCommand(command)) {
                 this.dumpJSON('Response', command.result.value)
@@ -270,6 +283,7 @@ class AllureReporter extends WDIOReporter {
         if (hook.error) {
             if (this.options.disableMochaHooks && isMochaAllHooks(hook.title)) {
                 this.onTestStart(hook)
+                this.attachScreenshot()
             }
             this.onTestFail(hook)
         } else if (this.options.disableMochaHooks || this.options.useCucumberStepReporter) {
@@ -431,6 +445,13 @@ class AllureReporter extends WDIOReporter {
         this.allure.addAttachment(name, JSON.stringify(json, null, 2), 'application/json')
     }
 
+    attachScreenshot() {
+        if (this.lastScreenshot && !this.options.disableWebdriverScreenshotsReporting) {
+            this.allure.addAttachment('Screenshot', Buffer.from(this.lastScreenshot, 'base64'))
+            this.lastScreenshot = undefined
+        }
+    }
+
     /**
      * Assign feature to test
      * @name addFeature
@@ -508,11 +529,14 @@ class AllureReporter extends WDIOReporter {
     /**
      * Add attachment
      * @name addAttachment
-     * @param {string} name - attachment file name
-     * @param {string | Buffer} content - attachment content
-     * @param {string} [type='text/plain'] - attachment mime type
+     * @param {string} name         - attachment file name
+     * @param {*} content           - attachment content
+     * @param {string=} mimeType    - attachment mime type
      */
-    static addAttachment = (name, content, type = 'text/plain') => {
+    static addAttachment = (name, content, type = 'application/json') => {
+        if (typeof content === 'string' || Buffer.isBuffer(content)) {
+            type = 'text/plain'
+        }
         tellReporter(events.addAttachment, { name, content, type })
     }
 
@@ -528,7 +552,7 @@ class AllureReporter extends WDIOReporter {
     /**
      * End current allure step
      * @name endStep
-     * @param {string} [status='passed'] - step status
+     * @param {StepStatus} [status='passed'] - step status
      */
     static endStep = (status = stepStatuses.PASSED) => {
         if (!Object.values(stepStatuses).includes(status)) {

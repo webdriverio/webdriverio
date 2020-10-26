@@ -2,7 +2,7 @@ import yargs from 'yargs'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 
-import { handler, builder } from './../../src/commands/config'
+import { handler, builder, missingConfigurationPrompt } from './../../src/commands/config'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
 
 jest.mock('../../src/utils', () => ({
@@ -113,4 +113,38 @@ test('prints TypeScript setup message', async () => {
     }))
     await handler({})
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
+})
+
+describe('missingConfigurationPromp', () => {
+    it('should prompt user', async () => {
+        inquirer.prompt.mockImplementation(() => ({ config: true }))
+        await missingConfigurationPrompt(null, null, null, jest.fn())
+        expect(inquirer.prompt).toHaveBeenCalled()
+    })
+
+    it('should call function to initalize configuration helper', async () => {
+        const runConfig = jest.fn()
+        await missingConfigurationPrompt('test', null, false, runConfig)
+        expect(runConfig).toHaveBeenCalledWith(false, false, true)
+    })
+
+    it('should pass "yarn" flag to runConfig', async () => {
+        const runConfig = jest.fn()
+        await missingConfigurationPrompt('test', 'test message', true, runConfig)
+        expect(runConfig).toHaveBeenCalledWith(true, false, true)
+    })
+
+    it('should throw if error occurs', async () => {
+        const runConfig = jest.fn().mockImplementation(Promise.reject)
+
+        try {
+            await missingConfigurationPrompt('test', null, null, runConfig)
+        } catch (error) {
+            expect(error).toBeTruthy()
+        }
+    })
+
+    afterEach(() => {
+        inquirer.prompt.mockClear()
+    })
 })

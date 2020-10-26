@@ -6,7 +6,7 @@ import Auditor from './auditor'
 import TraceGatherer from './gatherer/trace'
 import DevtoolsGatherer from './gatherer/devtools'
 import { isBrowserSupported, setUnsupportedCommand } from './utils'
-import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE, UNSUPPORTED_ERROR_MESSAGE } from './constants'
+import { NETWORK_STATES, DEFAULT_NETWORK_THROTTLING_STATE, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION } from './constants'
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
@@ -25,6 +25,8 @@ export default class DevToolsService {
     }
 
     async onReload() {
+        // resetting puppeteer on sessionReload, so a new puppeteer session will be attached
+        global.browser.puppeteer = null
         return this._setupHandler()
     }
 
@@ -43,7 +45,7 @@ export default class DevToolsService {
          */
         this._setThrottlingProfile(this.networkThrottling, this.cpuThrottling, this.cacheEnabled)
 
-        const url = ['url', 'navigateTo'].some(cmdName => cmdName === commandName) ? params[0] : 'click transition'
+        const url = ['url', 'navigateTo'].some(cmdName => cmdName === commandName) ? params[0] : CLICK_TRANSITION
         return this.traceGatherer.startTracing(url)
     }
 
@@ -150,7 +152,7 @@ export default class DevToolsService {
         this.session = await this.target.createCDPSession()
 
         this.commandHandler = new CommandHandler(this.session, this.page)
-        this.traceGatherer = new TraceGatherer(this.puppeteer, this.session, this.page)
+        this.traceGatherer = new TraceGatherer(this.session, this.page)
 
         this.session.on('Page.loadEventFired', this.traceGatherer.onLoadEventFired.bind(this.traceGatherer))
         this.session.on('Page.frameNavigated', this.traceGatherer.onFrameNavigated.bind(this.traceGatherer))

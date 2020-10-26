@@ -1,3 +1,7 @@
+import logger from '@wdio/logger'
+
+const log = logger('@wdio/jasmine-framework')
+
 const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|@wdio\/sync\/(build|src)|- - - - -)/g
 
 export default class JasmineReporter {
@@ -32,7 +36,20 @@ export default class JasmineReporter {
         this.testStart = new Date()
         test.type = 'test'
         test.start = new Date()
-        this.parent[this.parent.length - 1].tests++
+        const parentSuite = this.parent[this.parent.length - 1]
+
+        /**
+         * if jasmine test has no root describe block, create one
+         */
+        if (!parentSuite) {
+            log.warn(
+                'No root suite was defined! This can cause reporters to malfunction. ' +
+                'Please always start a spec file with describe("...", () => { ... }).'
+            )
+        } else {
+            parentSuite.tests++
+        }
+
         this.emit('test:start', test)
     }
 

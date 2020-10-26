@@ -14,7 +14,7 @@ Array [
       "executablePath": "/path/to/edge",
       "headless": true,
       "ignoreDefaultArgs": undefined,
-      "product": "edge",
+      "product": "chrome",
     },
   ],
 ]
@@ -31,7 +31,7 @@ Array [
       "executablePath": "/path/to/edge",
       "headless": false,
       "ignoreDefaultArgs": undefined,
-      "product": "edge",
+      "product": "chrome",
     },
   ],
 ]
@@ -48,7 +48,25 @@ Array [
       "executablePath": "/path/to/edge",
       "headless": true,
       "ignoreDefaultArgs": true,
-      "product": "edge",
+      "product": "chrome",
+    },
+  ],
+]
+`;
+
+exports[`launch Firefox Nightly binary without Puppeteer default args 1`] = `
+Array [
+  Array [
+    Object {
+      "binary": "firefox",
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "executablePath": "firefox",
+      "headless": true,
+      "ignoreDefaultArgs": true,
+      "product": "firefox",
     },
   ],
 ]
@@ -98,6 +116,8 @@ Array [
   Array [
     Object {
       "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
         "--disable-extensions",
         "--disable-background-networking",
         "--disable-background-timer-throttling",
@@ -141,6 +161,8 @@ Array [
   Array [
     Object {
       "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
         "--disable-extensions",
         "--disable-background-networking",
         "--disable-background-timer-throttling",
@@ -216,6 +238,8 @@ Array [
   Array [
     Object {
       "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
         "--disable-extensions",
         "--disable-background-networking",
         "--disable-background-timer-throttling",

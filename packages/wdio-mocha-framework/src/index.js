@@ -41,25 +41,36 @@ class MochaAdapter {
         this.testCnt = new Map()
         this.suiteIds = ['0']
         this._hasTests = true
+        this.specLoadError = null
     }
 
     async init() {
         const { mochaOpts } = this.config
         const mocha = this.mocha = new Mocha(mochaOpts)
-        mocha.loadFiles()
+        await mocha.loadFilesAsync()
         mocha.reporter(NOOP)
         mocha.fullTrace()
 
         this.specs.forEach((spec) => mocha.addFile(spec))
         mocha.suite.on('pre-require', this.preRequire.bind(this))
-        this._loadFiles(mochaOpts)
+        await this._loadFiles(mochaOpts)
+
+        /**
+         * import and set options for `expect-webdriverio` assertion lib once
+         * the framework was initiated so that it can detect the environment
+         */
+        const { setOptions } = require('expect-webdriverio')
+        setOptions({
+            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
+            interval: this.config.waitforInterval, // interval between attempts
+        })
 
         return this
     }
 
-    _loadFiles(mochaOpts) {
+    async _loadFiles(mochaOpts) {
         try {
-            this.mocha.loadFiles()
+            await this.mocha.loadFilesAsync()
 
             /**
              * grep
@@ -71,13 +82,14 @@ class MochaAdapter {
 
             this._hasTests = mochaRunner.total > 0
         } catch (err) {
-            log.warn(
+            const error = '' +
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
                 'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
-                `Spec file(s): ${this.specs.join(',')}\n`,
-                'Error: ', err
-            )
+                `Spec file(s): ${this.specs.join(',')}\n` +
+                `Error: ${err.stack}`
+            this.specLoadError = new Error(error)
+            log.warn(error)
         }
     }
 
@@ -87,16 +99,6 @@ class MochaAdapter {
 
     async run() {
         const mocha = this.mocha
-
-        /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
-         */
-        const { setOptions } = require('expect-webdriverio')
-        setOptions({
-            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this.config.waitforInterval, // interval between attempts
-        })
 
         let runtimeError
         const result = await new Promise((resolve) => {
@@ -118,8 +120,8 @@ class MochaAdapter {
         /**
          * in case the spec has a runtime error throw after the wdio hook
          */
-        if (runtimeError) {
-            throw runtimeError
+        if (runtimeError || this.specLoadError) {
+            throw runtimeError || this.specLoadError
         }
 
         return result
@@ -188,8 +190,6 @@ class MochaAdapter {
             break
         }
 
-        params.err = this.lastError
-        delete this.lastError
         return this.formatMessage(params)
     }
 
@@ -280,10 +280,6 @@ class MochaAdapter {
         message.specs = this.specs
         message.uid = this.getUID(message)
 
-        if (message.error) {
-            this.lastError = message.error
-        }
-
         this.reporter.emit(message.type, message)
     }
 
@@ -338,7 +334,7 @@ class MochaAdapter {
         if (['test:start', 'test:pending'].includes(message.type)) {
             return this.getSyncEventIdStart('test')
         }
-        if (['test:end', 'test:pass', 'test:fail'].includes(message.type)) {
+        if (['test:end', 'test:pass', 'test:fail', 'test:retry'].includes(message.type)) {
             return this.getSyncEventIdEnd('test')
         }
 

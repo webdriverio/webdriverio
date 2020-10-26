@@ -10,6 +10,7 @@ import { execSync } from 'child_process'
 import { canAccess } from '@wdio/utils'
 
 import { sort, findByWhich } from '../utils'
+import { darwinGetAppPaths, darwinGetInstallations } from './finder'
 
 const newLineRegex = /\r?\n/
 
@@ -18,27 +19,16 @@ function darwin() {
         '/Contents/MacOS/firefox-bin'
     ]
 
-    const LSREGISTER = '/System/Library/Frameworks/CoreServices.framework' +
-        '/Versions/A/Frameworks/LaunchServices.framework' +
-        '/Versions/A/Support/lsregister'
+    const appName = 'Firefox Nightly'
+    const defaultPath = `/Applications/${appName}.app${suffixes[0]}`
 
-    const installations = []
-
-    execSync(
-        `${LSREGISTER} -dump` +
-        ' | grep -i \'Firefox Nightly\\?.app.*$\'' +
-        ' | awk \'{$1=""; print $0}\''
-    )
-        .toString()
-        .split(newLineRegex)
-        .forEach((inst) => {
-            suffixes.forEach(suffix => {
-                const execPath = path.join(inst.substring(0, inst.indexOf('.app') + 4).trim(), suffix)
-                if (canAccess(execPath) && installations.indexOf(execPath) === -1) {
-                    installations.push(execPath)
-                }
-            })
-        })
+    let installations
+    if (canAccess(defaultPath)) {
+        installations = [defaultPath]
+    } else {
+        const appPaths = darwinGetAppPaths(appName)
+        installations = darwinGetInstallations(appPaths, suffixes)
+    }
 
     /**
      * Retains one per line to maintain readability.
@@ -50,7 +40,7 @@ function darwin() {
     ]
 
     const whichFinds = findByWhich(
-        ['firefox-nightly'],
+        ['firefox-nightly', 'firefox-trunk'],
         [{ regex: /firefox-nightly/, weight: 51 }]
     )
     const installFinds = sort(installations, priorities)
@@ -74,10 +64,11 @@ function linux() {
         installations = installations.concat(findFirefoxExecutables(folder))
     })
 
-    return findByWhich(
-        ['firefox-nightly', 'firefox'],
+    const whichFinds = findByWhich(
+        ['firefox-nightly', 'firefox-trunk', 'firefox'],
         [{ regex: /firefox/, weight: 51 }]
     )
+    return [...installations, ...whichFinds]
 }
 
 function win32() {

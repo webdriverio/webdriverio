@@ -20,7 +20,7 @@ export default class CommandHandler {
          */
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && !fnName.startsWith('_'))
-        commands.forEach(fnName => global.browser.addCommand(fnName, this[fnName]))
+        commands.forEach(fnName => global.browser.addCommand(fnName, this[fnName].bind(this)))
     }
 
     /**

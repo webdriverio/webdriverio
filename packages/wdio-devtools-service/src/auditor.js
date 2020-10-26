@@ -24,8 +24,10 @@ export default class Auditor {
     constructor(traceLogs, devtoolsLogs) {
         this.devtoolsLogs = devtoolsLogs
         this.traceLogs = traceLogs
-        this.url = traceLogs.pageUrl
-        this.loaderId = traceLogs.loaderId
+        if (traceLogs) {
+            this.url = traceLogs.pageUrl
+            this.loaderId = traceLogs.loaderId
+        }
     }
 
     _audit(AUDIT, params = {}) {

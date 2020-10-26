@@ -1,6 +1,6 @@
 {
   "name": "@wdio/local-runner",
-  "version": "6.4.6",
+  "version": "6.7.0",
   "description": "A WebdriverIO runner to run tests locally",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-local-runner",
@@ -8,15 +8,6 @@
   "main": "./build/index",
   "engines": {
     "node": ">=10.0.0"
-  },
-  "scripts": {
-    "tsc": "tsc",
-    "build": "run-s clean compile",
-    "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src test",
-    "test:unit": "jest"
   },
   "repository": {
     "type": "git",
@@ -32,9 +23,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "6.0.16",
-    "@wdio/repl": "6.4.0",
-    "@wdio/runner": "6.4.6",
+    "@wdio/logger": "6.6.0",
+    "@wdio/repl": "6.7.0",
+    "@wdio/runner": "6.7.0",
     "async-exit-hook": "^2.0.1",
     "stream-buffers": "^3.0.2"
   },

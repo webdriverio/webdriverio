@@ -38,6 +38,11 @@ declare namespace WebdriverIO {
         }
     }
 
+    type JsonPrimitive = string | number | boolean | null;
+    type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray };
+    type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>;
+    type JsonCompatible = JsonObject | JsonArray;
+
     interface MultiRemoteCapabilities {
         [instanceName: string]: {
             capabilities: WebDriver.DesiredCapabilities;
@@ -47,7 +52,44 @@ declare namespace WebdriverIO {
     interface ServiceOption {
         [key: string]: any;
     }
-    type ServiceEntry = string | HookFunctions | [string, ServiceOption] | object
+
+    interface ServiceClass {
+        new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
+    }
+
+    interface ServiceLauncher extends ServiceClass {
+        default?: ServiceClass
+        launcher?: ServiceClass
+    }
+
+    interface ServiceInstance extends HookFunctions {
+        options?: Record<string, any>,
+        capabilities?: WebDriver.DesiredCapabilities,
+        config?: Config
+    }
+
+    type ServiceEntry = (
+        /**
+         * e.g. `services: ['@wdio/sauce-service']`
+         */
+        string |
+        /**
+         * e.g. `services: [{ onPrepare: () => { ... } }]`
+         */
+        HookFunctions |
+        /**
+         * e.g. `services: [CustomClass]`
+         */
+        ServiceLauncher |
+        /**
+         * e.g. `services: [['@wdio/sauce-service', { ... }]]`
+         */
+        [string, ServiceOption] |
+        /**
+         * e.g. `services: [[CustomClass, { ... }]]`
+         */
+        [ServiceClass, ServiceOption]
+    )
 
     interface Options {
         /**
@@ -131,6 +173,10 @@ declare namespace WebdriverIO {
         specFileRetries?: number;
         readonly specFileRetryAttempts?: number;
         /**
+         * Delay in seconds between the spec file retry attempts
+         */
+        specFileRetriesDelay?: number;
+        /**
          * Default timeout for all `waitFor*` commands. (Note the lowercase f in the option name.)
          * This timeout only affects commands starting with `waitFor*` and their default wait time.
          */
@@ -172,7 +218,7 @@ declare namespace WebdriverIO {
         execArgv?: string[];
     }
 
-    interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }
+    interface RemoteOptions extends WebDriver.Options, HookFunctions, Omit<Options, 'capabilities'> { }
 
     interface MultiRemoteOptions {
         [instanceName: string]: WebDriver.DesiredCapabilities;
@@ -492,22 +538,38 @@ declare namespace WebdriverIO {
         /**
          * body response of actual resource
          */
-        body: any
+        body: string | JsonCompatible
+        /**
+         * HTTP response headers.
+         */
+        responseHeaders: Record<string, string>;
+        /**
+         * HTTP response status code.
+         */
+        statusCode: number;
     }
 
     type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
     type CDPSession = Partial<import('puppeteer').CDPSession>;
-    type MockOverwriteFunction = (request: Request, client: CDPSession) => Promise<string | Record<string, any>>;
+    type MockOverwriteFunction = (request: Matches, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
 
     type MockResponseParams = {
         statusCode?: number,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
+        /**
+         * fetch real response before responding with mocked data. Default: true
+         */
+        fetchResponse?: boolean
     }
 
     type MockFilterOptions = {
-        method?: string,
-        headers?: Record<string, string>
+        method?: string | ((method: string) => boolean),
+        headers?: Record<string, string> | ((headers: Record<string, string>) => boolean),
+        requestHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
+        responseHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
+        statusCode?: number | ((statusCode: number) => boolean),
+        postData?: string | ((payload: string | undefined) => boolean)
     }
 
     type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
@@ -520,6 +582,9 @@ declare namespace WebdriverIO {
         latency: number
     }
     type ThrottleOptions = ThrottlePreset | CustomThrottle
+
+    type AddCommandFn<IsElement extends boolean = false> = (this: IsElement extends true ? Element : BrowserObject, ...args: any[]) => any
+    type OverwriteCommandFn<ElementKey extends keyof Element, BrowserKey extends keyof BrowserObject, IsElement extends boolean = false> = (this: IsElement extends true ? Element : BrowserObject, origCommand: IsElement extends true ? Element[ElementKey] : BrowserObject[BrowserKey], ...args: any[]) => any
 
     interface Element {
         selector: string;
@@ -551,7 +616,7 @@ declare namespace WebdriverIO {
          */
         addCommand(
             name: string,
-            func: Function
+            func: AddCommandFn<false>
         ): void;
         // ... element commands ...
     }
@@ -585,19 +650,19 @@ declare namespace WebdriverIO {
         /**
          * add command to `browser` or `element` scope
          */
-        addCommand(
+        addCommand<IsElement extends boolean = false>(
             name: string,
-            func: Function,
-            attachToElement?: boolean
+            func: AddCommandFn<IsElement>,
+            attachToElement?: IsElement
         ): void;
 
         /**
          * overwrite `browser` or `element` command
          */
-        overwriteCommand(
-            name: string,
-            func: (origCommand: Function, ...args: any[]) => any,
-            attachToElement?: boolean
+        overwriteCommand<ElementKey extends keyof Element, BrowserKey extends keyof BrowserObject, IsElement extends boolean = false>(
+            name: IsElement extends true ? ElementKey : BrowserKey,
+            func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
+            attachToElement?: IsElement
         ): void;
 
         /**
@@ -610,5 +675,14 @@ declare namespace WebdriverIO {
         // ... browser commands ...
     }
 
-    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
+    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
+         /**
+         * internal usage only. To run in watch mode see https://webdriver.io/docs/watcher.html
+         */
+        watch?: never;
+    }
+
+    interface AddValueOptions {
+        translateToUnicode?: boolean
+    }
 }

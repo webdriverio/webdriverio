@@ -109,10 +109,6 @@ async function bar() {
     // browser custom command
     await browser.browserCustomCommand(14)
 
-    browser.overwriteCommand('click', function (origCommand) {
-        return origCommand()
-    })
-
     // $
     const el1 = await $('')
     const strFunction = (str: string) => str
@@ -157,6 +153,16 @@ async function bar() {
     const el5 = await el4.$('')
     await el4.getAttribute('class')
     await el5.scrollIntoView(false)
+
+    // An examples of addValue command with enabled/disabled translation to Unicode
+    const elem = await $('')
+    await elem.addValue('Delete', { translateToUnicode: true })
+    await elem.addValue('Delete', { translateToUnicode: false })
+
+    // An examples of setValue command with enabled/disabled translation to Unicode
+    const elem1 = await $('')
+    elem1.setValue('Delete', { translateToUnicode: true })
+    elem1.setValue('Delete', { translateToUnicode: false })
 
     const selector$$: string | Function = elems.selector
     const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
@@ -264,6 +270,42 @@ function testSevereServiceError_noParameters() {
 function testSevereServiceError_stringParameter() {
     throw new SevereServiceError("Something happened.");
 }
+
+// addCommand
+
+// element
+browser.addCommand('getClass', async function () {
+    return this.getAttribute('class').catch()
+}, true)
+
+// browser
+browser.addCommand('sleep', async function (ms: number) {
+    return this.pause(ms).catch()
+}, false)
+
+browser.addCommand('sleep', async function (ms: number) {
+    return this.pause(ms).catch()
+})
+
+// overwriteCommand
+
+// element
+type ClickOptionsExtended = WebdriverIO.ClickOptions & { wait?: boolean }
+browser.overwriteCommand('click', async function (clickFn, opts: ClickOptionsExtended = {}) {
+    if (opts.wait) {
+        await this.waitForClickable().catch()
+    }
+    return clickFn(opts).catch()
+}, true)
+
+// browser
+browser.overwriteCommand('pause', async function (pause, ms = 1000) {
+    return pause(ms).catch()
+}, false)
+
+browser.overwriteCommand('pause', async function (pause, ms = 1000) {
+    return pause(ms).catch()
+})
 
 // allure-reporter
 allure.addFeature('')

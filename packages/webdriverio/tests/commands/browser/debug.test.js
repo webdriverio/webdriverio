@@ -15,7 +15,7 @@ describe('debug command', () => {
     describe('standalone mode', () => {
         it('should start wdio repl if in standalone mode', async () => {
             const repl = await browser.debug()
-            expect(repl.startFn).toBeCalled()
+            expect(repl._startFn).toBeCalled()
         })
     })
 

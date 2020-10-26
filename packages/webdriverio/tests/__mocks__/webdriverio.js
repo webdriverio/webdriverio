@@ -1,4 +1,4 @@
-const{ SevereServiceError } = jest.requireActual('webdriverio')
+const { SevereServiceError } = jest.requireActual('webdriverio')
 
 const getWdioMock = () => {
     const mock = {

@@ -1,6 +1,6 @@
 {
   "name": "@wdio/reporter",
-  "version": "6.3.6",
+  "version": "6.7.0",
   "description": "A WebdriverIO utility to help reporting all events",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-reporter",
@@ -8,15 +8,6 @@
   "main": "./build/index",
   "engines": {
     "node": ">=10.0.0"
-  },
-  "scripts": {
-    "tsc": "tsc",
-    "build": "run-s clean compile",
-    "clean": "rimraf ./build",
-    "compile": "babel src/ -d build/ --config-file ../../babel.config.js",
-    "test": "run-s test:*",
-    "test:eslint": "eslint src test",
-    "test:unit": "jest"
   },
   "repository": {
     "type": "git",
@@ -31,12 +22,15 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
+    "@types/tmp": "^0.2.0",
     "tmp": "^0.2.0"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
+    "@types/cucumber": "^6.0.1",
+    "@types/fs-extra": "^9.0.1",
     "fs-extra": "^9.0.0"
   },
   "types": "reporter.d.ts"

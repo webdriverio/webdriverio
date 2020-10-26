@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import got from 'got'
 
-import { BROWSER_DESCRIPTION } from './constants'
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -39,9 +39,9 @@ export default class BrowserstackService {
     }
 
     before() {
-        this.sessionId = global.browser.sessionId
-
-        if (global.browser.capabilities.app || this.caps.app) {
+        // Ensure capabilities are not null in case of multiremote
+        const capabilities = global.browser.capabilities || {}
+        if (capabilities.app || this.caps.app) {
             this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
 
@@ -52,12 +52,12 @@ export default class BrowserstackService {
 
     beforeSuite (suite) {
         this.fullTitle = suite.title
-        this._update(this.sessionId, { name: this.fullTitle })
+        return this._updateJob({ name: this.fullTitle })
     }
 
     beforeFeature(uri, feature) {
         this.fullTitle = feature.document.feature.name
-        this._update(this.sessionId, { name: this.fullTitle })
+        return this._updateJob({ name: this.fullTitle })
     }
 
     afterTest(test, context, results) {
@@ -82,13 +82,13 @@ export default class BrowserstackService {
     after(result) {
         // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
         // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
-        if(this.preferScenarioName && this.scenariosThatRan.length === 1){
+        if (this.preferScenarioName && this.scenariosThatRan.length === 1){
             this.fullTitle = this.scenariosThatRan.pop()
         }
 
         const hasReasons = Boolean(this.failReasons.filter(Boolean).length)
 
-        return this._update(this.sessionId, {
+        return this._updateJob({
             status: result === 0 ? 'passed' : 'failed',
             name: this.fullTitle,
             reason: hasReasons ? this.failReasons.join('\n') : undefined
@@ -118,10 +118,18 @@ export default class BrowserstackService {
     async onReload(oldSessionId, newSessionId) {
         const hasReasons = Boolean(this.failReasons.filter(Boolean).length)
 
-        this.sessionId = newSessionId
+        let status = hasReasons ? 'failed' : 'passed'
+        if (!global.browser.isMultiremote) {
+            log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
+        } else {
+            const browserName = global.browser.instances.filter(
+                (browserName) => global.browser[browserName].sessionId === newSessionId)[0]
+            log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
+        }
+
         await this._update(oldSessionId, {
             name: this.fullTitle,
-            status: hasReasons ? 'failed' : 'passed',
+            status,
             reason: hasReasons ? this.failReasons.join('\n') : undefined
         })
         this.scenariosThatRan = []
@@ -130,8 +138,31 @@ export default class BrowserstackService {
         await this._printSessionURL()
     }
 
+    _updateJob(requestBody) {
+        return this._multiRemoteAction((sessionId) => this._update(sessionId, requestBody))
+    }
+
+    _multiRemoteAction(action) {
+        if (!global.browser.isMultiremote) {
+            log.info(`Update job with sessionId ${global.browser.sessionId}`)
+            return action(global.browser.sessionId)
+        }
+
+        return Promise.all(global.browser.instances
+            .filter(browserName => {
+                const cap = getBrowserCapabilities(this.caps, browserName)
+                return isBrowserstackCapability(cap)
+            })
+            .map((browserName) => {
+                log.info(`Update multiremote job for browser "${browserName}" and sessionId ${global.browser[browserName].sessionId}`)
+                return action(global.browser[browserName].sessionId, browserName)
+            }))
+    }
+
     _update(sessionId, requestBody) {
-        return got.put(`${this.sessionBaseUrl}/${sessionId}.json`, {
+        const sessionUrl = `${this.sessionBaseUrl}/${sessionId}.json`
+        log.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
+        return got.put(sessionUrl, {
             json: requestBody,
             username: this.config.user,
             password: this.config.key
@@ -139,23 +170,18 @@ export default class BrowserstackService {
     }
 
     async _printSessionURL() {
-        const capabilities = global.browser.capabilities
+        await this._multiRemoteAction(async (sessionId, browserName) => {
+            const sessionUrl = `${this.sessionBaseUrl}/${sessionId}.json`
+            log.debug(`Requesting Browserstack session URL at ${sessionUrl}`)
+            const response = await got(sessionUrl, {
+                username: this.config.user,
+                password: this.config.key,
+                responseType: 'json'
+            })
 
-        const response = await got(`${this.sessionBaseUrl}/${this.sessionId}.json`, {
-            username: this.config.user,
-            password: this.config.key,
-            responseType: 'json'
+            const capabilities = getBrowserCapabilities(this.caps, browserName)
+            const browserString = getBrowserDescription(capabilities)
+            log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
         })
-
-        /**
-         * These keys describe the browser the test was run on
-         */
-        const browserString = BROWSER_DESCRIPTION
-            .map(k => capabilities[k])
-            .filter(v => !!v)
-            .join(' ')
-
-        log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
-        return response.body
     }
 }
