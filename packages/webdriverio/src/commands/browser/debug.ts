@@ -1,4 +1,3 @@
-
 /**
  *
  * This command helps you to debug your integration tests. It stops the running browser and gives
@@ -79,18 +78,18 @@ export default function debug(this: WebdriverIO.BrowserObject, commandTimeout = 
 
         /* istanbul ignore if */
         if (m.name === 'eval') {
-            repl.eval(m.content.cmd, global, undefined, (e, result) => {
+            repl.eval(m.content.cmd, global, undefined, (err: Error | null, result: any) => {
                 if (typeof process.send !== 'function') {
                     return
                 }
 
-                if (e) {
+                if (err) {
                     process.send({
                         origin: 'debugger',
                         name: 'result',
                         params: {
                             error: true,
-                            ...serializeError(e)
+                            ...serializeError(err)
                         }
                     })
                 }
