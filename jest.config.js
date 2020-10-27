@@ -25,7 +25,8 @@ module.exports = {
         ...SKIPPED_NODE_10_TESTS
     ],
     collectCoverageFrom: [
-        'packages/**/src/**/*.js'
+        'packages/**/src/**/*.(js|ts)',
+        '!packages/**/src/**/*.d.ts'
     ],
     moduleNameMapper: {
         'graceful-fs': '<rootDir>/tests/helpers/fs.js'
