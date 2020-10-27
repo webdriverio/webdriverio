@@ -16,7 +16,7 @@ In order to set up this project and start contributing follow this step by step 
     ```sh
     $ git clone git@github.com:<your-username>/webdriverio.git
     ```
-* On Windows, you might need to set git config `core.symlinks` to `true` as we currently has some symbolic links for type definition commited to our repo.
+* On Windows, you need to set git config `core.symlinks` to `true` as we currently has some symbolic links for type definition committed to our repo.
   - To set git config globally: `git config --global --add core.symlinks true`
   - To set git config locally when cloning the repo: `git -c core.symlinks=true clone git@github.com:<your-username>/webdriverio.git`. 
   
