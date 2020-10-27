@@ -1,13 +1,10 @@
-import implicitWait from './implicitWait'
+import implicitWait, { CurrentElement } from './implicitWait'
 
 /**
  * helper utility to refetch an element and all its parent elements when running
  * into stale element exception errors
- * @param  {Object}  currentElement  element to refetch
- * @param  {string}  commandName  name of the command that called this
- * @return {Promise} resolves with element after all its parent were refetched
  */
-export default async function refetchElement (currentElement, commandName) {
+export default async function refetchElement (currentElement: CurrentElement, commandName: string) {
     let selectors = []
 
     //Crawl back to the browser object, and cache all selectors
