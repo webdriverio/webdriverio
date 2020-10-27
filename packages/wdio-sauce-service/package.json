@@ -26,19 +26,18 @@
     "@types/mocha": "^8.0.3",
     "@wdio/logger": "6.6.0",
     "@wdio/utils": "6.7.0",
-    "saucelabs": "^4.5.1"
+    "saucelabs": "^4.5.1",
+    "@types/cucumber": "^6.0.1"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"
   },
   "devDependencies": {
-    "webdriverio": "6.7.0",
-    "webdriver": "6.7.0",
     "@wdio/cucumber-framework": "6.7.0",
     "@wdio/jasmine-framework": "6.7.0",
     "@wdio/reporter": "6.7.0",
-    "@types/cucumber": "6.0.1",
-    "cucumber": "6.0.5"
+    "webdriver": "6.7.0",
+    "webdriverio": "6.7.0"
   },
   "publishConfig": {
     "access": "public"
