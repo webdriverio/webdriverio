@@ -5,7 +5,6 @@ import SauceLabs, { SauceConnectInstance, SauceLabsOptions } from 'saucelabs'
 
 import { makeCapabilityFactory } from './utils'
 import { SauceServiceConfig } from './service'
-import { DesiredCapabilities } from 'webdriver'
 
 const SC_RELAY_DEPCRECATION_WARNING = [
     'The "scRelay" option is depcrecated and will be removed',
@@ -19,7 +18,7 @@ export default class SauceLauncher {
     api: SauceLabs;
     sauceConnectProcess?: SauceConnectInstance;
 
-    constructor (options: SauceServiceConfig, capabilities?: DesiredCapabilities | Array<DesiredCapabilities>, config?: SauceLabsOptions) {
+    constructor (options: SauceServiceConfig, capabilities?: Webdriver.DesiredCapabilities | Array<Webdriver.DesiredCapabilities>, config?: SauceLabsOptions) {
         this.options = options
         this.api = new SauceLabs(config as SauceLabsOptions)
     }
