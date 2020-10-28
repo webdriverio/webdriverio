@@ -123,9 +123,79 @@ Default: *none*
 
 ---
 
-## WDIO Options
+## WebdriverIO
 
-The following options are defined for running WebdriverIO with the `@wdio/cli` testrunner:
+The following options can be used with WebdriverIO in standalone as well as using the `@wdio/cli` testrunner.
+
+### automationProtocol
+
+Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
+
+If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
+
+Type: `String`
+Default: `webdriver`
+
+### baseUrl
+Shorten `url` command calls by setting a base URL.
+- If your `url` parameter starts with `/`, then `baseUrl` is prepended (except the `baseUrl` path, if it has one).
+- If your `url` parameter starts without a scheme or `/` (like `some/path`), then the full `baseUrl` is prepended directly.
+
+Type: `String`<br>
+Default: `null`
+
+### waitforTimeout
+Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+
+To increase the timeout for a _test_, please see the framework docs.
+
+Type: `Number`<br>
+Default: `3000`
+
+### waitforInterval
+Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
+
+Type: `Number`<br>
+Default: `500`
+
+### user
+Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)  or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you.
+
+Type: `String`
+Default: `null`
+
+### key
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)  or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you.
+
+Type: `String`
+Default: `null`
+
+### region
+If running on Sauce Labs, you can choose to run tests between different datacenters: US or EU.
+To change your region to EU, add `region: 'eu'` to your config.
+
+__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
+
+Type: `String`<br>
+Default: `us`
+
+*(only for vm and or em/simulators)*
+
+### headless
+Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing) that allows you to run Chrome and Firefox tests headless.
+
+__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
+
+Type: `Boolean`<br>
+Default: `false`
+
+*(only for VM or EM/simulators)*
+
+---
+
+## Testrunner Options
+
+The following options are defined only for running WebdriverIO with the `@wdio/cli` testrunner:
 
 ### specs
 Define specs for test execution.
@@ -150,14 +220,6 @@ The same as the `capabilities` section described above, except with the option t
 
 Type: `Object`|`Object[]`<br>
 Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
-
-### baseUrl
-Shorten `url` command calls by setting a base URL.
-- If your `url` parameter starts with `/`, then `baseUrl` is prepended (except the `baseUrl` path, if it has one).
-- If your `url` parameter starts without a scheme or `/` (like `some/path`), then the full `baseUrl` is prepended directly.
-
-Type: `String`<br>
-Default: `null`
 
 ### maxInstances
 Maximum number of total parallel running workers.
@@ -195,20 +257,6 @@ Whether or not retried specfiles should be retried immediately or deferred to th
 
 Type: `Boolean`<br>
 Default: `true`
-
-### waitforTimeout
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
-
-To increase the timeout for a _test_, please see the framework docs.
-
-Type: `Number`<br>
-Default: `3000`
-
-### waitforInterval
-Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
-
-Type: `Number`<br>
-Default: `500`
 
 ### services
 Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
@@ -262,53 +310,11 @@ Determines the maximum time reporters have to finish uploading all their logs un
 Type: `Number`<br>
 Default: `5000` (ms)
 
-### automationProtocol
-
-Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
-
-If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
-
-Type: `String`
-Default: `webdriver`
-
 ### execArgv
 Node arguments to specify when launching child processes.
 
 Type: `String[]`
 Default: `null`
-
-### user
-Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)  or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you.
-
-Type: `String`
-Default: `null`
-
-### key
-Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)  or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you.
-
-Type: `String`
-Default: `null`
-
-### region
-If running on Sauce Labs, you can choose to run tests between different datacenters: US or EU.
-To change your region to EU, add `region: 'eu'` to your config.
-
-__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
-
-Type: `String`<br>
-Default: `us`
-
-*(only for vm and or em/simulators)*
-
-### headless
-Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing) that allows you to run Chrome and Firefox tests headless.
-
-__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
-
-Type: `Boolean`<br>
-Default: `false`
-
-*(only for VM or EM/simulators)*
 
 ## Hooks
 
