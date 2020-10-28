@@ -14,11 +14,12 @@ declare namespace WebdriverIO {
         options: MultiRemoteOptions
     ): Promise<BrowserObject>;
 
-    type ExecuteFunction<T> = (...arguments: any[]) => T
+    type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
+    type ElementReference = Record<ElementReferenceId, string>
 
     interface Browser {
         emit: Function
-        strategies: Map<string, ExecuteFunction>
+        strategies: Map<string, () => ElementReference | ElementReference[]>
         puppeteer?: any
 
         /**
@@ -31,7 +32,7 @@ declare namespace WebdriverIO {
          * The executed script is assumed to be synchronous and the result of evaluating the script is returned to
          * the client.
          */
-        execute: <T>(script: string | ExecuteFunction<T>, ...arguments: any[]) => Promise<T>;
+        execute: <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]) => Promise<T>;
 
         // there is no way to add callback as last parameter after `...args`.
         // https://github.com/Microsoft/TypeScript/issues/1360

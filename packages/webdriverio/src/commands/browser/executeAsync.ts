@@ -43,7 +43,7 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  *
  */
 
-export default function executeAsync (this: WebdriverIO.BrowserObject, script: string | WebdriverIO.ExecuteFunction<unknown>, ...args: any[]) {
+export default function executeAsync (this: WebdriverIO.BrowserObject, script: string | Function, ...args: any[]) {
     /*!
      * parameter check
      */
