@@ -99,7 +99,7 @@ export const getElements = function getElements(this: WebdriverIO.BrowserObject,
             client.selector = selector
             client.parent = this
             client.index = i
-            client.emit = this.emit?.bind(this)
+            client.emit = this.emit.bind(this)
             client.isReactElement = isReactElement
 
             return client

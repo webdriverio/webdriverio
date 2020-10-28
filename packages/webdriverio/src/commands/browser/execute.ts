@@ -35,7 +35,7 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  *
  */
 
-export default function execute (this: WebdriverIO.BrowserObject, script: string | WebdriverIO.ExecuteFunction, ...args: any[]) {
+export default function execute (this: WebdriverIO.BrowserObject, script: string | WebdriverIO.ExecuteFunction<unknown>, ...args: any[]) {
     /*!
      * parameter check
      */
