@@ -38,6 +38,9 @@ export default class WorkerInstance extends EventEmitter {
     childProcess?: ChildProcess
     sessionId?: string
 
+    instances?: Record<string, { sessionId: string }>
+    isMultiremote?: boolean
+
     isBusy = false
 
     /**

@@ -62,7 +62,7 @@ export default class LocalRunner {
         log.info('Shutting down spawned worker')
 
         for (const [cid, worker] of Object.entries(this.workerPool)) {
-            const { caps, sessionId, config } = worker
+            const { caps, sessionId, config, isMultiremote, instances } = worker
             let payload = {}
 
             /**
@@ -70,7 +70,7 @@ export default class LocalRunner {
              * in order to attach to browser session and kill it
              */
             if (config && config.watch && sessionId) {
-                payload = { config: { sessionId }, caps, watch: true }
+                payload = { config: { sessionId }, caps, watch: true, isMultiremote, instances }
             } else if (!worker.isBusy) {
                 delete this.workerPool[cid]
                 continue

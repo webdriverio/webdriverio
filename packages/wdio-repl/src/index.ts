@@ -39,11 +39,11 @@ import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/utils'
 import { STATIC_RETURNS, INTRO_MESSAGE, DEFAULT_CONFIG } from './constants'
 
 export interface ReplConfig {
-    commandTimeout: number,
-    eval: repl.REPLEval,
-    prompt: string,
-    useGlobal: true,
-    useColor: true
+    commandTimeout: number
+    eval: repl.REPLEval
+    prompt: string
+    useGlobal: boolean
+    useColor: boolean
 }
 
 export type ReplCallback = (err: Error | null, result: any) => void

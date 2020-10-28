@@ -1,8 +1,9 @@
 import RunnerStream from '../src/stdStream'
 
 describe('RunnerStream', () => {
-    let stream
-    let pushSpy
+    let stream: RunnerStream
+    let pushSpy: jest.SpyInstance
+
     const cb = jest.fn()
     beforeEach(() => {
         stream = new RunnerStream()

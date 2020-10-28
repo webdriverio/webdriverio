@@ -1,4 +1,5 @@
 import exitHook from 'async-exit-hook'
+// @ts-ignore mock exports instances, package doesn't
 import { instances } from '@wdio/runner'
 
 jest.mock('../src/constants', () => ({
@@ -14,7 +15,7 @@ const origExit = process.exit.bind(process)
 beforeAll(() => {
     jest.spyOn(process, 'on')
     jest.spyOn(process, 'send')
-    process.exit = jest.fn()
+    process.exit = jest.fn() as any
     const run = require('../src/run.js')
     exitHookFn = run.exitHookFn
     runner = run.runner
@@ -36,12 +37,12 @@ test('should have registered runner listener', () => {
 })
 
 test('should not call runner if message is undefined', () => {
-    process.on.mock.calls[0][1](false)
+    (process.on as jest.Mock).mock.calls[0][1](false)
 })
 
 test('should call runner command on process message', async () => {
     expect(instances[0].run).toHaveBeenCalledTimes(0)
-    process.on.mock.calls[0][1]({
+    ;(process.on as jest.Mock).mock.calls[0][1]({
         command: 'run',
         foo: 'bar'
     })
@@ -56,7 +57,7 @@ test('should call runner command on process message', async () => {
 
 test('should exit process if failing to execute', async () => {
     runner.errorMe = jest.fn().mockReturnValue(Promise.reject(new Error('Uups')))
-    process.on.mock.calls[0][1]({
+    ;(process.on as jest.Mock).mock.calls[0][1]({
         command: 'errorMe',
         foo: 'bar'
     })
@@ -82,7 +83,7 @@ test('exitHookFn should call callback after shutdown timeout', async () => {
 })
 
 afterAll(() => {
-    process.on.mockRestore()
-    process.send.mockRestore()
+    (process.on as jest.Mock).mockRestore()
+    ;(process.send as jest.Mock).mockRestore()
     process.exit = origExit
 })
