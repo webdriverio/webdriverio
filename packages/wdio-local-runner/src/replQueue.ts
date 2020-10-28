@@ -1,16 +1,27 @@
+import type { ChildProcess } from 'child_process'
+
 import WDIORepl from './repl'
+
+interface Repl {
+    childProcess: ChildProcess
+    options: any
+    onStart: Function
+    onEnd: Function
+}
 
 /**
  * repl queue class
  * allows to run debug commands in mutliple workers one after another
  */
 export default class ReplQueue {
+    repls: Repl[]
+    runningRepl?: WDIORepl
+
     constructor () {
-        this.runningRepl = null
         this.repls = []
     }
 
-    add (childProcess, options, onStart, onEnd) {
+    add (childProcess: ChildProcess, options: any, onStart: Function, onEnd: Function) {
         this.repls.push({ childProcess, options, onStart, onEnd })
     }
 
@@ -19,16 +30,16 @@ export default class ReplQueue {
             return
         }
 
-        const { childProcess, options, onStart, onEnd } = this.repls.shift()
-        this.runningRepl = new WDIORepl(childProcess, options)
+        const { childProcess, options, onStart, onEnd } = this.repls.shift() || ({} as Repl)
+        const runningRepl = this.runningRepl = new WDIORepl(childProcess, options)
 
         onStart()
-        this.runningRepl.start().then(() => {
+        runningRepl.start().then(() => {
             const ev = {
                 origin: 'debugger',
                 name: 'stop'
             }
-            this.runningRepl.childProcess.send(ev)
+            runningRepl.childProcess.send(ev)
             onEnd(ev)
 
             delete this.runningRepl

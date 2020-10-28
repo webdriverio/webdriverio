@@ -1,12 +1,16 @@
 import path from 'path'
 import child from 'child_process'
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
+import type { WritableStreamBuffer } from 'stream-buffers'
+import type { ChildProcess } from 'child_process'
 
 import logger from '@wdio/logger'
 
 import RunnerTransformStream from './transformStream'
 import ReplQueue from './replQueue'
 import RunnerStream from './stdStream'
+
+import type { WorkerRunPayload, WorkerMessage } from './types'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -22,6 +26,20 @@ stdErrStream.pipe(process.stderr)
  * session lifetime.
  */
 export default class WorkerInstance extends EventEmitter {
+    cid: string
+    config: WebdriverIO.Config
+    configFile: string
+    caps: WebDriver.Capabilities
+    specs: string[]
+    execArgv: string[]
+    retries: number
+    stdout: WritableStreamBuffer
+    stderr: WritableStreamBuffer
+    childProcess?: ChildProcess
+    sessionId?: string
+
+    isBusy = false
+
     /**
      * assigns paramters to scope of instance
      * @param  {object}   config      parsed configuration object
@@ -32,7 +50,12 @@ export default class WorkerInstance extends EventEmitter {
      * @param  {number}   retries     number of retries remaining
      * @param  {object}   execArgv    execution arguments for the test run
      */
-    constructor(config, { cid, configFile, caps, specs, execArgv, retries }, stdout, stderr) {
+    constructor(
+        config: WebdriverIO.Config,
+        { cid, configFile, caps, specs, execArgv, retries }: WorkerRunPayload,
+        stdout: WritableStreamBuffer,
+        stderr: WritableStreamBuffer
+    ) {
         super()
         this.cid = cid
         this.config = config
@@ -41,7 +64,6 @@ export default class WorkerInstance extends EventEmitter {
         this.specs = specs
         this.execArgv = execArgv
         this.retries = retries
-        this.isBusy = false
         this.stdout = stdout
         this.stderr = stderr
     }
@@ -75,14 +97,14 @@ export default class WorkerInstance extends EventEmitter {
 
         /* istanbul ignore if */
         if (!process.env.JEST_WORKER_ID) {
-            childProcess.stdout.pipe(new RunnerTransformStream(cid)).pipe(stdOutStream)
-            childProcess.stderr.pipe(new RunnerTransformStream(cid)).pipe(stdErrStream)
+            childProcess.stdout?.pipe(new RunnerTransformStream(cid)).pipe(stdOutStream)
+            childProcess.stderr?.pipe(new RunnerTransformStream(cid)).pipe(stdErrStream)
         }
 
         return childProcess
     }
 
-    _handleMessage(payload) {
+    private _handleMessage (payload: WorkerMessage) {
         const { cid, childProcess } = this
 
         /**
@@ -108,12 +130,12 @@ export default class WorkerInstance extends EventEmitter {
         /**
          * handle debug command called within worker process
          */
-        if (payload.origin === 'debugger' && payload.name === 'start') {
+        if (childProcess && payload.origin === 'debugger' && payload.name === 'start') {
             replQueue.add(
                 childProcess,
                 { prompt: `[${cid}] \u203A `, ...payload.params },
                 () => this.emit('message', Object.assign(payload, { cid })),
-                (ev) => this.emit('message', ev)
+                (ev: any) => this.emit('message', ev)
             )
             return replQueue.next()
         }
@@ -122,18 +144,18 @@ export default class WorkerInstance extends EventEmitter {
          * handle debugger results
          */
         if (replQueue.isRunning && payload.origin === 'debugger' && payload.name === 'result') {
-            replQueue.runningRepl.onResult(payload.params)
+            replQueue.runningRepl?.onResult(payload.params)
         }
 
         this.emit('message', Object.assign(payload, { cid }))
     }
 
-    _handleError(payload) {
+    private _handleError (payload: Error) {
         const { cid } = this
         this.emit('error', Object.assign(payload, { cid }))
     }
 
-    _handleExit(exitCode) {
+    private _handleExit (exitCode: number) {
         const { cid, childProcess, specs, retries } = this
 
         /**
@@ -144,7 +166,10 @@ export default class WorkerInstance extends EventEmitter {
 
         log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
         this.emit('exit', { cid, exitCode, specs, retries })
-        childProcess.kill('SIGTERM')
+
+        if (childProcess) {
+            childProcess.kill('SIGTERM')
+        }
     }
 
     /**
@@ -153,7 +178,7 @@ export default class WorkerInstance extends EventEmitter {
      * @param  {object} argv     arguments for functions to call
      * @return null
      */
-    postMessage(command, args) {
+    postMessage (command: string, args: any) {
         const { cid, configFile, caps, specs, retries, isBusy } = this
 
         if (isBusy && command !== 'endSession') {

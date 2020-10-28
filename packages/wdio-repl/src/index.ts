@@ -46,6 +46,8 @@ export interface ReplConfig {
     useColor: true
 }
 
+export type ReplCallback = (err: Error | null, result: any) => void
+
 export default class WDIORepl {
     static introMessage = INTRO_MESSAGE
     private _config: ReplConfig
@@ -60,7 +62,7 @@ export default class WDIORepl {
         )
     }
 
-    eval (cmd: string, context: vm.Context, filename: string | undefined, callback: (err: Error | null, result: any) => void) {
+    eval (cmd: string, context: vm.Context, filename: string | undefined, callback: ReplCallback) {
         if (this._isCommandRunning) {
             return
         }
@@ -81,7 +83,7 @@ export default class WDIORepl {
         return this._runCmd(cmd, context, callback)
     }
 
-    private _runCmd (cmd: string, context: vm.Context, callback: (err: Error | null, result: any) => void) {
+    private _runCmd (cmd: string, context: vm.Context, callback: ReplCallback) {
         try {
             const result = vm.runInContext(cmd, context)
             return this._handleResult(result, callback)
@@ -91,7 +93,7 @@ export default class WDIORepl {
         }
     }
 
-    private _handleResult (result: any, callback: (err: Error | null, result: any) => void) {
+    private _handleResult (result: any, callback: ReplCallback) {
         if (!result || typeof result.then !== 'function') {
             this._isCommandRunning = false
             return callback(null, result)
@@ -134,7 +136,7 @@ export default class WDIORepl {
         })
     }
 
-    start (context: vm.Context) {
+    start (context?: vm.Context) {
         if (this._replServer) {
             throw new Error('a repl was already initialised')
         }

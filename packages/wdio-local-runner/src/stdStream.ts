@@ -1,4 +1,4 @@
-import { Transform } from 'stream'
+import { Transform, TransformCallback } from 'stream'
 import { removeLastListener } from './utils'
 
 export default class RunnerStream extends Transform {
@@ -17,11 +17,11 @@ export default class RunnerStream extends Transform {
         })
     }
 
-    _transform (chunk, encoding, callback) {
+    _transform (chunk: any, encoding: BufferEncoding, callback: TransformCallback): void {
         callback(null, chunk)
     }
 
-    _final (callback) {
+    _final (callback: (error?: Error | null) => void): void {
         this.unpipe()
         callback()
     }
