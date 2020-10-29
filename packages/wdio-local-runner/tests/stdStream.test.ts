@@ -11,7 +11,7 @@ describe('RunnerStream', () => {
     })
 
     test('should have pipe listener', () => {
-        stream._transform('foobar', null, cb)
+        stream._transform('foobar', 'utf8', cb)
         expect(cb).toBeCalledWith(null, 'foobar')
     })
 
