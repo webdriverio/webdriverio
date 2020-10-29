@@ -43,15 +43,15 @@ export default async function url (path, { inject } = {} ) {
      * injects the passed function on the active tab
      *
      */
-    if(inject) {
-        if(typeof inject !== 'function') {
+    if (inject) {
+        if (typeof inject !== 'function') {
             throw new Error('Parameter "inject" for url command needs to be type of function')
         }
         const browser = await this.getPuppeteer()
         const allPages = await browser.pages()
-        for(let page of allPages) {
+        for (let page of allPages) {
             const state = await page.evaluate(() => document.visibilityState) // eslint-disable-line
-            if(state === 'visible') {
+            if (state === 'visible') {
                 await page.evaluate(inject)
                 break
             }
