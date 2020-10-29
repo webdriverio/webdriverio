@@ -40,7 +40,7 @@ function darwin() {
     ]
 
     const whichFinds = findByWhich(
-        ['firefox-nightly'],
+        ['firefox-nightly', 'firefox-trunk'],
         [{ regex: /firefox-nightly/, weight: 51 }]
     )
     const installFinds = sort(installations, priorities)
@@ -64,10 +64,11 @@ function linux() {
         installations = installations.concat(findFirefoxExecutables(folder))
     })
 
-    return findByWhich(
-        ['firefox-nightly', 'firefox'],
+    const whichFinds = findByWhich(
+        ['firefox-nightly', 'firefox-trunk', 'firefox'],
         [{ regex: /firefox/, weight: 51 }]
     )
+    return [...installations, ...whichFinds]
 }
 
 function win32() {

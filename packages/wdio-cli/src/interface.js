@@ -102,12 +102,14 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onTestError(payload) {
-        let error = { type: 'Error', message: typeof payload.error === 'string' ? payload.error : 'Unknown error.' }
+        let error = { type: 'Error', message: typeof payload.error === 'string' ? payload.error : 'Unknown error.', stack: null }
         if (payload.error) {
             error.type = payload.error.type || error.type
             error.message = payload.error.message || error.message
+            error.stack = payload.error.stack || error.stack
         }
-        return this.log(`[${payload.cid}]`, `${chalk.red(error.type)} in "${payload.fullTitle}"\n${chalk.red(error.message)}`)
+
+        return this.log(`[${payload.cid}]`, `${chalk.red(error.type)} in "${payload.fullTitle}"\n${chalk.red(error.stack || error.message)}`)
     }
 
     getFilenames(specs = []) {

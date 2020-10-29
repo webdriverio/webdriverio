@@ -426,6 +426,23 @@ describe('cli interface', () => {
             expect(result[1]).toContain('FULL_TITLE')
         })
 
+        it('error with stack trace', () => {
+            const result = wdioClInterface.onTestError({
+                cid: 'CID',
+                fullTitle: 'FULL_TITLE',
+                error: {
+                    type: 'ERROR_TYPE',
+                    message: 'ERROR_MESSAGE',
+                    stack: 'ERROR_STACK',
+                },
+            })
+
+            expect(result[0]).toContain('CID')
+            expect(result[1]).toContain('ERROR_TYPE')
+            expect(result[1]).toContain('ERROR_STACK')
+            expect(result[1]).toContain('FULL_TITLE')
+        })
+
         it('no error', () => {
             const result = wdioClInterface.onTestError({
                 cid: 'CID',

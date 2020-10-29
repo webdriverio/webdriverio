@@ -116,3 +116,8 @@ test('updateCommands', () => {
     expect(browser.addCommand)
         .toBeCalledWith('getPerformanceScore', expect.any(Function))
 })
+
+test('should not throw if no args passed', () => {
+    const auditor = new Auditor()
+    expect(auditor).toBeTruthy()
+})

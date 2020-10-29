@@ -58,7 +58,44 @@ declare namespace WebdriverIO {
     interface ServiceOption {
         [key: string]: any;
     }
-    type ServiceEntry = string | HookFunctions | [string, ServiceOption] | object
+
+    interface ServiceClass {
+        new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
+    }
+
+    interface ServiceLauncher extends ServiceClass {
+        default?: ServiceClass
+        launcher?: ServiceClass
+    }
+
+    interface ServiceInstance extends HookFunctions {
+        options?: Record<string, any>,
+        capabilities?: WebDriver.DesiredCapabilities,
+        config?: Config
+    }
+
+    type ServiceEntry = (
+        /**
+         * e.g. `services: ['@wdio/sauce-service']`
+         */
+        string |
+        /**
+         * e.g. `services: [{ onPrepare: () => { ... } }]`
+         */
+        HookFunctions |
+        /**
+         * e.g. `services: [CustomClass]`
+         */
+        ServiceLauncher |
+        /**
+         * e.g. `services: [['@wdio/sauce-service', { ... }]]`
+         */
+        [string, ServiceOption] |
+        /**
+         * e.g. `services: [[CustomClass, { ... }]]`
+         */
+        [ServiceClass, ServiceOption]
+    )
 
     interface Options {
         /**
@@ -187,7 +224,7 @@ declare namespace WebdriverIO {
         execArgv?: string[];
     }
 
-    interface RemoteOptions extends WebDriver.Options, Omit<Options, 'capabilities'> { }
+    interface RemoteOptions extends WebDriver.Options, HookFunctions, Omit<Options, 'capabilities'> { }
 
     interface MultiRemoteOptions {
         [instanceName: string]: WebDriver.DesiredCapabilities;
@@ -529,12 +566,17 @@ declare namespace WebdriverIO {
 
     type MockResponseParams = {
         statusCode?: number,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
+        /**
+         * fetch real response before responding with mocked data. Default: true
+         */
+        fetchResponse?: boolean
     }
 
     type MockFilterOptions = {
         method?: string | ((method: string) => boolean),
         headers?: Record<string, string> | ((headers: Record<string, string>) => boolean),
+        requestHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
         responseHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean),
         statusCode?: number | ((statusCode: number) => boolean),
         postData?: string | ((payload: string | undefined) => boolean)
@@ -612,10 +654,12 @@ declare namespace WebdriverIO {
          * characters like Left arrow or Back space. WebdriverIO will take care of
          * translating them into unicode characters. You’ll find all supported characters
          * [here](https://w3c.github.io/webdriver/webdriver-spec.html#keyboard-actions).
-         * To do that, the value has to correspond to a key from the table.
+         * To do that, the value has to correspond to a key from the table. It can be disabled
+         * by setting `translateToUnicode` optional parameter to false.
          */
         addValue(
-            value: string | number | boolean | object | any[]
+            value: string | number | boolean | object | any[],
+            options?: AddValueOptions
         ): Promise<void>;
 
         /**
@@ -796,6 +840,21 @@ declare namespace WebdriverIO {
         ): Promise<void>;
 
         /**
+         * Returns the next sibling element of the selected DOM-element.
+         */
+        nextElement(): Promise<Element>;
+
+        /**
+         * Returns the parent element of the selected DOM-element.
+         */
+        parentElement(): Promise<Element>;
+
+        /**
+         * Returns the previous sibling element of the selected DOM-element.
+         */
+        previousElement(): Promise<Element>;
+
+        /**
          * The `react$$` command is a useful command to query multiple React Components
          * by their actual name and filter them by props and state.
          */
@@ -855,10 +914,12 @@ declare namespace WebdriverIO {
          * unicode characters like Left arrow or Back space. WebdriverIO will take care of
          * translating them into unicode characters. You’ll find all supported characters
          * [here](https://w3c.github.io/webdriver/webdriver-spec.html#keyboard-actions).
-         * To do that, the value has to correspond to a key from the table.
+         * To do that, the value has to correspond to a key from the table. It can be disabled
+         * by setting `translateToUnicode` optional parameter to false.
          */
         setValue(
-            value: string | number | boolean | object | any[]
+            value: string | number | boolean | object | any[],
+            options?: AddValueOptions
         ): Promise<void>;
 
         /**
@@ -940,26 +1001,34 @@ declare namespace WebdriverIO {
 
         
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Abort the request with one of the following error codes:
+         * `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`,
+         * `ConnectionReset`, `ConnectionRefused`, `ConnectionAborted`,
+         * `ConnectionFailed`, `NameNotResolved`, `InternetDisconnected`,
+         * `AddressUnreachable`, `BlockedByClient`, `BlockedByResponse`.
          */
         abort(
             errorCode: ErrorCode
         ): Promise<void>;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Abort the request once with one of the following error codes:
+         * `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`,
+         * `ConnectionReset`, `ConnectionRefused`, `ConnectionAborted`,
+         * `ConnectionFailed`, `NameNotResolved`, `InternetDisconnected`,
+         * `AddressUnreachable`, `BlockedByClient`, `BlockedByResponse`.
          */
         abortOnce(
             errorCode: ErrorCode
         ): Promise<void>;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Resets all information stored in the `mock.calls` array.
          */
         clear(): Promise<void>;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Always respond with same overwrite.
          */
         respond(
             overwrites: MockOverwrite,
@@ -967,7 +1036,10 @@ declare namespace WebdriverIO {
         ): Promise<void>;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Only respond once with given overwrite. You can call `respondOnce` multiple
+         * consecutive times and it will start with the respond you defined last. If you
+         * only use `respondOnce` and the resource is called more times a mock has been
+         * defined than it defaults back to the original resource.
          */
         respondOnce(
             overwrites: MockOverwrite,
@@ -975,7 +1047,7 @@ declare namespace WebdriverIO {
         ): Promise<void>;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarions don't work as expected!
+         * Does everything that `mock.clear()` does, and also removes any mocked return values or implementations.
          */
         restore(): Promise<void>;
     }
@@ -1111,7 +1183,10 @@ declare namespace WebdriverIO {
         ): Promise<void>;
 
         /**
-         * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
+         * Mock the response of a request. You can define a mock based on a matching
+         * glob and corresponding header and status code. Calling the mock method
+         * returns a stub object that you can use to modify the response of the
+         * web resource.
          */
         mock(
             url: string,
@@ -1263,5 +1338,14 @@ declare namespace WebdriverIO {
         ): Promise<boolean>;
     }
 
-    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {}
+    interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
+         /**
+         * internal usage only. To run in watch mode see https://webdriver.io/docs/watcher.html
+         */
+        watch?: never;
+    }
+
+    interface AddValueOptions {
+        translateToUnicode?: boolean
+    }
 }

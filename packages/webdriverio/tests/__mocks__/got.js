@@ -54,6 +54,14 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
         sessionResponse.capabilities.browserName = params.json.capabilities.alwaysMatch.browserName
     }
 
+    if (
+        params.json &&
+        params.json.desiredCapabilities &&
+        params.json.desiredCapabilities['sauce:options']
+    ) {
+        sessionResponse.capabilities['sauce:options'] = params.json.desiredCapabilities['sauce:options']
+    }
+
     switch (uri.pathname) {
     case path:
         value = sessionResponse
@@ -171,6 +179,18 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
                 { [ELEMENT_KEY]: 'some-elem-456' },
                 { [ELEMENT_KEY]: 'some-elem-789' },
             ]
+        } else if (params.json.script.includes('previousElementSibling')) {
+            result = params.json.args[0][ELEMENT_KEY] === genericSubElementId
+                ? { [ELEMENT_KEY]: 'some-previous-elem' }
+                : {}
+        } else if (params.json.script.includes('parentElement')) {
+            result = params.json.args[0][ELEMENT_KEY] === genericSubElementId
+                ? { [ELEMENT_KEY]: 'some-parent-elem' }
+                : {}
+        } else if (params.json.script.includes('nextElementSibling')) {
+            result = params.json.args[0][ELEMENT_KEY] === 'some-elem-123'
+                ? { [ELEMENT_KEY]: 'some-next-elem' }
+                : {}
         } else {
             result = script.apply(this, args)
         }

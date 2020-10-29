@@ -37,7 +37,7 @@ export default async function getSize(prop = null) {
         rect = await this.getElementSize(this.elementId)
     }
 
-    if(rect[prop]) {
+    if (rect[prop]) {
         return rect[prop]
     }
 

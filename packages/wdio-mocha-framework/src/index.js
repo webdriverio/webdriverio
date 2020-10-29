@@ -55,6 +55,16 @@ class MochaAdapter {
         mocha.suite.on('pre-require', this.preRequire.bind(this))
         await this._loadFiles(mochaOpts)
 
+        /**
+         * import and set options for `expect-webdriverio` assertion lib once
+         * the framework was initiated so that it can detect the environment
+         */
+        const { setOptions } = require('expect-webdriverio')
+        setOptions({
+            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
+            interval: this.config.waitforInterval, // interval between attempts
+        })
+
         return this
     }
 
@@ -89,16 +99,6 @@ class MochaAdapter {
 
     async run() {
         const mocha = this.mocha
-
-        /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
-         */
-        const { setOptions } = require('expect-webdriverio')
-        setOptions({
-            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this.config.waitforInterval, // interval between attempts
-        })
 
         let runtimeError
         const result = await new Promise((resolve) => {
@@ -190,8 +190,6 @@ class MochaAdapter {
             break
         }
 
-        params.err = this.lastError
-        delete this.lastError
         return this.formatMessage(params)
     }
 
@@ -281,10 +279,6 @@ class MochaAdapter {
         message.cid = this.cid
         message.specs = this.specs
         message.uid = this.getUID(message)
-
-        if (message.error) {
-            this.lastError = message.error
-        }
 
         this.reporter.emit(message.type, message)
     }

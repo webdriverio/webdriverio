@@ -84,3 +84,31 @@ export function testFailedWithAssertionErrorFromExpectWebdriverIO() {
 export function testPending() {
     return Object.assign(testState(), { state: 'pending', end: '2018-05-14T15:17:21.631Z', _duration: 0 })
 }
+
+const hookState = () => ({
+    type: 'hook',
+    start: '2018-05-14T15:17:18.914Z',
+    _duration: 0,
+    uid: 'hook-00-0',
+    cid: '0-0',
+    title: '"before all" hook for "should login with valid credentials"',
+    parent: 'Login',
+})
+
+export function hookStart() {
+    return hookState()
+}
+
+export function hookPassed() {
+    return Object.assign(hookState(), { state: 'passed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
+}
+
+export function hookFailed() {
+    const error =
+    {
+        message: 'element ("body") still existing after 100ms',
+        stack: 'Error: element ("body") still existing after 100ms',
+        type: 'Error',
+    }
+    return Object.assign(hookState(), { error, errors: [error], state: 'failed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
+}

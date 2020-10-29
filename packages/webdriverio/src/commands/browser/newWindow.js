@@ -32,6 +32,8 @@
  * @type window
  */
 
+/* istanbul ignore file */
+
 import newWindowHelper from '../../scripts/newWindow'
 
 export default async function newWindow (url, { windowName = 'New Window', windowFeatures = '' } = {}) {
