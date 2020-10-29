@@ -16,14 +16,11 @@ export default class LocalRunner {
     config: WebdriverIO.Config
     workerPool: Record<string, WorkerInstance> = {}
 
-    stdout: WritableStreamBuffer
-    stderr: WritableStreamBuffer
+    stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
+    stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
 
     constructor (configFile: string, config: WebdriverIO.Config) {
         this.config = config
-
-        this.stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
-        this.stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
     }
 
     /**

@@ -12,7 +12,7 @@ describe('RunnerStream', () => {
 
     test('should have pipe listener', () => {
         stream._transform('foobar', 'utf8', cb)
-        expect(cb).toBeCalledWith(null, 'foobar')
+        expect(cb).toBeCalledWith(undefined, 'foobar')
     })
 
     test('should remove certain last listener on pipe', () => {
