@@ -447,6 +447,10 @@ declare namespace WebdriverIO {
         y: number
     }
 
+    type UrlOptions = {
+        inject: Function
+    }
+
     /**
      * HTTP request data. (copied from the puppeteer-core package as there is currently
      * no way to access these types otherwise)

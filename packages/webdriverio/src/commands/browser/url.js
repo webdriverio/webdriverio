@@ -24,8 +24,9 @@
     browser.url('/rootRelative');
  * </example>
  *
- * @param {String=} url  the URL to navigate to
- * @param {Function=} inject pass script as a function
+ * @param {String=} path  the URL to navigate to
+ * @param {UrlOptions=} options         for url command
+ * @param {Function} options.inject pass script as a function
  *
  * @see  https://w3c.github.io/webdriver/webdriver-spec.html#dfn-get
  * @see  https://nodejs.org/api/url.html#url_url_resolve_from_to
@@ -45,15 +46,14 @@ export default async function url (path, { inject } = {} ) {
     if(inject) {
         if(typeof inject !== 'function') {
             throw new Error('Parameter "inject" for url command needs to be type of function')
-        } else if(typeof inject === 'function') {
-            const browser = await this.getPuppeteer()
-            const allPages = await browser.pages()
-            for(let page of allPages) {
-                const state = await page.evaluate(() => document.visibilityState) // eslint-disable-line
-                if(state === 'visible') {
-                    await page.evaluate(inject)
-                    break
-                }
+        }
+        const browser = await this.getPuppeteer()
+        const allPages = await browser.pages()
+        for(let page of allPages) {
+            const state = await page.evaluate(() => document.visibilityState) // eslint-disable-line
+            if(state === 'visible') {
+                await page.evaluate(inject)
+                break
             }
         }
     }
