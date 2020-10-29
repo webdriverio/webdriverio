@@ -432,7 +432,7 @@ class AllureReporter extends WDIOReporter {
     }
 
     isScreenshotCommand(command) {
-        const isScrenshotEndpoint = /\/session\/[^/]*\/screenshot/
+        const isScrenshotEndpoint = /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/
         return (
             // WebDriver protocol
             isScrenshotEndpoint.test(command.endpoint) ||
