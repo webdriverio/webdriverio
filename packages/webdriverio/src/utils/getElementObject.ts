@@ -87,11 +87,8 @@ export const getElements = function getElements(this: WebdriverIO.BrowserObject,
                 /**
                  * set element id with proper key so element can be passed into execute commands
                  */
-                if (this.isW3C) {
-                    (client as any)[ELEMENT_KEY] = elementId
-                } else {
-                    client.ELEMENT = elementId
-                }
+                const elementKey = this.isW3C ? ELEMENT_KEY : 'ELEMENT'
+                client[elementKey] = elementId
             } else {
                 client.error = res as Error
             }
