@@ -6,7 +6,7 @@ test('should add cid to message', () => {
     const cb = jest.fn()
     const pushSpy = jest.spyOn(stream, 'push')
 
-    stream._transform('foobar', null, cb)
+    stream._transform('foobar', 'utf8', cb)
     expect(pushSpy).toBeCalledWith('[0-5] foobar')
     expect(cb).toBeCalled()
 })
@@ -16,7 +16,7 @@ test('should ignore debugger messages', () => {
     const cb = jest.fn()
     const pushSpy = jest.spyOn(stream, 'push')
 
-    DEBUGGER_MESSAGES.forEach(m => stream._transform(`${m} foobar`, null, cb))
+    DEBUGGER_MESSAGES.forEach(m => stream._transform(`${m} foobar`, 'utf8', cb))
     expect(pushSpy).toBeCalledTimes(0)
 })
 

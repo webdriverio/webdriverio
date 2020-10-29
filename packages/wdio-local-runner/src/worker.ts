@@ -37,6 +37,7 @@ export default class WorkerInstance extends EventEmitter {
     stderr: WritableStreamBuffer
     childProcess?: ChildProcess
     sessionId?: string
+    server?: Record<string, any>
 
     instances?: Record<string, { sessionId: string }>
     isMultiremote?: boolean

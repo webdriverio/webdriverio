@@ -39,7 +39,6 @@ describe('handleMessage', () => {
         worker.emit = jest.fn()
         const payload = {
             name: 'sessionStarted',
-            sessionId: 'abc123',
             content: {
                 sessionId: 'abc123',
                 bar: 'foo'
@@ -47,7 +46,7 @@ describe('handleMessage', () => {
         }
         worker['_handleMessage'](payload as unknown as WorkerMessage)
         expect(worker.sessionId).toEqual('abc123')
-        expect(payload.sessionId).toBe(undefined)
+        expect(payload.content.sessionId).toBe(undefined)
         expect(worker.emit).not.toBeCalled()
     })
 
@@ -111,7 +110,9 @@ describe('handleExit', () => {
         expect(worker.isBusy).toBe(false)
         expect(worker.emit).toBeCalledWith('exit', {
             cid: '0-3',
-            exitCode: 42
+            exitCode: 42,
+            retries: 0,
+            specs: ['/some/spec']
         })
     })
 })

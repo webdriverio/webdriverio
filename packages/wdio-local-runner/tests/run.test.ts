@@ -9,14 +9,15 @@ jest.mock('../src/constants', () => ({
 const sleep = (ms = 100) => new Promise(
     (resolve) => setTimeout(resolve, ms))
 
-let exitHookFn, runner
+let exitHookFn: Function
+let runner: any
 const origExit = process.exit.bind(process)
 
 beforeAll(() => {
     jest.spyOn(process, 'on')
     jest.spyOn(process, 'send')
     process.exit = jest.fn() as any
-    const run = require('../src/run.js')
+    const run = require('../src/run.ts')
     exitHookFn = run.exitHookFn
     runner = run.runner
 })

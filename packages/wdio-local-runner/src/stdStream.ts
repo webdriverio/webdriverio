@@ -21,7 +21,7 @@ export default class RunnerStream extends Transform {
         callback(null, chunk)
     }
 
-    _final (callback: (error?: Error | null) => void): void {
+    _final (callback: (error?: Error | undefined) => void): void {
         this.unpipe()
         callback()
     }

@@ -37,7 +37,7 @@ test('should send command to child process', () => {
 
     expect(repl.commandIsRunning).toBe(false)
     expect(repl.callback).toBe(undefined)
-    repl.eval('1+1', null, null, callback)
+    repl.eval('1+1', {}, '/foo/bar', callback)
     expect(repl.commandIsRunning).toBe(true)
     expect(childProcess.send).toBeCalledWith({
         origin: 'debugger',
@@ -46,7 +46,7 @@ test('should send command to child process', () => {
     })
     expect(typeof repl.callback).toBe('function')
 
-    repl.callback(null, {})
+    repl.callback!(null, {})
     expect(callback).toBeCalled()
 })
 
@@ -56,7 +56,7 @@ test('should not send command if command is already running', () => {
     const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
     repl.commandIsRunning = true
 
-    repl.eval('1+1', null, null, callback)
+    repl.eval('1+1', {}, '/foo/bar', callback)
     expect(childProcess.send).toBeCalledTimes(0)
 })
 
