@@ -371,6 +371,7 @@ describe('auxiliary methods', () => {
         expect(reporter.isScreenshotCommand({ endpoint: '/session/id/click' })).toEqual(false)
         expect(reporter.isScreenshotCommand({ command: 'takeScreenshot' })).toEqual(true)
         expect(reporter.isScreenshotCommand({ command: 'elementClick' })).toEqual(false)
+        expect(reporter.isScreenshotCommand({ endpoint: '/session/id/element/id/screenshot' })).toEqual(true)
     })
 
     it('dumpJSON', () => {
