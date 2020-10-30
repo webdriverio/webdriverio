@@ -17,6 +17,46 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.7.1 (2020-10-30)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#6049](https://github.com/webdriverio/webdriverio/pull/6049) Do not disable webdriver steps reporting when using cucumber step reporter ([@gambrose](https://github.com/gambrose))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#6052](https://github.com/webdriverio/webdriverio/pull/6052) Add support for element screenshots to Allure reporter ([@gambrose](https://github.com/gambrose))
+* `wdio-cli`
+  * [#6034](https://github.com/webdriverio/webdriverio/pull/6034) @wdio/cli should log the entire stack trace if available ([@Photonios](https://github.com/Photonios))
+
+#### :memo: Documentation
+* Other
+  * [#6050](https://github.com/webdriverio/webdriverio/pull/6050) Separate between protocol, webdriverio and testrunner options ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#6037](https://github.com/webdriverio/webdriverio/pull/6037) Update docs for change #6030 ([@dagoud](https://github.com/dagoud))
+  * [#5921](https://github.com/webdriverio/webdriverio/pull/5921) Issue: Fix broken links on blog entries and doc page ([@pjcalvo](https://github.com/pjcalvo))
+
+#### :house: Internal
+* `wdio-local-runner`, `wdio-repl`, `wdio-sync`, `webdriverio`
+  * [#5839](https://github.com/webdriverio/webdriverio/pull/5839) Tracking doc: rewrite `@wdio/local-runner` package into TypeScript ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-repl`, `wdio-sync`, `webdriver`, `webdriverio`
+  * [#5992](https://github.com/webdriverio/webdriverio/pull/5992) Rewrite WebdriverIO browser API commands ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#6036](https://github.com/webdriverio/webdriverio/pull/6036) Add Jest coverage config for ts files and note on git symlinks config on Windows ([@hieuxlu](https://github.com/hieuxlu))
+* `webdriverio`
+  * [#6023](https://github.com/webdriverio/webdriverio/pull/6023) Webdriverio refactor some lower hanging fruits in webdriverio to TS ([@Fabianopb](https://github.com/Fabianopb))
+
+#### Committers: 8
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fabiano Brito ([@Fabianopb](https://github.com/Fabianopb))
+- Graham Ambrose ([@gambrose](https://github.com/gambrose))
+- Hieu Do ([@hieuxlu](https://github.com/hieuxlu))
+- Pablillo Calvo ([@pjcalvo](https://github.com/pjcalvo))
+- Swen Kooij ([@Photonios](https://github.com/Photonios))
+- [@dagoud](https://github.com/dagoud)
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.7.0 (2020-10-26)
 
 #### :rocket: New Feature
