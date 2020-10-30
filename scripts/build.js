@@ -21,6 +21,7 @@ if (HAS_WATCH_FLAG) {
 const ROOT_PACKAGES = [
     'wdio-logger',
     'wdio-utils',
+    'wdio-repl',
     'webdriver',
     'webdriverio',
 ]

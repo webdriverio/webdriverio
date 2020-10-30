@@ -17,7 +17,7 @@
     });
  * </example>
  *
- * @alias react$$
+ * @alias browser.react$$
  * @param {String}  selector        of React component
  * @param {ReactSelectorOptions=}                    options         React selector options
  * @param {Object=}                                  options.props   React props the element should contain
@@ -29,13 +29,18 @@ import fs from 'fs'
 import { enhanceElementsArray } from '../../utils'
 import { getElements } from '../../utils/getElementObject'
 import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq'
+import type { ElementReference } from '../../types'
 
 const resqScript = fs.readFileSync(require.resolve('resq'))
 
-export default async function react$$(selector, { props = {}, state = {} } = {}) {
+export default async function react$$ (
+    this: WebdriverIO.BrowserObject,
+    selector: string,
+    { props = {}, state = {} }: WebdriverIO.ReactSelectorOptions = {}
+) {
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
-    const res = await this.execute(react$$Script, selector, props, state, this)
+    const res = await this.execute<ElementReference[]>(react$$Script, selector, props, state)
 
     const elements = await getElements.call(this, selector, res, true)
     return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])
