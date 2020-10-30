@@ -10,7 +10,7 @@ import RunnerTransformStream from './transformStream'
 import ReplQueue from './replQueue'
 import RunnerStream from './stdStream'
 
-import type { WorkerRunPayload, WorkerMessage } from './types'
+import type { WorkerRunPayload, WorkerMessage, WorkerCommand } from './types'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -197,7 +197,8 @@ export default class WorkerInstance extends EventEmitter {
             this.childProcess = this.startProcess()
         }
 
-        this.childProcess.send({ cid, command, configFile, args, caps, specs, retries })
+        const cmd: WorkerCommand = { cid, command, configFile, args, caps, specs, retries }
+        this.childProcess.send(cmd)
         this.isBusy = true
     }
 }

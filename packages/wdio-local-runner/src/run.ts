@@ -4,6 +4,7 @@ import Runner from '@wdio/runner'
 import logger from '@wdio/logger'
 
 import { SHUTDOWN_TIMEOUT } from './constants'
+import type { WorkerCommand } from './types'
 
 const log = logger('@wdio/local-runner')
 
@@ -23,13 +24,13 @@ runner.on('error', ({ name, message, stack }) => process.send!({
     content: { name, message, stack }
 }))
 
-process.on('message', (m: any) => {
+process.on('message', (m: WorkerCommand) => {
     if (!m || !m.command) {
         return
     }
 
     log.info(`Run worker command: ${m.command}`)
-    runner[m.command as string](m).then(
+    runner[m.command](m).then(
         (result: any) => process.send!({
             origin: 'worker',
             name: 'finisedCommand',

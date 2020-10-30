@@ -3,14 +3,12 @@ import WorkerInstance from '../../../src/worker'
 export default class LocalRunnerMock {
     configFile: string
     config: WebdriverIO.Config
-    workerPool: Record<string, WorkerInstance>
-    initialise: Function
+    workerPool: Record<string, WorkerInstance> = {}
+    initialise = jest.fn()
 
     constructor (configFile: string, config: WebdriverIO.Config) {
         this.configFile = configFile
         this.config = config
-        this.workerPool = {}
-        this.initialise = jest.fn()
     }
 
     run ({ command, args, ...options }: any) {
