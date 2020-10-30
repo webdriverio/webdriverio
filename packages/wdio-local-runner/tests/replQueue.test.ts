@@ -1,9 +1,11 @@
+import type { ChildProcess } from 'child_process'
+
 import ReplQueue from '../src/replQueue'
 
 test('add', () => {
     const queue = new ReplQueue()
-    queue.add(1, 2, 3, 4)
-    queue.add(5, 6, 7, 8)
+    queue.add(1 as unknown as ChildProcess, 2, 3 as unknown as Function, 4 as unknown as Function)
+    queue.add(5 as unknown as ChildProcess, 6, 7 as unknown as Function, 8 as unknown as Function)
     expect(queue.repls).toEqual([
         { childProcess: 1, options: 2, onStart: 3, onEnd: 4 },
         { childProcess: 5, options: 6, onStart: 7, onEnd: 8 }
@@ -13,7 +15,7 @@ test('add', () => {
 test('isRunning', () => {
     const queue = new ReplQueue()
     expect(queue.isRunning).toBe(false)
-    queue.runningRepl = true
+    queue.runningRepl = true as any
     expect(queue.isRunning).toBe(true)
 })
 
@@ -23,8 +25,8 @@ test('next', async () => {
     const endFn = jest.fn()
     const startFn2 = jest.fn()
     const endFn2 = jest.fn()
-    const childProcess = { send: jest.fn() }
-    const childProcess2 = { send: jest.fn() }
+    const childProcess = { send: jest.fn() } as unknown as ChildProcess
+    const childProcess2 = { send: jest.fn() } as unknown as ChildProcess
     queue.add(childProcess, { some: 'option' }, startFn, endFn)
     queue.add(childProcess2, { some: 'option' }, startFn2, endFn2)
     queue.next()
