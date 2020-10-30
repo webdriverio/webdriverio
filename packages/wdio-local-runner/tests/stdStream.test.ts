@@ -1,8 +1,9 @@
 import RunnerStream from '../src/stdStream'
 
 describe('RunnerStream', () => {
-    let stream
-    let pushSpy
+    let stream: RunnerStream
+    let pushSpy: jest.SpyInstance
+
     const cb = jest.fn()
     beforeEach(() => {
         stream = new RunnerStream()
@@ -10,8 +11,8 @@ describe('RunnerStream', () => {
     })
 
     test('should have pipe listener', () => {
-        stream._transform('foobar', null, cb)
-        expect(cb).toBeCalledWith(null, 'foobar')
+        stream._transform('foobar', 'utf8', cb)
+        expect(cb).toBeCalledWith(undefined, 'foobar')
     })
 
     test('should remove certain last listener on pipe', () => {

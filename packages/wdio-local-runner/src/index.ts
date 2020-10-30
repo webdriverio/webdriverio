@@ -3,16 +3,24 @@ import { WritableStreamBuffer } from 'stream-buffers'
 
 import WorkerInstance from './worker'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants'
+import type { WorkerRunPayload } from './types'
 
 const log = logger('@wdio/local-runner')
 
+interface RunArgs extends WorkerRunPayload {
+    command: string
+    args: any
+}
+
 export default class LocalRunner {
-    constructor (configFile, config) {
-        this.configFile = configFile
+    config: WebdriverIO.Config
+    workerPool: Record<string, WorkerInstance> = {}
+
+    stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
+    stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
+
+    constructor (configFile: string, config: WebdriverIO.Config) {
         this.config = config
-        this.workerPool = {}
-        this.stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
-        this.stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
     }
 
     /**
@@ -24,7 +32,7 @@ export default class LocalRunner {
         return Object.keys(this.workerPool).length
     }
 
-    run ({ command, args, ...workerOptions }) {
+    run ({ command, args, ...workerOptions }: RunArgs) {
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */
@@ -59,7 +67,13 @@ export default class LocalRunner {
              * in order to attach to browser session and kill it
              */
             if (config && config.watch && (sessionId || isMultiremote)) {
-                payload = { config: { ...server, sessionId }, caps, watch: true, isMultiremote, instances }
+                payload = {
+                    config: { ...server, sessionId },
+                    caps,
+                    watch: true,
+                    isMultiremote,
+                    instances
+                }
             } else if (!worker.isBusy) {
                 delete this.workerPool[cid]
                 continue

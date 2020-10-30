@@ -1,13 +1,19 @@
-import WDIORepl from '@wdio/repl'
+import vm from 'vm'
+
+import WDIORepl, { ReplConfig, ReplCallback } from '@wdio/repl'
+import type { ChildProcess } from 'child_process'
 
 export default class WDIORunnerRepl extends WDIORepl {
-    constructor (childProcess, options) {
+    childProcess: ChildProcess
+    callback?: ReplCallback
+    commandIsRunning = false
+
+    constructor (childProcess: ChildProcess, options: ReplConfig) {
         super(options)
         this.childProcess = childProcess
-        this.commandIsRunning = false
     }
 
-    _getError(params) {
+    private _getError (params: any) {
         if (!params.error) {
             return null
         }
@@ -17,7 +23,7 @@ export default class WDIORunnerRepl extends WDIORepl {
         return err
     }
 
-    eval (cmd, context, filename, callback) {
+    eval (cmd: string, context: vm.Context, filename: string, callback: ReplCallback) {
         if (this.commandIsRunning) {
             return
         }
@@ -32,18 +38,22 @@ export default class WDIORunnerRepl extends WDIORepl {
         this.callback = callback
     }
 
-    onResult (params) {
+    onResult (params: any) {
         const error = this._getError(params)
-        this.callback(error, params.result)
+
+        if (this.callback) {
+            this.callback(error, params.result)
+        }
+
         this.commandIsRunning = false
     }
 
-    start (...args) {
+    start (context?: vm.Context) {
         this.childProcess.send({
             origin: 'debugger',
             name: 'start'
         })
 
-        return super.start(...args)
+        return super.start(context)
     }
 }

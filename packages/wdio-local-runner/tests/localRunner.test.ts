@@ -23,26 +23,28 @@ test('should fork a new process', () => {
         configFile: '/path/to/wdio.conf.js',
         args: {},
         caps: {},
-        processNumber: 123,
-        specs: ['/foo/bar.test.js']
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0
     })
     const childProcess = worker.childProcess
     worker.emit = jest.fn()
 
     expect(worker.isBusy).toBe(true)
-    expect(child.fork.mock.calls[0][0].endsWith('run.js')).toBe(true)
+    expect((child.fork as jest.Mock).mock.calls[0][0].endsWith('run.js')).toBe(true)
 
-    const { env } = child.fork.mock.calls[0][2]
+    const { env } = (child.fork as jest.Mock).mock.calls[0][2]
     expect(env.WDIO_LOG_PATH).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-5\.log/)
     expect(env.FORCE_COLOR).toBe(1)
-    expect(childProcess.on).toBeCalled()
+    expect(childProcess?.on).toBeCalled()
 
-    expect(childProcess.send).toBeCalledWith({
+    expect(childProcess?.send).toBeCalledWith({
         args: {},
         caps: {},
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
+        retries: 0,
         specs: ['/foo/bar.test.js']
     })
 
@@ -60,8 +62,9 @@ test('should shut down worker processes', async () => {
         configFile: '/path/to/wdio.conf.js',
         args: {},
         caps: {},
-        processNumber: 124,
-        specs: ['/foo/bar2.test.js']
+        specs: ['/foo/bar2.test.js'],
+        execArgv: [],
+        retries: 0
     })
     const worker2 = runner.run({
         cid: '0-5',
@@ -69,8 +72,9 @@ test('should shut down worker processes', async () => {
         configFile: '/path/to/wdio.conf.js',
         args: {},
         caps: {},
-        processNumber: 123,
-        specs: ['/foo/bar.test.js']
+        specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0
     })
     setTimeout(() => {
         worker1.isBusy = false
@@ -84,10 +88,10 @@ test('should shut down worker processes', async () => {
     const after = Date.now()
 
     expect(after - before).toBeGreaterThanOrEqual(750)
-    const call1 = worker1.childProcess.send.mock.calls.pop()[0]
+    const call1 = (worker1.childProcess?.send as jest.Mock).mock.calls.pop()[0]
     expect(call1.cid).toBe('0-5')
     expect(call1.command).toBe('endSession')
-    const call2 = worker1.childProcess.send.mock.calls.pop()[0]
+    const call2 = (worker1.childProcess?.send as jest.Mock).mock.calls.pop()[0]
     expect(call2.cid).toBe('0-4')
     expect(call2.command).toBe('endSession')
 })
@@ -104,8 +108,9 @@ test('should avoid shutting down if worker is not busy', async () => {
         configFile: '/path/to/wdio.conf.js',
         args: { sessionId: 'abc' },
         caps: {},
-        processNumber: 231,
         specs: ['/foo/bar2.test.js'],
+        execArgv: [],
+        retries: 0
     })
     runner.workerPool['0-8'].isBusy = false
 
@@ -127,12 +132,13 @@ test('should shut down worker processes in watch mode - regular', async () => {
         configFile: '/path/to/wdio.conf.js',
         args: { sessionId: 'abc' },
         caps: {},
-        processNumber: 231,
         specs: ['/foo/bar2.test.js'],
+        execArgv: [],
+        retries: 0
     })
     runner.workerPool['0-6'].sessionId = 'abc'
     runner.workerPool['0-6'].server = { host: 'foo' }
-    runner.workerPool['0-6'].caps = { browser: 'chrome' }
+    runner.workerPool['0-6'].caps = { browser: 'chrome' } as WebDriver.Capabilities
 
     setTimeout(() => {
         worker.isBusy = false
@@ -144,7 +150,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
 
     expect(after - before).toBeGreaterThanOrEqual(300)
 
-    const call2 = worker.childProcess.send.mock.calls.pop()[0]
+    const call2 = (worker.childProcess?.send as jest.Mock).mock.calls.pop()[0]
     expect(call2.cid).toBe('0-6')
     expect(call2.command).toBe('endSession')
     expect(call2.args.watch).toBe(true)
@@ -167,12 +173,17 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
         configFile: '/path/to/wdio.conf.js',
         args: {},
         caps: {},
-        processNumber: 232,
         specs: ['/foo/bar.test.js'],
+        execArgv: [],
+        retries: 0
     })
     runner.workerPool['0-7'].isMultiremote = true
-    runner.workerPool['0-7'].instances = { foo: {} }
-    runner.workerPool['0-7'].caps = { foo: { capabilities: { browser: 'chrome' } } }
+    runner.workerPool['0-7'].instances = { foo: { sessionId: '123' } }
+    runner.workerPool['0-7'].caps = {
+        foo: {
+            capabilities: { browser: 'chrome' }
+        }
+    } as WebdriverIO.MultiRemoteCapabilities
 
     setTimeout(() => {
         worker.isBusy = false
@@ -184,17 +195,16 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
 
     expect(after - before).toBeGreaterThanOrEqual(300)
 
-    const call1 = worker.childProcess.send.mock.calls.pop()[0]
+    const call1 = (worker.childProcess?.send as jest.Mock).mock.calls.pop()[0]
     expect(call1.cid).toBe('0-7')
     expect(call1.command).toBe('endSession')
     expect(call1.args.watch).toBe(true)
     expect(call1.args.isMultiremote).toBe(true)
-    expect(call1.args.instances).toEqual({ foo: {} })
+    expect(call1.args.instances).toEqual({ foo: { sessionId: '123' } })
     expect(call1.args.caps).toEqual({ foo: { capabilities: { browser: 'chrome' } } })
 })
 
 test('should avoid shutting down if worker is not busy', async () => {
     const runner = new LocalRunner('/path/to/wdio.conf.js', {})
-
     expect(runner.initialise()).toBe(undefined)
 })
