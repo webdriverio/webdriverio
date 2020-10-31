@@ -37,7 +37,7 @@ type Event = {
 type ExpectParameter<T> = ((param: T) => boolean) | T;
 
 export default class DevtoolsInterception extends Interception {
-    static handleRequestInterception (client: Client, mocks: Interception[]): (event: Event) => Promise<void | ClientResponse> {
+    static handleRequestInterception (client: Client, mocks: Set<Interception>): (event: Event) => Promise<void | ClientResponse> {
         return async (event) => {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused

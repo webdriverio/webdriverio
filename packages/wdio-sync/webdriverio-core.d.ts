@@ -836,6 +836,21 @@ declare namespace WebdriverIO {
         ): void;
 
         /**
+         * Returns the next sibling element of the selected DOM-element.
+         */
+        nextElement(): Element;
+
+        /**
+         * Returns the parent element of the selected DOM-element.
+         */
+        parentElement(): Element;
+
+        /**
+         * Returns the previous sibling element of the selected DOM-element.
+         */
+        previousElement(): Element;
+
+        /**
          * The `react$$` command is a useful command to query multiple React Components
          * by their actual name and filter them by props and state.
          */
@@ -1290,7 +1305,7 @@ declare namespace WebdriverIO {
 
         /**
          * Uploads a file to the Selenium Standalone server or other browser driver
-         * (e.g. Chromedriver) by using the [`file`](docs/api/selenium.html#file) command.
+         * (e.g. Chromedriver) by using the [`file`](/docs/api/selenium.html#file) command.
          * _Note:_ that this command is only supported if you use a Selenium Hub or
          * Chromedriver directly.
          */
@@ -1322,7 +1337,8 @@ declare namespace WebdriverIO {
          /**
          * internal usage only. To run in watch mode see https://webdriver.io/docs/watcher.html
          */
-        watch?: never;
+        watch?: boolean;
+        runnerEnv?: Record<string, any>;
     }
 
     interface AddValueOptions {

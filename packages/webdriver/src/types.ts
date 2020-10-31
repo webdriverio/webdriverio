@@ -158,6 +158,11 @@ export interface ChromeOptions {
     windowTypes?: string[];
 }
 
+/**
+ * Chromium Edge
+ */
+interface MicrosoftEdgeOptions extends ChromeOptions {}
+
 export interface FirefoxLogObject {
     level: FirefoxLogLevels
 }
@@ -174,12 +179,13 @@ export interface GeckodriverCapabilities {
 }
 
 export interface FirefoxOptions {
-    binary?: string,
-    args?: string[],
-    profile?: string,
-    log?: FirefoxLogObject,
+    debuggerAddress: string
+    binary?: string
+    args?: string[]
+    profile?: string
+    log?: FirefoxLogObject
     prefs?: {
-        [name: string]: string | number | boolean;
+        [name: string]: string | number | boolean
     }
 }
 
@@ -288,11 +294,6 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     // Selenese-Backed-WebDriver specific
     'selenium.server.url'?: string;
 
-    // Safari specific
-    'safari.options'?: {
-        [name: string]: any;
-    };
-
     // webdriverio specific
     specs?: string[];
     exclude?: string[];
@@ -314,6 +315,13 @@ export interface VendorExtensions extends EdgeCapabilities {
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
+    'ms:edgeOptions'?: MicrosoftEdgeOptions;
+    'ms:edgeChromium'?: MicrosoftEdgeOptions;
+
+    // Safari specific
+    'safari.options'?: {
+        [name: string]: any;
+    };
 }
 
 // Selenium Grid specific

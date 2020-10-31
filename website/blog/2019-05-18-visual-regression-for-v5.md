@@ -20,7 +20,7 @@ You can:
 - and much more, see the [options here](https://github.com/wswebcreation/wdio-image-comparison-service/blob/master/docs/OPTIONS.md)
 
 The module is now based on the power of the new [`webdriver-image-comparison`](https://github.com/wswebcreation/webdriver-image-comparison) module. This is a lightweight module to retrieve the needed data and screenshots for all browsers / devices.
-The comparison power comes from [ResembleJS](https://github.com/Huddle/Resemble.js). If you want to compare images online you can check the [online tool](https://huddleeng.github.io/Resemble.js/).
+The comparison power comes from [ResembleJS](https://github.com/Huddle/Resemble.js). If you want to compare images online you can check the [online tool](https://rsmbl.github.io/Resemble.js/).
 
 
 It can be used for:

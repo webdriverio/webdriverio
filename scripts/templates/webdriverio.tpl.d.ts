@@ -679,7 +679,8 @@ declare namespace WebdriverIO {
          /**
          * internal usage only. To run in watch mode see https://webdriver.io/docs/watcher.html
          */
-        watch?: never;
+        watch?: boolean;
+        runnerEnv?: Record<string, any>;
     }
 
     interface AddValueOptions {

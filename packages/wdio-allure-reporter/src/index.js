@@ -193,7 +193,9 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
-        if (this.options.disableWebdriverStepsReporting || this.options.useCucumberStepReporter || this.isMultiremote) {
+        const { disableWebdriverStepsReporting } = this.options
+
+        if (disableWebdriverStepsReporting || this.isMultiremote) {
             return
         }
 
@@ -209,11 +211,7 @@ class AllureReporter extends WDIOReporter {
     }
 
     onAfterCommand(command) {
-        if (this.isMultiremote) {
-            return
-        }
-
-        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting, useCucumberStepReporter } = this.options
+        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this.options
         if (this.isScreenshotCommand(command) && command.result.value) {
             if (!disableWebdriverScreenshotsReporting) {
                 this.lastScreenshot = command.result.value
@@ -226,7 +224,11 @@ class AllureReporter extends WDIOReporter {
 
         this.attachScreenshot()
 
-        if (!disableWebdriverStepsReporting && !useCucumberStepReporter) {
+        if (this.isMultiremote) {
+            return
+        }
+
+        if (!disableWebdriverStepsReporting) {
             if (command.result && command.result.value && !this.isScreenshotCommand(command)) {
                 this.dumpJSON('Response', command.result.value)
             }
@@ -432,7 +434,7 @@ class AllureReporter extends WDIOReporter {
     }
 
     isScreenshotCommand(command) {
-        const isScrenshotEndpoint = /\/session\/[^/]*\/screenshot/
+        const isScrenshotEndpoint = /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/
         return (
             // WebDriver protocol
             isScrenshotEndpoint.test(command.endpoint) ||
