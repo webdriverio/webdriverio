@@ -2,6 +2,7 @@ import gotMock from 'got'
 import SumoLogicReporter from '../src'
 
 import logger from '@wdio/logger'
+import { Runner } from '@wdio/reporter/src/stats/runner'
 
 jest.useFakeTimers()
 const got = gotMock as unknown as jest.Mock
@@ -11,8 +12,38 @@ const logError = log.error as jest.Mock
 
 describe('wdio-sumologic-reporter', () => {
     let reporter: SumoLogicReporter
+    let runnerStartEvent: Runner
+    let runnerEndEvent: Runner
+    let suiteStartEvent: WDIOReporter.Suite
+    let suiteEndEvent: WDIOReporter.Suite
 
     beforeEach(() => {
+        runnerStartEvent = {
+            cid: 'runnerid',
+            capabilities: {
+                browserName: 'Chrome'
+            }
+        } as Runner
+        runnerEndEvent = {
+            cid: 'runnerid',
+            capabilities: {
+                browserName: 'Chrome'
+            }
+        } as Runner
+        suiteStartEvent = {
+            duration: 0,
+            fullTitle: 'barfoo',
+            type: 'foobar',
+            uid: 'suiteid',
+            title: 'the software',
+        } as WDIOReporter.Suite
+        suiteEndEvent = {
+            duration: 0,
+            fullTitle: 'barfoo',
+            type: 'foobar',
+            uid: 'suiteid',
+            title: 'the software',
+        } as WDIOReporter.Suite
         got.mockClear()
         logError.mockClear()
         reporter = new SumoLogicReporter()
@@ -29,42 +60,42 @@ describe('wdio-sumologic-reporter', () => {
 
     it('should push to event bucket for every event', () => {
         expect(reporter.unsynced).toHaveLength(0)
-        reporter.onRunnerStart('onRunnerStart')
+        reporter.onRunnerStart(runnerStartEvent)
         expect(reporter.unsynced).toHaveLength(1)
         expect(reporter.unsynced[0]).toContain('"event":"runner:start"')
-        expect(reporter.unsynced[0]).toContain('"data":"onRunnerStart"')
-        reporter.onSuiteStart('onSuiteStart')
+        expect(JSON.parse(reporter.unsynced[0]).data).toMatchObject({ 'cid': 'runnerid' })
+        reporter.onSuiteStart(suiteStartEvent)
         expect(reporter.unsynced).toHaveLength(2)
         expect(reporter.unsynced[1]).toContain('"event":"suite:start"')
-        expect(reporter.unsynced[1]).toContain('"data":"onSuiteStart"')
-        reporter.onTestStart('onTestStart')
+        expect(JSON.parse(reporter.unsynced[1]).data).toMatchObject({ 'uid': 'suiteid' })
+        reporter.onTestStart({ _duration: 0, fullTitle: 'the software', state: 'started', title: 'onTestStart' })
         expect(reporter.unsynced).toHaveLength(3)
         expect(reporter.unsynced[2]).toContain('"event":"test:start"')
-        expect(reporter.unsynced[2]).toContain('"data":"onTestStart"')
-        reporter.onTestSkip('onTestSkip')
+        expect(JSON.parse(reporter.unsynced[2]).data).toMatchObject({ 'title': 'onTestStart' })
+        reporter.onTestSkip({ _duration: 0, fullTitle: 'the software', state: 'skipped', title: 'onTestSkip' })
         expect(reporter.unsynced).toHaveLength(4)
         expect(reporter.unsynced[3]).toContain('"event":"test:skip"')
-        expect(reporter.unsynced[3]).toContain('"data":"onTestSkip"')
-        reporter.onTestPass('onTestPass')
+        expect(JSON.parse(reporter.unsynced[3]).data).toMatchObject({ 'title': 'onTestSkip' })
+        reporter.onTestPass({ _duration: 0, fullTitle: 'the software', state: 'passed', title: 'onTestPass' })
         expect(reporter.unsynced).toHaveLength(5)
         expect(reporter.unsynced[4]).toContain('"event":"test:pass"')
-        expect(reporter.unsynced[4]).toContain('"data":"onTestPass"')
-        reporter.onTestFail('onTestFail')
+        expect(JSON.parse(reporter.unsynced[4]).data).toMatchObject({ 'title': 'onTestPass' })
+        reporter.onTestFail({ _duration: 0, fullTitle: 'the software', state: 'failed', title: 'onTestFail' })
         expect(reporter.unsynced).toHaveLength(6)
         expect(reporter.unsynced[5]).toContain('"event":"test:fail"')
-        expect(reporter.unsynced[5]).toContain('"data":"onTestFail"')
-        reporter.onTestEnd('onTestEnd')
+        expect(JSON.parse(reporter.unsynced[5]).data).toMatchObject({ 'title': 'onTestFail' })
+        reporter.onTestEnd({ _duration: 0, fullTitle: 'the software', state: 'ended', title: 'onTestEnd' })
         expect(reporter.unsynced).toHaveLength(7)
         expect(reporter.unsynced[6]).toContain('"event":"test:end"')
-        expect(reporter.unsynced[6]).toContain('"data":"onTestEnd"')
-        reporter.onSuiteEnd('onSuiteEnd')
+        expect(JSON.parse(reporter.unsynced[6]).data).toMatchObject({ 'title': 'onTestEnd' })
+        reporter.onSuiteEnd(suiteEndEvent)
         expect(reporter.unsynced).toHaveLength(8)
         expect(reporter.unsynced[7]).toContain('"event":"suite:end"')
-        expect(reporter.unsynced[7]).toContain('"data":"onSuiteEnd"')
-        reporter.onRunnerEnd('onRunnerEnd')
+        expect(JSON.parse(reporter.unsynced[7]).data).toMatchObject({ 'uid': 'suiteid' })
+        reporter.onRunnerEnd(runnerEndEvent)
         expect(reporter.unsynced).toHaveLength(9)
         expect(reporter.unsynced[8]).toContain('"event":"runner:end"')
-        expect(reporter.unsynced[8]).toContain('"data":"onRunnerEnd"')
+        expect(JSON.parse(reporter.unsynced[8]).data).toMatchObject({ 'cid': 'runnerid' })
     })
 
     describe('should not sync if it', () => {
@@ -80,7 +111,7 @@ describe('wdio-sumologic-reporter', () => {
         })
 
         it('has no source address set up', async () => {
-            reporter.onRunnerStart('onRunnerStart')
+            reporter.onRunnerStart(runnerStartEvent)
             await reporter.sync()
             expect(got.mock.calls).toHaveLength(0)
         })
@@ -88,13 +119,13 @@ describe('wdio-sumologic-reporter', () => {
 
     it('should sync', async () => {
         reporter.options.sourceAddress = 'http://localhost:1234'
-        reporter.onRunnerStart('onRunnerStart')
+        reporter.onRunnerStart(runnerStartEvent)
         await reporter.sync()
 
         expect(got.mock.calls).toHaveLength(1)
         expect(got.mock.calls[0][1].method).toBe('POST')
         expect(got.mock.calls[0][0]).toBe('http://localhost:1234')
-        expect(got.mock.calls[0][1].json).toMatchObject({ 'event': 'runner:start', 'data': 'onRunnerStart' })
+        expect(got.mock.calls[0][1].json).toMatchObject({ 'event': 'runner:start', 'data': { 'capabilities': { 'browserName': 'Chrome' }, 'cid': 'runnerid' } })
 
         expect(reporter.unsynced).toHaveLength(0)
     })
@@ -103,7 +134,7 @@ describe('wdio-sumologic-reporter', () => {
         logError.mockClear()
 
         reporter.options.sourceAddress = 'http://localhost:1234/sumoerror'
-        reporter.onRunnerStart('onRunnerStart')
+        reporter.onRunnerStart(runnerStartEvent)
 
         await reporter.sync()
 
@@ -113,7 +144,7 @@ describe('wdio-sumologic-reporter', () => {
 
     it('should be synchronised when no unsynced messages', async () => {
         reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
-        reporter.onRunnerStart('onRunnerStart')
+        reporter.onRunnerStart(runnerStartEvent)
         expect(reporter.isSynchronised).toBe(false)
         await reporter.sync()
         expect(reporter.isSynchronised).toBe(true)

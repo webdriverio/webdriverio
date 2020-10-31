@@ -1,5 +1,5 @@
 declare namespace WDIOReporter {
-    type TestState = 'passed' | 'pending' | 'failed' | 'skipped';
+    type TestState = 'passed' | 'pending' | 'failed' | 'skipped' | 'started' | 'ended';
     type ErrorType = 'AssertionError' | 'Error';
 
     class Reporter {
