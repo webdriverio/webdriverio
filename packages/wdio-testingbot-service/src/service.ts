@@ -4,7 +4,16 @@ import logger from '@wdio/logger'
 const log = logger('@wdio/testingbot-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
-export default class TestingBotService {
+export default class TestingBotService implements WebdriverIO.ServiceInstance {
+    capabilities!: WebDriver.DesiredCapabilities;
+    config?: WebdriverIO.Options;
+    failures: number;
+    isServiceEnabled?: boolean;
+    suiteTitle?: string;
+    tbSecret?: string;
+    tbUser?: string;
+    testCnt: number;
+
     constructor () {
         this.testCnt = 0
         this.failures = 0
@@ -13,7 +22,7 @@ export default class TestingBotService {
     /**
      * gather information about runner
      */
-    beforeSession (config, capabilities) {
+    beforeSession (config: WebdriverIO.Options, capabilities: WebDriver.DesiredCapabilities) {
         this.config = config
         this.capabilities = capabilities
         this.config.user = config.user
@@ -21,14 +30,14 @@ export default class TestingBotService {
         this.tbUser = this.config.user
         this.tbSecret = this.config.key
 
-        this.isServiceEnabled = this.tbUser && this.tbSecret
+        this.isServiceEnabled = Boolean(this.tbUser && this.tbSecret)
     }
 
     /**
      * Before suite
      * @param {Object} suite Suite
     */
-    beforeSuite (suite) {
+    beforeSuite (suite: any) {
         this.suiteTitle = suite.title
     }
 
@@ -36,7 +45,7 @@ export default class TestingBotService {
      * Before test
      * @param {Object} test Test
     */
-    beforeTest (test) {
+    beforeTest (test: any) {
         if (!this.isServiceEnabled) {
             return
         }
@@ -64,7 +73,7 @@ export default class TestingBotService {
         global.browser.execute('tb:test-context=' + context)
     }
 
-    afterSuite (suite) {
+    afterSuite (suite: any) {
         if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
             ++this.failures
         }
@@ -74,7 +83,7 @@ export default class TestingBotService {
      * After test
      * @param {Object} test Test
      */
-    afterTest (test, context, results) {
+    afterTest (test: any, context: any, results: any) {
         if (!results.passed) {
             ++this.failures
         }
@@ -89,7 +98,7 @@ export default class TestingBotService {
      * @param {string} uri
      * @param {Object} feature
      */
-    beforeFeature (uri, feature) {
+    beforeFeature (uri: string, feature: any) {
         if (!this.isServiceEnabled) {
             return
         }
@@ -104,7 +113,7 @@ export default class TestingBotService {
      * @param {Object} feature
      * @param {Object} scenario
      */
-    beforeScenario (uri, feature, scenario) {
+    beforeScenario (uri: string, feature: any, scenario: any) {
         if (!this.isServiceEnabled) {
             return
         }
@@ -119,7 +128,7 @@ export default class TestingBotService {
      * @param {Object} pickle
      * @param {Object} result
      */
-    afterScenario(uri, feature, pickle, result) {
+    afterScenario(uri: string, feature: any, pickle: any, result: any) {
         if (result.status === 'failed') {
             ++this.failures
         }
@@ -129,7 +138,7 @@ export default class TestingBotService {
      * Update TestingBot info
      * @return {Promise} Promise with result of updateJob method call
      */
-    after (result) {
+    after (result?: number) {
         if (!this.isServiceEnabled) {
             return
         }
@@ -140,7 +149,7 @@ export default class TestingBotService {
          * set failures if user has bail option set in which case afterTest and
          * afterSuite aren't executed before after hook
          */
-        if (global.browser.config.mochaOpts && global.browser.config.mochaOpts.bail && Boolean(result)) {
+        if (global.browser.config.mochaOpts?.bail && Boolean(result)) {
             failures = 1
         }
 
@@ -151,13 +160,14 @@ export default class TestingBotService {
             return this.updateJob(global.browser.sessionId, failures)
         }
 
+        let browser = global.browser
         return Promise.all(Object.keys(this.capabilities).map((browserName) => {
-            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${global.browser[browserName].sessionId}, ${status}`)
-            return this.updateJob(global.browser[browserName].sessionId, failures, false, browserName)
+            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser[browserName].sessionId}, ${status}`)
+            return this.updateJob(browser[browserName].sessionId, failures, false, browserName)
         }))
     }
 
-    onReload (oldSessionId, newSessionId) {
+    onReload (oldSessionId: string, newSessionId: string) {
         if (!this.isServiceEnabled) {
             return
         }
@@ -168,13 +178,14 @@ export default class TestingBotService {
             return this.updateJob(oldSessionId, this.failures, true)
         }
 
-        const browserName = global.browser.instances.filter(
-            (browserName) => global.browser[browserName].sessionId === newSessionId)[0]
+        let browser = global.browser
+        const browserName = browser.instances.filter(
+            (browserName: string) => browser[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this.failures, true, browserName)
     }
 
-    async updateJob (sessionId, failures, calledOnReload = false, browserName) {
+    async updateJob (sessionId: string, failures: number, calledOnReload = false, browserName?: string) {
         const json = this.getBody(failures, calledOnReload, browserName)
         this.failures = 0
         const response = await got.put(this.getRestUrl(sessionId), {
@@ -193,12 +204,12 @@ export default class TestingBotService {
      * @param   {String} sessionId Session id
      * @returns {String}           TestingBot API URL
      */
-    getRestUrl (sessionId) {
+    getRestUrl (sessionId: string) {
         return `https://api.testingbot.com/v1/tests/${sessionId}`
     }
 
-    getBody (failures, calledOnReload = false, browserName) {
-        let body = { test: {} }
+    getBody (failures: number, calledOnReload = false, browserName?: string) {
+        let body = { test: {} as any }
 
         /**
          * set default values
@@ -218,11 +229,11 @@ export default class TestingBotService {
         }
 
         for (let prop of jobDataProperties) {
-            if (!this.capabilities[prop]) {
+            if (!(this.capabilities as Record<string, any>)[prop]) {
                 continue
             }
 
-            body.test[prop] = this.capabilities[prop]
+            body.test[prop] = (this.capabilities as Record<string, any>)[prop]
         }
 
         if (browserName) {

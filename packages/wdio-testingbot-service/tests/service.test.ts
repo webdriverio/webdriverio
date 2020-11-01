@@ -21,9 +21,9 @@ const featureObject = {
                 },
             comments: []
         }
-}
+} as any
 
-got.put.mockReturnValue(Promise.resolve({ body: '{}' }))
+(got.put as jest.Mock).mockReturnValue(Promise.resolve({ body: '{}' }))
 
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
@@ -43,23 +43,22 @@ describe('wdio-testingbot-service', () => {
             chromeB: { sessionId: 'sessionChromeB' },
             chromeC: { sessionId: 'sessionChromeC' },
             instances: ['chromeA', 'chromeB', 'chromeC'],
-        }
+        } as any
     })
 
     afterEach(() => {
-        delete global.browser
-        execute.mockReset()
-        got.put.mockClear()
+        execute.mockReset();
+        (got.put as jest.Mock).mockClear()
     })
 
     it('before', () => {
         const tbService = new TestingBotService()
-        const capabilities = {
+        const capabilities: WebDriver.DesiredCapabilities = {
             name: 'Test suite',
             tags: ['tag1', 'tag2'],
             public: true,
             build: 344
-        }
+        } as any
         tbService.beforeSession({
             user: 'foobar',
             key: 'fookey'
@@ -252,7 +251,7 @@ describe('wdio-testingbot-service', () => {
         const tbService = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
 
-        global.browser.config = { mochaOpts: { bail: 1 } }
+        global.browser.config = { mochaOpts: { bail: true } }
         global.browser.sessionId = 'sessionId'
 
         tbService.beforeSession({
@@ -266,13 +265,48 @@ describe('wdio-testingbot-service', () => {
         expect(updateJobSpy).toBeCalledWith('sessionId', 2)
     })
 
+    it('after: updatedJob called when bailed', async () => {
+        const tbService = new TestingBotService()
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+
+        global.browser.config = { mochaOpts: { bail: true } }
+        global.browser.sessionId = 'sessionId'
+
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
+
+        await tbService.after(10)
+
+        expect(updateJobSpy).toBeCalledWith('sessionId', 1)
+    })
+
+    it('after: updatedJob called when status passed', async () => {
+        const tbService = new TestingBotService()
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+
+        global.browser.config = { mochaOpts: { bail: true } }
+        global.browser.sessionId = 'sessionId'
+
+        tbService.beforeSession({
+            user: 'user',
+            key: 'secret'
+        }, {})
+
+        tbService.failures = 0
+        await tbService.after()
+
+        expect(updateJobSpy).toBeCalledWith('sessionId', 0)
+    })
+
     it('after: with multi-remote: updatedJob called with passed params', async () => {
         const tbService = new TestingBotService()
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
         tbService.beforeSession({
             user: 'user',
             key: 'secret'
-        }, { chromeA: {}, chromeB: {}, chromeC: {} })
+        }, { chromeA: {}, chromeB: {}, chromeC: {} } as any)
 
         global.browser.isMultiremote = true
         global.browser.sessionId = 'sessionId'
@@ -400,19 +434,19 @@ describe('wdio-testingbot-service', () => {
 
         expect(service.failures).toBe(0)
         expect(got.put).toHaveBeenCalled()
-        expect(got.put.mock.calls[0][1].username).toBe('foobar')
-        expect(got.put.mock.calls[0][1].password).toBe('123')
+        expect((got.put as jest.Mock).mock.calls[0][1].username).toBe('foobar')
+        expect((got.put as jest.Mock).mock.calls[0][1].password).toBe('123')
     })
 
     it('updateJob failure', async () => {
-        const response = new Error('Failure')
-        response.statusCode = 500
-        got.put.mockReturnValue(Promise.reject(response))
+        const response: any = new Error('Failure')
+        response.statusCode = 500;
+        (got.put as jest.Mock).mockReturnValue(Promise.reject(response))
 
         const service = new TestingBotService()
         service.beforeSession({ user: 'foobar', key: '123' }, {})
         service.suiteTitle = 'my test'
-        const err = await service.updateJob('12345', 23, true).catch((err) => err)
+        const err: any = await service.updateJob('12345', 23, true).catch((err) => err)
         expect(err.message).toBe('Failure')
 
         expect(got.put).toHaveBeenCalled()

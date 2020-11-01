@@ -208,8 +208,8 @@ describe('Selenium standalone launcher', () => {
 
             expect((fs.createWriteStream as jest.Mock).mock.calls[0][0])
                 .toBe(path.join(process.cwd(), 'wdio-selenium-standalone.log'))
-            expect(launcher.process.stdout.pipe).toBeCalled()
-            expect(launcher.process.stderr.pipe).toBeCalled()
+            expect(launcher.process.stdout?.pipe).toBeCalled()
+            expect(launcher.process.stderr?.pipe).toBeCalled()
         })
     })
 })

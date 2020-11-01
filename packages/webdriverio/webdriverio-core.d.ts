@@ -1333,6 +1333,25 @@ declare namespace WebdriverIO {
         ): Promise<boolean>;
     }
 
+    interface BrowserObject {
+        isMultiremote?: false;
+    }
+
+    type MultiRemoteBrowserReference = Record<string, BrowserObject>
+    
+    interface MultiRemoteBrowser extends Browser {
+        /**
+         * multiremote browser instance names
+         */
+        instances: string[];
+        /**
+         * flag to indicate multiremote browser session
+         */
+        isMultiremote: true;
+    }
+    
+    type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
+
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
          /**
          * internal usage only. To run in watch mode see https://webdriver.io/docs/watcher.html

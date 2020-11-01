@@ -27,9 +27,10 @@ declare namespace WebdriverIO {
     }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.Client, WebdriverIO.Browser { }
+    interface MultiRemoteBrowser extends WebDriver.ClientOptions, WebDriver.Client, WebdriverIO.Browser { }
 }
 
-declare var browser: WebdriverIO.BrowserObject;
+declare var browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject;
 declare var driver: WebdriverIO.BrowserObject;
 
 /**
