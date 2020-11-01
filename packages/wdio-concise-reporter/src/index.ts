@@ -12,7 +12,11 @@ export default class ConciseReporter extends WDIOReporter {
     options!: WDIOReporter.Options;
     suiteUids: Array<string>;
     suites: Array<any>;
-    stateCounts: number;
+    suite: any;
+    stateCounts: Test;
+    chalk: Chalk;
+    test: string;
+    orderedSuites: Array<any>;
 
     constructor(options: WDIOReporter.Options) {
         /**
