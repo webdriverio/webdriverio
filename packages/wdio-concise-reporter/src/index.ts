@@ -121,7 +121,8 @@ export default class ConciseReporter extends WDIOReporter {
         * @param  {Boolean} verbose
         * @return {String}          Enviroment string
         */
-    getEnviromentCombo (caps) {
+
+    getEnviromentCombo (caps: WebDriver) {
         const device = caps.deviceName
         const browser = caps.browserName || caps.browser
         const version = caps.version || caps.platformVersion || caps.browser_version
