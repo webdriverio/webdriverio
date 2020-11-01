@@ -2,7 +2,9 @@ import WDIOReporter from '@wdio/reporter'
 import chalk, { Chalk } from 'chalk'
 import { Test } from 'webdriverio'
 
-interface Suite extends WDIOReporter.Suite {
+interface Suite extends WDIOReporter {
+    duration: number;
+    fullTitle: string;
     title: string;
     type: string;
     uid: string;
