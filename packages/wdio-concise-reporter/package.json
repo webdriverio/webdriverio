@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@wdio/reporter": "6.7.0",
-    "chalk": "^4.0.0",
+    "chalk": "^4.1.0",
     "pretty-ms": "^7.0.0"
   },
   "peerDependencies": {
