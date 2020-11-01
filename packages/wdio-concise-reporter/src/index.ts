@@ -87,7 +87,7 @@ export default class ConciseReporter extends WDIOReporter {
     * @return {Array} Stack trace output
     */
     getFailureDisplay () {
-        const output = []
+        const output: Array<any> =[]
 
         this.getOrderedSuites().map(suite => suite.tests.map(test => {
             if (test.state === 'failed') {
