@@ -1,5 +1,6 @@
 import WDIOReporter from '@wdio/reporter'
-import chalk from 'chalk'
+import chalk, { Chalk } from 'chalk'
+import { Test } from 'webdriverio'
 
 interface Suite extends WDIOReporter.Suite {
     title: string;
