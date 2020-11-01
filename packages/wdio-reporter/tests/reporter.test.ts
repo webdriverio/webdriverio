@@ -1,7 +1,7 @@
 import tmp from 'tmp'
 import fse from 'fs-extra'
 import { EventEmitter } from 'events'
-import WDIOReporter from '../src'
+import WDIOReporter, {WDIOReporterOptionsFromLogFile} from '../src'
 import { WriteStream } from 'fs'
 import fs from 'fs'
 
@@ -63,6 +63,13 @@ describe('WDIOReporter', () => {
         const reporter = new WDIOReporter(options)
         reporter.write('foobar')
         expect(options.writeStream.write).toBeCalledWith('foobar')
+    })
+
+    it('should set contentPresent to true when content is passed to write()', () => {
+        const options = { stdout: true, writeStream: { write: jest.fn() } as unknown as WriteStream }
+        const reporter = new WDIOReporter(options)
+        reporter.write('foobar')
+        expect(reporter.contentPresent).toBe(true)
     })
 
     describe('outputDir options', () => {

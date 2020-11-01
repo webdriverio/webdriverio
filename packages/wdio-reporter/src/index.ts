@@ -1,4 +1,4 @@
-import { WriteStream } from 'fs'
+import {unlinkSync, WriteStream} from 'fs'
 import { createWriteStream, ensureDirSync } from 'fs-extra'
 import { EventEmitter } from 'events'
 import { getErrorsFromEvent } from './utils'
@@ -7,6 +7,7 @@ import HookStats, { Hook } from './stats/hook'
 import TestStats, { Test } from './stats/test'
 import RunnerStats, { Runner } from './stats/runner'
 import { AfterCommandArgs, BeforeCommandArgs } from './types'
+import * as fs from "fs";
 
 interface WDIOReporterBaseOptions {
     outputDir?: string
@@ -40,6 +41,7 @@ export default class WDIOReporter extends EventEmitter {
     }
     retries = 0
     runnerStat?: RunnerStats
+    contentPresent: boolean
 
     constructor(public options: WDIOReporterOptions) {
         super()
@@ -54,6 +56,7 @@ export default class WDIOReporter extends EventEmitter {
             : createWriteStream((this.options as WDIOReporterOptionsFromLogFile).logFile)
 
         let currentTest: TestStats
+        this.contentPresent = false
 
         const rootSuite = new SuiteStats({
             title: '(root)',
@@ -180,6 +183,10 @@ export default class WDIOReporter extends EventEmitter {
                 this.runnerStat.complete()
                 this.onRunnerEnd(this.runnerStat)
             }
+            if (!this.contentPresent && (this.options as WDIOReporterOptionsFromLogFile).logFile) {
+                console.log('here')
+                unlinkSync((this.options as WDIOReporterOptionsFromLogFile).logFile)
+            }
         })
 
         /**
@@ -211,6 +218,9 @@ export default class WDIOReporter extends EventEmitter {
      * function to write to reporters output stream
      */
     write(content: any) {
+        if (content) {
+            this.contentPresent = true
+        }
         this.outputStream.write(content)
     }
 
