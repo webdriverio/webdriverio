@@ -1,7 +1,7 @@
 import tmp from 'tmp'
 import fse from 'fs-extra'
 import { EventEmitter } from 'events'
-import WDIOReporter, {WDIOReporterOptionsFromLogFile} from '../src'
+import WDIOReporter from '../src'
 import { WriteStream } from 'fs'
 import fs from 'fs'
 
