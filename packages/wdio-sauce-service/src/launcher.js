@@ -81,9 +81,10 @@ export default class SauceLauncher {
         performance.measure('bootTime', 'sauceConnectStart', 'sauceConnectEnd')
     }
 
-    startTunnel(retryCount = 0) {
+    async startTunnel(retryCount = 0) {
         try {
-            return this.api.startSauceConnect(this.sauceConnectOpts)
+            const scProcess = await this.api.startSauceConnect(this.sauceConnectOpts)
+            return scProcess
         } catch (err) {
             ++retryCount
             /**
