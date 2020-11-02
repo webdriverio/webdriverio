@@ -365,6 +365,15 @@ describe('stub request', () => {
         expect(response.body).toEqual(Buffer.from(filepath, 'binary').toString('base64'))
     })
 
+    test('utf8 chars', async () => {
+        const inputStr = 'Coöperatief'
+        mock.respond(inputStr)
+        await fetchListenerWrapper()
+
+        const response = cdpClient.send.mock.calls.pop()[1]
+        expect(Buffer.from(response.body, 'base64').toString()).toEqual(inputStr)
+    })
+
     test('with a different web resource', async () => {
         mock.respond('http://json.org/image.svg')
         await fetchListenerWrapper()
