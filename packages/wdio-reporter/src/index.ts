@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { WriteStream } from 'fs'
 import { createWriteStream, ensureDirSync } from 'fs-extra'
 import { EventEmitter } from 'events'
@@ -7,7 +8,6 @@ import HookStats, { Hook } from './stats/hook'
 import TestStats, { Test } from './stats/test'
 import RunnerStats, { Runner } from './stats/runner'
 import { AfterCommandArgs, BeforeCommandArgs } from './types'
-import fs from 'fs'
 
 interface WDIOReporterBaseOptions {
     outputDir?: string
