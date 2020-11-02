@@ -154,12 +154,6 @@ export default class Runner extends EventEmitter {
             await this.endSession()
         }
 
-        // this.reporter.emit('runner:end', {
-        //     failures,
-        //     cid: this.cid,
-        //     retries
-        // })
-
         return this._shutdown(failures, retries)
     }
 

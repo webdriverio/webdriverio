@@ -1,4 +1,4 @@
-import { unlinkSync, WriteStream } from 'fs'
+import { WriteStream } from 'fs'
 import { createWriteStream, ensureDirSync } from 'fs-extra'
 import { EventEmitter } from 'events'
 import { getErrorsFromEvent } from './utils'
@@ -7,6 +7,7 @@ import HookStats, { Hook } from './stats/hook'
 import TestStats, { Test } from './stats/test'
 import RunnerStats, { Runner } from './stats/runner'
 import { AfterCommandArgs, BeforeCommandArgs } from './types'
+import * as fs from 'fs'
 
 interface WDIOReporterBaseOptions {
     outputDir?: string
@@ -174,7 +175,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteEnd(suiteStat)
         })
 
-        this.on('runner:end',  /* istanbul ignore next */(runner: Runner) => {
+        this.on('runner:end',  /* istanbul ignore next */async (runner: Runner) => {
             rootSuite.complete()
             if (this.runnerStat) {
                 this.runnerStat.failures = runner.failures
@@ -182,10 +183,8 @@ export default class WDIOReporter extends EventEmitter {
                 this.runnerStat.complete()
                 this.onRunnerEnd(this.runnerStat)
             }
-            if (!this.contentPresent && this.options.outputDir) {
-                console.log(JSON.stringify(this.options))
-                //unlinkSync((this.options as WDIOReporterOptionsFromLogFile).logFile)
-                console.log('Deleted')
+            if (!this.contentPresent && (this.options as WDIOReporterOptionsFromLogFile).logFile) {
+                fs.unlinkSync((this.options as WDIOReporterOptionsFromLogFile).logFile)
             }
         })
 

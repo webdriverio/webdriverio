@@ -4,9 +4,3 @@ describe('webdriver.io page', () => {
         expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js')
     })
 })
-
-describe.skip('skip test', () => {
-    it('should skip', () => {
-        browser.url('https://google.com')
-    })
-})
