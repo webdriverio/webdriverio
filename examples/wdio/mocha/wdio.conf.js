@@ -4,14 +4,14 @@ exports.config = {
     /**
      * server configurations
      */
-    //hostname: 'localhost',
-    //port: 4444,
+    hostname: 'localhost',
+    port: 4444,
 
     /**
      * specify test files
      */
     specs: [
-        path.resolve(__dirname, 'mocha.*.js')
+        path.resolve(__dirname, 'mocha.test.js')
     ],
 
     /**
@@ -33,13 +33,7 @@ exports.config = {
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 60000,
-        retries   : false,
-        trace     : true,
-        fullTrace : true,
-        grep      : '@flaky',
-        reporter  : 'spec',
-        invert    : true
+        timeout: 5000,
     },
 
     /**
