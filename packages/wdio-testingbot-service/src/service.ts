@@ -37,7 +37,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * Before suite
      * @param {Object} suite Suite
     */
-    beforeSuite (suite: any) {
+    beforeSuite (suite: WebdriverIO.Suite) {
         this.suiteTitle = suite.title
     }
 
@@ -45,7 +45,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * Before test
      * @param {Object} test Test
     */
-    beforeTest (test: any) {
+    beforeTest (test: WebdriverIO.Test) {
         if (!this.isServiceEnabled) {
             return
         }
@@ -73,7 +73,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
         global.browser.execute('tb:test-context=' + context)
     }
 
-    afterSuite (suite: any) {
+    afterSuite (suite: WebdriverIO.Suite) {
         if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
             ++this.failures
         }
@@ -83,7 +83,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * After test
      * @param {Object} test Test
      */
-    afterTest (test: any, context: any, results: any) {
+    afterTest (test: WebdriverIO.Test, context: any, results: WebdriverIO.TestResult) {
         if (!results.passed) {
             ++this.failures
         }

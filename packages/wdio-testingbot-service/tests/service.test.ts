@@ -74,7 +74,7 @@ describe('wdio-testingbot-service', () => {
     it('beforeSuite', () => {
         const tbService = new TestingBotService()
         const suiteTitle = 'Test Suite Title'
-        tbService.beforeSuite({ title: suiteTitle })
+        tbService.beforeSuite({ title: suiteTitle } as WebdriverIO.Suite)
 
         expect(tbService.suiteTitle).toEqual(suiteTitle)
     })
@@ -84,7 +84,7 @@ describe('wdio-testingbot-service', () => {
         const test = {
             fullName: 'Test #1',
             parent: 'Test parent'
-        }
+        } as WebdriverIO.Test
         tbService.tbUser = undefined
         tbService.tbSecret = undefined
         tbService.suiteTitle = 'Test suite'
@@ -96,17 +96,17 @@ describe('wdio-testingbot-service', () => {
 
     it('beforeTest: execute called', () => {
         const tbService = new TestingBotService()
-        const test = {
+        const test: WebdriverIO.Test = {
             name: 'Test name',
             fullName: 'Test #1',
             title: 'Test title',
             parent: 'Test parent'
-        }
+        } as any
         tbService.beforeSession({
             user: 'user',
             key: 'secret'
         }, {})
-        tbService.beforeSuite({ title: 'Test suite' })
+        tbService.beforeSuite({ title: 'Test suite' } as WebdriverIO.Suite)
         tbService.beforeTest(test)
 
         expect(execute).toBeCalledWith('tb:test-context=Test #1')
@@ -115,18 +115,18 @@ describe('wdio-testingbot-service', () => {
 
     it('beforeTest: execute called for Jasmine tests', () => {
         const tbService = new TestingBotService()
-        const test = {
+        const test: WebdriverIO.Test = {
             name: 'Test name',
             fullName: 'Test #1',
             title: 'Test title',
             parent: 'Test parent'
-        }
+        } as any
         tbService.beforeSession({
             user: 'user',
             key: 'secret'
         }, {})
 
-        tbService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' })
+        tbService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as WebdriverIO.Suite)
         tbService.beforeTest(test)
 
         expect(execute).toBeCalledWith('tb:test-context=Test #1')
@@ -135,17 +135,17 @@ describe('wdio-testingbot-service', () => {
 
     it('beforeTest: execute called for Mocha test', () => {
         const tbService = new TestingBotService()
-        const test = {
+        const test: WebdriverIO.Test = {
             name: 'Test name',
             title: 'Test title',
             parent: 'Test parent'
-        }
+        } as any
         tbService.beforeSession({
             user: 'user',
             key: 'secret'
         }, {})
 
-        tbService.beforeSuite({})
+        tbService.beforeSuite({} as WebdriverIO.Suite)
         tbService.beforeTest(test)
 
         expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
@@ -154,10 +154,10 @@ describe('wdio-testingbot-service', () => {
     it('afterTest: failed test', () => {
         const tbService = new TestingBotService()
         tbService.failures = 0
-        const test = {
+        const testResult = {
             passed: true
-        }
-        tbService.afterTest({}, {}, test)
+        } as WebdriverIO.TestResult
+        tbService.afterTest({} as WebdriverIO.Test, {}, testResult)
 
         expect(tbService.failures).toEqual(0)
     })
@@ -165,10 +165,10 @@ describe('wdio-testingbot-service', () => {
     it('afterTest: passed test', () => {
         const tbService = new TestingBotService()
         tbService.failures = 0
-        const test = {
+        const testResult = {
             passed: false
-        }
-        tbService.afterTest({}, {}, test)
+        } as WebdriverIO.TestResult
+        tbService.afterTest({} as WebdriverIO.Test, {}, testResult)
 
         expect(tbService.failures).toEqual(1)
     })
@@ -381,7 +381,7 @@ describe('wdio-testingbot-service', () => {
             build: 344
         })
 
-        tbService.beforeSuite({ title: 'Suite title' })
+        tbService.beforeSuite({ title: 'Suite title' } as WebdriverIO.Suite)
 
         expect(tbService.getBody(0, false)).toEqual({
             test: {
@@ -456,9 +456,9 @@ describe('wdio-testingbot-service', () => {
     it('afterSuite', () => {
         const service = new TestingBotService()
         expect(service.failures).toBe(0)
-        service.afterSuite({})
+        service.afterSuite({} as WebdriverIO.Suite)
         expect(service.failures).toBe(0)
-        service.afterSuite({ error: new Error('boom!') })
+        service.afterSuite({ error: new Error('boom!') } as WebdriverIO.Suite)
         expect(service.failures).toBe(1)
     })
 })
