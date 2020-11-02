@@ -445,7 +445,8 @@ class AllureReporter extends WDIOReporter {
 
     dumpJSON(name, json) {
         const content = JSON.stringify(json, null, 2)
-        this.allure.addAttachment(name, typeof content === 'string' ? content : `${content}`, 'application/json')
+        const isStr = typeof content === 'string'
+        this.allure.addAttachment(name, isStr ? content : `${content}`, isStr ? 'application/json' : 'text/plain')
     }
 
     attachScreenshot() {

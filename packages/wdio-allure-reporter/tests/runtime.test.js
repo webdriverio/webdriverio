@@ -173,7 +173,7 @@ describe('dumpJSON', () => {
 
     it('undefined value', () => {
         reporterInstance.dumpJSON('barfoo', undefined)
-        expect(reporterInstance.allure.addAttachment).toBeCalledWith('barfoo', 'undefined', 'application/json')
+        expect(reporterInstance.allure.addAttachment).toBeCalledWith('barfoo', 'undefined', 'text/plain')
     })
 })
 
