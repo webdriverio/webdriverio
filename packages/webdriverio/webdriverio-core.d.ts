@@ -231,7 +231,7 @@ declare namespace WebdriverIO {
     }
 
     interface Suite {
-        error?: Error;
+        error?: any;
     }
     interface Test {}
     interface TestResult {
