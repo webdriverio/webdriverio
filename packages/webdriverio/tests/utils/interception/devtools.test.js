@@ -356,7 +356,7 @@ describe('stub request', () => {
         expect(response.body).toEqual(fileContent)
     })
 
-    test('utf8 chars', async () => {
+    test('with a missing file', async () => {
         const fileContent = (await fse.readFile(__filename)).toString('base64')
         mock.respond(__filename)
         await fetchListenerWrapper()
@@ -365,7 +365,7 @@ describe('stub request', () => {
         expect(response.body).toEqual(fileContent)
     })
 
-    test('with a missing file', async () => {
+    test('utf8 chars', async () => {
         const inputStr = 'Coöperatief'
         mock.respond(inputStr)
         await fetchListenerWrapper()
