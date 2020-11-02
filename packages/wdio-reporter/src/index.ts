@@ -7,7 +7,7 @@ import HookStats, { Hook } from './stats/hook'
 import TestStats, { Test } from './stats/test'
 import RunnerStats, { Runner } from './stats/runner'
 import { AfterCommandArgs, BeforeCommandArgs } from './types'
-import * as fs from 'fs'
+import fs from 'fs'
 
 interface WDIOReporterBaseOptions {
     outputDir?: string
