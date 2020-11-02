@@ -52,7 +52,7 @@ exports.generateWdioDocs = (sidebars) => {
             if (!sidebars.api[scope]) {
                 sidebars.api[scope] = []
             }
-            sidebars.api[scope].push(`api/${scope}/${file.replace('.js', '')}`)
+            sidebars.api[scope].push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
         }
     }
 }
