@@ -215,6 +215,9 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
     case `${path}/${sessionId}/window/handles`:
         value = ['window-handle-1', 'window-handle-2', 'window-handle-3']
         break
+    case `${path}/${sessionId}/window`:
+        value = 'window-handle-1'
+        break
     case `${path}/${sessionId}/url`:
         value = 'https://webdriver.io/?foo=bar'
         break

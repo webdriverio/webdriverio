@@ -100,34 +100,37 @@ import DevtoolsNetworkInterception from '../../utils/interception/devtools'
 import WebDriverNetworkInterception from '../../utils/interception/webdriver'
 import { getBrowserObject } from '../../utils'
 
-const SESSION_MOCKS: Set<Interception> = new Set()
+const SESSION_MOCKS: Map<string, Set<Interception>> = new Map()
 
-export default async function mock (this: WebdriverIO.BrowserObject, url: string, filterOptions: WebdriverIO.MockFilterOptions) {
+export default async function mock(this: WebdriverIO.BrowserObject, url: string, filterOptions: WebdriverIO.MockFilterOptions) {
+    console.warn(SESSION_MOCKS)
     const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
-
     if (!this.isSauce) {
         await this.getPuppeteer()
     }
-
+    const browser = getBrowserObject(this)
+    const windowHandle: string = await browser.getWindowHandle()
     /**
      * enable network Mocking if not already
      */
-    if (SESSION_MOCKS.size === 0 && !this.isSauce) {
-        const [page] = await this.puppeteer.pages()
-        const client = await page.target().createCDPSession()
-        await client.send('Fetch.enable', {
-            patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
+    if (!SESSION_MOCKS.has(windowHandle) && !this.isSauce) {
+        SESSION_MOCKS.set(windowHandle, new Set())
+        const pages = await this.puppeteer.pages()
+        await pages.forEach(async (page: any) => {
+            const client = await page.target().createCDPSession()
+            client.send('Fetch.enable', {
+                patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
+            })
+            client.on(
+                'Fetch.requestPaused',
+                (NetworkInterception as unknown as typeof DevtoolsNetworkInterception)
+                    .handleRequestInterception(client, SESSION_MOCKS.get(windowHandle)!)
+            )
         })
-        client.on(
-            'Fetch.requestPaused',
-            (NetworkInterception as unknown as typeof DevtoolsNetworkInterception)
-                .handleRequestInterception(client, SESSION_MOCKS)
-        )
     }
 
-    const browser = getBrowserObject(this)
     const networkInterception = new NetworkInterception(url, filterOptions, browser)
-    SESSION_MOCKS.add(networkInterception as Interception)
+    SESSION_MOCKS.get(windowHandle)!.add(networkInterception as Interception)
 
     if (this.isSauce) {
         await (networkInterception as WebDriverNetworkInterception).init()
