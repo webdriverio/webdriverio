@@ -5,11 +5,6 @@ import { events, stepStatuses } from '../src/constants'
 jest.mock('../src/utils')
 
 describe('reporter reporter api', () => {
-
-    beforeEach(() => {
-        jest.resetAllMocks()
-    })
-
     it('should pass correct data from addLabel', () => {
         reporter.addLabel('customLabel', 'Label')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
@@ -56,24 +51,6 @@ describe('reporter reporter api', () => {
         reporter.addDescription('foo', 'html')
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addDescription, { description: 'foo', descriptionType: 'html' })
-    })
-
-    it('should pass correct data from addAttachment', () => {
-        reporter.addAttachment('foo', 123, 'baz')
-        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
-        expect(utils.tellReporter).toHaveBeenCalledWith(events.addAttachment, { name: 'foo', content: 123, type: 'baz' })
-    })
-
-    it('should support default string type from addAttachment', () => {
-        reporter.addAttachment('foo', 'bar')
-        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
-        expect(utils.tellReporter).toHaveBeenCalledWith(events.addAttachment, { name: 'foo', content: 'bar', type: 'text/plain' })
-    })
-
-    it('should support default json type from addAttachment', () => {
-        reporter.addAttachment('foo', { foo: 'bar' })
-        expect(utils.tellReporter).toHaveBeenCalledTimes(1)
-        expect(utils.tellReporter).toHaveBeenCalledWith(events.addAttachment, { name: 'foo', content: { foo: 'bar' }, type: 'application/json' })
     })
 
     it('should pass correct data from addStep', () => {
@@ -138,6 +115,41 @@ describe('reporter reporter api', () => {
         expect(utils.tellReporter).toHaveBeenCalledTimes(1)
         expect(utils.tellReporter).toHaveBeenCalledWith(events.addArgument, { name: 'os', value: 'osx' })
     })
+
+    describe('addAttachment', () => {
+        const scenarios = [{
+            title: 'no type, string',
+            name: 'foo',
+            content: 'bar',
+            actualType: undefined,
+            type: 'text/plain'
+        }, {
+            title: 'no type, image',
+            name: 'foo',
+            content: Buffer.from('QQ==', 'base64'),
+            actualType: undefined,
+            type: 'image/png'
+        }, {
+            title: 'no type, json',
+            name: 'foo',
+            content: { foo: 'bar' },
+            actualType: undefined,
+            type: 'application/json'
+        }, {
+            title: 'user defined type',
+            name: 'foo',
+            content: 'bar',
+            actualType: 'text/yaml',
+            type: 'text/yaml'
+        }]
+
+        scenarios.forEach(({ title, actualType, content, name, type }) => {
+            it(title, () => {
+                reporter.addAttachment(name, content, actualType)
+                expect(utils.tellReporter).toBeCalledWith(events.addAttachment, { name, content, type })
+            })
+        })
+    })
 })
 
 describe('event listeners', () => {
@@ -148,4 +160,23 @@ describe('event listeners', () => {
             expect(process.listeners(eventName).length).toBeGreaterThanOrEqual(1)
         })
     })
+})
+
+describe('dumpJSON', () => {
+    const reporterInstance = new reporter({})
+    reporterInstance.allure.addAttachment = jest.fn()
+
+    it('valid json', () => {
+        reporterInstance.dumpJSON('foobar', { foo: 'bar' })
+        expect(reporterInstance.allure.addAttachment).toBeCalledWith('foobar', '{\n  "foo": "bar"\n}', 'application/json')
+    })
+
+    it('undefined value', () => {
+        reporterInstance.dumpJSON('barfoo', undefined)
+        expect(reporterInstance.allure.addAttachment).toBeCalledWith('barfoo', 'undefined', 'application/json')
+    })
+})
+
+beforeEach(() => {
+    jest.resetAllMocks()
 })
