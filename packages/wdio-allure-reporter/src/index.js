@@ -444,7 +444,9 @@ class AllureReporter extends WDIOReporter {
     }
 
     dumpJSON(name, json) {
-        this.allure.addAttachment(name, JSON.stringify(json, null, 2), 'application/json')
+        const content = JSON.stringify(json, null, 2)
+        const isStr = typeof content === 'string'
+        this.allure.addAttachment(name, isStr ? content : `${content}`, isStr ? 'application/json' : 'text/plain')
     }
 
     attachScreenshot() {
@@ -535,9 +537,9 @@ class AllureReporter extends WDIOReporter {
      * @param {*} content           - attachment content
      * @param {string=} mimeType    - attachment mime type
      */
-    static addAttachment = (name, content, type = 'application/json') => {
-        if (typeof content === 'string' || Buffer.isBuffer(content)) {
-            type = 'text/plain'
+    static addAttachment = (name, content, type) => {
+        if (!type) {
+            type = content instanceof Buffer ? 'image/png' : typeof content === 'string' ? 'text/plain' : 'application/json'
         }
         tellReporter(events.addAttachment, { name, content, type })
     }
