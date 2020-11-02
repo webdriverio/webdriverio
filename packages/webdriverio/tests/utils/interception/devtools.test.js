@@ -356,13 +356,22 @@ describe('stub request', () => {
         expect(response.body).toEqual(fileContent)
     })
 
-    test('with a missing file', async () => {
-        const filepath = __filename + '/missing/mock-file.txt'
-        mock.respond(filepath)
+    test('utf8 chars', async () => {
+        const fileContent = (await fse.readFile(__filename)).toString('base64')
+        mock.respond(__filename)
         await fetchListenerWrapper()
 
         const response = cdpClient.send.mock.calls.pop()[1]
-        expect(response.body).toEqual(Buffer.from(filepath, 'binary').toString('base64'))
+        expect(response.body).toEqual(fileContent)
+    })
+
+    test('with a missing file', async () => {
+        const inputStr = 'Coöperatief'
+        mock.respond(inputStr)
+        await fetchListenerWrapper()
+
+        const response = cdpClient.send.mock.calls.pop()[1]
+        expect(Buffer.from(response.body, 'base64').toString()).toEqual(inputStr)
     })
 
     test('with a different web resource', async () => {
