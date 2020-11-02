@@ -29,7 +29,7 @@ type Client = {
 
 type Event = {
     requestId: string;
-    request: WebdriverIO.Matches & { mockedResponse: string; };
+    request: WebdriverIO.Matches & { mockedResponse: string | Buffer; };
     responseStatusCode?: number;
     responseHeaders: Record<string, string>[],
 }
@@ -143,7 +143,7 @@ export default class DevtoolsInterception extends Interception {
                      */
                     const responseFilePath = path.isAbsolute(newBody) ? newBody : path.join(process.cwd(), newBody)
                     if (newBody.length > 0 && await fse.pathExists(responseFilePath) && await canAccess(responseFilePath)) {
-                        newBody = (await fse.readFile(responseFilePath)).toString()
+                        newBody = await fse.readFile(responseFilePath)
                     } else if (newBody.startsWith('http')) {
                         responseCode = 301
                         /**
@@ -154,13 +154,13 @@ export default class DevtoolsInterception extends Interception {
                         responseHeaders.push({ name: 'Location', value: newBody })
                     }
 
-                    request.mockedResponse = newBody
+                    request.mockedResponse = newBody as string | Buffer
                     return client.send('Fetch.fulfillRequest', {
                         requestId,
                         responseCode,
                         responseHeaders,
                         /** do not mock body if it's undefined */
-                        body: isBodyUndefined ? undefined : Buffer.from(newBody, 'binary').toString('base64')
+                        body: isBodyUndefined ? undefined : (newBody instanceof Buffer ? newBody : Buffer.from(newBody as string, 'utf8')).toString('base64')
                     }).catch(/* istanbul ignore next */logFetchError)
                 }
 
