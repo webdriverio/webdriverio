@@ -41,7 +41,7 @@ export default class WDIOReporter extends EventEmitter {
     }
     retries = 0
     runnerStat?: RunnerStats
-    contentPresent: boolean
+    isContentPresent: boolean
 
     constructor(public options: WDIOReporterOptions) {
         super()
@@ -56,7 +56,7 @@ export default class WDIOReporter extends EventEmitter {
             : createWriteStream((this.options as WDIOReporterOptionsFromLogFile).logFile)
 
         let currentTest: TestStats
-        this.contentPresent = false
+        this.isContentPresent = false
 
         const rootSuite = new SuiteStats({
             title: '(root)',
@@ -183,7 +183,7 @@ export default class WDIOReporter extends EventEmitter {
                 this.runnerStat.complete()
                 this.onRunnerEnd(this.runnerStat)
             }
-            if (!this.contentPresent && (this.options as WDIOReporterOptionsFromLogFile).logFile) {
+            if (!this.isContentPresent && (this.options as WDIOReporterOptionsFromLogFile).logFile) {
                 fs.unlinkSync((this.options as WDIOReporterOptionsFromLogFile).logFile)
             }
         })
@@ -218,7 +218,7 @@ export default class WDIOReporter extends EventEmitter {
      */
     write(content: any) {
         if (content) {
-            this.contentPresent = true
+            this.isContentPresent = true
         }
         this.outputStream.write(content)
     }

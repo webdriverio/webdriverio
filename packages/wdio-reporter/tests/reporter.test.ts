@@ -69,7 +69,7 @@ describe('WDIOReporter', () => {
         const options = { stdout: true, writeStream: { write: jest.fn() } as unknown as WriteStream }
         const reporter = new WDIOReporter(options)
         reporter.write('foobar')
-        expect(reporter.contentPresent).toBe(true)
+        expect(reporter.isContentPresent).toBe(true)
     })
 
     describe('outputDir options', () => {
