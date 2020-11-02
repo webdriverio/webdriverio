@@ -175,7 +175,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteEnd(suiteStat)
         })
 
-        this.on('runner:end',  /* istanbul ignore next */async (runner: Runner) => {
+        this.on('runner:end',  /* istanbul ignore next */(runner: Runner) => {
             rootSuite.complete()
             if (this.runnerStat) {
                 this.runnerStat.failures = runner.failures
