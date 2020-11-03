@@ -389,6 +389,13 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
     }, {
         deviceName: 'iPhone',
         platformName: 'iOS',
+    }, {
+        deviceName: 'iPhone Simulator',
+        platformName: 'iOS',
+        tunnelIdentifier: 'foo-bar'
+    }, {
+        deviceName: 'iPhone Simulator',
+        platformName: 'iOS',
     }]
     const config = {
         user: 'foobaruser',
@@ -424,6 +431,20 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
         hostname: 'localhost',
         port: 4446,
         deviceName: 'iPhone',
+        platformName: 'iOS',
+        tunnelIdentifier: 'my-tunnel'
+    }, {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4446,
+        deviceName: 'iPhone Simulator',
+        platformName: 'iOS',
+        tunnelIdentifier: 'foo-bar'
+    }, {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4446,
+        deviceName: 'iPhone Simulator',
         platformName: 'iOS',
         tunnelIdentifier: 'my-tunnel'
     }])
