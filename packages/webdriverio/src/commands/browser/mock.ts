@@ -103,7 +103,6 @@ import { getBrowserObject } from '../../utils'
 const SESSION_MOCKS: Map<string, Set<Interception>> = new Map()
 
 export default async function mock(this: WebdriverIO.BrowserObject, url: string, filterOptions: WebdriverIO.MockFilterOptions) {
-    console.warn(SESSION_MOCKS)
     const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
     if (!this.isSauce) {
         await this.getPuppeteer()
