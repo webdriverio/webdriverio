@@ -12,7 +12,11 @@ declare namespace WebdriverIO {
          * The executed script is assumed to be synchronous and the result of evaluating the script is returned to
          * the client.
          */
-        execute: <T, U extends any[]>(script: string | ((...arguments: U) => T), ...arguments: U) => T;
+        execute: {
+            <T, U extends any[], V extends U>(script: string | ((...arguments: V) => T), ...arguments: U): T;
+            // This overload can be removed when typescript supports partial generics inference: https://github.com/microsoft/TypeScript/issues/26242
+            <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]): T;
+        };
 
         // also there is no way to add callback as last parameter after `...args`.
         // https://github.com/Microsoft/TypeScript/issues/1360
@@ -23,7 +27,7 @@ declare namespace WebdriverIO {
          * the provided callback, which is always provided as the final argument to the function. The value
          * to this callback will be returned to the client.
          */
-        executeAsync: <U extends any[]>(script: string | ((...arguments: U) => void), ...arguments: U) => any;
+        executeAsync: <U extends any[], V extends U>(script: string | ((...arguments: V) => void), ...arguments: U) => any;
     }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.Client, WebdriverIO.Browser { }
