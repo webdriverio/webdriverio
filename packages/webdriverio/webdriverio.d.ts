@@ -31,7 +31,7 @@ declare namespace WebdriverIO {
          * The executed script is assumed to be synchronous and the result of evaluating the script is returned to
          * the client.
          */
-        execute: <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]) => Promise<T>;
+        execute: <T, U extends any[]>(script: string | ((...arguments: U) => T), ...arguments: U) => Promise<T>;
 
         // there is no way to add callback as last parameter after `...args`.
         // https://github.com/Microsoft/TypeScript/issues/1360
@@ -42,7 +42,7 @@ declare namespace WebdriverIO {
          * the provided callback, which is always provided as the final argument to the function. The value
          * to this callback will be returned to the client.
          */
-        executeAsync: (script: string | ((...arguments: any[]) => void), ...arguments: any[]) => Promise<any>;
+        executeAsync: <U extends any[]>(script: string | ((...arguments: U) => void), ...arguments: U) => Promise<any>;
     }
 
 
