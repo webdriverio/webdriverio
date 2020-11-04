@@ -65,7 +65,7 @@ describe('WDIOReporter', () => {
         expect(options.writeStream.write).toBeCalledWith('foobar')
     })
 
-    it('should set contentPresent to true when content is passed to write()', () => {
+    it('should set isContentPresent to true when content is passed to write()', () => {
         const options = { stdout: true, writeStream: { write: jest.fn() } as unknown as WriteStream }
         const reporter = new WDIOReporter(options)
         expect(reporter.isContentPresent).toBe(false)
