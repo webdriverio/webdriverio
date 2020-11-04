@@ -1,6 +1,8 @@
+import type { CucumberOpts } from './types'
+
 export const DEFAULT_TIMEOUT = 60000
 
-export const DEFAULT_OPTS = {
+export const DEFAULT_OPTS: CucumberOpts = {
     backtrace: false, // <boolean> show full backtrace for errors
     requireModule: [], // <string[]> ("module") require MODULE files (repeatable)
     failAmbiguousDefinitions: false, // <boolean> treat ambiguous definitions as errors
@@ -9,7 +11,7 @@ export const DEFAULT_OPTS = {
     name: [], // <REGEXP[]> only execute the scenarios with name matching the expression (repeatable)
     profile: [], // <string> (name) specify the profile to use
     require: [], // <string> (file/dir/glob) require files before executing features
-    order: 'defined', // <string> switch between deterministic  and random feature execution. Either "defined", "random" or "random:42" whereas 42 is the seed for randomization
+    order: 'defined', // <string> switch between deterministic and random feature execution. Either "defined", "random" or "random:42" whereas 42 is the seed for randomization
     snippetSyntax: undefined, // <string> specify a custom snippet syntax
     snippets: true, // <boolean> hide step definition snippets for pending steps
     source: true, // <boolean> hide source uris

@@ -10,7 +10,7 @@ export default class CucumberEventListener extends EventEmitter {
     currentSteps = null
     testCasePreparedEvents = []
 
-    constructor (eventBroadcaster) {
+    constructor (eventBroadcaster: any) {
         super()
         eventBroadcaster
             .on('gherkin-document', this.onGherkinDocument.bind(this))

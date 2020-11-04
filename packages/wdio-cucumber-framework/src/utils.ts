@@ -2,10 +2,45 @@ import * as path from 'path'
 import { isFunctionAsync } from '@wdio/utils'
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
 
+interface Step {
+    type: string
+    content: string
+    name: string
+    text: string
+    location: SourceLocation
+    examples: {
+        tableHeader: {
+            cells: Cell[]
+        }
+        tableBody: Cell[]
+    }[]
+    rows: {
+        cells: Cell[]
+    }[]
+}
+
+interface Cell {
+    value: string
+    location: SourceLocation
+}
+
+interface SourceLocation {
+    uri: string
+    line: number
+}
+
+interface Feature {
+    name: string
+}
+
+interface Scenario {
+    name: string
+}
+
 /**
  * NOTE: this function is exported for testing only
  */
-export function createStepArgument ({ argument }) {
+export function createStepArgument ({ argument }: { argument: Step }) {
     if (!argument) {
         return undefined
     }
@@ -34,7 +69,7 @@ export function createStepArgument ({ argument }) {
  * @param {object} feature cucumber feature object
  * @param {object} scenario cucumber scenario object
  */
-export function getTestParent(feature, scenario) {
+export function getTestParent(feature: Feature, scenario: Scenario) {
     return `${feature.name || 'Undefined Feature'}: ${scenario.name || 'Undefined Scenario'}`
 }
 
@@ -42,7 +77,7 @@ export function getTestParent(feature, scenario) {
  * builds test title from step keyword and text
  * @param {object} step cucumber step object
  */
-export function getTestStepTitle (keyword = '', text = '', type) {
+export function getTestStepTitle (keyword = '', text = '', type: string) {
     const title = (!text && type !== 'hook') ? 'Undefined Step' : text
     return `${keyword.trim()} ${title.trim()}`.trim()
 }
@@ -53,11 +88,11 @@ export function getTestStepTitle (keyword = '', text = '', type) {
  * @param {string} parent parent suite/scenario
  * @param {string} stepTitle step/test title
  */
-export function getTestFullTitle(parent, stepTitle) {
+export function getTestFullTitle(parent: string, stepTitle: string) {
     return `${parent}: ${stepTitle}`
 }
 
-export function getUniqueIdentifier (target, sourceLocation) {
+export function getUniqueIdentifier (target: Step, sourceLocation: SourceLocation) {
     if (target.type === 'Hook') {
         return `${path.basename(target.location.uri)}${target.location.line}`
     }

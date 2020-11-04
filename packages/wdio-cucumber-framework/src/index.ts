@@ -1,29 +1,41 @@
-import * as Cucumber from 'cucumber'
+import Cucumber from '@cucumber/cucumber'
 import mockery from 'mockery'
 import isGlob from 'is-glob'
 import glob from 'glob'
 import path from 'path'
+import type WDIOReporter from '@wdio/reporter'
+import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 
 import CucumberReporter from './reporter'
-
 import { EventEmitter } from 'events'
-
-import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import { DEFAULT_OPTS } from './constants'
 import { getDataFromResult, setUserHookNames } from './utils'
+import type { CucumberOpts } from './types'
 
 class CucumberAdapter {
-    constructor(cid, config, specs, capabilities, reporter) {
-        this.cwd = process.cwd()
+    cid: string
+    config: WebdriverIO.Config
+    specs: string[]
+    cucumberFeaturesWithLineNumbers: string[]
+    capabilities: WebDriver.Capabilities
+    reporter: WDIOReporter
+    cucumberOpts: CucumberOpts
+
+    cucumberReporter?: CucumberReporter
+    testCases?: any
+
+    cwd = process.cwd()
+    eventBroadcaster = new EventEmitter()
+    private _hasTests = true
+
+    constructor(cid: string, config: WebdriverIO.Config, specs: string[], capabilities: WebDriver.Capabilities, reporter: WDIOReporter) {
         this.cid = cid
         this.specs = specs
         this.reporter = reporter
         this.capabilities = capabilities
         this.config = config
         this.cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
-        this._hasTests = true
-        this.cucumberFeaturesWithLineNumbers = this.config.cucumberFeaturesWithLineNumbers || []
-        this.eventBroadcaster = new EventEmitter()
+        this.cucumberFeaturesWithLineNumbers = config.cucumberFeaturesWithLineNumbers || []
     }
 
     async init() {
@@ -39,6 +51,7 @@ class CucumberAdapter {
 
             const featurePathsToRun = this.cucumberFeaturesWithLineNumbers.length > 0 ? this.cucumberFeaturesWithLineNumbers : this.specs
             const pickleFilter = new Cucumber.PickleFilter({
+                cwd: this.cwd,
                 featurePaths: featurePathsToRun,
                 names: this.cucumberOpts.name,
                 tagExpression: this.cucumberOpts.tagExpression
