@@ -144,6 +144,7 @@ export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, O
      * for an environment which cannot get process environment well.
      */
     strictSSL: {
-        type: 'boolean'
+        type: 'boolean',
+        default: true
     }
 }
