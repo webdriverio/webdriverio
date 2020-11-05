@@ -160,7 +160,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
             return this.updateJob(global.browser.sessionId, failures)
         }
 
-        let browser = global.browser
+        const browser = global.browser
         return Promise.all(Object.keys(this.capabilities).map((browserName) => {
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser[browserName].sessionId}, ${status}`)
             return this.updateJob(browser[browserName].sessionId, failures, false, browserName)
