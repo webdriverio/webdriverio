@@ -1,5 +1,4 @@
 /// <reference types="webdriverio/webdriverio-core"/>
-
 declare namespace WebdriverIO {
     function remote(
         options?: RemoteOptions,
@@ -12,7 +11,7 @@ declare namespace WebdriverIO {
 
     function multiremote(
         options: MultiRemoteOptions
-    ): Promise<BrowserObject>;
+    ): Promise<MultiRemoteBrowserObject>;
 
     type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
     type ElementReference = Record<ElementReferenceId, string>
@@ -46,7 +45,12 @@ declare namespace WebdriverIO {
         executeAsync: (script: string | ((...arguments: any[]) => void), ...arguments: any[]) => Promise<any>;
     }
 
-    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser { }
+
+    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser { 
+    }
+    
+    interface MultiRemoteBrowser extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser {
+    }
 
     /**
      * Error to be thrown when a severe error was encountered when a Service is being ran.
@@ -54,7 +58,7 @@ declare namespace WebdriverIO {
     class SevereServiceError extends Error { }
 }
 
-declare var browser: WebdriverIO.BrowserObject;
+declare var browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject;
 declare var driver: WebdriverIO.BrowserObject;
 
 /**
