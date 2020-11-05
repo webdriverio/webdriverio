@@ -17,6 +17,22 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.7.2 (2020-11-02)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#6065](https://github.com/webdriverio/webdriverio/pull/6065) fix: Sauce EmuSim can't work with sauce:options for Sauce Connect ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-sync`, `webdriverio`
+  * [#6062](https://github.com/webdriverio/webdriverio/pull/6062) browser.mock use utf8 by default ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-allure-reporter`
+  * [#6061](https://github.com/webdriverio/webdriverio/pull/6061) allure-reporter: fix mime type ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 3
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.7.1 (2020-10-30)
 
 #### :bug: Bug Fix

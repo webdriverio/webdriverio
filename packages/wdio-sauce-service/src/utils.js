@@ -40,8 +40,19 @@ import { isW3C } from '@wdio/utils'
  * }
  */
 export function isUnifiedPlatform({ deviceName = '', platformName = '' }){
-    // If the string contains `simulator` or `emulator` it's a EMU/SIM session
+    // If the string contains `simulator` or `emulator` it's an EMU/SIM session
     return !deviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+}
+
+/**
+ * Determine if this is an EMUSIM session
+ * @param {string} deviceName
+ * @param {string} platformName
+ * @returns {boolean}
+ */
+export function isEmuSim({ deviceName = '', platformName = '' }){
+    // If the string contains `simulator` or `emulator` it's an EMU/SIM session
+    return !!deviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
 }
 
 /** Ensure capabilities are in the correct format for Sauce Labs
@@ -59,21 +70,21 @@ export function makeCapabilityFactory(tunnelIdentifier, options) {
             !capability['sauce:options']
         )
 
-        // Unified Platform is currently not W3C ready, so the tunnel needs to be on the cap level
-        if (!capability['sauce:options'] && !isLegacy && !isUnifiedPlatform(capability)) {
+        // Unified Platform and EMUSIM is currently not W3C ready, so the tunnel needs to be on the cap level
+        if (!capability['sauce:options'] && !isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability)) {
             capability['sauce:options'] = {}
         }
 
         Object.assign(capability, options)
 
-        const sauceOptions = !isLegacy && !isUnifiedPlatform(capability) ? capability['sauce:options'] : capability
+        const sauceOptions = !isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability) ? capability['sauce:options'] : capability
         sauceOptions.tunnelIdentifier = (
             capability.tunnelIdentifier ||
             sauceOptions.tunnelIdentifier ||
             tunnelIdentifier
         )
 
-        if (!isLegacy && !isUnifiedPlatform(capability)) {
+        if (!isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability)) {
             delete capability.tunnelIdentifier
         }
     }

@@ -541,7 +541,7 @@ declare namespace WebdriverIO {
         /**
          * body response of actual resource
          */
-        body: string | JsonCompatible
+        body: string | Buffer | JsonCompatible
         /**
          * HTTP response headers.
          */
