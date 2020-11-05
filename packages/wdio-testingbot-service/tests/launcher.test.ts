@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 
 import TestingBotLauncher from '../src/launcher'
 
-const log = logger()
+const log = logger('')
 
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
@@ -17,16 +17,15 @@ describe('wdio-testingbot-service', () => {
                     pass: 'pass'
                 }
             }
-        }
+        } as any
     })
 
     afterEach(() => {
-        delete global.browser
         execute.mockReset()
     })
 
     it('onPrepare: tbTunnel is undefined', async () => {
-        const options = { tbTunnel: undefined }
+        const options = { tbTunnel: undefined } as any
         const tbLauncher = new TestingBotLauncher(options)
 
         await tbLauncher.onPrepare({})
@@ -39,17 +38,17 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('onPrepare', async () => {
-        const options = {
-            tbTunnel: {},
+        const options: TestingbotOptions = {
+            tbTunnel: true,
             tbTunnelOpts: {
                 options: 'some options'
             }
         }
-        const config = {
+        const config: any = {
             user: 'user',
             key: 'key'
         }
-        const tbLauncher = new TestingBotLauncher(options, [], config)
+        const tbLauncher = new TestingBotLauncher(options)
 
         await tbLauncher.onPrepare(config)
         expect(tbLauncher.tbTunnelOpts).toEqual({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
@@ -57,13 +56,13 @@ describe('wdio-testingbot-service', () => {
         expect(config.hostname).toEqual('localhost')
         expect(config.port).toEqual(4445)
         expect(config.path).toEqual('/wd/hub')
-        expect(log.info.mock.calls[0][0]).toContain('TestingBot tunnel successfully started after')
+        expect((log.info as jest.Mock).mock.calls[0][0]).toContain('TestingBot tunnel successfully started after')
     })
 
     it('onComplete', () => {
         const tbLauncher = new TestingBotLauncher({})
         tbLauncher.tunnel = {
-            close: resolve => resolve('tunnel closed')
+            close: (resolve: any) => resolve('tunnel closed')
         }
 
         return expect(tbLauncher.onComplete()).resolves.toEqual('tunnel closed')

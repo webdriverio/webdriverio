@@ -8,14 +8,6 @@ const DEFAULT_VIEWPORT = {
     height: 900
 }
 
-declare global {
-    namespace NodeJS {
-        interface Global {
-            browser: WebdriverIO.BrowserObject;
-        }
-    }
-}
-
 export default class ApplitoolsService {
     options: ApplitoolsConfig;
     isConfigured: boolean = false;
