@@ -20,9 +20,16 @@ export interface Capabilities {
 export interface Runner {
     specs: string[];
     capabilities: Capabilities
-    //TODO check .hostname
+    // TODO check .hostname
     config: any
     sanitizedCapabilities : string
+}
+
+export interface Suite {
+    title: string
+    type: string
+    start: any
+    _duration : number
 }
 
 export default class JunitReporter extends WDIOReporter {
@@ -32,12 +39,12 @@ export default class JunitReporter extends WDIOReporter {
     private isCucumberFrameworkRunner: boolean = false;
     private suiteTitleLabel!: string;
     private fileNameLabel!: string;
-    //TODO check any
+    // TODO check any
     private suites: any;
     constructor (options : WDIOReporter.Options) {
         super(options)
         this.options = options
-        this.suiteNameRegEx = options.suiteNameFormat instanceof RegExp ? options.suiteNameFormat : /[^a-zA-Z0-9]+/
+        this.suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp ? this.options.suiteNameFormat : /[^a-zA-Z0-9]+/
     }
 
     onRunnerEnd (runner : Runner ) {
@@ -69,7 +76,7 @@ export default class JunitReporter extends WDIOReporter {
         return suite
     }
 
-    addCucumberFeatureToBuilder(builder, runner, specFileName, suite) {
+    addCucumberFeatureToBuilder(builder: any, runner : Runner, specFileName : string, suite: Suite) {
         const featureName = this.prepareName(suite.title)
         const filePath = specFileName.replace(process.cwd(), '.')
 
