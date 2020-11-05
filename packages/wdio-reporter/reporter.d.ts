@@ -32,6 +32,8 @@ declare namespace WDIOReporter {
         stdout?: boolean;
         suiteNameFormat?: RegExp
         packageName?: string
+        addFileAttribute?: any
+        errorOptions?: any
     }
 
     interface Suite {

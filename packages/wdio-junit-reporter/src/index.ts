@@ -18,7 +18,7 @@ export interface Capabilities {
 }
 
 export interface Runner {
-    specs: string[];
+    specs: string[]
     capabilities: Capabilities
     // TODO check .hostname
     config: any
@@ -26,6 +26,7 @@ export interface Runner {
 }
 
 export interface Suite {
+    tests: any
     title: string
     type: string
     start: any
@@ -41,6 +42,9 @@ export default class JunitReporter extends WDIOReporter {
     private fileNameLabel!: string;
     // TODO check any
     private suites: any;
+    private activeFeature!: any
+    private activeFeatureName!: string;
+
     constructor (options : WDIOReporter.Options) {
         super(options)
         this.options = options
@@ -144,7 +148,7 @@ export default class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    addSuiteToBuilder(builder, runner, specFileName, suite) {
+    addSuiteToBuilder(builder: any, runner: Runner, specFileName : string, suite: Suite) {
         const suiteName = this.prepareName(suite.title)
         const filePath = specFileName.replace(process.cwd(), '.')
 
