@@ -178,7 +178,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
             return this.updateJob(oldSessionId, this.failures, true)
         }
 
-        let browser = global.browser
+        const browser = global.browser
         const browserName = browser.instances.filter(
             (browserName: string) => browser[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
