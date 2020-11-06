@@ -239,7 +239,6 @@ describe('wdio-logger node', () => {
                 nodeLogger.clearLogger()
 
                 process.env.WDIO_LOG_PATH = 'wdio.test.log2'
-
                 log.info('bar')
                 expect(write.mock.instances[0].path).toContain('wdio.test.log')
                 expect(write.mock.instances[1].path).toContain('wdio.test.log2')
