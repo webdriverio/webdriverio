@@ -149,7 +149,8 @@ describe('wdio-logger node', () => {
             get writableBuffer () {
                 // @ts-ignore
                 return writableBuffer
-            }
+            },
+            end: () => {}
         }))
 
         it('should be possible to add to cache', () => {
@@ -228,6 +229,20 @@ describe('wdio-logger node', () => {
             expect(write.mock.results[1].value).toContain('test-logFile4: Error: bar')
         })
 
+        describe('clearLogger', () => {
+            it('should be possible to change output directory', () => {
+                process.env.WDIO_LOG_PATH = 'wdio.test.log'
+                const log = nodeLogger('test-logFile5')
+                log.info('foo')
+                nodeLogger.clearLogger()
+
+                process.env.WDIO_LOG_PATH = 'wdio.test.log2'
+                log.info('bar')
+                expect(write.mock.instances[0].path).toContain('wdio.test.log')
+                expect(write.mock.instances[1].path).toContain('wdio.test.log2')
+            })
+        })
+
         describe('waitForBuffer with logFile', () => {
             const scenarios = [{
                 name: 'should be ok buffer is empty',
@@ -267,6 +282,8 @@ describe('wdio-logger node', () => {
 
         beforeEach(() => {
             delete process.env.WDIO_LOG_PATH
+            nodeLogger.clearLogger()
+            nodeLogger2.clearLogger()
         })
         afterEach(() => {
             logCacheForEachSpy.mockClear()
