@@ -8,6 +8,8 @@ import { BaseClient } from './types'
 
 const log = logger('webdriver')
 
+const DELETE_SESSION_COMMAND = 'deleteSession()'
+
 export default function (
     method: string,
     endpointUri: string,
@@ -100,7 +102,7 @@ export default function (
 
             this.emit('result', { method, endpoint, body, result })
 
-            if (commandUsage.includes('deleteSession')) {
+            if (commandUsage === DELETE_SESSION_COMMAND) {
                 logger.clearLogger()
             }
             return result.value
