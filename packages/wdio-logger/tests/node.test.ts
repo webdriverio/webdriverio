@@ -235,7 +235,6 @@ describe('wdio-logger node', () => {
 
                 const log = nodeLogger('test-logFile5')
                 log.info('foo')
-
                 nodeLogger.clearLogger()
 
                 process.env.WDIO_LOG_PATH = 'wdio.test.log2'
