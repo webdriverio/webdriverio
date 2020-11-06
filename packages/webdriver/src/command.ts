@@ -102,7 +102,7 @@ export default function (
 
             this.emit('result', { method, endpoint, body, result })
 
-            if (commandUsage === DELETE_SESSION_COMMAND) {
+            if (command === 'deleteSession') {
                 logger.clearLogger()
             }
             return result.value
