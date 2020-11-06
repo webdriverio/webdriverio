@@ -8,8 +8,6 @@ import { BaseClient } from './types'
 
 const log = logger('webdriver')
 
-const DELETE_SESSION_COMMAND = 'deleteSession()'
-
 export default function (
     method: string,
     endpointUri: string,
