@@ -13,12 +13,12 @@ interface Suite extends WDIOReporter {
 interface SuitServices {
     onSuiteStart(suite: Suite): void;
     onSuiteEnd(suite: Suite): void;
-    onTestFail();
+    onTestFail(): any;
     onRunnerEnd(runner: any): void;
     printReport(runner: any): void;
-    getCountDisplay();
-    getFailureDisplay();
-    getEnviromentCombo(caps: WebDriver);
+    getCountDisplay(): any;
+    getFailureDisplay(): any;
+    getEnviromentCombo(caps): any;
 
 }
 
