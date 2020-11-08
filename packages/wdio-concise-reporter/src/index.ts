@@ -10,6 +10,18 @@ interface Suite extends WDIOReporter {
     uid: string;
 }
 
+interface SuitServices {
+    onSuiteStart(suite: Suite): void;
+    onSuiteEnd(suite: Suite): void;
+    onTestFail();
+    onRunnerEnd(runner: any): void;
+    printReport(runner: any): void;
+    getCountDisplay();
+    getFailureDisplay();
+    getEnviromentCombo(caps: WebDriver);
+
+}
+
 export default class ConciseReporter extends WDIOReporter {
     options!: WDIOReporter.Options;
     suiteUids: Array<string>;
