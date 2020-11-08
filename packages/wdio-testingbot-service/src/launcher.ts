@@ -7,11 +7,14 @@ import logger from '@wdio/logger'
 const log = logger('@wdio/sauce-service')
 
 export default class TestingBotLauncher {
-    constructor (options) {
+    options: TestingbotOptions;
+    tbTunnelOpts!: TunnelLauncherOptions;
+    tunnel?: TestingbotTunnel;
+    constructor (options: TestingbotOptions) {
         this.options = options
     }
 
-    async onPrepare (config) {
+    async onPrepare (config: WebdriverIO.Config) {
         if (!this.options.tbTunnel || !config.user || !config.key) {
             return
         }
@@ -50,6 +53,6 @@ export default class TestingBotLauncher {
             return
         }
 
-        return new Promise(resolve => this.tunnel.close(resolve))
+        return new Promise(resolve => this.tunnel!.close(resolve))
     }
 }

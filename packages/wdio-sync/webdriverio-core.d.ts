@@ -230,8 +230,17 @@ declare namespace WebdriverIO {
         [instanceName: string]: WebDriver.DesiredCapabilities;
     }
 
-    interface Suite {}
+    interface Suite {
+        error?: any;
+    }
     interface Test {}
+    interface TestResult {
+        error?: any,
+        result?: any,
+        passed: boolean,
+        duration: number,
+        retries: { limit: number, attempts: number }
+    }
 
     interface Results {
         finished: number,
@@ -358,13 +367,7 @@ declare namespace WebdriverIO {
          * @param stepData  Cucumber step data
          * @param world     Cucumber world
          */
-        afterHook?(test: any, context: any, result: {
-            error?: any,
-            result?: any,
-            passed: boolean,
-            duration: number,
-            retries: { limit: number, attempts: number }
-        }, stepData?: any, world?: any): void;
+        afterHook?(test: any, context: any, result: TestResult, stepData?: any, world?: any): void;
 
         /**
          * Gets executed after all tests are done. You still have access to all global variables from
@@ -417,13 +420,7 @@ declare namespace WebdriverIO {
          * @param context   context to current running test
          * @param result    test result
          */
-        afterTest?(test: Test, context: any, result: {
-            error?: any,
-            result?: any,
-            passed: boolean,
-            duration: number,
-            retries: { limit: number, attempts: number }
-        }): void;
+        afterTest?(test: Test, context: any, result: TestResult): void;
     }
     type _HooksArray = {
         [K in keyof Pick<HookFunctions, "onPrepare" | "onWorkerStart" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
@@ -544,7 +541,7 @@ declare namespace WebdriverIO {
         /**
          * body response of actual resource
          */
-        body: string | JsonCompatible
+        body: string | Buffer | JsonCompatible
         /**
          * HTTP response headers.
          */
@@ -1332,6 +1329,25 @@ declare namespace WebdriverIO {
             options?: WaitUntilOptions
         ): boolean;
     }
+
+    interface BrowserObject {
+        isMultiremote?: false;
+    }
+
+    type MultiRemoteBrowserReference = Record<string, BrowserObject>
+    
+    interface MultiRemoteBrowser extends Browser {
+        /**
+         * multiremote browser instance names
+         */
+        instances: string[];
+        /**
+         * flag to indicate multiremote browser session
+         */
+        isMultiremote: true;
+    }
+    
+    type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
 
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
          /**

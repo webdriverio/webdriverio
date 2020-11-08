@@ -389,6 +389,13 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
     }, {
         deviceName: 'iPhone',
         platformName: 'iOS',
+    }, {
+        deviceName: 'iPhone Simulator',
+        platformName: 'iOS',
+        tunnelIdentifier: 'foo-bar'
+    }, {
+        deviceName: 'iPhone Simulator',
+        platformName: 'iOS',
     }]
     const config = {
         user: 'foobaruser',
@@ -426,8 +433,57 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
         deviceName: 'iPhone',
         platformName: 'iOS',
         tunnelIdentifier: 'my-tunnel'
+    }, {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4446,
+        deviceName: 'iPhone Simulator',
+        platformName: 'iOS',
+        tunnelIdentifier: 'foo-bar'
+    }, {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: 4446,
+        deviceName: 'iPhone Simulator',
+        platformName: 'iOS',
+        tunnelIdentifier: 'my-tunnel'
     }])
     expect(service.sauceConnectProcess).not.toBeUndefined()
+})
+
+test('startTunnel fail twice and recover', async ()=> {
+    const options = {
+        sauceConnect: true,
+        sauceConnectOpts: {
+            tunnelIdentifier: 'my-tunnel'
+        }
+    }
+    const service = new SauceServiceLauncher(options)
+    service.api.startSauceConnect
+        .mockRejectedValueOnce(new Error('ENOENT'))
+        .mockRejectedValueOnce(new Error('ENOENT'))
+    await service.startTunnel()
+
+    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(3)
+})
+
+test('startTunnel fail three and throws error', async ()=> {
+    const options = {
+        sauceConnect: true,
+        sauceConnectOpts: {
+            tunnelIdentifier: 'my-tunnel'
+        }
+    }
+    const service = new SauceServiceLauncher(options)
+    service.api.startSauceConnect
+        .mockRejectedValueOnce(new Error('ENOENT'))
+        .mockRejectedValueOnce(new Error('ENOENT'))
+        .mockRejectedValueOnce(new Error('ENOENT'))
+
+    expect(async () => {
+        await service.startTunnel()
+    }).rejects.toThrowError('ENOENT')
+
 })
 
 test('onComplete', async () => {

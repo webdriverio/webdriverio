@@ -6,7 +6,7 @@ module.exports = function (docfile) {
     const javadoc = docfile.javadoc[0]
 
     let type = (javadoc.ctx && javadoc.ctx.type)
-    const name = path.basename(docfile.filename, '.js')
+    const name = path.basename(path.basename(docfile.filename, '.js'), '.ts')
     const scope = docfile.filename.split('/').slice(-2, -1)[0]
 
     let description = ''
