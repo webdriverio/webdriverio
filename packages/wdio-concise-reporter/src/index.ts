@@ -1,6 +1,5 @@
 import WDIOReporter from '@wdio/reporter'
 import chalk, { Chalk } from 'chalk'
-import { Test } from 'webdriverio'
 
 interface Suite extends WDIOReporter {
     duration: number;
