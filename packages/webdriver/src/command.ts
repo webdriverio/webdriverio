@@ -99,6 +99,10 @@ export default function (
             }
 
             this.emit('result', { method, endpoint, body, result })
+
+            if (command === 'deleteSession') {
+                logger.clearLogger()
+            }
             return result.value
         })
     }
