@@ -26,9 +26,7 @@ export default class ConciseReporter extends WDIOReporter {
     suiteUids: Array<string>;
     suites: Array<any>;
     suite: any;
-    stateCounts: Test;
     chalk: Chalk;
-    test: string;
     orderedSuites: any[] | undefined;
     stateCounts: {};
 
