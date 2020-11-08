@@ -29,7 +29,7 @@ export default class ConciseReporter extends WDIOReporter {
     stateCounts: Test;
     chalk: Chalk;
     test: string;
-    orderedSuites: Array<any>;
+    orderedSuites: any[] | undefined;
     stateCounts: {};
 
     constructor(options: WDIOReporter.Options) {
