@@ -26,7 +26,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/puppeteer": "^3.0.1",
+    "@types/puppeteer": "^5.4.0",
     "@wdio/logger": "6.7.3",
     "core-js": "~3.6.0",
     "lighthouse": "^6.4.1",
