@@ -91,6 +91,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'applitools', value: '@wdio/applitools-service$--$applitools' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
+        { name: 'devicefarm', value: '@wdio/devicefarm-service$--$devicefarm' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
