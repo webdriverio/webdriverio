@@ -1,6 +1,6 @@
 import WebDriver from 'webdriver'
 import WebdriverIO, { SevereServiceError } from 'webdriverio'
-import * as AWS from 'aws-sdk'
+import DeviceFarm from 'aws-sdk/clients/devicefarm'
 import getLogger from '@wdio/logger'
 
 const log = getLogger('@wdio/devicefarm-service')
@@ -11,11 +11,12 @@ interface DeviceFarmConfig {
 }
 
 export default class DeviceFarmLauncher implements WebdriverIO.HookFunctions {
-    private readonly devicefarm: AWS.DeviceFarm
+    private readonly devicefarm: DeviceFarm
     private readonly options: DeviceFarmConfig
 
     constructor(options: DeviceFarmConfig) {
-        this.devicefarm = new AWS.DeviceFarm()
+        // DeviceFarm is only available in us-west-2
+        this.devicefarm = new DeviceFarm({ region: 'us-west-2' })
         this.options = options
     }
 
