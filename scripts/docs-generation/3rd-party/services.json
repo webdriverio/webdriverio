@@ -31,7 +31,7 @@
   },
   {
     "packageName": "wdio-ui5-service",
-    "title": "WDIO UI5 Service",
+    "title": "UI5",
     "githubUrl": "https://github.com/js-soft/wdi5/tree/develop/wdio-ui5-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-ui5-service"
   },
