@@ -32,8 +32,9 @@
   {
     "packageName": "wdio-ui5-service",
     "title": "WDIO UI5 Service",
-    "githubUrl": "https://github.com/js-soft/wdi5/tree/develop/wdio-ui5-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-ui5-service"
+    "githubUrl": "https://github.com/js-soft/wdi5/develop",
+    "npmUrl": "https://www.npmjs.com/package/wdio-ui5-service",
+    "location": "wdio-ui5-service/README.md"
   },
   {
     "packageName": "wdio-wiremock-service",
