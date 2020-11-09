@@ -1,5 +1,5 @@
 import WebDriver from 'webdriver'
-import WebdriverIO, { SevereServiceError } from 'webdriverio'
+import WebdriverIO from 'webdriverio'
 import DeviceFarm from 'aws-sdk/clients/devicefarm'
 import getLogger from '@wdio/logger'
 
@@ -42,15 +42,9 @@ export default class DeviceFarmLauncher implements WebdriverIO.HookFunctions {
 
     // https://docs.aws.amazon.com/devicefarm/latest/testgrid/testing-frameworks-nodejs.html
     private async createSession() {
-        try {
-            return await this.devicefarm.createTestGridUrl({
-                projectArn: this.options.projectArn,
-                expiresInSeconds: this.options.expiresInSeconds || 900,
-            }).promise()
-        } catch (err) {
-            const errorMessage = `Failed to create a device farm session: ${err.message}`
-            log.error(errorMessage)
-            throw new SevereServiceError(errorMessage)
-        }
+        return this.devicefarm.createTestGridUrl({
+            projectArn: this.options.projectArn,
+            expiresInSeconds: this.options.expiresInSeconds || 900,
+        }).promise()
     }
 }
