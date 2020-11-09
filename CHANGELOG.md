@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.7.4 (2020-11-09)
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6078](https://github.com/webdriverio/webdriverio/pull/6078) feat(ui5-service): add UI5 support to wdio ([@dominikfeininger](https://github.com/dominikfeininger))
+
+#### Committers: 1
+- dominik feininger ([@dominikfeininger](https://github.com/dominikfeininger))
+
+
 ## v6.7.3 (2020-11-08)
 
 #### :bug: Bug Fix
