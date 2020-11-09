@@ -33,6 +33,6 @@
     "uuid": "^8.0.0"
   },
   "devDependencies": {
-    "@types/puppeteer": "^3.0.0"
+    "@types/puppeteer": "^5.4.0"
   }
 }
