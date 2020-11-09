@@ -28,7 +28,7 @@
   "dependencies": {
     "@types/puppeteer": "^5.4.0",
     "@wdio/logger": "6.7.3",
-    "core-js": "~3.6.0",
+    "core-js": "~3.7.0",
     "lighthouse": "^6.4.1",
     "puppeteer-core": "^5.1.0",
     "speedline": "^1.4.1",
