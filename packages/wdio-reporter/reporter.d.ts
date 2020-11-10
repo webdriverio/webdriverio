@@ -1,6 +1,7 @@
 declare namespace WDIOReporter {
     type TestState = 'passed' | 'pending' | 'failed' | 'skipped' | 'started' | 'ended';
     type ErrorType = 'AssertionError' | 'Error';
+    type WDIOReporterOptions = WDIOReporterOptionsFromLogFile | WDIOReporterOptionsFromStdout;
 
     class Reporter {
         constructor(options: Options);
@@ -22,6 +23,31 @@ declare namespace WDIOReporter {
         private _isSynchronised: boolean;
 
         write(content: any): void;
+    }
+
+    interface Runner {
+        cid: string
+        specs: string[]
+        config: WDIOReporterOptions
+        isMultiremote: boolean
+        sessionId?: string
+        capabilities: WebDriver.DesiredCapabilities
+        retry?: number
+        failures?: number
+        retries?: number
+    }
+
+    interface WDIOReporterBaseOptions {
+        outputDir?: string
+    }
+
+    interface WDIOReporterOptionsFromStdout extends WDIOReporterBaseOptions {
+        stdout: boolean
+        writeStream: WriteStream
+    }
+
+    interface WDIOReporterOptionsFromLogFile extends WDIOReporterBaseOptions {
+        logFile: string
     }
 
     interface Options {

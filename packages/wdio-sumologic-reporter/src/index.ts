@@ -2,7 +2,6 @@ import got from 'got'
 import dateFormat from 'dateformat'
 import stringify from 'json-stringify-safe'
 
-import { Runner } from '@wdio/reporter/src/stats/runner'
 import WDIOReporter from '@wdio/reporter'
 import logger from '@wdio/logger'
 
@@ -38,14 +37,13 @@ export default class SumoLogicReporter extends WDIOReporter {
         }, options)
         super(options)
         this.options = options
-
+        this.isSynchronising = false
         if (typeof this.options.sourceAddress !== 'string') {
             log.error('Sumo Logic requires "sourceAddress" paramater')
         }
 
         // Cache of entries we are yet to sync
         this.unsynced = []
-        this.isSynchronising = false
 
         this.errorCount = 0
         this.interval = setInterval(this.sync.bind(this), this.options.syncInterval)
@@ -55,7 +53,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         return this.unsynced.length === 0
     }
 
-    onRunnerStart(runner: Runner) {
+    onRunnerStart(runner: WDIOReporter.Runner) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'runner:start',
@@ -119,7 +117,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         }))
     }
 
-    onRunnerEnd(runner: Runner) {
+    onRunnerEnd(runner: WDIOReporter.Runner) {
         this.unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'runner:end',
