@@ -13,17 +13,17 @@
  * @param  {Object[]}    args         user arguments for custom script
  * @return {Object}                   result of custom script
  */
-export default (_, script, scriptTimeout, dataProperty, dataFlag, ...commandArgs) => {
+export default (_: HTMLElement, script: string, scriptTimeout: number, dataProperty: string, dataFlag: string, ...commandArgs: any[]) => {
     return new Promise((_resolve, _reject) => {
         setTimeout(
             () => _reject('script timeout'),
             scriptTimeout
         )
 
-        window.arguments = [...commandArgs, (result) => {
-            let tmpResult = result instanceof NodeList ? Array.from(result) : result
+        ;(window as any).arguments = [...commandArgs, (result: NodeList | any) => {
+            let tmpResult: (Node | any)[] = result instanceof NodeList ? Array.from(result) : result
             const isResultArray = Array.isArray(tmpResult)
-            tmpResult = isResultArray ? tmpResult : [tmpResult]
+            tmpResult = isResultArray ? tmpResult : [tmpResult as unknown as Node]
 
             if (tmpResult.find((r) => r instanceof HTMLElement)) {
                 tmpResult = tmpResult.map((r, i) => {

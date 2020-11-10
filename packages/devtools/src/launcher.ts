@@ -1,6 +1,7 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import browserFinder from './finder'
 import { getPages } from './utils'
@@ -24,19 +25,38 @@ const log = logger('devtools')
 
 const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.name)
 
+interface DevToolsOptions {
+    ignoreDefaultArgs?: boolean
+    headless?: boolean
+}
+
+interface ExtendedCapabilities extends WebDriver.Capabilities {
+    'wdio:devtoolsOptions'?: DevToolsOptions
+}
+
 /**
  * launches Chrome and returns a Puppeteer browser instance
  * @param  {object} capabilities  session capabilities
  * @return {object}               puppeteer browser instance
  */
-async function launchChrome (capabilities) {
-    if (!capabilities[VENDOR_PREFIX.chrome]) {
-        capabilities[VENDOR_PREFIX.chrome] = {}
-    }
-
-    const chromeOptions = capabilities[VENDOR_PREFIX.chrome]
+async function launchChrome (capabilities: ExtendedCapabilities) {
+    const chromeOptions: WebDriver.ChromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
-    const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
+    const devtoolsOptions = capabilities['wdio:devtoolsOptions']
+
+    /**
+     * `ignoreDefaultArgs` and `headless` are currently expected to be part of the capabilities
+     * but we should move them into a custom capability object, e.g. `wdio:devtoolsOptions`.
+     * This should be cleaned up for v7 release
+     * ToDo(Christian): v7 cleanup
+     */
+    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs
+    let headless = (chromeOptions as any).headless
+
+    if (devtoolsOptions) {
+        ignoreDefaultArgs = devtoolsOptions.ignoreDefaultArgs
+        headless = devtoolsOptions.headless
+    }
 
     if (typeof mobileEmulation.deviceName === 'string') {
         const deviceProperties = Object.values(puppeteer.devices).find(device => device.name === mobileEmulation.deviceName)
@@ -61,7 +81,7 @@ async function launchChrome (capabilities) {
             `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
             `--window-size=${DEFAULT_WIDTH},${DEFAULT_HEIGHT}`
         ],
-        ...(chromeOptions.headless ? [
+        ...(headless ? [
             '--headless',
             '--no-sandbox'
         ] : []),
@@ -89,7 +109,7 @@ async function launchChrome (capabilities) {
         ...chromeOptions,
         browserURL: `http://localhost:${chrome.port}`,
         defaultViewport: null
-    })
+    }) as unknown as Browser
 
     /**
      * when using Chrome Launcher we have to close a tab as Puppeteer
@@ -109,25 +129,44 @@ async function launchChrome (capabilities) {
     return browser
 }
 
-function launchBrowser (capabilities, browserType) {
+function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' | 'firefox') {
     const product = browserType === BROWSER_TYPE.firefox ? BROWSER_TYPE.firefox : BROWSER_TYPE.chrome
     const vendorCapKey = VENDOR_PREFIX[browserType]
-    const ignoreDefaultArgs = capabilities.ignoreDefaultArgs
+    const devtoolsOptions = capabilities['wdio:devtoolsOptions']
+
+    /**
+     * `ignoreDefaultArgs` and `headless` are currently expected to be part of the capabilities
+     * but we should move them into a custom capability object, e.g. `wdio:devtoolsOptions`.
+     * This should be cleaned up for v7 release
+     * ToDo(Christian): v7 cleanup
+     */
+    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs
+    let headless = (capabilities as any).headless
+    if (devtoolsOptions) {
+        ignoreDefaultArgs = devtoolsOptions.ignoreDefaultArgs
+        headless = devtoolsOptions.headless
+    }
 
     if (!capabilities[vendorCapKey]) {
         capabilities[vendorCapKey] = {}
     }
 
+    if (!(process.platform in browserFinder[browserType])) {
+        throw new Error(`Your platform "${process.platform}" is not supported, supported are ${Object.keys(browserFinder[browserType]).join(', ')}`)
+    }
+
+    // @ts-ignore
+    const browserFinderMethod = browserFinder[browserType][process.platform]
     const executablePath = (
-        capabilities[vendorCapKey].binary ||
-        browserFinder[browserType][process.platform]()[0]
+        capabilities[vendorCapKey]?.binary ||
+        browserFinderMethod()[0]
     )
 
     const puppeteerOptions = Object.assign({
         product,
         executablePath,
         ignoreDefaultArgs,
-        headless: Boolean(capabilities[vendorCapKey].headless),
+        headless: Boolean(headless),
         defaultViewport: {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT
@@ -146,24 +185,24 @@ function launchBrowser (capabilities, browserType) {
     }
 
     log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
-    return puppeteer.launch(puppeteerOptions)
+    return puppeteer.launch(puppeteerOptions) as unknown as Promise<Browser>
 }
 
-export default function launch (capabilities) {
-    const browserName = capabilities.browserName.toLowerCase()
+export default function launch (capabilities: ExtendedCapabilities) {
+    const browserName = capabilities.browserName?.toLowerCase()
 
-    if (CHROME_NAMES.includes(browserName)) {
+    if (browserName && CHROME_NAMES.includes(browserName)) {
         return launchChrome(capabilities)
     }
 
-    if (FIREFOX_NAMES.includes(browserName)) {
+    if (browserName && FIREFOX_NAMES.includes(browserName)) {
         return launchBrowser(capabilities, BROWSER_TYPE.firefox)
     }
 
     /* istanbul ignore next */
-    if (EDGE_NAMES.includes(browserName)) {
+    if (browserName && EDGE_NAMES.includes(browserName)) {
         return launchBrowser(capabilities, BROWSER_TYPE.edge)
     }
 
-    throw new Error(`Couldn't identify browserName ${browserName}`)
+    throw new Error(`Couldn't identify browserName "${browserName}"`)
 }

@@ -4,6 +4,10 @@ import { v4 as uuidv4 } from 'uuid'
 
 import logger from '@wdio/logger'
 import { safeRequire } from '@wdio/utils'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type WDIOProtocols from '@wdio/protocols'
 
 import ElementStore from './elementstore'
 import { validate, sanitizeError } from './utils'
@@ -12,19 +16,31 @@ import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIME
 const log = logger('devtools')
 
 export default class DevToolsDriver {
-    constructor(browser, pages) {
-        this.commands = {}
-        this.elementStore = new ElementStore()
-        this.windows = new Map()
-        this.timeouts = new Map()
-        this.activeDialog = null
+    commands: Record<string, Function> = {}
+    elementStore = new ElementStore()
+    windows: Map<string, Page> = new Map()
+    timeouts: Map<string, number> = new Map()
+    activeDialog?: Dialog = undefined
+
+    browser: Browser
+    currentFrame?: Page
+    currentWindowHandle?: string
+    currentFrameUrl?: string
+
+    constructor(browser: Browser, pages: Page[]) {
         this.browser = browser
 
         const dir = path.resolve(__dirname, 'commands')
-        const files = fs.readdirSync(dir).filter((file) => file.endsWith('.js'))
+        const files = fs.readdirSync(dir).filter((file) => file.endsWith('.js') || file.endsWith('.ts'))
         for (let filename of files) {
             const commandName = path.basename(filename, path.extname(filename))
-            this.commands[commandName] = safeRequire(path.join(dir, commandName)).default
+
+            if (!commandName) {
+                throw new Error('Couldn\'t determine command name')
+            }
+
+            // @ts-ignore
+            this.commands[commandName] = safeRequire(path.join(dir, commandName))?.default
         }
 
         for (const page of pages) {
@@ -40,19 +56,21 @@ export default class DevToolsDriver {
         this.setTimeouts(DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT)
 
         const page = this.getPageHandle()
-        page.on('dialog', this.dialogHandler.bind(this))
-        page.on('framenavigated', this.framenavigatedHandler.bind(this))
+        if (page) {
+            page.on('dialog', this.dialogHandler.bind(this))
+            page.on('framenavigated', this.framenavigatedHandler.bind(this))
+        }
     }
 
     /**
      * moved into an extra method for testing purposes
      */
     /* istanbul ignore next */
-    static requireCommand(filePath) {
+    static requireCommand(filePath: string) {
         return require(filePath).default
     }
 
-    register(commandInfo) {
+    register(commandInfo: WDIOProtocols.CommandEndpoint) {
         const self = this
         const { command, ref, parameters, variables = [] } = commandInfo
 
@@ -67,9 +85,9 @@ export default class DevToolsDriver {
          * within here you find the webdriver scope
          */
         let retries = 0
-        const wrappedCommand = async function (...args) {
+        const wrappedCommand = async function (this: WebdriverIO.BrowserObject, ...args: any[]): Promise<any> {
             await self.checkPendingNavigations()
-            const params = validate(command, parameters, variables, ref, args)
+            const params = validate(command, parameters, variables as any, ref, args)
             let result
 
             try {
@@ -119,16 +137,16 @@ export default class DevToolsDriver {
         return wrappedCommand
     }
 
-    dialogHandler(dialog) {
+    dialogHandler(dialog: Dialog) {
         this.activeDialog = dialog
     }
 
-    framenavigatedHandler(frame) {
+    framenavigatedHandler(frame: Page) {
         this.currentFrameUrl = frame.url()
         this.elementStore.clear()
     }
 
-    setTimeouts(implicit, pageLoad, script) {
+    setTimeouts(implicit: number, pageLoad: number, script: number) {
         if (typeof implicit === 'number') {
             this.timeouts.set('implicit', implicit)
         }
@@ -140,18 +158,29 @@ export default class DevToolsDriver {
         }
 
         const page = this.getPageHandle()
-        page.setDefaultTimeout(this.timeouts.get('pageLoad'))
+        const pageloadTimeout = this.timeouts.get('pageLoad')
+        if (page && pageloadTimeout) {
+            page.setDefaultTimeout(pageloadTimeout)
+        }
     }
 
-    getPageHandle(isInFrame = false) {
+    getPageHandle (isInFrame = false) {
         if (isInFrame && this.currentFrame) {
             return this.currentFrame
         }
 
-        return this.windows.get(this.currentWindowHandle)
+        if (!this.currentWindowHandle) {
+            throw new Error('no current window handle registered')
+        }
+
+        const pageHandle = this.windows.get(this.currentWindowHandle)
+        if (!pageHandle) {
+            throw new Error('Could not find page handle')
+        }
+        return pageHandle
     }
 
-    async checkPendingNavigations(pendingNavigationStart) {
+    async checkPendingNavigations (pendingNavigationStart?: number): Promise<void> {
         /**
          * ensure there is no page transition happening and an execution context
          * is available
@@ -167,7 +196,7 @@ export default class DevToolsDriver {
         }
 
         pendingNavigationStart = pendingNavigationStart || Date.now()
-        const pageloadTimeout = this.timeouts.get('pageLoad')
+        const pageloadTimeout = this.timeouts.get('pageLoad') || 0
 
         /**
          * if current page is a frame we have to get the page from the browser
@@ -175,12 +204,16 @@ export default class DevToolsDriver {
          */
         if (!page.mainFrame) {
             const pages = await this.browser.pages()
-            page = pages.find((browserPage) => (
-                browserPage.frames().find((frame) => page === frame)
+            const mainFrame = pages.find((browserPage) => (
+                browserPage.frames().find((frame: unknown) => page === frame)
             ))
+
+            if (mainFrame) {
+                page = mainFrame
+            }
         }
 
-        const pageloadTimeoutReached = Date.now() - pendingNavigationStart > pageloadTimeout
+        const pageloadTimeoutReached = (Date.now() - pendingNavigationStart) > pageloadTimeout
         const executionContext = await page.mainFrame().executionContext()
         try {
             await executionContext.evaluate('1')

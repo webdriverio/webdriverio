@@ -193,7 +193,7 @@ declare namespace WebDriver {
     }
 
     interface FirefoxOptions {
-        debuggerAddress: string
+        debuggerAddress?: string
         binary?: string,
         args?: string[],
         profile?: string,

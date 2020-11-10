@@ -54,7 +54,11 @@ export const FIREFOX_NAMES = ['firefox', 'ff', 'mozilla', 'mozillafirefox', 'hea
 export const EDGE_NAMES = ['edge', 'msedge', 'microsoft-edge', 'microsoftedge']
 export const SUPPORTED_BROWSER = [...CHROME_NAMES, ...FIREFOX_NAMES, ...EDGE_NAMES]
 
-export const BROWSER_TYPE = {
+export const BROWSER_TYPE: {
+    chrome: 'chrome',
+    firefox: 'firefox',
+    edge: 'edge'
+} = {
     chrome: 'chrome',
     firefox: 'firefox',
     edge: 'edge'
@@ -122,7 +126,11 @@ export const BROWSER_ERROR_MESSAGES = {
         Note: "Nightly" as a term should be present in the "Firefox Application Name" across all OS's in binary path mentioned above for this to work.`
 }
 
-export const VENDOR_PREFIX = {
+export const VENDOR_PREFIX: {
+    chrome: 'goog:chromeOptions',
+    firefox: 'moz:firefoxOptions',
+    edge: 'ms:edgeOptions'
+} = {
     chrome: 'goog:chromeOptions',
     firefox: 'moz:firefoxOptions',
     edge: 'ms:edgeOptions'

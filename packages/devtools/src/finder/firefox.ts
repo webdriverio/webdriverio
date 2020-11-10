@@ -6,7 +6,6 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 import path from 'path'
-import { getEdgePath } from 'edge-paths'
 import { execSync } from 'child_process'
 import { canAccess } from '@wdio/utils'
 
@@ -14,15 +13,18 @@ import { sort, findByWhich } from '../utils'
 import { darwinGetAppPaths, darwinGetInstallations } from './finder'
 
 const newLineRegex = /\r?\n/
-const EDGE_BINARY_NAMES = ['edge', 'msedge', 'microsoftedge']
-const EDGE_REGEX = /((ms|microsoft))?edge/g
+
+export interface Priorities {
+    regex: RegExp
+    weight: number
+}
 
 function darwin() {
     const suffixes = [
-        '/Contents/MacOS/Microsoft Edge'
+        '/Contents/MacOS/firefox-bin'
     ]
 
-    const appName = 'Microsoft Edge'
+    const appName = 'Firefox Nightly'
     const defaultPath = `/Applications/${appName}.app${suffixes[0]}`
 
     let installations
@@ -33,17 +35,18 @@ function darwin() {
         installations = darwinGetInstallations(appPaths, suffixes)
     }
 
-    // Retains one per line to maintain readability.
-    // clang-format off
-    const priorities = [
-        { regex: new RegExp(`^${process.env.HOME}/Applications/.*Microsoft Edge.app`), weight: 50 },
-        { regex: /^\/Applications\/.*Microsoft Edge.app/, weight: 100 },
-        { regex: /^\/Volumes\/.*Microsoft Edge.app/, weight: -2 }
+    /**
+     * Retains one per line to maintain readability.
+     */
+    const priorities: Priorities[] = [
+        { regex: new RegExp(`^${process.env.HOME}/Applications/.*Firefox.app`), weight: 50 },
+        { regex: /^\/Applications\/.*Firefox.app/, weight: 100 },
+        { regex: /^\/Volumes\/.*Firefox.app/, weight: -2 }
     ]
 
     const whichFinds = findByWhich(
-        EDGE_BINARY_NAMES,
-        [{ regex: EDGE_REGEX, weight: 51 }]
+        ['firefox-nightly', 'firefox-trunk'],
+        [{ regex: /firefox-nightly/, weight: 51 }]
     )
     const installFinds = sort(installations, priorities)
     return [...installFinds, ...whichFinds]
@@ -55,7 +58,7 @@ function darwin() {
  * 2. Look for edge by using the which command
  */
 function linux() {
-    let installations = []
+    let installations: string[] = []
 
     // 1. Look into the directories where .desktop are saved on gnome based distro's
     const desktopInstallationFolders = [
@@ -63,52 +66,41 @@ function linux() {
         '/usr/share/applications/',
     ]
     desktopInstallationFolders.forEach(folder => {
-        installations = installations.concat(findEdgeExecutables(folder))
+        installations = installations.concat(findFirefoxExecutables(folder))
     })
 
-    return findByWhich(
-        EDGE_BINARY_NAMES,
-        [{ regex: EDGE_REGEX, weight: 51 }]
+    const whichFinds = findByWhich(
+        ['firefox-nightly', 'firefox-trunk', 'firefox'],
+        [{ regex: /firefox/, weight: 51 }]
     )
+    return [...installations, ...whichFinds]
 }
 
 function win32() {
-    const installations = []
+    const installations: string[] = []
     const suffixes = [
-        `${path.sep}Microsoft${path.sep}Edge${path.sep}Application${path.sep}edge.exe`,
-        `${path.sep}Microsoft${path.sep}Edge${path.sep}Application${path.sep}msedge.exe`,
-        `${path.sep}Microsoft${path.sep}Edge Dev${path.sep}Application${path.sep}msedge.exe`
+        `${path.sep}Firefox Nightly${path.sep}Application${path.sep}firefox.exe`
     ]
 
     const prefixes = [
-        process.env.LOCALAPPDATA, process.env.PROGRAMFILES, process.env['PROGRAMFILES(X86)']
+        process.env.LOCALAPPDATA || '', process.env.PROGRAMFILES || '', process.env['PROGRAMFILES(X86)'] || ''
     ].filter(Boolean)
 
     prefixes.forEach(prefix => suffixes.forEach(suffix => {
-        const edgePath = path.join(prefix, suffix)
-        if (canAccess(edgePath)) {
-            installations.push(edgePath)
+        const firefoxPath = path.join(prefix, suffix)
+        if (canAccess(firefoxPath)) {
+            installations.push(firefoxPath)
         }
     }))
-
-    /**
-     * fallback using edge-path
-     */
-    if (installations.length === 0) {
-        const edgePath = getEdgePath()
-        if (canAccess(edgePath)) {
-            installations.push(edgePath)
-        }
-    }
 
     return installations
 }
 
-function findEdgeExecutables(folder) {
+function findFirefoxExecutables(folder: string) {
     const argumentsRegex = /(^[^ ]+).*/ // Take everything up to the first space
-    const edgeExecRegex = '^Exec=/.*/(edge)-.*'
+    const edgeExecRegex = '^Exec=/.*/(firefox)-.*'
 
-    let installations = []
+    let installations: string[] = []
     if (canAccess(folder)) {
         let execPaths
 

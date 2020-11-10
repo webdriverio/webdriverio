@@ -184,3 +184,5 @@ getLogger.setLogLevelsConfig = (logLevels: Record<string, log.LogLevelDesc> = {}
     })
 }
 const getLogLevelName = (logName: string) => logName.split(':').shift() as log.LogLevelDesc
+
+export type Logger = log.Logger

@@ -13,15 +13,15 @@
  * @param  {Object[]}    args         user arguments for custom script
  * @return {Object}                   result of custom script
  */
-export default (_, script, dataProperty, dataFlag, ...args) => {
-    window.arguments = args
+export default (_: HTMLElement, script: string, dataProperty: string, dataFlag: string, ...args: any[]) => {
+    (window as any).arguments = args
     const result = eval(script)
     let tmpResult = result instanceof NodeList ? Array.from(result) : result
     const isResultArray = Array.isArray(tmpResult)
     tmpResult = isResultArray ? tmpResult : [tmpResult]
 
-    if (tmpResult.find((r) => r instanceof HTMLElement)) {
-        tmpResult = tmpResult.map((r, i) => {
+    if (tmpResult.find((r: any) => r instanceof HTMLElement)) {
+        tmpResult = tmpResult.map((r: any, i: number) => {
             if (r instanceof HTMLElement) {
                 const dataPropertyValue = `${dataFlag}_${i}`
                 r.setAttribute(dataProperty, dataPropertyValue)

@@ -2,15 +2,35 @@ import fs from 'fs'
 import path from 'path'
 import { execFileSync } from 'child_process'
 import logger from '@wdio/logger'
+import type { Logger } from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
 
+import type { ElementReference } from 'webdriverio'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+
 import cleanUp from './scripts/cleanUpSerializationSelector'
 import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES, PPTR_LOG_PREFIX } from './constants'
+import type { Priorities } from './finder/firefox'
 
 const log = logger('devtools')
 
-export const validate = function (command, parameters, variables, ref, args) {
+interface Parameters {
+    required: boolean
+    type: string
+    name: string
+    description: string
+}
+
+export const validate = function (
+    command: string,
+    parameters: Parameters[],
+    variables: Parameters[],
+    ref: string,
+    args: any[]
+) {
     const commandParams = [...variables.map((v) => Object.assign(v, {
         /**
          * url variables are:
@@ -21,7 +41,7 @@ export const validate = function (command, parameters, variables, ref, args) {
 
     const commandUsage = `${command}(${commandParams.map((p) => p.name).join(', ')})`
     const moreInfo = `\n\nFor more info see ${ref}\n`
-    const body = {}
+    const body: Record<string, any> = {}
 
     /**
      * parameter check
@@ -44,7 +64,7 @@ export const validate = function (command, parameters, variables, ref, args) {
      * parameter type check
      */
     for (const [i, arg] of Object.entries(args)) {
-        const commandParam = commandParams[i]
+        const commandParam = commandParams[parseInt(i, 10)]
 
         if (!isValidParameter(arg, commandParam.type)) {
             /**
@@ -65,15 +85,15 @@ export const validate = function (command, parameters, variables, ref, args) {
         /**
          * rest of args are part of body payload
          */
-        body[commandParams[i].name] = arg
+        body[commandParams[parseInt(i, 10)].name] = arg
     }
 
     log.info('COMMAND', commandCallStructure(command, args))
     return body
 }
 
-export function getPrototype (commandWrapper) {
-    const prototype = {}
+export function getPrototype (commandWrapper: Function) {
+    const prototype: Record<string, { value: Function }> = {}
 
     for (const [endpoint, methods] of Object.entries(WebDriverProtocol)) {
         for (const [method, commandData] of Object.entries(methods)) {
@@ -84,7 +104,7 @@ export function getPrototype (commandWrapper) {
     return prototype
 }
 
-export async function findElement (context, using, value) {
+export async function findElement (this: any, context: Frame | Page, using: string, value: string) {
     /**
      * implicitly wait for the element if timeout is set
      */
@@ -118,13 +138,13 @@ export async function findElement (context, using, value) {
      * return value has to be defined this way because of
      * https://github.com/microsoft/TypeScript/issues/37832
      */
-    const returnValue = {}
+    const returnValue: Record<string, string> = {}
     returnValue[ELEMENT_KEY] = elementId
 
     return returnValue
 }
 
-export async function findElements (context, using, value) {
+export async function findElements (this: any, context: Frame | Page, using: string, value: string) {
     /**
      * implicitly wait for the element if timeout is set
      */
@@ -151,7 +171,7 @@ export async function findElements (context, using, value) {
  * convert DevTools errors into WebDriver errors so tools upstream
  * can handle it in similar fashion (e.g. stale element)
  */
-export function sanitizeError (err) {
+export function sanitizeError (err: Error) {
     let errorMessage = err.message
 
     if (err.message.includes('Node is detached from document')) {
@@ -159,7 +179,7 @@ export function sanitizeError (err) {
         errorMessage = ERROR_MESSAGES.staleElement.message
     }
 
-    const stack = err.stack.split('\n')
+    const stack = err.stack ? err.stack.split('\n') : []
     const asyncStack = stack.lastIndexOf('  -- ASYNC --')
     err.stack = errorMessage + '\n' + stack.slice(asyncStack + 1)
         .filter((line) => !line.includes('devtools/node_modules/puppeteer-core'))
@@ -170,7 +190,7 @@ export function sanitizeError (err) {
 /**
  * transform elements in argument list to Puppeteer element handles
  */
-export async function transformExecuteArgs (args = []) {
+export async function transformExecuteArgs (this: any, args: ElementReference[] = []) {
     return Promise.all(args.map(async (arg) => {
         if (arg[ELEMENT_KEY]) {
             const elementHandle = await this.elementStore.get(arg[ELEMENT_KEY])
@@ -189,12 +209,12 @@ export async function transformExecuteArgs (args = []) {
 /**
  * fetch marked elements from execute script
  */
-export async function transformExecuteResult (page, result) {
+export async function transformExecuteResult (this: any, page: Page, result: any | any[]) {
     const isResultArray = Array.isArray(result)
     let tmpResult = isResultArray ? result : [result]
 
-    if (tmpResult.find((r) => typeof r === 'string' && r.startsWith(SERIALIZE_FLAG))) {
-        tmpResult = await Promise.all(tmpResult.map(async (r) => {
+    if (tmpResult.find((r: any) => typeof r === 'string' && r.startsWith(SERIALIZE_FLAG))) {
+        tmpResult = await Promise.all(tmpResult.map(async (r: any) => {
             if (typeof r === 'string' && r.startsWith(SERIALIZE_FLAG)) {
                 return findElement.call(this, page, 'css selector', `[${SERIALIZE_PROPERTY}="${r}"]`)
             }
@@ -208,7 +228,7 @@ export async function transformExecuteResult (page, result) {
     return isResultArray ? tmpResult : tmpResult[0]
 }
 
-export function getStaleElementError (elementId) {
+export function getStaleElementError (elementId: string) {
     const error = new Error(
         `stale element reference: The element with reference ${elementId} is stale; either the ` +
         'element is no longer attached to the DOM, it is not in the current frame context, or the ' +
@@ -227,7 +247,7 @@ export function getStaleElementError (elementId) {
  * @param  {Puppeteer.Browser} browser  browser instance
  * @return {Puppeteer.Page[]}           list of browser pages
  */
-export async function getPages (browser, retryInterval = 100) {
+export async function getPages (browser: Browser, retryInterval = 100): Promise<Page[]> {
     const pages = await browser.pages()
 
     if (pages.length === 0) {
@@ -243,7 +263,7 @@ export async function getPages (browser, retryInterval = 100) {
     return pages
 }
 
-export function sort(installations, priorities) {
+export function sort(installations: string[], priorities: Priorities[]) {
     const defaultPriority = 10
     return installations
         // assign priorities
@@ -267,15 +287,15 @@ export function sort(installations, priorities) {
  * @param  {Any[]} arr  list of things
  * @return {Any[]}      new list of same things
  */
-export function uniq(arr) {
+export function uniq(arr: string[]) {
     return Array.from(new Set(arr))
 }
 
 /**
  * Look for edge executables by using the which command
  */
-export function findByWhich (executables, priorities) {
-    const installations = []
+export function findByWhich (executables: string[], priorities: Priorities[]) {
+    const installations: string[] = []
     executables.forEach((executable) => {
         try {
             const browserPath = execFileSync(
@@ -298,7 +318,7 @@ export function findByWhich (executables, priorities) {
 /**
  * monkey patch debug package to log CDP messages from Puppeteer
  */
-export function patchDebug (scoppedLogger) {
+export function patchDebug (scoppedLogger: Logger) {
     /**
      * log puppeteer messages
      */
@@ -320,7 +340,7 @@ export function patchDebug (scoppedLogger) {
         puppeteerDebugPkg = require.resolve(pkgName)
     }
 
-    require(puppeteerDebugPkg).log = (msg) => {
+    require(puppeteerDebugPkg).log = (msg: string) => {
         if (msg.includes('puppeteer:protocol')) {
             msg = msg.slice(msg.indexOf(PPTR_LOG_PREFIX) + PPTR_LOG_PREFIX.length).trim()
         }
