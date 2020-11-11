@@ -18,7 +18,6 @@ export default async function getElementCSSValue (
     { elementId, propertyName }: { elementId: string, propertyName: string }
 ) {
     const elementHandle = await this.elementStore.get(elementId)
-
     if (!elementHandle) {
         throw getStaleElementError(elementId)
     }

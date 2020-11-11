@@ -17,7 +17,6 @@ export default async function getElementAttribute (
     { elementId, name }: { elementId: string, name: string }
 ) {
     const elementHandle = await this.elementStore.get(elementId)
-
     if (!elementHandle) {
         throw getStaleElementError(elementId)
     }

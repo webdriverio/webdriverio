@@ -15,7 +15,6 @@ export default async function closeWindow (this: DevToolsDriver) {
 
     const page = this.getPageHandle()
     await page.close()
-
     this.windows.delete(this.currentWindowHandle || '')
 
     const handles = this.windows.keys()
