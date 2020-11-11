@@ -105,6 +105,10 @@ export default class DevToolsDriver {
                     log.debug('Command failed due to unfinished page transition, retrying...')
                     const page = self.getPageHandle()
                     await new Promise((resolve, reject) => {
+                        if (!page) {
+                            return reject(new Error('Couldn\'t find page'))
+                        }
+
                         const pageloadTimeout = setTimeout(
                             () => reject(new Error('page load timeout')),
                             self.timeouts.get('pageLoad'))
@@ -174,9 +178,6 @@ export default class DevToolsDriver {
         }
 
         const pageHandle = this.windows.get(this.currentWindowHandle)
-        if (!pageHandle) {
-            throw new Error('Could not find page handle')
-        }
         return pageHandle
     }
 

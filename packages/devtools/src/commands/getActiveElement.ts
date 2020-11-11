@@ -10,10 +10,17 @@ import findElement from './findElement'
 import command from '../scripts/getActiveElement'
 import cleanUp from '../scripts/cleanUpSerializationSelector'
 import { SERIALIZE_PROPERTY } from '../constants'
+import type DevToolsDriver from '../devtoolsdriver'
 
-export default async function getActiveElement () {
+export default async function getActiveElement (
+    this: DevToolsDriver
+) {
     const page = this.getPageHandle(true)
     const selector = `[${SERIALIZE_PROPERTY}]`
+
+    if (!page) {
+        throw new Error('Couldn\'t find page')
+    }
 
     /**
      * set data property to active element to allow to query for it

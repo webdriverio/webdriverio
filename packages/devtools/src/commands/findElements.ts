@@ -1,35 +1,38 @@
 /**
- * The Find Elements From Element command is used to find elements from a web element
+ * The Find Elements command is used to find elements
  * in the current browsing context that can be used for future commands.
  *
- * @alias browser.findElementFromElements
- * @see https://w3c.github.io/webdriver/#dfn-find-elements-from-element
+ * @alias browser.findElements
+ * @see https://w3c.github.io/webdriver/#dfn-find-elements
  * @param {string} using  a valid element location strategy
  * @param {string} value  the actual selector that will be used to find an element
  * @return {object[]}     A (possibly empty) JSON list of representations of an element object.
  */
 
 import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
-import { findElements, getStaleElementError } from '../utils'
+import { findElements as findElementsUtil } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
 
-export default async function findElementFromElements ({ elementId, using, value }) {
+export default async function findElements (
+    this: DevToolsDriver,
+    { using, value }: { using: string, value: string }
+) {
     if (!SUPPORTED_SELECTOR_STRATEGIES.includes(using)) {
         throw new Error(`selector strategy "${using}" is not yet supported`)
     }
 
-    const elementHandle = await this.elementStore.get(elementId)
-
-    if (!elementHandle) {
-        throw getStaleElementError(elementId)
-    }
-
     if (using === 'link text') {
         using = 'xpath'
-        value = `.//a[normalize-space() = "${value}"]`
+        value = `//a[normalize-space() = "${value}"]`
     } else if (using === 'partial link text') {
         using = 'xpath'
-        value = `.//a[contains(., "${value}")]`
+        value = `//a[contains(., "${value}")]`
     }
 
-    return findElements.call(this, elementHandle, using, value)
+    const page = this.getPageHandle(true)
+    if (!page) {
+        throw new Error('Couldn\'t find page')
+    }
+
+    return findElementsUtil.call(this, page, using, value)
 }

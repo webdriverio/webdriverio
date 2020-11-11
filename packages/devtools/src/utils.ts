@@ -2,11 +2,11 @@ import fs from 'fs'
 import path from 'path'
 import { execFileSync } from 'child_process'
 import logger from '@wdio/logger'
-import type { Logger } from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
-
+import type { Logger } from '@wdio/logger'
 import type { ElementReference } from 'webdriverio'
+import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
@@ -14,20 +14,14 @@ import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import cleanUp from './scripts/cleanUpSerializationSelector'
 import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES, PPTR_LOG_PREFIX } from './constants'
 import type { Priorities } from './finder/firefox'
+import type DevToolsDriver from './devtoolsdriver'
 
 const log = logger('devtools')
 
-interface Parameters {
-    required: boolean
-    type: string
-    name: string
-    description: string
-}
-
 export const validate = function (
     command: string,
-    parameters: Parameters[],
-    variables: Parameters[],
+    parameters: WDIOProtocols.CommandParameters[],
+    variables: WDIOProtocols.CommandPathVariables[],
     ref: string,
     args: any[]
 ) {
@@ -104,12 +98,16 @@ export function getPrototype (commandWrapper: Function) {
     return prototype
 }
 
-export async function findElement (this: any, context: Frame | Page, using: string, value: string) {
+export async function findElement (
+    this: DevToolsDriver,
+    context: Frame | Page | ElementHandle,
+    using: string, value: string
+): Promise<ElementReference | Error>  {
     /**
      * implicitly wait for the element if timeout is set
      */
     const implicitTimeout = this.timeouts.get('implicit')
-    const waitForFn = using === 'xpath' ? context.waitForXPath : context.waitForSelector
+    const waitForFn = using === 'xpath' ? (context as Page | Frame).waitForXPath : (context as Page | Frame).waitForSelector
     if (implicitTimeout && waitForFn) {
         await waitForFn.call(context, value, { timeout: implicitTimeout })
     }
@@ -128,28 +126,28 @@ export async function findElement (this: any, context: Frame | Page, using: stri
         }
     }
 
+    /**
+     * if an element is not found we only return an error to allow
+     * refetching it at a later stage
+     */
     if (!element) {
         return new Error(`Element with selector "${value}" not found`)
     }
 
     const elementId = this.elementStore.set(element)
-
-    /**
-     * return value has to be defined this way because of
-     * https://github.com/microsoft/TypeScript/issues/37832
-     */
-    const returnValue: Record<string, string> = {}
-    returnValue[ELEMENT_KEY] = elementId
-
-    return returnValue
+    return { [ELEMENT_KEY]: elementId }
 }
 
-export async function findElements (this: any, context: Frame | Page, using: string, value: string) {
+export async function findElements (
+    this: DevToolsDriver, context: Page | Frame | ElementHandle,
+    using: string,
+    value: string
+): Promise<ElementReference[]> {
     /**
      * implicitly wait for the element if timeout is set
      */
     const implicitTimeout = this.timeouts.get('implicit')
-    const waitForFn = using === 'xpath' ? context.waitForXPath : context.waitForSelector
+    const waitForFn = using === 'xpath' ? (context as Page | Frame).waitForXPath : (context as Page | Frame).waitForSelector
     if (implicitTimeout && waitForFn) {
         await waitForFn.call(context, value, { timeout: implicitTimeout })
     }
@@ -159,7 +157,7 @@ export async function findElements (this: any, context: Frame | Page, using: str
         : await context.$$(value)
 
     if (elements.length === 0) {
-        return elements
+        return []
     }
 
     return elements.map((element) => ({
@@ -190,7 +188,7 @@ export function sanitizeError (err: Error) {
 /**
  * transform elements in argument list to Puppeteer element handles
  */
-export async function transformExecuteArgs (this: any, args: ElementReference[] = []) {
+export async function transformExecuteArgs (this: DevToolsDriver, args: any[] = []): Promise<ElementHandle | any> {
     return Promise.all(args.map(async (arg) => {
         if (arg[ELEMENT_KEY]) {
             const elementHandle = await this.elementStore.get(arg[ELEMENT_KEY])
@@ -209,7 +207,7 @@ export async function transformExecuteArgs (this: any, args: ElementReference[] 
 /**
  * fetch marked elements from execute script
  */
-export async function transformExecuteResult (this: any, page: Page, result: any | any[]) {
+export async function transformExecuteResult (this: DevToolsDriver, page: Page, result: any | any[]) {
     const isResultArray = Array.isArray(result)
     let tmpResult = isResultArray ? result : [result]
 

@@ -21,6 +21,7 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "types": "./build/index.d.ts",
   "dependencies": {
     "@wdio/logger": "6.7.3",
     "deepmerge": "^4.0.0",

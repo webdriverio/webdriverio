@@ -266,7 +266,7 @@ test('should throw if execution context can not be established', async () => {
 })
 
 test('dialogHandler', () => {
-    expect(driver.activeDialog).toBe(null)
+    expect(driver.activeDialog).toBe(undefined)
     driver.dialogHandler('foobar')
     expect(driver.activeDialog).toBe('foobar')
 })

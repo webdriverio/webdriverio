@@ -11,8 +11,12 @@
 
 import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
 import { findElement as findElementUtil } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
 
-export default function findElement ({ using, value }) {
+export default function findElement (
+    this: DevToolsDriver,
+    { using, value }: { using: string, value: string }
+) {
     if (!SUPPORTED_SELECTOR_STRATEGIES.includes(using)) {
         throw new Error(`selector strategy "${using}" is not yet supported`)
     }
@@ -26,5 +30,10 @@ export default function findElement ({ using, value }) {
     }
 
     const page = this.getPageHandle(true)
+
+    if (!page) {
+        throw new Error('Couldn\'t find page')
+    }
+
     return findElementUtil.call(this, page, using, value)
 }
