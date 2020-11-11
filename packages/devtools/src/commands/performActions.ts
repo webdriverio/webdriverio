@@ -119,7 +119,12 @@ export default async function performActions(
                     /**
                      * set location relative from last position if origin is set to pointer
                      */
-                    if (x && y && origin === 'pointer' && lastPointer.x && lastPointer.y) {
+                    if (
+                        typeof x === 'number' &&
+                        typeof y === 'number' &&
+                        origin === 'pointer' &&
+                        lastPointer.x && lastPointer.y
+                    ) {
                         x += lastPointer.x
                         y += lastPointer.y
                     }

@@ -38,8 +38,9 @@ export default async function switchToFrame (
     /**
      * switch frame by element ID
      */
-    if (typeof (id as unknown as WebdriverIO.ElementReference)[ELEMENT_KEY] === 'string') {
-        const elementHandle = await this.elementStore.get((id as unknown as WebdriverIO.ElementReference)[ELEMENT_KEY])
+    const idAsElementReference = id as unknown as WebdriverIO.ElementReference
+    if (typeof idAsElementReference[ELEMENT_KEY] === 'string') {
+        const elementHandle = await this.elementStore.get(idAsElementReference[ELEMENT_KEY])
 
         if (!elementHandle) {
             throw getStaleElementError(id)
