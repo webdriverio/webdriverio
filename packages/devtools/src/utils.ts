@@ -5,7 +5,6 @@ import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
 import { WebDriverProtocol } from '@wdio/protocols'
 import type { Logger } from '@wdio/logger'
-import type { ElementReference } from 'webdriverio'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
@@ -102,7 +101,7 @@ export async function findElement (
     this: DevToolsDriver,
     context: Frame | Page | ElementHandle,
     using: string, value: string
-): Promise<ElementReference | Error>  {
+): Promise<WebdriverIO.ElementReference | Error>  {
     /**
      * implicitly wait for the element if timeout is set
      */
@@ -142,7 +141,7 @@ export async function findElements (
     this: DevToolsDriver, context: Page | Frame | ElementHandle,
     using: string,
     value: string
-): Promise<ElementReference[]> {
+): Promise<WebdriverIO.ElementReference[]> {
     /**
      * implicitly wait for the element if timeout is set
      */
