@@ -13,7 +13,14 @@
  * @param  {Object[]}    args         user arguments for custom script
  * @return {Object}                   result of custom script
  */
-export default (_: HTMLElement, script: string, scriptTimeout: number, dataProperty: string, dataFlag: string, ...commandArgs: any[]) => {
+export default (
+    _: Element,
+    script: string,
+    scriptTimeout: number,
+    dataProperty: string,
+    dataFlag: string,
+    ...commandArgs: any[]
+): Promise<any> => {
     return new Promise((_resolve, _reject) => {
         setTimeout(
             () => _reject('script timeout'),
