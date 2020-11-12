@@ -1,9 +1,10 @@
-import { canAccess } from '@wdio/utils'
+import { canAccess as canAccessImport } from '@wdio/utils'
 import path from 'path'
 
 import { darwinGetAppPaths, darwinGetInstallations } from '../../src/finder/finder'
 
 const systemProfiler = require('./systemProfiler.json')
+const canAccess = canAccessImport as jest.Mock
 
 jest.mock('child_process',  jest.fn().mockImplementation(() => ({
     execSync() {

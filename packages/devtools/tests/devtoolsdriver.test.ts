@@ -1,4 +1,8 @@
 import DevToolsDriver from '../src/devtoolsdriver'
+import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+
+const expect = global.expect as unknown as jest.Expect
 
 jest.mock('fs', () => ({
     readdirSync: jest.fn().mockReturnValue([
@@ -54,6 +58,7 @@ const browser = {
 const commandMock = {
     command: 'elementClick',
     description: 'foobar',
+    ref: 'http://foobar.com',
     variables: [{
         name: 'elementId',
         description: 'barfoo'
@@ -71,7 +76,7 @@ const commandMock = {
     }]
 }
 
-let driver
+let driver: DevToolsDriver
 
 beforeEach(() => {
     page.on.mockClear()
@@ -80,8 +85,8 @@ beforeEach(() => {
     page.mainFrame.mockImplementation(() => frame)
     executionContext.evaluate.mockClear()
     setNormalPageLoadBehavior()
-    DevToolsDriver.requireCommand.mockClear()
-    driver = new DevToolsDriver(browser, [page])
+    ;(DevToolsDriver.requireCommand as jest.Mock).mockClear()
+    driver = new DevToolsDriver(browser as any, [page as any])
     driver.timeouts.set('pageLoad', 100)
 })
 
@@ -93,25 +98,30 @@ test('can be initiated', () => {
 })
 
 test('should throw if command is called that is not implemented', () => {
-    const command = driver.register({ command: 'click' })
+    const command = driver.register({
+        command: 'click',
+        description: 'some description',
+        ref: 'https://foobar.com',
+        parameters: []
+    })
     expect(command).toThrow('Command "click" is not yet implemented')
 })
 
 test('should return proper result', async () => {
-    driver.commands.elementClick = (...args) => new Promise(
+    driver.commands.elementClick = (...args: any[]) => new Promise(
         (resolve) => setTimeout(() => resolve(...args), 100))
 
     const emit = jest.fn()
     const command = driver.register(commandMock)
 
-    const errorMsg = await command.call({ emit }).catch((e) => e.message)
+    const errorMsg = await command.call({ emit } as any).catch((e) => e.message)
     await expect(errorMsg).toContain('Wrong parameters applied')
 
-    const errorMsg2 = await command.call(emit, '123').catch((e) => e.message)
+    const errorMsg2 = await command.call(emit as any, '123').catch((e) => e.message)
     await expect(errorMsg2).toContain('Wrong parameters applied')
 
     emit.mockReset()
-    const errorMsg3 = await command.call({ emit }, '123', 'some text', ['some value'])
+    const errorMsg3 = await command.call({ emit } as any, '123', 'some text', ['some value'])
     await expect(errorMsg3).toEqual({
         elementId: '123',
         text: 'some text',
@@ -127,7 +137,7 @@ test('should throw if command throws', async () => {
     const command = driver.register(commandMock)
 
     const emit = jest.fn()
-    const errorMsg3 = await command.call({ emit }, '123', 'some text', ['some value'])
+    const errorMsg3 = await command.call({ emit } as any, '123', 'some text', ['some value'])
         .catch((e) => e.message)
     await expect(errorMsg3).toEqual('foobar')
 })
@@ -158,7 +168,7 @@ test('should rerun command if it was executed within navigation', async () => {
     }, 150)
 
     const emit = jest.fn()
-    const result = await command.call({ emit }, '123', 'some text', ['some value'])
+    const result = await command.call({ emit } as any, '123', 'some text', ['some value'])
     expect(driver.commands.elementClick).toBeCalledTimes(2)
     expect(result).toBe(null)
     expect(emit.mock.calls).toMatchSnapshot()
@@ -185,7 +195,7 @@ test('throws error if navigation takes too long', async () => {
 
     const emit = jest.fn()
     const command = driver.register(commandMock)
-    const result = await command.call({ emit }, '123', 'some text', ['some value'])
+    const result = await command.call({ emit } as any, '123', 'some text', ['some value'])
         .catch((err) => err.message)
     expect(result).toBe('page load timeout')
 })
@@ -202,12 +212,12 @@ test('should wait for page load to be complete before executing the command', as
         .mockReturnValueOnce('1')
         .mockReturnValueOnce('complete')
 
-    driver.commands.elementClick = (...args) => new Promise(
+    driver.commands.elementClick = (...args: any[]) => new Promise(
         (resolve) => setTimeout(() => resolve(...args), 100))
 
     const emit = jest.fn()
     const command = driver.register(commandMock)
-    await command.call({ emit }, '123', 'some text', ['some value'])
+    await command.call({ emit } as any, '123', 'some text', ['some value'])
     expect(executionContext.evaluate.mock.calls).toHaveLength(8)
 })
 
@@ -219,7 +229,7 @@ test('should use page from target if we are currently in a frame', async () => {
 
     const emit = jest.fn()
     const command = driver.register(commandMock)
-    await command.call({ emit }, '123', 'some text', ['some value'])
+    await command.call({ emit } as any, '123', 'some text', ['some value'])
     expect(browser.pages).toBeCalledTimes(1)
 })
 
@@ -231,12 +241,12 @@ test('should rerun command if no execution context could be found', async () => 
         .mockReturnValueOnce(Promise.resolve('1'))
         .mockReturnValueOnce(Promise.resolve('complete'))
 
-    driver.commands.elementClick = (...args) => new Promise(
+    driver.commands.elementClick = (...args: any[]) => new Promise(
         (resolve) => setTimeout(() => resolve(...args), 100))
 
     const emit = jest.fn()
     const command = driver.register(commandMock)
-    await command.call({ emit }, '123', 'some text', ['some value'])
+    await command.call({ emit } as any, '123', 'some text', ['some value'])
     expect(executionContext.evaluate.mock.calls).toHaveLength(4)
 })
 
@@ -250,14 +260,14 @@ test('should throw if execution context can not be established', async () => {
                 () => reject(new Error('ups')), 100)))
 
     driver.timeouts.set('pageLoad', 200)
-    driver.commands.elementClick = (...args) => new Promise(
+    driver.commands.elementClick = (...args: any[]) => new Promise(
         (resolve) => setTimeout(() => resolve(...args), 100))
 
     const command = driver.register(commandMock)
 
     try {
         const emit = jest.fn()
-        await command.call({ emit }, '123', 'some text', ['some value'])
+        await command.call({ emit } as any, '123', 'some text', ['some value'])
     } catch (err) {
         expect(err.message).toBe('ups')
     }
@@ -265,7 +275,7 @@ test('should throw if execution context can not be established', async () => {
 
 test('dialogHandler', () => {
     expect(driver.activeDialog).toBe(undefined)
-    driver.dialogHandler('foobar')
+    driver.dialogHandler('foobar' as unknown as Dialog)
     expect(driver.activeDialog).toBe('foobar')
 })
 
@@ -273,14 +283,14 @@ test('framenavigatedHandler', () => {
     driver.elementStore.clear = jest.fn()
 
     const frameMock = { url: jest.fn().mockReturnValue('foobar') }
-    driver.framenavigatedHandler(frameMock)
+    driver.framenavigatedHandler(frameMock as unknown as Page)
     expect(driver.currentFrameUrl).toBe('foobar')
     expect(driver.elementStore.clear).toBeCalledTimes(1)
 })
 
 test('setTimeouts with not value', () => {
-    driver.timeouts = { set: jest.fn(), get: jest.fn().mockReturnValue(123) }
-    driver.windows = { get: jest.fn().mockReturnValue(page) }
+    driver.timeouts = { set: jest.fn(), get: jest.fn().mockReturnValue(123) } as any
+    driver.windows = { get: jest.fn().mockReturnValue(page) } as any
     driver.setTimeouts()
     expect(page.setDefaultTimeout).toBeCalledTimes(2)
     expect(driver.timeouts.set).toBeCalledTimes(0)
@@ -308,10 +318,10 @@ test('setTimeouts with all timeouts', () => {
 })
 
 test('getPageHandle', () => {
-    driver.windows = { get: jest.fn().mockReturnValue('foobar') }
+    driver.windows = { get: jest.fn().mockReturnValue('foobar') } as any
     expect(driver.getPageHandle()).toBe('foobar')
 
-    driver.currentFrame = 'barfoo'
+    driver.currentFrame = 'barfoo' as any
     expect(driver.getPageHandle()).toBe('foobar')
 
     expect(driver.getPageHandle(true)).toBe('barfoo')

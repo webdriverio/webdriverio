@@ -37,6 +37,23 @@ Array [
 ]
 `;
 
+exports[`launch Edge without Puppeteer default args (backwards compat) 1`] = `
+Array [
+  Array [
+    Object {
+      "defaultViewport": Object {
+        "height": 900,
+        "width": 1200,
+      },
+      "executablePath": "/path/to/edge",
+      "headless": true,
+      "ignoreDefaultArgs": true,
+      "product": "chrome",
+    },
+  ],
+]
+`;
+
 exports[`launch Edge without Puppeteer default args 1`] = `
 Array [
   Array [
@@ -228,6 +245,47 @@ Array [
     Object {
       "browserURL": "http://localhost:1234",
       "defaultViewport": null,
+    },
+  ],
+]
+`;
+
+exports[`overriding chrome default flags (backwards compat) 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-hang-monitor",
+        "--disable-prompt-on-repost",
+        "--disable-client-side-phishing-detection",
+        "--password-store=basic",
+        "--use-mock-keychain",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-breakpad",
+        "--disable-dev-shm-usage",
+        "--disable-ipc-flooding-protection",
+        "--disable-renderer-backgrounding",
+        "--force-fieldtrials=*BackgroundTracing/default/",
+        "--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees",
+        "--window-position=0,0",
+        "--window-size=1200,900",
+        "--headless",
+        "--no-sandbox",
+        "--enable-features=NetworkService",
+      ],
+      "chromePath": undefined,
+      "ignoreDefaultFlags": true,
     },
   ],
 ]
