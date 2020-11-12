@@ -2,17 +2,21 @@ import { hasWdioSyncSupport, runFnInFiberContext } from '@wdio/utils'
 
 const TIMEOUT_ERROR = 'timeout'
 
-/**
- * Promise-based Timer. Execute fn every tick.
- * When fn is resolved — timer will stop
- * @param {Number} delay - delay between ticks
- * @param {Number} timeout - after that time timer will stop
- * @param {Function} fn - function that returns promise. will execute every tick
- * @param {Boolean} leading - should be function invoked on start
- * @return {promise} Promise-based Timer.
- */
 class Timer {
-    constructor (delay, timeout, fn, leading) {
+    private _delay: number;
+    private _timeout: number;
+    private _fn: () => Promise<boolean> | boolean;
+    private _leading: boolean;
+    private _conditionExecutedCnt: number;
+    private _start?: number;
+    private _ticks?: number;
+    private _timeoutId?: NodeJS.Timeout | null;
+    private _mainTimeoutId?: NodeJS.Timeout | null;
+    lastError?: Error | null;
+    private _resolve?: (value?: PromiseLike<Timer>) => void;
+    private _reject?: (reason?: any) => void;
+
+    constructor (delay: number, timeout: number, fn: () => Promise<boolean> | boolean, leading: boolean) {
         this._delay = delay
         this._timeout = timeout
         this._fn = fn
@@ -29,14 +33,14 @@ class Timer {
             this._fn = () => runFnInFiberContext(fn)()
         }
 
-        const retPromise = new Promise((resolve, reject) => {
+        const retPromise = new Promise<Timer>((resolve, reject) => {
             this._resolve = resolve
             this._reject = reject
         })
 
         this.start()
 
-        return retPromise
+        return { ...this, retPromise }
     }
 
     start () {
@@ -59,7 +63,9 @@ class Timer {
 
             emitTimerEvent({ id: this._start, timeout: true })
             const reason = this.lastError || new Error(TIMEOUT_ERROR)
-            this._reject(reason)
+            if (this._reject) {
+                this._reject(reason)
+            }
             this.stop()
         }, this._timeout)
     }
@@ -73,13 +79,15 @@ class Timer {
 
     stopMain () {
         emitTimerEvent({ id: this._start })
-        clearTimeout(this._mainTimeoutId)
+        if (this._mainTimeoutId) {
+            clearTimeout(this._mainTimeoutId)
+        }
     }
 
     tick () {
         const result = this._fn()
 
-        if (typeof result.then !== 'function') {
+        if (typeof result === 'boolean') {
             if (!result) {
                 return this.checkCondition(new Error('return value was never truthy'))
             }
@@ -93,15 +101,19 @@ class Timer {
         )
     }
 
-    checkCondition (err, res) {
+    checkCondition (err: Error | null, res?: any) {
         ++this._conditionExecutedCnt
         this.lastError = err
 
         // resolve timer only on truthy values
-        if (res) {
+        if (res && this._resolve) {
             this._resolve(res)
             this.stop()
             this.stopMain()
+            return
+        }
+
+        if (!this._start || !this._ticks) {
             return
         }
 
@@ -118,26 +130,24 @@ class Timer {
         } else {
             this.stopMain()
             const reason = this.lastError || new Error(TIMEOUT_ERROR)
-            this._reject(reason)
+            if (this._reject) {
+                this._reject(reason)
+            }
         }
     }
 
-    hasTime (delay) {
-        return (Date.now() - this._start + delay) <= this._timeout
+    hasTime (delay: number) {
+        return this._start && (Date.now() - this._start + delay) <= this._timeout
     }
 
     wasConditionExecuted () {
-        return this._conditionExecutedCnt > 0
+        return this._conditionExecutedCnt && this._conditionExecutedCnt > 0
     }
 }
 
-/**
- * emit `WDIO_TIMER` event
- * @param   {object}  payload
- */
-function emitTimerEvent(payload) {
+function emitTimerEvent(payload: object) {
     if (hasWdioSyncSupport) {
-        process.emit('WDIO_TIMER', payload)
+        process.emit('WDIO_TIMER' as any, payload as any)
     }
 }
 
