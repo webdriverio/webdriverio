@@ -37,8 +37,12 @@ export default class Interception {
             interval = this.browser.options.waitforInterval
         }
 
-        const fn = () => this.calls && this.calls.length > 0
-        const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<void>
+        if (interval === undefined || timeout === undefined) {
+            throw new Error('interval or timeout are not set')
+        }
+
+        const fn = () => this.calls && this.calls.length > 0 || false
+        const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<Timer>
 
         return this.browser.call(() => timer.catch((e) => {
             if (e.message === 'timeout') {
