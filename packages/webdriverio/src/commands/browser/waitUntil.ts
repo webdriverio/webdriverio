@@ -44,7 +44,7 @@ import Timer from '../../utils/Timer'
 
 export default function waitUntil(
     this: WebdriverIO.BrowserObject,
-    condition: () => boolean | Promise<Boolean>,
+    condition: () => boolean | Promise<boolean>,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
@@ -64,6 +64,10 @@ export default function waitUntil(
 
     if (typeof interval !== 'number') {
         interval = this.options.waitforInterval
+    }
+
+    if (interval === undefined || timeout === undefined) {
+        throw new Error('interval or timeout are not set')
     }
 
     const fn = condition.bind(this)
