@@ -207,7 +207,7 @@
       "parameters": [{
         "name": "orientation",
         "type": "string",
-        "description": "page orientation. Default: 'portrait'",
+        "description": "page orientation. Default: `portrait`",
         "required": false
       }, {
         "name": "scale",
