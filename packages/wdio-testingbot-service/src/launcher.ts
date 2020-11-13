@@ -4,7 +4,7 @@ import { promisify } from 'util'
 import testingbotTunnel from 'testingbot-tunnel-launcher'
 import logger from '@wdio/logger'
 
-const log = logger('@wdio/sauce-service')
+const log = logger('@wdio/testingbot-service')
 
 export default class TestingBotLauncher {
     options: TestingbotOptions;
@@ -14,20 +14,24 @@ export default class TestingBotLauncher {
         this.options = options
     }
 
-    async onPrepare (config: WebdriverIO.Config) {
+    async onPrepare (config: WebdriverIO.Config, capabilities: WebDriver.Capabilities) {
         if (!this.options.tbTunnel || !config.user || !config.key) {
             return
         }
 
+        const tbTunnelIdentifier = `TB-tunnel-${Math.random().toString().slice(2)}`
+
         this.tbTunnelOpts = Object.assign({
             apiKey: config.user,
-            apiSecret: config.key
+            apiSecret: config.key,
+            'tunnel-identifier': tbTunnelIdentifier,
         }, this.options.tbTunnelOpts)
 
-        config.protocol = 'http'
-        config.hostname = 'localhost'
-        config.port = 4445
-        config.path = '/wd/hub'
+        if (!capabilities['tb:options']) {
+            capabilities['tb:options'] = {}
+        }
+
+        capabilities['tb:options'].tunnelIdentifier = tbTunnelIdentifier
 
         /**
          * measure TestingBot tunnel boot time
