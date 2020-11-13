@@ -40,7 +40,7 @@ export default class DevToolsDriver {
 
             this.commands[commandName] = DevToolsDriver.requireCommand(
                 path.join(dir, commandName)
-            ).default
+            )
         }
 
         for (const page of pages) {
