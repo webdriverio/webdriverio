@@ -22,9 +22,5 @@ export default async function getElementRect (
     }
 
     const page = this.getPageHandle(true)
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     return page.$eval('html', command, elementHandle)
 }

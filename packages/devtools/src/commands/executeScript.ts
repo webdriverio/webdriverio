@@ -19,10 +19,6 @@ export default async function executeScript (
     { script, args }: { script: string, args: any[] }
 ) {
     const page = this.getPageHandle(true)
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     const scriptTimeout = this.timeouts.get('script')
     script = script.trim()
 

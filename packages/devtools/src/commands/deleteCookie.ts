@@ -13,10 +13,6 @@ export default async function deleteCookie (
     { name }: { name: string }
 ) {
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     const cookies = await page.cookies()
     const cookieToDelete = cookies.find((cookie) => cookie.name === name)
 

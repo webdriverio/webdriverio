@@ -9,10 +9,6 @@ import type DevToolsDriver from '../devtoolsdriver'
 
 export default async function deleteAllCookies (this: DevToolsDriver) {
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     const cookies = await page.cookies()
 
     for (const cookie of cookies) {

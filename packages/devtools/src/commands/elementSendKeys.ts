@@ -27,10 +27,6 @@ export default async function elementSendKeys (
 
     await elementHandle.focus()
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     const propertyHandles = {
         tagName: await elementHandle.getProperty('tagName'),
         type: await elementHandle.getProperty('type')

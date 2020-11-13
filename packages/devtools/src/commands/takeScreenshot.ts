@@ -8,15 +8,7 @@
 import type DevToolsDriver from '../devtoolsdriver'
 
 export default async function takeScreenshot (this: DevToolsDriver) {
-    if (!this.currentWindowHandle) {
-        throw new Error('No window handle selected')
-    }
-
-    const page = this.windows.get(this.currentWindowHandle)
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
+    const page = this.getPageHandle()
     return page.screenshot({
         encoding: 'base64',
         fullPage: true,

@@ -25,9 +25,6 @@ export default async function createWindow (
 
     if (type === 'window') {
         const page = this.getPageHandle()
-        if (!page) {
-            throw new Error('Couldn\'t find page')
-        }
 
         await page.evaluate(command, NEW_PAGE_URL, WINDOW_FEATURES)
         const newWindowTarget = await this.browser.waitForTarget(

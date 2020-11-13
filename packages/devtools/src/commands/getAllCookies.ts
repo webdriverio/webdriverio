@@ -10,9 +10,5 @@ import type DevToolsDriver from '../devtoolsdriver'
 
 export default async function getAllCookies (this: DevToolsDriver) {
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     return page.cookies()
 }

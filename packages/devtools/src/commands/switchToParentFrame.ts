@@ -11,9 +11,6 @@ import type DevToolsDriver from '../devtoolsdriver'
 
 export default async function switchToParentFrame (this: DevToolsDriver) {
     const page = this.getPageHandle(true) as unknown as Frame
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
 
     /**
      * check if we can access child frames, if now we are already in the

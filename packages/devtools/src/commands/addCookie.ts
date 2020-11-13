@@ -12,10 +12,7 @@ export default async function addCookie(
     this: DevToolsDriver,
     { cookie }: { cookie: WebDriver.Cookie }
 ) {
-    const page = this.windows.get(this.currentWindowHandle || '')
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
+    const page = this.getPageHandle()
 
     const cookieProps = Object.keys(cookie)
     if (!cookieProps.includes('name') || !cookieProps.includes('value')) {

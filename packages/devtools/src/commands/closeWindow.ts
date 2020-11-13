@@ -14,11 +14,8 @@ export default async function closeWindow (this: DevToolsDriver) {
     delete this.currentFrame
 
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     await page.close()
+
     this.windows.delete(this.currentWindowHandle || '')
 
     const handles = this.windows.keys()

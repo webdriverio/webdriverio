@@ -10,9 +10,5 @@ import type DevToolsDriver from '../devtoolsdriver'
 
 export default function getPageSource (this: DevToolsDriver) {
     const page = this.getPageHandle(true)
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     return page.content()
 }

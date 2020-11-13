@@ -43,10 +43,6 @@ export default async function performActions(
     { actions }: { actions: ActionsParameter[] }
 ) {
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     const lastPointer: {
         x?: number,
         y?: number

@@ -19,10 +19,6 @@ export default async function switchToWindow (
     delete this.currentFrame
     this.currentWindowHandle = handle
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     page.on('dialog', this.dialogHandler.bind(this))
     await page.bringToFront()
 

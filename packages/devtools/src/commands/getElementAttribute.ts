@@ -23,9 +23,5 @@ export default async function getElementAttribute (
     }
 
     const page = this.getPageHandle(true)
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     return page.$eval('html', command, elementHandle, name)
 }

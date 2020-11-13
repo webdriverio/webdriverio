@@ -10,10 +10,6 @@ import type DevToolsDriver from '../devtoolsdriver'
 export default async function forward (this: DevToolsDriver) {
     delete this.currentFrame
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     await page.goForward()
     return null
 }

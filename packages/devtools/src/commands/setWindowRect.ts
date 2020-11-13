@@ -17,10 +17,6 @@ export default async function setWindowRect (
     params: { width: number, height: number }
 ) {
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     await page.setViewport(params)
     return { width: params.width, height: params.height }
 }

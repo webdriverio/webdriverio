@@ -22,10 +22,6 @@ export default async function elementClear (
     }
 
     const page = this.getPageHandle(true)
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     await page.$eval('html', command, elementHandle)
     return null
 }

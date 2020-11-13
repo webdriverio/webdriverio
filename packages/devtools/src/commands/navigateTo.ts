@@ -19,10 +19,6 @@ export default async function navigateTo (
     delete this.currentFrame
 
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     await page.goto(url)
     return null
 }

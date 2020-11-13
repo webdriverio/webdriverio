@@ -23,10 +23,6 @@ export default async function elementClick (
     { elementId }: { elementId: string }
 ) {
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     const elementHandle = await this.elementStore.get(elementId)
 
     if (!elementHandle) {

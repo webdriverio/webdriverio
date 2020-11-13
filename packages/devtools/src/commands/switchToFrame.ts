@@ -19,9 +19,6 @@ export default async function switchToFrame (
     { id }: { id: string }
 ) {
     const page = this.getPageHandle(true) as unknown as Frame
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
 
     /**
      * switch to parent frame

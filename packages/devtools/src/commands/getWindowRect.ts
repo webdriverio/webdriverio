@@ -12,10 +12,6 @@ import type DevToolsDriver from '../devtoolsdriver'
 
 export default async function getWindowRect (this: DevToolsDriver) {
     const page = this.getPageHandle()
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     const viewport = await page.viewport() || {}
     return Object.assign(
         { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, x: 0, y: 0 },
