@@ -247,7 +247,7 @@
       }, {
         "name": "right",
         "type": "number",
-        "description": "page margin in cm from right margin. Default: 1",
+        "description": "page margin in cm from right margin. Default: `1`",
         "required": false
       }, {
         "name": "shrinkToFit",
