@@ -222,7 +222,7 @@
       }, {
         "name": "width",
         "type": "number",
-        "description": "page width in cm. Default: 21.59 from page",
+        "description": "page width in cm. Default: `21.59` from page",
         "required": false
       }, {
         "name": "height",
