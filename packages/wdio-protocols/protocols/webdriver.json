@@ -237,7 +237,7 @@
       }, {
         "name": "bottom",
         "type": "number",
-        "description": "page margin in cm from bottom margin. Default: 1",
+        "description": "page margin in cm from bottom margin. Default: `1`",
         "required": false
       }, {
         "name": "left",
