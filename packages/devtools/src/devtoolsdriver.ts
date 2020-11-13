@@ -30,7 +30,15 @@ export default class DevToolsDriver {
         this.browser = browser
 
         const dir = path.resolve(__dirname, 'commands')
-        const files = fs.readdirSync(dir).filter((file) => file.endsWith('.js') || file.endsWith('.ts'))
+        const files = fs.readdirSync(dir).filter(
+            (file) => (
+                file.endsWith('.js') ||
+                (
+                    file.endsWith('.ts') &&
+                    !file.endsWith('.ts')
+                )
+            )
+        )
         for (let filename of files) {
             const commandName = path.basename(filename, path.extname(filename))
 
