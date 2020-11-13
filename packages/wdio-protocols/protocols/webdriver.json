@@ -212,7 +212,7 @@
       }, {
         "name": "scale",
         "type": "number",
-        "description": "page scale. Default: 1",
+        "description": "page scale. Default: `1`",
         "required": false
       }, {
         "name": "background",
