@@ -256,7 +256,7 @@
         "required": false
       }, {
         "name": "pageRanges",
-        "type": "Array<Object>",
+        "type": "object[]",
         "description": "page ranges.",
         "required": true
       }],
