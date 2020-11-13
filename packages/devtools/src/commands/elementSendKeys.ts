@@ -32,17 +32,11 @@ export default async function elementSendKeys (
         type: await elementHandle.getProperty('type')
     }
 
-    if (propertyHandles.tagName && propertyHandles.type) {
-        const tagName = await propertyHandles.tagName.jsonValue() as unknown as string
-        const type = await propertyHandles.type.jsonValue() as unknown as string
-
-        /**
-         * ToDo(Christian): needs some investigation
-         */
-        if (tagName === 'INPUT' && type === 'file'){
-            const paths = (text || '').split('\n').map(p => path.resolve(p))
-            await elementHandle.uploadFile(...paths)
-        }
+    const tagName = await propertyHandles.tagName?.jsonValue() as unknown as string
+    const type = await propertyHandles.type?.jsonValue() as unknown as string
+    if (tagName === 'INPUT' && type === 'file') {
+        const paths = (text || '').split('\n').map(p => path.resolve(p))
+        await elementHandle.uploadFile(...paths)
     } else {
         await page.keyboard.type(text)
     }
