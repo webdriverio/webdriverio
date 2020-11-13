@@ -38,7 +38,7 @@ export default class DevToolsDriver {
                 throw new Error('Couldn\'t determine command name')
             }
 
-            this.commands[commandName] = require(
+            this.commands[commandName] = DevToolsDriver.requireCommand(
                 path.join(dir, commandName)
             ).default
         }

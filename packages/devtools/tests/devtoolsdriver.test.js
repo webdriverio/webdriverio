@@ -7,7 +7,7 @@ jest.mock('fs', () => ({
     ])
 }))
 
-DevToolsDriver.requireCommand = jest.fn()
+DevToolsDriver.requireCommand = jest.fn().mockReturnValue({})
 
 let evaluateCommandCalls = 0
 const executionContext = {
@@ -151,19 +151,6 @@ test('should rerun command if it was executed within navigation', async () => {
     expect(driver.commands.elementClick).toBeCalledTimes(2)
     expect(result).toBe(null)
     expect(emit.mock.calls).toMatchSnapshot()
-})
-
-test('should not throw if there are no pages', async () => {
-    driver.windows.clear()
-    driver.commands.deleteSession = jest.fn().mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 100))
-    )
-
-    const emit = jest.fn()
-    const command = driver.register({ command: 'deleteSession', variables: [], parameters: [] })
-
-    await command.call({ emit })
-    expect(driver.commands.deleteSession).toBeCalledTimes(1)
 })
 
 test('throws error if navigation takes too long', async () => {

@@ -14,7 +14,7 @@ test('should keep a map of elements', async () => {
     expect(await store.get('ELEMENT-1')).toBe(elementHandle1)
 
     store.clear()
-    expect(store.elementMap.size).toBe(0)
+    expect(store['_elementMap'].size).toBe(0)
 
     const elementHandle2 = elementHandleFactory()
     store.set(elementHandle2)
