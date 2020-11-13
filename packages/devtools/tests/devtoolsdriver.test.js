@@ -3,11 +3,22 @@ import DevToolsDriver from '../src/devtoolsdriver'
 jest.mock('fs', () => ({
     readdirSync: jest.fn().mockReturnValue([
         '/foo/bar/click.js',
-        '/foo/bar/getAttribute.js'
+        '/foo/bar/getAttribute.ts',
+        '/foo/bar/getAttribute.d.ts'
     ])
 }))
 
-DevToolsDriver.requireCommand = jest.fn().mockReturnValue({})
+DevToolsDriver.requireCommand = jest.fn().mockImplementation((filePath) => {
+    if (filePath.includes('click')) {
+        return 'clickCommand'
+    }
+
+    if (filePath.includes('getAttribute')) {
+        return 'getAttributeCommand'
+    }
+
+    return {}
+})
 
 let evaluateCommandCalls = 0
 const executionContext = {
@@ -75,7 +86,7 @@ beforeEach(() => {
 })
 
 test('can be initiated', () => {
-    expect(driver.commands).toEqual({ click: undefined, getAttribute: undefined })
+    expect(driver.commands).toEqual({ click: 'clickCommand', getAttribute: 'getAttributeCommand' })
     expect(driver.browser).toEqual(browser)
     expect(page.on).toBeCalledWith('dialog', expect.any(Function))
     expect(page.on).toBeCalledWith('framenavigated', expect.any(Function))

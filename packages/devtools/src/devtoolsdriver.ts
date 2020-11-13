@@ -35,7 +35,7 @@ export default class DevToolsDriver {
                 file.endsWith('.js') ||
                 (
                     file.endsWith('.ts') &&
-                    !file.endsWith('.ts')
+                    !file.endsWith('.d.ts')
                 )
             )
         )
