@@ -232,7 +232,7 @@
       }, {
         "name": "top",
         "type": "number",
-        "description": "page margin in cm from top margin. Default: 1",
+        "description": "page margin in cm from top margin. Default: `1`",
         "required": false
       }, {
         "name": "bottom",
