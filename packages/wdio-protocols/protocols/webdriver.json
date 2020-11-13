@@ -257,7 +257,7 @@
       }, {
         "name": "pageRanges",
         "type": "object[]",
-        "description": "page ranges.",
+        "description": "page ranges. Default `[]`",
         "required": false
       }],
       "returns": {
