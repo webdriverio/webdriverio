@@ -252,7 +252,7 @@
       }, {
         "name": "shrinkToFit",
         "type": "boolean",
-        "description": "shrink pdf to fit in page. Default: true",
+        "description": "shrink pdf to fit in page. Default: `true`",
         "required": false
       }, {
         "name": "pageRanges",
