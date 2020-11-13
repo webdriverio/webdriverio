@@ -242,7 +242,7 @@
       }, {
         "name": "left",
         "type": "number",
-        "description": "page margin in cm from left margin. Default: 1",
+        "description": "page margin in cm from left margin. Default: `1`",
         "required": false
       }, {
         "name": "right",
