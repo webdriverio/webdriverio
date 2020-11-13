@@ -227,7 +227,7 @@
       }, {
         "name": "height",
         "type": "number",
-        "description": "page height in cm. Default: 27.94 from page",
+        "description": "page height in cm. Default: `27.94` from page",
         "required": false
       }, {
         "name": "top",
