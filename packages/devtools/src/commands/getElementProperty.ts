@@ -23,7 +23,7 @@ export default async function getElementProperty (
 
     const jsHandle = await elementHandle.getProperty(name)
     if (!jsHandle) {
-        throw new Error(`Couldn't find property "${name}"`)
+        return null
     }
 
     return jsHandle.jsonValue()

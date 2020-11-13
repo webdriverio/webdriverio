@@ -28,11 +28,7 @@ export default async function closeWindow (this: DevToolsDriver) {
         this.currentWindowHandle = newWindowHandle
     }
 
-    const newPage = this.windows.get(this.currentWindowHandle)
-    if (!newPage) {
-        throw new Error('Couldn\'t find page to switch to')
-    }
-
+    const newPage = this.getPageHandle()
     await newPage.bringToFront()
     return this.currentWindowHandle
 }

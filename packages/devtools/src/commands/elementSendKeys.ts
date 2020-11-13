@@ -33,13 +33,12 @@ export default async function elementSendKeys (
     }
 
     if (propertyHandles.tagName && propertyHandles.type) {
-        const tagName = await propertyHandles.tagName.jsonValue()
-        const type = await propertyHandles.type.jsonValue()
+        const tagName = await propertyHandles.tagName.jsonValue() as unknown as string
+        const type = await propertyHandles.type.jsonValue() as unknown as string
 
         /**
          * ToDo(Christian): needs some investigation
          */
-        // @ts-ignore
         if (tagName === 'INPUT' && type === 'file'){
             const paths = (text || '').split('\n').map(p => path.resolve(p))
             await elementHandle.uploadFile(...paths)
