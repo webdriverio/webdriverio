@@ -217,7 +217,7 @@
       }, {
         "name": "background",
         "type": "boolean",
-        "description": "page background. Default: false",
+        "description": "page background. Default: `false`",
         "required": false
       }, {
         "name": "width",
