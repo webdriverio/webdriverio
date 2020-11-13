@@ -1,11 +1,11 @@
 /**
  * returns active element of document
  */
-export default function getActiveElement (_: Element, dataProperty: unknown) {
+export default function getActiveElement (_: Element, dataProperty: string) {
     if (!document.activeElement) {
         return false
     }
 
-    document.activeElement.setAttribute(dataProperty as string, 'true')
+    document.activeElement.setAttribute(dataProperty, 'true')
     return true
 }

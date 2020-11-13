@@ -30,10 +30,5 @@ export default function findElement (
     }
 
     const page = this.getPageHandle(true)
-
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     return findElementUtil.call(this, page, using, value)
 }

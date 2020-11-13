@@ -3,7 +3,6 @@ import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 
 import logger from '@wdio/logger'
-import { safeRequire } from '@wdio/utils'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
@@ -39,8 +38,9 @@ export default class DevToolsDriver {
                 throw new Error('Couldn\'t determine command name')
             }
 
-            // @ts-ignore
-            this.commands[commandName] = safeRequire(path.join(dir, commandName))?.default
+            this.commands[commandName] = require(
+                path.join(dir, commandName)
+            ).default
         }
 
         for (const page of pages) {
@@ -105,10 +105,6 @@ export default class DevToolsDriver {
                     log.debug('Command failed due to unfinished page transition, retrying...')
                     const page = self.getPageHandle()
                     await new Promise((resolve, reject) => {
-                        if (!page) {
-                            return reject(new Error('Couldn\'t find page'))
-                        }
-
                         const pageloadTimeout = setTimeout(
                             () => reject(new Error('page load timeout')),
                             self.timeouts.get('pageLoad'))
@@ -178,6 +174,11 @@ export default class DevToolsDriver {
         }
 
         const pageHandle = this.windows.get(this.currentWindowHandle)
+
+        if (!pageHandle) {
+            throw new Error('Couldn\'t find page handle')
+        }
+
         return pageHandle
     }
 

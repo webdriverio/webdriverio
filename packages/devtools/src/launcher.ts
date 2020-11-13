@@ -109,7 +109,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         ...chromeOptions,
         browserURL: `http://localhost:${chrome.port}`,
         defaultViewport: null
-    }) as unknown as Browser
+    }) as unknown as Browser // casting from @types/puppeteer to built in type
 
     /**
      * when using Chrome Launcher we have to close a tab as Puppeteer
@@ -151,12 +151,7 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
         capabilities[vendorCapKey] = {}
     }
 
-    if (!(process.platform in browserFinder[browserType])) {
-        throw new Error(`Your platform "${process.platform}" is not supported, supported are ${Object.keys(browserFinder[browserType]).join(', ')}`)
-    }
-
-    // @ts-ignore
-    const browserFinderMethod = browserFinder[browserType][process.platform]
+    const browserFinderMethod = browserFinder(browserType, process.platform)
     const executablePath = (
         capabilities[vendorCapKey]?.binary ||
         browserFinderMethod()[0]

@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '@wdio/logger'
 import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import DevToolsDriver from './devtoolsdriver'
 import launch from './launcher'
@@ -38,9 +39,12 @@ export default class DevTools {
         /**
          * find vendor key in capabilities
          */
+        type ValueOf<T> = T[keyof T]
         const availableVendorPrefixes = Object.values(VENDOR_PREFIX)
-        const vendorCapPrefix = Object.keys(params.capabilities as WebDriver.Capabilities).find(
-            (capKey: any) => availableVendorPrefixes.includes(capKey))
+        const vendorCapPrefix = Object.keys(params.capabilities as WebDriver.Capabilities)
+            .find(
+                (capKey: ValueOf<typeof VENDOR_PREFIX>) => availableVendorPrefixes.includes(capKey)
+            ) as keyof WebDriver.Capabilities
 
         /**
          * save original set of capabilities to allow to request the same session again
@@ -59,22 +63,29 @@ export default class DevTools {
             Object.assign(params.capabilities, {
                 [vendorCapPrefix]: Object.assign(
                     { debuggerAddress: (browser as any)._connection.url().split('/')[2] },
-                    // @ts-ignore
                     params.capabilities[vendorCapPrefix]
                 )
             })
         }
 
         sessionMap.set(sessionId, { browser, session: driver })
-        const environmentPrototype: Record<string, { value: any }> = { puppeteer: { value: browser } }
+        const environmentPrototype: Record<string, { value: Browser | boolean }> = { puppeteer: { value: browser } }
         Object.entries(devtoolsEnvironmentDetector({
             browserName: userAgent?.browser?.name?.toLowerCase()
         })).forEach(([name, value]) => {
             environmentPrototype[name] = { value }
         })
-        const commandWrapper = (_: any, __: any, commandInfo: any) => driver.register(commandInfo)
+        const commandWrapper = (
+            method: string,
+            endpoint: string,
+            commandInfo: WDIOProtocols.CommandEndpoint
+        ) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
-        const prototype = { ...protocolCommands, ...userPrototype, ...environmentPrototype }
+        const prototype = {
+            ...protocolCommands,
+            ...userPrototype,
+            ...environmentPrototype
+        }
 
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(sessionId, customCommandWrapper)

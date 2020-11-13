@@ -72,8 +72,8 @@ function linux() {
     )
 }
 
-function win32() {
-    const installations = []
+function win32 () {
+    const installations: string[] = []
     const suffixes = [
         `${path.sep}Microsoft${path.sep}Edge${path.sep}Application${path.sep}edge.exe`,
         `${path.sep}Microsoft${path.sep}Edge${path.sep}Application${path.sep}msedge.exe`,

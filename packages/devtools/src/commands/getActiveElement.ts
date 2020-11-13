@@ -18,10 +18,6 @@ export default async function getActiveElement (
     const page = this.getPageHandle(true)
     const selector = `[${SERIALIZE_PROPERTY}]`
 
-    if (!page) {
-        throw new Error('Couldn\'t find page')
-    }
-
     /**
      * set data property to active element to allow to query for it
      */
