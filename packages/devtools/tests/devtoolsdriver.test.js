@@ -304,4 +304,10 @@ test('getPageHandle', () => {
     expect(driver.getPageHandle()).toBe('foobar')
 
     expect(driver.getPageHandle(true)).toBe('barfoo')
+
+    driver.windows = { get: jest.fn().mockReturnValue(undefined) }
+    expect(() => driver.getPageHandle()).toThrow(/find page handle/)
+
+    delete driver.currentWindowHandle
+    expect(() => driver.getPageHandle()).toThrow(/no current window/)
 })
