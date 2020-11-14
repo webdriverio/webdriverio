@@ -245,6 +245,11 @@ class MochaAdapter {
                 message.passed = (params.payload.state === 'passed')
             }
 
+            if (params.payload?.parent?.title && params.payload.title.match(/^"(before|after) all?" hook/)) {
+                const hookName = params.payload.title.match(/^"(before|after) all?" hook/)[0]
+                message.title = `${hookName} for ${params.payload.parent.title}`
+            }
+
             if (params.payload.context) { message.context = params.payload.context }
         }
 
