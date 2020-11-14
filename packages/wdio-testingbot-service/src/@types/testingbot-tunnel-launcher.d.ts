@@ -1,6 +1,6 @@
 declare module 'testingbot-tunnel-launcher' {
     const testingbotTunnel: (options: TunnelLauncherOptions, cb: (err: Error, tunnel: TestingbotTunnel) => void) => void;
-    export default testingbotTunnel;
+    export = testingbotTunnel;
 }
 
 interface TunnelLauncherOptions {
@@ -19,30 +19,30 @@ interface TunnelLauncherOptions {
  
     // Proxy host and port the tunnel can use to connect to an upstream proxy
     // e.g. "localhost:1234" (optional)
-    proxy?: string,
+    proxy?: string;
  
     // a comma-separated list of domains that
     // will not go through the tunnel. (optional)
-    'fast-fail-regexps'?: string,
+    'fast-fail-regexps'?: string;
  
     // Write logging output to this logfile (optional)
-    logfile?: string,
+    logfile?: string;
  
     // Change the tunnel version - see versions on https://testingbot.com/support/other/tunnel
     // "1.19" // or 2.1 (Java 8)
-    tunnelVersion?: string,
+    tunnelVersion?: string;
 
     // A unique identifier for this tunnel (optional)
-    tunnelIdentifier?: string,
+    tunnelIdentifier?: string;
 
     // This file will be touched when the tunnel is ready for usage (optional)
-    readyFile?: string,
+    readyFile?: string;
 
     // Use a custom DNS server. For example: 8.8.8.8 (optional)
-    dns?: string,
+    dns?: string;
 
     // Bypass the Caching Proxy running on the TestingBot tunnel VM.
-    noproxy?: string,
+    noproxy?: string;
 }
 
 interface TestingbotTunnel {

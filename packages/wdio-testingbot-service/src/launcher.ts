@@ -1,7 +1,7 @@
 import { performance, PerformanceObserver } from 'perf_hooks'
 import { promisify } from 'util'
 
-import testingbotTunnel from 'testingbot-tunnel-launcher'
+import testingbotTunnel = require('testingbot-tunnel-launcher')
 import logger from '@wdio/logger'
 
 const log = logger('@wdio/testingbot-service')
@@ -14,24 +14,20 @@ export default class TestingBotLauncher {
         this.options = options
     }
 
-    async onPrepare (config: WebdriverIO.Config, capabilities: WebDriver.Capabilities) {
+    async onPrepare (config: WebdriverIO.Config) {
         if (!this.options.tbTunnel || !config.user || !config.key) {
             return
         }
 
-        const tbTunnelIdentifier = `TB-tunnel-${Math.random().toString().slice(2)}`
-
         this.tbTunnelOpts = Object.assign({
             apiKey: config.user,
-            apiSecret: config.key,
-            'tunnel-identifier': tbTunnelIdentifier,
+            apiSecret: config.key
         }, this.options.tbTunnelOpts)
 
-        if (!capabilities['tb:options']) {
-            capabilities['tb:options'] = {}
-        }
-
-        capabilities['tb:options'].tunnelIdentifier = tbTunnelIdentifier
+        config.protocol = 'http'
+        config.hostname = 'localhost'
+        config.port = 4445
+        config.path = '/wd/hub'
 
         /**
          * measure TestingBot tunnel boot time
