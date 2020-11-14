@@ -1,6 +1,9 @@
+/// <reference types="webdriver"/>
+
 declare namespace WDIOReporter {
     type TestState = 'passed' | 'pending' | 'failed' | 'skipped' | 'started' | 'ended';
     type ErrorType = 'AssertionError' | 'Error';
+    type WriteStream = Partial<import('fs').WriteStream>
     type WDIOReporterOptions = WDIOReporterOptionsFromLogFile | WDIOReporterOptionsFromStdout;
 
     class Reporter {
@@ -43,7 +46,7 @@ declare namespace WDIOReporter {
 
     interface WDIOReporterOptionsFromStdout extends WDIOReporterBaseOptions {
         stdout: boolean
-        writeStream: WriteStream
+        writeStream:WriteStream
     }
 
     interface WDIOReporterOptionsFromLogFile extends WDIOReporterBaseOptions {
