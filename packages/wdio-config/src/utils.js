@@ -48,7 +48,7 @@ export function isCucumberFeatureWithLineNumber(spec) {
 }
 
 export function isCloudCapability(cap) {
-    if (cap.capabilities) {
+    if (cap && cap.capabilities) {
         cap = cap.capabilities
     }
 
