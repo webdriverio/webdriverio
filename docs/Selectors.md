@@ -354,6 +354,15 @@ const elem = $('./file/path/of/image/test.jpg')
 elem.click()
 ```
 
+**Note**: The way how Appium works with this selector is that it will internally make a (app)screenshot and use the provided image selector 
+to verify if the element can be found in that (app)screenshot.
+
+Be aware of the fact that Appium might resize the taken (app)screenshot to make it match the CSS-size of your (app)screen (this will happen 
+on iPhones but also on Mac machines with a Retina display because the DPR is bigger than 1). This will result in not finding a match because 
+the provided image selector might have been taken from the original screenshot. 
+You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) 
+for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
+
 ## React Selectors
 
 WebdriverIO provides a way to select React components based on the component name. To do this, you have a choice of two commands: `react$` and `react$$`.
