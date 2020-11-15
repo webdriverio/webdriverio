@@ -56,3 +56,9 @@ body input#search_input_react {
     background-color: $orange;
     visibility: .8;
 }
+
+@media screen and (max-width: 1024px) {
+    .navigationSlider .slidingNav ul {
+        margin-top: 2.5em;
+    }
+}

@@ -1,5 +1,4 @@
 /// <reference types="@applitools/visual-grid-client"/>
-
 declare namespace WebdriverIO {
     interface ServiceOption extends ApplitoolsConfig {}
     interface Browser extends ApplitoolsBrowser {}

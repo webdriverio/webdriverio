@@ -21,6 +21,7 @@
     "e2e/**/*",
     "coverage",
     "examples",
-    "jest.config.js"
+    "jest.config.js",
+    "/*.js"
   ]
 }

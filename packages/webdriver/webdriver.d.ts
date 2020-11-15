@@ -274,12 +274,13 @@ declare namespace WebDriver {
         firstMatch: Capabilities[];
     }
 
-    export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
+    export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
         // Read-only capabilities
         cssSelectorsEnabled?: boolean;
         handlesAlerts?: boolean;
         version?: string;
         platform?: string;
+        public?: any;
 
         loggingPrefs?: {
             browser?: LoggingPreferences;
@@ -544,6 +545,13 @@ declare namespace WebDriver {
         maxDuration?: number
         commandTimeout?: number
         idleTimeout?: number
+    }
+
+    export interface TestingbotCapabilities {
+        name?: string;
+        tags?: string[];
+        build?: string | number;
+        public?: boolean;
     }
 
     export interface SeleniumRCCapabilities {

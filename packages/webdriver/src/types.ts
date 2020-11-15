@@ -260,12 +260,13 @@ export interface W3CCapabilities {
     firstMatch: Capabilities[];
 }
 
-export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
+export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
     handlesAlerts?: boolean;
     version?: string;
     platform?: string;
+    public?: any;
 
     loggingPrefs?: {
         browser?: LoggingPreferences;
@@ -530,6 +531,13 @@ export interface SauceLabsCapabilities {
     maxDuration?: number
     commandTimeout?: number
     idleTimeout?: number
+}
+
+/**
+ * https://testingbot.com/support/other/test-options#platform
+ */
+export interface TestingbotCapabilities {
+    public?: boolean;
 }
 
 export interface SeleniumRCCapabilities {
