@@ -48,6 +48,10 @@ export function isCucumberFeatureWithLineNumber(spec) {
 }
 
 export function isCloudCapability(cap) {
+    if (cap && cap.capabilities) {
+        cap = cap.capabilities
+    }
+
     return Boolean(cap && (cap['bstack:options'] || cap['sauce:options'] || cap['tb:options']))
 }
 
