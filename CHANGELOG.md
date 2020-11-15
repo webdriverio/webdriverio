@@ -17,6 +17,39 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.7.4 (2020-11-09)
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6078](https://github.com/webdriverio/webdriverio/pull/6078) feat(ui5-service): add UI5 support to wdio ([@dominikfeininger](https://github.com/dominikfeininger))
+
+#### Committers: 1
+- dominik feininger ([@dominikfeininger](https://github.com/dominikfeininger))
+
+
+## v6.7.3 (2020-11-08)
+
+#### :bug: Bug Fix
+* `wdio-logger`, `webdriver`
+  * [#6073](https://github.com/webdriverio/webdriverio/pull/6073) Closes [#6068](https://github.com/webdriverio/webdriverio/issues/6068) ([@RedMickey](https://github.com/RedMickey))
+
+#### :nail_care: Polish
+* `wdio-sync`, `webdriverio`
+  * [#6067](https://github.com/webdriverio/webdriverio/pull/6067) Better typing for callback arguments in browser.execute ([@abdatta](https://github.com/abdatta))
+* `wdio-sauce-service`
+  * [#5961](https://github.com/webdriverio/webdriverio/pull/5961) retry if SC fails to start ([@enriquegh](https://github.com/enriquegh))
+
+#### :house: Internal
+* `wdio-applitools-service`, `wdio-selenium-standalone-service`, `wdio-shared-store-service`, `wdio-sync`, `wdio-testingbot-service`, `webdriver`, `webdriverio`
+  * [#6032](https://github.com/webdriverio/webdriverio/pull/6032) Tracking doc: rewrite `@wdio/testingbot-service` package into TypeScript ([@hieuxlu](https://github.com/hieuxlu))
+
+#### Committers: 4
+- Abhishek Datta ([@abdatta](https://github.com/abdatta))
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Hieu Do ([@hieuxlu](https://github.com/hieuxlu))
+- [@RedMickey](https://github.com/RedMickey)
+
+
 ## v6.7.2 (2020-11-02)
 
 #### :bug: Bug Fix
