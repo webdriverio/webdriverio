@@ -338,11 +338,11 @@ describe('Hook start', () => {
             reporter.onSuiteStart(suiteStart())
 
             if (hookFirst) {
-                reporter.onTestStart(testStart())
                 reporter.onHookStart(hookStartWithCurrentTest())
+                reporter.onTestStart(testStart())
             } else {
-                reporter.onHookStart(hookStartWithCurrentTest())
                 reporter.onTestStart(testStart())
+                reporter.onHookStart(hookStartWithCurrentTest())
             }
 
             reporter.onTestFail(testFailed())
