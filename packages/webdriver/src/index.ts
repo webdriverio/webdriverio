@@ -1,6 +1,5 @@
 import logger from '@wdio/logger'
 
-// @ts-ignore
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 // @ts-ignore
 import { validateConfig } from '@wdio/config'
@@ -45,7 +44,7 @@ export default class WebDriver {
         }
 
         const { sessionId, capabilities } = await startWebDriverSession(params)
-        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities: params.capabilities })
+        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities: params.requestedCapabilities })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
