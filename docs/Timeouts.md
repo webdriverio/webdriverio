@@ -65,7 +65,7 @@ const myElem = $('#myElem')
 myElem.waitForDisplayed()
 
 // you can also overwrite the default timeout if needed
-myElem.waitForDisplayed(10000)
+myElem.waitForDisplayed({ timeout: 10000 })
 ```
 
 ## Framework related timeouts
