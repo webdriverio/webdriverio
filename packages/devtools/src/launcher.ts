@@ -26,8 +26,12 @@ const log = logger('devtools')
 const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.name)
 
 interface DevToolsOptions {
-    ignoreDefaultArgs?: boolean
-    headless?: boolean
+    ignoreDefaultArgs?: string[] | boolean
+    headless?: boolean,
+    defaultViewport?: {
+        width: number,
+        height: number
+    }
 }
 
 interface ExtendedCapabilities extends WebDriver.Capabilities {
@@ -166,7 +170,7 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT
         }
-    }, capabilities[vendorCapKey] || {})
+    }, capabilities[vendorCapKey] || {}, devtoolsOptions || {})
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
