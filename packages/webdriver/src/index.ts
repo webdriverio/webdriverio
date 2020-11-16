@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
+// @ts-ignore
 import { validateConfig } from '@wdio/config'
 
 import { DEFAULTS } from './constants'
