@@ -17,6 +17,40 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.8.0 (2020-11-16)
+
+#### :rocket: New Feature
+* `wdio-protocols`
+  * [#6102](https://github.com/webdriverio/webdriverio/pull/6102) feat: enable new printPage command via webdriver protocol binding ([@zachlysobey](https://github.com/zachlysobey))
+
+#### :bug: Bug Fix
+* `wdio-repl`, `wdio-utils`, `webdriver`
+  * [#6111](https://github.com/webdriverio/webdriverio/pull/6111) Fix environment detection ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-mocha-framework`
+  * [#6108](https://github.com/webdriverio/webdriverio/pull/6108) fix(5973): fix for mocha before all hook incorrectly taking the first… ([@sarathps93](https://github.com/sarathps93))
+* `wdio-appium-service`, `wdio-config`, `wdio-selenium-standalone-service`, `wdio-sync`, `webdriverio`
+  * [#6107](https://github.com/webdriverio/webdriverio/pull/6107) Fix Selenium-Standalone service overriding capabilities  ([@hieuxlu](https://github.com/hieuxlu))
+
+#### :memo: Documentation
+* [#6104](https://github.com/webdriverio/webdriverio/pull/6104) Update Selectors.md ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :house: Internal
+* `devtools`, `wdio-config`, `wdio-logger`, `wdio-protocols`, `webdriver`
+  * [#5824](https://github.com/webdriverio/webdriverio/pull/5824) Tracking doc: rewrite `devtools` package into TypeScript ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#6089](https://github.com/webdriverio/webdriverio/pull/6089) website: adjust landing page mobile view ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 8
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Hieu Do ([@hieuxlu](https://github.com/hieuxlu))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Sarath ([@sarathps93](https://github.com/sarathps93))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- Zachary Lysobey ([@zachlysobey](https://github.com/zachlysobey))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- dominik feininger ([@dominikfeininger](https://github.com/dominikfeininger))
+
+
 ## v6.7.4 (2020-11-09)
 
 #### :memo: Documentation
