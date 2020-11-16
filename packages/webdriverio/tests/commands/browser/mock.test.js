@@ -8,7 +8,8 @@ const clientMock = {
 const pageMock = {
     target: jest.fn().mockReturnValue({
         createCDPSession: jest.fn().mockReturnValue(Promise.resolve(clientMock))
-    })
+    }),
+    evaluate: jest.fn().mockReturnValue(Promise.resolve(true))
 }
 const puppeteerMock = {
     pages: jest.fn().mockReturnValue([pageMock])

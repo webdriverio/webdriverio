@@ -100,36 +100,54 @@ import DevtoolsNetworkInterception from '../../utils/interception/devtools'
 import WebDriverNetworkInterception from '../../utils/interception/webdriver'
 import { getBrowserObject } from '../../utils'
 
-const SESSION_MOCKS: Map<string, Set<Interception>> = new Map()
+const SESSION_MOCKS: Record<string, Set<Interception>> = {}
 
-export default async function mock(this: WebdriverIO.BrowserObject, url: string, filterOptions: WebdriverIO.MockFilterOptions) {
+export default async function mock (this: WebdriverIO.BrowserObject, url: string, filterOptions: WebdriverIO.MockFilterOptions) {
     const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
+
     if (!this.isSauce) {
         await this.getPuppeteer()
     }
+
     const browser = getBrowserObject(this)
-    const windowHandle: string = await browser.getWindowHandle()
+    const handle = await browser.getWindowHandle()
+    if (!SESSION_MOCKS[handle]) {
+        SESSION_MOCKS[handle] = new Set()
+    }
+
     /**
      * enable network Mocking if not already
      */
-    if (!SESSION_MOCKS.has(windowHandle) && !this.isSauce) {
-        SESSION_MOCKS.set(windowHandle, new Set())
+    if (SESSION_MOCKS[handle].size === 0 && !this.isSauce) {
         const pages = await this.puppeteer.pages()
-        await pages.forEach(async (page: any) => {
-            const client = await page.target().createCDPSession()
-            client.send('Fetch.enable', {
-                patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
-            })
-            client.on(
-                'Fetch.requestPaused',
-                (NetworkInterception as unknown as typeof DevtoolsNetworkInterception)
-                    .handleRequestInterception(client, SESSION_MOCKS.get(windowHandle)!)
-            )
+
+        // get active page
+        let page
+        for (let i = 0; i < pages.length && !page; i++) {
+            const isHidden = await pages[i].evaluate(() => document.hidden)
+            if (!isHidden) {
+                page = pages[i]
+            }
+        }
+
+        // fallback to the first page
+        if (!page) {
+            page = pages[0]
+        }
+
+        const client = await page.target().createCDPSession()
+        await client.send('Fetch.enable', {
+            patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
         })
+        client.on(
+            'Fetch.requestPaused',
+            (NetworkInterception as unknown as typeof DevtoolsNetworkInterception)
+                .handleRequestInterception(client, SESSION_MOCKS[handle])
+        )
     }
 
     const networkInterception = new NetworkInterception(url, filterOptions, browser)
-    SESSION_MOCKS.get(windowHandle)!.add(networkInterception as Interception)
+    SESSION_MOCKS[handle].add(networkInterception as Interception)
 
     if (this.isSauce) {
         await (networkInterception as WebDriverNetworkInterception).init()
