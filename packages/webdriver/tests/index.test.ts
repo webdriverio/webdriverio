@@ -1,10 +1,12 @@
 import gotMock from 'got'
 import logger from '@wdio/logger'
+import * as wdioUtils from '@wdio/utils'
 
 import WebDriver from '../src'
 import { DesiredCapabilities, Client } from '../src/types'
 
 const got = gotMock as unknown as jest.Mock
+const sessionEnvironmentDetector = wdioUtils.sessionEnvironmentDetector as jest.Mock
 
 const sessionOptions = {
     protocol: 'http',
@@ -60,6 +62,9 @@ describe('WebDriver', () => {
                 },
                 desiredCapabilities: { browserName: 'firefox' }
             })
+
+            expect(sessionEnvironmentDetector.mock.calls)
+                .toMatchSnapshot()
         })
 
         it('should be possible to skip setting logLevel', async () => {
@@ -206,5 +211,6 @@ describe('WebDriver', () => {
     afterEach(() => {
         (logger.setLevel as jest.Mock).mockClear()
         got.mockClear()
+        sessionEnvironmentDetector.mockClear()
     })
 })
