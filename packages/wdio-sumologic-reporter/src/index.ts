@@ -22,7 +22,7 @@ interface Options {
 export default class SumoLogicReporter extends WDIOReporter {
     options: Options
     unsynced: Array<string>
-    isSynchronising: boolean
+    isSynchronising = false
     errorCount: number
     interval: number
     inSync?: boolean
