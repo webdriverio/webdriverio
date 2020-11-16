@@ -59,15 +59,11 @@ export default function waitUntil(
      * ensure that timeout and interval are set properly
      */
     if (typeof timeout !== 'number') {
-        timeout = this.options.waitforTimeout
+        timeout = this.options.waitforTimeout as number
     }
 
     if (typeof interval !== 'number') {
-        interval = this.options.waitforInterval
-    }
-
-    if (interval === undefined || timeout === undefined) {
-        throw new Error('interval or timeout are not set')
+        interval = this.options.waitforInterval as number
     }
 
     const fn = condition.bind(this)

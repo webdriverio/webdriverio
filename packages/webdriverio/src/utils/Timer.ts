@@ -40,7 +40,7 @@ class Timer {
 
         this.start()
 
-        return { ...this, retPromise }
+        return retPromise as any
     }
 
     start () {
@@ -85,9 +85,9 @@ class Timer {
     }
 
     tick () {
-        const result = this._fn()
+        const result = this._fn() as any
 
-        if (typeof result === 'boolean') {
+        if (typeof result.then !== 'function') {
             if (!result) {
                 return this.checkCondition(new Error('return value was never truthy'))
             }
@@ -96,8 +96,8 @@ class Timer {
         }
 
         result.then(
-            (res) => this.checkCondition(null, res),
-            (err) => this.checkCondition(err)
+            (res: any) => this.checkCondition(null, res),
+            (err: any) => this.checkCondition(err)
         )
     }
 
@@ -113,7 +113,7 @@ class Timer {
             return
         }
 
-        if (!this._start || !this._ticks) {
+        if (this._start === undefined || this._ticks === undefined) {
             return
         }
 

@@ -30,15 +30,11 @@ export default class Interception {
          * ensure that timeout and interval are set properly
          */
         if (typeof timeout !== 'number') {
-            timeout = this.browser.options.waitforTimeout
+            timeout = this.browser.options.waitforTimeout as number
         }
 
         if (typeof interval !== 'number') {
-            interval = this.browser.options.waitforInterval
-        }
-
-        if (interval === undefined || timeout === undefined) {
-            throw new Error('interval or timeout are not set')
+            interval = this.browser.options.waitforInterval as number
         }
 
         const fn = () => this.calls && this.calls.length > 0 || false
