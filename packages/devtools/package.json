@@ -22,6 +22,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@types/puppeteer-core": "^2.0.0",
+    "@types/ua-parser-js": "^0.7.33",
+    "@types/uuid": "^8.3.0",
     "@wdio/config": "6.7.3",
     "@wdio/logger": "6.7.3",
     "@wdio/protocols": "6.6.0",

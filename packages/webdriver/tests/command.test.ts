@@ -15,7 +15,7 @@ const commandPath = '/session/:sessionId/element/:elementId/element'
 const commandMethod = 'POST'
 const commandEndpoint: Protocols.CommandEndpoint = {
     command: 'findElementFromElement',
-    ref: new URL('https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element-from-element'),
+    ref: 'https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element-from-element',
     description: '',
     variables: [{
         name: 'elementId',
@@ -175,7 +175,7 @@ describe('command wrapper result log', () => {
         method: 'GET',
         endpoint: {
             command: 'takeScreenshot',
-            ref: new URL('https://foobar.com'),
+            ref: 'https://foobar.com',
             parameters: [],
             description: ''
         }

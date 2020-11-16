@@ -7,6 +7,7 @@
     "declarationMap": true,
     "resolveJsonModule": true,
     "removeComments": true,
+    "strictFunctionTypes": false,
     "lib": ["dom"],
     "types": [
       "node",

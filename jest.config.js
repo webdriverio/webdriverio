@@ -13,6 +13,11 @@ const SKIPPED_NODE_10_TESTS = process.version.startsWith('v10')
     : []
 
 module.exports = {
+    globals: {
+        'ts-jest': {
+            isolatedModules: true
+        }
+    },
     testMatch: [
         '**/tests/**/*.test.(js|ts)'
     ],
@@ -38,7 +43,7 @@ module.exports = {
             branches: 95,
             functions: 98,
             lines: 99,
-            statements: 99
+            statements: 98
         }
     },
     testEnvironment: 'node',
