@@ -37,7 +37,6 @@ export default class SumoLogicReporter extends WDIOReporter {
         }, options)
         super(options)
         this.options = options
-        this.isSynchronising = false
         if (typeof this.options.sourceAddress !== 'string') {
             log.error('Sumo Logic requires "sourceAddress" paramater')
         }
