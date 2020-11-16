@@ -12,7 +12,7 @@ import { runnerEnd, runnerStart } from './__fixtures__/runner'
 import { suiteEnd, suiteStart } from './__fixtures__/suite'
 import {
     testFailed, testPassed, testPending, testStart, testFailedWithMultipleErrors,
-    hookStart, hookFailed,
+    hookStart, hookFailed, hookStartWithCurrentTest,
     testFailedWithAssertionErrorFromExpectWebdriverIO
 } from './__fixtures__/testState'
 import {
@@ -311,6 +311,54 @@ describe('Pending tests', () => {
         expect(allureXml('test-case > name').first().text()).toEqual(passed.title)
         expect(allureXml('test-case').first().attr('status')).toEqual('passed')
     })
+})
+
+describe('Hook start', () => {
+    let outputDir
+    let allureXml
+
+    beforeEach(() => {
+        outputDir = directory()
+    })
+
+    afterEach(() => {
+        clean(outputDir)
+    })
+
+    for (const hookFirst of [true, false]) {
+        it(`should use currentTest if provided by hook and not report multiple tests when start hook comes ${hookFirst?'first':'second'}`, () => {
+
+            const reporter = new AllureReporter({ stdout: true, outputDir })
+
+            const runnerEvent = runnerStart()
+            delete runnerEvent.capabilities.browserName
+            delete runnerEvent.capabilities.version
+
+            reporter.onRunnerStart(runnerEvent)
+            reporter.onSuiteStart(suiteStart())
+
+            if (hookFirst) {
+                reporter.onTestStart(testStart())
+                reporter.onHookStart(hookStartWithCurrentTest())
+            } else {
+                reporter.onHookStart(hookStartWithCurrentTest())
+                reporter.onTestStart(testStart())
+            }
+
+            reporter.onTestFail(testFailed())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            allureXml = results[0]
+
+            expect(allureXml('test-case').length).toEqual(1)
+            expect(allureXml('test-case > name').text()).toEqual('should can do something')
+            expect(allureXml('test-case').attr('status')).toEqual('failed')
+        })
+    }
 })
 
 const assertionResults = {
