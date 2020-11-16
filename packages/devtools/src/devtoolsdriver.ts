@@ -154,7 +154,7 @@ export default class DevToolsDriver {
         this.elementStore.clear()
     }
 
-    setTimeouts(implicit: number, pageLoad: number, script: number) {
+    setTimeouts(implicit?: number, pageLoad?: number, script?: number) {
         if (typeof implicit === 'number') {
             this.timeouts.set('implicit', implicit)
         }

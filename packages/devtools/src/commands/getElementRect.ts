@@ -16,7 +16,6 @@ export default async function getElementRect (
     { elementId }: { elementId: string }
 ) {
     const elementHandle = await this.elementStore.get(elementId)
-
     if (!elementHandle) {
         throw getStaleElementError(elementId)
     }

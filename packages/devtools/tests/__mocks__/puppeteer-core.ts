@@ -28,48 +28,37 @@ devices['Nexus 6P'] = devices[0]
 devices['Nexus 6P landscape'] = devices[0]
 
 class CDPSessionMock {
-    constructor () {
-        this.send = sendMock
-        this.on = listenerMock
-    }
+    send = sendMock
+    on = listenerMock
 }
 const cdpSession = new CDPSessionMock()
 
 class TargetMock {
-    constructor () {
-        this.page = jest.fn().mockImplementation(() => page)
-        this.createCDPSession = jest.fn().mockImplementation(() => cdpSession)
-    }
+    page = jest.fn().mockImplementation(() => page)
+    createCDPSession = jest.fn().mockImplementation(() => cdpSession)
 }
 const target = new TargetMock()
 
 class PageMock {
-    constructor () {
-        this.on = jest.fn()
-        this.close = jest.fn()
-        this.url = jest.fn().mockReturnValue('about:blank')
-        this.emulate = jest.fn()
-        this.setViewport = jest.fn()
-        this.target = jest.fn().mockReturnValue(target)
-    }
+    on = jest.fn()
+    close = jest.fn()
+    url = jest.fn().mockReturnValue('about:blank')
+    emulate = jest.fn()
+    setViewport = jest.fn()
+    target = jest.fn().mockReturnValue(target)
 }
 const page = new PageMock()
 
 class PageMock2 extends PageMock {
-    constructor () {
-        super()
-        this.url = jest.fn().mockReturnValue('http://json.org')
-    }
+    url = jest.fn().mockReturnValue('http://json.org')
 }
 const page2 = new PageMock2()
 
 class PuppeteerMock {
-    constructor () {
-        this.waitForTarget = jest.fn().mockImplementation(() => target)
-        this.getActivePage = jest.fn().mockImplementation(() => page)
-        this.pages = jest.fn().mockReturnValue(Promise.resolve([page, page2]))
-        this._connection = { _transport: { _ws: { addEventListener: jest.fn() } } }
-    }
+    waitForTarget = jest.fn().mockImplementation(() => target)
+    getActivePage = jest.fn().mockImplementation(() => page)
+    pages = jest.fn().mockReturnValue(Promise.resolve([page, page2]))
+    _connection = { _transport: { _ws: { addEventListener: jest.fn() } } }
 }
 
 export default {
