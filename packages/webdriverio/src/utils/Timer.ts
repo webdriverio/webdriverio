@@ -14,7 +14,7 @@ class Timer {
     private _mainTimeoutId?: NodeJS.Timeout | null;
     lastError?: Error | null;
     private _resolve?: (value?: PromiseLike<Timer>) => void;
-    private _reject?: (reason?: any) => void;
+    private _reject?: (reason?: Error) => void;
 
     constructor (delay: number, timeout: number, fn: () => Promise<boolean> | boolean, leading: boolean) {
         this._delay = delay
