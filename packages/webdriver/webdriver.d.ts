@@ -1149,6 +1149,14 @@ declare namespace WebDriver {
          * https://w3c.github.io/webdriver/#dfn-take-element-screenshot
          */
         takeElementScreenshot(elementId: string, scroll?: boolean): string;
+
+        /**
+         * [webdriver]
+         * The print functions are a mechanism to render the document to a paginated format. 
+         * It is returned to the local end as a Base64 encoded string containing a PDF representation of the paginated document.
+         * https://w3c.github.io/webdriver/#print
+         */
+        printPage(): string;
     }
 
     // appium types
