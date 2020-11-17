@@ -12,7 +12,7 @@ class Timer {
     private _ticks?: number;
     private _timeoutId?: NodeJS.Timeout | null;
     private _mainTimeoutId?: NodeJS.Timeout | null;
-    lastError?: Error | null;
+    private lastError?: Error;
     private _resolve?: (value?: PromiseLike<Timer>) => void;
     private _reject?: (reason?: Error) => void;
 
