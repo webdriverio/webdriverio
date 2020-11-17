@@ -12,7 +12,7 @@ class Timer {
     private _ticks?: number;
     private _timeoutId?: NodeJS.Timeout | null;
     private _mainTimeoutId?: NodeJS.Timeout | null;
-    private lastError?: Error;
+    private _lastError?: Error | null;
     private _resolve?: (value?: PromiseLike<Timer>) => void;
     private _reject?: (reason?: Error) => void;
 
@@ -62,7 +62,7 @@ class Timer {
             }
 
             emitTimerEvent({ id: this._start, timeout: true })
-            const reason = this.lastError || new Error(TIMEOUT_ERROR)
+            const reason = this._lastError || new Error(TIMEOUT_ERROR)
             if (this._reject) {
                 this._reject(reason)
             }
@@ -101,9 +101,9 @@ class Timer {
         )
     }
 
-    checkCondition (err: Error | null, res?: any) {
+    checkCondition (err?: Error | null, res?: any) {
         ++this._conditionExecutedCnt
-        this.lastError = err
+        this._lastError = err
 
         // resolve timer only on truthy values
         if (res && this._resolve) {
@@ -129,7 +129,7 @@ class Timer {
             this._timeoutId = setTimeout(this.tick.bind(this), delay)
         } else {
             this.stopMain()
-            const reason = this.lastError || new Error(TIMEOUT_ERROR)
+            const reason = this._lastError || new Error(TIMEOUT_ERROR)
             if (this._reject) {
                 this._reject(reason)
             }
