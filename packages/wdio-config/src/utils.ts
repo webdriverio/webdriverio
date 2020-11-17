@@ -1,3 +1,5 @@
+import { Capabilities, ConfigOptions, DefaultConfigOptions } from './constants'
+
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
 const DEFAULT_PROTOCOL = 'http'
@@ -11,10 +13,10 @@ const REGION_MAPPING = {
     'us-east-1': 'us-east-1.'
 }
 
-export const validObjectOrArray = (object) => (Array.isArray(object) && object.length > 0) ||
+export const validObjectOrArray = (object: any): object is object | Array<any> => (Array.isArray(object) && object.length > 0) ||
     (typeof object === 'object' && Object.keys(object).length > 0)
 
-export function getSauceEndpoint (region, isRDC) {
+export function getSauceEndpoint (region: keyof typeof REGION_MAPPING, isRDC?: boolean) {
     const shortRegion = REGION_MAPPING[region] ? region : 'us'
     if (isRDC){
         return `${shortRegion}1.appium.testobject.com`
@@ -29,7 +31,7 @@ export function getSauceEndpoint (region, isRDC) {
  * @param   {string} filePath path to spec file
  * @returns {string}
  */
-export function removeLineNumbers(filePath) {
+export function removeLineNumbers(filePath: string) {
     const matcher = filePath.match(/:\d+(:\d+$|$)/)
     if (matcher) {
         filePath = filePath.substring(0, matcher.index)
@@ -42,23 +44,26 @@ export function removeLineNumbers(filePath) {
  * `/foo/bar:9` or `c:\bar\foo:14:5`
  * @param {string|string[]} spec
  */
-export function isCucumberFeatureWithLineNumber(spec) {
+export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     const specs = Array.isArray(spec) ? spec : [spec]
     return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
 }
 
-export function isCloudCapability(cap) {
-    if (cap && cap.capabilities) {
-        cap = cap.capabilities
-    }
+export function isCloudCapability(conf: { capabilities?: Capabilities } | Capabilities) {
+    const hasCapabilities = (conf: any): conf is { capabilities?: Capabilities } => conf && conf.capabilities
 
-    return Boolean(cap && (cap['bstack:options'] || cap['sauce:options'] || cap['tb:options']))
+    const cap = hasCapabilities(conf) ? conf.capabilities : conf
+
+    return Boolean(
+        cap && !Array.isArray(cap) &&
+        (cap['bstack:options'] || cap['sauce:options'] || cap['tb:options'])
+    )
 }
 
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
-export function detectBackend (options = {}, isRDC = false) {
+export function detectBackend(options = {} as ConfigOptions, isRDC = false) {
     let { port, hostname, user, key, protocol, region, headless, path } = options
 
     /**
@@ -98,7 +103,7 @@ export function detectBackend (options = {}, isRDC = false) {
         isRDC
     ) {
         // Sauce headless is currently only in us-east-1
-        const sauceRegion = headless ? 'us-east-1' : region
+        const sauceRegion = headless ? 'us-east-1' : region as keyof typeof REGION_MAPPING
 
         return {
             protocol: protocol || 'https',
@@ -150,10 +155,10 @@ export function detectBackend (options = {}, isRDC = false) {
  * @param  {Object} options   option to check against
  * @return {Object}           validated config enriched with default values
  */
-export function validateConfig (defaults, options, keysToKeep = []) {
-    const params = {}
+export function validateConfig(defaults: DefaultConfigOptions, options: ConfigOptions, keysToKeep = [] as (keyof ConfigOptions)[]) {
+    const params: ConfigOptions = {}
 
-    for (const [name, expectedOption] of Object.entries(defaults)) {
+    for (const [name, expectedOption] of Object.entries(defaults) as [keyof DefaultConfigOptions, NonNullable<DefaultConfigOptions[keyof DefaultConfigOptions]>][]) {
         /**
          * check if options is given
          */
@@ -162,23 +167,25 @@ export function validateConfig (defaults, options, keysToKeep = []) {
         }
 
         if (typeof options[name] === 'undefined' && expectedOption.default) {
+            // @ts-ignore Expression produces a union type that is too complex to represent for Typescript.
             params[name] = expectedOption.default
         }
 
         if (typeof options[name] !== 'undefined') {
-            if (typeof options[name] !== expectedOption.type) {
+            const optValue = options[name]
+            if (typeof optValue !== expectedOption.type) {
                 throw new Error(`Expected option "${name}" to be type of ${expectedOption.type} but was ${typeof options[name]}`)
             }
 
             if (typeof expectedOption.validate === 'function') {
                 try {
-                    expectedOption.validate(options[name])
+                    expectedOption.validate(optValue as never) // TS limitation
                 } catch (e) {
                     throw new Error(`Type check for option "${name}" failed: ${e.message}`)
                 }
             }
 
-            if (expectedOption.match && !options[name].match(expectedOption.match)) {
+            if (typeof optValue === 'string' && expectedOption.match && !optValue.match(expectedOption.match)) {
                 throw new Error(`Option "${name}" doesn't match expected values: ${expectedOption.match}`)
             }
 
@@ -186,7 +193,7 @@ export function validateConfig (defaults, options, keysToKeep = []) {
         }
     }
 
-    for (const [name, option] of Object.entries(options)) {
+    for (const [name, option] of Object.entries(options) as [keyof ConfigOptions, ConfigOptions[keyof ConfigOptions]][]) {
         /**
          * keep keys from source object if desired
          */

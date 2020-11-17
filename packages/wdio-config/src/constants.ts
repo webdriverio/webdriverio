@@ -1,3 +1,28 @@
+import { DesiredCapabilities, W3CCapabilities } from 'webdriver'
+import { Config, HookFunctions, MultiRemoteCapabilities } from 'webdriverio'
+import '@wdio/cucumber-framework' // extends HookFunctions with CucumberHookFunctions
+
+export type Hooks = {
+    [k in keyof HookFunctions]: HookFunctions[k] | NonNullable<HookFunctions[k]>[];
+}
+
+export type Capabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities;
+
+export interface ConfigOptions extends Omit<Config, 'capabilities' | keyof Hooks>, Hooks {
+    capabilities?: Capabilities;
+    specFileRetryAttempts?: number;
+}
+
+export type DefaultConfigOptions = {
+    [k in keyof ConfigOptions]: {
+        type: string;
+        default: ConfigOptions[k];
+        required?: boolean;
+        validate?: (option: k) => void
+        match?: RegExp;
+    };
+}
+
 const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
@@ -7,13 +32,13 @@ export const DEFAULT_CONFIGS = () => ({
     suites: {},
     exclude: [],
     outputDir: undefined,
-    logLevel: 'info',
+    logLevel: 'info' as const,
     logLevels: {},
     excludeDriverLogs: [],
     bail: 0,
     waitforInterval: 500,
     waitforTimeout: 5000,
-    framework: 'mocha',
+    framework: 'mocha' as const,
     reporters: [],
     services: [],
     maxInstances: 100,
@@ -23,7 +48,7 @@ export const DEFAULT_CONFIGS = () => ({
     connectionRetryCount: 3,
     execArgv: [],
     runnerEnv: {},
-    runner: 'local',
+    runner: 'local' as const,
 
     /**
      * framework defaults
@@ -69,7 +94,7 @@ export const DEFAULT_CONFIGS = () => ({
     afterFeature: [],
 })
 
-export const SUPPORTED_HOOKS = [
+export const SUPPORTED_HOOKS: (keyof Hooks)[] = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
