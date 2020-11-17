@@ -17,6 +17,30 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.8.1 (2020-11-17)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6066](https://github.com/webdriverio/webdriverio/pull/6066) Closes [#6057](https://github.com/webdriverio/webdriverio/issues/6057) ([@vmelikyan](https://github.com/vmelikyan))
+* `wdio-allure-reporter`, `wdio-reporter`
+  * [#6076](https://github.com/webdriverio/webdriverio/pull/6076) Another take on bug #4953 ([@oversizedhat](https://github.com/oversizedhat))
+
+#### :nail_care: Polish
+* `wdio-runner`
+  * [#6122](https://github.com/webdriverio/webdriverio/pull/6122) Execute beforeSession hook before everything is initiated ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#6117](https://github.com/webdriverio/webdriverio/pull/6117) Update examples with outdated waitForVisible method  ([@cben](https://github.com/cben))
+
+#### Committers: 5
+- Beni Cherniavsky-Paskin ([@cben](https://github.com/cben))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Vahan Melikyan ([@vmelikyan](https://github.com/vmelikyan))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@oversizedhat](https://github.com/oversizedhat)
+
+
 ## v6.8.0 (2020-11-16)
 
 #### :rocket: New Feature
