@@ -1234,6 +1234,15 @@ declare namespace WebdriverIO {
         reloadSession(): void;
 
         /**
+         * Save a screenshot of the current browsing context to a PDF file on your OS. Be aware that
+         * some browser drivers take screenshots of the whole document (e.g. Geckodriver with Firefox)
+         * and others only of the current viewport (e.g. Chromedriver with Chrome).
+         */
+        savePDF(
+            filepath: string
+        ): Buffer;
+
+        /**
          * Appium only. Save a video started by startRecordingScreen command to file.
          * See [Appium docs](http://appium.io/docs/en/commands/device/recording-screen/start-recording-screen/)
          */

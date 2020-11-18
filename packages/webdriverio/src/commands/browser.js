@@ -17,6 +17,7 @@ export const pause = require('./browser/pause').default
 export const react$$ = require('./browser/react$$').default
 export const react$ = require('./browser/react$').default
 export const reloadSession = require('./browser/reloadSession').default
+export const savePDF = require('./browser/savePDF').default
 export const saveRecordingScreen = require('./browser/saveRecordingScreen').default
 export const saveScreenshot = require('./browser/saveScreenshot').default
 export const setCookies = require('./browser/setCookies').default
