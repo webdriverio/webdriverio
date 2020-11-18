@@ -323,9 +323,7 @@ declare namespace WebDriver {
         // Selenoid specific
         'selenoid:options'?: SelenoidOptions
         // Testingbot w3c specific
-        'tb:options'?: {
-            [name: string]: any
-        }
+        'tb:options'?: TestingbotCapabilities
         // Saucelabs w3c specific
         'sauce:options'?: SauceLabsCapabilities
         // Browserstack w3c specific
@@ -552,6 +550,7 @@ declare namespace WebDriver {
         tags?: string[];
         build?: string | number;
         public?: boolean;
+        'tunnel-identifier'?: string
     }
 
     export interface SeleniumRCCapabilities {
