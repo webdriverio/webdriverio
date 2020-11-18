@@ -1,27 +1,4 @@
-import { DesiredCapabilities, W3CCapabilities } from 'webdriver'
-import { Config, HookFunctions, MultiRemoteCapabilities } from 'webdriverio'
-import '@wdio/cucumber-framework' // extends HookFunctions with CucumberHookFunctions
-
-export type Hooks = {
-    [k in keyof HookFunctions]: HookFunctions[k] | NonNullable<HookFunctions[k]>[];
-}
-
-export type Capabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities;
-
-export interface ConfigOptions extends Omit<Config, 'capabilities' | keyof Hooks>, Hooks {
-    capabilities?: Capabilities;
-    specFileRetryAttempts?: number;
-}
-
-export type DefaultConfigOptions = {
-    [k in keyof ConfigOptions]: {
-        type: string;
-        default: ConfigOptions[k];
-        required?: boolean;
-        validate?: (option: k) => void
-        match?: RegExp;
-    };
-}
+import type { Hooks } from './types'
 
 const DEFAULT_TIMEOUT = 10000
 

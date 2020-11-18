@@ -179,7 +179,7 @@ export interface GeckodriverCapabilities {
 }
 
 export interface FirefoxOptions {
-    debuggerAddress: string
+    debuggerAddress?: string
     binary?: string
     args?: string[]
     profile?: string
@@ -600,12 +600,12 @@ export interface Options {
     /**
      * Level of logging verbosity.
      */
-    logLevel: WebDriverLogTypes;
+    logLevel?: WebDriverLogTypes;
     /**
      * Set specific log levels per logger
      * use 'silent' level to disable logger
      */
-    logLevels?: Record<string, string>;
+    logLevels?: Record<string, WebDriverLogTypes | undefined>;
     /**
      * Timeout for any WebDriver request to a driver or grid.
      */
@@ -614,6 +614,10 @@ export interface Options {
      * Count of request retries to the Selenium server.
      */
     connectionRetryCount?: number;
+    /**
+     * Timeout for any request to the Selenium server
+     */
+    connectionPollInterval?: number
     /**
      * Specify custom headers to pass into every request.
      */

@@ -1,3 +1,5 @@
+import type { DefaultOptions } from '@wdio/config'
+
 export const DEFAULT_WIDTH = 1200
 export const DEFAULT_HEIGHT = 900
 export const DEFAULT_X_POSITION = 0
@@ -64,7 +66,7 @@ export const BROWSER_TYPE: {
     edge: 'edge'
 }
 
-export const DEFAULTS = {
+export const DEFAULTS: DefaultOptions<WebDriver.Options> = {
     capabilities: {
         type: 'object',
         required: true

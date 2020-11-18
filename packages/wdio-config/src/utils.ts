@@ -1,4 +1,4 @@
-import { Capabilities, ConfigOptions, DefaultConfigOptions } from './constants'
+import type { ConfigOptions, DefaultOptions } from './types'
 
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
@@ -49,15 +49,12 @@ export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
 }
 
-export function isCloudCapability(conf: { capabilities?: Capabilities } | Capabilities) {
-    const hasCapabilities = (conf: any): conf is { capabilities?: Capabilities } => conf && conf.capabilities
+export function isCloudCapability(conf: { capabilities?: WebDriver.DesiredCapabilities } | WebDriver.DesiredCapabilities) {
+    const hasCapabilities = (conf: any): conf is { capabilities?: WebDriver.DesiredCapabilities } => conf && conf.capabilities
 
     const cap = hasCapabilities(conf) ? conf.capabilities : conf
 
-    return Boolean(
-        cap && !Array.isArray(cap) &&
-        (cap['bstack:options'] || cap['sauce:options'] || cap['tb:options'])
-    )
+    return Boolean(cap && (cap['bstack:options'] || cap['sauce:options'] || cap['tb:options']))
 }
 
 /**
@@ -155,10 +152,10 @@ export function detectBackend(options = {} as ConfigOptions, isRDC = false) {
  * @param  {Object} options   option to check against
  * @return {Object}           validated config enriched with default values
  */
-export function validateConfig(defaults: DefaultConfigOptions, options: ConfigOptions, keysToKeep = [] as (keyof ConfigOptions)[]) {
-    const params: ConfigOptions = {}
+export function validateConfig<T>(defaults: DefaultOptions<T>, options: T, keysToKeep = [] as (keyof T)[]) {
+    const params = {} as T
 
-    for (const [name, expectedOption] of Object.entries(defaults) as [keyof DefaultConfigOptions, NonNullable<DefaultConfigOptions[keyof DefaultConfigOptions]>][]) {
+    for (const [name, expectedOption] of Object.entries(defaults) as [keyof DefaultOptions<T>, NonNullable<DefaultOptions<T>[keyof DefaultOptions<T>]>][]) {
         /**
          * check if options is given
          */
@@ -193,7 +190,7 @@ export function validateConfig(defaults: DefaultConfigOptions, options: ConfigOp
         }
     }
 
-    for (const [name, option] of Object.entries(options) as [keyof ConfigOptions, ConfigOptions[keyof ConfigOptions]][]) {
+    for (const [name, option] of Object.entries(options) as [keyof T, T[keyof T]][]) {
         /**
          * keep keys from source object if desired
          */
