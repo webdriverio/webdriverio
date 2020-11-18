@@ -38,10 +38,10 @@ describe('savePDF', () => {
         expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
 
         // request
-        expect(got.mock.calls[1][1].method).toBe('GET')
+        expect(got.mock.calls[1][1].method).toBe('POST')
         expect(got.mock.calls[1][0].pathname)
-            .toBe('/session/foobar-123/screenshot')
-        expect(screenshot.toString()).toBe('some screenshot')
+            .toBe('/session/foobar-123/print')
+        expect(screenshot.toString()).toBe('some pdf print')
 
         // write to file
         expect(writeFileSyncSpy).toHaveBeenCalledTimes(1)
