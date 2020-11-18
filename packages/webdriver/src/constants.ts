@@ -1,14 +1,7 @@
-import { Options } from './types'
+import type { DefaultOptions } from '@wdio/config'
+import type { Options } from './types'
 
-interface Option {
-    type: 'string' | 'number' | 'object' | 'boolean' | 'function'
-    validate?: (option: any) => boolean
-    default?: any
-    match?: RegExp
-    required?: boolean
-}
-
-export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, Option> = {
+export const DEFAULTS: DefaultOptions<Options> = {
     /**
      * protocol of automation driver
      */
@@ -115,14 +108,14 @@ export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, O
      */
     transformRequest: {
         type: 'function',
-        default: (requestOptions: object) => requestOptions
+        default: (requestOptions) => requestOptions
     },
     /**
      * Function transforming the response object after it is received
      */
     transformResponse: {
         type: 'function',
-        default: (response: object) => response
+        default: (response) => response
     },
     /**
      * Appium direct connect options server (https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)

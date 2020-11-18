@@ -618,7 +618,7 @@ declare namespace WebDriver {
          * Set specific log levels per logger
          * use 'silent' level to disable logger
          */
-        logLevels?: object;
+        logLevels?: Record<string, WebDriverLogTypes | undefined>;
         /**
          * Timeout for any WebDriver request to a driver or grid.
          */
@@ -627,6 +627,10 @@ declare namespace WebDriver {
          * Count of request retries to the Selenium server.
          */
         connectionRetryCount?: number;
+        /**
+         * Timeout for any request to the Selenium server
+         */
+        connectionPollInterval?: number
         /**
          * Specify custom headers to pass into every request.
          */
@@ -648,6 +652,14 @@ declare namespace WebDriver {
          * Function intercepting HTTP response objects after a WebDriver response has arrived.
          */
         transformResponse?: (response: HTTPResponse, requestOptions: HTTPRequestOptions) => HTTPResponse;
+
+        /**
+         * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
+         */
+        directConnectProtocol?: string
+        directConnectHost?: string
+        directConnectPort?: number
+        directConnectPath?: string
     }
 
     interface AttachSessionOptions extends Options {
