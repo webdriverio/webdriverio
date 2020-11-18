@@ -1,18 +1,54 @@
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type Protocol from 'devtools-protocol'
+
 import { IGNORED_URLS } from '../constants'
 
-export default class NetworkHandler {
-    constructor (session) {
-        this.requestLog = { requests: [] }
-        this.requestTypes = {}
-        this.cachedFirstRequest = null
+interface RequestLog {
+    id?: string
+    url?: string
+    requests: Request[]
+}
 
+interface Request {
+    id: string,
+    url: string,
+    method: string
+    loaderId?: string
+    statusCode?: number
+    requestHeaders?: Protocol.Network.Headers
+    responseHeaders?: Protocol.Network.Headers
+    timing?: Protocol.Network.ResourceTiming
+    type?: Protocol.Network.ResourceType
+    redirect?: {
+        url: string
+        statusCode: number
+        requestHeaders?: Protocol.Network.Headers
+        responseHeaders?: Protocol.Network.Headers
+        timing?: Protocol.Network.ResourceTiming
+    }
+}
+
+export interface RequestPayload {
+    size: number
+    encoded: number
+    count: number
+}
+
+export default class NetworkHandler {
+    requestLog: RequestLog = { requests: [] }
+    requestTypes: {
+        [key in Protocol.Network.ResourceType]?: RequestPayload
+    } = {}
+    cachedFirstRequest?: Request
+
+    constructor (session: CDPSession) {
         session.on('Network.dataReceived', this.onDataReceived.bind(this))
         session.on('Network.responseReceived', this.onNetworkResponseReceived.bind(this))
         session.on('Network.requestWillBeSent', this.onNetworkRequestWillBeSent.bind(this))
         session.on('Page.frameNavigated', this.onPageFrameNavigated.bind(this))
     }
 
-    findRequest(params) {
+    findRequest (params: Protocol.Network.DataReceivedEvent | Protocol.Network.ResponseReceivedEvent) {
         let request = this.requestLog.requests.find((req) => req.id === params.requestId)
 
         /**
@@ -24,7 +60,7 @@ export default class NetworkHandler {
         return request
     }
 
-    onDataReceived(params) {
+    onDataReceived (params: Protocol.Network.DataReceivedEvent) {
         let request = this.findRequest(params)
 
         /**
@@ -32,15 +68,17 @@ export default class NetworkHandler {
          *  - a requestWillBeSent event was triggered before
          *  - the request type is accurate and known (sometimes this is not the case when `Network.requestWillBeSent` is triggered)
          */
-        if (!request || !this.requestTypes[request.type]) {
+        if (!request || !request.type || !this.requestTypes[request.type]) {
             return
         }
 
-        this.requestTypes[request.type].size += parseInt(params.dataLength, 10)
-        this.requestTypes[request.type].encoded += parseInt(params.encodedDataLength, 10)
+        const type = request.type
+        const requestType = this.requestTypes[type] || ({} as RequestPayload)
+        requestType.size += params.dataLength
+        requestType.encoded += params.encodedDataLength
     }
 
-    onNetworkResponseReceived(params) {
+    onNetworkResponseReceived (params: Protocol.Network.ResponseReceivedEvent) {
         let request = this.findRequest(params)
         /**
          * ensure that a requestWillBeSent event was triggered before
@@ -56,7 +94,7 @@ export default class NetworkHandler {
         request.type = params.type
     }
 
-    onNetworkRequestWillBeSent(params) {
+    onNetworkRequestWillBeSent (params: Protocol.Network.RequestWillBeSentEvent) {
         let isFirstRequestOfFrame = false
 
         if (
@@ -84,7 +122,7 @@ export default class NetworkHandler {
             this.requestTypes = {}
         }
 
-        const log = {
+        const log: Request = {
             id: params.requestId,
             url: params.request.url,
             method: params.request.method
@@ -100,14 +138,17 @@ export default class NetworkHandler {
             }
         }
 
-        if (!this.requestTypes[params.type]) {
-            this.requestTypes[params.type] = {
-                size: 0,
-                encoded: 0,
-                count: 1
+        if (params.type) {
+            const requestType = this.requestTypes[params.type]
+            if (!requestType) {
+                this.requestTypes[params.type] = {
+                    size: 0,
+                    encoded: 0,
+                    count: 1
+                }
+            } else if (requestType) {
+                requestType.count++
             }
-        } else {
-            this.requestTypes[params.type].count++
         }
 
         if (isFirstRequestOfFrame) {
@@ -118,7 +159,7 @@ export default class NetworkHandler {
         return this.requestLog.requests.push(log)
     }
 
-    onPageFrameNavigated(params) {
+    onPageFrameNavigated (params: Protocol.Page.FrameNavigatedEvent) {
         /**
          * Only create a requestLog for pages that don't have a parent frame.
          * I.e. iframes are ignored
@@ -138,7 +179,7 @@ export default class NetworkHandler {
                  */
                 delete this.cachedFirstRequest.loaderId
                 this.requestLog.requests.push(this.cachedFirstRequest)
-                this.cachedFirstRequest = null
+                this.cachedFirstRequest = undefined
             }
         }
     }

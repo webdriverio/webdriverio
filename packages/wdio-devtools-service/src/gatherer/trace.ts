@@ -1,8 +1,14 @@
 import 'core-js/modules/web.url'
 
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
 import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
 import logger from '@wdio/logger'
+
+import type Protocol from 'devtools-protocol'
+import type { TraceEvent, TraceStreamJson, TraceEventArgs } from '@tracerbench/trace-event'
+import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRequest'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
 import registerPerformanceObserverInPage from '../scripts/registerPerformanceObserverInPage'
 import checkTimeSinceLastLongTask from '../scripts/checkTimeSinceLastLongTask'
@@ -25,37 +31,79 @@ const NETWORK_RECORDER_EVENTS = [
     'Network.resourceChangedPriority'
 ]
 
+export interface Trace {
+    traceEvents: TraceEvent[]
+    frameId?: string
+    loaderId?: string
+    pageUrl?: string
+    traceStart?: number
+    traceEnd?: number
+}
+
+interface StartedInBrowserEvent extends TraceEventArgs {
+    data: {
+        frames: {
+            parent: any
+            processId: number
+        }[]
+    }
+}
+
+interface NavigationStartEvent extends TraceEventArgs {
+    data: {
+        isLoadingMainFrame: boolean
+    }
+}
+
+interface WaitPromise {
+    promise: Promise<any>
+    cancel: Function
+}
+
 export default class TraceGatherer extends EventEmitter {
-    constructor (session, page) {
+    private _failingFrameLoadIds: string[] = []
+    private _pageLoadDetected = false
+    private _networkListeners: Record<string, (params: any) => void> = {}
+
+    private _session: CDPSession
+    private _page: Page
+    private _frameId?: string
+    private _loaderId?: string
+    private _pageUrl?: string
+    private _networkStatusMonitor?: typeof NetworkRecorder
+    private _trace?: Trace
+    private _traceStart?: number
+    private _clickTraceTimeout?: NodeJS.Timeout
+    private _waitForNetworkIdleEvent?: WaitPromise
+    private _waitForCPUIdleEvent?: WaitPromise
+
+    constructor (session: CDPSession, page: Page) {
         super()
-        this.session = session
-        this.page = page
-        this.networkListeners = {}
-        this.failingFrameLoadIds = []
-        this.pageLoadDetected = false
+        this._session = session
+        this._page = page
 
         NETWORK_RECORDER_EVENTS.forEach((method) => {
-            this.networkListeners[method] = (params) => this.networkStatusMonitor.dispatch({ method, params })
+            this._networkListeners[method] = (params) => this._networkStatusMonitor.dispatch({ method, params })
         })
     }
 
-    async startTracing (url) {
+    async startTracing (url: string) {
         /**
          * delete old trace
          */
-        delete this.trace
+        delete this._trace
 
         /**
          * register listener for network status monitoring
          */
-        this.networkStatusMonitor = new NetworkRecorder()
+        this._networkStatusMonitor = new NetworkRecorder()
         NETWORK_RECORDER_EVENTS.forEach((method) => {
-            this.session.on(method, this.networkListeners[method])
+            this._session.on(method, this._networkListeners[method])
         })
 
-        this.traceStart = Date.now()
+        this._traceStart = Date.now()
         log.info(`Start tracing frame with url ${url}`)
-        await this.page.tracing.start({
+        await this._page.tracing.start({
             categories: DEFAULT_TRACING_CATEGORIES,
             screenshots: true
         })
@@ -66,9 +114,9 @@ export default class TraceGatherer extends EventEmitter {
          */
         if (url === CLICK_TRANSITION) {
             log.info('Start checking for page load for click')
-            this.clickTraceTimeout = setTimeout(async () => {
+            this._clickTraceTimeout = setTimeout(async () => {
                 log.info('No page load detected, canceling trace')
-                await this.page.tracing.stop()
+                await this._page.tracing.stop()
                 return this.finishTracing()
             }, FRAME_LOAD_START_TIMEOUT)
         }
@@ -76,30 +124,33 @@ export default class TraceGatherer extends EventEmitter {
         /**
          * register performance observer
          */
-        await this.page.evaluateOnNewDocument(registerPerformanceObserverInPage)
+        await this._page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
-        this.waitForNetworkIdleEvent = this.waitForNetworkIdle(this.session)
-        this.waitForCPUIdleEvent = this.waitForCPUIdle()
+        this._waitForNetworkIdleEvent = this.waitForNetworkIdle(this._session)
+        this._waitForCPUIdleEvent = this.waitForCPUIdle()
     }
 
     /**
      * store frame id of frames that are being traced
      */
-    async onFrameNavigated (msgObj) {
+    async onFrameNavigated (msgObj: Protocol.Page.FrameNavigatedEvent) {
         if (!this.isTracing) {
             return
         }
         /**
          * page load failed, cancel tracing
          */
-        if (this.failingFrameLoadIds.includes(msgObj.frame.id)) {
-            delete this.traceStart
-            this.waitForNetworkIdleEvent.cancel()
-            this.waitForCPUIdleEvent.cancel()
-            this.frameId = '"unsuccessful loaded frame"'
+        if (this._failingFrameLoadIds.includes(msgObj.frame.id)) {
+            delete this._traceStart
+            this._waitForNetworkIdleEvent?.cancel()
+            this._waitForCPUIdleEvent?.cancel()
+            this._frameId = '"unsuccessful loaded frame"'
             this.finishTracing()
             this.emit('tracingError', new Error(`Page with url "${msgObj.frame.url}" failed to load`))
-            return clearTimeout(this.clickTraceTimeout)
+
+            if (this._clickTraceTimeout) {
+                clearTimeout(this._clickTraceTimeout)
+            }
         }
 
         /**
@@ -107,7 +158,7 @@ export default class TraceGatherer extends EventEmitter {
          */
         if (
             // we already detected a frameId before
-            this.frameId ||
+            this._frameId ||
             // the event was thrown for a sub frame (e.g. iframe)
             msgObj.frame.parentId ||
             // we don't support the url of given frame
@@ -117,10 +168,10 @@ export default class TraceGatherer extends EventEmitter {
             return
         }
 
-        this.frameId = msgObj.frame.id
-        this.loaderId = msgObj.frame.loaderId
-        this.pageUrl = msgObj.frame.url
-        log.info(`Page load detected: ${this.pageUrl}, set frameId ${this.frameId}, set loaderId ${this.loaderId}`)
+        this._frameId = msgObj.frame.id
+        this._loaderId = msgObj.frame.loaderId
+        this._pageUrl = msgObj.frame.url
+        log.info(`Page load detected: ${this._pageUrl}, set frameId ${this._frameId}, set loaderId ${this._loaderId}`)
 
         /**
          * clear click tracing timeout if it's still waiting
@@ -129,10 +180,10 @@ export default class TraceGatherer extends EventEmitter {
          * is because the latter can sometimes occur without the former, which will cause a hang
          * e.g. with duolingo's sign-in button
          */
-        if (this.clickTraceTimeout && !this.pageLoadDetected) {
+        if (this._clickTraceTimeout && !this._pageLoadDetected) {
             log.info('Page load detected for click, clearing click trace timeout}')
-            this.pageLoadDetected = true
-            clearTimeout(this.clickTraceTimeout)
+            this._pageLoadDetected = true
+            clearTimeout(this._clickTraceTimeout)
         }
 
         this.emit('tracingStarted', msgObj.frame.id)
@@ -159,14 +210,14 @@ export default class TraceGatherer extends EventEmitter {
          * See https://github.com/GoogleChrome/lighthouse/issues/627 for more.
          */
         const loadPromise = Promise.all([
-            this.waitForNetworkIdleEvent.promise,
-            this.waitForCPUIdleEvent.promise
+            this._waitForNetworkIdleEvent?.promise,
+            this._waitForCPUIdleEvent?.promise
         ]).then(() => async () => {
             /**
              * ensure that we trace at least for 5s to ensure that we can
              * calculate firstInteractive
              */
-            const minTraceTime = TRACING_TIMEOUT - (Date.now() - this.traceStart)
+            const minTraceTime = TRACING_TIMEOUT - (Date.now() - (this._traceStart || 0))
             if (minTraceTime > 0) {
                 log.info(`page load happen to quick, waiting ${minTraceTime}ms more`)
                 await new Promise((resolve) => setTimeout(resolve, minTraceTime))
@@ -180,34 +231,37 @@ export default class TraceGatherer extends EventEmitter {
             this.waitForMaxTimeout()
         ])
 
-        this.waitForNetworkIdleEvent.cancel()
-        this.waitForCPUIdleEvent.cancel()
+        this._waitForNetworkIdleEvent?.cancel()
+        this._waitForCPUIdleEvent?.cancel()
         return cleanupFn()
     }
 
-    onFrameLoadFail (request) {
+    onFrameLoadFail (request: HTTPRequest) {
         const frame = request.frame()
-        this.failingFrameLoadIds.push(frame._id)
+
+        if (frame) {
+            this._failingFrameLoadIds.push(frame._id)
+        }
     }
 
     get isTracing () {
-        return typeof this.traceStart === 'number'
+        return typeof this._traceStart === 'number'
     }
 
     /**
      * once tracing has finished capture trace logs into memory
      */
     async completeTracing () {
-        const traceDuration = Date.now() - this.traceStart
-        log.info(`Tracing completed after ${traceDuration}ms, capturing performance data for frame ${this.frameId}`)
+        const traceDuration = Date.now() - (this._traceStart || 0)
+        log.info(`Tracing completed after ${traceDuration}ms, capturing performance data for frame ${this._frameId}`)
 
         /**
          * download all tracing data
          * in case it fails, continue without capturing any data
          */
         try {
-            const traceBuffer = await this.page.tracing.stop()
-            const traceEvents = JSON.parse(traceBuffer.toString('utf8'))
+            const traceBuffer = await this._page.tracing.stop()
+            const traceEvents: TraceStreamJson = JSON.parse(traceBuffer.toString('utf8'))
 
             /**
              * modify pid of renderer frame to be the same as where tracing was started
@@ -217,12 +271,12 @@ export default class TraceGatherer extends EventEmitter {
             const mainFrame = (
                 startedInBrowserEvt &&
                 startedInBrowserEvt.args &&
-                startedInBrowserEvt.args.data.frames &&
-                startedInBrowserEvt.args.data.frames.find(frame => !frame.parent)
+                (startedInBrowserEvt.args as StartedInBrowserEvent)['data']['frames'] &&
+                (startedInBrowserEvt.args as StartedInBrowserEvent)['data']['frames'].find((frame: any) => !frame.parent)
             )
             if (mainFrame && mainFrame.processId) {
                 const threadNameEvt = traceEvents.traceEvents.find(e => e.ph === 'R' &&
-                    e.cat === 'blink.user_timing' && e.name === 'navigationStart' && e.args.data.isLoadingMainFrame)
+                    e.cat === 'blink.user_timing' && e.name === 'navigationStart' && (e.args as NavigationStartEvent).data.isLoadingMainFrame)
                 if (threadNameEvt) {
                     log.info(`Replace mainFrame process id ${mainFrame.processId} with actual thread process id ${threadNameEvt.pid}`)
                     mainFrame.processId = threadNameEvt.pid
@@ -231,15 +285,15 @@ export default class TraceGatherer extends EventEmitter {
                 }
             }
 
-            this.trace = {
+            this._trace = {
                 ...traceEvents,
-                frameId: this.frameId,
-                loaderId: this.loaderId,
-                pageUrl: this.pageUrl,
-                traceStart: this.traceStart,
+                frameId: this._frameId,
+                loaderId: this._loaderId,
+                pageUrl: this._pageUrl,
+                traceStart: this._traceStart,
                 traceEnd: Date.now()
             }
-            this.emit('tracingComplete', this.trace)
+            this.emit('tracingComplete', this._trace)
             this.finishTracing()
         } catch (err) {
             log.error(`Error capturing tracing logs: ${err.stack}`)
@@ -252,23 +306,23 @@ export default class TraceGatherer extends EventEmitter {
      * clear tracing states and emit tracingFinished
      */
     finishTracing () {
-        log.info(`Tracing for ${this.frameId} completed`)
-        this.pageLoadDetected = false
+        log.info(`Tracing for ${this._frameId} completed`)
+        this._pageLoadDetected = false
 
         /**
          * clean up the listeners
          */
         NETWORK_RECORDER_EVENTS.forEach(
-            (method) => this.session.removeListener(method, this.networkListeners[method]))
-        delete this.networkStatusMonitor
+            (method) => this._session.removeListener(method, this._networkListeners[method]))
+        delete this._networkStatusMonitor
 
-        delete this.traceStart
-        delete this.frameId
-        delete this.loaderId
-        delete this.pageUrl
-        this.failingFrameLoadIds = []
-        this.waitForNetworkIdleEvent.cancel()
-        this.waitForCPUIdleEvent.cancel()
+        delete this._traceStart
+        delete this._frameId
+        delete this._loaderId
+        delete this._pageUrl
+        this._failingFrameLoadIds = []
+        this._waitForNetworkIdleEvent?.cancel()
+        this._waitForCPUIdleEvent?.cancel()
         this.emit('tracingFinished')
     }
 
@@ -281,19 +335,19 @@ export default class TraceGatherer extends EventEmitter {
      * @private
      */
     /* istanbul ignore next */
-    waitForNetworkIdle (session, networkQuietThresholdMs = NETWORK_IDLE_TIMEOUT) {
+    waitForNetworkIdle (session: CDPSession, networkQuietThresholdMs = NETWORK_IDLE_TIMEOUT) {
         let hasDCLFired = false
-        let idleTimeout
-        let cancel = () => {
+        let idleTimeout: NodeJS.Timeout
+        let cancel: Function = () => {
             throw new Error('_waitForNetworkIdle.cancel() called before it was defined')
         }
 
         // Check here for networkStatusMonitor to satisfy type checker. Any further race condition
         // will be caught at runtime on calls to it.
-        if (!this.networkStatusMonitor) {
+        if (!this._networkStatusMonitor) {
             throw new Error('TraceGatherer.waitForNetworkIdle called with no networkStatusMonitor')
         }
-        const networkStatusMonitor = this.networkStatusMonitor
+        const networkStatusMonitor = this._networkStatusMonitor
 
         const promise = new Promise((resolve) => {
             const onIdle = () => {
@@ -378,18 +432,19 @@ export default class TraceGatherer extends EventEmitter {
         }
 
         /** @type {NodeJS.Timer|undefined} */
-        let lastTimeout
+        let lastTimeout: NodeJS.Timeout
         let canceled = false
 
         const checkForQuietExpression = `(${checkTimeSinceLastLongTask.toString()})()`
-        async function checkForQuiet (resolve, reject) {
+        async function checkForQuiet (this: TraceGatherer, resolve: Function, reject: Function): Promise<void> {
             if (canceled) return
             let timeSinceLongTask
             try {
-                timeSinceLongTask = (await this.page.evaluate(checkForQuietExpression)) || 0
+                timeSinceLongTask = (await this._page.evaluate(checkForQuietExpression)) || 0
             } catch (e) {
                 log.warn(`Page evaluate rejected while evaluating checkForQuietExpression: ${e.stack}`)
-                return setTimeout(() => checkForQuiet.call(this, resolve, reject), 100)
+                setTimeout(() => checkForQuiet.call(this, resolve, reject), 100)
+                return
             }
 
             if (canceled) return
@@ -409,7 +464,7 @@ export default class TraceGatherer extends EventEmitter {
             lastTimeout = setTimeout(() => checkForQuiet.call(this, resolve, reject), timeToWait)
         }
 
-        let cancel = () => {
+        let cancel: Function = () => {
             throw new Error('_waitForCPUIdle.cancel() called before it was defined')
         }
         const promise = new Promise((resolve, reject) => {

@@ -12,6 +12,9 @@ import ReportScoring from 'lighthouse/lighthouse-core/scoring'
 import defaultConfig from 'lighthouse/lighthouse-core/config/default-config'
 import logger from '@wdio/logger'
 
+import type { Trace } from './gatherer/trace'
+import type { CDPSessionOnMessageObject } from './gatherer/devtools'
+
 const log = logger('@wdio/devtools-service:Auditor')
 
 const SHARED_AUDIT_CONTEXT = {
@@ -20,17 +23,83 @@ const SHARED_AUDIT_CONTEXT = {
     computedCache: new Map()
 }
 
+interface Audit {
+    audit: (opts: any, context: any) => Promise<any>,
+    defaultOptions: Record<string, any>
+}
+
+interface AuditResults {
+    'speed-index': MetricsResult
+    'first-contentful-paint': MetricsResult
+    'largest-contentful-paint': MetricsResult
+    'cumulative-layout-shift': MetricsResult
+    'total-blocking-time': MetricsResult
+    interactive: MetricsResult
+}
+
+interface AuditRef {
+    id: keyof AuditResults
+    weight: number
+}
+
+interface MainThreadWorkBreakdownResult {
+    details: {
+        items: {
+            group: string,
+            duration: number
+        }[]
+    }
+}
+
+interface DiagnosticsResults {
+    details: {
+        items: any[]
+    }
+}
+
+interface ResponseTimeResult {
+    numericValue: number
+}
+
+interface MetricsResult {
+    score: number
+}
+
+interface MetricsResults {
+    details: {
+        items: {
+            estimatedInputLatency: number
+            observedDomContentLoaded: number
+            observedFirstVisualChange: number
+            observedFirstPaint: number
+            firstContentfulPaint: number
+            firstMeaningfulPaint: number
+            largestContentfulPaint: number
+            observedLastVisualChange: number
+            firstCPUIdle: number
+            interactive: number
+            observedLoad: number
+            speedIndex: number
+            totalBlockingTime: number
+        }[]
+    }
+}
+
 export default class Auditor {
-    constructor(traceLogs, devtoolsLogs) {
-        this.devtoolsLogs = devtoolsLogs
-        this.traceLogs = traceLogs
+    _devtoolsLogs?: CDPSessionOnMessageObject[]
+    _traceLogs?: Trace
+    _url?: string
+
+    constructor(traceLogs?: Trace, devtoolsLogs?: CDPSessionOnMessageObject[]) {
+        this._devtoolsLogs = devtoolsLogs
+        this._traceLogs = traceLogs
+
         if (traceLogs) {
-            this.url = traceLogs.pageUrl
-            this.loaderId = traceLogs.loaderId
+            this._url = traceLogs.pageUrl
         }
     }
 
-    _audit(AUDIT, params = {}) {
+    _audit (AUDIT: Audit, params = {}) {
         const auditContext = {
             options: { ...AUDIT.defaultOptions },
             ...SHARED_AUDIT_CONTEXT
@@ -38,8 +107,8 @@ export default class Auditor {
 
         try {
             return AUDIT.audit({
-                traces: { defaultPass: this.traceLogs },
-                devtoolsLogs: { defaultPass: this.devtoolsLogs },
+                traces: { defaultPass: this._traceLogs },
+                devtoolsLogs: { defaultPass: this._devtoolsLogs },
                 TestedAsMobileDevice: true,
                 ...params
             }, auditContext)
@@ -53,21 +122,21 @@ export default class Auditor {
      * an Auditor instance is created for every trace so provide an updateCommands
      * function to receive the latest performance metrics with the browser instance
      */
-    updateCommands(browser, customFn) {
+    updateCommands (browser: WebdriverIO.BrowserObject, customFn?: WebdriverIO.AddCommandFn) {
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && fnName !== 'updateCommands' && !fnName.startsWith('_'))
-        commands.forEach(fnName => browser.addCommand(fnName, customFn || this[fnName].bind(this)))
+        commands.forEach(fnName => browser.addCommand(fnName, customFn || (this[fnName as keyof Auditor] as any).bind(this)))
     }
 
     async getMainThreadWorkBreakdown() {
-        const result = await this._audit(MainThreadWorkBreakdown)
+        const result = await this._audit(MainThreadWorkBreakdown) as MainThreadWorkBreakdownResult
         return result.details.items.map(
             ({ group, duration }) => ({ group, duration })
         )
     }
 
     async getDiagnostics() {
-        const result = await this._audit(Diagnostics)
+        const result = await this._audit(Diagnostics) as DiagnosticsResults
 
         /**
          * return null if Audit fails
@@ -80,17 +149,17 @@ export default class Auditor {
     }
 
     async getMetrics () {
-        const serverResponseTime = await this._audit(ServerResponseTime, { URL: this.url })
-        const cumulativeLayoutShift = await this._audit(CumulativeLayoutShift)
-        const result = await this._audit(Metrics)
+        const serverResponseTime = await this._audit(ServerResponseTime, { URL: this._url }) as ResponseTimeResult
+        const cumulativeLayoutShift = await this._audit(CumulativeLayoutShift) as ResponseTimeResult
+        const result = await this._audit(Metrics) as MetricsResults
         const metrics = result.details.items[0] || {}
         return {
             estimatedInputLatency: metrics.estimatedInputLatency,
             /**
              * keeping TTFB for backwards compatibility
              */
-            timeToFirstByte: Math.round(serverResponseTime.numericValue, 10),
-            serverResponseTime: Math.round(serverResponseTime.numericValue, 10),
+            timeToFirstByte: Math.round(serverResponseTime.numericValue),
+            serverResponseTime: Math.round(serverResponseTime.numericValue),
             domContentLoaded: metrics.observedDomContentLoaded,
             firstVisualChange: metrics.observedFirstVisualChange,
             firstPaint: metrics.observedFirstPaint,
@@ -108,13 +177,14 @@ export default class Auditor {
     }
 
     async getPerformanceScore() {
-        const auditResults = {}
-        auditResults['speed-index'] =  await this._audit(SpeedIndex)
-        auditResults['first-contentful-paint'] =  await this._audit(FirstContentfulPaint)
-        auditResults['largest-contentful-paint'] =  await this._audit(LargestContentfulPaint)
-        auditResults['cumulative-layout-shift'] =  await this._audit(CumulativeLayoutShift)
-        auditResults['total-blocking-time'] =  await this._audit(TotalBlockingTime)
-        auditResults.interactive = await this._audit(InteractiveMetric)
+        const auditResults: AuditResults = {
+            'speed-index': await this._audit(SpeedIndex) as MetricsResult,
+            'first-contentful-paint': await this._audit(FirstContentfulPaint) as MetricsResult,
+            'largest-contentful-paint': await this._audit(LargestContentfulPaint) as MetricsResult,
+            'cumulative-layout-shift': await this._audit(CumulativeLayoutShift) as MetricsResult,
+            'total-blocking-time': await this._audit(TotalBlockingTime) as MetricsResult,
+            interactive: await this._audit(InteractiveMetric) as MetricsResult
+        }
 
         if (!auditResults.interactive || !auditResults['cumulative-layout-shift'] || !auditResults['first-contentful-paint'] ||
             !auditResults['largest-contentful-paint'] || !auditResults['speed-index'] || !auditResults['total-blocking-time']) {
@@ -122,7 +192,7 @@ export default class Auditor {
             return null
         }
 
-        const scores = defaultConfig.categories.performance.auditRefs.filter((auditRef) => auditRef.weight).map((auditRef) => ({
+        const scores = defaultConfig.categories.performance.auditRefs.filter((auditRef: AuditRef) => auditRef.weight).map((auditRef: AuditRef) => ({
             score: auditResults[auditRef.id].score,
             weight: auditRef.weight,
         }))
