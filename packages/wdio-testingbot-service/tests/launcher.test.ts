@@ -27,8 +27,8 @@ describe('wdio-testingbot-service', () => {
     it('onPrepare: tbTunnel is undefined', async () => {
         const options = { tbTunnel: undefined } as any
         const tbLauncher = new TestingBotLauncher(options)
-
-        await tbLauncher.onPrepare({})
+        const caps = {} as any
+        await tbLauncher.onPrepare({}, caps)
         expect(tbLauncher.tbTunnelOpts).toBeUndefined()
         expect(tbLauncher.tunnel).toBeUndefined()
         expect(options.protocol).toBeUndefined()
@@ -48,14 +48,11 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
+        const caps = {} as any
         const tbLauncher = new TestingBotLauncher(options)
 
-        await tbLauncher.onPrepare(config)
-        expect(tbLauncher.tbTunnelOpts).toEqual({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
-        expect(config.protocol).toEqual('http')
-        expect(config.hostname).toEqual('localhost')
-        expect(config.port).toEqual(4445)
-        expect(config.path).toEqual('/wd/hub')
+        await tbLauncher.onPrepare(config, caps)
+        expect(tbLauncher.tbTunnelOpts).toMatchObject({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
         expect((log.info as jest.Mock).mock.calls[0][0]).toContain('TestingBot tunnel successfully started after')
     })
 
