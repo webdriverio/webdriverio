@@ -174,7 +174,6 @@ declare namespace WebdriverIO {
          * The number of retry attempts for an entire specfile when it fails as a whole.
          */
         specFileRetries?: number;
-        readonly specFileRetryAttempts?: number;
         /**
          * Delay in seconds between the spec file retry attempts
          */

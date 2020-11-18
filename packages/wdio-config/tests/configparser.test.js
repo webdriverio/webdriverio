@@ -9,7 +9,7 @@ const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.js')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
 const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.feature:7')
-const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.js')
+const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
 
 describe('ConfigParser', () => {
     it('should throw if getFilePaths is not a string', () => {
@@ -255,8 +255,8 @@ describe('ConfigParser', () => {
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({})
 
-            const utilsPath = path.join(__dirname, '..', 'src', 'utils.js')
-            const indexPath = path.join(__dirname, '..', 'src', 'index.js')
+            const utilsPath = path.join(__dirname, '..', 'src', 'utils.ts')
+            const indexPath = path.join(__dirname, '..', 'src', 'index.ts')
             const specs = configParser.getSpecs([indexPath, utilsPath], [utilsPath])
             expect(specs).toEqual([indexPath])
         })
@@ -266,8 +266,8 @@ describe('ConfigParser', () => {
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['mobile'] })
 
-            const utilsPath = path.join(__dirname, '..', 'src', 'utils.js')
-            const indexPath = path.join(__dirname, '..', 'src', 'index.js')
+            const utilsPath = path.join(__dirname, '..', 'src', 'utils.ts')
+            const indexPath = path.join(__dirname, '..', 'src', 'index.ts')
             const specs = configParser.getSpecs([indexPath, utilsPath], [utilsPath])
             expect(specs).toEqual([indexPath])
         })

@@ -23,7 +23,7 @@ export const sessionMap = new Map()
 
 export default class DevTools {
     static async newSession (options: WebDriver.Options = {}, modifier?: Function, userPrototype = {}, customCommandWrapper?: Function) {
-        const params: WebDriver.Options = validateConfig(DEFAULTS, options)
+        const params = validateConfig(DEFAULTS, options)
 
         if (params.logLevel && (!options.logLevels || !(options.logLevels as any)['devtools'])) {
             logger.setLevel('devtools', params.logLevel)
