@@ -42,7 +42,6 @@ export default async function switchWindow (this: WebdriverIO.BrowserObject, url
             return target.includes(urlOrTitleToMatch)
         }
         return !!target.match(urlOrTitleToMatch)
-
     }
 
     for (const tab of tabs) {
