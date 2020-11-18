@@ -37,6 +37,14 @@ export default async function switchWindow (this: WebdriverIO.BrowserObject, url
 
     const tabs = await this.getWindowHandles()
 
+    const matchesTarget = (target: string): boolean => {
+        if (typeof urlOrTitleToMatch ==='string') {
+            return target.includes(urlOrTitleToMatch)
+        }
+        return !!target.match(urlOrTitleToMatch)
+
+    }
+
     for (const tab of tabs) {
         await this.switchToWindow(tab)
 
@@ -44,7 +52,7 @@ export default async function switchWindow (this: WebdriverIO.BrowserObject, url
          * check if url matches
          */
         const url = await this.getUrl()
-        if (url.match(urlOrTitleToMatch)) {
+        if (matchesTarget(url)) {
             return tab
         }
 
@@ -52,7 +60,7 @@ export default async function switchWindow (this: WebdriverIO.BrowserObject, url
          * check title
          */
         const title = await this.getTitle()
-        if (title.match(urlOrTitleToMatch)) {
+        if (matchesTarget(title)) {
             return tab
         }
     }
