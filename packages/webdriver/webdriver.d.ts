@@ -550,7 +550,7 @@ declare namespace WebDriver {
         tags?: string[];
         build?: string | number;
         public?: boolean;
-        tunnelIdentifier?: string
+        'tunnel-identifier'?: string
     }
 
     export interface SeleniumRCCapabilities {
