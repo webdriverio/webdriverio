@@ -41,7 +41,7 @@ export function isSupportedUrl (url: string) {
 export function isBrowserVersionLower (caps: WebDriver.Capabilities, minVersion: number) {
     const versionProp = VERSION_PROPS.find(
         (prop: keyof WebDriver.Capabilities) => caps[prop]
-    ) as keyof WebDriver.Capabilities
+    ) as 'browserVersion'
     const browserVersion = getBrowserMajorVersion(caps[versionProp])
     return typeof browserVersion === 'number' && browserVersion < minVersion
 }
@@ -51,7 +51,7 @@ export function isBrowserVersionLower (caps: WebDriver.Capabilities, minVersion:
  * @param   {string|*}      version chromedriver version like `78.0.3904.11` or just `78`
  * @return  {number|*}              either major version, ex `78`, or whatever value is passed
  */
-export function getBrowserMajorVersion (version: string | number) {
+export function getBrowserMajorVersion (version?: string | number) {
     if (typeof version === 'string') {
         const majorVersion = Number(version.split('.')[0])
         return isNaN(majorVersion) ? parseInt(version, 10) : majorVersion
