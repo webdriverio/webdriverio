@@ -32,15 +32,10 @@ export default class TestingBotLauncher {
             tbOptions = {}
         }
 
-        tbOptions = {
-            'tunnel-identifier': tbTunnelIdentifier,
-        } as WebDriver.TestingbotCapabilities
+        tbOptions['tunnel-identifier'] = tbTunnelIdentifier
 
-        (
-            Array.isArray(capabilities)
-                ? capabilities
-                : Object.values(capabilities)
-        ).forEach((cap: WebDriver.DesiredCapabilities) => Object.assign(cap, { 'tb:options': tbOptions }, { ...cap }))
+        const caps = Array.isArray(capabilities) ? capabilities : Object.values(capabilities)
+        caps.forEach((cap: WebDriver.DesiredCapabilities) => Object.assign(cap, { 'tb:options': tbOptions }, { ...cap }))
 
         /**
          * measure TestingBot tunnel boot time
