@@ -228,6 +228,9 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
     case `${path}/${sessionId}/appium/stop_recording_screen`:
         value = Buffer.from('some screenshot').toString('base64')
         break
+    case `${path}/${sessionId}/print`:
+        value = Buffer.from('some pdf print').toString('base64')
+        break
     case `${path}/${sessionId}/element/${genericElementId}/screenshot`:
         value = Buffer.from('some element screenshot').toString('base64')
         break
