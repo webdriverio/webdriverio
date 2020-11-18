@@ -17,6 +17,26 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.9.0 (2020-11-18)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#6126](https://github.com/webdriverio/webdriverio/pull/6126) Save pdf ([@NickR23](https://github.com/NickR23))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#6125](https://github.com/webdriverio/webdriverio/pull/6125) Change debuggerAddress to optional ([@christon88](https://github.com/christon88))
+
+#### :house: Internal
+* `devtools`, `wdio-config`, `wdio-sync`, `webdriver`, `webdriverio`
+  * [#6123](https://github.com/webdriverio/webdriverio/pull/6123) Rewrite utils.ts and constants.ts of wdio-config in typescript ([@abdatta](https://github.com/abdatta))
+
+#### Committers: 3
+- Abhishek Datta ([@abdatta](https://github.com/abdatta))
+- Christian Onsager ([@christon88](https://github.com/christon88))
+- Nick Richardson ([@NickR23](https://github.com/NickR23))
+
+
 ## v6.8.1 (2020-11-17)
 
 #### :bug: Bug Fix
