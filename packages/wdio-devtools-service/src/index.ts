@@ -1,7 +1,6 @@
 import logger from '@wdio/logger'
 import puppeteerCore from 'puppeteer-core'
 
-import type { ProtocolMapping } from 'devtools-protocol/types/protocol-mapping'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Viewport } from 'puppeteer-core/lib/cjs/puppeteer/common/PuppeteerViewport'
@@ -229,7 +228,7 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
          */
         await Promise.all(['Page', 'Network', 'Console'].map(
             (domain) => Promise.all([
-                this._session?.send(`${domain}.enable` as unknown as keyof ProtocolMapping.Commands)
+                this._session?.send(`${domain}.enable` as any)
             ])
         ))
 

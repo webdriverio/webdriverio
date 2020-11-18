@@ -1,3 +1,6 @@
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+
 import CommandHandler from '../src/commands'
 
 jest.mock('../src/utils', () => ({
@@ -18,6 +21,16 @@ const sessionMock = {
     send: jest.fn()
 }
 
+declare global {
+    namespace NodeJS {
+        interface Global {
+            browser: {
+                addCommand: jest.Mock
+            }
+        }
+    }
+}
+
 beforeEach(() => {
     pageMock.tracing.start.mockClear()
     pageMock.tracing.stop.mockClear()
@@ -30,14 +43,20 @@ beforeEach(() => {
 })
 
 test('initialization', () => {
-    new CommandHandler(sessionMock, pageMock)
+    new CommandHandler(
+        sessionMock as unknown as CDPSession,
+        pageMock as unknown as Page
+    )
     expect(global.browser.addCommand.mock.calls).toHaveLength(7)
     expect(sessionMock.on).toBeCalled()
 })
 
 test('cdp', async () => {
     sessionMock.send.mockReturnValue(Promise.resolve('foobar'))
-    const handler = new CommandHandler(sessionMock, pageMock)
+    const handler = new CommandHandler(
+        sessionMock as unknown as CDPSession,
+        pageMock as unknown as Page
+    )
     expect(await handler.cdp('Network', 'enable')).toBe('foobar')
     expect(sessionMock.send).toBeCalledWith('Network.enable', {})
 })
@@ -45,7 +64,10 @@ test('cdp', async () => {
 test('getNodeId', async () => {
     sessionMock.send.mockResolvedValueOnce({ root: { nodeId: 123 } })
     sessionMock.send.mockResolvedValueOnce({ nodeId: 42 })
-    const handler = new CommandHandler(sessionMock, pageMock)
+    const handler = new CommandHandler(
+        sessionMock as unknown as CDPSession,
+        pageMock as unknown as Page
+    )
 
     expect(await handler.getNodeId('selector')).toBe(42)
     expect(sessionMock.send).toBeCalledWith('DOM.getDocument')
@@ -57,7 +79,10 @@ test('getNodeId', async () => {
 test('getNodeIds', async () => {
     sessionMock.send.mockResolvedValueOnce({ root: { nodeId: 123 } })
     sessionMock.send.mockResolvedValueOnce({ nodeIds: [42, 43] })
-    const handler = new CommandHandler(sessionMock, pageMock)
+    const handler = new CommandHandler(
+        sessionMock as unknown as CDPSession,
+        pageMock as unknown as Page
+    )
 
     expect(await handler.getNodeIds('selector')).toEqual([42, 43])
     expect(sessionMock.send).toBeCalledWith('DOM.getDocument')
@@ -67,33 +92,45 @@ test('getNodeIds', async () => {
 })
 
 test('startTracing', () => {
-    const handler = new CommandHandler(sessionMock, pageMock)
+    const handler = new CommandHandler(
+        sessionMock as unknown as CDPSession,
+        pageMock as unknown as Page
+    )
     handler.startTracing()
 
-    expect(handler.isTracing).toBe(true)
+    expect(handler['_isTracing']).toBe(true)
     expect(handler.startTracing.bind(handler)).toThrow()
     expect(pageMock.tracing.start).toBeCalledTimes(1)
 })
 
 test('endTracing', async () => {
     pageMock.tracing.stop.mockResolvedValue(Buffer.from('{ "traceEvents": "foobar" }'))
-    const handler = new CommandHandler(sessionMock, pageMock)
-    handler.isTracing = true
+    const handler = new CommandHandler(
+        sessionMock as unknown as CDPSession,
+        pageMock as unknown as Page
+    )
+    handler['_isTracing'] = true
 
     const traceEvents = await handler.endTracing()
     expect(pageMock.tracing.stop).toBeCalledTimes(1)
     expect(traceEvents).toEqual({ traceEvents: 'foobar' })
-    expect(handler.isTracing).toBe(false)
+    expect(handler['_isTracing']).toBe(false)
 })
 
 test('endTracing throws if not tracing', async () => {
-    const handler = new CommandHandler(sessionMock, pageMock)
+    const handler = new CommandHandler(
+        sessionMock as unknown as CDPSession,
+        pageMock as unknown as Page
+    )
     await expect(handler.endTracing()).rejects.toBeInstanceOf(Error)
 })
 
 test('getPageWeight', () => {
-    const handler = new CommandHandler(sessionMock, pageMock)
-    handler.networkHandler.requestTypes = {
+    const handler = new CommandHandler(
+        sessionMock as unknown as CDPSession,
+        pageMock as unknown as Page
+    )
+    handler['_networkHandler'].requestTypes = {
         Document: { size: 23343, encoded: 7674, count: 1 },
         Image: { size: 53479, encoded: 53479, count: 6 },
         Other: { size: 0, encoded: 0, count: 1 }
@@ -103,5 +140,5 @@ test('getPageWeight', () => {
     expect(pageWeight).toBe('foobar')
     expect(transferred).toBe('foobar')
     expect(requestCount).toBe('foobar')
-    expect(details).toEqual(handler.networkHandler.requestTypes)
+    expect(details).toEqual(handler['_networkHandler'].requestTypes)
 })

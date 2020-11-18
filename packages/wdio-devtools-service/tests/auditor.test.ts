@@ -1,9 +1,11 @@
+import type { Trace } from '../src/gatherer/trace'
+
 import Auditor from '../src/auditor'
 
 let auditor
 
 beforeEach(() => {
-    auditor = new Auditor({}, [])
+    auditor = new Auditor({} as unknown as Trace, [])
 })
 
 test('getMainThreadWorkBreakdown', async () => {

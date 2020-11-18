@@ -55,7 +55,7 @@ interface NavigationStartEvent extends TraceEventArgs {
     }
 }
 
-interface WaitPromise {
+export interface WaitPromise {
     promise: Promise<any>
     cancel: Function
 }
