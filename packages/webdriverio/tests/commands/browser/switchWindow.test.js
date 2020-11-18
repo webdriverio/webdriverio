@@ -51,4 +51,10 @@ describe('switchWindow', () => {
             expect(e.message).toContain('Unsupported parameter')
         }
     })
+
+    it('should find url with query string', async () => {
+        got.setMockResponse([null, null, 'foo.com?foo=bar', 'bar', null, 'hello', 'world', null, 'some', 'url'])
+        const tabId = await browser.switchWindow('foo.com?foo=bar')
+        expect(tabId).toBe('window-handle-1')
+    })
 })
