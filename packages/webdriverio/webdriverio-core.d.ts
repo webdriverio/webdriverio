@@ -472,6 +472,20 @@ declare namespace WebdriverIO {
         windowFeatures?: string
     }
 
+    type PDFPrintOptions = {
+        orientation?: string,
+        scale?: number,
+        background?: boolean,
+        width?: number,
+        height?: number,
+        top?: number,
+        bottom?: number,
+        left?: number,
+        right?: number,
+        shrinkToFit?: boolean,
+        pageRanges?: object[]
+    }
+
     type ClickOptions = {
         button?: number | string,
         x?: number,
@@ -1234,12 +1248,11 @@ declare namespace WebdriverIO {
         reloadSession(): Promise<void>;
 
         /**
-         * Save a screenshot of the current browsing context to a PDF file on your OS. Be aware that
-         * some browser drivers take screenshots of the whole document (e.g. Geckodriver with Firefox)
-         * and others only of the current viewport (e.g. Chromedriver with Chrome).
+         * Prints the page of the current browsing context to a PDF file on your OS.
          */
         savePDF(
-            filepath: string
+            filepath: string,
+            options?: PDFPrintOptions
         ): Promise<Buffer>;
 
         /**
