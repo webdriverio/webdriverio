@@ -121,6 +121,13 @@ Function intercepting HTTP response objects after a WebDriver response has arriv
 Type: `(Response, RequestOptions) => Response`<br>
 Default: *none*
 
+### strictSSL
+Whether it does not require SSL certificate to be valid.
+It can be set via an environment variables as `STRICT_SSL` or `strict_ssl`.
+
+Type: `Boolean`<br>
+Default: `true`
+
 ---
 
 ## WebdriverIO

@@ -131,5 +131,13 @@ export const DEFAULTS: DefaultOptions<Options> = {
     },
     directConnectPath: {
         type: 'string'
+    },
+    /**
+     * Whether it requires SSL certificates to be valid in HTTP/s requests
+     * for an environment which cannot get process environment well.
+     */
+    strictSSL: {
+        type: 'boolean',
+        default: true
     }
 }
