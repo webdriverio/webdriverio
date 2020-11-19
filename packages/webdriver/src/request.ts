@@ -121,7 +121,7 @@ export default class WebDriverRequest extends EventEmitter {
          * Or the requestOptions has strictSSL for an environment which cannot get the environment variable correctly like on an Electron app.
          */
         requestOptions.https!.rejectUnauthorized = !(
-            !options.strictSSL ||
+            options.strictSSL === false ||
             process.env.STRICT_SSL === 'false' ||
             process.env.strict_ssl === 'false'
         )
