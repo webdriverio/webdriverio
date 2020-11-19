@@ -645,6 +645,12 @@ export interface Options {
     directConnectHost?: string
     directConnectPort?: number
     directConnectPath?: string
+
+    /**
+     * Whether it requires SSL certificates to be valid in HTTP/s requests
+     * for an environment which cannot get process environment well.
+     */
+    strictSSL?: boolean;
 }
 
 export interface JSONWPCommandError extends Error {
