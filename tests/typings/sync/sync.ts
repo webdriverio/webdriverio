@@ -52,6 +52,23 @@ const callResult = <number>browser.call(() =>
 )
 callResult.toFixed(2)
 
+// printPage
+
+browser.savePDF('./packages/bar.pdf', {
+    orientation: 'landscape',
+    background: true,
+    width: 24.5,
+    height: 26.9,
+    top: 10,
+    bottom: 10,
+    left: 5,
+    right: 5,
+    shrinkToFit: true,
+    pageRanges: [{}]
+})
+
+browser.savePDF('./packages/bar.pdf')
+
 // browser element command
 browser.getElementRect('elementId')
 
