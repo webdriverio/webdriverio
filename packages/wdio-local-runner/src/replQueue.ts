@@ -15,7 +15,7 @@ interface Repl {
  */
 export default class ReplQueue {
     private _repls: Repl[] = []
-    private _runningRepl?: WDIORepl
+    runningRepl?: WDIORepl
 
     add (childProcess: ChildProcess, options: any, onStart: Function, onEnd: Function) {
         this._repls.push({ childProcess, options, onStart, onEnd })
@@ -32,7 +32,7 @@ export default class ReplQueue {
         }
 
         const { childProcess, options, onStart, onEnd } = nextRepl
-        const runningRepl = this._runningRepl = new WDIORepl(childProcess, options)
+        const runningRepl = this.runningRepl = new WDIORepl(childProcess, options)
 
         onStart()
         runningRepl.start().then(() => {
@@ -43,12 +43,12 @@ export default class ReplQueue {
             runningRepl.childProcess.send(ev)
             onEnd(ev)
 
-            delete this._runningRepl
+            delete this.runningRepl
             this.next()
         })
     }
 
     get isRunning () {
-        return Boolean(this._runningRepl)
+        return Boolean(this.runningRepl)
     }
 }

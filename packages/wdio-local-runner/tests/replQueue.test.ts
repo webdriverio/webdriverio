@@ -15,7 +15,7 @@ test('add', () => {
 test('isRunning', () => {
     const queue = new ReplQueue()
     expect(queue.isRunning).toBe(false)
-    queue['_runningRepl'] = true as any
+    queue.runningRepl = true as any
     expect(queue.isRunning).toBe(true)
 })
 
@@ -54,6 +54,6 @@ test('next', async () => {
      * should not continue if repl is undefined
      */
     queue['_repls'].push(undefined as any)
-    delete queue['_runningRepl']
+    delete queue.runningRepl
     queue.next()
 })
