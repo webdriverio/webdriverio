@@ -1,6 +1,12 @@
 /**
  *
+<<<<<<< HEAD
  * Save a screenshot of the current browsing context to a PDF file on your OS.
+=======
+ * Save a screenshot of the current browsing context to a PDF file on your OS. Be aware that
+ * some browser drivers take screenshots of the whole document (e.g. Geckodriver with Firefox)
+ * and others only of the current viewport (e.g. Chromedriver with Chrome).
+>>>>>>> upstream/master
  *
  * <example>
     :savePDF.js

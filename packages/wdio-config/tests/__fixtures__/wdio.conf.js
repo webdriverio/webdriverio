@@ -17,7 +17,7 @@ exports.config = {
         mobile: [path.join(TEST_ROOT, 'detectBackend.test.js')],
         functional: [
             path.join(TEST_ROOT, 'validateConfig.test.js'),
-            path.join(TEST_ROOT, '..', 'src/index.js')
+            path.join(TEST_ROOT, '..', 'src/index.ts')
         ]
     }
 }

@@ -1,3 +1,5 @@
+import type { Hooks } from './types'
+
 const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
@@ -7,13 +9,13 @@ export const DEFAULT_CONFIGS = () => ({
     suites: {},
     exclude: [],
     outputDir: undefined,
-    logLevel: 'info',
+    logLevel: 'info' as const,
     logLevels: {},
     excludeDriverLogs: [],
     bail: 0,
     waitforInterval: 500,
     waitforTimeout: 5000,
-    framework: 'mocha',
+    framework: 'mocha' as const,
     reporters: [],
     services: [],
     maxInstances: 100,
@@ -23,7 +25,7 @@ export const DEFAULT_CONFIGS = () => ({
     connectionRetryCount: 3,
     execArgv: [],
     runnerEnv: {},
-    runner: 'local',
+    runner: 'local' as const,
 
     /**
      * framework defaults
@@ -69,7 +71,7 @@ export const DEFAULT_CONFIGS = () => ({
     afterFeature: [],
 })
 
-export const SUPPORTED_HOOKS = [
+export const SUPPORTED_HOOKS: (keyof Hooks)[] = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
