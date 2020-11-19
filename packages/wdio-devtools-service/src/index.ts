@@ -97,7 +97,7 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
         /**
          * update custom commands once tracing finishes
          */
-        this._traceGatherer?.once('tracingComplete', (traceEvents) => {
+        this._traceGatherer.once('tracingComplete', (traceEvents) => {
             const auditor = new Auditor(traceEvents, this._devtoolsGatherer?.getLogs())
             auditor.updateCommands(global.browser as WebdriverIO.BrowserObject)
         })
@@ -197,6 +197,7 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
         }
 
         this._puppeteer = await global.browser.getPuppeteer() as unknown as Browser
+        /* istanbul ignore next */
         if (!this._puppeteer) {
             throw new Error('Could not initiate Puppeteer instance')
         }
@@ -204,11 +205,13 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
         this._target = await this._puppeteer.waitForTarget(
             /* istanbul ignore next */
             (t) => t.type() === 'page')
+        /* istanbul ignore next */
         if (!this._target) {
             throw new Error('No page target found')
         }
 
         this._page = await this._target.page()
+        /* istanbul ignore next */
         if (!this._page) {
             throw new Error('No page found')
         }

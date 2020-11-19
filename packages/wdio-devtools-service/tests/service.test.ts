@@ -45,6 +45,16 @@ jest.mock('../src/utils', () => {
     }
 })
 
+declare global {
+    namespace NodeJS {
+        interface Global {
+            browser: {
+                addCommand: jest.Mock
+            }
+        }
+    }
+}
+
 const pageMock = {
     setCacheEnabled: jest.fn(),
     emulate: jest.fn()
@@ -63,7 +73,7 @@ beforeEach(() => {
     ;(log.error as jest.Mock).mockClear()
 })
 
-test.only('beforeSession', () => {
+test('beforeSession', () => {
     const service = new DevToolsService()
     expect(service['_isSupported']).toBe(false)
 
@@ -80,7 +90,7 @@ test.only('beforeSession', () => {
     expect(service['_isSupported']).toBe(true)
 })
 
-test.only('if not supported by browser', async () => {
+test('if not supported by browser', async () => {
     const service = new DevToolsService()
     service['_isSupported'] = false
 
@@ -88,7 +98,7 @@ test.only('if not supported by browser', async () => {
     expect(global.browser.addCommand.mock.calls).toHaveLength(0)
 })
 
-test.only('if supported by browser', async () => {
+test('if supported by browser', async () => {
     const service = new DevToolsService()
     service['_isSupported'] = true
     await service._setupHandler()
@@ -115,7 +125,7 @@ test.only('if supported by browser', async () => {
     expect((global.browser as any).emit).toBeCalledWith('foo', 'bar')
 })
 
-test.only('beforeCommand', () => {
+test('beforeCommand', () => {
     const service = new DevToolsService()
     service['_traceGatherer'] = { startTracing: jest.fn() } as any
     service._setThrottlingProfile = jest.fn()
@@ -152,7 +162,7 @@ test.only('beforeCommand', () => {
     expect(service['_traceGatherer'].startTracing).toBeCalledWith('click transition')
 })
 
-test.only('afterCommand', () => {
+test('afterCommand', () => {
     const service = new DevToolsService()
     service['_traceGatherer'] = { once: jest.fn() } as any
 
@@ -179,7 +189,7 @@ test.only('afterCommand', () => {
     expect(service['_traceGatherer'].once).toBeCalledTimes(9)
 })
 
-test.only('afterCommand: should create a new auditor instance and should update the browser commands', () => {
+test('afterCommand: should create a new auditor instance and should update the browser commands', () => {
     const service = new DevToolsService()
     service['_traceGatherer'] = new EventEmitter() as any
 
@@ -194,7 +204,7 @@ test.only('afterCommand: should create a new auditor instance and should update 
     expect(auditor.updateCommands).toBeCalledWith('some browser')
 })
 
-test.only('afterCommand: should update browser commands even if failed', () => {
+test('afterCommand: should update browser commands even if failed', () => {
     const service = new DevToolsService()
     service['_traceGatherer'] = new EventEmitter() as any
 
@@ -209,7 +219,7 @@ test.only('afterCommand: should update browser commands even if failed', () => {
     expect(auditor.updateCommands).toBeCalledWith('some browser', expect.any(Function))
 })
 
-test.only('afterCommand: should continue with command after tracingFinished was emitted', async () => {
+test('afterCommand: should continue with command after tracingFinished was emitted', async () => {
     const service = new DevToolsService()
     service['_traceGatherer'] = new EventEmitter() as any
 
@@ -225,17 +235,17 @@ test.only('afterCommand: should continue with command after tracingFinished was 
     expect(service._setThrottlingProfile).toBeCalledWith('online', 0, true)
 })
 
-test.only('_enablePerformanceAudits: throws if network or cpu properties have wrong types', () => {
+test('_enablePerformanceAudits: throws if network or cpu properties have wrong types', () => {
     const service = new DevToolsService()
     expect(
         () => service._enablePerformanceAudits({ networkThrottling: 'super fast 3g' } as any)
-    ).toThrow()
+    ).toThrow(/Network throttling profile/)
     expect(
-        () => service._enablePerformanceAudits({ cpuThrottling: '34' } as any)
-    ).toThrow()
+        () => service._enablePerformanceAudits({ networkThrottling: 'Good 3G', cpuThrottling: '34' } as any)
+    ).toThrow(/CPU throttling rate needs to be typeof number/)
 })
 
-test.only('_enablePerformanceAudits: applies some default values', () => {
+test('_enablePerformanceAudits: applies some default values', () => {
     const service = new DevToolsService()
     service._enablePerformanceAudits()
 
@@ -244,7 +254,7 @@ test.only('_enablePerformanceAudits: applies some default values', () => {
     expect(service['_cacheEnabled']).toBe(false)
 })
 
-test.only('_enablePerformanceAudits: applies some custom values', () => {
+test('_enablePerformanceAudits: applies some custom values', () => {
     const service = new DevToolsService()
     service._enablePerformanceAudits({
         networkThrottling: 'Regular 2G',
@@ -257,7 +267,7 @@ test.only('_enablePerformanceAudits: applies some custom values', () => {
     expect(service['_cacheEnabled']).toBe(true)
 })
 
-test.only('_disablePerformanceAudits', () => {
+test('_disablePerformanceAudits', () => {
     const service = new DevToolsService()
     service._enablePerformanceAudits({
         networkThrottling: 'Regular 2G',
@@ -268,13 +278,29 @@ test.only('_disablePerformanceAudits', () => {
     expect(service['_shouldRunPerformanceAudits']).toBe(false)
 })
 
-test.only('_setThrottlingProfile', async () => {
+test('_setThrottlingProfile', async () => {
     const service = new DevToolsService()
+    const err = await service._setThrottlingProfile('Good 3G', 4, true)
+        .catch((err: Error) => err) as Error
+    expect(err.message).toContain('No page')
+
     service['_page'] = pageMock as any
     service['_session'] = sessionMock as any
 
-    await service._setThrottlingProfile('Good 3G', 4, true)
+    await service._setThrottlingProfile('GPRS', 42, true)
     expect(pageMock.setCacheEnabled).toBeCalledWith(true)
+    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 42 })
+    expect(sessionMock.send).toBeCalledWith('Network.emulateNetworkConditions', {
+        downloadThroughput: 6400,
+        latency: 500,
+        offline: false,
+        uploadThroughput: 2560
+    })
+
+    pageMock.setCacheEnabled.mockClear()
+    sessionMock.send.mockClear()
+    await service._setThrottlingProfile()
+    expect(pageMock.setCacheEnabled).toBeCalledWith(false)
     expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 4 })
     expect(sessionMock.send).toBeCalledWith('Network.emulateNetworkConditions', {
         downloadThroughput: 188743,
@@ -284,8 +310,12 @@ test.only('_setThrottlingProfile', async () => {
     })
 })
 
-test.only('_emulateDevice', async () => {
+test('_emulateDevice', async () => {
     const service = new DevToolsService()
+    const err = await service._emulateDevice('Nexus 6P')
+        .catch((err: Error) => err) as Error
+    expect(err.message).toContain('No page')
+
     service['_page'] = pageMock as any
     service['_session'] = sessionMock as any
     await service._emulateDevice('Nexus 6P')
@@ -301,14 +331,14 @@ test.only('_emulateDevice', async () => {
     expect(isSuccessful).toBe(false)
 })
 
-test.only('before hook', async () => {
+test('before hook', async () => {
     const service = new DevToolsService()
     service._setupHandler = jest.fn()
     service.before()
     expect(service._setupHandler).toBeCalledTimes(1)
 })
 
-test.only('onReload hook', async () => {
+test('onReload hook', async () => {
     const service = new DevToolsService()
     service._setupHandler = jest.fn()
     ;(global.browser as any).puppeteer = 'suppose to be reset after reload' as any

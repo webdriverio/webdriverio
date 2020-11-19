@@ -51,6 +51,15 @@ test('initialization', () => {
     expect(sessionMock.on).toBeCalled()
 })
 
+test('getTraceLogs', () => {
+    const commander = new CommandHandler(
+        sessionMock as unknown as CDPSession,
+        pageMock as unknown as Page
+    )
+    commander['_traceEvents'] = [{ foo: 'bar' }] as any
+    expect(commander.getTraceLogs()).toEqual([{ foo: 'bar' }])
+})
+
 test('cdp', async () => {
     sessionMock.send.mockReturnValue(Promise.resolve('foobar'))
     const handler = new CommandHandler(

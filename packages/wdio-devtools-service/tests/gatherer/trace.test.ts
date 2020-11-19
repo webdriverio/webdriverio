@@ -59,6 +59,10 @@ test('should register eventlisteners for network monitor', () => {
 
 test('onFrameLoadFail', () => {
     traceGatherer.onFrameLoadFail({
+        frame: () => undefined
+    } as unknown as HTTPRequest)
+    expect(traceGatherer['_failingFrameLoadIds']).toEqual([])
+    traceGatherer.onFrameLoadFail({
         frame: () => ({ _id: '123' })
     } as unknown as HTTPRequest)
     expect(traceGatherer['_failingFrameLoadIds']).toEqual(['123'])

@@ -1,4 +1,7 @@
-import { sumByKey, isBrowserVersionLower, getBrowserMajorVersion, isBrowserSupported } from '../src/utils'
+import {
+    sumByKey, isBrowserVersionLower, getBrowserMajorVersion,
+    isBrowserSupported, setUnsupportedCommand
+} from '../src/utils'
 import { RequestPayload } from '../src/handler/network'
 
 jest.mock('fs', () => ({
@@ -14,6 +17,14 @@ test('sumByKey', () => {
     } as unknown as RequestPayload, {
         size: 3
     } as unknown as RequestPayload], 'size')).toBe(6)
+})
+
+test('setUnsupportedCommand', () => {
+    const browser = { addCommand: jest.fn() }
+    setUnsupportedCommand(browser as unknown as WebdriverIO.BrowserObject)
+    expect(browser.addCommand).toBeCalledWith('cdp', expect.any(Function))
+    const fn = browser.addCommand.mock.calls[0][1]
+    expect(fn).toThrow()
 })
 
 describe('isBrowserVersionLower', () => {

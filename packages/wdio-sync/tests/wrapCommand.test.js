@@ -13,10 +13,12 @@ const futurePrototypeWait = Future.prototype.wait
 describe('wrapCommand:runCommand', () => {
     beforeEach(() => {
         jest.resetAllMocks()
+        delete global.WDIO_WORKER
     })
 
     it('should return result', async () => {
         process.emit('WDIO_TIMER', { id: 0, start: true })
+        global.WDIO_WORKER = '1'
         const fn = jest.fn(x => (x + x))
         const runCommand = wrapCommand('foo', fn)
         const result = await runCommand.call({ options: {} }, 'bar')
@@ -200,10 +202,12 @@ describe('wrapCommand:runCommand', () => {
         it('WDIO_TIMER listener', () => {
             process.emit('WDIO_TIMER', { id: 1, start: true })
             process.emit('WDIO_TIMER', { id: 1 })
+            process.emit('WDIO_TIMER', { id: 2, start: true })
 
             process.emit('WDIO_TIMER', { id: 2, start: true })
             process.emit('WDIO_TIMER', { id: 3, start: true })
             process.emit('WDIO_TIMER', { id: 2, timeout: true })
+            process.emit('WDIO_TIMER', { id: 123, timeout: true })
         })
     })
 

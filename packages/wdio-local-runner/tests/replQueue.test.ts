@@ -6,7 +6,7 @@ test('add', () => {
     const queue = new ReplQueue()
     queue.add(1 as unknown as ChildProcess, 2, 3 as unknown as Function, 4 as unknown as Function)
     queue.add(5 as unknown as ChildProcess, 6, 7 as unknown as Function, 8 as unknown as Function)
-    expect(queue.repls).toEqual([
+    expect(queue['_repls']).toEqual([
         { childProcess: 1, options: 2, onStart: 3, onEnd: 4 },
         { childProcess: 5, options: 6, onStart: 7, onEnd: 8 }
     ])
@@ -15,7 +15,7 @@ test('add', () => {
 test('isRunning', () => {
     const queue = new ReplQueue()
     expect(queue.isRunning).toBe(false)
-    queue.runningRepl = true as any
+    queue['_runningRepl'] = true as any
     expect(queue.isRunning).toBe(true)
 })
 
@@ -49,4 +49,11 @@ test('next', async () => {
 
     await new Promise((resolve) => setTimeout(resolve, 100))
     expect(queue.isRunning).toBe(false)
+
+    /**
+     * should not continue if repl is undefined
+     */
+    queue['_repls'].push(undefined as any)
+    delete queue['_runningRepl']
+    queue.next()
 })
