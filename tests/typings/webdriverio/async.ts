@@ -95,7 +95,6 @@ async function bar() {
     callResult.toFixed(2)
 
     // printPage
-
     await browser.savePDF('./packages/bar.pdf', {
         orientation: 'landscape',
         background: true,
