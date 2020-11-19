@@ -245,6 +245,12 @@ describe('webdriver request', () => {
                 delete process.env.strict_ssl
             })
 
+            it('should contain key "rejectUnauthorized" with value "false" when "strictSSL" argument is given with false', () => {
+                const req = new WebDriverRequest('POST', path, {strictSSL: false})
+                const options = req['_createOptions'](defaults)
+                expect(options.https?.rejectUnauthorized).toEqual(false)
+            })
+
             it('should contain key "rejectUnauthorized" with value "false" when environment variable "STRICT_SSL" is defined with value "false"', () => {
                 process.env['STRICT_SSL'] = 'false'
                 const req = new WebDriverRequest('POST', path, {})
@@ -257,6 +263,13 @@ describe('webdriver request', () => {
                 const req = new WebDriverRequest('POST', path, {})
                 const options = req['_createOptions'](defaults)
                 expect(options.https?.rejectUnauthorized).toEqual(false)
+            })
+
+            it('should contain key "rejectUnauthorized" with value "true" when "strictSSL" argument is given with true', () => {
+                process.env['STRICT_SSL'] = 'true'
+                const req = new WebDriverRequest('POST', path, {strictSSL: true})
+                const options = req['_createOptions'](defaults)
+                expect(options.https?.rejectUnauthorized).toEqual(true)
             })
 
             it('should contain key "rejectUnauthorized" with value "true" when environment variable "STRICT_SSL" is defined with value "true"', () => {
