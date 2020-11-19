@@ -247,7 +247,7 @@ describe('webdriver request', () => {
 
             it('should contain key "rejectUnauthorized" with value "false" when "strictSSL" argument is given with false', () => {
                 const req = new WebDriverRequest('POST', path, {})
-                const options = req['_createOptions']({...defaults, strictSSL: false })
+                const options = req['_createOptions']({ ...defaults, strictSSL: false })
 
                 expect(options.https?.rejectUnauthorized).toEqual(false)
             })
@@ -268,7 +268,7 @@ describe('webdriver request', () => {
 
             it('should contain key "rejectUnauthorized" with value "true" when "strictSSL" argument is given with true', () => {
                 const req = new WebDriverRequest('POST', path, {})
-                const options = req['_createOptions']({...defaults, strictSSL: true })
+                const options = req['_createOptions']({ ...defaults, strictSSL: true })
                 expect(options.https?.rejectUnauthorized).toEqual(true)
             })
 
