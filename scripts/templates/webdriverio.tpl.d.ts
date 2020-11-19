@@ -466,6 +466,20 @@ declare namespace WebdriverIO {
         windowFeatures?: string
     }
 
+    type PDFPrintOptions = {
+        orientation?: string,
+        scale?: number,
+        background?: boolean,
+        width?: number,
+        height?: number,
+        top?: number,
+        bottom?: number,
+        left?: number,
+        right?: number,
+        shrinkToFit?: boolean,
+        pageRanges?: object[]
+    }
+
     type ClickOptions = {
         button?: number | string,
         x?: number,

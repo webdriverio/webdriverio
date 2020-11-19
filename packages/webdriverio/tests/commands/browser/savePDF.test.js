@@ -27,7 +27,7 @@ describe('savePDF', () => {
     })
 
     it('should take screenshot of page as a PDF', async () => {
-        const screenshot = await browser.savePDF('./packages/bar.pdf')
+        let screenshot = await browser.savePDF('./packages/bar.pdf')
 
         // get path
         expect(getAbsoluteFilepathSpy).toHaveBeenCalledTimes(1)
@@ -46,6 +46,19 @@ describe('savePDF', () => {
         // write to file
         expect(writeFileSyncSpy).toHaveBeenCalledTimes(1)
         expect(writeFileSyncSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value, expect.any(Buffer))
+
+        screenshot = await browser.savePDF('./packages/bar.pdf', {
+            orientation: 'landscape',
+            background: true,
+            width: 24.5,
+            height: 26.9,
+            top: 10,
+            bottom: 10,
+            left: 5,
+            right: 5,
+            shrinkToFit: true
+        })
+        expect(screenshot.toString()).toBe('some pdf print')
     })
 
     it('should fail if no filename provided', async () => {
