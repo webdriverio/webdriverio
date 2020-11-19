@@ -43,11 +43,14 @@ declare namespace WebdriverIO {
     type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>;
     type JsonCompatible = JsonObject | JsonArray;
 
-    interface MultiRemoteCapabilities {
-        [instanceName: string]: {
-            capabilities: WebDriver.DesiredCapabilities;
-        };
+    interface MultiRemoteBrowserOptions {
+        capabilities: WebDriver.DesiredCapabilities;
     }
+
+    interface MultiRemoteCapabilities {
+        [instanceName: string]: MultiRemoteBrowserOptions;
+    }
+
 
     interface ServiceOption {
         [key: string]: any;
@@ -171,7 +174,6 @@ declare namespace WebdriverIO {
          * The number of retry attempts for an entire specfile when it fails as a whole.
          */
         specFileRetries?: number;
-        readonly specFileRetryAttempts?: number;
         /**
          * Delay in seconds between the spec file retry attempts
          */

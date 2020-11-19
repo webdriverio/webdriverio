@@ -49,11 +49,14 @@ declare namespace WebdriverIO {
     type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>;
     type JsonCompatible = JsonObject | JsonArray;
 
-    interface MultiRemoteCapabilities {
-        [instanceName: string]: {
-            capabilities: WebDriver.DesiredCapabilities;
-        };
+    interface MultiRemoteBrowserOptions {
+        capabilities: WebDriver.DesiredCapabilities;
     }
+
+    interface MultiRemoteCapabilities {
+        [instanceName: string]: MultiRemoteBrowserOptions;
+    }
+
 
     interface ServiceOption {
         [key: string]: any;
@@ -177,7 +180,6 @@ declare namespace WebdriverIO {
          * The number of retry attempts for an entire specfile when it fails as a whole.
          */
         specFileRetries?: number;
-        readonly specFileRetryAttempts?: number;
         /**
          * Delay in seconds between the spec file retry attempts
          */
@@ -1230,6 +1232,15 @@ declare namespace WebdriverIO {
          * new Selenium sessions is very time consuming especially when using cloud services.
          */
         reloadSession(): Promise<void>;
+
+        /**
+         * Save a screenshot of the current browsing context to a PDF file on your OS. Be aware that
+         * some browser drivers take screenshots of the whole document (e.g. Geckodriver with Firefox)
+         * and others only of the current viewport (e.g. Chromedriver with Chrome).
+         */
+        savePDF(
+            filepath: string
+        ): Promise<Buffer>;
 
         /**
          * Appium only. Save a video started by startRecordingScreen command to file.

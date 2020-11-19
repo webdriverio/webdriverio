@@ -1,5 +1,4 @@
 import logger from '@wdio/logger'
-// @ts-ignore
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import Protocols from '@wdio/protocols'
 

@@ -198,6 +198,8 @@ class MochaAdapter {
             type: params.type
         }
 
+        const mochaAllHooksIfPresent = params.payload?.title?.match(/^"(before|after)( all| each)?" hook/)
+
         if (params.err) {
             /**
              * replace "Ensure the done() callback is being called in this test." with a more meaningful message
@@ -219,7 +221,7 @@ class MochaAdapter {
             /**
              * hook failures are emitted as "test:fail"
              */
-            if (params.payload && params.payload.title && params.payload.title.match(/^"(before|after)( all| each)?" hook/)) {
+            if (mochaAllHooksIfPresent) {
                 message.type = 'hook:end'
             }
         }
@@ -243,6 +245,11 @@ class MochaAdapter {
 
             if (params.type.match(/Test/)) {
                 message.passed = (params.payload.state === 'passed')
+            }
+
+            if (params.payload.parent?.title && mochaAllHooksIfPresent) {
+                const hookName = mochaAllHooksIfPresent[0]
+                message.title = `${hookName} for ${params.payload.parent.title}`
             }
 
             if (params.payload.context) { message.context = params.payload.context }

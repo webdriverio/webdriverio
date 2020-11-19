@@ -3,7 +3,8 @@
     "compilerOptions": {
         "baseUrl": ".",
         "outDir": "./build",
-        "rootDir": "./src"
+        "rootDir": "./src",
+        "types": ["webdriverio", "webdriver", "@wdio/cucumber-framework"]
     },
     "include": [
         "src/**/*"

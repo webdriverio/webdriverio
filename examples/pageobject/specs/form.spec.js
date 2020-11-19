@@ -16,7 +16,7 @@ describe('auth form', () => {
         FormPage.password.addValue('SuperSecretPassword!')
         FormPage.submit()
 
-        FormPage.flash.waitForVisible()
+        FormPage.flash.waitForDisplayed()
         expect(FormPage.flash).toHaveTextContaining('You logged into a secure area!')
     })
 })
