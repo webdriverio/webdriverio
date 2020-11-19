@@ -17,6 +17,117 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.9.0 (2020-11-18)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriver`, `webdriverio`
+  * [#6126](https://github.com/webdriverio/webdriverio/pull/6126) Save pdf ([@NickR23](https://github.com/NickR23))
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#6125](https://github.com/webdriverio/webdriverio/pull/6125) Change debuggerAddress to optional ([@christon88](https://github.com/christon88))
+
+#### :house: Internal
+* `devtools`, `wdio-config`, `wdio-sync`, `webdriver`, `webdriverio`
+  * [#6123](https://github.com/webdriverio/webdriverio/pull/6123) Rewrite utils.ts and constants.ts of wdio-config in typescript ([@abdatta](https://github.com/abdatta))
+
+#### Committers: 3
+- Abhishek Datta ([@abdatta](https://github.com/abdatta))
+- Christian Onsager ([@christon88](https://github.com/christon88))
+- Nick Richardson ([@NickR23](https://github.com/NickR23))
+
+
+## v6.8.1 (2020-11-17)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6066](https://github.com/webdriverio/webdriverio/pull/6066) Closes [#6057](https://github.com/webdriverio/webdriverio/issues/6057) ([@vmelikyan](https://github.com/vmelikyan))
+* `wdio-allure-reporter`, `wdio-reporter`
+  * [#6076](https://github.com/webdriverio/webdriverio/pull/6076) Another take on bug #4953 ([@oversizedhat](https://github.com/oversizedhat))
+
+#### :nail_care: Polish
+* `wdio-runner`
+  * [#6122](https://github.com/webdriverio/webdriverio/pull/6122) Execute beforeSession hook before everything is initiated ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#6117](https://github.com/webdriverio/webdriverio/pull/6117) Update examples with outdated waitForVisible method  ([@cben](https://github.com/cben))
+
+#### Committers: 5
+- Beni Cherniavsky-Paskin ([@cben](https://github.com/cben))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Vahan Melikyan ([@vmelikyan](https://github.com/vmelikyan))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@oversizedhat](https://github.com/oversizedhat)
+
+
+## v6.8.0 (2020-11-16)
+
+#### :rocket: New Feature
+* `wdio-protocols`
+  * [#6102](https://github.com/webdriverio/webdriverio/pull/6102) feat: enable new printPage command via webdriver protocol binding ([@zachlysobey](https://github.com/zachlysobey))
+
+#### :bug: Bug Fix
+* `wdio-repl`, `wdio-utils`, `webdriver`
+  * [#6111](https://github.com/webdriverio/webdriverio/pull/6111) Fix environment detection ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-mocha-framework`
+  * [#6108](https://github.com/webdriverio/webdriverio/pull/6108) fix(5973): fix for mocha before all hook incorrectly taking the first… ([@sarathps93](https://github.com/sarathps93))
+* `wdio-appium-service`, `wdio-config`, `wdio-selenium-standalone-service`, `wdio-sync`, `webdriverio`
+  * [#6107](https://github.com/webdriverio/webdriverio/pull/6107) Fix Selenium-Standalone service overriding capabilities  ([@hieuxlu](https://github.com/hieuxlu))
+
+#### :memo: Documentation
+* [#6104](https://github.com/webdriverio/webdriverio/pull/6104) Update Selectors.md ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :house: Internal
+* `devtools`, `wdio-config`, `wdio-logger`, `wdio-protocols`, `webdriver`
+  * [#5824](https://github.com/webdriverio/webdriverio/pull/5824) Tracking doc: rewrite `devtools` package into TypeScript ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#6089](https://github.com/webdriverio/webdriverio/pull/6089) website: adjust landing page mobile view ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 8
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Hieu Do ([@hieuxlu](https://github.com/hieuxlu))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Sarath ([@sarathps93](https://github.com/sarathps93))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- Zachary Lysobey ([@zachlysobey](https://github.com/zachlysobey))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- dominik feininger ([@dominikfeininger](https://github.com/dominikfeininger))
+
+
+## v6.7.4 (2020-11-09)
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6078](https://github.com/webdriverio/webdriverio/pull/6078) feat(ui5-service): add UI5 support to wdio ([@dominikfeininger](https://github.com/dominikfeininger))
+
+#### Committers: 1
+- dominik feininger ([@dominikfeininger](https://github.com/dominikfeininger))
+
+
+## v6.7.3 (2020-11-08)
+
+#### :bug: Bug Fix
+* `wdio-logger`, `webdriver`
+  * [#6073](https://github.com/webdriverio/webdriverio/pull/6073) Closes [#6068](https://github.com/webdriverio/webdriverio/issues/6068) ([@RedMickey](https://github.com/RedMickey))
+
+#### :nail_care: Polish
+* `wdio-sync`, `webdriverio`
+  * [#6067](https://github.com/webdriverio/webdriverio/pull/6067) Better typing for callback arguments in browser.execute ([@abdatta](https://github.com/abdatta))
+* `wdio-sauce-service`
+  * [#5961](https://github.com/webdriverio/webdriverio/pull/5961) retry if SC fails to start ([@enriquegh](https://github.com/enriquegh))
+
+#### :house: Internal
+* `wdio-applitools-service`, `wdio-selenium-standalone-service`, `wdio-shared-store-service`, `wdio-sync`, `wdio-testingbot-service`, `webdriver`, `webdriverio`
+  * [#6032](https://github.com/webdriverio/webdriverio/pull/6032) Tracking doc: rewrite `@wdio/testingbot-service` package into TypeScript ([@hieuxlu](https://github.com/hieuxlu))
+
+#### Committers: 4
+- Abhishek Datta ([@abdatta](https://github.com/abdatta))
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Hieu Do ([@hieuxlu](https://github.com/hieuxlu))
+- [@RedMickey](https://github.com/RedMickey)
+
+
 ## v6.7.2 (2020-11-02)
 
 #### :bug: Bug Fix

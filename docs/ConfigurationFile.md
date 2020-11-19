@@ -104,8 +104,10 @@ exports.config = {
         // Parameter to ignore some or all default flags
         // - if value is true: ignore all DevTools 'default flags' and Puppeteer 'default arguments'
         // - if value is an array: DevTools filters given default arguments
-        // ignoreDefaultArgs: true,
-        // ignoreDefaultArgs: ['--disable-sync', '--disable-extensions'],
+        // 'wdio:devtoolsOptions': {
+        //    ignoreDefaultArgs: true,
+        //    ignoreDefaultArgs: ['--disable-sync', '--disable-extensions'],
+        // }
     }, {
         // maxInstances can get overwritten per capability. So if you have an in house Selenium
         // grid with only 5 firefox instance available you can make sure that not more than

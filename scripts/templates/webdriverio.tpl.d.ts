@@ -43,11 +43,14 @@ declare namespace WebdriverIO {
     type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>;
     type JsonCompatible = JsonObject | JsonArray;
 
-    interface MultiRemoteCapabilities {
-        [instanceName: string]: {
-            capabilities: WebDriver.DesiredCapabilities;
-        };
+    interface MultiRemoteBrowserOptions {
+        capabilities: WebDriver.DesiredCapabilities;
     }
+
+    interface MultiRemoteCapabilities {
+        [instanceName: string]: MultiRemoteBrowserOptions;
+    }
+
 
     interface ServiceOption {
         [key: string]: any;
@@ -171,7 +174,6 @@ declare namespace WebdriverIO {
          * The number of retry attempts for an entire specfile when it fails as a whole.
          */
         specFileRetries?: number;
-        readonly specFileRetryAttempts?: number;
         /**
          * Delay in seconds between the spec file retry attempts
          */
@@ -224,8 +226,17 @@ declare namespace WebdriverIO {
         [instanceName: string]: WebDriver.DesiredCapabilities;
     }
 
-    interface Suite {}
+    interface Suite {
+        error?: any;
+    }
     interface Test {}
+    interface TestResult {
+        error?: any,
+        result?: any,
+        passed: boolean,
+        duration: number,
+        retries: { limit: number, attempts: number }
+    }
 
     interface Results {
         finished: number,
@@ -352,13 +363,7 @@ declare namespace WebdriverIO {
          * @param stepData  Cucumber step data
          * @param world     Cucumber world
          */
-        afterHook?(test: any, context: any, result: {
-            error?: any,
-            result?: any,
-            passed: boolean,
-            duration: number,
-            retries: { limit: number, attempts: number }
-        }, stepData?: any, world?: any): void;
+        afterHook?(test: any, context: any, result: TestResult, stepData?: any, world?: any): void;
 
         /**
          * Gets executed after all tests are done. You still have access to all global variables from
@@ -411,13 +416,7 @@ declare namespace WebdriverIO {
          * @param context   context to current running test
          * @param result    test result
          */
-        afterTest?(test: Test, context: any, result: {
-            error?: any,
-            result?: any,
-            passed: boolean,
-            duration: number,
-            retries: { limit: number, attempts: number }
-        }): void;
+        afterTest?(test: Test, context: any, result: TestResult): void;
     }
     type _HooksArray = {
         [K in keyof Pick<HookFunctions, "onPrepare" | "onWorkerStart" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
@@ -674,6 +673,25 @@ declare namespace WebdriverIO {
         ): void
         // ... browser commands ...
     }
+
+    interface BrowserObject {
+        isMultiremote?: false;
+    }
+
+    type MultiRemoteBrowserReference = Record<string, BrowserObject>
+    
+    interface MultiRemoteBrowser extends Browser {
+        /**
+         * multiremote browser instance names
+         */
+        instances: string[];
+        /**
+         * flag to indicate multiremote browser session
+         */
+        isMultiremote: true;
+    }
+    
+    type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
 
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
          /**

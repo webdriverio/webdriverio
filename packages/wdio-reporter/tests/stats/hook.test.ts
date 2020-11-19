@@ -5,11 +5,13 @@ test('should get initialised', () => {
         cid: '0-0',
         title: 'foobar',
         parent: 'barfoo',
+        currentTest: 'sometest'
     })
     expect(hook.type).toBe('hook')
     expect(hook.cid).toBe('0-0')
     expect(hook.title).toBe('foobar')
     expect(hook.parent).toBe('barfoo')
+    expect(hook.currentTest).toBe('sometest')
 })
 
 test('should allow to be called complete', () => {

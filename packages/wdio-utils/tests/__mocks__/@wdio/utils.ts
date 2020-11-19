@@ -96,7 +96,9 @@ export const setWdioSyncSupport = (value: boolean) => { hasWdioSyncSupport = val
 export let hasWdioSyncSupport = false
 export const testFnWrapper = jest.fn()
 export const isW3C = isW3cOrig
-export const sessionEnvironmentDetector = sessionEnvDetector
+export const sessionEnvironmentDetector = jest.fn().mockImplementation(
+    // @ts-ignore
+    (...args) => sessionEnvDetector(...args))
 export const capabilitiesEnvironmentDetector = capabilitiesEnvDetector
 export const devtoolsEnvironmentDetector = devtoolsEnvDetector
 export const transformCommandLogResult = jest.fn().mockImplementation((data) => data)

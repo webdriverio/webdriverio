@@ -1,5 +1,4 @@
 import logger from '@wdio/logger'
-// @ts-ignore
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import Protocols from '@wdio/protocols'
 
@@ -99,6 +98,10 @@ export default function (
             }
 
             this.emit('result', { method, endpoint, body, result })
+
+            if (command === 'deleteSession') {
+                logger.clearLogger()
+            }
             return result.value
         })
     }

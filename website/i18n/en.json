@@ -434,6 +434,9 @@
       "docs/wdio-timeline-reporter": {
         "title": "Timeline Reporter"
       },
+      "docs/wdio-ui5-service": {
+        "title": "UI5 Service"
+      },
       "docs/wdio-video-reporter": {
         "title": "Video Reporter"
       },

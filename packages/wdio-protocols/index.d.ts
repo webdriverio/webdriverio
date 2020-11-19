@@ -18,7 +18,7 @@ declare namespace WDIOProtocols {
         /**
          * link to specification reference
          */
-        ref: URL
+        ref: string
         /**
          * supported command parameters
          */
@@ -50,6 +50,13 @@ declare namespace WDIOProtocols {
     interface CommandPathVariables {
         name: string
         description: string
+
+        /**
+         * the following are given for path variables, we should still define
+         * it as values are populated automatically
+         */
+        required?: boolean
+        type?: string
     }
 
     interface CommandParameters {
