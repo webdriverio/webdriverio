@@ -164,7 +164,6 @@ export function validateConfig<T>(defaults: DefaultOptions<T>, options: T, keysT
         }
 
         if (typeof options[name] === 'undefined' && expectedOption.default) {
-            // @ts-ignore Expression produces a union type that is too complex to represent for Typescript.
             params[name] = expectedOption.default
         }
 
@@ -176,7 +175,7 @@ export function validateConfig<T>(defaults: DefaultOptions<T>, options: T, keysT
 
             if (typeof expectedOption.validate === 'function') {
                 try {
-                    expectedOption.validate(optValue as never) // TS limitation
+                    expectedOption.validate(optValue)
                 } catch (e) {
                     throw new Error(`Type check for option "${name}" failed: ${e.message}`)
                 }

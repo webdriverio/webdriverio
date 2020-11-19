@@ -140,7 +140,7 @@ declare namespace WebdriverIO {
          * An object describing various of suites, which you can then specify
          * with the --suite option on the wdio CLI.
          */
-        suites?: object;
+        suites?: Record<string, string[]>;
         /**
          * Maximum number of total parallel running workers.
          */

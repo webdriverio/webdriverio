@@ -2,28 +2,24 @@ import fs from 'fs'
 import path from 'path'
 import glob from 'glob'
 import merge from 'deepmerge'
-
 import logger from '@wdio/logger'
 
 import { detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray } from '../utils'
-
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS } from '../constants'
+import type { Capabilities, ConfigOptions, Hooks } from '../types'
 
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
 export default class ConfigParser {
-    constructor () {
-        this._config = DEFAULT_CONFIGS()
-
-        this._capabilities = []
-    }
+    private _config: ConfigOptions = DEFAULT_CONFIGS()
+    private _capabilities: Capabilities = [];
 
     /**
      * merges config file with default values
      * @param {String} filename path of file relative to current directory
      */
-    addConfigFile (filename) {
+    addConfigFile (filename: string) {
         if (typeof filename !== 'string') {
             throw new Error('addConfigFile requires filepath')
         }
@@ -34,13 +30,13 @@ export default class ConfigParser {
             /**
              * clone the original config
              */
-            const fileConfig = merge(require(filePath).config, {}, MERGE_OPTIONS)
+            const fileConfig = merge<ConfigOptions>(require(filePath).config, {}, MERGE_OPTIONS)
 
             /**
              * merge capabilities
              */
-            const defaultTo = Array.isArray(this._capabilities) ? [] : {}
-            this._capabilities = merge(this._capabilities, fileConfig.capabilities || defaultTo, MERGE_OPTIONS)
+            const defaultTo: Capabilities = Array.isArray(this._capabilities) ? [] : {}
+            this._capabilities = merge<Capabilities>(this._capabilities, fileConfig.capabilities || defaultTo, MERGE_OPTIONS)
             delete fileConfig.capabilities
 
             /**
@@ -81,7 +77,7 @@ export default class ConfigParser {
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
      */
-    merge (object = {}) {
+    merge (object = {} as ConfigOptions) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
 
@@ -113,10 +109,10 @@ export default class ConfigParser {
          * run single spec file only, regardless of multiple-spec specification
          */
         if (spec.length > 0) {
-            this._config.specs = [...this.setFilePathToFilterOptions(spec, this._config.specs)]
+            this._config.specs = [...this.setFilePathToFilterOptions(spec, this._config.specs!)]
         }
         if (exclude.length > 0) {
-            this._config.exclude = [...this.setFilePathToFilterOptions(exclude, this._config.exclude)]
+            this._config.exclude = [...this.setFilePathToFilterOptions(exclude, this._config.exclude!)]
         }
 
         /**
@@ -144,18 +140,31 @@ export default class ConfigParser {
      * Add hooks from an existing service to the runner config.
      * @param {Object} service - an object that contains hook methods.
      */
-    addService (service) {
-        for (let hookName of SUPPORTED_HOOKS) {
-            if (!service[hookName]) {
+    addService (service: Hooks) {
+        const addHook = <T extends keyof Hooks>(hookName: T, hook: Extract<Hooks[T], Function>) => {
+            const existingHooks: ConfigOptions[keyof Hooks] = this._config[hookName]
+            if (!existingHooks) {
+                // @ts-ignore Expression produces a union type that is too complex to represent
+                this._config[hookName] = hook.bind(service)
+            } else if (typeof existingHooks === 'function') {
+                this._config[hookName] = [existingHooks, hook.bind(service)]
+            } else {
+                this._config[hookName] = [...existingHooks, hook.bind(service)]
+            }
+        }
+
+        for (const hookName of SUPPORTED_HOOKS) {
+            const hooksToBeAdded = service[hookName]
+            if (!hooksToBeAdded) {
                 continue
             }
 
-            if (typeof service[hookName] === 'function') {
-                this._config[hookName].push(service[hookName].bind(service))
-            } else if (Array.isArray(service[hookName])) {
-                for (let hook of service[hookName]) {
-                    if (typeof hook === 'function') {
-                        this._config[hookName].push(hook.bind(service))
+            if (typeof hooksToBeAdded === 'function') {
+                addHook(hookName, hooksToBeAdded)
+            } else if (Array.isArray(hooksToBeAdded)) {
+                for (const hookToAdd of hooksToBeAdded) {
+                    if (typeof hookToAdd === 'function') {
+                        addHook(hookName, hookToAdd)
                     }
                 }
             }
@@ -165,22 +174,23 @@ export default class ConfigParser {
     /**
      * get excluded files from config pattern
      */
-    getSpecs (capSpecs, capExclude) {
-        let specs = ConfigParser.getFilePaths(this._config.specs)
+    getSpecs (capSpecs: string[], capExclude: string[]) {
+        let specs = ConfigParser.getFilePaths(this._config.specs!)
         let spec  = Array.isArray(this._config.spec) ? this._config.spec : []
-        let exclude = ConfigParser.getFilePaths(this._config.exclude)
+        let exclude = ConfigParser.getFilePaths(this._config.exclude!)
         let suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         /**
          * check if user has specified a specific suites to run
          */
         if (suites.length > 0) {
-            let suiteSpecs = []
+            let suiteSpecs: string[] = []
             for (let suiteName of suites) {
-                // TODO: log warning if suite was not found
-                let suite = this._config.suites[suiteName]
-
-                if (suite && Array.isArray(suite)) {
+                let suite = this._config.suites?.[suiteName]
+                if (!suite) {
+                    console.warn(`No suite was found with name "${suiteName}"`)
+                }
+                if (Array.isArray(suite)) {
                     suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite))
                 }
             }
@@ -226,8 +236,8 @@ export default class ConfigParser {
      * cli argument
      * @return {String[]} List of files that should be included or excluded
      */
-    setFilePathToFilterOptions (cliArgFileList, config) {
-        const filesToFilter = new Set()
+    setFilePathToFilterOptions (cliArgFileList: string[], config: string[]) {
+        const filesToFilter = new Set<string>()
         const fileList = ConfigParser.getFilePaths(config)
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
@@ -247,7 +257,7 @@ export default class ConfigParser {
         if (filesToFilter.size === 0) {
             throw new Error(`spec file(s) ${cliArgFileList.join(', ')} not found`)
         }
-        return filesToFilter
+        return [...filesToFilter]
     }
 
     /**
@@ -260,8 +270,8 @@ export default class ConfigParser {
     /**
      * return capabilities
      */
-    getCapabilities (i) {
-        if (typeof i === 'number' && this._capabilities[i]) {
+    getCapabilities (i?: number) {
+        if (typeof i === 'number' && Array.isArray(this._capabilities) && this._capabilities[i]) {
             return this._capabilities[i]
         }
 
@@ -274,19 +284,18 @@ export default class ConfigParser {
      * @param  {String[]} filenames  list of files to glob
      * @return {String[]} list of files
      */
-    static getFilePaths (patterns, omitWarnings) {
-        let files = []
+    static getFilePaths (patterns: string[], omitWarnings?: boolean) {
+        let files: string[] = []
 
         if (typeof patterns === 'string') {
-            patterns = removeLineNumbers(patterns)
             patterns = [patterns]
-        } else {
-            patterns = patterns.map(pattern => removeLineNumbers(pattern))
         }
 
         if (!Array.isArray(patterns)) {
             throw new Error('specs or exclude property should be an array of strings')
         }
+
+        patterns = patterns.map(pattern => removeLineNumbers(pattern))
 
         for (let pattern of patterns) {
             let filenames = glob.sync(pattern)
