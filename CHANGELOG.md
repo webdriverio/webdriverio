@@ -17,6 +17,22 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.9.1 (2020-11-20)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6127](https://github.com/webdriverio/webdriverio/pull/6127) Switch window query strings ([@christon88](https://github.com/christon88))
+
+#### :nail_care: Polish
+* `wdio-sync`, `webdriverio`
+  * [#6133](https://github.com/webdriverio/webdriverio/pull/6133) Add Options to Save PDF ([@NickR23](https://github.com/NickR23))
+
+#### Committers: 3
+- Christian Onsager ([@christon88](https://github.com/christon88))
+- Kazuaki Matsuo ([@KazuCocoa](https://github.com/KazuCocoa))
+- Nick Richardson ([@NickR23](https://github.com/NickR23))
+
+
 ## v6.9.0 (2020-11-18)
 
 #### :rocket: New Feature

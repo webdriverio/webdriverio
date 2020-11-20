@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "6.9.0",
+  "version": "6.9.1",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -73,6 +73,6 @@
     "resq": "^1.9.1",
     "rgb2hex": "^0.2.0",
     "serialize-error": "^7.0.0",
-    "webdriver": "6.9.0"
+    "webdriver": "6.9.1"
   }
 }

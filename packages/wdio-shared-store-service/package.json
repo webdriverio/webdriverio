@@ -1,6 +1,6 @@
 {
   "name": "@wdio/shared-store-service",
-  "version": "6.9.0",
+  "version": "6.9.1",
   "description": "A WebdriverIO service to exchange data across processes",
   "author": "Mykola Grybyk <mykola.grybyk@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-shared-store-service",
@@ -33,6 +33,6 @@
   },
   "types": "shared-store-service.d.ts",
   "devDependencies": {
-    "webdriverio": "6.9.0"
+    "webdriverio": "6.9.1"
   }
 }
