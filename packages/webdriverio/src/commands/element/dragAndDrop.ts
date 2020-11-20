@@ -94,14 +94,14 @@ export default async function dragAndDrop (
      */
     const { scrollX, scrollY } = await getScrollPosition(this)
     const sourceRect = await getElementRect(this)
-    const sourceX = sourceRect.x - scrollX + (sourceRect.width / 2)
-    const sourceY = sourceRect.y - scrollY + (sourceRect.height / 2)
+    const sourceX = Math.floor(sourceRect.x - scrollX + (sourceRect.width / 2))
+    const sourceY = Math.floor(sourceRect.y - scrollY + (sourceRect.height / 2))
 
     let targetX, targetY
     if (isMovingToElement) {
         const targetRect = await getElementRect(moveToElement)
-        targetX = targetRect.x - scrollX + (targetRect.width / 2) - sourceX
-        targetY = targetRect.y - scrollY + (targetRect.height / 2) - sourceY
+        targetX = Math.floor(targetRect.x - scrollX + (targetRect.width / 2) - sourceX)
+        targetY = Math.floor(targetRect.y - scrollY + (targetRect.height / 2) - sourceY)
     } else {
         targetX = moveToCoordinates.x
         targetY = moveToCoordinates.y
