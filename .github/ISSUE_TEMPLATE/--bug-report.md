@@ -24,7 +24,7 @@ A clear and concise description of what the bug is.
 **To Reproduce**
 Steps to reproduce the behavior:
 
-[Include code or an example repository that can easily be set up]
+[Please provide an example repository that can be easily set up.  Otherwise the issue will get flagged as **Reproducible Example Missing** and ignored until such an example is provided]
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
