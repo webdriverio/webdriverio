@@ -1,10 +1,10 @@
-import type { Hooks } from './types'
+import type { ConfigOptions, Hooks } from './types'
 
 const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
 
-export const DEFAULT_CONFIGS = () => ({
+export const DEFAULT_CONFIGS: () => ConfigOptions = () => ({
     specs: [],
     suites: {},
     exclude: [],

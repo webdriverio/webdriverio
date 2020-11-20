@@ -6,8 +6,11 @@ export type Hooks = {
 export type Capabilities = (WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities)[] | WebdriverIO.MultiRemoteCapabilities;
 
 export interface ConfigOptions extends Omit<WebdriverIO.Config, 'capabilities' | keyof WebdriverIO.Hooks>, Hooks {
+    spec?: string[];
+    suite?: string[];
     capabilities?: Capabilities;
     specFileRetryAttempts?: number;
+    cucumberFeaturesWithLineNumbers?: string[];
 }
 
 export type DefaultOptions<T> = {
@@ -15,7 +18,7 @@ export type DefaultOptions<T> = {
         type: 'string' | 'number' | 'object' | 'boolean' | 'function';
         default?: T[k];
         required?: boolean;
-        validate?: (option: k) => void
+        validate?: (option: T[k]) => void
         match?: RegExp;
     };
 }

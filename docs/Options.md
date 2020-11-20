@@ -285,6 +285,12 @@ Specific framework-related options. See the framework adapter documentation on w
 Type: `Object`<br>
 Default: `{ timeout: 10000 }`
 
+### cucumberFeaturesWithLineNumbers
+List of cucumber features with line numbers (when [using cucumber framework](frameworks.html#using-cucumber)).
+
+Type: `String[]`
+Default: `[]`
+
 ### reporters
 
 List of reporters to use. A reporter can be either a string, or an array of
