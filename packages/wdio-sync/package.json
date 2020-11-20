@@ -1,6 +1,6 @@
 {
   "name": "@wdio/sync",
-  "version": "6.9.0",
+  "version": "6.9.1",
   "description": "A WebdriverIO plugin. Helper module to run WebdriverIO commands synchronously",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sync",

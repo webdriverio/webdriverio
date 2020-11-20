@@ -1,6 +1,6 @@
 {
   "name": "@wdio/runner",
-  "version": "6.9.0",
+  "version": "6.9.1",
   "description": "A WebdriverIO service that runs tests in arbitrary environments",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-runner",
@@ -27,8 +27,8 @@
     "@wdio/utils": "6.8.0",
     "deepmerge": "^4.0.0",
     "gaze": "^1.1.2",
-    "webdriver": "6.9.0",
-    "webdriverio": "6.9.0"
+    "webdriver": "6.9.1",
+    "webdriverio": "6.9.1"
   },
   "publishConfig": {
     "access": "public"
