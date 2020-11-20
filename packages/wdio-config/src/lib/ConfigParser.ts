@@ -109,10 +109,10 @@ export default class ConfigParser {
          * run single spec file only, regardless of multiple-spec specification
          */
         if (spec.length > 0) {
-            this._config.specs = [...this.setFilePathToFilterOptions(spec, this._config.specs!)]
+            this._config.specs = this.setFilePathToFilterOptions(spec, this._config.specs!)
         }
         if (exclude.length > 0) {
-            this._config.exclude = [...this.setFilePathToFilterOptions(exclude, this._config.exclude!)]
+            this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         }
 
         /**
@@ -188,7 +188,7 @@ export default class ConfigParser {
             for (let suiteName of suites) {
                 let suite = this._config.suites?.[suiteName]
                 if (!suite) {
-                    console.warn(`No suite was found with name "${suiteName}"`)
+                    log.warn(`No suite was found with name "${suiteName}"`)
                 }
                 if (Array.isArray(suite)) {
                     suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite))
