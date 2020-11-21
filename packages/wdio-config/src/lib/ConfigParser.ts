@@ -174,7 +174,7 @@ export default class ConfigParser {
     /**
      * get excluded files from config pattern
      */
-    getSpecs (capSpecs: string[], capExclude: string[]) {
+    getSpecs (capSpecs?: string[], capExclude?: string[]) {
         let specs = ConfigParser.getFilePaths(this._config.specs!)
         let spec  = Array.isArray(this._config.spec) ? this._config.spec : []
         let exclude = ConfigParser.getFilePaths(this._config.exclude!)

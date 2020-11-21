@@ -2,23 +2,26 @@ import { DEFAULT_CONFIGS as DEFAULT_CONFIGS_IMPORT } from '../../../src/constant
 import { getSauceEndpoint as getSauceEndpointMock } from '../../../src/utils'
 
 class ConfigParserMock {
-    constructor () {
-        this.addService = jest.fn()
-        this.addConfigFile = jest.fn()
-        this.merge = jest.fn()
-        this.getConfig = jest.fn().mockReturnValue({
-            runnerEnv: {},
-            runner: 'local',
-            outputDir: './tempDir'
-        })
-        this.getCapabilities = jest.fn().mockReturnValue([{
-            browserName: 'chrome',
-            specs: ['./tests/test2.js']
-        }, {
-            browserName: 'firefox'
-        }])
-        this.getSpecs = jest.fn().mockReturnValue(['./tests/test1.js'])
-    }
+    addService = jest.fn()
+
+    addConfigFile = jest.fn()
+
+    merge = jest.fn()
+
+    getConfig = jest.fn().mockReturnValue({
+        runnerEnv: {},
+        runner: 'local',
+        outputDir: './tempDir'
+    })
+
+    getCapabilities = jest.fn().mockReturnValue([{
+        browserName: 'chrome',
+        specs: ['./tests/test2.js']
+    }, {
+        browserName: 'firefox'
+    }])
+
+    getSpecs = jest.fn().mockReturnValue(['./tests/test1.js'])
 }
 
 export const DEFAULT_CONFIGS = DEFAULT_CONFIGS_IMPORT
