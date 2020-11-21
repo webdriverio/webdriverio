@@ -2,10 +2,10 @@ import path from 'path'
 import ConfigParser from '../src/lib/ConfigParser'
 
 const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
-const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.js')
-const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.js')
-const FIXTURES_CONF_MULTIREMOTE_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.js')
-const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.js')
+const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.ts')
+const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')
+const FIXTURES_CONF_MULTIREMOTE_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.ts')
+const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.ts')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
 const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.feature:7')
@@ -13,30 +13,30 @@ const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
 
 describe('ConfigParser', () => {
     it('should throw if getFilePaths is not a string', () => {
-        expect(() => ConfigParser.getFilePaths(123)).toThrow()
+        expect(() => ConfigParser.getFilePaths(123 as any)).toThrow()
     })
 
     describe('addConfigFile', () => {
         it('should throw if config file is not a string', () => {
             const configParser = new ConfigParser()
-            expect(() => configParser.addConfigFile(123)).toThrow()
+            expect(() => configParser.addConfigFile(123 as any)).toThrow()
         })
 
         it('should throw if config file does not exist', () => {
             const configParser = new ConfigParser()
-            expect(() => configParser.addConfigFile(path.resolve(__dirname, 'foobar.conf.js'))).toThrow()
+            expect(() => configParser.addConfigFile(path.resolve(__dirname, 'foobar.conf.ts'))).toThrow()
         })
 
         it('should add the rdc hostname when a rdc conf is provided', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF_RDC)
-            expect(configParser._config.hostname).toContain('appium.testobject.com')
+            expect(configParser['_config'].hostname).toContain('appium.testobject.com')
         })
 
         it('should default to the vm hostname when a multiremote conf with rdc props is provided', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF_MULTIREMOTE_RDC)
-            expect(configParser._config.hostname).not.toContain('appium.testobject.com')
+            expect(configParser['_config'].hostname).not.toContain('appium.testobject.com')
         })
     })
 
@@ -130,7 +130,7 @@ describe('ConfigParser', () => {
             configParser.merge({ spec : ['Backend'] })
 
             const specs = configParser.getSpecs()
-            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.js'))
+            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
         })
 
         it('should exclude duplicate spec files', () => {
@@ -146,7 +146,7 @@ describe('ConfigParser', () => {
         it('should throw if specified spec file does not exist', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            expect(() => configParser.merge({ spec: [path.resolve(__dirname, 'foobar.js')] })).toThrow()
+            expect(() => configParser.merge({ spec: [path.resolve(__dirname, 'foobar.ts')] })).toThrow()
         })
 
         it('should allow to specify multiple suites', () => {
@@ -157,8 +157,8 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toContain(__filename)
             expect(specs).toContain(INDEX_PATH)
-            expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.js'))
-            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.js'))
+            expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
         })
 
         it('should throw when suite is not defined', () => {
@@ -182,7 +182,7 @@ describe('ConfigParser', () => {
 
             let specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
-            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.js'))
+            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
         })
 
         it('should overwrite host and port if key are set as cli arguments', () => {
@@ -230,7 +230,7 @@ describe('ConfigParser', () => {
         it('should throw if specified exclude file does not exist', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF)
-            expect(() => configParser.merge({ exclude: [path.resolve(__dirname, 'foobar.js')] })).toThrow()
+            expect(() => configParser.merge({ exclude: [path.resolve(__dirname, 'foobar.ts')] })).toThrow()
         })
 
         it('should allow specifying a glob pattern for exclude', () => {
@@ -324,20 +324,20 @@ describe('ConfigParser', () => {
                 onComplete: jest.fn()
             })
 
-            expect(configParser._config.before).toHaveLength(0)
-            expect(configParser._config.beforeTest).toHaveLength(0)
-            expect(configParser._config.afterTest).toHaveLength(1)
-            expect(configParser._config.after).toHaveLength(2)
-            expect(configParser._config.onPrepare).toHaveLength(1)
-            expect(configParser._config.onComplete).toHaveLength(1)
+            expect(configParser['_config'].before).toHaveLength(0)
+            expect(configParser['_config'].beforeTest).toHaveLength(0)
+            expect(configParser['_config'].afterTest).toHaveLength(1)
+            expect(configParser['_config'].after).toHaveLength(2)
+            expect(configParser['_config'].onPrepare).toHaveLength(1)
+            expect(configParser['_config'].onComplete).toHaveLength(1)
         })
     })
 
     describe('getCapabilities', () => {
         it('allows to grab certain capabilities', () => {
             const configParser = new ConfigParser()
-            configParser._capabilities = ['foo', 'bar']
-            expect(configParser.getCapabilities()).toEqual(configParser._capabilities)
+            configParser['_capabilities'] = ['foo', 'bar']
+            expect(configParser.getCapabilities()).toEqual(configParser['_capabilities'])
             expect(configParser.getCapabilities(1)).toEqual('bar')
         })
     })
@@ -349,7 +349,7 @@ describe('ConfigParser', () => {
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(__filename)
-            expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.js'))
+            expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
         })
 
         it('should exclude/include capability excludes', () => {
@@ -358,7 +358,7 @@ describe('ConfigParser', () => {
 
             const specs = configParser.getSpecs([INDEX_PATH], [__filename])
             expect(specs).not.toContain(__filename)
-            expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.js'))
+            expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
             expect(specs).toContain(INDEX_PATH)
         })
 
@@ -367,8 +367,8 @@ describe('ConfigParser', () => {
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['unit', 'mobile'] })
 
-            const specs = configParser.getSpecs([INDEX_PATH], [path.join(__dirname, 'detectBackend.test.js')])
-            expect(specs).not.toContain(path.join(__dirname, 'detectBackend.test.js'))
+            const specs = configParser.getSpecs([INDEX_PATH], [path.join(__dirname, 'detectBackend.test.ts')])
+            expect(specs).not.toContain(path.join(__dirname, 'detectBackend.test.ts'))
             expect(specs).toContain(INDEX_PATH)
         })
 
@@ -425,7 +425,7 @@ describe('ConfigParser', () => {
             let specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)
             expect(specs).toContain(INDEX_PATH)
-            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.js'))
+            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
         })
     })
 

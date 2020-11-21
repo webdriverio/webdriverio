@@ -14,7 +14,7 @@ export interface ConfigOptions extends Omit<WebdriverIO.Config, 'capabilities' |
 }
 
 export type DefaultOptions<T> = {
-    [k in keyof T]: {
+    [k in keyof T]?: {
         type: 'string' | 'number' | 'object' | 'boolean' | 'function';
         default?: T[k];
         required?: boolean;
