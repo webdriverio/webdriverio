@@ -182,7 +182,6 @@ export default class DevtoolsInterception extends Interception {
     /**
      * allows access to all requests made with given pattern
      */
-    // @ts-ignore
     get calls () {
         return this.matches
     }

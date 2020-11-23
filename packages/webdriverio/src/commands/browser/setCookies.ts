@@ -62,6 +62,7 @@ export default async function setCookies(
         throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies.html for documentation.')
     }
 
-    return Promise.all(cookieObjsList
+    await Promise.all(cookieObjsList
         .map(cookieObj => this.addCookie(cookieObj)))
+    return
 }

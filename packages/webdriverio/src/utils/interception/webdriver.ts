@@ -18,10 +18,10 @@ export default class WebDriverInterception extends Interception {
     /**
      * allows access to all requests made with given pattern
      */
-    // @ts-ignore
     get calls () {
-        return this.browser.call(
-            async () => this.browser.getMockCalls(this.mockId as string))
+        return this.browser.call(async () => (
+            this.browser.getMockCalls(this.mockId as string) as any as WebdriverIO.Matches[]
+        ))
     }
 
     /**

@@ -1,24 +1,25 @@
 import Timer from '../Timer'
 
 export default class Interception {
-    url: string;
-    filterOptions: WebdriverIO.MockFilterOptions;
-    browser: WebdriverIO.BrowserObject;
+    url: string
+    filterOptions: WebdriverIO.MockFilterOptions
+    browser: WebdriverIO.BrowserObject
     respondOverwrites: {
-        overwrite?: WebdriverIO.MockOverwrite;
-        params?: WebdriverIO.MockResponseParams;
-        sticky?: boolean;
-        errorReason?: string;
-    }[];
-    matches: WebdriverIO.Matches[];
-    calls?: WebdriverIO.Matches[];
+        overwrite?: WebdriverIO.MockOverwrite
+        params?: WebdriverIO.MockResponseParams
+        sticky?: boolean
+        errorReason?: string
+    }[] = []
+    matches: WebdriverIO.Matches[] = []
 
-    constructor (url: string, filterOptions = {}, browser: WebdriverIO.BrowserObject) {
+    constructor (url: string, filterOptions: WebdriverIO.MockFilterOptions = {}, browser: WebdriverIO.BrowserObject) {
         this.url = url
         this.filterOptions = filterOptions
         this.browser = browser
-        this.respondOverwrites = []
-        this.matches = []
+    }
+
+    get calls (): WebdriverIO.Matches[] | Promise<WebdriverIO.Matches[]> {
+        throw new Error('Implement me')
     }
 
     waitForResponse ({
@@ -37,7 +38,8 @@ export default class Interception {
             interval = this.browser.options.waitforInterval
         }
 
-        const fn = () => this.calls && this.calls.length > 0
+        /* istanbul ignore next */
+        const fn = async () => this.calls && (await this.calls).length > 0
         const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<void>
 
         return this.browser.call(() => timer.catch((e) => {

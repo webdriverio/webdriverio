@@ -27,8 +27,11 @@
  *
  */
 
-export default async function switchWindow (this: WebdriverIO.BrowserObject, urlOrTitleToMatch: string | RegExp) {
-    /*!
+export default async function switchWindow (
+    this: WebdriverIO.BrowserObject,
+    urlOrTitleToMatch: string | RegExp
+) {
+    /**
      * parameter check
      */
     if (typeof urlOrTitleToMatch !== 'string' && !(urlOrTitleToMatch instanceof RegExp)) {
