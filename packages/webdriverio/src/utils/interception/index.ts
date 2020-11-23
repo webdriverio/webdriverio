@@ -38,6 +38,7 @@ export default class Interception {
             interval = this.browser.options.waitforInterval
         }
 
+        /* istanbul ignore next */
         const fn = async () => this.calls && (await this.calls).length > 0
         const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<void>
 

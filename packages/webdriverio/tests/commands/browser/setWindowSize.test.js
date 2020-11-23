@@ -53,11 +53,9 @@ describe('setWindowSize', () => {
 
             expect(() => browser.setWindowSize(-1, 500))
                 .toThrowError(invalidValueError)
-            expect(() => browser.setWindowSize(2147483648, 500))
+            expect(() => browser.setWindowSize(Number.MAX_SAFE_INTEGER + 1, 500))
                 .toThrowError(invalidValueError)
             expect(() => browser.setWindowSize(-0.01, 500))
-                .toThrowError(invalidValueError)
-            expect(() => browser.setWindowSize(2147483647.01, 500))
                 .toThrowError(invalidValueError)
         })
     })
