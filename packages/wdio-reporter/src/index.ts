@@ -56,7 +56,6 @@ export default class WDIOReporter extends EventEmitter {
             : createWriteStream((this.options as WDIOReporterOptionsFromLogFile).logFile)
 
         let currentTest: TestStats
-        this.isContentPresent = false
 
         const rootSuite = new SuiteStats({
             title: '(root)',
