@@ -5,16 +5,23 @@ const log = logger('@wdio/testingbot-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class TestingBotService implements WebdriverIO.ServiceInstance {
-    capabilities!: WebDriver.DesiredCapabilities;
-    config?: WebdriverIO.Options;
-    failures: number;
-    isServiceEnabled?: boolean;
-    suiteTitle?: string;
-    tbSecret?: string;
-    tbUser?: string;
-    testCnt: number;
+    browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    capabilities!: WebDriver.DesiredCapabilities
+    config?: WebdriverIO.Options
+    isServiceEnabled?: boolean
+    suiteTitle?: string
+    tbSecret?: string
+    tbUser?: string
+    failures = 0
+    testCnt = 0
 
-    constructor () {
+    constructor (
+        options: TestingbotOptions,
+        caps: WebDriver.Capabilities[],
+        config: WebdriverIO.Config,
+        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    ) {
+        this.browser = browser
         this.testCnt = 0
         this.failures = 0
     }
@@ -70,7 +77,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
              */
             `${test.parent} - ${test.title}`
         )
-        global.browser.execute('tb:test-context=' + context)
+        this.browser.execute('tb:test-context=' + context)
     }
 
     afterSuite (suite: WebdriverIO.Suite) {
@@ -104,7 +111,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
         }
 
         this.suiteTitle = feature.document.feature.name
-        global.browser.execute('tb:test-context=Feature: ' + this.suiteTitle)
+        this.browser.execute('tb:test-context=Feature: ' + this.suiteTitle)
     }
 
     /**
@@ -118,7 +125,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
             return
         }
         const scenarioName = scenario.name
-        global.browser.execute('tb:test-context=Scenario: ' + scenarioName)
+        this.browser.execute('tb:test-context=Scenario: ' + scenarioName)
     }
 
     /**
@@ -149,18 +156,18 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
          * set failures if user has bail option set in which case afterTest and
          * afterSuite aren't executed before after hook
          */
-        if (global.browser.config.mochaOpts?.bail && Boolean(result)) {
+        if (this.browser.config.mochaOpts?.bail && Boolean(result)) {
             failures = 1
         }
 
         const status = 'status: ' + (failures > 0 ? 'failing' : 'passing')
 
-        if (!global.browser.isMultiremote) {
-            log.info(`Update job with sessionId ${global.browser.sessionId}, ${status}`)
-            return this.updateJob(global.browser.sessionId, failures)
+        if (!this.browser.isMultiremote) {
+            log.info(`Update job with sessionId ${this.browser.sessionId}, ${status}`)
+            return this.updateJob(this.browser.sessionId, failures)
         }
 
-        const browser = global.browser
+        const browser = this.browser
         return Promise.all(Object.keys(this.capabilities).map((browserName) => {
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser[browserName].sessionId}, ${status}`)
             return this.updateJob(browser[browserName].sessionId, failures, false, browserName)
@@ -173,12 +180,12 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
         }
         const status = 'status: ' + (this.failures > 0 ? 'failing' : 'passing')
 
-        if (!global.browser.isMultiremote) {
+        if (!this.browser.isMultiremote) {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
             return this.updateJob(oldSessionId, this.failures, true)
         }
 
-        const browser = global.browser
+        const browser = this.browser
         const browserName = browser.instances.filter(
             (browserName: string) => browser[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
@@ -195,7 +202,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
             password: this.tbSecret
         })
 
-        global.browser.jobData = response.body
+        this.browser.jobData = response.body
         return response.body
     }
 
@@ -221,8 +228,8 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
          */
         if (calledOnReload || this.testCnt) {
             let testCnt = ++this.testCnt
-            if (global.browser.isMultiremote) {
-                testCnt = Math.ceil(testCnt / global.browser.instances.length)
+            if (this.browser.isMultiremote) {
+                testCnt = Math.ceil(testCnt / this.browser.instances.length)
             }
 
             body.test['name'] += ` (${testCnt})`

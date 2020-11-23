@@ -9,14 +9,20 @@ const DEFAULT_VIEWPORT = {
 }
 
 export default class ApplitoolsService {
-    options: ApplitoolsConfig;
-    isConfigured: boolean = false;
-    viewport: Required<ApplitoolsConfig['viewport']>;
-    eyes: Eyes;
+    options: ApplitoolsConfig
+    isConfigured: boolean = false
+    viewport: Required<ApplitoolsConfig['viewport']>
+    browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowser
+    eyes = new Eyes()
 
-    constructor(options: ApplitoolsConfig) {
+    constructor(
+        options: ApplitoolsConfig,
+        caps: WebDriver.Capabilities,
+        config: WebdriverIO.Config,
+        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowser
+    ) {
         this.options = options
-        this.eyes = new Eyes()
+        this.browser = browser
     }
 
     /**
@@ -55,7 +61,7 @@ export default class ApplitoolsService {
             return
         }
 
-        global.browser.addCommand('takeSnapshot', (title: string) => {
+        this.browser.addCommand('takeSnapshot', (title: string) => {
             if (!title) {
                 throw new Error('A title for the Applitools snapshot is missing')
             }
@@ -63,7 +69,7 @@ export default class ApplitoolsService {
             return this.eyes.check(title, Target.window())
         })
 
-        global.browser.addCommand('takeRegionSnapshot', (title: string, region: Region, frame: Frame) => {
+        this.browser.addCommand('takeRegionSnapshot', (title: string, region: Region, frame: Frame) => {
             if (!title) {
                 throw new Error('A title for the Applitools snapshot is missing')
             }
@@ -83,7 +89,7 @@ export default class ApplitoolsService {
         }
 
         log.info(`Open eyes for ${test.parent} ${test.title}`)
-        global.browser.call(() => this.eyes.open(global.browser, test.title, test.parent, this.viewport))
+        this.browser.call(() => this.eyes.open(this.browser, test.title, test.parent, this.viewport))
     }
 
     afterTest() {
@@ -91,7 +97,7 @@ export default class ApplitoolsService {
             return
         }
 
-        global.browser.call(this.eyes.close.bind(this.eyes))
+        this.browser.call(this.eyes.close.bind(this.eyes))
     }
 
     after() {
@@ -99,6 +105,6 @@ export default class ApplitoolsService {
             return
         }
 
-        global.browser.call(this.eyes.abortIfNotClosed.bind(this.eyes))
+        this.browser.call(this.eyes.abortIfNotClosed.bind(this.eyes))
     }
 }

@@ -5,9 +5,10 @@ const log = logger('@wdio/crossbrowsertesting-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class CrossBrowserTestingService {
-    constructor () {
+    constructor (serviceOptions, caps, options, browser) {
         this.testCnt = 0
         this.failures = 0
+        this.browser = browser
     }
 
     /**
@@ -112,20 +113,20 @@ export default class CrossBrowserTestingService {
          * set failures if user has bail option set in which case afterTest and
          * afterSuite aren't executed before after hook
          */
-        if (global.browser.config.mochaOpts && global.browser.config.mochaOpts.bail && Boolean(result)) {
+        if (this.browser.config.mochaOpts && this.browser.config.mochaOpts.bail && Boolean(result)) {
             failures = 1
         }
 
         const status = 'status: ' + (failures > 0 ? 'failing' : 'passing')
 
-        if (!global.browser.isMultiremote) {
-            log.info(`Update job with sessionId ${global.browser.sessionId}, ${status}`)
-            return this.updateJob(global.browser.sessionId, failures)
+        if (!this.browser.isMultiremote) {
+            log.info(`Update job with sessionId ${this.browser.sessionId}, ${status}`)
+            return this.updateJob(this.browser.sessionId, failures)
         }
 
         return Promise.all(Object.keys(this.capabilities).map((browserName) => {
-            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${global.browser[browserName].sessionId}, ${status}`)
-            return this.updateJob(global.browser[browserName].sessionId, failures, false, browserName)
+            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${this.browser[browserName].sessionId}, ${status}`)
+            return this.updateJob(this.browser[browserName].sessionId, failures, false, browserName)
         }))
     }
 
@@ -135,13 +136,13 @@ export default class CrossBrowserTestingService {
         }
         const status = 'status: ' + (this.failures > 0 ? 'failing' : 'passing')
 
-        if (!global.browser.isMultiremote) {
+        if (!this.browser.isMultiremote) {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
             return this.updateJob(oldSessionId, this.failures, true)
         }
 
-        const browserName = global.browser.instances.filter(
-            (browserName) => global.browser[browserName].sessionId === newSessionId)[0]
+        const browserName = this.browser.instances.filter(
+            (browserName) => this.browser[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this.failures, true, browserName)
     }
@@ -156,7 +157,7 @@ export default class CrossBrowserTestingService {
             password: this.cbtAuthkey
         })
 
-        global.browser.jobData = response.body
+        this.browser.jobData = response.body
         return response.body
     }
 
@@ -182,8 +183,8 @@ export default class CrossBrowserTestingService {
          */
         if (calledOnReload || this.testCnt) {
             let testCnt = ++this.testCnt
-            if (global.browser.isMultiremote) {
-                testCnt = Math.ceil(testCnt / global.browser.instances.length)
+            if (this.browser.isMultiremote) {
+                testCnt = Math.ceil(testCnt / this.browser.instances.length)
             }
 
             body.test['name'] += ` (${testCnt})`

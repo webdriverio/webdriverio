@@ -6,7 +6,7 @@ import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService {
-    constructor (options = {}, caps, config) {
+    constructor (options = {}, caps, config, browser) {
         this.config = config
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
         this.failReasons = []
@@ -19,6 +19,7 @@ export default class BrowserstackService {
         this.failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown']
         this.strict && this.failureStatuses.push('pending')
         this.caps = caps
+        this.browser = browser
     }
 
     /**
@@ -40,7 +41,7 @@ export default class BrowserstackService {
 
     before() {
         // Ensure capabilities are not null in case of multiremote
-        const capabilities = global.browser.capabilities || {}
+        const capabilities = this.browser.capabilities || {}
         if (capabilities.app || this.caps.app) {
             this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
@@ -119,11 +120,11 @@ export default class BrowserstackService {
         const hasReasons = Boolean(this.failReasons.filter(Boolean).length)
 
         let status = hasReasons ? 'failed' : 'passed'
-        if (!global.browser.isMultiremote) {
+        if (!this.browser.isMultiremote) {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
-            const browserName = global.browser.instances.filter(
-                (browserName) => global.browser[browserName].sessionId === newSessionId)[0]
+            const browserName = this.browser.instances.filter(
+                (browserName) => this.browser[browserName].sessionId === newSessionId)[0]
             log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
@@ -143,19 +144,19 @@ export default class BrowserstackService {
     }
 
     _multiRemoteAction(action) {
-        if (!global.browser.isMultiremote) {
-            log.info(`Update job with sessionId ${global.browser.sessionId}`)
-            return action(global.browser.sessionId)
+        if (!this.browser.isMultiremote) {
+            log.info(`Update job with sessionId ${this.browser.sessionId}`)
+            return action(this.browser.sessionId)
         }
 
-        return Promise.all(global.browser.instances
+        return Promise.all(this.browser.instances
             .filter(browserName => {
-                const cap = getBrowserCapabilities(this.caps, browserName)
+                const cap = getBrowserCapabilities(this.browser, this.caps, browserName)
                 return isBrowserstackCapability(cap)
             })
             .map((browserName) => {
-                log.info(`Update multiremote job for browser "${browserName}" and sessionId ${global.browser[browserName].sessionId}`)
-                return action(global.browser[browserName].sessionId, browserName)
+                log.info(`Update multiremote job for browser "${browserName}" and sessionId ${this.browser[browserName].sessionId}`)
+                return action(this.browser[browserName].sessionId, browserName)
             }))
     }
 

@@ -25,8 +25,9 @@ const featureObject = {
         }
 }
 
+let browser
 beforeEach(() => {
-    global.browser = {
+    browser = {
         config: {},
         execute: jest.fn(),
         chromeA: { sessionId: 'sessionChromeA' },
@@ -79,7 +80,7 @@ test('beforeSuite should set job-name', () => {
     const service = new SauceService(options)
     service.beforeSession({ user: 'foobar', key: '123' }, {})
     service.beforeSuite({ title: 'foobar' })
-    expect(global.browser.execute).toBeCalledWith('sauce:job-name=foobar')
+    expect(browser.execute).toBeCalledWith('sauce:job-name=foobar')
 })
 
 test('beforeSession should set to unknown creds if no sauce user and key are found', () => {
@@ -97,7 +98,7 @@ test('beforeTest should set context for jasmine test', () => {
         fullName: 'my test can do something',
         description: 'foobar'
     })
-    expect(global.browser.execute).toBeCalledWith('sauce:context=my test can do something')
+    expect(browser.execute).toBeCalledWith('sauce:context=my test can do something')
 })
 
 test('beforeTest should set context for mocha test', () => {
@@ -107,7 +108,7 @@ test('beforeTest should set context for mocha test', () => {
         parent: 'foo',
         title: 'bar'
     })
-    expect(global.browser.execute).toBeCalledWith('sauce:context=foo - bar')
+    expect(browser.execute).toBeCalledWith('sauce:context=foo - bar')
 })
 
 test('beforeTest should not set context for RDC test', () => {
@@ -118,7 +119,7 @@ test('beforeTest should not set context for RDC test', () => {
     rdcService.beforeTest({
         fullTitle: 'my test can do something'
     })
-    expect(global.browser.execute).not.toBeCalled()
+    expect(browser.execute).not.toBeCalled()
 })
 
 test('beforeTest should not set context if user does not use sauce', () => {
@@ -127,7 +128,7 @@ test('beforeTest should not set context if user does not use sauce', () => {
     service.beforeTest({
         fullTitle: 'my test can do something'
     })
-    expect(global.browser.execute).not.toBeCalled()
+    expect(browser.execute).not.toBeCalled()
 })
 
 test('afterSuite', () => {
@@ -178,21 +179,21 @@ test('beforeFeature should set context', () => {
     const service = new SauceService()
     service.beforeSession({ user: 'foobar', key: '123' }, {})
     service.beforeFeature( uri, featureObject)
-    expect(global.browser.execute).toBeCalledWith('sauce:context=Feature: Create a feature')
+    expect(browser.execute).toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
 test('beforeFeature should not set context if RDC test', () => {
     const rdcService = new SauceService()
     rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
     rdcService.beforeFeature(uri, featureObject)
-    expect(global.browser.execute).not.toBeCalledWith('sauce:context=Feature: Create a feature')
+    expect(browser.execute).not.toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
 test('beforeFeature should not set context if no sauce user was applied', () => {
     const service = new SauceService()
     service.beforeSession({}, {})
     service.beforeFeature(uri, featureObject)
-    expect(global.browser.execute).not.toBeCalledWith('sauce:context=Feature: Create a feature')
+    expect(browser.execute).not.toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
 test('afterScenario', () => {
@@ -218,21 +219,21 @@ test('beforeScenario should set context', () => {
     const service = new SauceService()
     service.beforeSession({ user: 'foobar', key: '123' }, {})
     service.beforeScenario(uri, featureObject, { name: 'foobar' })
-    expect(global.browser.execute).toBeCalledWith('sauce:context=Scenario: foobar')
+    expect(browser.execute).toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
 test('beforeScenario should not set context if RDC test', () => {
     const rdcService = new SauceService()
     rdcService.beforeSession({}, { testobject_api_key: 'foobar' })
     rdcService.beforeScenario(uri, featureObject, { name: 'foobar' })
-    expect(global.browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
+    expect(browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
 test('beforeScenario should not set context if no sauce user was applied', () => {
     const service = new SauceService()
     service.beforeSession({}, {})
     service.beforeScenario(uri, featureObject, { name: 'foobar' })
-    expect(global.browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
+    expect(browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
 test('after', () => {
@@ -241,8 +242,8 @@ test('after', () => {
     service.failures = 5
     service.updateJob = jest.fn()
 
-    global.browser.isMultiremote = false
-    global.browser.sessionId = 'foobar'
+    browser.isMultiremote = false
+    browser.sessionId = 'foobar'
     service.after()
 
     expect(service.updateJob).toBeCalledWith('foobar', 5)
@@ -254,8 +255,8 @@ test('after for RDC', () => {
     service.failures = 5
     service.updateJob = jest.fn()
 
-    global.browser.isMultiremote = false
-    global.browser.sessionId = 'foobar'
+    browser.isMultiremote = false
+    browser.sessionId = 'foobar'
     service.after()
 
     expect(service.updateJob).toBeCalledWith('foobar', 5)
@@ -263,13 +264,13 @@ test('after for RDC', () => {
 
 test('after for UP', () => {
     const service = new SauceService()
-    global.browser.capabilities = {}
+    browser.capabilities = {}
     service.updateUP = jest.fn()
     service.isServiceEnabled = true
     service.isUP = true
     service.failures = 5
 
-    global.browser.isMultiremote = false
+    browser.isMultiremote = false
     service.after()
 
     expect(service.updateUP).toBeCalledWith(5)
@@ -281,14 +282,14 @@ test('after for UP with multi remote', () => {
         { user: 'foobar', key: '123' },
         { chromeA: {}, chromeB: {}, chromeC: {} }
     )
-    global.browser.capabilities = {}
+    browser.capabilities = {}
     service.updateUP = jest.fn()
     service.isServiceEnabled = true
     service.isUP = true
     service.failures = 0
 
-    global.browser.isMultiremote = true
-    global.browser.sessionId = 'foobar'
+    browser.isMultiremote = true
+    browser.sessionId = 'foobar'
     service.after()
 
     expect(service.updateUP).toBeCalledTimes(3)
@@ -300,9 +301,9 @@ test('after with bail set', () => {
     service.failures = 5
     service.updateJob = jest.fn()
 
-    global.browser.isMultiremote = false
-    global.browser.sessionId = 'foobar'
-    global.browser.config = { mochaOpts: { bail: 1 } }
+    browser.isMultiremote = false
+    browser.sessionId = 'foobar'
+    browser.config = { mochaOpts: { bail: 1 } }
     service.after(1)
 
     expect(service.updateJob).toBeCalledWith('foobar', 1)
@@ -314,8 +315,8 @@ test('beforeScenario should not set context if no sauce user was applied', () =>
     service.failures = 5
     service.updateJob = jest.fn()
 
-    global.browser.isMultiremote = false
-    global.browser.sessionId = 'foobar'
+    browser.isMultiremote = false
+    browser.sessionId = 'foobar'
     service.after()
 
     expect(service.updateJob).not.toBeCalled()
@@ -330,8 +331,8 @@ test('after in multiremote', () => {
     service.failures = 5
     service.updateJob = jest.fn()
 
-    global.browser.isMultiremote = true
-    global.browser.sessionId = 'foobar'
+    browser.isMultiremote = true
+    browser.sessionId = 'foobar'
     service.after()
 
     expect(service.updateJob).toBeCalledWith('sessionChromeA', 5, false, 'chromeA')
@@ -345,8 +346,8 @@ test('onReload', () => {
     service.failures = 5
     service.updateJob = jest.fn()
 
-    global.browser.isMultiremote = false
-    global.browser.sessionId = 'foobar'
+    browser.isMultiremote = false
+    browser.sessionId = 'foobar'
     service.onReload('oldbar', 'newbar')
 
     expect(service.updateJob).toBeCalledWith('oldbar', 5, true)
@@ -358,8 +359,8 @@ test('onReload with RDC', () => {
     service.failures = 0
     service.updateJob = jest.fn()
 
-    global.browser.isMultiremote = false
-    global.browser.sessionId = 'foobar'
+    browser.isMultiremote = false
+    browser.sessionId = 'foobar'
     service.onReload('oldbar', 'newbar')
 
     expect(service.updateJob).toBeCalledWith('oldbar', 0, true)
@@ -371,8 +372,8 @@ test('onReload should not set context if no sauce user was applied', () => {
     service.failures = 5
     service.updateJob = jest.fn()
 
-    global.browser.isMultiremote = false
-    global.browser.sessionId = 'foobar'
+    browser.isMultiremote = false
+    browser.sessionId = 'foobar'
     service.onReload('oldbar', 'newbar')
 
     expect(service.updateJob).not.toBeCalled()
@@ -387,9 +388,9 @@ test('after in multiremote', () => {
     service.failures = 5
     service.updateJob = jest.fn()
 
-    global.browser.isMultiremote = true
-    global.browser.sessionId = 'foobar'
-    global.browser.chromeB.sessionId = 'newSessionChromeB'
+    browser.isMultiremote = true
+    browser.sessionId = 'foobar'
+    browser.chromeB.sessionId = 'newSessionChromeB'
     service.onReload('sessionChromeB', 'newSessionChromeB')
 
     expect(service.updateJob).toBeCalledWith('sessionChromeB', 5, true, 'chromeB')
@@ -453,7 +454,7 @@ test('getBody', () => {
 
     service.getBody(1, true)
     service.getBody(1, true)
-    global.browser.isMultiremote = true
+    browser.isMultiremote = true
     expect(service.getBody(12, true)).toEqual({
         name: 'jojo (2)',
         passed: false
@@ -498,7 +499,7 @@ test('getBody', () => {
 
     service.getBody(1, true)
     service.getBody(1, true)
-    global.browser.isMultiremote = true
+    browser.isMultiremote = true
     expect(service.getBody(12, true)).toEqual({
         name: 'jojo (2)',
         passed: false
@@ -529,7 +530,7 @@ test('getBody with name Capability (JSON WP)', () => {
 
     service.getBody(1, true)
     service.getBody(1, true)
-    global.browser.isMultiremote = true
+    browser.isMultiremote = true
     expect(service.getBody(12, true)).toEqual({
         name: 'bizarre',
         passed: false
@@ -562,7 +563,7 @@ test('getBody with name Capability (W3C)', () => {
 
     service.getBody(1, true)
     service.getBody(1, true)
-    global.browser.isMultiremote = true
+    browser.isMultiremote = true
     expect(service.getBody(12, true)).toEqual({
         name: 'bizarre',
         passed: false
@@ -585,7 +586,7 @@ test('getBody without multiremote', () => {
     })
     service.testCnt = 3
 
-    global.browser.isMultiremote = false
+    browser.isMultiremote = false
     expect(service.getBody(0, true)).toEqual({
         name: 'jojo (4)',
         tags: ['jobTag'],
@@ -599,16 +600,16 @@ test('getBody without multiremote', () => {
 test('updateUP should set job status to false', () => {
     const service = new SauceService()
     service.updateUP(1)
-    expect(global.browser.execute).toBeCalledWith('sauce:job-result=false')
+    expect(browser.execute).toBeCalledWith('sauce:job-result=false')
 })
 
 test('updateUP should set job status to false', () => {
     const service = new SauceService()
     service.updateUP(0)
-    expect(global.browser.execute).toBeCalledWith('sauce:job-result=true')
+    expect(browser.execute).toBeCalledWith('sauce:job-result=true')
 })
 
 afterEach(() => {
-    delete global.browser
+    browser = undefined
     got.put.mockClear()
 })

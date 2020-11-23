@@ -18,7 +18,8 @@ beforeEach(() => {
     }))
     got.put.mockReturnValue(Promise.resolve({}))
 
-    global.browser = {
+    const browser = {
+        sessionId: 'session123',
         config: {},
         capabilities: {
             device: '',
@@ -39,8 +40,7 @@ beforeEach(() => {
         },
         browserB: {}
     }
-    global.browser.sessionId = 'session123'
-    service = new BrowserstackService({}, [], { user: 'foo', key: 'bar' })
+    service = new BrowserstackService({}, [], { user: 'foo', key: 'bar' }, browser)
 })
 
 it('should initialize correctly', () => {
@@ -60,7 +60,7 @@ describe('onReload()', () => {
     })
 
     it('should update and get multiremote session', async () => {
-        global.browser.isMultiremote = true
+        service.browser.isMultiremote = true
         const updateSpy = jest.spyOn(service, '_update')
         await service.onReload(1, 2)
         expect(updateSpy).toHaveBeenCalled()
@@ -112,7 +112,7 @@ describe('_printSessionURL', () => {
     })
 
     it('should get and log multi remote session details', async () => {
-        global.browser.isMultiremote = true
+        service.browser.isMultiremote = true
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
@@ -144,7 +144,7 @@ describe('_printSessionURL Appium', () => {
             }
         }))
 
-        global.browser.capabilities = {
+        service.browser.capabilities = {
             device: 'iPhone XS',
             os: 'iOS',
             os_version: '12.1',
@@ -202,7 +202,7 @@ describe('before', () => {
     })
 
     it('should initialize correctly for multiremote', () => {
-        global.browser.capabilities = undefined
+        service.browser.capabilities = undefined
         const service = new BrowserstackService(undefined, [{}], {
             user: 'foo',
             key: 'bar',
@@ -215,7 +215,7 @@ describe('before', () => {
     })
 
     it('should initialize correctly for appium', () => {
-        global.browser.capabilities = {
+        service.browser.capabilities = {
             app: 'test-app',
             device: 'iPhone XS',
             os: 'iOS',
@@ -419,7 +419,7 @@ describe('after', () => {
 
         await service.after(0)
 
-        expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId,
+        expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId,
             {
                 status: 'passed',
                 name: 'foo - bar',
@@ -441,7 +441,7 @@ describe('after', () => {
         service.failReasons = ['I am failure']
         await service.after(1)
 
-        expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId,
+        expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId,
             {
                 status: 'failed',
                 name: 'foo - bar',
@@ -475,7 +475,7 @@ describe('after', () => {
 
             await service.after(1)
 
-            expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
+            expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
                 name: 'Feature1',
                 reason: 'Some steps/hooks are pending for scenario "Can do something but pending 1"' + '\n' +
                         'Some steps/hooks are pending for scenario "Can do something but pending 2"' + '\n' +
@@ -504,7 +504,7 @@ describe('after', () => {
                 await service.after(0)
 
                 expect(updateSpy).toHaveBeenCalled()
-                expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
+                expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
                     name: 'Feature1',
                     reason: undefined,
                     status: 'passed',
@@ -530,7 +530,7 @@ describe('after', () => {
                 await service.after(1)
 
                 expect(updateSpy).toHaveBeenCalled()
-                expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId, {
+                expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId, {
                     name: 'Feature1',
                     reason: 'Some steps/hooks are pending for scenario "Can do something but pending"',
                     status: 'failed',
@@ -554,7 +554,7 @@ describe('after', () => {
 
                 await service.after(0)
 
-                expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId, {
+                expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId, {
                     name: 'Feature1',
                     reason: undefined,
                     status: 'passed',
@@ -573,7 +573,7 @@ describe('after', () => {
                 await service.before(service.config)
                 await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
-                expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId, {
+                expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId, {
                     name: 'Feature1'
                 })
 
@@ -588,7 +588,7 @@ describe('after', () => {
 
                 expect(updateSpy).toHaveBeenCalledTimes(2)
                 expect(updateSpy).toHaveBeenLastCalledWith(
-                    global.browser.sessionId, {
+                    service.browser.sessionId, {
                         name: 'Feature1',
                         reason:
                             'I am error, hear me roar' +
@@ -609,7 +609,7 @@ describe('after', () => {
                 await service.before(service.config)
                 await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
-                expect(updateSpy).toHaveBeenCalledWith(global.browser.sessionId, {
+                expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId, {
                     name: 'Feature1'
                 })
 
@@ -624,7 +624,7 @@ describe('after', () => {
 
                 expect(updateSpy).toHaveBeenCalledTimes(2)
                 expect(updateSpy).toHaveBeenLastCalledWith(
-                    global.browser.sessionId, {
+                    service.browser.sessionId, {
                         name: 'Feature1',
                         reason: 'I am error, hear me roar',
                         status: 'failed',
@@ -648,7 +648,7 @@ describe('after', () => {
 
                             await service.after(1)
 
-                            expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
+                            expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
                                 name: 'Can do something single',
                                 reason: 'Unknown Error',
                                 status: 'failed',
@@ -670,7 +670,7 @@ describe('after', () => {
 
                         await service.after(0)
 
-                        expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
+                        expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
                             name: 'Can do something single',
                             reason: undefined,
                             status: 'passed',
@@ -694,7 +694,7 @@ describe('after', () => {
 
                             await service.after(1)
 
-                            expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
+                            expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
                                 name: 'Feature1',
                                 reason: 'Unknown Error',
                                 status: 'failed',
@@ -716,7 +716,7 @@ describe('after', () => {
 
                         await service.after(0)
 
-                        expect(updateSpy).toHaveBeenLastCalledWith(global.browser.sessionId, {
+                        expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
                             name: 'Feature1',
                             reason: undefined,
                             status: 'passed',

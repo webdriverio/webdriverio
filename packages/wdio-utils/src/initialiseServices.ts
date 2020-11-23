@@ -166,7 +166,7 @@ export function initialiseWorkerService (config: WebdriverIO.Config, caps: WebDr
 
             const Service = (service as WebdriverIO.ServiceLauncher).default || service as WebdriverIO.ServiceClass
             if (typeof Service === 'function') {
-                return new Service(serviceConfig, caps, config)
+                return new Service(serviceConfig, caps, config, global.browser)
             }
         }).filter<WebdriverIO.ServiceInstance>(
             (service: WebdriverIO.ServiceInstance | undefined): service is WebdriverIO.ServiceInstance => Boolean(service)

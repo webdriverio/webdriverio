@@ -63,7 +63,12 @@ declare namespace WebdriverIO {
     }
 
     interface ServiceClass {
-        new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
+        new(
+            options: ServiceOption,
+            caps: WebDriver.DesiredCapabilities,
+            config: Options,
+            browser?: BrowserObject | MultiRemoteBrowserObject
+        ): ServiceInstance
     }
 
     interface ServiceLauncher extends ServiceClass {

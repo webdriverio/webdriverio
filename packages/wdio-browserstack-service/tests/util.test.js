@@ -2,16 +2,17 @@ import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability
 
 describe('getBrowserCapabilities', () => {
     it('should get default browser capabilities', () => {
-        global.browser = {
+        const browser = {
             capabilities: {
                 browser: 'browser'
             }
         }
-        expect(getBrowserCapabilities()).toEqual(global.browser.capabilities)
+        expect(getBrowserCapabilities(browser))
+            .toEqual(browser.capabilities)
     })
 
     it('should get multiremote browser capabilities', () => {
-        global.browser = {
+        const browser = {
             isMultiremote: true,
             browserA: {
                 capabilities: {
@@ -19,32 +20,31 @@ describe('getBrowserCapabilities', () => {
                 }
             }
         }
-        expect(getBrowserCapabilities({}, 'browserA')).toEqual({
-            browser: 'browser'
-        })
+        expect(getBrowserCapabilities(browser, {}, 'browserA'))
+            .toEqual(browser.browserA)
     })
 
     it('should handle null multiremote browser capabilities', () => {
-        global.browser = {
+        const browser = {
             isMultiremote: true,
             browserA: {}
         }
-        global.browserA = {}
-        expect(getBrowserCapabilities({}, 'browserB')).toEqual({})
+        expect(getBrowserCapabilities(browser, {}, 'browserB')).toEqual({})
     })
 
     it('should merge service capabilities and browser capabilities', () => {
-        global.browser = {
+        const browser = {
             capabilities: {
                 browser: 'browser',
                 os: 'OS X',
             }
         }
-        expect(getBrowserCapabilities({ os: 'Windows' })).toEqual({ os:'Windows', browser: 'browser' })
+        expect(getBrowserCapabilities(browser, { os: 'Windows' }))
+            .toEqual(browser.capabilities)
     })
 
     it('should merge multiremote service capabilities and browser capabilities', () => {
-        global.browser = {
+        const browser = {
             isMultiremote: true,
             browserA: {
                 capabilities: {
@@ -53,28 +53,30 @@ describe('getBrowserCapabilities', () => {
                 }
             }
         }
-        expect(getBrowserCapabilities({ browserA: { capabilities: { os: 'Windows' } } }, 'browserA')).toEqual({ os:'Windows', browser: 'browser' })
+        expect(getBrowserCapabilities(browser, { browserA: { capabilities: { os: 'Windows' } } }, 'browserA'))
+            .toEqual({ os:'Windows', browser: 'browser' })
     })
 
     it('should handle null multiremote browser capabilities', () => {
-        global.browser = {
+        const browser = {
             isMultiremote: true,
             browserA: {}
         }
-        expect(getBrowserCapabilities({}, 'browserB')).toEqual({})
+        expect(getBrowserCapabilities(browser, {}, 'browserB'))
+            .toEqual({})
     })
 
     it('should handle null multiremote browser capabilities', () => {
-        global.browser = {
+        const browser = {
             isMultiremote: true,
             browserA: {}
         }
-        expect(getBrowserCapabilities({ browserB: {} }, 'browserB')).toEqual({})
+        expect(getBrowserCapabilities(browser, { browserB: {} }, 'browserB'))
+            .toEqual({})
     })
 })
 
 describe('getBrowserDescription', () => {
-    global.browser = {}
     const defaultCap = {
         'device': 'device',
         'os': 'os',
