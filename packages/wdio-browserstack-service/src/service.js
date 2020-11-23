@@ -140,12 +140,17 @@ export default class BrowserstackService {
     }
 
     _updateJob(requestBody) {
-        return this._multiRemoteAction((sessionId) => this._update(sessionId, requestBody))
+        return this._multiRemoteAction((sessionId, browserName) => {
+            log.info(browserName
+                ? `Update multiremote job for browser "${browserName}" and sessionId ${sessionId}`
+                : `Update job with sessionId ${sessionId}`
+            )
+            return this._update(sessionId, requestBody)
+        })
     }
 
     _multiRemoteAction(action) {
         if (!this.browser.isMultiremote) {
-            log.info(`Update job with sessionId ${this.browser.sessionId}`)
             return action(this.browser.sessionId)
         }
 
@@ -154,10 +159,10 @@ export default class BrowserstackService {
                 const cap = getBrowserCapabilities(this.browser, this.caps, browserName)
                 return isBrowserstackCapability(cap)
             })
-            .map((browserName) => {
-                log.info(`Update multiremote job for browser "${browserName}" and sessionId ${this.browser[browserName].sessionId}`)
-                return action(this.browser[browserName].sessionId, browserName)
-            }))
+            .map((browserName) => (
+                action(this.browser[browserName].sessionId, browserName)
+            ))
+        )
     }
 
     _update(sessionId, requestBody) {
@@ -180,7 +185,7 @@ export default class BrowserstackService {
                 responseType: 'json'
             })
 
-            const capabilities = getBrowserCapabilities(this.caps, browserName)
+            const capabilities = getBrowserCapabilities(this.browser, this.caps, browserName)
             const browserString = getBrowserDescription(capabilities)
             log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
         })

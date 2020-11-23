@@ -21,7 +21,7 @@ describe('getBrowserCapabilities', () => {
             }
         }
         expect(getBrowserCapabilities(browser, {}, 'browserA'))
-            .toEqual(browser.browserA)
+            .toEqual(browser.browserA.capabilities)
     })
 
     it('should handle null multiremote browser capabilities', () => {
@@ -40,7 +40,7 @@ describe('getBrowserCapabilities', () => {
             }
         }
         expect(getBrowserCapabilities(browser, { os: 'Windows' }))
-            .toEqual(browser.capabilities)
+            .toEqual({ os:'Windows', browser: 'browser' })
     })
 
     it('should merge multiremote service capabilities and browser capabilities', () => {
