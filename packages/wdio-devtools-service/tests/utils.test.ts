@@ -1,4 +1,8 @@
-import { sumByKey, isBrowserVersionLower, getBrowserMajorVersion, isBrowserSupported } from '../src/utils'
+import {
+    sumByKey, isBrowserVersionLower, getBrowserMajorVersion,
+    isBrowserSupported, setUnsupportedCommand
+} from '../src/utils'
+import { RequestPayload } from '../src/handler/network'
 
 jest.mock('fs', () => ({
     readFileSync: jest.fn().mockReturnValue('1234\nsomepath'),
@@ -8,16 +12,24 @@ jest.mock('fs', () => ({
 test('sumByKey', () => {
     expect(sumByKey([{
         size: 1
-    }, {
+    } as unknown as RequestPayload, {
         size: 2
-    }, {
+    } as unknown as RequestPayload, {
         size: 3
-    }], 'size')).toBe(6)
+    } as unknown as RequestPayload], 'size')).toBe(6)
+})
+
+test('setUnsupportedCommand', () => {
+    const browser = { addCommand: jest.fn() }
+    setUnsupportedCommand(browser as unknown as WebdriverIO.BrowserObject)
+    expect(browser.addCommand).toBeCalledWith('cdp', expect.any(Function))
+    const fn = browser.addCommand.mock.calls[0][1]
+    expect(fn).toThrow()
 })
 
 describe('isBrowserVersionLower', () => {
     test('should return false if version capability is missing', () => {
-        expect(isBrowserVersionLower({})).toBe(false)
+        expect(isBrowserVersionLower({} as any, 11)).toBe(false)
     })
 
     test('should return true if version is lower than required', () => {
@@ -38,10 +50,9 @@ describe('isBrowserVersionLower', () => {
 
 describe('getChromeMajorVersion', () => {
     test('should return whatever value is passed if not a string', () => {
-        expect(getBrowserMajorVersion({})).toEqual({})
-        expect(getBrowserMajorVersion(true)).toEqual(true)
+        expect(getBrowserMajorVersion({} as any)).toEqual({})
+        expect(getBrowserMajorVersion(true as any)).toEqual(true)
         expect(getBrowserMajorVersion(78)).toEqual(78)
-        expect(getBrowserMajorVersion('foobar')).toEqual('foobar')
     })
 
     test('should return major version if proper version is passed', () => {

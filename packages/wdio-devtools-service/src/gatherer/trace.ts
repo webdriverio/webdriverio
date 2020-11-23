@@ -55,9 +55,14 @@ interface NavigationStartEvent extends TraceEventArgs {
     }
 }
 
-interface WaitPromise {
+export interface WaitPromise {
     promise: Promise<any>
     cancel: Function
+}
+
+const NOOP_WAIT_EVENT = {
+    promise: Promise.resolve(),
+    cancel: () => {}
 }
 
 export default class TraceGatherer extends EventEmitter {
@@ -74,8 +79,8 @@ export default class TraceGatherer extends EventEmitter {
     private _trace?: Trace
     private _traceStart?: number
     private _clickTraceTimeout?: NodeJS.Timeout
-    private _waitForNetworkIdleEvent?: WaitPromise
-    private _waitForCPUIdleEvent?: WaitPromise
+    private _waitForNetworkIdleEvent: WaitPromise = NOOP_WAIT_EVENT
+    private _waitForCPUIdleEvent: WaitPromise = NOOP_WAIT_EVENT
 
     constructor (session: CDPSession, page: Page) {
         super()
@@ -142,8 +147,8 @@ export default class TraceGatherer extends EventEmitter {
          */
         if (this._failingFrameLoadIds.includes(msgObj.frame.id)) {
             delete this._traceStart
-            this._waitForNetworkIdleEvent?.cancel()
-            this._waitForCPUIdleEvent?.cancel()
+            this._waitForNetworkIdleEvent.cancel()
+            this._waitForCPUIdleEvent.cancel()
             this._frameId = '"unsuccessful loaded frame"'
             this.finishTracing()
             this.emit('tracingError', new Error(`Page with url "${msgObj.frame.url}" failed to load`))
@@ -210,8 +215,8 @@ export default class TraceGatherer extends EventEmitter {
          * See https://github.com/GoogleChrome/lighthouse/issues/627 for more.
          */
         const loadPromise = Promise.all([
-            this._waitForNetworkIdleEvent?.promise,
-            this._waitForCPUIdleEvent?.promise
+            this._waitForNetworkIdleEvent.promise,
+            this._waitForCPUIdleEvent.promise
         ]).then(() => async () => {
             /**
              * ensure that we trace at least for 5s to ensure that we can
@@ -231,8 +236,8 @@ export default class TraceGatherer extends EventEmitter {
             this.waitForMaxTimeout()
         ])
 
-        this._waitForNetworkIdleEvent?.cancel()
-        this._waitForCPUIdleEvent?.cancel()
+        this._waitForNetworkIdleEvent.cancel()
+        this._waitForCPUIdleEvent.cancel()
         return cleanupFn()
     }
 
@@ -321,8 +326,8 @@ export default class TraceGatherer extends EventEmitter {
         delete this._loaderId
         delete this._pageUrl
         this._failingFrameLoadIds = []
-        this._waitForNetworkIdleEvent?.cancel()
-        this._waitForCPUIdleEvent?.cancel()
+        this._waitForNetworkIdleEvent.cancel()
+        this._waitForCPUIdleEvent.cancel()
         this.emit('tracingFinished')
     }
 

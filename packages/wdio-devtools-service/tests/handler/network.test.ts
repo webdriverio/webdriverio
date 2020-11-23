@@ -1,4 +1,6 @@
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+
 import NetworkHandler from '../../src/handler/network'
 
 import eventLog from '../__fixtures__/events.json'
@@ -7,7 +9,7 @@ class MyEmitter extends EventEmitter {}
 
 test('network handler', () => {
     const cdpMock = new MyEmitter()
-    const handler = new NetworkHandler(cdpMock)
+    const handler = new NetworkHandler(cdpMock as unknown as CDPSession)
 
     eventLog.forEach((log) => {
         if (!log.method) {

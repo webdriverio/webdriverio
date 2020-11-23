@@ -1,7 +1,6 @@
 import logger from '@wdio/logger'
 import puppeteerCore from 'puppeteer-core'
 
-import type { ProtocolMapping } from 'devtools-protocol/types/protocol-mapping'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Viewport } from 'puppeteer-core/lib/cjs/puppeteer/common/PuppeteerViewport'
@@ -98,7 +97,7 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
         /**
          * update custom commands once tracing finishes
          */
-        this._traceGatherer?.once('tracingComplete', (traceEvents) => {
+        this._traceGatherer.once('tracingComplete', (traceEvents) => {
             const auditor = new Auditor(traceEvents, this._devtoolsGatherer?.getLogs())
             auditor.updateCommands(global.browser as WebdriverIO.BrowserObject)
         })
@@ -198,6 +197,7 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
         }
 
         this._puppeteer = await global.browser.getPuppeteer() as unknown as Browser
+        /* istanbul ignore next */
         if (!this._puppeteer) {
             throw new Error('Could not initiate Puppeteer instance')
         }
@@ -205,11 +205,13 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
         this._target = await this._puppeteer.waitForTarget(
             /* istanbul ignore next */
             (t) => t.type() === 'page')
+        /* istanbul ignore next */
         if (!this._target) {
             throw new Error('No page target found')
         }
 
         this._page = await this._target.page()
+        /* istanbul ignore next */
         if (!this._page) {
             throw new Error('No page found')
         }
@@ -229,7 +231,7 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
          */
         await Promise.all(['Page', 'Network', 'Console'].map(
             (domain) => Promise.all([
-                this._session?.send(`${domain}.enable` as unknown as keyof ProtocolMapping.Commands)
+                this._session?.send(`${domain}.enable` as any)
             ])
         ))
 

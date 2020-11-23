@@ -14,19 +14,19 @@ interface Repl {
  * allows to run debug commands in mutliple workers one after another
  */
 export default class ReplQueue {
-    repls: Repl[] = []
+    private _repls: Repl[] = []
     runningRepl?: WDIORepl
 
     add (childProcess: ChildProcess, options: any, onStart: Function, onEnd: Function) {
-        this.repls.push({ childProcess, options, onStart, onEnd })
+        this._repls.push({ childProcess, options, onStart, onEnd })
     }
 
     next () {
-        if (this.isRunning || this.repls.length === 0) {
+        if (this.isRunning || this._repls.length === 0) {
             return
         }
 
-        const nextRepl = this.repls.shift()
+        const nextRepl = this._repls.shift()
         if (!nextRepl) {
             return
         }

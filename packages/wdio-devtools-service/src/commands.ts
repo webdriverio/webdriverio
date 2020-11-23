@@ -5,7 +5,6 @@ import type { TraceEvent } from '@tracerbench/trace-event'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { TracingOptions } from 'puppeteer-core/lib/cjs/puppeteer/common/Tracing'
-import { ProtocolMapping } from 'devtools-protocol/types/protocol-mapping'
 
 import NetworkHandler, { RequestPayload } from './handler/network'
 
@@ -42,9 +41,7 @@ export default class CommandHandler {
      */
     cdp (domain: string, command: string, args = {}) {
         log.info(`Send command "${domain}.${command}" with args: ${JSON.stringify(args)}`)
-
-        const cdpCommand = `${domain}.${command}` as unknown as keyof ProtocolMapping.Commands
-        return this._session.send(cdpCommand, args)
+        return this._session.send(`${domain}.${command}` as any, args)
     }
 
     /**
