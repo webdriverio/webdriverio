@@ -30,7 +30,10 @@
 
 import { getElementFromResponse } from '../../utils'
 
-export default async function selectByVisibleText (this: WebdriverIO.Element, text: string | number) {
+export default async function selectByVisibleText (
+    this: WebdriverIO.Element,
+    text: string | number
+) {
     /**
      * convert value into string
      */

@@ -28,7 +28,10 @@
 
 import { getElementRect } from '../../utils'
 
-export default async function getSize (this: WebdriverIO.Element, prop?: string) {
+export default async function getSize (
+    this: WebdriverIO.Element,
+    prop?: string
+) {
     let rect: Record<string, number> = {}
 
     if (this.isW3C) {

@@ -23,6 +23,9 @@
 
 import { shadowFnFactory } from '../../scripts/shadowFnFactory'
 
-export default async function shadowRoot (this: WebdriverIO.Element, selector: string) {
+export default async function shadowRoot (
+    this: WebdriverIO.Element,
+    selector: string
+) {
     return await this.$(shadowFnFactory(selector))
 }

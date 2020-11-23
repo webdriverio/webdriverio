@@ -30,7 +30,10 @@
 
 import { getElementFromResponse } from '../../utils'
 
-export default async function selectByIndex (this: WebdriverIO.Element, index: number) {
+export default async function selectByIndex (
+    this: WebdriverIO.Element,
+    index: number
+) {
     /**
      * negative index check
      */

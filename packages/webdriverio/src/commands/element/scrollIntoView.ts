@@ -20,7 +20,10 @@
 
 import { ELEMENT_KEY } from '../../constants'
 
-export default function scrollIntoView (this: WebdriverIO.Element, scrollIntoViewOptions = true) {
+export default function scrollIntoView (
+    this: WebdriverIO.Element,
+    scrollIntoViewOptions = true
+) {
     return this.parent.execute(/* istanbul ignore next */function (elem: HTMLElement, options) {
         elem.scrollIntoView(options)
     }, {

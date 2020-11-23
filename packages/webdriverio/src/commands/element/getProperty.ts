@@ -18,7 +18,10 @@
 import { getBrowserObject } from '../../utils'
 import getPropertyScript from '../../scripts/getProperty'
 
-export default function getProperty (this: WebdriverIO.Element, property: string) {
+export default function getProperty (
+    this: WebdriverIO.Element,
+    property: string
+) {
     if (this.isW3C) {
         return this.getElementProperty(this.elementId, property)
     }

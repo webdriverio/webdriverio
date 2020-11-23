@@ -65,7 +65,10 @@
 
 import { parseCSS } from '../../utils'
 
-export default async function getCSSProperty (this: WebdriverIO.Element, cssProperty: string) {
+export default async function getCSSProperty (
+    this: WebdriverIO.Element,
+    cssProperty: string
+) {
     const cssValue = await this.getElementCSSValue(this.elementId, cssProperty)
     return parseCSS(cssValue, cssProperty)
 }

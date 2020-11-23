@@ -62,6 +62,9 @@ interface TouchAction {
 }
 type TouchActions = string | TouchAction | TouchAction[]
 
-export default function touchAction (this: WebdriverIO.ElementArray, actions: TouchActions) {
+export default function touchAction (
+    this: WebdriverIO.ElementArray,
+    actions: TouchActions
+) {
     return touchActionCommand.call(this, actions)
 }

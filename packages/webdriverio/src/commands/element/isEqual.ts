@@ -29,7 +29,10 @@ const getWebElement = (el: WebdriverIO.Element) => ({
     ELEMENT: el.elementId // jsonwp compatible
 })
 
-export default async function isEqual (this: WebdriverIO.Element, el: WebdriverIO.Element) {
+export default async function isEqual (
+    this: WebdriverIO.Element,
+    el: WebdriverIO.Element
+) {
     const browser: WebdriverIO.BrowserObject = getBrowserObject(this)
 
     // mobile native

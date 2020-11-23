@@ -25,6 +25,9 @@
  *
  */
 
-export default function getAttribute (this: WebdriverIO.Element, attributeName: string) {
+export default function getAttribute (
+    this: WebdriverIO.Element,
+    attributeName: string
+) {
     return this.getElementAttribute(this.elementId, attributeName)
 }

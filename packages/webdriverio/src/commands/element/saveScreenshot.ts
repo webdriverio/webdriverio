@@ -20,7 +20,10 @@
 import fs from 'fs'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
 
-export default async function saveScreenshot (this: WebdriverIO.Element, filepath: string) {
+export default async function saveScreenshot (
+    this: WebdriverIO.Element,
+    filepath: string
+) {
     /**
      * type check
      */
