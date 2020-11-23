@@ -54,6 +54,13 @@ export default class Runner extends EventEmitter {
         const isMultiremote = this.isMultiremote = !Array.isArray(this.configParser.getCapabilities())
 
         /**
+         * run `beforeSession` command before framework and browser are initiated
+         */
+        initialiseWorkerService(this.config, caps, args.ignoredWorkerServices)
+            .map(this.configParser.addService.bind(this.configParser))
+        await runHook('beforeSession', this.config, this.caps, this.specs)
+
+        /**
          * create `browser` stub only if `specFiltering` feature is enabled
          */
         let browser = await this._startSession({
@@ -73,12 +80,7 @@ export default class Runner extends EventEmitter {
             return this._shutdown(0, retries)
         }
 
-        initialiseWorkerService(this.config, caps, args.ignoredWorkerServices)
-            .map(this.configParser.addService.bind(this.configParser))
-
-        await runHook('beforeSession', this.config, this.caps, this.specs)
         browser = await this._initSession(this.config, this.caps, browser)
-
         this.inWatchMode = Boolean(this.config.watch)
 
         /**

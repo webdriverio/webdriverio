@@ -7,7 +7,7 @@ beforeAll(async () => {
         outputDir: __dirname,
         capabilities: {
             browserName: 'edge',
-            'ms:edgeOptions': {
+            'wdio:devtoolsOptions': {
                 headless: true
             }
         }

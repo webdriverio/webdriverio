@@ -13,6 +13,7 @@ export interface Hook {
     uid?: string
     errors?: Error[]
     error?: Error
+    currentTest?: string
 }
 
 export default class HookStats extends RunnableStats {
@@ -23,6 +24,7 @@ export default class HookStats extends RunnableStats {
     errors?: Error[]
     error?: Error
     state?: 'failed'
+    currentTest?: string
 
     constructor (runner: Hook) {
         super('hook')
@@ -30,6 +32,7 @@ export default class HookStats extends RunnableStats {
         this.cid = runner.cid
         this.title = runner.title
         this.parent = runner.parent
+        this.currentTest = runner.currentTest
     }
 
     complete (errors?: Error[]) {

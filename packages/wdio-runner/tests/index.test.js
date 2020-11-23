@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { promisify } from 'util'
 
 import { executeHooksWithArgs } from '@wdio/utils'
 import { attach } from 'webdriverio'
@@ -6,7 +7,9 @@ import WDIORunner from '../src'
 import logger from '@wdio/logger'
 
 jest.mock('fs')
-jest.mock('util', () => ({ promisify: (fn) => fn }))
+jest.mock('util')
+
+promisify.mockImplementation((fn) => fn)
 
 describe('wdio-runner', () => {
     describe('_fetchDriverLogs', () => {

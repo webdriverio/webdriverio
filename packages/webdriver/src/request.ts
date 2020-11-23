@@ -5,7 +5,6 @@ import { EventEmitter } from 'events'
 
 import * as got from 'got'
 import logger from '@wdio/logger'
-// @ts-ignore
 import { transformCommandLogResult } from '@wdio/utils'
 
 import { Options } from './types'
@@ -119,8 +118,10 @@ export default class WebDriverRequest extends EventEmitter {
 
         /**
          * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
+         * Or the requestOptions has strictSSL for an environment which cannot get the environment variable correctly like on an Electron app.
          */
         requestOptions.https!.rejectUnauthorized = !(
+            options.strictSSL === false ||
             process.env.STRICT_SSL === 'false' ||
             process.env.strict_ssl === 'false'
         )

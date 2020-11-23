@@ -12,7 +12,7 @@
             document.getElementById('elem').style.visibility = 'visible';
         }, 2000);
     </script>
-    :waitForVisibleExample.js
+    :waitForDisplayedExample.js
     it('should detect when element is visible', () => {
         const elem = $('#elem')
         elem.waitForDisplayed({ timeout: 3000 });

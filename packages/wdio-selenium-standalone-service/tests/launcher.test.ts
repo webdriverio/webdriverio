@@ -21,7 +21,7 @@ describe('Selenium standalone launcher', () => {
                 args: { drivers: { chrome: {} } },
                 installArgs: { drivers: { chrome: {} } },
             }
-            const capabilities: WebDriver.Capabilities[] & WebDriver.Options[] = [{ port: 1234 }]
+            const capabilities: any = [{ port: 1234 }]
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true } as never)
@@ -43,7 +43,7 @@ describe('Selenium standalone launcher', () => {
                 args: { drivers: { chrome: {} } },
                 installArgs: { drivers: { chrome: {} } },
             }
-            const capabilities: Record<string, WebDriver.Capabilities & WebDriver.Options> = {
+            const capabilities: any = {
                 browserA: { port: 1234 },
                 browserB: { port: 4321 }
             }
@@ -66,7 +66,7 @@ describe('Selenium standalone launcher', () => {
                 args: { drivers: { chrome: {} } },
                 installArgs: { drivers: { chrome: {} } },
             }
-            const capabilities: Record<string, WebDriver.Capabilities & WebDriver.Options> = {
+            const capabilities: any = {
                 browserA: { port: 1234 },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }

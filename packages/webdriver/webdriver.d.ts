@@ -193,7 +193,7 @@ declare namespace WebDriver {
     }
 
     interface FirefoxOptions {
-        debuggerAddress: string
+        debuggerAddress?: string
         binary?: string,
         args?: string[],
         profile?: string,
@@ -323,9 +323,7 @@ declare namespace WebDriver {
         // Selenoid specific
         'selenoid:options'?: SelenoidOptions
         // Testingbot w3c specific
-        'tb:options'?: {
-            [name: string]: any
-        }
+        'tb:options'?: TestingbotCapabilities
         // Saucelabs w3c specific
         'sauce:options'?: SauceLabsCapabilities
         // Browserstack w3c specific
@@ -552,6 +550,7 @@ declare namespace WebDriver {
         tags?: string[];
         build?: string | number;
         public?: boolean;
+        'tunnel-identifier'?: string
     }
 
     export interface SeleniumRCCapabilities {
@@ -619,7 +618,7 @@ declare namespace WebDriver {
          * Set specific log levels per logger
          * use 'silent' level to disable logger
          */
-        logLevels?: object;
+        logLevels?: Record<string, WebDriverLogTypes | undefined>;
         /**
          * Timeout for any WebDriver request to a driver or grid.
          */
@@ -628,6 +627,10 @@ declare namespace WebDriver {
          * Count of request retries to the Selenium server.
          */
         connectionRetryCount?: number;
+        /**
+         * Timeout for any request to the Selenium server
+         */
+        connectionPollInterval?: number
         /**
          * Specify custom headers to pass into every request.
          */
@@ -649,6 +652,14 @@ declare namespace WebDriver {
          * Function intercepting HTTP response objects after a WebDriver response has arrived.
          */
         transformResponse?: (response: HTTPResponse, requestOptions: HTTPRequestOptions) => HTTPResponse;
+
+        /**
+         * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
+         */
+        directConnectProtocol?: string
+        directConnectHost?: string
+        directConnectPort?: number
+        directConnectPath?: string
     }
 
     interface AttachSessionOptions extends Options {
@@ -1149,6 +1160,14 @@ declare namespace WebDriver {
          * https://w3c.github.io/webdriver/#dfn-take-element-screenshot
          */
         takeElementScreenshot(elementId: string, scroll?: boolean): string;
+
+        /**
+         * [webdriver]
+         * The print functions are a mechanism to render the document to a paginated format. 
+         * It is returned to the local end as a Base64 encoded string containing a PDF representation of the paginated document.
+         * https://w3c.github.io/webdriver/#print
+         */
+        printPage(orientation?: string, scale?: number, background?: boolean, width?: number, height?: number, top?: number, bottom?: number, left?: number, right?: number, shrinkToFit?: boolean, pageRanges?: object[]): string;
     }
 
     // appium types
