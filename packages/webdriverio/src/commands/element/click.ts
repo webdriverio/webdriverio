@@ -77,7 +77,7 @@ type ClickOptions = {
 
 export default async function click (
     this: WebdriverIO.Element,
-    options: ClickOptions
+    options?: ClickOptions
 ) {
     if (typeof options === 'undefined') {
         return this.elementClick(this.elementId)
