@@ -41,6 +41,8 @@ interface Device {
     };
 }
 
+interface ServiceOptions {}
+
 export default class DevToolsService implements WebdriverIO.HookFunctions {
     private _isSupported = false
     private _shouldRunPerformanceAudits = false
@@ -55,6 +57,15 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
     private _traceGatherer?: TraceGatherer
     private _devtoolsGatherer?: DevtoolsGatherer
 
+    constructor (
+        serviceOptions: ServiceOptions,
+        caps: WebDriver.Capabilities,
+        config: WebdriverIO.Config,
+        private _browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    ) {
+        this._browser = _browser
+    }
+
     beforeSession (_: WebdriverIO.Config, caps: WebDriver.DesiredCapabilities) {
         if (!isBrowserSupported(caps)) {
             return log.error(UNSUPPORTED_ERROR_MESSAGE)
@@ -64,12 +75,12 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
 
     async onReload () {
         // resetting puppeteer on sessionReload, so a new puppeteer session will be attached
-        global.browser.puppeteer = null
+        this._browser.puppeteer = null
         return this._setupHandler()
     }
 
     async before () {
-        this._isSupported = this._isSupported || Boolean(global.browser.puppeteer)
+        this._isSupported = this._isSupported || Boolean(this._browser.puppeteer)
         return this._setupHandler()
     }
 
@@ -99,12 +110,12 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
          */
         this._traceGatherer.once('tracingComplete', (traceEvents) => {
             const auditor = new Auditor(traceEvents, this._devtoolsGatherer?.getLogs())
-            auditor.updateCommands(global.browser as WebdriverIO.BrowserObject)
+            auditor.updateCommands(this._browser as WebdriverIO.BrowserObject)
         })
 
         this._traceGatherer.once('tracingError', (err: Error) => {
             const auditor = new Auditor()
-            auditor.updateCommands(global.browser as WebdriverIO.BrowserObject, /* istanbul ignore next */() => {
+            auditor.updateCommands(this._browser as WebdriverIO.BrowserObject, /* istanbul ignore next */() => {
                 throw new Error(`Couldn't capture performance due to: ${err.message}`)
             })
         })
@@ -193,10 +204,10 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
 
     async _setupHandler () {
         if (!this._isSupported) {
-            return setUnsupportedCommand(global.browser as WebdriverIO.BrowserObject)
+            return setUnsupportedCommand(this._browser as WebdriverIO.BrowserObject)
         }
 
-        this._puppeteer = await global.browser.getPuppeteer() as unknown as Browser
+        this._puppeteer = await this._browser.getPuppeteer() as unknown as Browser
         /* istanbul ignore next */
         if (!this._puppeteer) {
             throw new Error('Could not initiate Puppeteer instance')
@@ -218,7 +229,7 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
 
         this._session = await this._target.createCDPSession()
 
-        new CommandHandler(this._session, this._page)
+        new CommandHandler(this._session, this._page, this._browser)
         this._traceGatherer = new TraceGatherer(this._session, this._page)
 
         this._session.on('Page.loadEventFired', this._traceGatherer.onLoadEventFired.bind(this._traceGatherer))
@@ -241,11 +252,11 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
             this._devtoolsGatherer?.onMessage(data)
             const method = data.method || 'event'
             log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
-            global.browser.emit(method, data.params)
+            this._browser.emit(method, data.params)
         })
 
-        global.browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
-        global.browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
-        global.browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
+        this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
+        this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
+        this._browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
     }
 }

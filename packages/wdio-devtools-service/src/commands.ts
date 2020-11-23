@@ -25,7 +25,6 @@ export default class CommandHandler {
     ) {
         this._session = _session
         this._page = _page
-        this._browser = browser
         this._networkHandler = new NetworkHandler(_session)
 
         /**
@@ -33,7 +32,7 @@ export default class CommandHandler {
          */
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && !fnName.startsWith('_'))
-        commands.forEach(fnName => global.browser.addCommand(
+        commands.forEach(fnName => _browser.addCommand(
             fnName,
             this[fnName as keyof CommandHandler].bind(this)
         ))

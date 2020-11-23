@@ -131,7 +131,20 @@ test('endTracing throws if not tracing', async () => {
         pageMock as any,
         browser as any
     )
-    await expect(handler.endTracing()).rejects.toBeInstanceOf(Error)
+    const err = await handler.endTracing().catch((err) => err)
+    expect(err.message).toContain('No tracing was initiated')
+})
+
+test('endTracing throws if parsing of trace events fails', async () => {
+    pageMock.tracing.stop.mockResolvedValue(Buffer.from('{ "traceEven'))
+    const handler = new CommandHandler(
+        sessionMock as any,
+        pageMock as any,
+        browser as any
+    )
+    handler['_isTracing'] = true
+    const err = await handler.endTracing().catch((err) => err)
+    expect(err.message).toContain("Couldn't parse trace events")
 })
 
 test('getPageWeight', () => {
