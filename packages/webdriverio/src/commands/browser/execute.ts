@@ -35,15 +35,19 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  *
  */
 
-export default function execute (this: WebdriverIO.BrowserObject, script: string | Function, ...args: any[]) {
-    /*!
+export default function execute (
+    this: WebdriverIO.BrowserObject,
+    script: string | Function,
+    ...args: any[]
+) {
+    /**
      * parameter check
      */
     if ((typeof script !== 'string' && typeof script !== 'function')) {
         throw new Error('number or type of arguments don\'t agree with execute protocol command')
     }
 
-    /*!
+    /**
      * instances started as multibrowserinstance can't getting called with
      * a function parameter, therefor we need to check if it starts with "function () {"
      */

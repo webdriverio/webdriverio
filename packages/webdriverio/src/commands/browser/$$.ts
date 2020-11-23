@@ -43,8 +43,11 @@
 import { findElements, enhanceElementsArray } from '../../utils'
 import { getElements } from '../../utils/getElementObject'
 
-export default async function $$ (this: WebdriverIO.BrowserObject, selector: string) {
+export default async function $$ (
+    this: WebdriverIO.BrowserObject,
+    selector: string
+) {
     const res = await findElements.call(this, selector)
     const elements = await getElements.call(this, selector, res)
-    return enhanceElementsArray(elements, this, selector)
+    return enhanceElementsArray(elements, this, selector) as WebdriverIO.Element[]
 }

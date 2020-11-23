@@ -1,15 +1,13 @@
 /**
  *
- * Returns browser window size (and position for drivers with W3C support).
+ * Returns browser window size.
  *
  * <example>
  * :getWindowSize.js
     it('should return browser window size', function () {
-        const windowSize = browser.getWindowSize(500, 600);
+        const windowSize = browser.getWindowSize();
         console.log(windowSize);
-        // outputs
-        // Firefox: { x: 4, y: 23, width: 1280, height: 767 }
-        // Chrome: { width: 1280, height: 767 }
+        // outputs `{ width: 1280, height: 767 }`
     });
  * </example>
  *
@@ -21,11 +19,18 @@
 
 import { getBrowserObject } from '../../utils'
 
-export default function getWindowSize(this: WebdriverIO.BrowserObject) {
+interface BrowserSize {
+    width: number
+    height: number
+}
+
+export default async function getWindowSize(this: WebdriverIO.BrowserObject) {
     const browser = getBrowserObject(this)
 
     if (!browser.isW3C) {
-        return browser._getWindowSize()
+        return browser._getWindowSize() as BrowserSize
     }
-    return browser.getWindowRect()
+
+    const { width, height } = await browser.getWindowRect() as BrowserSize
+    return { width, height } as BrowserSize
 }

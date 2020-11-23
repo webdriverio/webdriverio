@@ -49,3 +49,8 @@ test('allows custom error message', async () => {
     err = await mock.waitForResponse().catch((err) => err)
     expect(err.message).toBe('waitForResponse failed with the following reason: bug')
 })
+
+test('should throw if calls command is not implement', () => {
+    const mock = new NetworkInterception('**/foo')
+    expect(() => mock.calls).toThrow(/Implement me/)
+})
