@@ -36,15 +36,19 @@
 
 import newWindowHelper from '../../scripts/newWindow'
 
-export default async function newWindow (this: WebdriverIO.BrowserObject, url: string, { windowName = 'New Window', windowFeatures = '' }: WebdriverIO.NewWindowOptions = {}) {
-    /*!
+export default async function newWindow (
+    this: WebdriverIO.BrowserObject,
+    url: string,
+    { windowName = 'New Window', windowFeatures = '' }: WebdriverIO.NewWindowOptions = {}
+) {
+    /**
      * parameter check
      */
     if (typeof url !== 'string') {
         throw new Error('number or type of arguments don\'t agree with newWindow command')
     }
 
-    /*!
+    /**
      * mobile check
      */
     if (this.isMobile) {

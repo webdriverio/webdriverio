@@ -35,7 +35,10 @@
 import nodeUrl from 'url'
 import { validateUrl } from '../../utils'
 
-export default function url (this: WebdriverIO.BrowserObject, path: string) {
+export default function url (
+    this: WebdriverIO.BrowserObject,
+    path: string
+) {
     if (typeof path !== 'string') {
         throw new Error('Parameter for "url" command needs to be type of string')
     }

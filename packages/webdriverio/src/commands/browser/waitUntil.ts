@@ -55,7 +55,7 @@ export default function waitUntil(
         throw new Error('Condition is not a function')
     }
 
-    /*!
+    /**
      * ensure that timeout and interval are set properly
      */
     if (typeof timeout !== 'number') {
@@ -68,7 +68,6 @@ export default function waitUntil(
 
     const fn = condition.bind(this)
     let timer = new Timer(interval, timeout, fn, true)
-
     return (timer as any).catch((e: Error) => {
         if (e.message === 'timeout') {
             if (typeof timeoutMsg === 'string') {

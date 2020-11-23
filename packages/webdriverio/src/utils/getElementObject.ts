@@ -17,7 +17,7 @@ export const getElement = function findElement(
     selector?: string | Function,
     res?: ElementReference | Error,
     isReactElement = false
-) {
+): WebdriverIO.Element {
     const browser = getBrowserObject(this)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),

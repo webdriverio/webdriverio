@@ -31,7 +31,11 @@
 import fs from 'fs'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
 
-export default async function savePDF (this: WebdriverIO.BrowserObject, filepath: string, options?: WebdriverIO.PDFPrintOptions) {
+export default async function savePDF (
+    this: WebdriverIO.BrowserObject,
+    filepath: string,
+    options?: WebdriverIO.PDFPrintOptions
+) {
     /**
      * type check
      */

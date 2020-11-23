@@ -52,13 +52,18 @@ import { getElement } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
 import type { ElementReference } from '../../types'
 
-export default async function $ (this: WebdriverIO.BrowserObject, selector: string | ElementReference) {
+export default async function $ (
+    this: WebdriverIO.BrowserObject,
+    selector: string | ElementReference
+) {
+    const elemReference = selector as ElementReference
+
     /**
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`
      */
-    if (typeof selector !== 'string' && typeof (selector as ElementReference)[ELEMENT_KEY] === 'string') {
-        return getElement.call(this, undefined, selector as ElementReference)
+    if (typeof selector !== 'string' && typeof elemReference[ELEMENT_KEY] === 'string') {
+        return getElement.call(this, undefined, elemReference)
     }
 
     const res = await findElement.call(this, selector)

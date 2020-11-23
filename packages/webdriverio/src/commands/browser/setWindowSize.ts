@@ -19,10 +19,14 @@
 
 import { getBrowserObject } from '../../utils'
 
-export default function setWindowSize(this: WebdriverIO.BrowserObject, width: number, height: number) {
-    const minWindowSize = 0
-    const maxWindowSize = 2147483647
+const minWindowSize = 0
+const maxWindowSize = Number.MAX_SAFE_INTEGER
 
+export default function setWindowSize(
+    this: WebdriverIO.BrowserObject,
+    width: number,
+    height: number
+): Promise<void> {
     /**
      * type check
      */

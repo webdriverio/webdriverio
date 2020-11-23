@@ -30,9 +30,12 @@
  * @uses webdriver/getAllCookies
  *
  */
-export default async function getCookies(this: WebdriverIO.BrowserObject, names?: string | string[]) {
+export default async function getCookies(
+    this: WebdriverIO.BrowserObject,
+    names?: string | string[]
+) {
     if (names === undefined) {
-        return this.getAllCookies()
+        return this.getAllCookies() as Promise<WebDriver.Cookie[]>
     }
 
     const namesList = Array.isArray(names) ? names : [names]

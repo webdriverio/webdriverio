@@ -25,14 +25,21 @@ import { getElement } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
 import type { ElementReference } from '../../types'
 
-async function custom$ (this: WebdriverIO.BrowserObject, strategyName: string, ...strategyArguments: any[]) {
+export default async function custom$ (
+    this: WebdriverIO.BrowserObject,
+    strategyName: string,
+    ...strategyArguments: any[]
+) {
     const strategy = this.strategies.get(strategyName)
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
     }
 
-    let res: ElementReference | ElementReference[] = await this.execute(strategy, ...strategyArguments)
+    let res: ElementReference | ElementReference[] = await this.execute(
+        strategy,
+        ...strategyArguments
+    )
 
     /**
      * if the user's script returns multiple elements
@@ -49,5 +56,3 @@ async function custom$ (this: WebdriverIO.BrowserObject, strategyName: string, .
 
     throw Error('Your locator strategy script must return an element')
 }
-
-export default custom$

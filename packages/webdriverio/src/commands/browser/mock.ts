@@ -102,7 +102,11 @@ import { getBrowserObject } from '../../utils'
 
 const SESSION_MOCKS: Record<string, Set<Interception>> = {}
 
-export default async function mock (this: WebdriverIO.BrowserObject, url: string, filterOptions: WebdriverIO.MockFilterOptions) {
+export default async function mock (
+    this: WebdriverIO.BrowserObject,
+    url: string,
+    filterOptions?: WebdriverIO.MockFilterOptions
+): Promise<Interception> {
     const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
 
     if (!this.isSauce) {
@@ -121,7 +125,9 @@ export default async function mock (this: WebdriverIO.BrowserObject, url: string
     if (SESSION_MOCKS[handle].size === 0 && !this.isSauce) {
         const pages = await this.puppeteer.pages()
 
-        // get active page
+        /**
+         * get active page
+         */
         let page
         for (let i = 0; i < pages.length && !page; i++) {
             const isHidden = await pages[i].evaluate(() => document.hidden)
@@ -130,7 +136,9 @@ export default async function mock (this: WebdriverIO.BrowserObject, url: string
             }
         }
 
-        // fallback to the first page
+        /**
+         * fallback to the first page
+         */
         if (!page) {
             page = pages[0]
         }

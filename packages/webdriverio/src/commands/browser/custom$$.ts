@@ -26,14 +26,21 @@ import { getElements } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
 import type { ElementReference } from '../../types'
 
-async function custom$$ (this: WebdriverIO.BrowserObject, strategyName: string, ...strategyArguments: any[]) {
+export default async function custom$$ (
+    this: WebdriverIO.BrowserObject,
+    strategyName: string,
+    ...strategyArguments: any[]
+) {
     const strategy = this.strategies.get(strategyName)
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
     }
 
-    let res: ElementReference | ElementReference[] = await this.execute(strategy, ...strategyArguments)
+    let res: ElementReference | ElementReference[] = await this.execute(
+        strategy,
+        ...strategyArguments
+    )
 
     /**
      * if the user's script return just one element
@@ -49,5 +56,3 @@ async function custom$$ (this: WebdriverIO.BrowserObject, strategyName: string, 
     const elements = res.length ? await getElements.call(this, strategy.toString(), res) : []
     return enhanceElementsArray(elements, this, strategyName, 'custom$$', [strategyArguments])
 }
-
-export default custom$$
