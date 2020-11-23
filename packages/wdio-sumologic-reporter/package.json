@@ -24,7 +24,7 @@
   "dependencies": {
     "@wdio/logger": "6.8.0",
     "@wdio/reporter": "6.8.1",
-    "dateformat": "^3.0.3",
+    "dateformat": "^4.0.0",
     "got": "^11.0.2",
     "json-stringify-safe": "^5.0.1"
   },
