@@ -1,6 +1,5 @@
 import ApplitoolsService from '../src'
 
-const globalAny: any = global
 const caps: WebDriver.Capabilities[] = [{
     browserName: 'chrome'
 }]
