@@ -178,7 +178,7 @@ test('afterCommand: should create a new auditor instance and should update the b
     service.traceGatherer = new EventEmitter()
     service.traceGatherer.isTracing = true
     service.devtoolsGatherer = { getLogs: jest.fn() }
-    browser = 'some browser'
+    service.browser = 'some browser'
     service.afterCommand('url')
     service.traceGatherer.emit('tracingComplete', { some: 'events' })
 
@@ -191,7 +191,7 @@ test('afterCommand: should update browser commands even if failed', () => {
     service.traceGatherer = new EventEmitter()
     service.traceGatherer.isTracing = true
     service.devtoolsGatherer = { getLogs: jest.fn() }
-    browser = 'some browser'
+    service.browser = 'some browser'
     service.afterCommand('url')
     service.traceGatherer.emit('tracingError', new Error('boom'))
 

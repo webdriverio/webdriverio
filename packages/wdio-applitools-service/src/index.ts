@@ -17,7 +17,7 @@ export default class ApplitoolsService {
 
     constructor(
         options: ApplitoolsConfig,
-        caps: WebDriver.Capabilities,
+        caps: WebDriver.Capabilities[],
         config: WebdriverIO.Config,
         browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowser
     ) {

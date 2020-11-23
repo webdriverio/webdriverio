@@ -4,7 +4,7 @@
     "baseUrl": ".",
     "outDir": "./build",
     "rootDir": "./src",
-    "types": ["webdriverio", "@wdio/logger", "jest"]
+    "types": ["webdriver", "webdriverio", "@wdio/logger", "jest"]
   },
   "include": [
     "src/**/*"
