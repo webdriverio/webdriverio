@@ -1,3 +1,10 @@
+declare global {
+    interface Window {
+        ____lastLongTask: number
+        ____lhPerformanceObserver: PerformanceObserver
+    }
+}
+
 /**
  * Used by _waitForCPUIdle and executed in the context of the page, returns time since last long task.
  */
