@@ -100,11 +100,18 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestStart(test) {
-        if (this.options.useCucumberStepReporter) {
-            return this.allure.startStep(test.title)
+        const testTitle = test.currentTest ? test.currentTest : test.title
+        if (this.isAnyTestRunning() && this.allure.getCurrentTest().name == testTitle) {
+            // Test already in progress, most likely started by a before each hook
+            this.setCaseParameters(test.cid)
+            return
         }
 
-        this.allure.startCase(test.title)
+        if (this.options.useCucumberStepReporter) {
+            return this.allure.startStep(testTitle)
+        }
+
+        this.allure.startCase(testTitle)
         this.setCaseParameters(test.cid)
     }
 
@@ -165,7 +172,7 @@ class AllureReporter extends WDIOReporter {
         }
 
         if (!this.isAnyTestRunning()) { // is any CASE running
-            this.allure.startCase(test.title)
+            this.onTestStart(test)
         } else {
             this.allure.getCurrentTest().name = test.title
         }

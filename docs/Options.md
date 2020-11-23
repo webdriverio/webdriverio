@@ -121,6 +121,13 @@ Function intercepting HTTP response objects after a WebDriver response has arriv
 Type: `(Response, RequestOptions) => Response`<br>
 Default: *none*
 
+### strictSSL
+Whether it does not require SSL certificate to be valid.
+It can be set via an environment variables as `STRICT_SSL` or `strict_ssl`.
+
+Type: `Boolean`<br>
+Default: `true`
+
 ---
 
 ## WebdriverIO
@@ -277,6 +284,12 @@ Specific framework-related options. See the framework adapter documentation on w
 
 Type: `Object`<br>
 Default: `{ timeout: 10000 }`
+
+### cucumberFeaturesWithLineNumbers
+List of cucumber features with line numbers (when [using cucumber framework](frameworks.html#using-cucumber)).
+
+Type: `String[]`
+Default: `[]`
 
 ### reporters
 

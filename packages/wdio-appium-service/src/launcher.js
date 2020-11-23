@@ -62,7 +62,7 @@ export default class AppiumLauncher {
             Array.isArray(this.capabilities)
                 ? this.capabilities
                 : Object.values(this.capabilities)
-        ).forEach((cap) => !isCloudCapability(cap.capabilities) && Object.assign(
+        ).forEach((cap) => !isCloudCapability(cap) && Object.assign(
             cap,
             DEFAULT_CONNECTION,
             this.args.port ? { port: this.args.port } : {},

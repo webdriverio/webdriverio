@@ -33,7 +33,6 @@
 import vm from 'vm'
 import repl from 'repl'
 
-// @ts-ignore
 import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/utils'
 
 import { STATIC_RETURNS, INTRO_MESSAGE, DEFAULT_CONFIG } from './constants'

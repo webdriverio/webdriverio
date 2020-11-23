@@ -10,7 +10,7 @@ beforeAll(async () => {
         outputDir: __dirname,
         capabilities: {
             browserName: 'chrome',
-            'goog:chromeOptions': {
+            'wdio:devtoolsOptions': {
                 headless: true
             }
         }

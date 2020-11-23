@@ -1,7 +1,7 @@
 const protocolCommand: WDIOProtocols.CommandEndpoint = {
     command: 'findElementFromElement',
     description: 'The Find Element From Element command is used to find an element from a web element in the current browsing context that can be used for future commands.',
-    ref: new URL('https://w3c.github.io/webdriver/#dfn-find-element-from-element'),
+    ref: 'https://w3c.github.io/webdriver/#dfn-find-element-from-element',
     variables: [{
         name: 'elementId',
         description: 'the id of an element returned in a previous call to Find Element(s)'

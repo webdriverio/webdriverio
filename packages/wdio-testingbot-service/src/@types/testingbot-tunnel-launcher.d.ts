@@ -30,7 +30,19 @@ interface TunnelLauncherOptions {
  
     // Change the tunnel version - see versions on https://testingbot.com/support/other/tunnel
     // "1.19" // or 2.1 (Java 8)
-    tunnelVersion?: string 
+    tunnelVersion?: string,
+
+    // A unique identifier for this tunnel (optional)
+    tunnelIdentifier?: string,
+
+    // This file will be touched when the tunnel is ready for usage (optional)
+    readyFile?: string,
+
+    // Use a custom DNS server. For example: 8.8.8.8 (optional)
+    dns?: string,
+
+    // Bypass the Caching Proxy running on the TestingBot tunnel VM.
+    noproxy?: string,
 }
 
 interface TestingbotTunnel {

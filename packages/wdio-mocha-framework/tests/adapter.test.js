@@ -244,6 +244,58 @@ describe('formatMessage', () => {
         expect(message.passed).toBe(false)
         expect(message.duration).toBe(123)
     })
+
+    test('should format title for mocha beforeAll hook if parent title is present', () => {
+        const adapter = adapterFactory()
+        const params = { type: 'beforeAll', payload: {
+            title: '"before all" hook',
+            parent: {
+                title: 'WebdriverIO'
+            },
+            state: 'failed',
+            duration: 123
+        } }
+        const message = adapter.formatMessage(params)
+        expect(message.title).toBe('"before all" hook for WebdriverIO')
+    })
+
+    test('should not format title for mocha beforeAll hook if parent title is not present', () => {
+        const adapter = adapterFactory()
+        const params = { type: 'beforeAll', payload: {
+            title: '"before all" hook',
+            parent: {},
+            state: 'failed',
+            duration: 123
+        } }
+        const message = adapter.formatMessage(params)
+        expect(message.title).toBe('"before all" hook')
+    })
+
+    test('should format title for mocha afterAll hook if parent title is present', () => {
+        const adapter = adapterFactory()
+        const params = { type: 'afterAll', payload: {
+            title: '"after all" hook',
+            parent: {
+                title: 'WebdriverIO'
+            },
+            state: 'failed',
+            duration: 123
+        } }
+        const message = adapter.formatMessage(params)
+        expect(message.title).toBe('"after all" hook for WebdriverIO')
+    })
+
+    test('should not format title for mocha afterAll hook if parent title is not present', () => {
+        const adapter = adapterFactory()
+        const params = { type: 'afterAll', payload: {
+            title: '"after all" hook',
+            parent: {},
+            state: 'failed',
+            duration: 123
+        } }
+        const message = adapter.formatMessage(params)
+        expect(message.title).toBe('"after all" hook')
+    })
 })
 
 test('requireExternalModules', () => {

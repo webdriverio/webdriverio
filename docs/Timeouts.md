@@ -62,10 +62,10 @@ In your tests, you now can do this:
 
 ```js
 const myElem = $('#myElem')
-myElem.waitForVisible()
+myElem.waitForDisplayed()
 
 // you can also overwrite the default timeout if needed
-myElem.waitForVisible(10000)
+myElem.waitForDisplayed({ timeout: 10000 })
 ```
 
 ## Framework related timeouts

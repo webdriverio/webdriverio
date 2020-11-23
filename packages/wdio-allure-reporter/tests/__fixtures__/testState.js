@@ -99,6 +99,10 @@ export function hookStart() {
     return hookState()
 }
 
+export function hookStartWithCurrentTest() {
+    return Object.assign(hookState(), { currentTest: testState().title })
+}
+
 export function hookPassed() {
     return Object.assign(hookState(), { state: 'passed', end: '2018-05-14T15:17:21.631Z', _duration: 2730 })
 }
