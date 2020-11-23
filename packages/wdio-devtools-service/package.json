@@ -30,7 +30,7 @@
     "@types/puppeteer-core": "^2.0.0",
     "@wdio/logger": "6.8.0",
     "core-js": "~3.7.0",
-    "devtools-protocol": "^0.0.828856",
+    "devtools-protocol": "^0.0.829642",
     "lighthouse": "^6.4.1",
     "puppeteer-core": "^5.1.0",
     "speedline": "^1.4.1",
