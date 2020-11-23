@@ -86,16 +86,14 @@ interface MetricsResults {
 }
 
 export default class Auditor {
-    _devtoolsLogs?: CDPSessionOnMessageObject[]
-    _traceLogs?: Trace
-    _url?: string
+    private _url?: string
 
-    constructor(traceLogs?: Trace, devtoolsLogs?: CDPSessionOnMessageObject[]) {
-        this._devtoolsLogs = devtoolsLogs
-        this._traceLogs = traceLogs
+    constructor(private _traceLogs?: Trace, private _devtoolsLogs?: CDPSessionOnMessageObject[]) {
+        this._devtoolsLogs = _devtoolsLogs
+        this._traceLogs = _traceLogs
 
-        if (traceLogs) {
-            this._url = traceLogs.pageUrl
+        if (_traceLogs) {
+            this._url = _traceLogs.pageUrl
         }
     }
 
