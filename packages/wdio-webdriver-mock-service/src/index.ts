@@ -10,17 +10,25 @@ const ELEMENT_ID = '401c0039-3306-6a46-a98d-f5939870a249'
 const ELEMENT_REFETCHED = '80d860d0-b829-f540-812e-7078eb983795'
 const ELEMENT_ALT = '8bf4d107-a363-40d1-b823-d94bdbc58afb'
 
+interface ServiceOptions {}
+
 export default class WebdriverMockService {
-    mock: WebDriverMock
+    private _mock = new WebDriverMock()
     command:any
     globalAny: any = global
-    constructor() {
-        this.mock = new WebDriverMock()
+
+    constructor (
+        serviceOptions: ServiceOptions,
+        caps: WebDriver.Capabilities[],
+        config: WebdriverIO.Config,
+        private _browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    ) {
+        this._browser = _browser
         this.init()
     }
 
     init() {
-        this.command = this.mock.command
+        this.command = this._mock.command
 
         // define required responses
         this.command.status().times(Infinity).reply(200, { value: {} })
@@ -40,15 +48,15 @@ export default class WebdriverMockService {
         /**
          * register request interceptors for specific scenarios
          */
-        this.globalAny.browser.addCommand('waitForElementScenario', this.waitForElementScenario.bind(this))
-        this.globalAny.browser.addCommand('isNeverDisplayedScenario', this.isNeverDisplayedScenario.bind(this))
-        this.globalAny.browser.addCommand('isEventuallyDisplayedScenario', this.isEventuallyDisplayedScenario.bind(this))
-        this.globalAny.browser.addCommand('staleElementRefetchScenario', this.staleElementRefetchScenario.bind(this))
-        this.globalAny.browser.addCommand('customCommandScenario', this.customCommandScenario.bind(this))
-        this.globalAny.browser.addCommand('waitForDisplayedScenario', this.waitForDisplayedScenario.bind(this))
-        this.globalAny.browser.addCommand('cucumberScenario', this.cucumberScenario.bind(this))
-        this.globalAny.browser.addCommand('clickScenario', this.clickScenario.bind(this))
-        this.globalAny.browser.addCommand('isExistingScenario', this.isExistingScenario.bind(this))
+        this._browser.addCommand('waitForElementScenario', this.waitForElementScenario.bind(this))
+        this._browser.addCommand('isNeverDisplayedScenario', this.isNeverDisplayedScenario.bind(this))
+        this._browser.addCommand('isEventuallyDisplayedScenario', this.isEventuallyDisplayedScenario.bind(this))
+        this._browser.addCommand('staleElementRefetchScenario', this.staleElementRefetchScenario.bind(this))
+        this._browser.addCommand('customCommandScenario', this.customCommandScenario.bind(this))
+        this._browser.addCommand('waitForDisplayedScenario', this.waitForDisplayedScenario.bind(this))
+        this._browser.addCommand('cucumberScenario', this.cucumberScenario.bind(this))
+        this._browser.addCommand('clickScenario', this.clickScenario.bind(this))
+        this._browser.addCommand('isExistingScenario', this.isExistingScenario.bind(this))
     }
 
     clickScenario() {

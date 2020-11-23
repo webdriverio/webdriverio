@@ -20,7 +20,6 @@ class BrowserMock {
 describe('wdio-applitools-service', () => {
     beforeEach(() => {
         delete process.env.APPLITOOLS_KEY
-        delete globalAny.browser
     })
 
     it('throws if key does not exist in config', () => {

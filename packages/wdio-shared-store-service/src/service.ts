@@ -1,9 +1,18 @@
 import { readFile, getPidPath } from './utils'
 import { getValue, setValue, setPort } from './client'
 
-const globalAny:any = global
+interface ServiceOptions {}
 
 export default class SharedStoreService {
+    constructor (
+        serviceOptions: ServiceOptions,
+        caps: WebDriver.Capabilities[],
+        config: WebdriverIO.Config,
+        private _browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    ) {
+        this._browser = _browser
+    }
+
     async beforeSession () {
         /**
          * get port from parent's pid file saved in `onPrepare` hook
@@ -16,13 +25,13 @@ export default class SharedStoreService {
     before () {
         const sharedStore = Object.create({}, {
             get: {
-                value: (key: string) => globalAny.browser.call(() => getValue(key))
+                value: (key: string) => this._browser.call(() => getValue(key))
             },
             set: {
-                value: (key: string, value: WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive) => globalAny.browser.call(() => setValue(key, value))
+                value: (key: string, value: WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive) => this._browser.call(() => setValue(key, value))
             }
         })
 
-        globalAny.browser.sharedStore = sharedStore
+        this._browser.sharedStore = sharedStore
     }
 }
