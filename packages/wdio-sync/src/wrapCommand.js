@@ -21,7 +21,7 @@ process.on('WDIO_TIMER', (payload) => {
         while (timers.pop() !== payload.id);
     }
     if (payload.timeout) {
-        elements.forEach(element => { delete element._NOT_FIBER })
+        elements.forEach(/* istanbul ignore next */ element => { delete element._NOT_FIBER })
     }
     if (timers.length === 0) {
         elements.clear()

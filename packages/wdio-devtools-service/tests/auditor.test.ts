@@ -1,9 +1,12 @@
+import logger from '@wdio/logger'
+import type { Trace } from '../src/gatherer/trace'
+
 import Auditor from '../src/auditor'
 
 let auditor
 
 beforeEach(() => {
-    auditor = new Auditor({}, [])
+    auditor = new Auditor({} as unknown as Trace, [])
 })
 
 test('getMainThreadWorkBreakdown', async () => {
@@ -100,7 +103,8 @@ test('getPerformanceScore: returns null if any of the metrics is not available',
             score: 1
         },
     }))
-    expect(await auditor.getPerformanceScore()).toEqual(expect.any(Number))
+    expect(await auditor.getPerformanceScore())
+        .toEqual(expect.any(Number))
 })
 
 test('updateCommands', () => {
@@ -120,4 +124,15 @@ test('updateCommands', () => {
 test('should not throw if no args passed', () => {
     const auditor = new Auditor()
     expect(auditor).toBeTruthy()
+})
+
+test('should throw if something fails', () => {
+    const Audit = {
+        defaultOptions: {},
+        audit: jest.fn().mockImplementation(() => {
+            throw new Error('uups')
+        })
+    }
+    expect(auditor._audit(Audit)).toEqual({})
+    expect(logger('').error).toBeCalledTimes(1)
 })

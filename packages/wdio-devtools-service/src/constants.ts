@@ -120,3 +120,8 @@ export const NETWORK_STATES = {
 }
 
 export const CLICK_TRANSITION = 'click transition'
+export const DEFAULT_THROTTLE_STATE = {
+    networkThrottling: DEFAULT_NETWORK_THROTTLING_STATE as keyof typeof NETWORK_STATES,
+    cpuThrottling: 4,
+    cacheEnabled: false
+}

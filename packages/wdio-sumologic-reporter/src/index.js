@@ -152,7 +152,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             this.isSynchronising = false
             return log.debug(`synchronised collector data, server status: ${resp.statusCode}`)
         } catch (err) {
-            return log.error('failed send data to Sumo Logic:\n', err.stack ? err.stack : err)
+            return log.error('failed send data to Sumo Logic:\n', err.stack)
         }
     }
 }
