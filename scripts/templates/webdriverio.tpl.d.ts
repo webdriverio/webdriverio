@@ -599,7 +599,7 @@ declare namespace WebdriverIO {
     type AddCommandFn<IsElement extends boolean = false> = (this: IsElement extends true ? Element : BrowserObject, ...args: any[]) => any
     type OverwriteCommandFn<ElementKey extends keyof Element, BrowserKey extends keyof BrowserObject, IsElement extends boolean = false> = (this: IsElement extends true ? Element : BrowserObject, origCommand: IsElement extends true ? Element[ElementKey] : BrowserObject[BrowserKey], ...args: any[]) => any
 
-    interface Element {
+    interface Element extends BrowserObject {
         selector: string;
         elementId: string;
 
@@ -623,6 +623,11 @@ declare namespace WebdriverIO {
          * WebdriverIO.Element or WebdriverIO.BrowserObject
          */
         parent: Element | WebdriverIO.BrowserObject;
+
+        /**
+         * true if element is a React component
+         */
+        isReactElement?: boolean
 
         /**
          * add command to `element` scope
@@ -693,7 +698,7 @@ declare namespace WebdriverIO {
     }
 
     type MultiRemoteBrowserReference = Record<string, BrowserObject>
-    
+
     interface MultiRemoteBrowser extends Browser {
         /**
          * multiremote browser instance names
@@ -704,7 +709,7 @@ declare namespace WebdriverIO {
          */
         isMultiremote: true;
     }
-    
+
     type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
 
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {

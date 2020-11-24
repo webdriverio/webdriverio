@@ -1182,7 +1182,7 @@ declare namespace WebdriverIO {
         getPuppeteer(): Promise<PuppeteerBrowser>;
 
         /**
-         * Returns browser window size (and position for drivers with W3C support).
+         * Returns browser window size.
          */
         getWindowSize(): Promise<WebDriver.RectReturn>;
 
@@ -1364,7 +1364,7 @@ declare namespace WebdriverIO {
     }
 
     type MultiRemoteBrowserReference = Record<string, BrowserObject>
-    
+
     interface MultiRemoteBrowser extends Browser {
         /**
          * multiremote browser instance names
@@ -1375,7 +1375,7 @@ declare namespace WebdriverIO {
          */
         isMultiremote: true;
     }
-    
+
     type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
 
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
