@@ -36,14 +36,14 @@ export default class TestingBotLauncher {
                 capability['tb:options']['tunnel-identifier'] = tbTunnelIdentifier
             }
         } else {
-            Object.keys(capabilities).forEach(browserName => {
+            for (const browserName of Object.keys(capabilities)) {
                 const capability = (capabilities as any)[browserName]
                 if (!capability['tb:options']) {
                     capability['tb:options'] = {} as WebDriver.TestingbotCapabilities
                 }
 
                 capability['tb:options']['tunnel-identifier'] = tbTunnelIdentifier
-            })
+            }
         }
 
         /**
