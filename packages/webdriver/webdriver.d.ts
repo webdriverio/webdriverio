@@ -1163,11 +1163,25 @@ declare namespace WebDriver {
 
         /**
          * [webdriver]
-         * The print functions are a mechanism to render the document to a paginated format. 
+         * The print functions are a mechanism to render the document to a paginated format.
          * It is returned to the local end as a Base64 encoded string containing a PDF representation of the paginated document.
          * https://w3c.github.io/webdriver/#print
          */
         printPage(orientation?: string, scale?: number, background?: boolean, width?: number, height?: number, top?: number, bottom?: number, left?: number, right?: number, shrinkToFit?: boolean, pageRanges?: object[]): string;
+
+        /**
+         * [webdriver]
+         * Get the computed WAI-ARIA role of an element.
+         * https://w3c.github.io/webdriver/#get-computed-role
+         */
+        takeElementComputedRole(elementId: string): string;
+
+        /**
+         * [webdriver]
+         * Get the accessible name of the element.
+         * https://w3c.github.io/webdriver/#get-computed-label
+         */
+        takeElementComputedLabel(elementId: string): string;
     }
 
     // appium types
