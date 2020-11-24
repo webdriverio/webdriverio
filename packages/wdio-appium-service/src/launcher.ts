@@ -19,37 +19,37 @@ const DEFAULT_CONNECTION = {
 export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
     private readonly _logPath?: string
     private readonly _basePath: string = '/'
-    private readonly _command: string
     private readonly _appiumArgs: Array<string> = []
     private readonly _capabilities: Array<AppiumCapability>
     private readonly _args: KeyValueArgs | ArgValue[]
+    private _command: string
     private _process?: ChildProcessByStdio<null, Readable, Readable>
 
     constructor(
-        private options: AppiumOptions,
+        private _options: AppiumOptions,
         capabilities: Array<AppiumCapability> | AppiumCapability = {},
-        public config?: Config
+        public _config?: Config
     ) {
         /**
          * Convert capability object to Array of capabilities
          */
-        this.capabilities = Array.isArray(capabilities)
+        this._capabilities = Array.isArray(capabilities)
             ? capabilities
             : Object.values(capabilities)
-        this.args = {
-            basePath: this.basePath,
-            ...(this.options.args || {})
+        this._args = {
+            basePath: this._basePath,
+            ...(this._options.args || {})
         }
-        this._logPath = options.logPath || config?.outputDir
-        this.command = options.command
+        this._logPath = _options.logPath || _config?.outputDir
+        this._command = _options.command
 
         /**
          * Windows expects node to be explicitly set as command and appium
          * module path as it's first argument
          */
-        if (!this.command) {
-            this.command = 'node'
-            this.appiumArgs.push(AppiumLauncher._getAppiumCommand())
+        if (!this._command) {
+            this._command = 'node'
+            this._appiumArgs.push(AppiumLauncher._getAppiumCommand())
         }
     }
 
@@ -58,12 +58,12 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
      * to Appium server
      */
     private _setCapabilities() {
-        this.capabilities.forEach(
+        this._capabilities.forEach(
             (cap) => !isCloudCapability(cap) && Object.assign(
                 cap,
                 DEFAULT_CONNECTION,
-                'port' in this.args ? { port: this.args.port } : {},
-                { path: this.basePath },
+                'port' in this._args ? { port: this._args.port } : {},
+                { path: this._basePath },
                 { ...cap }
             ))
     }
@@ -74,18 +74,18 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
         /**
          * Append remaining arguments
          */
-        if (Array.isArray(this.args)) {
-            this.appiumArgs.push(...cliArgsFromArray(this.args))
+        if (Array.isArray(this._args)) {
+            this._appiumArgs.push(...cliArgsFromArray(this._args))
         } else {
-            this.appiumArgs.push(...cliArgsFromKeyValue(this.args))
+            this._appiumArgs.push(...cliArgsFromKeyValue(this._args))
         }
 
         /**
          * Windows needs to be started through `cmd` and the command needs to be an arg
          */
         if (isWindows) {
-            this.appiumArgs.unshift('/c', this.command)
-            this.command = 'cmd'
+            this._appiumArgs.unshift('/c', this._command)
+            this._command = 'cmd'
         }
 
         this._setCapabilities()
@@ -93,7 +93,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
         /**
          * start Appium
          */
-        this.process = await promisify(this._startAppium)(this.command, this.appiumArgs)
+        this._process = await promisify(this._startAppium)(this._command, this._appiumArgs)
 
         if (this._logPath) {
             this._redirectLogStream(this._logPath)
@@ -101,9 +101,9 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
     }
 
     onComplete() {
-        if (this.process) {
-            log.debug(`Appium (pid: ${process.pid}) killed`)
-            this.process.kill()
+        if (this._process) {
+            log.debug(`Appium (pid: ${this._process.pid}) killed`)
+            this._process.kill()
         }
     }
 
@@ -135,7 +135,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
     }
 
     private _redirectLogStream(logPath: string) {
-        if (!this.process){
+        if (!this._process){
             throw Error('No Appium process to redirect log stream')
         }
         const logFile = getFilePath(logPath, DEFAULT_LOG_FILENAME)
@@ -145,8 +145,8 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
 
         log.debug(`Appium logs written to: ${logFile}`)
         const logStream = createWriteStream(logFile, { flags: 'w' })
-        this.process.stdout.pipe(logStream)
-        this.process.stderr.pipe(logStream)
+        this._process.stdout.pipe(logStream)
+        this._process.stderr.pipe(logStream)
     }
 
     private static _getAppiumCommand (moduleName = 'appium') {
