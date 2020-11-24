@@ -1,6 +1,7 @@
 import allure from '@wdio/allure-reporter'
-import { SevereServiceError } from 'webdriverio'
 import type { MockOverwriteFunction } from '@wdio/sync'
+
+const { SevereServiceError } = require('webdriverio')
 
 // An example of adding command withing ts file with @wdio/sync
 declare module "@wdio/sync" {
