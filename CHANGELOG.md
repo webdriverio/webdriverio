@@ -17,6 +17,43 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.0 (2020-11-24)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriverio`
+  * [#6159](https://github.com/webdriverio/webdriverio/pull/6159) Add get `getComputedLabel` and `getComputedRole` to element scope ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`
+  * [#6160](https://github.com/webdriverio/webdriverio/pull/6160) Implement a11y protocol commands in puppeteer ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`, `wdio-protocols`, `wdio-sync`, `webdriver`, `webdriverio`
+  * [#6158](https://github.com/webdriverio/webdriverio/pull/6158) Add getElementComputedRole and getElementComputedLabel commands ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `devtools`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-devtools-service`, `wdio-runner`, `wdio-sauce-service`, `wdio-shared-store-service`, `wdio-sync`, `wdio-testingbot-service`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#6143](https://github.com/webdriverio/webdriverio/pull/6143) Don't use global.browser in services ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#6156](https://github.com/webdriverio/webdriverio/pull/6156) Add typings tests for SevereServiceError in sync mode ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-selenium-standalone-service`
+  * [#6152](https://github.com/webdriverio/webdriverio/pull/6152) Update selenium-standalone with comma consistency ([@oskarssd](https://github.com/oskarssd))
+
+#### :house: Internal
+* `webdriverio`
+  * [#6139](https://github.com/webdriverio/webdriverio/pull/6139) Rewrite `webdriverio` element commands ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-devtools-service`, `wdio-local-runner`, `wdio-sumologic-reporter`, `wdio-sync`, `webdriverio`
+  * [#5834](https://github.com/webdriverio/webdriverio/pull/5834) Tracking doc: rewrite `@wdio/devtools-service` package into TypeScript ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-config`
+  * [#6141](https://github.com/webdriverio/webdriverio/pull/6141) Rewrite all unit tests of wdio-config in typescript ([@abdatta](https://github.com/abdatta))
+* `wdio-config`, `wdio-sync`, `webdriverio`
+  * [#6135](https://github.com/webdriverio/webdriverio/pull/6135) Rewrite ConfigParser.ts of wdio-config in typescript ([@abdatta](https://github.com/abdatta))
+
+#### Committers: 4
+- Abhishek Datta ([@abdatta](https://github.com/abdatta))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- David Oskarsson ([@oskarssd](https://github.com/oskarssd))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.9.1 (2020-11-20)
 
 #### :bug: Bug Fix
