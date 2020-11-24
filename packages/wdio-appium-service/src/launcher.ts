@@ -17,7 +17,7 @@ const DEFAULT_CONNECTION = {
 }
 
 export default class AppiumLauncher {
-    public logPath: string
+    public logPath?: string
     public command: string
     public appiumArgs: Array<string> = []
     public capabilities: Array<AppiumCapability>
@@ -95,7 +95,9 @@ export default class AppiumLauncher {
          */
         this.process = await promisify(this._startAppium)(this.command, this.appiumArgs)
 
-        this.redirectLogStream(this.logPath)
+        if (this.logPath) {
+            this._redirectLogStream(this.logPath)
+        }
     }
 
     onComplete() {

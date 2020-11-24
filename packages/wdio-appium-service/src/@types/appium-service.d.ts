@@ -18,4 +18,5 @@ type AppiumOptions = {
     command: string
     logPath: string
     args: KeyValueArgs | ArgValue[]
+    logPath?: string
 }
