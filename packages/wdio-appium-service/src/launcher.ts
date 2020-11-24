@@ -17,12 +17,12 @@ const DEFAULT_CONNECTION = {
 }
 
 export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
-    public logPath?: string
+    private readonly _logPath?: string
+    private readonly basePath: string = '/'
     public command: string
     public appiumArgs: Array<string> = []
     public capabilities: Array<AppiumCapability>
     public process?: ChildProcessByStdio<null, Readable, Readable>
-    private readonly basePath: string = '/'
     public args: KeyValueArgs | ArgValue[]
 
     constructor(
@@ -40,7 +40,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
             basePath: this.basePath,
             ...(this.options.args || {})
         }
-        this.logPath = options.logPath || config?.outputDir
+        this._logPath = options.logPath || config?.outputDir
         this.command = options.command
 
         /**
@@ -95,8 +95,8 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
          */
         this.process = await promisify(this._startAppium)(this.command, this.appiumArgs)
 
-        if (this.logPath) {
-            this._redirectLogStream(this.logPath)
+        if (this._logPath) {
+            this._redirectLogStream(this._logPath)
         }
     }
 
