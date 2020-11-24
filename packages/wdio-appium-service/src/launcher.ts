@@ -16,7 +16,7 @@ const DEFAULT_CONNECTION = {
     path: '/'
 }
 
-export default class AppiumLauncher {
+export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
     public logPath?: string
     public command: string
     public appiumArgs: Array<string> = []
