@@ -19,5 +19,5 @@ interface TestingbotOptions {
      * Apply TestingBot Tunnel options (e.g. to change port number or logFile settings). See
      * [this list](https://github.com/testingbot/testingbot-tunnel-launcher) for more information.
      */
-    tbTunnelOpts?: TunnelLauncherOptions;
+    tbTunnelOpts?: any;
 }
