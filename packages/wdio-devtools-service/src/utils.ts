@@ -9,7 +9,7 @@ const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
     'google chrome': 63
 }
 
-export function setUnsupportedCommand (browser: WebdriverIO.BrowserObject) {
+export function setUnsupportedCommand (browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject) {
     return browser.addCommand('cdp', /* istanbul ignore next */() => {
         throw new Error(UNSUPPORTED_ERROR_MESSAGE)
     })

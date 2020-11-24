@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import ConfigParser from './lib/ConfigParser'
 import { validateConfig, getSauceEndpoint, detectBackend, isCloudCapability } from './utils'
 import { DEFAULT_CONFIGS } from './constants'

@@ -22,11 +22,12 @@ test('should keep a map of elements', async () => {
     const elementHandle2 = elementHandleFactory() as any as ElementHandle
     store.set(elementHandle2)
     expect(await store.get('ELEMENT-2')).toBe(elementHandle2)
+    expect(await store.get('ELEMENT-3')).toBe(undefined)
 })
 
 test('should not return element if it is not attached to the DOM', async () => {
     const store = new ElementStore()
     const elementHandle = elementHandleFactory({ isConnected: false }) as any as ElementHandle
     store.set(elementHandle)
-    expect(await store.get('ELEMENT-3')).toBe(undefined)
+    expect(await store.get('ELEMENT-1')).toBe(undefined)
 })

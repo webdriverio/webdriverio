@@ -302,10 +302,12 @@ declare namespace WebdriverIO {
          * variables like `browser`. It is the perfect place to define custom commands.
          * @param capabilities  list of capabilities details
          * @param specs         specs to be run in the worker process
+         * @param browser       instance of created browser/device session
          */
         before?(
             capabilities: WebDriver.DesiredCapabilities,
-            specs: string[]
+            specs: string[],
+            browser: BrowserObject
         ): void;
 
         /**

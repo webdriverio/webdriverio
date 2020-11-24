@@ -21,14 +21,8 @@ const sessionMock = {
     send: jest.fn()
 }
 
-declare global {
-    namespace NodeJS {
-        interface Global {
-            browser: {
-                addCommand: jest.Mock
-            }
-        }
-    }
+const browser = {
+    addCommand: jest.fn()
 }
 
 beforeEach(() => {
@@ -37,24 +31,24 @@ beforeEach(() => {
     sessionMock.on.mockClear()
     sessionMock.emit.mockClear()
     sessionMock.send.mockClear()
-    global.browser = {
-        addCommand: jest.fn()
-    }
+    browser.addCommand.mockReset()
 })
 
 test('initialization', () => {
     new CommandHandler(
-        sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page
+        sessionMock as any,
+        pageMock as any,
+        browser as any
     )
-    expect(global.browser.addCommand.mock.calls).toHaveLength(7)
+    expect(browser.addCommand.mock.calls).toHaveLength(7)
     expect(sessionMock.on).toBeCalled()
 })
 
 test('getTraceLogs', () => {
     const commander = new CommandHandler(
         sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page
+        pageMock as unknown as Page,
+        browser
     )
     commander['_traceEvents'] = [{ foo: 'bar' }] as any
     expect(commander.getTraceLogs()).toEqual([{ foo: 'bar' }])
@@ -63,8 +57,9 @@ test('getTraceLogs', () => {
 test('cdp', async () => {
     sessionMock.send.mockReturnValue(Promise.resolve('foobar'))
     const handler = new CommandHandler(
-        sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page
+        sessionMock as any,
+        pageMock as any,
+        browser as any
     )
     expect(await handler.cdp('Network', 'enable')).toBe('foobar')
     expect(sessionMock.send).toBeCalledWith('Network.enable', {})
@@ -74,8 +69,9 @@ test('getNodeId', async () => {
     sessionMock.send.mockResolvedValueOnce({ root: { nodeId: 123 } })
     sessionMock.send.mockResolvedValueOnce({ nodeId: 42 })
     const handler = new CommandHandler(
-        sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page
+        sessionMock as any,
+        pageMock as any,
+        browser as any
     )
 
     expect(await handler.getNodeId('selector')).toBe(42)
@@ -89,8 +85,9 @@ test('getNodeIds', async () => {
     sessionMock.send.mockResolvedValueOnce({ root: { nodeId: 123 } })
     sessionMock.send.mockResolvedValueOnce({ nodeIds: [42, 43] })
     const handler = new CommandHandler(
-        sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page
+        sessionMock as any,
+        pageMock as any,
+        browser as any
     )
 
     expect(await handler.getNodeIds('selector')).toEqual([42, 43])
@@ -102,8 +99,9 @@ test('getNodeIds', async () => {
 
 test('startTracing', () => {
     const handler = new CommandHandler(
-        sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page
+        sessionMock as any,
+        pageMock as any,
+        browser as any
     )
     handler.startTracing()
 
@@ -115,8 +113,9 @@ test('startTracing', () => {
 test('endTracing', async () => {
     pageMock.tracing.stop.mockResolvedValue(Buffer.from('{ "traceEvents": "foobar" }'))
     const handler = new CommandHandler(
-        sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page
+        sessionMock as any,
+        pageMock as any,
+        browser as any
     )
     handler['_isTracing'] = true
 
@@ -128,16 +127,31 @@ test('endTracing', async () => {
 
 test('endTracing throws if not tracing', async () => {
     const handler = new CommandHandler(
-        sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page
+        sessionMock as any,
+        pageMock as any,
+        browser as any
     )
-    await expect(handler.endTracing()).rejects.toBeInstanceOf(Error)
+    const err = await handler.endTracing().catch((err) => err)
+    expect(err.message).toContain('No tracing was initiated')
+})
+
+test('endTracing throws if parsing of trace events fails', async () => {
+    pageMock.tracing.stop.mockResolvedValue(Buffer.from('{ "traceEven'))
+    const handler = new CommandHandler(
+        sessionMock as any,
+        pageMock as any,
+        browser as any
+    )
+    handler['_isTracing'] = true
+    const err = await handler.endTracing().catch((err) => err)
+    expect(err.message).toContain("Couldn't parse trace events")
 })
 
 test('getPageWeight', () => {
     const handler = new CommandHandler(
-        sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page
+        sessionMock as any,
+        pageMock as any,
+        browser as any
     )
     handler['_networkHandler'].requestTypes = {
         Document: { size: 23343, encoded: 7674, count: 1 },
