@@ -44,20 +44,20 @@ export default class AppiumLauncher {
         this.command = options.command
 
         /**
-         * Windows expects node to be explicitely set as command and appium
+         * Windows expects node to be explicitly set as command and appium
          * module path as it's first argument
          */
         if (!this.command) {
             this.command = 'node'
-            this.appiumArgs.push(this.getAppiumCommand())
+            this.appiumArgs.push(AppiumLauncher._getAppiumCommand())
         }
     }
 
-    private setCapabilities() {
-        /**
-         * update capability connection options to connect
-         * to Appium server
-         */
+    /**
+     * update capability connection options to connect
+     * to Appium server
+     */
+    private _setCapabilities() {
         this.capabilities.forEach(
             (cap) => !isCloudCapability(cap) && Object.assign(
                 cap,
@@ -88,12 +88,12 @@ export default class AppiumLauncher {
             this.command = 'cmd'
         }
 
-        this.setCapabilities()
+        this._setCapabilities()
 
         /**
          * start Appium
          */
-        this.process = await promisify(this.startAppium)(this.command, this.appiumArgs)
+        this.process = await promisify(this._startAppium)(this.command, this.appiumArgs)
 
         this.redirectLogStream(this.logPath)
     }
@@ -105,7 +105,7 @@ export default class AppiumLauncher {
         }
     }
 
-    private startAppium(command: string, args: Array<string>, callback: (err: any, result: any) => void): void {
+    private _startAppium(command: string, args: Array<string>, callback: (err: any, result: any) => void): void {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
         let process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let error: Error | undefined
@@ -132,7 +132,7 @@ export default class AppiumLauncher {
         })
     }
 
-    private redirectLogStream(logPath: string) {
+    private _redirectLogStream(logPath: string) {
         if (!this.process){
             throw Error('No Appium process to redirect log stream')
         }
@@ -147,12 +147,12 @@ export default class AppiumLauncher {
         this.process.stderr.pipe(logStream)
     }
 
-    private static getAppiumCommand (moduleName = 'appium') {
+    private static _getAppiumCommand (moduleName = 'appium') {
         try {
             return require.resolve(moduleName)
         } catch (err) {
             log.error(
-                'appium is not installed locally.\n' +
+                'Appium is not installed locally.\n' +
                 'If you use globally installed appium please add\n' +
                 "appium: { command: 'appium' }\n" +
                 'to your wdio.conf.js!'
