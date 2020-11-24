@@ -736,6 +736,16 @@ declare namespace WebdriverIO {
         ): Promise<CSSProperty>;
 
         /**
+         * Get the computed WAI-ARIA label of an element.
+         */
+        getComputedLabel(): Promise<string>;
+
+        /**
+         * Get the computed WAI-ARIA label of an element.
+         */
+        getComputedRole(): Promise<string>;
+
+        /**
          * Get source code of specified DOM element by selector.
          */
         getHTML(
