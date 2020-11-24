@@ -5,39 +5,36 @@ const log = logger('@wdio/testingbot-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class TestingBotService implements WebdriverIO.ServiceInstance {
-    browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
-    capabilities!: WebDriver.DesiredCapabilities
-    config?: WebdriverIO.Options
-    isServiceEnabled?: boolean
-    suiteTitle?: string
-    tbSecret?: string
-    tbUser?: string
-    failures = 0
-    testCnt = 0
-
-    constructor (
-        options: TestingbotOptions,
-        caps: WebDriver.Capabilities[],
-        config: WebdriverIO.Config,
-        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
-    ) {
-        this.browser = browser
-        this.testCnt = 0
-        this.failures = 0
-    }
+    private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    private _capabilities!: WebDriver.DesiredCapabilities
+    private _config?: WebdriverIO.Options
+    private _isServiceEnabled?: boolean
+    private _suiteTitle?: string
+    private _tbSecret?: string
+    private _tbUser?: string
+    private _failures = 0
+    private _testCnt = 0
 
     /**
      * gather information about runner
      */
     beforeSession (config: WebdriverIO.Options, capabilities: WebDriver.DesiredCapabilities) {
-        this.config = config
-        this.capabilities = capabilities
-        this.config.user = config.user
-        this.config.key = config.key
-        this.tbUser = this.config.user
-        this.tbSecret = this.config.key
+        this._config = config
+        this._capabilities = capabilities
+        this._config.user = config.user
+        this._config.key = config.key
+        this._tbUser = this._config.user
+        this._tbSecret = this._config.key
 
-        this.isServiceEnabled = Boolean(this.tbUser && this.tbSecret)
+        this._isServiceEnabled = Boolean(this._tbUser && this._tbSecret)
+    }
+
+    before (
+        caps: WebDriver.Capabilities,
+        specs: string[],
+        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    ) {
+        this._browser = browser
     }
 
     /**
@@ -45,7 +42,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * @param {Object} suite Suite
     */
     beforeSuite (suite: WebdriverIO.Suite) {
-        this.suiteTitle = suite.title
+        this._suiteTitle = suite.title
     }
 
     /**
@@ -53,7 +50,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * @param {Object} test Test
     */
     beforeTest (test: WebdriverIO.Test) {
-        if (!this.isServiceEnabled) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
 
@@ -63,8 +60,8 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
          * This tweak allows us to set the real suite name for jasmine jobs.
          */
         /* istanbul ignore if */
-        if (this.suiteTitle === 'Jasmine__TopLevel__Suite') {
-            this.suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
+        if (this._suiteTitle === 'Jasmine__TopLevel__Suite') {
+            this._suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.title) - 1)
         }
 
         const context = (
@@ -77,12 +74,12 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
              */
             `${test.parent} - ${test.title}`
         )
-        this.browser.execute('tb:test-context=' + context)
+        this._browser.execute('tb:test-context=' + context)
     }
 
     afterSuite (suite: WebdriverIO.Suite) {
         if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
-            ++this.failures
+            ++this._failures
         }
     }
 
@@ -92,7 +89,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      */
     afterTest (test: WebdriverIO.Test, context: any, results: WebdriverIO.TestResult) {
         if (!results.passed) {
-            ++this.failures
+            ++this._failures
         }
     }
 
@@ -106,12 +103,12 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * @param {Object} feature
      */
     beforeFeature (uri: string, feature: any) {
-        if (!this.isServiceEnabled) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
 
-        this.suiteTitle = feature.document.feature.name
-        this.browser.execute('tb:test-context=Feature: ' + this.suiteTitle)
+        this._suiteTitle = feature.document.feature.name
+        this._browser.execute('tb:test-context=Feature: ' + this._suiteTitle)
     }
 
     /**
@@ -121,11 +118,11 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * @param {Object} scenario
      */
     beforeScenario (uri: string, feature: any, scenario: any) {
-        if (!this.isServiceEnabled) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
         const scenarioName = scenario.name
-        this.browser.execute('tb:test-context=Scenario: ' + scenarioName)
+        this._browser.execute('tb:test-context=Scenario: ' + scenarioName)
     }
 
     /**
@@ -137,7 +134,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      */
     afterScenario(uri: string, feature: any, pickle: any, result: any) {
         if (result.status === 'failed') {
-            ++this.failures
+            ++this._failures
         }
     }
 
@@ -146,63 +143,67 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * @return {Promise} Promise with result of updateJob method call
      */
     after (result?: number) {
-        if (!this.isServiceEnabled) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
 
-        let failures = this.failures
+        let failures = this._failures
 
         /**
          * set failures if user has bail option set in which case afterTest and
          * afterSuite aren't executed before after hook
          */
-        if (this.browser.config.mochaOpts?.bail && Boolean(result)) {
+        if (this._browser.config.mochaOpts?.bail && Boolean(result)) {
             failures = 1
         }
 
         const status = 'status: ' + (failures > 0 ? 'failing' : 'passing')
 
-        if (!this.browser.isMultiremote) {
-            log.info(`Update job with sessionId ${this.browser.sessionId}, ${status}`)
-            return this.updateJob(this.browser.sessionId, failures)
+        if (!this._browser.isMultiremote) {
+            log.info(`Update job with sessionId ${this._browser.sessionId}, ${status}`)
+            return this.updateJob(this._browser.sessionId, failures)
         }
 
-        const browser = this.browser
-        return Promise.all(Object.keys(this.capabilities).map((browserName) => {
+        const browser = this._browser
+        return Promise.all(Object.keys(this._capabilities).map((browserName) => {
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser[browserName].sessionId}, ${status}`)
             return this.updateJob(browser[browserName].sessionId, failures, false, browserName)
         }))
     }
 
     onReload (oldSessionId: string, newSessionId: string) {
-        if (!this.isServiceEnabled) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
-        const status = 'status: ' + (this.failures > 0 ? 'failing' : 'passing')
+        const status = 'status: ' + (this._failures > 0 ? 'failing' : 'passing')
 
-        if (!this.browser.isMultiremote) {
+        if (!this._browser.isMultiremote) {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
-            return this.updateJob(oldSessionId, this.failures, true)
+            return this.updateJob(oldSessionId, this._failures, true)
         }
 
-        const browser = this.browser
+        const browser = this._browser
         const browserName = browser.instances.filter(
             (browserName: string) => browser[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
-        return this.updateJob(oldSessionId, this.failures, true, browserName)
+        return this.updateJob(oldSessionId, this._failures, true, browserName)
     }
 
     async updateJob (sessionId: string, failures: number, calledOnReload = false, browserName?: string) {
+        if (!this._browser) {
+            return
+        }
+
         const json = this.getBody(failures, calledOnReload, browserName)
-        this.failures = 0
+        this._failures = 0
         const response = await got.put(this.getRestUrl(sessionId), {
             json,
             responseType: 'json',
-            username: this.tbUser,
-            password: this.tbSecret
+            username: this._tbUser,
+            password: this._tbSecret
         })
 
-        this.browser.jobData = response.body
+        this._browser.jobData = response.body
         return response.body
     }
 
@@ -221,26 +222,26 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
         /**
          * set default values
          */
-        body.test['name'] = this.suiteTitle
+        body.test['name'] = this._suiteTitle
 
         /**
          * add reload count to title if reload is used
          */
-        if (calledOnReload || this.testCnt) {
-            let testCnt = ++this.testCnt
-            if (this.browser.isMultiremote) {
-                testCnt = Math.ceil(testCnt / this.browser.instances.length)
+        if ((calledOnReload || this._testCnt) && this._browser) {
+            let testCnt = ++this._testCnt
+            if (this._browser.isMultiremote) {
+                testCnt = Math.ceil(testCnt / this._browser.instances.length)
             }
 
             body.test['name'] += ` (${testCnt})`
         }
 
         for (let prop of jobDataProperties) {
-            if (!(this.capabilities as Record<string, any>)[prop]) {
+            if (!(this._capabilities as Record<string, any>)[prop]) {
                 continue
             }
 
-            body.test[prop] = (this.capabilities as Record<string, any>)[prop]
+            body.test[prop] = (this._capabilities as Record<string, any>)[prop]
         }
 
         if (browserName) {

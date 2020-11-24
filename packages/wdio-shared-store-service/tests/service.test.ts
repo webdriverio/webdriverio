@@ -16,8 +16,7 @@ describe('SharedStoreService', () => {
     let storeService: SharedStoreService
 
     beforeEach(() => {
-        const browser = { call: (fn: Function) => fn() }
-        storeService = new SharedStoreService({}, [], {}, browser)
+        storeService = new SharedStoreService()
     })
 
     it('beforeSession', async () => {
@@ -27,9 +26,10 @@ describe('SharedStoreService', () => {
     })
 
     it('beforeSession', () => {
-        storeService.before()
-        storeService['_browser'].sharedStore.get('foobar')
-        storeService['_browser'].sharedStore.set('foo', 'bar')
+        const browser = { call: (fn: Function) => fn() } as WebdriverIO.BrowserObject
+        storeService.before({}, [], browser)
+        storeService['_browser']?.sharedStore.get('foobar')
+        storeService['_browser']?.sharedStore.set('foo', 'bar')
         expect(getValue).toBeCalledWith('foobar')
         expect(setValue).toBeCalledWith('foo', 'bar')
     })

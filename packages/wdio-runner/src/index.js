@@ -92,7 +92,7 @@ export default class Runner extends EventEmitter {
 
         this.reporter.caps = browser.capabilities
 
-        await executeHooksWithArgs(this.config.before, [this.caps, this.specs])
+        await executeHooksWithArgs(this.config.before, [this.caps, this.specs, browser])
 
         /**
          * kill session of SIGINT signal showed up while trying to
@@ -180,19 +180,11 @@ export default class Runner extends EventEmitter {
 
         // add flags declared by user to browser object
         if (browserStub) {
-            Object.entries(browserStub)
-                .filter(([key]) => typeof browser[key] === 'undefined')
-                .forEach(([key, value]) => browser[key] = value)
-
-            /**
-             * as services still use the original stub given that services are initiated before
-             * a session was started we need to attach properties and commands from the actual
-             * browser session to the stub as well
-             */
-            Object.entries(browser).forEach(([key, value]) => browserStub[key] = value)
-            browser.commandList
-                .filter((command) => typeof browser[command] === 'function')
-                .forEach((command) => browserStub[command] = browser[command].bind(browser))
+            Object.entries(browserStub).forEach(([key, value]) => {
+                if (typeof browser[key] === 'undefined') {
+                    browser[key] = value
+                }
+            })
         }
 
         /**

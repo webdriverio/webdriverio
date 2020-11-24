@@ -7,11 +7,10 @@ const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data']
 const log = logger('@wdio/sauce-service')
 
 export default class SauceService {
-    constructor (options, caps, config, browser) {
+    constructor (options) {
         this.testCnt = 0
         this.failures = 0 // counts failures between reloads
         this.options = options || {}
-        this.browser = browser
     }
 
     /**
@@ -39,7 +38,9 @@ export default class SauceService {
         }
     }
 
-    before() {
+    before(caps, specs, browser) {
+        this.browser = browser
+
         // Ensure capabilities are not null in case of multiremote
         const capabilities = this.browser.capabilities || {}
         this.isUP = isUnifiedPlatform(capabilities)
@@ -57,7 +58,7 @@ export default class SauceService {
          * Date:    20200714
          * Remark:  Sauce Unified Platform doesn't support updating the context yet.
          */
-        if (!this.isServiceEnabled || this.isRDC || this.isUP) {
+        if (!this.isServiceEnabled || this.isRDC || this.isUP || !this.browser) {
             return
         }
 
@@ -121,7 +122,7 @@ export default class SauceService {
          * Date:    20200714
          * Remark:  Sauce Unified Platform doesn't support updating the context yet.
          */
-        if (!this.isServiceEnabled || this.isRDC || this.isUP) {
+        if (!this.isServiceEnabled || this.isRDC || this.isUP || !this.browser) {
             return
         }
 
@@ -134,7 +135,7 @@ export default class SauceService {
          * Date:    20200714
          * Remark:  Sauce Unified Platform doesn't support updating the context yet.
          */
-        if (!this.isServiceEnabled || this.isRDC || this.isUP) {
+        if (!this.isServiceEnabled || this.isRDC || this.isUP || !this.browser) {
             return
         }
 

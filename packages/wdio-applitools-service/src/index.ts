@@ -8,29 +8,20 @@ const DEFAULT_VIEWPORT = {
     height: 900
 }
 
-export default class ApplitoolsService {
-    options: ApplitoolsConfig
-    isConfigured: boolean = false
-    viewport: Required<ApplitoolsConfig['viewport']>
-    browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowser
-    eyes = new Eyes()
+export default class ApplitoolsService implements WebdriverIO.ServiceInstance {
+    private _isConfigured: boolean = false
+    private _viewport: Required<ApplitoolsConfig['viewport']>
+    private _eyes = new Eyes()
+    private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowser
 
-    constructor(
-        options: ApplitoolsConfig,
-        caps: WebDriver.Capabilities[],
-        config: WebdriverIO.Config,
-        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowser
-    ) {
-        this.options = options
-        this.browser = browser
-    }
+    constructor(private _options: ApplitoolsConfig) {}
 
     /**
      * set API key in onPrepare hook and start test
      */
     beforeSession() {
-        const key = this.options.key || process.env.APPLITOOLS_KEY
-        const serverUrl = this.options.serverUrl || process.env.APPLITOOLS_SERVER_URL
+        const key = this._options.key || process.env.APPLITOOLS_KEY
+        const serverUrl = this._options.serverUrl || process.env.APPLITOOLS_SERVER_URL
 
         if (!key) {
             throw new Error('Couldn\'t find an Applitools "applitools.key" in config nor "APPLITOOLS_KEY" in the environment')
@@ -40,36 +31,42 @@ export default class ApplitoolsService {
          * Optionally set a specific server url
          */
         if (serverUrl) {
-            this.eyes.setServerUrl(serverUrl)
+            this._eyes.setServerUrl(serverUrl)
         }
 
-        this.isConfigured = true
-        this.eyes.setApiKey(key)
+        this._isConfigured = true
+        this._eyes.setApiKey(key)
 
-        if (this.options.proxy) {
-            this.eyes.setProxy(this.options.proxy)
+        if (this._options.proxy) {
+            this._eyes.setProxy(this._options.proxy)
         }
 
-        this.viewport = Object.assign({ ...DEFAULT_VIEWPORT }, this.options.viewport)
+        this._viewport = Object.assign({ ...DEFAULT_VIEWPORT }, this._options.viewport)
     }
 
     /**
      * set custom commands
      */
-    before() {
-        if (!this.isConfigured) {
+    before(
+        caps: WebDriver.Capabilities,
+        specs: string[],
+        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    ) {
+        this._browser = browser
+
+        if (!this._isConfigured) {
             return
         }
 
-        this.browser.addCommand('takeSnapshot', (title: string) => {
+        this._browser.addCommand('takeSnapshot', (title: string) => {
             if (!title) {
                 throw new Error('A title for the Applitools snapshot is missing')
             }
 
-            return this.eyes.check(title, Target.window())
+            return this._eyes.check(title, Target.window())
         })
 
-        this.browser.addCommand('takeRegionSnapshot', (title: string, region: Region, frame: Frame) => {
+        this._browser.addCommand('takeRegionSnapshot', (title: string, region: Region, frame: Frame) => {
             if (!title) {
                 throw new Error('A title for the Applitools snapshot is missing')
             }
@@ -77,34 +74,34 @@ export default class ApplitoolsService {
                 throw new Error('A region for the Applitools snapshot is missing')
             }
             if (!frame) {
-                return this.eyes.check(title, Target.region(region))
+                return this._eyes.check(title, Target.region(region))
             }
-            return this.eyes.check(title, Target.region(region, frame))
+            return this._eyes.check(title, Target.region(region, frame))
         })
     }
 
     beforeTest(test: { title: string, parent: string }) {
-        if (!this.isConfigured) {
+        if (!this._isConfigured || !this._browser) {
             return
         }
 
         log.info(`Open eyes for ${test.parent} ${test.title}`)
-        this.browser.call(() => this.eyes.open(this.browser, test.title, test.parent, this.viewport))
+        this._browser.call(() => this._eyes.open(this._browser, test.title, test.parent, this._viewport))
     }
 
     afterTest() {
-        if (!this.isConfigured) {
+        if (!this._isConfigured || !this._browser) {
             return
         }
 
-        this.browser.call(this.eyes.close.bind(this.eyes))
+        this._browser.call(this._eyes.close.bind(this._eyes))
     }
 
     after() {
-        if (!this.isConfigured) {
+        if (!this._isConfigured || !this._browser) {
             return
         }
 
-        this.browser.call(this.eyes.abortIfNotClosed.bind(this.eyes))
+        this._browser.call(this._eyes.abortIfNotClosed.bind(this._eyes))
     }
 }

@@ -5,10 +5,9 @@ const log = logger('@wdio/crossbrowsertesting-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class CrossBrowserTestingService {
-    constructor (serviceOptions, caps, options, browser) {
+    constructor () {
         this.testCnt = 0
         this.failures = 0
-        this.browser = browser
     }
 
     /**
@@ -23,6 +22,10 @@ export default class CrossBrowserTestingService {
         this.cbtAuthkey = this.config.key
 
         this.isServiceEnabled = this.cbtUsername && this.cbtAuthkey
+    }
+
+    before (caps, specs, browser) {
+        this.browser = browser
     }
 
     /**

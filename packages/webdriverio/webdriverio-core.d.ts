@@ -63,12 +63,7 @@ declare namespace WebdriverIO {
     }
 
     interface ServiceClass {
-        new(
-            options: ServiceOption,
-            caps: WebDriver.DesiredCapabilities,
-            config: Options,
-            browser?: BrowserObject | MultiRemoteBrowserObject
-        ): ServiceInstance
+        new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
     }
 
     interface ServiceLauncher extends ServiceClass {
@@ -313,10 +308,12 @@ declare namespace WebdriverIO {
          * variables like `browser`. It is the perfect place to define custom commands.
          * @param capabilities  list of capabilities details
          * @param specs         specs to be run in the worker process
+         * @param browser       instance of created browser/device session
          */
         before?(
             capabilities: WebDriver.DesiredCapabilities,
-            specs: string[]
+            specs: string[],
+            browser: BrowserObject
         ): void;
 
         /**

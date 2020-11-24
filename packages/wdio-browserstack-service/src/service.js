@@ -6,7 +6,7 @@ import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability
 const log = logger('@wdio/browserstack-service')
 
 export default class BrowserstackService {
-    constructor (options = {}, caps, config, browser) {
+    constructor (options = {}, caps, config) {
         this.config = config
         this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
         this.failReasons = []
@@ -19,7 +19,6 @@ export default class BrowserstackService {
         this.failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown']
         this.strict && this.failureStatuses.push('pending')
         this.caps = caps
-        this.browser = browser
     }
 
     /**
@@ -39,7 +38,9 @@ export default class BrowserstackService {
         this.config.key = config.key
     }
 
-    before() {
+    before(caps, specs, browser) {
+        this.browser = browser
+
         // Ensure capabilities are not null in case of multiremote
         const capabilities = this.browser.capabilities || {}
         if (capabilities.app || this.caps.app) {

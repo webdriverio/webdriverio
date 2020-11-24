@@ -1,15 +1,8 @@
 import { readFile, getPidPath } from './utils'
 import { getValue, setValue, setPort } from './client'
 
-interface ServiceOptions {}
-
-export default class SharedStoreService {
-    constructor (
-        serviceOptions: ServiceOptions,
-        caps: WebDriver.Capabilities[],
-        config: WebdriverIO.Config,
-        private _browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
-    ) {}
+export default class SharedStoreService implements WebdriverIO.HookFunctions {
+    private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
 
     async beforeSession () {
         /**
@@ -20,13 +13,21 @@ export default class SharedStoreService {
         setPort(port.toString())
     }
 
-    before () {
+    before (
+        caps: WebDriver.Capabilities,
+        specs: string[],
+        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    ) {
+        this._browser = browser
         const sharedStore = Object.create({}, {
             get: {
-                value: (key: string) => this._browser.call(() => getValue(key))
+                value: (key: string) => this._browser?.call(() => getValue(key))
             },
             set: {
-                value: (key: string, value: WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive) => this._browser.call(() => setValue(key, value))
+                value: (
+                    key: string,
+                    value: WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive
+                ) => this._browser?.call(() => setValue(key, value))
             }
         })
 

@@ -41,9 +41,7 @@ interface Device {
     };
 }
 
-interface ServiceOptions {}
-
-export default class DevToolsService implements WebdriverIO.HookFunctions {
+export default class DevToolsService implements WebdriverIO.ServiceInstance {
     private _isSupported = false
     private _shouldRunPerformanceAudits = false
 
@@ -56,13 +54,7 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
     private _networkThrottling?: keyof typeof NETWORK_STATES
     private _traceGatherer?: TraceGatherer
     private _devtoolsGatherer?: DevtoolsGatherer
-
-    constructor (
-        serviceOptions: ServiceOptions,
-        caps: WebDriver.Capabilities,
-        config: WebdriverIO.Config,
-        private _browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
-    ) {}
+    private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
 
     beforeSession (_: WebdriverIO.Config, caps: WebDriver.DesiredCapabilities) {
         if (!isBrowserSupported(caps)) {
@@ -71,14 +63,23 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
         this._isSupported = true
     }
 
-    async onReload () {
-        // resetting puppeteer on sessionReload, so a new puppeteer session will be attached
-        this._browser.puppeteer = null
+    before (
+        caps: WebDriver.Capabilities,
+        specs: string[],
+        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    ) {
+        this._browser = browser
+        this._isSupported = this._isSupported || Boolean(this._browser.puppeteer)
         return this._setupHandler()
     }
 
-    async before () {
-        this._isSupported = this._isSupported || Boolean(this._browser.puppeteer)
+    async onReload () {
+        if (!this._browser) {
+            return
+        }
+
+        // resetting puppeteer on sessionReload, so a new puppeteer session will be attached
+        this._browser.puppeteer = null
         return this._setupHandler()
     }
 
@@ -201,7 +202,7 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
     }
 
     async _setupHandler () {
-        if (!this._isSupported) {
+        if (!this._isSupported || !this._browser) {
             return setUnsupportedCommand(this._browser as WebdriverIO.BrowserObject)
         }
 
@@ -250,7 +251,10 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
             this._devtoolsGatherer?.onMessage(data)
             const method = data.method || 'event'
             log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
-            this._browser.emit(method, data.params)
+
+            if (this._browser) {
+                this._browser.emit(method, data.params)
+            }
         })
 
         this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
