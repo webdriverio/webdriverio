@@ -37,7 +37,7 @@ export default class TestingBotLauncher {
             }
         } else {
             for (const browserName of Object.keys(capabilities)) {
-                const capability = (capabilities as any)[browserName]
+                const capability = (capabilities as WebdriverIO.MultiRemoteOptions)[browserName]
                 if (!capability['tb:options']) {
                     capability['tb:options'] = {} as WebDriver.TestingbotCapabilities
                 }
