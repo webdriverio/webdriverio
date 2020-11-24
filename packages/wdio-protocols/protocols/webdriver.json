@@ -899,7 +899,7 @@
   },
   "/session/:sessionId/element/:elementId/computedrole": {
     "GET": {
-      "command": "takeElementComputedRole",
+      "command": "getElementComputedRole",
       "description": "Get the computed WAI-ARIA role of an element.",
       "ref": "https://w3c.github.io/webdriver/#get-computed-role",
       "variables": [{
@@ -916,7 +916,7 @@
   },
   "/session/:sessionId/element/:elementId/computedlabel": {
     "GET": {
-      "command": "takeElementComputedLabel",
+      "command": "getElementComputedLabel",
       "description": "Get the accessible name of the element.",
       "ref": "https://w3c.github.io/webdriver/#get-computed-label",
       "variables": [{

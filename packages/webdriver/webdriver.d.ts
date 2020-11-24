@@ -1174,14 +1174,14 @@ declare namespace WebDriver {
          * Get the computed WAI-ARIA role of an element.
          * https://w3c.github.io/webdriver/#get-computed-role
          */
-        takeElementComputedRole(elementId: string): string;
+        getElementComputedRole(elementId: string): string;
 
         /**
          * [webdriver]
          * Get the accessible name of the element.
          * https://w3c.github.io/webdriver/#get-computed-label
          */
-        takeElementComputedLabel(elementId: string): string;
+        getElementComputedLabel(elementId: string): string;
     }
 
     // appium types
