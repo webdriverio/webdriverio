@@ -19,7 +19,7 @@ export default class TestingBotLauncher {
             return
         }
 
-        const tbTunnelIdentifier = `TB-tunnel-${Math.random().toString().slice(2)}`
+        const tbTunnelIdentifier = this.options.tbTunnelOpts && this.options.tbTunnelOpts.tunnelIdentifier ? this.options.tbTunnelOpts.tunnelIdentifier : `TB-tunnel-${Math.random().toString().slice(2)}`
 
         this.tbTunnelOpts = Object.assign({
             apiKey: config.user,
@@ -27,15 +27,24 @@ export default class TestingBotLauncher {
             'tunnel-identifier': tbTunnelIdentifier,
         }, this.options.tbTunnelOpts)
 
-        let tbOptions = capabilities['tb:options']
-        if (!tbOptions) {
-            tbOptions = {}
+        if (Array.isArray(capabilities)) {
+            for (const capability of capabilities) {
+                if (!capability['tb:options']) {
+                    capability['tb:options'] = {} as WebDriver.TestingbotCapabilities
+                }
+
+                capability['tb:options']['tunnel-identifier'] = tbTunnelIdentifier
+            }
+        } else {
+            Object.keys(capabilities).forEach(browserName => {
+                const capability = (capabilities as any)[browserName]
+                if (!capability['tb:options']) {
+                    capability['tb:options'] = {} as WebDriver.TestingbotCapabilities
+                }
+
+                capability['tb:options']['tunnel-identifier'] = tbTunnelIdentifier
+            })
         }
-
-        tbOptions['tunnel-identifier'] = tbTunnelIdentifier
-
-        const caps = Array.isArray(capabilities) ? capabilities : Object.values(capabilities)
-        caps.forEach((cap: WebDriver.DesiredCapabilities) => Object.assign(cap, { 'tb:options': tbOptions }, { ...cap }))
 
         /**
          * measure TestingBot tunnel boot time
