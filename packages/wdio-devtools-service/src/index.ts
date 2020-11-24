@@ -62,9 +62,7 @@ export default class DevToolsService implements WebdriverIO.HookFunctions {
         caps: WebDriver.Capabilities,
         config: WebdriverIO.Config,
         private _browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
-    ) {
-        this._browser = _browser
-    }
+    ) {}
 
     beforeSession (_: WebdriverIO.Config, caps: WebDriver.DesiredCapabilities) {
         if (!isBrowserSupported(caps)) {

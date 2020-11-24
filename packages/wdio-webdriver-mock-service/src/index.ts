@@ -23,7 +23,6 @@ export default class WebdriverMockService {
         config: WebdriverIO.Config,
         private _browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
     ) {
-        this._browser = _browser
         this.init()
     }
 

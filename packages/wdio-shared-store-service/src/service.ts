@@ -9,9 +9,7 @@ export default class SharedStoreService {
         caps: WebDriver.Capabilities[],
         config: WebdriverIO.Config,
         private _browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
-    ) {
-        this._browser = _browser
-    }
+    ) {}
 
     async beforeSession () {
         /**

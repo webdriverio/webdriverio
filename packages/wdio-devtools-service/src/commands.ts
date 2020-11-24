@@ -21,7 +21,7 @@ export default class CommandHandler {
     constructor (
         private _session: CDPSession,
         private _page: Page,
-        private _browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
     ) {
         this._session = _session
         this._page = _page
@@ -32,7 +32,7 @@ export default class CommandHandler {
          */
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && !fnName.startsWith('_'))
-        commands.forEach(fnName => _browser.addCommand(
+        commands.forEach(fnName => browser.addCommand(
             fnName,
             this[fnName as keyof CommandHandler].bind(this)
         ))
