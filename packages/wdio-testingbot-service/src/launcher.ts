@@ -19,7 +19,7 @@ export default class TestingBotLauncher {
             return
         }
 
-        const tbTunnelIdentifier = this.options.tbTunnelOpts && this.options.tbTunnelOpts.tunnelIdentifier ? this.options.tbTunnelOpts.tunnelIdentifier : `TB-tunnel-${Math.random().toString().slice(2)}`
+        const tbTunnelIdentifier = this.options.tbTunnelOpts?.tunnelIdentifier || `TB-tunnel-${Math.random().toString().slice(2)}`
 
         this.tbTunnelOpts = Object.assign({
             apiKey: config.user,
