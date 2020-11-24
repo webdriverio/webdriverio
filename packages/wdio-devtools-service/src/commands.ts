@@ -16,21 +16,23 @@ const log = logger('@wdio/devtools-service:CommandHandler')
 export default class CommandHandler {
     private _isTracing = false
     private _networkHandler: NetworkHandler
-    private _session: CDPSession
-    private _page: Page
     private _traceEvents?: TraceEvent[]
 
-    constructor (session: CDPSession, page: Page) {
-        this._session = session
-        this._page = page
-        this._networkHandler = new NetworkHandler(session)
+    constructor (
+        private _session: CDPSession,
+        private _page: Page,
+        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    ) {
+        this._session = _session
+        this._page = _page
+        this._networkHandler = new NetworkHandler(_session)
 
         /**
          * register browser commands
          */
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && !fnName.startsWith('_'))
-        commands.forEach(fnName => global.browser.addCommand(
+        commands.forEach(fnName => browser.addCommand(
             fnName,
             this[fnName as keyof CommandHandler].bind(this)
         ))

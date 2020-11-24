@@ -7,19 +7,6 @@ const log = logger('')
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
 
-    beforeEach(() => {
-        global.browser = {
-            execute,
-            sessionId: 'globalSessionId',
-            requestHandler: {
-                auth: {
-                    user: 'user',
-                    pass: 'pass'
-                }
-            }
-        } as any
-    })
-
     afterEach(() => {
         execute.mockReset()
     })

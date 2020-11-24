@@ -1,6 +1,8 @@
 import { canAccess as canAccessImport } from '@wdio/utils'
 import path from 'path'
 
+import getFinder from '../../src/finder'
+import edgeFinder from '../../src/finder/edge'
 import { darwinGetAppPaths, darwinGetInstallations } from '../../src/finder/finder'
 
 const systemProfiler = require('./systemProfiler.json')
@@ -11,6 +13,11 @@ jest.mock('child_process',  jest.fn().mockImplementation(() => ({
         return JSON.stringify(systemProfiler)
     }
 })))
+
+test('should get proper finder', () => {
+    expect(() => getFinder('edge', 'freebsd')).toThrow(/not supported/)
+    expect(getFinder('edge', 'linux')).toEqual(edgeFinder.linux)
+})
 
 describe('darwinGetAppPaths', () => {
     test('Firefox Nightly', () => {
