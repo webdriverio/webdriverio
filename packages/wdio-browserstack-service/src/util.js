@@ -24,12 +24,12 @@ export function getBrowserDescription(cap) {
  * @param {*} caps browser capbilities object. In case of multiremote, the object itself should have a property named 'capabilities'
  * @param {*} browserName browser name in case of multiremote
  */
-export function getBrowserCapabilities(caps, browserName) {
-    if (!global.browser.isMultiremote) {
-        return { ...global.browser.capabilities, ...caps }
+export function getBrowserCapabilities(browser, caps, browserName) {
+    if (!browser.isMultiremote) {
+        return { ...browser.capabilities, ...caps }
     }
 
-    const globalCap = global.browser[browserName] ? global.browser[browserName].capabilities : {}
+    const globalCap = browser[browserName] ? browser[browserName].capabilities : {}
     const cap = caps[browserName] ? caps[browserName].capabilities : {}
     return { ...globalCap, ...cap }
 }

@@ -1,5 +1,7 @@
 import allure from '@wdio/allure-reporter'
-import { MockOverwrite, MockOverwriteFunction } from '@wdio/sync'
+import type { MockOverwriteFunction } from '@wdio/sync'
+
+const { SevereServiceError } = require('webdriverio')
 
 // An example of adding command withing ts file with @wdio/sync
 declare module "@wdio/sync" {
@@ -277,5 +279,13 @@ browser.overwriteCommand('pause', function (pause, ms = 1000) {
 browser.overwriteCommand('pause', function (pause, ms = 1000) {
     pause(ms)
 })
+
+function testSevereServiceError_noParameters() {
+    throw new SevereServiceError();
+}
+
+function testSevereServiceError_stringParameter() {
+    throw new SevereServiceError("Something happened.");
+}
 
 export default {}

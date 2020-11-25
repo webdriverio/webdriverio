@@ -7,17 +7,6 @@ const error = new Error('Error!')
 
 describe('wdio-crossbrowsertesting-service', () => {
     const execute = jest.fn()
-    global.browser = {
-        execute,
-        sessionId: 'globalSessionId',
-        requestHandler: {
-            auth: {
-                user: 'test',
-                key: 'testy'
-            }
-        }
-    }
-
     afterEach(() => execute.mockReset())
 
     it('onPrepare: cbtTunnel is undefined', async () => {

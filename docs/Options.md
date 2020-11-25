@@ -335,19 +335,203 @@ WebdriverIO allows you to set hooks to trigger at specific times of the test lif
 
 Every hook has as parameter specific information about the lifecycle (i.e. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
 
-The following hooks are available: `onPrepare`, `onWorkerStart`, `beforeSession`, `before`, `beforeSuite`, `beforeHook`, `afterHook`, `beforeTest`, `beforeCommand`, `afterCommand`, `afterTest`, `afterSuite`, `after`, `afterSession`, `onComplete`, `onReload`, `beforeFeature`, `beforeScenario`, `beforeStep`, `afterStep`, `afterScenario`, `afterFeature`.
+### onPrepare
 
-Type: `Function`<br>
-Default: `null`
+Gets executed once before all workers get launched.
 
-Example:
+Parameters:
+- `config` (`object`): WebdriverIO configuration object
+- `param` (`object[]`): list of capabilities details
 
-```js
-// wdio.conf.js
-exports.config = {
-    // ...
-    afterTest: (test, context, { error, result, duration, passed, retries }) => {
-        console.log(`Finished test "${test.parent} - ${test.title}"`)
-    }
-    // ...
-```
+### onWorkerStart
+
+Gets executed before a worker process is spawned and can be used to initialise specific service for that worker as well as modify runtime environments in an async fashion.
+
+Parameters:
+- `cid` (`string`): capability id (e.g 0-0)
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+- `args` (`object`): object that will be merged with the main configuration once worker is initialised
+- `execArgv` (`string[]`): list of string arguments passed to the worker process
+
+### beforeSession
+
+Gets executed just before initialising the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
+
+Parameters:
+- `config` (`object`): WebdriverIO configuration object
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+
+### before
+
+Gets executed before test execution begins. At this point you can access to all global variables like `browser`. It is the perfect place to define custom commands.
+
+Parameters:
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+- `browser` (`object`): instance of created browser/device session
+
+### beforeSuite
+
+Hook that gets executed before the suite starts
+
+Parameters:
+- `suite` (`object`): suite details
+
+### beforeHook
+
+Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
+
+Parameters:
+- `test` (`object`): test details
+- `context` (`object`): test context
+- `stepData` (`object`): step data (Cucumber only)
+- `world` (`object`): world context (Cucumber only)
+
+### afterHook
+
+Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling afterEach in Mocha)
+
+Parameters:
+- `test` (`object`): test details
+- `context` (`object`): test context
+- `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `stepData` (`object`): step data (Cucumber only)
+- `world` (`object`): world context (Cucumber only)
+
+### beforeTest
+
+Function to be executed before a test (in Mocha/Jasmine) starts.
+
+Parameters:
+- `test` (`object`): test details
+- `context` (`object`): test context
+
+### beforeCommand
+
+Runs before a WebdriverIO command gets executed.
+
+Parameters:
+- `commandName` (`string`): command name
+- `args` (`*`): arguments that command would receive
+
+### afterCommand
+
+Runs after a WebdriverIO command gets executed.
+
+Parameters:
+- `commandName` (`string`): command name
+- `args` (`*`): arguments that command would receive
+- `result` (`number`): 0 - command success, 1 - command error
+- `error` (`Error`): error object if any
+
+### afterTest
+
+Function to be executed after a test (in Mocha/Jasmine) ends.
+
+Parameters:
+- `test` (`object`): test details
+- `context` (`object`): test context
+- `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+
+### afterSuite
+
+Hook that gets executed after the suite has ended
+
+Parameters:
+- `suite` (`object`): suite details
+
+### after
+
+Gets executed after all tests are done. You still have access to all global variables from the test.
+
+Parameters:
+- `result` (`number`): 0 - test pass, 1 - test fail
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+
+### afterSession
+
+Gets executed right after terminating the webdriver session.
+
+Parameters:
+- `config` (`object`): WebdriverIO configuration object
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+
+### onComplete
+
+Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
+
+Parameters:
+- `exitCode` (`number`): 0 - success, 1 - fail
+- `config` (`object`): WebdriverIO configuration object
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `result` (`object`): results object containing test results
+
+### onReload
+
+Gets executed when a refresh happens.
+
+Parameters:
+- `oldSessionId` (`string`): session ID of the old session
+- `newSessionId` (`string`): session ID of the new session
+
+
+### beforeFeature
+
+Runs before a Cucumber Feature.
+
+Parameters:
+- `uri`: (`string`): path to feature file
+- `feature`: (`object`): Cucumber feature object
+- `scenario`: (`object`): Cucumber scenario object
+
+### afterFeature
+
+Runs after a Cucumber Feature.
+
+Parameters:
+- `uri`: (`string`): path to feature file
+- `feature`: (`object`): Cucumber feature object
+- `scenario`: (`object`): Cucumber scenario object
+
+### beforeScenario
+
+Runs before a Cucumber Scenario.
+
+Parameters:
+- `uri`: (`string`): path to feature file
+- `feature`: (`object`): Cucumber feature object
+- `scenario`: (`object`): Cucumber scenario object
+- `sourceLocation`: (`object`): location of step
+
+### afterScenario
+
+Runs after a Cucumber Scenario.
+
+Parameters:
+- `uri`: (`string`): path to feature file
+- `feature`: (`object`): Cucumber feature object
+- `scenario`: (`object`): Cucumber scenario object
+- `result`: (`object`): scenario result
+- `sourceLocation`: (`object`): location of step
+
+### beforeStep
+
+Runs before a Cucumber Step.
+
+Parameters:
+- `uri`: (`string`): path to feature file
+- `feature`: (`object`): Cucumber feature object
+- `step`: (`object`): Cucumber step object
+
+### afterStep
+
+Runs after a Cucumber Step.
+
+Parameters:
+- `details`: (`object`): step details (contains `uri`, `feature` and `step` property objects)
+- `context`: (`object`): Cucumber context object
+- `result` (`object`): step result (contains `error`, `result`, `duration`, `passed`, `retries` properties)

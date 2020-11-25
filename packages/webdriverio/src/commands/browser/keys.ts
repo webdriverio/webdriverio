@@ -27,7 +27,10 @@
 
 import { checkUnicode } from '../../utils'
 
-export default function keys (this: WebdriverIO.BrowserObject, value: string | string[]) {
+export default function keys (
+    this: WebdriverIO.BrowserObject,
+    value: string | string[]
+) {
     let keySequence: string[] = []
 
     /**

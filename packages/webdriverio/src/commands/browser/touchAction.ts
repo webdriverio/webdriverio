@@ -59,6 +59,9 @@
 
 import { touchAction as touchActionCommand } from '../constant'
 
-export default function touchAction (this: WebdriverIO.BrowserObject, ...args: WebdriverIO.TouchAction[]) {
+export default function touchAction (
+    this: WebdriverIO.BrowserObject,
+    ...args: WebdriverIO.TouchAction[]
+) {
     return touchActionCommand.apply(this, args as any)
 }

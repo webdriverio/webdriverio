@@ -35,7 +35,7 @@ By default, Google Chrome and Firefox are available when installed on the host s
 // wdio.conf.js
 const drivers = {
     chrome: { version: '86.0.4240.22' }, // https://chromedriver.chromium.org/
-    firefox: { version: '0.27.0' } // https://github.com/mozilla/geckodriver/releases
+    firefox: { version: '0.27.0' }, // https://github.com/mozilla/geckodriver/releases
     chromiumedge: { version: '85.0.564.70' } // https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
 }
 
@@ -45,7 +45,7 @@ export.config = {
         ['selenium-standalone', {
             logPath: 'logs',
             installArgs: { drivers },
-            args: { drivers },
+            args: { drivers }
         }]
     ],
     // ...
@@ -114,7 +114,7 @@ args: {
     drivers : {
         chrome : {
             version : "86.0.4240.22",
-            arch    : process.arch,
+            arch    : process.arch
         }
     }
 },
@@ -138,7 +138,7 @@ installArgs: {
         chrome : {
             version : "86.0.4240.22",
             arch    : process.arch,
-            baseURL : "https://chromedriver.storage.googleapis.com",
+            baseURL : "https://chromedriver.storage.googleapis.com"
         }
     }
 },
