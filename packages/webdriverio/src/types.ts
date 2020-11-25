@@ -1,5 +1,5 @@
 import type cssValue from 'css-value'
-import WebDriver from 'webdriver'
+import type WebDriver from 'webdriver'
 
 export type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
 
