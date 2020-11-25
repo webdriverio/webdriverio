@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.1 (2020-11-25)
+
+#### :bug: Bug Fix
+* `wdio-testingbot-service`
+  * [#6157](https://github.com/webdriverio/webdriverio/pull/6157) fix for #6151 @wdio/testingbot-service doesn't configure the hostname… ([@testingbot](https://github.com/testingbot))
+
+#### Committers: 1
+- TestingBot ([@testingbot](https://github.com/testingbot))
+
+
 ## v6.10.0 (2020-11-24)
 
 #### :rocket: New Feature
