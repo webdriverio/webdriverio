@@ -2,7 +2,12 @@ import logger from '@wdio/logger'
 import { ChildProcessByStdio, spawn } from 'child_process'
 import { createWriteStream, ensureFileSync } from 'fs-extra'
 import { promisify } from 'util'
-import { getFilePath, cliArgsFromKeyValue, cliArgsFromArray } from './utils'
+import {
+    getFilePath,
+    cliArgsFromKeyValue,
+    cliArgsFromArray,
+    isWindows
+} from './utils'
 import { Readable } from 'stream'
 import { isCloudCapability } from '@wdio/config'
 
@@ -19,15 +24,15 @@ const DEFAULT_CONNECTION = {
 export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
     private readonly _logPath?: string
     private readonly _basePath: string = '/'
-    private readonly _appiumArgs: Array<string> = []
-    private readonly _capabilities: Array<AppiumCapability>
-    private readonly _args: KeyValueArgs | ArgValue[]
+    private readonly _appiumCliArgs: Array<string> = []
+    private readonly _capabilities: Array<WebDriver.DesiredCapabilities>
+    private readonly _args: AppiumServerArguments | Array<string>
     private _command: string
     private _process?: ChildProcessByStdio<null, Readable, Readable>
 
     constructor(
-        private _options: AppiumOptions,
-        capabilities: Array<AppiumCapability> | AppiumCapability = {},
+        private _options: AppiumServiceConfig,
+        capabilities:  Array<WebDriver.DesiredCapabilities> | WebDriver.DesiredCapabilities = {},
         public _config?: Config
     ) {
         /**
@@ -36,21 +41,34 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
         this._capabilities = Array.isArray(capabilities)
             ? capabilities
             : Object.values(capabilities)
+
         this._args = {
             basePath: this._basePath,
             ...(this._options.args || {})
         }
         this._logPath = _options.logPath || _config?.outputDir
-        this._command = _options.command
+        this._command = this._getCommand(_options.command)
+    }
+
+    private _getCommand(command?: string) {
+        /**
+         * Explicitly set node as command and appium
+         * module path as it's first argument if it's not defined
+         */
+        if (!command) {
+            command = 'node'
+            this._appiumCliArgs.push(AppiumLauncher._getAppiumCommand())
+        }
 
         /**
-         * Windows expects node to be explicitly set as command and appium
-         * module path as it's first argument
+         * Windows needs to be started through `cmd` and the command needs to be an arg
          */
-        if (!this._command) {
-            this._command = 'node'
-            this._appiumArgs.push(AppiumLauncher._getAppiumCommand())
+        if (isWindows()) {
+            this._appiumCliArgs.unshift('/c', command)
+            command = 'cmd'
         }
+
+        return command
     }
 
     /**
@@ -69,23 +87,13 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
     }
 
     async onPrepare() {
-        const isWindows = process.platform === 'win32'
-
         /**
          * Append remaining arguments
          */
         if (Array.isArray(this._args)) {
-            this._appiumArgs.push(...cliArgsFromArray(this._args))
+            this._appiumCliArgs.push(...cliArgsFromArray(this._args))
         } else {
-            this._appiumArgs.push(...cliArgsFromKeyValue(this._args))
-        }
-
-        /**
-         * Windows needs to be started through `cmd` and the command needs to be an arg
-         */
-        if (isWindows) {
-            this._appiumArgs.unshift('/c', this._command)
-            this._command = 'cmd'
+            this._appiumCliArgs.push(...cliArgsFromKeyValue(this._args))
         }
 
         this._setCapabilities()
@@ -93,7 +101,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
         /**
          * start Appium
          */
-        this._process = await promisify(this._startAppium)(this._command, this._appiumArgs)
+        this._process = await promisify(this._startAppium)(this._command, this._appiumCliArgs)
 
         if (this._logPath) {
             this._redirectLogStream(this._logPath)
