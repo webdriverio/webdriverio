@@ -437,7 +437,7 @@ declare namespace WebdriverIO {
         action: ActionTypes,
         x?: number,
         y?: number,
-        element?: Element,
+        element?: string,
         ms?: number
     }
     type TouchActions = string | TouchAction | TouchAction[];

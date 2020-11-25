@@ -58,3 +58,35 @@ export interface ParsedCSSValue {
     value?: string
     parsed: ParsedColor
 }
+
+interface NoneActionEntity {
+    type: 'pause'
+    duration: number
+}
+
+interface PointerActionEntity {
+    type: 'pointerMove' | 'pointerDown' | 'pointerUp' | 'pointerCancel' | 'pause'
+    duration?: number
+    x?: number
+    y?: number
+    button?: number
+}
+
+interface KeyActionEntity {
+    type: 'keyUp' | 'keyDown'
+    duration?: number
+    value?: string
+}
+
+export interface Action {
+    id: string
+    actions: (NoneActionEntity & PointerActionEntity & KeyActionEntity)[]
+    type?: 'pointer' | 'key'
+    parameters?: {
+        pointerType: 'mouse' | 'pen' | 'touch'
+    }
+}
+
+export interface ActionParameter {
+    actions: Action[]
+}

@@ -1,41 +1,51 @@
 /**
  * Constants around commands
  */
-
 const TOUCH_ACTIONS = ['press', 'longPress', 'tap', 'moveTo', 'wait', 'release']
 const POS_ACTIONS = TOUCH_ACTIONS.slice(0, 4)
 const ACCEPTED_OPTIONS = ['x', 'y', 'element']
 
-export const formatArgs = function (scope, actions) {
-    return actions.map((action) => {
-        if (Array.isArray(action)) {
-            return formatArgs(scope, action)
-        }
+interface FormattedActions {
+    action: string
+    options?: WebdriverIO.TouchAction
+}
+
+export const formatArgs = function (
+    scope: WebdriverIO.BrowserObject | WebdriverIO.Element,
+    actions: WebdriverIO.TouchAction[]
+): FormattedActions[] {
+    return actions.map((action: WebdriverIO.TouchAction) => {
+        // if (Array.isArray(action)) {
+        //     return formatArgs(scope, action)
+        // }
 
         if (typeof action === 'string') {
             action = { action }
         }
 
-        const formattedAction = { action: action.action, options: {} }
+        const formattedAction: FormattedActions = {
+            action: action.action,
+            options: {} as WebdriverIO.TouchAction
+        }
 
         /**
          * don't propagate for actions that don't require element options
          */
-        const actionElement = action.element && typeof action.element.elementId === 'string'
-            ? action.element.elementId
-            : scope.elementId
-        if (POS_ACTIONS.includes(action.action) && actionElement) {
+        const actionElement = action.element && typeof (action.element as any as WebdriverIO.Element).elementId === 'string'
+            ? (action.element as any as WebdriverIO.Element).elementId
+            : (scope as WebdriverIO.Element).elementId
+        if (POS_ACTIONS.includes(action.action) && formattedAction.options && actionElement) {
             formattedAction.options.element = actionElement
         }
 
-        if (isFinite(action.x)) formattedAction.options.x = action.x
-        if (isFinite(action.y)) formattedAction.options.y = action.y
-        if (action.ms) formattedAction.options.ms = action.ms
+        if (formattedAction.options && action.x && isFinite(action.x)) formattedAction.options.x = action.x
+        if (formattedAction.options && action.y && isFinite(action.y)) formattedAction.options.y = action.y
+        if (formattedAction.options && action.ms) formattedAction.options.ms = action.ms
 
         /**
          * remove options property if empty
          */
-        if (Object.keys(formattedAction.options).length === 0) {
+        if (formattedAction.options && Object.keys(formattedAction.options).length === 0) {
             delete formattedAction.options
         }
 
@@ -49,7 +59,7 @@ export const formatArgs = function (scope, actions) {
  * @param  {Object} params  touchAction parameters
  * @return null
  */
-export const validateParameters = (params) => {
+export const validateParameters = (params: FormattedActions) => {
     const options = Object.keys(params.options || {})
     if (params.action === 'release' && options.length !== 0) {
         throw new Error(
@@ -81,7 +91,10 @@ export const validateParameters = (params) => {
     }
 }
 
-export const touchAction = function (actions) {
+export const touchAction = function (
+    this: WebdriverIO.BrowserObject,
+    actions: WebdriverIO.TouchAction[]
+) {
     if (!this.multiTouchPerform || !this.touchPerform) {
         throw new Error('touchAction can be used with Appium only.')
     }
@@ -90,7 +103,10 @@ export const touchAction = function (actions) {
     }
 
     const formattedAction = formatArgs(this, actions)
-    const protocolCommand = Array.isArray(actions[0]) ? this.multiTouchPerform.bind(this) : this.touchPerform.bind(this)
+    const protocolCommand = Array.isArray(actions[0])
+        // cast old JSONWP
+        ? this.multiTouchPerform.bind(this) as unknown as (actions: object[]) => void
+        : this.touchPerform.bind(this)
     formattedAction.forEach((params) => validateParameters(params))
     return protocolCommand(formattedAction)
 }
