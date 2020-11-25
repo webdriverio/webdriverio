@@ -28,19 +28,74 @@ describe('wdio-testingbot-service', () => {
         const options: TestingbotOptions = {
             tbTunnel: true,
             tbTunnelOpts: {
-                options: 'some options'
+                tunnelIdentifier: 'some options',
+                apiKey: 'user',
+                apiSecret: 'key',
             }
         }
         const config: any = {
             user: 'user',
             key: 'key'
         }
-        const caps = {} as any
+        const caps = [{}] as any
         const tbLauncher = new TestingBotLauncher(options)
 
         await tbLauncher.onPrepare(config, caps)
-        expect(tbLauncher.tbTunnelOpts).toMatchObject({ apiKey: 'user', apiSecret: 'key', options: 'some options' })
+        expect(tbLauncher.tbTunnelOpts).toMatchObject({ apiKey: 'user', apiSecret: 'key', tunnelIdentifier: 'some options' })
         expect((log.info as jest.Mock).mock.calls[0][0]).toContain('TestingBot tunnel successfully started after')
+    })
+
+    it('should merge tunnelIdentifier in tb:options', async () => {
+        const options: TestingbotOptions = {
+            tbTunnel: true,
+            tbTunnelOpts: {
+                apiKey: 'user',
+                apiSecret: 'key',
+                tunnelIdentifier: 'my-tunnel'
+            }
+        }
+        const config: any = {
+            user: 'user',
+            key: 'key'
+        }
+        const caps = [{
+            'tb:options': {
+                build: 'unit-test',
+            }
+        }] as any
+        const tbLauncher = new TestingBotLauncher(options)
+
+        await tbLauncher.onPrepare(config, caps)
+        expect(caps).toEqual([{
+            'tb:options': {
+                'tunnel-identifier': 'my-tunnel',
+                build: 'unit-test',
+            }
+        }])
+    })
+
+    it('should add tunnelIdentifier in tb:options', async () => {
+        const options: TestingbotOptions = {
+            tbTunnel: true,
+            tbTunnelOpts: {
+                apiKey: 'user',
+                apiSecret: 'key',
+            }
+        }
+        const config: any = {
+            user: 'user',
+            key: 'key'
+        }
+        const caps = [{
+            'tb:options': {
+                build: 'unit-test',
+            }
+        }] as any
+        const tbLauncher = new TestingBotLauncher(options)
+
+        await tbLauncher.onPrepare(config, caps)
+        expect(Object.keys(caps[0]['tb:options'])).toContain('tunnel-identifier')
+        expect(Object.keys(caps[0]['tb:options'])).toContain('build')
     })
 
     it('onComplete', () => {
