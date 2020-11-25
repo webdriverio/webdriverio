@@ -67,7 +67,7 @@ export default function waitUntil(
     }
 
     const fn = condition.bind(this)
-    let timer = new Timer(interval, timeout, fn, true)
+    let timer = new Timer(interval as number, timeout as number, fn, true)
     return (timer as any).catch((e: Error) => {
         if (e.message === 'timeout') {
             if (typeof timeoutMsg === 'string') {
