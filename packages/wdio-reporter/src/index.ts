@@ -41,7 +41,7 @@ export default class WDIOReporter extends EventEmitter {
     }
     retries = 0
     runnerStat?: RunnerStats
-    isContentPresent: boolean
+    isContentPresent: boolean = false
 
     constructor(public options: WDIOReporterOptions) {
         super()
