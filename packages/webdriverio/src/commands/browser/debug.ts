@@ -32,7 +32,10 @@
 import { serializeError } from 'serialize-error'
 import WDIORepl from '@wdio/repl'
 
-export default function debug(this: WebdriverIO.BrowserObject, commandTimeout = 5000) {
+export default function debug(
+    this: WebdriverIO.BrowserObject,
+    commandTimeout = 5000
+) {
     const repl = new WDIORepl()
     const { introMessage } = WDIORepl
 

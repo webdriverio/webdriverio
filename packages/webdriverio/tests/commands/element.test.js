@@ -12,5 +12,5 @@ test(scope + ' commands list and strategies', () => {
     const prototype = Object.keys(getPrototype(scope))
     const expected = ['puppeteer', '_NOT_FIBER', ...files, 'strategies']
 
-    expect(prototype).toEqual(expected)
+    expect(prototype.sort()).toEqual(expected.sort())
 })

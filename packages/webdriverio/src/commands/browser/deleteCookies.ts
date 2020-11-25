@@ -42,7 +42,10 @@
  *
  */
 
-export default function deleteCookies(this: WebdriverIO.BrowserObject, names?: string | string[]) {
+export default function deleteCookies(
+    this: WebdriverIO.BrowserObject,
+    names?: string | string[]
+) {
     if (names === undefined) {
         return this.deleteAllCookies()
     }

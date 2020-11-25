@@ -100,7 +100,10 @@ const NETWORK_PRESETS = {
 }
 const NETWORK_PRESET_TYPES = Object.keys(NETWORK_PRESETS)
 
-export default async function throttle (this: WebdriverIO.BrowserObject, params: WebdriverIO.ThrottleOptions) {
+export default async function throttle (
+    this: WebdriverIO.BrowserObject,
+    params: WebdriverIO.ThrottleOptions
+) {
     if (
         /**
          * check string parameter

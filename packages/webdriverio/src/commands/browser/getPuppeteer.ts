@@ -16,7 +16,7 @@ export default async function getPuppeteer (this: WebdriverIO.BrowserObject) {
      * that instance
      */
     if (this.puppeteer) {
-        return this.puppeteer
+        return this.puppeteer as puppeteer.Browser
     }
 
     /**
@@ -28,7 +28,7 @@ export default async function getPuppeteer (this: WebdriverIO.BrowserObject) {
             browserURL: `http://${chromiumOptions.debuggerAddress}`,
             defaultViewport: null
         })
-        return this.puppeteer
+        return this.puppeteer as puppeteer.Browser
     }
 
     /**
@@ -56,7 +56,7 @@ export default async function getPuppeteer (this: WebdriverIO.BrowserObject) {
                 browserURL: `http://localhost:${rdPort}`,
                 defaultViewport: null
             })
-            return this.puppeteer
+            return this.puppeteer as puppeteer.Browser
         }
     }
 

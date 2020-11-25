@@ -12,7 +12,12 @@ import type { ElementReference, ElementObject } from '../types'
  * @param  {Object} res       findElement response
  * @return {Object}           WDIO element object
  */
-export const getElement = function findElement(this: WebdriverIO.BrowserObject, selector?: string, res?: ElementReference | Error, isReactElement = false) {
+export const getElement = function findElement(
+    this: WebdriverIO.BrowserObject | WebdriverIO.Element,
+    selector?: string | Function,
+    res?: ElementReference | Error,
+    isReactElement = false
+): WebdriverIO.Element {
     const browser = getBrowserObject(this)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
@@ -66,7 +71,7 @@ export const getElement = function findElement(this: WebdriverIO.BrowserObject, 
  * @param  {Object} res       findElements response
  * @return {Array}            array of WDIO elements
  */
-export const getElements = function getElements(this: WebdriverIO.BrowserObject, selector: string, elemResponse: ElementReference[], isReactElement = false) {
+export const getElements = function getElements(this: WebdriverIO.BrowserObject, selector: string | Function, elemResponse: ElementReference[], isReactElement = false) {
     const browser = getBrowserObject(this)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),

@@ -1,6 +1,8 @@
 import ApplitoolsService from '../src'
 
-const globalAny: any = global
+const caps: WebDriver.Capabilities = {
+    browserName: 'chrome'
+}
 
 class BrowserMock {
     [key: string]: any;
@@ -14,10 +16,13 @@ class BrowserMock {
     }
 }
 
+function getBrowser () {
+    return new BrowserMock() as unknown as WebdriverIO.BrowserObject
+}
+
 describe('wdio-applitools-service', () => {
     beforeEach(() => {
         delete process.env.APPLITOOLS_KEY
-        delete globalAny.browser
     })
 
     it('throws if key does not exist in config', () => {
@@ -42,10 +47,10 @@ describe('wdio-applitools-service', () => {
         process.env.APPLITOOLS_SERVER_URL = 'foobarenvserver'
         expect(() => service.beforeSession()).not.toThrow()
 
-        expect(service.isConfigured).toBe(true)
-        expect(service.eyes.setApiKey).toBeCalledWith('foobarenv')
-        expect(service.eyes.setServerUrl).toBeCalledWith('foobarenvserver')
-        expect(service.viewport).toEqual({ width: 1440, height: 123 })
+        expect(service['_isConfigured']).toBe(true)
+        expect(service['_eyes'].setApiKey).toBeCalledWith('foobarenv')
+        expect(service['_eyes'].setServerUrl).toBeCalledWith('foobarenvserver')
+        expect(service['_viewport']).toEqual({ width: 1440, height: 123 })
     })
 
     it('should prefer options before environment variable', () => {
@@ -56,8 +61,8 @@ describe('wdio-applitools-service', () => {
         process.env.APPLITOOLS_KEY = 'foobarenv'
         process.env.APPLITOOLS_SERVER_URL = 'foobarenvserver'
         service.beforeSession()
-        expect(service.eyes.setApiKey).toBeCalledWith('foobar')
-        expect(service.eyes.setServerUrl).toBeCalledWith('foobarserver')
+        expect(service['_eyes'].setApiKey).toBeCalledWith('foobar')
+        expect(service['_eyes'].setServerUrl).toBeCalledWith('foobarserver')
     })
 
     it('should set proxy config if set in options', () => {
@@ -73,7 +78,7 @@ describe('wdio-applitools-service', () => {
         })
 
         service.beforeSession()
-        expect(service.eyes.setProxy).toBeCalledWith(proxyOptions)
+        expect(service['_eyes'].setProxy).toBeCalledWith(proxyOptions)
     })
 
     it('should not set proxy config if not set in options', () => {
@@ -81,187 +86,182 @@ describe('wdio-applitools-service', () => {
         process.env.APPLITOOLS_KEY = 'foobarenv'
 
         expect(() => service.beforeSession()).not.toThrow()
-        expect(service.eyes.setProxy).not.toBeCalled()
+        expect(service['_eyes'].setProxy).not.toBeCalled()
     })
 
     describe('before hook', () => {
         it('should do nothing if key was not applied', () => {
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
-
-            service.before()
-            expect(globalAny.browser.addCommand).not.toBeCalled()
+            service.before(caps, [], getBrowser())
+            expect(service['_browser']?.addCommand).not.toBeCalled()
         })
 
         it('should register takeSnapshot command', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
-            service.before()
-            expect(globalAny.browser.addCommand).toBeCalled()
+            service.before(caps, [], getBrowser())
+            expect(service['_browser']?.addCommand).toBeCalled()
 
-            globalAny.browser.takeSnapshot('foobar')
-            expect(service.eyes.check).toBeCalledWith('foobar', 'some window')
+            service['_browser']?.takeSnapshot('foobar')
+            expect(service['_eyes'].check).toBeCalledWith('foobar', 'some window')
         })
 
         it('should throw if takeSnapshot command is used without title', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
-            service.before()
-            expect(globalAny.browser.addCommand).toBeCalled()
+            service.before(caps, [], getBrowser())
+            expect(service['_browser']?.addCommand).toBeCalled()
 
-            expect(() => globalAny.browser.takeSnapshot()).toThrow()
-            expect(service.eyes.check).not.toBeCalled()
+            // @ts-ignore test undefined title
+            expect(() => service['_browser']?.takeSnapshot()).toThrow()
+            expect(service['_eyes'].check).not.toBeCalled()
         })
 
         it('should register takeRegionSnapshot command', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
-            service.before()
-            expect(globalAny.browser.addCommand).toBeCalled()
+            service.before(caps, [], getBrowser())
+            expect(service['_browser']?.addCommand).toBeCalled()
 
-            globalAny.browser.takeRegionSnapshot('foobar', 'foobarRegion')
-            expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegion')
+            service['_browser']?.takeRegionSnapshot('foobar', 'foobarRegion')
+            expect(service['_eyes'].check).toBeCalledWith('foobar', 'foobarRegion')
         })
 
         it('should register takeRegionSnapshot command with frame', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
-            service.before()
-            expect(globalAny.browser.addCommand).toBeCalled()
+            service.before(caps, [], getBrowser())
+            expect(service['_browser']?.addCommand).toBeCalled()
 
-            globalAny.browser.takeRegionSnapshot('foobar', 'foobarRegion', 'foobarFrame')
-            expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegionWithFrame')
+            service['_browser']?.takeRegionSnapshot('foobar', 'foobarRegion', 'foobarFrame')
+            expect(service['_eyes'].check).toBeCalledWith('foobar', 'foobarRegionWithFrame')
         })
 
         it('should register if takeRegionSnapshot command is used with null frame', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
-            service.before()
-            expect(globalAny.browser.addCommand).toBeCalled()
+            service.before(caps, [], getBrowser())
+            expect(service['_browser']?.addCommand).toBeCalled()
 
-            globalAny.browser.takeRegionSnapshot('foobar', 'foobarRegion', null)
-            expect(service.eyes.check).toBeCalledWith('foobar', 'foobarRegion')
+            // @ts-ignore test missing parameter
+            service['_browser']?.takeRegionSnapshot('foobar', 'foobarRegion', null)
+            expect(service['_eyes'].check).toBeCalledWith('foobar', 'foobarRegion')
         })
 
         it('should throw if takeRegionSnapshot command is used without title', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
-            service.before()
-            expect(globalAny.browser.addCommand).toBeCalled()
+            service.before(caps, [], getBrowser())
+            expect(service['_browser']?.addCommand).toBeCalled()
 
-            expect(() => globalAny.browser.takeRegionSnapshot(null, 'foobarRegion')).toThrow()
-            expect(service.eyes.check).not.toBeCalled()
+            // @ts-ignore test missing parameter
+            expect(() => service['_browser']?.takeRegionSnapshot(null, 'foobarRegion')).toThrow()
+            expect(service['_eyes'].check).not.toBeCalled()
         })
 
         it('should throw if takeRegionSnapshot command is used without region', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
-            service.before()
-            expect(globalAny.browser.addCommand).toBeCalled()
+            service.before(caps, [], getBrowser())
+            expect(service['_browser']?.addCommand).toBeCalled()
 
-            expect(() => globalAny.browser.takeRegionSnapshot('foobar')).toThrow()
-            expect(service.eyes.check).not.toBeCalled()
+            // @ts-ignore test missing parameter
+            expect(() => service['_browser']?.takeRegionSnapshot('foobar')).toThrow()
+            expect(service['_eyes'].check).not.toBeCalled()
         })
 
         it('should throw if takeRegionSnapshot command is used with null region', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
-            service.before()
-            expect(globalAny.browser.addCommand).toBeCalled()
+            service.before(caps, [], getBrowser())
+            expect(service['_browser']?.addCommand).toBeCalled()
 
-            expect(() => globalAny.browser.takeRegionSnapshot('foobar', null)).toThrow()
-            expect(service.eyes.check).not.toBeCalled()
+            // @ts-ignore test missing parameter
+            expect(() => service['_browser']?.takeRegionSnapshot('foobar', null)).toThrow()
+            expect(service['_eyes'].check).not.toBeCalled()
         })
     })
 
     describe('beforeTest hook', () => {
         it('should do nothing if key was not applied', () => {
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
+            service.before(caps, [], getBrowser())
             service.beforeTest({ title: 'some title', parent: 'some parent' })
-            expect(globalAny.browser.call).not.toBeCalled()
+            expect(service['_browser']?.call).not.toBeCalled()
         })
 
         it('should open eyes', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
+            service.before(caps, [], getBrowser())
             service.beforeTest({ title: 'some title', parent: 'some parent' })
 
-            expect(globalAny.browser.call).toBeCalled()
-            expect(service.eyes.open)
-                .toBeCalledWith(globalAny.browser, 'some title', 'some parent', { height: 900, width: 1440 })
+            expect(service['_browser']?.call).toBeCalled()
+            expect(service['_eyes'].open)
+                .toBeCalledWith(service['_browser'], 'some title', 'some parent', { height: 900, width: 1440 })
         })
     })
 
     describe('afterTest hook', () => {
         it('should do nothing if key was not applied', () => {
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
+            service.before(caps, [], getBrowser())
             service.afterTest()
-            expect(globalAny.browser.call).not.toBeCalled()
+            expect(service['_browser']?.call).not.toBeCalled()
         })
 
         it('should close eyes', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
+            service.before(caps, [], getBrowser())
             service.afterTest()
 
-            expect(globalAny.browser.call).toBeCalled()
-            expect(service.eyes.close).toBeCalled()
+            expect(service['_browser']?.call).toBeCalled()
+            expect(service['_eyes'].close).toBeCalled()
         })
     })
 
     describe('after hook', () => {
         it('should do nothing if key was not applied', () => {
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
+            service.before(caps, [], getBrowser())
             service.after()
-            expect(globalAny.browser.call).not.toBeCalled()
+            expect(service['_browser']?.call).not.toBeCalled()
         })
 
         it('should abortIfNotClosed eyes', () => {
             process.env.APPLITOOLS_KEY = 'foobarenv'
             const service = new ApplitoolsService({})
-            globalAny.browser = new BrowserMock()
 
             service.beforeSession()
+            service.before(caps, [], getBrowser())
             service.after()
 
-            expect(globalAny.browser.call).toBeCalled()
-            expect(service.eyes.abortIfNotClosed).toBeCalled()
+            expect(service['_browser']?.call).toBeCalled()
+            expect(service['_eyes'].abortIfNotClosed).toBeCalled()
         })
     })
 })

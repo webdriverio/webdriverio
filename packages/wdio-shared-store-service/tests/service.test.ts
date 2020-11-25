@@ -12,11 +12,13 @@ jest.mock('../src/utils', () => ({
     getPidPath: jest.fn(),
 }))
 
-const globalAny:any = global
-
-const storeService = new SharedStoreService()
-
 describe('SharedStoreService', () => {
+    let storeService: SharedStoreService
+
+    beforeEach(() => {
+        storeService = new SharedStoreService()
+    })
+
     it('beforeSession', async () => {
         await storeService.beforeSession()
         expect(getPidPath).toBeCalledWith(process.ppid)
@@ -24,11 +26,10 @@ describe('SharedStoreService', () => {
     })
 
     it('beforeSession', () => {
-        globalAny.browser = { call: (fn: Function) => fn() }
-
-        storeService.before()
-        globalAny.browser.sharedStore.get('foobar')
-        globalAny.browser.sharedStore.set('foo', 'bar')
+        const browser = { call: (fn: Function) => fn() } as WebdriverIO.BrowserObject
+        storeService.before({}, [], browser)
+        storeService['_browser']?.sharedStore.get('foobar')
+        storeService['_browser']?.sharedStore.set('foo', 'bar')
         expect(getValue).toBeCalledWith('foobar')
         expect(setValue).toBeCalledWith('foo', 'bar')
     })
@@ -38,7 +39,5 @@ describe('SharedStoreService', () => {
         ;(setPort as jest.Mock).mockClear()
         ;(getValue as jest.Mock).mockClear()
         ;(setValue as jest.Mock).mockClear()
-
-        delete globalAny.browser
     })
 })
