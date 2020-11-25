@@ -45,3 +45,7 @@ export function sanitizeCliOptionValue (value: ArgValue) {
     // Encapsulate the value string in single quotes if it contains a white space
     return /\s/.test(valueString) ? `'${valueString}'` : valueString
 }
+
+export function isWindows(): boolean {
+    return process.platform === 'win32'
+}
