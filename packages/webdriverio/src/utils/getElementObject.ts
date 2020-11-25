@@ -4,7 +4,7 @@ import clone from 'lodash.clonedeep'
 import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '.'
 import { elementErrorHandler } from '../middlewares'
 import { ELEMENT_KEY } from '../constants'
-import type { ElementReference, ElementObject } from '../types'
+import type { ElementReference, ElementObject, Selector } from '../types'
 
 /**
  * transforms a findElement response into a WDIO element
@@ -14,7 +14,7 @@ import type { ElementReference, ElementObject } from '../types'
  */
 export const getElement = function findElement(
     this: WebdriverIO.BrowserObject | WebdriverIO.Element,
-    selector?: string | Function,
+    selector?: Selector,
     res?: ElementReference | Error,
     isReactElement = false
 ): WebdriverIO.Element {
@@ -26,7 +26,7 @@ export const getElement = function findElement(
     }
 
     const element = webdriverMonad(this.options, (client: ElementObject) => {
-        const elementId = getElementFromResponse(res)
+        const elementId = getElementFromResponse(res as ElementReference)
 
         if (elementId) {
             /**
@@ -71,8 +71,13 @@ export const getElement = function findElement(
  * @param  {Object} res       findElements response
  * @return {Array}            array of WDIO elements
  */
-export const getElements = function getElements(this: WebdriverIO.BrowserObject, selector: string | Function, elemResponse: ElementReference[], isReactElement = false) {
-    const browser = getBrowserObject(this)
+export const getElements = function getElements(
+    this: WebdriverIO.BrowserObject | WebdriverIO.Element,
+    selector: Selector,
+    elemResponse: ElementReference[],
+    isReactElement = false
+): WebdriverIO.ElementArray {
+    const browser = getBrowserObject(this as WebdriverIO.Element)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
         ...getWDIOPrototype('element')
@@ -81,7 +86,7 @@ export const getElements = function getElements(this: WebdriverIO.BrowserObject,
     const elements = elemResponse.map((res: ElementReference | Error, i) => {
         propertiesObject.scope = 'element'
         const element = webdriverMonad(this.options, (client: ElementObject) => {
-            const elementId = getElementFromResponse(res)
+            const elementId = getElementFromResponse(res as ElementReference)
 
             if (elementId) {
                 /**
@@ -117,5 +122,5 @@ export const getElements = function getElements(this: WebdriverIO.BrowserObject,
         return elementInstance
     })
 
-    return elements
+    return elements as WebdriverIO.ElementArray
 }

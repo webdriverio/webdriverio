@@ -42,4 +42,7 @@ declare namespace DevTools {
 
 declare module "devtools" {
     export default DevTools;
+
+    const SUPPORTED_BROWSER: string[]
+    export { SUPPORTED_BROWSER }
 }

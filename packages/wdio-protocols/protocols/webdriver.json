@@ -465,7 +465,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String[]",
+        "type": "WebdriverIO.ElementReference[]",
         "name": "elements",
         "description": "A (possibly empty) JSON list of representations of an element object."
       }

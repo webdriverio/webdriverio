@@ -1,6 +1,9 @@
 import type { DefaultOptions } from '@wdio/config'
 import type { Options } from './types'
 
+declare type HTTPRequestOptions = import('got').Options;
+declare type HTTPResponse = import('got').Response;
+
 export const DEFAULTS: DefaultOptions<Options> = {
     /**
      * protocol of automation driver
@@ -108,14 +111,14 @@ export const DEFAULTS: DefaultOptions<Options> = {
      */
     transformRequest: {
         type: 'function',
-        default: (requestOptions) => requestOptions
+        default: (requestOptions: HTTPRequestOptions) => requestOptions
     },
     /**
      * Function transforming the response object after it is received
      */
     transformResponse: {
         type: 'function',
-        default: (response) => response
+        default: (response: HTTPResponse) => response
     },
     /**
      * Appium direct connect options server (https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)

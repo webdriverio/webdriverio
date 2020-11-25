@@ -19,6 +19,7 @@ declare namespace WebdriverIO {
     interface Browser {
         emit: Function
         strategies: Map<string, () => ElementReference | ElementReference[]>
+        __propertiesObject__: Record<string | PropertyDescriptor>
         puppeteer?: any
 
         /**
@@ -50,9 +51,9 @@ declare namespace WebdriverIO {
     }
 
 
-    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser { 
+    interface BrowserObject extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser {
     }
-    
+
     interface MultiRemoteBrowser extends WebDriver.ClientOptions, WebDriver.ClientAsync, Browser {
     }
 

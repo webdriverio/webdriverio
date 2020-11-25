@@ -9,9 +9,9 @@ import { ELEMENT_KEY } from './constants'
  *
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
  */
-export const elementErrorHandler = (fn) => (commandName, commandFn) => {
-    return function elementErrorHandlerCallback (...args) {
-        return fn(commandName, async function elementErrorHandlerCallbackFn () {
+export const elementErrorHandler = (fn: Function) => (commandName: string, commandFn: Function) => {
+    return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: any[]) {
+        return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element) {
             const element = await implicitWait(this, commandName)
             this.elementId = element.elementId
             this[ELEMENT_KEY] = element.elementId
@@ -48,9 +48,12 @@ export const elementErrorHandler = (fn) => (commandName, commandFn) => {
 /**
  * handle single command calls from multiremote instances
  */
-export const multiremoteHandler = (wrapCommand) => (commandName) => {
-    return wrapCommand(commandName, function (...args) {
-        const commandResults = this.instances.map((instanceName) => {
+export const multiremoteHandler = (
+    wrapCommand: Function
+) => (commandName: keyof WebdriverIO.BrowserObject) => {
+    return wrapCommand(commandName, function (this: WebdriverIO.MultiRemoteBrowserObject, ...args: any[]) {
+        // @ts-ignore
+        const commandResults = this.instances.map((instanceName: string) => {
             return this[instanceName][commandName](...args)
         })
 

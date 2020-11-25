@@ -30,14 +30,14 @@ import { getElementRect } from '../../utils'
 
 export default async function getSize (
     this: WebdriverIO.Element,
-    prop?: string
+    prop?: keyof WebDriver.RectReturn
 ) {
-    let rect: Record<string, number> = {}
+    let rect: Partial<WebDriver.RectReturn> = {}
 
     if (this.isW3C) {
         rect = await getElementRect(this)
     } else {
-        rect = await this.getElementSize(this.elementId)
+        rect = await this.getElementSize(this.elementId) as WebDriver.RectReturn
     }
 
     if (prop && rect[prop]) {

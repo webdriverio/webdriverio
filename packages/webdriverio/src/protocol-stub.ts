@@ -10,12 +10,14 @@ const WARN_ON_COMMANDS = ['addCommand', 'overwriteCommand']
  * so that Mocha/Jasmine users can filter their specs based on flags or use capabilities in test titles
  */
 export default class ProtocolStub {
-    static async newSession (options = {}) {
-        const capabilities = emulateSessionCapabilities(options.capabilities || {})
+    static async newSession (options: WebDriver.Options = {}) {
+        const capabilities = emulateSessionCapabilities(
+            (options.capabilities || {}) as unknown as WebDriver.DesiredCapabilities
+        )
 
         const browser = addCommands({
             capabilities,
-            ...capabilitiesEnvironmentDetector(capabilities, options._automationProtocol)
+            ...capabilitiesEnvironmentDetector(capabilities, (options as any)._automationProtocol || 'webdriver')
         })
 
         return browser
@@ -29,7 +31,10 @@ export default class ProtocolStub {
         throw new Error('Protocol Stub: Make sure to start webdriver or devtools session before reloading it.')
     }
 
-    static attachToSession (options, modifier) {
+    static attachToSession (
+        options: WebDriver.AttachSessionOptions,
+        modifier?: (...args: any[]) => any
+    ) {
         if (options || !modifier) {
             return ProtocolStub.newSession(options)
         }
@@ -48,7 +53,7 @@ export default class ProtocolStub {
  * before session is started
  * @param {object} browser
  */
-function addCommands (browser) {
+function addCommands (browser: Record<string, any>) {
     WARN_ON_COMMANDS.forEach((commandName) => {
         browser[commandName] = commandNotAvailable(commandName)
     })
@@ -61,8 +66,8 @@ function addCommands (browser) {
  * @param   {object} caps user defined capabilities
  * @return  {object}
  */
-function emulateSessionCapabilities (caps) {
-    const capabilities = {}
+function emulateSessionCapabilities (caps: WebDriver.DesiredCapabilities) {
+    const capabilities: Record<string, any> = {}
 
     // remove appium vendor prefix from capabilities
     Object.entries(caps).forEach(([key, value]) => {
@@ -82,6 +87,6 @@ function emulateSessionCapabilities (caps) {
  * warn user to avoid usage of command before browser session is started.
  * @param {string} commandName
  */
-function commandNotAvailable (commandName) {
+function commandNotAvailable (commandName: string) {
     return () => { throw new Error(`Unable to use '${commandName}' before browser session is started.`) }
 }

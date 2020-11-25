@@ -49,7 +49,7 @@ export default function waitUntil(
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         timeoutMsg
-    }: WebdriverIO.WaitUntilOptions = {}
+    }: Partial<WebdriverIO.WaitUntilOptions> = {}
 ) {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
@@ -67,7 +67,7 @@ export default function waitUntil(
     }
 
     const fn = condition.bind(this)
-    let timer = new Timer(interval, timeout, fn, true)
+    let timer = new Timer(interval as number, timeout as number, fn, true)
     return (timer as any).catch((e: Error) => {
         if (e.message === 'timeout') {
             if (typeof timeoutMsg === 'string') {

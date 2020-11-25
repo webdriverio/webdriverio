@@ -28,8 +28,8 @@
  * @param  {HTMLElement} elem  element to check
  * @return {Boolean}           true if element is within viewport
  */
-export default function isElementDisplayed(element) {
-    function nodeIsElement(node) {
+export default function isElementDisplayed (element: Element): boolean {
+    function nodeIsElement(node?: Element) {
         if (!node) {
             return false
         }
@@ -45,16 +45,20 @@ export default function isElementDisplayed(element) {
         }
     }
 
-    function parentElementForElement(element) {
+    function parentElementForElement(element?: Element) {
         if (!element) {
             return null
         }
 
-        return enclosingNodeOrSelfMatchingPredicate(element.parentNode, nodeIsElement)
+        return enclosingNodeOrSelfMatchingPredicate(element.parentNode as ParentNode, nodeIsElement)
     }
 
-    function enclosingNodeOrSelfMatchingPredicate(targetNode, predicate) {
-        for (let node = targetNode; node && node !== targetNode.ownerDocument; node = node.parentNode)
+    function enclosingNodeOrSelfMatchingPredicate(targetNode: ParentNode | HTMLElement, predicate: Function) {
+        for (
+            let node: ParentNode = targetNode;
+            node && node !== (targetNode as Node).ownerDocument;
+            node = (node as HTMLElement).parentNode as ParentNode
+        )
             if (predicate(node)) {
                 return node
             }
@@ -62,8 +66,12 @@ export default function isElementDisplayed(element) {
         return null
     }
 
-    function enclosingElementOrSelfMatchingPredicate(targetElement, predicate) {
-        for (let element = targetElement; element && element !== targetElement.ownerDocument; element = parentElementForElement(element))
+    function enclosingElementOrSelfMatchingPredicate(targetElement: HTMLElement | Document, predicate: Function) {
+        for (
+            let element: HTMLElement | ParentNode = targetElement;
+            element && element !== targetElement.ownerDocument;
+            element = parentElementForElement(element as HTMLElement) as HTMLElement
+        )
             if (predicate(element)) {
                 return element
             }
@@ -71,7 +79,10 @@ export default function isElementDisplayed(element) {
         return null
     }
 
-    function cascadedStylePropertyForElement(element, property) {
+    function cascadedStylePropertyForElement(
+        element?: Element | ParentNode | ShadowRoot,
+        property?: string
+    ): string | null {
         if (!element || !property) {
             return null
         }
@@ -82,7 +93,7 @@ export default function isElementDisplayed(element) {
             element = element.host
         }
 
-        let computedStyle = window.getComputedStyle(element)
+        let computedStyle = window.getComputedStyle(element as Element)
         let computedStyleProperty = computedStyle.getPropertyValue(property)
         if (computedStyleProperty && computedStyleProperty !== 'inherit') {
             return computedStyleProperty
@@ -97,11 +108,11 @@ export default function isElementDisplayed(element) {
         // I think all important non-inheritable properties (width, height, etc.)
         // for our purposes here are specially resolved, so this may not be an issue.
         // Specification is here: https://drafts.csswg.org/cssom/#resolved-values
-        let parentElement = parentElementForElement(element)
+        let parentElement = parentElementForElement(element as Element) as ParentNode
         return cascadedStylePropertyForElement(parentElement, property)
     }
 
-    function elementSubtreeHasNonZeroDimensions(element) {
+    function elementSubtreeHasNonZeroDimensions(element: Element): boolean {
         let boundingBox = element.getBoundingClientRect()
         if (boundingBox.width > 0 && boundingBox.height > 0) {
             return true
@@ -120,7 +131,7 @@ export default function isElementDisplayed(element) {
 
         // If the container's overflow is not hidden and it has zero size, consider the
         // container to have non-zero dimensions if a child node has non-zero dimensions.
-        return Array.from(element.childNodes).some((childNode) => {
+        return Array.from(element.childNodes).some((childNode: Element) => {
             if (childNode.nodeType === Node.TEXT_NODE) {
                 return true
             }
@@ -133,7 +144,7 @@ export default function isElementDisplayed(element) {
         })
     }
 
-    function elementOverflowsContainer(element) {
+    function elementOverflowsContainer(element: Element) {
         let cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
         if (cascadedOverflow !== 'hidden') {
             return false
@@ -145,7 +156,7 @@ export default function isElementDisplayed(element) {
         return true
     }
 
-    function isElementSubtreeHiddenByOverflow(element) {
+    function isElementSubtreeHiddenByOverflow (element: Element): boolean {
         if (!element) {
             return false
         }
@@ -159,7 +170,7 @@ export default function isElementDisplayed(element) {
         }
 
         // This element's subtree is hidden by overflow if all child subtrees are as well.
-        return Array.from(element.childNodes).every((childNode) => {
+        return Array.from(element.childNodes).every((childNode: Element) => {
             // Returns true if the child node is overflowed or otherwise hidden.
             // Base case: not an element, has zero size, scrolled out, or doesn't overflow container.
             // Visibility of text nodes is controlled by parent
@@ -179,14 +190,14 @@ export default function isElementDisplayed(element) {
         })
     }
     // walk up the tree testing for a shadow root
-    function isElementInsideShadowRoot(element) {
+    function isElementInsideShadowRoot (element: Element): boolean {
         if (!element) {
             return false
         }
-        if (element.parentNode && element.parentNode.host) {
+        if (element.parentNode && (element.parentNode as ShadowRoot).host) {
             return true
         }
-        return isElementInsideShadowRoot(element.parentNode)
+        return isElementInsideShadowRoot(element.parentNode as Element)
     }
 
     // This is a partial reimplementation of Selenium's "element is displayed" algorithm.
@@ -208,12 +219,12 @@ export default function isElementDisplayed(element) {
     case 'OPTGROUP':
     case 'OPTION': {
         // Option/optgroup are considered shown if the containing <select> is shown.
-        let enclosingSelectElement = enclosingNodeOrSelfMatchingPredicate(element, (e) => e.tagName.toUpperCase() === 'SELECT')
-        return isElementDisplayed(enclosingSelectElement)
+        let enclosingSelectElement = enclosingNodeOrSelfMatchingPredicate(element, (e: Element) => e.tagName.toUpperCase() === 'SELECT')
+        return isElementDisplayed(enclosingSelectElement as Element)
     }
     case 'INPUT':
         // <input type="hidden"> is considered not shown.
-        if (element.type === 'hidden') {
+        if ((element as HTMLInputElement).type === 'hidden') {
             return false
         }
         break
@@ -228,10 +239,10 @@ export default function isElementDisplayed(element) {
         return false
     }
 
-    let hasAncestorWithZeroOpacity = !!enclosingElementOrSelfMatchingPredicate(element, (e) => {
+    let hasAncestorWithZeroOpacity = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, (e: Element) => {
         return Number(cascadedStylePropertyForElement(e, 'opacity')) === 0
     })
-    let hasAncestorWithDisplayNone = !!enclosingElementOrSelfMatchingPredicate(element, (e) => {
+    let hasAncestorWithDisplayNone = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, (e: Element) => {
         return cascadedStylePropertyForElement(e, 'display') === 'none'
     })
     if (hasAncestorWithZeroOpacity || hasAncestorWithDisplayNone) {

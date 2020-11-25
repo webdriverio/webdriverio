@@ -1,7 +1,7 @@
 import path from 'path'
 import logger from '@wdio/logger'
 import WebDriver, { DEFAULTS } from 'webdriver'
-import { validateConfig, detectBackend } from '@wdio/config'
+import { validateConfig, detectBackend, ConfigOptions } from '@wdio/config'
 import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 
 import MultiRemote from './multiremote'
@@ -21,12 +21,12 @@ const log = logger('webdriverio')
  * @param  {function} remoteModifier  Modifier function to change the monad object
  * @return {object}                   browser object with sessionId
  */
-export const remote = async function (params = {}, remoteModifier) {
-    logger.setLogLevelsConfig(params.logLevels, params.logLevel)
+export const remote = async function (params: ConfigOptions = {}, remoteModifier?: Function) {
+    logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
 
-    const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(DEFAULTS))
+    const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
     const automationProtocol = await getAutomationProtocol(config)
-    const modifier = (client, options) => {
+    const modifier = (client: WebDriver.Client, options: WebdriverIO.Config) => {
         /**
          * overwrite instance options with default values of the protocol
          * package (without undefined properties)
@@ -64,12 +64,12 @@ export const remote = async function (params = {}, remoteModifier) {
      */
     if (params.runner && !isStub(automationProtocol)) {
         const origAddCommand = instance.addCommand.bind(instance)
-        instance.addCommand = (name, fn, attachToElement) => (
+        instance.addCommand = (name: string, fn: Function, attachToElement: boolean) => (
             origAddCommand(name, runFnInFiberContext(fn), attachToElement)
         )
 
         const origOverwriteCommand = instance.overwriteCommand.bind(instance)
-        instance.overwriteCommand = (name, fn, attachToElement) => (
+        instance.overwriteCommand = (name: string, fn: Function, attachToElement: boolean) => (
             origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement)
         )
     }
@@ -78,12 +78,12 @@ export const remote = async function (params = {}, remoteModifier) {
     return instance
 }
 
-export const attach = function (params) {
+export const attach = function (params: WebDriver.AttachSessionOptions) {
     const prototype = getPrototype('browser')
-    return WebDriver.attachToSession(params, null, prototype, wrapCommand)
+    return WebDriver.attachToSession(params, undefined, prototype, wrapCommand)
 }
 
-export const multiremote = async function (params = {}, config = {}) {
+export const multiremote = async function (params: Record<string, ConfigOptions> = {}, config: ConfigOptions = {}) {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
 
@@ -107,8 +107,15 @@ export const multiremote = async function (params = {}, config = {}) {
         logLevel: multibrowser.instances[browserNames[0]].options.logLevel
     }
 
-    const ProtocolDriver = isStub(config.automationProtocol) ? require(config.automationProtocol).default : WebDriver
-    const driver = ProtocolDriver.attachToSession(sessionParams, multibrowser.modifier.bind(multibrowser), prototype, wrapCommand)
+    const ProtocolDriver = config.automationProtocol && isStub(config.automationProtocol)
+        ? require(config.automationProtocol).default
+        : WebDriver
+    const driver = ProtocolDriver.attachToSession(
+        sessionParams,
+        multibrowser.modifier.bind(multibrowser),
+        prototype,
+        wrapCommand
+    )
 
     /**
      * in order to get custom command overwritten or added to multiremote instance
@@ -116,12 +123,12 @@ export const multiremote = async function (params = {}, config = {}) {
      */
     if (!isStub(config.automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name, fn, attachToElement) => {
+        driver.addCommand = (name: string, fn: Function, attachToElement: boolean) => {
             origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
         }
 
         const origOverwriteCommand = driver.overwriteCommand.bind(driver)
-        driver.overwriteCommand = (name, fn, attachToElement) => {
+        driver.overwriteCommand = (name: string, fn: Function, attachToElement: boolean) => {
             origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
         }
     }

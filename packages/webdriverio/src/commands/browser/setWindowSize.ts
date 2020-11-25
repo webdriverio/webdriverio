@@ -22,7 +22,7 @@ import { getBrowserObject } from '../../utils'
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER
 
-export default function setWindowSize(
+export default async function setWindowSize(
     this: WebdriverIO.BrowserObject,
     width: number,
     height: number
@@ -43,8 +43,7 @@ export default function setWindowSize(
 
     const browser = getBrowserObject(this)
 
-    if (!browser.isW3C) {
-        return browser._setWindowSize(width, height)
-    }
-    return browser.setWindowRect(null, null, width, height)
+    await !browser.isW3C
+        ? browser._setWindowSize(width, height)
+        : browser.setWindowRect(null, null, width, height)
 }

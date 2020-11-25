@@ -6,7 +6,7 @@
  * @param  {HTMLElement} elem  element to check
  * @return {Boolean}           true if element is within viewport
  */
-export default function isElementInViewport (elem) {
+export default function isElementInViewport (elem: HTMLElement) {
     if (!elem.getBoundingClientRect) {
         return false
     }

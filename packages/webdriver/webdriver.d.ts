@@ -746,7 +746,7 @@ declare namespace WebDriver {
         mjpegScalingFactor?: number,
     }
 
-    interface BaseClient {
+    interface BaseClient extends NodeJS.EventEmitter {
         // id of WebDriver session
         sessionId: string;
         // assigned capabilities by the browser driver / WebDriver server
@@ -949,14 +949,14 @@ declare namespace WebDriver {
          * The Find Element From Element command is used to find an element from a web element in the current browsing context that can be used for future commands.
          * https://w3c.github.io/webdriver/#dfn-find-element-from-element
          */
-        findElementFromElement(elementId: string, using: string, value: string): string;
+        findElementFromElement(elementId: string, using: string, value: string): WebdriverIO.ElementReference;
 
         /**
          * [webdriver]
          * The Find Elements From Element command is used to find elements from a web element in the current browsing context that can be used for future commands.
          * https://w3c.github.io/webdriver/#dfn-find-elements-from-element
          */
-        findElementsFromElement(elementId: string, using: string, value: string): string[];
+        findElementsFromElement(elementId: string, using: string, value: string): WebdriverIO.ElementReference[];
 
         /**
          * [webdriver]
@@ -1826,14 +1826,14 @@ declare namespace WebDriver {
          * Search for an element on the page, starting from the identified element. The located element will be returned as a WebElement JSON object. The table below lists the locator strategies that each server should support. Each locator must return the first matching element located in the DOM.
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidelement
          */
-        findElementFromElement(elementId: string, using: string, value: string): string;
+        findElementFromElement(elementId: string, using: string, value: string): WebdriverIO.ElementReference;
 
         /**
          * [jsonwp]
          * Search for multiple elements on the page, starting from the identified element. The located elements will be returned as a WebElement JSON objects. The table below lists the locator strategies that each server should support. Elements should be returned in the order located in the DOM.
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidelements
          */
-        findElementsFromElement(elementId: string, using: string, value: string): string[];
+        findElementsFromElement(elementId: string, using: string, value: string): WebdriverIO.ElementReference[];
 
         /**
          * [jsonwp]
@@ -2660,5 +2660,8 @@ type AsyncClient = {
 }
 
 declare module "webdriver" {
-    export = WebDriver;
+    export default WebDriver;
+
+    const DEFAULTS: Record<string, any>
+    export { DEFAULTS }
 }

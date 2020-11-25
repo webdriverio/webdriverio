@@ -1,9 +1,9 @@
 /**
  * check if element is within the viewport or is overlapped by another element or disabled
- * @param  {HTMLElement} elem  element to check
+ * @param  {Element} elem  element to check
  * @return {Boolean}           false if element is not overlapped
  */
-export default function isElementClickable (elem) {
+export default function isElementClickable (elem: Element) {
     if (!elem.getBoundingClientRect || !elem.scrollIntoView || !elem.contains || !elem.getClientRects || !document.elementFromPoint) {
         return false
     }
@@ -11,10 +11,10 @@ export default function isElementClickable (elem) {
     // Edge before switching to Chromium
     const isOldEdge = !!window.StyleMedia
     // returns true for Chrome and Firefox and false for Safari, Edge and IE
-    const scrollIntoViewFullSupport = !(window.safari || isOldEdge)
+    const scrollIntoViewFullSupport = !((window as any).safari || isOldEdge)
 
     // get overlapping element
-    function getOverlappingElement (elem, context) {
+    function getOverlappingElement (elem: Element, context?: Document | ShadowRoot) {
         context = context || document
         const elemDimension = elem.getBoundingClientRect()
         const x = elemDimension.left + (elem.clientWidth / 2)
@@ -24,7 +24,7 @@ export default function isElementClickable (elem) {
 
     // get overlapping element rects (currently only the first)
     // applicable if element's text is multiline.
-    function getOverlappingRects (elem, context) {
+    function getOverlappingRects (elem: Element, context?: Document | ShadowRoot) {
         context = context || document
         const elems = []
 
@@ -39,24 +39,24 @@ export default function isElementClickable (elem) {
     }
 
     // get overlapping elements
-    function getOverlappingElements (elem, context) {
-        return [getOverlappingElement(elem, context)].concat(getOverlappingRects(elem, context))
+    function getOverlappingElements (elem: Element, context?: Document | ShadowRoot) {
+        return [getOverlappingElement(elem, context)].concat(getOverlappingRects(elem, context)) as Element[]
     }
 
     // is a node a descendant of a given node
-    function nodeContains (elem, otherNode) {
+    function nodeContains (elem: Element, otherNode: Element) {
         // Edge doesn't support neither Shadow Dom nor contains if ShadowRoot polyfill is used
         if (isOldEdge) {
-            let tmpElement = otherNode
+            let tmpElement: Element = otherNode
             while (tmpElement) {
                 if (tmpElement === elem) {
                     return true
                 }
 
-                tmpElement = tmpElement.parentNode
+                const shadowElement = tmpElement.parentNode as ShadowRoot
                 // DocumentFragment / ShadowRoot polyfill like ShadyRoot
-                if (tmpElement && tmpElement.nodeType === 11 && tmpElement.host) {
-                    tmpElement = tmpElement.host
+                if (shadowElement && shadowElement.nodeType === 11 && shadowElement.host) {
+                    tmpElement = shadowElement.host
                 }
             }
             return false
@@ -66,7 +66,10 @@ export default function isElementClickable (elem) {
     }
 
     // is one of overlapping elements the `elem` or one of its child
-    function isOverlappingElementMatch (elementsFromPoint, elem) {
+    function isOverlappingElementMatch (
+        elementsFromPoint: Element[],
+        elem: Element
+    ): boolean {
         if (elementsFromPoint.some(function (elementFromPoint) {
             return elementFromPoint === elem || nodeContains(elem, elementFromPoint)
         })) {
@@ -75,19 +78,24 @@ export default function isElementClickable (elem) {
 
         // shadow root
         // filter unique elements with shadowRoot
-        let elemsWithShadowRoot = [].concat(elementsFromPoint)
+        let elemsWithShadowRoot: Element[] = [...elementsFromPoint]
         elemsWithShadowRoot = elemsWithShadowRoot.filter(function (x) {
             return x && x.shadowRoot && x.shadowRoot.elementFromPoint
         })
 
         // getOverlappingElements of every element with shadowRoot
-        let shadowElementsFromPoint = []
+        let shadowElementsFromPoint: Element[] = []
         for (let i = 0; i < elemsWithShadowRoot.length; ++i) {
-            let shadowElement = elemsWithShadowRoot[i]
-            shadowElementsFromPoint = shadowElementsFromPoint.concat(getOverlappingElements(elem, shadowElement.shadowRoot))
+            let shadowElement: Element = elemsWithShadowRoot[i]
+            shadowElementsFromPoint = shadowElementsFromPoint.concat(
+                getOverlappingElements(
+                    elem,
+                    shadowElement.shadowRoot as ShadowRoot
+                ) as ConcatArray<Element>
+            )
         }
         // remove duplicates and parents
-        shadowElementsFromPoint = [].concat(shadowElementsFromPoint)
+        shadowElementsFromPoint = [...shadowElementsFromPoint]
         shadowElementsFromPoint = shadowElementsFromPoint.filter(function (x) {
             return !elementsFromPoint.includes(x)
         })
@@ -100,7 +108,7 @@ export default function isElementClickable (elem) {
     }
 
     // copied from `isElementInViewport.js`
-    function isElementInViewport (elem) {
+    function isElementInViewport (elem: Element) {
         if (!elem.getBoundingClientRect) {
             return false
         }
@@ -116,9 +124,9 @@ export default function isElementClickable (elem) {
         return (vertInView && horInView)
     }
 
-    function isClickable (elem) {
+    function isClickable (elem: Element) {
         return (
-            isElementInViewport(elem) && elem.disabled !== true &&
+            isElementInViewport(elem) && (elem as any).disabled !== true &&
             isOverlappingElementMatch(getOverlappingElements(elem), elem)
         )
     }

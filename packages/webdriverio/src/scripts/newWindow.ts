@@ -6,6 +6,10 @@
  *
  * @see  https://developer.mozilla.org/en-US/docs/Web/API/Window.open
  */
-export default function newWindow (url, windowName, windowFeatures) {
+export default function newWindow (
+    url: string,
+    windowName: string,
+    windowFeatures: string
+) {
     window.open(url, windowName || 'new window', windowFeatures || '')
 }

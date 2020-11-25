@@ -51,10 +51,11 @@
 import { findElement } from '../../utils'
 import { getElement } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
+import type { Selector } from '../../types'
 
 export default async function $ (
     this: WebdriverIO.Element,
-    selector: string | WebdriverIO.ElementReference
+    selector: Selector
 ) {
     /**
      * convert protocol result into WebdriverIO element
@@ -65,5 +66,5 @@ export default async function $ (
     }
 
     const res = await findElement.call(this, selector)
-    return getElement.call(this, selector as string, res)
+    return getElement.call(this, selector, res)
 }

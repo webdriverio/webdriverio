@@ -40,7 +40,12 @@ export default class Interception {
 
         /* istanbul ignore next */
         const fn = async () => this.calls && (await this.calls).length > 0
-        const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<void>
+        const timer = new Timer(
+            interval as number,
+            timeout as number,
+            fn,
+            true
+        ) as any as Promise<boolean>
 
         return this.browser.call(() => timer.catch((e) => {
             if (e.message === 'timeout') {

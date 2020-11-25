@@ -7,6 +7,6 @@
  * @return {String}                      html source
  */
 
-export default function getHTML (element, includeSelectorTag) {
+export default function getHTML (element: HTMLElement, includeSelectorTag: boolean) {
     return element[includeSelectorTag ? 'outerHTML' : 'innerHTML']
 }

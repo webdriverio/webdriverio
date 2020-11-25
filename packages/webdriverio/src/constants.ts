@@ -1,8 +1,9 @@
-/* istanbul ignore next */
+import type { DefaultPropertyType } from '@wdio/utils'
 
+/* istanbul ignore next */
 const HOOK_DEFINITION = {
     type: 'object',
-    validate: (param) => {
+    validate: (param: Function[]) => {
         /**
          * option must be an array
          */
@@ -29,13 +30,13 @@ const HOOK_DEFINITION = {
 }
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
-export const WDIO_DEFAULTS = {
+export const WDIO_DEFAULTS: Record<string, DefaultPropertyType> = {
     /**
      * allows to specify automation protocol
      */
     automationProtocol: {
         type: 'string',
-        validate: (param) => {
+        validate: (param: string) => {
             if (!['webdriver', 'devtools', './protocol-stub'].includes(param.toLowerCase())) {
                 throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
             }
@@ -56,7 +57,7 @@ export const WDIO_DEFAULTS = {
      */
     specs: {
         type: 'object',
-        validate: (param) => {
+        validate: (param: string[]) => {
             if (!Array.isArray(param)) {
                 throw new Error('the "specs" option needs to be a list of strings')
             }
@@ -67,7 +68,7 @@ export const WDIO_DEFAULTS = {
      */
     exclude: {
         type: 'object',
-        validate: (param) => {
+        validate: (param: string[]) => {
             if (!Array.isArray(param)) {
                 throw new Error('the "exclude" option needs to be a list of strings')
             }
@@ -85,7 +86,7 @@ export const WDIO_DEFAULTS = {
      */
     capabilities: {
         type: 'object',
-        validate: (param) => {
+        validate: (param: WebDriver.Capabilities[]) => {
             /**
              * should be an object
              */
@@ -159,7 +160,7 @@ export const WDIO_DEFAULTS = {
      */
     reporters: {
         type: 'object',
-        validate: (param) => {
+        validate: (param: (string | object)[]) => {
             /**
              * option must be an array
              */
@@ -167,7 +168,7 @@ export const WDIO_DEFAULTS = {
                 throw new Error('the "reporters" options needs to be a list of strings')
             }
 
-            const isValidReporter = (option) => (
+            const isValidReporter = (option: string | Function) => (
                 (typeof option === 'string') ||
                 (typeof option === 'function')
             )
@@ -179,7 +180,7 @@ export const WDIO_DEFAULTS = {
                 /**
                  * either a string or a function (custom reporter)
                  */
-                if (isValidReporter(option)) {
+                if (isValidReporter(option as string)) {
                     continue
                 }
 
@@ -210,7 +211,7 @@ export const WDIO_DEFAULTS = {
      */
     services: {
         type: 'object',
-        validate: (param) => {
+        validate: (param: WebdriverIO.ServiceEntry[]) => {
             /**
              * should be an array
              */
@@ -239,7 +240,7 @@ export const WDIO_DEFAULTS = {
      */
     execArgv: {
         type: 'object',
-        validate: (param) => {
+        validate: (param: object) => {
             if (!Array.isArray(param)) {
                 throw new Error('the "execArgv" options needs to be a list of strings')
             }
@@ -270,7 +271,7 @@ export const WDIO_DEFAULTS = {
      */
     filesToWatch: {
         type: 'object',
-        validate: (param) => {
+        validate: (param: string[]) => {
             if (!Array.isArray(param)) {
                 throw new Error('the "filesToWatch" options needs to be a list of strings')
             }

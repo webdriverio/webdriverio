@@ -1,3 +1,5 @@
+import type cssValue from 'css-value'
+
 export type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
 
 export type ElementReference = Record<ElementReferenceId, string>
@@ -17,7 +19,7 @@ export interface ElementObject extends ElementReference, WebdriverIO.BrowserObje
      * - a string if `findElement` was used and a reference was found
      * - or a functin if element was found via e.g. `$(() => document.body)`
      */
-    selector?: string | Function
+    selector?: Selector
     /**
      * index of the element if fetched with `$$`
      */
@@ -41,4 +43,18 @@ export type WaitForOptions = {
     interval?: number,
     timeoutMsg?: string,
     reverse?: boolean,
+}
+
+export type ElementFunction = ((elem: HTMLElement) => WebdriverIO.ElementReference) | ((elem: HTMLElement) => WebdriverIO.ElementReference[])
+export type Selector = string | WebdriverIO.ElementReference | ElementFunction
+
+interface ParsedColor extends Partial<cssValue.CSSValue> {
+    rgb?: string
+    rgba?: string
+}
+
+export interface ParsedCSSValue {
+    property?: string
+    value?: string
+    parsed: ParsedColor
 }

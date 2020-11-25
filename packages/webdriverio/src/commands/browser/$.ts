@@ -50,20 +50,18 @@
 import { findElement } from '../../utils'
 import { getElement } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
-import type { ElementReference } from '../../types'
+import type { Selector } from '../../types'
 
 export default async function $ (
     this: WebdriverIO.BrowserObject,
-    selector: string | ElementReference
+    selector: Selector
 ) {
-    const elemReference = selector as ElementReference
-
     /**
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`
      */
-    if (typeof selector !== 'string' && typeof elemReference[ELEMENT_KEY] === 'string') {
-        return getElement.call(this, undefined, elemReference)
+    if (typeof selector === 'object' && typeof selector[ELEMENT_KEY] === 'string') {
+        return getElement.call(this, undefined, selector)
     }
 
     const res = await findElement.call(this, selector)
