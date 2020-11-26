@@ -1,12 +1,11 @@
 export default function selectOption (html: HTMLElement, elem: HTMLOptionElement) {
     elem.selected = true
 
-    var select = elem.parentElement
-
-    if (!select) {
-        return
+    let parent = elem.parentElement as HTMLElement
+    while (parent && parent.tagName.toLowerCase() !== 'select') {
+        parent = parent.parentElement as HTMLElement
     }
 
-    select.dispatchEvent(new Event('input', { bubbles: true }))
-    select.dispatchEvent(new Event('change', { bubbles: true }))
+    parent.dispatchEvent(new Event('input', { bubbles: true }))
+    parent.dispatchEvent(new Event('change', { bubbles: true }))
 }
