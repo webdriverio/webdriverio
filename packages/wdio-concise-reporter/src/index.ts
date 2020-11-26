@@ -86,7 +86,7 @@ export default class ConciseReporter extends WDIOReporter {
 
         this._suiteUids.map(uid => this._suites.map(suite => {
             if (suite.uid === uid) {
-                this.orderedSuites.push(suite)
+                orderedSuites.push(suite)
             }
         }))
 
