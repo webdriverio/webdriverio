@@ -1,7 +1,7 @@
 import { remote } from '../../../src'
 
 describe('custom$', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeEach(async () => {
         browser = await remote({
@@ -22,7 +22,9 @@ describe('custom$', () => {
     })
 
     it('should error if no strategy found', async () => {
-        const error = await browser.custom$('test', '.foo').catch((err) => err)
+        const error = await browser.custom$('test', '.foo')
+            // @ts-ignore use of sync types
+            .catch((err: Error) => err)
         expect(error.message).toBe('No strategy found for test')
     })
 
@@ -38,7 +40,9 @@ describe('custom$', () => {
 
     it('should throw error if no element is returned from the user script', async () => {
         browser.addLocatorStrategy('test-no-element', () => null)
-        const err = await browser.custom$('test-no-element', '.foo').catch(err => err)
+        const err = await browser.custom$('test-no-element', '.foo')
+            // @ts-ignore use of sync types
+            .catch((err: Error) => err)
 
         expect(err.message).toBe('Your locator strategy script must return an element')
     })

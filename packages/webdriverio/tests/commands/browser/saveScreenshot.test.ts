@@ -1,4 +1,5 @@
 import fs from 'fs'
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 import * as utils from '../../../src/utils'
@@ -6,7 +7,10 @@ import * as utils from '../../../src/utils'
 jest.mock('fs')
 
 describe('saveScreenshot', () => {
-    let browser, getAbsoluteFilepathSpy, assertDirectoryExistsSpy, writeFileSyncSpy
+    let browser: WebdriverIO.BrowserObject
+    let getAbsoluteFilepathSpy: jest.SpyInstance
+    let assertDirectoryExistsSpy: jest.SpyInstance
+    let writeFileSyncSpy: jest.SpyInstance
 
     beforeEach(async () => {
         browser = await remote({
@@ -53,6 +57,7 @@ describe('saveScreenshot', () => {
 
         // no file
         await expect(
+            // @ts-ignore test invalid parameter
             browser.saveScreenshot()
         ).rejects.toEqual(expectedError)
 

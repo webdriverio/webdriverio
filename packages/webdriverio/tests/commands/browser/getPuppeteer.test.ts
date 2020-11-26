@@ -2,11 +2,13 @@ import puppeteer from 'puppeteer-core'
 
 import { remote } from '../../../src'
 
+const puppeteerConnect = puppeteer.connect as jest.Mock
+
 describe('attach Puppeteer', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeEach(() => {
-        puppeteer.connect.mockClear()
+        puppeteerConnect.mockClear()
     })
 
     beforeAll(async () => {
@@ -29,7 +31,7 @@ describe('attach Puppeteer', () => {
             }
         })
         expect(typeof pptr).toBe('object')
-        expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
 
     it('should pass for Firefox', async () => {
@@ -46,7 +48,7 @@ describe('attach Puppeteer', () => {
             }
         })
         expect(typeof pprt).toBe('object')
-        expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
 
     it('should pass for Firefox (DevTools)', async () => {
@@ -66,7 +68,7 @@ describe('attach Puppeteer', () => {
             }
         })
         expect(typeof pptr).toBe('object')
-        expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
 
     it('should pass for Edge', async () => {
@@ -83,7 +85,7 @@ describe('attach Puppeteer', () => {
             }
         })
         expect(typeof pptr).toBe('object')
-        expect(puppeteer.connect.mock.calls).toMatchSnapshot()
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
 
     it('should fail for old Firefox version', async () => {
@@ -98,7 +100,9 @@ describe('attach Puppeteer', () => {
                     args: ['foo', 'bar', '-remote-debugging-port', 4321, 'barfoo']
                 }
             }
+        // @ts-ignore uses sync command
         }).catch(err => err)
+
         expect(err.message).toContain('Using DevTools capabilities is not supported for this session.')
     })
 
@@ -114,6 +118,6 @@ describe('attach Puppeteer', () => {
             puppeteer: 'foobar'
         })
         expect(pptr).toBe('foobar')
-        expect(puppeteer.connect).toHaveBeenCalledTimes(0)
+        expect(puppeteerConnect).toHaveBeenCalledTimes(0)
     })
 })

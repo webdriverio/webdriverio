@@ -1,3 +1,4 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
@@ -34,6 +35,7 @@ describe('reloadSession test', () => {
             const browser = await remote({
                 baseUrl: 'http://foobar.com',
                 capabilities: {
+                    // @ts-ignore mock feature
                     jsonwpMode: scenario.jsonwpMode,
                     browserName: 'foobar'
                 },
@@ -66,6 +68,7 @@ describe('reloadSession test', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
+                // @ts-ignore mock feature
                 jsonwpMode: scenario.jsonwpMode,
                 browserName: 'foobar'
             },
@@ -97,6 +100,7 @@ describe('reloadSession test', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
+                // @ts-ignore mock feature
                 jsonwpMode: scenario.jsonwpMode,
                 browserName: 'foobar'
             },

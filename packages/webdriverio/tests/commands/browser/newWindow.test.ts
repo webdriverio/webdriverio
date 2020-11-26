@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
@@ -12,7 +12,7 @@ describe('newWindow', () => {
 
     afterEach(() => {
         got.mockClear()
-        global.window.open.mockRestore()
+        ;(global.window.open as jest.Mock).mockRestore()
     })
 
     it('should allow to create a new window handle', async () => {
@@ -57,6 +57,7 @@ describe('newWindow', () => {
                 browserName: 'foobar'
             }
         })
+        // @ts-ignore uses expect-webdriverio
         expect.hasAssertions()
 
         try {
@@ -71,12 +72,13 @@ describe('newWindow', () => {
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'ipad',
+                // @ts-ignore mock feature
                 mobileMode: true
             }
         })
 
         const error = await browser.newWindow('https://webdriver.io', 'some name', 'some params')
-            .catch((err) => err)
+            .catch((err: Error) => err)
         expect(error.message).toContain('not supported on mobile')
     })
 })

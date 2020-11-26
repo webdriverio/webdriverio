@@ -434,7 +434,8 @@ declare namespace WebdriverIO {
         element?: Element,
         ms?: number
     }
-    type TouchActions = string | TouchAction | TouchAction[];
+    type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
+    type TouchActions = TouchActionParameter | TouchActionParameter[];
 
     type WaitForOptions = {
         timeout?: number,

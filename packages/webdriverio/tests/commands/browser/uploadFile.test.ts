@@ -38,9 +38,9 @@ describe('uploadFile', () => {
         })
         browser.file = jest.fn().mockReturnValue(Promise.resolve())
 
-        const archiverMock = archiver()
+        const archiverMock = archiver('zip')
         browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
-        expect(archiverMock.args).toEqual(['zip'])
+        expect((archiverMock as any).args).toEqual(['zip'])
         expect(archiverMock.append).toBeCalledWith(undefined, { name: 'toUpload.jpg' })
     })
 
@@ -54,11 +54,11 @@ describe('uploadFile', () => {
         browser.file = jest.fn().mockReturnValue(Promise.resolve())
 
         let commandError = null
-        const archiverMock = archiver()
+        const archiverMock = archiver('zip')
         const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
-            .catch((e) => (commandError = e))
-        expect(archiverMock.on.mock.calls[0][0]).toBe('error')
-        archiverMock.on.mock.calls[0][1](new Error('boom'))
+            .catch((e: Error) => (commandError = e))
+        expect((archiverMock.on as jest.Mock).mock.calls[0][0]).toBe('error')
+        ;(archiverMock.on as jest.Mock).mock.calls[0][1](new Error('boom'))
 
         await command
         expect(commandError).toEqual(new Error('boom'))
@@ -73,14 +73,14 @@ describe('uploadFile', () => {
         })
         browser.file = jest.fn().mockReturnValue(Promise.resolve('/some/local/path'))
 
-        const archiverMock = archiver()
+        const archiverMock = archiver('zip')
         const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
-        expect(archiverMock.on.mock.calls[1][0]).toBe('data')
-        expect(archiverMock.on.mock.calls[2][0]).toBe('end')
+        expect((archiverMock.on as jest.Mock).mock.calls[1][0]).toBe('data')
+        expect((archiverMock.on as jest.Mock).mock.calls[2][0]).toBe('end')
 
-        archiverMock.on.mock.calls[1][1](Buffer.alloc(10))
-        archiverMock.on.mock.calls[1][1](Buffer.alloc(33))
-        archiverMock.on.mock.calls[2][1]()
+        ;(archiverMock.on as jest.Mock).mock.calls[1][1](Buffer.alloc(10))
+        ;(archiverMock.on as jest.Mock).mock.calls[1][1](Buffer.alloc(33))
+        ;(archiverMock.on as jest.Mock).mock.calls[2][1]()
 
         const localPath = await command
         expect(browser.file).toBeCalledWith('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==')
@@ -88,9 +88,9 @@ describe('uploadFile', () => {
     })
 
     afterEach(() => {
-        const archiverMock = archiver()
-        archiverMock.on.mockClear()
-        archiverMock.append.mockClear()
-        archiverMock.finalize.mockClear()
+        const archiverMock = archiver('zip')
+        ;(archiverMock.on as jest.Mock).mockClear()
+        ;(archiverMock.append as jest.Mock).mockClear()
+        ;(archiverMock.finalize as jest.Mock).mockClear()
     })
 })

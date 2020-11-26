@@ -1,7 +1,7 @@
 import { remote } from '../../../src'
 
 describe('debug command', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeEach(async () => {
         browser = await remote({
@@ -14,27 +14,27 @@ describe('debug command', () => {
 
     describe('standalone mode', () => {
         it('should start wdio repl if in standalone mode', async () => {
-            const repl = await browser.debug()
-            expect(repl._startFn).toBeCalled()
+            const repl = await browser.debug() as any
+            expect(repl['_startFn']).toBeCalled()
         })
     })
 
     describe('as wdio testrunner', () => {
-        let realProcess
+        let realProcess: NodeJS.Process
 
         beforeEach(() => {
             realProcess = global.process
             global.process = {
-                env: { WDIO_WORKER: false },
+                env: { WDIO_WORKER: false } as any,
                 _debugProcess: jest.fn(),
                 _debugEnd: jest.fn(),
                 send: jest.fn(),
                 on: jest.fn()
-            }
+            } as any
         })
 
         it('should send debugger start command to wdio testrunner', () => {
-            global.process.env.WDIO_WORKER = true
+            global.process.env.WDIO_WORKER = 'true'
             browser.debug()
             expect(global.process.send).toBeCalledWith({
                 origin: 'debugger',
@@ -45,12 +45,12 @@ describe('debug command', () => {
         })
 
         describe('on testrunner message', () => {
-            let messageHandlerCallback
+            let messageHandlerCallback: Function
 
             beforeEach(async () => {
-                global.process.env.WDIO_WORKER = true
+                global.process.env.WDIO_WORKER = 'true'
                 browser.debug()
-                messageHandlerCallback = global.process.on.mock.calls.pop().pop()
+                messageHandlerCallback = (global.process.on as jest.Mock).mock.calls.pop().pop()
             })
 
             it('should do nothing if no debugger origin', () => {

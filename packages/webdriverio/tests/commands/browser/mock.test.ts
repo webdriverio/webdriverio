@@ -1,3 +1,4 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
@@ -16,9 +17,7 @@ const puppeteerMock = {
 }
 
 jest.mock('../../../src/utils/interception/webdriver', () => class WebDriverInterceptionMock {
-    constructor () {
-        this.init = jest.fn()
-    }
+    init = jest.fn()
 })
 
 describe('custom$', () => {

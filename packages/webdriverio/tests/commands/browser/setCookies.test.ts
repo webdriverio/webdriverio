@@ -1,8 +1,9 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
 describe('setCookies', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeAll(async () => {
         browser = await remote({
@@ -68,6 +69,7 @@ describe('setCookies', () => {
     })
 
     it('should throw error if invalid arguments are passed', async () => {
+        // @ts-ignore test invalid parameter
         await expect(browser.setCookies([2]))
             .rejects
             .toEqual(new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies.html for documentation.'))

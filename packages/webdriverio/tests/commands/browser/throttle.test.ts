@@ -1,8 +1,10 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import puppeteer from 'puppeteer-core'
 
 import { remote } from '../../../src'
 
+// @ts-ignore mock feature
 const cdpSession = new puppeteer.CDPSessionMock()
 
 beforeEach(() => {
@@ -17,11 +19,11 @@ test('should fail if wrong params applied', async () => {
         }
     })
 
-    let err = await browser.throttle().catch(err => err)
+    let err = await browser.throttle().catch((err: Error) => err)
     expect(err.message).toContain('Invalid parameter for "throttle"')
-    err = await browser.throttle(123).catch(err => err)
+    err = await browser.throttle(123).catch((err: Error) => err)
     expect(err.message).toContain('Invalid parameter for "throttle"')
-    err = await browser.throttle('FOOBAR').catch(err => err)
+    err = await browser.throttle('FOOBAR').catch((err: Error) => err)
     expect(err.message).toContain('Invalid parameter for "throttle"')
 })
 

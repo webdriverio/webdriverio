@@ -1,3 +1,4 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
@@ -53,6 +54,7 @@ describe('element', () => {
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar',
+                // @ts-ignore mock feature
                 mobileMode: true,
                 'appium-version': '1.9.2'
             }

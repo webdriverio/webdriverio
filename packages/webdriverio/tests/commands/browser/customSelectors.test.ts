@@ -1,7 +1,7 @@
 import { remote } from '../../../src'
 
 describe('custom$', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeEach(async () => {
         browser = await remote({
@@ -27,7 +27,9 @@ describe('custom$', () => {
     })
 
     it('should error if no strategy found', async () => {
-        const err = await browser.custom$$('test', '.foo').catch(err => err)
+        const err = await browser.custom$$('test', '.foo')
+            // @ts-ignore use of sync types
+            .catch((err: Error) => err)
 
         expect(err.message).toBe('No strategy found for test')
     })

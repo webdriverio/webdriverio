@@ -1,10 +1,11 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
 jest.setTimeout(10 * 1000)
 
 describe('waitUntil', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeAll(async () => {
         browser = await remote({
@@ -17,8 +18,10 @@ describe('waitUntil', () => {
 
     it('Should throw an error if an invalid condition is used', async () => {
         let error
+        // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         try {
+            // @ts-ignore test invalid condition parameter
             await browser.waitUntil('foo', {
                 timeout: 500,
                 timeoutMsg: 'Timed Out',
@@ -33,10 +36,11 @@ describe('waitUntil', () => {
 
     it('Should throw an error when the waitUntil times out', async () => {
         let error
+        // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         try {
             await browser.waitUntil(
-                () => new Promise(
+                () => new Promise<boolean>(
                     (resolve) => setTimeout(
                         () => resolve(false),
                         200
@@ -56,10 +60,11 @@ describe('waitUntil', () => {
 
     it('Should throw an error when the promise is rejected', async () => {
         let error
+        // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         try {
             await browser.waitUntil(
-                () => new Promise(
+                () => new Promise<boolean>(
                     (resolve, reject) => setTimeout(
                         () => reject(new Error('foobar')),
                         200
@@ -78,10 +83,11 @@ describe('waitUntil', () => {
     })
 
     it('Should throw an error when the promise is rejected without error message', async () => {
+        // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         try {
             await browser.waitUntil(
-                () => new Promise(
+                () => new Promise<boolean>(
                     (resolve, reject) => setTimeout(
                         () => reject(new Error()),
                         200
@@ -97,10 +103,12 @@ describe('waitUntil', () => {
 
     it('Should use default timeout setting from config if passed in value is not a number', async () => {
         let error
+        // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         try {
+            // @ts-ignore test invalid timeout parameter
             await browser.waitUntil(
-                () => new Promise(
+                () => new Promise<boolean>(
                     (resolve) => setTimeout(
                         () => resolve(false),
                         500
@@ -119,10 +127,12 @@ describe('waitUntil', () => {
 
     it('Should use default interval setting from config if passed in value is not a number', async () => {
         let error
+        // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         try {
+            // @ts-ignore test invalid interval parameter
             await browser.waitUntil(
-                () => new Promise(
+                () => new Promise<boolean>(
                     (resolve) => setTimeout(
                         () => resolve(false),
                         500
@@ -142,10 +152,11 @@ describe('waitUntil', () => {
 
     it('Should pass', async() => {
         let error
+        // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         try {
             await browser.waitUntil(
-                () => new Promise(
+                () => new Promise<boolean>(
                     (resolve) => setTimeout(
                         () => resolve(true),
                         200

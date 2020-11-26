@@ -1,3 +1,4 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { ELEMENT_KEY } from '../../../src/constants'
 import { remote } from '../../../src'
@@ -60,7 +61,9 @@ describe('react$', () => {
 
         const elems = await browser.react$$('myComp')
 
-        expect(elems.filter(elem => elem.isReactElement).length).toBe(3)
+        expect(elems.filter(
+            (elem: WebdriverIO.Element) => elem.isReactElement
+        ).length).toBe(3)
         expect(elems.foundWith).toBe('react$$')
     })
 })

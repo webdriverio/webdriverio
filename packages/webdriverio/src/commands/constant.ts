@@ -5,9 +5,13 @@ const TOUCH_ACTIONS = ['press', 'longPress', 'tap', 'moveTo', 'wait', 'release']
 const POS_ACTIONS = TOUCH_ACTIONS.slice(0, 4)
 const ACCEPTED_OPTIONS = ['x', 'y', 'element']
 
+interface FormattedTouchAction extends Omit<WebdriverIO.TouchAction, 'element'> {
+    element?: string
+}
+
 interface FormattedActions {
     action: string
-    options?: WebdriverIO.TouchAction
+    options?: FormattedTouchAction
 }
 
 export const formatArgs = function (
@@ -25,7 +29,7 @@ export const formatArgs = function (
 
         const formattedAction: FormattedActions = {
             action: action.action,
-            options: {} as WebdriverIO.TouchAction
+            options: {} as FormattedTouchAction
         }
 
         /**

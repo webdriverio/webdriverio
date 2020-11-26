@@ -1,8 +1,9 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
 describe('url', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeAll(async () => {
         browser = await remote({
@@ -28,11 +29,9 @@ describe('url', () => {
     })
 
     it('should throw an exception when a non-string value passed in', async () => {
-        try {
-            await browser.url(true)
-        } catch (e) {
-            expect(e.message).toContain('command needs to be type of string')
-        }
+        // @ts-ignore test invalid parameter
+        const e = await browser.url(true).catch((err: Error) => err) as Error
+        expect(e.message).toContain('command needs to be type of string')
     })
 
     afterEach(() => {

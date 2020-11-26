@@ -1,8 +1,9 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
 describe('switchWindow', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeEach(async () => {
         got.setMockResponse()
@@ -32,6 +33,7 @@ describe('switchWindow', () => {
     })
 
     it('should fail if no window was found', async () => {
+        // @ts-ignore uses expect-webdriverio
         expect.hasAssertions()
         got.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
 
@@ -43,9 +45,11 @@ describe('switchWindow', () => {
     })
 
     it('should fail if parameter is not valid', async () => {
+        // @ts-ignore uses expect-webdriverio
         expect.hasAssertions()
 
         try {
+            // @ts-ignore test invalid parameter
             await browser.switchWindow(true)
         } catch (e) {
             expect(e.message).toContain('Unsupported parameter')

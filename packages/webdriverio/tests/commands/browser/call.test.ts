@@ -1,7 +1,7 @@
 import { remote } from '../../../src'
 
 describe('call command', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeAll(async () => {
         browser = await remote({
@@ -13,18 +13,20 @@ describe('call command', () => {
     })
 
     it('should call a fn and return result', () => {
-        const callFn = jest.fn(() => true)
+        const callFn = jest.fn(() => Promise.resolve(true))
         const result = browser.call(callFn)
         expect(callFn).toBeCalled()
         expect(result).toEqual(true)
     })
 
     it('should not fail if nothing is applied', () => {
+        // @ts-ignore test invalid param
         expect(() => browser.call())
             .toThrow(/needs to be a function/)
     })
 
     it('should fail if parameter is not a function', () => {
+        // @ts-ignore test invalid param
         expect(() => browser.call(123))
             .toThrow(/needs to be a function/)
     })

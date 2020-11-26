@@ -1,8 +1,9 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
 describe('getWindowSize', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeAll(async () => {
         browser = await remote({

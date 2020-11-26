@@ -1,8 +1,9 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
 describe('setWindowSize', () => {
-    let browser
+    let browser: WebdriverIO.BrowserObject
 
     beforeAll(async () => {
         browser = await remote({
@@ -42,8 +43,10 @@ describe('setWindowSize', () => {
         it('should throw error if width or height is not number', () => {
             const invalidTypeError = 'setWindowSize expects width and height of type number'
 
+            // @ts-ignore tets invalid parameter
             expect(() => browser.setWindowSize('777', 888))
                 .toThrowError(invalidTypeError)
+            // @ts-ignore test invalid parameter
             expect(() => browser.setWindowSize(777))
                 .toThrowError(invalidTypeError)
         })

@@ -1,3 +1,4 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
@@ -10,9 +11,9 @@ describe('isEnabled test', () => {
             }
         })
 
-        await browser.executeAsync(() => 'foobar', 1, 2, 3)
+        await browser.execute(() => 'foobar', 1, 2, 3)
         expect(got.mock.calls[1][0].pathname)
-            .toBe('/session/foobar-123/execute/async')
+            .toBe('/session/foobar-123/execute/sync')
         expect(got.mock.calls[1][1].json.script)
             .toBe('return (() => \'foobar\').apply(null, arguments)')
         expect(got.mock.calls[1][1].json.args)
@@ -27,7 +28,7 @@ describe('isEnabled test', () => {
             }
         })
 
-        expect(() => browser.executeAsync(null)).toThrow()
-        expect(() => browser.executeAsync(1234)).toThrow()
+        expect(() => browser.execute(null)).toThrow()
+        expect(() => browser.execute(1234)).toThrow()
     })
 })

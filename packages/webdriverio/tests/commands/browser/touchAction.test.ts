@@ -1,15 +1,17 @@
+// @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
 describe('touchAction test', () => {
-    let browser
-    let elem
+    let browser: WebdriverIO.BrowserObject
+    let elem: WebdriverIO.Element
 
     beforeAll(async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar',
+                // @ts-ignore mock feature
                 mobileMode: true
             }
         })
