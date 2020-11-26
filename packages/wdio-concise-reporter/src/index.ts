@@ -14,8 +14,8 @@ export default class ConciseReporter extends WDIOReporter {
         super(Object.assign(options, { stdout: true }))
     }
 
-    onSuiteStart (suite: Suite): void {
-        this.suiteUids.push(suite.uid)
+    onSuiteStart (suite: SuiteStats): void {
+        this._suiteUids.push(suite.uid)
     }
 
     onSuiteEnd (suite: Suite): void {
