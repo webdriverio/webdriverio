@@ -10,11 +10,13 @@ import isObject from 'lodash.isobject'
 import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
-import type { ConfigOptions } from '@wdio/config'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
 import { findStrategy } from './findStrategy'
-import type { ElementReference, ElementObject, ElementFunction, Selector, ParsedCSSValue } from '../types'
+import type {
+    ElementReference, ElementObject, ElementFunction, Selector, ParsedCSSValue,
+    Options
+} from '../types'
 
 const browserCommands = require('../commands/browser')
 const elementCommands = require('../commands/element')
@@ -459,7 +461,7 @@ export const enhanceElementsArray = (
  */
 export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub'
 
-export const getAutomationProtocol = async (config: ConfigOptions) => {
+export const getAutomationProtocol = async (config: Options) => {
     /**
      * if automation protocol is set by user prefer this
      */
@@ -517,7 +519,7 @@ export const getAutomationProtocol = async (config: ConfigOptions) => {
  *
  * NOTE: this method is executed twice when running the WDIO testrunner
  */
-export const updateCapabilities = async (params: ConfigOptions, automationProtocol: string) => {
+export const updateCapabilities = async (params: Options, automationProtocol: string) => {
     const caps = params.capabilities as WebDriver.DesiredCapabilities
     /**
      * attach remote debugging port options to Firefox sessions

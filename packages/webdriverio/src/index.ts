@@ -1,16 +1,16 @@
-import path from 'path'
 import logger from '@wdio/logger'
 import WebDriver, { DEFAULTS } from 'webdriver'
-import { validateConfig, detectBackend, ConfigOptions } from '@wdio/config'
+import { validateConfig, detectBackend } from '@wdio/config'
 import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 
 import MultiRemote from './multiremote'
+import SevereServiceError from './utils/SevereServiceError'
 import { WDIO_DEFAULTS } from './constants'
 import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
 } from './utils'
-import SevereServiceError from './utils/SevereServiceError'
+import type { Options, MultiRemoteOptions } from './types'
 
 const log = logger('webdriverio')
 
@@ -21,7 +21,7 @@ const log = logger('webdriverio')
  * @param  {function} remoteModifier  Modifier function to change the monad object
  * @return {object}                   browser object with sessionId
  */
-export const remote = async function (params: ConfigOptions = {}, remoteModifier?: Function) {
+export const remote = async function (params: Options = {}, remoteModifier?: Function) {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
 
     const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
@@ -44,10 +44,6 @@ export const remote = async function (params: ConfigOptions = {}, remoteModifier
 
     if (params.user && params.key) {
         params = Object.assign({}, detectBackend(params), params)
-    }
-
-    if (params.outputDir) {
-        process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
     }
 
     const prototype = getPrototype('browser')
@@ -83,7 +79,7 @@ export const attach = function (params: WebDriver.AttachSessionOptions) {
     return WebDriver.attachToSession(params, undefined, prototype, wrapCommand)
 }
 
-export const multiremote = async function (params: Record<string, ConfigOptions> = {}, config: ConfigOptions = {}) {
+export const multiremote = async function (params: MultiRemoteOptions, { automationProtocol }: Options = {}) {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
 
@@ -101,14 +97,14 @@ export const multiremote = async function (params: Record<string, ConfigOptions>
      * use attachToSession capability to wrap instances around blank pod
      */
     const prototype = getPrototype('browser')
-    const sessionParams = isStub(config.automationProtocol) ? undefined : {
+    const sessionParams = isStub(automationProtocol) ? undefined : {
         sessionId: '',
         isW3C: multibrowser.instances[browserNames[0]].isW3C,
         logLevel: multibrowser.instances[browserNames[0]].options.logLevel
     }
 
-    const ProtocolDriver = config.automationProtocol && isStub(config.automationProtocol)
-        ? require(config.automationProtocol).default
+    const ProtocolDriver = automationProtocol && isStub(automationProtocol)
+        ? require(automationProtocol).default
         : WebDriver
     const driver = ProtocolDriver.attachToSession(
         sessionParams,
@@ -121,7 +117,7 @@ export const multiremote = async function (params: Record<string, ConfigOptions>
      * in order to get custom command overwritten or added to multiremote instance
      * we need to pass in the prototype of the multibrowser
      */
-    if (!isStub(config.automationProtocol)) {
+    if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
         driver.addCommand = (name: string, fn: Function, attachToElement: boolean) => {
             origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)

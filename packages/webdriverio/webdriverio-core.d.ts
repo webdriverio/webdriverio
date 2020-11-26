@@ -129,7 +129,7 @@ declare namespace WebdriverIO {
         /**
          * Sauce Labs provides a headless offering that allows you to run Chrome and Firefox tests headless.
          */
-        headless?: string;
+        headless?: boolean;
         /**
          * Define specs for test execution.
          */

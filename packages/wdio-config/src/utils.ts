@@ -1,4 +1,4 @@
-import type { ConfigOptions, DefaultOptions } from './types'
+import type { DefaultOptions } from './types'
 
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
@@ -57,10 +57,21 @@ export function isCloudCapability(conf: { capabilities?: WebDriver.DesiredCapabi
     return Boolean(cap && (cap['bstack:options'] || cap['sauce:options'] || cap['tb:options']))
 }
 
+interface BackendConfigurations {
+    port?: number
+    hostname?: string
+    user?: string
+    key?: string
+    protocol?: string
+    region?: string
+    headless?: boolean
+    path?: string
+}
+
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
-export function detectBackend(options = {} as ConfigOptions, isRDC = false) {
+export function detectBackend(options: BackendConfigurations = {}, isRDC = false) {
     let { port, hostname, user, key, protocol, region, headless, path } = options
 
     /**

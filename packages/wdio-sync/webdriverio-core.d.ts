@@ -129,7 +129,7 @@ declare namespace WebdriverIO {
         /**
          * Sauce Labs provides a headless offering that allows you to run Chrome and Firefox tests headless.
          */
-        headless?: string;
+        headless?: boolean;
         /**
          * Define specs for test execution.
          */
@@ -644,7 +644,7 @@ declare namespace WebdriverIO {
             name: string,
             func: AddCommandFn<false>
         ): void;
-        
+
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
@@ -1025,7 +1025,7 @@ declare namespace WebdriverIO {
          */
         calls: Matches[];
 
-        
+
         /**
          * Abort the request with one of the following error codes:
          * `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`,
@@ -1120,7 +1120,7 @@ declare namespace WebdriverIO {
             name: string,
             func: (elementFetchingMethod: (selector: string) => any) => void
         ): void
-        
+
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page. It returns an array with element results that will have an

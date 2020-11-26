@@ -628,10 +628,6 @@ declare namespace WebDriver {
          */
         connectionRetryCount?: number;
         /**
-         * Timeout for any request to the Selenium server
-         */
-        connectionPollInterval?: number
-        /**
          * Specify custom headers to pass into every request.
          */
         headers?: {
