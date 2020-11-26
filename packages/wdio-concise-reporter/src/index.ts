@@ -90,7 +90,7 @@ export default class ConciseReporter extends WDIOReporter {
             }
         }))
 
-        return this.orderedSuites
+        return orderedSuites
     }
 
     /**
