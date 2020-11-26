@@ -11,8 +11,7 @@ export default class ConciseReporter extends WDIOReporter {
         /**
         * make Concise reporter to write to output stream by default
         */
-        options = Object.assign(options, { stdout: true })
-        super(options)
+        super(Object.assign(options, { stdout: true }))
     }
 
     onSuiteStart (suite: Suite): void {
