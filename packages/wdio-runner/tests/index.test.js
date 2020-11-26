@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { promisify } from 'util'
 
 import { executeHooksWithArgs } from '@wdio/utils'
 import { attach } from 'webdriverio'
@@ -6,7 +7,9 @@ import WDIORunner from '../src'
 import logger from '@wdio/logger'
 
 jest.mock('fs')
-jest.mock('util', () => ({ promisify: (fn) => fn }))
+jest.mock('util')
+
+promisify.mockImplementation((fn) => fn)
 
 describe('wdio-runner', () => {
     describe('_fetchDriverLogs', () => {
@@ -197,10 +200,11 @@ describe('wdio-runner', () => {
             }
             runner.configParser.getConfig = jest.fn().mockReturnValue(config)
             runner._shutdown = jest.fn()
-            runner._initSession = jest.fn().mockReturnValue({
+            const stubBrowser = {
                 capabilities: { browserName: 'chrome' },
                 options: {}
-            })
+            }
+            runner._initSession = jest.fn().mockReturnValue(stubBrowser)
             await runner.run({
                 args: { reporters: [] },
                 cid: '0-0',
@@ -210,7 +214,7 @@ describe('wdio-runner', () => {
 
             expect(runner._shutdown).toBeCalledWith(123)
             expect(beforeSession).toBeCalledWith(config, caps, specs)
-            expect(executeHooksWithArgs).toBeCalledWith(config.before, [caps, specs])
+            expect(executeHooksWithArgs).toBeCalledWith(config.before, [caps, specs, stubBrowser])
 
             // session capabilities should be passed to reporter
             expect(runner.reporter.caps).toEqual({ browserName: 'chrome' })

@@ -49,11 +49,14 @@ declare namespace WebdriverIO {
     type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>;
     type JsonCompatible = JsonObject | JsonArray;
 
-    interface MultiRemoteCapabilities {
-        [instanceName: string]: {
-            capabilities: WebDriver.DesiredCapabilities;
-        };
+    interface MultiRemoteBrowserOptions {
+        capabilities: WebDriver.DesiredCapabilities;
     }
+
+    interface MultiRemoteCapabilities {
+        [instanceName: string]: MultiRemoteBrowserOptions;
+    }
+
 
     interface ServiceOption {
         [key: string]: any;
@@ -143,7 +146,7 @@ declare namespace WebdriverIO {
          * An object describing various of suites, which you can then specify
          * with the --suite option on the wdio CLI.
          */
-        suites?: object;
+        suites?: Record<string, string[]>;
         /**
          * Maximum number of total parallel running workers.
          */
@@ -177,7 +180,6 @@ declare namespace WebdriverIO {
          * The number of retry attempts for an entire specfile when it fails as a whole.
          */
         specFileRetries?: number;
-        readonly specFileRetryAttempts?: number;
         /**
          * Delay in seconds between the spec file retry attempts
          */
@@ -230,8 +232,17 @@ declare namespace WebdriverIO {
         [instanceName: string]: WebDriver.DesiredCapabilities;
     }
 
-    interface Suite {}
+    interface Suite {
+        error?: any;
+    }
     interface Test {}
+    interface TestResult {
+        error?: any,
+        result?: any,
+        passed: boolean,
+        duration: number,
+        retries: { limit: number, attempts: number }
+    }
 
     interface Results {
         finished: number,
@@ -297,10 +308,12 @@ declare namespace WebdriverIO {
          * variables like `browser`. It is the perfect place to define custom commands.
          * @param capabilities  list of capabilities details
          * @param specs         specs to be run in the worker process
+         * @param browser       instance of created browser/device session
          */
         before?(
             capabilities: WebDriver.DesiredCapabilities,
-            specs: string[]
+            specs: string[],
+            browser: BrowserObject
         ): void;
 
         /**
@@ -358,13 +371,7 @@ declare namespace WebdriverIO {
          * @param stepData  Cucumber step data
          * @param world     Cucumber world
          */
-        afterHook?(test: any, context: any, result: {
-            error?: any,
-            result?: any,
-            passed: boolean,
-            duration: number,
-            retries: { limit: number, attempts: number }
-        }, stepData?: any, world?: any): void;
+        afterHook?(test: any, context: any, result: TestResult, stepData?: any, world?: any): void;
 
         /**
          * Gets executed after all tests are done. You still have access to all global variables from
@@ -417,13 +424,7 @@ declare namespace WebdriverIO {
          * @param context   context to current running test
          * @param result    test result
          */
-        afterTest?(test: Test, context: any, result: {
-            error?: any,
-            result?: any,
-            passed: boolean,
-            duration: number,
-            retries: { limit: number, attempts: number }
-        }): void;
+        afterTest?(test: Test, context: any, result: TestResult): void;
     }
     type _HooksArray = {
         [K in keyof Pick<HookFunctions, "onPrepare" | "onWorkerStart" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
@@ -471,6 +472,20 @@ declare namespace WebdriverIO {
     type NewWindowOptions = {
         windowName?: string,
         windowFeatures?: string
+    }
+
+    type PDFPrintOptions = {
+        orientation?: string,
+        scale?: number,
+        background?: boolean,
+        width?: number,
+        height?: number,
+        top?: number,
+        bottom?: number,
+        left?: number,
+        right?: number,
+        shrinkToFit?: boolean,
+        pageRanges?: object[]
     }
 
     type ClickOptions = {
@@ -544,7 +559,7 @@ declare namespace WebdriverIO {
         /**
          * body response of actual resource
          */
-        body: string | JsonCompatible
+        body: string | Buffer | JsonCompatible
         /**
          * HTTP response headers.
          */
@@ -592,7 +607,7 @@ declare namespace WebdriverIO {
     type AddCommandFn<IsElement extends boolean = false> = (this: IsElement extends true ? Element : BrowserObject, ...args: any[]) => any
     type OverwriteCommandFn<ElementKey extends keyof Element, BrowserKey extends keyof BrowserObject, IsElement extends boolean = false> = (this: IsElement extends true ? Element : BrowserObject, origCommand: IsElement extends true ? Element[ElementKey] : BrowserObject[BrowserKey], ...args: any[]) => any
 
-    interface Element {
+    interface Element extends BrowserObject {
         selector: string;
         elementId: string;
 
@@ -616,6 +631,11 @@ declare namespace WebdriverIO {
          * WebdriverIO.Element or WebdriverIO.BrowserObject
          */
         parent: Element | WebdriverIO.BrowserObject;
+
+        /**
+         * true if element is a React component
+         */
+        isReactElement?: boolean
 
         /**
          * add command to `element` scope
@@ -716,6 +736,16 @@ declare namespace WebdriverIO {
         getCSSProperty(
             cssProperty: string
         ): CSSProperty;
+
+        /**
+         * Get the computed WAI-ARIA label of an element.
+         */
+        getComputedLabel(): string;
+
+        /**
+         * Get the computed WAI-ARIA label of an element.
+         */
+        getComputedRole(): string;
 
         /**
          * Get source code of specified DOM element by selector.
@@ -1164,7 +1194,7 @@ declare namespace WebdriverIO {
         getPuppeteer(): PuppeteerBrowser;
 
         /**
-         * Returns browser window size (and position for drivers with W3C support).
+         * Returns browser window size.
          */
         getWindowSize(): WebDriver.RectReturn;
 
@@ -1233,6 +1263,14 @@ declare namespace WebdriverIO {
          * new Selenium sessions is very time consuming especially when using cloud services.
          */
         reloadSession(): void;
+
+        /**
+         * Prints the page of the current browsing context to a PDF file on your OS.
+         */
+        savePDF(
+            filepath: string,
+            options?: PDFPrintOptions
+        ): Buffer;
 
         /**
          * Appium only. Save a video started by startRecordingScreen command to file.
@@ -1305,7 +1343,7 @@ declare namespace WebdriverIO {
 
         /**
          * Uploads a file to the Selenium Standalone server or other browser driver
-         * (e.g. Chromedriver) by using the [`file`](docs/api/selenium.html#file) command.
+         * (e.g. Chromedriver) by using the [`file`](/docs/api/selenium.html#file) command.
          * _Note:_ that this command is only supported if you use a Selenium Hub or
          * Chromedriver directly.
          */
@@ -1333,11 +1371,31 @@ declare namespace WebdriverIO {
         ): boolean;
     }
 
+    interface BrowserObject {
+        isMultiremote?: false;
+    }
+
+    type MultiRemoteBrowserReference = Record<string, BrowserObject>
+
+    interface MultiRemoteBrowser extends Browser {
+        /**
+         * multiremote browser instance names
+         */
+        instances: string[];
+        /**
+         * flag to indicate multiremote browser session
+         */
+        isMultiremote: true;
+    }
+
+    type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
+
     interface Config extends Options, Omit<WebDriver.Options, "capabilities">, Hooks {
          /**
          * internal usage only. To run in watch mode see https://webdriver.io/docs/watcher.html
          */
-        watch?: never;
+        watch?: boolean;
+        runnerEnv?: Record<string, any>;
     }
 
     interface AddValueOptions {

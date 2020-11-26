@@ -62,6 +62,13 @@ export default class Runner extends EventEmitter {
             automationProtocol: './protocol-stub'
         }, caps)
 
+        /**
+         * run `beforeSession` command before framework and browser are initiated
+         */
+        initialiseWorkerService(this.config, caps, args.ignoredWorkerServices)
+            .map(this.configParser.addService.bind(this.configParser))
+        await runHook('beforeSession', this.config, this.caps, this.specs)
+
         this.reporter = new BaseReporter(this.config, this.cid, { ...caps })
         /**
          * initialise framework
@@ -73,12 +80,7 @@ export default class Runner extends EventEmitter {
             return this._shutdown(0)
         }
 
-        initialiseWorkerService(this.config, caps, args.ignoredWorkerServices)
-            .map(this.configParser.addService.bind(this.configParser))
-
-        await runHook('beforeSession', this.config, this.caps, this.specs)
         browser = await this._initSession(this.config, this.caps, browser)
-
         this.inWatchMode = Boolean(this.config.watch)
 
         /**
@@ -90,7 +92,7 @@ export default class Runner extends EventEmitter {
 
         this.reporter.caps = browser.capabilities
 
-        await executeHooksWithArgs(this.config.before, [this.caps, this.specs])
+        await executeHooksWithArgs(this.config.before, [this.caps, this.specs, browser])
 
         /**
          * kill session of SIGINT signal showed up while trying to

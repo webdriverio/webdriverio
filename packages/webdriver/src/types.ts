@@ -158,6 +158,11 @@ export interface ChromeOptions {
     windowTypes?: string[];
 }
 
+/**
+ * Chromium Edge
+ */
+interface MicrosoftEdgeOptions extends ChromeOptions {}
+
 export interface FirefoxLogObject {
     level: FirefoxLogLevels
 }
@@ -174,12 +179,13 @@ export interface GeckodriverCapabilities {
 }
 
 export interface FirefoxOptions {
-    binary?: string,
-    args?: string[],
-    profile?: string,
-    log?: FirefoxLogObject,
+    debuggerAddress?: string
+    binary?: string
+    args?: string[]
+    profile?: string
+    log?: FirefoxLogObject
     prefs?: {
-        [name: string]: string | number | boolean;
+        [name: string]: string | number | boolean
     }
 }
 
@@ -254,12 +260,13 @@ export interface W3CCapabilities {
     firstMatch: Capabilities[];
 }
 
-export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
+export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
     handlesAlerts?: boolean;
     version?: string;
     platform?: string;
+    public?: any;
 
     loggingPrefs?: {
         browser?: LoggingPreferences;
@@ -288,11 +295,6 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     // Selenese-Backed-WebDriver specific
     'selenium.server.url'?: string;
 
-    // Safari specific
-    'safari.options'?: {
-        [name: string]: any;
-    };
-
     // webdriverio specific
     specs?: string[];
     exclude?: string[];
@@ -302,9 +304,7 @@ export interface VendorExtensions extends EdgeCapabilities {
     // Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Testingbot w3c specific
-    'tb:options'?: {
-        [name: string]: any
-    }
+    'tb:options'?: TestingbotCapabilities
     // Saucelabs w3c specific
     'sauce:options'?: SauceLabsCapabilities
     // Browserstack w3c specific
@@ -314,6 +314,13 @@ export interface VendorExtensions extends EdgeCapabilities {
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
+    'ms:edgeOptions'?: MicrosoftEdgeOptions;
+    'ms:edgeChromium'?: MicrosoftEdgeOptions;
+
+    // Safari specific
+    'safari.options'?: {
+        [name: string]: any;
+    };
 }
 
 // Selenium Grid specific
@@ -524,6 +531,13 @@ export interface SauceLabsCapabilities {
     idleTimeout?: number
 }
 
+/**
+ * https://testingbot.com/support/other/test-options#platform
+ */
+export interface TestingbotCapabilities {
+    public?: boolean;
+}
+
 export interface SeleniumRCCapabilities {
     // Selenium RC (1.0) only
     commandLineFlags?: string;
@@ -584,12 +598,12 @@ export interface Options {
     /**
      * Level of logging verbosity.
      */
-    logLevel: WebDriverLogTypes;
+    logLevel?: WebDriverLogTypes;
     /**
      * Set specific log levels per logger
      * use 'silent' level to disable logger
      */
-    logLevels?: Record<string, string>;
+    logLevels?: Record<string, WebDriverLogTypes | undefined>;
     /**
      * Timeout for any WebDriver request to a driver or grid.
      */
@@ -598,6 +612,10 @@ export interface Options {
      * Count of request retries to the Selenium server.
      */
     connectionRetryCount?: number;
+    /**
+     * Timeout for any request to the Selenium server
+     */
+    connectionPollInterval?: number
     /**
      * Specify custom headers to pass into every request.
      */
@@ -627,6 +645,12 @@ export interface Options {
     directConnectHost?: string
     directConnectPort?: number
     directConnectPath?: string
+
+    /**
+     * Whether it requires SSL certificates to be valid in HTTP/s requests
+     * for an environment which cannot get process environment well.
+     */
+    strictSSL?: boolean;
 }
 
 export interface JSONWPCommandError extends Error {

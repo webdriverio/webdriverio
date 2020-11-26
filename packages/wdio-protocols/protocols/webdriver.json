@@ -95,7 +95,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "url",
         "description": "current document URL of the top-level browsing context."
       }
@@ -132,7 +132,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-get-title",
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "title",
         "description": "Returns a string which is the same as `document.title` of the current top-level browsing context."
       }
@@ -145,7 +145,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-get-window-handle",
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "handle",
         "description": "Returns a string which is the window handle for the current top-level browsing context."
       }
@@ -196,6 +196,74 @@
         "type": "String[]",
         "name": "handles",
         "description": "An array which is a list of window handles."
+      }
+    }
+  },
+  "/session/:sessionId/print": {
+    "POST": {
+      "command": "printPage",
+      "description": "The Print Page command renders the document to a paginated PDF document.",
+      "ref": "https://w3c.github.io/webdriver/#print-page",
+      "parameters": [{
+        "name": "orientation",
+        "type": "string",
+        "description": "page orientation. Default: `portrait`",
+        "required": false
+      }, {
+        "name": "scale",
+        "type": "number",
+        "description": "page scale. Default: `1`",
+        "required": false
+      }, {
+        "name": "background",
+        "type": "boolean",
+        "description": "page background. Default: `false`",
+        "required": false
+      }, {
+        "name": "width",
+        "type": "number",
+        "description": "page width in cm. Default: `21.59` from page",
+        "required": false
+      }, {
+        "name": "height",
+        "type": "number",
+        "description": "page height in cm. Default: `27.94` from page",
+        "required": false
+      }, {
+        "name": "top",
+        "type": "number",
+        "description": "page margin in cm from top margin. Default: `1`",
+        "required": false
+      }, {
+        "name": "bottom",
+        "type": "number",
+        "description": "page margin in cm from bottom margin. Default: `1`",
+        "required": false
+      }, {
+        "name": "left",
+        "type": "number",
+        "description": "page margin in cm from left margin. Default: `1`",
+        "required": false
+      }, {
+        "name": "right",
+        "type": "number",
+        "description": "page margin in cm from right margin. Default: `1`",
+        "required": false
+      }, {
+        "name": "shrinkToFit",
+        "type": "boolean",
+        "description": "shrink pdf to fit in page. Default: `true`",
+        "required": false
+      }, {
+        "name": "pageRanges",
+        "type": "object[]",
+        "description": "page ranges. Default `[]`",
+        "required": false
+      }],
+      "returns": {
+        "type": "string",
+        "name": "pdf",
+        "description": "The base64-encoded PDF representation of the paginated document."
       }
     }
   },
@@ -320,7 +388,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "element",
         "description": "A JSON representation of an element object."
       }
@@ -370,7 +438,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "element",
         "description": "A JSON representation of an element object."
       }
@@ -410,7 +478,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-get-active-element",
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "element",
         "description": "A JSON representation of an element object."
       }
@@ -464,7 +532,7 @@
       }],
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "attribute",
         "description": "The named attribute of the element."
       }
@@ -484,7 +552,7 @@
       }],
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "property",
         "description": "The named property of the element, accessed by calling GetOwnProperty on the element object."
       }
@@ -504,7 +572,7 @@
       }],
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "cssValue",
         "description": "The computed value of the parameter corresponding to property name from the element's style declarations (unless the document type is xml, in which case the return value is simply the empty string)."
       }
@@ -521,7 +589,7 @@
       }],
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "text",
         "description": "The visible text of the element (including child elements), following the algorithm defined in the Selenium Atoms for [`bot.dom.getVisibleText`](https://github.com/SeleniumHQ/selenium/blob/e09e28f016c9f53196cf68d6f71991c5af4a35d4/javascript/atoms/dom.js#L981)."
       }
@@ -538,7 +606,7 @@
       }],
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "text",
         "description": "The tagName attribute of the element."
       }
@@ -777,7 +845,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-get-alert-text",
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "alertText",
         "description": "The message of the user prompt."
       }
@@ -801,7 +869,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-take-screenshot",
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "screenshot",
         "description": "The base64-encoded PNG image data comprising the screenshot of the initial viewport."
       }
@@ -823,9 +891,43 @@
         "required": false
       }],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "screenshot",
         "description": "The base64-encoded PNG image data comprising the screenshot of the visible region of an element’s bounding rectangle after it has been scrolled into view."
+      }
+    }
+  },
+  "/session/:sessionId/element/:elementId/computedrole": {
+    "GET": {
+      "command": "getElementComputedRole",
+      "description": "Get the computed WAI-ARIA role of an element.",
+      "ref": "https://w3c.github.io/webdriver/#get-computed-role",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "role",
+        "description": "The result of computing the WAI-ARIA role of element."
+      }
+    }
+  },
+  "/session/:sessionId/element/:elementId/computedlabel": {
+    "GET": {
+      "command": "getElementComputedLabel",
+      "description": "Get the accessible name of the element.",
+      "ref": "https://w3c.github.io/webdriver/#get-computed-label",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "label",
+        "description": "The result of a Accessible Name and Description Computation for the Accessible Name of the element."
       }
     }
   }

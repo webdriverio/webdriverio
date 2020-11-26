@@ -15,7 +15,8 @@
         color: $white;
         font-size: .6em;
         position: relative;
-        bottom: 11px;
+        vertical-align: top;
+        bottom: -0.15rem;
         padding: 0 5px 0 3px;
         left: 10px;
         -webkit-font-smoothing: subpixel-antialiased;
@@ -63,4 +64,14 @@
 
 .hash-link-icon path {
     fill: $orange
+}
+
+@media screen and (max-width: 1024px) {
+    .projectTitle {
+        padding: 20px 0 25px;
+        font-size: $headerLogoFontSizeMobile;
+    }
+    .homeContainer .homeWrapper .projectLogo img {
+        height: 140px;
+    }
 }

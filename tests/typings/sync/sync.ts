@@ -1,5 +1,7 @@
 import allure from '@wdio/allure-reporter'
-import { MockOverwrite, MockOverwriteFunction } from '@wdio/sync'
+import type { MockOverwriteFunction } from '@wdio/sync'
+
+const { SevereServiceError } = require('webdriverio')
 
 // An example of adding command withing ts file with @wdio/sync
 declare module "@wdio/sync" {
@@ -51,6 +53,22 @@ const callResult = <number>browser.call(() =>
     new Promise(resolve => setTimeout(() => resolve(4), 1))
 )
 callResult.toFixed(2)
+
+// printPage
+browser.savePDF('./packages/bar.pdf', {
+    orientation: 'landscape',
+    background: true,
+    width: 24.5,
+    height: 26.9,
+    top: 10,
+    bottom: 10,
+    left: 5,
+    right: 5,
+    shrinkToFit: true,
+    pageRanges: [{}]
+})
+
+browser.savePDF('./packages/bar.pdf')
 
 // browser element command
 browser.getElementRect('elementId')
@@ -261,5 +279,13 @@ browser.overwriteCommand('pause', function (pause, ms = 1000) {
 browser.overwriteCommand('pause', function (pause, ms = 1000) {
     pause(ms)
 })
+
+function testSevereServiceError_noParameters() {
+    throw new SevereServiceError();
+}
+
+function testSevereServiceError_stringParameter() {
+    throw new SevereServiceError("Something happened.");
+}
 
 export default {}

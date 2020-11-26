@@ -97,7 +97,7 @@ exports.config = {
     //
     // Gets executed before test execution begins. At this point you can access to all global
     // variables like `browser`. It is the perfect place to define custom commands.
-    // before: function (capabilities, specs) {
+    // before: function (capabilities, specs, browser) {
     // },
     //
     // Hook that gets executed before the suite starts

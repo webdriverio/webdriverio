@@ -104,8 +104,10 @@ exports.config = {
         // Parameter to ignore some or all default flags
         // - if value is true: ignore all DevTools 'default flags' and Puppeteer 'default arguments'
         // - if value is an array: DevTools filters given default arguments
-        // ignoreDefaultArgs: true,
-        // ignoreDefaultArgs: ['--disable-sync', '--disable-extensions'],
+        // 'wdio:devtoolsOptions': {
+        //    ignoreDefaultArgs: true,
+        //    ignoreDefaultArgs: ['--disable-sync', '--disable-extensions'],
+        // }
     }, {
         // maxInstances can get overwritten per capability. So if you have an in house Selenium
         // grid with only 5 firefox instance available you can make sure that not more than
@@ -280,9 +282,10 @@ exports.config = {
      * Gets executed before test execution begins. At this point you can access to all global
      * variables like `browser`. It is the perfect place to define custom commands.
      * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {Array.<String>} specs        List of spec file paths that are to be run
+     * @param {Object}         browser      instance of created browser/device session
      */
-    before: function (capabilities, specs) {
+    before: function (capabilities, specs, browser) {
     },
     /**
      * Gets executed before the suite starts.

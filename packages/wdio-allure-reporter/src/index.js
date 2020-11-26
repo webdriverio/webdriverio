@@ -100,11 +100,18 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestStart(test) {
-        if (this.options.useCucumberStepReporter) {
-            return this.allure.startStep(test.title)
+        const testTitle = test.currentTest ? test.currentTest : test.title
+        if (this.isAnyTestRunning() && this.allure.getCurrentTest().name == testTitle) {
+            // Test already in progress, most likely started by a before each hook
+            this.setCaseParameters(test.cid)
+            return
         }
 
-        this.allure.startCase(test.title)
+        if (this.options.useCucumberStepReporter) {
+            return this.allure.startStep(testTitle)
+        }
+
+        this.allure.startCase(testTitle)
         this.setCaseParameters(test.cid)
     }
 
@@ -165,7 +172,7 @@ class AllureReporter extends WDIOReporter {
         }
 
         if (!this.isAnyTestRunning()) { // is any CASE running
-            this.allure.startCase(test.title)
+            this.onTestStart(test)
         } else {
             this.allure.getCurrentTest().name = test.title
         }
@@ -193,7 +200,9 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
-        if (this.options.disableWebdriverStepsReporting || this.options.useCucumberStepReporter || this.isMultiremote) {
+        const { disableWebdriverStepsReporting } = this.options
+
+        if (disableWebdriverStepsReporting || this.isMultiremote) {
             return
         }
 
@@ -209,7 +218,7 @@ class AllureReporter extends WDIOReporter {
     }
 
     onAfterCommand(command) {
-        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting, useCucumberStepReporter } = this.options
+        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this.options
         if (this.isScreenshotCommand(command) && command.result.value) {
             if (!disableWebdriverScreenshotsReporting) {
                 this.lastScreenshot = command.result.value
@@ -226,7 +235,7 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
-        if (!disableWebdriverStepsReporting && !useCucumberStepReporter) {
+        if (!disableWebdriverStepsReporting) {
             if (command.result && command.result.value && !this.isScreenshotCommand(command)) {
                 this.dumpJSON('Response', command.result.value)
             }
@@ -432,7 +441,7 @@ class AllureReporter extends WDIOReporter {
     }
 
     isScreenshotCommand(command) {
-        const isScrenshotEndpoint = /\/session\/[^/]*\/screenshot/
+        const isScrenshotEndpoint = /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/
         return (
             // WebDriver protocol
             isScrenshotEndpoint.test(command.endpoint) ||
@@ -442,7 +451,9 @@ class AllureReporter extends WDIOReporter {
     }
 
     dumpJSON(name, json) {
-        this.allure.addAttachment(name, JSON.stringify(json, null, 2), 'application/json')
+        const content = JSON.stringify(json, null, 2)
+        const isStr = typeof content === 'string'
+        this.allure.addAttachment(name, isStr ? content : `${content}`, isStr ? 'application/json' : 'text/plain')
     }
 
     attachScreenshot() {
@@ -533,9 +544,9 @@ class AllureReporter extends WDIOReporter {
      * @param {*} content           - attachment content
      * @param {string=} mimeType    - attachment mime type
      */
-    static addAttachment = (name, content, type = 'application/json') => {
-        if (typeof content === 'string' || Buffer.isBuffer(content)) {
-            type = 'text/plain'
+    static addAttachment = (name, content, type) => {
+        if (!type) {
+            type = content instanceof Buffer ? 'image/png' : typeof content === 'string' ? 'text/plain' : 'application/json'
         }
         tellReporter(events.addAttachment, { name, content, type })
     }

@@ -121,11 +121,88 @@ Function intercepting HTTP response objects after a WebDriver response has arriv
 Type: `(Response, RequestOptions) => Response`<br>
 Default: *none*
 
+### strictSSL
+Whether it does not require SSL certificate to be valid.
+It can be set via an environment variables as `STRICT_SSL` or `strict_ssl`.
+
+Type: `Boolean`<br>
+Default: `true`
+
 ---
 
-## WDIO Options
+## WebdriverIO
 
-The following options are defined for running WebdriverIO with the `@wdio/cli` testrunner:
+The following options can be used with WebdriverIO in standalone as well as using the `@wdio/cli` testrunner.
+
+### automationProtocol
+
+Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
+
+If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
+
+Type: `String`
+Default: `webdriver`
+
+### baseUrl
+Shorten `url` command calls by setting a base URL.
+- If your `url` parameter starts with `/`, then `baseUrl` is prepended (except the `baseUrl` path, if it has one).
+- If your `url` parameter starts without a scheme or `/` (like `some/path`), then the full `baseUrl` is prepended directly.
+
+Type: `String`<br>
+Default: `null`
+
+### waitforTimeout
+Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+
+To increase the timeout for a _test_, please see the framework docs.
+
+Type: `Number`<br>
+Default: `3000`
+
+### waitforInterval
+Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
+
+Type: `Number`<br>
+Default: `500`
+
+### user
+Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)  or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you.
+
+Type: `String`
+Default: `null`
+
+### key
+Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)  or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you.
+
+Type: `String`
+Default: `null`
+
+### region
+If running on Sauce Labs, you can choose to run tests between different datacenters: US or EU.
+To change your region to EU, add `region: 'eu'` to your config.
+
+__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
+
+Type: `String`<br>
+Default: `us`
+
+*(only for vm and or em/simulators)*
+
+### headless
+Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing) that allows you to run Chrome and Firefox tests headless.
+
+__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
+
+Type: `Boolean`<br>
+Default: `false`
+
+*(only for VM or EM/simulators)*
+
+---
+
+## Testrunner Options
+
+The following options are defined only for running WebdriverIO with the `@wdio/cli` testrunner:
 
 ### specs
 Define specs for test execution.
@@ -150,14 +227,6 @@ The same as the `capabilities` section described above, except with the option t
 
 Type: `Object`|`Object[]`<br>
 Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
-
-### baseUrl
-Shorten `url` command calls by setting a base URL.
-- If your `url` parameter starts with `/`, then `baseUrl` is prepended (except the `baseUrl` path, if it has one).
-- If your `url` parameter starts without a scheme or `/` (like `some/path`), then the full `baseUrl` is prepended directly.
-
-Type: `String`<br>
-Default: `null`
 
 ### maxInstances
 Maximum number of total parallel running workers.
@@ -196,20 +265,6 @@ Whether or not retried specfiles should be retried immediately or deferred to th
 Type: `Boolean`<br>
 Default: `true`
 
-### waitforTimeout
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
-
-To increase the timeout for a _test_, please see the framework docs.
-
-Type: `Number`<br>
-Default: `3000`
-
-### waitforInterval
-Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
-
-Type: `Number`<br>
-Default: `500`
-
 ### services
 Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
 
@@ -229,6 +284,12 @@ Specific framework-related options. See the framework adapter documentation on w
 
 Type: `Object`<br>
 Default: `{ timeout: 10000 }`
+
+### cucumberFeaturesWithLineNumbers
+List of cucumber features with line numbers (when [using cucumber framework](frameworks.html#using-cucumber)).
+
+Type: `String[]`
+Default: `[]`
 
 ### reporters
 
@@ -262,53 +323,11 @@ Determines the maximum time reporters have to finish uploading all their logs un
 Type: `Number`<br>
 Default: `5000` (ms)
 
-### automationProtocol
-
-Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
-
-If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
-
-Type: `String`
-Default: `webdriver`
-
 ### execArgv
 Node arguments to specify when launching child processes.
 
 Type: `String[]`
 Default: `null`
-
-### user
-Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)  or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you.
-
-Type: `String`
-Default: `null`
-
-### key
-Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)  or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you.
-
-Type: `String`
-Default: `null`
-
-### region
-If running on Sauce Labs, you can choose to run tests between different datacenters: US or EU.
-To change your region to EU, add `region: 'eu'` to your config.
-
-__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
-
-Type: `String`<br>
-Default: `us`
-
-*(only for vm and or em/simulators)*
-
-### headless
-Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing) that allows you to run Chrome and Firefox tests headless.
-
-__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
-
-Type: `Boolean`<br>
-Default: `false`
-
-*(only for VM or EM/simulators)*
 
 ## Hooks
 
@@ -316,19 +335,203 @@ WebdriverIO allows you to set hooks to trigger at specific times of the test lif
 
 Every hook has as parameter specific information about the lifecycle (i.e. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
 
-The following hooks are available: `onPrepare`, `onWorkerStart`, `beforeSession`, `before`, `beforeSuite`, `beforeHook`, `afterHook`, `beforeTest`, `beforeCommand`, `afterCommand`, `afterTest`, `afterSuite`, `after`, `afterSession`, `onComplete`, `onReload`, `beforeFeature`, `beforeScenario`, `beforeStep`, `afterStep`, `afterScenario`, `afterFeature`.
+### onPrepare
 
-Type: `Function`<br>
-Default: `null`
+Gets executed once before all workers get launched.
 
-Example:
+Parameters:
+- `config` (`object`): WebdriverIO configuration object
+- `param` (`object[]`): list of capabilities details
 
-```js
-// wdio.conf.js
-exports.config = {
-    // ...
-    afterTest: (test, context, { error, result, duration, passed, retries }) => {
-        console.log(`Finished test "${test.parent} - ${test.title}"`)
-    }
-    // ...
-```
+### onWorkerStart
+
+Gets executed before a worker process is spawned and can be used to initialise specific service for that worker as well as modify runtime environments in an async fashion.
+
+Parameters:
+- `cid` (`string`): capability id (e.g 0-0)
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+- `args` (`object`): object that will be merged with the main configuration once worker is initialised
+- `execArgv` (`string[]`): list of string arguments passed to the worker process
+
+### beforeSession
+
+Gets executed just before initialising the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
+
+Parameters:
+- `config` (`object`): WebdriverIO configuration object
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+
+### before
+
+Gets executed before test execution begins. At this point you can access to all global variables like `browser`. It is the perfect place to define custom commands.
+
+Parameters:
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+- `browser` (`object`): instance of created browser/device session
+
+### beforeSuite
+
+Hook that gets executed before the suite starts
+
+Parameters:
+- `suite` (`object`): suite details
+
+### beforeHook
+
+Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
+
+Parameters:
+- `test` (`object`): test details
+- `context` (`object`): test context
+- `stepData` (`object`): step data (Cucumber only)
+- `world` (`object`): world context (Cucumber only)
+
+### afterHook
+
+Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling afterEach in Mocha)
+
+Parameters:
+- `test` (`object`): test details
+- `context` (`object`): test context
+- `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `stepData` (`object`): step data (Cucumber only)
+- `world` (`object`): world context (Cucumber only)
+
+### beforeTest
+
+Function to be executed before a test (in Mocha/Jasmine) starts.
+
+Parameters:
+- `test` (`object`): test details
+- `context` (`object`): test context
+
+### beforeCommand
+
+Runs before a WebdriverIO command gets executed.
+
+Parameters:
+- `commandName` (`string`): command name
+- `args` (`*`): arguments that command would receive
+
+### afterCommand
+
+Runs after a WebdriverIO command gets executed.
+
+Parameters:
+- `commandName` (`string`): command name
+- `args` (`*`): arguments that command would receive
+- `result` (`number`): 0 - command success, 1 - command error
+- `error` (`Error`): error object if any
+
+### afterTest
+
+Function to be executed after a test (in Mocha/Jasmine) ends.
+
+Parameters:
+- `test` (`object`): test details
+- `context` (`object`): test context
+- `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+
+### afterSuite
+
+Hook that gets executed after the suite has ended
+
+Parameters:
+- `suite` (`object`): suite details
+
+### after
+
+Gets executed after all tests are done. You still have access to all global variables from the test.
+
+Parameters:
+- `result` (`number`): 0 - test pass, 1 - test fail
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+
+### afterSession
+
+Gets executed right after terminating the webdriver session.
+
+Parameters:
+- `config` (`object`): WebdriverIO configuration object
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+
+### onComplete
+
+Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
+
+Parameters:
+- `exitCode` (`number`): 0 - success, 1 - fail
+- `config` (`object`): WebdriverIO configuration object
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `result` (`object`): results object containing test results
+
+### onReload
+
+Gets executed when a refresh happens.
+
+Parameters:
+- `oldSessionId` (`string`): session ID of the old session
+- `newSessionId` (`string`): session ID of the new session
+
+
+### beforeFeature
+
+Runs before a Cucumber Feature.
+
+Parameters:
+- `uri`: (`string`): path to feature file
+- `feature`: (`object`): Cucumber feature object
+- `scenario`: (`object`): Cucumber scenario object
+
+### afterFeature
+
+Runs after a Cucumber Feature.
+
+Parameters:
+- `uri`: (`string`): path to feature file
+- `feature`: (`object`): Cucumber feature object
+- `scenario`: (`object`): Cucumber scenario object
+
+### beforeScenario
+
+Runs before a Cucumber Scenario.
+
+Parameters:
+- `uri`: (`string`): path to feature file
+- `feature`: (`object`): Cucumber feature object
+- `scenario`: (`object`): Cucumber scenario object
+- `sourceLocation`: (`object`): location of step
+
+### afterScenario
+
+Runs after a Cucumber Scenario.
+
+Parameters:
+- `uri`: (`string`): path to feature file
+- `feature`: (`object`): Cucumber feature object
+- `scenario`: (`object`): Cucumber scenario object
+- `result`: (`object`): scenario result
+- `sourceLocation`: (`object`): location of step
+
+### beforeStep
+
+Runs before a Cucumber Step.
+
+Parameters:
+- `uri`: (`string`): path to feature file
+- `feature`: (`object`): Cucumber feature object
+- `step`: (`object`): Cucumber step object
+
+### afterStep
+
+Runs after a Cucumber Step.
+
+Parameters:
+- `details`: (`object`): step details (contains `uri`, `feature` and `step` property objects)
+- `context`: (`object`): Cucumber context object
+- `result` (`object`): step result (contains `error`, `result`, `duration`, `passed`, `retries` properties)

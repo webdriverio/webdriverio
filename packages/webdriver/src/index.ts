@@ -1,8 +1,6 @@
 import logger from '@wdio/logger'
 
-// @ts-ignore
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
-// @ts-ignore
 import { validateConfig } from '@wdio/config'
 
 import { DEFAULTS } from './constants'
@@ -16,15 +14,15 @@ const log = logger('webdriver')
 
 export default class WebDriver {
     static async newSession (
-        options: Partial<Options> = {},
+        options: Options = {},
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ): Promise<Client> {
-        const params: Options = validateConfig(DEFAULTS, options) as Options
+        const params = validateConfig(DEFAULTS, options)
 
         if (!options.logLevels || !options.logLevels.webdriver) {
-            logger.setLevel('webdriver', params.logLevel)
+            logger.setLevel('webdriver', params.logLevel!)
         }
 
         /**
@@ -45,7 +43,7 @@ export default class WebDriver {
         }
 
         const { sessionId, capabilities } = await startWebDriverSession(params)
-        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities: params.capabilities })
+        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities: params.requestedCapabilities })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }

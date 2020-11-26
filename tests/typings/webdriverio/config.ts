@@ -36,7 +36,9 @@ const config: WebdriverIO.Config = {
         ['testingbot', {
             tbTunnel: true,
             tbTunnelOpts: {
-                foo: 'bar'
+                tunnelIdentifier: 'identifier',
+                apiKey: 'key',
+                apiSecret: 'secret',
             }
         }],
         [CustomService, {
@@ -79,7 +81,7 @@ const config: WebdriverIO.Config = {
             logName: 'test.log',
             videoName: 'test.mp4'
         }
-    }],
+    }] as WebDriver.DesiredCapabilities[],
 
     filesToWatch: [
         '/foo/page-objects/**/*.page.js',

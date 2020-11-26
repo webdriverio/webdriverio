@@ -20,7 +20,9 @@ if (HAS_WATCH_FLAG) {
 // 3. plugins (e.g. wdio-allure-reporter)
 const ROOT_PACKAGES = [
     'wdio-logger',
+    'wdio-config',
     'wdio-utils',
+    'wdio-repl',
     'webdriver',
     'webdriverio',
 ]
