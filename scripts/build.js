@@ -24,6 +24,7 @@ const ROOT_PACKAGES = [
     'wdio-utils',
     'wdio-repl',
     'webdriver',
+    'devtools',
     'webdriverio',
 ]
 
