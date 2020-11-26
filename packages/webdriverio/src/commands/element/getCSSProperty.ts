@@ -4,9 +4,10 @@
  * is formatted to be testable. Colors gets parsed via [rgb2hex](https://www.npmjs.org/package/rgb2hex)
  * and all other properties get parsed via [css-value](https://www.npmjs.org/package/css-value).
  *
- * Note that shorthand CSS properties (e.g. background, font, border, margin, padding, list-style, outline,
- * pause, cue) are not returned, in accordance with the DOM CSS2 specification - you should directly access
- * the longhand properties (e.g. background-color) to access the desired values.
+ * __Note:__ that shorthand CSS properties (e.g. background, font, border, margin,
+ * padding, list-style, outline, pause, cue) will be expanded to fetch all longhand
+ * properties resulting in multiple WebDriver calls. If you are interested in a specific
+ * longhand property it is recommended to query for that instead.
  *
  * <example>
     :example.html
@@ -63,12 +64,47 @@
  *
  */
 
+import cssShorthandProps from 'css-shorthand-properties'
 import { parseCSS } from '../../utils'
 
 export default async function getCSSProperty (
     this: WebdriverIO.Element,
     cssProperty: string
 ) {
-    const cssValue = await this.getElementCSSValue(this.elementId, cssProperty)
-    return parseCSS(cssValue, cssProperty)
+    /**
+     * Getting the css value of a shorthand property results in different results
+     * given that the behavior of `getComputedStyle` is not defined in this case.
+     * Therefor if we don't deal with a shorthand property run `getElementCSSValue`
+     * otherwise expand it and run the command for each longhand property.
+     */
+    if (!cssShorthandProps.isShorthand(cssProperty)) {
+        const cssValue = await this.getElementCSSValue(this.elementId, cssProperty)
+        return parseCSS(cssValue, cssProperty)
+    }
+
+    const properties = cssShorthandProps.expand(cssProperty)
+    let cssValues = await Promise.all(
+        properties.map((prop) => this.getElementCSSValue(this.elementId, prop))
+    )
+
+    /**
+     * merge equal symmetrical values
+     * - e.g. `36px 10px 36px 10px` to `36px 10px`
+     * - or `0px 0px 0px 0px` to `0px`
+     */
+    while ((cssValues.length % 2) === 0) {
+        const mergedValues = [
+            cssValues.slice(0, cssValues.length / 2).join(' '),
+            cssValues.slice(cssValues.length / 2).join(' ')
+        ]
+
+        const hasEqualProperties = mergedValues.every((v) => v === mergedValues[0])
+        if (!hasEqualProperties) {
+            break
+        }
+
+        cssValues = cssValues.slice(0, cssValues.length / 2)
+    }
+
+    return parseCSS(cssValues.join(' '), cssProperty)
 }
