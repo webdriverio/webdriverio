@@ -2,13 +2,6 @@ import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
 import chalk from 'chalk'
 
 export default class ConciseReporter extends WDIOReporter {
-    options!: WDIOReporter.Options;
-    suiteUids: Array<string>;
-    suites: Array<any>;
-    suite: any;
-    chalk: Chalk;
-    orderedSuites: any[] | undefined;
-    stateCounts: {};
 
     constructor(options: WDIOReporter.Options) {
         /**
