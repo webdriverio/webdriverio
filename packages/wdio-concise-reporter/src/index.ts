@@ -68,8 +68,8 @@ export default class ConciseReporter extends WDIOReporter {
         this.getOrderedSuites().map(suite => suite.tests.map(test => {
             if (test.state === 'failed') {
                 output.push(
-                    `  Fail : ${this.chalk.red(test.title)}`,
-                    `    ${test.error.type} : ${this.chalk.yellow(test.error.message)}`
+                    `  Fail : ${chalk.red(test.title)}`,
+                    `    ${test.error.type} : ${chalk.yellow(test.error.message)}`
                 )
             }
         }))
