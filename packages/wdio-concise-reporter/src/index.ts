@@ -26,7 +26,7 @@ export default class ConciseReporter extends WDIOReporter {
         this._stateCounts.failed++
     }
 
-    onRunnerEnd (runner: any): void {
+    onRunnerEnd (runner: RunnerStats): void {
         this.printReport(runner)
     }
 
