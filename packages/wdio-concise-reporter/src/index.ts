@@ -1,6 +1,5 @@
-import WDIOReporter from '@wdio/reporter'
-import chalk, { Chalk } from 'chalk'
-
+import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
+import chalk from 'chalk'
 
 export default class ConciseReporter extends WDIOReporter {
     options!: WDIOReporter.Options;
