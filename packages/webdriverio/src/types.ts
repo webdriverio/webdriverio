@@ -46,8 +46,8 @@ export type WaitForOptions = {
     reverse?: boolean,
 }
 
-export type ElementFunction = ((elem: HTMLElement) => WebdriverIO.ElementReference) | ((elem: HTMLElement) => WebdriverIO.ElementReference[])
-export type Selector = string | WebdriverIO.ElementReference | ElementFunction
+export type ElementFunction = ((elem: HTMLElement) => WebDriver.ElementReference) | ((elem: HTMLElement) => WebDriver.ElementReference[])
+export type Selector = string | WebDriver.ElementReference | ElementFunction
 
 interface ParsedColor extends Partial<cssValue.CSSValue> {
     rgb?: string

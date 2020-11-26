@@ -56,7 +56,7 @@ export default async function selectByAttribute (
         this.elementId,
         'xpath',
         `./option${normalized}|./optgroup/option${normalized}`
-    ) as unknown as WebdriverIO.ElementReference
+    ) as unknown as WebDriver.ElementReference
 
     if (optionElement && (optionElement as any).error === 'no such element') {
         throw new Error(`Option with attribute "${attribute}=${value}" not found.`)

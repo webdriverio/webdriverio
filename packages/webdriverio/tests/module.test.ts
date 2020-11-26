@@ -1,4 +1,3 @@
-import path from 'path'
 import http from 'http'
 import logger from '@wdio/logger'
 import { detectBackend, validateConfig } from '@wdio/config'
@@ -146,16 +145,6 @@ describe('WebdriverIO module interface', () => {
             })
 
             expect(anotherWebdriverBrowser.isWebDriver).toBe(true)
-        })
-
-        it('should set process.env.WDIO_LOG_PATH if outputDir is set in the options', async()=>{
-            let testDirPath = './logs'
-            await remote({
-                automationProtocol: 'webdriver',
-                outputDir: testDirPath,
-                capabilities: { browserName: 'firefox' }
-            })
-            expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
         })
 
         it('should not wrap custom commands into fiber context if used as standalone', async () => {

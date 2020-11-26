@@ -3,13 +3,13 @@ import NetworkInterception from '../../../src/utils/interception/devtools'
 
 jest.mock('fs-extra', () => {
     return {
-        pathExists: async (filepath) => {
+        pathExists: async (filepath: string) => {
             if (filepath.endsWith('/missing/mock-file.txt') || filepath === __filename) {
                 return true
             }
             return false
         },
-        access: async (filepath) => {
+        access: async (filepath: string) => {
             if (filepath.endsWith('/missing/mock-file.txt')) {
                 throw new Error('fse mock')
             }
@@ -27,10 +27,10 @@ const cdpClient = {
 
 const browserMock = {} as any as WebdriverIO.BrowserObject
 
-const fetchListener = async (mock, params, client = cdpClient) => {
+const fetchListener = async (mock: any, params: any, client = cdpClient) => {
     const reponseParams = Object.entries(params).reduce((acc, [key, val]) => {
         if (!['responseHeaders', 'responseStatusCode'].includes(key)) {
-            acc[key] = val
+            (acc as any)[key] = val
         }
         return acc
     }, {}) as any
@@ -59,7 +59,7 @@ test('allows to access network calls', async () => {
 })
 
 describe('filter network calls by header', () => {
-    const mockWithCall = async (filter) => {
+    const mockWithCall = async (filter: WebdriverIO.MockFilterOptions) => {
         const mock = new NetworkInterception('**/foobar/**', filter, browserMock)
         await fetchListener(mock, {
             request: { url: 'http://test.com/foobar/test1.html', method: 'put' },

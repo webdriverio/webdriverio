@@ -32,7 +32,7 @@ async function custom$$ (
     strategyArguments: string
 ) {
     const browserObject: WebdriverIO.BrowserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as () => WebdriverIO.ElementReference[]
+    const strategy = browserObject.strategies.get(strategyName) as () => WebDriver.ElementReference[]
 
     if (!strategy) {
         /* istanbul ignore next */

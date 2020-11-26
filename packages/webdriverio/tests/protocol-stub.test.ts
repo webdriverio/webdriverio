@@ -31,16 +31,6 @@ describe('newSession', () => {
         expect(() => session.addCommand()).toThrow()
         expect(() => session.overwriteCommand()).toThrow()
     })
-
-    it('should create stub for devtools automationProtocol', async () => {
-        const session = await ProtocolStub.newSession({
-            capabilities: { browserName: 'chrome' }
-        })
-        expect(Object.keys(session)).toHaveLength(11)
-        expect(session.isChrome).toBe(true)
-        expect(session.isW3C).toBe(true)
-        expect(session.isSeleniumStandalone).toBe(false)
-    })
 })
 
 describe('attachToSession', () => {
@@ -64,7 +54,10 @@ describe('attachToSession', () => {
         // @ts-ignore test scenario
         multiremote.instances['instanceName'] = 'instance'
 
-        const session = await ProtocolStub.attachToSession(undefined, multiremote.modifier.bind(multiremote))
+        const session = await ProtocolStub.attachToSession(
+            undefined,
+            multiremote.modifier.bind(multiremote)
+        )
 
         expect(session.capabilities).toBeUndefined()
         expect(session.commandList).toHaveLength(0)

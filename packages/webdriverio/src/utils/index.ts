@@ -215,7 +215,7 @@ export function checkUnicode (
 function fetchElementByJSFunction (
     selector: ElementFunction,
     scope: WebdriverIO.Element
-): Promise<WebdriverIO.ElementReference | WebdriverIO.ElementReference[]> {
+): Promise<WebDriver.ElementReference | WebDriver.ElementReference[]> {
     if (!scope.elementId) {
         return scope.execute(selector as any)
     }
@@ -399,7 +399,7 @@ export function validateUrl (url: string, origError?: Error): string {
  */
 export function getScrollPosition (scope: WebdriverIO.Element) {
     return getBrowserObject(scope)
-        .execute(function (this: Window) {
+        .execute(/* istanbul ignore next */function (this: Window) {
             return { scrollX: this.pageXOffset, scrollY: this.pageYOffset }
         })
 }

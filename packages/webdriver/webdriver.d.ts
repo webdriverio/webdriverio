@@ -29,6 +29,8 @@ declare namespace WebDriver {
         'info' | 'warn' | 'error' | 'fatal';
     export type Timeouts = Record<'script' | 'pageLoad' | 'implicit', number>;
     export type SameSiteOptions = 'Lax' | 'Strict';
+    type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
+    type ElementReference = Record<ElementReferenceId, string>
 
     interface ProxyObject {
         proxyType?: ProxyTypes;
@@ -680,17 +682,17 @@ declare namespace WebDriver {
          * ```
          */
         agent?: {
-            http: http.Agent,
-            https: https.Agent
+            http: HTTPAgent,
+            https: HTTPSAgent
         };
         /**
          * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
          */
-        transformRequest?: (requestOptions: got.HTTPSOptions) => got.HTTPSOptions;
+        transformRequest?: (requestOptions: HTTPRequestOptions) => HTTPRequestOptions;
         /**
          * Function intercepting HTTP response objects after a WebDriver response has arrived.
          */
-        transformResponse?: (response: got.Response, requestOptions: got.HTTPSOptions) => got.Response;
+        transformResponse?: (response: HTTPResponse, requestOptions: HTTPRequestOptions) => HTTPResponse;
 
         /**
          * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
@@ -1007,14 +1009,14 @@ declare namespace WebDriver {
          * The Find Element From Element command is used to find an element from a web element in the current browsing context that can be used for future commands.
          * https://w3c.github.io/webdriver/#dfn-find-element-from-element
          */
-        findElementFromElement(elementId: string, using: string, value: string): WebdriverIO.ElementReference;
+        findElementFromElement(elementId: string, using: string, value: string): ElementReference;
 
         /**
          * [webdriver]
          * The Find Elements From Element command is used to find elements from a web element in the current browsing context that can be used for future commands.
          * https://w3c.github.io/webdriver/#dfn-find-elements-from-element
          */
-        findElementsFromElement(elementId: string, using: string, value: string): WebdriverIO.ElementReference[];
+        findElementsFromElement(elementId: string, using: string, value: string): ElementReference[];
 
         /**
          * [webdriver]
@@ -1884,14 +1886,14 @@ declare namespace WebDriver {
          * Search for an element on the page, starting from the identified element. The located element will be returned as a WebElement JSON object. The table below lists the locator strategies that each server should support. Each locator must return the first matching element located in the DOM.
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidelement
          */
-        findElementFromElement(elementId: string, using: string, value: string): WebdriverIO.ElementReference;
+        findElementFromElement(elementId: string, using: string, value: string): ElementReference;
 
         /**
          * [jsonwp]
          * Search for multiple elements on the page, starting from the identified element. The located elements will be returned as a WebElement JSON objects. The table below lists the locator strategies that each server should support. Elements should be returned in the order located in the DOM.
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidelements
          */
-        findElementsFromElement(elementId: string, using: string, value: string): WebdriverIO.ElementReference[];
+        findElementsFromElement(elementId: string, using: string, value: string): ElementReference[];
 
         /**
          * [jsonwp]

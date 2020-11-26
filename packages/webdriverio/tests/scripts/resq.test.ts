@@ -27,7 +27,7 @@ describe('resq script', () => {
             const { byState } = byProps.mock.results[0].value
 
             expect(resq$).toBeCalledTimes(1)
-            expect(resq$).toBeCalledWith('Test', undefined)
+            expect(resq$).toBeCalledWith('Test', {})
             expect(byProps).toBeCalledTimes(1)
             expect(byProps).toBeCalledWith([{ foo: 'bar' }])
             expect(byState).toBeCalledTimes(1)
@@ -66,9 +66,9 @@ describe('resq script', () => {
             const { byState } = byProps.mock.results[0].value
 
             expect(resq$$).toBeCalledTimes(1)
-            expect(resq$$).toBeCalledWith('Test', undefined)
+            expect(resq$$).toBeCalledWith('Test', {})
             expect(byProps).toBeCalledTimes(1)
-            expect(byProps).toBeCalledWith([{ foo: 'bar' }], {} as HTMLElement)
+            expect(byProps).toBeCalledWith([{ foo: 'bar' }])
             expect(byState).toBeCalledTimes(1)
             expect(byState).toBeCalledWith({ test: '123' })
             expect(result).toMatchObject([])
