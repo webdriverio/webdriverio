@@ -65,6 +65,13 @@ describe('elements', () => {
         expect(await browser.getTitle()).toBe('two')
     })
 
+    it('is able to select an option', async () => {
+        const option = await browser.findElement('css selector', 'option[value="someValue5"]')
+        await browser.elementClick(option[ELEMENT_KEY])
+        const selectedValue = await browser.findElement('css selector', '#selectedValue')
+        expect(await browser.getElementText(selectedValue[ELEMENT_KEY])).toBe('someValue5')
+    })
+
     it('element properties', async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
         const link = await browser.findElement('css selector', '#secondPageLink')
