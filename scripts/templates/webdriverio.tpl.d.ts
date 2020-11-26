@@ -691,7 +691,7 @@ declare namespace WebdriverIO {
          */
         addLocatorStrategy(
             name: string,
-            func: (elementFetchingMethod: (selector: string) => any) => void
+            func: (selector: string) => HTMLElement | HTMLElement[]
         ): void
         // ... browser commands ...
     }
