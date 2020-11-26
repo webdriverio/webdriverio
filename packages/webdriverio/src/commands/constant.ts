@@ -16,7 +16,7 @@ interface FormattedActions {
 
 export const formatArgs = function (
     scope: WebdriverIO.BrowserObject | WebdriverIO.Element,
-    actions: WebdriverIO.TouchAction[]
+    actions: WebdriverIO.TouchActions[]
 ): FormattedActions[] {
     return actions.map((action: WebdriverIO.TouchAction) => {
         // if (Array.isArray(action)) {

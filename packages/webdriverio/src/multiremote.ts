@@ -121,7 +121,7 @@ export default class MultiRemote {
     }
 }
 
-interface MultiRemoteClient extends WebdriverIO.BrowserObject {
+interface MultiRemoteClient {
     (instanceName: string): WebdriverIO.BrowserObject
 }
 
@@ -131,7 +131,7 @@ interface MultiRemoteClient extends WebdriverIO.BrowserObject {
 /* istanbul ignore next */
 export class MultiRemoteDriver implements Partial<MultiRemoteClient> {
     instances: string[]
-    isMultiremote: boolean
+    isMultiremote = true as true
     __propertiesObject__: Record<string, any>
 
     constructor (
@@ -139,7 +139,6 @@ export class MultiRemoteDriver implements Partial<MultiRemoteClient> {
         propertiesObject: Record<string, any>
     ) {
         this.instances = Object.keys(instances)
-        this.isMultiremote = true
         this.__propertiesObject__ = propertiesObject
     }
 

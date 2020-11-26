@@ -55,8 +55,8 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
             await browser.$('#foo')
 
-            browser.addCommand('myCustomElementCommand', async function () {
-                return this.execute(function () {return 1})
+            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.BrowserObject) {
+                return this.execute(function () { return 1 })
             })
 
             expect(await browser.myCustomElementCommand()).toBe(1)
@@ -65,7 +65,7 @@ describe('addCommand', () => {
         test('should be able to add a command to and element from the browser', async () => {
             const browser = await remote(remoteConfig)
 
-            browser.addCommand('myCustomElementCommand', async function () {
+            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.BrowserObject) {
                 return this.execute(function () {return 1})
             }, true)
 
@@ -77,7 +77,7 @@ describe('addCommand', () => {
         test('should allow to add custom commands to elements', async () => {
             const browser = await remote(remoteConfig)
             const elem = await browser.$('#foo')
-            elem.addCommand('myCustomElementCommand', async function () {
+            elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector
@@ -97,7 +97,7 @@ describe('addCommand', () => {
             const elem = await browser.$('#foo')
 
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
-            elem.addCommand('myCustomElementCommand', async function () {
+            elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector + this.index
@@ -117,7 +117,7 @@ describe('addCommand', () => {
             const elem = await browser.$('#foo')
 
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
-            elem.addCommand('myCustomElementCommand', async function () {
+            elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector
@@ -134,7 +134,7 @@ describe('addCommand', () => {
             const elem = elems[0]
 
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
-            elem.addCommand('myCustomElementCommand', async function () {
+            elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector
@@ -152,7 +152,7 @@ describe('addCommand', () => {
             const subElem = elems[0]
 
             expect(typeof subElem.myCustomElementCommand).toBe('undefined')
-            subElem.addCommand('myCustomElementCommand', async function () {
+            subElem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector
@@ -169,7 +169,7 @@ describe('addCommand', () => {
 
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
             expect(typeof subElem.myCustomElementCommand).toBe('undefined')
-            subElem.addCommand('myCustomElementCommand', async function () {
+            subElem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector
@@ -275,7 +275,7 @@ describe('addCommand', () => {
             const browser = await multiremote(multiremoteConfig)
 
             expect(typeof browser.myCustomCommand).toBe('undefined')
-            browser.addCommand('myCustomCommand', async function (param) {
+            browser.addCommand('myCustomCommand', async function (this: WebdriverIO.BrowserObject, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })
@@ -290,7 +290,7 @@ describe('addCommand', () => {
             const browser = await multiremote(multiremoteConfig)
 
             expect(typeof browser.myOtherCustomCommand).toBe('undefined')
-            browser.browserA.addCommand('myOtherCustomCommand', async function (param) {
+            browser.browserA.addCommand('myOtherCustomCommand', async function (this: WebdriverIO.BrowserObject, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })
@@ -305,7 +305,7 @@ describe('addCommand', () => {
 
         test('should not allow to call custom multi browser commands on elements', async () => {
             const browser = await multiremote(multiremoteConfig)
-            browser.addCommand('myCustomOtherOtherCommand', async function (param) {
+            browser.addCommand('myCustomOtherOtherCommand', async function (this: WebdriverIO.BrowserObject, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })
