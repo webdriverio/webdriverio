@@ -84,7 +84,7 @@ export default class ConciseReporter extends WDIOReporter {
     getOrderedSuites () {
         const orderedSuites: SuiteStats[] = []
 
-        this.suiteUids.map(uid => this.suites.map(suite => {
+        this._suiteUids.map(uid => this._suites.map(suite => {
             if (suite.uid === uid) {
                 this.orderedSuites.push(suite)
             }
