@@ -23,7 +23,7 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     onTestFail () {
-        this.stateCounts.failed++
+        this._stateCounts.failed++
     }
 
     onRunnerEnd (runner: any): void {
