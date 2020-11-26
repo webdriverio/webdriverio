@@ -8,6 +8,8 @@ import TestStats, { Test } from './stats/test'
 import RunnerStats, { Runner } from './stats/runner'
 import { AfterCommandArgs, BeforeCommandArgs } from './types'
 
+export { SuiteStats, HookStats, TestStats, RunnerStats }
+
 interface WDIOReporterBaseOptions {
     outputDir?: string
 }
