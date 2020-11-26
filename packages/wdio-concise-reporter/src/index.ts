@@ -18,8 +18,8 @@ export default class ConciseReporter extends WDIOReporter {
         this._suiteUids.push(suite.uid)
     }
 
-    onSuiteEnd (suite: Suite): void {
-        this.suites.push(suite)
+    onSuiteEnd (suite: SuiteStats): void {
+        this._suites.push(suite)
     }
 
     onTestFail () {
