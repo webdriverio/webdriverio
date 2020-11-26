@@ -10,15 +10,16 @@ const getWdioMock = () => {
         react$: jest.fn(),
         react$$: jest.fn(),
         custom$: jest.fn(),
+        deleteSession: jest.fn()
     }
-    mock.deleteSession = jest.fn().mockReturnValue(Promise.resolve(mock))
+    mock.deleteSession.mockReturnValue(Promise.resolve(mock))
 
     return mock
 }
 
 export const attach = jest.fn().mockImplementation(() => (getWdioMock()))
 export const remote = jest.fn().mockImplementation(() => {
-    if (global.throwRemoteCall) {
+    if ((global as any).throwRemoteCall) {
         throw new Error('boom')
     }
     return getWdioMock()

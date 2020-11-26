@@ -1,6 +1,6 @@
 import { ELEMENT_KEY } from '../../src/constants'
 
-let manualMockResponse
+let manualMockResponse: any
 
 const path = '/session'
 
@@ -9,10 +9,10 @@ let sessionId = defaultSessionId
 const genericElementId = 'some-elem-123'
 const genericSubElementId = 'some-sub-elem-321'
 const genericSubSubElementId = 'some-sub-sub-elem-231'
-const requestMock = jest.fn().mockImplementation((uri, params) => {
-    let value = {}
+const requestMock: any = jest.fn().mockImplementation((uri, params) => {
+    let value: any = {}
     let jsonwpMode = false
-    let sessionResponse = {
+    let sessionResponse: any = {
         sessionId,
         capabilities: {
             browserName: 'mockBrowser',
@@ -168,7 +168,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
     case `/session/${sessionId}/execute`:
     case `/session/${sessionId}/execute/sync`: {
         const script = Function(params.json.script)
-        const args = params.json.args.map(arg => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
+        const args = params.json.args.map((arg: any) => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
 
         let result = null
         if (params.json.script.includes('resq')) {
@@ -259,7 +259,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
     }
 
     if (uri.pathname.endsWith('timeout') && requestMock.retryCnt < 5) {
-        const timeoutError = new Error('Timeout')
+        const timeoutError: any = new Error('Timeout')
         timeoutError.name = 'TimeoutError'
         timeoutError.code = 'ETIMEDOUT'
         timeoutError.event = 'request'
@@ -303,7 +303,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
             headers: { foo: 'bar' },
             statusCode: 404,
             body: error
-        }, error)
+        })
     }
 
     /**
@@ -324,7 +324,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
         return Promise.resolve({
             headers: { foo: 'bar' },
             statusCode: 404
-        }, '<!DOCTYPE html><p>Whoops! The URL specified routes to this help page.</p>')
+        })
     }
 
     /**
@@ -371,7 +371,7 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
         manualMockResponse = null
     }
 
-    let response = { value }
+    let response: any = { value }
     if (jsonwpMode) {
         response = { value, sessionId, status: 0 }
     }
@@ -390,12 +390,12 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
 requestMock.extend = jest.fn().mockReturnValue(requestMock)
 requestMock.put = jest.fn().mockReturnValue(Promise.resolve({}))
 requestMock.retryCnt = 0
-requestMock.setMockResponse = (value) => {
+requestMock.setMockResponse = (value: any) => {
     manualMockResponse = value
 }
 
 requestMock.getSessionId = () => sessionId
-requestMock.setSessionId = (newSessionId) => {
+requestMock.setSessionId = (newSessionId: any) => {
     sessionId = newSessionId
 }
 requestMock.resetSessionId = () => {
