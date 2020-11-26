@@ -2,6 +2,10 @@ import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
 import chalk from 'chalk'
 
 export default class ConciseReporter extends WDIOReporter {
+    // keep track of the order that suites were called
+    private _suiteUids: string[] = []
+    private _suites: SuiteStats[] = []
+    private _stateCounts = { failed: 0 }
 
     constructor(options: WDIOReporter.Options) {
         /**
