@@ -25,18 +25,20 @@ const cdpClient = {
     }))
 }
 
+const browserMock = {} as any as WebdriverIO.BrowserObject
+
 const fetchListener = async (mock, params, client = cdpClient) => {
     const reponseParams = Object.entries(params).reduce((acc, [key, val]) => {
         if (!['responseHeaders', 'responseStatusCode'].includes(key)) {
             acc[key] = val
         }
         return acc
-    }, {})
+    }, {}) as any
 
     // Request
-    await NetworkInterception.handleRequestInterception(client, [mock])(reponseParams)
+    await NetworkInterception.handleRequestInterception(client, [mock] as any)(reponseParams)
     // Response
-    return NetworkInterception.handleRequestInterception(client, [mock])(params)
+    return NetworkInterception.handleRequestInterception(client, [mock] as any)(params)
 }
 
 beforeEach(() => {
@@ -44,7 +46,7 @@ beforeEach(() => {
 })
 
 test('allows to access network calls', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
         responseHeaders: []
@@ -58,7 +60,7 @@ test('allows to access network calls', async () => {
 
 describe('filter network calls by header', () => {
     const mockWithCall = async (filter) => {
-        const mock = new NetworkInterception('**/foobar/**', filter)
+        const mock = new NetworkInterception('**/foobar/**', filter, browserMock)
         await fetchListener(mock, {
             request: { url: 'http://test.com/foobar/test1.html', method: 'put' },
             responseHeaders: [{ name: 'Content-Type', value: 'text/xml' }]
@@ -96,7 +98,7 @@ describe('filter network calls by header', () => {
 
     test('comparator fn', async () => {
         const mock = await mockWithCall({
-            headers: (headers) => Object.entries(headers).some(([, value]) => value.includes('xml'))
+            headers: (headers) => Object.entries(headers).some(([, value]: any[]) => value.includes('xml'))
         })
         expect(mock.calls.length).toBe(1)
         expect(mock.calls[0].url).toBe('http://test.com/foobar/test1.html')
@@ -105,7 +107,7 @@ describe('filter network calls by header', () => {
 
 describe('filter network calls by postData', () => {
     const mockWithCall = async (filter) => {
-        const mock = new NetworkInterception('**/foobar/**', filter)
+        const mock = new NetworkInterception('**/foobar/**', filter, browserMock)
         await fetchListener(mock, {
             request: { url: 'http://test.com/foobar/test1.html', method: 'post', postData: JSON.stringify({ foo: { bar: 'baz' } }) },
             responseHeaders: []
@@ -151,7 +153,7 @@ describe('filter network calls by postData', () => {
 
 describe('filter network calls by statusCode', () => {
     const mockWithCall = async (filter) => {
-        const mock = new NetworkInterception('**/foobar/**', filter)
+        const mock = new NetworkInterception('**/foobar/**', filter, browserMock)
         await fetchListener(mock, {
             request: { url: 'http://test.com/foobar/test1.html', method: 'post' },
             responseHeaders: [],
@@ -186,7 +188,7 @@ describe('filter network calls by statusCode', () => {
 
 describe('filter network calls by method', () => {
     const mockWithCall = async (filter) => {
-        const mock = new NetworkInterception('**/foobar/**', filter)
+        const mock = new NetworkInterception('**/foobar/**', filter, browserMock)
         await fetchListener(mock, {
             request: { url: 'http://test.com/foobar/test1.html', method: 'PUT' },
             responseHeaders: []
@@ -218,7 +220,7 @@ describe('filter network calls by method', () => {
 })
 
 test('decodes base64 responses', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
         responseHeaders: [{ name: 'content-Type', value: 'application/json' }]
@@ -233,7 +235,7 @@ test('decodes base64 responses', async () => {
 })
 
 test('undefined response', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     cdpClient.send.mockReturnValueOnce(Promise.resolve({}))
     cdpClient.send.mockReturnValueOnce(Promise.resolve({}))
     await fetchListener(mock, {
@@ -245,7 +247,7 @@ test('undefined response', async () => {
 })
 
 test('null response', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     cdpClient.send.mockReturnValueOnce(Promise.resolve({ body: 'null' }))
     cdpClient.send.mockReturnValueOnce(Promise.resolve({ body: 'null' }))
     await fetchListener(mock, {
@@ -261,7 +263,7 @@ test('abort request', async () => {
         requestId: 123,
         request: { url: 'http://test.com/foobar/test.html' },
     }
-    const mock = new NetworkInterception('**/foobar/**')
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     expect(mock.abort.bind(mock)).toThrow()
     expect(() => mock.abort('foobar')).toThrow()
 
@@ -269,7 +271,7 @@ test('abort request', async () => {
     mock.abort('ConnectionFailed')
 
     // Request stage only
-    await NetworkInterception.handleRequestInterception(cdpClient, [mock])(request)
+    await NetworkInterception.handleRequestInterception(cdpClient, [mock] as any)(request as any)
     expect(cdpClient.send).toBeCalledWith(
         'Fetch.failRequest',
         {
@@ -279,7 +281,7 @@ test('abort request', async () => {
     )
 
     // Request stage only
-    await NetworkInterception.handleRequestInterception(cdpClient, [mock])(request)
+    await NetworkInterception.handleRequestInterception(cdpClient, [mock] as any)(request as any)
     expect(cdpClient.send).toBeCalledWith(
         'Fetch.failRequest',
         {
@@ -289,7 +291,7 @@ test('abort request', async () => {
     )
 
     // Request stage only
-    await NetworkInterception.handleRequestInterception(cdpClient, [mock])(request)
+    await NetworkInterception.handleRequestInterception(cdpClient, [mock] as any)(request as any)
     expect(cdpClient.send).toBeCalledWith(
         'Fetch.failRequest',
         {
@@ -309,7 +311,7 @@ describe('stub request', () => {
         })
 
     beforeEach(() => {
-        mock = new NetworkInterception('**/foobar/**')
+        mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     })
 
     test('with a function', async () => {
@@ -413,17 +415,17 @@ describe('stub request', () => {
         mock.respond('foobar', { fetchResponse: false })
 
         // Request stage only
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock])({
+        await NetworkInterception.handleRequestInterception(cdpClient, [mock] as any)({
             requestId: 123,
             request: { url: 'http://test.com/foobar/test.html' }
-        })
+        } as any)
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
     })
 })
 
 test('allows to clear mocks', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
         responseHeaders: []
@@ -434,7 +436,7 @@ test('allows to clear mocks', async () => {
 })
 
 test('allows to restore mocks', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     mock.respondOnce({ foo: 'bar' })
     mock.respond({ bar: 'foo' })
 

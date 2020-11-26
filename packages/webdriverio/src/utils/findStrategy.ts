@@ -25,7 +25,9 @@ const IMAGEPATH_MOBILE_SELECTORS_ENDSWITH = [
     '.jpg', '.jpeg', '.gif', '.png', '.bmp', '.svg'
 ]
 
-const defineStrategy = function (selector: string) {
+type SelectorStrategy = string | { name: string, args: string }
+
+const defineStrategy = function (selector: SelectorStrategy) {
     // Condition with checking isPlainObject(selector) should be first because
     // in case of "selector" argument is a plain object then .match() will cause
     // an error like "selector.match is not a function"
@@ -35,57 +37,59 @@ const defineStrategy = function (selector: string) {
             return '-android datamatcher'
         return '-android viewmatcher'
     }
+
+    const stringSelector = selector as string
     // Check if user has specified locator strategy directly
-    if (selector.match(DIRECT_SELECTOR_REGEXP)) {
+    if (stringSelector.match(DIRECT_SELECTOR_REGEXP)) {
         return 'directly'
     }
     // Use appium image strategy if selector ends with certain text(.jpg,.gif..)
-    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path => selector.toLowerCase().endsWith(path))) {
+    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path => stringSelector.toLowerCase().endsWith(path))) {
         return '-image'
     }
     // Use xPath strategy if selector starts with //
-    if (XPATH_SELECTORS_START.some(option => selector.startsWith(option))) {
+    if (XPATH_SELECTORS_START.some(option => stringSelector.startsWith(option))) {
         return 'xpath'
     }
     // Use link text strategy if selector starts with =
-    if (selector.startsWith('=')) {
+    if (stringSelector.startsWith('=')) {
         return 'link text'
     }
     // Use partial link text strategy if selector starts with *=
-    if (selector.startsWith('*=')) {
+    if (stringSelector.startsWith('*=')) {
         return 'partial link text'
     }
     // Use id strategy if the selector starts with id=
-    if (selector.startsWith('id=')) {
+    if (stringSelector.startsWith('id=')) {
         return 'id'
     }
     // Recursive element search using the UiAutomator library (Android only)
-    if (selector.startsWith('android=')) {
+    if (stringSelector.startsWith('android=')) {
         return '-android uiautomator'
     }
     // Recursive element search using the UIAutomation library (iOS-only)
-    if (selector.startsWith('ios=')) {
+    if (stringSelector.startsWith('ios=')) {
         return '-ios uiautomation'
     }
     // Recursive element search using accessibility id
-    if (selector.startsWith('~')) {
+    if (stringSelector.startsWith('~')) {
         return 'accessibility id'
     }
     // Class name mobile selector
     // for iOS = UIA...
     // for Android = android.widget
-    if (NAME_MOBILE_SELECTORS_START.some(option => selector.toLowerCase().startsWith(option))) {
+    if (NAME_MOBILE_SELECTORS_START.some(option => stringSelector.toLowerCase().startsWith(option))) {
         return 'class name'
     }
     // Use tag name strategy if selector contains a tag
     // e.g. "<div>" or "<div />"
-    if (selector.search(/<[0-9a-zA-Z-]+( \/)*>/g) >= 0) {
+    if (stringSelector.search(/<[0-9a-zA-Z-]+( \/)*>/g) >= 0) {
         return 'tag name'
     }
     // Use name strategy if selector queries elements with name attributes for JSONWP
     // or if isMobile is used even when w3c is used
     // e.g. "[name='myName']" or '[name="myName"]'
-    if (selector.search(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/) >= 0) {
+    if (stringSelector.search(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/) >= 0) {
         return 'name'
     }
     // Allow to move up to the parent or select current element
@@ -94,18 +98,19 @@ const defineStrategy = function (selector: string) {
     }
     // Any element with given class, id, or attribute and content
     // e.g. h1.header=Welcome or [data-name=table-row]=Item or #content*=Intro
-    if (selector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))) {
+    if (stringSelector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))) {
         return 'xpath extended'
     }
 }
-export const findStrategy = function (selector: string, isW3C: boolean, isMobile: boolean) {
-    let using = DEFAULT_STRATEGY
-    let value = selector
+export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolean, isMobile?: boolean) {
+    const stringSelector = selector as string
+    let using: string = DEFAULT_STRATEGY
+    let value = selector as string
 
     switch (defineStrategy(selector)) {
     // user has specified locator strategy directly
     case 'directly': {
-        const match = selector.match(DIRECT_SELECTOR_REGEXP)
+        const match = stringSelector.match(DIRECT_SELECTOR_REGEXP)
         if (!match || !isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
             throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
         }
@@ -119,22 +124,22 @@ export const findStrategy = function (selector: string, isW3C: boolean, isMobile
     }
     case 'id': {
         using = 'id'
-        value = selector.slice(3)
+        value = stringSelector.slice(3)
         break
     }
     case 'link text': {
         using = 'link text'
-        value = selector.slice(1)
+        value = stringSelector.slice(1)
         break
     }
     case 'partial link text': {
         using = 'partial link text'
-        value = selector.slice(2)
+        value = stringSelector.slice(2)
         break
     }
     case '-android uiautomator': {
         using = '-android uiautomator'
-        value = selector.slice(8)
+        value = stringSelector.slice(8)
         break
     }
     case '-android datamatcher': {
@@ -149,12 +154,12 @@ export const findStrategy = function (selector: string, isW3C: boolean, isMobile
     }
     case '-ios uiautomation': {
         using = '-ios uiautomation'
-        value = selector.slice(4)
+        value = stringSelector.slice(4)
         break
     }
     case 'accessibility id': {
         using = 'accessibility id'
-        value = selector.slice(1)
+        value = stringSelector.slice(1)
         break
     }
     case 'class name': {
@@ -163,14 +168,14 @@ export const findStrategy = function (selector: string, isW3C: boolean, isMobile
     }
     case 'tag name': {
         using = 'tag name'
-        value = selector.replace(/<|>|\/|\s/g, '')
+        value = stringSelector.replace(/<|>|\/|\s/g, '')
         break
     }
     case 'name': {
         if (isMobile || !isW3C) {
-            const match = selector.match(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/)
+            const match = stringSelector.match(/^\[name=("|')([a-zA-z0-9\-_.@=[\] ']+)("|')]$/)
             if (!match) {
-                throw new Error(`InvalidSelectorMatch. Strategy 'name' has failed to match '${selector}'`)
+                throw new Error(`InvalidSelectorMatch. Strategy 'name' has failed to match '${stringSelector}'`)
             }
             using = 'name'
             value = match[2]
@@ -179,9 +184,9 @@ export const findStrategy = function (selector: string, isW3C: boolean, isMobile
     }
     case 'xpath extended': {
         using = 'xpath'
-        const match = selector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))
+        const match = stringSelector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))
         if (!match) {
-            throw new Error(`InvalidSelectorMatch: Strategy 'xpath extended' has failed to match '${selector}'`)
+            throw new Error(`InvalidSelectorMatch: Strategy 'xpath extended' has failed to match '${stringSelector}'`)
         }
         const PREFIX_NAME: Record<string, string> = { '.': 'class', '#': 'id' }
         const conditions = []
@@ -210,7 +215,7 @@ export const findStrategy = function (selector: string, isW3C: boolean, isMobile
     }
     case '-image': {
         using = '-image'
-        value = fs.readFileSync(selector, { encoding: 'base64' })
+        value = fs.readFileSync(stringSelector, { encoding: 'base64' })
         break
     }
     }

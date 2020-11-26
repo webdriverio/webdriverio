@@ -382,7 +382,7 @@ describe('selector strategies helper', () => {
     })
 
     it('should find an mobile element using image string', () => {
-        fs.readFileSync = jest.fn(() => 'random string')
+        fs.readFileSync = jest.fn(() => 'random string') as any
         let element = findStrategy('/test.jpg')
         expect(element.using).toBe('-image')
         expect(element.value).toBe('random string')

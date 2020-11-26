@@ -362,20 +362,35 @@ declare namespace WebDriver {
     // Appium General Capabilities
     export interface AppiumCapabilities {
         automationName?: string;
+        'appium:automationName'?: string;
         platformVersion?: string;
+        'appium:platformVersion'?: string;
         deviceName?: string;
+        'appium:deviceName'?: string;
         app?: string;
+        'appium:app'?: string;
         newCommandTimeout?: number;
+        'appium:newCommandTimeout'?: number;
         language?: string;
+        'appium:language'?: string;
         locale?: string;
+        'appium:locale'?: string;
         udid?: string;
+        'appium:udid'?: string;
         orientation?: string;
+        'appium:orientation'?: string;
         autoWebview?: boolean;
+        'appium:autoWebview'?: boolean;
         noReset?: boolean;
+        'appium:noReset'?: boolean;
         fullReset?: boolean;
+        'appium:fullReset'?: boolean;
         eventTimings?: boolean;
+        'appium:eventTimings'?: boolean;
         enablePerformanceLogging?: boolean;
+        'appium:enablePerformanceLogging'?: boolean;
         printPageSourceOnFindFailure?: boolean;
+        'appium:printPageSourceOnFindFailure'?: boolean;
     }
 
     export interface AppiumAndroidCapabilities {
@@ -572,31 +587,45 @@ declare namespace WebDriver {
 
     interface Options {
         /**
-         * Your cloud service username (only works for Sauce Labs, Browserstack, TestingBot,
-         * CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will automatically
-         * set connection options for you.
+         * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
+         * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),
+         * [CrossBrowserTesting](https://crossbrowsertesting.com) or
+         * [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+         * automatically set connection options for you. If you don't use a cloud provider this
+         * can be used to authenticate any other WebDriver backend.
          */
-        user?: string;
+        user?: string
         /**
-         * Your cloud service access key or secret key (only works for Sauce Labs, Browserstack,
-         * TestingBot, CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will
-         * automatically set connection options for you.
+         * Your cloud service access key or secret key (only works for
+         * [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com),
+         * [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)
+         * or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+         * automatically set connection options for you. If you don't use a cloud provider this
+         * can be used to authenticate any other WebDriver backend.
          */
-        key?: string;
+        key?: string
         /**
          * Protocol to use when communicating with the Selenium standalone server (or driver).
+         *
+         * @default 'http'
          */
         protocol?: string;
         /**
          * Host of your WebDriver server.
+         *
+         * @default 'localhost'
          */
         hostname?: string;
         /**
          * Port your WebDriver server is on.
+         *
+         * @default 4444
          */
         port?: number;
         /**
          * Path to WebDriver endpoint or grid server.
+         *
+         * @default '/'
          */
         path?: string;
         /**
@@ -612,6 +641,8 @@ declare namespace WebDriver {
         requestedCapabilities?: DesiredCapabilities | W3CCapabilities;
         /**
          * Level of logging verbosity.
+         *
+         * @default 'info'
          */
         logLevel?: WebDriverLogTypes;
         /**
@@ -621,10 +652,14 @@ declare namespace WebDriver {
         logLevels?: Record<string, WebDriverLogTypes | undefined>;
         /**
          * Timeout for any WebDriver request to a driver or grid.
+         *
+         * @default 120000
          */
         connectionRetryTimeout?: number;
         /**
          * Count of request retries to the Selenium server.
+         *
+         * @default 3
          */
         connectionRetryCount?: number;
         /**
@@ -634,20 +669,28 @@ declare namespace WebDriver {
             [name: string]: string;
         };
         /**
-         * Allows you to use a customhttp/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
+         * Allows you to use a custom http/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
+         *
+         * @default
+         * ```js
+         * {
+         *     http: new http.Agent({ keepAlive: true }),
+         *     https: new https.Agent({ keepAlive: true })
+         * }
+         * ```
          */
         agent?: {
-            http: HTTPAgent;
-            https: HTTPSAgent;
+            http: http.Agent,
+            https: https.Agent
         };
         /**
          * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
          */
-        transformRequest?: (requestOptions: HTTPRequestOptions) => HTTPRequestOptions;
+        transformRequest?: (requestOptions: got.HTTPSOptions) => got.HTTPSOptions;
         /**
          * Function intercepting HTTP response objects after a WebDriver response has arrived.
          */
-        transformResponse?: (response: HTTPResponse, requestOptions: HTTPRequestOptions) => HTTPResponse;
+        transformResponse?: (response: got.Response, requestOptions: got.HTTPSOptions) => got.Response;
 
         /**
          * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
@@ -656,6 +699,25 @@ declare namespace WebDriver {
         directConnectHost?: string
         directConnectPort?: number
         directConnectPath?: string
+
+        /**
+         * Whether it requires SSL certificates to be valid in HTTP/s requests
+         * for an environment which cannot get process environment well.
+         *
+         * @default true
+         */
+        strictSSL?: boolean;
+
+        /**
+         * Directory to store all testrunner log files (including reporter logs and `wdio` logs).
+         * If not set, all logs are streamed to `stdout`. Since most reporters are made to log to
+         * `stdout`, it is recommended to only use this option for specific reporters where it
+         * makes more sense to push report into a file (like the `junit` reporter, for example).
+         *
+         * When running in standalone mode, the only log generated by WebdriverIO will be
+         * the `wdio` log.
+         */
+        outputDir?: string
     }
 
     interface AttachSessionOptions extends Options {

@@ -1,6 +1,9 @@
 import logger from '@wdio/logger'
+// @ts-ignore mocked (original defined in webdriver package)
+import gotMock from 'got'
 import { remote } from '../src'
-import got from 'got'
+
+const got = gotMock as any as jest.Mock
 
 jest.mock('../src/commands/element/waitUntil', () => ({
     __esModule: true,
@@ -21,7 +24,7 @@ jest.mock('../src/commands/element/waitForEnabled', () => ({
 
 const waitForExist = require('../src/commands/element/waitForExist')
 
-const { warn } = logger()
+const { warn } = logger('foobar')
 
 describe('middleware', () => {
     let browser
@@ -38,8 +41,8 @@ describe('middleware', () => {
     })
 
     afterEach(() => {
-        warn.mockClear()
-        waitForExist.default.mockClear()
+        (warn as jest.Mock).mockClear()
+        ;(waitForExist.default as jest.Mock).mockClear()
     })
 
     it('should throw an error if the element is never found', async () => {
@@ -62,18 +65,20 @@ describe('middleware', () => {
 
         //Success returns a null
         expect(await subSubElem.click()).toEqual(null)
-        expect(warn.mock.calls).toHaveLength(1)
-        expect(warn.mock.calls).toEqual([['Request encountered a stale element - terminating request']])
+        expect((warn as jest.Mock).mock.calls).toHaveLength(1)
+        expect((warn as jest.Mock).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
+        // @ts-ignore mock feature
         got.retryCnt = 0
     })
 
     it('should successfully getAttribute of an element that falls stale after being re-found in Safari', async () => {
         const elem = await browser.$('#foo')
         elem.selector = '#nonexisting'
+        // @ts-ignore mock feature
         got.setMockResponse([{ error: 'no such element', statusCode: 404 }, undefined, undefined, 'bar'])
         expect(await elem.getAttribute('foo')).toEqual('bar')
         expect(waitForExist.default.mock.calls).toHaveLength(1)
-        got.mockClear()
+        ;(got as jest.Mock).mockClear()
     })
 
     it('should successfully click on a stale element', async () => {
@@ -83,8 +88,8 @@ describe('middleware', () => {
 
         //Success returns a null
         expect(await subSubElem.click()).toEqual(null)
-        expect(warn.mock.calls).toHaveLength(1)
-        expect(warn.mock.calls).toEqual([['Request encountered a stale element - terminating request']])
+        expect((warn as jest.Mock).mock.calls).toHaveLength(1)
+        expect((warn as jest.Mock).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
     })
 
     it('should assign elementId and w3c identifier to element scope after re-found', async () => {

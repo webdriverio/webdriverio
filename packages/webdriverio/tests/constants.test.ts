@@ -51,10 +51,11 @@ describe('constants', () => {
 
         it('should expect filesToWatch to be an array', () => {
             WDIO_DEFAULTS.filesToWatch.validate([])
-            expect(() => WDIO_DEFAULTS.filesToWatch.type('foobar')).toThrow()
+            expect(() => WDIO_DEFAULTS.filesToWatch.validate('foobar')).toThrow()
         })
 
         it('should properly detect automation protocol', () => {
+            // @ts-ignore test invalid property
             expect(() => WDIO_DEFAULTS.automationProtocol.validate()).toThrow()
             expect(() => WDIO_DEFAULTS.automationProtocol.validate(123)).toThrow()
             expect(() => WDIO_DEFAULTS.automationProtocol.validate('foobar')).toThrow()
@@ -68,6 +69,7 @@ describe('constants', () => {
             WDIO_DEFAULTS.before.validate([])
             WDIO_DEFAULTS.before.validate([() => {}])
 
+            // @ts-ignore test invalid property
             expect(() => WDIO_DEFAULTS.before.validate()).toThrow()
             expect(() => WDIO_DEFAULTS.before.validate(['foobar'])).toThrow()
             expect(() => WDIO_DEFAULTS.before.validate([() => {}, 'foobar'])).toThrow()

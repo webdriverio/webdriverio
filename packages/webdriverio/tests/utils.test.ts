@@ -1,6 +1,7 @@
 import fs from 'fs'
 import http from 'http'
 import path from 'path'
+import type { Options } from '../src/types'
 
 import { ELEMENT_KEY } from '../src/constants'
 import {
@@ -43,10 +44,12 @@ describe('utils', () => {
         })
 
         it('should return null if response is undfined', () => {
+            // @ts-ignore test invalid parameter
             expect(getElementFromResponse()).toBe(null)
         })
 
         it('should find element from JSONWireProtocol response', () => {
+            // @ts-ignore depcrecated functionality
             expect(getElementFromResponse({ ELEMENT: 'foobar' })).toBe('foobar')
         })
 
@@ -55,6 +58,7 @@ describe('utils', () => {
         })
 
         it('should throw otherwise', () => {
+            // @ts-ignore test invalid parameter
             expect(getElementFromResponse({ invalid: 'response ' })).toBe(null)
         })
     })
@@ -69,7 +73,7 @@ describe('utils', () => {
                         }
                     }
                 }
-            })).toEqual({ foo: 'bar' })
+            } as any)).toEqual({ foo: 'bar' })
         })
     })
 
@@ -132,6 +136,7 @@ describe('utils', () => {
 
     describe('parseCSS', () => {
         it('should return null if css prop is null', () => {
+            // @ts-ignore test invalid parameter
             expect(parseCSS()).toBe(null)
         })
 
@@ -396,6 +401,7 @@ describe('utils', () => {
     })
     describe('verifyArgsAndStripIfElement', () => {
         class Element {
+            elementId: string
             constructor({ elementId, ...otherProps }) {
                 this.elementId = elementId
                 Object.keys(otherProps).forEach(key => this[key] = otherProps[key])
@@ -434,6 +440,7 @@ describe('utils', () => {
         })
 
         it('throws error if element object is missing element id', () => {
+            // @ts-ignore test scenario
             const fakeObj = new Element({
                 someProp: 123,
                 anotherProp: 'abc',
@@ -450,7 +457,7 @@ describe('utils', () => {
                 elementId: 123,
                 getElementRect: jest.fn(() => Promise.resolve({ x: 10, width: 300, height: 400 })),
                 execute: jest.fn(() => Promise.resolve({ x: 11, y: 22, width: 333, height: 444 }))
-            }
+            } as any as WebdriverIO.Element
             expect(await getElementRect(fakeScope)).toEqual({ x: 10, y: 22, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).toHaveBeenCalled()
@@ -482,7 +489,7 @@ describe('utils', () => {
     describe('assertDirectoryExists', () => {
         beforeEach(() => {
             const fsOrig = jest.requireActual('fs')
-            fs.existsSync.mockImplementation(fsOrig.existsSync.bind(fsOrig))
+            ;(fs.existsSync as jest.Mock).mockImplementation(fsOrig.existsSync.bind(fsOrig))
         })
 
         it('should fail if not existing directory', () => {
@@ -525,6 +532,7 @@ describe('utils', () => {
         })
 
         it('should default to devtools if /status request fails', async () => {
+            // @ts-ignore mock feature
             http.setResponse({ statusCode: 404 })
             expect(await getAutomationProtocol({}))
                 .toBe('devtools')
@@ -533,6 +541,7 @@ describe('utils', () => {
         })
 
         it('should default to webdriver if browserName is not supported with DevTools automation protocol', async () => {
+            // @ts-ignore mock feature
             http.setResponse({ statusCode: 404 })
             expect(await getAutomationProtocol({ capabilities: { browserName: 'foobar' } }))
                 .toBe('webdriver')
@@ -541,7 +550,7 @@ describe('utils', () => {
 
     describe('updateCapabilities', () => {
         it('should do nothing if no browser specified', async () => {
-            const params = { capabilities: {} }
+            const params: Options = { capabilities: {} }
             await updateCapabilities(params)
             expect(params).toMatchSnapshot()
         })
@@ -558,11 +567,11 @@ describe('utils', () => {
             })
 
             it('should not overwrite if already set', async () => {
-                const params = {
+                const params: Options = {
                     capabilities: {
                         browserName: 'firefox',
                         'moz:firefoxOptions': {
-                            args: ['foo', 'bar', '-remote-debugging-port', 1234, 'barfoo']
+                            args: ['foo', 'bar', '-remote-debugging-port', '1234', 'barfoo']
                         }
                     }
                 }

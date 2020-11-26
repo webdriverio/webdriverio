@@ -1,3 +1,4 @@
+// @ts-ignore mock feature
 import { setWdioSyncSupport, runFnInFiberContext } from '@wdio/utils'
 import Timer from '../../src/utils/Timer'
 
@@ -22,7 +23,7 @@ describe('timer', () => {
         it('should be rejected by timeout', async () => {
             let timer = new Timer(20, 30, () => Promise.resolve(false))
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('timeout'))
+            await expect(timer).rejects.toMatchObject(new Error('timeout') as any as Record<string, unknown>)
             expect(processEmitSpy).not.toBeCalled()
         })
 
@@ -36,20 +37,20 @@ describe('timer', () => {
         it('should not be fulfilled when resolved with false value', async () => {
             let timer = new Timer(20, 30, () => Promise.resolve(false))
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('timeout'))
+            await expect(timer).rejects.toMatchObject(new Error('timeout') as any as Record<string, unknown>)
             expect(processEmitSpy).not.toBeCalled()
         })
 
         it('should be rejected', async () => {
             let timer = new Timer(20, 30, () => Promise.reject(new Error('err')))
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('err'))
+            await expect(timer).rejects.toMatchObject(new Error('err') as any as Record<string, unknown>)
         })
 
         it('should be rejected without promise', async () => {
             let timer = new Timer(20, 30, () => 0)
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('return value was never truthy'))
+            await expect(timer).rejects.toMatchObject(new Error('return value was never truthy') as any as Record<string, unknown>)
         })
 
         it('should be fulfilled without promise', async () => {
@@ -59,9 +60,9 @@ describe('timer', () => {
         })
 
         it('should wrap fn into fibers', async () => {
-            global.browser = {}
+            global.browser = {} as any as WebdriverIO.BrowserObject
             setWdioSyncSupport(true)
-            runFnInFiberContext.mockReturnValueOnce(() => 'called')
+            ;(runFnInFiberContext as jest.Mock).mockReturnValueOnce(() => 'called')
             let timer = new Timer(20, 30, () => 'foobar')
             await triggerDelay()
             expect(await timer).toBe('called')
@@ -88,7 +89,7 @@ describe('timer', () => {
     })
 
     it('should execute synchronously', async () => {
-        let timer = new Timer(20, 30, () => Promise.resolve(true), () => {return true}, true)
+        let timer = new Timer(20, 30, () => Promise.resolve(true), true)
         await triggerDelay()
         await expect(timer).resolves
     })
@@ -104,7 +105,7 @@ describe('timer', () => {
         })
 
         it('should trigger timeout event', async () => {
-            runFnInFiberContext.mockImplementation((fn) => {
+            (runFnInFiberContext as jest.Mock).mockImplementation((fn) => {
                 return function (...args) {
                     return fn(...args)
                 }
@@ -130,7 +131,7 @@ describe('timer', () => {
     })
 
     afterEach(() => {
-        runFnInFiberContext.mockClear()
+        (runFnInFiberContext as jest.Mock).mockClear()
         processEmitSpy.mockClear()
     })
 })

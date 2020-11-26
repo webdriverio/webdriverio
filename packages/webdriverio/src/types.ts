@@ -142,7 +142,7 @@ export interface Options extends Omit<WebDriver.Options, 'capabilities'> {
      *
      * @default 'webdriver'
      */
-    automationProtocol?: 'webdriver' | 'devtools'
+    automationProtocol?: 'webdriver' | 'devtools' | './protocol-stub'
     /**
      * Shorten `url` command calls by setting a base URL.
      */

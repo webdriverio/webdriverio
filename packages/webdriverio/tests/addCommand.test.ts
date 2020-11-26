@@ -1,13 +1,14 @@
 import { remote, multiremote } from '../src'
+import type { Options, MultiRemoteOptions } from '../src/types'
 
-const remoteConfig = {
+const remoteConfig: Options = {
     baseUrl: 'http://foobar.com',
     capabilities: {
         browserName: 'foobar-noW3C'
     }
 }
 
-const multiremoteConfig = {
+const multiremoteConfig: MultiRemoteOptions = {
     browserA: {
         logLevel: 'debug',
         capabilities: {
@@ -223,6 +224,7 @@ describe('addCommand', () => {
             } catch (error) {
                 expect(error).toBe(error2)
             }
+            // @ts-ignore uses expect-webdriverio
             expect.assertions(2)
         })
 
@@ -263,6 +265,7 @@ describe('addCommand', () => {
             } catch (error) {
                 expect(error).toBe(error2)
             }
+            // @ts-ignore uses expect-webdriverio
             expect.assertions(2)
         })
     })
