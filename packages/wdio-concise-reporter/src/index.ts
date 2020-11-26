@@ -1,25 +1,6 @@
 import WDIOReporter from '@wdio/reporter'
 import chalk, { Chalk } from 'chalk'
 
-interface Suite extends WDIOReporter {
-    duration: number;
-    fullTitle: string;
-    title: string;
-    type: string;
-    uid: string;
-}
-
-interface SuitServices {
-    onSuiteStart(suite: Suite): void;
-    onSuiteEnd(suite: Suite): void;
-    onTestFail(): any;
-    onRunnerEnd(runner: any): void;
-    printReport(runner: any): void;
-    getCountDisplay(): any;
-    getFailureDisplay(): any;
-    getEnviromentCombo(caps): any;
-
-}
 
 export default class ConciseReporter extends WDIOReporter {
     options!: WDIOReporter.Options;
