@@ -13,16 +13,6 @@ export default class ConciseReporter extends WDIOReporter {
         */
         options = Object.assign(options, { stdout: true })
         super(options)
-
-        // keep track of the order that suites were called
-        this.suiteUids = []
-
-        this.suites = []
-        this.stateCounts = {
-            failed : 0
-        }
-
-        this.chalk = chalk
     }
 
     onSuiteStart (suite: Suite): void {
