@@ -34,8 +34,8 @@ export default class ConciseReporter extends WDIOReporter {
     * Print the Concise report to the screen
     * @param  {Object} runner Wdio runner
     */
-    printReport(runner: any): void {
-        const header = this.chalk.yellow('========= Your concise report ==========')
+    printReport(runner: RunnerStats): void {
+        const header = chalk.yellow('========= Your concise report ==========')
 
         const output = [
             this.getEnviromentCombo(runner.capabilities),
