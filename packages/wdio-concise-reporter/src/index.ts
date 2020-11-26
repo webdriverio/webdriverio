@@ -51,7 +51,7 @@ export default class ConciseReporter extends WDIOReporter {
     * @return {String} Count display
     */
     getCountDisplay () {
-        const failedTestsCount = this.stateCounts.failed
+        const failedTestsCount = this._stateCounts.failed
 
         return failedTestsCount > 0
             ? `Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
