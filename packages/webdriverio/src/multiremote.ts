@@ -75,7 +75,7 @@ export default class MultiRemote {
         result: any,
         propertiesObject: Record<string, PropertyDescriptor>
     ) {
-        const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: 'element' }
+        const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
 
         const element = webdriverMonad({}, (client: WebdriverIO.MultiRemoteBrowserObject) => {
             /**
@@ -132,11 +132,11 @@ interface MultiRemoteClient {
 export class MultiRemoteDriver implements Partial<MultiRemoteClient> {
     instances: string[]
     isMultiremote = true as true
-    __propertiesObject__: Record<string, any>
+    __propertiesObject__: Record<string, PropertyDescriptor>
 
     constructor (
         instances: Record<string, WebdriverIO.BrowserObject>,
-        propertiesObject: Record<string, any>
+        propertiesObject: Record<string, PropertyDescriptor>
     ) {
         this.instances = Object.keys(instances)
         this.__propertiesObject__ = propertiesObject
