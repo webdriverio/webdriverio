@@ -166,7 +166,7 @@ describe('Selenium standalone launcher', () => {
         test('simplified mode - multiple browser drivers', async () => {
             const options = {
                 logPath: './',
-                drivers: { chrome: 'latest', firefox: '0.28.0', ie: true, chromiumedge: '87.0.637.0' },
+                drivers: { chrome: 'latest', firefox: '0.28.0', ie: true, chromiumedge: '87.0.637.0', edge: false },
             }
             const capabilities: any = [{ port: 1234 }]
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
