@@ -162,6 +162,32 @@ describe('Selenium standalone launcher', () => {
             expect(processOnSpy).toHaveBeenCalledWith('exit', launcher._stopProcess)
             expect(processOnSpy).toHaveBeenCalledWith('uncaughtException', launcher._stopProcess)
         })
+
+        test('simplified mode - multiple browser drivers', async () => {
+            const options = {
+                logPath: './',
+                drivers: { chrome: 'latest', firefox: '0.28.0', ie: true, chromiumedge: '87.0.637.0', edge: false },
+            }
+            const capabilities: any = [{ port: 1234 }]
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+
+            const seleniumArgs = { drivers: { chrome: { version: 'latest' }, firefox: { version: '0.28.0' }, ie: {}, chromiumedge: { version: '87.0.637.0' } } }
+            expect(launcher.args).toEqual(seleniumArgs)
+            expect(launcher.installArgs).toEqual(seleniumArgs)
+        })
+
+        test('simplified mode - no drivers', async () => {
+            const options = {
+                logPath: './',
+                drivers: {},
+            }
+            const capabilities: any = [{ port: 1234 }]
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+
+            const seleniumArgs = {}
+            expect(launcher.args).toEqual(seleniumArgs)
+            expect(launcher.installArgs).toEqual(seleniumArgs)
+        })
     })
 
     describe('onComplete', () => {
