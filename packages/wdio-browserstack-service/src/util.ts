@@ -22,7 +22,7 @@ type Browser = GenericBrowserCaps & {
 
 /**
  * get browser description for Browserstack service
- * @param {*} cap browser capablities
+ * @param cap browser capablities
  */
 export function getBrowserDescription(cap: BrowserCapabilities) {
     cap = cap || {}
@@ -41,8 +41,9 @@ export function getBrowserDescription(cap: BrowserCapabilities) {
 
 /**
  * get correct browser capabilities object in both multiremote and normal setups
- * @param {*} caps browser capbilities object. In case of multiremote, the object itself should have a property named 'capabilities'
- * @param {*} browserName browser name in case of multiremote
+ * @param browser browser object
+ * @param caps browser capbilities object. In case of multiremote, the object itself should have a property named 'capabilities'
+ * @param browserName browser name in case of multiremote
  */
 export function getBrowserCapabilities(browser: Browser, caps: BrowserCapabilities, browserName: string) {
     if (!browser.isMultiremote) {
@@ -56,7 +57,7 @@ export function getBrowserCapabilities(browser: Browser, caps: BrowserCapabiliti
 
 /**
  * check for browserstack W3C capabilities. Does not support legacy capabilities
- * @param {*} cap browser capabilities
+ * @param cap browser capabilities
  */
 export function isBrowserstackCapability(cap: BrowserCapabilities) {
     return Boolean(cap && cap['bstack:options'])
