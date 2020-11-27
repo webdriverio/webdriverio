@@ -53,7 +53,7 @@ export default class SeleniumStandaloneLauncher {
         this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
 
         // simplified mode
-        if (options.drivers) {
+        if (options.drivers && Object.keys(options.drivers).length > 1) {
             this.args = Object.entries(options.drivers as BrowserDrivers).reduce((acc, [browserDriver, version]) => {
                 if (typeof version === 'string') {
                     acc.drivers![browserDriver] = { version }
