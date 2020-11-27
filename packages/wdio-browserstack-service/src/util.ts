@@ -1,10 +1,31 @@
 import { BROWSER_DESCRIPTION } from './constants'
 
+type BrowserCapabilities = {
+    device: string;
+    os: string;
+    osVersion: string;
+    'os_version': string;
+    browserName: string;
+    browser: string;
+    browserVersion: string;
+    'browser_version': string;
+    'bstack:options': BrowserCapabilities;
+} & {
+    [key: string]: { capabilities: BrowserCapabilities };
+};
+
+type Browser = {
+    isMultiremote: false;
+    capabilities: BrowserCapabilities;
+} & {
+    [key: string]: { capabilities: BrowserCapabilities };
+};
+
 /**
  * get browser description for Browserstack service
  * @param {*} cap browser capablities
  */
-export function getBrowserDescription(cap) {
+export function getBrowserDescription(cap: BrowserCapabilities) {
     cap = cap || {}
     if (cap['bstack:options']) {
         cap = { ...cap, ...cap['bstack:options'] }
@@ -24,7 +45,7 @@ export function getBrowserDescription(cap) {
  * @param {*} caps browser capbilities object. In case of multiremote, the object itself should have a property named 'capabilities'
  * @param {*} browserName browser name in case of multiremote
  */
-export function getBrowserCapabilities(browser, caps, browserName) {
+export function getBrowserCapabilities(browser: Browser, caps: BrowserCapabilities, browserName: string) {
     if (!browser.isMultiremote) {
         return { ...browser.capabilities, ...caps }
     }
@@ -38,6 +59,6 @@ export function getBrowserCapabilities(browser, caps, browserName) {
  * check for browserstack W3C capabilities. Does not support legacy capabilities
  * @param {*} cap browser capabilities
  */
-export function isBrowserstackCapability(cap) {
+export function isBrowserstackCapability(cap: BrowserCapabilities) {
     return Boolean(cap && cap['bstack:options'])
 }
