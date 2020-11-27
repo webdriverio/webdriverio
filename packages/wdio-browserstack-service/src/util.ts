@@ -1,24 +1,23 @@
 import { BROWSER_DESCRIPTION } from './constants'
 
-type BrowserCapabilities = {
-    device: string;
-    os: string;
-    osVersion: string;
-    'os_version': string;
-    browserName: string;
-    browser: string;
-    browserVersion: string;
-    'browser_version': string;
-    'bstack:options': BrowserCapabilities;
-} & {
+type GenericBrowserCaps = {
     [key: string]: { capabilities: BrowserCapabilities };
 };
 
-type Browser = {
-    isMultiremote: false;
-    capabilities: BrowserCapabilities;
-} & {
-    [key: string]: { capabilities: BrowserCapabilities };
+type BrowserCapabilities = GenericBrowserCaps & {
+    device?: string;
+    os?: string;
+    osVersion?: string;
+    'os_version'?: string;
+    browserName?: string;
+    browser?: string;
+    browserVersion?: string;
+    'browser_version'?: string;
+    'bstack:options'?: BrowserCapabilities;
+};
+
+type Browser = GenericBrowserCaps & {
+    isMultiremote?: boolean;
 };
 
 /**
