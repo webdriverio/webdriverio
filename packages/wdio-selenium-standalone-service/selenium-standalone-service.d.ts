@@ -27,10 +27,10 @@ interface SeleniumStandaloneOptions {
      * simplified way to pass browser driver versions
      */
     drivers?: {
-        chrome?: string
-        firefox?: string
-        chromiumedge?: string
-        ie?: string
-        edge?: string
+        chrome?: string | boolean
+        firefox?: string | boolean
+        chromiumedge?: string | boolean
+        ie?: string | boolean
+        edge?: string | boolean
     };
 }

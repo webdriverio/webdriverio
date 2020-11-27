@@ -20,11 +20,11 @@ const DEFAULT_CONNECTION = {
 type SeleniumStartArgs = Partial<import('selenium-standalone').StartOpts>
 type SeleniumInstallArgs = Partial<import('selenium-standalone').InstallOpts>
 type BrowserDrivers = {
-    chrome?: string
-    firefox?: string
-    chromiumedge?: string
-    ie?: string
-    edge?: string
+    chrome?: string | boolean
+    firefox?: string | boolean
+    chromiumedge?: string | boolean
+    ie?: string | boolean
+    edge?: string | boolean
 }
 
 export default class SeleniumStandaloneLauncher {
@@ -55,7 +55,11 @@ export default class SeleniumStandaloneLauncher {
         // simplified mode
         if (options.drivers) {
             this.args = Object.entries(options.drivers as BrowserDrivers).reduce((acc, [browserDriver, version]) => {
-                acc.drivers![browserDriver] = { version }
+                if (typeof version === 'string') {
+                    acc.drivers![browserDriver] = { version }
+                } else if (version === true) {
+                    acc.drivers![browserDriver] = {}
+                }
                 return acc
             }, { drivers: {} } as SeleniumStartArgs)
             this.installArgs = { ...this.args } as SeleniumInstallArgs
