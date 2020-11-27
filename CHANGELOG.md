@@ -17,6 +17,20 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.2 (2020-11-27)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#6164](https://github.com/webdriverio/webdriverio/pull/6164) Trigger change event if selecting an option in devtools ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#6163](https://github.com/webdriverio/webdriverio/pull/6163) Improve behavior fetching CSS shorthand properties ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v6.10.1 (2020-11-25)
 
 #### :bug: Bug Fix
