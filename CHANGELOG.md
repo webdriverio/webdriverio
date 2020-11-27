@@ -17,6 +17,21 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.3 (2020-11-27)
+
+#### :rocket: New Feature
+* `wdio-selenium-standalone-service`
+  * [#6171](https://github.com/webdriverio/webdriverio/pull/6171) selenium-standalone: simplify config ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `wdio-static-server-service`
+  * [#6173](https://github.com/webdriverio/webdriverio/pull/6173) Add back promisify bind fix  ([@pmdartus](https://github.com/pmdartus))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Pierre-Marie Dartus ([@pmdartus](https://github.com/pmdartus))
+
+
 ## v6.10.2 (2020-11-27)
 
 #### :bug: Bug Fix
