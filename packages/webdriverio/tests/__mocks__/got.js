@@ -148,6 +148,20 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
     case `${path}/${sessionId}/element/${genericElementId}/css/width`:
         value = '1250px'
         break
+    case `${path}/${sessionId}/element/${genericElementId}/css/margin-top`:
+    case `${path}/${sessionId}/element/${genericElementId}/css/margin-right`:
+    case `${path}/${sessionId}/element/${genericElementId}/css/margin-bottom`:
+    case `${path}/${sessionId}/element/${genericElementId}/css/margin-left`:
+        value = '42px'
+        break
+    case `${path}/${sessionId}/element/${genericElementId}/css/padding-top`:
+    case `${path}/${sessionId}/element/${genericElementId}/css/padding-bottom`:
+        value = '4px'
+        break
+    case `${path}/${sessionId}/element/${genericElementId}/css/padding-right`:
+    case `${path}/${sessionId}/element/${genericElementId}/css/padding-left`:
+        value = '2px'
+        break
     case `${path}/${sessionId}/element/${genericElementId}/property/tagName`:
         value = 'BODY'
         break
