@@ -176,6 +176,19 @@ describe('Selenium standalone launcher', () => {
             expect(launcher.installArgs).toEqual(seleniumArgs)
         })
 
+        test('simplified mode - single browser driver', async () => {
+            const options = {
+                logPath: './',
+                drivers: { chrome: 'latest' },
+            }
+            const capabilities: any = [{ port: 1234 }]
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+
+            const seleniumArgs = { drivers: { chrome: { version: 'latest' } } }
+            expect(launcher.args).toEqual(seleniumArgs)
+            expect(launcher.installArgs).toEqual(seleniumArgs)
+        })
+
         test('simplified mode - no drivers', async () => {
             const options = {
                 logPath: './',
