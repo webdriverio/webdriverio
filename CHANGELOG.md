@@ -17,6 +17,17 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.5 (2020-11-30)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6183](https://github.com/webdriverio/webdriverio/pull/6183) Fix `isFocused` command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.10.4 (2020-11-30)
 
 #### :bug: Bug Fix
