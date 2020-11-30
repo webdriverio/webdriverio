@@ -71,7 +71,7 @@ describe('uploadFile', () => {
                 browserName: 'chrome'
             }
         })
-        browser.file = jest.fn().mockReturnValue(Promise.resolve())
+        browser.file = jest.fn().mockReturnValue(Promise.resolve('/some/local/path'))
 
         const archiverMock = archiver()
         const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
@@ -82,8 +82,9 @@ describe('uploadFile', () => {
         archiverMock.on.mock.calls[1][1](Buffer.alloc(33))
         archiverMock.on.mock.calls[2][1]()
 
-        await command
+        const localPath = await command
         expect(browser.file).toBeCalledWith('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==')
+        expect(localPath).toBe('/some/local/path')
     })
 
     afterEach(() => {
