@@ -9,10 +9,13 @@
     const path = require('path');
 
     it('should upload a file', function () {
-        const filePath = path.join(__dirname, '/local/path/to/your/file');
+        browser.url('https://the-internet.herokuapp.com/upload')
 
-        const remoteFilePath = browser.uploadFile(filePath);
-        $('.upload-data-file-input').setValue(remoteFilePath);
+        const filePath = '/path/to/some/file.png'
+        const remoteFilePath = browser.uploadFile(filePath)
+
+        $('#file-upload').setValue(remoteFilePath)
+        $('#file-submit').click()
     });
  * </example>
  *
@@ -29,7 +32,7 @@ import archiver from 'archiver'
 export default async function uploadFile (
     this: WebdriverIO.BrowserObject,
     localPath: string
-): Promise<void> {
+): Promise<string> {
     /**
      * parameter check
      */
@@ -53,7 +56,7 @@ export default async function uploadFile (
             .on('data', (data: Uint8Array) => zipData.push(data))
             .on('end', () => this.file(
                 Buffer.concat(zipData).toString('base64')
-            ).then(() => resolve(), reject))
+            ).then((localPath) => resolve(localPath), reject))
             .append(source, { name: path.basename(localPath) })
             .finalize()
     })
