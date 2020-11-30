@@ -262,7 +262,7 @@ describe('wdio-logger node', () => {
 
                     writableBuffer = scenario.writableBuffer
 
-                    expect(await nodeLogger.waitForBuffer()).toBe(true)
+                    expect(await nodeLogger.waitForBuffer()).toBe(undefined)
                 })
             })
 
@@ -298,7 +298,7 @@ describe('wdio-logger node', () => {
     })
     describe('waitForBuffer with no logFile', () => {
         it('should be ok if logFile is undefined', async () => {
-            expect(await nodeLogger.waitForBuffer()).toBe(true)
+            expect(await nodeLogger.waitForBuffer()).toBe(undefined)
         })
     })
 })
