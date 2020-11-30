@@ -205,6 +205,8 @@ const requestMock = jest.fn().mockImplementation((uri, params) => {
             result = params.json.args[0][ELEMENT_KEY] === 'some-elem-123'
                 ? { [ELEMENT_KEY]: 'some-next-elem' }
                 : {}
+        } else if (params.json.script.includes('function isFocused')) {
+            result = true
         } else {
             result = script.apply(this, args)
         }
