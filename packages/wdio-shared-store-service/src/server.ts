@@ -48,9 +48,9 @@ const startServer = () => new Promise((resolve, reject) => {
     })
 })
 
-const stopServer = () => new Promise((resolve) => {
+const stopServer = () => new Promise<void>((resolve) => {
     if (app.server.close) {
-        return app.server.close(resolve)
+        return app.server.close(() => resolve())
     }
     resolve()
 })

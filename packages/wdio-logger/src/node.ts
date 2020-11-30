@@ -134,7 +134,7 @@ export default function getLogger (name: string) {
  * Wait for writable stream to be flushed.
  * Calling this prevents part of the logs in the very env to be lost.
  */
-getLogger.waitForBuffer = async () => new Promise(resolve => {
+getLogger.waitForBuffer = async () => new Promise<void>(resolve => {
     // @ts-ignore
     if (logFile && Array.isArray(logFile.writableBuffer) && logFile.writableBuffer.length !== 0) {
         return setTimeout(async () => {
@@ -142,7 +142,7 @@ getLogger.waitForBuffer = async () => new Promise(resolve => {
             resolve()
         }, 20)
     }
-    resolve(true)
+    resolve()
 })
 getLogger.setLevel = (name: string, level: log.LogLevelDesc) => loggers[name].setLevel(level)
 getLogger.clearLogger = () => {

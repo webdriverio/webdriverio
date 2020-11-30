@@ -112,7 +112,7 @@ export default class DevToolsDriver {
                 if (err.message.includes('most likely because of a navigation')) {
                     log.debug('Command failed due to unfinished page transition, retrying...')
                     const page = self.getPageHandle()
-                    await new Promise((resolve, reject) => {
+                    await new Promise<void>((resolve, reject) => {
                         const pageloadTimeout = setTimeout(
                             () => reject(new Error('page load timeout')),
                             self.timeouts.get('pageLoad'))
