@@ -17,6 +17,26 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.4 (2020-11-30)
+
+#### :bug: Bug Fix
+* `wdio-logger`, `webdriverio`
+  * [#6178](https://github.com/webdriverio/webdriverio/pull/6178) Fix uploadFile command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-selenium-standalone-service`
+  * [#6176](https://github.com/webdriverio/webdriverio/pull/6176) selenium-standalone: fix driver keys condition ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6177](https://github.com/webdriverio/webdriverio/pull/6177) add winappdriver and ywinappdriver service ([@licanhua](https://github.com/licanhua))
+
+#### Committers: 3
+- Canhua Li ([@licanhua](https://github.com/licanhua))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v6.10.3 (2020-11-27)
 
 #### :rocket: New Feature
