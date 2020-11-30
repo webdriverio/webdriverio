@@ -32,9 +32,10 @@
   {
     "packageName": "wdio-ui5-service",
     "title": "UI5",
-    "githubUrl": "https://github.com/js-soft/wdi5/develop",
+    "githubUrl": "https://github.com/js-soft/wdi5",
+    "branch": "develop",
     "npmUrl": "https://www.npmjs.com/package/wdio-ui5-service",
-    "location": "wdio-ui5-service/README.md"
+    "location": "/wdio-ui5-service/README.md"
   },
   {
     "packageName": "wdio-wiremock-service",
@@ -88,12 +89,14 @@
     "packageName": "wdio-winappdriver-service",
     "title": "winappdriver",
     "githubUrl": "https://github.com/licanhua/wdio-winappdriver-service",
+    "branch": "main",
     "npmUrl": "https://www.npmjs.com/package/wdio-winappdriver-service"
   },
   {
     "packageName": "wdio-ywinappdriver-service",
     "title": "ywinappdriver",
     "githubUrl": "https://github.com/licanhua/wdio-ywinappdriver-service",
+    "branch": "main",
     "npmUrl": "https://www.npmjs.com/package/wdio-ywinappdriver-service"
   }
 ]
