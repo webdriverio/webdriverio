@@ -83,5 +83,17 @@
     "title": "Re-run",
     "githubUrl": "https://github.com/jwplayer/wdio-rerun-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-rerun-service"
+  },
+  {
+    "packageName": "wdio-winappdriver-service",
+    "title": "winappdriver",
+    "githubUrl": "https://github.com/licanhua/wdio-winappdriver-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-winappdriver-service"
+  },
+  {
+    "packageName": "wdio-ywinappdriver-service",
+    "title": "ywinappdriver",
+    "githubUrl": "https://github.com/licanhua/wdio-ywinappdriver-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-ywinappdriver-service"
   }
 ]
