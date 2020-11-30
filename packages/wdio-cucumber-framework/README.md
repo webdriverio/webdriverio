@@ -153,4 +153,43 @@ Type: `RegExp`
 
 ----
 
+## Troubleshooting
+
+### Reporting format
+
+You may notice while browsing this library and looking at the cucumber and WebdriverIO docs, that the term reporter is used in a few places.
+
+If you require changing the CLI reporting format, you may wish to look at the documentation on the [spec reporter](/docs/spec-reporter.html#installation).
+
+Using the spec reporter can produce output such as the following contrived example:
+
+```
+ "spec" Reporter:
+------------------------------------------------------------------
+[chrome 87.0.4280.66 windows #0-0] Spec: ####################################\e2e\features\login.feature
+[chrome 87.0.4280.66 windows #0-0] Running: chrome (v87.0.4280.66) on windows
+[chrome 87.0.4280.66 windows #0-0] Session ID: 0fa689bb8b4fb47b83f8e343983d1059
+[chrome 87.0.4280.66 windows #0-0]
+[chrome 87.0.4280.66 windows #0-0] Login
+[chrome 87.0.4280.66 windows #0-0]     As a user, I recieve an error message when using invalid credentials to log into the application
+[chrome 87.0.4280.66 windows #0-0]        ✓ Given I am on the login page
+[chrome 87.0.4280.66 windows #0-0]        ✓ When I login with ############ and empty_string
+[chrome 87.0.4280.66 windows #0-0]        ✓ Then I should see an error message saying The password field is empty.
+[chrome 87.0.4280.66 windows #0-0]
+[chrome 87.0.4280.66 windows #0-0]     As a user, I recieve an error message when using invalid credentials to log into the application
+[chrome 87.0.4280.66 windows #0-0]        ✓ Given I am on the login page
+[chrome 87.0.4280.66 windows #0-0]        ✓ When I login with empty_string and ############
+[chrome 87.0.4280.66 windows #0-0]        ✓ Then I should see an error message saying The username field is empty.
+[chrome 87.0.4280.66 windows #0-0]
+[chrome 87.0.4280.66 windows #0-0]     As a user, I can login
+[chrome 87.0.4280.66 windows #0-0]        ✓ Given I am on the login page
+[chrome 87.0.4280.66 windows #0-0]        ✓ When I login as an admin
+[chrome 87.0.4280.66 windows #0-0]        ✓ Then I should be on the admin dashboard page
+[chrome 87.0.4280.66 windows #0-0]
+[chrome 87.0.4280.66 windows #0-0] 9 passing (9.6s)
+
+
+Spec Files:      1 passed, 1 total (100% completed) in 00:00:14
+```
+
 For more information on WebdriverIO see the [homepage](http://webdriver.io).
