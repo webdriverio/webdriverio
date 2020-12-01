@@ -1,30 +1,17 @@
-import { BROWSER_DESCRIPTION } from './constants'
+import { BROWSER_DESCRIPTION, BrowserDescription } from './constants'
 
-type GenericBrowserCaps = {
-    [key: string]: { capabilities: BrowserCapabilities };
+type Capabilities = WebDriver.Capabilities & BrowserDescription & {
+    [key: string]: { capabilities: Capabilities };
 };
 
-type BrowserCapabilities = GenericBrowserCaps & {
-    device?: string;
-    os?: string;
-    osVersion?: string;
-    'os_version'?: string;
-    browserName?: string;
-    browser?: string;
-    browserVersion?: string;
-    'browser_version'?: string;
-    'bstack:options'?: BrowserCapabilities;
-};
-
-type Browser = GenericBrowserCaps & {
-    isMultiremote?: boolean;
-};
-
+type Browser = WebdriverIO.BrowserObject & {
+    [key: string]: { capabilities: Capabilities };
+}
 /**
  * get browser description for Browserstack service
  * @param cap browser capablities
  */
-export function getBrowserDescription(cap: BrowserCapabilities) {
+export function getBrowserDescription(cap: Capabilities) {
     cap = cap || {}
     if (cap['bstack:options']) {
         cap = { ...cap, ...cap['bstack:options'] }
@@ -45,7 +32,7 @@ export function getBrowserDescription(cap: BrowserCapabilities) {
  * @param caps browser capbilities object. In case of multiremote, the object itself should have a property named 'capabilities'
  * @param browserName browser name in case of multiremote
  */
-export function getBrowserCapabilities(browser: Browser, caps: BrowserCapabilities, browserName: string) {
+export function getBrowserCapabilities(browser: Browser, caps: Capabilities, browserName: string) {
     if (!browser.isMultiremote) {
         return { ...browser.capabilities, ...caps }
     }
@@ -59,6 +46,6 @@ export function getBrowserCapabilities(browser: Browser, caps: BrowserCapabiliti
  * check for browserstack W3C capabilities. Does not support legacy capabilities
  * @param cap browser capabilities
  */
-export function isBrowserstackCapability(cap: BrowserCapabilities) {
+export function isBrowserstackCapability(cap: Capabilities) {
     return Boolean(cap && cap['bstack:options'])
 }
