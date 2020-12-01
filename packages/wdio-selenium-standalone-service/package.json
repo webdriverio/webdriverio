@@ -32,7 +32,7 @@
     "@wdio/config": "6.10.4",
     "@wdio/logger": "6.10.4",
     "fs-extra": "^9.0.1",
-    "selenium-standalone": "^6.22.1"
+    "selenium-standalone": "^6.23.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"
