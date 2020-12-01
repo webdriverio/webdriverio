@@ -31,6 +31,17 @@ export interface Suite {
     type: string
     start: any
     _duration : number
+    hooks: [{error: string, title: string, _duration: string, state:string}]
+}
+
+export interface Data {
+    type: any
+    method: string
+    endpoint: string
+    sessionId: any
+    body: string
+    command: any
+    params: string
 }
 
 export default class JunitReporter extends WDIOReporter {
@@ -51,18 +62,18 @@ export default class JunitReporter extends WDIOReporter {
         this.suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp ? this.options.suiteNameFormat : /[^a-zA-Z0-9]+/
     }
 
-    onRunnerEnd (runner : Runner ) {
+    onRunnerEnd (runner : Runner ): void {
         const xml = this.buildJunitXml(runner)
         this.write(xml)
     }
 
-    prepareName (name = 'Skipped test') {
+    prepareName (name = 'Skipped test'): string {
         return name.split(this.suiteNameRegEx).filter(
             (item) => item && item.length
         ).join('_')
     }
 
-    addFailedHooks(suite) {
+    addFailedHooks(suite: Suite): Suite {
         /**
          * Add failed hooks to suite as tests.
          */
@@ -80,7 +91,7 @@ export default class JunitReporter extends WDIOReporter {
         return suite
     }
 
-    addCucumberFeatureToBuilder(builder: any, runner : Runner, specFileName : string, suite: Suite) {
+    addCucumberFeatureToBuilder(builder: any, runner : Runner, specFileName : string, suite: Suite): any {
         const featureName = this.prepareName(suite.title)
         const filePath = specFileName.replace(process.cwd(), '.')
 
@@ -148,7 +159,7 @@ export default class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    addSuiteToBuilder(builder: any, runner: Runner, specFileName : string, suite: Suite) {
+    addSuiteToBuilder(builder: any, runner: Runner, specFileName : string, suite: Suite): any {
         const suiteName = this.prepareName(suite.title)
         const filePath = specFileName.replace(process.cwd(), '.')
 
@@ -202,7 +213,7 @@ export default class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    buildJunitXml (runner : Runner) {
+    buildJunitXml (runner : Runner): any {
         let builder = junit.newBuilder()
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
@@ -254,9 +265,9 @@ export default class JunitReporter extends WDIOReporter {
         return builder.build()
     }
 
-    getStandardOutput (test) {
-        let standardOutput = []
-        test.output.forEach((data) => {
+    getStandardOutput (test: any): string {
+        let standardOutput: string[] = []
+        test.output.forEach((data: Data) => {
             switch (data.type) {
             case 'command':
                 standardOutput.push(
@@ -274,7 +285,7 @@ export default class JunitReporter extends WDIOReporter {
         return standardOutput.length ? standardOutput.join('\n') : ''
     }
 
-    format (val : string) {
+    format (val : string): string {
         return JSON.stringify(limit(val))
     }
 }
