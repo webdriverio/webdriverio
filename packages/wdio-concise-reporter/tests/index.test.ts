@@ -19,16 +19,11 @@ describe('ConciseReporter', () => {
 
     describe('on create', () => {
         it('should verify initial properties', () => {
-            // @ts-ignore
-            expect(Array.isArray(reporter._suiteUids)).toBe(true)
-            // @ts-ignore
-            expect(reporter._suiteUids.length).toBe(0)
-            // @ts-ignore
-            expect(Array.isArray(reporter._suites)).toBe(true)
-            // @ts-ignore
-            expect(reporter._suites.length).toBe(0)
-            // @ts-ignore
-            expect(reporter._stateCounts).toEqual({
+            expect(Array.isArray(reporter['_suiteUids'])).toBe(true)
+            expect(reporter['_suiteUids'].length).toBe(0)
+            expect(Array.isArray(reporter['_suites'])).toBe(true)
+            expect(reporter['_suites'].length).toBe(0)
+            expect(reporter['_stateCounts']).toEqual({
                 failed : 0
             })
         })
@@ -40,10 +35,8 @@ describe('ConciseReporter', () => {
         })
 
         it('should add to suiteUids', () => {
-            // @ts-ignore
-            expect(reporter._suiteUids.length).toBe(1)
-            // @ts-ignore
-            expect(reporter._suiteUids[0]).toBe('Foo test1')
+            expect(reporter['_suiteUids'].length).toBe(1)
+            expect(reporter['_suiteUids'][0]).toBe('Foo test1')
         })
     })
 
@@ -53,8 +46,7 @@ describe('ConciseReporter', () => {
         })
 
         it('should increase stateCounts.failed by 1', () => {
-            // @ts-ignore
-            expect(reporter._stateCounts.failed).toBe(1)
+            expect(reporter['_stateCounts'].failed).toBe(1)
         })
     })
 
@@ -64,10 +56,8 @@ describe('ConciseReporter', () => {
         })
 
         it('should add the suite to the suites array', () => {
-            // @ts-ignore
-            expect(reporter._suites.length).toBe(1)
-            // @ts-ignore
-            expect(reporter._suites[0]).toBe(SUITES[0])
+            expect(reporter['_suites'].length).toBe(1)
+            expect(reporter['_suites'][0]).toBe(SUITES[0])
         })
     })
 
@@ -75,10 +65,8 @@ describe('ConciseReporter', () => {
         it('should call printReport method', () => {
             reporter.printReport = jest.fn()
             reporter.onRunnerEnd(RUNNER)
-            // @ts-ignore
-            expect(reporter.printReport.mock.calls.length).toBe(1)
-            // @ts-ignore
-            expect(reporter.printReport.mock.calls[0][0]).toEqual(RUNNER)
+            expect(reporter.printReport['mock'].calls.length).toBe(1)
+            expect(reporter.printReport['mock'].calls[0][0]).toEqual(RUNNER)
         })
     })
 
