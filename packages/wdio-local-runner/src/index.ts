@@ -82,7 +82,7 @@ export default class LocalRunner {
             worker.postMessage('endSession', payload)
         }
 
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             const timeout = setTimeout(resolve, SHUTDOWN_TIMEOUT)
             const interval = setInterval(() => {
                 const busyWorker = Object.entries(this.workerPool)

@@ -17,21 +17,56 @@ const DEFAULT_CONNECTION = {
     path: '/wd/hub'
 }
 
+type SeleniumStartArgs = Partial<import('selenium-standalone').StartOpts>
+type SeleniumInstallArgs = Partial<import('selenium-standalone').InstallOpts>
+type BrowserDrivers = {
+    chrome?: string | boolean
+    firefox?: string | boolean
+    chromiumedge?: string | boolean
+    ie?: string | boolean
+    edge?: string | boolean
+}
+
 export default class SeleniumStandaloneLauncher {
-    capabilities: WebDriver.DesiredCapabilities[] | WebdriverIO.MultiRemoteCapabilities;
+    capabilities: WebDriver.DesiredCapabilities[] | WebdriverIO.MultiRemoteCapabilities
     logPath?: string
-    args: Partial<import('selenium-standalone').StartOpts>;
-    installArgs: Partial<import('selenium-standalone').InstallOpts>;
+    args: SeleniumStartArgs
+    installArgs: SeleniumInstallArgs
     skipSeleniumInstall: boolean
     watchMode: boolean = false
     process!: SeleniumStandalone.ChildProcess
+    drivers?: {
+        chrome?: string
+        firefox?: string
+        chromiumedge?: string
+        ie?: string
+        edge?: string
+    }
 
-    constructor(options: WebdriverIO.ServiceOption, capabilities: WebDriver.DesiredCapabilities[] | WebdriverIO.MultiRemoteCapabilities, config: WebdriverIO.Config) {
+    constructor(
+        options: WebdriverIO.ServiceOption,
+        capabilities: WebDriver.DesiredCapabilities[] | WebdriverIO.MultiRemoteCapabilities,
+        config: WebdriverIO.Config
+    ) {
         this.capabilities = capabilities
         this.logPath = options.logPath || config.outputDir
-        this.args = options.args || {}
-        this.installArgs = options.installArgs || {}
         this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
+
+        // simplified mode
+        if (this.isSimplifiedMode(options)) {
+            this.args = Object.entries(options.drivers as BrowserDrivers).reduce((acc, [browserDriver, version]) => {
+                if (typeof version === 'string') {
+                    acc.drivers![browserDriver] = { version }
+                } else if (version === true) {
+                    acc.drivers![browserDriver] = {}
+                }
+                return acc
+            }, { drivers: {} } as SeleniumStartArgs)
+            this.installArgs = { ...this.args } as SeleniumInstallArgs
+        } else {
+            this.args = options.args || {}
+            this.installArgs = options.installArgs || {}
+        }
     }
 
     async onPrepare(config: WebdriverIO.Config): Promise<void> {
@@ -46,11 +81,11 @@ export default class SeleniumStandaloneLauncher {
          * update capability connection options to connect
          * to standalone server
          */
-        (
-            Array.isArray(this.capabilities)
-                ? this.capabilities
-                : Object.values(this.capabilities)
-        ).forEach((cap: WebDriver.DesiredCapabilities | WebdriverIO.MultiRemoteBrowserOptions) => !isCloudCapability(cap) && Object.assign(cap, DEFAULT_CONNECTION, { ...cap }))
+        const capabilities = Array.isArray(this.capabilities) ? this.capabilities : Object.values(this.capabilities)
+        capabilities.forEach(
+            (cap: WebDriver.DesiredCapabilities | WebdriverIO.MultiRemoteBrowserOptions) =>
+                !isCloudCapability(cap) && Object.assign(cap, DEFAULT_CONNECTION, { ...cap })
+        )
 
         /**
          * start Selenium Standalone server
@@ -92,5 +127,9 @@ export default class SeleniumStandaloneLauncher {
             log.info('shutting down all browsers')
             this.process.kill()
         }
+    }
+
+    private isSimplifiedMode(options: WebdriverIO.ServiceOption) {
+        return options.drivers && Object.keys(options.drivers).length > 0
     }
 }

@@ -119,7 +119,7 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
             })
         })
 
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             log.info(`Wait until tracing for command ${commandName} finishes`)
 
             /**

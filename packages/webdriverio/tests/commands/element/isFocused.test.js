@@ -20,7 +20,7 @@ describe('isFocused test', () => {
     })
 
     it('should allow to check if element is displayed', async () => {
-        await elem.isFocused()
+        expect(await elem.isFocused()).toBe(true)
         expect(got.mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/execute/sync')
         expect(got.mock.calls[2][1].json.args[0]).toEqual({

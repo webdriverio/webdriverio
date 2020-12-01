@@ -17,7 +17,7 @@ const plugins = [{
 }]
 const githubHost = 'https://github.com/'
 const githubRawHost = 'https://raw.githubusercontent.com/'
-const githubReadme = 'master/README.md'
+const githubReadme = '/README.md'
 
 const readmeHeaderLines = 9
 const readmeHeaders = ['===', '# ']
@@ -35,12 +35,12 @@ exports.generate3rdPartyDocs = async (sidebars) => {
         const categoryDir = path.join(DOCS_ROOT_DIR, category)
         await fs.ensureDir(categoryDir)
 
-        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme } of packages3rdParty) {
-            const readme = await downloadReadme(githubUrl, location)
+        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme, branch = 'master' } of packages3rdParty) {
+            const readme = await downloadReadme(githubUrl, branch, location)
             const id = `${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
             const doc = normalizeDoc(readme, githubUrl,
-                buildPreface(id, title, nameSingular, `${githubUrl}/edit/${location}`),
+                buildPreface(id, title, nameSingular, `${githubUrl}/edit/${branch}/${location}`),
                 suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl))
             await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, { encoding: 'utf-8' })
 
@@ -62,9 +62,9 @@ exports.generate3rdPartyDocs = async (sidebars) => {
  * @param {string}              location    file location in repo
  * @return {Promise<string>}                readme content
  */
-function downloadReadme(githubUrl, location = githubReadme) {
+function downloadReadme(githubUrl, branch, location = githubReadme) {
     return new Promise((resolve, reject) => {
-        const url = `${githubUrl}/${location}`.replace(githubHost, githubRawHost)
+        const url = `${githubUrl}/${branch}${location}`.replace(githubHost, githubRawHost)
         // eslint-disable-next-line no-console
         console.log(`Downloading: ${url}`)
         request.get(url, (err, httpResponse, body) => {
