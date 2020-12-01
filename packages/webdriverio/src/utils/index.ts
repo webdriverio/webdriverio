@@ -10,7 +10,6 @@ import isObject from 'lodash.isobject'
 import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
-import type { ConfigOptions } from '@wdio/config'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
 import { findStrategy } from './findStrategy'
