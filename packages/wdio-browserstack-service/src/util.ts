@@ -1,12 +1,12 @@
 import { BROWSER_DESCRIPTION, BrowserDescription } from './constants'
 
 type Capabilities = WebDriver.Capabilities & BrowserDescription & {
-    [key: string]: { capabilities: Capabilities };
+    [key: string]: { capabilities: WebDriver.Capabilities };
 };
 
 type Browser = WebdriverIO.BrowserObject & {
-    [key: string]: { capabilities: Capabilities };
-}
+    [key: string]: { capabilities: WebDriver.Capabilities };
+};
 /**
  * get browser description for Browserstack service
  * @param cap browser capablities
