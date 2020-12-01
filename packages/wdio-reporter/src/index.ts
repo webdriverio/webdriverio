@@ -257,3 +257,5 @@ export default class WDIOReporter extends EventEmitter {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onRunnerEnd(runnerStats: RunnerStats) { }
 }
+
+export { SuiteStats, HookStats, TestStats, RunnerStats }
