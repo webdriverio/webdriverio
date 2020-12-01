@@ -23,4 +23,14 @@ interface SeleniumStandaloneOptions {
      * Boolean for skipping `selenium-standalone` server install.
      */
     skipSeleniumInstall?: boolean;
+    /**
+     * simplified way to pass browser driver versions
+     */
+    drivers?: {
+        chrome?: string | boolean
+        firefox?: string | boolean
+        chromiumedge?: string | boolean
+        ie?: string | boolean
+        edge?: string | boolean
+    };
 }

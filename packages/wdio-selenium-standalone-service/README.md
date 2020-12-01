@@ -14,7 +14,7 @@ The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependenc
 ```json
 {
     "devDependencies": {
-        "@wdio/selenium-standalone-service": "^6.6.1"
+        "@wdio/selenium-standalone-service": "^6.11.0"
     }
 }
 ```
@@ -29,8 +29,23 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-By default, Google Chrome and Firefox are available when installed on the host system. In order to use the service you need to add `selenium-standalone` to your service array:
+By default, ChromeDriver, geckodriver and some other browser drivers based on the OS are available when installed on the host system. In order to use the service you need to add `selenium-standalone` to your service array:
 
+```js
+/**
+ * simplified mode (available since v6.11.0)
+ * set `true` to use the version provided by `selenium-standalone`, 'latest' by default
+*/
+export.config = {
+    // ...
+    services: [
+        ['selenium-standalone', { drivers: { firefox: '0.28.0', chrome: true, chromiumedge: 'latest' } }]
+    ],
+    // ...
+};
+```
+
+Control browser driver installation/running separately.
 ```js
 // wdio.conf.js
 const drivers = {
@@ -44,8 +59,8 @@ export.config = {
     services: [
         ['selenium-standalone', {
             logPath: 'logs',
-            installArgs: { drivers },
-            args: { drivers }
+            installArgs: { drivers }, // drivers to install
+            args: { drivers } // drivers to use
         }]
     ],
     // ...

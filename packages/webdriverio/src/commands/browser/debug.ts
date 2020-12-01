@@ -113,5 +113,5 @@ export default function debug(
         }
     })
 
-    return new Promise((resolve) => (commandResolve = resolve))
+    return new Promise<void>((resolve) => (commandResolve = resolve))
 }
