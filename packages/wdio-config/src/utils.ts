@@ -1,4 +1,3 @@
-import WebDriver from 'webdriver'
 import type { DefaultOptions } from './types'
 
 const DEFAULT_HOSTNAME = '127.0.0.1'
