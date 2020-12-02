@@ -27,39 +27,39 @@ describe('wdio-sumologic-reporter', () => {
 
     it('should push to event bucket for every event', () => {
         expect(reporter['_unsynced']).toHaveLength(0)
-        reporter.onRunnerStart('onRunnerStart')
+        reporter.onRunnerStart('onRunnerStart' as any)
         expect(reporter['_unsynced']).toHaveLength(1)
         expect(reporter['_unsynced'][0]).toContain('"event":"runner:start"')
         expect(reporter['_unsynced'][0]).toContain('"data":"onRunnerStart"')
-        reporter.onSuiteStart('onSuiteStart')
+        reporter.onSuiteStart('onSuiteStart' as any)
         expect(reporter['_unsynced']).toHaveLength(2)
         expect(reporter['_unsynced'][1]).toContain('"event":"suite:start"')
         expect(reporter['_unsynced'][1]).toContain('"data":"onSuiteStart"')
-        reporter.onTestStart('onTestStart')
+        reporter.onTestStart('onTestStart' as any)
         expect(reporter['_unsynced']).toHaveLength(3)
         expect(reporter['_unsynced'][2]).toContain('"event":"test:start"')
         expect(reporter['_unsynced'][2]).toContain('"data":"onTestStart"')
-        reporter.onTestSkip('onTestSkip')
+        reporter.onTestSkip('onTestSkip' as any)
         expect(reporter['_unsynced']).toHaveLength(4)
         expect(reporter['_unsynced'][3]).toContain('"event":"test:skip"')
         expect(reporter['_unsynced'][3]).toContain('"data":"onTestSkip"')
-        reporter.onTestPass('onTestPass')
+        reporter.onTestPass('onTestPass' as any)
         expect(reporter['_unsynced']).toHaveLength(5)
         expect(reporter['_unsynced'][4]).toContain('"event":"test:pass"')
         expect(reporter['_unsynced'][4]).toContain('"data":"onTestPass"')
-        reporter.onTestFail('onTestFail')
+        reporter.onTestFail('onTestFail' as any)
         expect(reporter['_unsynced']).toHaveLength(6)
         expect(reporter['_unsynced'][5]).toContain('"event":"test:fail"')
         expect(reporter['_unsynced'][5]).toContain('"data":"onTestFail"')
-        reporter.onTestEnd('onTestEnd')
+        reporter.onTestEnd('onTestEnd' as any)
         expect(reporter['_unsynced']).toHaveLength(7)
         expect(reporter['_unsynced'][6]).toContain('"event":"test:end"')
         expect(reporter['_unsynced'][6]).toContain('"data":"onTestEnd"')
-        reporter.onSuiteEnd('onSuiteEnd')
+        reporter.onSuiteEnd('onSuiteEnd' as any)
         expect(reporter['_unsynced']).toHaveLength(8)
         expect(reporter['_unsynced'][7]).toContain('"event":"suite:end"')
         expect(reporter['_unsynced'][7]).toContain('"data":"onSuiteEnd"')
-        reporter.onRunnerEnd('onRunnerEnd')
+        reporter.onRunnerEnd('onRunnerEnd' as any)
         expect(reporter['_unsynced']).toHaveLength(9)
         expect(reporter['_unsynced'][8]).toContain('"event":"runner:end"')
         expect(reporter['_unsynced'][8]).toContain('"data":"onRunnerEnd"')
@@ -72,7 +72,7 @@ describe('wdio-sumologic-reporter', () => {
         })
 
         it('has no source address set up', async () => {
-            reporter.onRunnerStart('onRunnerStart')
+            reporter.onRunnerStart('onRunnerStart' as any)
             await reporter.sync()
             expect(got.mock.calls).toHaveLength(0)
         })
@@ -80,7 +80,7 @@ describe('wdio-sumologic-reporter', () => {
 
     it('should sync', async () => {
         reporter['_options'].sourceAddress = 'http://localhost:1234'
-        reporter.onRunnerStart('onRunnerStart')
+        reporter.onRunnerStart('onRunnerStart' as any)
         await reporter.sync()
 
         expect(got.mock.calls).toHaveLength(1)
@@ -95,7 +95,7 @@ describe('wdio-sumologic-reporter', () => {
         (logger('').error as jest.Mock).mockClear()
 
         reporter['_options'].sourceAddress = 'http://localhost:1234/sumoerror'
-        reporter.onRunnerStart('onRunnerStart')
+        reporter.onRunnerStart('onRunnerStart' as any)
 
         await reporter.sync()
 
@@ -105,9 +105,20 @@ describe('wdio-sumologic-reporter', () => {
 
     it('should be synchronised when no unsynced messages', async () => {
         reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
-        reporter.onRunnerStart('onRunnerStart')
+        reporter.onRunnerStart('onRunnerStart' as any)
         expect(reporter.isSynchronised).toBe(false)
         await reporter.sync()
         expect(reporter.isSynchronised).toBe(true)
+    })
+
+    it('should stop the timer if runner ended', async () => {
+        reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
+        reporter.onRunnerStart('onRunnerStart' as any)
+        reporter.onRunnerEnd('onRunnerStart' as any)
+        expect(clearInterval).toBeCalledTimes(0)
+        await reporter.sync()
+        expect(clearInterval).toBeCalledTimes(0)
+        await reporter.sync()
+        expect(clearInterval).toBeCalledTimes(1)
     })
 })

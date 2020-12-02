@@ -41,7 +41,7 @@ export default class WDIOReporter extends EventEmitter {
     retries = 0
     runnerStat?: RunnerStats
 
-    constructor(public options: WDIOReporterOptions) {
+    constructor(public options: Partial<WDIOReporterOptions>) {
         super()
 
         // ensure the report directory exists

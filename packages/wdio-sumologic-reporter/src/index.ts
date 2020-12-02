@@ -2,7 +2,7 @@ import got from 'got'
 import dateFormat from 'dateformat'
 import stringify from 'json-stringify-safe'
 
-import WDIOReporter, { SuiteStats, RunnerStats, TestStats } from '@wdio/reporter'
+import WDIOReporter, { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
 import type { Options } from './types'
@@ -21,6 +21,7 @@ export default class SumoLogicReporter extends WDIOReporter {
 
     private _unsynced: string[] = []
     private _isSynchronising = false
+    private _hasRunnerEnd = false
 
     constructor(options: WebdriverIO.ServiceOption) {
         super(options)
@@ -110,6 +111,7 @@ export default class SumoLogicReporter extends WDIOReporter {
     }
 
     onRunnerEnd(runner: RunnerStats) {
+        this._hasRunnerEnd = true
         this._unsynced.push(stringify({
             time: dateFormat(new Date(), DATE_FORMAT),
             event: 'runner:end',
@@ -118,6 +120,13 @@ export default class SumoLogicReporter extends WDIOReporter {
     }
 
     async sync() {
+        /**
+         * clear intervall if everything was synced
+         */
+        if (this._hasRunnerEnd && this._unsynced.length === 0) {
+            clearInterval(this._interval)
+        }
+
         /**
          * don't synchronise logs if
          *  - we've already send out a request and are waiting for the successful response
