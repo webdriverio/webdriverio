@@ -10,7 +10,7 @@ const FirefoxProfile = jest.fn(() => ({
     }),
 }))
 
-FirefoxProfile.copy = jest.fn((profileDirectory, cb) => {
+FirefoxProfile['copy'] = jest.fn((profileDirectory, cb) => {
     cb(null, new FirefoxProfile())
 })
 

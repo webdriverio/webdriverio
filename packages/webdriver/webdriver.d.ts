@@ -333,6 +333,7 @@ declare namespace WebDriver {
 
         'goog:chromeOptions'?: ChromeOptions;
         'moz:firefoxOptions'?: FirefoxOptions;
+        firefox_profile?: string,
         'ms:edgeOptions'?: MicrosoftEdgeOptions;
         'ms:edgeChromium'?: MicrosoftEdgeOptions;
     }

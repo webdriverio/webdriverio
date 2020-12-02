@@ -1,5 +1,7 @@
 import Launcher from '../src/launcher'
 import FirefoxProfile from 'firefox-profile'
+import type WebDriver from 'webdriver'
+import type WebdriverIO from 'webdriverio'
 
 describe('Firefox profile service', () => {
     describe('onPrepare', () => {
@@ -17,17 +19,17 @@ describe('Firefox profile service', () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
-            const capabilities = [{
+            const capabilities: WebDriver.DesiredCapabilities[] = [{
                 browserName : 'firefox',
             }]
 
             const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
 
-            expect(service.profile.setPreference).toHaveBeenCalledTimes(1)
-            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
-            expect(service.profile.updatePreferences).toHaveBeenCalled()
-            expect(service.profile.addExtensions).not.toHaveBeenCalled()
+            expect(service['_profile'].setPreference).toHaveBeenCalledTimes(1)
+            expect(service['_profile'].setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
+            expect(service['_profile'].updatePreferences).toHaveBeenCalled()
+            expect(service['_profile'].addExtensions).not.toHaveBeenCalled()
 
             expect(capabilities[0].firefox_profile).toBe(undefined)
             expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
@@ -38,17 +40,17 @@ describe('Firefox profile service', () => {
                 'browser.startup.homepage': 'https://webdriver.io',
                 legacy: true
             }
-            const capabilities = [{
+            const capabilities: WebDriver.DesiredCapabilities[] = [{
                 browserName : 'firefox',
             }]
 
             const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
 
-            expect(service.profile.setPreference).toHaveBeenCalledTimes(1)
-            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
-            expect(service.profile.updatePreferences).toHaveBeenCalled()
-            expect(service.profile.addExtensions).not.toHaveBeenCalled()
+            expect(service['_profile'].setPreference).toHaveBeenCalledTimes(1)
+            expect(service['_profile'].setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
+            expect(service['_profile'].updatePreferences).toHaveBeenCalled()
+            expect(service['_profile'].addExtensions).not.toHaveBeenCalled()
 
             expect(capabilities[0].firefox_profile).toBe('foobar')
             expect(capabilities[0]['moz:firefoxOptions']).toEqual(undefined)
@@ -58,7 +60,7 @@ describe('Firefox profile service', () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
-            const capabilities = [{
+            const capabilities: WebDriver.DesiredCapabilities[] = [{
                 browserName : 'firefox',
                 'moz:firefoxOptions': {
                     args: ['-headless']
@@ -68,30 +70,30 @@ describe('Firefox profile service', () => {
             const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
 
-            expect(service.profile.setPreference).toHaveBeenCalledTimes(1)
-            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
-            expect(service.profile.updatePreferences).toHaveBeenCalled()
-            expect(service.profile.addExtensions).not.toHaveBeenCalled()
+            expect(service['_profile'].setPreference).toHaveBeenCalledTimes(1)
+            expect(service['_profile'].setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
+            expect(service['_profile'].updatePreferences).toHaveBeenCalled()
+            expect(service['_profile'].addExtensions).not.toHaveBeenCalled()
 
             expect(capabilities[0]['moz:firefoxOptions']).toEqual({ args: ['-headless'], profile : 'foobar' })
         })
 
         test('should set preferences with extensions', async () => {
             const options = { extensions : ['/foo/bar.xpi'] }
-            const capabilities = [{ browserName : 'firefox' }]
+            const capabilities: WebDriver.DesiredCapabilities[] = [{ browserName : 'firefox' }]
 
             const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
 
             expect(capabilities[0]['moz:firefoxOptions']).toEqual({ profile : 'foobar' })
-            expect(service.profile.addExtensions.mock.calls[0][0]).toBe(options.extensions)
+            expect((service['_profile'].addExtensions as jest.Mock).mock.calls[0][0]).toBe(options.extensions)
         })
 
         test('should not set capabilities when not firefox browser', async () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
-            const capabilities = [{
+            const capabilities: WebDriver.DesiredCapabilities[] = [{
                 browserName : 'firefox',
             }, {
                 browserName : 'chrome'
@@ -109,7 +111,7 @@ describe('Firefox profile service', () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
-            const capabilities = {
+            const capabilities: WebdriverIO.MultiRemoteCapabilities = {
                 firefox : {
                     capabilities : {
                         browserName : 'firefox',
@@ -127,9 +129,9 @@ describe('Firefox profile service', () => {
             const options = {
                 'browser.startup.homepage': 'https://webdriver.io',
             }
-            const capabilities = {
+            const capabilities: WebdriverIO.MultiRemoteCapabilities = {
                 foo : {
-                    capabilities : {
+                    capabilities: {
                         browserName : 'chrome',
                     }
                 }
@@ -146,28 +148,28 @@ describe('Firefox profile service', () => {
             const options = {
                 extensions : ['/foo/bar.xpi'],
                 'browser.startup.homepage': 'https://webdriver.io',
-                proxy : 'foo'
+                proxy : { proxyType: 'direct' as const }
             }
-            const capabilities = [{
+            const capabilities: WebDriver.DesiredCapabilities[] = [{
                 browserName : 'firefox',
             }]
 
             const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
 
-            expect(service.profile.setProxy).toHaveBeenCalledTimes(1)
-            expect(service.profile.setProxy).toHaveBeenCalledWith(options.proxy)
+            expect(service['_profile'].setProxy).toHaveBeenCalledTimes(1)
+            expect(service['_profile'].setProxy).toHaveBeenCalledWith(options.proxy)
 
-            expect(service.profile.setPreference).toHaveBeenCalledTimes(1)
-            expect(service.profile.setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
-            expect(service.profile.updatePreferences).toHaveBeenCalled()
+            expect(service['_profile'].setPreference).toHaveBeenCalledTimes(1)
+            expect(service['_profile'].setPreference).toHaveBeenCalledWith('browser.startup.homepage', 'https://webdriver.io')
+            expect(service['_profile'].updatePreferences).toHaveBeenCalled()
         })
 
         test('should load from directory if profileDirectory is set', async () => {
             const options = {
-                profileDirectory: '/tmp/firefox-profile',
+                profileDirectory: '/tmp/firefox-profile'
             }
-            const capabilities = [{
+            const capabilities: WebDriver.DesiredCapabilities[] = [{
                 browserName : 'firefox',
             }]
 
@@ -176,5 +178,24 @@ describe('Firefox profile service', () => {
 
             expect(FirefoxProfile.copy).toHaveBeenCalledWith(options.profileDirectory, expect.any(Function))
         })
+
+        test('should not continue if profile could not be created', async () => {
+            const options = {
+                profileDirectory: '/tmp/firefox-profile'
+            }
+            const capabilities: WebDriver.DesiredCapabilities[] = [{
+                browserName : 'firefox',
+            }]
+
+            ;(FirefoxProfile.copy as any as jest.Mock).mockImplementationOnce((profileDirectory: string, cb: Function) => cb())
+            const service = new Launcher(options)
+            await service.onPrepare({}, capabilities)
+        })
+    })
+
+    test('should return when no firefoxProfile set in the config', async () => {
+        const service = new Launcher({})
+        service['_setPreferences']()
+        service['_buildExtension']([])
     })
 })
