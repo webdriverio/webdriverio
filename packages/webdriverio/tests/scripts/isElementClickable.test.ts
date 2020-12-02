@@ -5,7 +5,7 @@ describe('isElementClickable script', () => {
         global.window = {
             innerWidth: 800,
             innerHeight: 600
-        }
+        } as any
     })
 
     it('should be clickable if in viewport and elementFromPoint matches', () => {
@@ -21,8 +21,8 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: () => jest.fn(),
             contains: () => false
-        }
-        global.document = { elementFromPoint: () => elemMock }
+        } as any as Element
+        global.document = { elementFromPoint: () => elemMock } as any
 
         expect(isElementClickable(elemMock)).toBe(true)
     })
@@ -40,8 +40,8 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: () => jest.fn(),
             contains: () => true
-        }
-        global.document = { elementFromPoint: () => 'some element' }
+        } as any as Element
+        global.document = { elementFromPoint: () => 'some element' as any } as any
 
         expect(isElementClickable(elemMock)).toBe(true)
     })
@@ -59,15 +59,15 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: jest.fn(),
             contains: () => { throw new Error('should not be called in old Edge!') }
-        }
+        } as any as Element
         // emulate old Edge
-        global.window.StyleMedia = () => { }
+        global.window.StyleMedia = (() => { }) as any
 
         let attempts = 0
         global.document = { elementFromPoint: () => {
             attempts += 1
             return { parentNode: attempts > 4 ? elemMock : {} }
-        } }
+        } } as any
 
         expect(isElementClickable(elemMock)).toBe(true)
         expect(elemMock.scrollIntoView).toBeCalledWith(false)
@@ -88,15 +88,15 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: jest.fn(),
             contains: () => { throw new Error('should not be called in old Edge!') }
-        }
+        } as any as Element
         // emulate old Edge
-        global.window.StyleMedia = () => { }
+        global.window.StyleMedia = (() => { }) as any
 
         let attempts = 0
         global.document = { elementFromPoint: () => {
             attempts += 1
             return { parentNode: attempts > 4 ? elemMock : {} }
-        } }
+        } } as any
 
         expect(isElementClickable(elemMock)).toBe(true)
         expect(elemMock.scrollIntoView).toBeCalledWith(false)
@@ -121,13 +121,13 @@ describe('isElementClickable script', () => {
             }],
             scrollIntoView: () => jest.fn(),
             contains: () => false
-        }
+        } as any as Element
         global.document = {
             // only return elemMock in getOverlappingRects
             elementFromPoint: (x) => {
                 return x > 45500 ? elemMock : null
             }
-        }
+        } as any
 
         expect(isElementClickable(elemMock)).toBe(true)
     })
@@ -145,7 +145,7 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: () => jest.fn(),
             contains: () => false
-        }
+        } as any as Element
         global.document = {
             elementFromPoint: () => ({
                 shadowRoot: {
@@ -154,7 +154,7 @@ describe('isElementClickable script', () => {
                     })
                 }
             })
-        }
+        } as any
 
         expect(isElementClickable(elemMock)).toBe(true)
     })
@@ -173,8 +173,8 @@ describe('isElementClickable script', () => {
             scrollIntoView: () => jest.fn(),
             contains: () => false,
             disabled: true
-        }
-        global.document = { elementFromPoint: () => elemMock }
+        } as any as Element
+        global.document = { elementFromPoint: () => elemMock } as any
 
         expect(isElementClickable(elemMock)).toBe(false)
     })
@@ -192,8 +192,8 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: jest.fn(),
             contains: () => false
-        }
-        global.document = { elementFromPoint: () => null }
+        } as any as Element
+        global.document = { elementFromPoint: () => null } as any
 
         expect(isElementClickable(elemMock)).toBe(false)
         expect(elemMock.scrollIntoView).toBeCalledWith({ block: 'nearest', inline: 'nearest' })
@@ -213,12 +213,12 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: () => jest.fn(),
             contains: () => false
-        }
+        } as any as Element
         global.document = {
             elementFromPoint: () => ({
                 shadowRoot: { elementFromPoint: () => null }
             })
-        }
+        } as any
 
         expect(isElementClickable(elemMock)).toBe(false)
     })
@@ -234,8 +234,8 @@ describe('isElementClickable script', () => {
             getClientRects: () => [{}],
             scrollIntoView: () => jest.fn(),
             contains: () => false
-        }
-        global.document = { elementFromPoint: () => elemMock }
+        } as any as Element
+        global.document = { elementFromPoint: () => elemMock } as any
 
         expect(isElementClickable(elemMock)).toBe(false)
     })
@@ -245,7 +245,9 @@ describe('isElementClickable script', () => {
     })
 
     afterAll(() => {
+        // @ts-ignore
         delete global.window.innerWidth
+        // @ts-ignore
         delete global.window.innerHeight
     })
 })

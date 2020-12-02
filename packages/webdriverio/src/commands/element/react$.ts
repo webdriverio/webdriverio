@@ -51,7 +51,7 @@ export default async function react$(
     await this.execute(waitToLoadReact)
     const res = await this.execute(
         react$Script, selector, props, state, this
-    ) as any as WebdriverIO.ElementReference
+    ) as any as WebDriver.ElementReference
 
     return getElement.call(this, selector, res, true)
 }

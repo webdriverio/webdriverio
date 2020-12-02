@@ -4,24 +4,22 @@ const browserMock = {
     mockRequest: jest.fn().mockReturnValue({ mockId: 123 }),
     getMockCalls: jest.fn().mockReturnValue([1, 2, 3]),
     clearMockCalls: jest.fn().mockReturnValue({}),
-    restoreMockCalls: jest.fn().mockReturnValue({}),
     respondMock: jest.fn().mockReturnValue({}),
     call: jest.fn((cb) => cb())
-}
+} as any as WebdriverIO.BrowserObject
 
 beforeEach(() => {
-    browserMock.mockRequest.mockClear()
-    browserMock.getMockCalls.mockClear()
-    browserMock.clearMockCalls.mockClear()
-    browserMock.restoreMockCalls.mockClear()
-    browserMock.respondMock.mockClear()
-    browserMock.call.mockClear()
+    (browserMock.mockRequest as jest.Mock).mockClear()
+    ;(browserMock.getMockCalls as jest.Mock).mockClear()
+    ;(browserMock.clearMockCalls as jest.Mock).mockClear()
+    ;(browserMock.respondMock as jest.Mock).mockClear()
+    ;(browserMock.call as jest.Mock).mockClear()
 })
 
 test('init', async () => {
-    const mock = new NetworkInterception('**/foobar/**', { foo: 'bar' }, browserMock)
+    const mock = new NetworkInterception('**/foobar/**', { headers: { foo: 'bar' } }, browserMock)
     await mock.init()
-    expect(browserMock.mockRequest).toBeCalledWith('**/foobar/**', { foo: 'bar' })
+    expect(browserMock.mockRequest).toBeCalledWith('**/foobar/**', { headers: { foo: 'bar' } })
     expect(mock.mockId).toBe(123)
 })
 
@@ -49,12 +47,12 @@ test('restore', async () => {
 test('respond', async () => {
     const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
     await mock.init()
-    expect(await mock.respond('foo', 'bar')).toEqual({})
+    expect(await mock.respond('foo', { headers: { foo: 'bar' } })).toEqual({})
     expect(browserMock.respondMock).toBeCalledWith(
         123,
         {
             overwrite: 'foo',
-            params: 'bar',
+            params: { headers: { foo: 'bar' } },
             sticky: true
         }
     )
@@ -77,12 +75,12 @@ test('respond without params', async () => {
 test('respondOnce', async () => {
     const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
     await mock.init()
-    expect(await mock.respondOnce('foo', 'bar')).toEqual({})
+    expect(await mock.respondOnce('foo', { headers: { foo: 'bar' } })).toEqual({})
     expect(browserMock.respondMock).toBeCalledWith(
         123,
         {
             overwrite: 'foo',
-            params: 'bar'
+            params: { headers: { foo: 'bar' } }
         }
     )
 })
@@ -115,7 +113,8 @@ test('abort', async () => {
 })
 
 test('abort fails if invalid error reason was provided', async () => {
-    const mock = new NetworkInterception('**/foobar/**')
+    const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
+    // @ts-ignore uses expect-webdriverio
     expect.assertions(1)
 
     try {

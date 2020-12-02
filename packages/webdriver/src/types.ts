@@ -348,20 +348,35 @@ export interface ChromeCapabilities {
 // Appium General Capabilities
 export interface AppiumCapabilities {
     automationName?: string;
+    'appium:automationName'?: string;
     platformVersion?: string;
+    'appium:platformVersion'?: string;
     deviceName?: string;
+    'appium:deviceName'?: string;
     app?: string;
+    'appium:app'?: string;
     newCommandTimeout?: number;
+    'appium:newCommandTimeout'?: number;
     language?: string;
+    'appium:language'?: string;
     locale?: string;
+    'appium:locale'?: string;
     udid?: string;
+    'appium:udid'?: string;
     orientation?: string;
+    'appium:orientation'?: string;
     autoWebview?: boolean;
+    'appium:autoWebview'?: boolean;
     noReset?: boolean;
+    'appium:noReset'?: boolean;
     fullReset?: boolean;
+    'appium:fullReset'?: boolean;
     eventTimings?: boolean;
+    'appium:eventTimings'?: boolean;
     enablePerformanceLogging?: boolean;
+    'appium:enablePerformanceLogging'?: boolean;
     printPageSourceOnFindFailure?: boolean;
+    'appium:printPageSourceOnFindFailure'?: boolean;
 }
 
 export interface AppiumAndroidCapabilities {

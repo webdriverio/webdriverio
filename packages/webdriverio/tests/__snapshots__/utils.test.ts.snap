@@ -9,7 +9,7 @@ Object {
         "foo",
         "bar",
         "-remote-debugging-port",
-        1234,
+        "1234",
         "barfoo",
       ],
     },

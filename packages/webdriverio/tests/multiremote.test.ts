@@ -1,8 +1,11 @@
-import got from 'got'
-
+// @ts-ignore mocked (original defined in webdriver package)
+import gotMock from 'got'
 import { multiremote } from '../src'
+import type { MultiRemoteOptions } from '../src/types'
 
-const caps = () => ({
+const got = gotMock as any as jest.Mock
+
+const caps = (): MultiRemoteOptions => ({
     browserA: {
         logLevel: 'debug',
         capabilities: {

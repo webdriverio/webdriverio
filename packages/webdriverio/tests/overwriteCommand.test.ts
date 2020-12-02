@@ -1,13 +1,14 @@
+import type { MultiRemoteOptions, Options } from '../src/types'
 import { remote, multiremote } from '../src'
 
-const remoteConfig = {
+const remoteConfig: Options = {
     baseUrl: 'http://foobar.com',
     capabilities: {
         browserName: 'foobar-noW3C'
     }
 }
 
-const multiremoteConfig = {
+const multiremoteConfig: MultiRemoteOptions = {
     browserA: {
         logLevel: 'debug',
         capabilities: {

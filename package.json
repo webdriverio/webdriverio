@@ -6,7 +6,7 @@
     "backport": "node ./scripts/backport.js",
     "bootstrap-full": "npm run clean && lerna bootstrap --no-ci && npm run link",
     "bootstrap": "run-p clean:* && lerna bootstrap --force-local && npm run link",
-    "build": "run-s clean:build compile copy",
+    "build": "run-s clean:build generate:typings compile copy",
     "changelog": "node ./scripts/changelog.js",
     "ci": "run-s setup-full test test:e2e",
     "clean": "run-p clean-full:* clean:*",
@@ -94,7 +94,7 @@
     "tempy": "^1.0.0",
     "ts-jest": "^26.3.0",
     "ts-node": "^9.0.0",
-    "typescript": "^4.0.2",
+    "typescript": "4.0.5",
     "url-join": "^4.0.1"
   },
   "husky": {

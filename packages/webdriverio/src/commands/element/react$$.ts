@@ -41,7 +41,7 @@ export default async function react$$(
     await this.execute(waitToLoadReact)
     const res = await this.execute(
         react$$Script, selector, props, state, this
-    ) as any as WebdriverIO.ElementReference[]
+    ) as any as WebDriver.ElementReference[]
 
     const elements = await getElements.call(this, selector, res, true)
     return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])

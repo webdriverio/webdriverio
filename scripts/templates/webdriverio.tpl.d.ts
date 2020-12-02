@@ -691,7 +691,7 @@ declare namespace WebdriverIO {
          */
         addLocatorStrategy(
             name: string,
-            func: (selector: string) => HTMLElement | HTMLElement[]
+            func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
         ): void
         // ... browser commands ...
     }
@@ -710,7 +710,7 @@ declare namespace WebdriverIO {
         /**
          * flag to indicate multiremote browser session
          */
-        isMultiremote: true;
+        isMultiremote: boolean;
     }
 
     type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference

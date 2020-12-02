@@ -1,6 +1,9 @@
+// @ts-ignore mocked (original defined in webdriver package)
+import gotMock from 'got'
 import { remote } from '../../src'
-import got from 'got'
 import refetchElement from '../../src/utils/refetchElement'
+
+const got = gotMock as any as jest.Mock
 
 jest.mock('../../src/commands/element/waitForExist', () => ({
     __esModule: true,
@@ -53,6 +56,7 @@ describe('refetchElement', () => {
 
     it('should successfully refetch an element that isn\'t immediately present', async () => {
         const elem = await browser.$('#foo')
+        // @ts-ignore mock feature
         got.retryCnt = 0
         const notFound = await browser.$('#slowRerender')
         const refetchedElement = await refetchElement(notFound, 'click')

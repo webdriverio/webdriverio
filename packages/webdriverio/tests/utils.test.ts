@@ -1,6 +1,7 @@
 import fs from 'fs'
 import http from 'http'
 import path from 'path'
+import type { Options } from '../src/types'
 
 import { ELEMENT_KEY } from '../src/constants'
 import {
@@ -43,10 +44,12 @@ describe('utils', () => {
         })
 
         it('should return null if response is undfined', () => {
+            // @ts-ignore test invalid parameter
             expect(getElementFromResponse()).toBe(null)
         })
 
         it('should find element from JSONWireProtocol response', () => {
+            // @ts-ignore depcrecated functionality
             expect(getElementFromResponse({ ELEMENT: 'foobar' })).toBe('foobar')
         })
 
@@ -55,6 +58,7 @@ describe('utils', () => {
         })
 
         it('should throw otherwise', () => {
+            // @ts-ignore test invalid parameter
             expect(getElementFromResponse({ invalid: 'response ' })).toBe(null)
         })
     })
@@ -69,7 +73,7 @@ describe('utils', () => {
                         }
                     }
                 }
-            })).toEqual({ foo: 'bar' })
+            } as any)).toEqual({ foo: 'bar' })
         })
     })
 
@@ -131,10 +135,6 @@ describe('utils', () => {
     })
 
     describe('parseCSS', () => {
-        it('should return null if css prop is null', () => {
-            expect(parseCSS()).toBe(null)
-        })
-
         it('should parse colors properly', () => {
             expect(parseCSS('rgba(0, 136, 204, 1)', 'color')).toEqual({
                 property: 'color',
@@ -149,7 +149,8 @@ describe('utils', () => {
 
             expect(parseCSS('#0088cc', 'color')).toEqual({
                 property: 'color',
-                value: '#0088cc'
+                value: '#0088cc',
+                parsed: {}
             })
         })
 
@@ -236,7 +237,7 @@ describe('utils', () => {
             { [ELEMENT_KEY]: 'foobar' },
             { [ELEMENT_KEY]: 'barfoo' }
         ]
-        let scope
+        let scope: WebdriverIO.Element
 
         beforeEach(() => {
             scope = {
@@ -245,7 +246,7 @@ describe('utils', () => {
                 findElements: jest.fn(),
                 findElement: jest.fn(),
                 execute: jest.fn()
-            }
+            } as any as WebdriverIO.Element
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -263,8 +264,8 @@ describe('utils', () => {
         })
 
         it('fetches element using a function with browser scope', async () => {
-            scope.execute.mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope, () => { return global.document.body })
+            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
+            const elem = await findElement.call(scope, () => { return global.document.body }) as WebdriverIO.Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -273,18 +274,21 @@ describe('utils', () => {
 
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
-            scope.execute.mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope, () => { return global.document.body })
+            ;(scope.execute as jest.Mock).mockReturnValue(elementResponse)
+            const elem = await findElement.call(scope, () => { return global.document.body }) as WebdriverIO.Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
             expect(elem[ELEMENT_KEY]).toBe('foobar')
-            expect(scope.execute.mock.calls[0][1]).toEqual(scope)
+            expect((scope.execute as jest.Mock).mock.calls[0][1]).toEqual(scope)
         })
 
         it('should return only one element if multiple are returned', async () => {
-            scope.execute.mockReturnValue(elementsResponse)
-            const elem = await findElement.call(scope, () => { return global.document.body })
+            (scope.execute as jest.Mock).mockReturnValue(elementsResponse)
+            const elem = await findElement.call(
+                scope,
+                () => { return global.document.body as any as WebDriver.ElementReference }
+            ) as WebdriverIO.Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -292,8 +296,8 @@ describe('utils', () => {
         })
 
         it('throws if element response is malformed', async () => {
-            scope.execute.mockReturnValue(malformedElementResponse)
-            const res = await findElement.call(scope, () => { return global.document.body })
+            (scope.execute as jest.Mock).mockReturnValue(malformedElementResponse)
+            const res = await findElement.call(scope, () => { return global.document.body }) as Error
             expect(res instanceof Error)
             expect(res.message).toMatch('did not return an HTMLElement')
         })
@@ -314,7 +318,7 @@ describe('utils', () => {
             { [ELEMENT_KEY]: 'foobar' },
             { [ELEMENT_KEY]: 'barfoo' }
         ]
-        let scope
+        let scope: WebdriverIO.Element
 
         beforeEach(() => {
             scope = {
@@ -323,7 +327,7 @@ describe('utils', () => {
                 findElements: jest.fn(),
                 findElement: jest.fn(),
                 execute: jest.fn()
-            }
+            } as any as WebdriverIO.Element
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -341,7 +345,7 @@ describe('utils', () => {
         })
 
         it('fetches element using a function with browser scope', async () => {
-            scope.execute.mockReturnValue(elementResponse)
+            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
             const elem = await findElements.call(scope, () => { return global.document.body })
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
@@ -352,18 +356,18 @@ describe('utils', () => {
 
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
-            scope.execute.mockReturnValue(elementResponse)
+            ;(scope.execute as jest.Mock).mockReturnValue(elementResponse)
             const elem = await findElements.call(scope, () => { return global.document.body })
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
             expect(elem).toHaveLength(1)
             expect(elem[0][ELEMENT_KEY]).toBe('foobar')
-            expect(scope.execute.mock.calls[0][1]).toEqual(scope)
+            expect((scope.execute as jest.Mock).mock.calls[0][1]).toEqual(scope)
         })
 
         it('should return multiple elements if multiple are returned', async () => {
-            scope.execute.mockReturnValue(elementsResponse)
+            (scope.execute as jest.Mock).mockReturnValue(elementsResponse)
             const elem = await findElements.call(scope, () => { return global.document.body })
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
@@ -372,7 +376,7 @@ describe('utils', () => {
         })
 
         it('should filter out malformed responses', async () => {
-            scope.execute.mockReturnValue([...elementsResponse, 'foobar'])
+            (scope.execute as jest.Mock).mockReturnValue([...elementsResponse, 'foobar'])
             const elem = await findElements.call(scope, () => { return global.document.body })
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
@@ -381,7 +385,7 @@ describe('utils', () => {
         })
 
         it('throws if element response is malformed', async () => {
-            scope.execute.mockReturnValue(malformedElementResponse)
+            (scope.execute as jest.Mock).mockReturnValue(malformedElementResponse)
             const res = await findElements.call(scope, () => { return global.document.body })
             expect(res).toHaveLength(0)
         })
@@ -396,6 +400,7 @@ describe('utils', () => {
     })
     describe('verifyArgsAndStripIfElement', () => {
         class Element {
+            elementId: string
             constructor({ elementId, ...otherProps }) {
                 this.elementId = elementId
                 Object.keys(otherProps).forEach(key => this[key] = otherProps[key])
@@ -434,6 +439,7 @@ describe('utils', () => {
         })
 
         it('throws error if element object is missing element id', () => {
+            // @ts-ignore test scenario
             const fakeObj = new Element({
                 someProp: 123,
                 anotherProp: 'abc',
@@ -450,7 +456,7 @@ describe('utils', () => {
                 elementId: 123,
                 getElementRect: jest.fn(() => Promise.resolve({ x: 10, width: 300, height: 400 })),
                 execute: jest.fn(() => Promise.resolve({ x: 11, y: 22, width: 333, height: 444 }))
-            }
+            } as any as WebdriverIO.Element
             expect(await getElementRect(fakeScope)).toEqual({ x: 10, y: 22, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).toHaveBeenCalled()
@@ -482,7 +488,7 @@ describe('utils', () => {
     describe('assertDirectoryExists', () => {
         beforeEach(() => {
             const fsOrig = jest.requireActual('fs')
-            fs.existsSync.mockImplementation(fsOrig.existsSync.bind(fsOrig))
+            ;(fs.existsSync as jest.Mock).mockImplementation(fsOrig.existsSync.bind(fsOrig))
         })
 
         it('should fail if not existing directory', () => {
@@ -525,6 +531,7 @@ describe('utils', () => {
         })
 
         it('should default to devtools if /status request fails', async () => {
+            // @ts-ignore mock feature
             http.setResponse({ statusCode: 404 })
             expect(await getAutomationProtocol({}))
                 .toBe('devtools')
@@ -533,6 +540,7 @@ describe('utils', () => {
         })
 
         it('should default to webdriver if browserName is not supported with DevTools automation protocol', async () => {
+            // @ts-ignore mock feature
             http.setResponse({ statusCode: 404 })
             expect(await getAutomationProtocol({ capabilities: { browserName: 'foobar' } }))
                 .toBe('webdriver')
@@ -541,7 +549,7 @@ describe('utils', () => {
 
     describe('updateCapabilities', () => {
         it('should do nothing if no browser specified', async () => {
-            const params = { capabilities: {} }
+            const params: Options = { capabilities: {} }
             await updateCapabilities(params)
             expect(params).toMatchSnapshot()
         })
@@ -558,11 +566,11 @@ describe('utils', () => {
             })
 
             it('should not overwrite if already set', async () => {
-                const params = {
+                const params: Options = {
                     capabilities: {
                         browserName: 'firefox',
                         'moz:firefoxOptions': {
-                            args: ['foo', 'bar', '-remote-debugging-port', 1234, 'barfoo']
+                            args: ['foo', 'bar', '-remote-debugging-port', '1234', 'barfoo']
                         }
                     }
                 }

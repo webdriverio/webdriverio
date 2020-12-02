@@ -49,12 +49,9 @@ export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
 }
 
-export function isCloudCapability(conf: { capabilities?: WebDriver.DesiredCapabilities } | WebDriver.DesiredCapabilities) {
-    const hasCapabilities = (conf: any): conf is { capabilities?: WebDriver.DesiredCapabilities } => conf && conf.capabilities
-
-    const cap = hasCapabilities(conf) ? conf.capabilities : conf
-
-    return Boolean(cap && (cap['bstack:options'] || cap['sauce:options'] || cap['tb:options']))
+export function isCloudCapability(capabilities: WebDriver.DesiredCapabilities | WebdriverIO.MultiRemoteBrowserOptions) {
+    const caps = (capabilities as WebdriverIO.MultiRemoteBrowserOptions).capabilities || capabilities
+    return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
 }
 
 interface BackendConfigurations {

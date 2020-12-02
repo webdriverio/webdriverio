@@ -1,4 +1,3 @@
-import path from 'path'
 import http from 'http'
 import logger from '@wdio/logger'
 import { detectBackend, validateConfig } from '@wdio/config'
@@ -19,6 +18,7 @@ jest.mock('webdriver', () => {
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
     newSessionMock.mockImplementation((params, cb) => {
         let result = cb(client, params)
+        // @ts-ignore mock feature
         if (params.test_multiremote) {
             result.options = { logLevel: 'error' }
         }
@@ -44,6 +44,7 @@ jest.mock('devtools', () => {
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
     newSessionMock.mockImplementation((params, cb) => {
         let result = cb(client, params)
+        // @ts-ignore mock feature
         if (params.test_multiremote) {
             result.options = { logLevel: 'error' }
         }
@@ -133,6 +134,7 @@ describe('WebdriverIO module interface', () => {
             const devtoolsBrowser = await remote({ capabilities: { browserName: 'chrome' } })
             expect(devtoolsBrowser.isDevtools).toBe(true)
 
+            // @ts-ignore mock feature
             http.setResonse({ statusCode: 200 })
             const webdriverBrowser = await remote({ capabilities: { browserName: 'chrome' } })
             expect(webdriverBrowser.isWebDriver).toBe(true)
@@ -143,16 +145,6 @@ describe('WebdriverIO module interface', () => {
             })
 
             expect(anotherWebdriverBrowser.isWebDriver).toBe(true)
-        })
-
-        it('should set process.env.WDIO_LOG_PATH if outputDir is set in the options', async()=>{
-            let testDirPath = './logs'
-            await remote({
-                automationProtocol: 'webdriver',
-                outputDir: testDirPath,
-                capabilities: { browserName: 'firefox' }
-            })
-            expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
         })
 
         it('should not wrap custom commands into fiber context if used as standalone', async () => {
@@ -194,6 +186,7 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('throws error if trying to overwrite locator strategy', async () => {
+            // @ts-ignore uses expect-webdriverio
             expect.assertions(1)
             const browser = await remote({
                 automationProtocol: 'webdriver',
@@ -210,7 +203,7 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('should properly create stub instance', async () => {
-            validateConfig.mockReturnValueOnce({
+            (validateConfig as jest.Mock).mockReturnValueOnce({
                 automationProtocol: './protocol-stub'
             })
             const browser = await remote({ capabilities: { browserName: 'chrome' } })
@@ -240,11 +233,13 @@ describe('WebdriverIO module interface', () => {
         it('register multiple clients', async () => {
             await multiremote({
                 browserA: {
+                    // @ts-ignore mock feature
                     test_multiremote: true,
                     automationProtocol: 'webdriver',
                     capabilities: { browserName: 'chrome' }
                 },
                 browserB: {
+                    // @ts-ignore mock feature
                     test_multiremote: true,
                     automationProtocol: 'webdriver',
                     capabilities: { browserName: 'firefox' }
@@ -256,8 +251,16 @@ describe('WebdriverIO module interface', () => {
 
         it('should attach custom locators to the strategies', async () => {
             const driver = await multiremote({
-                browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
-                browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
+                browserA: {
+                    // @ts-ignore mock feature
+                    test_multiremote: true,
+                    capabilities: { browserName: 'chrome' }
+                },
+                browserB: {
+                    // @ts-ignore mock feature
+                    test_multiremote: true,
+                    capabilities: { browserName: 'firefox' }
+                }
             })
 
             const fakeFn = () => { return 'test'}
@@ -266,9 +269,12 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('throws error if trying to overwrite locator strategy', async () => {
+            // @ts-ignore uses expect-webdriverio
             expect.assertions(1)
             const driver = await multiremote({
+                // @ts-ignore mock feature
                 browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
+                // @ts-ignore mock feature
                 browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
             })
 
@@ -284,7 +290,7 @@ describe('WebdriverIO module interface', () => {
 
     describe('attach', () => {
         it('attaches', () => {
-            attach({})
+            attach({ sessionId: 'foobar' })
             expect(WebDriver.attachToSession).toBeCalled()
         })
     })

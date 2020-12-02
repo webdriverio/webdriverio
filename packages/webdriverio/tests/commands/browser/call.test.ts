@@ -12,9 +12,9 @@ describe('call command', () => {
         })
     })
 
-    it('should call a fn and return result', () => {
+    it('should call a fn and return result', async () => {
         const callFn = jest.fn(() => Promise.resolve(true))
-        const result = browser.call(callFn)
+        const result = await browser.call(callFn)
         expect(callFn).toBeCalled()
         expect(result).toEqual(true)
     })

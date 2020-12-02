@@ -21,25 +21,6 @@ describe('getCSSProperty test', () => {
         expect(property.parsed.value).toBe(1250)
     })
 
-    it('should expand shorthand property and fetch for all', async () => {
-        const browser = await remote({
-            baseUrl: 'http://foobar.com',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
-        const elem = await browser.$('#foo')
-        const margin = await elem.getCSSProperty('margin')
-        expect(margin.value).toBe('42px')
-        expect(margin.parsed.value).toBe(42)
-
-        const padding = await elem.getCSSProperty('padding')
-        expect(padding.value).toBe('4px 2px')
-        expect(padding.parsed.length).toBe(2)
-        expect(padding.parsed[0].value).toBe(4)
-        expect(padding.parsed[1].value).toBe(2)
-    })
-
     afterEach(() => {
         got.mockClear()
     })
