@@ -1,35 +1,107 @@
 {
-  "name": "@wdio/concise-reporter",
-  "version": "6.8.1",
-  "description": "A concise reporter for WebdriverIO",
-  "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-concise-reporter",
-  "license": "MIT",
-  "main": "./build/index",
-  "engines": {
-    "node": ">=10.0.0"
+  "name": "webdriverio-monorepo",
+  "private": true,
+  "scripts": {
+    "create": "node ./scripts/generateSubPackage",
+    "backport": "node ./scripts/backport.js",
+    "bootstrap-full": "npm run clean && lerna bootstrap --no-ci && npm run link",
+    "bootstrap": "run-p clean:* && lerna bootstrap --force-local && npm run link",
+    "build": "run-s clean:build compile copy",
+    "changelog": "node ./scripts/changelog.js",
+    "ci": "run-s setup-full test test:e2e",
+    "clean": "run-p clean-full:* clean:*",
+    "clean:build": "rimraf ./packages/*/build",
+    "clean:pkglock": "rimraf ./packages/*/package-lock.json",
+    "clean:tgz": "rimraf ./packages/*/*.tgz",
+    "clean:node_modules": "rimraf ./packages/node_modules",
+    "clean:website": "rimraf docs/_*.md docs/api/_*.md docs/api/**/_*.md website/sidebars.json",
+    "clean:tests": "rimraf tests/typings/**/node_modules tests/typings/**/dist ./coverage",
+    "clean:cache": "rimraf .eslintcache",
+    "clean-full:package_modules": "rimraf ./packages/*/node_modules",
+    "compile": "node ./scripts/build",
+    "copy": "lerna run --parallel copy",
+    "generate:typings": "node ./scripts/type-generation/generate-all-typings.js",
+    "link": "node ./scripts/link",
+    "pushReleaseTag": "node ./scripts/pushTags.js",
+    "setup-full": "run-s bootstrap-full build",
+    "setup": "run-s bootstrap build",
+    "docs": "run-s docs:*",
+    "docs:setup": "cd ./website && npm install && cd ..",
+    "docs:generate": "npm run clean:website && node ./scripts/docs-generation/generateDocs.js",
+    "docs:build": "cd ./website && npm run build && cd ..",
+    "docs:deploy": "node ./scripts/updateDocs.js",
+    "test": "run-s test:depcheck test:eslint test:typings test:coverage test:smoke",
+    "test:depcheck": "node ./scripts/depcheck.js",
+    "test:eslint": "eslint --cache packages examples scripts tests",
+    "test:typings": "npm run generate:typings && node tests/typings/copy && npm run ts && npm run clean:tests",
+    "test:coverage": "node --max-old-space-size=8192 ./node_modules/jest/bin/jest.js --coverage --logHeapUsage",
+    "test:smoke": "ts-node ./tests/smoke.runner.js",
+    "test:e2e": "jest --config e2e/jest.config.js",
+    "test:e2e:edge": "npm run test:e2e -- --testMatch '**/edge.e2e.js'",
+    "test:e2e:firefox": "npm run test:e2e -- --testMatch '<rootDir>/standalone/firefox.e2e.js'",
+    "ts": "run-p ts:*",
+    "ts:sync": "cd tests/typings/sync && tsc --incremental",
+    "ts:devtools": "cd tests/typings/devtools && tsc --incremental",
+    "ts:sync-applitools": "cd tests/typings/sync-applitools && tsc --incremental",
+    "ts:sync-browserstack": "cd tests/typings/sync-browserstack && tsc --incremental",
+    "ts:sync-devtools-service": "cd tests/typings/sync-devtools-service && tsc --incremental",
+    "ts:sync-saucelabs": "cd tests/typings/sync-saucelabs && tsc --incremental",
+    "ts:sync-mocha": "cd tests/typings/sync-mocha && tsc --incremental",
+    "ts:sync-jasmine": "cd tests/typings/sync-jasmine && tsc --incremental",
+    "ts:sync-cucumber": "cd tests/typings/sync-cucumber && tsc --incremental",
+    "ts:webdriverio": "cd tests/typings/webdriverio && tsc --incremental",
+    "ts:webdriverio-applitools": "cd tests/typings/webdriverio-applitools && tsc --incremental",
+    "ts:webdriverio-browserstack": "cd tests/typings/webdriverio-browserstack && tsc --incremental",
+    "ts:webdriverio-saucelabs": "cd tests/typings/webdriverio-saucelabs && tsc --incremental",
+    "ts:webdriverio-devtools": "cd tests/typings/sync-devtools && tsc --incremental",
+    "ts:webdriverio-devtools-service": "cd tests/typings/webdriverio-devtools-service && tsc --incremental",
+    "ts:webdriverio-mocha": "cd tests/typings/webdriverio-mocha && tsc --incremental",
+    "ts:webdriverio-jasmine": "cd tests/typings/webdriverio-jasmine && tsc --incremental",
+    "ts:webdriverio-reporter": "cd tests/typings/webdriverio-reporter && tsc --incremental",
+    "watch": "node ./scripts/build --watch",
+    "version": "npm run changelog && git add CHANGELOG.md"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+  "devDependencies": {
+    "@octokit/rest": "^18.0.0",
+    "@tsconfig/node10": "^1.0.7",
+    "@types/jest": "^26.0.0",
+    "@types/node": "^12.19.3",
+    "@typescript-eslint/eslint-plugin": "^4.4.0",
+    "@typescript-eslint/parser": "^4.4.0",
+    "aws-sdk": "^2.539.0",
+    "cheerio": "^1.0.0-rc.3",
+    "codecov": "^3.6.1",
+    "copyfiles": "^2.1.1",
+    "cucumber": "^6.0.5",
+    "del": "^5.1.0",
+    "depcheck": "^1.0.0",
+    "dox": "^0.9.0",
+    "ejs": "^3.0.2",
+    "eslint": "^7.10.0",
+    "husky": "^4.2.3",
+    "inquirer": "^7.0.0",
+    "jest": "^26.0.1",
+    "jest-circus": "^26.0.1",
+    "lerna": "^3.16.4",
+    "lerna-changelog": "^1.0.0",
+    "markdox": "^0.1.10",
+    "mime-types": "^2.1.24",
+    "npm-run-all": "^4.1.5",
+    "recursive-readdir": "^2.2.2",
+    "rimraf": "^3.0.0",
+    "sass": "^1.26.5",
+    "shelljs": "^0.8.3",
+    "tempy": "^1.0.0",
+    "ts-jest": "^26.3.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.2",
+    "url-join": "^4.0.1"
   },
-  "keywords": [
-    "webdriver",
-    "wdio",
-    "wdio-reporter"
-  ],
-  "bugs": {
-    "url": "https://github.com/webdriverio/webdriverio/issues"
+  "husky": {
+    "hooks": {
+      "pre-commit": "git diff-index --name-only --diff-filter=d HEAD | grep -E \"(.*)\\.js$\" | xargs node_modules/eslint/bin/eslint.js -c .eslintrc.js",
+      "pre-push": "npm run test:eslint"
+    }
   },
-  "dependencies": {
-    "@wdio/reporter": "6.8.1",
-    "chalk": "^4.0.0",
-    "pretty-ms": "^7.0.0"
-  },
-  "peerDependencies": {
-    "@wdio/cli": "^6.0.1"
-  },
-  "publishConfig": {
-    "access": "public"
-  }
+  "dependencies": {}
 }
