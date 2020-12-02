@@ -129,7 +129,7 @@ declare namespace WebdriverIO {
         /**
          * Sauce Labs provides a headless offering that allows you to run Chrome and Firefox tests headless.
          */
-        headless?: string;
+        headless?: boolean;
         /**
          * Define specs for test execution.
          */
@@ -437,10 +437,11 @@ declare namespace WebdriverIO {
         action: ActionTypes,
         x?: number,
         y?: number,
-        element?: string,
+        element?: Element,
         ms?: number
     }
-    type TouchActions = string | TouchAction | TouchAction[];
+    type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
+    type TouchActions = TouchActionParameter | TouchActionParameter[];
 
     type WaitForOptions = {
         timeout?: number,
@@ -644,7 +645,7 @@ declare namespace WebdriverIO {
             name: string,
             func: AddCommandFn<false>
         ): void;
-
+        
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
@@ -917,7 +918,7 @@ declare namespace WebdriverIO {
          */
         selectByAttribute(
             attribute: string,
-            value: string
+            value: string | number
         ): Promise<void>;
 
         /**
@@ -931,7 +932,7 @@ declare namespace WebdriverIO {
          * Select option with displayed text matching the argument.
          */
         selectByVisibleText(
-            text: string
+            text: string | number
         ): Promise<void>;
 
         /**
@@ -1025,7 +1026,7 @@ declare namespace WebdriverIO {
          */
         calls: Matches[];
 
-
+        
         /**
          * Abort the request with one of the following error codes:
          * `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`,
@@ -1118,9 +1119,9 @@ declare namespace WebdriverIO {
          */
         addLocatorStrategy(
             name: string,
-            func: (elementFetchingMethod: (selector: string) => any) => void
+            func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
         ): void
-
+        
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page. It returns an array with element results that will have an
@@ -1371,8 +1372,8 @@ declare namespace WebdriverIO {
         ): Promise<boolean>;
     }
 
-    interface BrowserObject extends NodeJS.EventEmitter {
-        isMultiremote?: boolean;
+    interface BrowserObject {
+        isMultiremote?: false;
     }
 
     type MultiRemoteBrowserReference = Record<string, BrowserObject>
@@ -1385,7 +1386,7 @@ declare namespace WebdriverIO {
         /**
          * flag to indicate multiremote browser session
          */
-        isMultiremote: true;
+        isMultiremote: boolean;
     }
 
     type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference

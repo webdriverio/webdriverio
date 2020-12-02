@@ -5,19 +5,23 @@ const TOUCH_ACTIONS = ['press', 'longPress', 'tap', 'moveTo', 'wait', 'release']
 const POS_ACTIONS = TOUCH_ACTIONS.slice(0, 4)
 const ACCEPTED_OPTIONS = ['x', 'y', 'element']
 
+interface FormattedTouchAction extends Omit<WebdriverIO.TouchAction, 'element'> {
+    element?: string
+}
+
 interface FormattedActions {
     action: string
-    options?: WebdriverIO.TouchAction
+    options?: FormattedTouchAction
 }
 
 export const formatArgs = function (
     scope: WebdriverIO.BrowserObject | WebdriverIO.Element,
-    actions: WebdriverIO.TouchAction[]
+    actions: WebdriverIO.TouchActions[]
 ): FormattedActions[] {
     return actions.map((action: WebdriverIO.TouchAction) => {
-        // if (Array.isArray(action)) {
-        //     return formatArgs(scope, action)
-        // }
+        if (Array.isArray(action)) {
+            return formatArgs(scope, action) as any
+        }
 
         if (typeof action === 'string') {
             action = { action }
@@ -25,7 +29,7 @@ export const formatArgs = function (
 
         const formattedAction: FormattedActions = {
             action: action.action,
-            options: {} as WebdriverIO.TouchAction
+            options: {} as FormattedTouchAction
         }
 
         /**
@@ -38,8 +42,8 @@ export const formatArgs = function (
             formattedAction.options.element = actionElement
         }
 
-        if (formattedAction.options && action.x && isFinite(action.x)) formattedAction.options.x = action.x
-        if (formattedAction.options && action.y && isFinite(action.y)) formattedAction.options.y = action.y
+        if (formattedAction.options && typeof action.x === 'number' && isFinite(action.x)) formattedAction.options.x = action.x
+        if (formattedAction.options && typeof action.y === 'number' && isFinite(action.y)) formattedAction.options.y = action.y
         if (formattedAction.options && action.ms) formattedAction.options.ms = action.ms
 
         /**

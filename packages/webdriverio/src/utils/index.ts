@@ -10,11 +10,13 @@ import isObject from 'lodash.isobject'
 import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
-import type { ConfigOptions } from '@wdio/config'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
 import { findStrategy } from './findStrategy'
-import type { ElementReference, ElementObject, ElementFunction, Selector, ParsedCSSValue } from '../types'
+import type {
+    ElementReference, ElementObject, ElementFunction, Selector, ParsedCSSValue,
+    Options
+} from '../types'
 
 const browserCommands = require('../commands/browser')
 const elementCommands = require('../commands/element')
@@ -100,7 +102,7 @@ export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browse
 /**
  * transform whatever value is into an array of char strings
  */
-export function transformToCharString (value: string[], translateToUnicode = true) {
+export function transformToCharString (value: any, translateToUnicode = true) {
     const ret: string[] = []
 
     if (!Array.isArray(value)) {
@@ -201,18 +203,18 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
  * @return {Array}         set of characters or unicode symbols
  */
 export function checkUnicode (
-    value: keyof typeof UNICODE_CHARACTERS,
+    value: string,
     isDevTools = false
 ) {
     return Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)
-        ? isDevTools ? [value] : [UNICODE_CHARACTERS[value]]
+        ? isDevTools ? [value] : [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
         : new GraphemeSplitter().splitGraphemes(value)
 }
 
 function fetchElementByJSFunction (
     selector: ElementFunction,
     scope: WebdriverIO.Element
-): Promise<WebdriverIO.ElementReference | WebdriverIO.ElementReference[]> {
+): Promise<WebDriver.ElementReference | WebDriver.ElementReference[]> {
     if (!scope.elementId) {
         return scope.execute(selector as any)
     }
@@ -396,7 +398,7 @@ export function validateUrl (url: string, origError?: Error): string {
  */
 export function getScrollPosition (scope: WebdriverIO.Element) {
     return getBrowserObject(scope)
-        .execute(function (this: Window) {
+        .execute(/* istanbul ignore next */function (this: Window) {
             return { scrollX: this.pageXOffset, scrollY: this.pageYOffset }
         })
 }
@@ -459,7 +461,7 @@ export const enhanceElementsArray = (
  */
 export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub'
 
-export const getAutomationProtocol = async (config: ConfigOptions) => {
+export const getAutomationProtocol = async (config: Options) => {
     /**
      * if automation protocol is set by user prefer this
      */
@@ -517,7 +519,7 @@ export const getAutomationProtocol = async (config: ConfigOptions) => {
  *
  * NOTE: this method is executed twice when running the WDIO testrunner
  */
-export const updateCapabilities = async (params: ConfigOptions, automationProtocol: string) => {
+export const updateCapabilities = async (params: Options, automationProtocol?: string) => {
     const caps = params.capabilities as WebDriver.DesiredCapabilities
     /**
      * attach remote debugging port options to Firefox sessions

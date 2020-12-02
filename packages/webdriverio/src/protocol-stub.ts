@@ -32,7 +32,7 @@ export default class ProtocolStub {
     }
 
     static attachToSession (
-        options: WebDriver.AttachSessionOptions,
+        options?: WebDriver.AttachSessionOptions,
         modifier?: (...args: any[]) => any
     ) {
         if (options || !modifier) {

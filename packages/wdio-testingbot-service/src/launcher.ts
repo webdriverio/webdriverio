@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 
 const log = logger('@wdio/testingbot-service')
 
-export default class TestingBotLauncher {
+export default class TestingBotLauncher implements WebdriverIO.ServiceInstance {
     options: TestingbotOptions;
     tbTunnelOpts!: TunnelLauncherOptions;
     tunnel?: TestingbotTunnel;
@@ -14,7 +14,7 @@ export default class TestingBotLauncher {
         this.options = options
     }
 
-    async onPrepare (config: WebdriverIO.Config, capabilities: WebDriver.Capabilities) {
+    async onPrepare (config: WebdriverIO.Config, capabilities: WebDriver.DesiredCapabilities[]) {
         if (!this.options.tbTunnel || !config.user || !config.key) {
             return
         }

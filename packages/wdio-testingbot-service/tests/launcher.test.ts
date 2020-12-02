@@ -74,6 +74,50 @@ describe('wdio-testingbot-service', () => {
         }])
     })
 
+    it('should merge tunnelIdentifier in tb:options in multiremote', async () => {
+        const options: TestingbotOptions = {
+            tbTunnel: true,
+            tbTunnelOpts: {
+                apiKey: 'user',
+                apiSecret: 'key',
+                tunnelIdentifier: 'my-tunnel'
+            }
+        }
+        const config: any = {
+            user: 'user',
+            key: 'key'
+        }
+        const caps = {
+            browserA: {
+                'tb:options': {
+                    build: 'unit-test',
+                }
+            } as any,
+            browserB: {
+                'tb:options': {
+                    build: 'other-unit-test',
+                }
+            } as any
+        }
+        const tbLauncher = new TestingBotLauncher(options)
+
+        await tbLauncher.onPrepare(config, caps as any)
+        expect(caps).toEqual({
+            browserA: {
+                'tb:options': {
+                    'tunnel-identifier': 'my-tunnel',
+                    build: 'unit-test',
+                }
+            },
+            browserB: {
+                'tb:options': {
+                    'tunnel-identifier': 'my-tunnel',
+                    build: 'other-unit-test',
+                }
+            }
+        })
+    })
+
     it('should add tunnelIdentifier in tb:options', async () => {
         const options: TestingbotOptions = {
             tbTunnel: true,
@@ -96,6 +140,33 @@ describe('wdio-testingbot-service', () => {
         await tbLauncher.onPrepare(config, caps)
         expect(Object.keys(caps[0]['tb:options'])).toContain('tunnel-identifier')
         expect(Object.keys(caps[0]['tb:options'])).toContain('build')
+    })
+
+    it('should add tunnelIdentifier in tb:options using multiremote', async () => {
+        const options: TestingbotOptions = {
+            tbTunnel: true,
+            tbTunnelOpts: {
+                apiKey: 'user',
+                apiSecret: 'key',
+            }
+        }
+        const config: any = {
+            user: 'user',
+            key: 'key'
+        }
+        const caps = {
+            browserA: {},
+            browserB: {
+                'tb:options': {
+                    build: 'other-unit-test',
+                }
+            }
+        }
+        const tbLauncher = new TestingBotLauncher(options)
+
+        await tbLauncher.onPrepare(config, caps as any)
+        expect(Object.keys(caps.browserA['tb:options'])).toContain('tunnel-identifier')
+        expect(Object.keys(caps.browserB['tb:options'])).toContain('build')
     })
 
     it('onComplete', () => {

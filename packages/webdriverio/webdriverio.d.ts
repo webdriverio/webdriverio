@@ -13,13 +13,9 @@ declare namespace WebdriverIO {
         options: MultiRemoteOptions
     ): Promise<MultiRemoteBrowserObject>;
 
-    type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
-    type ElementReference = Record<ElementReferenceId, string>
-
     interface Browser {
-        emit: Function
-        strategies: Map<string, () => ElementReference | ElementReference[]>
-        __propertiesObject__: Record<string | PropertyDescriptor>
+        strategies: Map<string, () => WebDriver.ElementReference | WebDriver.ElementReference[]>
+        __propertiesObject__: Record<string, PropertyDescriptor>
         puppeteer?: any
 
         /**
