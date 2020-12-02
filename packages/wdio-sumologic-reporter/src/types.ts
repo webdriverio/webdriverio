@@ -1,9 +1,6 @@
-export interface Options extends WebdriverIO.ServiceOption {
-    /**
-     * don't create a log file
-     * @default true
-     */
-    stdout?: boolean
+import { WDIOReporterOptionsFromStdout } from '@wdio/reporter'
+
+export interface Options extends WDIOReporterOptionsFromStdout {
     /**
      * define sync interval how often logs get pushed to Sumologic
      * @default 100

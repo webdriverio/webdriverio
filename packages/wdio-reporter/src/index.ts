@@ -21,7 +21,7 @@ export interface WDIOReporterOptionsFromLogFile extends WDIOReporterBaseOptions 
     logFile: string
 }
 
-export type WDIOReporterOptions = WDIOReporterOptionsFromLogFile | WDIOReporterOptionsFromStdout
+export type WDIOReporterOptions = WDIOReporterOptionsFromLogFile & WDIOReporterOptionsFromStdout
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream
