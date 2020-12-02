@@ -4,7 +4,7 @@ import { validateConfig, detectBackend } from '@wdio/config'
 import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 
 import MultiRemote from './multiremote'
-import SevereServiceError from './utils/SevereServiceError'
+import SevereServiceErrorImport from './utils/SevereServiceError'
 import { WDIO_DEFAULTS } from './constants'
 import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
@@ -134,4 +134,4 @@ export const multiremote = async function (params: MultiRemoteOptions, { automat
     return driver
 }
 
-export { SevereServiceError }
+export const SevereServiceError = SevereServiceErrorImport

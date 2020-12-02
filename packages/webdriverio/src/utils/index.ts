@@ -102,7 +102,7 @@ export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browse
 /**
  * transform whatever value is into an array of char strings
  */
-export function transformToCharString (value: string[], translateToUnicode = true) {
+export function transformToCharString (value: any, translateToUnicode = true) {
     const ret: string[] = []
 
     if (!Array.isArray(value)) {
@@ -203,18 +203,18 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
  * @return {Array}         set of characters or unicode symbols
  */
 export function checkUnicode (
-    value: keyof typeof UNICODE_CHARACTERS,
+    value: string,
     isDevTools = false
 ) {
     return Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)
-        ? isDevTools ? [value] : [UNICODE_CHARACTERS[value]]
+        ? isDevTools ? [value] : [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
         : new GraphemeSplitter().splitGraphemes(value)
 }
 
 function fetchElementByJSFunction (
     selector: ElementFunction,
     scope: WebdriverIO.Element
-): Promise<WebdriverIO.ElementReference | WebdriverIO.ElementReference[]> {
+): Promise<WebDriver.ElementReference | WebDriver.ElementReference[]> {
     if (!scope.elementId) {
         return scope.execute(selector as any)
     }
@@ -398,7 +398,7 @@ export function validateUrl (url: string, origError?: Error): string {
  */
 export function getScrollPosition (scope: WebdriverIO.Element) {
     return getBrowserObject(scope)
-        .execute(function (this: Window) {
+        .execute(/* istanbul ignore next */function (this: Window) {
             return { scrollX: this.pageXOffset, scrollY: this.pageYOffset }
         })
 }
@@ -519,7 +519,7 @@ export const getAutomationProtocol = async (config: Options) => {
  *
  * NOTE: this method is executed twice when running the WDIO testrunner
  */
-export const updateCapabilities = async (params: Options, automationProtocol: string) => {
+export const updateCapabilities = async (params: Options, automationProtocol?: string) => {
     const caps = params.capabilities as WebDriver.DesiredCapabilities
     /**
      * attach remote debugging port options to Firefox sessions

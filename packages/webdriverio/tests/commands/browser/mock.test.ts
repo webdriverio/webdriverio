@@ -16,7 +16,7 @@ const puppeteerMock = {
     pages: jest.fn().mockReturnValue([pageMock])
 }
 
-jest.mock('../../../src/utils/interception/webdriver', () => class WebDriverInterceptionMock {
+jest.mock('../../../src/utils/interception/webdriver', () => class {
     init = jest.fn()
 })
 

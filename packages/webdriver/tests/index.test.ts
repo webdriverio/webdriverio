@@ -1,8 +1,9 @@
+import path from 'path'
 import gotMock from 'got'
 import logger from '@wdio/logger'
 import * as wdioUtils from '@wdio/utils'
 
-import WebDriver from '../src'
+import WebDriver, { getPrototype, DEFAULTS } from '../src'
 import { DesiredCapabilities, Client } from '../src/types'
 
 const got = gotMock as unknown as jest.Mock
@@ -24,10 +25,16 @@ interface TestClient extends Client {
 }
 
 describe('WebDriver', () => {
+    test('exports getPrototype, DEFAULTS', () => {
+        expect(typeof getPrototype).toBe('function')
+        expect(typeof DEFAULTS).toBe('object')
+    })
     describe('newSession', () => {
         it('should allow to create a new session using jsonwire caps', async () => {
+            const testDirPath = './logs'
             await WebDriver.newSession({
                 path: '/',
+                outputDir: testDirPath,
                 capabilities: { browserName: 'firefox' }
             })
 
@@ -41,6 +48,7 @@ describe('WebDriver', () => {
                 },
                 desiredCapabilities: { browserName: 'firefox' }
             })
+            expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
         })
 
         it('should allow to create a new session using w3c compliant caps', async () => {
@@ -65,6 +73,23 @@ describe('WebDriver', () => {
 
             expect(sessionEnvironmentDetector.mock.calls)
                 .toMatchSnapshot()
+        })
+
+        it('should allow to use Appium direct connect functionality', async () => {
+            await WebDriver.newSession({
+                directConnectProtocol: 'https',
+                directConnectHost: 'foobar',
+                directConnectPort: 1234,
+                directConnectPath: '/foo/bar',
+                path: '/',
+                capabilities: {
+                    alwaysMatch: { browserName: 'firefox' },
+                    firstMatch: [{}]
+                }
+            })
+
+            const url = got.mock.calls[0][0]
+            expect(url.href).toEqual('https://foobar:1234/foo/bar/session')
         })
 
         it('should be possible to skip setting logLevel', async () => {

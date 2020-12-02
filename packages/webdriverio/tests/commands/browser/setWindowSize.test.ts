@@ -40,26 +40,29 @@ describe('setWindowSize', () => {
     })
 
     describe('input checks', () => {
-        it('should throw error if width or height is not number', () => {
+        it('should throw error if width or height is not number', async () => {
             const invalidTypeError = 'setWindowSize expects width and height of type number'
 
             // @ts-ignore tets invalid parameter
-            expect(() => browser.setWindowSize('777', 888))
-                .toThrowError(invalidTypeError)
+            let err = await browser.setWindowSize('777', 888).catch((err: Error) => err)
+            expect((err as Error).message).toBe(invalidTypeError)
             // @ts-ignore test invalid parameter
-            expect(() => browser.setWindowSize(777))
-                .toThrowError(invalidTypeError)
+            err = await browser.setWindowSize(777).catch((err: Error) => err)
+            expect((err as Error).message).toBe(invalidTypeError)
         })
 
-        it('should throw error if width or height not in the 0 to 2^31 − 1 range', () => {
+        it('should throw error if width or height not in the 0 to 2^31 − 1 range', async () => {
             const invalidValueError = 'setWindowSize expects width and height to be a number in the 0 to 2^31 − 1 range'
 
-            expect(() => browser.setWindowSize(-1, 500))
-                .toThrowError(invalidValueError)
-            expect(() => browser.setWindowSize(Number.MAX_SAFE_INTEGER + 1, 500))
-                .toThrowError(invalidValueError)
-            expect(() => browser.setWindowSize(-0.01, 500))
-                .toThrowError(invalidValueError)
+            // @ts-ignore test invalid parameter
+            let err = await browser.setWindowSize(-1, 500).catch((err: Error) => err)
+            expect(err.message).toBe(invalidValueError)
+            // @ts-ignore test invalid parameter
+            err = await browser.setWindowSize(Number.MAX_SAFE_INTEGER + 100, 500).catch((err: Error) => err)
+            expect(err.message).toBe(invalidValueError)
+            // @ts-ignore test invalid parameter
+            err = await browser.setWindowSize(-0.01, 500).catch((err: Error) => err)
+            expect(err.message).toBe(invalidValueError)
         })
     })
 

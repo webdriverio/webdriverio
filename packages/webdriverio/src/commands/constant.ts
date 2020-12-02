@@ -16,12 +16,12 @@ interface FormattedActions {
 
 export const formatArgs = function (
     scope: WebdriverIO.BrowserObject | WebdriverIO.Element,
-    actions: WebdriverIO.TouchAction[]
+    actions: WebdriverIO.TouchActions[]
 ): FormattedActions[] {
     return actions.map((action: WebdriverIO.TouchAction) => {
-        // if (Array.isArray(action)) {
-        //     return formatArgs(scope, action)
-        // }
+        if (Array.isArray(action)) {
+            return formatArgs(scope, action) as any
+        }
 
         if (typeof action === 'string') {
             action = { action }
@@ -42,8 +42,8 @@ export const formatArgs = function (
             formattedAction.options.element = actionElement
         }
 
-        if (formattedAction.options && action.x && isFinite(action.x)) formattedAction.options.x = action.x
-        if (formattedAction.options && action.y && isFinite(action.y)) formattedAction.options.y = action.y
+        if (formattedAction.options && typeof action.x === 'number' && isFinite(action.x)) formattedAction.options.x = action.x
+        if (formattedAction.options && typeof action.y === 'number' && isFinite(action.y)) formattedAction.options.y = action.y
         if (formattedAction.options && action.ms) formattedAction.options.ms = action.ms
 
         /**

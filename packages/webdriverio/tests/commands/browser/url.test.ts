@@ -29,9 +29,15 @@ describe('url', () => {
     })
 
     it('should throw an exception when a non-string value passed in', async () => {
-        // @ts-ignore test invalid parameter
-        const e = await browser.url(true).catch((err: Error) => err) as Error
-        expect(e.message).toContain('command needs to be type of string')
+        // @ts-ignore uses expect-webdriverio
+        expect.assertions(1)
+
+        try {
+            // @ts-ignore test invalid parameter
+            browser.url(true)
+        } catch (e) {
+            expect(e.message).toContain('command needs to be type of string')
+        }
     })
 
     afterEach(() => {

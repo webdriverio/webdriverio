@@ -27,7 +27,7 @@ class Timer {
         private _delay: number,
         private _timeout: number,
         private _fn: Function,
-        private _leading: boolean
+        private _leading = false
     ) {
         /**
          * only wrap waitUntil condition if:

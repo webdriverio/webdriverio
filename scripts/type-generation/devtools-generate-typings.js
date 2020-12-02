@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const { changeType } = require('./generate-typings-utils')
 const { PROTOCOLS } = require('../constants')
 
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'devtools.tpl.d.ts')
@@ -27,7 +28,7 @@ for (const [, methods] of Object.entries(definition)) {
             return `${p.name}${p.required === false ? '?' : ''}: ${paramType}`
         })
         const varsAndParams = vars.concat(params)
-        let returnValue = returns ? returns.type.toLowerCase() : 'void'
+        let returnValue = returns ? changeType(returns.type) : 'void'
         returnValue = returnValue === '*' ? 'any' : returnValue
         lines.push(`        ${command}(${varsAndParams.join(', ')}): ${returnValue};`)
     }

@@ -1,5 +1,5 @@
 import type cssValue from 'css-value'
-import WebDriver from 'webdriver'
+import type WebDriver from 'webdriver'
 
 export type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
 
@@ -46,8 +46,8 @@ export type WaitForOptions = {
     reverse?: boolean,
 }
 
-export type ElementFunction = ((elem: HTMLElement) => WebdriverIO.ElementReference) | ((elem: HTMLElement) => WebdriverIO.ElementReference[])
-export type Selector = string | WebdriverIO.ElementReference | ElementFunction
+export type ElementFunction = ((elem: HTMLElement) => WebDriver.ElementReference) | ((elem: HTMLElement) => WebDriver.ElementReference[])
+export type Selector = string | WebDriver.ElementReference | ElementFunction
 
 interface ParsedColor extends Partial<cssValue.CSSValue> {
     rgb?: string
@@ -142,7 +142,7 @@ export interface Options extends Omit<WebDriver.Options, 'capabilities'> {
      *
      * @default 'webdriver'
      */
-    automationProtocol?: 'webdriver' | 'devtools'
+    automationProtocol?: 'webdriver' | 'devtools' | './protocol-stub'
     /**
      * Shorten `url` command calls by setting a base URL.
      */

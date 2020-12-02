@@ -22,7 +22,7 @@ export const getElement = function findElement(
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
         ...getWDIOPrototype('element'),
-        scope: 'element'
+        scope: { value: 'element' }
     }
 
     const element = webdriverMonad(this.options, (client: ElementObject) => {
@@ -84,7 +84,7 @@ export const getElements = function getElements(
     }
 
     const elements = elemResponse.map((res: ElementReference | Error, i) => {
-        propertiesObject.scope = 'element'
+        propertiesObject.scope = { value: 'element' }
         const element = webdriverMonad(this.options, (client: ElementObject) => {
             const elementId = getElementFromResponse(res as ElementReference)
 

@@ -61,8 +61,8 @@ export default async function $ (
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`
      */
-    if (selector && typeof (selector as WebdriverIO.ElementReference)[ELEMENT_KEY] === 'string') {
-        return getElement.call(this, undefined, selector as WebdriverIO.ElementReference)
+    if (selector && typeof (selector as WebDriver.ElementReference)[ELEMENT_KEY] === 'string') {
+        return getElement.call(this, undefined, selector as WebDriver.ElementReference)
     }
 
     const res = await findElement.call(this, selector)

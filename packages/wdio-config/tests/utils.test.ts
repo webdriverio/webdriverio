@@ -61,7 +61,6 @@ describe('utils', () => {
         })
 
         it('should handle null or empty capabilities', ()  => {
-            expect(isCloudCapability()).toBe(false)
             expect(isCloudCapability({})).toBe(false)
         })
 

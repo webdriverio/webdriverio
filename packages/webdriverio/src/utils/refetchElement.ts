@@ -4,7 +4,10 @@ import implicitWait from './implicitWait'
  * helper utility to refetch an element and all its parent elements when running
  * into stale element exception errors
  */
-export default async function refetchElement (currentElement: WebdriverIO.Element, commandName: string) {
+export default async function refetchElement (
+    currentElement: WebdriverIO.Element,
+    commandName: string
+): Promise<WebdriverIO.Element> {
     let selectors = []
 
     //Crawl back to the browser object, and cache all selectors
