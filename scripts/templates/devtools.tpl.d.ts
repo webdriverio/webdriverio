@@ -2,10 +2,6 @@
 /// <reference types="webdriver"/>
 
 declare namespace WebDriver {
-    interface ClientOptions {
-        isDevTools: boolean;
-    }
-
     interface ChromeOptions {
         /**
          * `devtools` only, switch headless mode by either `headless` flag or `--headless` argument but not both

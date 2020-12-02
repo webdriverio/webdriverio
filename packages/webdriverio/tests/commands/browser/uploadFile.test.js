@@ -86,25 +86,6 @@ describe('uploadFile', () => {
         expect(browser.file).toBeCalledWith('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==')
     })
 
-    it('reject if finalize returns error', async () => {
-        const browser = await remote({
-            baseUrl: 'http://webdriver.io',
-            capabilities: {
-                browserName: 'chrome'
-            }
-        })
-        browser.file = jest.fn().mockReturnValue(Promise.resolve())
-
-        let commandError = null
-        const archiverMock = archiver()
-        const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
-            .catch((e) => (commandError = e))
-        archiverMock.finalize.mock.calls[0][0](new Error('boom'))
-
-        await command
-        expect(commandError).toEqual(new Error('boom'))
-    })
-
     afterEach(() => {
         const archiverMock = archiver()
         archiverMock.on.mockClear()

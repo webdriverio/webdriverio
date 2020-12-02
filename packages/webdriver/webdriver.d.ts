@@ -193,6 +193,7 @@ declare namespace WebDriver {
     }
 
     interface FirefoxOptions {
+        debuggerAddress: string
         binary?: string,
         args?: string[],
         profile?: string,
@@ -333,6 +334,8 @@ declare namespace WebDriver {
 
         'goog:chromeOptions'?: ChromeOptions;
         'moz:firefoxOptions'?: FirefoxOptions;
+        'ms:edgeOptions'?: MicrosoftEdgeOptions;
+        'ms:edgeChromium'?: MicrosoftEdgeOptions;
     }
 
     // Selenium Grid specific
@@ -670,6 +673,8 @@ declare namespace WebDriver {
         isAndroid: boolean;
         isMobile: boolean;
         isIOS: boolean;
+        isSauce: boolean;
+        isDevTools: boolean;
         sessionId: string;
     }
 

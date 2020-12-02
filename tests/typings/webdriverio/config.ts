@@ -79,7 +79,7 @@ const config: WebdriverIO.Config = {
             logName: 'test.log',
             videoName: 'test.mp4'
         }
-    }],
+    }] as WebDriver.DesiredCapabilities[],
 
     filesToWatch: [
         '/foo/page-objects/**/*.page.js',

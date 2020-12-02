@@ -14,7 +14,14 @@ declare namespace WebdriverIO {
         options: MultiRemoteOptions
     ): Promise<BrowserObject>;
 
+    type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
+    type ElementReference = Record<ElementReferenceId, string>
+
     interface Browser {
+        emit: Function
+        strategies: Map<string, () => ElementReference | ElementReference[]>
+        puppeteer?: any
+
         /**
          * execute any async action within your test spec
          */
