@@ -190,6 +190,8 @@ describe('Firefox profile service', () => {
             ;(FirefoxProfile.copy as any as jest.Mock).mockImplementationOnce((profileDirectory: string, cb: Function) => cb())
             const service = new Launcher(options)
             await service.onPrepare({}, capabilities)
+            // no assertion needed as we return early and no failure due to
+            // undefined profile is checked
         })
     })
 
