@@ -36,7 +36,9 @@ const config: WebdriverIO.Config = {
         ['testingbot', {
             tbTunnel: true,
             tbTunnelOpts: {
-                foo: 'bar'
+                tunnelIdentifier: 'identifier',
+                apiKey: 'key',
+                apiSecret: 'secret',
             }
         }],
         [CustomService, {

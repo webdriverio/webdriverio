@@ -354,7 +354,7 @@ export default class TraceGatherer extends EventEmitter {
         }
         const networkStatusMonitor = this._networkStatusMonitor
 
-        const promise = new Promise((resolve) => {
+        const promise = new Promise<void>((resolve) => {
             const onIdle = () => {
                 // eslint-disable-next-line no-use-before-define
                 networkStatusMonitor.once('network-2-busy', onBusy)

@@ -17,6 +17,76 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.5 (2020-11-30)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6183](https://github.com/webdriverio/webdriverio/pull/6183) Fix `isFocused` command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v6.10.4 (2020-11-30)
+
+#### :bug: Bug Fix
+* `wdio-logger`, `webdriverio`
+  * [#6178](https://github.com/webdriverio/webdriverio/pull/6178) Fix uploadFile command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-selenium-standalone-service`
+  * [#6176](https://github.com/webdriverio/webdriverio/pull/6176) selenium-standalone: fix driver keys condition ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6177](https://github.com/webdriverio/webdriverio/pull/6177) add winappdriver and ywinappdriver service ([@licanhua](https://github.com/licanhua))
+
+#### Committers: 3
+- Canhua Li ([@licanhua](https://github.com/licanhua))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v6.10.3 (2020-11-27)
+
+#### :rocket: New Feature
+* `wdio-selenium-standalone-service`
+  * [#6171](https://github.com/webdriverio/webdriverio/pull/6171) selenium-standalone: simplify config ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :bug: Bug Fix
+* `wdio-static-server-service`
+  * [#6173](https://github.com/webdriverio/webdriverio/pull/6173) Add back promisify bind fix  ([@pmdartus](https://github.com/pmdartus))
+
+#### Committers: 2
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Pierre-Marie Dartus ([@pmdartus](https://github.com/pmdartus))
+
+
+## v6.10.2 (2020-11-27)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#6164](https://github.com/webdriverio/webdriverio/pull/6164) Trigger change event if selecting an option in devtools ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#6163](https://github.com/webdriverio/webdriverio/pull/6163) Improve behavior fetching CSS shorthand properties ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v6.10.1 (2020-11-25)
+
+#### :bug: Bug Fix
+* `wdio-testingbot-service`
+  * [#6157](https://github.com/webdriverio/webdriverio/pull/6157) fix for #6151 @wdio/testingbot-service doesn't configure the hostname… ([@testingbot](https://github.com/testingbot))
+
+#### Committers: 1
+- TestingBot ([@testingbot](https://github.com/testingbot))
+
+
 ## v6.10.0 (2020-11-24)
 
 #### :rocket: New Feature

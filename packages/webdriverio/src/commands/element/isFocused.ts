@@ -31,9 +31,8 @@ import isFocusedScript from '../../scripts/isFocused'
 
 export default async function isFocused (this: WebdriverIO.Element) {
     const browser: WebdriverIO.BrowserObject = await getBrowserObject(this)
-    const isFocused = browser.execute(isFocusedScript, {
+    return browser.execute(isFocusedScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
     })
-    return Boolean(isFocused)
 }

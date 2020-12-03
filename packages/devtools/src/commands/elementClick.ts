@@ -11,12 +11,9 @@
  */
 
 import getElementTagName from './getElementTagName'
-import executeScript from './executeScript'
-import { ELEMENT_KEY } from '../constants'
+import selectOptionScript from '../scripts/selectOption'
 import { getStaleElementError } from '../utils'
 import type DevToolsDriver from '../devtoolsdriver'
-
-const SELECT_SCRIPT = 'return (function select (elem) { elem.selected = true }).apply(null, arguments)'
 
 export default async function elementClick (
     this: DevToolsDriver,
@@ -36,10 +33,7 @@ export default async function elementClick (
      */
     const tagName = await getElementTagName.call(this, { elementId })
     if (tagName === 'option') {
-        return executeScript.call(this, {
-            script: SELECT_SCRIPT,
-            args: [{ [ELEMENT_KEY]: elementId }]
-        })
+        return page.$eval('html', selectOptionScript, elementHandle)
     }
 
     /**

@@ -107,7 +107,9 @@ export const SUPPORTED_PACKAGES = {
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
         { name: 'visual-regression-testing', value: 'wdio-image-comparison-service$--$visual-regression-testing' },
         { name: 'novus-visual-regression', value: 'wdio-novus-visual-regression-service$--$novus-visual-regression' },
-        { name: 'rerun', value: 'wdio-rerun-service$--$rerun' }
+        { name: 'rerun', value: 'wdio-rerun-service$--$rerun' },
+        { name: 'winappdriver', value: 'wdio-winappdriver-service$--$winappdriver' },
+        { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' }
     ]
 }
 
