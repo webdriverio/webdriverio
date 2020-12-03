@@ -22,6 +22,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@types/dateformat": "^3.0.1",
+    "@types/json-stringify-safe": "^5.0.0",
     "@wdio/logger": "6.10.4",
     "@wdio/reporter": "6.8.1",
     "dateformat": "^4.0.0",
