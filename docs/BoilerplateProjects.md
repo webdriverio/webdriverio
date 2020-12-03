@@ -254,6 +254,46 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Page Object Model
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
+    
+### [osmolyar/page-object-structure-with-cucumber](https://github.com/osmolyar/page-object-structure)  
+
+Boilerplate project for WebdriverIO with Cucumber.  Navigation modeling, advanced page object structure, Cucumber world context, business options, cucumber step data parsing methods.
+
+- Frameworks:
+  - WebdriverIO v6
+  - @wdio/cucumber-framework
+  - Typescript
+- Features:
+  - Increased modularization
+      - Page object structure leveraging return of landing page instances on navigation to pages
+        - Isolates step definition files and page object classes from dependencies on downstream pages.
+        - No need to import each page class that will be navigated to. 
+        - Increases the modularity of the framework and enforces guardrails on methods defined within a page
+        - Implicitly validates having landed on the correct page inside each page's constructor
+          - Calls a method to validate some page indicator (e.g., title).
+            - Parametrized with validation parameter to prevent page validation at compile time
+          - Further enforces expected navigation results prior to interacting with a page's elements
+        - Allows the framework to model the navigation structure of the application
+        - Steps can traverse multiple pages using a single method.
+      - Page Ui services separate from page objects
+        - Model higher-level business logic
+        - Page objects contain only DOM-level logic
+        - Ui services import those of downstream pages and define relationships among pages
+      - Separation of validation and navigation logic
+        - Collect artifacts for validation during navigation
+        - Capture in validationOptions business option objects
+        - Compare to expected values using subsequent validation steps
+  - Use of Cucumber 'world' object with custom World constructor
+    - Initialize functionality-specific business option objects
+    - Populate business options with step definitions
+    - Step definitions pass only required business options, validation options to ui Service methods
+    - Step definitions examples using various Cucumber data-tables methods 
+      - (https://github.com/cucumber/cucumber-js/blob/master/features/data_tables.feature)
+  - Custom browser and element commands
+    - With color logging and parameterized wait and trailing wait options
+  - Generic utilities 
+  - Spec, Allure and custom reporters 
+
 
 ## v5 Boilerplate Projects
 
