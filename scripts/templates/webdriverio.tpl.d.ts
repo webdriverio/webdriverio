@@ -123,7 +123,7 @@ declare namespace WebdriverIO {
         /**
          * Sauce Labs provides a headless offering that allows you to run Chrome and Firefox tests headless.
          */
-        headless?: string;
+        headless?: boolean;
         /**
          * Define specs for test execution.
          */
@@ -434,7 +434,8 @@ declare namespace WebdriverIO {
         element?: Element,
         ms?: number
     }
-    type TouchActions = string | TouchAction | TouchAction[];
+    type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
+    type TouchActions = TouchActionParameter | TouchActionParameter[];
 
     type WaitForOptions = {
         timeout?: number,
@@ -690,7 +691,7 @@ declare namespace WebdriverIO {
          */
         addLocatorStrategy(
             name: string,
-            func: (elementFetchingMethod: (selector: string) => any) => void
+            func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
         ): void
         // ... browser commands ...
     }
@@ -709,7 +710,7 @@ declare namespace WebdriverIO {
         /**
          * flag to indicate multiremote browser session
          */
-        isMultiremote: true;
+        isMultiremote: boolean;
     }
 
     type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference

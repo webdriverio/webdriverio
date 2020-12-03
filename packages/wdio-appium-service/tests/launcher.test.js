@@ -2,7 +2,6 @@ import AppiumLauncher from '../src/launcher'
 import childProcess from 'child_process'
 import fs from 'fs-extra'
 
-jest.unmock('@wdio/config')
 jest.mock('child_process', () => ({
     spawn: jest.fn(),
 }))

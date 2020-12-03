@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs-extra'
 import Selenium from 'selenium-standalone'
 import SeleniumStandaloneLauncher from '../src/launcher'
-jest.unmock('@wdio/config')
+
 jest.mock('fs-extra', () => ({
     createWriteStream: jest.fn(),
     ensureFileSync: jest.fn(),

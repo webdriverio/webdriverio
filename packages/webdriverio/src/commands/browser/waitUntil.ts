@@ -44,12 +44,12 @@ import Timer from '../../utils/Timer'
 
 export default function waitUntil(
     this: WebdriverIO.BrowserObject,
-    condition: () => boolean | Promise<Boolean>,
+    condition: () => boolean | Promise<boolean>,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         timeoutMsg
-    }: WebdriverIO.WaitUntilOptions = {}
+    }: Partial<WebdriverIO.WaitUntilOptions> = {}
 ) {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
@@ -59,15 +59,15 @@ export default function waitUntil(
      * ensure that timeout and interval are set properly
      */
     if (typeof timeout !== 'number') {
-        timeout = this.options.waitforTimeout
+        timeout = this.options.waitforTimeout as number
     }
 
     if (typeof interval !== 'number') {
-        interval = this.options.waitforInterval
+        interval = this.options.waitforInterval as number
     }
 
     const fn = condition.bind(this)
-    let timer = new Timer(interval, timeout, fn, true)
+    let timer = new Timer(interval as number, timeout as number, fn, true)
     return (timer as any).catch((e: Error) => {
         if (e.message === 'timeout') {
             if (typeof timeoutMsg === 'string') {

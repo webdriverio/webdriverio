@@ -29,6 +29,8 @@ declare namespace WebDriver {
         'info' | 'warn' | 'error' | 'fatal';
     export type Timeouts = Record<'script' | 'pageLoad' | 'implicit', number>;
     export type SameSiteOptions = 'Lax' | 'Strict';
+    type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
+    type ElementReference = Record<ElementReferenceId, string>
 
     interface ProxyObject {
         proxyType?: ProxyTypes;
@@ -362,20 +364,35 @@ declare namespace WebDriver {
     // Appium General Capabilities
     export interface AppiumCapabilities {
         automationName?: string;
+        'appium:automationName'?: string;
         platformVersion?: string;
+        'appium:platformVersion'?: string;
         deviceName?: string;
+        'appium:deviceName'?: string;
         app?: string;
+        'appium:app'?: string;
         newCommandTimeout?: number;
+        'appium:newCommandTimeout'?: number;
         language?: string;
+        'appium:language'?: string;
         locale?: string;
+        'appium:locale'?: string;
         udid?: string;
+        'appium:udid'?: string;
         orientation?: string;
+        'appium:orientation'?: string;
         autoWebview?: boolean;
+        'appium:autoWebview'?: boolean;
         noReset?: boolean;
+        'appium:noReset'?: boolean;
         fullReset?: boolean;
+        'appium:fullReset'?: boolean;
         eventTimings?: boolean;
+        'appium:eventTimings'?: boolean;
         enablePerformanceLogging?: boolean;
+        'appium:enablePerformanceLogging'?: boolean;
         printPageSourceOnFindFailure?: boolean;
+        'appium:printPageSourceOnFindFailure'?: boolean;
     }
 
     export interface AppiumAndroidCapabilities {
@@ -572,31 +589,45 @@ declare namespace WebDriver {
 
     interface Options {
         /**
-         * Your cloud service username (only works for Sauce Labs, Browserstack, TestingBot,
-         * CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will automatically
-         * set connection options for you.
+         * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
+         * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),
+         * [CrossBrowserTesting](https://crossbrowsertesting.com) or
+         * [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+         * automatically set connection options for you. If you don't use a cloud provider this
+         * can be used to authenticate any other WebDriver backend.
          */
-        user?: string;
+        user?: string
         /**
-         * Your cloud service access key or secret key (only works for Sauce Labs, Browserstack,
-         * TestingBot, CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will
-         * automatically set connection options for you.
+         * Your cloud service access key or secret key (only works for
+         * [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com),
+         * [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)
+         * or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+         * automatically set connection options for you. If you don't use a cloud provider this
+         * can be used to authenticate any other WebDriver backend.
          */
-        key?: string;
+        key?: string
         /**
          * Protocol to use when communicating with the Selenium standalone server (or driver).
+         *
+         * @default 'http'
          */
         protocol?: string;
         /**
          * Host of your WebDriver server.
+         *
+         * @default 'localhost'
          */
         hostname?: string;
         /**
          * Port your WebDriver server is on.
+         *
+         * @default 4444
          */
         port?: number;
         /**
          * Path to WebDriver endpoint or grid server.
+         *
+         * @default '/'
          */
         path?: string;
         /**
@@ -612,6 +643,8 @@ declare namespace WebDriver {
         requestedCapabilities?: DesiredCapabilities | W3CCapabilities;
         /**
          * Level of logging verbosity.
+         *
+         * @default 'info'
          */
         logLevel?: WebDriverLogTypes;
         /**
@@ -621,16 +654,16 @@ declare namespace WebDriver {
         logLevels?: Record<string, WebDriverLogTypes | undefined>;
         /**
          * Timeout for any WebDriver request to a driver or grid.
+         *
+         * @default 120000
          */
         connectionRetryTimeout?: number;
         /**
          * Count of request retries to the Selenium server.
+         *
+         * @default 3
          */
         connectionRetryCount?: number;
-        /**
-         * Timeout for any request to the Selenium server
-         */
-        connectionPollInterval?: number
         /**
          * Specify custom headers to pass into every request.
          */
@@ -638,11 +671,19 @@ declare namespace WebDriver {
             [name: string]: string;
         };
         /**
-         * Allows you to use a customhttp/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
+         * Allows you to use a custom http/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
+         *
+         * @default
+         * ```js
+         * {
+         *     http: new http.Agent({ keepAlive: true }),
+         *     https: new https.Agent({ keepAlive: true })
+         * }
+         * ```
          */
         agent?: {
-            http: HTTPAgent;
-            https: HTTPSAgent;
+            http: HTTPAgent,
+            https: HTTPSAgent
         };
         /**
          * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
@@ -660,6 +701,25 @@ declare namespace WebDriver {
         directConnectHost?: string
         directConnectPort?: number
         directConnectPath?: string
+
+        /**
+         * Whether it requires SSL certificates to be valid in HTTP/s requests
+         * for an environment which cannot get process environment well.
+         *
+         * @default true
+         */
+        strictSSL?: boolean;
+
+        /**
+         * Directory to store all testrunner log files (including reporter logs and `wdio` logs).
+         * If not set, all logs are streamed to `stdout`. Since most reporters are made to log to
+         * `stdout`, it is recommended to only use this option for specific reporters where it
+         * makes more sense to push report into a file (like the `junit` reporter, for example).
+         *
+         * When running in standalone mode, the only log generated by WebdriverIO will be
+         * the `wdio` log.
+         */
+        outputDir?: string
     }
 
     interface AttachSessionOptions extends Options {
@@ -746,7 +806,7 @@ declare namespace WebDriver {
         mjpegScalingFactor?: number,
     }
 
-    interface BaseClient {
+    interface BaseClient extends NodeJS.EventEmitter {
         // id of WebDriver session
         sessionId: string;
         // assigned capabilities by the browser driver / WebDriver server
@@ -949,14 +1009,14 @@ declare namespace WebDriver {
          * The Find Element From Element command is used to find an element from a web element in the current browsing context that can be used for future commands.
          * https://w3c.github.io/webdriver/#dfn-find-element-from-element
          */
-        findElementFromElement(elementId: string, using: string, value: string): string;
+        findElementFromElement(elementId: string, using: string, value: string): ElementReference;
 
         /**
          * [webdriver]
          * The Find Elements From Element command is used to find elements from a web element in the current browsing context that can be used for future commands.
          * https://w3c.github.io/webdriver/#dfn-find-elements-from-element
          */
-        findElementsFromElement(elementId: string, using: string, value: string): string[];
+        findElementsFromElement(elementId: string, using: string, value: string): ElementReference[];
 
         /**
          * [webdriver]
@@ -1826,14 +1886,14 @@ declare namespace WebDriver {
          * Search for an element on the page, starting from the identified element. The located element will be returned as a WebElement JSON object. The table below lists the locator strategies that each server should support. Each locator must return the first matching element located in the DOM.
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidelement
          */
-        findElementFromElement(elementId: string, using: string, value: string): string;
+        findElementFromElement(elementId: string, using: string, value: string): ElementReference;
 
         /**
          * [jsonwp]
          * Search for multiple elements on the page, starting from the identified element. The located elements will be returned as a WebElement JSON objects. The table below lists the locator strategies that each server should support. Elements should be returned in the order located in the DOM.
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidelements
          */
-        findElementsFromElement(elementId: string, using: string, value: string): string[];
+        findElementsFromElement(elementId: string, using: string, value: string): ElementReference[];
 
         /**
          * [jsonwp]
@@ -2660,5 +2720,8 @@ type AsyncClient = {
 }
 
 declare module "webdriver" {
-    export = WebDriver;
+    export default WebDriver;
+
+    const DEFAULTS: Record<string, any>
+    export { DEFAULTS }
 }

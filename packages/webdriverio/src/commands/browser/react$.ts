@@ -39,7 +39,6 @@
 import fs from 'fs'
 import { getElement } from '../../utils/getElementObject'
 import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
-import type { ElementReference } from '../../types'
 
 const resqScript = fs.readFileSync(require.resolve('resq'))
 
@@ -50,7 +49,9 @@ export default async function react$ (
 ) {
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
-    const res = await this.execute<ElementReference>(react$Script, selector, props, state)
+    const res = await this.execute(
+        react$Script, selector, props, state
+    ) as any as WebDriver.ElementReference
 
     return getElement.call(this, selector, res, true)
 }

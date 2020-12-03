@@ -185,7 +185,8 @@ ele.dragAndDrop(ele, { duration: 0 })
 ele.dragAndDrop({ x: 1, y: 2 })
 
 // addLocatorStrategy
-browser.addLocatorStrategy('myStrat', () => {})
+browser.addLocatorStrategy('myStrat', () => document.body)
+browser.addLocatorStrategy('myStrat', () => document.querySelectorAll('div'))
 
 // shared-store-service
 browser.sharedStore.get('foo')

@@ -52,19 +52,9 @@
 
 import { touchAction as touchActionCommand } from '../constant'
 
-type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
-interface TouchAction {
-    action: ActionTypes,
-    x?: number,
-    y?: number,
-    element?: WebdriverIO.Element,
-    ms?: number
-}
-type TouchActions = string | TouchAction | TouchAction[]
-
 export default function touchAction (
-    this: WebdriverIO.ElementArray,
-    actions: TouchActions
+    this: WebdriverIO.Element,
+    actions: WebdriverIO.TouchActions
 ) {
     return touchActionCommand.call(this, actions)
 }
