@@ -314,6 +314,8 @@ export interface VendorExtensions extends EdgeCapabilities {
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
+    // eslint-disable-next-line
+    firefox_profile?: string;
     'ms:edgeOptions'?: MicrosoftEdgeOptions;
     'ms:edgeChromium'?: MicrosoftEdgeOptions;
 

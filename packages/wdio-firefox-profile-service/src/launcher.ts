@@ -1,34 +1,39 @@
 import Profile from 'firefox-profile'
 import { promisify } from 'util'
 
-export default class FirefoxProfileLauncher {
-    constructor(options) {
-        this.options = options
-    }
+import { Options } from './types'
 
-    async onPrepare(config, capabilities) {
+export default class FirefoxProfileLauncher {
+    private _profile?: Profile
+    constructor(private _options: Options) {}
+
+    async onPrepare(config: WebdriverIO.Config, capabilities: WebDriver.DesiredCapabilities[] | WebdriverIO.MultiRemoteCapabilities) {
         /**
          * Return if no profile options were specified
          */
-        if (Object.keys(this.options).length === 0) {
+        if (Object.keys(this._options).length === 0) {
             return
         }
 
-        if (this.options.profileDirectory) {
-            this.profile = await promisify(Profile.copy)(this.options.profileDirectory)
+        if (this._options.profileDirectory) {
+            this._profile = await promisify(Profile.copy)(this._options.profileDirectory)
         } else {
-            this.profile = new Profile()
+            this._profile = new Profile()
+        }
+
+        if (!this._profile) {
+            return
         }
 
         // Set preferences and proxy
         this._setPreferences()
 
-        if (!Array.isArray(this.options.extensions)) {
+        if (!Array.isArray(this._options.extensions)) {
             return this._buildExtension(capabilities)
         }
 
         // Add the extension
-        await promisify(this.profile.addExtensions.bind(this.profile))(this.options.extensions)
+        await promisify(this._profile.addExtensions.bind(this._profile))(this._options.extensions)
         return this._buildExtension(capabilities)
     }
 
@@ -36,23 +41,31 @@ export default class FirefoxProfileLauncher {
      * Sets any preferences and proxy
      */
     _setPreferences() {
-        for (const [preference, value] of Object.entries(this.options)) {
+        if (!this._profile) {
+            return
+        }
+
+        for (const [preference, value] of Object.entries(this._options)) {
             if (['extensions', 'proxy', 'legacy', 'profileDirectory'].includes(preference)) {
                 continue
             }
 
-            this.profile.setPreference(preference, value)
+            this._profile.setPreference(preference, value)
         }
 
-        if (this.options.proxy) {
-            this.profile.setProxy(this.options.proxy)
+        if (this._options.proxy) {
+            this._profile.setProxy(this._options.proxy)
         }
 
-        this.profile.updatePreferences()
+        this._profile.updatePreferences()
     }
 
-    async _buildExtension(capabilities) {
-        const zippedProfile = await promisify(this.profile.encoded.bind(this.profile))()
+    async _buildExtension(capabilities: WebDriver.DesiredCapabilities[] | WebdriverIO.MultiRemoteCapabilities) {
+        if (!this._profile) {
+            return
+        }
+
+        const zippedProfile = await promisify(this._profile.encoded.bind(this._profile))()
 
         if (Array.isArray(capabilities)) {
             capabilities
@@ -75,8 +88,8 @@ export default class FirefoxProfileLauncher {
         }
     }
 
-    _setProfile(capability, zippedProfile) {
-        if (this.options.legacy) {
+    _setProfile(capability: WebDriver.DesiredCapabilities, zippedProfile: string) {
+        if (this._options.legacy) {
             // for older firefox and geckodriver versions
             capability.firefox_profile = zippedProfile
         } else {
