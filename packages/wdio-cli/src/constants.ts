@@ -35,11 +35,18 @@ export const IOS_CONFIG = {
     deviceName: 'iPhone Simulator'
 }
 
+export const COMPILER_OPTION_ANSWERS = [
+    'Babel (https://babeljs.io/)',
+    'TypeScript (https://www.typescriptlang.org/)',
+    'No!'
+] as const
+
 export const COMPILER_OPTIONS = {
-    babel: 'Babel (https://babeljs.io/)',
-    ts: 'TypeScript (https://www.typescriptlang.org/)',
-    nil: 'No!'
-}
+    babel: COMPILER_OPTION_ANSWERS[0],
+    ts: COMPILER_OPTION_ANSWERS[1],
+    nil: COMPILER_OPTION_ANSWERS[2]
+} as const
+
 export const TS_COMPILER_INSTRUCTIONS = `To have TypeScript support please add the following packages to your "types" list:
 {
   "compilerOptions": {
@@ -111,7 +118,30 @@ export const SUPPORTED_PACKAGES = {
         { name: 'winappdriver', value: 'wdio-winappdriver-service$--$winappdriver' },
         { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' }
     ]
-}
+} as const
+
+export const BACKEND_CHOICES = [
+    'On my local machine',
+    'In the cloud using Experitest',
+    'In the cloud using Sauce Labs',
+    'In the cloud using Browserstack or Testingbot or LambdaTest or a different service',
+    'I have my own Selenium cloud'
+] as const
+
+export const PROTOCOL_OPTIONS = [
+    'https',
+    'http'
+] as const
+
+export const REGION_OPTION = [
+    'us',
+    'eu'
+] as const
+
+export const MODE_OPTIONS = [
+    'sync',
+    'async'
+] as const
 
 export const QUESTIONNAIRE = [{
     type: 'list',
@@ -124,13 +154,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'backend',
     message: 'Where is your automation backend located?',
-    choices: [
-        'On my local machine',
-        'In the cloud using Experitest',
-        'In the cloud using Sauce Labs',
-        'In the cloud using Browserstack or Testingbot or LambdaTest or a different service',
-        'I have my own Selenium cloud'
-    ]
+    choices: BACKEND_CHOICES
 }, {
     type: 'input',
     name: 'hostname',
@@ -165,10 +189,7 @@ export const QUESTIONNAIRE = [{
     name: 'expEnvProtocol',
     message: 'Choose a protocol for environment variable',
     default: 'https',
-    choices: [
-        'https',
-        'http'
-    ],
+    choices: PROTOCOL_OPTIONS,
     when: /* istanbul ignore next */ (answers: any) => {
         return answers.backend === 'In the cloud using Experitest' && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
     }
@@ -224,10 +245,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'region',
     message: 'In which region do you want to run your Sauce Labs tests in?',
-    choices: [
-        'us',
-        'eu'
-    ],
+    choices: REGION_OPTION,
     when: /* istanbul ignore next */ (answers: any) => !answers.headless && answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'input',
@@ -256,10 +274,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'executionMode',
     message: 'Do you want to run WebdriverIO commands synchronous or asynchronous?',
-    choices: [
-        'sync',
-        'async'
-    ]
+    choices: MODE_OPTIONS
 }, {
     type: 'input',
     name: 'specs',
@@ -303,7 +318,7 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'isUsingCompiler',
     message: 'Are you using a compiler?',
-    choices: Object.values(COMPILER_OPTIONS),
+    choices: COMPILER_OPTION_ANSWERS,
     default: /* istanbul ignore next */ () => hasFile('babel.config.js')
         ? COMPILER_OPTIONS.babel // default to Babel
         : hasFile('tsconfig.json')

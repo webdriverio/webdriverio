@@ -55,14 +55,18 @@ export const run = async () => {
         .readdirSync(path.join(__dirname, 'commands'))
         .map((file) => file.slice(0, -3))
 
-    if (!params._.find((param) => supportedCommands.includes(param))) {
-        const configPath = params._[0]
-
+    if (!params._.find((param: string) => supportedCommands.includes(param))) {
+        const configPath = params._[0] as string
         params.configPath = path.resolve(process.cwd(), configPath || DEFAULT_CONFIG_FILENAME)
 
         return handler(params).catch(async (err) => {
             const output = await new Promise((resolve) => (
-                yargs.parse('--help', (err, argv, output) => resolve(output))))
+                yargs.parse('--help', (
+                    err: Error,
+                    argv: Record<string, any>,
+                    output: string
+                ) => resolve(output)))
+            )
 
             console.error(`${output}\n\n${err.stack}`)
             /* istanbul ignore if */

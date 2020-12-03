@@ -3,27 +3,30 @@ import fs from 'fs-extra'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
-import { ConfigParser } from '@wdio/config'
+import { ConfigParser, ConfigOptions } from '@wdio/config'
 import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
 
 import CLInterface from './interface'
+import { Runner } from './types'
 import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils'
 
 const log = logger('@wdio/cli:launcher')
 
 class Launcher {
-    constructor(configFilePath, args = {}, isWatchMode = false) {
-        this.args = args
-        this.configFilePath = configFilePath
+    private _configParser: ConfigParser
+    private _runner: Runner
 
-        this.configParser = new ConfigParser()
-        this.configParser.addConfigFile(configFilePath)
-        this.configParser.merge(args)
+    constructor(
+        private _configFilePath: string,
+        private _args: ConfigOptions = {},
+        private _isWatchMode = false
+    ) {
+        this._configParser = new ConfigParser()
+        this._configParser.addConfigFile(_configFilePath)
+        this._configParser.merge(_args)
 
-        const config = this.configParser.getConfig()
-        const capabilities = this.configParser.getCapabilities()
-
-        this.isWatchMode = isWatchMode
+        const config = this._configParser.getConfig()
+        const capabilities = this._configParser.getCapabilities()
 
         if (config.outputDir) {
             fs.ensureDirSync(path.join(config.outputDir))
@@ -34,14 +37,14 @@ class Launcher {
 
         const totalWorkerCnt = Array.isArray(capabilities)
             ? capabilities
-                .map((c) => this.configParser.getSpecs(c.specs, c.exclude).length)
+                .map((c) => this._configParser.getSpecs(c.specs, c.exclude).length)
                 .reduce((a, b) => a + b, 0)
             : 1
 
         const Runner = initialisePlugin(config.runner, 'runner').default
-        this.runner = new Runner(configFilePath, config)
+        this._runner = new Runner(configFilePath, config)
 
-        this.interface = new CLInterface(config, totalWorkerCnt, this.isWatchMode)
+        this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
         config.runnerEnv.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
         this.isMultiremote = !Array.isArray(capabilities)
@@ -67,17 +70,17 @@ class Launcher {
         let error
 
         try {
-            const config = this.configParser.getConfig()
-            const caps = this.configParser.getCapabilities()
+            const config = this._configParser.getConfig()
+            const caps = this._configParser.getCapabilities()
             const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps)
             this.launcher = launcherServices
-            this.args.ignoredWorkerServices = ignoredWorkerServices
+            this._args.ignoredWorkerServices = ignoredWorkerServices
 
             /**
              * run pre test tasks for runner plugins
              * (e.g. deploy Lambda function to AWS)
              */
-            await this.runner.initialise()
+            await this._runner.initialise()
 
             /**
              * run onPrepare hook
@@ -107,7 +110,7 @@ class Launcher {
         } finally {
             if (!this.hasTriggeredExitRoutine) {
                 this.hasTriggeredExitRoutine = true
-                await this.runner.shutdown()
+                await this._runner.shutdown()
             }
         }
 
@@ -134,7 +137,7 @@ class Launcher {
         /**
          * avoid retries in watch mode
          */
-        const specFileRetries = this.isWatchMode ? 0 : config.specFileRetries
+        const specFileRetries = this._isWatchMode ? 0 : config.specFileRetries
 
         /**
          * schedule test runs
@@ -147,7 +150,7 @@ class Launcher {
             this.schedule.push({
                 cid: cid++,
                 caps,
-                specs: this.configParser.getSpecs(caps.specs, caps.exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                specs: this._configParser.getSpecs(caps.specs, caps.exclude).map(s => ({ files: [s], retries: specFileRetries })),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
@@ -159,7 +162,7 @@ class Launcher {
                 this.schedule.push({
                     cid: cid++,
                     caps: capabilities,
-                    specs: this.configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                    specs: this._configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: specFileRetries })),
                     availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
                     runningInstances: 0
                 })
@@ -191,7 +194,7 @@ class Launcher {
      * @return {Boolean} true if all specs have been run and all instances have finished
      */
     runSpecs() {
-        let config = this.configParser.getConfig()
+        let config = this._configParser.getConfig()
 
         /**
          * stop spawning new processes when CTRL+C was triggered
@@ -281,7 +284,7 @@ class Launcher {
      * @param  {Number} retries  Number of retries remaining
      */
     async startInstance(specs, caps, cid, rid, retries) {
-        let config = this.configParser.getConfig()
+        let config = this._configParser.getConfig()
 
         // wait before retrying the spec file
         if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && config.specFileRetries !== retries) {
@@ -334,15 +337,15 @@ class Launcher {
 
         // run worker hook to allow modify runtime and capabilities of a specific worker
         log.info('Run onWorkerStart hook')
-        await runLauncherHook(config.onWorkerStart, cid, caps, specs, this.args, execArgv)
-        await runServiceHook(this.launcher, 'onWorkerStart', cid, caps, specs, this.args, execArgv)
+        await runLauncherHook(config.onWorkerStart, cid, caps, specs, this._args, execArgv)
+        await runServiceHook(this.launcher, 'onWorkerStart', cid, caps, specs, this._args, execArgv)
 
         // prefer launcher settings in capabilities over general launcher
-        const worker = this.runner.run({
+        const worker = this._runner.run({
             cid,
             command: 'run',
-            configFile: this.configFilePath,
-            args: this.args,
+            configFile: this._configFilePath,
+            args: this._args,
             caps,
             specs,
             execArgv,
@@ -373,21 +376,21 @@ class Launcher {
      * @param  {Number} retries   Number or retries remaining
      */
     endHandler({ cid, exitCode, specs, retries }) {
-        const passed = this.isWatchModeHalted() || exitCode === 0
+        const passed = this._isWatchModeHalted() || exitCode === 0
 
         if (!passed && retries > 0) {
             // Default is true, so test for false explicitly
-            const requeue = this.configParser.getConfig().specFileRetriesDeferred !== false ? 'push' : 'unshift'
+            const requeue = this._configParser.getConfig().specFileRetriesDeferred !== false ? 'push' : 'unshift'
             this.schedule[parseInt(cid)].specs[requeue]({ files: specs, retries: retries - 1, rid: cid })
         } else {
-            this.exitCode = this.isWatchModeHalted() ? 0 : this.exitCode || exitCode
+            this.exitCode = this._isWatchModeHalted() ? 0 : this.exitCode || exitCode
             this.runnerFailed += !passed ? 1 : 0
         }
 
         /**
          * avoid emitting job:end if watch mode has been stopped by user
          */
-        if (!this.isWatchModeHalted()) {
+        if (!this._isWatchModeHalted()) {
             this.interface.emit('job:end', { cid, passed, retries })
         }
 
@@ -406,7 +409,7 @@ class Launcher {
          * - we are running watch mode
          */
         const shouldRunSpecs = this.runSpecs()
-        if (!shouldRunSpecs || (this.isWatchMode && !this.hasTriggeredExitRoutine)) {
+        if (!shouldRunSpecs || (this._isWatchMode && !this.hasTriggeredExitRoutine)) {
             return
         }
 
@@ -430,7 +433,7 @@ class Launcher {
 
         this.hasTriggeredExitRoutine = true
         this.interface.sigintTrigger()
-        return this.runner.shutdown().then(callback)
+        return this._runner.shutdown().then(callback)
     }
 
     /**
@@ -438,7 +441,7 @@ class Launcher {
      * @returns {boolean}
      */
     isWatchModeHalted() {
-        return this.isWatchMode && this.hasTriggeredExitRoutine
+        return this._isWatchMode && this.hasTriggeredExitRoutine
     }
 }
 

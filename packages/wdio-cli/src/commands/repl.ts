@@ -1,9 +1,11 @@
 import pickBy from 'lodash.pickby'
 import { remote } from 'webdriverio'
 import { hasWdioSyncSupport } from '@wdio/utils'
-import { getCapabilities } from '../utils'
 
+import { getCapabilities } from '../utils'
+import { ReplCommandArguments } from '../types'
 import { CLI_EPILOGUE } from '../constants'
+import yargs from 'yargs'
 
 const IGNORED_ARGS = [
     'bail', 'framework', 'reporters', 'suite', 'spec', 'exclude',
@@ -28,9 +30,9 @@ export const cmdArgs = {
         desc: 'UDID of real mobile devices',
         type: 'string',
     }
-}
+} as const
 
-export const builder = (yargs) => {
+export const builder = (yargs: yargs.Argv) => {
     return yargs
         .options(pickBy(cmdArgs, (_, key) => !IGNORED_ARGS.includes(key)))
         .example('$0 repl firefox --path /', 'Run repl locally')
@@ -42,7 +44,7 @@ export const builder = (yargs) => {
         .help()
 }
 
-export const handler = async (argv) => {
+export const handler = async (argv: ReplCommandArguments) => {
     const caps = getCapabilities(argv)
 
     /**

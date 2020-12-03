@@ -11,6 +11,8 @@ import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
     hasFile, generateTestFiles, getAnswers, getPathForFileGeneration
 } from '../utils'
+import { Questionnair, ConfigCommandArguments, ParsedAnswers } from '../types'
+import yargs from 'yargs'
 
 export const command = 'config'
 export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'
@@ -27,31 +29,34 @@ export const cmdArgs = {
         type: 'boolean',
         default: false
     }
-}
-export const builder = (yargs) => {
+} as const
+
+export const builder = (yargs: yargs.Argv) => {
     return yargs
         .options(cmdArgs)
         .epilogue(CLI_EPILOGUE)
         .help()
 }
 
-const runConfig = async function (useYarn, yes, exit) {
+const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) {
     console.log(CONFIG_HELPER_INTRO)
     const answers = await getAnswers(yes)
 
     const packageAnswers = ['reporters', 'runner', 'services', 'framework']
 
-    Object.keys(answers).forEach((key) => {
+    Object.keys(answers).forEach((key: keyof Questionnair) => {
         if (packageAnswers.includes(key)) {
             if (Array.isArray(answers[key])) {
-                answers[key] = answers[key].map(answer => convertPackageHashToObject(answer))
+                // @ts-ignore
+                answers[key] = answers[key].map((answer) => convertPackageHashToObject(answer))
             } else {
+                // @ts-ignore
                 answers[key] = convertPackageHashToObject(answers[key])
             }
         }
     })
 
-    const packagesToInstall = [
+    const packagesToInstall: string[] = [
         (answers.runner && answers.runner.package) || '@wdio/local-runner',
         answers.framework.package,
         ...answers.reporters.map(reporter => reporter.package),
@@ -84,7 +89,7 @@ const runConfig = async function (useYarn, yes, exit) {
 
     const parsedPaths = getPathForFileGeneration(answers)
 
-    const parsedAnswers = {
+    const parsedAnswers: ParsedAnswers = {
         ...answers,
         runner: (answers.runner && answers.runner.short) || defaultRunner,
         framework: answers.framework.short,
@@ -144,9 +149,9 @@ const runConfig = async function (useYarn, yes, exit) {
     }
 }
 
-export async function handler(argv) {
+export async function handler(argv: yargs.Argv<ConfigCommandArguments>) {
     try {
-        await runConfig(argv.yarn, argv.yes)
+        await runConfig(argv.argv.yarn, argv.argv.yes)
     } catch (error) {
         throw new Error(`something went wrong during setup: ${error.stack.slice(7)}`)
     }
@@ -159,7 +164,7 @@ export async function handler(argv) {
  * @param {boolean}  useYarn        parameter set to true if yarn is used
  * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
  */
-export async function missingConfigurationPrompt(command, message, useYarn = false, runConfigCmd = runConfig) {
+export async function missingConfigurationPrompt(command: string, message: string, useYarn = false, runConfigCmd = runConfig) {
     const { config } = await inquirer.prompt([
         {
             type: 'confirm',
