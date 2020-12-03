@@ -305,8 +305,10 @@ export interface VendorExtensions extends EdgeCapabilities {
     'selenoid:options'?: SelenoidOptions
     // Testingbot w3c specific
     'tb:options'?: TestingbotCapabilities
-    // Saucelabs w3c specific
-    'sauce:options'?: SauceLabsCapabilities & SauceLabsVisualCapabilities
+    // Sauce Labs w3c specific
+    'sauce:options'?: SauceLabsCapabilities
+    // Sauce Labs Visual
+    'sauce:visual'?: SauceLabsVisualCapabilities
     // Browserstack w3c specific
     'bstack:options'?: {
         [name: string]: any
