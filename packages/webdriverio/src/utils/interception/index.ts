@@ -31,16 +31,16 @@ export default class Interception {
          * ensure that timeout and interval are set properly
          */
         if (typeof timeout !== 'number') {
-            timeout = this.browser.options.waitforTimeout
+            timeout = this.browser.options.waitforTimeout as number
         }
 
         if (typeof interval !== 'number') {
-            interval = this.browser.options.waitforInterval
+            interval = this.browser.options.waitforInterval as number
         }
 
         /* istanbul ignore next */
         const fn = async () => this.calls && (await this.calls).length > 0
-        const timer = new Timer(interval, timeout, fn, true) as unknown as Promise<void>
+        const timer = new Timer(interval, timeout, fn, true) as any as Promise<boolean>
 
         return this.browser.call(() => timer.catch((e) => {
             if (e.message === 'timeout') {

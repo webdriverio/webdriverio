@@ -22,7 +22,7 @@ import { getBrowserObject } from '../../utils'
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER
 
-export default function setWindowSize(
+export default async function setWindowSize(
     this: WebdriverIO.BrowserObject,
     width: number,
     height: number
@@ -37,14 +37,13 @@ export default function setWindowSize(
     /**
      * value check
      */
-    if ((width < minWindowSize || width > maxWindowSize) || (height < minWindowSize || height > maxWindowSize)) {
+    if (width < minWindowSize || width > maxWindowSize || height < minWindowSize || height > maxWindowSize) {
         throw new Error('setWindowSize expects width and height to be a number in the 0 to 2^31 − 1 range')
     }
 
     const browser = getBrowserObject(this)
 
-    if (!browser.isW3C) {
-        return browser._setWindowSize(width, height)
-    }
-    return browser.setWindowRect(null, null, width, height)
+    return !browser.isW3C
+        ? browser._setWindowSize(width, height)
+        : browser.setWindowRect(null, null, width, height) as any as Promise<void>
 }

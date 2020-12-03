@@ -80,13 +80,6 @@ export const DEFAULTS: DefaultOptions<WebDriver.Options> = {
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
-     * Timeout for any request to the Selenium server
-     */
-    connectionPollInterval: {
-        type: 'number',
-        default: 500
-    },
-    /**
      * maxConnectionRetries in chrome-launcher
      */
     connectionRetryCount: {

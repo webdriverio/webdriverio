@@ -38,7 +38,7 @@ export default function addValue (
     { translateToUnicode = true }: AddValueOptions = {}
 ) {
     if (!this.isW3C) {
-        return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode))
+        return this.elementSendKeys(this.elementId, transformToCharString(value as string[], translateToUnicode))
     }
 
     // @ts-ignore TS takes `elementSendKeys` from JSONWP

@@ -1,5 +1,9 @@
 import { DEFAULT_CONFIGS as DEFAULT_CONFIGS_IMPORT } from '../../../src/constants'
-import { getSauceEndpoint as getSauceEndpointMock } from '../../../src/utils'
+import {
+    getSauceEndpoint as getSauceEndpointMock,
+    isCloudCapability as isCloudCapabilityMock,
+    detectBackend as detectBackendMock
+} from '../../../src/utils'
 
 class ConfigParserMock {
     addService = jest.fn()
@@ -24,8 +28,11 @@ class ConfigParserMock {
     getSpecs = jest.fn().mockReturnValue(['./tests/test1.js'])
 }
 
+export const ConfigParser = ConfigParserMock
 export const DEFAULT_CONFIGS = DEFAULT_CONFIGS_IMPORT
-export const getSauceEndpoint = getSauceEndpointMock
+export const getSauceEndpoint = jest.fn().mockImplementation(getSauceEndpointMock)
+export const isCloudCapability = jest.fn().mockImplementation(isCloudCapabilityMock)
+export const detectBackend = jest.fn().mockImplementation(detectBackendMock)
 export const validateConfig = jest.fn().mockImplementation(
     (_, config) => Object.assign(
         DEFAULT_CONFIGS_IMPORT(),
@@ -39,4 +46,3 @@ export const validateConfig = jest.fn().mockImplementation(
         config
     )
 )
-export const ConfigParser = ConfigParserMock

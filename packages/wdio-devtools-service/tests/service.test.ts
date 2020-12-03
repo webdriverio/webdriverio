@@ -16,7 +16,7 @@ jest.mock('../src/commands', () => {
 
 jest.mock('../src/auditor', () => {
     const updateCommandsMock = jest.fn()
-    return class AuditorMock {
+    return class {
         traceEvents: any
         logs: any
         updateCommands = updateCommandsMock

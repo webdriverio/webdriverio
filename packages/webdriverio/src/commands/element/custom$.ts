@@ -32,7 +32,7 @@ async function custom$ (
     strategyArguments: string
 ) {
     const browserObject: WebdriverIO.BrowserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName)
+    const strategy = browserObject.strategies.get(strategyName) as () => WebDriver.ElementReference
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
@@ -57,8 +57,8 @@ async function custom$ (
         res = res[0]
     }
 
-    if (res && typeof (res as WebdriverIO.ElementReference)[ELEMENT_KEY] === 'string') {
-        return await getElement.call(this, strategy, res as WebdriverIO.ElementReference)
+    if (res && typeof res[ELEMENT_KEY] === 'string') {
+        return await getElement.call(this, strategy, res)
     }
 
     throw Error('Your locator strategy script must return an element')

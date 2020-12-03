@@ -22,7 +22,7 @@
  * </example>
  *
  * @alias element.selectByVisibleText
- * @param {String} text       text of option element to get selected
+ * @param {String|Number} text       text of option element to get selected
  * @uses protocol/findElementsFromElement, protocol/elementClick
  * @type action
  *
