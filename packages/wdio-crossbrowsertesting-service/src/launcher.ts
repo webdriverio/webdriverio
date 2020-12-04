@@ -6,22 +6,26 @@ import logger from '@wdio/logger'
 
 const log = logger('@wdio/crossbrowsertesting-service')
 
-export default class CrossBrowserTestingLauncher {
-    constructor (options, caps, config) {
-        this.options = options
-        this.config = config
+export default class CrossBrowserTestingLauncher implements WebdriverIO.ServiceInstance {
+    private _isUsingTunnel: boolean = false;
+    private _cbtTunnelOpts: CBTConfigInterface;
+
+    constructor (
+        private _options: WebdriverIO.ServiceOption,
+        private _caps: WebDriver.DesiredCapabilities,
+        private _config: WebdriverIO.Config
+    ) {
+        this._cbtTunnelOpts = Object.assign({
+            username: this._config.user,
+            authkey: this._config.key,
+            nokill: true
+        }, this._options.cbtTunnelOpts)
     }
 
     async onPrepare () {
-        if (!this.options.cbtTunnel) {
+        if (!this._options.cbtTunnel) {
             return
         }
-
-        this.cbtTunnelOpts = Object.assign({
-            username: this.config.user,
-            authkey: this.config.key,
-            nokill: true
-        }, this.options.cbtTunnelOpts)
 
         /**
          * measure TestingBot tunnel boot time
@@ -33,18 +37,18 @@ export default class CrossBrowserTestingLauncher {
         obs.observe({ entryTypes: ['measure'], buffered: false })
 
         performance.mark('tbTunnelStart')
-        await promisify(cbt.start)(this.cbtTunnelOpts)
-        this.tunnel = true
+        await promisify(cbt.start)(this._cbtTunnelOpts)
+        this._isUsingTunnel = true
         performance.mark('tbTunnelEnd')
         performance.measure('bootTime', 'tbTunnelStart', 'tbTunnelEnd')
     }
 
     onComplete () {
-        if (!this.tunnel){
+        if (!this._isUsingTunnel){
             return
         }
 
-        return new Promise((resolve, reject) => cbt.stop(err => {
+        return new Promise((resolve, reject) => cbt.stop((err: Error) => {
             if (err) {
                 return reject(err)
             }
