@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import ConciseReporter from '../src'
 import {
     RUNNER,
@@ -20,14 +19,13 @@ describe('ConciseReporter', () => {
 
     describe('on create', () => {
         it('should verify initial properties', () => {
-            expect(Array.isArray(reporter.suiteUids)).toBe(true)
-            expect(reporter.suiteUids.length).toBe(0)
-            expect(Array.isArray(reporter.suites)).toBe(true)
-            expect(reporter.suites.length).toBe(0)
-            expect(reporter.stateCounts).toEqual({
+            expect(Array.isArray(reporter['_suiteUids'])).toBe(true)
+            expect(reporter['_suiteUids'].length).toBe(0)
+            expect(Array.isArray(reporter['_suites'])).toBe(true)
+            expect(reporter['_suites'].length).toBe(0)
+            expect(reporter['_stateCounts']).toEqual({
                 failed : 0
             })
-            expect(reporter.chalk).toBe(chalk)
         })
     })
 
@@ -37,8 +35,8 @@ describe('ConciseReporter', () => {
         })
 
         it('should add to suiteUids', () => {
-            expect(reporter.suiteUids.length).toBe(1)
-            expect(reporter.suiteUids[0]).toBe('Foo test1')
+            expect(reporter['_suiteUids'].length).toBe(1)
+            expect(reporter['_suiteUids'][0]).toBe('Foo test1')
         })
     })
 
@@ -48,7 +46,7 @@ describe('ConciseReporter', () => {
         })
 
         it('should increase stateCounts.failed by 1', () => {
-            expect(reporter.stateCounts.failed).toBe(1)
+            expect(reporter['_stateCounts'].failed).toBe(1)
         })
     })
 
@@ -58,8 +56,8 @@ describe('ConciseReporter', () => {
         })
 
         it('should add the suite to the suites array', () => {
-            expect(reporter.suites.length).toBe(1)
-            expect(reporter.suites[0]).toBe(SUITES[0])
+            expect(reporter['_suites'].length).toBe(1)
+            expect(reporter['_suites'][0]).toBe(SUITES[0])
         })
     })
 
@@ -67,9 +65,8 @@ describe('ConciseReporter', () => {
         it('should call printReport method', () => {
             reporter.printReport = jest.fn()
             reporter.onRunnerEnd(RUNNER)
-
-            expect(reporter.printReport.mock.calls.length).toBe(1)
-            expect(reporter.printReport.mock.calls[0][0]).toEqual(RUNNER)
+            expect((reporter.printReport as jest.Mock).mock.calls.length).toBe(1)
+            expect((reporter.printReport as jest.Mock).mock.calls[0][0]).toEqual(RUNNER)
         })
     })
 
