@@ -62,8 +62,7 @@ export interface RunCommandArguments {
     framework: string
     reporters: any
     suite: Record<string, string[]>
-    spec: string
-    specs: string[]
+    spec: string[]
     exclude: string
     mochaOpts: any
     jasmineNodeOpts: any

@@ -246,7 +246,7 @@ export default class ConfigParser {
      * return configs
      */
     getConfig () {
-        return this._config
+        return this._config as Required<ConfigOptions>
     }
 
     /**

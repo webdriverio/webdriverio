@@ -7,6 +7,7 @@ import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
+import type { ConfigOptions, Capabilities } from '@wdio/config'
 
 import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
 import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
@@ -78,8 +79,8 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
  */
 export async function runOnCompleteHook(
     onCompleteHook: Function | Function[],
-    config: WebdriverIO.Config,
-    capabilities: WebDriver.DesiredCapabilities,
+    config: ConfigOptions,
+    capabilities: Capabilities,
     exitCode: number,
     results: OnCompleteResult
 ) {

@@ -1,24 +1,33 @@
 import chalk from 'chalk'
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
 import logger from '@wdio/logger'
+import type { ConfigOptions } from '@wdio/config'
 
 import { getRunnerName } from './utils'
-import { string } from 'yargs'
 
 const log = logger('@wdio/cli')
 
-export default class WDIOCLInterface extends EventEmitter {
-    private _specFileRetries: number
-    private _specFileRetriesDelay: number
+interface Job {
+    caps: WebDriver.Capabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities
+    specs: string[],
+    hasTests: boolean
+}
 
-    private _skippedSpecs = 0
-    private _inDebugMode = false
-    private _result = {
+export default class WDIOCLInterface extends EventEmitter {
+    public hasAnsiSupport: boolean
+    public result = {
         finished: 0,
         passed: 0,
         retries: 0,
         failed: 0
     }
+
+    private _jobs: Map<string, Job> = new Map()
+    private _specFileRetries: number
+    private _specFileRetriesDelay: number
+
+    private _skippedSpecs = 0
+    private _inDebugMode = false
     private _start = new Date()
     private _messages: {
         reporter: Record<string, string[]>
@@ -29,11 +38,18 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     constructor(
-        private _config: WebdriverIO.Config,
+        private _config: ConfigOptions,
         private _totalWorkerCnt: number,
         private _isWatchMode = false
     ) {
         super()
+
+        /**
+         * Colors can be forcibly enabled/disabled with env variable `FORCE_COLOR`
+         * `FORCE_COLOR=1` - forcibly enable colors
+         * `FORCE_COLOR=0` - forcibly disable colors
+         */
+        this.hasAnsiSupport = (chalk.supportsColor as chalk.ColorSupport).hasBasic
 
         this._totalWorkerCnt = _totalWorkerCnt
         this._isWatchMode = _isWatchMode
@@ -48,14 +64,14 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     setup() {
-        this.jobs = new Map()
+        this._jobs = new Map()
         this._start = new Date()
 
         /**
          * The relationship between totalWorkerCnt and these counters are as follows:
          * totalWorkerCnt - retries = finished = passed + failed
          */
-        this._result = {
+        this.result = {
             finished: 0,
             passed: 0,
             retries: 0,
@@ -79,28 +95,28 @@ export default class WDIOCLInterface extends EventEmitter {
         this.log('')
     }
 
-    onSpecRunning (cid: string) {
-        this.onJobComplete(cid, this.jobs.get(cid), 0, chalk.bold.cyan('RUNNING'))
+    onSpecRunning (rid: string) {
+        this.onJobComplete(rid, this._jobs.get(rid), 0, chalk.bold.cyan('RUNNING'))
     }
 
-    onSpecRetry (cid: string, job, retries) {
+    onSpecRetry (rid: string, job: Job, retries: number) {
         const delayMsg = this._specFileRetriesDelay > 0 ? ` after ${this._specFileRetriesDelay}s` : ''
-        this.onJobComplete(cid, job, retries, chalk.bold(chalk.yellow('RETRYING') + delayMsg))
+        this.onJobComplete(rid, job, retries, chalk.bold(chalk.yellow('RETRYING') + delayMsg))
     }
 
-    onSpecPass (cid: string, job, retries) {
-        this.onJobComplete(cid, job, retries, chalk.bold.green('PASSED'))
+    onSpecPass (rid: string, job: Job, retries: number) {
+        this.onJobComplete(rid, job, retries, chalk.bold.green('PASSED'))
     }
 
-    onSpecFailure (cid: string, job, retries) {
-        this.onJobComplete(cid, job, retries, chalk.bold.red('FAILED'))
+    onSpecFailure (rid: string, job: Job, retries: number) {
+        this.onJobComplete(rid, job, retries, chalk.bold.red('FAILED'))
     }
 
-    onSpecSkip (cid: string, job) {
-        this.onJobComplete(cid, job, 0, 'SKIPPED', log.info)
+    onSpecSkip (rid: string, job: Job) {
+        this.onJobComplete(rid, job, 0, 'SKIPPED', log.info)
     }
 
-    onJobComplete(cid: string, job, retries, message, _logger = this.log) {
+    onJobComplete(cid: string, job?: Job, retries: number, message, _logger = this.log) {
         const details = [`[${cid}]`, message]
         if (job) {
             details.push('in', getRunnerName(job.caps), this.getFilenames(job.specs))
@@ -133,8 +149,8 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * add job to interface
      */
-    addJob ({ cid, caps, specs, hasTests }) {
-        this.jobs.set(cid, { caps, specs, hasTests })
+    addJob ({ cid, caps, specs, hasTests }: Job & { cid: string }) {
+        this._jobs.set(cid, { caps, specs, hasTests })
         if (hasTests) {
             this.onSpecRunning(cid)
         } else {
@@ -145,29 +161,33 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * clear job from interface
      */
-    clearJob ({ cid, passed, retries }) {
-        const job = this.jobs.get(cid)
+    clearJob ({ cid, passed, retries }: { cid: string, passed: boolean, retries: number }) {
+        const job = this._jobs.get(cid)
 
-        this.jobs.delete(cid)
+        this._jobs.delete(cid)
         const retryAttempts = this._specFileRetries - retries
         const retry = !passed && retries > 0
         if (!retry) {
-            this._result.finished++
+            this.result.finished++
         }
 
         if (job && job.hasTests === false) {
             return this.onSpecSkip(cid, job)
         }
 
+        if (!job) {
+            throw new Error('Could not find job')
+        }
+
         if (passed) {
-            this._result.passed++
+            this.result.passed++
             this.onSpecPass(cid, job, retryAttempts)
         } else if (retry) {
             this._totalWorkerCnt++
-            this._result.retries++
+            this.result.retries++
             this.onSpecRetry(cid, job, retryAttempts)
         } else {
-            this._result.failed++
+            this.result.failed++
             this.onSpecFailure(cid, job, retryAttempts)
         }
     }
@@ -175,7 +195,7 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * for testing purposes call console log in a static method
      */
-    log (...args) {
+    log (...args: any[]) {
         // eslint-disable-next-line no-console
         console.log(...args)
         return args
@@ -234,7 +254,7 @@ export default class WDIOCLInterface extends EventEmitter {
             return false
         }
 
-        const isRunning = this.jobs.size !== 0
+        const isRunning = this._jobs.size !== 0
         const shutdownMessage = isRunning
             ? 'Ending WebDriver sessions gracefully ...\n' +
             '(press ctrl+c again to hard kill the runner)'
@@ -255,14 +275,14 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     printSummary() {
-        const totalJobs = this._totalWorkerCnt - this._result.retries
-        const elapsed = (new Date(Date.now() - this._start)).toUTCString().match(/(\d\d:\d\d:\d\d)/)![0]
-        const retries = this._result.retries ? chalk.yellow(this._result.retries, 'retries') + ', ' : ''
-        const failed = this._result.failed ? chalk.red(this._result.failed, 'failed') + ', ' : ''
+        const totalJobs = this._totalWorkerCnt - this.result.retries
+        const elapsed = (new Date(Date.now() - this._start.getTime())).toUTCString().match(/(\d\d:\d\d:\d\d)/)![0]
+        const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
+        const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
         const skipped = this._skippedSpecs > 0 ? chalk.gray(this._skippedSpecs, 'skipped') + ', ' : ''
-        const percentCompleted = totalJobs ? Math.round(this._result.finished / totalJobs * 100) : 0
+        const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
         return this.log(
-            '\nSpec Files:\t', chalk.green(this._result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
+            '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
             '\n'
         )
     }
