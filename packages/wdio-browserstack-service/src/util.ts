@@ -28,7 +28,7 @@ export function getBrowserDescription(cap: Capabilities) {
  * @param caps browser capbilities object. In case of multiremote, the object itself should have a property named 'capabilities'
  * @param browserName browser name in case of multiremote
  */
-export function getBrowserCapabilities(browser: Browser, caps: Capabilities, browserName: string) {
+export function getBrowserCapabilities(browser: Browser, caps: Capabilities = {}, browserName: string = '') {
     if (!browser.isMultiremote) {
         return { ...browser.capabilities, ...caps }
     }
@@ -42,6 +42,6 @@ export function getBrowserCapabilities(browser: Browser, caps: Capabilities, bro
  * check for browserstack W3C capabilities. Does not support legacy capabilities
  * @param cap browser capabilities
  */
-export function isBrowserstackCapability(cap: Capabilities) {
+export function isBrowserstackCapability(cap?: Capabilities) {
     return Boolean(cap && cap['bstack:options'])
 }
