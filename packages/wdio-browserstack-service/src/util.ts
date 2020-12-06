@@ -1,12 +1,8 @@
-import { BROWSER_DESCRIPTION, BrowserDescription } from './constants'
+import { BROWSER_DESCRIPTION } from './constants'
 
-type Capabilities = WebDriver.Capabilities & BrowserDescription & {
-    [key: string]: { capabilities: WebDriver.Capabilities };
-};
+type Capabilities = WebDriver.Capabilities & WebdriverIO.MultiRemoteCapabilities;
 
-type Browser = WebdriverIO.BrowserObject & {
-    [key: string]: { capabilities: WebDriver.Capabilities };
-};
+type Browser = WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject;
 /**
  * get browser description for Browserstack service
  * @param cap browser capablities

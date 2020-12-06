@@ -7,8 +7,4 @@ export const BROWSER_DESCRIPTION = [
     'browser',
     'browserVersion',
     'browser_version'
-] as const
-
-export type BrowserDescription = {
-    [key in typeof BROWSER_DESCRIPTION[number]]?: string;
-}
+]
