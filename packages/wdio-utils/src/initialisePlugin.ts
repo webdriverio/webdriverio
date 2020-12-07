@@ -1,13 +1,18 @@
 import path from 'path'
 import { safeRequire } from './utils'
 
+interface Plugin {
+    new(...args: any[]): any
+    default: Plugin
+}
+
 /**
  * initialise WebdriverIO compliant plugins like reporter or services in the following way:
  * 1. if package name is scoped (starts with "@"), require scoped package name
  * 2. otherwise try to require "@wdio/<name>-<type>"
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
-export default function initialisePlugin (name: string, type?: string): WebdriverIO.ServiceClass {
+export default function initialisePlugin (name: string, type?: string): Plugin {
     /**
      * directly import packages that are scoped or start with an absolute path
      */

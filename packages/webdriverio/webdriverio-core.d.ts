@@ -64,10 +64,7 @@ declare namespace WebdriverIO {
 
     interface ServiceClass {
         new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
-    }
-
-    interface ServiceLauncher extends ServiceClass {
-        default?: ServiceClass
+        default: ServiceClass
         launcher?: ServiceClass
     }
 
@@ -89,7 +86,7 @@ declare namespace WebdriverIO {
         /**
          * e.g. `services: [CustomClass]`
          */
-        ServiceLauncher |
+        ServiceClass |
         /**
          * e.g. `services: [['@wdio/sauce-service', { ... }]]`
          */
@@ -645,7 +642,7 @@ declare namespace WebdriverIO {
             name: string,
             func: AddCommandFn<false>
         ): void;
-        
+
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
@@ -1026,7 +1023,7 @@ declare namespace WebdriverIO {
          */
         calls: Matches[];
 
-        
+
         /**
          * Abort the request with one of the following error codes:
          * `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`,
@@ -1121,7 +1118,7 @@ declare namespace WebdriverIO {
             name: string,
             func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
         ): void
-        
+
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page. It returns an array with element results that will have an

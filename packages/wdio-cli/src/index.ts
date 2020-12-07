@@ -6,6 +6,7 @@ import yargs from 'yargs'
 import Launcher from './launcher'
 import { handler, cmdArgs } from './commands/run'
 import { CLI_EPILOGUE } from './constants'
+import { RunCommandArguments } from './types'
 
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
 const DESCRIPTION = [
@@ -31,7 +32,7 @@ export const run = async () => {
         .example('$0 install reporter spec', 'Install @wdio/spec-reporter')
         .example('$0 repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
         .updateStrings({ 'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:` })
-        .epilogue(CLI_EPILOGUE)
+        .epilogue(CLI_EPILOGUE) as yargs.Argv<RunCommandArguments>
 
     /**
      * parse CLI arguments according to what run expects, without this adding
@@ -59,7 +60,7 @@ export const run = async () => {
         const configPath = params._[0] as string
         params.configPath = path.resolve(process.cwd(), configPath || DEFAULT_CONFIG_FILENAME)
 
-        return handler(params).catch(async (err) => {
+        return handler(argv).catch(async (err) => {
             const output = await new Promise((resolve) => (
                 yargs.parse('--help', (
                     err: Error,

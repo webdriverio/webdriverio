@@ -58,10 +58,7 @@ declare namespace WebdriverIO {
 
     interface ServiceClass {
         new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
-    }
-
-    interface ServiceLauncher extends ServiceClass {
-        default?: ServiceClass
+        default: ServiceClass
         launcher?: ServiceClass
     }
 
@@ -83,7 +80,7 @@ declare namespace WebdriverIO {
         /**
          * e.g. `services: [CustomClass]`
          */
-        ServiceLauncher |
+        ServiceClass |
         /**
          * e.g. `services: [['@wdio/sauce-service', { ... }]]`
          */

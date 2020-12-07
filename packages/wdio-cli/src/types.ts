@@ -55,19 +55,24 @@ export interface RunCommandArguments {
     path: string
     user: string
     key: string
-    logLevel: string
+    logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
     bail: number
     baseUrl: string
     waitforTimeout: number
     framework: string
     reporters: any
-    suite: Record<string, string[]>
+    suite: string[]
     spec: string[]
-    exclude: string
+    exclude: string[]
     mochaOpts: any
     jasmineNodeOpts: any
     cucumberOpts: any
     configPath: string
+
+    /**
+     * @internal
+     */
+    ignoredWorkerServices: string[]
 }
 
 export interface ReplCommandArguments {

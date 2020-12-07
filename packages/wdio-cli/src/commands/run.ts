@@ -113,7 +113,7 @@ export function launchWithStdin (wdioConfPath: string, params: Partial<RunComman
     })
     stdin.on('end', () => {
         if (stdinData.length > 0) {
-            params.specs = stdinData.trim().split(/\r?\n/)
+            params.spec = stdinData.trim().split(/\r?\n/)
         }
         launch(wdioConfPath, params)
     })

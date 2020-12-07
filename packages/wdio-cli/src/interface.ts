@@ -7,6 +7,22 @@ import { getRunnerName } from './utils'
 
 const log = logger('@wdio/cli')
 
+interface TestError {
+    type: string
+    message: string
+    stack?: string
+}
+
+interface CLIInterfaceEvent {
+    origin: string
+    name: string
+    cid: string
+    fullTitle: string
+    content: any
+    params: any
+    error: TestError
+}
+
 interface Job {
     caps: WebDriver.Capabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities
     specs: string[],
@@ -116,10 +132,10 @@ export default class WDIOCLInterface extends EventEmitter {
         this.onJobComplete(rid, job, 0, 'SKIPPED', log.info)
     }
 
-    onJobComplete(cid: string, job?: Job, retries: number, message, _logger = this.log) {
+    onJobComplete(cid: string, job?: Job, retries = 0, message = '', _logger: Function = this.log) {
         const details = [`[${cid}]`, message]
         if (job) {
-            details.push('in', getRunnerName(job.caps), this.getFilenames(job.specs))
+            details.push('in', getRunnerName(job.caps as WebDriver.DesiredCapabilities), this.getFilenames(job.specs))
         }
         if (retries > 0) {
             details.push(`(${retries} retries)`)
@@ -128,8 +144,12 @@ export default class WDIOCLInterface extends EventEmitter {
         return _logger(...details)
     }
 
-    onTestError (payload) {
-        let error = { type: 'Error', message: typeof payload.error === 'string' ? payload.error : 'Unknown error.', stack: null }
+    onTestError (payload: CLIInterfaceEvent) {
+        const error: TestError = {
+            type: 'Error',
+            message: typeof payload.error === 'string' ? payload.error : 'Unknown error.'
+        }
+
         if (payload.error) {
             error.type = payload.error.type || error.type
             error.message = payload.error.message || error.message
@@ -139,7 +159,7 @@ export default class WDIOCLInterface extends EventEmitter {
         return this.log(`[${payload.cid}]`, `${chalk.red(error.type)} in "${payload.fullTitle}"\n${chalk.red(error.stack || error.message)}`)
     }
 
-    getFilenames (specs = []) {
+    getFilenames (specs: string[] = []) {
         if (specs.length > 0) {
             return '- ' + specs.join(', ').replace(new RegExp(`${process.cwd()}`, 'g'), '')
         }
@@ -204,7 +224,7 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * event handler that is triggered when runner sends up events
      */
-    onMessage (event) {
+    onMessage (event: CLIInterfaceEvent) {
         if (event.origin === 'debugger' && event.name === 'start') {
             this.log(chalk.yellow(event.params.introMessage))
             this._inDebugMode = true

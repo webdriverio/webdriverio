@@ -15,7 +15,7 @@ const log = logger('@wdio/cli:launcher')
 
 interface Schedule {
     cid: number
-    caps: WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities
+    caps: Capabilities
     specs: WorkerSpecs[]
     availableInstances: number
     runningInstances: number
@@ -97,7 +97,7 @@ class Launcher {
         try {
             const config = this._configParser.getConfig()
             const caps = this._configParser.getCapabilities() as Capabilities
-            const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps)
+            const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps as WebDriver.DesiredCapabilities)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
 
@@ -175,7 +175,7 @@ class Launcher {
             this._schedule.push({
                 cid: cid++,
                 caps,
-                specs: this._configParser.getSpecs(caps.specs, caps.exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                specs: this._configParser.getSpecs((caps as WebDriver.DesiredCapabilities).specs, (caps as WebDriver.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
@@ -186,9 +186,9 @@ class Launcher {
             for (let capabilities of caps as (WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities)[]) {
                 this._schedule.push({
                     cid: cid++,
-                    caps: capabilities,
-                    specs: this._configParser.getSpecs(capabilities.specs, capabilities.exclude).map(s => ({ files: [s], retries: specFileRetries })),
-                    availableInstances: capabilities.maxInstances || config.maxInstancesPerCapability,
+                    caps: capabilities as Capabilities,
+                    specs: this._configParser.getSpecs((capabilities as WebDriver.DesiredCapabilities).specs, (capabilities as WebDriver.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                    availableInstances: (capabilities as WebDriver.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability,
                     runningInstances: 0
                 })
             }
@@ -273,7 +273,7 @@ class Launcher {
             let specs = schedulableCaps[0].specs.shift() as NonNullable<WorkerSpecs>
             this.startInstance(
                 specs.files,
-                schedulableCaps[0].caps,
+                schedulableCaps[0].caps as WebDriver.DesiredCapabilities,
                 schedulableCaps[0].cid,
                 specs.rid,
                 specs.retries
