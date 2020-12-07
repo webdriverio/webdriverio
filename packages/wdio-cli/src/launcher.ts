@@ -9,7 +9,6 @@ import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
 import CLInterface from './interface'
 import { Runner, RunCommandArguments } from './types'
 import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils'
-import WebDriver from 'webdriver'
 
 const log = logger('@wdio/cli:launcher')
 
