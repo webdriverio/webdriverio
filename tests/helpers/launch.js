@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-import Launcher from '../../packages/wdio-cli/src/launcher'
+import Launcher from '../../packages/wdio-cli/build/launcher'
 
 export default function launch (...args) {
     const launcher = new Launcher(...args)
@@ -11,7 +11,7 @@ export default function launch (...args) {
         if (!isFailing) {
             // eslint-disable-next-line no-console
             console.log('Smoke test successful')
-            return { skippedSpecs: launcher.interface.skippedSpecs }
+            return { skippedSpecs: launcher.interface._skippedSpecs }
         }
 
         const IGNORED_FILES_TO_LOG = ['service.log', 'launcher.log']
