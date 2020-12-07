@@ -27,7 +27,7 @@ declare namespace WebdriverIO {
          * the provided callback, which is always provided as the final argument to the function. The value
          * to this callback will be returned to the client.
          */
-        executeAsync: <U extends any[], V extends U>(script: string | ((...arguments: V) => void), ...arguments: U) => any;
+        executeAsync: <T extends any[], R, S extends T>(script: string | ((...arguments: [...T: any, callback: () => void]) => void), ...arguments: S) => any;
     }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.Client, WebdriverIO.Browser { }
