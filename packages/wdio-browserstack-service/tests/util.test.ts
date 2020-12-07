@@ -109,7 +109,7 @@ describe('getBrowserDescription', () => {
 
     it('should not crash when capabilities is null or undefined', () => {
         expect(getBrowserDescription(undefined)).toEqual('')
-        expect(getBrowserDescription(null, 'browserA')).toEqual('')
+        expect(getBrowserDescription(null)).toEqual('')
     })
 })
 
