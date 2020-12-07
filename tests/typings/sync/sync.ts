@@ -49,26 +49,26 @@ const executeResult = browser.execute(function (x: number) {
 }, 4)
 executeResult.toFixed(2)
 
-const executeAsyncResult = browser.executeAsync(function(a: any, b: any, c: any, d: any, done: any) {
+const executeAsyncResult = browser.executeAsync(function(a, b, c, d, done) {
     setTimeout(() => {
         done(a + b + c + d)
     }, 100);
 }, 1, 2, 3, 4)
-executeAsyncResult.toEqual(10);
+executeAsyncResult.toFixed(2);
 
-const executeAsyncResultTwo = browser.executeAsync(function(done: any) {
+const executeAsyncResultTwo = browser.executeAsync(function(done) {
     setTimeout(() => {
         done(5)
     }, 100);
 })
-executeAsyncResultTwo.toEqual(5);
+executeAsyncResultTwo.toFixed(2);
 
-const executeAsyncResultThree = browser.executeAsync(function(done: any) {
+const executeAsyncResultThree = browser.executeAsync(function(done) {
     setTimeout(() => {
         done('worked')
     }, 100);
 })
-executeAsyncResultThree.toEqual('worked');
+executeAsyncResultThree.charCodeAt(1);
 
 const callResult = <number>browser.call(() =>
     new Promise(resolve => setTimeout(() => resolve(4), 1))
