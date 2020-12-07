@@ -1,5 +1,8 @@
-export function loadModule (name, context) {
+import type { MochaContext } from './types'
+
+export function loadModule (name: string, context: MochaContext) {
     try {
+        // @ts-ignore
         module.context = context
         require(name)
     } catch (e) {
