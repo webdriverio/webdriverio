@@ -7,6 +7,7 @@ import union from 'lodash.union'
 import Launcher from './launcher'
 import { ConfigOptions } from '@wdio/config'
 import { RunCommandArguments } from './types.js'
+import { EventEmitter } from 'events'
 
 const log = logger('@wdio/cli:watch')
 
@@ -97,7 +98,7 @@ export default class Watcher {
             workers = pickBy(workers, (worker) => !worker.isBusy)
         }
 
-        return workers
+        return workers as EventEmitter
     }
 
     /**

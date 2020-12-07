@@ -7,7 +7,7 @@ import { ConfigParser, ConfigOptions, Capabilities } from '@wdio/config'
 import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
 
 import CLInterface from './interface'
-import { Runner, RunCommandArguments } from './types'
+import { RunCommandArguments } from './types'
 import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils'
 
 const log = logger('@wdio/cli:launcher')
@@ -36,7 +36,7 @@ interface EndMessage {
 class Launcher {
     configParser: ConfigParser
     isMultiremote: boolean
-    runner: Runner
+    runner: WebdriverIO.RunnerInstance
     interface: CLInterface
 
     private _exitCode = 0
@@ -452,7 +452,7 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    exitHandler (callback?: Function) {
+    exitHandler (callback?: (value: void) => void) {
         if (!callback) {
             return
         }

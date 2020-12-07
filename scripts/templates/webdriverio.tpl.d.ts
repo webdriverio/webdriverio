@@ -56,8 +56,17 @@ declare namespace WebdriverIO {
         [key: string]: any;
     }
 
+    interface RunnerInstance {
+        initialise(): Promise<void>
+        shutdown(): Promise<void>
+        getWorkerCount(): number
+        run(args: any): NodeJS.EventEmitter
+        workerPool: any
+    }
+
     interface ServiceClass {
         new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
+        new(configFile: string, config: Omit<WebdriverIO.Config, 'capabilities' | keyof WebdriverIO.Hooks>): RunnerInstance
     }
 
     interface ServicePlugin extends ServiceClass {

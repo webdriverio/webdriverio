@@ -105,10 +105,3 @@ export interface OnCompleteResult {
     retries: number
     failed: number
 }
-
-export interface Runner {
-    initialise: Function
-    shutdown: Function
-    run: Function
-    workerPool: Record<string, any>
-}
