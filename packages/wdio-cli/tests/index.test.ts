@@ -5,7 +5,7 @@ import { handler } from '../src/commands/run'
 import { join, resolve } from 'path'
 
 jest.mock('./../src/commands/run', () => ({
-    ...jest.requireActual('./../src/commands/run'),
+    ...jest.requireActual('./../src/commands/run') as object,
     handler: jest.fn(
         ({ argv }) => argv && argv.wrongConfig
             ? Promise.reject({ stack: 'error' })

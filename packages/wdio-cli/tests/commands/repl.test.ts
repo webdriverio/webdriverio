@@ -9,7 +9,7 @@ jest.mock('@wdio/utils', () => {
     let syncSupport = false
 
     return {
-        setSyncSupport: (val) => (syncSupport = val),
+        setSyncSupport: (val: boolean) => (syncSupport = val),
         get hasWdioSyncSupport () {
             return syncSupport
         }
@@ -34,8 +34,11 @@ describe('repl commandDir', () => {
     })
 
     afterEach(() => {
+        // @ts-ignore mock feature
         delete global.$
+        // @ts-ignore mock feature
         delete global.$$
+        // @ts-ignore mock feature
         delete global.browser
     })
 })
@@ -72,8 +75,11 @@ describe('Command: repl', () => {
     })
 
     afterEach(() => {
+        // @ts-ignore mock feature
         delete global.$
+        // @ts-ignore mock feature
         delete global.$$
+        // @ts-ignore mock feature
         delete global.browser
     })
 })

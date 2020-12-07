@@ -119,13 +119,13 @@ test('prints TypeScript setup message', async () => {
 describe('missingConfigurationPromp', () => {
     it('should prompt user', async () => {
         (inquirer.prompt as any as jest.Mock).mockImplementation(() => ({ config: true }))
-        await missingConfigurationPrompt(null, null, null, jest.fn())
+        await missingConfigurationPrompt('run', 'foobar', false, jest.fn())
         expect((inquirer.prompt as any as jest.Mock)).toHaveBeenCalled()
     })
 
     it('should call function to initalize configuration helper', async () => {
         const runConfig = jest.fn()
-        await missingConfigurationPrompt('test', null, false, runConfig)
+        await missingConfigurationPrompt('test', 'foobar', false, runConfig)
         expect(runConfig).toHaveBeenCalledWith(false, false, true)
     })
 
@@ -139,7 +139,7 @@ describe('missingConfigurationPromp', () => {
         const runConfig = jest.fn().mockImplementation(Promise.reject)
 
         try {
-            await missingConfigurationPrompt('test', null, null, runConfig)
+            await missingConfigurationPrompt('test', 'foobar', false, runConfig)
         } catch (error) {
             expect(error).toBeTruthy()
         }
