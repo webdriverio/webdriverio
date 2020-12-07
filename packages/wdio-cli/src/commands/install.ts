@@ -120,7 +120,7 @@ You can create one by running 'wdio config'`
     const newConfig = replaceConfig(configFile, type, name)
 
     if (!newConfig) {
-        throw new Error(`Couldn't find "${type}" property in your ${configFile}`)
+        throw new Error(`Couldn't find "${type}" property in ${path.basename(localConfPath)}`)
     }
 
     fs.writeFileSync(localConfPath, newConfig, { encoding: 'utf-8' })

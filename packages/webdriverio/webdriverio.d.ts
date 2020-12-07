@@ -43,7 +43,7 @@ declare namespace WebdriverIO {
          * the provided callback, which is always provided as the final argument to the function. The value
          * to this callback will be returned to the client.
          */
-        executeAsync: <U extends any[], V extends U>(script: string | ((...arguments: V) => void), ...arguments: U) => Promise<any>;
+        executeAsync: <U extends any[], V extends U>(script: string | ((...arguments: V, done: Function) => void), ...arguments: U) => Promise<any>;
     }
 
 

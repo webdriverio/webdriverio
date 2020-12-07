@@ -453,7 +453,7 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    exitHandler (callback: Function) {
+    exitHandler (callback?: Function) {
         if (!callback) {
             return
         }

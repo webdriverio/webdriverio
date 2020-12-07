@@ -57,8 +57,7 @@ export const run = async () => {
         .map((file) => file.slice(0, -3))
 
     if (!params._.find((param: string) => supportedCommands.includes(param))) {
-        const configPath = params._[0] as string
-        params.configPath = path.resolve(process.cwd(), configPath || DEFAULT_CONFIG_FILENAME)
+        argv.argv._[0] = path.resolve(process.cwd(), argv.argv._[0] && argv.argv._[0].toString() || DEFAULT_CONFIG_FILENAME)
 
         return handler(argv).catch(async (err) => {
             const output = await new Promise((resolve) => (

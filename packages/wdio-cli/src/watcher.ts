@@ -4,7 +4,7 @@ import pickBy from 'lodash.pickby'
 import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
 
-import Launcher from './launcher.js'
+import Launcher from './launcher'
 import { ConfigOptions } from '@wdio/config'
 import { RunCommandArguments } from './types.js'
 

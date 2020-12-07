@@ -1,7 +1,7 @@
 import { getAnswers } from '../src/utils'
 
 test('runConfig with yes param', async () => {
-    let answers = await getAnswers(true)
+    const answers = await getAnswers(true)
     expect(answers.backend).toEqual('On my local machine')
     expect(answers.baseUrl).toEqual('http://localhost')
     expect(answers.executionMode).toEqual('sync')

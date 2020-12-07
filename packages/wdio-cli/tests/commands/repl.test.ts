@@ -1,8 +1,9 @@
 import yargs from 'yargs'
 import { remote } from 'webdriverio'
+// @ts-ignore mock feature
 import { setSyncSupport } from '@wdio/utils'
 
-import { handler, builder } from './../../src/commands/repl'
+import { handler, builder } from '../../src/commands/repl'
 
 jest.mock('@wdio/utils', () => {
     let syncSupport = false
@@ -19,7 +20,7 @@ jest.mock('repl')
 
 describe('repl commandDir', () => {
     it('should call debug command', async () => {
-        const client = await handler({ browserName: 'chrome' })
+        const client = await handler({ browserName: 'chrome' } as any) as any as WebdriverIO.BrowserObject
         expect(client.debug).toHaveBeenCalledTimes(1)
         expect(client.deleteSession).toHaveBeenCalledTimes(1)
     })
@@ -41,11 +42,11 @@ describe('repl commandDir', () => {
 
 describe('Command: repl', () => {
     beforeEach(() => {
-        remote.mockClear()
+        (remote as jest.Mock).mockClear()
     })
 
     it('should attach global variables', async () => {
-        await handler({})
+        await handler({} as any)
 
         expect(global.$).not.toBeUndefined()
         expect(global.$$).not.toBeUndefined()
@@ -53,14 +54,14 @@ describe('Command: repl', () => {
     })
 
     it('should set the correct browser', async () => {
-        await handler({ option: 'foobar' })
+        await handler({ option: 'foobar' } as any)
 
         expect(remote).toHaveBeenCalledWith({ capabilities: { browserName: 'foobar' }, option: 'foobar' })
     })
 
     it('should set runner if @wdio/sync is installed', async () => {
         setSyncSupport(true)
-        await handler({ option: 'foobar' })
+        await handler({ option: 'foobar' } as any)
         expect(remote).toHaveBeenCalledWith({
             runner: 'repl',
             option: 'foobar',

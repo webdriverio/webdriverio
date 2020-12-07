@@ -14,13 +14,13 @@ interface TestError {
 }
 
 interface CLIInterfaceEvent {
-    origin: string
+    origin?: string
     name: string
-    cid: string
-    fullTitle: string
-    content: any
-    params: any
-    error: TestError
+    cid?: string
+    fullTitle?: string
+    content?: any
+    params?: any
+    error?: TestError
 }
 
 interface Job {

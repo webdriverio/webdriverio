@@ -148,13 +148,13 @@ export function findInConfig (config: string, type: string) {
 }
 
 export function replaceConfig (config: string, type: string, name: string) {
+    if (type === 'framework') {
+        return buildNewConfigString(config, type, name)
+    }
+
     const match = findInConfig(config, type)
     if (!match || match.length === 0) {
         return
-    }
-
-    if (type === 'framework') {
-        return buildNewConfigString(config, type, name)
     }
 
     const text = match.pop() || ''

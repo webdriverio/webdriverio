@@ -4,7 +4,7 @@ import { remote } from '../../../src'
 
 describe('isEnabled test', () => {
     it('should allow to check if an element is enabled', async () => {
-        const browser = await remote({
+        const browser: WebdriverIO.BrowserObject = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'
@@ -21,7 +21,7 @@ describe('isEnabled test', () => {
     })
 
     it('should throw if script is wrong type', async () => {
-        const browser = await remote({
+        const browser: WebdriverIO.BrowserObject = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'
@@ -29,6 +29,7 @@ describe('isEnabled test', () => {
         })
 
         expect(() => browser.executeAsync(null)).toThrow()
+        // @ts-ignore test invalid parameter
         expect(() => browser.executeAsync(1234)).toThrow()
     })
 })
