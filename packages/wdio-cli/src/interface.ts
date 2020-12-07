@@ -55,7 +55,7 @@ export default class WDIOCLInterface extends EventEmitter {
 
     constructor(
         private _config: ConfigOptions,
-        private _totalWorkerCnt: number,
+        public totalWorkerCnt: number,
         private _isWatchMode = false
     ) {
         super()
@@ -67,7 +67,7 @@ export default class WDIOCLInterface extends EventEmitter {
          */
         this.hasAnsiSupport = (chalk.supportsColor as chalk.ColorSupport).hasBasic
 
-        this._totalWorkerCnt = _totalWorkerCnt
+        this.totalWorkerCnt = totalWorkerCnt
         this._isWatchMode = _isWatchMode
         this._specFileRetries = _config.specFileRetries || 0
         this._specFileRetriesDelay = _config.specFileRetriesDelay || 0
@@ -101,7 +101,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onStart() {
-        this.log(chalk.bold(`\nExecution of ${chalk.blue(this._totalWorkerCnt)} spec files started at`), this._start.toISOString())
+        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} spec files started at`), this._start.toISOString())
         if (this._inDebugMode) {
             this.log(chalk.bgYellow.black('DEBUG mode enabled!'))
         }
@@ -203,7 +203,7 @@ export default class WDIOCLInterface extends EventEmitter {
             this.result.passed++
             this.onSpecPass(cid, job, retryAttempts)
         } else if (retry) {
-            this._totalWorkerCnt++
+            this.totalWorkerCnt++
             this.result.retries++
             this.onSpecRetry(cid, job, retryAttempts)
         } else {
@@ -295,7 +295,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     printSummary() {
-        const totalJobs = this._totalWorkerCnt - this.result.retries
+        const totalJobs = this.totalWorkerCnt - this.result.retries
         const elapsed = (new Date(Date.now() - this._start.getTime())).toUTCString().match(/(\d\d:\d\d:\d\d)/)![0]
         const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
         const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''

@@ -35,6 +35,11 @@ interface EndMessage {
 }
 
 class Launcher {
+    configParser: ConfigParser
+    isMultiremote: boolean
+    runner: Runner
+    interface: CLInterface
+
     private _exitCode = 0
     private _hasTriggeredExitRoutine = false
     private _schedule: Schedule[] = []
@@ -43,10 +48,6 @@ class Launcher {
     private _runnerFailed = 0
 
     private _launcher?: WebdriverIO.ServiceInstance[]
-    private _isMultiremote: boolean
-    private _configParser: ConfigParser
-    private _interface: CLInterface
-    private _runner: Runner
     private _resolve?: Function
 
     constructor(
@@ -54,13 +55,13 @@ class Launcher {
         private _args: Partial<RunCommandArguments> = {},
         private _isWatchMode = false
     ) {
-        this._configParser = new ConfigParser()
-        this._configParser.addConfigFile(_configFilePath)
-        this._configParser.merge(_args)
+        this.configParser = new ConfigParser()
+        this.configParser.addConfigFile(_configFilePath)
+        this.configParser.merge(_args)
 
-        const config = this._configParser.getConfig()
-        const capabilities = this._configParser.getCapabilities() as (WebDriver.Capabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities)
-        this._isMultiremote = !Array.isArray(capabilities)
+        const config = this.configParser.getConfig()
+        const capabilities = this.configParser.getCapabilities() as (WebDriver.Capabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities)
+        this.isMultiremote = !Array.isArray(capabilities)
 
         if (config.outputDir) {
             fs.ensureDirSync(path.join(config.outputDir))
@@ -71,15 +72,15 @@ class Launcher {
 
         const totalWorkerCnt = Array.isArray(capabilities)
             ? capabilities
-                .map((c: WebDriver.DesiredCapabilities) => this._configParser.getSpecs(c.specs, c.exclude).length)
+                .map((c: WebDriver.DesiredCapabilities) => this.configParser.getSpecs(c.specs, c.exclude).length)
                 .reduce((a, b) => a + b, 0)
             : 1
 
         const Runner = initialisePlugin(config.runner!, 'runner').default
-        this._runner = new Runner(_configFilePath, config)
+        this.runner = new Runner(_configFilePath, config)
 
-        this._interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
-        config.runnerEnv!.FORCE_COLOR = Number(this._interface.hasAnsiSupport)
+        this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
+        config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
     }
 
     /**
@@ -95,8 +96,8 @@ class Launcher {
         let error: Error | undefined = undefined
 
         try {
-            const config = this._configParser.getConfig()
-            const caps = this._configParser.getCapabilities() as Capabilities
+            const config = this.configParser.getConfig()
+            const caps = this.configParser.getCapabilities() as Capabilities
             const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps as WebDriver.DesiredCapabilities)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
@@ -105,7 +106,7 @@ class Launcher {
              * run pre test tasks for runner plugins
              * (e.g. deploy Lambda function to AWS)
              */
-            await this._runner.initialise()
+            await this.runner.initialise()
 
             /**
              * run onPrepare hook
@@ -122,20 +123,20 @@ class Launcher {
              */
             log.info('Run onComplete hook')
             await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
-            const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this._interface.result)
+            const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface.result)
 
             // if any of the onComplete hooks failed, update the exit code
             exitCode = onCompleteResults.includes(1) ? 1 : exitCode
 
             await logger.waitForBuffer()
 
-            this._interface.finalise()
+            this.interface.finalise()
         } catch (err) {
             error = err
         } finally {
             if (!this._hasTriggeredExitRoutine) {
                 this._hasTriggeredExitRoutine = true
-                await this._runner.shutdown()
+                await this.runner.shutdown()
             }
         }
 
@@ -152,7 +153,7 @@ class Launcher {
         /**
          * fail if no caps were found
          */
-        if (!caps || (!this._isMultiremote && !caps.length)) {
+        if (!caps || (!this.isMultiremote && !caps.length)) {
             return new Promise((resolve) => {
                 log.error('Missing capabilities, exiting with failure')
                 return resolve(1)
@@ -168,14 +169,14 @@ class Launcher {
          * schedule test runs
          */
         let cid = 0
-        if (this._isMultiremote) {
+        if (this.isMultiremote) {
             /**
              * Multiremote mode
              */
             this._schedule.push({
                 cid: cid++,
                 caps,
-                specs: this._configParser.getSpecs((caps as WebDriver.DesiredCapabilities).specs, (caps as WebDriver.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                specs: this.configParser.getSpecs((caps as WebDriver.DesiredCapabilities).specs, (caps as WebDriver.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
@@ -187,7 +188,7 @@ class Launcher {
                 this._schedule.push({
                     cid: cid++,
                     caps: capabilities as Capabilities,
-                    specs: this._configParser.getSpecs((capabilities as WebDriver.DesiredCapabilities).specs, (capabilities as WebDriver.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                    specs: this.configParser.getSpecs((capabilities as WebDriver.DesiredCapabilities).specs, (capabilities as WebDriver.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
                     availableInstances: (capabilities as WebDriver.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability,
                     runningInstances: 0
                 })
@@ -219,7 +220,7 @@ class Launcher {
      * @return {Boolean} true if all specs have been run and all instances have finished
      */
     runSpecs() {
-        let config = this._configParser.getConfig()
+        let config = this.configParser.getConfig()
 
         /**
          * stop spawning new processes when CTRL+C was triggered
@@ -315,7 +316,7 @@ class Launcher {
         rid: string | undefined,
         retries: number
     ) {
-        let config = this._configParser.getConfig()
+        let config = this.configParser.getConfig()
 
         // wait before retrying the spec file
         if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && config.specFileRetries !== retries) {
@@ -369,7 +370,7 @@ class Launcher {
         await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, caps, specs, this._args, execArgv)
 
         // prefer launcher settings in capabilities over general launcher
-        const worker = this._runner.run({
+        const worker = this.runner.run({
             cid: runnerId,
             command: 'run',
             configFile: this._configFilePath,
@@ -379,8 +380,8 @@ class Launcher {
             execArgv,
             retries
         })
-        worker.on('message', this._interface.onMessage.bind(this._interface))
-        worker.on('error', this._interface.onMessage.bind(this._interface))
+        worker.on('message', this.interface.onMessage.bind(this.interface))
+        worker.on('error', this.interface.onMessage.bind(this.interface))
         worker.on('exit', this.endHandler.bind(this))
     }
 
@@ -408,7 +409,7 @@ class Launcher {
 
         if (!passed && retries > 0) {
             // Default is true, so test for false explicitly
-            const requeue = this._configParser.getConfig().specFileRetriesDeferred !== false ? 'push' : 'unshift'
+            const requeue = this.configParser.getConfig().specFileRetriesDeferred !== false ? 'push' : 'unshift'
             this._schedule[parseInt(rid, 10)].specs[requeue]({ files: specs, retries: retries - 1, rid })
         } else {
             this._exitCode = this._isWatchModeHalted() ? 0 : this._exitCode || exitCode
@@ -419,7 +420,7 @@ class Launcher {
          * avoid emitting job:end if watch mode has been stopped by user
          */
         if (!this._isWatchModeHalted()) {
-            this._interface.emit('job:end', { cid: rid, passed, retries })
+            this.interface.emit('job:end', { cid: rid, passed, retries })
         }
 
         /**
@@ -462,8 +463,8 @@ class Launcher {
         }
 
         this._hasTriggeredExitRoutine = true
-        this._interface.sigintTrigger()
-        return this._runner.shutdown().then(callback)
+        this.interface.sigintTrigger()
+        return this.runner.shutdown().then(callback)
     }
 
     /**

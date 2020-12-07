@@ -110,4 +110,5 @@ export interface Runner {
     initialise: Function
     shutdown: Function
     run: Function
+    workerPool: Record<string, any>
 }
