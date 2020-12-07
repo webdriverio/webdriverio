@@ -66,12 +66,20 @@ declare namespace WebdriverIO {
 
     interface ServiceClass {
         new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
+    }
+
+    interface RunnerClass {
         new(configFile: string, config: Omit<WebdriverIO.Config, 'capabilities' | keyof WebdriverIO.Hooks>): RunnerInstance
     }
 
     interface ServicePlugin extends ServiceClass {
         default: ServiceClass
         launcher?: ServiceClass
+    }
+
+    interface RunnerPlugin extends RunnerClass {
+        default: RunnerClass
+        launcher?: RunnerClass
     }
 
     interface ServiceInstance extends HookFunctions {

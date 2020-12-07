@@ -75,7 +75,7 @@ class Launcher {
                 .reduce((a, b) => a + b, 0)
             : 1
 
-        const Runner = initialisePlugin(config.runner!, 'runner').default
+        const Runner = (initialisePlugin(config.runner!, 'runner') as WebdriverIO.RunnerPlugin).default
         this.runner = new Runner(_configFilePath, config)
 
         this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
