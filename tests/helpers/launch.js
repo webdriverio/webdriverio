@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-import Launcher from '../../packages/wdio-cli/src/launcher.js'
+import Launcher from '../../packages/wdio-cli/src/launcher'
 
 export default function launch (...args) {
     const launcher = new Launcher(...args)
