@@ -149,7 +149,7 @@ export function getArgumentType (arg: any) {
  * @param  {string} name  of package
  * @return {object}       package content
  */
-export function safeRequire (name: string): WebdriverIO.ServiceClass | null {
+export function safeRequire (name: string): WebdriverIO.ServicePlugin | null {
     let requirePath
     try {
         /**

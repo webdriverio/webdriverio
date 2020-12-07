@@ -108,7 +108,7 @@ export function initialiseLauncherService (config: Omit<WebdriverIO.Config, 'cap
             /**
              * add class service from imported package
              */
-            const Launcher = (service as WebdriverIO.ServiceClass).launcher
+            const Launcher = (service as WebdriverIO.ServicePlugin).launcher
             if (typeof Launcher === 'function' && serviceName) {
                 launcherServices.push(new Launcher(serviceConfig, caps, config))
             }
@@ -164,7 +164,7 @@ export function initialiseWorkerService (config: WebdriverIO.Config, caps: WebDr
                 return service as WebdriverIO.ServiceInstance
             }
 
-            const Service = (service as WebdriverIO.ServiceClass).default || service as WebdriverIO.ServiceClass
+            const Service = (service as WebdriverIO.ServicePlugin).default || service as WebdriverIO.ServiceClass
             if (typeof Service === 'function') {
                 return new Service(serviceConfig, caps, config)
             }

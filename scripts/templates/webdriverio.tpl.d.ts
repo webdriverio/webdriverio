@@ -58,6 +58,9 @@ declare namespace WebdriverIO {
 
     interface ServiceClass {
         new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
+    }
+
+    interface ServicePlugin extends ServiceClass {
         default: ServiceClass
         launcher?: ServiceClass
     }
