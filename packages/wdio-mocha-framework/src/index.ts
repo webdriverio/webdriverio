@@ -2,13 +2,13 @@ import path from 'path'
 import Mocha, { Runner } from 'mocha'
 import { format } from 'util'
 
-import Reporter from '@wdio/reporter'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 
 import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
 import type { MochaConfig, MochaOpts, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
+import type { EventEmitter } from 'events'
 
 const log = logger('@wdio/mocha-framework')
 
@@ -44,7 +44,7 @@ class MochaAdapter {
         private _config: MochaConfig,
         private _specs: string[],
         private _capabilities: WebDriver.Capabilities,
-        private _reporter: Reporter
+        private _reporter: EventEmitter
     ) {
         this._config = Object.assign({
             mochaOpts: {}
