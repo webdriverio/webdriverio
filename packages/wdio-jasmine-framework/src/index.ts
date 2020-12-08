@@ -1,39 +1,58 @@
 import Jasmine from 'jasmine'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
+import { EventEmitter } from 'events'
 
 import JasmineReporter from './reporter'
+import type { JasmineNodeOpts, TestEvent, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
 
 const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
 }
+
 const TEST_INTERFACES = ['it', 'fit', 'xit']
 const NOOP = function noop() { }
 const DEFAULT_TIMEOUT_INTERVAL = 60000
 
 const log = logger('@wdio/jasmine-framework')
 
+type HooksArray = {
+    [K in keyof Required<WebdriverIO.HookFunctions>]: Required<WebdriverIO.HookFunctions>[K][]
+}
+
+interface WebdriverIOJasmineConfig extends Omit<WebdriverIO.Config, keyof HooksArray>, HooksArray {
+    jasmineNodeOpts: Omit<JasmineNodeOpts, 'cleanStack'>
+}
+
 /**
  * Jasmine 2.x runner
  */
 class JasmineAdapter {
-    constructor(cid, config, specs, capabilities, reporter) {
-        this.cid = cid
-        this.config = config
-        this.capabilities = capabilities
-        this.specs = specs
-        this.jrunner = {}
-        this.totalTests = 0
+    private _jasmineNodeOpts: JasmineNodeOpts
+    private _reporter: JasmineReporter
+    private _totalTests = 0
+    private _hookIds = 0
+    private _hasTests = true
+    private _lastTest?: jasmine.NestedResults
+    private _lastSpec?: jasmine.NestedResults
 
-        this.jasmineNodeOpts = Object.assign({
+    private _jrunner?: Jasmine
+
+    constructor(
+        private _cid: string,
+        private _config: WebdriverIOJasmineConfig,
+        private _specs: string[],
+        private _capabilities: WebDriver.Capabilities,
+        reporter: EventEmitter
+    ) {
+        this._jasmineNodeOpts = Object.assign({
             cleanStack: true
-        }, config.jasmineNodeOpts)
+        }, this._config.jasmineNodeOpts)
 
-        this.reporter = new JasmineReporter(reporter, {
-            cid: this.cid,
-            capabilities: this.capabilities,
-            specs: this.specs,
-            cleanStack: this.jasmineNodeOpts.cleanStack
+        this._reporter = new JasmineReporter(reporter, {
+            cid: this._cid,
+            specs: this._specs,
+            cleanStack: this._jasmineNodeOpts.cleanStack
         })
         this._hasTests = true
     }
@@ -41,31 +60,34 @@ class JasmineAdapter {
     async init() {
         const self = this
 
-        this.jrunner = new Jasmine()
-        const { jasmine } = this.jrunner
+        this._jrunner = new Jasmine({})
+        const { jasmine } = this._jrunner
+        // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
 
-        this.jrunner.projectBaseDir = ''
-        this.jrunner.specDir = ''
-        this.jrunner.addSpecFiles(this.specs)
+        this._jrunner.projectBaseDir = ''
+        // @ts-ignore outdated
+        this._jrunner.specDir = ''
+        this._jrunner.addSpecFiles(this._specs)
 
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = this.jasmineNodeOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
-        jasmineEnv.addReporter(this.reporter)
+        // @ts-ignore only way to hack timeout into jasmine
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineNodeOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
+        jasmineEnv.addReporter(this._reporter)
 
         /**
          * Filter specs to run based on jasmineNodeOpts.grep and jasmineNodeOpts.invert
          */
         jasmineEnv.configure({
-            specFilter: this.jasmineNodeOpts.specFilter || this.customSpecFilter.bind(this),
-            stopOnSpecFailure: Boolean(this.jasmineNodeOpts.stopOnSpecFailure),
-            failSpecWithNoExpectations: Boolean(this.jasmineNodeOpts.failSpecWithNoExpectations),
-            failFast: this.jasmineNodeOpts.failFast,
-            random: Boolean(this.jasmineNodeOpts.random),
-            seed: Boolean(this.jasmineNodeOpts.seed),
+            specFilter: this._jasmineNodeOpts.specFilter || this.customSpecFilter.bind(this),
+            stopOnSpecFailure: Boolean(this._jasmineNodeOpts.stopOnSpecFailure),
+            failSpecWithNoExpectations: Boolean(this._jasmineNodeOpts.failSpecWithNoExpectations),
+            failFast: this._jasmineNodeOpts.failFast,
+            random: Boolean(this._jasmineNodeOpts.random),
+            seed: Boolean(this._jasmineNodeOpts.seed),
             oneFailurePerSpec: Boolean(
                 // depcrecated old property
-                this.jasmineNodeOpts.stopSpecOnExpectationFailure ||
-                this.jasmineNodeOpts.oneFailurePerSpec
+                this._jasmineNodeOpts.stopSpecOnExpectationFailure ||
+                this._jasmineNodeOpts.oneFailurePerSpec
             )
         })
 
@@ -74,19 +96,19 @@ class JasmineAdapter {
          */
         jasmine.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(jasmine)
 
-        const hookArgsFn = (context) => [{ ...(self.lastTest || {}) }, context]
+        const hookArgsFn = (context: unknown): [unknown, unknown] => [{ ...(self._lastTest || {}) }, context]
 
-        const emitHookEvent = (fnName, eventType) => (_test, _context, { error } = {}) => {
+        const emitHookEvent = (fnName: string, eventType: string) => (_test: unknown, _context: unknown, { error }: { error?: jasmine.FailedExpectation } = {}) => {
             const title = `"${fnName === 'beforeAll' ? 'before' : 'after'} all" hook`
-            const suiteUid = this.reporter.startedSuite ? this.reporter.getUniqueIdentifier(this.reporter.startedSuite) : `root${this.cid}`
-            const hook = {
+            const hook: TestEvent = {
+                id: `hook${++this._hookIds}`,
+                start: new Date(),
                 type: 'hook',
                 description: title,
                 fullName: title,
-                uid: `${suiteUid}-${fnName}`,
-                error: error ? { message: error.message } : undefined
+                error
             }
-            this.reporter.emit('hook:' + eventType, hook)
+            this._reporter.emit('hook:' + eventType, hook)
         }
 
         /**
@@ -94,8 +116,8 @@ class JasmineAdapter {
          */
         INTERFACES['bdd'].forEach((fnName) => {
             const isTest = TEST_INTERFACES.includes(fnName)
-            const beforeHook = [...this.config.beforeHook]
-            const afterHook = [...this.config.afterHook]
+            const beforeHook = [...this._config.beforeHook]
+            const afterHook = [...this._config.afterHook]
 
             /**
              * add beforeAll and afterAll hooks to reporter
@@ -105,14 +127,15 @@ class JasmineAdapter {
                 afterHook.push(emitHookEvent(fnName, 'end'))
             }
 
+            this._config.beforeTest
             runTestInFiberContext(
                 isTest,
-                isTest ? this.config.beforeTest : beforeHook,
+                isTest ? this._config.beforeTest : beforeHook,
                 hookArgsFn,
-                isTest ? this.config.afterTest : afterHook,
+                isTest ? this._config.afterTest : afterHook,
                 hookArgsFn,
                 fnName,
-                this.cid
+                this._cid
             )
         })
 
@@ -125,15 +148,18 @@ class JasmineAdapter {
         /**
          * wrap Suite and Spec prototypes to get access to their data
          */
+        // @ts-ignore
         let beforeAllMock = jasmine.Suite.prototype.beforeAll
+        // @ts-ignore
         jasmine.Suite.prototype.beforeAll = function (...args) {
-            self.lastSpec = this.result
+            self._lastSpec = this.result
             beforeAllMock.apply(this, args)
         }
         let executeMock = jasmine.Spec.prototype.execute
-        jasmine.Spec.prototype.execute = function (...args) {
-            self.lastTest = this.result
-            self.lastTest.start = new Date().getTime()
+        jasmine.Spec.prototype.execute = function (...args: any[]) {
+            self._lastTest = this.result
+            // @ts-ignore overwrite existing type
+            self._lastTest.start = new Date().getTime()
             executeMock.apply(this, args)
         }
 
@@ -145,44 +171,53 @@ class JasmineAdapter {
          */
         const { setOptions } = require('expect-webdriverio')
         setOptions({
-            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this.config.waitforInterval, // interval between attempts
+            wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
+            interval: this._config.waitforInterval, // interval between attempts
         })
 
         return this
     }
 
     _loadFiles() {
+        if (!this._jrunner) {
+            throw new Error('Jasmine not initiate yet')
+        }
+
         try {
-            if (Array.isArray(this.jasmineNodeOpts.requires)) {
-                this.jrunner.addRequires(this.jasmineNodeOpts.requires)
+            if (Array.isArray(this._jasmineNodeOpts.requires)) {
+                // @ts-ignore outdated types
+                this._jrunner.addRequires(this._jasmineNodeOpts.requires)
             }
-            if (Array.isArray(this.jasmineNodeOpts.helpers)) {
-                this.jrunner.addHelperFiles(this.jasmineNodeOpts.helpers)
+            if (Array.isArray(this._jasmineNodeOpts.helpers)) {
+                // @ts-ignore outdated types
+                this._jrunner.addHelperFiles(this._jasmineNodeOpts.helpers)
             }
-            this.jrunner.loadRequires()
-            this.jrunner.loadHelpers()
-            this.jrunner.loadSpecs()
-            this._grep(this.jrunner.env.topSuite())
-            this._hasTests = this.totalTests > 0
+            // @ts-ignore outdated types
+            this._jrunner.loadRequires()
+            this._jrunner.loadHelpers()
+            this._jrunner.loadSpecs()
+            // @ts-ignore outdated types
+            this._grep(this._jrunner.env.topSuite())
+            this._hasTests = this._totalTests > 0
         } catch (err) {
             log.warn(
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
                 'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
-                `Spec file(s): ${this.specs.join(',')}\n`,
+                `Spec file(s): ${this._specs.join(',')}\n`,
                 'Error: ', err
             )
         }
     }
 
-    _grep(suite) {
+    _grep (suite: jasmine.Suite) {
+        // @ts-ignore outdated types
         suite.children.forEach((child) => {
             if (Array.isArray(child.children)) {
                 return this._grep(child)
             }
             if (this.customSpecFilter(child)) {
-                this.totalTests++
+                this._totalTests++
             }
         })
     }
@@ -192,21 +227,26 @@ class JasmineAdapter {
     }
 
     async run() {
-        const result = await new Promise((resolve) => {
-            this.jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
-            this.jrunner.env.afterAll(this.wrapHook('afterSuite'))
+        const result = await new Promise((resolve, reject) => {
+            if (!this._jrunner) {
+                return reject(new Error('Jasmine not initiate yet'))
+            }
 
-            this.jrunner.onComplete(() => resolve(this.reporter.getFailedCount()))
-            this.jrunner.execute()
+            this._jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
+            this._jrunner.env.afterAll(this.wrapHook('afterSuite'))
+
+            this._jrunner.onComplete(() => resolve(this._reporter.getFailedCount()))
+            this._jrunner.execute()
         })
-        await executeHooksWithArgs(this.config.after, [result, this.capabilities, this.specs])
+        await executeHooksWithArgs(this._config.after, [result, this._capabilities, this._specs])
         return result
     }
 
-    customSpecFilter(spec) {
-        const { grep, invertGrep } = this.jasmineNodeOpts
+    customSpecFilter (spec: jasmine.Spec) {
+        const { grep, invertGrep } = this._jasmineNodeOpts
         const grepMatch = !grep || spec.getFullName().match(new RegExp(grep)) !== null
         if (grepMatch === Boolean(invertGrep)) {
+            // @ts-ignore outdated types
             spec.pend('grep')
             return false
         }
@@ -216,9 +256,9 @@ class JasmineAdapter {
     /**
      * Hooks which are added as true Jasmine hooks need to call done() to notify async
      */
-    wrapHook(hookName) {
-        return (done) => executeHooksWithArgs(
-            this.config[hookName],
+    wrapHook (hookName: keyof WebdriverIO.HookFunctions) {
+        return (done: Function) => executeHooksWithArgs(
+            this._config[hookName],
             this.prepareMessage(hookName)
         ).then(() => done(), (e) => {
             log.info(`Error in ${hookName} hook: ${e.stack.slice(7)}`)
@@ -226,29 +266,29 @@ class JasmineAdapter {
         })
     }
 
-    prepareMessage(hookName) {
-        const params = { type: hookName }
+    prepareMessage (hookName: keyof WebdriverIO.HookFunctions) {
+        const params: FrameworkMessage = { type: hookName }
 
         switch (hookName) {
         case 'beforeSuite':
         case 'afterSuite':
             params.payload = Object.assign({
-                file: this.jrunner.specFiles[0]
-            }, this.lastSpec)
+                file: this._jrunner?.specFiles[0]
+            }, this._lastSpec)
             break
         case 'beforeTest':
         case 'afterTest':
             params.payload = Object.assign({
-                file: this.jrunner.specFiles[0]
-            }, this.lastTest)
+                file: this._jrunner?.specFiles[0]
+            }, this._lastTest)
             break
         }
 
         return this.formatMessage(params)
     }
 
-    formatMessage(params) {
-        let message = {
+    formatMessage (params: FrameworkMessage) {
+        let message: FormattedMessage = {
             type: params.type
         }
 
@@ -263,7 +303,7 @@ class JasmineAdapter {
             }
 
             if (params.payload.id && params.payload.id.startsWith('spec')) {
-                message.parent = this.lastSpec.description
+                message.parent = this._lastSpec?.description
                 message.passed = params.payload.failedExpectations.length === 0
             }
 
@@ -279,8 +319,8 @@ class JasmineAdapter {
         return message
     }
 
-    getExpectationResultHandler(jasmine) {
-        let { expectationResultHandler } = this.jasmineNodeOpts
+    getExpectationResultHandler (jasmine: jasmine.Jasmine) {
+        let { expectationResultHandler } = this._jasmineNodeOpts
         const origHandler = jasmine.Spec.prototype.addExpectationResult
 
         if (typeof expectationResultHandler !== 'function') {
@@ -290,9 +330,9 @@ class JasmineAdapter {
         return this.expectationResultHandler(origHandler)
     }
 
-    expectationResultHandler(origHandler) {
-        const { expectationResultHandler } = this.jasmineNodeOpts
-        return function (passed, data) {
+    expectationResultHandler (origHandler: Function) {
+        const { expectationResultHandler } = this._jasmineNodeOpts
+        return function (this: jasmine.Spec, passed: boolean, data: ResultHandlerPayload) {
             try {
                 expectationResultHandler.call(this, passed, data)
             } catch (e) {
@@ -303,7 +343,7 @@ class JasmineAdapter {
                 if (passed) {
                     passed = false
                     data = {
-                        passed: false,
+                        passed,
                         message: 'expectationResultHandlerError: ' + e.message,
                         error: e
                     }
@@ -315,8 +355,9 @@ class JasmineAdapter {
     }
 }
 
-const adapterFactory = {}
-adapterFactory.init = async function (...args) {
+const adapterFactory: { init?: Function } = {}
+adapterFactory.init = async function (...args: any[]) {
+    // @ts-ignore pass along parameters
     const adapter = new JasmineAdapter(...args)
     const instance = await adapter.init()
     return instance

@@ -14,12 +14,12 @@ export interface SpecFunction {
 }
 
 export interface BeforeHookParam<T> {
-    beforeFn: Function
+    beforeFn: (Function | Function)[]
     beforeFnArgs: HookFnArgs<T>
 }
 
 export interface AfterHookParam<T> {
-    afterFn: Function
+    afterFn: (Function | Function)[]
     afterFnArgs: HookFnArgs<T>
 }
 
