@@ -18,16 +18,13 @@ declare namespace WebdriverIO {
             <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]): T;
         };
 
-        // also there is no way to add callback as last parameter after `...args`.
-        // https://github.com/Microsoft/TypeScript/issues/1360
-        // executeAsync: <T>(script: string | ((...arguments: any[], callback: (result: T) => void) => void), ...arguments: any[]) => T;
         /**
          * Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
          * The executed script is assumed to be asynchronous and must signal that is done by invoking
          * the provided callback, which is always provided as the final argument to the function. The value
          * to this callback will be returned to the client.
          */
-        executeAsync: <U extends any[], V extends U>(script: string | ((...arguments: V) => void), ...arguments: U) => any;
+        executeAsync: <T extends any[], R, S extends T>(script: string | ((...arguments: [...T: any, callback: () => void]) => void), ...arguments: S) => any;
     }
 
     interface BrowserObject extends WebDriver.ClientOptions, WebDriver.Client, WebdriverIO.Browser { }
