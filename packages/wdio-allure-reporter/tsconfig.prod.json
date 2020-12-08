@@ -4,7 +4,7 @@
     "baseUrl": ".",
     "outDir": "./build",
     "rootDir": "./src",
-    "types": ["webdriver", "cucumber"]
+    "types": ["webdriverio"]
   },
   "include": [
     "src/**/*"

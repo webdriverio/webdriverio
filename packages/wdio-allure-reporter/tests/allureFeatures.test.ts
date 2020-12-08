@@ -412,7 +412,7 @@ describe('auxiliary methods', () => {
 
 describe('hooks handling disabled Mocha Hooks', () => {
     let reporter: any, startCase: any, endCase: any, startStep: any, endStep: any
-    const allureInstance = ({ suite = {}, test = { steps: [1] } } = {}) => ({
+    const allureInstance = ({ suite = {}, test = { steps: [1] } }: any = {}) => ({
         getCurrentSuite: jest.fn(() => suite),
         getCurrentTest: jest.fn(() => { return test }),
         startCase,
@@ -580,7 +580,7 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
 describe('hooks handling default', () => {
     let reporter: any, startCase: any, endCase: any, startStep: any, endStep: any
-    const allureInstance = ({ suite = {}, test = { steps: [1] } } = {}) => ({
+    const allureInstance = ({ suite = {}, test = { steps: [1] } }: any = {}) => ({
         getCurrentSuite: jest.fn(() => suite),
         getCurrentTest: jest.fn(() => { return test }),
         startCase,
