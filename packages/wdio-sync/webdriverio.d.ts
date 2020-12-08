@@ -18,9 +18,6 @@ declare namespace WebdriverIO {
             <T>(script: string | ((...arguments: any[]) => T), ...arguments: any[]): T;
         };
 
-        // also there is no way to add callback as last parameter after `...args`.
-        // https://github.com/Microsoft/TypeScript/issues/1360
-        // executeAsync: <T>(script: string | ((...arguments: any[], callback: (result: T) => void) => void), ...arguments: any[]) => T;
         /**
          * Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
          * The executed script is assumed to be asynchronous and must signal that is done by invoking
