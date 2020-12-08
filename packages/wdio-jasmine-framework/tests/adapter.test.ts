@@ -48,6 +48,12 @@ test('comes with a factory', async () => {
     expect(result).toBe(0)
 })
 
+it('should fail to run if jasmine runner is not initialised', async () => {
+    const adapter = adapterFactory()
+    const err = await adapter.run().catch((err: Error) => err) as Error
+    expect(err.message).toBe('Jasmine not initiate yet')
+})
+
 test('should properly set up jasmine', async () => {
     const adapter = adapterFactory()
     await adapter.init()
@@ -426,6 +432,11 @@ describe('_grep', () => {
 })
 
 describe('loadFiles', () => {
+    it('should throw an error if jasmine runner is not defined', () => {
+        const adapter = adapterFactory({})
+        expect(adapter._loadFiles.bind(adapter)).toThrow()
+    })
+
     test('should set _hasTests to true if there are tests to run', () => {
         const adapter = adapterFactory({})
         delete adapter['_hasTests']
