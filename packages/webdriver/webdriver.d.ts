@@ -276,7 +276,7 @@ declare namespace WebDriver {
         firstMatch: Capabilities[];
     }
 
-    export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
+    export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities, BrowserstackCapabilities {
         // Read-only capabilities
         cssSelectorsEnabled?: boolean;
         handlesAlerts?: boolean;
@@ -372,6 +372,9 @@ declare namespace WebDriver {
         'appium:platformVersion'?: string;
         deviceName?: string;
         'appium:deviceName'?: string;
+        device?: string;
+        // custom mobile grids can have device information in a `desired` cap
+        desired?: AppiumCapabilities;
         app?: string;
         'appium:app'?: string;
         newCommandTimeout?: number;
@@ -396,6 +399,12 @@ declare namespace WebDriver {
         'appium:enablePerformanceLogging'?: boolean;
         printPageSourceOnFindFailure?: boolean;
         'appium:printPageSourceOnFindFailure'?: boolean;
+    }
+
+    // Browserstack General Capabilities
+    export interface BrowserstackCapabilities {
+        os_version?: string;
+        osVersion?: string;
     }
 
     export interface AppiumAndroidCapabilities {

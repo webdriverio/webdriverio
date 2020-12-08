@@ -2,6 +2,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "noImplicitAny": true,
+    "esModuleInterop": true,
     "types": [
       "@wdio/sync",
       "@wdio/protocols",

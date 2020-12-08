@@ -1,4 +1,4 @@
-interface CommandArgs {
+export interface CommandArgs {
     sessionId: string
     method?: string
     endpoint?: string
@@ -7,7 +7,7 @@ interface CommandArgs {
      * DevTools params
      */
     retries?: number
-    command?: object
+    command?: string
     params?: any
 }
 
