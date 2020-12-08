@@ -18,12 +18,13 @@ const wdioReporter: EventEmitter = {
     on: jest.fn()
 } as any
 
-const hookPayload = (type, suite, error?) => ({
+const hookPayload = (type, id, error?) => ({
+    id,
     description: `"${type} all" hook`,
     error,
     fullName: `"${type} all" hook`,
-    type: 'hook',
-    uid: `${suite}-${type}All`
+    start: expect.any(Date),
+    type: 'hook'
 })
 
 const adapterFactory = (config = {}) => new JasmineAdapter(
@@ -109,10 +110,7 @@ test('emitHookEvent: should emit events for beforeAll and afterAll hooks', async
     const allHooks = INTERFACES.bdd.filter(fnName => fnName.includes('All'))
     expect(allHooks).toHaveLength(2)
 
-    adapter['_reporter'] = {
-        emit: jest.fn(),
-        getUniqueIdentifier: () => 'ID'
-    } as any
+    adapter['_reporter'] = { emit: jest.fn() } as any
     allHooks.forEach((hookName) => {
         const hookIdx = INTERFACES.bdd.indexOf(hookName)
         adapter['_reporter'].startedSuite = true as any
@@ -122,10 +120,11 @@ test('emitHookEvent: should emit events for beforeAll and afterAll hooks', async
     })
 
     expect(adapter['_reporter'].emit).toHaveBeenCalledTimes(4)
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:start', hookPayload('before', 'ID'))
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:end', hookPayload('before', 'root0-2', { message: 'beforeAll' }))
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:start', hookPayload('after', 'ID'))
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:end', hookPayload('after', 'root0-2', { message: 'afterAll' }))
+
+    expect(adapter['_reporter'].emit).toBeCalledWith('hook:start', hookPayload('before', 'hook1'))
+    expect(adapter['_reporter'].emit).toBeCalledWith('hook:end', hookPayload('before', 'hook2', new Error('beforeAll')))
+    expect(adapter['_reporter'].emit).toBeCalledWith('hook:start', hookPayload('after', 'hook3'))
+    expect(adapter['_reporter'].emit).toBeCalledWith('hook:end', hookPayload('after', 'hook4', new Error('afterAll')))
 })
 
 test('should properly configure the jasmine environment', async () => {
