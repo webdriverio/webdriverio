@@ -6,13 +6,25 @@ import logger from '@wdio/logger'
 
 const log = logger('@wdio/browserstack-service')
 
+type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
+    pid?: number;
+    stop(callback: (err?: any) => void): void;
+}
+
+type Capabilities = WebDriver.Capabilities & WebdriverIO.MultiRemoteCapabilities & {
+    'browserstack.local'?: boolean;
+};
+
 export default class BrowserstackLauncherService {
-    constructor (options, capabilities, config) {
+    options: BrowserstackConfig
+    config: WebdriverIO.Config
+    browserstackLocal?: BrowserstackLocal
+    constructor (options: BrowserstackConfig, capabilities: Capabilities, config: WebdriverIO.Config) {
         this.options = options
         this.config = config
     }
 
-    onPrepare (config, capabilities) {
+    onPrepare (config: WebdriverIO.Config, capabilities: Capabilities) {
         if (!this.options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
@@ -45,7 +57,7 @@ export default class BrowserstackLauncherService {
         })
         obs.observe({ entryTypes: ['measure'], buffered: false })
 
-        let timer
+        let timer: NodeJS.Timeout
         performance.mark('tbTunnelStart')
         return Promise.race([
             promisify(this.browserstackLocal.start.bind(this.browserstackLocal))(opts),
@@ -72,13 +84,13 @@ export default class BrowserstackLauncherService {
         }
 
         if (this.options.forcedStop) {
-            return process.kill(this.browserstackLocal.pid)
+            return process.kill(this.browserstackLocal.pid as number)
         }
 
-        let timer
+        let timer: NodeJS.Timeout
         return Promise.race([
             new Promise((resolve, reject) => {
-                this.browserstackLocal.stop((err) => {
+                this.browserstackLocal?.stop((err: any) => {
                     if (err) {
                         return reject(err)
                     }
