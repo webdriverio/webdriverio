@@ -1,16 +1,19 @@
-import implicitWait, { CurrentElement } from './implicitWait'
+import implicitWait from './implicitWait'
 
 /**
  * helper utility to refetch an element and all its parent elements when running
  * into stale element exception errors
  */
-export default async function refetchElement (currentElement: CurrentElement, commandName: string) {
+export default async function refetchElement (
+    currentElement: WebdriverIO.Element,
+    commandName: string
+): Promise<WebdriverIO.Element> {
     let selectors = []
 
     //Crawl back to the browser object, and cache all selectors
     while (currentElement.elementId && currentElement.parent) {
         selectors.push({ selector: currentElement.selector, index: currentElement.index || 0 })
-        currentElement = currentElement.parent
+        currentElement = currentElement.parent as WebdriverIO.Element
     }
     selectors.reverse()
 

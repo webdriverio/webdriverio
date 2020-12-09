@@ -11,6 +11,9 @@ interface StatusReturn extends ProtocolCommandResponse {
     message?: string,
 }
 
+type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
+type ElementReference = Record<ElementReferenceId, string>
+
 interface WindowHandle {
     handle: string,
     type: string

@@ -49,6 +49,27 @@ const executeResult = browser.execute(function (x: number) {
 }, 4)
 executeResult.toFixed(2)
 
+const executeAsyncResult = browser.executeAsync(function(a, b, c, d, done) {
+    setTimeout(() => {
+        done(a + b + c + d)
+    }, 100);
+}, 1, 2, 3, 4)
+executeAsyncResult.toFixed(2);
+
+const executeAsyncResultTwo = browser.executeAsync(function(done) {
+    setTimeout(() => {
+        done(5)
+    }, 100);
+})
+executeAsyncResultTwo.toFixed(2);
+
+const executeAsyncResultThree = browser.executeAsync(function(done) {
+    setTimeout(() => {
+        done('worked')
+    }, 100);
+})
+executeAsyncResultThree.charCodeAt(1);
+
 const callResult = <number>browser.call(() =>
     new Promise(resolve => setTimeout(() => resolve(4), 1))
 )
@@ -185,7 +206,8 @@ ele.dragAndDrop(ele, { duration: 0 })
 ele.dragAndDrop({ x: 1, y: 2 })
 
 // addLocatorStrategy
-browser.addLocatorStrategy('myStrat', () => {})
+browser.addLocatorStrategy('myStrat', () => document.body)
+browser.addLocatorStrategy('myStrat', () => document.querySelectorAll('div'))
 
 // shared-store-service
 browser.sharedStore.get('foo')

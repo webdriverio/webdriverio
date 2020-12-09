@@ -28,7 +28,7 @@ export default async function getWindowSize(this: WebdriverIO.BrowserObject) {
     const browser = getBrowserObject(this)
 
     if (!browser.isW3C) {
-        return browser._getWindowSize() as BrowserSize
+        return browser._getWindowSize() as unknown as BrowserSize
     }
 
     const { width, height } = await browser.getWindowRect() as BrowserSize

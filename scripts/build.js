@@ -24,6 +24,7 @@ const ROOT_PACKAGES = [
     'wdio-utils',
     'wdio-repl',
     'webdriver',
+    'devtools',
     'webdriverio',
 ]
 
@@ -32,10 +33,6 @@ const packages = getSubPackages()
      * Filter out packages that don't need compiling
      */
     .filter((pkg) => !IGNORE_COMPILING_FOR_PACKAGES.includes(pkg))
-    /**
-     * Only build packages that are passed in as params
-     */
-    .filter((pkg) => args.length === 0 || args.includes(pkg))
 
     /**
      * Deduplicate root packages
@@ -56,6 +53,11 @@ const packages = getSubPackages()
      * Concat all groups of packages, with root packages as first
      */
     .reduce((acc, collection) => acc.concat(collection), ROOT_PACKAGES)
+
+    /**
+     * Only build packages that are passed in as params
+     */
+    .filter((pkg) => args.length === 0 || args.includes(pkg))
 
 shell.cd(path.join(__dirname, '..'))
 const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`).join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`

@@ -12,8 +12,8 @@ const outDirs = [
     'sync', 'sync-applitools', 'sync-browserstack', 'sync-mocha', 'sync-jasmine',
     'webdriverio', 'webdriverio-applitools', 'webdriverio-browserstack',
     'webdriverio-mocha', 'webdriverio-jasmine', 'webdriverio-cucumber',
-    'sync-cucumber', 'devtools', 'sync-devtools', 'webdriverio-reporter',
-    'webdriverio-saucelabs', 'sync-saucelabs', 'webdriverio-devtools-service', 'sync-devtools-service'
+    'sync-cucumber', 'devtools', 'sync-devtools', 'webdriverio-saucelabs',
+    'sync-saucelabs', 'webdriverio-devtools-service', 'sync-devtools-service'
 ]
 
 const packages = {

@@ -1,3 +1,4 @@
+import path from 'path'
 import logger from '@wdio/logger'
 
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
@@ -40,6 +41,13 @@ export default class WebDriver {
             params.hostname = directConnectHost
             params.port = directConnectPort
             params.path = directConnectPath
+        }
+
+        /**
+         * Store all log events in a file
+         */
+        if (params.outputDir) {
+            process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
         }
 
         const { sessionId, capabilities } = await startWebDriverSession(params)

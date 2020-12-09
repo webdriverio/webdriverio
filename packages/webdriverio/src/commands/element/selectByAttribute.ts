@@ -27,8 +27,8 @@
  * </example>
  *
  * @alias element.selectByAttribute
- * @param {String} attribute  attribute of option element to get selected
- * @param {String} value      value of option element to get selected
+ * @param {String} attribute     attribute of option element to get selected
+ * @param {String|Number} value  value of option element to get selected
  * @uses protocol/findElementFromElement, protocol/elementClick
  * @type action
  *
@@ -56,7 +56,7 @@ export default async function selectByAttribute (
         this.elementId,
         'xpath',
         `./option${normalized}|./optgroup/option${normalized}`
-    ) as unknown as WebdriverIO.ElementReference
+    ) as unknown as WebDriver.ElementReference
 
     if (optionElement && (optionElement as any).error === 'no such element') {
         throw new Error(`Option with attribute "${attribute}=${value}" not found.`)
