@@ -119,5 +119,6 @@ const getJsDoc = (commandName, fileContent, indentation = 0) => {
 
 module.exports = {
     buildCommand,
-    getJsDoc
+    getJsDoc,
+    changeType
 }

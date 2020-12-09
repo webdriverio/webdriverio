@@ -29,6 +29,8 @@ declare namespace WebDriver {
         'info' | 'warn' | 'error' | 'fatal';
     export type Timeouts = Record<'script' | 'pageLoad' | 'implicit', number>;
     export type SameSiteOptions = 'Lax' | 'Strict';
+    type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
+    type ElementReference = Record<ElementReferenceId, string>
 
     interface ProxyObject {
         proxyType?: ProxyTypes;
@@ -274,7 +276,7 @@ declare namespace WebDriver {
         firstMatch: Capabilities[];
     }
 
-    export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
+    export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
         // Read-only capabilities
         cssSelectorsEnabled?: boolean;
         handlesAlerts?: boolean;
@@ -324,8 +326,10 @@ declare namespace WebDriver {
         'selenoid:options'?: SelenoidOptions
         // Testingbot w3c specific
         'tb:options'?: TestingbotCapabilities
-        // Saucelabs w3c specific
+        // Sauce Labs w3c specific
         'sauce:options'?: SauceLabsCapabilities
+        // Sauce Labs Visual
+        'sauce:visual'?: SauceLabsVisualCapabilities
         // Browserstack w3c specific
         'bstack:options'?: {
             [name: string]: any
@@ -333,6 +337,7 @@ declare namespace WebDriver {
 
         'goog:chromeOptions'?: ChromeOptions;
         'moz:firefoxOptions'?: FirefoxOptions;
+        firefox_profile?: string,
         'ms:edgeOptions'?: MicrosoftEdgeOptions;
         'ms:edgeChromium'?: MicrosoftEdgeOptions;
     }
@@ -362,20 +367,35 @@ declare namespace WebDriver {
     // Appium General Capabilities
     export interface AppiumCapabilities {
         automationName?: string;
+        'appium:automationName'?: string;
         platformVersion?: string;
+        'appium:platformVersion'?: string;
         deviceName?: string;
+        'appium:deviceName'?: string;
         app?: string;
+        'appium:app'?: string;
         newCommandTimeout?: number;
+        'appium:newCommandTimeout'?: number;
         language?: string;
+        'appium:language'?: string;
         locale?: string;
+        'appium:locale'?: string;
         udid?: string;
+        'appium:udid'?: string;
         orientation?: string;
+        'appium:orientation'?: string;
         autoWebview?: boolean;
+        'appium:autoWebview'?: boolean;
         noReset?: boolean;
+        'appium:noReset'?: boolean;
         fullReset?: boolean;
+        'appium:fullReset'?: boolean;
         eventTimings?: boolean;
+        'appium:eventTimings'?: boolean;
         enablePerformanceLogging?: boolean;
+        'appium:enablePerformanceLogging'?: boolean;
         printPageSourceOnFindFailure?: boolean;
+        'appium:printPageSourceOnFindFailure'?: boolean;
     }
 
     export interface AppiumAndroidCapabilities {
@@ -545,6 +565,93 @@ declare namespace WebDriver {
         idleTimeout?: number
     }
 
+    export interface SauceLabsVisualCapabilities {
+        /**
+         * Project name
+         */
+        projectName?: string
+        /**
+         * API Key for user's Screener account.
+         */
+        apiKey?: string
+        /**
+         * A <width>x<height> representation of desired viewport size.
+         * @default "1024x768"
+         */
+        viewportSize?: string
+        /**
+         * Branch or environment name.
+         * @example "main"
+         */
+        branch?: string
+        /**
+         * Branch name of project's base branch. Used for baseline branching and merging.
+         * @example "main"
+         */
+        baseBranch?: string
+        /**
+         * Visual diff options to control validations.
+         * @default
+         * ```js
+         * {
+         *   structure: true,
+         *   layout: true,
+         *   style: true,
+         *   content: true,
+         *   minLayoutPosition: 4,
+         *   minLayoutDimension: 10
+         * }
+         * ```
+         */
+        diffOptions?: {
+            structure?: boolean
+            layout?: boolean
+            style?: boolean
+            content?: boolean
+            minLayoutPosition?: number
+            minLayoutDimension?: number
+        }
+        /**
+         * A comma-delimited list of css selectors to ignore when performing visual diffs.
+         * @example "#some-id, .some-selector"
+         */
+        ignore?: string
+        /**
+         * Option to set build to failure when new states are found, and to disable
+         * using new states as a baseline.
+         *
+         * This option defaults to true, and can be set to false if user wants new
+         * states to automatically be the visual baseline without needing to review
+         * and accept them.
+         * @default true
+         */
+        failOnNewStates?: boolean
+        /**
+         * Option to automatically accept new and changed states in base branch.
+         * Assumes base branch should always be correct.
+         * @default false
+         */
+        alwaysAcceptBaseBranch?: boolean
+        /**
+         * Option to disable independent baseline for each feature branch, and
+         * only use base branch as baseline. Must be used with "baseBranch" option.
+         * @default false
+         */
+        disableBranchBaseline?: boolean
+        /**
+         * Option to capture a full-page screenshot using a scrolling and stitching
+         * strategy instead of using native browser full-page screenshot capabilities.
+         * @default false
+         */
+        scrollAndStitchScreenshots?: boolean
+        /**
+         * Option to disable adding CORS headers. By default, CORS headers are set
+         * for all cross-origin requests.
+         * @default false
+         */
+        disableCORS?: boolean
+    }
+
     export interface TestingbotCapabilities {
         name?: string;
         tags?: string[];
@@ -572,31 +679,45 @@ declare namespace WebDriver {
 
     interface Options {
         /**
-         * Your cloud service username (only works for Sauce Labs, Browserstack, TestingBot,
-         * CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will automatically
-         * set connection options for you.
+         * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
+         * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),
+         * [CrossBrowserTesting](https://crossbrowsertesting.com) or
+         * [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+         * automatically set connection options for you. If you don't use a cloud provider this
+         * can be used to authenticate any other WebDriver backend.
          */
-        user?: string;
+        user?: string
         /**
-         * Your cloud service access key or secret key (only works for Sauce Labs, Browserstack,
-         * TestingBot, CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will
-         * automatically set connection options for you.
+         * Your cloud service access key or secret key (only works for
+         * [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com),
+         * [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)
+         * or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+         * automatically set connection options for you. If you don't use a cloud provider this
+         * can be used to authenticate any other WebDriver backend.
          */
-        key?: string;
+        key?: string
         /**
          * Protocol to use when communicating with the Selenium standalone server (or driver).
+         *
+         * @default 'http'
          */
         protocol?: string;
         /**
          * Host of your WebDriver server.
+         *
+         * @default 'localhost'
          */
         hostname?: string;
         /**
          * Port your WebDriver server is on.
+         *
+         * @default 4444
          */
         port?: number;
         /**
          * Path to WebDriver endpoint or grid server.
+         *
+         * @default '/'
          */
         path?: string;
         /**
@@ -612,6 +733,8 @@ declare namespace WebDriver {
         requestedCapabilities?: DesiredCapabilities | W3CCapabilities;
         /**
          * Level of logging verbosity.
+         *
+         * @default 'info'
          */
         logLevel?: WebDriverLogTypes;
         /**
@@ -621,16 +744,16 @@ declare namespace WebDriver {
         logLevels?: Record<string, WebDriverLogTypes | undefined>;
         /**
          * Timeout for any WebDriver request to a driver or grid.
+         *
+         * @default 120000
          */
         connectionRetryTimeout?: number;
         /**
          * Count of request retries to the Selenium server.
+         *
+         * @default 3
          */
         connectionRetryCount?: number;
-        /**
-         * Timeout for any request to the Selenium server
-         */
-        connectionPollInterval?: number
         /**
          * Specify custom headers to pass into every request.
          */
@@ -638,11 +761,19 @@ declare namespace WebDriver {
             [name: string]: string;
         };
         /**
-         * Allows you to use a customhttp/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
+         * Allows you to use a custom http/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
+         *
+         * @default
+         * ```js
+         * {
+         *     http: new http.Agent({ keepAlive: true }),
+         *     https: new https.Agent({ keepAlive: true })
+         * }
+         * ```
          */
         agent?: {
-            http: HTTPAgent;
-            https: HTTPSAgent;
+            http: HTTPAgent,
+            https: HTTPSAgent
         };
         /**
          * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
@@ -660,6 +791,25 @@ declare namespace WebDriver {
         directConnectHost?: string
         directConnectPort?: number
         directConnectPath?: string
+
+        /**
+         * Whether it requires SSL certificates to be valid in HTTP/s requests
+         * for an environment which cannot get process environment well.
+         *
+         * @default true
+         */
+        strictSSL?: boolean;
+
+        /**
+         * Directory to store all testrunner log files (including reporter logs and `wdio` logs).
+         * If not set, all logs are streamed to `stdout`. Since most reporters are made to log to
+         * `stdout`, it is recommended to only use this option for specific reporters where it
+         * makes more sense to push report into a file (like the `junit` reporter, for example).
+         *
+         * When running in standalone mode, the only log generated by WebdriverIO will be
+         * the `wdio` log.
+         */
+        outputDir?: string
     }
 
     interface AttachSessionOptions extends Options {
@@ -746,7 +896,7 @@ declare namespace WebDriver {
         mjpegScalingFactor?: number,
     }
 
-    interface BaseClient {
+    interface BaseClient extends NodeJS.EventEmitter {
         // id of WebDriver session
         sessionId: string;
         // assigned capabilities by the browser driver / WebDriver server
@@ -949,14 +1099,14 @@ declare namespace WebDriver {
          * The Find Element From Element command is used to find an element from a web element in the current browsing context that can be used for future commands.
          * https://w3c.github.io/webdriver/#dfn-find-element-from-element
          */
-        findElementFromElement(elementId: string, using: string, value: string): string;
+        findElementFromElement(elementId: string, using: string, value: string): ElementReference;
 
         /**
          * [webdriver]
          * The Find Elements From Element command is used to find elements from a web element in the current browsing context that can be used for future commands.
          * https://w3c.github.io/webdriver/#dfn-find-elements-from-element
          */
-        findElementsFromElement(elementId: string, using: string, value: string): string[];
+        findElementsFromElement(elementId: string, using: string, value: string): ElementReference[];
 
         /**
          * [webdriver]
@@ -1826,14 +1976,14 @@ declare namespace WebDriver {
          * Search for an element on the page, starting from the identified element. The located element will be returned as a WebElement JSON object. The table below lists the locator strategies that each server should support. Each locator must return the first matching element located in the DOM.
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidelement
          */
-        findElementFromElement(elementId: string, using: string, value: string): string;
+        findElementFromElement(elementId: string, using: string, value: string): ElementReference;
 
         /**
          * [jsonwp]
          * Search for multiple elements on the page, starting from the identified element. The located elements will be returned as a WebElement JSON objects. The table below lists the locator strategies that each server should support. Elements should be returned in the order located in the DOM.
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidelements
          */
-        findElementsFromElement(elementId: string, using: string, value: string): string[];
+        findElementsFromElement(elementId: string, using: string, value: string): ElementReference[];
 
         /**
          * [jsonwp]
@@ -2660,5 +2810,8 @@ type AsyncClient = {
 }
 
 declare module "webdriver" {
-    export = WebDriver;
+    export default WebDriver;
+
+    const DEFAULTS: Record<string, any>
+    export { DEFAULTS }
 }

@@ -101,7 +101,7 @@ export async function findElement (
     this: DevToolsDriver,
     context: Frame | Page | ElementHandle,
     using: string, value: string
-): Promise<WebdriverIO.ElementReference | Error>  {
+): Promise<WebDriver.ElementReference | Error>  {
     /**
      * implicitly wait for the element if timeout is set
      */
@@ -141,7 +141,7 @@ export async function findElements (
     this: DevToolsDriver, context: Page | Frame | ElementHandle,
     using: string,
     value: string
-): Promise<WebdriverIO.ElementReference[]> {
+): Promise<WebDriver.ElementReference[]> {
     /**
      * implicitly wait for the element if timeout is set
      */

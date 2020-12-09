@@ -21,7 +21,7 @@ export interface WDIOReporterOptionsFromLogFile extends WDIOReporterBaseOptions 
     logFile: string
 }
 
-export type WDIOReporterOptions = WDIOReporterOptionsFromLogFile | WDIOReporterOptionsFromStdout
+export type WDIOReporterOptions = WDIOReporterOptionsFromLogFile & WDIOReporterOptionsFromStdout
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream
@@ -41,7 +41,7 @@ export default class WDIOReporter extends EventEmitter {
     retries = 0
     runnerStat?: RunnerStats
 
-    constructor(public options: WDIOReporterOptions) {
+    constructor(public options: Partial<WDIOReporterOptions>) {
         super()
 
         // ensure the report directory exists
@@ -257,3 +257,5 @@ export default class WDIOReporter extends EventEmitter {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onRunnerEnd(runnerStats: RunnerStats) { }
 }
+
+export { SuiteStats, HookStats, TestStats, RunnerStats }

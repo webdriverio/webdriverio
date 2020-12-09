@@ -42,19 +42,16 @@ import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
 
 const resqScript = fs.readFileSync(require.resolve('resq'))
 
-export type ReactSelectorOptions = {
-    props?: object,
-    state?: any[] | number | string | object | boolean
-}
-
 export default async function react$(
     this: WebdriverIO.Element,
     selector: string,
-    { props = {}, state = {} }: ReactSelectorOptions = {}
+    { props = {}, state = {} }: WebdriverIO.ReactSelectorOptions = {}
 ) {
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
-    const res = await this.execute(react$Script, selector, props, state, this)
+    const res = await this.execute(
+        react$Script, selector, props, state, this
+    ) as any as WebDriver.ElementReference
 
     return getElement.call(this, selector, res, true)
 }

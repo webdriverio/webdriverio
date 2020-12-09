@@ -32,7 +32,7 @@ async function custom$$ (
     strategyArguments: string
 ) {
     const browserObject: WebdriverIO.BrowserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName)
+    const strategy = browserObject.strategies.get(strategyName) as () => WebDriver.ElementReference[]
 
     if (!strategy) {
         /* istanbul ignore next */
@@ -60,7 +60,7 @@ async function custom$$ (
 
     res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategy, res) : []
+    const elements = res.length ? await getElements.call(this, strategy, res) : ([] as any as WebdriverIO.ElementArray)
     return enhanceElementsArray(elements, this, strategyName, 'custom$$', [strategyArguments])
 }
 

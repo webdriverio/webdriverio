@@ -26,6 +26,7 @@
  */
 
 import { checkUnicode } from '../../utils'
+import { UNICODE_CHARACTERS } from '../../constants'
 
 export default function keys (
     this: WebdriverIO.BrowserObject,
@@ -37,9 +38,10 @@ export default function keys (
      * replace key with corresponding unicode character
      */
     if (typeof value === 'string') {
-        keySequence = checkUnicode(value, this.isDevTools)
+        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS, this.isDevTools)
     } else if (Array.isArray(value)) {
-        for (const charSet of value) {
+        const charArray: (keyof typeof UNICODE_CHARACTERS)[] = value as any
+        for (const charSet of charArray) {
             keySequence = keySequence.concat(checkUnicode(charSet, this.isDevTools))
         }
     } else {
