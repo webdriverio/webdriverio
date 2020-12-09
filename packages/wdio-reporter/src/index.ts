@@ -182,8 +182,9 @@ export default class WDIOReporter extends EventEmitter {
                 this.runnerStat.complete()
                 this.onRunnerEnd(this.runnerStat)
             }
-            if (!this.isContentPresent && (this.options as WDIOReporterOptionsFromLogFile).logFile) {
-                fs.unlinkSync((this.options as WDIOReporterOptionsFromLogFile).logFile)
+            const logFile = (this.options as WDIOReporterOptionsFromLogFile).logFile
+            if (!this.isContentPresent && logFile && fs.existsSync(logFile)) {
+                fs.unlinkSync(logFile)
             }
         })
 
