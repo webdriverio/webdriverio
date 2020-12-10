@@ -521,6 +521,8 @@ describe('utils', () => {
                 .toBe('webdriver')
             expect(await getAutomationProtocol({ user: 'a', key: 'b', automationProtocol: 'webdriver' }))
                 .toBe('webdriver')
+            expect(await getAutomationProtocol({ capabilities: { alwaysMatch: { browserName: 'chrome' } } as WebDriver.W3CCapabilities }))
+                .toBe('webdriver')
         })
 
         it('should switch if /status returns with 200', async () => {

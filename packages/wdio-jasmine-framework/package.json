@@ -28,6 +28,7 @@
     "@types/jasmine": "^3.3.8"
   },
   "dependencies": {
+    "@types/jasmine": "^3.6.2",
     "@wdio/logger": "6.10.4",
     "@wdio/utils": "6.10.4",
     "expect-webdriverio": "^1.1.5",
