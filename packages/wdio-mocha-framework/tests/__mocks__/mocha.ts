@@ -1,13 +1,20 @@
 export default class MochaMock {
-    constructor (mochaOpts) {
-        this.mochaOpts = mochaOpts
+    loadFiles = jest.fn()
+    loadFilesAsync = jest.fn()
+    reporter = jest.fn()
+    fullTrace = jest.fn()
+    addFile = jest.fn()
+    run = jest.fn()
 
-        this.loadFiles = jest.fn()
-        this.loadFilesAsync = jest.fn()
-        this.reporter = jest.fn()
-        this.fullTrace = jest.fn()
-        this.addFile = jest.fn()
+    mockFailureCount: number
+    suite: { on: jest.Mock }
+    runner: {
+        on: jest.Mock
+        suite: any
+        test: string
+    }
 
+    constructor (private mochaOpts) {
         this.suite = {
             on: jest.fn()
         }
@@ -34,8 +41,8 @@ export default class MochaMock {
             return this.runner
         })
     }
-}
 
-MochaMock.Runner = jest.fn().mockImplementation(function (total) {
-    return { grep: jest.fn(), total }
-})
+    static Runner = jest.fn().mockImplementation(function (total) {
+        return { grep: jest.fn(), total }
+    })
+}
