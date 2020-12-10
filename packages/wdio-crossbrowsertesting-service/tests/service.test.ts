@@ -65,7 +65,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         (got.put as jest.Mock).mockClear()
     })
 
-    it('before', () => {
+    it('constructor', () => {
         const capabilities = {
             name: 'Test suite',
             tags: ['tag1', 'tag2'],
@@ -82,6 +82,17 @@ describe('wdio-crossbrowsertesting-service', () => {
         expect(cbtService['_cbtAuthkey']).toEqual('testy')
         expect(cbtService['_testCnt']).toEqual(0)
         expect(cbtService['_failures']).toEqual(0)
+    })
+
+    it('before', () => {
+        const cbtService = new CrossBrowserTestingService(
+            {
+                ...testArgumens.beforeSession
+            },
+            testArgumens.capabilities
+        )
+        cbtService.before({}, [], 'browser' as any)
+        expect(cbtService['_browser']).toBe('browser')
     })
 
     it('beforeSuite', () => {
@@ -144,6 +155,14 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.beforeTest(test)
 
         expect(cbtService['_suiteTitle']).toEqual('Test ')
+    })
+
+    it('beforeTest: should not do anything if no key was specified', () => {
+        const cbtService = new CrossBrowserTestingService({}, {})
+        cbtService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as WebdriverIO.Suite)
+        cbtService.beforeTest({})
+
+        expect(cbtService['_suiteTitle']).not.toEqual('Test ')
     })
 
     it('afterSuite', ()=>{

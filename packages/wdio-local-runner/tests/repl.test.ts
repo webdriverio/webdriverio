@@ -69,3 +69,12 @@ test('should pass in result to callback', () => {
     repl.onResult({ result: 'foobar' })
     expect(repl.callback).toBeCalledWith(null, 'foobar')
 })
+
+test('should switch flag even if no callback is set', () => {
+    const childProcess = { send: jest.fn() }
+    const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
+    repl.commandIsRunning = true
+
+    repl.onResult({ result: 'foobar' })
+    expect(repl.commandIsRunning).toBe(false)
+})
