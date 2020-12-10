@@ -577,8 +577,8 @@ declare namespace WebdriverIO {
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
 
     type MockResponseParams = {
-        statusCode?: number,
-        headers?: Record<string, string>,
+        statusCode?: number | ((request: Matches) => number),
+        headers?: Record<string, string> | ((request: Matches) => Record<string, string>),
         /**
          * fetch real response before responding with mocked data. Default: true
          */
