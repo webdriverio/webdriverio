@@ -18,10 +18,10 @@ const wdioReporter: EventEmitter = {
     on: jest.fn()
 } as any
 
-const hookPayload = (type, id, error?) => ({
-    id,
+const hookPayload = (type, error?) => ({
+    id: '',
     description: `"${type} all" hook`,
-    error,
+    ...(error ? { error } : {}),
     fullName: `"${type} all" hook`,
     start: expect.any(Date),
     type: 'hook'
@@ -127,10 +127,10 @@ test('emitHookEvent: should emit events for beforeAll and afterAll hooks', async
 
     expect(adapter['_reporter'].emit).toHaveBeenCalledTimes(4)
 
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:start', hookPayload('before', 'hook1'))
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:end', hookPayload('before', 'hook2', new Error('beforeAll')))
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:start', hookPayload('after', 'hook3'))
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:end', hookPayload('after', 'hook4', new Error('afterAll')))
+    expect(adapter['_reporter'].emit).toBeCalledWith('hook:start', hookPayload('before'))
+    expect(adapter['_reporter'].emit).toBeCalledWith('hook:end', hookPayload('before', new Error('beforeAll')))
+    expect(adapter['_reporter'].emit).toBeCalledWith('hook:start', hookPayload('after'))
+    expect(adapter['_reporter'].emit).toBeCalledWith('hook:end', hookPayload('after', new Error('afterAll')))
 })
 
 test('should properly configure the jasmine environment', async () => {
