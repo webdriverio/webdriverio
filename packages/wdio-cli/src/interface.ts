@@ -146,14 +146,9 @@ export default class WDIOCLInterface extends EventEmitter {
 
     onTestError (payload: CLIInterfaceEvent) {
         const error: TestError = {
-            type: 'Error',
-            message: typeof payload.error === 'string' ? payload.error : 'Unknown error.'
-        }
-
-        if (payload.error) {
-            error.type = payload.error.type || error.type
-            error.message = payload.error.message || error.message
-            error.stack = payload.error.stack || error.stack
+            type: payload.error?.type || 'Error',
+            message: payload.error?.message || (typeof payload.error === 'string' ? payload.error : 'Unknown error.'),
+            stack: payload.error?.stack
         }
 
         return this.log(`[${payload.cid}]`, `${chalk.red(error.type)} in "${payload.fullTitle}"\n${chalk.red(error.stack || error.message)}`)

@@ -200,8 +200,8 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
 /**
  * @todo add JSComments
  */
-export function convertPackageHashToObject(string: string, hash = '$--$') {
-    const splitHash = string.split(hash)
+export function convertPackageHashToObject(pkg: string, hash = '$--$'): SupportedPackage {
+    const splitHash = pkg.split(hash)
     return {
         package: splitHash[0],
         short: splitHash[1]
@@ -343,7 +343,7 @@ export function getPathForFileGeneration (answers: Questionnair) {
             path.dirname(answers.pages || '').replace(/\*\*$/, ''))
         : ''
     let relativePath = (answers.generateTestFiles && answers.usePageObjects)
-        ? !(answers.framework.short === 'cucumber')
+        ? !(convertPackageHashToObject(answers.framework).short === 'cucumber')
             ? path.relative(destSpecRootPath, destPageObjectRootPath)
             : path.relative(destStepRootPath, destPageObjectRootPath)
         : ''

@@ -11,7 +11,7 @@ import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
     hasFile, generateTestFiles, getAnswers, getPathForFileGeneration
 } from '../utils'
-import { Questionnair, ConfigCommandArguments, ParsedAnswers } from '../types'
+import { ConfigCommandArguments, ParsedAnswers } from '../types'
 import yargs from 'yargs'
 
 export const command = 'config'
@@ -41,26 +41,16 @@ export const builder = (yargs: yargs.Argv) => {
 const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) {
     console.log(CONFIG_HELPER_INTRO)
     const answers = await getAnswers(yes)
-
-    const packageAnswers = ['reporters', 'runner', 'services', 'framework']
-
-    Object.keys(answers).forEach((key: keyof Questionnair) => {
-        if (packageAnswers.includes(key)) {
-            if (Array.isArray(answers[key])) {
-                // @ts-ignore
-                answers[key] = answers[key].map((answer) => convertPackageHashToObject(answer))
-            } else {
-                // @ts-ignore
-                answers[key] = convertPackageHashToObject(answers[key])
-            }
-        }
-    })
+    const frameworkPackage = convertPackageHashToObject(answers.framework)
+    const runnerPackage = convertPackageHashToObject(answers.runner)
+    const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
+    const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
 
     const packagesToInstall: string[] = [
-        (answers.runner && answers.runner.package) || '@wdio/local-runner',
-        answers.framework.package,
-        ...answers.reporters.map(reporter => reporter.package),
-        ...answers.services.map(service => service.package)
+        runnerPackage.package || '@wdio/local-runner',
+        frameworkPackage.package,
+        ...reporterPackages.map(reporter => reporter.package),
+        ...servicePackages.map(service => service.package)
     ]
 
     const syncExecution = answers.executionMode === 'sync'
@@ -71,7 +61,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * add packages that are required by services
      */
-    addServiceDeps(answers.services, packagesToInstall)
+    addServiceDeps(servicePackages, packagesToInstall)
 
     console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
     const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
@@ -91,10 +81,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
     const parsedAnswers: ParsedAnswers = {
         ...answers,
-        runner: (answers.runner && answers.runner.short) || defaultRunner,
-        framework: answers.framework.short,
-        reporters: answers.reporters.map(({ short }) => short),
-        services: answers.services.map(({ short }) => short),
+        runner: runnerPackage.short || defaultRunner,
+        framework: frameworkPackage.short,
+        reporters: reporterPackages.map(({ short }) => short),
+        services: servicePackages.map(({ short }) => short),
         packagesToInstall,
         isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
         isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
@@ -126,8 +116,8 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         const wdioTypes = syncExecution ? '@wdio/sync' : 'webdriverio'
         const tsPkgs = `"${[
             wdioTypes,
-            answers.framework.package,
-            ...answers.services
+            frameworkPackage.package,
+            ...servicePackages
                 .map(service => service.package)
                 /**
                  * given that we know that all "offical" services have

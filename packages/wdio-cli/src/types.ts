@@ -3,7 +3,7 @@ import { BACKEND_CHOICES, MODE_OPTIONS, REGION_OPTION, COMPILER_OPTION_ANSWERS }
 type ValueOf<T> = T[keyof T]
 
 export interface Questionnair {
-    runner: SupportedPackage
+    runner: string
     backend: ValueOf<typeof BACKEND_CHOICES>
     hostname: string
     port: string
@@ -18,7 +18,7 @@ export interface Questionnair {
     env_key: string
     headless: boolean
     region: ValueOf<typeof REGION_OPTION>
-    framework: SupportedPackage
+    framework: string
     executionMode: ValueOf<typeof MODE_OPTIONS>
     specs: string
     stepDefinitions: string
@@ -26,8 +26,8 @@ export interface Questionnair {
     usePageObjects: boolean
     pages: string
     isUsingCompiler: ValueOf<typeof COMPILER_OPTION_ANSWERS>
-    reporters: SupportedPackage[]
-    services: SupportedPackage[]
+    reporters: string[]
+    services: string[]
     outputDir: string
     baseUrl: string
 }

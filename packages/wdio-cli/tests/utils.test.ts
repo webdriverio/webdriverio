@@ -539,10 +539,7 @@ describe('getPathForFileGeneration', () => {
             pages: './features/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework: {
-                short:'cucumber',
-                package: '@wdio/cucumber-service'
-            }
+            framework: '@wdio/cucumber-service$--$cucumber'
         } as any)
         expect(generatedPaths.relativePath).toEqual('../pageobjects')
     })
@@ -553,10 +550,7 @@ describe('getPathForFileGeneration', () => {
             pages: './features/page/objects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework: {
-                short:'cucumber',
-                package: '@wdio/cucumber-service'
-            }
+            framework: '@wdio/cucumber-service$--$cucumber'
         } as any)
         expect(generatedPaths.relativePath).toEqual('../page/objects')
     })
@@ -567,10 +561,7 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework: {
-                short:'mocha',
-                package: '@wdio/cucumber-service'
-            }
+            framework: '@wdio/cucumber-service$--$mocha'
         } as any)
         expect(generatedPaths.relativePath).toEqual('../pageobjects')
     })
@@ -581,10 +572,7 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework: {
-                short:'mocha',
-                package: '@wdio/cucumber-service'
-            }
+            framework: '@wdio/cucumber-service$--$mocha'
         } as any)
         expect(generatedPaths.relativePath).toEqual('../../pageobjects')
     })
@@ -595,10 +583,7 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: false,
             usePageObjects: true,
-            framework: {
-                short:'mocha',
-                package: '@wdio/cucumber-service'
-            }
+            framework: '@wdio/cucumber-service$--$mocha'
         } as any)
         expect(generatedPaths.relativePath).toEqual('')
     })
@@ -609,10 +594,7 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: false,
-            framework: {
-                short:'mocha',
-                package: '@wdio/cucumber-service'
-            }
+            framework: '@wdio/cucumber-service$--$mocha'
         } as any)
         expect(generatedPaths.relativePath).toEqual('')
     })
