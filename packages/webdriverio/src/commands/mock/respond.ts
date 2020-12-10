@@ -40,7 +40,7 @@
             return request.body
         }, {
             statusCode: () => 200,
-        headers: () => ({ foo: 'bar }),
+            headers: () => ({ foo: 'bar }),
             fetchResponse: false // do not fetch real response
         })
     })
