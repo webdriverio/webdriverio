@@ -56,13 +56,30 @@ declare namespace WebdriverIO {
         [key: string]: any;
     }
 
+    interface RunnerInstance {
+        initialise(): Promise<void>
+        shutdown(): Promise<void>
+        getWorkerCount(): number
+        run(args: any): NodeJS.EventEmitter
+        workerPool: any
+    }
+
     interface ServiceClass {
         new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
     }
 
-    interface ServiceLauncher extends ServiceClass {
-        default?: ServiceClass
+    interface RunnerClass {
+        new(configFile: string, config: Omit<WebdriverIO.Config, 'capabilities' | keyof WebdriverIO.Hooks>): RunnerInstance
+    }
+
+    interface ServicePlugin extends ServiceClass {
+        default: ServiceClass
         launcher?: ServiceClass
+    }
+
+    interface RunnerPlugin extends RunnerClass {
+        default: RunnerClass
+        launcher?: RunnerClass
     }
 
     interface ServiceInstance extends HookFunctions {
@@ -83,7 +100,7 @@ declare namespace WebdriverIO {
         /**
          * e.g. `services: [CustomClass]`
          */
-        ServiceLauncher |
+        ServiceClass |
         /**
          * e.g. `services: [['@wdio/sauce-service', { ... }]]`
          */

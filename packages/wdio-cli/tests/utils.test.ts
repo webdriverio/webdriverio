@@ -1,8 +1,10 @@
 import fs from 'fs-extra'
 import ejs from 'ejs'
-import readDir from 'recursive-readdir'
+import readDirMock from 'recursive-readdir'
 import childProcess from 'child_process'
 import { SevereServiceError } from 'webdriverio'
+
+const readDir = readDirMock as jest.Mock
 
 import {
     runLauncherHook,
@@ -30,7 +32,7 @@ jest.mock('child_process', function () {
     return m
 })
 
-jest.mock('../src/commands/config.js', () => ({
+jest.mock('../src/commands/config', () => ({
     runConfig: jest.fn()
 }))
 
@@ -64,6 +66,7 @@ describe('runServiceHook', () => {
         await runServiceHook([
             { onPrepare: hookSuccess },
             { onPrepare: asyncHookSuccess },
+            // @ts-ignore test invalid parameter
             { onPrepare: 'foobar' },
         ], 'onPrepare', 1, true, 'abc')
         expect(hookSuccess).toBeCalledTimes(1)
@@ -76,6 +79,7 @@ describe('runServiceHook', () => {
 
         await runServiceHook([
             { onPrepare: hookSuccess },
+            // @ts-ignore test invalid parameter
             { onPrepare: 'foobar' },
             { onPrepare: asyncHookSuccess },
             { onPrepare: hookFailing },
@@ -93,6 +97,7 @@ describe('runServiceHook', () => {
         try {
             await runServiceHook([
                 { onPrepare: hookSuccess },
+                // @ts-ignore test invalid parameter
                 { onPrepare: 'foobar' },
                 { onPrepare: asyncHookSuccess },
                 { onPrepare: hookFailing },
@@ -139,7 +144,7 @@ test('runOnCompleteHook handles array of functions', () => {
     const hookSuccess = jest.fn()
     const secondHook = jest.fn()
 
-    runOnCompleteHook([hookSuccess, secondHook], {}, {})
+    runOnCompleteHook([hookSuccess, secondHook], {}, {}, 0, {} as any)
     expect(hookSuccess).toBeCalledTimes(1)
     expect(secondHook).toBeCalledTimes(1)
 })
@@ -148,14 +153,14 @@ test('runOnCompleteHook handles async functions', async () => {
     const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 31))
 
     const start = Date.now()
-    await runOnCompleteHook([hookSuccess], {}, {})
+    await runOnCompleteHook([hookSuccess], {}, {}, 0, {} as any)
     expect(Date.now() - start).toBeGreaterThanOrEqual(30)
 })
 
 test('runOnCompleteHook handles a single function', () => {
     const hookSuccess = jest.fn()
 
-    runOnCompleteHook(hookSuccess, {}, {})
+    runOnCompleteHook(hookSuccess, {}, {}, 0, {} as any)
     expect(hookSuccess).toBeCalledTimes(1)
 })
 
@@ -163,7 +168,7 @@ test('runOnCompleteHook with no failure returns 0', async () => {
     const hookSuccess = jest.fn()
     const hookFailing = jest.fn()
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], {}, {})
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], {}, {}, 0, {} as any)
 
     expect(result).not.toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -174,7 +179,7 @@ test('runOnCompleteHook with failure returns 1', async () => {
     const hookSuccess = jest.fn()
     const hookFailing = jest.fn().mockImplementation(() => { throw new Error('buhh') })
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], {}, {})
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], {}, {}, 0, {} as any)
 
     expect(result).toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -189,8 +194,11 @@ test('getRunnerName', () => {
     expect(getRunnerName({ platformName: 'foobar' })).toBe('foobar')
     expect(getRunnerName({})).toBe('undefined')
     expect(getRunnerName()).toBe('undefined')
+    // @ts-ignore test invalid parameter
     expect(getRunnerName({ foo: {} })).toBe('undefined')
+    // @ts-ignore test invalid parameter
     expect(getRunnerName({ foo: { capabilities: {} }, bar: {} })).toBe('undefined')
+    // @ts-ignore test invalid parameter
     expect(getRunnerName({ foo: { capabilities: {} } })).toBe('MultiRemote')
 })
 
@@ -214,19 +222,21 @@ describe('findInConfig', () => {
 
 describe('renderConfigurationFile', () => {
     it('should write file', async () => {
+        // @ts-ignore mock feature
         jest.spyOn(ejs, 'renderFile').mockImplementation((a, b, c) => c(null, true))
 
-        await renderConfigurationFile({ foo: 'bar' })
+        await renderConfigurationFile({ foo: 'bar' } as any)
 
         expect(ejs.renderFile).toHaveBeenCalled()
         expect(fs.writeFileSync).toHaveBeenCalled()
     })
 
     it('should throw error', async () => {
+        // @ts-ignore mock feature
         jest.spyOn(ejs, 'renderFile').mockImplementationOnce((a, b, c) => c('test error', null))
 
         try {
-            await renderConfigurationFile({ foo: 'bar' })
+            await renderConfigurationFile({ foo: 'bar' } as any)
         } catch (error) {
             expect(error).toBeTruthy()
         }
@@ -285,6 +295,7 @@ describe('addServiceDeps', () => {
     })
 
     it('should not add appium if globally installed', () => {
+        // @ts-ignore mock feature
         childProcess.execSyncRes = '1.13.0'
         const packages = []
         addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
@@ -314,7 +325,7 @@ describe('addServiceDeps', () => {
     })
 
     afterEach(() => {
-        global.console.log.mockClear()
+        (global.console.log as jest.Mock).mockClear()
     })
 })
 
@@ -343,24 +354,24 @@ test('validateServiceAnswers', () => {
 
 describe('getCapabilities', () => {
     it('should return driver with capabilities for android', () => {
-        expect(getCapabilities({ option: 'foo.apk' })).toMatchSnapshot()
-        expect(getCapabilities({ option: 'android' })).toMatchSnapshot()
+        expect(getCapabilities({ option: 'foo.apk' } as any)).toMatchSnapshot()
+        expect(getCapabilities({ option: 'android' } as any)).toMatchSnapshot()
     })
 
     it('should return driver with capabilities for ios', () => {
         expect(getCapabilities({ option: 'foo.app', deviceName: 'fooName', udid: 'num', platformVersion: 'fooNum' })).toMatchSnapshot()
-        expect(getCapabilities({ option: 'ios' })).toMatchSnapshot()
+        expect(getCapabilities({ option: 'ios' } as any)).toMatchSnapshot()
     })
 
     it('should return driver with capabilities for desktop', () => {
-        expect(getCapabilities({ option: 'chrome' })).toMatchSnapshot()
+        expect(getCapabilities({ option: 'chrome' } as any)).toMatchSnapshot()
     })
 })
 
 test('hasFile', () => {
-    fs.existsSync.mockReturnValue(true)
+    (fs.existsSync as jest.Mock).mockReturnValue(true)
     expect(hasFile('package.json')).toBe(true)
-    fs.existsSync.mockReturnValue(false)
+    ;(fs.existsSync as jest.Mock).mockReturnValue(false)
     expect(hasFile('xyz')).toBe(false)
 })
 
@@ -378,7 +389,7 @@ describe('generateTestFiles', () => {
             destSpecRootPath: '/tests/specs'
         }
 
-        await generateTestFiles(answers)
+        await generateTestFiles(answers as any)
 
         expect(readDir).toBeCalledTimes(2)
         expect(readDir.mock.calls[0][0]).toContain('mochaJasmine')
@@ -409,9 +420,9 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(4)
-        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/page/objects/model/page.js'))
+        expect((fs.writeFileSync as jest.Mock).mock.calls[0][0].endsWith('/page/objects/model/page.js'))
             .toBe(true)
-        expect(fs.writeFileSync.mock.calls[1][0].endsWith('/example.e2e.js'))
+        expect((fs.writeFileSync as jest.Mock).mock.calls[1][0].endsWith('/example.e2e.js'))
             .toBe(true)
     })
 
@@ -425,15 +436,14 @@ describe('generateTestFiles', () => {
             usePageObjects: false
         }
 
-        await generateTestFiles(answers)
+        await generateTestFiles(answers as any)
 
         expect(readDir).toBeCalledTimes(1)
         expect(ejs.renderFile).toBeCalledTimes(0)
     })
 
     it('Cucumber with page generation and no pageObjects', async () => {
-        readDir.mockReturnValue(Promise.resolve([
-        ]))
+        readDir.mockReturnValue(Promise.resolve([]))
         const answers = {
             specs: './tests/e2e/**/*.js',
             framework: 'cucumber',
@@ -441,7 +451,7 @@ describe('generateTestFiles', () => {
             usePageObjects: false,
         }
 
-        await generateTestFiles(answers)
+        await generateTestFiles(answers as any)
 
         expect(readDir).toBeCalledTimes(1)
         expect(ejs.renderFile).toBeCalledTimes(0)
@@ -459,7 +469,7 @@ describe('generateTestFiles', () => {
             usePageObjects: false,
             generateTestFiles: true
         }
-        await generateTestFiles(answers)
+        await generateTestFiles(answers as any)
 
         expect(readDir).toBeCalledTimes(1)
         expect(readDir.mock.calls[0][0]).toContain('cucumber')
@@ -491,7 +501,7 @@ describe('generateTestFiles', () => {
             destPageObjectRootPath: '/some/page/objects',
             relativePath : '../page/object'
         }
-        await generateTestFiles(answers)
+        await generateTestFiles(answers as any)
 
         expect(readDir).toBeCalledTimes(2)
         expect(readDir.mock.calls[0][0]).toContain('cucumber')
@@ -507,19 +517,19 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(6)
-        expect(fs.writeFileSync.mock.calls[0][0].endsWith('/some/page/objects/page.ts'))
+        expect((fs.writeFileSync as jest.Mock).mock.calls[0][0].endsWith('/some/page/objects/page.ts'))
             .toBe(true)
-        expect(fs.writeFileSync.mock.calls[2][0].endsWith('/example.feature'))
+        expect((fs.writeFileSync as jest.Mock).mock.calls[2][0].endsWith('/example.feature'))
             .toBe(true)
     })
 })
 
 afterEach(() => {
-    console.log.mockRestore()
+    (console.log as jest.Mock).mockRestore()
     readDir.mockClear()
-    fs.writeFileSync.mockClear()
-    fs.ensureDirSync.mockClear()
-    ejs.renderFile.mockClear()
+    ;(fs.writeFileSync as jest.Mock).mockClear()
+    ;(fs.ensureDirSync as jest.Mock).mockClear()
+    ;(ejs.renderFile as jest.Mock).mockClear()
 })
 
 describe('getPathForFileGeneration', () => {
@@ -529,10 +539,8 @@ describe('getPathForFileGeneration', () => {
             pages: './features/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework : {
-                short:'cucumber'
-            }
-        })
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any)
         expect(generatedPaths.relativePath).toEqual('../pageobjects')
     })
 
@@ -542,10 +550,8 @@ describe('getPathForFileGeneration', () => {
             pages: './features/page/objects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework : {
-                short:'cucumber'
-            }
-        })
+            framework: '@wdio/cucumber-service$--$cucumber'
+        } as any)
         expect(generatedPaths.relativePath).toEqual('../page/objects')
     })
 
@@ -555,10 +561,8 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework : {
-                short:'mocha'
-            }
-        })
+            framework: '@wdio/cucumber-service$--$mocha'
+        } as any)
         expect(generatedPaths.relativePath).toEqual('../pageobjects')
     })
 
@@ -568,10 +572,8 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework : {
-                short:'mocha'
-            }
-        })
+            framework: '@wdio/cucumber-service$--$mocha'
+        } as any)
         expect(generatedPaths.relativePath).toEqual('../../pageobjects')
     })
 
@@ -581,10 +583,8 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: false,
             usePageObjects: true,
-            framework : {
-                short:'mocha'
-            }
-        })
+            framework: '@wdio/cucumber-service$--$mocha'
+        } as any)
         expect(generatedPaths.relativePath).toEqual('')
     })
 
@@ -594,10 +594,8 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: false,
-            framework : {
-                short:'mocha'
-            }
-        })
+            framework: '@wdio/cucumber-service$--$mocha'
+        } as any)
         expect(generatedPaths.relativePath).toEqual('')
     })
 })

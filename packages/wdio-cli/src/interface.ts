@@ -1,13 +1,63 @@
 import chalk from 'chalk'
-import EventEmitter from 'events'
+import { EventEmitter } from 'events'
 import logger from '@wdio/logger'
+import type { ConfigOptions } from '@wdio/config'
 
 import { getRunnerName } from './utils'
 
 const log = logger('@wdio/cli')
 
+interface TestError {
+    type: string
+    message: string
+    stack?: string
+}
+
+interface CLIInterfaceEvent {
+    origin?: string
+    name: string
+    cid?: string
+    fullTitle?: string
+    content?: any
+    params?: any
+    error?: TestError
+}
+
+interface Job {
+    caps: WebDriver.Capabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities
+    specs: string[],
+    hasTests: boolean
+}
+
 export default class WDIOCLInterface extends EventEmitter {
-    constructor(config, totalWorkerCnt, isWatchMode = false) {
+    public hasAnsiSupport: boolean
+    public result = {
+        finished: 0,
+        passed: 0,
+        retries: 0,
+        failed: 0
+    }
+
+    private _jobs: Map<string, Job> = new Map()
+    private _specFileRetries: number
+    private _specFileRetriesDelay: number
+
+    private _skippedSpecs = 0
+    private _inDebugMode = false
+    private _start = new Date()
+    private _messages: {
+        reporter: Record<string, string[]>
+        debugger: Record<string, string[]>
+    } = {
+        reporter: {},
+        debugger: {}
+    }
+
+    constructor(
+        private _config: ConfigOptions,
+        public totalWorkerCnt: number,
+        private _isWatchMode = false
+    ) {
         super()
 
         /**
@@ -15,14 +65,12 @@ export default class WDIOCLInterface extends EventEmitter {
          * `FORCE_COLOR=1` - forcibly enable colors
          * `FORCE_COLOR=0` - forcibly disable colors
          */
-        this.hasAnsiSupport = !!chalk.supportsColor.hasBasic
-        this.config = config
+        this.hasAnsiSupport = (chalk.supportsColor as chalk.ColorSupport).hasBasic
+
         this.totalWorkerCnt = totalWorkerCnt
-        this.isWatchMode = isWatchMode
-        this.inDebugMode = false
-        this.specFileRetries = config.specFileRetries || 0
-        this.specFileRetriesDelay = config.specFileRetriesDelay || 0
-        this.skippedSpecs = 0
+        this._isWatchMode = _isWatchMode
+        this._specFileRetries = _config.specFileRetries || 0
+        this._specFileRetriesDelay = _config.specFileRetriesDelay || 0
 
         this.on('job:start', this.addJob.bind(this))
         this.on('job:end', this.clearJob.bind(this))
@@ -32,8 +80,8 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     setup() {
-        this.jobs = new Map()
-        this.start = new Date()
+        this._jobs = new Map()
+        this._start = new Date()
 
         /**
          * The relationship between totalWorkerCnt and these counters are as follows:
@@ -45,54 +93,49 @@ export default class WDIOCLInterface extends EventEmitter {
             retries: 0,
             failed: 0
         }
-        this.messages = {
-            /**
-             * messages from worker reporters
-             */
+
+        this._messages = {
             reporter: {},
-            /**
-             * messages from debugger handler
-             */
             debugger: {}
         }
     }
 
     onStart() {
-        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} spec files started at`), this.start.toISOString())
-        if (this.inDebugMode) {
+        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} spec files started at`), this._start.toISOString())
+        if (this._inDebugMode) {
             this.log(chalk.bgYellow.black('DEBUG mode enabled!'))
         }
-        if (this.isWatchMode) {
+        if (this._isWatchMode) {
             this.log(chalk.bgYellow.black('WATCH mode enabled!'))
         }
         this.log('')
     }
 
-    onSpecRunning(cid) {
-        this.onJobComplete(cid, this.jobs.get(cid), 0, chalk.bold.cyan('RUNNING'))
+    onSpecRunning (rid: string) {
+        this.onJobComplete(rid, this._jobs.get(rid), 0, chalk.bold.cyan('RUNNING'))
     }
 
-    onSpecRetry(cid, job, retries) {
-        const delayMsg = this.specFileRetriesDelay > 0 ? ` after ${this.specFileRetriesDelay}s` : ''
-        this.onJobComplete(cid, job, retries, chalk.bold(chalk.yellow('RETRYING') + delayMsg))
+    onSpecRetry (rid: string, job: Job, retries: number) {
+        const delayMsg = this._specFileRetriesDelay > 0 ? ` after ${this._specFileRetriesDelay}s` : ''
+        this.onJobComplete(rid, job, retries, chalk.bold(chalk.yellow('RETRYING') + delayMsg))
     }
 
-    onSpecPass(cid, job, retries) {
-        this.onJobComplete(cid, job, retries, chalk.bold.green('PASSED'))
+    onSpecPass (rid: string, job: Job, retries: number) {
+        this.onJobComplete(rid, job, retries, chalk.bold.green('PASSED'))
     }
 
-    onSpecFailure(cid, job, retries) {
-        this.onJobComplete(cid, job, retries, chalk.bold.red('FAILED'))
+    onSpecFailure (rid: string, job: Job, retries: number) {
+        this.onJobComplete(rid, job, retries, chalk.bold.red('FAILED'))
     }
 
-    onSpecSkip(cid, job) {
-        this.onJobComplete(cid, job, 0, 'SKIPPED', log.info)
+    onSpecSkip (rid: string, job: Job) {
+        this.onJobComplete(rid, job, 0, 'SKIPPED', log.info)
     }
 
-    onJobComplete(cid, job, retries, message, _logger = this.log) {
+    onJobComplete(cid: string, job?: Job, retries = 0, message = '', _logger: Function = this.log) {
         const details = [`[${cid}]`, message]
         if (job) {
-            details.push('in', getRunnerName(job.caps), this.getFilenames(job.specs))
+            details.push('in', getRunnerName(job.caps as WebDriver.DesiredCapabilities), this.getFilenames(job.specs))
         }
         if (retries > 0) {
             details.push(`(${retries} retries)`)
@@ -101,18 +144,17 @@ export default class WDIOCLInterface extends EventEmitter {
         return _logger(...details)
     }
 
-    onTestError(payload) {
-        let error = { type: 'Error', message: typeof payload.error === 'string' ? payload.error : 'Unknown error.', stack: null }
-        if (payload.error) {
-            error.type = payload.error.type || error.type
-            error.message = payload.error.message || error.message
-            error.stack = payload.error.stack || error.stack
+    onTestError (payload: CLIInterfaceEvent) {
+        const error: TestError = {
+            type: payload.error?.type || 'Error',
+            message: payload.error?.message || (typeof payload.error === 'string' ? payload.error : 'Unknown error.'),
+            stack: payload.error?.stack
         }
 
         return this.log(`[${payload.cid}]`, `${chalk.red(error.type)} in "${payload.fullTitle}"\n${chalk.red(error.stack || error.message)}`)
     }
 
-    getFilenames(specs = []) {
+    getFilenames (specs: string[] = []) {
         if (specs.length > 0) {
             return '- ' + specs.join(', ').replace(new RegExp(`${process.cwd()}`, 'g'), '')
         }
@@ -122,23 +164,23 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * add job to interface
      */
-    addJob({ cid, caps, specs, hasTests }) {
-        this.jobs.set(cid, { caps, specs, hasTests })
+    addJob ({ cid, caps, specs, hasTests }: Job & { cid: string }) {
+        this._jobs.set(cid, { caps, specs, hasTests })
         if (hasTests) {
             this.onSpecRunning(cid)
         } else {
-            this.skippedSpecs++
+            this._skippedSpecs++
         }
     }
 
     /**
      * clear job from interface
      */
-    clearJob({ cid, passed, retries }) {
-        const job = this.jobs.get(cid)
+    clearJob ({ cid, passed, retries }: { cid: string, passed: boolean, retries: number }) {
+        const job = this._jobs.get(cid)
 
-        this.jobs.delete(cid)
-        const retryAttempts = this.specFileRetries - retries
+        this._jobs.delete(cid)
+        const retryAttempts = this._specFileRetries - retries
         const retry = !passed && retries > 0
         if (!retry) {
             this.result.finished++
@@ -146,6 +188,10 @@ export default class WDIOCLInterface extends EventEmitter {
 
         if (job && job.hasTests === false) {
             return this.onSpecSkip(cid, job)
+        }
+
+        if (!job) {
+            throw new Error('Could not find job')
         }
 
         if (passed) {
@@ -164,7 +210,7 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * for testing purposes call console log in a static method
      */
-    log(...args) {
+    log (...args: any[]) {
         // eslint-disable-next-line no-console
         console.log(...args)
         return args
@@ -173,16 +219,16 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * event handler that is triggered when runner sends up events
      */
-    onMessage(event) {
+    onMessage (event: CLIInterfaceEvent) {
         if (event.origin === 'debugger' && event.name === 'start') {
             this.log(chalk.yellow(event.params.introMessage))
-            this.inDebugMode = true
-            return this.inDebugMode
+            this._inDebugMode = true
+            return this._inDebugMode
         }
 
         if (event.origin === 'debugger' && event.name === 'stop') {
-            this.inDebugMode = false
-            return this.inDebugMode
+            this._inDebugMode = false
+            return this._inDebugMode
         }
 
         if (event.name === 'testFrameworkInit') {
@@ -205,12 +251,12 @@ export default class WDIOCLInterface extends EventEmitter {
             return this.onTestError(event.content)
         }
 
-        if (!this.messages[event.origin][event.name]) {
-            this.messages[event.origin][event.name] = []
+        if (!this._messages[event.origin][event.name]) {
+            this._messages[event.origin][event.name] = []
         }
 
-        this.messages[event.origin][event.name].push(event.content)
-        if (this.isWatchMode) {
+        this._messages[event.origin][event.name].push(event.content)
+        if (this._isWatchMode) {
             this.printReporters()
         }
     }
@@ -219,11 +265,11 @@ export default class WDIOCLInterface extends EventEmitter {
         /**
          * allow to exit repl mode via Ctrl+C
          */
-        if (this.inDebugMode) {
+        if (this._inDebugMode) {
             return false
         }
 
-        const isRunning = this.jobs.size !== 0
+        const isRunning = this._jobs.size !== 0
         const shutdownMessage = isRunning
             ? 'Ending WebDriver sessions gracefully ...\n' +
             '(press ctrl+c again to hard kill the runner)'
@@ -235,8 +281,8 @@ export default class WDIOCLInterface extends EventEmitter {
         /**
          * print reporter output
          */
-        const reporter = this.messages.reporter
-        this.messages.reporter = {}
+        const reporter = this._messages.reporter
+        this._messages.reporter = {}
         for (const [reporterName, messages] of Object.entries(reporter)) {
             this.log('\n', chalk.bold.magenta(`"${reporterName}" Reporter:`))
             this.log(messages.join(''))
@@ -245,10 +291,10 @@ export default class WDIOCLInterface extends EventEmitter {
 
     printSummary() {
         const totalJobs = this.totalWorkerCnt - this.result.retries
-        const elapsed = (new Date(Date.now() - this.start)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0]
+        const elapsed = (new Date(Date.now() - this._start.getTime())).toUTCString().match(/(\d\d:\d\d:\d\d)/)![0]
         const retries = this.result.retries ? chalk.yellow(this.result.retries, 'retries') + ', ' : ''
         const failed = this.result.failed ? chalk.red(this.result.failed, 'failed') + ', ' : ''
-        const skipped = this.skippedSpecs > 0 ? chalk.gray(this.skippedSpecs, 'skipped') + ', ' : ''
+        const skipped = this._skippedSpecs > 0 ? chalk.gray(this._skippedSpecs, 'skipped') + ', ' : ''
         const percentCompleted = totalJobs ? Math.round(this.result.finished / totalJobs * 100) : 0
         return this.log(
             '\nSpec Files:\t', chalk.green(this.result.passed, 'passed') + ', ' + retries + failed + skipped + totalJobs, 'total', `(${percentCompleted}% completed)`, 'in', elapsed,
@@ -257,7 +303,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     finalise() {
-        if (this.isWatchMode) {
+        if (this._isWatchMode) {
             return
         }
 

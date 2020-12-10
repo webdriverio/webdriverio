@@ -29,6 +29,13 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@types/ejs": "^3.0.5",
+    "@types/fs-extra": "^9.0.4",
+    "@types/inquirer": "^7.3.1",
+    "@types/lodash.flattendeep": "^4.4.6",
+    "@types/lodash.pickby": "^4.6.6",
+    "@types/lodash.union": "^4.6.6",
+    "@types/recursive-readdir": "^2.2.0",
     "@wdio/config": "6.10.4",
     "@wdio/logger": "6.10.4",
     "@wdio/utils": "6.10.4",

@@ -7,22 +7,28 @@ import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
+import type { ConfigOptions, Capabilities } from '@wdio/config'
 
+import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
 import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
 
 const log = logger('@wdio/cli:utils')
 
 const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
-const renderFile = promisify(ejs.renderFile)
+const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, any>) => Promise<string>
 
 /**
  * run service launch sequences
  */
-export async function runServiceHook(launcher, hookName, ...args) {
-    return Promise.all(launcher.map(async (service) => {
+export async function runServiceHook(
+    launcher: WebdriverIO.ServiceInstance[],
+    hookName: keyof WebdriverIO.HookFunctions,
+    ...args: any[]
+) {
+    return Promise.all(launcher.map(async (service: WebdriverIO.ServiceInstance) => {
         try {
             if (typeof service[hookName] === 'function') {
-                await service[hookName](...args)
+                await (service[hookName] as Function)(...args)
             }
         } catch (e) {
             const message = `A service failed in the '${hookName}' hook\n${e.stack}\n\n`
@@ -36,7 +42,7 @@ export async function runServiceHook(launcher, hookName, ...args) {
     })).then(results => {
         const rejectedHooks = results.filter(p => p && p.status === 'rejected')
         if (rejectedHooks.length) {
-            return Promise.reject(`\n${rejectedHooks.map(p => p.reason).join()}\n\nStopping runner...`)
+            return Promise.reject(`\n${rejectedHooks.map(p => p && p.reason).join()}\n\nStopping runner...`)
         }
     })
 }
@@ -47,8 +53,8 @@ export async function runServiceHook(launcher, hookName, ...args) {
  * @param {Object} config
  * @param {Object} capabilities
  */
-export async function runLauncherHook(hook, ...args) {
-    const catchFn = (e) => log.error(`Error in hook: ${e.stack}`)
+export async function runLauncherHook(hook: Function | Function[], ...args: any[]) {
+    const catchFn = (e: Error) => log.error(`Error in hook: ${e.stack}`)
 
     if (typeof hook === 'function') {
         hook = [hook]
@@ -71,7 +77,13 @@ export async function runLauncherHook(hook, ...args) {
  * @param {*} exitCode
  * @param {*} results
  */
-export async function runOnCompleteHook(onCompleteHook, config, capabilities, exitCode, results) {
+export async function runOnCompleteHook(
+    onCompleteHook: Function | Function[],
+    config: ConfigOptions,
+    capabilities: Capabilities,
+    exitCode: number,
+    results: OnCompleteResult
+) {
     if (typeof onCompleteHook === 'function') {
         onCompleteHook = [onCompleteHook]
     }
@@ -90,7 +102,7 @@ export async function runOnCompleteHook(onCompleteHook, config, capabilities, ex
 /**
  * get runner identification by caps
  */
-export function getRunnerName (caps = {}) {
+export function getRunnerName (caps: WebDriver.DesiredCapabilities = {}) {
     let runner =
         caps.browserName ||
         caps.appPackage ||
@@ -106,12 +118,12 @@ export function getRunnerName (caps = {}) {
     return runner
 }
 
-function buildNewConfigArray(str, type, change) {
+function buildNewConfigArray (str: string, type: string, change: string) {
     const newStr = str
         .split(`${type}s: `)[1]
         .replace('\'', '')
 
-    let newArray = newStr.match(/(\w*)/gmi).filter(e => !!e).concat([change])
+    let newArray = newStr.match(/(\w*)/gmi)?.filter(e => !!e).concat([change]) || []
 
     return str
         .replace('// ', '')
@@ -120,11 +132,11 @@ function buildNewConfigArray(str, type, change) {
         )
 }
 
-function buildNewConfigString(str, type, change) {
+function buildNewConfigString (str: string, type: string, change: string) {
     return str.replace(new RegExp(`(${type}: )('\\w*')`), `$1'${change}'`)
 }
 
-export function findInConfig(config, type) {
+export function findInConfig (config: string, type: string) {
     let regexStr = `[\\/\\/]*[\\s]*${type}s: [\\s]*\\[([\\s]*['|"]\\w*['|"],*)*[\\s]*\\]`
 
     if (type === 'framework') {
@@ -135,21 +147,21 @@ export function findInConfig(config, type) {
     return config.match(regex)
 }
 
-export function replaceConfig(config, type, name) {
+export function replaceConfig (config: string, type: string, name: string) {
+    if (type === 'framework') {
+        return buildNewConfigString(config, type, name)
+    }
+
     const match = findInConfig(config, type)
     if (!match || match.length === 0) {
         return
     }
 
-    if (type === 'framework') {
-        return buildNewConfigString(config, type, name)
-    }
-
-    const text = match.pop()
+    const text = match.pop() || ''
     return config.replace(text, buildNewConfigArray(text, type, name))
 }
 
-export function addServiceDeps(names, packages, update) {
+export function addServiceDeps(names: SupportedPackage[], packages: string[], update = false) {
     /**
      * automatically install latest Chromedriver if `wdio-chromedriver-service`
      * was selected for install
@@ -188,15 +200,15 @@ export function addServiceDeps(names, packages, update) {
 /**
  * @todo add JSComments
  */
-export function convertPackageHashToObject(string, hash = '$--$') {
-    const splitHash = string.split(hash)
+export function convertPackageHashToObject(pkg: string, hash = '$--$'): SupportedPackage {
+    const splitHash = pkg.split(hash)
     return {
         package: splitHash[0],
         short: splitHash[1]
     }
 }
 
-export async function renderConfigurationFile (answers) {
+export async function renderConfigurationFile (answers: ParsedAnswers) {
     const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
 
     const renderedTpl = await renderFile(tplPath, { answers })
@@ -204,8 +216,8 @@ export async function renderConfigurationFile (answers) {
     fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
 }
 
-export const validateServiceAnswers = (answers) => {
-    let result = true
+export const validateServiceAnswers = (answers: string[]): Boolean | string => {
+    let result: boolean | string = true
 
     Object.entries(EXCLUSIVE_SERVICES).forEach(([name, { services, message }]) => {
         const exists = answers.some(answer => answer.includes(name))
@@ -222,10 +234,10 @@ export const validateServiceAnswers = (answers) => {
     return result
 }
 
-export function getCapabilities(arg) {
+export function getCapabilities(arg: ReplCommandArguments) {
     const optionalCapabilites = {
-        platformVersion: arg.platformVersion || null,
-        udid: arg.udid || null,
+        platformVersion: arg.platformVersion,
+        udid: arg.udid,
         ...(arg.deviceName && { deviceName: arg.deviceName })
     }
     /**
@@ -252,14 +264,14 @@ export function getCapabilities(arg) {
  * Check if file exists in current work directory
  * @param {string} filename to check existance for
  */
-export function hasFile (filename) {
+export function hasFile (filename: string) {
     return fs.existsSync(path.join(process.cwd(), filename))
 }
 
 /**
  * generate test files based on CLI answers
  */
-export async function generateTestFiles (answers) {
+export async function generateTestFiles (answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
         : [path.join(TEMPLATE_ROOT_DIR, 'mochaJasmine')]
@@ -288,7 +300,7 @@ export async function generateTestFiles (answers) {
     }
 }
 
-export async function getAnswers(yes) {
+export async function getAnswers(yes: boolean): Promise<Questionnair> {
     return yes
         ? QUESTIONNAIRE.reduce((answers, question) => Object.assign(
             answers,
@@ -308,8 +320,8 @@ export async function getAnswers(yes) {
                     /**
                      * pick first choice, select value if it exists
                      */
-                        ? question.choices[0].value
-                            ? question.choices[0].value
+                        ? (question.choices[0] as { value: any }).value
+                            ? (question.choices[0] as { value: any }).value
                             : question.choices[0]
                         : {}
                 }
@@ -317,7 +329,7 @@ export async function getAnswers(yes) {
         : await inquirer.prompt(QUESTIONNAIRE)
 }
 
-export function getPathForFileGeneration(answers){
+export function getPathForFileGeneration (answers: Questionnair) {
 
     const destSpecRootPath = path.join(
         process.cwd(),
@@ -331,7 +343,7 @@ export function getPathForFileGeneration(answers){
             path.dirname(answers.pages || '').replace(/\*\*$/, ''))
         : ''
     let relativePath = (answers.generateTestFiles && answers.usePageObjects)
-        ? !(answers.framework.short === 'cucumber')
+        ? !(convertPackageHashToObject(answers.framework).short === 'cucumber')
             ? path.relative(destSpecRootPath, destPageObjectRootPath)
             : path.relative(destStepRootPath, destPageObjectRootPath)
         : ''

@@ -6,6 +6,7 @@ import yargs from 'yargs'
 import Launcher from './launcher'
 import { handler, cmdArgs } from './commands/run'
 import { CLI_EPILOGUE } from './constants'
+import { RunCommandArguments } from './types'
 
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
 const DESCRIPTION = [
@@ -31,7 +32,7 @@ export const run = async () => {
         .example('$0 install reporter spec', 'Install @wdio/spec-reporter')
         .example('$0 repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
         .updateStrings({ 'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:` })
-        .epilogue(CLI_EPILOGUE)
+        .epilogue(CLI_EPILOGUE) as yargs.Argv<RunCommandArguments>
 
     /**
      * parse CLI arguments according to what run expects, without this adding
@@ -55,14 +56,17 @@ export const run = async () => {
         .readdirSync(path.join(__dirname, 'commands'))
         .map((file) => file.slice(0, -3))
 
-    if (!params._.find((param) => supportedCommands.includes(param))) {
-        const configPath = params._[0]
+    if (!params._.find((param: string) => supportedCommands.includes(param))) {
+        argv.argv._[0] = path.resolve(process.cwd(), argv.argv._[0] && argv.argv._[0].toString() || DEFAULT_CONFIG_FILENAME)
 
-        params.configPath = path.resolve(process.cwd(), configPath || DEFAULT_CONFIG_FILENAME)
-
-        return handler(params).catch(async (err) => {
+        return handler(argv).catch(async (err) => {
             const output = await new Promise((resolve) => (
-                yargs.parse('--help', (err, argv, output) => resolve(output))))
+                yargs.parse('--help', (
+                    err: Error,
+                    argv: Record<string, any>,
+                    output: string
+                ) => resolve(output)))
+            )
 
             console.error(`${output}\n\n${err.stack}`)
             /* istanbul ignore if */

@@ -4,36 +4,42 @@ import pickBy from 'lodash.pickby'
 import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
 
-import Launcher from './launcher.js'
+import Launcher from './launcher'
+import { ConfigOptions } from '@wdio/config'
+import { RunCommandArguments } from './types.js'
+import { EventEmitter } from 'events'
 
 const log = logger('@wdio/cli:watch')
 
 export default class Watcher {
-    constructor (configFile, args) {
-        log.info('Starting launcher in watch mode')
-        this.launcher = new Launcher(configFile, args, true)
-        this.args = args
+    private _launcher: Launcher
+    private _args: ConfigOptions
+    private _specs: string[]
 
-        const specs = this.launcher.configParser.getSpecs()
-        const capSpecs = this.launcher.isMultiremote ? [] : union(flattenDeep(
-            this.launcher.configParser.getCapabilities().map(cap => cap.specs || [])
+    constructor (configFile: string, args: ConfigOptions) {
+        log.info('Starting launcher in watch mode')
+        this._launcher = new Launcher(configFile, args, true)
+        this._args = args
+
+        const specs = this._launcher.configParser.getSpecs()
+        const capSpecs = this._launcher.isMultiremote ? [] : union(flattenDeep(
+            (this._launcher.configParser.getCapabilities() as WebDriver.DesiredCapabilities[]).map(cap => cap.specs || [])
         ))
-        this.specs = [...specs, ...capSpecs]
-        this.isRunningTests = false
+        this._specs = [...specs, ...capSpecs]
     }
 
     async watch () {
         /**
          * listen on spec changes and rerun specific spec file
          */
-        chokidar.watch(this.specs, { ignoreInitial: true })
+        chokidar.watch(this._specs, { ignoreInitial: true })
             .on('add', this.getFileListener())
             .on('change', this.getFileListener())
 
         /**
          * listen on filesToWatch changes an rerun complete suite
          */
-        const { filesToWatch } = this.launcher.configParser.getConfig()
+        const { filesToWatch } = this._launcher.configParser.getConfig()
         if (filesToWatch.length) {
             chokidar.watch(filesToWatch, { ignoreInitial: true })
                 .on('add', this.getFileListener(false))
@@ -43,7 +49,7 @@ export default class Watcher {
         /**
          * run initial test suite
          */
-        await this.launcher.run()
+        await this._launcher.run()
 
         /**
          * clean interface once all worker finish
@@ -57,7 +63,7 @@ export default class Watcher {
                 return
             }
 
-            this.launcher.interface.finalise()
+            this._launcher.interface.finalise()
         }))
     }
 
@@ -67,8 +73,8 @@ export default class Watcher {
      * @return {Function}                    chokidar event callback
      */
     getFileListener (passOnFile = true) {
-        return (spec) => this.run(
-            Object.assign({}, this.args, passOnFile ? { spec } : {})
+        return (spec: string) => this.run(
+            Object.assign({}, this._args, passOnFile ? { spec } : {})
         )
     }
 
@@ -78,8 +84,8 @@ export default class Watcher {
      * @param  {Boolean}  includeBusyWorker  don't filter out busy worker (default: false)
      * @return {Object}                      Object with workers, e.g. {'0-0': { ... }}
      */
-    getWorkers (pickByFn, includeBusyWorker) {
-        let workers = this.launcher.runner.workerPool
+    getWorkers (pickByFn?: (value: any, key: string) => any, includeBusyWorker?: boolean) {
+        let workers = this._launcher.runner.workerPool
 
         if (typeof pickByFn === 'function') {
             workers = pickBy(workers, pickByFn)
@@ -92,16 +98,17 @@ export default class Watcher {
             workers = pickBy(workers, (worker) => !worker.isBusy)
         }
 
-        return workers
+        return workers as EventEmitter
     }
 
     /**
      * run workers with params
      * @param  {Object} [params={}]  parameters to run the worker with
      */
-    run (params = {}) {
+    run (params: Partial<RunCommandArguments> = {}) {
         const workers = this.getWorkers(
-            params.spec ? (worker) => worker.specs.includes(params.spec) : null)
+            (params.spec ? (worker) => worker.specs.includes(params.spec) : undefined)
+        )
 
         /**
          * don't do anything if no worker was found
@@ -114,7 +121,7 @@ export default class Watcher {
          * update total worker count interface
          * ToDo: this should have a cleaner solution
          */
-        this.launcher.interface.totalWorkerCnt = Object.entries(workers).length
+        this._launcher.interface.totalWorkerCnt = Object.entries(workers).length
 
         /**
          * clean up interface
@@ -128,11 +135,11 @@ export default class Watcher {
             const { cid, caps, specs, sessionId } = worker
             const args = Object.assign({ sessionId }, params)
             worker.postMessage('run', args)
-            this.launcher.interface.emit('job:start', { cid, caps, specs })
+            this._launcher.interface.emit('job:start', { cid, caps, specs })
         }
     }
 
     cleanUp () {
-        this.launcher.interface.setup()
+        this._launcher.interface.setup()
     }
 }

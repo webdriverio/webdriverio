@@ -2,10 +2,12 @@ import fs from 'fs-extra'
 import path from 'path'
 
 import { missingConfigurationPrompt } from './config'
+import { RunCommandArguments } from '../types'
 
 import Launcher from '../launcher'
 import Watcher from '../watcher'
 import { CLI_EPILOGUE } from '../constants'
+import yargs from 'yargs'
 
 export const command = 'run <configPath>'
 
@@ -89,9 +91,9 @@ export const cmdArgs = {
     cucumberOpts: {
         desc: 'Cucumber options'
     }
-}
+} as const
 
-export const builder = (yargs) => {
+export const builder = (yargs: yargs.Argv) => {
     return yargs
         .options(cmdArgs)
         .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
@@ -101,7 +103,7 @@ export const builder = (yargs) => {
         .help()
 }
 
-export function launchWithStdin(wdioConfPath, params) {
+export function launchWithStdin (wdioConfPath: string, params: Partial<RunCommandArguments>) {
     let stdinData = ''
     const stdin = process.openStdin()
 
@@ -111,13 +113,13 @@ export function launchWithStdin(wdioConfPath, params) {
     })
     stdin.on('end', () => {
         if (stdinData.length > 0) {
-            params.specs = stdinData.trim().split(/\r?\n/)
+            params.spec = stdinData.trim().split(/\r?\n/)
         }
         launch(wdioConfPath, params)
     })
 }
 
-export function launch(wdioConfPath, params) {
+export function launch (wdioConfPath: string, params: Partial<RunCommandArguments>) {
     const launcher = new Launcher(wdioConfPath, params)
     return launcher.run()
         .then((...args) => {
@@ -135,15 +137,15 @@ export function launch(wdioConfPath, params) {
         })
 }
 
-export async function handler(argv) {
-    const { configPath, ...params } = argv
+export async function handler (argv: yargs.Argv<RunCommandArguments>) {
+    const { configPath, ...params } = argv.argv
 
     if (!fs.existsSync(configPath)) {
         await missingConfigurationPrompt('run', `No WebdriverIO configuration found in "${configPath}"`)
     }
 
     const localConf = path.join(process.cwd(), 'wdio.conf.js')
-    const wdioConf = configPath || (fs.existsSync(localConf) ? localConf : null)
+    const wdioConf = configPath || (fs.existsSync(localConf) ? localConf : undefined) as string
 
     /**
      * if `--watch` param is set, run launcher in watch mode

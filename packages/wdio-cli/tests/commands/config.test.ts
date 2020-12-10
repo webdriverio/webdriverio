@@ -2,7 +2,7 @@ import yargs from 'yargs'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 
-import { handler, builder, missingConfigurationPrompt } from './../../src/commands/config'
+import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
 
 jest.mock('../../src/utils', () => ({
@@ -18,8 +18,8 @@ jest.mock('../../src/utils', () => ({
 const errorLogSpy = jest.spyOn(console, 'error')
 const consoleLogSpy = jest.spyOn(console, 'log')
 beforeEach(() => {
-    yarnInstall.mockClear()
-    yarnInstall.mockReturnValue({ status: 0 })
+    (yarnInstall as any as jest.Mock).mockClear()
+    ;(yarnInstall as any as jest.Mock).mockReturnValue({ status: 0 })
     errorLogSpy.mockClear()
     consoleLogSpy.mockClear()
 })
@@ -29,7 +29,7 @@ afterEach(() => {
 })
 
 test('should create config file', async () => {
-    await handler({})
+    await handler({ argv: {} } as any)
     expect(addServiceDeps).toBeCalledTimes(1)
     expect(convertPackageHashToObject).toBeCalledTimes(4)
     expect(renderConfigurationFile).toBeCalledTimes(1)
@@ -51,13 +51,13 @@ test('it should properly build command', () => {
 })
 
 test('should log error if creating config file fails', async () => {
-    renderConfigurationFile.mockReturnValueOnce(Promise.reject(new Error('boom!')))
-    await handler({})
+    (renderConfigurationFile as jest.Mock).mockReturnValueOnce(Promise.reject(new Error('boom!')))
+    await handler({ argv: {} } as any)
     expect(errorLogSpy).toHaveBeenCalledTimes(1)
 })
 
 test('installs @wdio/sync if user requests to run in sync mode', async () => {
-    inquirer.prompt.mockReturnValue(Promise.resolve({
+    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         executionMode: 'sync',
         runner: '@wdio/local-runner--$local',
         framework: '@wdio/mocha-framework$--$mocha',
@@ -65,7 +65,7 @@ test('installs @wdio/sync if user requests to run in sync mode', async () => {
         reporters: [],
         services: []
     }))
-    await handler({})
+    await handler({ argv: {} } as any)
     expect(generateTestFiles).toBeCalledTimes(1)
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: ['@wdio/local-runner', undefined, '@wdio/sync'],
@@ -75,7 +75,7 @@ test('installs @wdio/sync if user requests to run in sync mode', async () => {
 })
 
 test('it should install with yarn when flag is passed', async () => {
-    await handler({ yarn: true })
+    await handler({ argv: { yarn: true, yes: false } } as any)
 
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: expect.any(Object),
@@ -85,11 +85,12 @@ test('it should install with yarn when flag is passed', async () => {
 })
 
 test('should throw an error if something goes wrong', async () => {
+    // @ts-ignore uses expect-webdriverio
     expect.assertions(1)
-    yarnInstall.mockReturnValueOnce({ status: 1, stderr: 'uups' })
+    ;(yarnInstall as any as jest.Mock).mockReturnValueOnce({ status: 1, stderr: 'uups' })
 
     try {
-        await handler({})
+        await handler({ argv: {} } as any)
     } catch (err) {
         expect(
             err.message.startsWith('something went wrong during setup: uups')
@@ -98,8 +99,8 @@ test('should throw an error if something goes wrong', async () => {
 })
 
 test('prints TypeScript setup message', async () => {
-    convertPackageHashToObject.mockImplementation((input) => input)
-    inquirer.prompt.mockReturnValue(Promise.resolve({
+    (convertPackageHashToObject as jest.Mock).mockImplementation((input) => input)
+    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         executionMode: 'sync',
         runner: '@wdio/local-runner--$local',
         framework: { package: '@wdio/mocha-framework', short: 'mocha' },
@@ -111,20 +112,20 @@ test('prints TypeScript setup message', async () => {
         generateTestFiles: false,
         isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
     }))
-    await handler({})
+    await handler({ argv: {} } as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
 
 describe('missingConfigurationPromp', () => {
     it('should prompt user', async () => {
-        inquirer.prompt.mockImplementation(() => ({ config: true }))
-        await missingConfigurationPrompt(null, null, null, jest.fn())
-        expect(inquirer.prompt).toHaveBeenCalled()
+        (inquirer.prompt as any as jest.Mock).mockImplementation(() => ({ config: true }))
+        await missingConfigurationPrompt('run', 'foobar', false, jest.fn())
+        expect((inquirer.prompt as any as jest.Mock)).toHaveBeenCalled()
     })
 
     it('should call function to initalize configuration helper', async () => {
         const runConfig = jest.fn()
-        await missingConfigurationPrompt('test', null, false, runConfig)
+        await missingConfigurationPrompt('test', 'foobar', false, runConfig)
         expect(runConfig).toHaveBeenCalledWith(false, false, true)
     })
 
@@ -138,13 +139,13 @@ describe('missingConfigurationPromp', () => {
         const runConfig = jest.fn().mockImplementation(Promise.reject)
 
         try {
-            await missingConfigurationPrompt('test', null, null, runConfig)
+            await missingConfigurationPrompt('test', 'foobar', false, runConfig)
         } catch (error) {
             expect(error).toBeTruthy()
         }
     })
 
     afterEach(() => {
-        inquirer.prompt.mockClear()
+        (inquirer.prompt as any as jest.Mock).mockClear()
     })
 })

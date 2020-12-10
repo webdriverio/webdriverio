@@ -90,7 +90,7 @@ function sanitizeServiceArray (service: WebdriverIO.ServiceEntry): ServiceWithOp
  *                            as a list of services that don't need to be
  *                            required in the worker
  */
-export function initialiseLauncherService (config: WebdriverIO.Config, caps: WebDriver.DesiredCapabilities) {
+export function initialiseLauncherService (config: Omit<WebdriverIO.Config, 'capabilities' | keyof WebdriverIO.HookFunctions>, caps: WebDriver.DesiredCapabilities) {
     const ignoredWorkerServices = []
     const launcherServices: WebdriverIO.ServiceInstance[] = []
 
@@ -108,7 +108,7 @@ export function initialiseLauncherService (config: WebdriverIO.Config, caps: Web
             /**
              * add class service from imported package
              */
-            const Launcher = (service as WebdriverIO.ServiceLauncher).launcher
+            const Launcher = (service as WebdriverIO.ServicePlugin).launcher
             if (typeof Launcher === 'function' && serviceName) {
                 launcherServices.push(new Launcher(serviceConfig, caps, config))
             }
@@ -164,7 +164,7 @@ export function initialiseWorkerService (config: WebdriverIO.Config, caps: WebDr
                 return service as WebdriverIO.ServiceInstance
             }
 
-            const Service = (service as WebdriverIO.ServiceLauncher).default || service as WebdriverIO.ServiceClass
+            const Service = (service as WebdriverIO.ServicePlugin).default || service as WebdriverIO.ServiceClass
             if (typeof Service === 'function') {
                 return new Service(serviceConfig, caps, config)
             }

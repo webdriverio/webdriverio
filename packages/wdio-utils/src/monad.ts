@@ -12,7 +12,7 @@ interface PropertiesObject {
     [key: string]: PropertyDescriptor
 }
 
-export default function WebDriver (options: WebDriver.Options | WebdriverIO.Config, modifier?: Function, propertiesObject: PropertiesObject = {}) {
+export default function WebDriver (options: Record<string, any>, modifier?: Function, propertiesObject: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional

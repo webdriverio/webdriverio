@@ -10,8 +10,9 @@ import {
     convertPackageHashToObject
 } from '../utils'
 import { missingConfigurationPrompt } from './config'
-
+import { InstallCommandArguments, SupportedPackage } from '../types'
 import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants'
+import yargs from 'yargs'
 
 const supportedInstallations = {
     service: SUPPORTED_PACKAGES.service.map(({ value }) => convertPackageHashToObject(value)),
@@ -36,9 +37,9 @@ export const cmdArgs = {
         desc: 'Location of your WDIO configuration',
         default: './wdio.conf.js',
     },
-}
+} as const
 
-export const builder = (yargs) => {
+export const builder = (yargs: yargs.Argv) => {
     yargs
         .options(cmdArgs)
         .epilogue(CLI_EPILOGUE)
@@ -53,13 +54,13 @@ export const builder = (yargs) => {
     return yargs
 }
 
-export async function handler(argv) {
+export async function handler(argv: yargs.Argv<InstallCommandArguments>) {
     /**
      * type = service | reporter | framework
      * name = names for the supported service or reporter
      * yarn = optional flag to install package using yarn instead of default yarn
      */
-    const { type, name, yarn, config } = argv
+    const { type, name, yarn, config } = argv.argv
 
     /**
      * verify for supported types via `supportedInstallations` keys
@@ -92,7 +93,7 @@ You can create one by running 'wdio config'`
         }
     }
 
-    const configFile = fs.readFileSync(localConfPath, { encoding: 'UTF-8' })
+    const configFile = fs.readFileSync(localConfPath, { encoding: 'utf-8' })
     const match = findInConfig(configFile, type)
 
     if (match && match[0].includes(name)) {
@@ -101,10 +102,10 @@ You can create one by running 'wdio config'`
         return
     }
 
-    const selectedPackage = supportedInstallations[type].find(({ short }) => short === name)
-    const pkgsToInstall = [selectedPackage.package]
+    const selectedPackage = supportedInstallations[type].find(({ short }) => short === name) as SupportedPackage
+    const pkgsToInstall = selectedPackage ? [selectedPackage.package] : []
 
-    addServiceDeps([selectedPackage], pkgsToInstall, true)
+    addServiceDeps(selectedPackage ? [selectedPackage] : [], pkgsToInstall, true)
 
     console.log(`Installing "${selectedPackage.package}"${yarn ? ' using yarn.' : '.'}`)
     const install = yarnInstall({ deps: pkgsToInstall, dev: true, respectNpm5: !yarn }) // use !yarn so the package forces npm install
@@ -117,6 +118,11 @@ You can create one by running 'wdio config'`
 
     console.log(`Package "${selectedPackage.package}" installed successfully.`)
     const newConfig = replaceConfig(configFile, type, name)
+
+    if (!newConfig) {
+        throw new Error(`Couldn't find "${type}" property in ${path.basename(localConfPath)}`)
+    }
+
     fs.writeFileSync(localConfPath, newConfig, { encoding: 'utf-8' })
     console.log('Your wdio.conf.js file has been updated.')
 

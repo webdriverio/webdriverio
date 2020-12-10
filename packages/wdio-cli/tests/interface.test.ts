@@ -8,7 +8,7 @@ const EMPTY_INTERFACE_MESSAGE_OBJECT = {
 }
 
 describe('cli interface', () => {
-    let wdioClInterface
+    let wdioClInterface: WDIOCLInterface
 
     beforeEach(() => {
         global.console.log = jest.fn()
@@ -18,7 +18,7 @@ describe('cli interface', () => {
 
     it('should add jobs', () => {
         wdioClInterface.emit('job:start', { cid: '0-0', hasTests: true })
-        expect(wdioClInterface.jobs.size).toBe(1)
+        expect(wdioClInterface['_jobs'].size).toBe(1)
     })
 
     it('should mark jobs as pass or failed', () => {
@@ -39,7 +39,6 @@ describe('cli interface', () => {
 
     it('should mark jobs as retried when failing', () => {
         wdioClInterface.emit('job:start', { cid: '0-0', hasTests: true })
-        wdioClInterface.emit('job:start', { cid: '0-1', hasTests: true })
         expect(wdioClInterface.result.finished).toBe(0)
         expect(wdioClInterface.result.passed).toBe(0)
         expect(wdioClInterface.result.retries).toBe(0)
@@ -49,16 +48,20 @@ describe('cli interface', () => {
         expect(wdioClInterface.result.passed).toBe(0)
         expect(wdioClInterface.result.retries).toBe(1)
         expect(wdioClInterface.result.failed).toBe(0)
+        wdioClInterface.emit('job:start', { cid: '0-0', hasTests: true })
         wdioClInterface.emit('job:end', { cid: '0-0', passed: true, retries: 0 })
         expect(wdioClInterface.result.finished).toBe(1)
         expect(wdioClInterface.result.passed).toBe(1)
         expect(wdioClInterface.result.retries).toBe(1)
         expect(wdioClInterface.result.failed).toBe(0)
+
+        wdioClInterface.emit('job:start', { cid: '0-1', hasTests: true })
         wdioClInterface.emit('job:end', { cid: '0-1', passed: false, retries: 1 })
         expect(wdioClInterface.result.finished).toBe(1)
         expect(wdioClInterface.result.passed).toBe(1)
         expect(wdioClInterface.result.retries).toBe(2)
         expect(wdioClInterface.result.failed).toBe(0)
+        wdioClInterface.emit('job:start', { cid: '0-1', hasTests: true })
         wdioClInterface.emit('job:end', { cid: '0-1', passed: false, retries: 0 })
         expect(wdioClInterface.result.finished).toBe(2)
         expect(wdioClInterface.result.passed).toBe(1)
@@ -83,11 +86,12 @@ describe('cli interface', () => {
             content: '123'
         })
         wdioClInterface.onMessage({
+            cid: '0-1',
             origin: 'reporter',
             name: 'foo',
             content: '456'
         })
-        expect(wdioClInterface.messages).toEqual({
+        expect(wdioClInterface['_messages']).toEqual({
             ...EMPTY_INTERFACE_MESSAGE_OBJECT,
             reporter: { foo: ['123', '456'] }
         })
@@ -101,7 +105,7 @@ describe('cli interface', () => {
             content: 'printFailureMessage'
         })
         expect(wdioClInterface.onTestError).toBeCalledWith('printFailureMessage')
-        expect(wdioClInterface.messages).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
+        expect(wdioClInterface['_messages']).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
     })
 
     it('should trigger job:start event on testFrameworkInit', () => {
@@ -114,7 +118,7 @@ describe('cli interface', () => {
     })
 
     it('should print reporter messages in watch mode', () => {
-        wdioClInterface.isWatchMode = true
+        wdioClInterface['_isWatchMode'] = true
         wdioClInterface.printReporters = jest.fn()
 
         wdioClInterface.onMessage({
@@ -124,7 +128,7 @@ describe('cli interface', () => {
         })
 
         expect(wdioClInterface.printReporters).toBeCalledTimes(1)
-        expect(wdioClInterface.messages).toEqual({
+        expect(wdioClInterface['_messages']).toEqual({
             ...EMPTY_INTERFACE_MESSAGE_OBJECT,
             reporter: { foo: ['bar'] }
         })
@@ -140,7 +144,7 @@ describe('cli interface', () => {
             content: 'foobar'
         })).toEqual(['0-0', 'worker', 'barfoo', 'foobar'])
 
-        expect(wdioClInterface.messages).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
+        expect(wdioClInterface['_messages']).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
         expect(wdioClInterface.printReporters).not.toBeCalled()
     })
 
@@ -171,8 +175,9 @@ describe('cli interface', () => {
     })
 
     it('should ignore messages that do not contain a proper origin', () => {
+        // @ts-ignore test invalid param
         wdioClInterface.onMessage({ foo: 'bar' })
-        expect(wdioClInterface.messages).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
+        expect(wdioClInterface['_messages']).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
     })
 
     it('should render a debug screen when command was called', () => {
@@ -181,16 +186,16 @@ describe('cli interface', () => {
             name: 'start',
             params: { introMessage: 'foobar' }
         })).toBe(true)
-        expect(wdioClInterface.inDebugMode).toBe(true)
+        expect(wdioClInterface['_inDebugMode']).toBe(true)
     })
 
     it('should exit from debug screen', () => {
-        wdioClInterface.inDebugMode = true
+        wdioClInterface['_inDebugMode'] = true
         expect(wdioClInterface.onMessage({
             origin: 'debugger',
             name: 'stop'
         })).toBe(false)
-        expect(wdioClInterface.inDebugMode).toBe(false)
+        expect(wdioClInterface['_inDebugMode']).toBe(false)
     })
 
     describe('setup', () => {
@@ -202,21 +207,17 @@ describe('cli interface', () => {
                 retries: 0,
                 failed: 0
             })
-            expect(wdioClInterface.messages).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
+            expect(wdioClInterface['_messages']).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
         })
 
         it('called explicitly', () => {
             wdioClInterface.onStart = jest.fn()
-            wdioClInterface.result = {}
-            wdioClInterface.messages = {}
+            wdioClInterface['_messages'] = {
+                reporter: {},
+                debugger: {}
+            }
             wdioClInterface.setup()
-            expect(wdioClInterface.result).toEqual({
-                finished: 0,
-                passed: 0,
-                retries: 0,
-                failed: 0
-            })
-            expect(wdioClInterface.messages).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
+            expect(wdioClInterface['_messages']).toEqual(EMPTY_INTERFACE_MESSAGE_OBJECT)
         })
     })
 
@@ -241,8 +242,8 @@ describe('cli interface', () => {
 
         scenarios.forEach(scenario => {
             it(`inDebugMode = ${scenario.inDebugMode}, isWatchMode = ${scenario.isWatchMode}`, () => {
-                wdioClInterface.inDebugMode = scenario.inDebugMode
-                wdioClInterface.isWatchMode = scenario.isWatchMode
+                wdioClInterface['_inDebugMode'] = scenario.inDebugMode
+                wdioClInterface['_isWatchMode'] = scenario.isWatchMode
                 wdioClInterface.onStart()
                 expect(wdioClInterface.log).toBeCalledTimes(scenario.timesCalled)
             })
@@ -253,7 +254,8 @@ describe('cli interface', () => {
         it('all args with retries', () => {
             expect(wdioClInterface.onJobComplete('cid', {
                 caps: { browserName: 'foo' },
-                specs: ['bar']
+                specs: ['bar'],
+                hasTests: true
             }, 3, 'msg')).toEqual(['[cid]', 'msg', 'in', 'foo', '- bar', '(3 retries)'])
         })
 
@@ -277,11 +279,17 @@ describe('cli interface', () => {
     })
 
     describe('onSpec', () => {
-        const { cid, job, retries } = { cid: 'cid', job: 'job', retries: 'retries' }
+        const cid = '0-0'
+        const job = {
+            caps: { browserName: 'foo' },
+            specs: ['bar'],
+            hasTests: true
+        }
+        const retries = 42
         const scenarios = [{
             method: 'onSpecRunning',
             cid,
-            job: 'foo',
+            job,
             retries: 0,
             message: chalk.bold.cyan('RUNNING')
         }, {
@@ -307,7 +315,7 @@ describe('cli interface', () => {
         scenarios.forEach(scenario => {
             it(scenario.method, () => {
                 wdioClInterface.onJobComplete = jest.fn()
-                wdioClInterface.jobs.set('cid', scenario.job)
+                wdioClInterface['_jobs'].set(scenario.cid, scenario.job)
                 wdioClInterface[scenario.method](scenario.cid, scenario.job, scenario.retries)
                 expect(wdioClInterface.onJobComplete).toBeCalledWith(scenario.cid, scenario.job, scenario.retries, scenario.message)
             })
@@ -315,15 +323,15 @@ describe('cli interface', () => {
 
         it('onSpecSkip', () => {
             wdioClInterface.onJobComplete = jest.fn()
-            wdioClInterface.jobs.set('cid', job)
+            wdioClInterface['_jobs'].set('cid', job)
             wdioClInterface.onSpecSkip(cid, job)
             expect(wdioClInterface.onJobComplete).toBeCalledWith(cid, job, 0, 'SKIPPED', expect.any(Function))
         })
 
         it('onSpecRetry with delay', () => {
             wdioClInterface.onJobComplete = jest.fn()
-            wdioClInterface.specFileRetriesDelay = 2
-            wdioClInterface.jobs.set('cid', job)
+            wdioClInterface['_specFileRetriesDelay'] = 2
+            wdioClInterface['_jobs'].set('cid', job)
             wdioClInterface.onSpecRetry(cid, job, 3)
             expect(wdioClInterface.onJobComplete).toBeCalledWith(cid, job, 3, chalk.bold(chalk.yellow('RETRYING') + ' after 2s'))
         })
@@ -331,7 +339,11 @@ describe('cli interface', () => {
 
     describe('sigintTrigger', () => {
         it('should print message with jobs', () => {
-            wdioClInterface.jobs.set('cid', {})
+            wdioClInterface['_jobs'].set('0-0', {
+                caps: { browserName: 'foo' },
+                specs: ['bar'],
+                hasTests: true
+            })
             expect(wdioClInterface.sigintTrigger()[0]).toContain('Ending WebDriver sessions gracefully')
         })
 
@@ -340,23 +352,24 @@ describe('cli interface', () => {
         })
 
         it('should do nothing in debug mode', () => {
-            wdioClInterface.inDebugMode = true
+            wdioClInterface['_inDebugMode'] = true
             expect(wdioClInterface.sigintTrigger()).toBe(false)
         })
     })
 
     describe('printReporters', () => {
         it('finalise should print reporters and summary', () => {
-            wdioClInterface.messages = {
+            wdioClInterface['_messages'] = {
                 reporter: {
                     foo: ['bar']
-                }
+                },
+                debugger: {}
             }
             wdioClInterface.printReporters()
-            expect(wdioClInterface.messages.reporter).toEqual({})
+            expect(wdioClInterface['_messages'].reporter).toEqual({})
             expect(wdioClInterface.log).toBeCalledTimes(2)
-            expect(wdioClInterface.log.mock.calls[0][1]).toContain('"foo" Reporter:')
-            expect(wdioClInterface.log.mock.calls[1][0]).toContain('bar')
+            expect((wdioClInterface.log as jest.Mock).mock.calls[0][1]).toContain('"foo" Reporter:')
+            expect((wdioClInterface.log as jest.Mock).mock.calls[1][0]).toContain('bar')
         })
     })
 
@@ -370,7 +383,7 @@ describe('cli interface', () => {
         })
 
         it('finalise should do nothing in watch mode', () => {
-            wdioClInterface.isWatchMode = true
+            wdioClInterface['_isWatchMode'] = true
             wdioClInterface.printReporters = jest.fn()
             wdioClInterface.printSummary = jest.fn()
             wdioClInterface.finalise()
@@ -392,7 +405,7 @@ describe('cli interface', () => {
         })
 
         it('skipped', () => {
-            wdioClInterface.skippedSpecs = 55
+            wdioClInterface['_skippedSpecs'] = 55
             expect(wdioClInterface.printSummary().some(x => x.includes('gray 55 skipped'))).toBe(true)
         })
 
@@ -414,6 +427,7 @@ describe('cli interface', () => {
             const result = wdioClInterface.onTestError({
                 cid: 'CID',
                 fullTitle: 'FULL_TITLE',
+                name: 'foobar',
                 error: {
                     type: 'ERROR_TYPE',
                     message: 'ERROR_MESSAGE'
@@ -430,6 +444,7 @@ describe('cli interface', () => {
             const result = wdioClInterface.onTestError({
                 cid: 'CID',
                 fullTitle: 'FULL_TITLE',
+                name: 'foobar',
                 error: {
                     type: 'ERROR_TYPE',
                     message: 'ERROR_MESSAGE',
@@ -446,6 +461,7 @@ describe('cli interface', () => {
         it('no error', () => {
             const result = wdioClInterface.onTestError({
                 cid: 'CID',
+                name: 'foobar',
                 fullTitle: 'FULL_TITLE'
             })
 
@@ -456,7 +472,9 @@ describe('cli interface', () => {
         it('string error', () => {
             const result = wdioClInterface.onTestError({
                 cid: 'CID',
+                name: 'foobar',
                 fullTitle: 'FULL_TITLE',
+                // @ts-ignore simplify test
                 error: 'STRING_ERROR'
             })
 
@@ -466,7 +484,7 @@ describe('cli interface', () => {
     })
 
     afterEach(() => {
-        wdioClInterface.specFileRetriesDelay = 0
-        global.console.log.mockRestore()
+        wdioClInterface['_specFileRetriesDelay'] = 0
+        ;(global.console.log as jest.Mock).mockRestore()
     })
 })

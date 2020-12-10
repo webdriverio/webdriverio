@@ -490,6 +490,13 @@ export const getAutomationProtocol = async (config: Options) => {
     }
 
     /**
+     * run WebDriver if capabilities clearly identify it as it
+     */
+    if (config.capabilities && (config.capabilities as WebDriver.W3CCapabilities).alwaysMatch) {
+        return 'webdriver'
+    }
+
+    /**
      * make a head request to check if a driver is available
      */
     const resp: http.IncomingMessage | { error: Error } = await new Promise((resolve) => {

@@ -1,41 +1,40 @@
 import yargs from 'yargs'
 
-import { run } from './../src/index'
-import { handler } from './../src/commands/run'
+import { run } from '../src/index'
+import { handler } from '../src/commands/run'
 import { join, resolve } from 'path'
 
 jest.mock('./../src/commands/run', () => ({
-    ...jest.requireActual('./../src/commands/run'),
+    ...jest.requireActual('./../src/commands/run') as object,
     handler: jest.fn(
-        ({ wrongConfig }) => wrongConfig
+        ({ argv }) => argv && argv.wrongConfig
             ? Promise.reject({ stack: 'error' })
             : Promise.resolve('success'))
 }))
 
 const origArgv = { ...yargs.argv }
+const consoleError = console.error
 
 describe('index', () => {
     beforeEach(() => {
-        handler.mockClear()
+        (handler as jest.Mock).mockClear()
         yargs.argv = origArgv
+        console.error = jest.fn()
     })
 
     it('should call config if no known command is used', async () => {
         await run().catch()
-
-        expect(handler).toHaveBeenCalledWith({
-            _: ['wdio.conf.js'],
-            configPath: join(`${process.cwd()}`, 'wdio.conf.js')
+        expect((handler as jest.Mock).mock.calls[0][0].argv).toEqual({
+            _: [join(`${process.cwd()}`, 'wdio.conf.js')],
         })
     })
 
     it('should set default config filename if not set', async () => {
-        yargs.argv = { _: [] }
+        yargs.argv = { _: [] } as any
         await run().catch()
 
-        expect(handler).toHaveBeenCalledWith({
-            _: [],
-            configPath: join(`${process.cwd()}`, 'wdio.conf.js')
+        expect((handler as jest.Mock).mock.calls[0][0].argv).toEqual({
+            _: [join(`${process.cwd()}`, 'wdio.conf.js')],
         })
     })
 
@@ -43,17 +42,15 @@ describe('index', () => {
         const expectedPath = resolve('/some/absolute/path/here/wdio.conf.js')
         yargs.argv._[0] = expectedPath
 
-        await run({ spec: './foobar.js' }).catch()
+        await run().catch()
 
-        expect(handler).toHaveBeenCalledWith({
-            _: [expectedPath],
-            configPath: expectedPath
-        })
-        yargs.epilogue.mockClear()
+        expect(handler).toHaveBeenCalledTimes(1)
+        expect((handler as jest.Mock).mock.calls[0][0].argv._[0]).toBe(expectedPath)
+        ;(yargs.epilogue as jest.Mock).mockClear()
     })
 
     it('should gracefully fail', async () => {
-        yargs.parse.mockImplementation((str, cb) => cb(null, null, 'test'))
+        (yargs.parse as jest.Mock).mockImplementation((str, cb) => cb(null, null, 'test'))
         yargs.argv.wrongConfig = true
         jest.spyOn(console, 'error')
 
@@ -66,5 +63,9 @@ describe('index', () => {
         yargs.argv._.push('run')
         expect(typeof (await run())).toBe('undefined')
         yargs.argv._.pop()
+    })
+
+    afterEach(() => {
+        console.error = consoleError
     })
 })

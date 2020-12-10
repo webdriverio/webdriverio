@@ -7,8 +7,8 @@ Object {
     "automationName": "UiAutomator2",
     "deviceName": "Test",
     "platformName": "Android",
-    "platformVersion": null,
-    "udid": null,
+    "platformVersion": undefined,
+    "udid": undefined,
   },
 }
 `;
@@ -20,8 +20,8 @@ Object {
     "browserName": "Chrome",
     "deviceName": "Test",
     "platformName": "Android",
-    "platformVersion": null,
-    "udid": null,
+    "platformVersion": undefined,
+    "udid": undefined,
   },
 }
 `;
@@ -54,8 +54,8 @@ Object {
     "browserName": "Safari",
     "deviceName": "iPhone Simulator",
     "platformName": "iOS",
-    "platformVersion": null,
-    "udid": null,
+    "platformVersion": undefined,
+    "udid": undefined,
   },
 }
 `;
