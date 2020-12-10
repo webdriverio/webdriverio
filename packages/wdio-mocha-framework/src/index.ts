@@ -24,6 +24,9 @@ const log = logger('@wdio/mocha-framework')
 const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
 const DEFAULT_INTERFACE_TYPE = 'bdd'
 
+type EventTypes = 'hook' | 'test' | 'suite'
+type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
+
 /**
  * Mocha runner
  */
@@ -306,8 +309,8 @@ class MochaAdapter {
         this._reporter.emit(message.type, message)
     }
 
-    getSyncEventIdStart (type: 'hook' | 'test' | 'suite') {
-        const prop = `_${type}Cnt` as '_hookCnt' | '_testCnt' | '_suiteCnt'
+    getSyncEventIdStart (type: EventTypes) {
+        const prop = `_${type}Cnt` as EventTypeProps
         const suiteId = this._suiteIds[this._suiteIds.length - 1]
         const cnt = this[prop].has(suiteId)
             ? this[prop].get(suiteId) || 0
@@ -316,8 +319,8 @@ class MochaAdapter {
         return `${type}-${suiteId}-${cnt}`
     }
 
-    getSyncEventIdEnd (type: 'hook' | 'test' | 'suite') {
-        const prop = `_${type}Cnt` as '_hookCnt' | '_testCnt' | '_suiteCnt'
+    getSyncEventIdEnd (type: EventTypes) {
+        const prop = `_${type}Cnt` as EventTypeProps
         const suiteId = this._suiteIds[this._suiteIds.length - 1]
         const cnt = this[prop].get(suiteId)! - 1
         return `${type}-${suiteId}-${cnt}`
