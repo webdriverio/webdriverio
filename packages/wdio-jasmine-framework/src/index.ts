@@ -4,7 +4,7 @@ import logger from '@wdio/logger'
 import { EventEmitter } from 'events'
 
 import JasmineReporter from './reporter'
-import type { JasmineNodeOpts, TestEvent, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
+import type { JasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
 
 const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
@@ -98,16 +98,24 @@ class JasmineAdapter {
 
         const hookArgsFn = (context: unknown): [unknown, unknown] => [{ ...(self._lastTest || {}) }, context]
 
-        const emitHookEvent = (fnName: string, eventType: string) => (_test: unknown, _context: unknown, { error }: { error?: jasmine.FailedExpectation } = {}) => {
+        const emitHookEvent = (
+            fnName: string,
+            eventType: string
+        ) => (
+            _test: never,
+            _context: never,
+            { error }: { error?: jasmine.FailedExpectation } = {}
+        ) => {
             const title = `"${fnName === 'beforeAll' ? 'before' : 'after'} all" hook`
-            const hook: TestEvent = {
-                id: `hook${++this._hookIds}`,
+            const hook = {
+                id: '',
                 start: new Date(),
-                type: 'hook',
+                type: 'hook' as const,
                 description: title,
                 fullName: title,
-                error
+                ...(error ? { error } : {})
             }
+
             this._reporter.emit('hook:' + eventType, hook)
         }
 

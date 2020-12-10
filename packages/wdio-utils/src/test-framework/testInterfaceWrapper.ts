@@ -37,9 +37,9 @@ export const runHook = function (
     this: unknown,
     hookFn: Function,
     origFn: Function,
-    beforeFn: (Function | Function)[],
+    beforeFn: Function | Function[],
     beforeFnArgs: HookFnArgs<unknown>,
-    afterFn: (Function | Function)[],
+    afterFn: Function | Function[],
     afterFnArgs: HookFnArgs<unknown>,
     cid: string,
     repeatTest: number
