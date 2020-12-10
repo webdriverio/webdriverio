@@ -404,8 +404,28 @@ describe('stub request', () => {
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
     })
 
+    test('with modified headers fn', async () => {
+        mock.respond((r) => r.body, { headers: (r) => {
+            return r.responseHeaders['Content-Type'] === 'application/json' ? {
+                'Content-Type': 'text/xml',
+            } : {}
+        } })
+        await fetchListenerWrapper()
+
+        expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
+    })
+
     test('with modified status code', async () => {
         mock.respond((r) => r.body, { statusCode: 1234 })
+        await fetchListenerWrapper()
+
+        expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
+    })
+
+    test('with modified status code fn', async () => {
+        mock.respond((r) => r.body, { statusCode: (r) => {
+            return r.url.includes('test') ? 5678 : 1234
+        } })
         await fetchListenerWrapper()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
