@@ -11,9 +11,11 @@ type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     stop(callback: (err?: any) => void): void;
 }
 
-type Capabilities = WebDriver.Capabilities & WebdriverIO.MultiRemoteCapabilities & {
+type ExtendedCapabilities = WebDriver.Capabilities & {
     'browserstack.local'?: boolean;
-};
+}
+
+type Capabilities = (ExtendedCapabilities | ExtendedCapabilities[])
 
 export default class BrowserstackLauncherService {
     options: BrowserstackConfig
@@ -24,7 +26,7 @@ export default class BrowserstackLauncherService {
         this.config = config
     }
 
-    onPrepare (config: WebdriverIO.Config, capabilities: Capabilities) {
+    onPrepare (config?: WebdriverIO.Config, capabilities?: Capabilities) {
         if (!this.options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
