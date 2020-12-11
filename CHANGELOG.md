@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.9 (2020-12-11)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#6221](https://github.com/webdriverio/webdriverio/pull/6221) Another set of bug fixes after last release ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v6.10.8 (2020-12-11)
 
 #### :bug: Bug Fix
