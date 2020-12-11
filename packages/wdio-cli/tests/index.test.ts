@@ -7,7 +7,7 @@ import { join, resolve } from 'path'
 jest.mock('./../src/commands/run', () => ({
     ...jest.requireActual('./../src/commands/run') as object,
     handler: jest.fn(
-        ({ argv }) => argv && argv.wrongConfig
+        (argv) => argv && argv.wrongConfig
             ? Promise.reject({ stack: 'error' })
             : Promise.resolve('success'))
 }))
@@ -24,7 +24,7 @@ describe('index', () => {
 
     it('should call config if no known command is used', async () => {
         await run().catch()
-        expect((handler as jest.Mock).mock.calls[0][0].argv).toEqual({
+        expect((handler as jest.Mock).mock.calls[0][0]).toEqual({
             _: [join(`${process.cwd()}`, 'wdio.conf.js')],
         })
     })
@@ -33,7 +33,7 @@ describe('index', () => {
         yargs.argv = { _: [] } as any
         await run().catch()
 
-        expect((handler as jest.Mock).mock.calls[0][0].argv).toEqual({
+        expect((handler as jest.Mock).mock.calls[0][0]).toEqual({
             _: [join(`${process.cwd()}`, 'wdio.conf.js')],
         })
     })
@@ -45,7 +45,7 @@ describe('index', () => {
         await run().catch()
 
         expect(handler).toHaveBeenCalledTimes(1)
-        expect((handler as jest.Mock).mock.calls[0][0].argv._[0]).toBe(expectedPath)
+        expect((handler as jest.Mock).mock.calls[0][0]._[0]).toBe(expectedPath)
         ;(yargs.epilogue as jest.Mock).mockClear()
     })
 
