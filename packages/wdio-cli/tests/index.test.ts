@@ -25,16 +25,19 @@ describe('index', () => {
     it('should call config if no known command is used', async () => {
         await run().catch()
         expect((handler as jest.Mock).mock.calls[0][0]).toEqual({
-            configPath: join(`${process.cwd()}`, 'wdio.conf.js')
+            configPath: join(`${process.cwd()}`, 'wdio.conf.js'),
+            _: ['wdio.conf.js']
         })
     })
 
     it('should set default config filename if not set', async () => {
-        yargs.argv = { _: [] } as any
+        yargs.argv = { _: [], spec: ['/foo/bar'] } as any
         await run().catch()
 
         expect((handler as jest.Mock).mock.calls[0][0]).toEqual({
-            configPath: join(`${process.cwd()}`, 'wdio.conf.js')
+            configPath: join(`${process.cwd()}`, 'wdio.conf.js'),
+            spec: ['/foo/bar'],
+            _: []
         })
     })
 
@@ -45,8 +48,10 @@ describe('index', () => {
         await run().catch()
 
         expect(handler).toHaveBeenCalledTimes(1)
-        expect((handler as jest.Mock).mock.calls[0][0])
-            .toEqual({ configPath: expectedPath })
+        expect((handler as jest.Mock).mock.calls[0][0]).toEqual({
+            configPath: expectedPath,
+            _: [expectedPath]
+        })
         ;(yargs.epilogue as jest.Mock).mockClear()
     })
 

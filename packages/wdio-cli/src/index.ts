@@ -58,6 +58,7 @@ export const run = async () => {
 
     if (!params._.find((param: string) => supportedCommands.includes(param))) {
         const args: RunCommandArguments = {
+            ...argv.argv,
             configPath: path.resolve(process.cwd(), argv.argv._[0] && argv.argv._[0].toString() || DEFAULT_CONFIG_FILENAME)
         }
 
