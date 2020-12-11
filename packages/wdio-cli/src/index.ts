@@ -59,7 +59,7 @@ export const run = async () => {
     if (!params._.find((param: string) => supportedCommands.includes(param))) {
         argv.argv._[0] = path.resolve(process.cwd(), argv.argv._[0] && argv.argv._[0].toString() || DEFAULT_CONFIG_FILENAME)
 
-        return handler(argv).catch(async (err) => {
+        return handler(argv.argv).catch(async (err) => {
             const output = await new Promise((resolve) => (
                 yargs.parse('--help', (
                     err: Error,

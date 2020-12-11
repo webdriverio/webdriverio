@@ -29,7 +29,7 @@ afterEach(() => {
 })
 
 test('should create config file', async () => {
-    await handler({ argv: {} } as any)
+    await handler({} as any)
     expect(addServiceDeps).toBeCalledTimes(1)
     expect(convertPackageHashToObject).toBeCalledTimes(4)
     expect(renderConfigurationFile).toBeCalledTimes(1)
@@ -52,7 +52,7 @@ test('it should properly build command', () => {
 
 test('should log error if creating config file fails', async () => {
     (renderConfigurationFile as jest.Mock).mockReturnValueOnce(Promise.reject(new Error('boom!')))
-    await handler({ argv: {} } as any)
+    await handler({} as any)
     expect(errorLogSpy).toHaveBeenCalledTimes(1)
 })
 
@@ -65,7 +65,7 @@ test('installs @wdio/sync if user requests to run in sync mode', async () => {
         reporters: [],
         services: []
     }))
-    await handler({ argv: {} } as any)
+    await handler({} as any)
     expect(generateTestFiles).toBeCalledTimes(1)
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: ['@wdio/local-runner', undefined, '@wdio/sync'],
@@ -75,7 +75,7 @@ test('installs @wdio/sync if user requests to run in sync mode', async () => {
 })
 
 test('it should install with yarn when flag is passed', async () => {
-    await handler({ argv: { yarn: true, yes: false } } as any)
+    await handler({ yarn: true, yes: false } as any)
 
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: expect.any(Object),
@@ -90,7 +90,7 @@ test('should throw an error if something goes wrong', async () => {
     ;(yarnInstall as any as jest.Mock).mockReturnValueOnce({ status: 1, stderr: 'uups' })
 
     try {
-        await handler({ argv: {} } as any)
+        await handler({} as any)
     } catch (err) {
         expect(
             err.message.startsWith('something went wrong during setup: uups')
@@ -112,7 +112,7 @@ test('prints TypeScript setup message', async () => {
         generateTestFiles: false,
         isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
     }))
-    await handler({ argv: {} } as any)
+    await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
 

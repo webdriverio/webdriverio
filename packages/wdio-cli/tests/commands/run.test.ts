@@ -37,7 +37,7 @@ describe('Command: run', () => {
 
     it('should call missingConfigurationPrompt if no config found', async () => {
         (fs.existsSync as jest.Mock).mockImplementation(() => false)
-        await runCmd.handler({ argv: { configPath: 'foo/bar' } } as any)
+        await runCmd.handler({ configPath: 'foo/bar' } as any)
 
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalled()
         expect(configCmd.missingConfigurationPrompt)
@@ -53,7 +53,7 @@ describe('Command: run', () => {
     })
 
     it('should use Watcher if "--watch" flag is passed', async () => {
-        const watcher = await runCmd.handler({ argv: { configPath: 'foo/bar', watch: true } } as any)
+        const watcher = await runCmd.handler({ configPath: 'foo/bar', watch: true } as any)
 
         expect(watcher).toBe('watching-test')
     })
@@ -61,7 +61,7 @@ describe('Command: run', () => {
     it('should call launch if stdin isTTY = true', async () => {
         process.stdin.isTTY = true
 
-        const result = await runCmd.handler({ argv: { configPath: 'foo/bar' } } as any)
+        const result = await runCmd.handler({ configPath: 'foo/bar' } as any)
 
         expect(result).toBe('launcher-mock')
     })
@@ -70,7 +70,7 @@ describe('Command: run', () => {
         process.stdin.isTTY = false
         process.stdout.isTTY = true
 
-        await runCmd.handler({ argv: { configPath: 'foo/bar' } } as any)
+        await runCmd.handler({ configPath: 'foo/bar' } as any)
 
         expect(process.openStdin).toHaveBeenCalled()
         expect(setEncodingMock).toHaveBeenCalled()

@@ -30,14 +30,14 @@ describe('Command: install', () => {
     })
 
     it('should log out when an unknown installation type is passed', async () => {
-        await installCmd.handler({ argv: { type: 'foobar', config: './wdio.conf.js' } } as any)
+        await installCmd.handler({ type: 'foobar', config: './wdio.conf.js' } as any)
 
         expect(console.log).toHaveBeenCalled()
         expect(console.log).toHaveBeenCalledWith('Type foobar is not supported.')
     })
 
     it('should log out when unknown package name is used', async () => {
-        await installCmd.handler({ argv: { type: 'service', name: 'foobar', config: './wdio.conf.js' } } as any)
+        await installCmd.handler({ type: 'service', name: 'foobar', config: './wdio.conf.js' } as any)
 
         expect(console.log).toHaveBeenCalled()
         expect(console.log).toHaveBeenCalledWith('foobar is not a supported service.')
@@ -47,7 +47,7 @@ describe('Command: install', () => {
         jest.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.reject())
         ;(fs.existsSync as jest.Mock).mockReturnValue(false)
 
-        await installCmd.handler({ argv: { type: 'service', name: 'chromedriver', config: './wdio.conf.js' } } as any)
+        await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
 
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledWith('install', `Cannot install packages without a WebdriverIO configuration.
 You can create one by running 'wdio config'`, undefined)
@@ -57,7 +57,7 @@ You can create one by running 'wdio config'`, undefined)
         findInConfigMock.mockReturnValue(['chromedriver'])
         ;(fs.existsSync as jest.Mock).mockReturnValue(true)
 
-        await installCmd.handler({ argv: { type: 'service', name: 'chromedriver', config: './wdio.conf.js' } } as any)
+        await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
 
         expect(console.log).toHaveBeenCalledWith('The service chromedriver is already part of your configuration.')
     })
@@ -68,7 +68,7 @@ You can create one by running 'wdio config'`, undefined)
         ;(fs.readFileSync as jest.Mock).mockReturnValue('module.config = {}')
         ;(yarnInstall as jest.Mock).mockImplementation(() => ({ status: 0 }))
 
-        await installCmd.handler({ argv: { type: 'service', name: 'chromedriver', config: './wdio.conf.js' } } as any)
+        await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
 
         expect(console.log).toHaveBeenCalledWith('Installing "wdio-chromedriver-service".')
         expect(console.log).toHaveBeenCalledWith('Package "wdio-chromedriver-service" installed successfully.')
@@ -85,7 +85,7 @@ You can create one by running 'wdio config'`, undefined)
         ;(utils.replaceConfig as jest.Mock).mockRestore()
         jest.spyOn(utils, 'replaceConfig').mockReturnValue('')
 
-        const err = await installCmd.handler({ argv: { type: 'service', name: 'chromedriver', config: './wdio.conf.js' } } as any)
+        const err = await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
             .catch((err: Error) => err) as Error
         expect(err.message).toBe('Couldn\'t find "service" property in wdio.conf.js')
 
@@ -97,7 +97,7 @@ You can create one by running 'wdio config'`, undefined)
         ;(fs.readFileSync as jest.Mock).mockReturnValue('module.config = {}')
         ;(yarnInstall as jest.Mock).mockImplementation(() => ({ status: 0 }))
 
-        await installCmd.handler({ argv: { type: 'service', name: 'chromedriver', config: './path/to/wdio.conf.js' } } as any)
+        await installCmd.handler({ type: 'service', name: 'chromedriver', config: './path/to/wdio.conf.js' } as any)
 
         expect(console.log).toHaveBeenCalledWith('Installing "wdio-chromedriver-service".')
         expect(console.log).toHaveBeenCalledWith('Package "wdio-chromedriver-service" installed successfully.')
@@ -113,7 +113,7 @@ You can create one by running 'wdio config'`, undefined)
         ;(yarnInstall as jest.Mock).mockImplementation(() => ({ status: 1, stderr: 'test error' }))
         jest.spyOn(console, 'error')
 
-        await installCmd.handler({ argv: { type: 'service', name: 'chromedriver', config: './wdio.conf.js' } } as any)
+        await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
 
         expect(console.error).toHaveBeenCalledWith('Error installing packages', 'test error')
         expect(process.exit).toHaveBeenCalledWith(1)

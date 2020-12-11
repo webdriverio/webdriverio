@@ -137,8 +137,8 @@ export function launch (wdioConfPath: string, params: Partial<RunCommandArgument
         })
 }
 
-export async function handler (argv: yargs.Argv<RunCommandArguments>) {
-    const { configPath, ...params } = argv.argv
+export async function handler (argv: RunCommandArguments) {
+    const { configPath, ...params } = argv
 
     if (!fs.existsSync(configPath)) {
         await missingConfigurationPrompt('run', `No WebdriverIO configuration found in "${configPath}"`)
