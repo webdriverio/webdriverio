@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const { promisify } = require('util')
+const { spawnSync } = require('child_process')
 
 const { ln, mkdir } = require('shelljs')
 const rimraf = require('rimraf')
@@ -43,10 +44,21 @@ const packages = {
 
 const artifactDirs = ['node_modules', 'dist']
 
+const typescriptDirs = ['typescript', '.bin']
+const TS_PARAMETER = '--ts='
+let tsVersion = process.argv.find((v) => v.startsWith(TS_PARAMETER))
+if (tsVersion) {
+    tsVersion = tsVersion.substr(TS_PARAMETER.length)
+}
+const tsDir = path.join(__dirname, '@typescript', `ts${tsVersion}`)
+
 /**
  * copy package.json and typings from package to type-generation/test/.../node_modules
  */
 async function copy() {
+    if (tsVersion) {
+        spawnSync('npm', ['ci'], { cwd: tsDir })
+    }
     for (const outDir of outDirs) {
         for (const packageName of Object.keys(packages)) {
             const destination = path.join(__dirname, outDir, 'node_modules', packageName)
@@ -58,6 +70,15 @@ async function copy() {
             }
 
             ln('-s', path.join(ROOT, packageDir), destination)
+        }
+        if (tsVersion) {
+            typescriptDirs.forEach((d) => {
+                ln(
+                    '-s',
+                    path.join(tsDir, 'node_modules', d),
+                    path.join(__dirname, outDir, 'node_modules', d)
+                )
+            })
         }
     }
 }

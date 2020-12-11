@@ -11,7 +11,7 @@ You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-n
 npm i typescript ts-node --save-dev
 ```
 
-The minimum TypeScript version is 3.7.3.
+The minimum TypeScript version is 3.8.3.
 
 ## Framework Setup
 

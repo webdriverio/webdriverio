@@ -10,7 +10,7 @@
     "node": ">=10.0.0"
   },
   "types": "./webdriver.d.ts",
-  "typeScriptVersion": "3.7.3",
+  "typeScriptVersion": "3.8.3",
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"

@@ -53,8 +53,6 @@ async function bar() {
 
     await browser.createWindow('tab')
     await browser.createWindow('window')
-    // @ts-expect-error
-    await browser.createWindow('something else')
 
     const waitUntil: boolean = await browser.waitUntil(
         () => Promise.resolve(true),

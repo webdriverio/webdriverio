@@ -7,8 +7,6 @@ async function bar () {
 
     client.createWindow('tab')
     client.createWindow('window')
-    // @ts-expect-error
-    client.createWindow('something else')
 }
 
 export default {}
