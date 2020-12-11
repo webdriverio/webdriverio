@@ -42,7 +42,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     console.log(CONFIG_HELPER_INTRO)
     const answers = await getAnswers(yes)
     const frameworkPackage = convertPackageHashToObject(answers.framework)
-    const runnerPackage = convertPackageHashToObject(answers.runner)
+    const runnerPackage = convertPackageHashToObject(answers.runner || 'local')
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
 
