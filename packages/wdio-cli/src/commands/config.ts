@@ -139,9 +139,9 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     }
 }
 
-export async function handler(argv: yargs.Argv<ConfigCommandArguments>) {
+export async function handler(argv: ConfigCommandArguments) {
     try {
-        await runConfig(argv.argv.yarn, argv.argv.yes)
+        await runConfig(argv.yarn, argv.yes)
     } catch (error) {
         throw new Error(`something went wrong during setup: ${error.stack.slice(7)}`)
     }

@@ -54,13 +54,13 @@ export const builder = (yargs: yargs.Argv) => {
     return yargs
 }
 
-export async function handler(argv: yargs.Argv<InstallCommandArguments>) {
+export async function handler(argv: InstallCommandArguments) {
     /**
      * type = service | reporter | framework
      * name = names for the supported service or reporter
      * yarn = optional flag to install package using yarn instead of default yarn
      */
-    const { type, name, yarn, config } = argv.argv
+    const { type, name, yarn, config } = argv
 
     /**
      * verify for supported types via `supportedInstallations` keys
