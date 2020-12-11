@@ -45,9 +45,10 @@ const packages = {
 const artifactDirs = ['node_modules', 'dist']
 
 const typescriptDirs = ['typescript', '.bin']
-let tsVersion = process.argv.find((v) => v.startsWith('--ts='))
+const TS_PARAMETER = '--ts='
+let tsVersion = process.argv.find((v) => v.startsWith(TS_PARAMETER))
 if (tsVersion) {
-    tsVersion = tsVersion.substr(5)
+    tsVersion = tsVersion.substr(TS_PARAMETER.length)
 }
 const tsDir = path.join(__dirname, '@typescript', `ts${tsVersion}`)
 
