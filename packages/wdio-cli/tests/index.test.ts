@@ -6,10 +6,7 @@ import { join, resolve } from 'path'
 
 jest.mock('./../src/commands/run', () => ({
     ...jest.requireActual('./../src/commands/run') as object,
-    handler: jest.fn(
-        (argv) => argv && argv.configPath === '/not/existing'
-            ? Promise.reject({ stack: 'error' })
-            : Promise.resolve('success'))
+    handler: jest.fn().mockReturnValue(Promise.resolve('success'))
 }))
 
 const origArgv = { ...yargs.argv }
@@ -57,7 +54,7 @@ describe('index', () => {
 
     it('should gracefully fail', async () => {
         (yargs.parse as jest.Mock).mockImplementation((str, cb) => cb(null, null, 'test'))
-        yargs.argv._[0] = '/not/existing'
+        ;(handler as jest.Mock).mockReturnValue(Promise.reject(new Error('ups')))
         jest.spyOn(console, 'error')
 
         await run()
