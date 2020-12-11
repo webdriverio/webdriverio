@@ -92,7 +92,7 @@ export default class BrowserstackLauncherService implements WebdriverIO.ServiceI
         let timer: NodeJS.Timeout
         return Promise.race([
             new Promise((resolve, reject) => {
-                this.browserstackLocal?.stop((err: any) => {
+                this.browserstackLocal?.stop((err: Error) => {
                     if (err) {
                         return reject(err)
                     }
