@@ -104,8 +104,6 @@ export default class Runner extends EventEmitter {
             return this._shutdown(0, retries)
         }
 
-        const instances = getInstancesData(browser, isMultiremote)
-
         /**
          * initialisation successful, send start message
          */
@@ -130,6 +128,7 @@ export default class Runner extends EventEmitter {
          */
         const { protocol, hostname, port, path, queryParams } = browser.options
         const { isW3C, sessionId } = browser
+        const instances = getInstancesData(browser, isMultiremote)
         process.send({
             origin: 'worker',
             name: 'sessionStarted',

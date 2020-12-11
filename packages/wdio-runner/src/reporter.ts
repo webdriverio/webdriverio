@@ -1,6 +1,9 @@
 import path from 'path'
 import logger from '@wdio/logger'
 import { initialisePlugin } from '@wdio/utils'
+import type { ConfigOptions, Capabilities } from '@wdio/config'
+import type { EventEmitter } from 'events'
+
 import { sendFailureMessage } from './utils'
 
 const log = logger('@wdio/runner')
@@ -9,23 +12,41 @@ const NOOP = () => { }
 const DEFAULT_SYNC_TIMEOUT = 5000 // 5s
 const DEFAULT_SYNC_INTERVAL = 100 // 100ms
 
+interface Reporter extends EventEmitter {
+    isSynchronised: boolean
+}
+
+type ReporterClass = (new (options: ReporterOptions) => Reporter)
+
+type ReporterOptions = {
+    logLevel?: string
+    writeStream?: {
+        write: (content: any) => boolean
+    }
+    logFile?: string
+    setLogFile: (cid: string, name: string) => string
+}
+
 /**
  * BaseReporter
  * responsible for initialising reporters for every testrun and propagating events
  * to all these reporters
  */
 export default class BaseReporter {
-    constructor(config, cid, caps) {
-        this.config = config
-        this.cid = cid
-        this.caps = caps
+    private _reporterSyncInterval: number
+    private _reporterSyncTimeout: number
+    private _reporters: Reporter[]
 
-        this.reporterSyncInterval = this.config.reporterSyncInterval || DEFAULT_SYNC_INTERVAL
-        this.reporterSyncTimeout = this.config.reporterSyncTimeout || DEFAULT_SYNC_TIMEOUT
+    constructor(
+        private _config: ConfigOptions,
+        private _cid: string,
+        private _caps: Capabilities
+    ) {
+        this._reporterSyncInterval = this._config.reporterSyncInterval || DEFAULT_SYNC_INTERVAL
+        this._reporterSyncTimeout = this._config.reporterSyncTimeout || DEFAULT_SYNC_TIMEOUT
 
         // ensure all properties are set before initializing the reporters
-        this.reporters = config.reporters.map(this.initReporter.bind(this))
-
+        this._reporters = this._config.reporters!.map(this.initReporter.bind(this))
     }
 
     /**
@@ -34,34 +55,35 @@ export default class BaseReporter {
      * @param  {String} e       event name
      * @param  {object} payload event payload
      */
-    emit(e, payload) {
-        payload.cid = this.cid
+    emit (e: string, payload: any) {
+        payload.cid = this._cid
 
         /**
          * Send failure message (only once) in case of test or hook failure
          */
         sendFailureMessage(e, payload)
 
-        this.reporters.forEach((reporter) => reporter.emit(e, payload))
+        this._reporters.forEach((reporter) => reporter.emit(e, payload))
     }
 
-    getLogFile(name) {
+    getLogFile (name: string) {
         // clone the config to avoid changing original properties
-        let options = Object.assign({}, this.config)
-        let filename = `wdio-${this.cid}-${name}-reporter.log`
+        let options = Object.assign({}, this._config) as any
+        let filename = `wdio-${this._cid}-${name}-reporter.log`
 
-        const reporterOptions = this.config.reporters.find((reporter) => (
-            Array.isArray(reporter) && (
+        const reporterOptions = this._config.reporters!.find((reporter) => (
+            Array.isArray(reporter) &&
+            (
                 reporter[0] === name ||
                 typeof reporter[0] === 'function' && reporter[0].name === name
             )
-        ))
+        )) as { outputFileFormat: Function }[]
 
         if (reporterOptions) {
             const fileformat = reporterOptions[1].outputFileFormat
 
-            options.cid = this.cid
-            options.capabilities = this.caps
+            options.cid = this._cid
+            options.capabilities = this._caps
             Object.assign(options, reporterOptions[1])
 
             if (fileformat) {
@@ -83,9 +105,9 @@ export default class BaseReporter {
     /**
      * return write stream object based on reporter name
      */
-    getWriteStreamObject(reporter) {
+    getWriteStreamObject (reporter: string) {
         return {
-            write: /* istanbul ignore next */ (content) => process.send({
+            write: /* istanbul ignore next */ (content: unknown) => process.send!({
                 origin: 'reporter',
                 name: reporter,
                 content
@@ -101,11 +123,11 @@ export default class BaseReporter {
         const startTime = Date.now()
         return new Promise((resolve, reject) => {
             const interval = setInterval(() => {
-                const unsyncedReporter = this.reporters
+                const unsyncedReporter = this._reporters
                     .filter((reporter) => !reporter.isSynchronised)
                     .map((reporter) => reporter.constructor.name)
 
-                if ((Date.now() - startTime) > this.reporterSyncTimeout && unsyncedReporter.length) {
+                if ((Date.now() - startTime) > this._reporterSyncTimeout && unsyncedReporter.length) {
                     clearInterval(interval)
                     return reject(new Error(`Some reporters are still unsynced: ${unsyncedReporter.join(', ')}`))
                 }
@@ -120,18 +142,18 @@ export default class BaseReporter {
 
                 log.info(`Wait for ${unsyncedReporter.length} reporter to synchronise`)
                 // wait otherwise
-            }, this.reporterSyncInterval)
+            }, this._reporterSyncInterval)
         })
     }
 
     /**
      * initialise reporters
      */
-    initReporter(reporter) {
+    initReporter (reporter: EventEmitter) {
         let ReporterClass
-        let options = {
-            logLevel: this.config.logLevel,
-            setLogFile: NOOP
+        let options: ReporterOptions = {
+            logLevel: this._config.logLevel,
+            setLogFile: NOOP as any
         }
 
         /**
@@ -158,8 +180,8 @@ export default class BaseReporter {
          * ```
          */
         if (typeof reporter === 'function') {
-            ReporterClass = reporter
-            const customLogFile = options.setLogFile(this.cid, ReporterClass.name)
+            ReporterClass = reporter as ReporterClass
+            const customLogFile = options.setLogFile(this._cid, ReporterClass.name)
             options.logFile = customLogFile || this.getLogFile(ReporterClass.name)
             options.writeStream = this.getWriteStreamObject(ReporterClass.name)
             return new ReporterClass(options)
@@ -180,8 +202,8 @@ export default class BaseReporter {
          * ```
          */
         if (typeof reporter === 'string') {
-            ReporterClass = initialisePlugin(reporter, 'reporter').default
-            const customLogFile = options.setLogFile(this.cid, reporter)
+            ReporterClass = initialisePlugin(reporter, 'reporter').default as ReporterClass
+            const customLogFile = options.setLogFile(this._cid, reporter)
             options.logFile = customLogFile || this.getLogFile(reporter)
             options.writeStream = this.getWriteStreamObject(reporter)
             return new ReporterClass(options)

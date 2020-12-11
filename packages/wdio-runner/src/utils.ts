@@ -2,26 +2,36 @@ import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
-import { DEFAULT_CONFIGS } from '@wdio/config'
+import { DEFAULT_CONFIGS, ConfigOptions, Capabilities } from '@wdio/config'
 
 const log = logger('@wdio/local-runner:utils')
 
 const MERGE_OPTIONS = { clone: false }
 const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
+interface ConfigWithSessionId extends ConfigOptions {
+    sessionId?: string
+}
+
 /**
  * run before/after session hook
  */
-export function runHook (hookName, config, caps, specs) {
-    const catchFn = (e) => log.error(`Error in ${hookName}: ${e.stack}`)
-
-    return config && Array.isArray(config[hookName]) ? Promise.all(config[hookName].map((hook) => {
-        try {
-            return hook(config, caps, specs)
-        } catch (e) {
-            return catchFn(e)
-        }
-    })).catch(catchFn) : undefined
+export function runHook (
+    hookName: keyof WebdriverIO.HookFunctions,
+    config: ConfigOptions,
+    caps: Capabilities,
+    specs: string[]
+) {
+    const catchFn = (e: Error) => log.error(`Error in ${hookName}: ${e.stack}`)
+    return Array.isArray(config[hookName])
+        ? Promise.all((config[hookName] as Function[]).map((hook) => {
+            try {
+                return hook(config, caps, specs)
+            } catch (e) {
+                return catchFn(e)
+            }
+        })).catch(catchFn)
+        : undefined
 }
 
 /**
@@ -29,19 +39,25 @@ export function runHook (hookName, config, caps, specs) {
  * @param  {Object} caps  desired session capabilities
  * @return {Object}       sanitized caps
  */
-export function sanitizeCaps (caps, filterOut) {
+export function sanitizeCaps (
+    caps: WebDriver.DesiredCapabilities,
+    filterOut?: string
+) {
     const defaultConfigsKeys = [
         // WDIO config keys
         ...Object.keys(DEFAULT_CONFIGS()),
         // WebDriver config keys
         ...Object.keys(DEFAULTS)
     ]
-    return Object.keys(caps).filter(key => (
+    return Object.keys(caps).filter((key: keyof WebDriver.Capabilities) => (
         /**
          * filter out all wdio config keys
          */
         !defaultConfigsKeys.includes(key) === !filterOut
-    )).reduce((obj, key) => {
+    )).reduce((
+        obj: WebDriver.DesiredCapabilities,
+        key: keyof WebDriver.Capabilities
+    ) => {
         obj[key] = caps[key]
         return obj
     }, {})
@@ -54,14 +70,18 @@ export function sanitizeCaps (caps, filterOut) {
  * @param  {boolean} isMultiremote isMultiremote
  * @return {Promise}               resolves with browser object
  */
-export async function initialiseInstance (config, capabilities, isMultiremote) {
+export async function initialiseInstance (
+    config: ConfigWithSessionId,
+    capabilities: Capabilities,
+    isMultiremote: boolean
+) {
     /**
      * check if config has sessionId and attach it to a running session if so
      */
     if (config.sessionId) {
         log.debug(`attach to session with id ${config.sessionId}`)
-        config.capabilities = sanitizeCaps(capabilities)
-        return attach({ ...config })
+        config.capabilities = sanitizeCaps(capabilities as WebDriver.DesiredCapabilities)
+        return attach({ ...config } as Required<ConfigWithSessionId>)
     }
 
     if (!isMultiremote) {
@@ -71,7 +91,7 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
         return remote(sessionConfig)
     }
 
-    const options = {}
+    const options: WebdriverIO.MultiRemoteCapabilities = {}
     log.debug('init multiremote session')
     delete config.capabilities
     for (let browserName of Object.keys(capabilities)) {
@@ -92,7 +112,10 @@ export async function initialiseInstance (config, capabilities, isMultiremote) {
  * @param  {string[]} driverLogTypes    available driver log types
  * @return {string[]}                   logTypes
  */
-export function filterLogTypes(excludeDriverLogs, driverLogTypes) {
+export function filterLogTypes(
+    excludeDriverLogs: string[],
+    driverLogTypes: string[]
+) {
     let logTypes = [...driverLogTypes]
 
     if (Array.isArray(excludeDriverLogs)) {
@@ -115,14 +138,31 @@ export function filterLogTypes(excludeDriverLogs, driverLogTypes) {
  * @param {string} e        event
  * @param {object} payload  payload
  */
-export function sendFailureMessage(e, payload) {
-    if (e === 'test:fail' || (e === 'hook:end' && payload.error && mochaAllHooks.some(hook => payload.title.startsWith(hook)))) {
-        process.send({
+export function sendFailureMessage(e: string, payload: any) {
+    if (
+        e === 'test:fail' ||
+        (
+            e === 'hook:end' &&
+            payload.error &&
+            mochaAllHooks.some(hook => payload.title.startsWith(hook))
+        )
+    ) {
+        process.send!({
             origin: 'reporter',
             name: 'printFailureMessage',
             content: payload
         })
     }
+}
+
+type BrowserData = {
+    sessionId: string
+    isW3C: boolean
+    protocol: string
+    hostname: string
+    port: number
+    path: string
+    queryParams: Record<string, string>
 }
 
 /**
@@ -131,18 +171,21 @@ export function sendFailureMessage(e, payload) {
  * @param {boolean} isMultiremote isMultiremote
  * @return {object}
  */
-export function getInstancesData(browser, isMultiremote) {
-    let instances
-
-    if (isMultiremote) {
-        instances = {}
-        browser.instances.forEach(i => {
-            const { protocol, hostname, port, path, queryParams } = browser[i].options
-            const { isW3C, sessionId } = browser[i]
-
-            instances[i] = { sessionId, isW3C, protocol, hostname, port, path, queryParams }
-        })
+export function getInstancesData (
+    browser: WebdriverIO.MultiRemoteBrowserObject,
+    isMultiremote: boolean
+) {
+    if (!isMultiremote) {
+        return
     }
+
+    const instances: Record<string, Partial<BrowserData>> = {}
+    browser.instances.forEach((browserName) => {
+        const { protocol, hostname, port, path, queryParams } = browser[browserName].options
+        const { isW3C, sessionId } = browser[browserName]
+
+        instances[browserName] = { sessionId, isW3C, protocol, hostname, port, path, queryParams }
+    })
 
     return instances
 }
