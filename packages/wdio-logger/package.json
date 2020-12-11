@@ -22,7 +22,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "types": "./build/node.d.ts",
-  "typeScriptVersion": "3.7.3",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "chalk": "^4.0.0",
     "loglevel": "^1.6.0",

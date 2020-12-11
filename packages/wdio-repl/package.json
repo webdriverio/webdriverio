@@ -23,7 +23,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "types": "./build/index.d.ts",
-  "typeScriptVersion": "3.7.3",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/utils": "6.10.6"
   },

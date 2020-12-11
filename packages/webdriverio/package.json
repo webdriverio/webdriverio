@@ -45,7 +45,7 @@
     "testingbot"
   ],
   "types": "./webdriverio.d.ts",
-  "typeScriptVersion": "3.7.3",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/archiver": "^5.1.0",
     "@types/atob": "^2.1.2",
