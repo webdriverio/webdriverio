@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.7 (2020-12-11)
+
+#### :bug: Bug Fix
+* `wdio-sync`, `webdriverio`
+  * [#6219](https://github.com/webdriverio/webdriverio/pull/6219) Revert "fix: improve executeAsync typing (#6209)" ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v6.10.6 (2020-12-11)
 
 #### :rocket: New Feature
