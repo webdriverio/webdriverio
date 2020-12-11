@@ -7,7 +7,7 @@ import { join, resolve } from 'path'
 jest.mock('./../src/commands/run', () => ({
     ...jest.requireActual('./../src/commands/run') as object,
     handler: jest.fn(
-        (argv) => argv && argv.wrongConfig
+        (argv) => argv && argv.configPath === '/not/existing'
             ? Promise.reject({ stack: 'error' })
             : Promise.resolve('success'))
 }))
@@ -25,7 +25,7 @@ describe('index', () => {
     it('should call config if no known command is used', async () => {
         await run().catch()
         expect((handler as jest.Mock).mock.calls[0][0]).toEqual({
-            _: [join(`${process.cwd()}`, 'wdio.conf.js')],
+            configPath: join(`${process.cwd()}`, 'wdio.conf.js')
         })
     })
 
@@ -34,7 +34,7 @@ describe('index', () => {
         await run().catch()
 
         expect((handler as jest.Mock).mock.calls[0][0]).toEqual({
-            _: [join(`${process.cwd()}`, 'wdio.conf.js')],
+            configPath: join(`${process.cwd()}`, 'wdio.conf.js')
         })
     })
 
@@ -45,13 +45,14 @@ describe('index', () => {
         await run().catch()
 
         expect(handler).toHaveBeenCalledTimes(1)
-        expect((handler as jest.Mock).mock.calls[0][0]._[0]).toBe(expectedPath)
+        expect((handler as jest.Mock).mock.calls[0][0])
+            .toEqual({ configPath: expectedPath })
         ;(yargs.epilogue as jest.Mock).mockClear()
     })
 
     it('should gracefully fail', async () => {
         (yargs.parse as jest.Mock).mockImplementation((str, cb) => cb(null, null, 'test'))
-        yargs.argv.wrongConfig = true
+        yargs.argv._[0] = '/not/existing'
         jest.spyOn(console, 'error')
 
         await run()

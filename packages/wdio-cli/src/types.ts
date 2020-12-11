@@ -49,30 +49,30 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
 }
 
 export interface RunCommandArguments {
-    watch: boolean
-    hostname: string
-    port: number
-    path: string
-    user: string
-    key: string
-    logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-    bail: number
-    baseUrl: string
-    waitforTimeout: number
-    framework: string
-    reporters: any
-    suite: string[]
-    spec: string[]
-    exclude: string[]
-    mochaOpts: any
-    jasmineNodeOpts: any
-    cucumberOpts: any
+    watch?: boolean
+    hostname?: string
+    port?: number
+    path?: string
+    user?: string
+    key?: string
+    logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
+    bail?: number
+    baseUrl?: string
+    waitforTimeout?: number
+    framework?: string
+    reporters?: any
+    suite?: string[]
+    spec?: string[]
+    exclude?: string[]
+    mochaOpts?: any
+    jasmineNodeOpts?: any
+    cucumberOpts?: any
     configPath: string
 
     /**
      * @internal
      */
-    ignoredWorkerServices: string[]
+    ignoredWorkerServices?: string[]
 }
 
 export interface ReplCommandArguments {
