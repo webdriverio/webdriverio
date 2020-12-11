@@ -17,7 +17,7 @@ type ExtendedCapabilities = WebDriver.Capabilities & {
 
 type Capabilities = (ExtendedCapabilities | ExtendedCapabilities[])
 
-export default class BrowserstackLauncherService {
+export default class BrowserstackLauncherService implements WebdriverIO.ServiceInstance {
     options: BrowserstackConfig
     config: WebdriverIO.Config
     browserstackLocal?: BrowserstackLocal
