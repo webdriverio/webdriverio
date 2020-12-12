@@ -112,7 +112,7 @@ If you want the mock not to call the backend at all, you can pass `false` for th
 
 ```js
 mock.response({ ... }, {
-    // do not calll the actual backend
+    // do not call the actual backend
     fetchResponse: false
 })
 ```
