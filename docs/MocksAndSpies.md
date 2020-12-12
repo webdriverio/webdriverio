@@ -117,7 +117,6 @@ mock.response({ ... }, {
 })
 ```
 
-
 It is recommend to store custom responses in fixture files so you can just require them in your test as follows:
 
 ```js
