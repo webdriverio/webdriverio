@@ -40,7 +40,7 @@ export default class BaseReporter {
     constructor(
         private _config: ConfigOptions,
         private _cid: string,
-        private _caps: Capabilities
+        public caps: Capabilities
     ) {
         this._reporterSyncInterval = this._config.reporterSyncInterval || DEFAULT_SYNC_INTERVAL
         this._reporterSyncTimeout = this._config.reporterSyncTimeout || DEFAULT_SYNC_TIMEOUT
@@ -83,7 +83,7 @@ export default class BaseReporter {
             const fileformat = reporterOptions[1].outputFileFormat
 
             options.cid = this._cid
-            options.capabilities = this._caps
+            options.capabilities = this.caps
             Object.assign(options, reporterOptions[1])
 
             if (fileformat) {

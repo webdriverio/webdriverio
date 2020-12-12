@@ -2,7 +2,7 @@ import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
-import { DEFAULT_CONFIGS, ConfigOptions, Capabilities } from '@wdio/config'
+import { DEFAULT_CONFIGS, ConfigOptions, Capabilities, Capability } from '@wdio/config'
 
 const log = logger('@wdio/local-runner:utils')
 
@@ -19,7 +19,7 @@ interface ConfigWithSessionId extends ConfigOptions {
 export function runHook (
     hookName: keyof WebdriverIO.HookFunctions,
     config: ConfigOptions,
-    caps: Capabilities,
+    caps: Capability,
     specs: string[]
 ) {
     const catchFn = (e: Error) => log.error(`Error in ${hookName}: ${e.stack}`)
@@ -40,23 +40,24 @@ export function runHook (
  * @return {Object}       sanitized caps
  */
 export function sanitizeCaps (
-    caps: WebDriver.DesiredCapabilities,
-    filterOut?: string
-) {
+    caps: Capability,
+    filterOut?: boolean
+): Capability {
     const defaultConfigsKeys = [
         // WDIO config keys
         ...Object.keys(DEFAULT_CONFIGS()),
         // WebDriver config keys
         ...Object.keys(DEFAULTS)
     ]
-    return Object.keys(caps).filter((key: keyof WebDriver.Capabilities) => (
+
+    return Object.keys(caps).filter((key: keyof Capability) => (
         /**
          * filter out all wdio config keys
          */
-        !defaultConfigsKeys.includes(key) === !filterOut
+        !defaultConfigsKeys.includes(key as string) === !filterOut
     )).reduce((
-        obj: WebDriver.DesiredCapabilities,
-        key: keyof WebDriver.Capabilities
+        obj: Capability,
+        key: keyof Capability
     ) => {
         obj[key] = caps[key]
         return obj
@@ -73,15 +74,15 @@ export function sanitizeCaps (
 export async function initialiseInstance (
     config: ConfigWithSessionId,
     capabilities: Capabilities,
-    isMultiremote: boolean
+    isMultiremote?: boolean
 ) {
     /**
      * check if config has sessionId and attach it to a running session if so
      */
     if (config.sessionId) {
         log.debug(`attach to session with id ${config.sessionId}`)
-        config.capabilities = sanitizeCaps(capabilities as WebDriver.DesiredCapabilities)
-        return attach({ ...config } as Required<ConfigWithSessionId>)
+        config.capabilities = sanitizeCaps(capabilities)
+        return attach({ ...config } as Capability)
     }
 
     if (!isMultiremote) {
@@ -91,15 +92,20 @@ export async function initialiseInstance (
         return remote(sessionConfig)
     }
 
-    const options: WebdriverIO.MultiRemoteCapabilities = {}
+    const options: WebdriverIO.MultiRemoteOptions = {}
     log.debug('init multiremote session')
     delete config.capabilities
     for (let browserName of Object.keys(capabilities)) {
-        options[browserName] = merge(config, capabilities[browserName], MERGE_OPTIONS)
+        options[browserName] = merge(
+            config,
+            (capabilities as WebdriverIO.MultiRemoteCapabilities)[browserName],
+            MERGE_OPTIONS
+        )
     }
 
     const browser = await multiremote(options, config)
     for (let browserName of Object.keys(capabilities)) {
+        // @ts-ignore allow random global browser names
         global[browserName] = browser[browserName]
     }
 
@@ -172,17 +178,18 @@ type BrowserData = {
  * @return {object}
  */
 export function getInstancesData (
-    browser: WebdriverIO.MultiRemoteBrowserObject,
+    browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject,
     isMultiremote: boolean
 ) {
     if (!isMultiremote) {
         return
     }
 
+    const multiRemoteBrowser = browser as WebdriverIO.MultiRemoteBrowserObject
     const instances: Record<string, Partial<BrowserData>> = {}
-    browser.instances.forEach((browserName) => {
-        const { protocol, hostname, port, path, queryParams } = browser[browserName].options
-        const { isW3C, sessionId } = browser[browserName]
+    multiRemoteBrowser.instances.forEach((browserName) => {
+        const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser[browserName].options
+        const { isW3C, sessionId } = multiRemoteBrowser[browserName]
 
         instances[browserName] = { sessionId, isW3C, protocol, hostname, port, path, queryParams }
     })

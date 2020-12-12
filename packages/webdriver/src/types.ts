@@ -298,6 +298,7 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     // webdriverio specific
     specs?: string[];
     exclude?: string[];
+    excludeDriverLogs?: string[];
 }
 
 export interface VendorExtensions extends EdgeCapabilities {
