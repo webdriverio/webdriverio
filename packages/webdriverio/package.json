@@ -74,7 +74,7 @@
     "minimatch": "^3.0.4",
     "puppeteer-core": "^5.1.0",
     "resq": "^1.9.1",
-    "rgb2hex": "^0.2.1",
+    "rgb2hex": "0.2.3",
     "serialize-error": "^7.0.0",
     "webdriver": "6.10.6"
   }
