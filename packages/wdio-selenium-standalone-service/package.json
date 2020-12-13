@@ -1,6 +1,6 @@
 {
   "name": "@wdio/selenium-standalone-service",
-  "version": "6.10.6",
+  "version": "6.10.10",
   "description": "A WebdriverIO service to start & stop Selenium Standalone",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-selenium-standalone-service",
@@ -29,8 +29,8 @@
   "dependencies": {
     "@types/fs-extra": "^9.0.1",
     "@types/selenium-standalone": "^6.15.2",
-    "@wdio/config": "6.10.6",
-    "@wdio/logger": "6.10.4",
+    "@wdio/config": "6.10.10",
+    "@wdio/logger": "6.10.10",
     "fs-extra": "^9.0.1",
     "selenium-standalone": "^6.22.1"
   },

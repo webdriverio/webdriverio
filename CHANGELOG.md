@@ -17,6 +17,24 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.10 (2020-12-13)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `webdriverio`
+  * [#6227](https://github.com/webdriverio/webdriverio/pull/6227) wdio-cli: fix local runner in config ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#6225](https://github.com/webdriverio/webdriverio/pull/6225) Update MocksAndSpies.md ([@aelfric](https://github.com/aelfric))
+
+#### :house: Internal
+* `devtools`, `wdio-logger`, `wdio-repl`, `wdio-sync`, `webdriver`, `webdriverio`
+  * [#6222](https://github.com/webdriverio/webdriverio/pull/6222) run tests for typescript 3.7 ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Frank Riccobono ([@aelfric](https://github.com/aelfric))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
 ## v6.10.9 (2020-12-11)
 
 #### :bug: Bug Fix
