@@ -42,12 +42,12 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     console.log(CONFIG_HELPER_INTRO)
     const answers = await getAnswers(yes)
     const frameworkPackage = convertPackageHashToObject(answers.framework)
-    const runnerPackage = convertPackageHashToObject(answers.runner || 'local')
+    const runnerPackage = convertPackageHashToObject(answers.runner || SUPPORTED_PACKAGES.runner[0].value)
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
 
     const packagesToInstall: string[] = [
-        runnerPackage.package || '@wdio/local-runner',
+        runnerPackage.package,
         frameworkPackage.package,
         ...reporterPackages.map(reporter => reporter.package),
         ...servicePackages.map(service => service.package)
@@ -71,7 +71,6 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     }
 
     console.log('\nPackages installed successfully, creating configuration file...')
-    const defaultRunner = SUPPORTED_PACKAGES.runner[0].name
 
     /**
      * find relative paths between tests and pages
@@ -81,7 +80,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
     const parsedAnswers: ParsedAnswers = {
         ...answers,
-        runner: runnerPackage.short || defaultRunner,
+        runner: runnerPackage.short,
         framework: frameworkPackage.short,
         reporters: reporterPackages.map(({ short }) => short),
         services: servicePackages.map(({ short }) => short),
