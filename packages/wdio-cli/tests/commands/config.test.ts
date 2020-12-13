@@ -7,7 +7,7 @@ import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, ge
 
 jest.mock('../../src/utils', () => ({
     addServiceDeps: jest.fn(),
-    convertPackageHashToObject: jest.fn().mockReturnValue('foobar'),
+    convertPackageHashToObject: jest.fn().mockImplementation(jest.requireActual('../../src/utils').convertPackageHashToObject),
     renderConfigurationFile: jest.fn(),
     hasFile: jest.fn().mockReturnValue(false),
     getAnswers: jest.fn().mockImplementation(jest.requireActual('../../src/utils').getAnswers),
@@ -59,7 +59,6 @@ test('should log error if creating config file fails', async () => {
 test('installs @wdio/sync if user requests to run in sync mode', async () => {
     (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         executionMode: 'sync',
-        runner: '@wdio/local-runner--$local',
         framework: '@wdio/mocha-framework$--$mocha',
         generateTestFiles: true,
         reporters: [],
@@ -68,7 +67,7 @@ test('installs @wdio/sync if user requests to run in sync mode', async () => {
     await handler({} as any)
     expect(generateTestFiles).toBeCalledTimes(1)
     expect(yarnInstall).toHaveBeenCalledWith({
-        deps: ['@wdio/local-runner', undefined, '@wdio/sync'],
+        deps: ['@wdio/local-runner', '@wdio/mocha-framework', '@wdio/sync'],
         dev: true,
         respectNpm5: true
     })
@@ -98,16 +97,14 @@ test('should throw an error if something goes wrong', async () => {
     }
 })
 
-test('prints TypeScript setup message', async () => {
-    (convertPackageHashToObject as jest.Mock).mockImplementation((input) => input)
-    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+test.only('prints TypeScript setup message', async () => {
+    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         executionMode: 'sync',
-        runner: '@wdio/local-runner--$local',
-        framework: { package: '@wdio/mocha-framework', short: 'mocha' },
+        framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
-            { package: '@wdio/crossbrowsertesting-service', short: 'crossbrowsertesting' },
-            { package: 'wdio-lambdatest-service', short: 'lambdatest' }
+            '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
+            'wdio-lambdatest-service$--$lambdatest'
         ],
         generateTestFiles: false,
         isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
