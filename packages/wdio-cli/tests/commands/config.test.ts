@@ -97,7 +97,7 @@ test('should throw an error if something goes wrong', async () => {
     }
 })
 
-test.only('prints TypeScript setup message', async () => {
+test('prints TypeScript setup message', async () => {
     (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
