@@ -11,7 +11,7 @@ interface Retries {
     attempts: number
 }
 
-let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hooks: Function | Function[] = [], args: any | any[] = []): Promise<(T | Error)[]> {
+let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */
@@ -50,7 +50,10 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hooks: Fu
         resolve(result)
     }))
 
-    return Promise.all(hooksPromises)
+    const start = Date.now()
+    const result = await Promise.all(hooksPromises)
+    log.info(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
+    return result
 }
 
 let runFnInFiberContext = function (fn: Function) {
@@ -69,7 +72,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
             inCommandHook = true
-            await executeHooksWithArgs.call(this, this.options.beforeCommand, beforeHookArgs)
+            await executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs)
             inCommandHook = false
         }
 
@@ -84,7 +87,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
         if (!inCommandHook && this.options.afterCommand) {
             inCommandHook = true
             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
-            await executeHooksWithArgs.call(this, this.options.afterCommand, afterHookArgs)
+            await executeHooksWithArgs.call(this, 'afterCommand', this.options.afterCommand, afterHookArgs)
             inCommandHook = false
         }
 

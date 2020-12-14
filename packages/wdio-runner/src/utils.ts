@@ -15,27 +15,6 @@ export interface ConfigWithSessionId extends Omit<ConfigOptions, 'capabilities'>
 }
 
 /**
- * run before/after session hook
- */
-export function runHook (
-    hookName: keyof WebdriverIO.HookFunctions,
-    config: ConfigOptions,
-    caps: Capability,
-    specs: string[]
-) {
-    const catchFn = (e: Error) => log.error(`Error in ${hookName}: ${e.stack}`)
-    return config && Array.isArray(config[hookName])
-        ? Promise.all((config[hookName] as Function[]).map((hook) => {
-            try {
-                return hook(config, caps, specs)
-            } catch (e) {
-                return catchFn(e)
-            }
-        })).catch(catchFn)
-        : undefined
-}
-
-/**
  * sanitizes wdio config from capability properties
  * @param  {Object} caps  desired session capabilities
  * @return {Object}       sanitized caps

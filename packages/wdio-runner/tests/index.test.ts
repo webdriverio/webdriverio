@@ -247,7 +247,7 @@ describe('wdio-runner', () => {
 
             expect(runner._shutdown).toBeCalledWith(123, 2)
             expect(beforeSession).toBeCalledWith(config, caps, specs)
-            expect(executeHooksWithArgs).toBeCalledWith(config.before, [caps, specs, stubBrowser])
+            expect(executeHooksWithArgs).toBeCalledWith('before', config.before, [caps, specs, stubBrowser])
 
             // session capabilities should be passed to reporter
             expect(runner['_reporter']?.caps).toEqual({ browserName: 'chrome' })

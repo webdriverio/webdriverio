@@ -125,7 +125,7 @@ class MochaAdapter {
             this._runner.suite.beforeAll(this.wrapHook('beforeSuite'))
             this._runner.suite.afterAll(this.wrapHook('afterSuite'))
         })
-        await executeHooksWithArgs(this._config.after as Function, [runtimeError || result, this._capabilities, this._specs])
+        await executeHooksWithArgs('after', this._config.after as Function, [runtimeError || result, this._capabilities, this._specs])
 
         /**
          * in case the spec has a runtime error throw after the wdio hook
@@ -187,8 +187,9 @@ class MochaAdapter {
      */
     wrapHook (hookName: keyof WebdriverIO.HookFunctions) {
         return () => executeHooksWithArgs(
+            hookName,
             this._config[hookName] as Function,
-            this.prepareMessage(hookName)
+            [this.prepareMessage(hookName)]
         ).catch((e) => {
             log.error(`Error in ${hookName} hook: ${e.stack.slice(7)}`)
         })
