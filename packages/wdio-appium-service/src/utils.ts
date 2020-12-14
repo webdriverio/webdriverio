@@ -21,23 +21,26 @@ export function getFilePath (filePath: string, defaultFilename: string): string 
     return absolutePath
 }
 
-export function cliArgsFromKeyValue (keyValueArgs: KeyValueArgs): string[] {
+export function formatCliArgs(args: KeyValueArgs | ArgValue[]): string[] {
+    if (Array.isArray(args)) {
+        return args.map(arg => sanitizeCliOptionValue(arg))
+    }
+
     const cliArgs = []
-    for (const key in keyValueArgs) {
-        let value:  ArgValue | ArgValue[] = keyValueArgs[key]
+    for (const key in args) {
+        let value:  ArgValue | ArgValue[] = args[key]
         // If the value is false or null the argument is discarded
         if ((typeof value === 'boolean' && !value) || value === null) {
             continue
         }
 
         cliArgs.push(`--${paramCase(key)}`)
-        cliArgs.push(sanitizeCliOptionValue(value))
+        // Only non-boolean and non-null values are added as option values
+        if (typeof value !== 'boolean' && value !== null) {
+            cliArgs.push(sanitizeCliOptionValue(value))
+        }
     }
     return cliArgs
-}
-
-export function cliArgsFromArray (args: ArgValue[]): string[] {
-    return args.map(arg => sanitizeCliOptionValue(arg))
 }
 
 export function sanitizeCliOptionValue (value: ArgValue) {

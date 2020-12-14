@@ -1,9 +1,9 @@
-import { getFilePath, getAppiumCommand, cliArgsFromKeyValue } from '../src/utils'
+import { getFilePath, formatCliArgs } from '../src/utils'
 import path from 'path'
 
 describe('getFilePath', () => {
-    let basePath = null
-    let defaultFilename = null
+    let basePath: string
+    let defaultFilename: string
 
     beforeAll(() => {
         basePath = process.cwd()
@@ -149,20 +149,9 @@ describe('getFilePath', () => {
     })
 })
 
-describe('_getAppiumCommand', () => {
-    test('should return path to dependency', () => {
-        expect(getAppiumCommand('fs-extra'))
-            .toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/fs-extra/lib/index.js'))
-    })
-    test('should be appium by default', () => {
-        expect(() => getAppiumCommand())
-            .toThrow("Cannot find module 'appium' from 'packages/wdio-appium-service/src/utils.js'")
-    })
-})
-
 describe('argument formatting', () => {
     test('should format arguments correctly', () => {
-        const args = cliArgsFromKeyValue({
+        const args = formatCliArgs({
             address: '127.0.0.1',
             commandTimeout: '7200',
             showIosLog: false,
@@ -175,11 +164,15 @@ describe('argument formatting', () => {
         expect(args[2]).toBe('--command-timeout')
         expect(args[3]).toBe('7200')
         expect(args[4]).toBe('--session-override')
+        expect(args[5]).toBe('--app')
+        expect(args[6]).toBe('\'/Users/frodo/My Projects/the-ring/the-ring.app\'')
+        expect(args.length).toBe(7)
     })
-    test('should not format arguments if array passed', () => {
-        const argsArray = ['-p', 4723]
-        const args = cliArgsFromKeyValue(argsArray)
 
-        expect(args).toBe(argsArray)
+    test('should coerce arguments to string if array is passed', () => {
+        const argsArray = ['-p', 4723]
+        const args = formatCliArgs(argsArray)
+
+        expect(args).toEqual(['-p', '4723'])
     })
 })

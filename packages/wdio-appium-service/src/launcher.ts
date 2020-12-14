@@ -2,11 +2,7 @@ import logger from '@wdio/logger'
 import { ChildProcessByStdio, spawn } from 'child_process'
 import { createWriteStream, ensureFileSync } from 'fs-extra'
 import { promisify } from 'util'
-import {
-    getFilePath,
-    cliArgsFromKeyValue,
-    cliArgsFromArray,
-} from './utils'
+import { getFilePath, formatCliArgs } from './utils'
 import { Readable } from 'stream'
 import { isCloudCapability } from '@wdio/config'
 
@@ -89,11 +85,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
         /**
          * Append remaining arguments
          */
-        if (Array.isArray(this._args)) {
-            this._appiumCliArgs.push(...cliArgsFromArray(this._args))
-        } else {
-            this._appiumCliArgs.push(...cliArgsFromKeyValue(this._args))
-        }
+        this._appiumCliArgs.push(...formatCliArgs(this._args))
 
         this._setCapabilities()
 
