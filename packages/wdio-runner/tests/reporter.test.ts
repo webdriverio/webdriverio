@@ -65,7 +65,7 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', {
                     foo: 'bar',
-                    outputFileFormat: (options) => {
+                    outputFileFormat: (options: any) => {
                         return `wdio-results-${options.cid}.xml`
                     }
                 }]

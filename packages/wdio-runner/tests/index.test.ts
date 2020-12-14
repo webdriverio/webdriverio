@@ -129,6 +129,7 @@ describe('wdio-runner', () => {
 
         afterEach(() => {
             (fs.writeFile as any as jest.Mock).mockClear()
+            // @ts-ignore test scenario
             delete global.browser
         })
     })
@@ -200,6 +201,7 @@ describe('wdio-runner', () => {
         })
 
         afterEach(() => {
+            // @ts-ignore test scenario
             delete global.browser
         })
     })
@@ -248,7 +250,7 @@ describe('wdio-runner', () => {
             expect(executeHooksWithArgs).toBeCalledWith(config.before, [caps, specs, stubBrowser])
 
             // session capabilities should be passed to reporter
-            expect(runner['_reporter'].caps).toEqual({ browserName: 'chrome' })
+            expect(runner['_reporter']?.caps).toEqual({ browserName: 'chrome' })
         })
 
         it('should return failures count', async () => {
@@ -368,10 +370,11 @@ describe('wdio-runner', () => {
 
             // user defined capabilities should be used until
             // browser session is started
-            expect(runner['_reporter'].caps).toEqual(caps)
+            expect(runner['_reporter']?.caps).toEqual(caps)
         })
 
         afterEach(() => {
+            // @ts-ignore test scenario
             delete global.browser
         })
     })
@@ -388,14 +391,14 @@ describe('wdio-runner', () => {
             expect(typeof $).toBe('function')
             expect(typeof $$).toBe('function')
 
-            expect(browser.$).toBeCalledTimes(0)
-            expect(browser.$$).toBeCalledTimes(0)
+            expect(browser!.$).toBeCalledTimes(0)
+            expect(browser!.$$).toBeCalledTimes(0)
             /* eslint-disable-next-line */
             $('foobar')
             /* eslint-disable-next-line */
             $$('barfoo')
-            expect(browser.$).toBeCalledTimes(1)
-            expect(browser.$$).toBeCalledTimes(1)
+            expect(browser!.$).toBeCalledTimes(1)
+            expect(browser!.$$).toBeCalledTimes(1)
         })
 
         it('should register before and after command listener', async () => {
@@ -408,7 +411,7 @@ describe('wdio-runner', () => {
                 [{ browserName: 'chrome' }] as any
             )
 
-            const beforeListener = (browser.on as jest.Mock).mock.calls[0]
+            const beforeListener = (browser!.on as jest.Mock).mock.calls[0]
             expect(beforeListener[0]).toBe('command')
             beforeListener[1]({ foo: 'bar' })
             expect(reporter.emit).toBeCalledWith(
@@ -417,7 +420,7 @@ describe('wdio-runner', () => {
 
             reporter.emit.mockClear()
 
-            const afterListener = (browser.on as jest.Mock).mock.calls[1]
+            const afterListener = (browser!.on as jest.Mock).mock.calls[1]
             expect(afterListener[0]).toBe('result')
             afterListener[1]({ bar: 'foo' })
             expect(reporter.emit).toBeCalledWith(
@@ -441,9 +444,13 @@ describe('wdio-runner', () => {
         afterEach(() => {
             // @ts-ignore test scenario
             delete global.throwRemoteCall
+            // @ts-ignore test scenario
             delete global.browser
+            // @ts-ignore test scenario
             delete global.driver
+            // @ts-ignore test scenario
             delete global.$
+            // @ts-ignore test scenario
             delete global.$$
         })
     })
@@ -458,7 +465,7 @@ describe('wdio-runner', () => {
             runner.emit = jest.fn()
 
             expect(await runner._shutdown(123, 123)).toBe(123)
-            expect(runner['_reporter'].waitForSync).toBeCalledTimes(1)
+            expect(runner['_reporter']!.waitForSync).toBeCalledTimes(1)
             expect(runner.emit).toBeCalledWith('exit', 1)
         })
 
@@ -474,7 +481,7 @@ describe('wdio-runner', () => {
             runner.emit = jest.fn()
 
             expect(await runner._shutdown(123, 123)).toBe(123)
-            expect(runner['_reporter'].waitForSync).toBeCalledTimes(1)
+            expect(runner['_reporter']!.waitForSync).toBeCalledTimes(1)
             expect(runner.emit).toBeCalledWith('exit', 1)
             expect(log.error).toHaveBeenCalledWith('foo')
         })
@@ -483,6 +490,7 @@ describe('wdio-runner', () => {
     afterEach(() => {
         (executeHooksWithArgs as jest.Mock).mockClear()
         ;(attach as jest.Mock).mockClear()
+        // @ts-ignore test scenario
         delete global.browser
     })
 })

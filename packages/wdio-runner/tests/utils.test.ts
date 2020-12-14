@@ -213,11 +213,13 @@ describe('utils', () => {
                     sessionId,
                     options: { protocol, hostname, port, path, queryParams }
                 }
-            } as any as WebdriverIO.MultiRemoteBrowserObject, true)).toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })
+            } as any as WebdriverIO.MultiRemoteBrowserObject, true))
+                .toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })
         })
 
         it('isMultiremote = false', () => {
-            expect(getInstancesData(null, false)).toEqual(undefined)
+            expect(getInstancesData({} as WebdriverIO.BrowserObject, false))
+                .toEqual(undefined)
         })
     })
 })

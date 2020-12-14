@@ -370,7 +370,7 @@ export default class Runner extends EventEmitter {
          * make sure instance(s) exist and have `sessionId`
          */
         const multiremoteBrowser = global.browser as WebdriverIO.MultiRemoteBrowserObject
-        const hasSessionId = global.browser && (this._isMultiremote
+        const hasSessionId = Boolean(global.browser) && (this._isMultiremote
             /**
              * every multiremote instance should exist and should have `sessionId`
              */
@@ -391,10 +391,10 @@ export default class Runner extends EventEmitter {
         /**
          * store capabilities for afterSession hook
          */
-        let capabilities: WebDriver.DesiredCapabilities | WebdriverIO.MultiRemoteCapabilities = global.browser.capabilities || {}
+        const capabilities: WebDriver.DesiredCapabilities | Record<string, WebDriver.DesiredCapabilities> = global.browser.capabilities || {}
         if (this._isMultiremote) {
             multiremoteBrowser.instances.forEach((browserName) => {
-                (capabilities as WebdriverIO.MultiRemoteCapabilities)[browserName].capabilities = multiremoteBrowser[browserName].capabilities
+                (capabilities as Record<string, WebDriver.DesiredCapabilities>)[browserName] = multiremoteBrowser[browserName].capabilities
             })
         }
 
