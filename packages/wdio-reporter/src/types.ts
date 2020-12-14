@@ -1,3 +1,8 @@
+export interface Tag {
+    name: string;
+    line: number;
+}
+
 export interface CommandArgs {
     sessionId: string
     method?: string

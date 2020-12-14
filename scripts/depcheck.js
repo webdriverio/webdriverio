@@ -15,8 +15,7 @@ require('events').EventEmitter.defaultMaxListeners = packages.length + 3
 const ROOT_DIR = path.join(__dirname, '..')
 const EXEC_OPTIONS = { silent: true, async: true }
 const IGNORE_PACKAGES = {
-    'wdio-reporter': ['cucumber'],
-    'wdio-allure-reporter': ['cucumber'],
+    'wdio-reporter': ['cucumber']
 }
 
 ;(async () => {

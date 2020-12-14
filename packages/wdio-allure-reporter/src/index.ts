@@ -1,5 +1,4 @@
-import WDIOReporter, { SuiteStats, HookStats, TestStats, BeforeCommandArgs, AfterCommandArgs, CommandArgs, WDIOReporterBaseOptions } from '@wdio/reporter'
-import { Tag } from 'cucumber'
+import WDIOReporter, { SuiteStats, Tag, HookStats, TestStats, BeforeCommandArgs, AfterCommandArgs, CommandArgs, WDIOReporterBaseOptions } from '@wdio/reporter'
 import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
 import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate } from './utils'

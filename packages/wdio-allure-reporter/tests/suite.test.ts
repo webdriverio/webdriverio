@@ -34,7 +34,7 @@ describe('Passing tests', () => {
     let allureXml: any
 
     beforeAll(() => {
-        const reporter = new AllureReporter({ stdout: true, outputDir })
+        const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -138,7 +138,7 @@ describe('Failed tests', () => {
     })
 
     it('should detect failed test case', () => {
-        const reporter = new AllureReporter({ stdout: true, outputDir })
+        const reporter = new AllureReporter({ outputDir })
 
         const runnerEvent = runnerStart()
         delete runnerEvent.capabilities.browserName
@@ -163,7 +163,7 @@ describe('Failed tests', () => {
     })
 
     it('should detect failed test case without start event', () => {
-        const reporter = new AllureReporter({ stdout: true, outputDir })
+        const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -180,7 +180,7 @@ describe('Failed tests', () => {
     })
 
     it('should detect failed test case with multiple errors', () => {
-        const reporter = new AllureReporter({ stdout: true, outputDir })
+        const reporter = new AllureReporter({ outputDir })
 
         const runnerEvent = runnerStart()
         runnerEvent.config.framework = 'jasmine'
@@ -208,7 +208,7 @@ describe('Failed tests', () => {
     })
 
     it('should detect failed test case with Assertion failed from expect-webdriverIO', () => {
-        const reporter = new AllureReporter({ stdout: true, outputDir })
+        const reporter = new AllureReporter({ outputDir })
 
         const runnerEvent = runnerStart()
         delete runnerEvent.capabilities.browserName
@@ -245,7 +245,7 @@ describe('Pending tests', () => {
 
     it('should detect started pending test case', () => {
         outputDir = directory()
-        const reporter = new AllureReporter({ stdout: true, outputDir })
+        const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -264,7 +264,7 @@ describe('Pending tests', () => {
 
     it('should detect not started pending test case', () => {
         outputDir = directory()
-        const reporter = new AllureReporter({ stdout: true, outputDir })
+        const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
         reporter.onSuiteStart(suiteStart())
@@ -282,7 +282,7 @@ describe('Pending tests', () => {
 
     it('should detect not started pending test case after completed test', () => {
         outputDir = directory()
-        const reporter = new AllureReporter({ stdout: true, outputDir })
+        const reporter = new AllureReporter({ outputDir })
         let passed = testStart()
         passed = {
             ...passed,
@@ -314,7 +314,7 @@ describe('Pending tests', () => {
 })
 
 describe('Hook start', () => {
-    let outputDir
+    let outputDir: any
     let allureXml
 
     beforeEach(() => {
@@ -326,9 +326,9 @@ describe('Hook start', () => {
     })
 
     for (const hookFirst of [true, false]) {
-        it(`should use currentTest if provided by hook and not report multiple tests when start hook comes ${hookFirst?'first':'second'}`, () => {
+        it(`should use currentTest if provided by hook and not report multiple tests when start hook comes ${hookFirst ? 'first' : 'second'}`, () => {
 
-            const reporter = new AllureReporter({ stdout: true, outputDir })
+            const reporter = new AllureReporter({ outputDir })
 
             const runnerEvent = runnerStart()
             delete runnerEvent.capabilities.browserName
@@ -455,7 +455,7 @@ for (const protocol of ['webdriver', 'devtools']) {
                 disableWebdriverStepsReporting: true
             }
             const reporter = new AllureReporter(allureOptions)
-            reporter.onRunnerStart(Object.assign(runnerStart(), ))
+            reporter.onRunnerStart(Object.assign(runnerStart(),))
             reporter.onSuiteStart(suiteStart())
             reporter.onTestStart(testStart())
             reporter.onBeforeCommand(commandStart(protocol === 'devtools'))

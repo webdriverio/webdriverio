@@ -1,4 +1,4 @@
-import { Tag } from 'cucumber'
+import { Tag } from '../types'
 import HookStats from './hook'
 import RunnableStats from './runnable'
 import TestStats from './test'

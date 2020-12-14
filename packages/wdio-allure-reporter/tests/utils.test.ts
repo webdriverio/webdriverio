@@ -115,7 +115,7 @@ describe('utils', () => {
             const testStat = {
                 error: new Error('Everything is Broken Forever')
             }
-            expect(getErrorFromFailedTest(testStat as any).message).toBe('Everything is Broken Forever')
+            expect(getErrorFromFailedTest(testStat as any)!.message).toBe('Everything is Broken Forever')
         })
 
         it('should return a single error when there is an errors array with one error', () => {
@@ -123,7 +123,7 @@ describe('utils', () => {
                 errors: [new Error('Everything is Broken Forever')],
                 error: new Error('Everything is Broken Forever')
             }
-            expect(getErrorFromFailedTest(testStat as any).message).toBe('Everything is Broken Forever')
+            expect(getErrorFromFailedTest(testStat as any)!.message).toBe('Everything is Broken Forever')
         })
 
         it('should return a CompoundError of the errors when there is more than one error', () => {
