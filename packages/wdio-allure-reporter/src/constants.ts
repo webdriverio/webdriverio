@@ -21,8 +21,7 @@ const stepStatuses: Record<string, Allure.Status> = {
     SKIPPED
 } as const
 
-// Node 12 types only accept pre-defined strings
-const events: any = {
+const events = {
     addLabel: 'allure:addLabel',
     addFeature: 'allure:addFeature',
     addStory: 'allure:addStory',

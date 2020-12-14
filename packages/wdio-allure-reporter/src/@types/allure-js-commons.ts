@@ -6,12 +6,12 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 2.7
 declare module 'allure-js-commons/beans/step' {
-    declare class Step {}
+    class Step {}
     export = Step
 }
 
 declare module 'allure-js-commons' {
-    declare class Allure {
+    class Allure {
         constructor();
 
         setOptions(options: Allure.Options): void;
@@ -29,19 +29,18 @@ declare module 'allure-js-commons' {
     }
 
     export = Allure;
-    export as namespace Allure;
-    declare namespace Allure {
+    namespace Allure {
         interface Options {
             targetDir: string;
         }
 
         // type Status = "passed" | "pending" | "skipped" | "failed" | "broken";
-        type Status = "passed" | "pending" | "skipped" | "failed" | "broken" | "canceled";
+        type Status = 'passed' | 'pending' | 'skipped' | 'failed' | 'broken' | 'canceled';
 
         enum TYPE {
-            TEXT = "text",
-            HTML = "html",
-            MARKDOWN = "markdown"
+            TEXT = 'text',
+            HTML = 'html',
+            MARKDOWN = 'markdown'
         }
 
         class Suite {
@@ -59,8 +58,9 @@ declare module 'allure-js-commons' {
 
         class Test {
             steps: Allure.Step[];
+            name: string;
 
-            constructor(public name: string, timestamp?: number);
+            constructor(name: string, timestamp?: number);
 
             setDescription(description: string, type: TYPE): void;
             addLabel(name: string, value?: string): void;

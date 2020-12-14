@@ -64,8 +64,9 @@ export const isMochaAllHooks = (title: string) => mochaAllHooks.some(hook => tit
  * @param {Object} msg - event payload
  * @private
  */
-export const tellReporter = (event: any, msg: any = {}) => {
-    process.emit(event, msg)
+export const tellReporter = (event: string, msg: any = {}) => {
+    // Node 14 typings does not accept string in process.emit, but allow string in process.on
+    process.emit(event as any, msg)
 }
 
 /**

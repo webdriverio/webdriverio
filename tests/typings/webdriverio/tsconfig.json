@@ -3,7 +3,6 @@
     "outDir": "dist",
     "noImplicitAny": true,
     "lib": ["es2018", "dom"],
-    "esModuleInterop": true,
     "types": [
       "webdriverio",
       "@wdio/allure-reporter",
