@@ -9,7 +9,7 @@ const log = logger('@wdio/local-runner:utils')
 const MERGE_OPTIONS = { clone: false }
 const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
-interface ConfigWithSessionId extends Omit<ConfigOptions, 'capabilities'> {
+export interface ConfigWithSessionId extends Omit<ConfigOptions, 'capabilities'> {
     capabilities?: Capability
     sessionId?: string
 }
@@ -24,7 +24,7 @@ export function runHook (
     specs: string[]
 ) {
     const catchFn = (e: Error) => log.error(`Error in ${hookName}: ${e.stack}`)
-    return Array.isArray(config[hookName])
+    return config && Array.isArray(config[hookName])
         ? Promise.all((config[hookName] as Function[]).map((hook) => {
             try {
                 return hook(config, caps, specs)

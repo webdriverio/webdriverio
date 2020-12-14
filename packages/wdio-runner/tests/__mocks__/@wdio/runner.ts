@@ -1,9 +1,9 @@
 const instances = []
 
 export default class RunnerMock {
+    public run = jest.fn().mockReturnValue(Promise.resolve({ foo: 'bar' }))
+    public on = jest.fn()
     constructor () {
-        this.run = jest.fn().mockReturnValue(Promise.resolve({ foo: 'bar' }))
-        this.on = jest.fn()
         instances.push(this)
     }
 }

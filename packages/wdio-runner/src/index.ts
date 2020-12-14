@@ -262,7 +262,6 @@ export default class Runner extends EventEmitter {
             browser = global.browser = global.driver = await initialiseInstance(config, caps, this._isMultiremote)
         } catch (e) {
             log.error(e)
-            this.emit('error', e)
             return
         }
 
@@ -394,8 +393,8 @@ export default class Runner extends EventEmitter {
          */
         let capabilities: WebDriver.DesiredCapabilities | WebdriverIO.MultiRemoteCapabilities = global.browser.capabilities || {}
         if (this._isMultiremote) {
-            multiremoteBrowser.instances.forEach((i) => {
-                (capabilities as any as WebdriverIO.MultiRemoteCapabilities)[i].capabilities = multiremoteBrowser[i].capabilities
+            multiremoteBrowser.instances.forEach((browserName) => {
+                (capabilities as WebdriverIO.MultiRemoteCapabilities)[browserName].capabilities = multiremoteBrowser[browserName].capabilities
             })
         }
 
