@@ -16,18 +16,20 @@ export const getTestStatus = (test: TestStats | HookStats, config: any) : Allure
         return 'failed'
     }
 
-    if (test.error?.name && test.error.message) {
-        const message = test.error.message.trim()
-        return (test.error.name === 'AssertionError' || message.includes('Expect'))  ? 'failed' : 'broken'
-    }
+    if (test.error) {
+        if (test.error.name && test.error.message) {
+            const message = test.error.message.trim()
+            return (test.error.name === 'AssertionError' || message.includes('Expect'))  ? 'failed' : 'broken'
+        }
 
-    if (test.error?.name) {
-        return test.error.name === 'AssertionError' ? 'failed' : 'broken'
-    }
+        if (test.error.name) {
+            return test.error.name === 'AssertionError' ? 'failed' : 'broken'
+        }
 
-    if (test.error?.stack) {
-        const stackTrace = test.error.stack.trim()
-        return (stackTrace.startsWith('AssertionError') || stackTrace.includes('Expect'))  ? 'failed' : 'broken'
+        if (test.error.stack) {
+            const stackTrace = test.error.stack.trim()
+            return (stackTrace.startsWith('AssertionError') || stackTrace.includes('Expect'))  ? 'failed' : 'broken'
+        }
     }
 
     return 'broken'
@@ -72,7 +74,7 @@ export const tellReporter = (event: any, msg: any = {}) => {
  * @returns {Object} - error object
  * @private
  */
-export const getErrorFromFailedTest = (test: TestStats | HookStats) => {
+export const getErrorFromFailedTest = (test: TestStats | HookStats) : Error | CompoundError | undefined  => {
     if (test.errors && Array.isArray(test.errors)) {
         for (let i = 0; i < test.errors.length; i += 1){
             if (test.errors[i].message) test.errors[i].message = stripAnsi(test.errors[i].message)
@@ -80,8 +82,12 @@ export const getErrorFromFailedTest = (test: TestStats | HookStats) => {
         }
         return test.errors.length === 1 ? test.errors[0] : new CompoundError(...test.errors as Error[])
     }
-    if (test.error?.message) test.error.message = stripAnsi(test.error.message)
-    if (test.error?.stack) test.error.stack = stripAnsi(test.error.stack)
+
+    if (test.error) {
+        if (test.error.message) test.error.message = stripAnsi(test.error.message)
+        if (test.error.stack) test.error.stack = stripAnsi(test.error.stack)
+    }
+
     return test.error
 }
 

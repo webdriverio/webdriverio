@@ -16,37 +16,42 @@ describe('utils', () => {
 
     describe('getTestStatus', () => {
         it('return  status for jasmine', () => {
-            expect(getTestStatus({}, { framework: 'jasmine' })).toEqual(testStatuses.FAILED)
+            expect(getTestStatus({} as any, { framework: 'jasmine' })).toEqual(testStatuses.FAILED)
+        })
+
+        it('broken for test with no error', () => {
+            const config = { framework: 'mocha' }
+            expect(getTestStatus({} as any, config)).toEqual(testStatuses.BROKEN)
         })
 
         it('failed for AssertionError', () => {
             const config = { framework: 'mocha' }
             const test = { error: { name: 'AssertionError' } }
-            expect(getTestStatus(test, config)).toEqual(testStatuses.FAILED)
+            expect(getTestStatus(test as any, config)).toEqual(testStatuses.FAILED)
         })
 
         it('failed for AssertionError stacktrace', () => {
             const config = { framework: 'mocha' }
             const test = { error: { stack: 'AssertionError' } }
-            expect(getTestStatus(test, config)).toEqual(testStatuses.FAILED)
+            expect(getTestStatus(test as any, config)).toEqual(testStatuses.FAILED)
         })
 
         it('broken for not AssertionError', () => {
             const config = { framework: 'mocha' }
             const test = { error: { name: 'MyError' } }
-            expect(getTestStatus(test, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
         })
 
         it('broken for error without stacktrace', () => {
             const config = { framework: 'mocha' }
             const test = { error: {} }
-            expect(getTestStatus(test, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
         })
 
         it('failed status for not AssertionError stacktrace', () => {
             const config = { framework: 'mocha' }
             const test = { error: { stack: 'MyError stack trace' } }
-            expect(getTestStatus(test, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
         })
     })
 
@@ -100,12 +105,17 @@ describe('utils', () => {
     })
 
     describe('getErrorFromFailedTest', () => {
+        it('should handle test with no error object', () => {
+            const testStat = {}
+            expect(getErrorFromFailedTest(testStat as any)).toBeUndefined()
+        })
+
         // wdio-mocha-framework returns a single 'error', while wdio-jasmine-framework returns an array of 'errors'
         it('should return just the error property when there is no errors property', () => {
             const testStat = {
                 error: new Error('Everything is Broken Forever')
             }
-            expect(getErrorFromFailedTest(testStat).message).toBe('Everything is Broken Forever')
+            expect(getErrorFromFailedTest(testStat as any).message).toBe('Everything is Broken Forever')
         })
 
         it('should return a single error when there is an errors array with one error', () => {
@@ -113,7 +123,7 @@ describe('utils', () => {
                 errors: [new Error('Everything is Broken Forever')],
                 error: new Error('Everything is Broken Forever')
             }
-            expect(getErrorFromFailedTest(testStat).message).toBe('Everything is Broken Forever')
+            expect(getErrorFromFailedTest(testStat as any).message).toBe('Everything is Broken Forever')
         })
 
         it('should return a CompoundError of the errors when there is more than one error', () => {
@@ -121,8 +131,9 @@ describe('utils', () => {
                 errors: [new Error('Everything is Broken Forever'), new Error('Additional things are broken')],
                 error: new Error('Everything is Broken Forever')
             }
-            expect(getErrorFromFailedTest(testStat) instanceof CompoundError).toBe(true)
-            expect(getErrorFromFailedTest(testStat).innerErrors).toEqual(testStat.errors)
+            const error = getErrorFromFailedTest(testStat as any) as CompoundError
+            expect(error instanceof CompoundError).toBe(true)
+            expect(error.innerErrors).toEqual(testStat.errors)
         })
     })
 
@@ -136,7 +147,7 @@ describe('utils', () => {
 
         it('should return id if template is not a string', () => {
             expect(getLinkByTemplate(undefined, id)).toEqual(id)
-            expect(getLinkByTemplate({}, id)).toEqual(id)
+            expect(getLinkByTemplate({} as any, id)).toEqual(id)
         })
 
         it('should throw error if template is invalid', () => {
