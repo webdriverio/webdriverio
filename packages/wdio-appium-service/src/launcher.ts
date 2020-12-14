@@ -6,7 +6,6 @@ import {
     getFilePath,
     cliArgsFromKeyValue,
     cliArgsFromArray,
-    isWindows
 } from './utils'
 import { Readable } from 'stream'
 import { isCloudCapability } from '@wdio/config'
@@ -23,16 +22,16 @@ const DEFAULT_CONNECTION = {
 
 export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
     private readonly _logPath?: string
-    private readonly _basePath: string = '/'
     private readonly _appiumCliArgs: Array<string> = []
     private readonly _capabilities: Array<WebDriver.DesiredCapabilities>
-    private readonly _args: AppiumServerArguments | Array<string>
+    private readonly _args: AppiumServerArguments
     private _command: string
     private _process?: ChildProcessByStdio<null, Readable, Readable>
 
     constructor(
         private _options: AppiumServiceConfig,
-        capabilities:  Array<WebDriver.DesiredCapabilities> | WebDriver.DesiredCapabilities = {},
+        capabilities:
+            Array<WebDriver.DesiredCapabilities> | {[capabilitiy: string]: WebDriver.DesiredCapabilities } = {},
         public _config?: Config
     ) {
         /**
@@ -43,7 +42,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
             : Object.values(capabilities)
 
         this._args = {
-            basePath: this._basePath,
+            basePath: DEFAULT_CONNECTION.path,
             ...(this._options.args || {})
         }
         this._logPath = _options.logPath || _config?.outputDir
@@ -63,7 +62,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
         /**
          * Windows needs to be started through `cmd` and the command needs to be an arg
          */
-        if (isWindows()) {
+        if (process.platform === 'win32') {
             this._appiumCliArgs.unshift('/c', command)
             command = 'cmd'
         }
@@ -81,7 +80,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
                 cap,
                 DEFAULT_CONNECTION,
                 'port' in this._args ? { port: this._args.port } : {},
-                { path: this._basePath },
+                { path: this._args.basePath },
                 { ...cap }
             ))
     }
@@ -132,7 +131,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
          */
         process.stderr.once('data', err => { error = err })
 
-        process.once('exit', (exitCode) => {
+        process.once('exit', exitCode => {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
             if (exitCode == 2) {
                 errorMessage += '\n' + (error || 'Check that you don\'t already have a running Appium service.')
