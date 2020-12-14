@@ -25,7 +25,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
     private _process?: ChildProcessByStdio<null, Readable, Readable>
 
     constructor(
-        private _options: AppiumServiceConfig,
+        private _options: WebdriverIO.ServiceOption,
         capabilities:
             Array<WebDriver.DesiredCapabilities> | {[capabilitiy: string]: WebDriver.DesiredCapabilities } = {},
         public _config?: Config

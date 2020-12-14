@@ -1,6 +1,3 @@
-/// <reference types="webdriver"/>
-/// <reference types="webdriverio"/>
-
 declare module WebdriverIO {
     interface ServiceOption extends AppiumServiceConfig {}
 }
@@ -17,7 +14,7 @@ type AppiumServerArguments = {
      * Port to listen on
      */
     port?: number | string
-    basePath: string
+    basePath?: string
 }
 interface AppiumSessionCapabilities  {
     /**
@@ -28,7 +25,6 @@ interface AppiumSessionCapabilities  {
     hostname?: string
     path?: string
 }
-
 
 type KeyValueArgs = {
     [key: string]: ArgValue
@@ -53,4 +49,3 @@ type Config = {
     outputDir?: string
     [key: string]: any
 }
-
