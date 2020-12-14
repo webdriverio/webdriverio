@@ -26,6 +26,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@types/fs-extra": "^9.0.4",
     "@wdio/config": "6.10.4",
     "@wdio/logger": "6.10.4",
     "fs-extra": "^9.0.0",
