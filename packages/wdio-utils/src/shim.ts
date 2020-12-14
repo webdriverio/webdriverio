@@ -52,7 +52,9 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName:
 
     const start = Date.now()
     const result = await Promise.all(hooksPromises)
-    log.info(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
+    if (hooksPromises.length) {
+        log.debug(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
+    }
     return result
 }
 

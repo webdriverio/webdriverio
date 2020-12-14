@@ -57,6 +57,9 @@ export default function executeHooksWithArgs (hookName, hooks = [], args) {
 
     const start = Date.now()
     const result = await Promise.all(hooks)
-    log.info(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
+    if (hooks.length) {
+        log.debug(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
+    }
+
     return result
 }

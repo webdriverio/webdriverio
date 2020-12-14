@@ -41,7 +41,10 @@ export async function runServiceHook(
             log.error(`${message}Continue...`)
         }
     })).then(results => {
-        log.info(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
+        if (launcher.length) {
+            log.debug(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
+        }
+
         const rejectedHooks = results.filter(p => p && p.status === 'rejected')
         if (rejectedHooks.length) {
             return Promise.reject(new Error(`\n${rejectedHooks.map(p => p && p.reason).join()}\n\nStopping runner...`))
