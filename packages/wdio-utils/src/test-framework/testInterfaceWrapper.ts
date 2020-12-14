@@ -37,9 +37,9 @@ export const runHook = function (
     this: unknown,
     hookFn: Function,
     origFn: Function,
-    beforeFn: Function,
+    beforeFn: Function | Function[],
     beforeFnArgs: HookFnArgs<unknown>,
-    afterFn: Function,
+    afterFn: Function | Function[],
     afterFnArgs: HookFnArgs<unknown>,
     cid: string,
     repeatTest: number
@@ -95,9 +95,9 @@ export const runSpec = function (
     specTitle: string,
     specFn: Function,
     origFn: Function,
-    beforeFn: Function,
+    beforeFn: Function | Function[],
     beforeFnArgs: HookFnArgs<unknown>,
-    afterFn: Function,
+    afterFn: Function | Function[],
     afterFnArgs: HookFnArgs<unknown>,
     cid: string,
     repeatTest: number
@@ -151,9 +151,9 @@ export const wrapTestFunction = function (
     this: unknown,
     origFn: Function,
     isSpec: boolean,
-    beforeFn: Function,
+    beforeFn: Function | Function[],
     beforeArgsFn: HookFnArgs<unknown>,
-    afterFn: Function,
+    afterFn: Function | Function[],
     afterArgsFn: HookFnArgs<unknown>,
     cid: string
 ) {
@@ -210,9 +210,9 @@ export const wrapTestFunction = function (
 export const runTestInFiberContext = function (
     this: unknown,
     isSpec: boolean,
-    beforeFn: Function,
+    beforeFn: Function | Function[],
     beforeArgsFn: HookFnArgs<unknown>,
-    afterFn: Function,
+    afterFn: Function | Function[],
     afterArgsFn: HookFnArgs<unknown>,
     fnName: string,
     cid: string,

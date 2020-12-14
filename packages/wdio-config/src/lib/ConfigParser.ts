@@ -77,7 +77,7 @@ export default class ConfigParser {
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
      */
-    merge (object = {} as ConfigOptions) {
+    merge (object: Partial<ConfigOptions> = {}) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
 
@@ -246,7 +246,7 @@ export default class ConfigParser {
      * return configs
      */
     getConfig () {
-        return this._config
+        return this._config as Required<ConfigOptions>
     }
 
     /**

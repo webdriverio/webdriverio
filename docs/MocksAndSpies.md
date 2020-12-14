@@ -48,7 +48,7 @@ Once you have defined a mock you can define custom responses for it. Those custo
 
 ### Mocking API Requests
 
-In order to mock API requests where you expect a JSON response all you need to do is to call `response` on the mock object with an arbitrary object you want to return, e.g.:
+In order to mock API requests where you expect a JSON response all you need to do is to call `respond` on the mock object with an arbitrary object you want to return, e.g.:
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync-->
@@ -105,6 +105,15 @@ mock.response({ ... }, {
     statusCode: 404,
     // merge response headers with following headers
     headers: { 'x-custom-header': 'foobar' }
+})
+```
+
+If you want the mock not to call the backend at all, you can pass `false` for the `fetchResponse` flag.
+
+```js
+mock.response({ ... }, {
+    // do not call the actual backend
+    fetchResponse: false
 })
 ```
 

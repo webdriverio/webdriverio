@@ -5,7 +5,7 @@
  *
  * <example>
     :respond.js
-    it('should demonstrate the addValue command', () => {
+    it('should demonstrate response overwrite with static data', () => {
         const mock = browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
             method: 'get'
         })
@@ -30,14 +30,18 @@
         // outputs: "[ 'Injected (non) completed Todo', 'Injected completed Todo' ]"
     })
 
-    it('should demonstrate comparator function', () => {
+    it('should demonstrate response overwrite with dynamic data', () => {
         const mock = browser.mock('https://todo-backend-express-knex.herokuapp.com/')
 
         mock.respond((request) => {
-            if (body.username === 'test') {
-                return { ...body, foo: 'bar' }
+            if (request.body.username === 'test') {
+                return { ...request.body, foo: 'bar' }
             }
-            return body
+            return request.body
+        }, {
+            statusCode: () => 200,
+            headers: () => ({ foo: 'bar }),
+            fetchResponse: false // do not fetch real response
         })
     })
  * </example>

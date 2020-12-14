@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "6.10.5",
+  "version": "6.10.10",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -45,7 +45,7 @@
     "testingbot"
   ],
   "types": "./webdriverio.d.ts",
-  "typeScriptVersion": "3.7.3",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/archiver": "^5.1.0",
     "@types/atob": "^2.1.2",
@@ -55,15 +55,15 @@
     "@types/lodash.isplainobject": "^4.0.6",
     "@types/lodash.zip": "^4.2.6",
     "@types/puppeteer-core": "^2.0.0",
-    "@wdio/config": "6.10.4",
-    "@wdio/logger": "6.10.4",
-    "@wdio/repl": "6.10.4",
-    "@wdio/utils": "6.10.4",
+    "@wdio/config": "6.10.10",
+    "@wdio/logger": "6.10.10",
+    "@wdio/repl": "6.10.10",
+    "@wdio/utils": "6.10.10",
     "archiver": "^5.0.0",
     "atob": "^2.1.2",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
-    "devtools": "6.10.4",
+    "devtools": "6.10.10",
     "fs-extra": "^9.0.1",
     "get-port": "^5.1.1",
     "grapheme-splitter": "^1.0.2",
@@ -74,8 +74,8 @@
     "minimatch": "^3.0.4",
     "puppeteer-core": "^5.1.0",
     "resq": "^1.9.1",
-    "rgb2hex": "^0.2.1",
+    "rgb2hex": "0.2.3",
     "serialize-error": "^7.0.0",
-    "webdriver": "6.10.4"
+    "webdriver": "6.10.10"
   }
 }

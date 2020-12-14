@@ -148,6 +148,27 @@ Array [
 ]
 `;
 
+exports[`stub request with modified headers fn 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "eyJmb28iOiJiYXIifQ==",
+    "requestId": 123,
+    "responseCode": 200,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+      Object {
+        "name": "Content-Type",
+        "value": "text/xml",
+      },
+    ],
+  },
+]
+`;
+
 exports[`stub request with modified status code 1`] = `
 Array [
   "Fetch.fulfillRequest",
@@ -155,6 +176,23 @@ Array [
     "body": "eyJmb28iOiJiYXIifQ==",
     "requestId": 123,
     "responseCode": 1234,
+    "responseHeaders": Array [
+      Object {
+        "name": "Content-Type",
+        "value": "application/json",
+      },
+    ],
+  },
+]
+`;
+
+exports[`stub request with modified status code fn 1`] = `
+Array [
+  "Fetch.fulfillRequest",
+  Object {
+    "body": "eyJmb28iOiJiYXIifQ==",
+    "requestId": 123,
+    "responseCode": 5678,
     "responseHeaders": Array [
       Object {
         "name": "Content-Type",

@@ -40,7 +40,7 @@ export default class Runner extends EventEmitter {
         try {
             this.configParser.addConfigFile(configFile)
         } catch (e) {
-            return this._shutdown(1)
+            return this._shutdown(1, retries)
         }
 
         /**
@@ -77,7 +77,7 @@ export default class Runner extends EventEmitter {
         this.framework = await this.framework.init(cid, this.config, specs, caps, this.reporter)
         process.send({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this.framework.hasTests() } })
         if (!this.framework.hasTests()) {
-            return this._shutdown(0)
+            return this._shutdown(0, retries)
         }
 
         browser = await this._initSession(this.config, this.caps, browser)
@@ -87,7 +87,7 @@ export default class Runner extends EventEmitter {
          * return if session initialisation failed
          */
         if (!browser) {
-            return this._shutdown(1)
+            return this._shutdown(1, retries)
         }
 
         this.reporter.caps = browser.capabilities
@@ -101,7 +101,7 @@ export default class Runner extends EventEmitter {
         if (this.sigintWasCalled) {
             log.info('SIGINT signal detected while starting session, shutting down...')
             await this.endSession()
-            return this._shutdown(0)
+            return this._shutdown(0, retries)
         }
 
         const instances = getInstancesData(browser, isMultiremote)
@@ -156,13 +156,7 @@ export default class Runner extends EventEmitter {
             await this.endSession()
         }
 
-        this.reporter.emit('runner:end', {
-            failures,
-            cid: this.cid,
-            retries
-        })
-
-        return this._shutdown(failures)
+        return this._shutdown(failures, retries)
     }
 
     /**
@@ -305,7 +299,12 @@ export default class Runner extends EventEmitter {
     /**
      * kill worker session
      */
-    async _shutdown(failures) {
+    async _shutdown(failures, retries) {
+        this.reporter.emit('runner:end', {
+            failures,
+            cid: this.cid,
+            retries
+        })
         try {
             await this.reporter.waitForSync()
         } catch (e) {

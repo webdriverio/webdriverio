@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { WriteStream } from 'fs'
 import { createWriteStream, ensureDirSync } from 'fs-extra'
 import { EventEmitter } from 'events'
@@ -40,6 +41,7 @@ export default class WDIOReporter extends EventEmitter {
     }
     retries = 0
     runnerStat?: RunnerStats
+    isContentPresent = false
 
     constructor(public options: Partial<WDIOReporterOptions>) {
         super()
@@ -180,6 +182,10 @@ export default class WDIOReporter extends EventEmitter {
                 this.runnerStat.complete()
                 this.onRunnerEnd(this.runnerStat)
             }
+            const logFile = (this.options as WDIOReporterOptionsFromLogFile).logFile
+            if (!this.isContentPresent && logFile && fs.existsSync(logFile)) {
+                fs.unlinkSync(logFile)
+            }
         })
 
         /**
@@ -211,6 +217,9 @@ export default class WDIOReporter extends EventEmitter {
      * function to write to reporters output stream
      */
     write(content: any) {
+        if (content) {
+            this.isContentPresent = true
+        }
         this.outputStream.write(content)
     }
 

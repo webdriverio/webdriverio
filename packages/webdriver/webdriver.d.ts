@@ -750,7 +750,7 @@ declare namespace WebDriver {
          * Set specific log levels per logger
          * use 'silent' level to disable logger
          */
-        logLevels?: Record<string, WebDriverLogTypes | undefined>;
+        logLevels?: Record<string, WebDriverLogTypes>;
         /**
          * Timeout for any WebDriver request to a driver or grid.
          *

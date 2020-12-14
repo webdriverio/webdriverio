@@ -17,6 +17,92 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.10 (2020-12-13)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `webdriverio`
+  * [#6227](https://github.com/webdriverio/webdriverio/pull/6227) wdio-cli: fix local runner in config ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :memo: Documentation
+* [#6225](https://github.com/webdriverio/webdriverio/pull/6225) Update MocksAndSpies.md ([@aelfric](https://github.com/aelfric))
+
+#### :house: Internal
+* `devtools`, `wdio-logger`, `wdio-repl`, `wdio-sync`, `webdriver`, `webdriverio`
+  * [#6222](https://github.com/webdriverio/webdriverio/pull/6222) run tests for typescript 3.7 ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 2
+- Frank Riccobono ([@aelfric](https://github.com/aelfric))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v6.10.9 (2020-12-11)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#6221](https://github.com/webdriverio/webdriverio/pull/6221) Another set of bug fixes after last release ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v6.10.8 (2020-12-11)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#6220](https://github.com/webdriverio/webdriverio/pull/6220) Fix CLI arguments ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v6.10.7 (2020-12-11)
+
+#### :bug: Bug Fix
+* `wdio-sync`, `webdriverio`
+  * [#6219](https://github.com/webdriverio/webdriverio/pull/6219) Revert "fix: improve executeAsync typing (#6209)" ([@mgrybyk](https://github.com/mgrybyk))
+
+#### Committers: 1
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+
+
+## v6.10.6 (2020-12-11)
+
+#### :rocket: New Feature
+* `wdio-sync`, `webdriverio`
+  * [#6215](https://github.com/webdriverio/webdriverio/pull/6215) webdriverio: respond params function support for headers and statusCode ([@mgrybyk](https://github.com/mgrybyk))
+
+#### :nail_care: Polish
+* `wdio-reporter`, `wdio-runner`
+  * [#6060](https://github.com/webdriverio/webdriverio/pull/6060) Fix 5577 ([@jonesh66](https://github.com/jonesh66))
+* `wdio-sync`, `webdriverio`
+  * [#6209](https://github.com/webdriverio/webdriverio/pull/6209) fix: improve executeAsync typing ([@DirkoOdendaal](https://github.com/DirkoOdendaal))
+
+#### :memo: Documentation
+* `webdriver`
+  * [#6194](https://github.com/webdriverio/webdriverio/pull/6194) Add Sauce Labs Visual capability types ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#6192](https://github.com/webdriverio/webdriverio/pull/6192) Cucumber boilerplate showcasing advanced page object structure, Cucum… ([@osmolyar](https://github.com/osmolyar))
+
+#### :house: Internal
+* `wdio-crossbrowsertesting-service`
+  * [#6195](https://github.com/webdriverio/webdriverio/pull/6195) feat(*): rewrited wdio-crossbrowser-service package into typescript ([@sarathps93](https://github.com/sarathps93))
+* `wdio-dot-reporter`, `wdio-reporter`, `wdio-sumologic-reporter`
+  * [#5848](https://github.com/webdriverio/webdriverio/pull/5848) Tracking doc: rewrite `@wdio/sumologic-reporter` package into TypeScript  ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-firefox-profile-service`, `webdriver`
+  * [#5836](https://github.com/webdriverio/webdriverio/pull/5836) Tracking doc: rewrite `@wdio/firefox-profile-service` package into TypeScript ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`, `wdio-appium-service`, `wdio-config`, `wdio-devtools-service`, `wdio-protocols`, `wdio-selenium-standalone-service`, `wdio-sync`, `wdio-testingbot-service`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#5854](https://github.com/webdriverio/webdriverio/pull/5854) Tracking doc: rewrite `webdriverio` package into TypeScript ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 7
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dirko Odendaal ([@DirkoOdendaal](https://github.com/DirkoOdendaal))
+- Jonesh Sharma ([@jonesh66](https://github.com/jonesh66))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+- Sarath P S ([@sarathps93](https://github.com/sarathps93))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.10.5 (2020-11-30)
 
 #### :bug: Bug Fix
