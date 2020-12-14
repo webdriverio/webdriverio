@@ -9,7 +9,7 @@
   "engines": {
     "node": ">=10.0.0"
   },
-  "types": "./build/index.d.ts",
+  "types": "./allure-reporter.d.ts",
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"
