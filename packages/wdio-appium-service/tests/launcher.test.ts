@@ -52,10 +52,10 @@ class MockCustomFailingProcess extends MockFailingProcess {
 }
 
 jest.mock('../src/utils', () => {
-    const { cliArgsFromKeyValue } = jest.requireActual('../src/utils')
+    const { formatCliArgs } = jest.requireActual('../src/utils')
     return {
         getFilePath: jest.fn().mockReturnValue('/some/file/path'),
-        cliArgsFromKeyValue
+        formatCliArgs
     }
 })
 
