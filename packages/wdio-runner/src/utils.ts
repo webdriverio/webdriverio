@@ -1,15 +1,16 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
-import { remote, multiremote, attach } from 'webdriverio'
+import { remote, multiremote, attach, HookFunctions } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
-import { DEFAULT_CONFIGS, ConfigOptions, Capabilities, Capability } from '@wdio/config'
+import { DEFAULT_CONFIGS, ConfigOptions, Capability } from '@wdio/config'
 
 const log = logger('@wdio/local-runner:utils')
 
 const MERGE_OPTIONS = { clone: false }
 const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
-interface ConfigWithSessionId extends ConfigOptions {
+interface ConfigWithSessionId extends Omit<ConfigOptions, 'capabilities'> {
+    capabilities?: Capability
     sessionId?: string
 }
 
@@ -73,7 +74,7 @@ export function sanitizeCaps (
  */
 export async function initialiseInstance (
     config: ConfigWithSessionId,
-    capabilities: Capabilities,
+    capabilities: Capability,
     isMultiremote?: boolean
 ) {
     /**
@@ -82,12 +83,12 @@ export async function initialiseInstance (
     if (config.sessionId) {
         log.debug(`attach to session with id ${config.sessionId}`)
         config.capabilities = sanitizeCaps(capabilities)
-        return attach({ ...config } as Capability)
+        return attach({ ...config } as Required<ConfigWithSessionId>)
     }
 
     if (!isMultiremote) {
         log.debug('init remote session')
-        const sessionConfig = { ...config, ...sanitizeCaps(capabilities, true) }
+        const sessionConfig = { ...config, ...sanitizeCaps(capabilities, true) } as Omit<ConfigWithSessionId, keyof HookFunctions>
         sessionConfig.capabilities = sanitizeCaps(capabilities)
         return remote(sessionConfig)
     }

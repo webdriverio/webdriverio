@@ -14,7 +14,12 @@ export interface ConfigOptions extends Omit<WebdriverIO.Config, 'capabilities' |
     specFileRetryAttempts?: number
     cucumberFeaturesWithLineNumbers?: string[]
     specFileRetriesDeferred?: boolean
+    specFileRetries?: number
     maxInstances?: number
+}
+
+export interface SingleConfigOption extends Omit<ConfigOptions, 'capabilities'> {
+    capabilities: Capability
 }
 
 export type DefaultOptions<T> = {

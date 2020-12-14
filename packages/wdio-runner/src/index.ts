@@ -5,11 +5,10 @@ import EventEmitter from 'events'
 
 import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
-import { ConfigParser, ConfigOptions, Capabilities, Capability } from '@wdio/config'
+import { ConfigParser, ConfigOptions, SingleConfigOption, Capability } from '@wdio/config'
 
 import BaseReporter from './reporter'
 import { runHook, initialiseInstance, filterLogTypes, getInstancesData } from './utils'
-import { BrowserObject } from 'webdriverio'
 
 const log = logger('@wdio/runner')
 
@@ -45,10 +44,10 @@ export default class Runner extends EventEmitter {
 
     private _reporter?: BaseReporter
     private _framework?: Framework
-    private _config?: Capability
+    private _config?: ConfigOptions
     private _cid?: string
     private _specs?: string[]
-    private _caps?: Capabilities
+    private _caps?: Capability
 
     /**
      * run test suite
@@ -115,7 +114,7 @@ export default class Runner extends EventEmitter {
             return this._shutdown(0, retries)
         }
 
-        browser = await this._initSession(this._config, this._caps, browser as BrowserObject) as BrowserObject
+        browser = await this._initSession(this._config as SingleConfigOption, this._caps, browser as WebdriverIO.BrowserObject) as WebdriverIO.BrowserObject
 
         /**
          * return if session initialisation failed
@@ -178,7 +177,7 @@ export default class Runner extends EventEmitter {
         let failures = 0
         try {
             failures = await this._framework.run()
-            await this._fetchDriverLogs(this._config, caps.excludeDriverLogs)
+            await this._fetchDriverLogs(this._config, (caps as Required<WebDriver.DesiredCapabilities>).excludeDriverLogs)
         } catch (e) {
             log.error(e)
             this.emit('error', e)
@@ -203,9 +202,9 @@ export default class Runner extends EventEmitter {
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     async _initSession (
-        config: ConfigOptions,
+        config: SingleConfigOption,
         caps: Capability,
-        browserStub?: BrowserObject | null
+        browserStub?: WebdriverIO.BrowserObject | null
     ) {
         const browser = await this._startSession(config, caps)
 
@@ -254,8 +253,8 @@ export default class Runner extends EventEmitter {
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
     async _startSession (
-        config: ConfigOptions,
-        caps: Capabilities
+        config: SingleConfigOption,
+        caps: Capability
     ) {
         let browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
 

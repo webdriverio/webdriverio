@@ -1,7 +1,7 @@
 import path from 'path'
 import logger from '@wdio/logger'
 import { initialisePlugin } from '@wdio/utils'
-import type { ConfigOptions, Capabilities } from '@wdio/config'
+import type { ConfigOptions, Capability } from '@wdio/config'
 import type { EventEmitter } from 'events'
 
 import { sendFailureMessage } from './utils'
@@ -40,7 +40,7 @@ export default class BaseReporter {
     constructor(
         private _config: ConfigOptions,
         private _cid: string,
-        public caps: Capabilities
+        public caps: Capability
     ) {
         this._reporterSyncInterval = this._config.reporterSyncInterval || DEFAULT_SYNC_INTERVAL
         this._reporterSyncTimeout = this._config.reporterSyncTimeout || DEFAULT_SYNC_TIMEOUT
