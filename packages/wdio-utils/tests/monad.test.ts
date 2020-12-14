@@ -1,9 +1,14 @@
 import webdriverMonad from '../src/monad'
 
-const prototype = {
-    scope: '',
-    someFunc: { value: jest.fn().mockImplementation((arg) => `result-${arg.toString()}`) }
-}
+let prototype
+
+beforeEach(() => {
+    prototype = {
+        scope: { value: '' },
+        someFunc: { value: jest.fn().mockImplementation((arg) => `result-${arg.toString()}`) }
+    }
+})
+
 const sessionId = 'c5fa4320-07d5-48f5-b7c2-922d4405e17f'
 
 describe('monad', () => {
@@ -27,7 +32,7 @@ describe('monad', () => {
     })
 
     it('should allow to set element scope name', () => {
-        prototype.scope = 'element'
+        prototype.scope.value = 'element'
         const monad = webdriverMonad({}, (client: any) => client, prototype)
         const client = monad(sessionId)
         expect(client.constructor.name).toBe('Element')

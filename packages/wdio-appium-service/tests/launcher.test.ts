@@ -3,7 +3,6 @@ import childProcess from 'child_process'
 import fs from 'fs-extra'
 import { mocked } from 'ts-jest/utils'
 
-jest.unmock('@wdio/config')
 jest.mock('child_process', () => ({
     spawn: jest.fn(),
 }))

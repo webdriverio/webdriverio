@@ -110,7 +110,7 @@ export default class DevtoolsInterception extends Interception {
                     continue
                 }
 
-                const { errorReason, overwrite, params } = mock.respondOverwrites[0].sticky
+                const { errorReason, overwrite, params = {} } = mock.respondOverwrites[0].sticky
                     ? mock.respondOverwrites[0]
                     : mock.respondOverwrites.shift() || {}
 
@@ -132,10 +132,10 @@ export default class DevtoolsInterception extends Interception {
                         newBody = JSON.stringify(newBody)
                     }
 
-                    let responseCode = params?.statusCode || responseStatusCode
+                    let responseCode = typeof params.statusCode === 'function' ? params.statusCode(request) : params.statusCode || responseStatusCode
                     let responseHeaders = [
                         ...eventResponseHeaders,
-                        ...Object.entries(params?.headers || {}).map(([name, value]) => ({ name, value }))
+                        ...Object.entries(typeof params.headers === 'function' ? params.headers(request) : params.headers || {}).map(([name, value]) => ({ name, value }))
                     ]
 
                     /**

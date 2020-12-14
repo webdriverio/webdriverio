@@ -1,4 +1,4 @@
-import type { ConfigOptions, DefaultOptions } from './types'
+import type { DefaultOptions } from './types'
 
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
@@ -49,18 +49,26 @@ export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
 }
 
-export function isCloudCapability(conf: { capabilities?: WebDriver.DesiredCapabilities } | WebDriver.DesiredCapabilities) {
-    const hasCapabilities = (conf: any): conf is { capabilities?: WebDriver.DesiredCapabilities } => conf && conf.capabilities
+export function isCloudCapability(capabilities: WebDriver.DesiredCapabilities | WebdriverIO.MultiRemoteBrowserOptions) {
+    const caps = (capabilities as WebdriverIO.MultiRemoteBrowserOptions).capabilities || capabilities
+    return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
+}
 
-    const cap = hasCapabilities(conf) ? conf.capabilities : conf
-
-    return Boolean(cap && (cap['bstack:options'] || cap['sauce:options'] || cap['tb:options']))
+interface BackendConfigurations {
+    port?: number
+    hostname?: string
+    user?: string
+    key?: string
+    protocol?: string
+    region?: string
+    headless?: boolean
+    path?: string
 }
 
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
-export function detectBackend(options = {} as ConfigOptions, isRDC = false) {
+export function detectBackend(options: BackendConfigurations = {}, isRDC = false) {
     let { port, hostname, user, key, protocol, region, headless, path } = options
 
     /**

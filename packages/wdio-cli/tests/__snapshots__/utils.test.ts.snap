@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getCapabilities should return driver with capabilities for android 1`] = `
+Object {
+  "capabilities": Object {
+    "app": "foo.apk",
+    "automationName": "UiAutomator2",
+    "deviceName": "Test",
+    "platformName": "Android",
+    "platformVersion": undefined,
+    "udid": undefined,
+  },
+}
+`;
+
+exports[`getCapabilities should return driver with capabilities for android 2`] = `
+Object {
+  "capabilities": Object {
+    "automationName": "UiAutomator2",
+    "browserName": "Chrome",
+    "deviceName": "Test",
+    "platformName": "Android",
+    "platformVersion": undefined,
+    "udid": undefined,
+  },
+}
+`;
+
+exports[`getCapabilities should return driver with capabilities for desktop 1`] = `
+Object {
+  "capabilities": Object {
+    "browserName": "chrome",
+  },
+}
+`;
+
+exports[`getCapabilities should return driver with capabilities for ios 1`] = `
+Object {
+  "capabilities": Object {
+    "app": "foo.app",
+    "automationName": "XCUITest",
+    "deviceName": "fooName",
+    "platformName": "iOS",
+    "platformVersion": "fooNum",
+    "udid": "num",
+  },
+}
+`;
+
+exports[`getCapabilities should return driver with capabilities for ios 2`] = `
+Object {
+  "capabilities": Object {
+    "automationName": "XCUITest",
+    "browserName": "Safari",
+    "deviceName": "iPhone Simulator",
+    "platformName": "iOS",
+    "platformVersion": undefined,
+    "udid": undefined,
+  },
+}
+`;

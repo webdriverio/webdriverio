@@ -260,7 +260,7 @@ export interface W3CCapabilities {
     firstMatch: Capabilities[];
 }
 
-export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
+export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
     handlesAlerts?: boolean;
@@ -305,8 +305,10 @@ export interface VendorExtensions extends EdgeCapabilities {
     'selenoid:options'?: SelenoidOptions
     // Testingbot w3c specific
     'tb:options'?: TestingbotCapabilities
-    // Saucelabs w3c specific
+    // Sauce Labs w3c specific
     'sauce:options'?: SauceLabsCapabilities
+    // Sauce Labs Visual
+    'sauce:visual'?: SauceLabsVisualCapabilities
     // Browserstack w3c specific
     'bstack:options'?: {
         [name: string]: any
@@ -314,6 +316,8 @@ export interface VendorExtensions extends EdgeCapabilities {
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
+    // eslint-disable-next-line
+    firefox_profile?: string;
     'ms:edgeOptions'?: MicrosoftEdgeOptions;
     'ms:edgeChromium'?: MicrosoftEdgeOptions;
 
@@ -348,20 +352,35 @@ export interface ChromeCapabilities {
 // Appium General Capabilities
 export interface AppiumCapabilities {
     automationName?: string;
+    'appium:automationName'?: string;
     platformVersion?: string;
+    'appium:platformVersion'?: string;
     deviceName?: string;
+    'appium:deviceName'?: string;
     app?: string;
+    'appium:app'?: string;
     newCommandTimeout?: number;
+    'appium:newCommandTimeout'?: number;
     language?: string;
+    'appium:language'?: string;
     locale?: string;
+    'appium:locale'?: string;
     udid?: string;
+    'appium:udid'?: string;
     orientation?: string;
+    'appium:orientation'?: string;
     autoWebview?: boolean;
+    'appium:autoWebview'?: boolean;
     noReset?: boolean;
+    'appium:noReset'?: boolean;
     fullReset?: boolean;
+    'appium:fullReset'?: boolean;
     eventTimings?: boolean;
+    'appium:eventTimings'?: boolean;
     enablePerformanceLogging?: boolean;
+    'appium:enablePerformanceLogging'?: boolean;
     printPageSourceOnFindFailure?: boolean;
+    'appium:printPageSourceOnFindFailure'?: boolean;
 }
 
 export interface AppiumAndroidCapabilities {
@@ -531,6 +550,93 @@ export interface SauceLabsCapabilities {
     idleTimeout?: number
 }
 
+export interface SauceLabsVisualCapabilities {
+    /**
+     * Project name
+     */
+    projectName?: string
+    /**
+     * API Key for user's Screener account.
+     */
+    apiKey?: string
+    /**
+     * A <width>x<height> representation of desired viewport size.
+     * @default "1024x768"
+     */
+    viewportSize?: string
+    /**
+     * Branch or environment name.
+     * @example "main"
+     */
+    branch?: string
+    /**
+     * Branch name of project's base branch. Used for baseline branching and merging.
+     * @example "main"
+     */
+    baseBranch?: string
+    /**
+     * Visual diff options to control validations.
+     * @default
+     * ```js
+     * {
+     *   structure: true,
+     *   layout: true,
+     *   style: true,
+     *   content: true,
+     *   minLayoutPosition: 4,
+     *   minLayoutDimension: 10
+     * }
+     * ```
+     */
+    diffOptions?: {
+        structure?: boolean
+        layout?: boolean
+        style?: boolean
+        content?: boolean
+        minLayoutPosition?: number
+        minLayoutDimension?: number
+    }
+    /**
+     * A comma-delimited list of css selectors to ignore when performing visual diffs.
+     * @example "#some-id, .some-selector"
+     */
+    ignore?: string
+    /**
+     * Option to set build to failure when new states are found, and to disable
+     * using new states as a baseline.
+     *
+     * This option defaults to true, and can be set to false if user wants new
+     * states to automatically be the visual baseline without needing to review
+     * and accept them.
+     * @default true
+     */
+    failOnNewStates?: boolean
+    /**
+     * Option to automatically accept new and changed states in base branch.
+     * Assumes base branch should always be correct.
+     * @default false
+     */
+    alwaysAcceptBaseBranch?: boolean
+    /**
+     * Option to disable independent baseline for each feature branch, and
+     * only use base branch as baseline. Must be used with "baseBranch" option.
+     * @default false
+     */
+    disableBranchBaseline?: boolean
+    /**
+     * Option to capture a full-page screenshot using a scrolling and stitching
+     * strategy instead of using native browser full-page screenshot capabilities.
+     * @default false
+     */
+    scrollAndStitchScreenshots?: boolean
+    /**
+     * Option to disable adding CORS headers. By default, CORS headers are set
+     * for all cross-origin requests.
+     * @default false
+     */
+    disableCORS?: boolean
+}
+
 /**
  * https://testingbot.com/support/other/test-options#platform
  */
@@ -557,31 +663,27 @@ export interface SeleniumRCCapabilities {
 
 export interface Options {
     /**
-     * Your cloud service username (only works for Sauce Labs, Browserstack, TestingBot,
-     * CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will automatically
-     * set connection options for you.
-     */
-    user?: string;
-    /**
-     * Your cloud service access key or secret key (only works for Sauce Labs, Browserstack,
-     * TestingBot, CrossBrowserTesting or LambdaTest accounts). If set, WebdriverIO will
-     * automatically set connection options for you.
-     */
-    key?: string;
-    /**
      * Protocol to use when communicating with the Selenium standalone server (or driver).
+     *
+     * @default 'http'
      */
     protocol?: string;
     /**
      * Host of your WebDriver server.
+     *
+     * @default 'localhost'
      */
     hostname?: string;
     /**
      * Port your WebDriver server is on.
+     *
+     * @default 4444
      */
     port?: number;
     /**
      * Path to WebDriver endpoint or grid server.
+     *
+     * @default '/'
      */
     path?: string;
     /**
@@ -591,12 +693,32 @@ export interface Options {
         [name: string]: string;
     },
     /**
+     * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
+     * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),
+     * [CrossBrowserTesting](https://crossbrowsertesting.com) or
+     * [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+     * automatically set connection options for you. If you don't use a cloud provider this
+     * can be used to authenticate any other WebDriver backend.
+     */
+    user?: string
+    /**
+     * Your cloud service access key or secret key (only works for
+     * [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com),
+     * [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)
+     * or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+     * automatically set connection options for you. If you don't use a cloud provider this
+     * can be used to authenticate any other WebDriver backend.
+     */
+    key?: string
+    /**
      * Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your Selenium session.
      */
     capabilities?: DesiredCapabilities | W3CCapabilities;
     requestedCapabilities?: DesiredCapabilities | W3CCapabilities;
     /**
      * Level of logging verbosity.
+     *
+     * @default 'info'
      */
     logLevel?: WebDriverLogTypes;
     /**
@@ -606,16 +728,16 @@ export interface Options {
     logLevels?: Record<string, WebDriverLogTypes | undefined>;
     /**
      * Timeout for any WebDriver request to a driver or grid.
+     *
+     * @default 120000
      */
     connectionRetryTimeout?: number;
     /**
      * Count of request retries to the Selenium server.
+     *
+     * @default 3
      */
     connectionRetryCount?: number;
-    /**
-     * Timeout for any request to the Selenium server
-     */
-    connectionPollInterval?: number
     /**
      * Specify custom headers to pass into every request.
      */
@@ -624,6 +746,14 @@ export interface Options {
     };
     /**
      * Allows you to use a custom http/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
+     *
+     * @default
+     * ```js
+     * {
+     *     http: new http.Agent({ keepAlive: true }),
+     *     https: new https.Agent({ keepAlive: true })
+     * }
+     * ```
      */
     agent?: {
         http: http.Agent,
@@ -649,8 +779,21 @@ export interface Options {
     /**
      * Whether it requires SSL certificates to be valid in HTTP/s requests
      * for an environment which cannot get process environment well.
+     *
+     * @default true
      */
     strictSSL?: boolean;
+
+    /**
+     * Directory to store all testrunner log files (including reporter logs and `wdio` logs).
+     * If not set, all logs are streamed to `stdout`. Since most reporters are made to log to
+     * `stdout`, it is recommended to only use this option for specific reporters where it
+     * makes more sense to push report into a file (like the `junit` reporter, for example).
+     *
+     * When running in standalone mode, the only log generated by WebdriverIO will be
+     * the `wdio` log.
+     */
+    outputDir?: string
 }
 
 export interface JSONWPCommandError extends Error {

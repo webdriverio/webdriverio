@@ -56,13 +56,30 @@ declare namespace WebdriverIO {
         [key: string]: any;
     }
 
+    interface RunnerInstance {
+        initialise(): Promise<void>
+        shutdown(): Promise<void>
+        getWorkerCount(): number
+        run(args: any): NodeJS.EventEmitter
+        workerPool: any
+    }
+
     interface ServiceClass {
         new(options: ServiceOption, caps: WebDriver.DesiredCapabilities, config: Options): ServiceInstance
     }
 
-    interface ServiceLauncher extends ServiceClass {
-        default?: ServiceClass
+    interface RunnerClass {
+        new(configFile: string, config: Omit<WebdriverIO.Config, 'capabilities' | keyof WebdriverIO.Hooks>): RunnerInstance
+    }
+
+    interface ServicePlugin extends ServiceClass {
+        default: ServiceClass
         launcher?: ServiceClass
+    }
+
+    interface RunnerPlugin extends RunnerClass {
+        default: RunnerClass
+        launcher?: RunnerClass
     }
 
     interface ServiceInstance extends HookFunctions {
@@ -83,7 +100,7 @@ declare namespace WebdriverIO {
         /**
          * e.g. `services: [CustomClass]`
          */
-        ServiceLauncher |
+        ServiceClass |
         /**
          * e.g. `services: [['@wdio/sauce-service', { ... }]]`
          */
@@ -123,7 +140,7 @@ declare namespace WebdriverIO {
         /**
          * Sauce Labs provides a headless offering that allows you to run Chrome and Firefox tests headless.
          */
-        headless?: string;
+        headless?: boolean;
         /**
          * Define specs for test execution.
          */
@@ -434,7 +451,8 @@ declare namespace WebdriverIO {
         element?: Element,
         ms?: number
     }
-    type TouchActions = string | TouchAction | TouchAction[];
+    type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
+    type TouchActions = TouchActionParameter | TouchActionParameter[];
 
     type WaitForOptions = {
         timeout?: number,
@@ -570,8 +588,8 @@ declare namespace WebdriverIO {
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
 
     type MockResponseParams = {
-        statusCode?: number,
-        headers?: Record<string, string>,
+        statusCode?: number | ((request: Matches) => number),
+        headers?: Record<string, string> | ((request: Matches) => Record<string, string>),
         /**
          * fetch real response before responding with mocked data. Default: true
          */
@@ -690,7 +708,7 @@ declare namespace WebdriverIO {
          */
         addLocatorStrategy(
             name: string,
-            func: (elementFetchingMethod: (selector: string) => any) => void
+            func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
         ): void
         // ... browser commands ...
     }
@@ -709,7 +727,7 @@ declare namespace WebdriverIO {
         /**
          * flag to indicate multiremote browser session
          */
-        isMultiremote: true;
+        isMultiremote: boolean;
     }
 
     type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference

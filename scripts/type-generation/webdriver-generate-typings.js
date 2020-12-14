@@ -58,7 +58,13 @@ const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
 const outputFile = path.join(__dirname, '..', '..', 'packages', 'webdriver', 'build', 'types.d.ts')
 const generatedTypings = template.replace('// ... insert here ...', lines.join('\n'))
 
-const origTypings = fs.readFileSync(outputFile, 'utf8')
+let origTypings
+try {
+    origTypings = fs.readFileSync(outputFile, 'utf8')
+} catch (err) {
+    console.log('Can not generate WebDriver typings as project is not build')
+    return
+}
 fs.writeFileSync(outputFile, origTypings.replace('export {};', generatedTypings), { encoding: 'utf-8' })
 
 // eslint-disable-next-line no-console

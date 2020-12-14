@@ -9,27 +9,16 @@ const SCOPE_TYPES: Record<string, Function> = {
 }
 
 interface PropertiesObject {
-    scope?: string
-    commandList?: {
-        value: string[]
-    }
-    options?: {
-        value: Record<string, any>
-    }
-    requestedCapabilities?: {
-        value?: Record<string, any>
-    }
-    puppeteer?: any
-    [key: string]: any
+    [key: string]: PropertyDescriptor
 }
 
-export default function WebDriver (options: WebDriver.Options | WebdriverIO.Config, modifier?: Function, propertiesObject: PropertiesObject = {}) {
+export default function WebDriver (options: Record<string, any>, modifier?: Function, propertiesObject: PropertiesObject = {}) {
     /**
      * In order to allow named scopes for elements we have to propagate that
      * info within the `propertiesObject` object. This doesn't have any functional
      * advantages just provides better description of objects when debugging them
      */
-    const scopeType = SCOPE_TYPES[propertiesObject.scope || 'browser']
+    const scopeType = SCOPE_TYPES[propertiesObject.scope?.value || 'browser']
     delete propertiesObject.scope
 
     const prototype = Object.create(scopeType.prototype)

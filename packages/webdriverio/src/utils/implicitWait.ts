@@ -1,23 +1,12 @@
 import logger from '@wdio/logger'
 const log = logger('webdriverio')
 
-export type CurrentElement = {
-    index: number;
-    elementId: string;
-    selector: string;
-    parent: CurrentElement;
-    $: (selector: string) => Promise<CurrentElement>
-    $$: (selector: string) => Promise<CurrentElement[]>
-    waitForExist: () => Promise<void>
-}
-
 /**
  * wait on element if:
  *  - elementId couldn't be fetched in the first place
  *  - command is not explicit wait command for existance or displayedness
  */
-export default async function implicitWait (currentElement: CurrentElement, commandName: string): Promise<CurrentElement> {
-
+export default async function implicitWait (currentElement: WebdriverIO.Element, commandName: string): Promise<WebdriverIO.Element> {
     if (!currentElement.elementId && !commandName.match(/(waitUntil|waitFor|isExisting|is?\w+Displayed|is?\w+Clickable)/)) {
         log.debug(
             `command ${commandName} was called on an element ("${currentElement.selector}") ` +
@@ -31,20 +20,19 @@ export default async function implicitWait (currentElement: CurrentElement, comm
              */
             return await currentElement.parent.$(currentElement.selector)
         } catch {
-
             if (currentElement.selector.toString().includes('this.previousElementSibling')) {
                 throw new Error(
-                    `Can't call ${commandName} on previous element of element with selector "${currentElement.parent.selector}" because sibling wasn't found`)
+                    `Can't call ${commandName} on previous element of element with selector "${(currentElement.parent as WebdriverIO.Element).selector}" because sibling wasn't found`)
             }
 
             if (currentElement.selector.toString().includes('this.nextElementSibling')) {
                 throw new Error(
-                    `Can't call ${commandName} on next element of element with selector "${currentElement.parent.selector}" because sibling wasn't found`)
+                    `Can't call ${commandName} on next element of element with selector "${(currentElement.parent as WebdriverIO.Element).selector}" because sibling wasn't found`)
             }
 
             if (currentElement.selector.toString().includes('this.parentElement')) {
                 throw new Error(
-                    `Can't call ${commandName} on parent element of element with selector "${currentElement.parent.selector}" because it wasn't found`)
+                    `Can't call ${commandName} on parent element of element with selector "${(currentElement.parent as WebdriverIO.Element).selector}" because it wasn't found`)
             }
 
             throw new Error(

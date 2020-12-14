@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { WriteStream } from 'fs'
 import { createWriteStream, ensureDirSync } from 'fs-extra'
 import { EventEmitter } from 'events'
@@ -21,7 +22,7 @@ export interface WDIOReporterOptionsFromLogFile extends WDIOReporterBaseOptions 
     logFile: string
 }
 
-export type WDIOReporterOptions = WDIOReporterOptionsFromLogFile | WDIOReporterOptionsFromStdout
+export type WDIOReporterOptions = WDIOReporterOptionsFromLogFile & WDIOReporterOptionsFromStdout
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream
@@ -40,8 +41,9 @@ export default class WDIOReporter extends EventEmitter {
     }
     retries = 0
     runnerStat?: RunnerStats
+    isContentPresent = false
 
-    constructor(public options: WDIOReporterOptions) {
+    constructor(public options: Partial<WDIOReporterOptions>) {
         super()
 
         // ensure the report directory exists
@@ -180,6 +182,10 @@ export default class WDIOReporter extends EventEmitter {
                 this.runnerStat.complete()
                 this.onRunnerEnd(this.runnerStat)
             }
+            const logFile = (this.options as WDIOReporterOptionsFromLogFile).logFile
+            if (!this.isContentPresent && logFile && fs.existsSync(logFile)) {
+                fs.unlinkSync(logFile)
+            }
         })
 
         /**
@@ -211,6 +217,9 @@ export default class WDIOReporter extends EventEmitter {
      * function to write to reporters output stream
      */
     write(content: any) {
+        if (content) {
+            this.isContentPresent = true
+        }
         this.outputStream.write(content)
     }
 
@@ -257,3 +266,5 @@ export default class WDIOReporter extends EventEmitter {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onRunnerEnd(runnerStats: RunnerStats) { }
 }
+
+export { SuiteStats, HookStats, TestStats, RunnerStats }

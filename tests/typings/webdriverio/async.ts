@@ -53,8 +53,6 @@ async function bar() {
 
     await browser.createWindow('tab')
     await browser.createWindow('window')
-    // @ts-expect-error
-    await browser.createWindow('something else')
 
     const waitUntil: boolean = await browser.waitUntil(
         () => Promise.resolve(true),
@@ -226,7 +224,8 @@ async function bar() {
     await ele.dragAndDrop({ x: 1, y: 2 })
 
     // addLocatorStrategy
-    browser.addLocatorStrategy('myStrat', () => {})
+    browser.addLocatorStrategy('myStrat', () => document.body)
+    browser.addLocatorStrategy('myStrat', () => document.querySelectorAll('div'))
 
     // test access to base client properties
     browser.sessionId
