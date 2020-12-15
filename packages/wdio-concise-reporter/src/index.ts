@@ -79,9 +79,9 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-        * Get suites in the order they were called
-        * @return {Array} Ordered suites
-        */
+     * Get suites in the order they were called
+     * @return {Array} Ordered suites
+     */
     getOrderedSuites () {
         const orderedSuites: SuiteStats[] = []
 
