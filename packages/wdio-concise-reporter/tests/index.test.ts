@@ -82,9 +82,9 @@ describe('ConciseReporter', () => {
         })
 
         it('should print the report to the console', () => {
-            printReporter.suiteUids = SUITE_UIDS
-            printReporter.suites = SUITES
-            printReporter.stateCounts = {
+            printReporter['_suiteUids'] = SUITE_UIDS
+            printReporter['_suites'] = SUITES
+            printReporter['_stateCounts'] = {
                 failed : 1
             }
 
@@ -94,8 +94,8 @@ describe('ConciseReporter', () => {
         })
 
         it('should print default report because there are no failed tests', () => {
-            printReporter.suiteUids = SUITE_UIDS
-            printReporter.suites = SUITES_NO_TESTS
+            printReporter['_suiteUids'] = SUITE_UIDS
+            printReporter['_suites'] = SUITES_NO_TESTS
 
             printReporter.printReport(RUNNER)
 
@@ -105,15 +105,15 @@ describe('ConciseReporter', () => {
 
     describe('getCountDisplay', () => {
         it('should return failing count', () => {
-            tmpReporter.stateCounts.failed = 0
+            tmpReporter['_stateCounts'].failed = 0
             let result = tmpReporter.getCountDisplay()
             expect(result).toBe('All went well !!')
 
-            tmpReporter.stateCounts.failed = 1
+            tmpReporter['_stateCounts'].failed = 1
             result = tmpReporter.getCountDisplay()
             expect(result).toBe('Test failed (1):')
 
-            tmpReporter.stateCounts.failed = 2
+            tmpReporter['_stateCounts'].failed = 2
             result = tmpReporter.getCountDisplay()
             expect(result).toBe('Tests failed (2):')
         })
@@ -122,7 +122,7 @@ describe('ConciseReporter', () => {
     describe('getFailureDisplay', () => {
         it('should return failing results', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => SUITES)
-            tmpReporter.suites = SUITES
+            tmpReporter['_suites'] = SUITES
 
             const result = tmpReporter.getFailureDisplay()
 
@@ -133,7 +133,7 @@ describe('ConciseReporter', () => {
 
         it('should return no results', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => SUITES_NO_TESTS)
-            tmpReporter.suites = SUITES_NO_TESTS
+            tmpReporter['_suites'] = SUITES_NO_TESTS
 
             const result = tmpReporter.getFailureDisplay()
 
@@ -144,8 +144,8 @@ describe('ConciseReporter', () => {
     describe('getOrderedSuites', () => {
         it('should return the suites in order based on uids', () => {
             tmpReporter.foo = 'hellooo'
-            tmpReporter.suiteUids = [5, 3, 8]
-            tmpReporter.suites = [{ uid : 3 }, { uid : 5 }]
+            tmpReporter['_suiteUids'] = [5, 3, 8]
+            tmpReporter['_suites'] = [{ uid : 3 }, { uid : 5 }]
 
             const result = tmpReporter.getOrderedSuites()
 
