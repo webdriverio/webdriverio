@@ -310,9 +310,7 @@ export interface VendorExtensions extends EdgeCapabilities {
     // Sauce Labs Visual
     'sauce:visual'?: SauceLabsVisualCapabilities
     // Browserstack w3c specific
-    'bstack:options'?: {
-        [name: string]: any
-    }
+    'bstack:options'?: BrowserStackCapabilities
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
