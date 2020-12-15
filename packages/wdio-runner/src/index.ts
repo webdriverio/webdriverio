@@ -25,14 +25,14 @@ type RunParams = {
     retries: number
 }
 
-interface Framework {
+interface TestFramework {
     init: (
         cid: string,
         config: ConfigOptions,
         specs: string[],
         capabilities: Capability,
         reporter: BaseReporter
-    ) => Framework
+    ) => TestFramework
     run (): number
     hasTests (): boolean
 }
@@ -43,7 +43,7 @@ export default class Runner extends EventEmitter {
     private _isMultiremote = false
 
     private _reporter?: BaseReporter
-    private _framework?: Framework
+    private _framework?: TestFramework
     private _config?: ConfigOptions
     private _cid?: string
     private _specs?: string[]
@@ -107,14 +107,14 @@ export default class Runner extends EventEmitter {
         /**
          * initialise framework
          */
-        this._framework = initialisePlugin(this._config.framework as string, 'framework').default as unknown as Framework
+        this._framework = initialisePlugin(this._config.framework as string, 'framework').default as unknown as TestFramework
         this._framework = await this._framework.init(cid, this._config, specs, caps, this._reporter)
-        process.send!({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this._framework.hasTests() } })
+        process.send!({ name: 'testTestFrameworkInit', content: { cid, caps, specs, hasTests: this._framework.hasTests() } })
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries)
         }
 
-        browser = await this._initSession(this._config as SingleConfigOption, this._caps, browser as WebdriverIO.BrowserObject) as WebdriverIO.BrowserObject
+        browser = await this._initSession(this._config as SingleConfigOption, this._caps, browser)
 
         /**
          * return if session initialisation failed
@@ -149,9 +149,8 @@ export default class Runner extends EventEmitter {
             sessionId: browser.sessionId,
             capabilities: isMultiremote
                 ? multiRemoteBrowser.instances.reduce((caps: WebdriverIO.MultiRemoteCapabilities, browserName) => {
-                    // @ts-ignore loosly typed multiremote caps
+                    // @ts-ignore loosly typed multiremotecaps
                     caps[browserName] = multiRemoteBrowser[browserName].capabilities
-                    // @ts-ignore this might not be needed
                     caps[browserName].sessionId = multiRemoteBrowser[browserName].sessionId
                     return caps
                 }, {})
@@ -204,12 +203,12 @@ export default class Runner extends EventEmitter {
     async _initSession (
         config: SingleConfigOption,
         caps: Capability,
-        browserStub?: WebdriverIO.BrowserObject | null
+        browserStub?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
     ) {
         const browser = await this._startSession(config, caps)
 
         // return null if session couldn't get established
-        if (!browser) { return null }
+        if (!browser) { return }
 
         // add flags declared by user to browser object
         if (browserStub) {

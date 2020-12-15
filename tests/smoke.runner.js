@@ -27,24 +27,13 @@ async function runTests (tests) {
      */
     const testFilter = process.argv[2]
 
-    if (process.env.CI || (testFilter && !testFilter.startsWith('--'))) {
+    if (process.env.CI || testFilter) {
         // sequential
         const testsFiltered = testFilter ? tests.filter(test => test.name === testFilter) : tests
         for (let test of testsFiltered) {
             await test()
         }
     } else {
-        // run sequentially
-        if ([...process.argv].includes('--sequential')) {
-            for (const test of tests) {
-                console.log(`Run smoke test failed with name ${test.name}`)
-                await test().catch((err) => {
-                    throw new Error(`Smoke test failed with name ${test.name}, ${err}`)
-                })
-            }
-            return
-        }
-
         // parallel
         await Promise.all(tests.map(test => test().catch((err) => {
             throw new Error(`Smoke test failed with name ${test.name}, ${err}`)

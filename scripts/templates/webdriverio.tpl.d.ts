@@ -44,6 +44,7 @@ declare namespace WebdriverIO {
     type JsonCompatible = JsonObject | JsonArray;
 
     interface MultiRemoteBrowserOptions {
+        sessionId?: string
         capabilities: WebDriver.DesiredCapabilities;
     }
 
@@ -727,7 +728,7 @@ declare namespace WebdriverIO {
         /**
          * flag to indicate multiremote browser session
          */
-        isMultiremote: boolean;
+        isMultiremote: true;
     }
 
     type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
