@@ -6,13 +6,14 @@ import {
     SUITES_NO_TESTS,
     REPORT,
 } from './fixtures'
-
+// @ts-ignore
 const reporter = new ConciseReporter({})
 
 describe('ConciseReporter', () => {
     let tmpReporter = null
 
     beforeEach(() => {
+        // @ts-ignore
         tmpReporter = new ConciseReporter({})
         tmpReporter.chalk.level = 0
     })
