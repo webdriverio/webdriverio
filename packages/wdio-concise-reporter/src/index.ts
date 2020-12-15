@@ -69,7 +69,8 @@ export default class ConciseReporter extends WDIOReporter {
             if (test.state === 'failed') {
                 output.push(
                     `  Fail : ${chalk.red(test.title)}`,
-                    `    ${test.error.type} : ${chalk.yellow(test.error.message)}`
+                    // @ts-ignore
+                    `    ${test.error.type} : ${chalk.yellow(test.error?.message)}`
                 )
             }
         }))
