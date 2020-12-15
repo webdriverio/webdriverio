@@ -26,8 +26,8 @@ describe('testFnWrapper', () => {
 
         expect(result).toBe('async: FooBar 0 0')
         expect(executeHooksWithArgs).toBeCalledTimes(2)
-        expect(executeHooksWithArgs).toBeCalledWith('beforeFn', [])
-        expect(executeHooksWithArgs).toBeCalledWith('afterFn', [{
+        expect(executeHooksWithArgs).toBeCalledWith('beforeFoo', 'beforeFn', [])
+        expect(executeHooksWithArgs).toBeCalledWith('afterFoo', 'afterFn', [{
             duration: expect.any(Number),
             error: undefined,
             result: 'async: FooBar 0 0',
@@ -45,8 +45,8 @@ describe('testFnWrapper', () => {
 
         expect(result).toBe('async: FooBar 11 0')
         expect(executeHooksWithArgs).toBeCalledTimes(2)
-        expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
-        expect(executeHooksWithArgs).toBeCalledWith('afterFn', ['afterFnArgs', {
+        expect(executeHooksWithArgs).toBeCalledWith('beforeFoo', 'beforeFn', ['beforeFnArgs'])
+        expect(executeHooksWithArgs).toBeCalledWith('afterFoo', 'afterFn', ['afterFnArgs', {
             duration: expect.any(Number),
             error: undefined,
             result: 'async: FooBar 11 0',
@@ -74,8 +74,8 @@ describe('testFnWrapper', () => {
 
         expect(error).toBe(expectedError)
         expect(executeHooksWithArgs).toBeCalledTimes(2)
-        expect(executeHooksWithArgs).toBeCalledWith('beforeFn', ['beforeFnArgs'])
-        expect(executeHooksWithArgs).toBeCalledWith('afterFn', ['afterFnArgs', {
+        expect(executeHooksWithArgs).toBeCalledWith('beforeFoo', 'beforeFn', ['beforeFnArgs'])
+        expect(executeHooksWithArgs).toBeCalledWith('afterFoo', 'afterFn', ['afterFnArgs', {
             duration: expect.any(Number),
             error: expectedError,
             result: undefined,

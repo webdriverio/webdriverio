@@ -35,7 +35,12 @@ declare namespace WebdriverIO {
 }
 
 declare var browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject;
-declare var driver: WebdriverIO.BrowserObject;
+declare var driver: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject;
+
+/**
+ * internal flags
+ */
+declare var _HAS_FIBER_CONTEXT: boolean
 
 /**
  * find a single element on the page.

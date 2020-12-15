@@ -12,7 +12,7 @@ const log = logger('@wdio/sync')
  * @param  {Object[]} args  list of parameter for hook functions
  * @return {Promise}  promise that gets resolved once all hooks finished running
  */
-export default function executeHooksWithArgs (hooks = [], args) {
+export default async function executeHooksWithArgs (hookName, hooks = [], args) {
     /**
      * make sure hooks are an array of functions
      */
@@ -55,5 +55,11 @@ export default function executeHooksWithArgs (hooks = [], args) {
         return hook.constructor.name === 'AsyncFunction' ? execHook() : Fiber(execHook).run()
     }))
 
-    return Promise.all(hooks)
+    const start = Date.now()
+    const result = await Promise.all(hooks)
+    if (hooks.length) {
+        log.debug(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
+    }
+
+    return result
 }

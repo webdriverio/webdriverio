@@ -319,6 +319,7 @@ declare namespace WebDriver {
         // webdriverio specific
         specs?: string[];
         exclude?: string[];
+        excludeDriverLogs?: string[];
     }
 
     export interface VendorExtensions extends EdgeCapabilities {

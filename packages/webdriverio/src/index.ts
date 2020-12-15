@@ -79,7 +79,10 @@ export const attach = function (params: WebDriver.AttachSessionOptions) {
     return WebDriver.attachToSession(params, undefined, prototype, wrapCommand)
 }
 
-export const multiremote = async function (params: MultiRemoteOptions, { automationProtocol }: Options = {}) {
+export const multiremote = async function (
+    params: MultiRemoteOptions,
+    { automationProtocol }: { automationProtocol?: string } = {}
+) {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
 

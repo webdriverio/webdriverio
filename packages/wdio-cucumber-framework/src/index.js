@@ -58,7 +58,7 @@ class CucumberAdapter {
             })).filter(testCase => this.filter(testCase))
             this._hasTests = this.testCases.length > 0
         } catch (runtimeError) {
-            await executeHooksWithArgs(this.config.after, [runtimeError, this.capabilities, this.specs])
+            await executeHooksWithArgs('after', this.config.after, [runtimeError, this.capabilities, this.specs])
             throw runtimeError
         }
 
@@ -133,7 +133,7 @@ class CucumberAdapter {
             result = 1
         }
 
-        await executeHooksWithArgs(this.config.after, [runtimeError || result, this.capabilities, this.specs])
+        await executeHooksWithArgs('after', this.config.after, [runtimeError || result, this.capabilities, this.specs])
 
         /**
          * in case the spec has a runtime error throw after the wdio hook
@@ -239,19 +239,19 @@ class CucumberAdapter {
     addWdioHooks (config) {
         Cucumber.Before(function wdioHookBeforeScenario (world) {
             const { uri, feature } = getDataFromResult(global.result)
-            return executeHooksWithArgs(config.beforeScenario, [uri, feature, world.pickle, world.sourceLocation, world])
+            return executeHooksWithArgs('beforeScenario', config.beforeScenario, [uri, feature, world.pickle, world.sourceLocation, world])
         })
         Cucumber.After(function wdioHookAfterScenario (world) {
             const { uri, feature } = getDataFromResult(global.result)
-            return executeHooksWithArgs(config.afterScenario, [uri, feature, world.pickle, world.result, world.sourceLocation, world])
+            return executeHooksWithArgs('afterScenario', config.afterScenario, [uri, feature, world.pickle, world.result, world.sourceLocation, world])
         })
         Cucumber.BeforeAll(function wdioHookBeforeFeature() {
             const { uri, feature, scenarios } = getDataFromResult(global.result)
-            return executeHooksWithArgs(config.beforeFeature, [uri, feature, scenarios])
+            return executeHooksWithArgs('beforeFeature', config.beforeFeature, [uri, feature, scenarios])
         })
         Cucumber.AfterAll(function wdioHookAfterFeature() {
             const { uri, feature, scenarios } = getDataFromResult(global.result)
-            return executeHooksWithArgs(config.afterFeature, [uri, feature, scenarios])
+            return executeHooksWithArgs('afterFeature', config.afterFeature, [uri, feature, scenarios])
         })
     }
 

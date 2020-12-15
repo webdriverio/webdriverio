@@ -4,16 +4,22 @@ export type Hooks = {
 }
 
 export type Capabilities = (WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities)[] | WebdriverIO.MultiRemoteCapabilities;
+export type Capability = WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities;
 
 export interface ConfigOptions extends Omit<WebdriverIO.Config, 'capabilities' | keyof WebdriverIO.Hooks>, Hooks {
-    automationProtocol?: 'webdriver' | 'devtools'
+    automationProtocol?: 'webdriver' | 'devtools' | './protocol-stub'
     spec?: string[]
     suite?: string[]
     capabilities?: Capabilities
     specFileRetryAttempts?: number
     cucumberFeaturesWithLineNumbers?: string[]
     specFileRetriesDeferred?: boolean
+    specFileRetries?: number
     maxInstances?: number
+}
+
+export interface SingleConfigOption extends Omit<ConfigOptions, 'capabilities'> {
+    capabilities: Capability
 }
 
 export type DefaultOptions<T> = {
