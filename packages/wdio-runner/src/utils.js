@@ -137,7 +137,7 @@ export function getInstancesData(browser, isMultiremote) {
     if (isMultiremote) {
         instances = {}
         browser.instances.forEach(i => {
-            const { protocol, hostname, port, path, queryParams } = browser[i].options
+            const { protocol, hostname, port, path, queryParams } = browser[i].config
             const { isW3C, sessionId } = browser[i]
 
             instances[i] = { sessionId, isW3C, protocol, hostname, port, path, queryParams }

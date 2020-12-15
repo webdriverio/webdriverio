@@ -46,8 +46,8 @@ export default function waitUntil(
     this: WebdriverIO.BrowserObject,
     condition: () => boolean | Promise<boolean>,
     {
-        timeout = this.options.waitforTimeout,
-        interval = this.options.waitforInterval,
+        timeout = this.config.waitforTimeout,
+        interval = this.config.waitforInterval,
         timeoutMsg
     }: Partial<WebdriverIO.WaitUntilOptions> = {}
 ) {
@@ -59,11 +59,11 @@ export default function waitUntil(
      * ensure that timeout and interval are set properly
      */
     if (typeof timeout !== 'number') {
-        timeout = this.options.waitforTimeout as number
+        timeout = this.config.waitforTimeout as number
     }
 
     if (typeof interval !== 'number') {
-        interval = this.options.waitforInterval as number
+        interval = this.config.waitforInterval as number
     }
 
     const fn = condition.bind(this)

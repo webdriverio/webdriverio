@@ -25,7 +25,7 @@ export const getElement = function findElement(
         scope: { value: 'element' }
     }
 
-    const element = webdriverMonad(this.options, (client: ElementObject) => {
+    const element = webdriverMonad(this.config, (client: ElementObject) => {
         const elementId = getElementFromResponse(res as ElementReference)
 
         if (elementId) {
@@ -85,7 +85,7 @@ export const getElements = function getElements(
 
     const elements = elemResponse.map((res: ElementReference | Error, i) => {
         propertiesObject.scope = { value: 'element' }
-        const element = webdriverMonad(this.options, (client: ElementObject) => {
+        const element = webdriverMonad(this.config, (client: ElementObject) => {
             const elementId = getElementFromResponse(res as ElementReference)
 
             if (elementId) {

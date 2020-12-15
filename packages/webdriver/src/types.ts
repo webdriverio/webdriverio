@@ -813,12 +813,14 @@ export interface SessionFlags {
 }
 
 export interface BaseClient extends EventEmitter, SessionFlags {
+    // instance configurations
+    config: Options
     // id of WebDriver session
-    sessionId: string;
+    sessionId: string
     // assigned capabilities by the browser driver / WebDriver server
-    capabilities: DesiredCapabilities | W3CCapabilities;
+    capabilities: DesiredCapabilities | W3CCapabilities
     // original requested capabilities
-    requestedCapabilities: DesiredCapabilities | W3CCapabilities;
+    requestedCapabilities: DesiredCapabilities | W3CCapabilities
 }
 
 export interface Client extends BaseClient {}

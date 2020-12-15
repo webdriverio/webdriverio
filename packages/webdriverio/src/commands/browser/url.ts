@@ -43,8 +43,8 @@ export default function url (
         throw new Error('Parameter for "url" command needs to be type of string')
     }
 
-    if (typeof this.options.baseUrl === 'string') {
-        path = nodeUrl.resolve(this.options.baseUrl, path)
+    if (typeof this.config.baseUrl === 'string') {
+        path = nodeUrl.resolve(this.config.baseUrl, path)
     }
 
     return this.navigateTo(validateUrl(path))

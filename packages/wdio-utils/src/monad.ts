@@ -36,6 +36,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
          * logging the instance
          */
         propertiesObject.commandList = { value: Object.keys(propertiesObject) }
+        propertiesObject.config = { value: options }
         propertiesObject.requestedCapabilities = { value: options.requestedCapabilities }
 
         /**

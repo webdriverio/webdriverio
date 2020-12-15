@@ -90,7 +90,7 @@ export default function (
         const request = new WebDriverRequest(method, endpoint, body, isHubCommand)
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
-        return request.makeRequest(this.options, this.sessionId).then((result) => {
+        return request.makeRequest(this.config, this.sessionId).then((result) => {
             if (result.value != null) {
                 log.info('RESULT', /screenshot|recording/i.test(command)
                     && typeof result.value === 'string' && result.value.length > 64

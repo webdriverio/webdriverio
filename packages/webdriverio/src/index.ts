@@ -100,7 +100,7 @@ export const multiremote = async function (params: MultiRemoteOptions, { automat
     const sessionParams = isStub(automationProtocol) ? undefined : {
         sessionId: '',
         isW3C: multibrowser.instances[browserNames[0]].isW3C,
-        logLevel: multibrowser.instances[browserNames[0]].options.logLevel
+        logLevel: multibrowser.instances[browserNames[0]].config.logLevel
     }
 
     const ProtocolDriver = automationProtocol && isStub(automationProtocol)

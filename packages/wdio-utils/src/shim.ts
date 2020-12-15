@@ -67,9 +67,9 @@ let runFnInFiberContext = function (fn: Function) {
 let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
     return async function wrapCommandFn(this: WebdriverIO.BrowserObject, ...args: any[]) {
         const beforeHookArgs = [commandName, args]
-        if (!inCommandHook && this.options.beforeCommand) {
+        if (!inCommandHook && this.config.beforeCommand) {
             inCommandHook = true
-            await executeHooksWithArgs.call(this, this.options.beforeCommand, beforeHookArgs)
+            await executeHooksWithArgs.call(this, this.config.beforeCommand, beforeHookArgs)
             inCommandHook = false
         }
 
@@ -81,10 +81,10 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
             commandError = err
         }
 
-        if (!inCommandHook && this.options.afterCommand) {
+        if (!inCommandHook && this.config.afterCommand) {
             inCommandHook = true
             const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
-            await executeHooksWithArgs.call(this, this.options.afterCommand, afterHookArgs)
+            await executeHooksWithArgs.call(this, this.config.afterCommand, afterHookArgs)
             inCommandHook = false
         }
 

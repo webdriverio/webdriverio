@@ -39,8 +39,8 @@ import type { WaitForOptions } from '../../types'
 export default async function waitForDisplayed (
     this: WebdriverIO.Element,
     {
-        timeout = this.options.waitforTimeout,
-        interval = this.options.waitforInterval,
+        timeout = this.config.waitforTimeout,
+        interval = this.config.waitforInterval,
         reverse = false,
         timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}displayed after ${timeout}ms`
     }: WaitForOptions = {}
