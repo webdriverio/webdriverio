@@ -28,7 +28,7 @@
   "dependencies": {
     "@types/puppeteer": "^5.4.0",
     "@wdio/logger": "6.10.10",
-    "fibers": "^4.0.1"
+    "fibers": "^5.0.0"
   },
   "publishConfig": {
     "access": "public"
