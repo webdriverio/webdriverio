@@ -1,6 +1,5 @@
 import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
 import chalk from 'chalk'
-import WebDriver from 'webdriver'
 
 export default class ConciseReporter extends WDIOReporter {
     // keep track of the order that suites were called
