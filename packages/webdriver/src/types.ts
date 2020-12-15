@@ -548,6 +548,32 @@ export interface SauceLabsCapabilities {
     idleTimeout?: number
 }
 
+export interface BrowserStackCapabilities {
+    browser?: string
+    // eslint-disable-next-line
+    browser_version?: string
+    os?: string
+    // eslint-disable-next-line
+    os_version?: string
+    osVersion?: string
+    projectName?: string
+    buildName?: string
+    sessionName?: string
+    local?: boolean
+    debug?: boolean
+    networkLogs?: boolean
+    seleniumVersion?: string
+    ie?: {
+        noFlash?: boolean,
+        compatibility?: number
+        arch?:string
+        driver?: string
+        enablePopups?: boolean
+    }
+    userName?: string
+    accessKey?: string
+}
+
 export interface SauceLabsVisualCapabilities {
     /**
      * Project name
