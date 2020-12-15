@@ -54,7 +54,6 @@ type SessionResponse = {
 }
 
 export default class BrowserstackService {
-    private _config: Config;
     private _sessionBaseUrl: string = 'https://api.browserstack.com/automate/sessions';
     private _failReasons: string[] = [];
     private _scenariosThatRan: string[] = [];
@@ -64,12 +63,10 @@ export default class BrowserstackService {
     private _caps: Capabilities;
     private _browser?: Browser;
     private _fullTitle?: string;
-    constructor (options: BrowserstackConfig = {}, caps: Capabilities, config: Config) {
-        this._config = config
-
+    constructor (options: BrowserstackConfig = {}, caps: Capabilities, private _config: Config) {
         // Cucumber specific
         this._preferScenarioName = Boolean(options.preferScenarioName)
-        this._strict = Boolean(config.cucumberOpts && config.cucumberOpts.strict)
+        this._strict = Boolean(_config.cucumberOpts && _config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
         this._strict && this._failureStatuses.push('pending')
         this._caps = caps
