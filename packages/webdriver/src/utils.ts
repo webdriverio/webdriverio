@@ -28,22 +28,22 @@ export async function startWebDriverSession (params: Options): Promise<{ session
      * validate capabilities to check if there are no obvious mix between
      * JSONWireProtocol and WebDriver protoocol, e.g.
      */
-    if (
-        params.capabilities &&
+    if (params.capabilities) {
+        const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
+        const invalidWebDriverCaps = Object.keys(params.capabilities)
+            .filter((cap) => !VALID_CAPS.includes(cap) && !cap.includes(':'))
+
         /**
          * if there are vendor extensions, e.g. sauce:options or appium:app
          * used (only WebDriver compatible) and caps that aren't defined
          * in the WebDriver spec
          */
-        (
-            Object.keys(params.capabilities).find((cap) => cap.includes(':')) &&
-            Object.keys(params.capabilities).find((cap) => !VALID_CAPS.includes(cap))
-        )
-    ) {
-        throw new Error(
-            'Detected mix of WebDriver and JSONWire protocol capabilities. ' +
-            'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).'
-        )
+        if (extensionCaps.length && invalidWebDriverCaps.length) {
+            throw new Error(
+                `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join('", "')}"). ` +
+                'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).'
+            )
+        }
     }
 
     /**

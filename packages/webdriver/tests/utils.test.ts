@@ -209,6 +209,7 @@ describe('utils', () => {
                 logLevel: 'warn',
                 capabilities: {
                     browserName: 'chrome',
+                    platform: 'Windows'
                 }
             }
             const { sessionId, capabilities } = await startWebDriverSession(params)
@@ -237,11 +238,16 @@ describe('utils', () => {
                 capabilities: {
                     browserName: 'chrome',
                     'sauce:options': {},
-                    platform: 'Windows'
+                    platform: 'Windows',
+                    // @ts-ignore test invalid cap
+                    foo: 'bar'
                 }
             }
             const err: Error = await startWebDriverSession(params).catch((err) => err)
-            expect(err.message).toContain('Detected mix')
+            expect(err.message).toContain(
+                'Invalid or unsupported WebDriver capabilities found ' +
+                '("platform", "foo").'
+            )
         })
     })
 })
