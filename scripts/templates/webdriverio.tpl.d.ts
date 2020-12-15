@@ -728,7 +728,7 @@ declare namespace WebdriverIO {
         /**
          * flag to indicate multiremote browser session
          */
-        isMultiremote: true;
+        isMultiremote: boolean;
     }
 
     type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
