@@ -12,7 +12,7 @@ const log = logger('@wdio/sync')
  * @param  {Object[]} args  list of parameter for hook functions
  * @return {Promise}  promise that gets resolved once all hooks finished running
  */
-export default function executeHooksWithArgs (hookName, hooks = [], args) {
+export default async function executeHooksWithArgs (hookName, hooks = [], args) {
     /**
      * make sure hooks are an array of functions
      */

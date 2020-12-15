@@ -247,8 +247,9 @@ test('wrapHook if successful', async () => {
 
     ;(executeHooksWithArgs as jest.Mock).mockImplementation((...args) => Promise.resolve(args))
     await wrappedHook(doneCallback)
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('somehook')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1].type).toBe('beforeAll')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
     expect(doneCallback.mock.calls).toHaveLength(1)
 })
 
@@ -261,8 +262,9 @@ test('wrapHook if failing', async () => {
 
     ;(executeHooksWithArgs as jest.Mock).mockImplementation(() => Promise.reject(new Error('uuuups')))
     await wrappedHook(doneCallback)
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('somehook')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1].type).toBe('beforeAll')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
     expect(doneCallback.mock.calls).toHaveLength(1)
     expect((logger('').info as jest.Mock).mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups')).toBe(true)
 })
@@ -497,7 +499,7 @@ describe('loadFiles', () => {
         adapter._loadFiles()
         // @ts-ignore outdated types
         expect(adapter['_jrunner']!.loadRequires).toBeCalled()
-        expect(adapter['_hasTests']).toBe(null)
+        expect(adapter['_hasTests']).toBe(undefined)
     })
 })
 

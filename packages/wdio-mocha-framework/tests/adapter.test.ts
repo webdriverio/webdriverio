@@ -147,7 +147,7 @@ test('wrapHook if successful', async () => {
     await wrappedHook()
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2].type).toBe('beforeAll')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
 })
 
 test('wrapHook if failing', async () => {
@@ -161,7 +161,7 @@ test('wrapHook if failing', async () => {
         .toBe('beforeAll')
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1])
         .toBe('somehook')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2].type)
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type)
         .toBe('beforeAll')
     expect((logger('').error as jest.Mock).mock.calls[0][0]
         .startsWith('Error in beforeAll hook: uuuups')).toBe(true)
@@ -492,7 +492,7 @@ describe('loadFiles', () => {
         } as any
         await adapter._loadFiles({})
         expect(adapter['_mocha']!.loadFilesAsync).toBeCalled()
-        expect(adapter['_hasTests']).toBe(null)
+        expect(adapter['_hasTests']).toBe(undefined)
         expect(adapter['_specLoadError']!.message)
             .toContain('Unable to load spec files')
     })
