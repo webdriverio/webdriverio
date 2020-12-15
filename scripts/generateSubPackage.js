@@ -71,7 +71,7 @@ inquirer.prompt(questions).then(answers => {
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",

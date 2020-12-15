@@ -21,7 +21,7 @@ try {
     Fiber = require('fibers')
     Future = require('fibers/future')
 } catch (e) {
-    log.debug('Couldn\'t load fibers package for Node v10 and above')
+    log.debug('Couldn\'t load fibers package for Node v12 and above')
 }
 
 console.error = origErrorFn
