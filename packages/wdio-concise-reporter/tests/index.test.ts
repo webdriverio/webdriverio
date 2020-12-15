@@ -15,7 +15,7 @@ describe('ConciseReporter', () => {
     beforeEach(() => {
         // @ts-ignore
         tmpReporter = new ConciseReporter({})
-        tmpReporter.chalk.level = 0
+        // tmpReporter.chalk.level = 0
     })
 
     describe('on create', () => {
