@@ -226,5 +226,22 @@ describe('utils', () => {
             }).catch((err) => err)
             expect(error.message).toContain('Failed to create session')
         })
+
+        it('should break if JSONWire and WebDriver caps are mixed together', async () => {
+            const params: Options = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                logLevel: 'warn',
+                capabilities: {
+                    browserName: 'chrome',
+                    'sauce:options': {},
+                    platform: 'Windows'
+                }
+            }
+            const err: Error = await startWebDriverSession(params).catch((err) => err)
+            expect(err.message).toContain('Detected mix')
+        })
     })
 })

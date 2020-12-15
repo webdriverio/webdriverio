@@ -8,6 +8,7 @@ import Protocols from '@wdio/protocols'
 
 import WebDriverRequest, { WebDriverResponse } from './request'
 import command from './command'
+import { VALID_CAPS } from './constants'
 import { Options, JSONWPCommandError, W3CCapabilities, SessionFlags, DesiredCapabilities } from './types'
 
 const log = logger('webdriver')
@@ -23,6 +24,28 @@ const BROWSER_DRIVER_ERRORS = [
  * start browser session with WebDriver protocol
  */
 export async function startWebDriverSession (params: Options): Promise<{ sessionId: string, capabilities: DesiredCapabilities }> {
+    /**
+     * validate capabilities to check if there are no obvious mix between
+     * JSONWireProtocol and WebDriver protoocol, e.g.
+     */
+    if (
+        params.capabilities &&
+        /**
+         * if there are vendor extensions, e.g. sauce:options or appium:app
+         * used (only WebDriver compatible) and caps that aren't defined
+         * in the WebDriver spec
+         */
+        (
+            Object.keys(params.capabilities).find((cap) => cap.includes(':')) &&
+            Object.keys(params.capabilities).find((cap) => !VALID_CAPS.includes(cap))
+        )
+    ) {
+        throw new Error(
+            'Detected mix of WebDriver and JSONWire protocol capabilities. ' +
+            'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).'
+        )
+    }
+
     /**
      * the user could have passed in either w3c style or jsonwp style caps
      * and we want to pass both styles to the server, which means we need
