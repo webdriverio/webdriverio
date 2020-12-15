@@ -34,6 +34,11 @@ module.exports = {
             indexName: 'webdriver',
             appId: 'BH4D9OD16A'
         },
+        announcementBar: {
+            id: 'supportus',
+            content:
+              '⭐️  &nbsp; If you like WebdriverIO, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/webdriverio/webdriverio">GitHub</a>! ⭐️',
+        },
         navbar: {
             title: 'I/O',
             items: [{
