@@ -54,39 +54,39 @@ The following options are available:
 ### capabilities
 Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your Selenium session.
 
-Type: `Object`<br>
+Type: `Object`<br />
 Required: `true`
 
 ### logLevel
 Level of logging verbosity.
 
-Type: `String`<br>
-Default: *info*<br>
+Type: `String`<br />
+Default: *info*<br />
 Options: *trace* | *debug* | *info* | *warn* | *error* | *silent*
 
 ### protocol
 Protocol to use when communicating with the Selenium standalone server (or driver).
 
-Type: `String`<br>
+Type: `String`<br />
 Default: *http*
 Options: *http* | *https*
 
 ### hostname
 Host of your WebDriver server.
 
-Type: `String`<br>
+Type: `String`<br />
 Default: *localhost*
 
 ### port
 Port your WebDriver server is on.
 
-Type: `Number`<br>
+Type: `Number`<br />
 Default: *4444*
 
 ### path
 Path to WebDriver endpoint or grid server.
 
-Type: `String`<br>
+Type: `String`<br />
 Default: */*
 
 ### queryParams
@@ -98,20 +98,20 @@ Default: `null`
 ### connectionRetryTimeout
 Timeout for any WebDriver request to a driver or grid.
 
-Type: `Number`<br>
+Type: `Number`<br />
 Default: *120000*
 
 ### connectionRetryCount
 Count of request retries to the Selenium server.
 
-Type: `Number`<br>
+Type: `Number`<br />
 Default: *2*
 
 ### agent
 
 Allows you to use a custom` http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.
 
-Type: `Object`<br>
+Type: `Object`<br />
 Default:
 
 ```js
@@ -124,11 +124,11 @@ Default:
 ### transformRequest
 Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made
 
-Type: `(RequestOptions) => RequestOptions`<br>
+Type: `(RequestOptions) => RequestOptions`<br />
 Default: *none*
 
 ### transformResponse
 Function intercepting HTTP response objects after a WebDriver response has arrived
 
-Type: `(Response, RequestOptions) => Response`<br>
+Type: `(Response, RequestOptions) => Response`<br />
 Default: *none*

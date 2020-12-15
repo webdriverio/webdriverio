@@ -9,7 +9,7 @@
  * <example>
     :index.html
     <div id="elem">
-        Lorem ipsum <strong>dolor</strong> sit amet,<br>
+        Lorem ipsum <strong>dolor</strong> sit amet,<br />
         consetetur sadipscing elitr
     </div>
     <span style="display: none">I am invisible</span>

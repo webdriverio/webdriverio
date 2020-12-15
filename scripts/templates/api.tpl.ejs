@@ -1,5 +1,6 @@
 <?
 var method = docfiles[0]
+var heading = method.hasHeader ? '####' : '##'
 
 if (method.hasDocusaurusHeader) {
 ?>---
@@ -13,7 +14,7 @@ title: <?= method.command ?>
 
 <?- method.description ?>
 
-##### Usage
+<?- heading ?> Usage
 
 ```js
 <? if (method.isElementScope) {
@@ -23,7 +24,7 @@ title: <?= method.command ?>
 ```
 
 <? if (method.paramTags.length) { ?>
-##### Parameters
+<?- heading ?> Parameters
 
 | Name | Type | Details |
 | ---- | ---- | ------- |
@@ -31,14 +32,14 @@ title: <?= method.command ?>
     var paramKey = paramTag.types
         ? paramTag.types.map((type) => `<code>${type.replace(/>/g, "&gt;").replace(/</g, "&lt;")}</code>`).join('|')
         : paramTag.type
-    ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br><span class="label labelWarning">optional</span><? }
+    ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br /><span class="label labelWarning">optional</span><? }
     ?> | <?= paramKey.split('|').join(', ').replace('(', '').replace(')', '')
     ?> | <?= paramTag.description ?> |
 <? }) ?>
 <? } ?>
 
 <? if (method.examples.length) { ?>
-##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
+<?- heading ?> Example<? if (method.examples.length > 1) { ?>s<? } ?>
 <? method.examples.forEach(function(example) { ?>
 ```<?= example.format ?><? if (example.file) { ?> <?= example.file ?><? } ?>
 <?- example.code ?>
@@ -47,20 +48,20 @@ title: <?= method.command ?>
 <? } ?>
 
 <? if (method.returns) { ?>
-##### Returns
+<?- heading ?> Returns
 
 - **&lt;<?= method.returns.type ?>&gt; <code><var><?= method.returns.name ?></var></code>:** <?= method.returns.description ?>
 <? } ?>
 
 <? if (method.throwsTags.length) { ?>
-##### Throws
+<?- heading ?> Throws
 
 <? method.throwsTags.forEach(function(throwsTag) { ?>- **<?= throwsTag.type ?>**: <?= throwsTag.description ?>
 <? }) ?>
 <? } ?>
 
 <? if (method.support && Object.keys(method.support).length) { ?>
-##### Support
+<?- heading ?> Support
 
 <? Object.keys(method.support).forEach(function(platform) {
 ?>![Support for <?=Object.keys(method.support[platform]).map(function(driver) {

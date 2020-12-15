@@ -102,14 +102,14 @@ Applitools server URL to be used
 Viewport with which the screenshots should be taken.
 
 - Optional
-- Type: `object`<br>
+- Type: `object`<br />
 - Default: `{'width': 1440, 'height': 900}`
 
 ### proxy
 Use proxy for http/https connections with Applitools.
 
 - Optional
-- Type: `object`<br>
+- Type: `object`<br />
 - Example:
 ```js
 {

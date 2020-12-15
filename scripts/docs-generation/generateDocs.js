@@ -2,7 +2,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const sidebars = require('../../website/_sidebars.json')
+const sidebars = require('./sidebars.json')
 const { generateProtocolDocs } = require('./protocolDocs')
 const { generateWdioDocs } = require('./wdioDocs')
 const { generateReportersAndServicesDocs } = require('./packagesDocs')

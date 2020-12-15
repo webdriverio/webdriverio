@@ -1217,7 +1217,7 @@ declare namespace WebDriver {
 
         /**
          * [webdriver]
-         * The Element Send Keys command scrolls into view the form control element and then sends the provided keys to the element. In case the element is not keyboard-interactable, an element not interactable error is returned.<br><br>The key input state used for input may be cleared mid-way through "typing" by sending the null key, which is U+E000 (NULL).
+         * The Element Send Keys command scrolls into view the form control element and then sends the provided keys to the element. In case the element is not keyboard-interactable, an element not interactable error is returned.<br /><br />The key input state used for input may be cleared mid-way through "typing" by sending the null key, which is U+E000 (NULL).
          * https://w3c.github.io/webdriver/#dfn-element-send-keys
          */
         elementSendKeys(elementId: string, text: string): void;
@@ -2066,7 +2066,7 @@ declare namespace WebDriver {
 
         /**
          * [jsonwp]
-         * Determine an element's location on the screen once it has been scrolled into view.<br><br>__Note:__ This is considered an internal command and should only be used to determine an element's location for correctly generating native events.
+         * Determine an element's location on the screen once it has been scrolled into view.<br /><br />__Note:__ This is considered an internal command and should only be used to determine an element's location for correctly generating native events.
          * https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidlocation_in_view
          */
         getElementLocationInView(elementId: string): ProtocolCommandResponse;
@@ -2613,14 +2613,14 @@ declare namespace WebDriver {
 
         /**
          * [chromium]
-         * Send a command to the DevTools debugger.<br>For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).
+         * Send a command to the DevTools debugger.<br />For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).
          * https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1290-L1304
          */
         sendCommand(cmd: string, params: object): void;
 
         /**
          * [chromium]
-         * Send a command to the DevTools debugger and wait for the result.<br>For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).
+         * Send a command to the DevTools debugger and wait for the result.<br />For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).
          * https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1306-L1320
          */
         sendCommandAndGetResult(cmd: string, params: object): any;

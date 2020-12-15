@@ -55,13 +55,13 @@ In order to authorize to the CrossBrowserTesting service your config needs to co
 ### cbtTunnel
 If true secure CBT local connection is started.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 ### cbtTunnelOpts
 Any additional options to pass along to the `start()` function of [cbt_tunnels](https://www.npmjs.com/package/cbt_tunnels)
 
-Type: `Object`<br>
+Type: `Object`<br />
 Default: `{}`
 
 ---

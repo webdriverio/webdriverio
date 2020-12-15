@@ -60,14 +60,14 @@ Contains all settings as key value pair. You can find all available settings on 
 
 Add one or multiple extensions to the browser session. All entries can be either an absolute path to the `.xpi` file or the path to an unpacked Firefox extension directory.
 
-Type: `String[]`<br>
+Type: `String[]`<br />
 Default: `[]`
 
 ### profileDirectory
 
 Create Firefox profile based on an existing one by setting an absolute path to that profile.
 
-Type: `String`<br>
+Type: `String`<br />
 Default: `null`
 
 ### proxy
@@ -79,8 +79,8 @@ Set network proxy settings. The parameter `proxy` is a hash which structure depe
  * `pac` - use automatic proxy configuration set based on the value of `autoconfigUrl` key
  * `manual` - manual proxy settings defined separately for different protocols using values from following keys: `ftpProxy`, `httpProxy`, `sslProxy`, `socksProxy`
 
-Type: `Object`<br>
-Default: `null`<br>
+Type: `Object`<br />
+Default: `null`<br />
 Example:
 
 - Automatic Proxy:
@@ -139,7 +139,7 @@ Example:
 
 Please set this flag to `true` if you use Firefox v55 or lower.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 ----

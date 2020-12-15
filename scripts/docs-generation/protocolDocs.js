@@ -2,7 +2,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const ejs = require('ejs')
 
-const config = require('../../website/siteConfig')
+const config = require('../../website/docusaurus.config')
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
 const {
     PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS, PROTOCOL_API_DESCRIPTION
@@ -10,7 +10,7 @@ const {
 
 const category = 'api'
 const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..')
-const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
+const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'website', 'docs', category)
 
 /**
  * Generate Protocol docs
@@ -54,7 +54,7 @@ exports.generateProtocolDocs = (sidebars) => {
                 }
 
                 if (description.description) {
-                    description.description += `<br><br>${protocolNote}`
+                    description.description += `<br /><br />${protocolNote}`
                 } else {
                     description.description = protocolNote
                 }
@@ -65,7 +65,7 @@ exports.generateProtocolDocs = (sidebars) => {
                         '---',
                         `id: ${protocolName}`,
                         `title: ${protocol}`,
-                        `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/master/packages/wdio-protocols/protocols/${protocolName}.json`,
+                        `custom_edit_url: ${description.customEditUrl}`,
                         '---\n'
                     ].join('\n')]
 

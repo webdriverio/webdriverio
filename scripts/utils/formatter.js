@@ -1,6 +1,6 @@
 const path = require('path')
 
-const config = require('../../website/siteConfig')
+const config = require('../../website/docusaurus.config')
 
 module.exports = function (docfile) {
     const javadoc = docfile.javadoc[0]

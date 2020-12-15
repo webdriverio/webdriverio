@@ -180,7 +180,7 @@ describe('utils', () => {
 
         it('edge driver localhost issue', () => {
             expect(
-                getSessionError(new Error('Bad Request - Invalid Hostname 400 <br> HTTP Error 400'))
+                getSessionError(new Error('Bad Request - Invalid Hostname 400 <br /> HTTP Error 400'))
             ).toContain('127.0.0.1 instead of localhost')
         })
 

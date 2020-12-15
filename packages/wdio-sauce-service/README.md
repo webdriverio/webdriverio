@@ -72,7 +72,7 @@ export.config = {
         // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
         'sauce:options': {
             tunnelIdentifier: 'YourTunnelName',
-            
+
             // Example options
             build: 'your-build-name',
             screenResolution: '1600x1200',
@@ -94,7 +94,7 @@ export.config = {
         'sauce:options': {
             tunnelIdentifier: 'ParentTunnelName',
             parentTunnel: '<username of parent>,
-            
+
             // Example options
             build: 'your-build-name',
             screenResolution: '1600x1200',
@@ -129,7 +129,7 @@ In order to authorize to the Sauce Labs service your config needs to contain a [
 ### sauceConnect
 If true it runs Sauce Connect and opens a secure connection between a Sauce Labs virtual machine running your browser tests.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 *(only for vm and or em/simulators)*
@@ -137,7 +137,7 @@ Default: `false`
 ### sauceConnectOpts
 Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://github.com/bermi/sauce-connect-launcher#advanced-usage) for more information. Per default the service disables SC proxy auto-detection as via `noAutodetect` as this can be unreliable for some machines.
 
-Type: `Object`<br>
+Type: `Object`<br />
 Default: `{ noAutodetect: true }`
 
 *(only for vm and or em/simulators)*
@@ -145,7 +145,7 @@ Default: `{ noAutodetect: true }`
 ### setJobNameInBeforeSuite
 If true it updates the job name at the Sauce Labs job in the beforeSuite Hook. Attention: this comes at the cost of an additional call to Sauce Labs. The advantage of using this flag is the direct visibility of the job name in sauce labs also during the run time. This is especially useful for long running tests.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 ----

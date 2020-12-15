@@ -24,7 +24,7 @@ const readmeHeaders = ['===', '# ']
 const readmeBadges = ['https://badge', 'https://travis-ci.org/']
 
 const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..')
-const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs')
+const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'website', 'docs')
 
 /**
  * Generate docs for 3rd party reporters and services
@@ -132,7 +132,9 @@ function normalizeDoc(readme, githubUrl, preface, repoInfo) {
         }
     })
 
-    return [...preface, ...repoInfo, ...readmeArr].join('\n')
+    return [...preface, ...repoInfo, ...readmeArr]
+        .join('\n')
+        .replace(/<br>/g, '<br />')
 }
 
 /**
