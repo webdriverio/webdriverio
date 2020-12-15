@@ -331,15 +331,13 @@ declare namespace WebDriver {
         // Sauce Labs Visual
         'sauce:visual'?: SauceLabsVisualCapabilities
         // Browserstack w3c specific
-        'bstack:options'?: {
-            [name: string]: any
-        }
+        'bstack:options'?: BrowserStackCapabilities
 
-        'goog:chromeOptions'?: ChromeOptions;
-        'moz:firefoxOptions'?: FirefoxOptions;
-        firefox_profile?: string,
-        'ms:edgeOptions'?: MicrosoftEdgeOptions;
-        'ms:edgeChromium'?: MicrosoftEdgeOptions;
+        'goog:chromeOptions'?: ChromeOptions
+        'moz:firefoxOptions'?: FirefoxOptions
+        firefox_profile?: string
+        'ms:edgeOptions'?: MicrosoftEdgeOptions
+        'ms:edgeChromium'?: MicrosoftEdgeOptions
     }
 
     // Selenium Grid specific
