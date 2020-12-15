@@ -32,7 +32,7 @@ describe('ConciseReporter', () => {
 
     describe('onSuiteStart', () => {
         beforeAll(() => {
-            reporter.onSuiteStart(SUITES[0])
+            reporter.onSuiteStart(SUITES[0] as any)
         })
 
         it('should add to suiteUids', () => {
@@ -53,7 +53,7 @@ describe('ConciseReporter', () => {
 
     describe('onSuiteEnd', () => {
         beforeAll(() => {
-            reporter.onSuiteEnd(SUITES[0])
+            reporter.onSuiteEnd(SUITES[0] as any)
         })
 
         it('should add the suite to the suites array', () => {
@@ -65,7 +65,7 @@ describe('ConciseReporter', () => {
     describe('onRunnerEnd', () => {
         it('should call printReport method', () => {
             reporter.printReport = jest.fn()
-            reporter.onRunnerEnd(RUNNER)
+            reporter.onRunnerEnd(RUNNER as any)
             expect((reporter.printReport as jest.Mock).mock.calls.length).toBe(1)
             expect((reporter.printReport as jest.Mock).mock.calls[0][0]).toEqual(RUNNER)
         })
