@@ -75,8 +75,9 @@ describe('ConciseReporter', () => {
         let printReporter = null
 
         beforeEach(() => {
+            // @ts-ignore
             printReporter = new ConciseReporter({})
-            printReporter.chalk.level = 0
+            // printReporter.chalk.level = 0
             printReporter.write = jest.fn()
         })
 
