@@ -24,8 +24,6 @@ type Test = {
 
 type Context = any;
 
-type Specs = any;
-
 type Feature = {
     document: {
         feature: {
@@ -98,7 +96,7 @@ export default class BrowserstackService {
         this.config.key = config.key
     }
 
-    before(caps: Capabilities, specs: Specs, browser: Browser) {
+    before(caps: Capabilities, specs: string[], browser: Browser) {
         this.browser = browser
 
         // Ensure capabilities are not null in case of multiremote
