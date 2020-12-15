@@ -18,7 +18,7 @@ const wdioReporter: EventEmitter = {
     on: jest.fn()
 } as any
 
-const hookPayload = (type, error?) => ({
+const hookPayload = (type: string, error?: Error) => ({
     id: '',
     description: `"${type} all" hook`,
     ...(error ? { error } : {}),
@@ -37,7 +37,7 @@ const adapterFactory = (config = {}) => new JasmineAdapter(
 
 test('comes with a factory', async () => {
     expect(typeof JasmineAdapterFactory.init).toBe('function')
-    const instance = await JasmineAdapterFactory.init(
+    const instance = await JasmineAdapterFactory.init!(
         '0-2',
         { beforeHook: [], afterHook: [] },
         ['/foo/bar.test.js'],
@@ -61,22 +61,22 @@ test('should properly set up jasmine', async () => {
 
     expect(result).toBe(0)
     expect(setOptions).toBeCalledTimes(1)
-    expect((adapter['_jrunner'].addSpecFiles as jest.Mock).mock.calls[0][0]).toEqual(['/foo/bar.test.js'])
+    expect((adapter['_jrunner']!.addSpecFiles as jest.Mock).mock.calls[0][0]).toEqual(['/foo/bar.test.js'])
     // @ts-ignore outdated types
-    expect((adapter['_jrunner'].jasmine.addReporter as jest.Mock).mock.calls).toHaveLength(1)
+    expect((adapter['_jrunner']!.jasmine.addReporter as jest.Mock).mock.calls).toHaveLength(1)
     expect((executeHooksWithArgs as jest.Mock).mock.calls).toHaveLength(1)
 
-    expect((adapter['_jrunner'].env.beforeAll as jest.Mock).mock.calls).toHaveLength(1)
-    expect((adapter['_jrunner'].env.beforeEach as jest.Mock).mock.calls).toHaveLength(0)
-    expect((adapter['_jrunner'].env.afterEach as jest.Mock).mock.calls).toHaveLength(0)
-    expect((adapter['_jrunner'].env.afterAll as jest.Mock).mock.calls).toHaveLength(1)
+    expect((adapter['_jrunner']!.env.beforeAll as jest.Mock).mock.calls).toHaveLength(1)
+    expect((adapter['_jrunner']!.env.beforeEach as jest.Mock).mock.calls).toHaveLength(0)
+    expect((adapter['_jrunner']!.env.afterEach as jest.Mock).mock.calls).toHaveLength(0)
+    expect((adapter['_jrunner']!.env.afterAll as jest.Mock).mock.calls).toHaveLength(1)
 
-    expect((adapter['_jrunner'].onComplete as jest.Mock).mock.calls).toHaveLength(1)
-    expect((adapter['_jrunner'].execute as jest.Mock).mock.calls).toHaveLength(1)
+    expect((adapter['_jrunner']!.onComplete as jest.Mock).mock.calls).toHaveLength(1)
+    expect((adapter['_jrunner']!.execute as jest.Mock).mock.calls).toHaveLength(1)
 
-    expect(adapter['_jrunner'].configureDefaultReporter.name).toBe('noop')
+    expect(adapter['_jrunner']!.configureDefaultReporter.name).toBe('noop')
     // @ts-ignore outdated types
-    adapter['_jrunner'].configureDefaultReporter()
+    adapter['_jrunner']!.configureDefaultReporter()
 })
 
 test('should propery wrap interfaces', async () => {
@@ -152,7 +152,7 @@ test('should properly configure the jasmine environment', async () => {
     await adapter.init()
     await adapter.run()
     // @ts-ignore outdated types
-    expect(adapter['_jrunner'].jasmine.getEnv().configure).toBeCalledWith({
+    expect(adapter['_jrunner']!.jasmine.getEnv().configure).toBeCalledWith({
         specFilter: expect.any(Function),
         failSpecWithNoExpectations,
         oneFailurePerSpec: stopSpecOnExpectationFailure,
@@ -172,7 +172,7 @@ test('set custom ', async () => {
     const adapter = adapterFactory(config)
     await adapter.init()
     await adapter.run()
-    adapter['_jrunner'].jasmine.Spec.prototype.addExpectationResult('foobar')
+    adapter['_jrunner']!.jasmine.Spec.prototype.addExpectationResult('foobar')
     expect(config.jasmineNodeOpts.expectationResultHandler).toBeCalledWith('foobar', undefined)
 })
 
@@ -183,12 +183,12 @@ test('get data from beforeAll hook', async () => {
     expect(adapter['_lastSpec']).toBeUndefined()
 
     // @ts-ignore outdated types
-    adapter['_jrunner'].jasmine.Suite.prototype.beforeAll.call({
+    adapter['_jrunner']!.jasmine.Suite.prototype.beforeAll.call({
         result: 'some result'
     }, 'foobar')
     expect(adapter['_lastSpec']).toBe('some result')
     // @ts-ignore outdated types
-    expect(adapter['_jrunner'].beforeAllHook).toBeCalledWith('foobar')
+    expect(adapter['_jrunner']!.beforeAllHook).toBeCalledWith('foobar')
 })
 
 test('get data from execute hook', async () => {
@@ -197,7 +197,7 @@ test('get data from execute hook', async () => {
     await adapter.run()
     expect(adapter['_lastTest']).toBeUndefined()
 
-    adapter['_jrunner'].jasmine.Spec.prototype.execute.call({
+    adapter['_jrunner']!.jasmine.Spec.prototype.execute.call({
         result: {
             text: 'some result'
         }
@@ -208,7 +208,7 @@ test('get data from execute hook', async () => {
     // @ts-ignore outdated types
     expect(typeof adapter['_lastTest'].start).toBe('number')
     // @ts-ignore outdated types
-    expect(adapter['_jrunner'].executeHook).toBeCalledWith('barfoo')
+    expect(adapter['_jrunner']!.executeHook).toBeCalledWith('barfoo')
 })
 
 test('customSpecFilter', () => {
@@ -247,8 +247,9 @@ test('wrapHook if successful', async () => {
 
     ;(executeHooksWithArgs as jest.Mock).mockImplementation((...args) => Promise.resolve(args))
     await wrappedHook(doneCallback)
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('somehook')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1].type).toBe('beforeAll')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
     expect(doneCallback.mock.calls).toHaveLength(1)
 })
 
@@ -261,8 +262,9 @@ test('wrapHook if failing', async () => {
 
     ;(executeHooksWithArgs as jest.Mock).mockImplementation(() => Promise.reject(new Error('uuuups')))
     await wrappedHook(doneCallback)
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('somehook')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1].type).toBe('beforeAll')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
+    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
     expect(doneCallback.mock.calls).toHaveLength(1)
     expect((logger('').info as jest.Mock).mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups')).toBe(true)
 })
@@ -279,7 +281,7 @@ test('formatMessage', () => {
             failedExpectations: [new Error('foobar')]
         }
     })
-    expect(message.error.message).toBe('foobar')
+    expect(message.error?.message).toBe('foobar')
 
     adapter['_lastSpec'] = { description: 'lasttestdesc' } as any
     message = adapter.formatMessage({
@@ -321,8 +323,8 @@ test('formatMessage should pass all failedExpectations as errors', () => {
         }
     })
 
-    expect(message.errors.length).toBe(2)
-    expect(message.errors[1].message).toBe('I am also a failed expectation but not an exception')
+    expect(message.errors?.length).toBe(2)
+    expect(message.errors![1].message).toBe('I am also a failed expectation but not an exception')
 })
 
 test('getExpectationResultHandler returns origHandler if none is given', () => {
@@ -396,7 +398,7 @@ test('prepareMessage', () => {
     const adapter = adapterFactory()
     adapter.formatMessage = (params) => params
     adapter['_jrunner'] = {} as any
-    adapter['_jrunner'].specFiles = ['/some/path.test.js']
+    adapter['_jrunner']!.specFiles = ['/some/path.test.js']
     adapter['_lastSpec'] = { foo: 'bar' } as any
     adapter['_lastTest'] = { bar: 'foo' } as any
 
@@ -439,62 +441,65 @@ describe('loadFiles', () => {
 
     test('should set _hasTests to true if there are tests to run', () => {
         const adapter = adapterFactory({})
+        // @ts-ignore test scenario
         delete adapter['_hasTests']
         adapter['_jrunner'] = {} as any
         // @ts-ignore outdated types
-        adapter['_jrunner'].loadRequires = jest.fn()
-        adapter['_jrunner'].loadHelpers = jest.fn()
-        adapter['_jrunner'].loadSpecs = jest.fn()
+        adapter['_jrunner']!.loadRequires = jest.fn()
+        adapter['_jrunner']!.loadHelpers = jest.fn()
+        adapter['_jrunner']!.loadSpecs = jest.fn()
         // @ts-ignore outdated types
-        adapter['_jrunner'].env = { topSuite () { return { children: [1] } } }
+        adapter['_jrunner']!.env = { topSuite () { return { children: [1] } } }
 
         adapter._loadFiles()
 
         // @ts-ignore outdated types
-        expect(adapter['_jrunner'].loadRequires).toBeCalled()
-        expect(adapter['_jrunner'].loadHelpers).toBeCalled()
-        expect(adapter['_jrunner'].loadSpecs).toBeCalled()
+        expect(adapter['_jrunner']!.loadRequires).toBeCalled()
+        expect(adapter['_jrunner']!.loadHelpers).toBeCalled()
+        expect(adapter['_jrunner']!.loadSpecs).toBeCalled()
         expect(adapter['_hasTests']).toBe(true)
     })
 
     test('should set _hasTests to false if there no tests to run', () => {
         const adapter = adapterFactory()
-        adapter['_hasTests'] = null
+        // @ts-ignore test scenario
+        delete adapter['_hasTests']
         adapter['_jrunner'] = {} as any
         adapter['_jasmineNodeOpts'].requires = ['r']
         adapter['_jasmineNodeOpts'].helpers = ['h']
         // @ts-ignore outdated types
-        adapter['_jrunner'].addRequires = jest.fn()
+        adapter['_jrunner']!.addRequires = jest.fn()
         // @ts-ignore outdated types
-        adapter['_jrunner'].addHelperFiles = jest.fn()
+        adapter['_jrunner']!.addHelperFiles = jest.fn()
         // @ts-ignore outdated types
-        adapter['_jrunner'].loadRequires = jest.fn()
-        adapter['_jrunner'].loadHelpers = jest.fn()
-        adapter['_jrunner'].loadSpecs = jest.fn()
+        adapter['_jrunner']!.loadRequires = jest.fn()
+        adapter['_jrunner']!.loadHelpers = jest.fn()
+        adapter['_jrunner']!.loadSpecs = jest.fn()
         // @ts-ignore outdated types
-        adapter['_jrunner'].env = { topSuite() { return { children: [] } } }
+        adapter['_jrunner']!.env = { topSuite() { return { children: [] } } }
 
         adapter._loadFiles()
 
         // @ts-ignore outdated types
-        expect(adapter['_jrunner'].addRequires).toHaveBeenCalledWith(adapter['_jasmineNodeOpts'].requires)
+        expect(adapter['_jrunner']!.addRequires).toHaveBeenCalledWith(adapter['_jasmineNodeOpts'].requires)
         // @ts-ignore outdated types
-        expect(adapter['_jrunner'].addHelperFiles).toHaveBeenCalledWith(adapter['_jasmineNodeOpts'].helpers)
+        expect(adapter['_jrunner']!.addHelperFiles).toHaveBeenCalledWith(adapter['_jasmineNodeOpts'].helpers)
         expect(adapter['_hasTests']).toBe(false)
     })
 
     test('should not fail on exception', () => {
         const adapter = adapterFactory()
         adapter['_jrunner'] = {} as any
-        adapter['_hasTests'] = null
+        // @ts-ignore test scenario
+        delete adapter['_hasTests']
 
         // @ts-ignore outdated types
-        adapter['_jrunner'].loadRequires = jest.fn().mockImplementation(() => { throw new Error('foo') }),
+        adapter['_jrunner']!.loadRequires = jest.fn().mockImplementation(() => { throw new Error('foo') }),
 
         adapter._loadFiles()
         // @ts-ignore outdated types
-        expect(adapter['_jrunner'].loadRequires).toBeCalled()
-        expect(adapter['_hasTests']).toBe(null)
+        expect(adapter['_jrunner']!.loadRequires).toBeCalled()
+        expect(adapter['_hasTests']).toBe(undefined)
     })
 })
 

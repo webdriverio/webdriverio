@@ -145,7 +145,7 @@ describe('wdio-runner', () => {
                 config: { afterSession: [hook] }
             } as any as WebdriverIO.BrowserObject
             await runner.endSession()
-            expect(hook).toBeCalledTimes(1)
+            expect(executeHooksWithArgs).toBeCalledWith('afterSession', [hook], [{}, undefined])
             expect(global.browser.deleteSession).toBeCalledTimes(1)
             expect(!global.browser.sessionId).toBe(true)
             expect(runner._shutdown).toBeCalledTimes(0)
@@ -184,7 +184,7 @@ describe('wdio-runner', () => {
                 config: { afterSession: [hook] }
             } as any as WebdriverIO.MultiRemoteBrowserObject
             await runner.endSession()
-            expect(hook).toBeCalledTimes(1)
+            expect(executeHooksWithArgs).toBeCalledWith('afterSession', [hook], [{}, undefined])
             expect(global.browser.deleteSession).toBeCalledTimes(1)
             expect(!global.browser.foo.sessionId).toBe(true)
             expect(!global.browser.bar.sessionId).toBe(true)
@@ -246,8 +246,10 @@ describe('wdio-runner', () => {
             })
 
             expect(runner._shutdown).toBeCalledWith(123, 2)
-            expect(beforeSession).toBeCalledWith(config, caps, specs)
-            expect(executeHooksWithArgs).toBeCalledWith(config.before, [caps, specs, stubBrowser])
+            expect(executeHooksWithArgs).toBeCalledWith('beforeSession', [beforeSession], [{
+                browserName: '123'
+            }, ['foobar']])
+            expect(executeHooksWithArgs).toBeCalledWith('before', config.before, [caps, specs, stubBrowser])
 
             // session capabilities should be passed to reporter
             expect(runner['_reporter']?.caps).toEqual({ browserName: 'chrome' })

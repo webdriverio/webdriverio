@@ -25,6 +25,7 @@ export async function runServiceHook(
     hookName: keyof WebdriverIO.HookFunctions,
     ...args: any[]
 ) {
+    const start = Date.now()
     return Promise.all(launcher.map(async (service: WebdriverIO.ServiceInstance) => {
         try {
             if (typeof service[hookName] === 'function') {
@@ -40,9 +41,13 @@ export async function runServiceHook(
             log.error(`${message}Continue...`)
         }
     })).then(results => {
+        if (launcher.length) {
+            log.debug(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
+        }
+
         const rejectedHooks = results.filter(p => p && p.status === 'rejected')
         if (rejectedHooks.length) {
-            return Promise.reject(`\n${rejectedHooks.map(p => p && p.reason).join()}\n\nStopping runner...`)
+            return Promise.reject(new Error(`\n${rejectedHooks.map(p => p && p.reason).join()}\n\nStopping runner...`))
         }
     })
 }

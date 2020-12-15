@@ -1,55 +1,16 @@
 // @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
-import type { Capability } from '@wdio/config'
 
 import {
-    runHook, initialiseInstance, sanitizeCaps, sendFailureMessage, getInstancesData,
-    ConfigWithSessionId
+    initialiseInstance, sanitizeCaps, sendFailureMessage, getInstancesData, ConfigWithSessionId
 } from '../src/utils'
 
 process.send = jest.fn()
 
-const capability: Capability = { browserName: 'foo' }
-
 describe('utils', () => {
     beforeEach(() => {
         logMock.error.mockClear()
-    })
-
-    describe('runHook', () => {
-        it('should execute all hooks', async () => {
-            const config = { before: [jest.fn(), jest.fn(), jest.fn()] }
-            await runHook('before', config, capability, ['bar'])
-
-            const args = [[config, capability, ['bar']]]
-            expect(config.before.map((hook) => hook.mock.calls)).toEqual([args, args, args])
-        })
-
-        it('should not fail if hooks throw', async () => {
-            const config = {
-                before: [
-                    jest.fn(),
-                    () => new Promise((resolve, reject) => reject(new Error('foobar321'))),
-                    () => {
-                        throw new Error('foobar123')
-                    }
-                ]
-            }
-            await runHook('before', config, capability, ['bar'])
-            expect(logMock.error.mock.calls).toHaveLength(2)
-            expect(logMock.error.mock.calls[0][0]).toContain('foobar123')
-            expect(logMock.error.mock.calls[1][0]).toContain('foobar321')
-        })
-
-        it('should do nothing if hook is not array', async () => {
-            // @ts-ignore test with invalid params
-            expect(runHook('before', null)).toBe(undefined)
-            // @ts-ignore test with invalid params
-            expect(runHook('before', { before: {} })).toBe(undefined)
-            // @ts-ignore test with invalid params
-            expect(runHook('before', {})).toBe(undefined)
-        })
     })
 
     describe('initialiseInstance', () => {

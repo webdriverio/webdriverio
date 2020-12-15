@@ -8,7 +8,7 @@ import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from 
 import { ConfigParser, ConfigOptions, SingleConfigOption, Capability } from '@wdio/config'
 
 import BaseReporter from './reporter'
-import { runHook, initialiseInstance, filterLogTypes, getInstancesData } from './utils'
+import { initialiseInstance, filterLogTypes, getInstancesData } from './utils'
 
 const log = logger('@wdio/runner')
 
@@ -101,7 +101,7 @@ export default class Runner extends EventEmitter {
             caps as unknown as WebDriver.DesiredCapabilities,
             args.ignoredWorkerServices
         ).map(this._configParser.addService.bind(this._configParser))
-        await runHook('beforeSession', this._config, this._caps, this._specs)
+        await executeHooksWithArgs('beforeSession', this._config.beforeSession, [this._caps, this._specs])
 
         this._reporter = new BaseReporter(this._config, this._cid, { ...caps })
         /**
@@ -125,7 +125,7 @@ export default class Runner extends EventEmitter {
 
         this._reporter.caps = browser.capabilities as Capability
 
-        await executeHooksWithArgs(this._config.before, [this._caps, this._specs, browser])
+        await executeHooksWithArgs('before', this._config.before, [this._caps, this._specs, browser])
 
         /**
          * kill session of SIGINT signal showed up while trying to
@@ -412,6 +412,10 @@ export default class Runner extends EventEmitter {
             delete global.browser.sessionId
         }
 
-        await runHook('afterSession', global.browser.config as ConfigOptions, capabilities, this._specs as string[])
+        await executeHooksWithArgs(
+            'afterSession',
+            global.browser.config.afterSession as Function,
+            [capabilities, this._specs as string[]]
+        )
     }
 }

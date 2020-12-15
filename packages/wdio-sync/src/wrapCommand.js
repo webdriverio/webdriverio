@@ -106,7 +106,7 @@ async function runCommandWithHooks(commandName, fn, ...args) {
     // should be before any async calls
     const stackError = new Error()
 
-    await runCommandHook.call(this, this.options.beforeCommand, [commandName, args])
+    await runCommandHook.call(this, 'beforeCommand', this.options.beforeCommand, [commandName, args])
 
     let commandResult
     let commandError
@@ -116,7 +116,7 @@ async function runCommandWithHooks(commandName, fn, ...args) {
         commandError = sanitizeErrorMessage(err, stackError)
     }
 
-    await runCommandHook.call(this, this.options.afterCommand, [commandName, args, commandResult, commandError])
+    await runCommandHook.call(this, 'afterCommand', this.options.afterCommand, [commandName, args, commandResult, commandError])
 
     if (commandError) {
         throw commandError
@@ -125,10 +125,10 @@ async function runCommandWithHooks(commandName, fn, ...args) {
     return commandResult
 }
 
-async function runCommandHook(hookFn, args) {
+async function runCommandHook(hookName, hookFn, args) {
     if (!inCommandHook) {
         inCommandHook = true
-        await executeHooksWithArgs(hookFn, args)
+        await executeHooksWithArgs(hookName, hookFn, args)
         inCommandHook = false
     }
 }

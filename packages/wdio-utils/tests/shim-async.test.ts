@@ -23,21 +23,22 @@ describe('executeHooksWithArgs', () => {
         const hookFuga = () => { return 'fuga' }
         const argHoge = { hoge: 'hoge' }
         const argFuga = { fuga: 'fuga' }
-        const res = await executeHooksWithArgs([hookHoge, hookFuga], [argHoge, argFuga])
+        const res = await executeHooksWithArgs('hookName', [hookHoge, hookFuga], [argHoge, argFuga])
         expect(res).toEqual(['hoge', 'fuga'])
     })
 
     it('one hook, one arg', async () => {
         const hook = () => { return 'hoge' }
         const arg = { hoge: 'hoge' }
-        const res = await executeHooksWithArgs(hook, arg)
+        // @ts-ignore test with invalid param
+        const res = await executeHooksWithArgs('hookName', hook, arg)
         expect(res).toHaveLength(1)
         expect(res).toContain('hoge')
     })
 
     it('with error', async () => {
         const hook = () => { throw new Error('Hoge') }
-        const res = await executeHooksWithArgs(hook, [])
+        const res = await executeHooksWithArgs('hookName', hook, [])
         expect(res).toHaveLength(1)
         expect(res).toEqual([new Error('Hoge')])
     })
@@ -46,7 +47,7 @@ describe('executeHooksWithArgs', () => {
         const hook = () => {
             return new Promise(() => { throw new Error('Hoge') })
         }
-        const res = await executeHooksWithArgs(hook, [])
+        const res = await executeHooksWithArgs('hookName', hook, [])
         expect(res).toHaveLength(1)
         expect(res).toEqual([new Error('Hoge')])
     })
@@ -56,7 +57,7 @@ describe('executeHooksWithArgs', () => {
             return new Promise(reject => setTimeout(reject, 5, new Error('Hoge')))
         }
         const hookFuga = async () => new Promise(resolve => setTimeout(resolve, 10, 'fuga'))
-        const res = await executeHooksWithArgs([hookHoge, hookFuga], [])
+        const res = await executeHooksWithArgs('hookName', [hookHoge, hookFuga], [])
         expect(res).toEqual([new Error('Hoge'), 'fuga'])
     })
 })
