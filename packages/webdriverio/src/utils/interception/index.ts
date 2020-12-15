@@ -23,19 +23,19 @@ export default class Interception {
     }
 
     waitForResponse ({
-        timeout = this.browser.options.waitforTimeout,
-        interval = this.browser.options.waitforInterval,
+        timeout = this.browser.config.waitforTimeout,
+        interval = this.browser.config.waitforInterval,
         timeoutMsg,
     }: WebdriverIO.WaitForOptions = {}) {
         /*!
          * ensure that timeout and interval are set properly
          */
         if (typeof timeout !== 'number') {
-            timeout = this.browser.options.waitforTimeout as number
+            timeout = this.browser.config.waitforTimeout as number
         }
 
         if (typeof interval !== 'number') {
-            interval = this.browser.options.waitforInterval as number
+            interval = this.browser.config.waitforInterval as number
         }
 
         /* istanbul ignore next */

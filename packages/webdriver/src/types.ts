@@ -819,8 +819,6 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     capabilities: DesiredCapabilities | W3CCapabilities;
     // original requested capabilities
     requestedCapabilities: DesiredCapabilities | W3CCapabilities;
-    // framework options
-    options: Options
 }
 
 export interface Client extends BaseClient {}

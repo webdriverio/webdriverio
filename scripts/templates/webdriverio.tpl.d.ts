@@ -683,7 +683,6 @@ declare namespace WebdriverIO {
 
     interface Browser extends WebDriver.BaseClient {
         config: Config;
-        options: RemoteOptions;
 
         /**
          * add command to `browser` or `element` scope

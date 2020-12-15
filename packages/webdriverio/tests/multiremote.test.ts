@@ -47,7 +47,6 @@ test('should properly create stub instance', async () => {
     Object.values(params).forEach(cap => { cap.automationProtocol = './protocol-stub' })
     const browser = await multiremote(params, { automationProtocol: './protocol-stub' })
     expect(browser.$).toBeUndefined()
-    expect(browser.options).toBeUndefined()
     expect(browser.commandList).toHaveLength(0)
     expect(browser.browserA).toBeDefined()
     expect(browser.browserB).toBeDefined()

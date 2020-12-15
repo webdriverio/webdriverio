@@ -6,7 +6,7 @@ describe('wrapCommand', () => {
         const beforeHook = jest.fn()
         const afterHook = jest.fn()
         const scope = {
-            options: {
+            config: {
                 beforeCommand: [beforeHook, beforeHook],
                 afterCommand: [afterHook, afterHook, afterHook]
             }
@@ -28,7 +28,7 @@ describe('wrapCommand', () => {
         const commandFn = jest.fn().mockReturnValue(Promise.reject(error))
         const afterHook = jest.fn()
         const scope = {
-            options: {
+            config: {
                 beforeCommand: [],
                 afterCommand: [afterHook, afterHook, afterHook]
             }

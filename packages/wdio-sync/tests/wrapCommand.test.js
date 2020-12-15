@@ -21,7 +21,7 @@ describe('wrapCommand:runCommand', () => {
         global.WDIO_WORKER = '1'
         const fn = jest.fn(x => (x + x))
         const runCommand = wrapCommand('foo', fn)
-        const result = await runCommand.call({ options: {} }, 'bar')
+        const result = await runCommand.call({ config: {} }, 'bar')
         expect(result).toEqual('barbar')
         process.emit('WDIO_TIMER', { id: 0 })
     })
@@ -29,7 +29,7 @@ describe('wrapCommand:runCommand', () => {
     it('should set _NOT_FIBER to false if elementId is missing', async () => {
         const fn = jest.fn()
         const runCommand = wrapCommand('foo', fn)
-        const context = { options: {}, _NOT_FIBER: true }
+        const context = { config: {}, _NOT_FIBER: true }
         await runCommand.call(context, 'bar')
         expect(context._NOT_FIBER).toBe(false)
     })
@@ -37,14 +37,14 @@ describe('wrapCommand:runCommand', () => {
     it('should set _NOT_FIBER to true if elementId is exist', async () => {
         const fn = jest.fn()
         const runCommand = wrapCommand('foo', fn)
-        const context = { options: {}, _NOT_FIBER: true, elementId: 'foo' }
+        const context = { config: {}, _NOT_FIBER: true, elementId: 'foo' }
         await runCommand.call(context, 'bar')
         expect(context._NOT_FIBER).toBe(true)
     })
 
     it('should set _NOT_FIBER to false if elementId is exist but function is anonymous', async () => {
         const runCommand = wrapCommand('foo', () => { })
-        const context = { options: {}, _NOT_FIBER: true, elementId: 'foo' }
+        const context = { config: {}, _NOT_FIBER: true, elementId: 'foo' }
         await runCommand.call(context, 'bar')
         expect(context._NOT_FIBER).toBe(false)
     })
@@ -52,7 +52,7 @@ describe('wrapCommand:runCommand', () => {
     it('should set _NOT_FIBER to true if parent.elementId is exist', async () => {
         const fn = jest.fn()
         const runCommand = wrapCommand('foo', fn)
-        const context = { options: {}, _NOT_FIBER: true, parent: { elementId: 'foo' } }
+        const context = { config: {}, _NOT_FIBER: true, parent: { elementId: 'foo' } }
         await runCommand.call(context, 'bar')
         expect(context._NOT_FIBER).toBe(true)
     })
@@ -62,7 +62,7 @@ describe('wrapCommand:runCommand', () => {
         const runCommand = wrapCommand('foo', jest.fn())
 
         const context = {
-            options: {}, elementId: 'foo', parent: { _NOT_FIBER: true }
+            config: {}, elementId: 'foo', parent: { _NOT_FIBER: true }
         }
 
         await runCommand.call(context)
@@ -75,7 +75,7 @@ describe('wrapCommand:runCommand', () => {
         const runCommand = wrapCommand('foo', () => {})
 
         const context = {
-            options: {}, elementId: 'foo', _hidden_: null, _hidden_changes_: [],
+            config: {}, elementId: 'foo', _hidden_: null, _hidden_changes_: [],
             get _NOT_FIBER () { return this._hidden_ },
             set _NOT_FIBER (val) {
                 this._hidden_changes_.push(val)
@@ -128,14 +128,14 @@ describe('wrapCommand:runCommand', () => {
     it('should throw error with proper message', async () => {
         const fn = jest.fn(x => { throw new Error(x) })
         const runCommand = wrapCommand('foo', fn)
-        const result = runCommand.call({ options: {} }, 'bar')
+        const result = runCommand.call({ config: {} }, 'bar')
         await expect(result).rejects.toEqual(new Error('bar'))
     })
 
     it('should contain merged error stack', async () => {
         const fn = jest.fn(() => { throw anotherError })
         const runCommand = wrapCommand('foo', fn)
-        const result = runCommand.call({ options: {} }, 'bar')
+        const result = runCommand.call({ config: {} }, 'bar')
         try {
             await result
         } catch (err) {
@@ -150,7 +150,7 @@ describe('wrapCommand:runCommand', () => {
     it('should accept non Error objects', async () => {
         const fn = jest.fn(x => Promise.reject(x))
         const runCommand = wrapCommand('foo', fn)
-        const result = runCommand.call({ options: {} }, 'bar')
+        const result = runCommand.call({ config: {} }, 'bar')
         try {
             await result
         } catch (err) {
@@ -164,7 +164,7 @@ describe('wrapCommand:runCommand', () => {
     it('should accept undefined', async () => {
         const fn = jest.fn(() => Promise.reject())
         const runCommand = wrapCommand('foo', fn)
-        const result = runCommand.call({ options: {} })
+        const result = runCommand.call({ config: {} })
         try {
             await result
         } catch (err) {
@@ -183,7 +183,7 @@ describe('wrapCommand:runCommand', () => {
         it('should throw regular error', () => {
             const fn = jest.fn(() => {})
             const runCommand = wrapCommand('foo', fn)
-            const context = { options: {} }
+            const context = { config: {} }
             try {
                 runCommand.call(context, 'bar')
             } catch (err) {

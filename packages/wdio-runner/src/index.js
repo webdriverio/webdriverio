@@ -128,7 +128,7 @@ export default class Runner extends EventEmitter {
         /**
          * report sessionId and target connection information to worker
          */
-        const { protocol, hostname, port, path, queryParams } = browser.options
+        const { protocol, hostname, port, path, queryParams } = this.config
         const { isW3C, sessionId } = browser
         process.send({
             origin: 'worker',

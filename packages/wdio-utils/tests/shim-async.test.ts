@@ -190,7 +190,7 @@ describe('wrapCommand', () => {
         const commandA = wrapCommand('foobar', rawCommand)
         const commandB = wrapCommand('barfoo', rawCommand)
         const scope: Partial<WebdriverIO.BrowserObject> = {
-            options: {
+            config: {
                 beforeCommand: jest.fn(),
                 afterCommand: jest.fn().mockImplementation(
                     () => commandB.call(scope, 123))
@@ -198,8 +198,8 @@ describe('wrapCommand', () => {
         }
 
         expect(await commandA.call(scope, true, false, '!!')).toBe('Yayy!')
-        expect(scope.options!.beforeCommand).toBeCalledTimes(1)
-        expect(scope.options!.afterCommand).toBeCalledTimes(1)
+        expect(scope.config!.beforeCommand).toBeCalledTimes(1)
+        expect(scope.config!.afterCommand).toBeCalledTimes(1)
         expect(rawCommand).toBeCalledTimes(2)
     })
 
@@ -209,7 +209,7 @@ describe('wrapCommand', () => {
         const commandA = wrapCommand('foobar', rawCommand)
         const commandB = wrapCommand('barfoo', rawCommand)
         const scope: Partial<WebdriverIO.BrowserObject> = {
-            options: {
+            config: {
                 beforeCommand: jest.fn(),
                 afterCommand: jest.fn().mockImplementation(
                     () => commandB.call(scope, 123))
@@ -219,8 +219,8 @@ describe('wrapCommand', () => {
         const error = await commandA.call(scope, true, false, '!!')
             .catch((err: Error) => err)
         expect((error as Error).message).toBe('Uppsi!')
-        expect(scope.options!.beforeCommand).toBeCalledTimes(1)
-        expect(scope.options!.afterCommand).toBeCalledTimes(1)
+        expect(scope.config!.beforeCommand).toBeCalledTimes(1)
+        expect(scope.config!.afterCommand).toBeCalledTimes(1)
         expect(rawCommand).toBeCalledTimes(2)
     })
 })

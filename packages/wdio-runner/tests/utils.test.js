@@ -198,7 +198,7 @@ describe('utils', () => {
                 foo: {
                     isW3C,
                     sessionId,
-                    options: { protocol, hostname, port, path, queryParams }
+                    config: { protocol, hostname, port, path, queryParams }
                 }
             }, true)).toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })
         })
