@@ -1,6 +1,7 @@
 ---
 id: gettingstarted
 title: Getting Started
+slug: /
 ---
 
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio).

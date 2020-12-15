@@ -179,7 +179,7 @@ A WebdriverIO & Cucumber Boilerplate based on Page Object Model!
 
 ### [tamil777selvan/wdioV6-Perfecto-Boilerplate](https://github.com/tamil777selvan/wdioV6-Perfecto-Boilerplate.git)
 
-Boilerplate project to run WebdriverIO tests in Perfecto Cloud ([https://www.perfecto.io/]()) using Cucumber features, and the page objects pattern.
+Boilerplate project to run WebdriverIO tests in [Perfecto Cloud](https://www.perfecto.io/) using Cucumber features, and the page objects pattern.
 
 - Frameworks:
     - webdriverIO (v6)
