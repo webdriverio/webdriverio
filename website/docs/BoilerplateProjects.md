@@ -179,7 +179,7 @@ A WebdriverIO & Cucumber Boilerplate based on Page Object Model!
 
 ### [tamil777selvan/wdioV6-Perfecto-Boilerplate](https://github.com/tamil777selvan/wdioV6-Perfecto-Boilerplate.git)
 
-Boilerplate project to run WebdriverIO tests in Perfecto Cloud ([https://www.perfecto.io/]()) using Cucumber features, and the page objects pattern.
+Boilerplate project to run WebdriverIO tests in [Perfecto Cloud](https://www.perfecto.io/) using Cucumber features, and the page objects pattern.
 
 - Frameworks:
     - webdriverIO (v6)
@@ -227,17 +227,17 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
 ### [AdarshKumarGM/WebDriverIO-with-CucumberJS](https://github.com/AdarshKumarGM/WebDriverIO-with-CucumberJS)
 Boilerplate for bulding cucumberJS with webdriverIO framework.
 
-- Framework: 
+- Framework:
    - WebdriverIO (v6.x)
    - CucumberJS (v6.x)
    - Node (v12.x)
-   
+
 - Features:
    - Capability for desktop browser
    - Multiple cucumber html reporting
    - Eslint
    - Folder structure containing support files to kick start
-   
+
 ### [Arjun-Ar91/WebdriverIO-V6-appium-mocha-boilerplate](https://github.com/Arjun-Ar91/WebdriverIO-V6-appium-mocha-boilerplate.git)
 
 Boilerplate project to run appium tests for native and mobile browser using mocha v6 and webdriverIO v6 with page object pattern.
@@ -254,8 +254,8 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Page Object Model
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
-    
-### [osmolyar/page-object-structure-with-cucumber](https://github.com/osmolyar/page-object-structure)  
+
+### [osmolyar/page-object-structure-with-cucumber](https://github.com/osmolyar/page-object-structure)
 
 Boilerplate project for WebdriverIO with Cucumber.  Navigation modeling, advanced page object structure, Cucumber world context, business options, cucumber step data parsing methods.
 
@@ -267,7 +267,7 @@ Boilerplate project for WebdriverIO with Cucumber.  Navigation modeling, advance
   - Increased modularization
       - Page object structure leveraging return of landing page instances on navigation to pages
         - Isolates step definition files and page object classes from dependencies on downstream pages.
-        - No need to import each page class that will be navigated to. 
+        - No need to import each page class that will be navigated to.
         - Increases the modularity of the framework and enforces guardrails on methods defined within a page
         - Implicitly validates having landed on the correct page inside each page's constructor
           - Calls a method to validate some page indicator (e.g., title).
@@ -287,12 +287,12 @@ Boilerplate project for WebdriverIO with Cucumber.  Navigation modeling, advance
     - Initialize functionality-specific business option objects
     - Populate business options with step definitions
     - Step definitions pass only required business options, validation options to ui Service methods
-    - Step definitions examples using various Cucumber data-tables methods 
+    - Step definitions examples using various Cucumber data-tables methods
       - (https://github.com/cucumber/cucumber-js/blob/master/features/data_tables.feature)
   - Custom browser and element commands
     - With color logging and parameterized wait and trailing wait options
-  - Generic utilities 
-  - Spec, Allure and custom reporters 
+  - Generic utilities
+  - Spec, Allure and custom reporters
 
 
 ## v5 Boilerplate Projects
