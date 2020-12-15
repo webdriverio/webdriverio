@@ -53,7 +53,7 @@ type SessionResponse = {
     }
 }
 
-export default class BrowserstackService {
+export default class BrowserstackService implements WebdriverIO.ServiceInstance {
     private _sessionBaseUrl: string = 'https://api.browserstack.com/automate/sessions';
     private _failReasons: string[] = [];
     private _scenariosThatRan: string[] = [];
