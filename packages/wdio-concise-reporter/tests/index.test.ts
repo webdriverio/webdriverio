@@ -152,10 +152,6 @@ describe('ConciseReporter', () => {
             expect(result.length).toBe(2)
             expect(result[0]).toEqual({ uid : 5 })
             expect(result[1]).toEqual({ uid : 3 })
-
-            expect(tmpReporter.orderedSuites.length).toBe(2)
-            expect(tmpReporter.orderedSuites[0]).toEqual({ uid : 5 })
-            expect(tmpReporter.orderedSuites[1]).toEqual({ uid : 3 })
         })
 
         it('should return no suites', () => {
