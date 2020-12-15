@@ -54,29 +54,29 @@ type SessionResponse = {
 }
 
 export default class BrowserstackService {
-    config: Config;
-    sessionBaseUrl: string;
-    failReasons: string[];
-    scenariosThatRan: string[];
-    preferScenarioName: boolean;
-    strict: boolean;
-    failureStatuses: string[];
-    caps: Capabilities;
-    browser?: Browser;
-    fullTitle?: string;
+    private _config: Config;
+    private _sessionBaseUrl: string;
+    private _failReasons: string[];
+    private _scenariosThatRan: string[];
+    private _preferScenarioName: boolean;
+    private _strict: boolean;
+    private _failureStatuses: string[];
+    private _caps: Capabilities;
+    private _browser?: Browser;
+    private _fullTitle?: string;
     constructor (options: BrowserstackConfig = {}, caps: Capabilities, config: Config) {
-        this.config = config
-        this.sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
-        this.failReasons = []
+        this._config = config
+        this._sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
+        this._failReasons = []
 
         // Cucumber specific
-        this.scenariosThatRan = []
-        this.preferScenarioName = Boolean(options.preferScenarioName)
-        this.strict = Boolean(config.cucumberOpts && config.cucumberOpts.strict)
+        this._scenariosThatRan = []
+        this._preferScenarioName = Boolean(options.preferScenarioName)
+        this._strict = Boolean(config.cucumberOpts && config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
-        this.failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown']
-        this.strict && this.failureStatuses.push('pending')
-        this.caps = caps
+        this._failureStatuses = ['failed', 'ambiguous', 'undefined', 'unknown']
+        this._strict && this._failureStatuses.push('pending')
+        this._caps = caps
     }
 
     /**
@@ -92,38 +92,38 @@ export default class BrowserstackService {
         if (!config.key) {
             config.key = 'NotSetKey'
         }
-        this.config.user = config.user
-        this.config.key = config.key
+        this._config.user = config.user
+        this._config.key = config.key
     }
 
     before(caps: Capabilities, specs: string[], browser: Browser) {
-        this.browser = browser
+        this._browser = browser
 
         // Ensure capabilities are not null in case of multiremote
-        const capabilities = this.browser.capabilities || {}
-        if (capabilities.app || this.caps.app) {
-            this.sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
+        const capabilities = this._browser.capabilities || {}
+        if (capabilities.app || this._caps.app) {
+            this._sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
 
-        this.scenariosThatRan = []
+        this._scenariosThatRan = []
 
         return this._printSessionURL()
     }
 
     beforeSuite (suite: Suite) {
-        this.fullTitle = suite.title
-        return this._updateJob({ name: this.fullTitle })
+        this._fullTitle = suite.title
+        return this._updateJob({ name: this._fullTitle })
     }
 
     beforeFeature(uri: string, feature: Feature) {
-        this.fullTitle = feature.document.feature.name
-        return this._updateJob({ name: this.fullTitle })
+        this._fullTitle = feature.document.feature.name
+        return this._updateJob({ name: this._fullTitle })
     }
 
     afterTest(test: Test, context: Context, results: Results) {
         const { error, passed } = results
 
-        this.fullTitle = (
+        this._fullTitle = (
             /**
              * Jasmine
              */
@@ -135,23 +135,23 @@ export default class BrowserstackService {
         )
 
         if (!passed) {
-            this.failReasons.push((error && error.message) || 'Unknown Error')
+            this._failReasons.push((error && error.message) || 'Unknown Error')
         }
     }
 
     after(result: number) {
         // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
         // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
-        if (this.preferScenarioName && this.scenariosThatRan.length === 1){
-            this.fullTitle = this.scenariosThatRan.pop()
+        if (this._preferScenarioName && this._scenariosThatRan.length === 1){
+            this._fullTitle = this._scenariosThatRan.pop()
         }
 
-        const hasReasons = Boolean(this.failReasons.filter(Boolean).length)
+        const hasReasons = Boolean(this._failReasons.filter(Boolean).length)
 
         return this._updateJob({
             status: result === 0 ? 'passed' : 'failed',
-            name: this.fullTitle,
-            reason: hasReasons ? this.failReasons.join('\n') : undefined
+            name: this._fullTitle,
+            reason: hasReasons ? this._failReasons.join('\n') : undefined
         })
     }
 
@@ -163,43 +163,43 @@ export default class BrowserstackService {
         let { exception, status } = results
 
         if (status !== 'skipped') {
-            this.scenariosThatRan.push(pickle.name)
+            this._scenariosThatRan.push(pickle.name)
         }
 
-        if (this.failureStatuses.includes(status)) {
+        if (this._failureStatuses.includes(status)) {
             exception = exception || (status === 'pending'
                 ? `Some steps/hooks are pending for scenario "${pickle.name}"`
                 : 'Unknown Error')
 
-            this.failReasons.push(exception)
+            this._failReasons.push(exception)
         }
     }
 
     async onReload(oldSessionId: string, newSessionId: string) {
-        const { browser } = this
-        if (!browser) {
+        const { _browser } = this
+        if (!_browser) {
             return Promise.resolve()
         }
 
-        const hasReasons = Boolean(this.failReasons.filter(Boolean).length)
+        const hasReasons = Boolean(this._failReasons.filter(Boolean).length)
 
         let status = hasReasons ? 'failed' : 'passed'
-        if (!browser.isMultiremote) {
+        if (!_browser.isMultiremote) {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
-            const browserName = browser.instances.filter(
-                (browserName) => browser[browserName].sessionId === newSessionId)[0]
+            const browserName = _browser.instances.filter(
+                (browserName) => _browser[browserName].sessionId === newSessionId)[0]
             log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
         await this._update(oldSessionId, {
-            name: this.fullTitle,
+            name: this._fullTitle,
             status,
-            reason: hasReasons ? this.failReasons.join('\n') : undefined
+            reason: hasReasons ? this._failReasons.join('\n') : undefined
         })
-        this.scenariosThatRan = []
-        delete this.fullTitle
-        this.failReasons = []
+        this._scenariosThatRan = []
+        delete this._fullTitle
+        this._failReasons = []
         await this._printSessionURL()
     }
 
@@ -214,51 +214,51 @@ export default class BrowserstackService {
     }
 
     _multiRemoteAction(action: MultiRemoteAction) {
-        const { browser } = this
-        if (!browser) {
+        const { _browser } = this
+        if (!_browser) {
             return Promise.resolve()
         }
 
-        if (!browser.isMultiremote) {
-            return action(browser.sessionId)
+        if (!_browser.isMultiremote) {
+            return action(_browser.sessionId)
         }
 
-        return Promise.all(browser.instances
+        return Promise.all(_browser.instances
             .filter(browserName => {
-                const cap = getBrowserCapabilities(browser, this.caps, browserName)
+                const cap = getBrowserCapabilities(_browser, this._caps, browserName)
                 return isBrowserstackCapability(cap as Capabilities)
             })
             .map((browserName: string) => (
-                action(browser[browserName].sessionId, browserName)
+                action(_browser[browserName].sessionId, browserName)
             ))
         )
     }
 
     _update(sessionId: string, requestBody: any) {
-        const sessionUrl = `${this.sessionBaseUrl}/${sessionId}.json`
+        const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
         log.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
         return got.put(sessionUrl, {
             json: requestBody,
-            username: this.config.user,
-            password: this.config.key
+            username: this._config.user,
+            password: this._config.key
         })
     }
 
     async _printSessionURL() {
-        const { browser } = this
-        if (!browser) {
+        const { _browser } = this
+        if (!_browser) {
             return Promise.resolve()
         }
         await this._multiRemoteAction(async (sessionId, browserName) => {
-            const sessionUrl = `${this.sessionBaseUrl}/${sessionId}.json`
+            const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
             log.debug(`Requesting Browserstack session URL at ${sessionUrl}`)
             const response = await got<SessionResponse>(sessionUrl, {
-                username: this.config.user,
-                password: this.config.key,
+                username: this._config.user,
+                password: this._config.key,
                 responseType: 'json'
             })
 
-            const capabilities = getBrowserCapabilities(browser, this.caps, browserName)
+            const capabilities = getBrowserCapabilities(_browser, this._caps, browserName)
             const browserString = getBrowserDescription(capabilities as Capabilities)
             log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
         })
