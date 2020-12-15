@@ -438,7 +438,7 @@ describe('wdio-runner', () => {
                 [{ browserName: 'chrome' }] as any
             )
 
-            expect(browser).toBe(null)
+            expect(browser).toBe(undefined)
         })
 
         afterEach(() => {
