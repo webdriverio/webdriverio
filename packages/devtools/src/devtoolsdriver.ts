@@ -249,7 +249,7 @@ export default class DevToolsDriver {
          * Avoid looping so quickly we run out of memory before the timeout.
          * https://github.com/webdriverio/webdriverio/issues/5048
          */
-        await new Promise(resolve => setTimeout(resolve, 100))
+        await new Promise(resolve => setTimeout(resolve, Math.min(100, pageloadTimeout != null ? pageloadTimeout / 10 : 100)))
         await this.checkPendingNavigations(pendingNavigationStart)
     }
 }
