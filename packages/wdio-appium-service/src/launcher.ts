@@ -28,7 +28,7 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
         private _options: WebdriverIO.ServiceOption,
         capabilities:
             Array<WebDriver.DesiredCapabilities> | {[capabilitiy: string]: WebDriver.DesiredCapabilities } = {},
-        public _config?: Config
+        private _config?: Config
     ) {
         /**
          * Convert capability object to Array of capabilities

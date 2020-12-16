@@ -2,6 +2,7 @@ import AppiumLauncher from '../src/launcher'
 import childProcess from 'child_process'
 import fs from 'fs-extra'
 import { mocked } from 'ts-jest/utils'
+import path from 'path'
 
 jest.mock('child_process', () => ({
     spawn: jest.fn(),
@@ -64,9 +65,11 @@ const isWindows = process.platform === 'win32'
 describe('Appium launcher', () => {
     const originalPlatform = process.platform
     const consoleSpy = jest.spyOn(global.console, 'error')
+    //@ts-ignore spyOn private function
+    const getAppiumCommandSpy = jest.spyOn<any>(AppiumLauncher, '_getAppiumCommand')
 
     beforeEach(() => {
-        AppiumLauncher['_getAppiumCommand'] = jest.fn().mockReturnValue('/appium/command/path')
+        getAppiumCommandSpy.mockReturnValue('/appium/command/path')
         childProcessMock.spawn.mockClear()
         childProcessMock.spawn.mockReturnValue(new MockProcess() as unknown as childProcess.ChildProcess)
     })
@@ -332,6 +335,23 @@ describe('Appium launcher', () => {
             expect(fsMocked.createWriteStream.mock.calls[0][0]).toBe('/some/file/path')
             expect(launcher['_process']!.stdout.pipe).toBeCalled()
             expect(launcher['_process']!.stderr.pipe).toBeCalled()
+        })
+    })
+
+    describe('_getAppiumCommand', () => {
+
+        beforeEach(() => {
+            getAppiumCommandSpy.mockRestore()
+        })
+
+        test('should return path to dependency', () => {
+
+            expect(AppiumLauncher['_getAppiumCommand']('fs-extra'))
+                .toBe(path.join(process.cwd(), 'packages/wdio-appium-service/node_modules/fs-extra/lib/index.js'))
+        })
+        test('should be appium by default', () => {
+            expect(() => AppiumLauncher['_getAppiumCommand']())
+                .toThrow("Cannot find module 'appium' from 'packages/wdio-appium-service/src/launcher.ts'")
         })
     })
 
