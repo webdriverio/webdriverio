@@ -10,18 +10,6 @@ type Capabilities = WebDriver.Capabilities & WebdriverIO.MultiRemoteCapabilities
 
 type Browser = WebdriverIO.BrowserObject & WebdriverIO.MultiRemoteBrowserObject;
 
-type Config = WebdriverIO.Config & { cucumberOpts?: { strict: boolean } };
-
-type Suite = {
-    title: string;
-}
-
-type Test = {
-    fullName: string,
-    parent: string,
-    title: string
-};
-
 type Context = any;
 
 type Feature = {
@@ -30,13 +18,6 @@ type Feature = {
             name: string;
         }
     }
-};
-
-type Results = {
-    error: Error;
-    passed: boolean
-    exception: any;
-    status: string;
 };
 
 type Pickle = {
@@ -63,7 +44,7 @@ export default class BrowserstackService implements WebdriverIO.ServiceInstance 
     private _caps: Capabilities;
     private _browser?: Browser;
     private _fullTitle?: string;
-    constructor (options: BrowserstackConfig = {}, caps: Capabilities, private _config: Config) {
+    constructor (options: BrowserstackConfig = {}, caps: Capabilities, private _config: WebdriverIO.Config) {
         // Cucumber specific
         this._preferScenarioName = Boolean(options.preferScenarioName)
         this._strict = Boolean(_config.cucumberOpts && _config.cucumberOpts.strict)
@@ -103,7 +84,7 @@ export default class BrowserstackService implements WebdriverIO.ServiceInstance 
         return this._printSessionURL()
     }
 
-    beforeSuite (suite: Suite) {
+    beforeSuite (suite: WebdriverIO.Suite) {
         this._fullTitle = suite.title
         return this._updateJob({ name: this._fullTitle })
     }
@@ -113,7 +94,7 @@ export default class BrowserstackService implements WebdriverIO.ServiceInstance 
         return this._updateJob({ name: this._fullTitle })
     }
 
-    afterTest(test: Test, context: Context, results: Results) {
+    afterTest(test: WebdriverIO.Test, context: Context, results: WebdriverIO.TestResult) {
         const { error, passed } = results
 
         this._fullTitle = (
@@ -152,7 +133,7 @@ export default class BrowserstackService implements WebdriverIO.ServiceInstance 
      * For CucumberJS
      */
 
-    afterScenario(uri: string, feature: Feature, pickle: Pickle, results: Results) {
+    afterScenario(uri: string, feature: Feature, pickle: Pickle, results: WebdriverIO.TestResult) {
         let { exception, status } = results
 
         if (status !== 'skipped') {
