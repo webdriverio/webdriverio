@@ -1,4 +1,3 @@
-
 declare namespace AllureReporter {
     type StepStatus = 'passed' | 'failed' | 'broken' | 'canceled' | 'skipped'
 
