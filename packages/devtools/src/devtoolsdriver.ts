@@ -221,6 +221,9 @@ export default class DevToolsDriver {
         }
 
         const pageloadTimeout = this.timeouts.get('pageLoad')
+        if (pageloadTimeout == null) {
+            throw new Error('missing pageLoad timeout')
+        }
         const pageloadTimeoutReached = Date.now() - pendingNavigationStart > pageloadTimeout
 
         try {
