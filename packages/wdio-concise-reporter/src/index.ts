@@ -1,47 +1,41 @@
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
 import chalk from 'chalk'
 
 export default class ConciseReporter extends WDIOReporter {
-    constructor (options) {
+    // keep track of the order that suites were called
+    private _suiteUids: string[] = []
+    private _suites: SuiteStats[] = []
+    private _stateCounts = { failed: 0 }
+
+    constructor(options: WDIOReporter) {
         /**
-         * make Concise reporter to write to output stream by default
-         */
-        options = Object.assign(options, { stdout: true })
-        super(options)
-
-        // keep track of the order that suites were called
-        this.suiteUids = []
-
-        this.suites = []
-        this.stateCounts = {
-            failed : 0
-        }
-
-        this.chalk = chalk
+        * make Concise reporter to write to output stream by default
+        */
+        super(Object.assign(options, { stdout: true }))
     }
 
-    onSuiteStart (suite) {
-        this.suiteUids.push(suite.uid)
+    onSuiteStart (suite: SuiteStats): void {
+        this._suiteUids.push(suite.uid)
     }
 
-    onSuiteEnd (suite) {
-        this.suites.push(suite)
+    onSuiteEnd (suite: SuiteStats): void {
+        this._suites.push(suite)
     }
 
     onTestFail () {
-        this.stateCounts.failed++
+        this._stateCounts.failed++
     }
 
-    onRunnerEnd (runner) {
+    onRunnerEnd (runner: RunnerStats): void {
         this.printReport(runner)
     }
 
     /**
-     * Print the Concise report to the screen
-     * @param  {Object} runner Wdio runner
-     */
-    printReport(runner) {
-        const header = this.chalk.yellow('========= Your concise report ==========')
+    * Print the Concise report to the screen
+    * @param  {Object} runner Wdio runner
+    */
+    printReport(runner: RunnerStats): void {
+        const header = chalk.yellow('========= Your concise report ==========')
 
         const output = [
             this.getEnviromentCombo(runner.capabilities),
@@ -53,11 +47,11 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-     * Get the display for failing tests
-     * @return {String} Count display
-     */
+    * Get the display for failing tests
+    * @return {String} Count display
+    */
     getCountDisplay () {
-        const failedTestsCount = this.stateCounts.failed
+        const failedTestsCount = this._stateCounts.failed
 
         return failedTestsCount > 0
             ? `Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
@@ -65,17 +59,18 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-     * Get display for failed tests, e.g. stack trace
-     * @return {Array} Stack trace output
-     */
+    * Get display for failed tests, e.g. stack trace
+    * @return {Array} Stack trace output
+    */
     getFailureDisplay () {
-        const output = []
+        const output: string[] = []
 
         this.getOrderedSuites().map(suite => suite.tests.map(test => {
             if (test.state === 'failed') {
                 output.push(
-                    `  Fail : ${this.chalk.red(test.title)}`,
-                    `    ${test.error.type} : ${this.chalk.yellow(test.error.message)}`
+                    `  Fail : ${chalk.red(test.title)}`,
+                    // @ts-ignore
+                    `    ${test.error.type} : ${chalk.yellow(test.error?.message)}`
                 )
             }
         }))
@@ -88,24 +83,25 @@ export default class ConciseReporter extends WDIOReporter {
      * @return {Array} Ordered suites
      */
     getOrderedSuites () {
-        this.orderedSuites = []
+        const orderedSuites: SuiteStats[] = []
 
-        this.suiteUids.map(uid => this.suites.map(suite => {
+        this._suiteUids.map(uid => this._suites.map(suite => {
             if (suite.uid === uid) {
-                this.orderedSuites.push(suite)
+                orderedSuites.push(suite)
             }
         }))
 
-        return this.orderedSuites
+        return orderedSuites
     }
 
     /**
-     * Get information about the enviroment
-     * @param  {Object}  caps    Enviroment details
-     * @param  {Boolean} verbose
-     * @return {String}          Enviroment string
-     */
-    getEnviromentCombo (caps) {
+        * Get information about the enviroment
+        * @param  {Object}  caps    Enviroment details
+        * @param  {Boolean} verbose
+        * @return {String}          Enviroment string
+        */
+
+    getEnviromentCombo (caps: WebDriver.DesiredCapabilities) {
         const device = caps.deviceName
         const browser = caps.browserName || caps.browser
         const version = caps.version || caps.platformVersion || caps.browser_version

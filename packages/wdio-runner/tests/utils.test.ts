@@ -1,7 +1,10 @@
+// @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 
-import { runHook, initialiseInstance, sanitizeCaps, sendFailureMessage, getInstancesData } from '../src/utils'
+import {
+    initialiseInstance, sanitizeCaps, sendFailureMessage, getInstancesData, ConfigWithSessionId
+} from '../src/utils'
 
 process.send = jest.fn()
 
@@ -10,47 +13,16 @@ describe('utils', () => {
         logMock.error.mockClear()
     })
 
-    describe('runHook', () => {
-        it('should execute all hooks', async () => {
-            const config = { before: [jest.fn(), jest.fn(), jest.fn()] }
-            await runHook('before', config, 'foo', 'bar')
-
-            const args = [[config, 'foo', 'bar']]
-            expect(config.before.map((hook) => hook.mock.calls)).toEqual([args, args, args])
-        })
-
-        it('should not fail if hooks throw', async () => {
-            const config = {
-                before: [
-                    jest.fn(),
-                    () => new Promise((resolve, reject) => reject(new Error('foobar321'))),
-                    () => {
-                        throw new Error('foobar123')
-                    }
-                ]
-            }
-            await runHook('before', config, 'foo', 'bar')
-            expect(logMock.error.mock.calls).toHaveLength(2)
-            expect(logMock.error.mock.calls[0][0]).toContain('foobar123')
-            expect(logMock.error.mock.calls[1][0]).toContain('foobar321')
-        })
-
-        it('should do nothing if hook is not array', async () => {
-            expect(runHook('before', null)).toBe(undefined)
-            expect(runHook('before', { before: {} })).toBe(undefined)
-            expect(runHook('before', {})).toBe(undefined)
-        })
-    })
-
     describe('initialiseInstance', () => {
         it('should attach to an existing session if sessionId is within config', () => {
-            const config = {
-                sessionId: 123,
+            const config: ConfigWithSessionId = {
+                sessionId: '123',
+                // @ts-ignore test invalid params
                 foo: 'bar'
             }
             initialiseInstance(config, { browserName: 'chrome', maxInstances: 2 })
             expect(attach).toBeCalledWith({
-                sessionId: 123,
+                sessionId: '123',
                 foo: 'bar',
                 capabilities: { browserName: 'chrome' }
             })
@@ -62,6 +34,7 @@ describe('utils', () => {
         it('should run multiremote tests if flag is given', () => {
             const capabilities = { someBrowser: { browserName: 'chrome' } }
             initialiseInstance(
+                // @ts-ignore test invalid params
                 { foo: 'bar' },
                 capabilities,
                 true
@@ -78,6 +51,7 @@ describe('utils', () => {
 
         it('should create normal remote session', () => {
             initialiseInstance({
+                // @ts-ignore test invalid params
                 foo: 'bar'
             },
             {
@@ -94,17 +68,17 @@ describe('utils', () => {
         })
 
         it('should overwrite connection properties if set in capabilities', () => {
-            initialiseInstance({
-                hostname: 'foobar',
-                port: 1234,
-                path: '/some/path'
-            },
-            {
+            const caps = {
                 browserName: 'chrome',
                 hostname: 'barfoo',
                 port: 4321,
                 path: '/'
-            })
+            }
+            initialiseInstance({
+                hostname: 'foobar',
+                port: 1234,
+                path: '/some/path'
+            }, caps)
             expect(remote).toBeCalledWith({
                 hostname: 'barfoo',
                 port: 4321,
@@ -114,9 +88,9 @@ describe('utils', () => {
         })
 
         afterEach(() => {
-            attach.mockClear()
-            multiremote.mockClear()
-            remote.mockClear()
+            (attach as jest.Mock).mockClear()
+            ;(multiremote as jest.Mock).mockClear()
+            ;(remote as jest.Mock).mockClear()
         })
     })
 
@@ -177,7 +151,7 @@ describe('utils', () => {
         })
 
         afterEach(() => {
-            process.send.mockClear()
+            (process.send as jest.Mock).mockClear()
         })
     })
 
@@ -190,7 +164,7 @@ describe('utils', () => {
                 hostname: 'localhost',
                 port: 4441,
                 path: '/foo/bar',
-                queryParams: '123'
+                queryParams: { foo: '123' }
             }
 
             expect(getInstancesData({
@@ -200,11 +174,13 @@ describe('utils', () => {
                     sessionId,
                     options: { protocol, hostname, port, path, queryParams }
                 }
-            }, true)).toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })
+            } as any as WebdriverIO.MultiRemoteBrowserObject, true))
+                .toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })
         })
 
         it('isMultiremote = false', () => {
-            expect(getInstancesData(null, false)).toEqual(undefined)
+            expect(getInstancesData({} as WebdriverIO.BrowserObject, false))
+                .toEqual(undefined)
         })
     })
 })

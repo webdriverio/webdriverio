@@ -59,7 +59,7 @@ export const testFrameworkFnWrapper = async function (
 ) {
     const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = beforeFnArgs(this)
-    await logHookError(`Before${type}`, await executeHooksWithArgs(beforeFn, beforeArgs), cid)
+    await logHookError(`Before${type}`, await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs), cid)
 
     let promise
     let result
@@ -99,7 +99,7 @@ export const testFrameworkFnWrapper = async function (
         passed: !error
     })
 
-    await logHookError(`After${type}`, await executeHooksWithArgs(afterFn, [...afterArgs]), cid)
+    await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)
 
     if (error) {
         throw error

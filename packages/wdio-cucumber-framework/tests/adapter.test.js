@@ -296,20 +296,36 @@ describe('addHooks', () => {
     test('beforeScenario', () => {
         const world = { pickle: 'pickle', sourceLocation: 'sourceLocation', foo: 'bar' }
         beforeScenario(world)
-        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeScenario, ['uri', 'feature', 'pickle', 'sourceLocation', world])
+        expect(executeHooksWithArgs).toBeCalledWith(
+            'beforeScenario',
+            adapterConfig.beforeScenario,
+            ['uri', 'feature', 'pickle', 'sourceLocation', world]
+        )
     })
     test('afterScenario', () => {
         const world = { pickle: 'pickle', sourceLocation: 'sourceLocation', result: 'result', foo: 'bar' }
         afterScenario(world)
-        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterScenario, ['uri', 'feature', 'pickle', 'result', 'sourceLocation', world])
+        expect(executeHooksWithArgs).toBeCalledWith(
+            'afterScenario',
+            adapterConfig.afterScenario,
+            ['uri', 'feature', 'pickle', 'result', 'sourceLocation', world]
+        )
     })
     test('beforeFeature', () => {
         beforeFeature()
-        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.beforeFeature, ['uri', 'feature', ['scenario1', 'scenario2']])
+        expect(executeHooksWithArgs).toBeCalledWith(
+            'beforeFeature',
+            adapterConfig.beforeFeature,
+            ['uri', 'feature', ['scenario1', 'scenario2']]
+        )
     })
     test('afterFeature', () => {
         afterFeature()
-        expect(executeHooksWithArgs).toBeCalledWith(adapterConfig.afterFeature, ['uri', 'feature', ['scenario1', 'scenario2']])
+        expect(executeHooksWithArgs).toBeCalledWith(
+            'afterFeature',
+            adapterConfig.afterFeature,
+            ['uri', 'feature', ['scenario1', 'scenario2']]
+        )
     })
 })
 

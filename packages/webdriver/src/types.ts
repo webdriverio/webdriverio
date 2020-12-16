@@ -260,7 +260,7 @@ export interface W3CCapabilities {
     firstMatch: Capabilities[];
 }
 
-export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities {
+export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities, BrowserStackCapabilities {
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
     handlesAlerts?: boolean;
@@ -298,6 +298,7 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     // webdriverio specific
     specs?: string[];
     exclude?: string[];
+    excludeDriverLogs?: string[];
 }
 
 export interface VendorExtensions extends EdgeCapabilities {
@@ -310,9 +311,7 @@ export interface VendorExtensions extends EdgeCapabilities {
     // Sauce Labs Visual
     'sauce:visual'?: SauceLabsVisualCapabilities
     // Browserstack w3c specific
-    'bstack:options'?: {
-        [name: string]: any
-    }
+    'bstack:options'?: BrowserStackCapabilities
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
@@ -548,6 +547,32 @@ export interface SauceLabsCapabilities {
     maxDuration?: number
     commandTimeout?: number
     idleTimeout?: number
+}
+
+export interface BrowserStackCapabilities {
+    browser?: string
+    // eslint-disable-next-line
+    browser_version?: string
+    os?: string
+    // eslint-disable-next-line
+    os_version?: string
+    osVersion?: string
+    projectName?: string
+    buildName?: string
+    sessionName?: string
+    local?: boolean
+    debug?: boolean
+    networkLogs?: boolean
+    seleniumVersion?: string
+    ie?: {
+        noFlash?: boolean,
+        compatibility?: number
+        arch?:string
+        driver?: string
+        enablePopups?: boolean
+    }
+    userName?: string
+    accessKey?: string
 }
 
 export interface SauceLabsVisualCapabilities {

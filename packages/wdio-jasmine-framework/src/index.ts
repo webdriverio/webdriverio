@@ -246,7 +246,7 @@ class JasmineAdapter {
             this._jrunner.onComplete(() => resolve(this._reporter.getFailedCount()))
             this._jrunner.execute()
         })
-        await executeHooksWithArgs(this._config.after, [result, this._capabilities, this._specs])
+        await executeHooksWithArgs('after', this._config.after, [result, this._capabilities, this._specs])
         return result
     }
 
@@ -266,8 +266,9 @@ class JasmineAdapter {
      */
     wrapHook (hookName: keyof WebdriverIO.HookFunctions) {
         return (done: Function) => executeHooksWithArgs(
+            hookName,
             this._config[hookName],
-            this.prepareMessage(hookName)
+            [this.prepareMessage(hookName)]
         ).then(() => done(), (e) => {
             log.info(`Error in ${hookName} hook: ${e.stack.slice(7)}`)
             done()

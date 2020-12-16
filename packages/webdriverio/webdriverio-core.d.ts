@@ -50,6 +50,7 @@ declare namespace WebdriverIO {
     type JsonCompatible = JsonObject | JsonArray;
 
     interface MultiRemoteBrowserOptions {
+        sessionId?: string
         capabilities: WebDriver.DesiredCapabilities;
     }
 

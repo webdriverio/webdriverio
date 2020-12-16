@@ -1,45 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`testFnWrapper should propagate jasmine failed expecations as errors 1`] = `
-Array [
-  Object {
-    "description": "foo",
-    "failedExpectations": Array [
-      Object {
-        "actual": true,
-        "expected": false,
-        "matcherName": "toEqual",
-        "message": "Expected true to equal false.",
-        "passed": false,
-        "stack": "Error: Expected true to equal false.
-    at <Jasmine>
-    at UserContext.it",
-      },
-    ],
-    "foo": "bar",
-  },
-  "context",
-  Object {
-    "duration": 0,
-    "error": Object {
-      "actual": true,
-      "expected": false,
-      "matcherName": "toEqual",
-      "message": "Expected true to equal false.",
-      "passed": false,
-      "stack": "Error: Expected true to equal false.
-    at <Jasmine>
-    at UserContext.it",
-    },
-    "passed": false,
-    "result": "@wdio/sync: FooBar 0 0",
-    "retries": Object {
-      "attempts": 0,
-      "limit": 0,
-    },
-  },
-]
-`;
+exports[`testFnWrapper should propagate jasmine failed expecations as errors 1`] = `"afterFn"`;
 
 exports[`testFnWrapper should propagate jasmine failed expecations as errors 2`] = `
 Object {
@@ -57,12 +18,14 @@ Object {
 exports[`testFnWrapper should run fn in sync mode with cucumber 1`] = `
 Array [
   Array [
+    "beforeFoo",
     "beforeFn",
     Array [
       "beforeFnArgs",
     ],
   ],
   Array [
+    "afterFoo",
     "afterFn",
     Array [
       Object {
@@ -89,12 +52,14 @@ Array [
 exports[`testFnWrapper should run fn in sync mode with mocha or jasmine 1`] = `
 Array [
   Array [
+    "beforeFoo",
     "beforeFn",
     Array [
       "beforeFnArgs",
     ],
   ],
   Array [
+    "afterFoo",
     "afterFn",
     Array [
       Object {
@@ -103,6 +68,7 @@ Array [
       },
       "context",
       Object {
+        "duration": 0,
         "error": undefined,
         "passed": true,
         "result": "@wdio/sync: FooBar 0 0",
