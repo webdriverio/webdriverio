@@ -1,9 +1,5 @@
 import { basename, join, resolve } from 'path'
-
-import logger from '@wdio/logger'
 import { paramCase } from 'param-case'
-
-const log = logger('@wdio/appium-service')
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i
 
@@ -13,7 +9,7 @@ const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i
  * @param  {String} defaultFilename default file name when filePath is a directory
  * @return {String}                 absolute file path
  */
-export function getFilePath (filePath, defaultFilename) {
+export function getFilePath (filePath: string, defaultFilename: string): string {
     let absolutePath = resolve(filePath)
 
     // test if we already have a file (e.g. selenium.txt, .log, log.txt, etc.)
@@ -25,35 +21,20 @@ export function getFilePath (filePath, defaultFilename) {
     return absolutePath
 }
 
-export function getAppiumCommand (moduleName = 'appium') {
-    try {
-        return require.resolve(moduleName)
-    } catch (err) {
-        log.error(
-            'appium is not installed locally.\n' +
-            'If you use globally installed appium please add\n' +
-            "appium: { command: 'appium' }\n" +
-            'to your wdio.conf.js!'
-        )
-        throw err
-    }
-}
-
-export function cliArgsFromKeyValue (keyValueArgs) {
-    if (Array.isArray(keyValueArgs)) {
-        return keyValueArgs
+export function formatCliArgs(args: KeyValueArgs | ArgValue[]): string[] {
+    if (Array.isArray(args)) {
+        return args.map(arg => sanitizeCliOptionValue(arg))
     }
 
     const cliArgs = []
-    for (let key in keyValueArgs) {
-        const value = keyValueArgs[key]
+    for (const key in args) {
+        let value:  ArgValue | ArgValue[] = args[key]
         // If the value is false or null the argument is discarded
         if ((typeof value === 'boolean' && !value) || value === null) {
             continue
         }
 
         cliArgs.push(`--${paramCase(key)}`)
-
         // Only non-boolean and non-null values are added as option values
         if (typeof value !== 'boolean' && value !== null) {
             cliArgs.push(sanitizeCliOptionValue(value))
@@ -62,8 +43,12 @@ export function cliArgsFromKeyValue (keyValueArgs) {
     return cliArgs
 }
 
-export function sanitizeCliOptionValue (value) {
+export function sanitizeCliOptionValue (value: ArgValue) {
     const valueString = String(value)
     // Encapsulate the value string in single quotes if it contains a white space
     return /\s/.test(valueString) ? `'${valueString}'` : valueString
+}
+
+export function isWindows(): boolean {
+    return process.platform === 'win32'
 }
