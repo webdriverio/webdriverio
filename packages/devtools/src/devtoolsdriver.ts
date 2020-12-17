@@ -190,7 +190,7 @@ export default class DevToolsDriver {
         return pageHandle
     }
 
-    async checkPendingNavigations (pendingNavigationStart?: number): Promise<void> {
+    async checkPendingNavigations (pendingNavigationStart = Date.now()) {
         /**
          * ensure there is no page transition happening and an execution context
          * is available
@@ -204,9 +204,6 @@ export default class DevToolsDriver {
         if (this.activeDialog || !page) {
             return
         }
-
-        pendingNavigationStart = pendingNavigationStart || Date.now()
-        const pageloadTimeout = this.timeouts.get('pageLoad') || 0
 
         /**
          * if current page is a frame we have to get the page from the browser
@@ -223,17 +220,21 @@ export default class DevToolsDriver {
             }
         }
 
-        const pageloadTimeoutReached = (Date.now() - pendingNavigationStart) > pageloadTimeout
-        const executionContext = await page.mainFrame().executionContext()
+        const pageloadTimeout = this.timeouts.get('pageLoad')
+        const pageloadTimeoutReached = pageloadTimeout != null
+            ? Date.now() - pendingNavigationStart > pageloadTimeout
+            : false
+
         try {
+            const executionContext = await page.mainFrame().executionContext()
             await executionContext.evaluate('1')
 
             /**
              * if we have an execution context, also check for the ready state
              */
             const readyState = await executionContext.evaluate('document.readyState')
-            if (readyState !== 'complete' && !pageloadTimeoutReached) {
-                return this.checkPendingNavigations(pendingNavigationStart)
+            if (readyState === 'complete' || pageloadTimeoutReached) {
+                return
             }
         } catch (err) {
             /**
@@ -242,8 +243,12 @@ export default class DevToolsDriver {
             if (pageloadTimeoutReached) {
                 throw err
             }
-
-            return this.checkPendingNavigations(pendingNavigationStart)
         }
+
+        /***
+         * Avoid looping so quickly we run out of memory before the timeout.
+         */
+        await new Promise(resolve => setTimeout(resolve, Math.min(100, typeof pageloadTimeout === 'number' ? pageloadTimeout / 10 : 100)))
+        await this.checkPendingNavigations(pendingNavigationStart)
     }
 }

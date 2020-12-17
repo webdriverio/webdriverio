@@ -203,14 +203,14 @@ test('throws error if navigation takes too long', async () => {
 test('should wait for page load to be complete before executing the command', async () => {
     executionContext.evaluate.mockReset()
     executionContext.evaluate = jest.fn()
-        .mockReturnValueOnce('1')
-        .mockReturnValueOnce('loading')
-        .mockReturnValueOnce('1')
-        .mockReturnValueOnce('loading')
-        .mockReturnValueOnce('1')
-        .mockReturnValueOnce('interactive')
-        .mockReturnValueOnce('1')
-        .mockReturnValueOnce('complete')
+        .mockResolvedValueOnce('1')
+        .mockResolvedValueOnce('loading')
+        .mockResolvedValueOnce('1')
+        .mockResolvedValueOnce('loading')
+        .mockResolvedValueOnce('1')
+        .mockResolvedValueOnce('interactive')
+        .mockResolvedValueOnce('1')
+        .mockResolvedValueOnce('complete')
 
     driver.commands.elementClick = (...args: any[]) => new Promise(
         (resolve) => setTimeout(() => resolve(...args), 100))
@@ -236,10 +236,10 @@ test('should use page from target if we are currently in a frame', async () => {
 test('should rerun command if no execution context could be found', async () => {
     executionContext.evaluate.mockReset()
     executionContext.evaluate = jest.fn()
-        .mockReturnValueOnce(Promise.reject(new Error('ups')))
-        .mockReturnValueOnce(Promise.reject(new Error('ups')))
-        .mockReturnValueOnce(Promise.resolve('1'))
-        .mockReturnValueOnce(Promise.resolve('complete'))
+        .mockRejectedValueOnce(new Error('ups'))
+        .mockRejectedValueOnce(new Error('ups'))
+        .mockResolvedValueOnce('1')
+        .mockResolvedValueOnce('complete')
 
     driver.commands.elementClick = (...args: any[]) => new Promise(
         (resolve) => setTimeout(() => resolve(...args), 100))
