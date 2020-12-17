@@ -17,6 +17,28 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.11 (2020-12-17)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#6240](https://github.com/webdriverio/webdriverio/pull/6240) Fix checkPendingNavigations memory leak in devtools ([@jedwards1211](https://github.com/jedwards1211))
+
+#### :house: Internal
+* `wdio-appium-service`
+  * [#6149](https://github.com/webdriverio/webdriverio/pull/6149) WIP refactor: rewrite `wdio-appium-service` src to TypeScript ([@ch-t](https://github.com/ch-t))
+* `wdio-cli`, `wdio-config`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-jasmine-framework`, `wdio-mocha-framework`, `wdio-runner`, `wdio-sync`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#6216](https://github.com/webdriverio/webdriverio/pull/6216) Tracking doc: rewrite `@wdio/runner` package into TypeScript ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-concise-reporter`, `webdriver`
+  * [#6198](https://github.com/webdriverio/webdriverio/pull/6198) Rewrite typescript issue5830 ([@discombobulateme](https://github.com/discombobulateme))
+
+#### Committers: 5
+- Andy Edwards ([@jedwards1211](https://github.com/jedwards1211))
+- Chingiz Toimbetov ([@ch-t](https://github.com/ch-t))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Paloma Oliveira ([@discombobulateme](https://github.com/discombobulateme))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.10.10 (2020-12-13)
 
 #### :bug: Bug Fix
