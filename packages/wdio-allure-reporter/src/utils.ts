@@ -11,7 +11,7 @@ import { HookStats, TestStats } from '@wdio/reporter'
  * @param config {Object} - wdio config object
  * @private
  */
-export const getTestStatus = (test: TestStats | HookStats, config: any) : Allure.Status => {
+export const getTestStatus = (test: TestStats | HookStats, config: WebdriverIO.Config) : Allure.Status => {
     if (config.framework === 'jasmine') {
         return 'failed'
     }

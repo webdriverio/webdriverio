@@ -153,7 +153,7 @@ describe('reporter reporter api', () => {
 })
 
 describe('event listeners', () => {
-    new reporter({ stdout: true })
+    new reporter({})
 
     Object.values(events).forEach((eventName: any) => {
         it(`${eventName} should have listener defined`, () => {
@@ -164,16 +164,16 @@ describe('event listeners', () => {
 
 describe('dumpJSON', () => {
     const reporterInstance = new reporter({})
-    reporterInstance.allure.addAttachment = jest.fn()
+    reporterInstance['_allure'].addAttachment = jest.fn()
 
     it('valid json', () => {
         reporterInstance.dumpJSON('foobar', { foo: 'bar' })
-        expect(reporterInstance.allure.addAttachment).toBeCalledWith('foobar', '{\n  "foo": "bar"\n}', 'application/json')
+        expect(reporterInstance['_allure'].addAttachment).toBeCalledWith('foobar', '{\n  "foo": "bar"\n}', 'application/json')
     })
 
     it('undefined value', () => {
         reporterInstance.dumpJSON('barfoo', undefined)
-        expect(reporterInstance.allure.addAttachment).toBeCalledWith('barfoo', 'undefined', 'text/plain')
+        expect(reporterInstance['_allure'].addAttachment).toBeCalledWith('barfoo', 'undefined', 'text/plain')
     })
 })
 

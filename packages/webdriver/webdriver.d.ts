@@ -400,12 +400,6 @@ declare namespace WebDriver {
         'appium:printPageSourceOnFindFailure'?: boolean;
     }
 
-    // Browserstack General Capabilities
-    export interface BrowserstackCapabilities {
-        os_version?: string;
-        osVersion?: string;
-    }
-
     export interface AppiumAndroidCapabilities {
         // Appium Android Only
         appiumVersion?: string;
