@@ -144,8 +144,12 @@ describe('wdio-runner', () => {
                 sessionId: '123',
                 config: { afterSession: [hook] }
             } as any as WebdriverIO.BrowserObject
+            runner['_config'] = { logLevel: 'info' }
             await runner.endSession()
-            expect(executeHooksWithArgs).toBeCalledWith('afterSession', [hook], [{}, undefined])
+            expect(executeHooksWithArgs).toBeCalledWith(
+                'afterSession',
+                [hook],
+                [{ logLevel: 'info' }, {}, undefined])
             expect(global.browser.deleteSession).toBeCalledTimes(1)
             expect(!global.browser.sessionId).toBe(true)
             expect(runner._shutdown).toBeCalledTimes(0)
@@ -183,8 +187,12 @@ describe('wdio-runner', () => {
                 },
                 config: { afterSession: [hook] }
             } as any as WebdriverIO.MultiRemoteBrowserObject
+            runner['_config'] = { logLevel: 'error' }
             await runner.endSession()
-            expect(executeHooksWithArgs).toBeCalledWith('afterSession', [hook], [{}, undefined])
+            expect(executeHooksWithArgs).toBeCalledWith(
+                'afterSession',
+                [hook],
+                [{ logLevel: 'error' }, { foo: undefined, bar: undefined }, undefined])
             expect(global.browser.deleteSession).toBeCalledTimes(1)
             expect(!global.browser.foo.sessionId).toBe(true)
             expect(!global.browser.bar.sessionId).toBe(true)
