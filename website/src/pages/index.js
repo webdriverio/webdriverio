@@ -7,31 +7,32 @@ import useBaseUrl from '@docusaurus/useBaseUrl'
 import styles from './styles.module.css'
 
 const features = [{
-    title: 'Easy to Use',
-    imageUrl: 'img/undraw_docusaurus_mountain.svg',
+    title: 'Extendable',
+    imageUrl: 'img/teaser/extendable.png',
     description: (
         <>
-            Docusaurus was designed from the ground up to be easily installed and
-            used to get your website up and running quickly.
+            Adding helper functions, or more complicated sets and combinations
+            of existing commands is <strong>simple</strong> and really <strong>useful</strong>
         </>
     ),
 }, {
-    title: 'Focus on What Matters',
-    imageUrl: 'img/undraw_docusaurus_tree.svg',
+    title: 'Compatible',
+    imageUrl: 'img/teaser/compatible.png',
     description: (
         <>
-            Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-            ahead and move your docs into the <code>docs</code> directory.
+            WebdriverIO can be run on the <a href="https://w3c.github.io/webdriver/"><strong>WebDriver Protocol</strong></a> for
+            true cross browser testing as well as <a href="https://chromedevtools.github.io/devtools-protocol/"><strong>Chrome DevTools Protocol</strong></a> for
+            Chromium based automation using <a href="https://pptr.dev/">Puppeteer</a>.
         </>
     ),
 },
 {
-    title: 'Powered by React',
-    imageUrl: 'img/undraw_docusaurus_react.svg',
+    title: 'Feature Rich',
+    imageUrl: 'img/teaser/featurerich.png',
     description: (
         <>
-            Extend or customize your website layout by reusing React. Docusaurus can
-            be extended while reusing the same header and footer.
+            The huge variety of community plugins allows you to easily integrate
+            and extend your setup to fulfill your requirements.
         </>
     ),
 }]

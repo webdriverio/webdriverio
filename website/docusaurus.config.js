@@ -26,6 +26,9 @@ module.exports = {
                 },
             },
         },
+        prism: {
+            theme: require('prism-react-renderer/themes/github'),
+        },
         gtag: {
             trackingID: 'UA-47063382-1',
         },
@@ -69,12 +72,12 @@ module.exports = {
                 }, {
                     label: 'API Reference',
                     to: 'docs/api/',
-                }, {
-                    label: 'Contribute',
-                    to: 'docs/api/',
-                }, {
-                    label: 'Help',
-                    to: 'docs/api/',
+                // }, {
+                //     label: 'Contribute',
+                //     to: 'docs/api/',
+                // }, {
+                //     label: 'Help',
+                //     to: 'docs/api/',
                 }],
             }, {
                 title: 'Community',

@@ -15,7 +15,7 @@ import WDIORepl from '@wdio/repl'
  * you are using (e.g. Mocha or Jasmine) in order to prevent test termination due to a test timeout.
  * Also avoid executing the command with multiple capabilities running at the same time.
  *
- * <iframe width="560" height="315" src="https://www.youtube.com/embed/xWwP-3B_YyE" frameborder="0" allowfullscreen></iframe>
+ * <iframe width="560" height="315" src="https://www.youtube.com/embed/xWwP-3B_YyE" frameborder="0" allowFullScreen></iframe>
  *
  * <example>
     :debug.js

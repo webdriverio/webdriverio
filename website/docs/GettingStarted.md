@@ -12,7 +12,7 @@ These are the docs for the latest version (>=6.x) of WebdriverIO. If you are sti
 
 The following short step-by-step introduction will help you get your first WebdriverIO script up and running:
 
-<iframe width="660" height="440" src="https://www.youtube.com/embed/gaTPBkg4WEI" frameborder="0" allowfullscreen></iframe>
+<iframe width="660" height="440" src="https://www.youtube.com/embed/gaTPBkg4WEI" frameBorder="0" allowFullScreen></iframe>
 
 ## Taking the first step
 

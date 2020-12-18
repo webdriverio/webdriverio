@@ -62,4 +62,4 @@ The WebdriverIO maintainer will review your pull request as soon as possible. Th
 
 As part of the [OpenJS World 2020](https://events.linuxfoundation.org/openjs-world/) [Collaborator Summit](https://openjscs2020.sched.com/event/cf2J/contributing-to-webdriverio-christian-bromann) the WebdriverIO team hosted a workshop on "Contributing to WebdriverIO" that can help you get familiar with the code base and the project. Have a watch:
 
-<iframe width="800" height="600" src="https://www.youtube.com/embed/QaA5C1Y4BH0" frameborder="0" allowfullscreen></iframe>
+<iframe width="800" height="600" src="https://www.youtube.com/embed/QaA5C1Y4BH0" frameborder="0" allowFullScreen></iframe>
