@@ -58,6 +58,7 @@
     "ts:webdriverio-mocha": "cd tests/typings/webdriverio-mocha && npx tsc",
     "ts:webdriverio-jasmine": "cd tests/typings/webdriverio-jasmine && npx tsc",
     "watch": "node ./scripts/build --watch",
+    "watch:docs": "npm run docs:generate && cd website && npm i && npm start",
     "version": "npm run changelog && git add CHANGELOG.md"
   },
   "devDependencies": {

@@ -1,0 +1,36 @@
+.navbar {
+    --ifm-navbar-link-color: var(--ifm-color-white);
+    background: url("data:image/gif;base64,R0lGODlhBAAEAJEAABERESIiIgcHBwAAACH5BAAAAAAALAAAAAAEAAQAAAIHBCQRiIZaAAA7") repeat;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 2px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    text-align: left;
+    border-top: 5px solid #ea5906;
+    padding: 7px 0 0;
+  }
+
+  .navbar .navbar__brand {
+    color: transparent;
+    font-size: 0 !important;
+    font-family: "Lato", sans-serif;
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+
+  .navbar .navbar__brand:before {
+    background: #ea5906;
+    border-radius: 5px;
+    content: "I/O";
+    font-family: "Lato", sans-serif;
+    float: left;
+    letter-spacing: -2px;
+    color: #fff;
+    font-size: 26px;
+    padding: 5px 4px 0 2px;
+    font-weight: 100;
+    display: block;
+    height: 27px;
+    margin-left: 15px;
+    line-height: 0.9em;
+  }
+
+  .navbar .navbar__brand .navbar__title {
+    display: none;
+  }

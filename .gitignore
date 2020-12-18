@@ -73,7 +73,6 @@ packages/**/package-lock.json
 
 website/.sass-cache/
 website/translated_docs
-website/static/css
 website/build/
 website/yarn.lock
 website/node_modules

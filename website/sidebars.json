@@ -82,7 +82,6 @@
       "docs/wdio-ui5-service",
       "docs/wdio-wiremock-service",
       "docs/wdio-slack-service",
-      "docs/wdio-intercept-service",
       "docs/wdio-lambdatest-service",
       "docs/wdio-image-comparison-service",
       "docs/wdio-ng-apimock-service",
