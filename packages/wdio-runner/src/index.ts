@@ -415,7 +415,7 @@ export default class Runner extends EventEmitter {
         await executeHooksWithArgs(
             'afterSession',
             global.browser.config.afterSession as Function,
-            [capabilities, this._specs as string[]]
+            [this._config, capabilities, this._specs as string[]]
         )
     }
 }
