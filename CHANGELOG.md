@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.13 (2020-12-18)
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#6246](https://github.com/webdriverio/webdriverio/pull/6246) Fix `afterSession` parameters ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v6.10.12 (2020-12-18)
 
 #### :bug: Bug Fix
