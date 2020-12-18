@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.12 (2020-12-18)
+
+#### :bug: Bug Fix
+* `wdio-runner`
+  * [#6245](https://github.com/webdriverio/webdriverio/pull/6245) fix: Add config parameter for before session hook ([@denis-a1qa](https://github.com/denis-a1qa))
+
+#### Committers: 1
+- Denis Lukashevich ([@denis-a1qa](https://github.com/denis-a1qa))
+
+
 ## v6.10.11 (2020-12-17)
 
 #### :bug: Bug Fix
