@@ -101,7 +101,7 @@ export default class Runner extends EventEmitter {
             caps as unknown as WebDriver.DesiredCapabilities,
             args.ignoredWorkerServices
         ).map(this._configParser.addService.bind(this._configParser))
-        await executeHooksWithArgs('beforeSession', this._config.beforeSession, [this._caps, this._specs])
+        await executeHooksWithArgs('beforeSession', this._config.beforeSession, [this._config, this._caps, this._specs])
 
         this._reporter = new BaseReporter(this._config, this._cid, { ...caps })
         /**

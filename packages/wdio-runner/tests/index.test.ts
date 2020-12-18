@@ -246,7 +246,7 @@ describe('wdio-runner', () => {
             })
 
             expect(runner._shutdown).toBeCalledWith(123, 2)
-            expect(executeHooksWithArgs).toBeCalledWith('beforeSession', [beforeSession], [{
+            expect(executeHooksWithArgs).toBeCalledWith('beforeSession', [beforeSession], [config, {
                 browserName: '123'
             }, ['foobar']])
             expect(executeHooksWithArgs).toBeCalledWith('before', config.before, [caps, specs, stubBrowser])
