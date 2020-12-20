@@ -14,7 +14,7 @@ module.exports = {
             disableSwitch: false,
             respectPrefersColorScheme: true,
             switchConfig: {
-                darkIcon: '🌙',
+                darkIcon: '🌜',
                 lightIcon: '\u2600',
                 // React inline style object
                 // see https://reactjs.org/docs/dom-elements.html#style
@@ -29,8 +29,8 @@ module.exports = {
         prism: {
             theme: require('prism-react-renderer/themes/github'),
         },
-        gtag: {
-            trackingID: 'UA-47063382-1',
+        googleAnalytics: {
+            trackingID: 'UA-47063382-1'
         },
         algolia: {
             apiKey: '1b22fa823f22b7916528edc0e36d9d4a',
@@ -45,21 +45,22 @@ module.exports = {
         navbar: {
             title: 'I/O',
             items: [{
-                to: 'docs/',
-                activeBasePath: 'docs',
+                type: 'doc',
                 label: 'Docs',
                 position: 'left',
+                docId: 'gettingstarted',
             }, {
-                to: 'docs/api/',
-                activeBasePath: 'docs/api',
+                type: 'doc',
                 label: 'API',
                 position: 'left',
+                docId: 'api',
             }, {
                 to: 'blog', label: 'Blog', position: 'left'
             }, {
                 href: 'https://github.com/facebook/docusaurus',
-                label: 'GitHub',
                 position: 'right',
+                className: 'header-github-link',
+                'aria-label': 'GitHub repository',
             }],
         },
         footer: {
@@ -122,6 +123,9 @@ module.exports = {
                     sidebarPath: require.resolve('./sidebars.js'),
                     // Please change this to your repo.
                     editUrl:'https://github.com/webdriverio/webdriverio/edit/master/website/',
+                    remarkPlugins: [
+                        [require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }],
+                    ],
                 },
                 blog: {
                     showReadingTime: true,
@@ -132,7 +136,12 @@ module.exports = {
                 theme: {
                     customCss: require.resolve('./src/css/custom.css'),
                 },
+                pages: {
+                    remarkPlugins: [require('@docusaurus/remark-plugin-npm2yarn')],
+                },
             },
         ],
     ],
+    plugins: ['@docusaurus/plugin-google-analytics'],
+    themes: ['@saucelabs/theme-github-codeblock']
 }

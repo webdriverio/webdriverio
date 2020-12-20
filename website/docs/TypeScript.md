@@ -7,8 +7,8 @@ You can write tests using [TypeScript](http://www.typescriptlang.org) to get aut
 
 You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`.
 
-```
-npm i typescript ts-node --save-dev
+```bash npm2yarn
+$ npm install typescript ts-node --save-dev
 ```
 
 The minimum TypeScript version is 3.8.3.
@@ -17,20 +17,16 @@ The minimum TypeScript version is 3.8.3.
 
 And your `tsconfig.json` needs the following:
 
-```json
-{
-    "compilerOptions": {
-        "types": ["node", "webdriverio"]
-    },
-    "include": [
-        "./test/**/*.ts"
-    ]
-}
-```
+<Tabs
+  defaultValue="sync"
+  values={[
+    {label: 'Sync Mode', value: 'sync'},
+    {label: 'Async Mode', value: 'async'},
+  ]
+}>
+<TabItem value="sync">
 
-For sync mode (`@wdio/sync`), `webdriverio` types must be replaced with `@wdio/sync`:
-
-```json
+```json title="tsconfig.json"
 {
     "compilerOptions": {
         "types": ["node", "@wdio/sync"]
@@ -38,41 +34,38 @@ For sync mode (`@wdio/sync`), `webdriverio` types must be replaced with `@wdio/s
 }
 ```
 
+</TabItem>
+<TabItem value="async">
+
+```json title="tsconfig.json"
+{
+    "compilerOptions": {
+        "types": ["node", "webdriverio"]
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
 Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
 `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`.
 
-### Typed Configuration
+## Configuration
 
-We recommend using a typed configuration to prevent unexpected errors in the `wdio.conf`.
-All you have to do is create a plain JS config file that registers TypeScript and requires the typed config:
+In order to use TypeScript in your test files you need to apply the following configurations in your `wdio.conf.js` file:
 
-```javascript
-require('ts-node').register({ transpileOnly: true })
-module.exports = require('./wdio.conf.ts')
-```
+<Tabs
+  defaultValue="mocha"
+  values={[
+    {label: 'Mocha', value: 'mocha'},
+    {label: 'Jasmine', value: 'jasmine'},
+    {label: 'Cucumber', value: 'cucumber'},
+  ]
+}>
+<TabItem value="mocha">
 
-And in your typed configuration file:
-
-```typescript
-import { Config } from 'webdriverio';
-
-const config: Config = {
-    // Put your webdriverio configuration here
-}
-
-export { config }
-```
-
-If you are using this approach for a typed configuration, you have to remove the line with 'ts-node/register' from your framework options in your config file.
-
-### Non-typed configuration
-
-If you still prefer to keep `wdio.conf` as a JavaScript file, the following framework configurations need to be applied to set up TypeScript properly with WebdriverIO.
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Mocha-->
-```js
-// wdio.conf.js
+```js title="wdio.conf.js"
 exports.config = {
     // ...
     mochaOpts: {
@@ -81,9 +74,11 @@ exports.config = {
     // ...
 }
 ```
-<!--Jasmine-->
-```js
-// wdio.conf.js
+
+</TabItem>
+<TabItem value="jasmine">
+
+```js title="wdio.conf.js"
 exports.config = {
     // ...
     jasmineNodeOpts: {
@@ -92,9 +87,11 @@ exports.config = {
     // ...
 }
 ```
-<!--Cucumber-->
-```js
-// wdio.conf.js
+
+</TabItem>
+<TabItem value="cucumber">
+
+```js title="wdio.conf.js"
 exports.config = {
     // ...
     cucumberOpts: {
@@ -106,7 +103,30 @@ exports.config = {
     // ...
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
+
+## Typed Configuration File
+
+We recommend using a typed configuration to prevent unexpected errors in the `wdio.conf`. All you have to do is create a plain JS config file that registers TypeScript and requires the typed config:
+
+```javascript
+require('ts-node').register({ transpileOnly: true })
+module.exports = require('./wdio.conf.ts')
+```
+
+And in your typed configuration file:
+
+```typescript
+const config: WebdriverIO.Config = {
+    // Put your webdriverio configuration here
+}
+
+export { config }
+```
+
+If you are using this approach for a typed configuration, you have to remove the line with 'ts-node/register' from your framework options in your config file.
 
 ## Framework types
 
@@ -114,9 +134,17 @@ Depending on the framework you use, you will need to add the types for that fram
 
 For instance, if you decide to use the Mocha framework, you need to install `@types/mocha` and add it like this to have all types globally available:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Mocha-->
-```json
+<Tabs
+  defaultValue="mocha"
+  values={[
+    {label: 'Mocha', value: 'mocha'},
+    {label: 'Jasmine', value: 'jasmine'},
+    {label: 'Cucumber', value: 'cucumber'},
+  ]
+}>
+<TabItem value="mocha">
+
+```json title="tsconfig.json"
 {
     "compilerOptions": {
         "types": ["node", "webdriverio", "@wdio/mocha-framework"]
@@ -126,8 +154,11 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
     ]
 }
 ```
-<!--Jasmine-->
-```json
+
+</TabItem>
+<TabItem value="jasmine">
+
+```json title="tsconfig.json"
 {
     "compilerOptions": {
         "types": ["node", "webdriverio", "@wdio/jasmine-framework"]
@@ -137,8 +168,11 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
     ]
 }
 ```
-<!--Cucumber-->
-```json
+
+</TabItem>
+<TabItem value="cucumber">
+
+```json title="tsconfig.json"
 {
     "compilerOptions": {
         "types": ["node", "webdriverio", "@wdio/cucumber-framework"]
@@ -148,7 +182,9 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
     ]
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
 
 Instead of having all type definitions globally available, you can also `import` only the types that you need, like this:
 
@@ -167,7 +203,7 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 1. Create a type definition file (e.g., `./src/types/wdio.d.ts`)
 2. Make sure to include path in the `tsconfig.json`
 
-```json
+```json title="tsconfig.json"
 {
     "compilerOptions": { ... },
     "include": [
@@ -179,8 +215,15 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 
 3. Add definitions for your commands according to your execution mode.
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Sync Mode-->
+<Tabs
+  defaultValue="sync"
+  values={[
+    {label: 'Sync', value: 'sync'},
+    {label: 'Async', value: 'async'},
+  ]
+}>
+<TabItem value="sync">
+
 ```typescript
 declare namespace WebdriverIO {
     // adding command to `browser`
@@ -189,7 +232,10 @@ declare namespace WebdriverIO {
     }
 }
 ```
-<!--Async Mode-->
+
+</TabItem>
+<TabItem value="async">
+
 ```typescript
 declare namespace WebdriverIO {
     // adding command to `$()`
@@ -199,7 +245,9 @@ declare namespace WebdriverIO {
     }
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
 
 ## Tips and Hints
 

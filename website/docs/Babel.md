@@ -7,7 +7,7 @@ To write tests using next-generation JavaScript features, you can use [Babel](ht
 
 To do so, first install the necessary Babel dependencies:
 
-```
+```bash npm2yarn
 npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
 ```
 
@@ -15,12 +15,12 @@ Make sure your [`babel.config.js`](https://babeljs.io/docs/en/config-files) is c
 
 The simplest setup you can use is:
 
-```js
+```js title="babel.config.js"
 module.exports = {
     presets: [
         ['@babel/preset-env', {
             targets: {
-                node: 12
+                node: 'lts'
             }
         }]
     ]
@@ -29,10 +29,17 @@ module.exports = {
 
 There are multiple ways to setup Babel using the WDIO testrunner depending on the test framework you are using:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Mocha-->
-```js
-// wdio.conf.js
+<Tabs
+  defaultValue="mocha"
+  values={[
+    {label: 'Mocha', value: 'mocha'},
+    {label: 'Jasmine', value: 'jasmine'},
+    {label: 'Cucumber', value: 'cucumber'},
+  ]
+}>
+<TabItem value="mocha">
+
+```js title="wdio.conf.js"
 exports.config = {
     // ...
     mochaOpts: {
@@ -43,9 +50,11 @@ exports.config = {
     // ...
 }
 ```
-<!--Jasmine-->
-```js
-// wdio.conf.js
+
+</TabItem>
+<TabItem value="jasmine">
+
+```js title="wdio.conf.js"
 exports.config = {
     // ...
     jasmineNodeOpts: {
@@ -56,9 +65,11 @@ exports.config = {
     // ...
 }
 ```
-<!--Cucumber-->
-```js
-// wdio.conf.js
+
+</TabItem>
+<TabItem value="cucumber">
+
+```js title="wdio.conf.js"
 exports.config = {
     // ...
     cucumberOpts: {
@@ -69,4 +80,6 @@ exports.config = {
     // ...
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>

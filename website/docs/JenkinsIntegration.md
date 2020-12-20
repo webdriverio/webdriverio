@@ -1,6 +1,6 @@
 ---
 id: jenkins
-title: Jenkins Integration
+title: Jenkins
 ---
 
 WebdriverIO offers a tight integration to CI systems like [Jenkins](https://jenkins-ci.org). With the `junit` reporter, you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
@@ -23,8 +23,8 @@ module.exports = {
 }
 ```
 
-It is up to you which framework to choose. The reports will be similar. 
-For this tutorial, we’ll use Jasmine. 
+It is up to you which framework to choose. The reports will be similar.
+For this tutorial, we’ll use Jasmine.
 
 After you have written couple of tests, you can setup a new Jenkins job. Give it a name and a description:
 
@@ -40,7 +40,7 @@ If you have installed a plugin like AnsiColor, but logs are still not colored, r
 
 ![Build Step](/img/jenkins/runjob.png "Build Step")
 
-After your test, you’ll want Jenkins to track your XUnit report. To do so, you have to add a post-build action called _"Publish JUnit test result report"_. 
+After your test, you’ll want Jenkins to track your XUnit report. To do so, you have to add a post-build action called _"Publish JUnit test result report"_.
 
 You could also install an external XUnit plugin to track your reports. The JUnit one comes with the basic Jenkins installation and is sufficient enough for now.
 
