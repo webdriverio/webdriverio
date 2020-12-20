@@ -1,0 +1,18 @@
+.navbar .DocSearch-Button {
+    height: 25px;
+}
+
+.navbar .DocSearch-Button-Placeholder {
+    font-size: 0.9rem;
+}
+
+.navbar .DocSearch-Search-Icon {
+    width: 15px;
+    height: 15px;
+}
+
+.navbar .DocSearch-Button-Key {
+    width: 18px;
+    height: 16px;
+    top: 0px;
+}

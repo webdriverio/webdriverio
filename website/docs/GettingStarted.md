@@ -1,20 +1,83 @@
 ---
 id: gettingstarted
 title: Getting Started
-slug: /
 ---
 
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
 :::info
-These are the docs for the latest version (>=6.x) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](versions.html)!
+These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](versions.html)!
 :::
 
-The following short step-by-step introduction will help you get your first WebdriverIO script up and running:
+## Installation
 
-<iframe width="660" height="440" src="https://www.youtube.com/embed/gaTPBkg4WEI" frameBorder="0" allowFullScreen></iframe>
+Use npm or Yarn to install Playwright in your Node.js project. See [system requirements](#system-requirements).
 
-## Taking the first step
+```bash npm2yarn
+npm install @wdio/cli
+```
+
+This single command downloads the WebdriverIO CLI tool that helps you set up WebdriverIO in your project.
+
+## Set Up
+
+Once you've installed the CLI you can bootstrap a _Hello World_ test suite into your project by running:
+
+```bash
+npx wdio config
+```
+
+![Set Up](../static/img/setup.gif)
+
+This will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
+
+## Run Test
+
+You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
+
+```bash
+npx wdio run ./wdio.config.js
+```
+
+If you like to run specific test files you can add a `--spec` parameter:
+
+```bash
+npx wdio run ./wdio.config.js --spec checkout.e2e.js
+```
+
+or define suites in your config file and run just the test files defined by in a suite:
+
+```bash
+npx wdio run ./wdio.config.js --suite checkoutflow
+```
+
+## Run in Standalone Script
+
+If you like to use WebdriverIO as an automation engine in a Node.JS script you can also directly install WebdriverIO and us it as package, e.g. to generate a screenshot of a website:
+
+```js
+const { remote } = require('webdriverio')
+
+;(async () => {
+    const browser = await remote({
+        capabilities: {
+            browserName: 'chrome'
+        }
+    })
+
+    await browser.url('https://webdriver.io')
+
+    const apiLink = await browser.$('=API')
+    await apiLink.click()
+
+    await browser.saveScreenshot('./screenshot.png')
+    await browser.deleteSession()
+})()
+```
+
+__Note:__ using WebdriverIO as a package requires handling asynchronous commands via `async/await`. Read more about this in our section on [Sync vs. Async](./SyncVsAsync.md).
+
+## System Requirements
 
 You’ll need [Node.js](http://nodejs.org) installed.
 
@@ -22,109 +85,3 @@ You’ll need [Node.js](http://nodejs.org) installed.
 - Only releases that are or will become an LTS release are officially supported
 
 If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions. If you are using the [WDIO Testrunner](/docs/setuptypes.html#the-wdio-testrunner) in [sync mode](https://webdriver.io/docs/sync-vs-async.html#sync-mode) you also need Python v3 or higher installed.
-
-### Setup your project
-
-Before installing dependencies, you’ll need to initialize a new NPM project. This will allow you to use the CLI to install dependencies in your project.
-
-To do this, run:
-
-```sh
-$ mkdir webdriverio-test && cd webdriverio-test
-$ npm init -y
-```
-
-The `-y` will answer 'yes' to all the prompts, giving you a standard NPM project. Feel free to omit the `-y` if you'd like to specify your own project details.
-
-### Install WebdriverIO CLI
-
-If you want to use WebdriverIO in your project for integration testing, we recommend using the test runner. It comes with lots of useful features that makes your life easier.
-
-Since WebdriverIO version 5, the testrunner is in the [`@wdio/cli`](https://www.npmjs.com/package/@wdio/cli) NPM package.
-
-Now, install the CLI:
-
-```sh
-$ npm i --save-dev @wdio/cli
-```
-
-### Generate Configuration File
-
-Next, you’ll generate a configuration file to store your WebdriverIO settings.
-
-To do that, just run the configuration utility:
-
-```sh
-$ npx wdio config -y
-```
-
-That's it! The configurator will install all required packages for you and create a config file called `wdio.conf.js`.
-
-### Create Spec Files
-
-Now it's time to create your test file. You’re going to store all of your test files in a new folder.
-
-Create the test folder like this:
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Linux/Mac-->
-```sh
-$ mkdir -p ./test/specs
-```
-
-<!--Windows-->
-```sh
-$ mkdir .\test\specs
-```
-<!--END_DOCUSAURUS_CODE_TABS-->
-
-Create a new file in that folder (we'll call it `basic.js`):
-
-```sh
-$ touch ./test/specs/basic.js
-```
-
-On Windows, `touch` will not work so you can simply go to the folder and create a plain text file and name is as 'basic.js'
-
-Open that file, and write the following code in it:
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Sync Mode-->
-```js
-describe('webdriver.io page', () => {
-    it('should have the right title', () => {
-        browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js');
-    })
-})
-```
-<!--Async Mode-->
-```js
-describe('webdriver.io page', () => {
-    it('should have the right title', async () => {
-        await browser.url('https://webdriver.io')
-        await expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js');
-    })
-})
-```
-<!--END_DOCUSAURUS_CODE_TABS-->
-
-Now save the file and return to your terminal. Learn more about [the differences between Sync and Async Mode](sync-vs-async.html).
-
-### Start the Testrunner
-
-Now, time to run your tests!
-
-To do so, just run:
-
-```sh
-$ npx wdio wdio.conf.js
-```
-
-Hurray! The test should pass, and you can start writing integration tests with WebdriverIO.
-
-If you ran into any issues, reach out in our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) and post the error you're seeing, and which of the above steps you’re stuck on.
-
-If you are interested in more in depth video on-boarding tutorials, feel free to check out our very own course called [learn.webdriver.io](https://learn.webdriver.io/?coupon=wdio).
-
-Our community has also collected a lot of [boilerplate projects](BoilerplateProjects.md) that may help you to get started.

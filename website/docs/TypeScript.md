@@ -7,8 +7,8 @@ You can write tests using [TypeScript](http://www.typescriptlang.org) to get aut
 
 You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`. WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you.
 
-```
-npm i typescript ts-node --save-dev
+```bash npm2yarn
+$ npm install typescript ts-node --save-dev
 ```
 
 The minimum TypeScript version is 3.8.3.
@@ -17,26 +17,36 @@ The minimum TypeScript version is 3.8.3.
 
 And your `tsconfig.json` needs the following:
 
-```json
+<Tabs
+  defaultValue="sync"
+  values={[
+    {label: 'Sync Mode', value: 'sync'},
+    {label: 'Async Mode', value: 'async'},
+  ]
+}>
+<TabItem value="sync">
+
+```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio"]
-    },
-    "include": [
-        "./test/**/*.ts"
-    ]
-}
-```
-
-For sync mode (`@wdio/sync`), `webdriverio` types must be replaced with `@wdio/sync`:
-
-```json
-{
-    "compilerOptions": {
-        "types": ["node", "@wdio/sync"]
+        "types": ["node", "webdriverio/sync"]
     }
 }
 ```
+
+</TabItem>
+<TabItem value="async">
+
+```json title="tsconfig.json"
+{
+    "compilerOptions": {
+        "types": ["node", "webdriverio/async"]
+    }
+}
+```
+
+</TabItem>
+</Tabs>
 
 Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
 `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`.
@@ -47,9 +57,17 @@ Depending on the framework you use, you will need to add the types for that fram
 
 For instance, if you decide to use the Mocha framework, you need to install `@types/mocha` and add it like this to have all types globally available:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Mocha-->
-```json
+<Tabs
+  defaultValue="mocha"
+  values={[
+    {label: 'Mocha', value: 'mocha'},
+    {label: 'Jasmine', value: 'jasmine'},
+    {label: 'Cucumber', value: 'cucumber'},
+  ]
+}>
+<TabItem value="mocha">
+
+```json title="tsconfig.json"
 {
     "compilerOptions": {
         "types": ["node", "webdriverio", "@wdio/mocha-framework"]
@@ -59,8 +77,11 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
     ]
 }
 ```
-<!--Jasmine-->
-```json
+
+</TabItem>
+<TabItem value="jasmine">
+
+```json title="tsconfig.json"
 {
     "compilerOptions": {
         "types": ["node", "webdriverio", "@wdio/jasmine-framework"]
@@ -70,8 +91,11 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
     ]
 }
 ```
-<!--Cucumber-->
-```json
+
+</TabItem>
+<TabItem value="cucumber">
+
+```json title="tsconfig.json"
 {
     "compilerOptions": {
         "types": ["node", "webdriverio", "@wdio/cucumber-framework"]
@@ -81,7 +105,9 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
     ]
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
 
 Instead of having all type definitions globally available, you can also `import` only the types that you need, like this:
 
@@ -100,7 +126,7 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 1. Create a type definition file (e.g., `./src/types/wdio.d.ts`)
 2. Make sure to include path in the `tsconfig.json`
 
-```json
+```json title="tsconfig.json"
 {
     "compilerOptions": { ... },
     "include": [
@@ -112,8 +138,15 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 
 3. Add definitions for your commands according to your execution mode.
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Sync Mode-->
+<Tabs
+  defaultValue="sync"
+  values={[
+    {label: 'Sync', value: 'sync'},
+    {label: 'Async', value: 'async'},
+  ]
+}>
+<TabItem value="sync">
+
 ```typescript
 declare namespace WebdriverIO {
     // adding command to `browser`
@@ -122,7 +155,10 @@ declare namespace WebdriverIO {
     }
 }
 ```
-<!--Async Mode-->
+
+</TabItem>
+<TabItem value="async">
+
 ```typescript
 declare namespace WebdriverIO {
     // adding command to `$()`
@@ -132,7 +168,9 @@ declare namespace WebdriverIO {
     }
 }
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
 
 ## Tips and Hints
 

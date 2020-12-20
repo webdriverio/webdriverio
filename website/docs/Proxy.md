@@ -22,8 +22,7 @@ npm i global-agent --save-dev
 
 Add the following require statement to the top of your config file.
 
-```js
-// wdio.conf.js
+```js title="wdio.conf.js"
 require('global-agent/bootstrap')
 
 exports.config = {
@@ -37,7 +36,7 @@ Before you start the test, make sure you've exported the variable in the termina
 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-wdio wdio.conf.js
+$ wdio wdio.conf.js
 ```
 
 You can exclude URLs from the proxy by exporting the variable, like so:
@@ -45,7 +44,7 @@ You can exclude URLs from the proxy by exporting the variable, like so:
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
 export GLOBAL_AGENT_NO_PROXY='.foo.com'
-wdio wdio.conf.js
+$ wdio wdio.conf.js
 ```
 
 If necessary, you can specify `GLOBAL_AGENT_HTTPS_PROXY` to route HTTPS traffic through a different proxy than HTTP traffic.
@@ -53,7 +52,7 @@ If necessary, you can specify `GLOBAL_AGENT_HTTPS_PROXY` to route HTTPS traffic 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
 export GLOBAL_AGENT_HTTPS_PROXY=http://my.corp.proxy.com:9091
-wdio.wdio.conf.js
+$ wdio.wdio.conf.js
 ```
 
 `GLOBAL_AGENT_HTTP_PROXY` is used for both HTTP and HTTPS requests if `GLOBAL_AGENT_HTTPS_PROXY` is not set.
@@ -61,18 +60,16 @@ wdio.wdio.conf.js
 If you use [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy), start it via:
 
 ```sh
-sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
+$ sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
 ```
 
 ## Proxy Between Browser And Internet
 
-In order to tunnel the connection between the browser and the internet, you can set up a proxy which can be useful to (for example) capture network information and other data with tools like [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy). 
+In order to tunnel the connection between the browser and the internet, you can set up a proxy which can be useful to (for example) capture network information and other data with tools like [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy).
 
 The `proxy` parameters can be applied via the standard capabilities the following way:
 
-```js
-// wdio.conf.js
-
+```js title="wdio.conf.js"
 exports.config = {
     // ...
     capabilities: [{

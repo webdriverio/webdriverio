@@ -3,6 +3,9 @@ id: automationProtocols
 title: Automation Protocols
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud.
 
 Nearly all modern browsers that support [WebDriver](https://w3c.github.io/webdriver/) also support another native interface called [DevTools](https://chromedevtools.github.io/devtools-protocol/) that can be used for automation purposes.
@@ -19,11 +22,11 @@ To use this automation protocol, you need a proxy server that translates all com
 
 For browser automation, the proxy server is usually the browser driver. There are drivers  available for all browsers:
 
-- Chrome ▶︎ [ChromeDriver](http://chromedriver.chromium.org/downloads)
-- Firefox ▶︎ [Geckodriver](https://github.com/mozilla/geckodriver/releases)
-- Microsoft Edge ▶︎ [Edge Driver](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/)
-- Internet Explorer ▶︎ [InternetExplorerDriver](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver)
-- Safari ▶︎ [SafariDriver](https://developer.apple.com/documentation/webkit/testing_with_webdriver_in_safari)
+- Chrome – [ChromeDriver](http://chromedriver.chromium.org/downloads)
+- Firefox – [Geckodriver](https://github.com/mozilla/geckodriver/releases)
+- Microsoft Edge – [Edge Driver](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/)
+- Internet Explorer – [InternetExplorerDriver](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver)
+- Safari – [SafariDriver](https://developer.apple.com/documentation/webkit/testing_with_webdriver_in_safari)
 
 For any kind of mobile automation, you’ll need to install and setup [Appium](http://appium.io). It will allow you to automate mobile (iOS/Android) or even desktop (macOS/Windows) applications using the same WebdriverIO setup.
 
@@ -56,36 +59,36 @@ The communication happens without any proxy, directly to the browser using WebSo
 
 WebdriverIO allows you to use the DevTools capabilities as an alternative automation technology for WebDriver if you have special requirements to automate the browser. With the [`devtools`](https://www.npmjs.com/package/devtools) NPM package, you can use the same commands that WebDriver provides, which then can be used by WebdriverIO and the WDIO testrunner to run its useful commands on top of that protocol. It uses Puppeteer to under the hood and allows you to run a sequence of commands with Puppeteer if needed.
 
-To use DevTools as your automation protocol switch the `automationProtocol` flag to `devtools` in your `wdio.conf.js`:
+To use DevTools as your automation protocol switch the `automationProtocol` flag to `devtools` in your configurations.
 
-```js
-// wdio.conf.js
+<Tabs
+  defaultValue="testrunner"
+  values={[
+    {label: 'Testrunner', value: 'testrunner'},
+    {label: 'Standalone', value: 'standalone'},
+  ]
+}>
+<TabItem value="testrunner">
+
+```js title="wdio.conf.js"
 exports.config = {
     // ...
     automationProtocol: 'devtools'
     // ...
 }
 ```
-
-NOTE: there is no need to have neither `selenium-standalone` nor `chromedriver` services installed.
-
-Now you can run a test (as shown below).
-
-(An example how to run this using WebdriverIO in [standalone mode](https://webdriver.io/docs/setuptypes.html#standalone-mode) can also be found [here](https://github.com/webdriverio/webdriverio/blob/main/examples/devtools/intercept.js).)
-
-```js
-// example using WDIO testrunner
+```js title="devtools.e2e.js"
 describe('my test', () => {
     it('can use Puppeteer as automation fallback', () => {
         // WebDriver command
         browser.url('https://webdriver.io')
 
         // get <Puppeteer.Browser> instance (https://pptr.dev/#?product=Puppeteer&version=v5.2.1&show=api-class-browser)
-        const puppeteerBrowser = browser.getPuppeteer()
+        const puppeteer = browser.getPuppeteer()
 
         // switch to Puppeteer to intercept requests
         browser.call(async () => {
-            const page = (await puppeteerBrowser.pages())[0]
+            const page = (await puppeteer.pages())[0]
             await page.setRequestInterception(true)
             page.on('request', interceptedRequest => {
                 if (interceptedRequest.url().endsWith('webdriverio.png')) {
@@ -108,6 +111,62 @@ describe('my test', () => {
 })
 ```
 
-If you are using the WDIO testrunner in sync mode, we recommend wrapping your Puppeteer calls within the `call` command, so that all calls are executed before WebdriverIO continues with the next WebDriver command.
+__Note:__ there is no need to have either `selenium-standalone` or `chromedriver` services installed.
+
+We recommend wrapping your Puppeteer calls within the `call` command, so that all calls are executed before WebdriverIO continues with the next WebDriver command.
+
+</TabItem>
+<TabItem value="standalone">
+
+```js
+const { remote } = require('webdriverio')
+
+(async () => {
+    const browser = await remote({
+        devtoolsProtocol: 'devtools',
+        capabilities: {
+            browserName: 'chrome'
+        }
+    })
+
+    // WebDriver command
+    await browser.url('https://webdriver.io')
+
+    // get <Puppeteer.Browser> instance (https://pptr.dev/#?product=Puppeteer&version=v5.2.1&show=api-class-browser)
+    const puppeteer = await browser.getPuppeteer()
+
+    // switch to Puppeteer to intercept requests
+    const page = (await puppeteer.pages())[0]
+    await page.setRequestInterception(true)
+    page.on('request', interceptedRequest => {
+        if (interceptedRequest.url().endsWith('webdriverio.png')) {
+            return interceptedRequest.continue({
+                url: 'https://user-images.githubusercontent.com/10379601/29446482-04f7036a-841f-11e7-9872-91d1fc2ea683.png'
+            })
+        }
+
+        interceptedRequest.continue()
+    })
+
+    // continue with WebDriver commands
+    await browser.refresh()
+    await browser.pause(2000)
+
+    await browser.deleteSession()
+})()
+```
+
+</TabItem>
+</Tabs>
 
 By accessing the Puppeteer interface, you have access to a variety of new capabilities to automate or inspect the browser and your application, e.g. intercepting network requests (see above), tracing the browser, throttle CPU or network capabilities, and much more.
+
+### Advantages
+
+- Access to more automation capabilities (e.g. network interception, tracing etc.)
+- No need to manage browser drivers
+
+### Disadvantages
+
+- Only supports Chromium based browser (e.g. Chrome, Chromium Edge) and (partially) Firefox
+- Does __not__ support execution on cloud vendors such as Sauce Labs, BrowserStack etc.

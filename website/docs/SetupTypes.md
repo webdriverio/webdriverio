@@ -1,13 +1,13 @@
 ---
 id: setuptypes
-title: How to setup WebdriverIO
+title: Setup Types
 ---
 
-WebdriverIO can be used for various purposes. It implements the Webdriver protocol API and can run a browser in an automated way. The framework is designed to work in any arbitrary environment and for any kind of task. It is independent from any 3rd party frameworks and only requires Node.js to run.
+WebdriverIO can be used for various purposes. It implements the WebDriver protocol API and can run a browser in an automated way. The framework is designed to work in any arbitrary environment and for any kind of task. It is independent from any 3rd party frameworks and only requires Node.js to run.
 
 ## Standalone Mode
 
-Probably the simplest form to run WebdriverIO is in standalone mode. This has nothing to do with the Selenium server file (which is usually called `selenium-server-standalone`). It basically just means that you require the `webdriverio` package in your project and use its API to run your automation.
+Probably the simplest form to run WebdriverIO is in standalone mode. This has nothing to do with the Selenium server file (which is usually called `selenium-server-standalone`). It basically just means that you import the `webdriverio` package in your Node.JS file and use its APIs to run your automation.
 
 Here is a simple example:
 
@@ -36,7 +36,9 @@ const { remote } = require('webdriverio');
 })().catch((e) => console.error(e))
 ```
 
-Using WebdriverIO in standalone mode allows you to integrate this automation tool in your own (test) project to create a new automation library. Popular examples include [Chimp](https://chimp.readme.io) or [CodeceptJS](http://codecept.io). You can also write plain Node scripts to scrape the web for content (or anything else that requires a running browser).
+Using WebdriverIO in standalone mode allows you to integrate this automation tool in your own (test) project to create a new automation library. Popular examples include [Spectron](https://www.electronjs.org/spectron) or [CodeceptJS](http://codecept.io). You can also write plain Node scripts to scrape the web for content (or anything else that requires a running browser).
+
+WebdriverIO will try to find a browser driver on `http://localhost:4444/` and automatically switches to Puppeteer as automation engine if such a driver can't be found. If you like to run based on WebDriver you need to either start that driver manually or through a script or [NPM package](https://www.npmjs.com/package/chromedriver).
 
 You can use the `@wdio/sync` package to transform all commands so they run synchronously. This especially simplifies your test as you don't have to deal with `async/await` anymore. Here is an example how you can run synchronous commands with WebdriverIO in a standalone script:
 

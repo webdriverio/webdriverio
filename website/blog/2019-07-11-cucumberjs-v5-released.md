@@ -31,7 +31,7 @@ If you want to know more about the NodeJS LTS support check [this](https://githu
 WebdriverIO is now fully supporting the W3C protocol, this has a lot of advantages, but for your existing scripts some minor downsides.
 One of the downsides might be that you are using methods that are based on the JSONWire Protocol, that are not supported by the newest drivers like for example ChromeDriver 74+.
 This might result in errors like for example `browser.positionClick() is not a function`. If you see this error you are using a not supported method for the W3C supported Driver.
-See the API documentation [here](https://webdriver.io/docs/api.html) to see which command is a Webdriver Protocol (W3C) or a JSONWire protocol command.
+See the API documentation [here](https://webdriver.io/docs/api.html) to see which command is a WebDriver Protocol (W3C) or a JSONWire protocol command.
 
 Just a little side note, we tried to keep all `browser` and `element` commands, see the link above, agnostic to the protocol. Nothing changed here for you.
 To provide you some insight on how this works please check for example the `keys` command, you will find the support for both protocols [here](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/commands/browser/keys.js#L45-L50).

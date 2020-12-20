@@ -48,7 +48,3 @@ Async version with Cucumber
   ]
 }
 ```
-
-## TypeScript
-
-For TypeScript please see [TypeScript](TypeScript.md)
