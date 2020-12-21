@@ -42,7 +42,12 @@ export default class SauceService {
         this.browser = browser
 
         // Ensure capabilities are not null in case of multiremote
-        const capabilities = this.browser.capabilities || {}
+        // Changed from `this.browser.capabilities` to this to get the correct
+        // capabilities for EMUSIM (with the postfix) to determine ff the string
+        // contains `simulator` or `emulator` it's an EMU/SIM session
+        // `this.browser.capabilities` returns the process data from Sauce which is without
+        // the postfix
+        const capabilities = this.browser.requestedCapabilities || {}
         this.isUP = isUnifiedPlatform(capabilities)
     }
 
