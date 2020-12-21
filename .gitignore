@@ -74,6 +74,7 @@ packages/**/package-lock.json
 website/.sass-cache/
 website/translated_docs
 website/build/
+website/sidebars.json
 website/yarn.lock
 website/node_modules
 website/i18n/*

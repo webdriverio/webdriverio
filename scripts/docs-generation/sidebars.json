@@ -1,49 +1,51 @@
 {
   "docs": {
     "Introduction": [
+      "what-is-webdriverio",
       "gettingstarted",
-      "boilerplate",
-      "setuptypes"
+      "boilerplates"
+    ],
+    "Core Concepts": [
+      "setuptypes",
+      "sync-vs-async",
+      "automationProtocols",
+      "autowait"
     ],
     "Configuration": [
       "options",
       "babel",
       "typescript",
-      "proxy"
+      "proxy",
+      "driverbinaries"
     ],
-    "Usage": [
+    "Guides": [
       "selectors",
+      "timeouts",
       "browserobject",
+      "mocksandspies",
       "customcommands",
+      "pageobjects",
       "multiremote",
-      "cloudservices",
-      "sync-vs-async",
-      "autocompletion",
-      "automationProtocols"
+      "debugging",
+      "repl"
     ],
     "Testrunner": [
       "clioptions",
       "configurationfile",
       "frameworks",
       "assertion",
+      "organizingsuites",
+      "retry",
+      "watcher",
       "customreporter",
       "customservices"
     ],
-    "Guides": [
-      "pageobjects",
-      "timeouts",
-      "organizingsuites",
-      "retry",
-      "mocksandspies",
-      "debugging",
-      "repl",
-      "watcher",
+    "Integration": [
+      "cloudservices",
+      "autocompletion",
+      "githubactions",
       "jenkins",
-      "bamboo",
-      "runprogrammatically",
-      "driverbinaries",
-      "flowchartsoverview",
-      "githubactions"
+      "bamboo"
     ]
   },
   "api": {
