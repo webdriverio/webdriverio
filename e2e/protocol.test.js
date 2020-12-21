@@ -168,7 +168,7 @@ describe('cookies', () => {
 
         await browser.navigateTo('https://google.com')
         const cookies = await browser.getAllCookies()
-        const ourCookie = cookies.find((cookie) => cookie.name ==='foobar' && cookie.value === '42')
+        const ourCookie = cookies.find((cookie) => cookie.name === 'foobar' && cookie.value === '42')
         expect(ourCookie).toBe(undefined)
     })
 
@@ -332,6 +332,45 @@ describe('executeScript', () => {
         expect(await browser.executeScript('/* test */ console.log("test")')).toBe(undefined)
         expect(await browser.executeScript('return { foo: "bar" }')).toEqual({ foo: 'bar' })
         expect(await browser.executeScript('return ({ foo: "bar" })')).toEqual({ foo: 'bar' })
+    })
+})
+
+// describe('Page PDF', () => {
+//     beforeAll("return promise", async () => {
+//         await browser.printPage().then(pdf => console.log(pdf));
+//     })
+
+// })
+
+// test('Page PDF', async () => {
+//   const data = await browser.printPage()
+//   expect(data).toBe('Buffer')
+// })
+
+describe('PDF', () => {
+    beforeAll(async () => {
+        await browser.navigateTo('http://guinea-pig.webdriver.io')
+    })
+
+    const opt = {
+        scale: 1,
+        printBackground: false,
+        width: '8in',
+        height: '11in',
+        margin: {
+            top: '1in',
+            right: '1in',
+            bottom: '1in',
+            left: '1in'
+        },
+        preferCSSPageSize: false,
+        pageRanges: ''
+    }
+
+    it('expect string', async () => {
+        const data = await browser.printPage(opt)
+        const stringData = await data.toString()
+        expect(stringData).toBe('string')
     })
 })
 

@@ -1,13 +1,21 @@
+/**
+ * The print functions are a mechanism to render the document to a paginated format.
+ *
+ * @alias browser.printPage
+ * @see https://w3c.github.io/webdriver/#print
+ * @param {object} options an object of options that affect the pdf output
+ */
+
 import DevToolsDriver from '../devtoolsdriver'
 
-export default async function printPage(options) {
-    const page = DevToolsDriver.getPageHandle()
+export default async function printPage(this: DevToolsDriver, options: any) {
+    const page = this.getPageHandle()
     if (!options) {
         return page.pdf()
     }
 
     return page.pdf({
-        landscaper: options.orientation,
+        landscape: options.orientation === 'landscape',
         scale: options.scale,
         printBackground: options.background,
         width: options.width,
@@ -21,5 +29,4 @@ export default async function printPage(options) {
         preferCSSPageSize: !options.shrinkToFit,
         pageRanges: options.pageRanges
     })
-
 }
