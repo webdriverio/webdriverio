@@ -3,15 +3,11 @@ id: options
 title: Options
 ---
 
-WebdriverIO is not just a binding for the WebDriver protocol (like Selenium). It is a full test framework with numerous additional features and utilities. It is based on the [`webdriver`](https://www.npmjs.com/package/webdriver) package, which is a lightweight, non-opinionated implementation of the WebDriver specification including mobile commands supported by Appium.
-
-WebdriverIO takes the protocol commands and creates smart user commands that makes using the protocol for test automation much easier.
-
-WebdriverIO also enhances the WebDriver package with additional commands. They share the same set of options when run in a standalone script. But when testing starts from `@wdio/cli` (the WDIO testrunner), there are some additional options available for you to use in `browser.options`.
+Based on the [setup type](./SetupTypes.md) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
 
 ## WebDriver Options
 
-The following options are defined:
+The following options are defined when using the [`webdriver`](https://www.npmjs.com/package/webdriver) protocol package:
 
 ### protocol
 Protocol to use when communicating with the driver server.
@@ -144,7 +140,7 @@ Default: `true`
 
 ## WebdriverIO
 
-The following options can be used with WebdriverIO in standalone as well as using the `@wdio/cli` testrunner.
+The following options (including the ones listed above) can be used with WebdriverIO in standalone:
 
 ### automationProtocol
 
@@ -152,7 +148,7 @@ Define the protocol you want to use for your browser automation. Currently only 
 
 If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
 
-Type: `String`
+Type: `String`<br />
 Default: `webdriver`
 
 ### baseUrl
@@ -202,7 +198,7 @@ Default: `false`
 
 ## Testrunner Options
 
-The following options are defined only for running WebdriverIO with the `@wdio/cli` testrunner:
+The following options (including the ones listed above) are defined only for running WebdriverIO with the WDIO testrunner:
 
 ### specs
 Define specs for test execution.
@@ -331,9 +327,11 @@ Default: `null`
 
 ## Hooks
 
-WebdriverIO allows you to set hooks to trigger at specific times of the test lifecycle. This allows custom actions (e.g., take screenshot if a test fails).
+The WDIO testrunner allows you to set hooks to be triggered at specific times of the test lifecycle. This allows custom actions (e.g. take screenshot if a test fails).
 
-Every hook has as parameter specific information about the lifecycle (i.e. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
+Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
+
+__Note:__ Some hooks (`onPrepare`, `onWorkerStart` and `onComplete`) are executed in a different process and therefor can not share any global data with the other hooks that live in the worker process.
 
 ### onPrepare
 

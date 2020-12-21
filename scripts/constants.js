@@ -11,7 +11,7 @@ const PROTOCOL_NAMES = {
     appium: 'Appium',
     jsonwp: 'JSON Wire Protocol',
     mjsonwp: 'Mobile JSON Wire Protocol',
-    webdriver: 'Webdriver Protocol',
+    webdriver: 'WebDriver Protocol',
     chromium: 'Chromium',
     saucelabs: 'Sauce Labs',
     selenium: 'Selenium Standalone'

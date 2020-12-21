@@ -3,35 +3,62 @@ id: driverbinaries
 title: Driver Binaries
 ---
 
-WebdriverIO allows using driver binaries directly instead of services.
+To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. The following describes how you can set up each driver individually. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
 
-Here’s an example with `geckodriver`.
+## Chromedriver
 
-### Download Geckodriver
+To automate Chrome you can download Chromedriver directly on the [project website](http://chromedriver.chromium.org/downloads) or through the NPM package:
 
-**Note: You must have [Firefox](https://www.mozilla.org/en-US/firefox/new/) installed to use Geckodriver.**
-
-Download the latest version of `geckodriver` for your environment and unpack it in your project directory:
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Linux (64 bit)-->
-```sh
-$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz | tar xz
+```bash npm2yarn
+npm install -g chromedriver
 ```
-<!--MacOS (curl)-->
-```sh
-$ curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-macos.tar.gz | tar xz
+
+You can then start it via:
+
+```bash
+chromedriver --port=4444 --verbose
 ```
-<!--MacOS (brew)-->
-```sh
+
+## Geckodriver
+
+To automate Firefox download the latest version of `geckodriver` for your environment and unpack it in your project directory:
+
+<Tabs
+  defaultValue="curl"
+  values={[
+    {label: 'Curl', value: 'curl'},
+    {label: 'Brew', value: 'brew'},
+    {label: 'Windows (64 bit / Chocolatey)', value: 'chocolatey'},
+    {label: 'Windows (64 bit / Powershell) DevTools', value: 'powershell'},
+  ]
+}>
+<TabItem value="curl">
+
+```bash
+# linux
+curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz | tar xz
+# MacOS (64 bit)
+curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-macos.tar.gz | tar xz
+```
+
+</TabItem>
+<TabItem value="brew">
+
+```bash
 $ brew install geckodriver
 ```
-<!--Windows (64 bit / Chocolatey)-->
-```sh
+
+</TabItem>
+<TabItem value="chocolatey">
+
+```bash
 $ choco install selenium-gecko-driver
 ```
-<!--Windows (64 bit / Powershell)-->
-```sh
+
+</TabItem>
+<TabItem value="powershell">
+
+```bash
 # Run as privileged session. Right-click and set 'Run as Administrator'
 # Use geckodriver-v0.24.0-win32.zip for 32 bit Windows
 $url = "https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-win64.zip"
@@ -51,27 +78,28 @@ cd $unzipped_file
 # Globally Set Geckodriver to PATH
 [System.Environment]::SetEnvironmentVariable("PATH", "$Env:Path;$pwd\geckodriver.exe", [System.EnvironmentVariableTarget]::Machine)
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
-**Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). In order to automate other browsers, you need different drivers. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
+</TabItem>
+</Tabs>
 
-### Start Browser Driver
+**Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). After download you can start the driver via:
 
-Start Geckodriver by running:
-
-```sh
+```bash
 /path/to/binary/geckodriver --port 4444
 ```
 
-For example, if you ran the `curl` command from above, you should have a `geckodriver` binary available in the current folder.
+## Edgedriver
 
-Start it like this:
+You can download the drivr for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). After download you can start Edgedriver as follows:
 
-
-```sh
-./geckodriver --port 4444
+```bash
+./path/to/edgedriver --port=4444 --verbose
 ```
 
-This will start Geckodriver on `localhost:4444` with the WebDriver endpoint set to `/`.
+## Safaridriver
 
-Keep this running in the background and open a new terminal window. Next step is to download WebdriverIO via NPM:
+Safaridriver comes pre-installed on your MacOS and can be started directly via:
+
+```bash
+safaridriver -p 4444
+```

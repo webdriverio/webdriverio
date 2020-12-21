@@ -32,7 +32,12 @@ describe('suite sync', () => {
         browser.pause(500)
 
         // wrap 3rd-party library calls with `browser.call`
-        const response = browser.call(() => get('https://cat-fact.herokuapp.com/facts/'))
+        const response = browser.call(
+            () => get('https://cat-fact.herokuapp.com/facts/', {
+                responseType: 'json'
+            })
+        )
+        console.log(response.body[0].type) // outputs: "cat"
 
         $('body').click() // You can chain functions in sync mode
     })
@@ -45,6 +50,7 @@ describe('suite sync', () => {
         await browser.pause(500)
 
         const response = await get('https://cat-fact.herokuapp.com/facts/')
+        console.log(response.body[0].type) // outputs: "cat"
 
         const el = await $('body')
         await el.click()
@@ -70,7 +76,10 @@ describe('suite async', () => {
 
         console.log(browser.capabilities) // static properties should not be awaited
 
-        await $('body').click() // WON'T WORK! You can't chain functions like this.
+        // this WON'T WORK! You can't chain functions like this.
+        await $('body').click()
+        // instead you need to:
+        await (await $('body')).click()
     })
 })
 ```

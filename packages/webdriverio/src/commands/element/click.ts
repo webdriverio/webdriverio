@@ -2,7 +2,7 @@
  *
  * Click on an element.
  *
- * Note: This issues a Webdriver `click` command for the selected element, which generally scrolls to and then clicks the
+ * Note: This issues a WeDdriver `click` command for the selected element, which generally scrolls to and then clicks the
  * selected element. However, if you have fixed-position elements (such as a fixed header or footer) that cover up the
  * selected element after it is scrolled within the viewport, the click will be issued at the given coordinates, but will
  * be received by your fixed (overlaying) element. In these cased the following error is thrown:
