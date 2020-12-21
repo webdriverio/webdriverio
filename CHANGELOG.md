@@ -17,6 +17,17 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.10.14 (2020-12-21)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#6253](https://github.com/webdriverio/webdriverio/pull/6253) fix: Sauce EmuSim testname and tests context are not updated ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 2
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.10.13 (2020-12-18)
 
 #### :bug: Bug Fix
