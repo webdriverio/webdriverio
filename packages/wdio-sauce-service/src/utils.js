@@ -1,7 +1,11 @@
 import { isW3C } from '@wdio/utils'
 
 /**
- * Determine if the current instance is a Unified Platform instance
+ * Determine if the current instance is a Unified Platform instance. UP tests are Real Device tests
+ * that can be started with different sets of capabilities. A deviceName is not mandatory, the only mandatory cap for
+ * UP is the platformName. Downside of the platformName is that is can also be EMUSIM. EMUSIM can be distinguished by
+ * the `Emulator|Simulator` postfix
+ *
  * @param {string} deviceName
  * @param {string} platformName
  * @returns {boolean}
