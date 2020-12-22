@@ -7,13 +7,13 @@ With `v4.5.0`, WebdriverIO introduced a [REPL](https://en.wikipedia.org/wiki/Rea
 
 First you can use it as CLI command and spawn a WebDriver session from the command line, e.g.
 
-```sh
+```bash
 wdio repl chrome
 ```
 
 This would open a Chrome browser that you can control with the REPL interface. Make sure you have a browser driver running on port `4444` in order to initiate the session. If you have a [Sauce Labs](https://saucelabs.com) (or other cloud vendor) account, you can also directly run the browser on your command line in the cloud via:
 
-```sh
+```bash
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
@@ -21,18 +21,18 @@ Or if you want to run local mobile tests using Appium:
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Android-->
-```sh
+```bash
 wdio repl android
 ```
 <!--iOS-->
-```sh
+```bash
 wdio repl ios
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 This would open Chrome/Safari session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
 
-```sh
+```bash
 wdio repl './path/to/your_app.apk'
 ```
 
@@ -47,11 +47,11 @@ Usage:
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Long Parameter Names-->
-```sh
+```bash
 wdio repl ios --platformVersion 11.3 --deviceName 'iPhone 7' --udid 123432abc
 ```
 <!--Short Parameter Names-->
-```sh
+```bash
 wdio repl ios -v 11.3 -d 'iPhone 7' -u 123432abc
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->

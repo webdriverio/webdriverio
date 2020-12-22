@@ -5,7 +5,7 @@ title: Custom Services
 
 You can write your own custom service for the WDIO test runner to custom-fit your needs.
 
-<dfn>Services</dfn> are add-ons that are created for reusable logic to simplify tests, manage your test suite and integrate results. Services have access to all the same [hooks](ConfigurationFile.md) available in the `wdio.conf.js`.
+Services are add-ons that are created for reusable logic to simplify tests, manage your test suite and integrate results. Services have access to all the same [hooks](/docs/configurationfile) available in the `wdio.conf.js`.
 
 There are two types of services that can be defined: a launcher service that only has access to the `onPrepare`, `onWorkerStart` and `onComplete` hook which are only executed once per test run, and a worker service that has access to all other hooks and is being executed for each worker. Note that you can not share (global) variables between both types of services as worker services run in a different (worker) process.
 

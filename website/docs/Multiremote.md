@@ -9,6 +9,13 @@ Instead of creating a couple of remote instances where you need to execute commo
 
 To do so, just use the `multiremote()` function, and pass in an object with names keyed to `capabilities` for values. By giving each capability a name, you can easily select and access that single instance when executing commands on a single instance.
 
+:::info
+
+Multiremote is _not_ meant to execute all your tests in parallel.
+It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
+
+:::
+
 ## Using Standalone Mode
 
 Here is an example of how to create a multiremote instance in __standalone mode__:
@@ -65,9 +72,9 @@ export.config = {
 }
 ```
 
-This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io). 
+This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io).
 
-You can even boot up one of the [cloud services backend](https://webdriver.io/docs/cloudservices.html) together with local Webdriver/Appium, or Selenium Standalone instances. Wdio automatically detect cloud backend capabilities if you specified either of `bstack:options` ([Browserstack](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), or `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) in browser capbilities.
+You can even boot up one of the [cloud services backend](https://webdriver.io/docs/cloudservices.html) together with local Webdriver/Appium, or Selenium Standalone instances. WebdriverIO automatically detect cloud backend capabilities if you specified either of `bstack:options` ([Browserstack](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), or `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) in browser capbilities.
 
 ```js
 export.config = {
@@ -139,6 +146,3 @@ assert.true(
 In this example, the `myFirefoxBrowser` instance will start waiting on a message once the `myChromeBrowser` instance has clicked on `#send` button.
 
 Multiremote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
-
-__NOTE:__ Multiremote is _not_ meant to execute all your tests in parallel.
-It is intended to help coordinate multiple browsers for sophisticated integration tests.

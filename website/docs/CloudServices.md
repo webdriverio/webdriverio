@@ -18,17 +18,17 @@ if (process.env.CI) {
 exports.config = config
 ```
 
-## [Sauce Labs](https://saucelabs.com)
+## Sauce Labs
 
-It is easy to set up your tests to run remotely in Sauce Labs.
+It is easy to set up your tests to run remotely in [Sauce Labs]((https://saucelabs.com)).
 
 The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
 
 You can also pass in any optional [test configuration option](https://docs.saucelabs.com/reference/test-configuration/#webdriver-api) as a key/value in the capabilities for any browser.
 
-### [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)
+### Sauce Connect
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Sauce Connect.
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy).
 
 It is out of the scope of WebdriverIO to support this, so you'll have to start it by yourself.
 
@@ -61,17 +61,17 @@ Since you are running your tests remotely, it might be necessary to increase som
 
 You can change the [idle timeout](https://docs.saucelabs.com/reference/test-configuration/#idle-test-timeout) by passing `idle-timeout` as a test configuration option. This controls how long Sauce will wait between commands before closing the connection.
 
-## [BrowserStack](https://www.browserstack.com)
+## BrowserStack
 
-Browserstack is also supported easily.
+WebdriverIO also has a [Browserstack](https://www.browserstack.com) integration built-in.
 
 The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Browserstack automate username and access key.
 
 You can also pass in any optional [supported capabilities](https://www.browserstack.com/automate/capabilities) as a key/value in the capabilities for any browser. If you set `browserstack.debug` to `true` it will record a screencast of the session, which might be helpful.
 
-### [Local Testing](https://www.browserstack.com/local-testing#command-line)
+### Local Testing
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing.
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://www.browserstack.com/local-testing#command-line).
 
 It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
 
@@ -105,43 +105,43 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 'browserstack.debug': 'true'
 ```
 
-## [TestingBot](https://testingbot.com)
+## TestingBot
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your TestingBot username and secret key.
+The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your [TestingBot](https://testingbot.com) username and secret key.
 
 You can also pass in any optional [supported capabilities](https://testingbot.com/support/other/test-options) as a key/value in the capabilities for any browser.
 
-### [Local Testing](https://testingbot.com/support/other/tunnel)
+### Local Testing
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing. TestingBot provides a Java-based tunnel to allow you to test websites not accessible from the internet.
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://testingbot.com/support/other/tunnel). TestingBot provides a Java-based tunnel to allow you to test websites not accessible from the internet.
 
 Their tunnel support page contains the information necessary to get this up and running.
 
 If you are using the WDIO testrunner, download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps get TestingBot running, and comes with additional features that better integrate your tests into the TestingBot service.
 
-## [CrossBrowserTesting](https://crossbrowsertesting.com/)
+## CrossBrowserTesting
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your CrossBrowserTesting username and authkey.
+The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your [CrossBrowserTesting](https://crossbrowsertesting.com/) username and authkey.
 
 You can also pass in any optional [supported capabilities](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) as a key/value in the capabilities for any browser.
 
-### [Local Testing](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/)
+### Local Testing
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing. CrossBrowserTesting provides a tunnel to allow you to test websites not accessible from the internet.
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/). CrossBrowserTesting provides a tunnel to allow you to test websites not accessible from the internet.
 
 If you are using the WDIO testrunner, download and configure the [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) in your `wdio.conf.js`. It helps get CrossBrowserTesting running and comes with additional features that better integrate your tests into the CrossBrowserTesting service.
 
-## [LambdaTest](https://www.lambdatest.com)
+## LambdaTest
 
-LambdaTest is also supported easily.
+[LambdaTest](https://www.lambdatest.com) integration is also built-in.
 
 The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your LambdaTest account username and access key.
 
 You can also pass in any optional [supported capabilities](https://www.lambdatest.com/capabilities-generator/) as a key/value in the capabilities for any browser. If you set `visual` to `true` it will record a screencast of the session, which might be helpful.
 
-### [Tunnel for local testing](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/)
+### Tunnel for local testing
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing.
+If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/).
 
 It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
 

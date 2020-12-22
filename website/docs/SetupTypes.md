@@ -128,7 +128,7 @@ remote({
 
 If you now run the file, it will return the title:
 
-```sh
+```bash
 $ node standalone.js
 WebdriverIO · Next-gen browser and mobile automation test framework for Node.js
 ```
