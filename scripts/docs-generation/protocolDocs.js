@@ -21,6 +21,12 @@ exports.generateProtocolDocs = (sidebars) => {
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
     const protocolDocs = {}
 
+    sidebars[category].push({
+        type: 'category',
+        label: 'Protocols',
+        items: []
+    })
+
     for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
         const protocol = PROTOCOL_NAMES[protocolName]
 
@@ -87,6 +93,6 @@ exports.generateProtocolDocs = (sidebars) => {
         // eslint-disable-next-line no-console
         console.log(`Generated docs for ${protocolName} protocol`)
 
-        sidebars[category].Protocols.push(`${category}/${protocolName}`)
+        sidebars[category][sidebars[category].length - 1].items.push(`${category}/${protocolName}`)
     }
 }
