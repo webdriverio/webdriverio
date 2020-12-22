@@ -52,11 +52,6 @@
     "api",
     "api/expect-webdriverio"
   ],
-  "community": [
-    "support",
-    "team",
-    "resources"
-  ],
   "flowcharts": {
       "Flowcharts": [
         "flowcharts/wdiocommands",

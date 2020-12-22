@@ -62,10 +62,10 @@ module.exports = {
                 position: 'left',
                 docId: 'contribute',
             }, {
-                type: 'doc',
+                to: '/community/support',
                 label: 'Community',
                 position: 'left',
-                docId: 'support',
+                activeBaseRegex: '/community/'
             }, {
                 href: 'https://github.com/facebook/docusaurus',
                 position: 'right',
@@ -82,7 +82,7 @@ module.exports = {
                     to: 'docs/gettingstarted',
                 }, {
                     label: 'API Reference',
-                    to: 'docs/api/',
+                    to: 'docs/api',
                 // }, {
                 //     label: 'Contribute',
                 //     to: 'docs/api/',
@@ -158,6 +158,18 @@ module.exports = {
             {
                 fromExtensions: ['html'],
             }
+        ],
+        [
+            '@docusaurus/plugin-content-docs',
+            {
+                id: 'community',
+                path: 'community',
+                editUrl: 'https://github.com/facebook/docusaurus/edit/master/website/',
+                routeBasePath: 'community',
+                sidebarPath: require.resolve('./sidebarsCommunity.js'),
+                showLastUpdateAuthor: true,
+                showLastUpdateTime: true,
+            },
         ]
     ],
     themes: ['@saucelabs/theme-github-codeblock']
