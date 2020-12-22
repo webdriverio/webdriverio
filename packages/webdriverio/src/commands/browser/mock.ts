@@ -4,8 +4,6 @@
  * returns a stub object that you can use to modify the response of the
  * web resource.
  *
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
- *
  * With the stub object you can then either return a custom response or
  * have the request fail.
  *
@@ -13,6 +11,14 @@
  * - return a custom JSON object (for stubbing API request)
  * - replace web resource with a local file (service a modified JavaScript file) or
  * - redirect resource to a different url
+ *
+ * :::info
+ *
+ * Note that using the `mock` command requires support for Chrome DevTools protocol and e.g.
+ * can not be used when running automated tests in the cloud. Find out more in the
+ * [Automation Protocols](/docs/automationProtocols) section.
+ *
+ * :::
  *
  * <example>
     :mock.js

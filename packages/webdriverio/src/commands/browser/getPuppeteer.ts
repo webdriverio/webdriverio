@@ -5,6 +5,32 @@
  * execution make sure to wrap your Puppeteer calls within a `browser.call`
  * commands as shown in the example.
  *
+ * :::info
+ *
+ * Note that using Puppeteer requires support for Chrome DevTools protocol and e.g.
+ * can not be used when running automated tests in the cloud. Find out more in the
+ * [Automation Protocols](/docs/automationProtocols) section.
+ *
+ * :::
+ *
+ * <example>
+    :getPuppeteer.test.js
+    it('should allow me to use Puppeteer', () => {
+        // WebDriver command
+        browser.url('https://webdriver.io')
+
+        const puppeteerBrowser = browser.getPuppeteer()
+        // switch to Puppeteer
+        const metrics = browser.call(async () => {
+            await pages = await puppeteerBrowser.pages()
+            pages[0].setGeolocation({ latitude: 59.95, longitude: 30.31667 })
+            return pages[0].metrics()
+        })
+
+        console.log(metrics.LayoutCount) // returns 42
+    })
+ * </example>
+ *
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
 import puppeteer from 'puppeteer-core'

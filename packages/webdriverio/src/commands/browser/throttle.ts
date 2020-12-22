@@ -9,6 +9,14 @@
  *
  * You can see the values for these presets [in the source code](https://github.com/webdriverio/webdriverio/blob/6824e4eb118a8d20685f12f4bc42f13fd56f8a25/packages/webdriverio/src/commands/browser/throttle.js#L29).
  *
+ * :::info
+ *
+ * Note that using the `throttle` command requires support for Chrome DevTools protocol and e.g.
+ * can not be used when running automated tests in the cloud. Find out more in the
+ * [Automation Protocols](/docs/automationProtocols) section.
+ *
+ * :::
+ *
  * <example>
     :throttle.js
     it('should throttle the network', () => {

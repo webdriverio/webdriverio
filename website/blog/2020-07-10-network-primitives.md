@@ -29,7 +29,7 @@ console.log($$('#todo-list li').map(el => el.getText()))
 // outputs: "[ 'Injected (non) completed Todo', 'Injected completed Todo' ]"
 ```
 
-In addition to that you can als modify JavaScript of CSS files as well as abort requests or modify responses dynamically based on the original reponse. You can find more information on all features in the [Mocks and Spies](/docs/mocksandspies.html) section of the docs.
+In addition to that you can als modify JavaScript of CSS files as well as abort requests or modify responses dynamically based on the original reponse. You can find more information on all features in the [Mocks and Spies](/docs/mocksandspies) section of the docs.
 
 ## Throttling
 

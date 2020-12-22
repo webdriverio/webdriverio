@@ -8,7 +8,17 @@ authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s
 We are pleased to announce that a new major version of WebdriverIO has finally been released! I never thought that it would take this long (it's been over a year), but we can finally say that the new version of WebdriverIO is ready for use (and better than ever). There has been over 800 commits, from over [34 different contributors](https://github.com/webdriverio/webdriverio/graphs/contributors); and I am truly grateful to everyone who participated in this collective effort. With that being said...
 
 ## <center>🎉 🎉 🎉 Time to celebrate! 🎉 🎉 🎉</center>
-<div style="width:100%;height:0;padding-bottom:56%;position:relative;"><iframe src="https://giphy.com/embed/l0MYt5jPR6QX5pnqM" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div>
+<div style={{ width: '100%', height: 0, paddingBottom: '56%', position: 'relative' }}>
+    <iframe
+        src="https://giphy.com/embed/l0MYt5jPR6QX5pnqM"
+        width="100%"
+        height="100%"
+        style={{ position: 'absolute' }}
+        frameBorder="0"
+        class="giphy-embed"
+        allowFullScreen
+    ></iframe>
+</div>
 
 <br />
 

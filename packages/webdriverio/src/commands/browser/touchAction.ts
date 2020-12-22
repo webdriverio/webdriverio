@@ -5,11 +5,11 @@
  * At its core is the ability to chain together _ad hoc_ individual actions, which will then be
  * applied to an element in the application on the device. The basic actions that can be used are:
  *
- * - press (pass element or (x,y) or both)
- * - longPress (pass element or (x,y) or both)
- * - tap (pass element or (x,y) or both)
- * - moveTo (pass absolute x,y coordinates)
- * - wait (pass ms (as milliseconds))
+ * - press (pass element or (`x`, `y`) or both)
+ * - longPress (pass element or (`x`, `y`) or both)
+ * - tap (pass element or (`x`, `y`) or both)
+ * - moveTo (pass absolute `x`, `y` coordinates)
+ * - wait (pass `ms` (as milliseconds))
  * - release (no arguments)
  *
  * <example>

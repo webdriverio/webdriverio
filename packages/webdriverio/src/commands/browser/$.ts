@@ -8,8 +8,13 @@
  *
  * Using the wdio testrunner this command is a global variable else it will be located on the browser object instead.
  *
- * You can chain `$` or `$$` together in order to walk down the DOM tree. For more information on how
- * to select specific elements, see [`Selectors`](/docs/selectors.html).
+ * You can chain `$` or `$$` together in order to walk down the DOM tree.
+ *
+ * :::info
+ *
+ * For more information on how to select specific elements, check out the [Selectors](/docs/selectors) guide.
+ *
+ * :::
  *
  * <example>
     :index.html

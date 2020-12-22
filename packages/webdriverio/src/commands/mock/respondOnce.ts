@@ -4,8 +4,6 @@
  * only use `respondOnce` and the resource is called more times a mock has been
  * defined than it defaults back to the original resource.
  *
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
- *
  * <example>
     :respondOnce.js
     function getToDos () {

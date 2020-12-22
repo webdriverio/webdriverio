@@ -3,7 +3,12 @@
  * The `react$$` command is a useful command to query multiple React Components
  * by their actual name and filter them by props and state.
  *
- * **NOTE:** the command only works with applications using React v16.x
+ * :::info
+ *
+ * The command only works with applications using React v16.x. Read more about React
+ * selectors in the [Selectors](/docs/selectors#react-selectors) guide.
+ *
+ * :::
  *
  * <example>
     :pause.js
