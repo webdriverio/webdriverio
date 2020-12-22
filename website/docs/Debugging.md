@@ -91,7 +91,12 @@ It's possible to run all or selected spec file(s). Debug configuration(s) have t
     "cwd": "${workspaceFolder}",
     "autoAttachChildProcesses": true,
     "program": "${workspaceRoot}/node_modules/@wdio/cli/bin/wdio.js",
-    "console": "integratedTerminal"
+    "console": "integratedTerminal",
+    "skipFiles": [
+        "${workspaceFolder}/node_modules/**/*.js",
+        "${workspaceFolder}/lib/**/*.js",
+        "<node_internals>/**/*.js"
+    ]
 },
 ```
 
