@@ -1,3 +1,6 @@
+const organizationName = 'webdriverio' // Usually your GitHub org/user name.
+const projectName = 'webdriverio' // Usually your repo name.
+
 module.exports = {
     title: 'WebdriverIO',
     tagline: 'Next-gen browser and mobile automation test framework for Node.js',
@@ -6,8 +9,8 @@ module.exports = {
     onBrokenLinks: 'warn',
     onBrokenMarkdownLinks: 'warn',
     favicon: 'img/favicon.png',
-    organizationName: 'webdriverio', // Usually your GitHub org/user name.
-    projectName: 'webdriver.io', // Usually your repo name.
+    organizationName,
+    projectName,
     themeConfig: {
         colorMode: {
             defaultMode: 'light',
@@ -40,7 +43,7 @@ module.exports = {
         announcementBar: {
             id: 'supportus',
             content:
-              '⭐️  &nbsp; If you like WebdriverIO, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/webdriverio/webdriverio">GitHub</a>! ⭐️',
+              `⭐️  &nbsp; If you like WebdriverIO, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/${organizationName}/${projectName}">GitHub</a>! ⭐️`,
         },
         navbar: {
             title: 'I/O',
@@ -71,7 +74,7 @@ module.exports = {
                 position: 'right',
                 to: '/versions'
             }, {
-                href: 'https://github.com/facebook/docusaurus',
+                href: `https://github.com/${organizationName}/${projectName}`,
                 position: 'right',
                 className: 'header-github-link',
                 'aria-label': 'GitHub repository',
@@ -87,12 +90,12 @@ module.exports = {
                 }, {
                     label: 'API Reference',
                     to: 'docs/api',
-                // }, {
-                //     label: 'Contribute',
-                //     to: 'docs/api/',
-                // }, {
-                //     label: 'Help',
-                //     to: 'docs/api/',
+                }, {
+                    label: 'Contribute',
+                    to: 'docs/contribute/',
+                }, {
+                    label: 'Help',
+                    to: 'community/support',
                 }],
             }, {
                 title: 'Community',
@@ -101,7 +104,7 @@ module.exports = {
                     href: 'https://stackoverflow.com/questions/tagged/webdriver-io',
                 }, {
                     label: 'Support Chat',
-                    href: 'https://gitter.im/webdriverio/webdriverio',
+                    href: `https://gitter.im/${organizationName}/${projectName}`,
                 }, {
                     label: 'Slack',
                     href: 'https://seleniumhq.slack.com/join/shared_invite/zt-f7jwg1n7-RVw4v4sMA7Zjufira_~EVw#/'
@@ -119,7 +122,7 @@ module.exports = {
                     to: 'blog',
                 }, {
                     label: 'GitHub',
-                    href: 'https://github.com/webdriverio/webdriverio',
+                    href: `https://github.com/${organizationName}/${projectName}`,
                 }],
             }],
             logo: {
@@ -136,7 +139,7 @@ module.exports = {
                 docs: {
                     sidebarPath: require.resolve('./sidebars.js'),
                     // Please change this to your repo.
-                    editUrl:'https://github.com/webdriverio/webdriverio/edit/master/website/',
+                    editUrl:`https://github.com/${organizationName}/${projectName}/edit/master/website/`,
                     remarkPlugins: [
                         [require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }],
                     ],
@@ -145,7 +148,7 @@ module.exports = {
                     showReadingTime: true,
                     postsPerPage: 3,
                     // Please change this to your repo.
-                    editUrl: 'https://github.com/webdriverio/webdriverio/edit/master/website/blog/',
+                    editUrl: `https://github.com/${organizationName}/${projectName}/edit/master/website/blog/`,
                 },
                 theme: {
                     customCss: require.resolve('./src/css/custom.css'),
@@ -170,9 +173,7 @@ module.exports = {
                 path: 'community',
                 editUrl: 'https://github.com/facebook/docusaurus/edit/master/website/',
                 routeBasePath: 'community',
-                sidebarPath: require.resolve('./sidebarsCommunity.js'),
-                showLastUpdateAuthor: true,
-                showLastUpdateTime: true,
+                sidebarPath: require.resolve('./sidebarsCommunity.js')
             },
         ]
     ],
