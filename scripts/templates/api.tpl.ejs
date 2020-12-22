@@ -40,7 +40,7 @@ title: <?= method.command ?>
 <? if (method.examples.length) { ?>
 ##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
 <? method.examples.forEach(function(example) { ?>
-```<?= example.format ?><? if (example.file) { ?> <?= example.file ?><? } ?>
+```<?= example.format ?><? if (example.file) { ?> title="<?= example.file ?>"<? } ?>
 <?- example.code ?>
 ```
 <? }); ?>

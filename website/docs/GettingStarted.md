@@ -11,7 +11,7 @@ These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are
 
 ## Installation
 
-Use npm or Yarn to install Playwright in your Node.js project. See [system requirements](#system-requirements).
+Use npm or Yarn to install the WebdriverIO test runner in your Node.js project. See [system requirements](#system-requirements).
 
 ```bash npm2yarn
 npm install @wdio/cli
@@ -51,7 +51,7 @@ or define suites in your config file and run just the test files defined by in a
 npx wdio run ./wdio.config.js --suite checkoutflow
 ```
 
-## Run in Standalone Script
+## Run in a script
 
 If you like to use WebdriverIO as an automation engine in a Node.JS script you can also directly install WebdriverIO and use it as package, e.g. to generate a screenshot of a website:
 

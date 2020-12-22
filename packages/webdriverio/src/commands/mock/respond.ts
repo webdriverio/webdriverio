@@ -1,8 +1,6 @@
 /**
  * Always respond with same overwrite.
  *
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
- *
  * <example>
     :respond.js
     it('should demonstrate response overwrite with static data', () => {

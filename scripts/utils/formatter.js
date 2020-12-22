@@ -114,7 +114,7 @@ module.exports = function (docfile) {
                     if (exampleFilename !== '' && code !== '') {
                         files.push({
                             file: exampleFilename,
-                            format: exampleFilename.split(/\./)[1],
+                            format: exampleFilename.split(/\./).pop(),
                             code: code
                         })
                     }

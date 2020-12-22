@@ -16,7 +16,11 @@ import type { Selector } from '../../types'
  * make unnecessary requests that slow down the test (e.g. `$('body').$('div')` will trigger two request whereas
  * `$('body div')` does literally the same with just one request)
  *
- * For more information on how to select specific elements, see [`Selectors`](/docs/selectors.html).
+ * :::info
+ *
+ * For more information on how to select specific elements, check out the [Selectors](/docs/selectors) guide.
+ *
+ * :::
  *
  * <example>
     :index.html

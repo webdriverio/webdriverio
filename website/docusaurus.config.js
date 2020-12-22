@@ -3,7 +3,7 @@ module.exports = {
     tagline: 'Next-gen browser and mobile automation test framework for Node.js',
     url: 'https://webdriver.io',
     baseUrl: '/',
-    onBrokenLinks: 'throw',
+    onBrokenLinks: 'warn',
     onBrokenMarkdownLinks: 'warn',
     favicon: 'img/favicon.png',
     organizationName: 'webdriverio', // Usually your GitHub org/user name.
@@ -69,7 +69,7 @@ module.exports = {
                 title: 'Docs',
                 items: [{
                     label: 'Getting Started',
-                    to: 'docs/',
+                    to: 'docs/gettingstarted',
                 }, {
                     label: 'API Reference',
                     to: 'docs/api/',
@@ -142,6 +142,13 @@ module.exports = {
             },
         ],
     ],
-    plugins: ['@docusaurus/plugin-google-analytics'],
+    plugins: [
+        [
+            '@docusaurus/plugin-client-redirects',
+            {
+                fromExtensions: ['html'],
+            }
+        ]
+    ],
     themes: ['@saucelabs/theme-github-codeblock']
 }

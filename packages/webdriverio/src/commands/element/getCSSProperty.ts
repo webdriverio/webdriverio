@@ -7,10 +7,14 @@ import { parseCSS } from '../../utils'
  * is formatted to be testable. Colors gets parsed via [rgb2hex](https://www.npmjs.org/package/rgb2hex)
  * and all other properties get parsed via [css-value](https://www.npmjs.org/package/css-value).
  *
- * __Note:__ that shorthand CSS properties (e.g. background, font, border, margin,
- * padding, list-style, outline, pause, cue) will be expanded to fetch all longhand
+ * :::info
+ *
+ * Note that shorthand CSS properties (e.g. `background`, `font`, `border`, `margin`,
+ * `padding`, `list-style`, `outline`, `pause`, `cue`) will be expanded to fetch all longhand
  * properties resulting in multiple WebDriver calls. If you are interested in a specific
  * longhand property it is recommended to query for that instead.
+ *
+ * :::
  *
  * <example>
     :example.html

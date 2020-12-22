@@ -32,7 +32,7 @@ const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs')
  */
 exports.generate3rdPartyDocs = async (sidebars) => {
     for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
-        const categoryDir = path.join(DOCS_ROOT_DIR, category)
+        const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
         await fs.ensureDir(categoryDir)
 
         for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme, branch = 'main' } of packages3rdParty) {
@@ -51,7 +51,9 @@ exports.generate3rdPartyDocs = async (sidebars) => {
             // eslint-disable-next-line no-console
             console.log(`Generated docs for ${packageName}`)
 
-            sidebars[category][namePlural].push(`${category}/${id}`)
+            sidebars[category][namePlural].push(
+                category === 'api' ? `${category}/${id}` : id
+            )
         }
     }
 }
