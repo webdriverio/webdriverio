@@ -67,6 +67,10 @@ module.exports = {
                 position: 'left',
                 activeBaseRegex: '/community/'
             }, {
+                label: 'Versions',
+                position: 'right',
+                to: '/versions'
+            }, {
                 href: 'https://github.com/facebook/docusaurus',
                 position: 'right',
                 className: 'header-github-link',
