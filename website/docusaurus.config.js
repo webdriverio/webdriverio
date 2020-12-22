@@ -1,5 +1,6 @@
 const organizationName = 'webdriverio' // Usually your GitHub org/user name.
 const projectName = 'webdriverio' // Usually your repo name.
+const branch = 'cb-v7-website' // ToDo(Christian): switch to "master" once deployed to prod
 
 module.exports = {
     title: 'WebdriverIO',
@@ -140,7 +141,7 @@ module.exports = {
                 docs: {
                     sidebarPath: require.resolve('./sidebars.js'),
                     // Please change this to your repo.
-                    editUrl:`https://github.com/${organizationName}/${projectName}/edit/master/website/`,
+                    editUrl:`https://github.com/${organizationName}/${projectName}/edit/${branch}/website/`,
                     remarkPlugins: [
                         [require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }],
                     ],
@@ -149,7 +150,7 @@ module.exports = {
                     showReadingTime: true,
                     postsPerPage: 3,
                     // Please change this to your repo.
-                    editUrl: `https://github.com/${organizationName}/${projectName}/edit/master/website/blog/`,
+                    editUrl: `https://github.com/${organizationName}/${projectName}/edit/${branch}/website/blog/`,
                 },
                 theme: {
                     customCss: require.resolve('./src/css/custom.css'),
@@ -172,7 +173,7 @@ module.exports = {
             {
                 id: 'community',
                 path: 'community',
-                editUrl: 'https://github.com/facebook/docusaurus/edit/master/website/',
+                editUrl: `https://github.com/${organizationName}/${projectName}/edit/${branch}/website/`,
                 routeBasePath: 'community',
                 sidebarPath: require.resolve('./sidebarsCommunity.js')
             },
