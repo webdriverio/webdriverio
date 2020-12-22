@@ -40,6 +40,7 @@ export default class TestStats extends RunnableStats {
     uid: string
     cid: string
     title: string
+    currentTest?: string
     fullTitle: string
     output: Output[]
     argument?: pickle.Argument

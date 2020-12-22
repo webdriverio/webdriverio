@@ -64,7 +64,6 @@ tests/typings/**/dist
 
 **/build
 /*.js
-allure-reporter.d.ts
 devtools.d.ts
 !.eslintrc.js
 !jest.config.js

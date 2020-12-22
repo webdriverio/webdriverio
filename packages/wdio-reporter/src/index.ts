@@ -7,9 +7,9 @@ import SuiteStats, { Suite } from './stats/suite'
 import HookStats, { Hook } from './stats/hook'
 import TestStats, { Test } from './stats/test'
 import RunnerStats, { Runner } from './stats/runner'
-import { AfterCommandArgs, BeforeCommandArgs } from './types'
+import { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag } from './types'
 
-interface WDIOReporterBaseOptions {
+export interface WDIOReporterBaseOptions {
     outputDir?: string
 }
 
@@ -267,4 +267,4 @@ export default class WDIOReporter extends EventEmitter {
     onRunnerEnd(runnerStats: RunnerStats) { }
 }
 
-export { SuiteStats, HookStats, TestStats, RunnerStats }
+export { SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs, AfterCommandArgs, CommandArgs }

@@ -1,3 +1,4 @@
+import { Tag } from '../types'
 import HookStats from './hook'
 import RunnableStats from './runnable'
 import TestStats from './test'
@@ -13,7 +14,7 @@ export interface Suite {
     cid?: string
     specs?: string[]
     uid?: string
-    tags?: string[]
+    tags?: string[] | Tag[]
     description?: string
 }
 
@@ -25,7 +26,7 @@ export default class SuiteStats extends RunnableStats {
     cid?: string
     title: string
     fullTitle: string
-    tags?: string[]
+    tags?: string[] | Tag[]
     tests: TestStats[] = []
     hooks: HookStats[] = []
     suites: SuiteStats[] = []

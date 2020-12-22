@@ -6,7 +6,7 @@ class CustomService {
 
 const conf: WebdriverIO.Config = {
     // can be both array and function
-    onComplete: (config, caps) => { },
+    onComplete: () => { },
     onPrepare: [
         () => { }
     ],

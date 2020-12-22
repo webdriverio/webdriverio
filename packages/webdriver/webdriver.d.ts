@@ -371,6 +371,9 @@ declare namespace WebDriver {
         'appium:platformVersion'?: string;
         deviceName?: string;
         'appium:deviceName'?: string;
+        device?: string;
+        // custom mobile grids can have device information in a `desired` cap
+        desired?: AppiumCapabilities;
         app?: string;
         'appium:app'?: string;
         newCommandTimeout?: number;
