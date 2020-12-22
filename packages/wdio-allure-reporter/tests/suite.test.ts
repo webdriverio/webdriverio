@@ -46,7 +46,7 @@ describe('Passing tests', () => {
         reporter.addIssue({ issue: '1' })
         reporter.addTestId({ testId: '2' })
         reporter.addEnvironment({ name: 'jenkins', value: '1.2.3' })
-        reporter.addDescription({ description: 'functions', type: 'html' })
+        reporter.addDescription({ description: 'functions', descriptionType: 'html' })
         reporter.addAttachment({ name: 'My attachment', content: '99thoughtz', type: 'text/plain' })
         reporter.addArgument({ name: 'os', value: 'osx' })
         reporter.startStep('bar')

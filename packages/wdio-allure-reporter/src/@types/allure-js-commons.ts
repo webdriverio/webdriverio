@@ -62,7 +62,7 @@ declare module 'allure-js-commons' {
 
             constructor(name: string, timestamp?: number);
 
-            setDescription(description: string, type: TYPE): void;
+            setDescription(description: string | undefined, type?: TYPE): void;
             addLabel(name: string, value?: string): void;
             addParameter(kind: any, name: string, value?: string): void;
             addStep(step: Step): void;

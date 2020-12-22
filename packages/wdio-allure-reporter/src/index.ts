@@ -3,13 +3,13 @@ import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
 import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate } from './utils'
 import { events, PASSED, PENDING, SKIPPED, stepStatuses } from './constants'
-import { AllureReporterOptions } from './types'
+import { AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs, AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs, AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions } from './types'
 
 class AllureReporter extends WDIOReporter {
     private _allure: Allure;
     private _capabilities: WebDriver.DesiredCapabilities;
     private _isMultiremote?: boolean;
-    private _config: WebDriver.DesiredCapabilities ;
+    private _config: WebdriverIO.Config ;
     private _lastScreenshot?: string;
     private _options: AllureReporterOptions;
 
@@ -119,7 +119,7 @@ class AllureReporter extends WDIOReporter {
         this.setCaseParameters(test.cid)
     }
 
-    setCaseParameters(cid?: string) {
+    setCaseParameters(cid: string | undefined) {
         const currentTest = this._allure.getCurrentTest()
 
         if (!this._isMultiremote) {
@@ -328,7 +328,7 @@ class AllureReporter extends WDIOReporter {
     addLabel({
         name,
         value
-    }: any) {
+    }: AddLabelEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -339,7 +339,7 @@ class AllureReporter extends WDIOReporter {
 
     addStory({
         storyName
-    }: any) {
+    }: AddStoryEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -350,7 +350,7 @@ class AllureReporter extends WDIOReporter {
 
     addFeature({
         featureName
-    }: any) {
+    }: AddFeatureEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -361,7 +361,7 @@ class AllureReporter extends WDIOReporter {
 
     addSeverity({
         severity
-    }: any) {
+    }: AddSeverityEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -372,7 +372,7 @@ class AllureReporter extends WDIOReporter {
 
     addIssue({
         issue
-    }: any) {
+    }: AddIssueEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -384,7 +384,7 @@ class AllureReporter extends WDIOReporter {
 
     addTestId({
         testId
-    }: any) {
+    }: AddTestIdEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -397,7 +397,7 @@ class AllureReporter extends WDIOReporter {
     addEnvironment({
         name,
         value
-    }: any) {
+    }: AddEnvironmentEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -409,7 +409,7 @@ class AllureReporter extends WDIOReporter {
     addDescription({
         description,
         descriptionType
-    }: any) {
+    }: AddDescriptionEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -422,15 +422,15 @@ class AllureReporter extends WDIOReporter {
         name,
         content,
         type = 'text/plain'
-    }: any) {
+    }: AddAttachmentEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
 
         if (type === 'application/json') {
-            this.dumpJSON(name, content)
+            this.dumpJSON(name, content as object)
         } else {
-            this._allure.addAttachment(name, Buffer.from(content), type)
+            this._allure.addAttachment(name, Buffer.from(content as string), type)
         }
     }
 

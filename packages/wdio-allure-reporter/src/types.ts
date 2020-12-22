@@ -1,4 +1,5 @@
 import { WDIOReporterBaseOptions } from '@wdio/reporter'
+import Allure from 'allure-js-commons'
 
 /**
  * When you add a new option, please also update the docs at ./packages/wdio-allure-reporter/README.md
@@ -40,3 +41,45 @@ export interface AllureReporterOptions extends WDIOReporterBaseOptions {
      */
     tmsLinkTemplate?: string;
 }
+
+export interface AddLabelEventArgs {
+    name: string;
+    value: string;
+}
+
+export interface AddStoryEventArgs {
+    storyName: string;
+}
+
+export interface AddFeatureEventArgs {
+    featureName: string;
+}
+
+export interface AddSeverityEventArgs {
+    severity: string;
+}
+
+export interface AddIssueEventArgs {
+    issue: string;
+}
+
+export interface AddTestIdEventArgs {
+    testId: string;
+}
+
+export interface AddEnvironmentEventArgs {
+    name: string;
+    value: string;
+}
+
+export interface AddDescriptionEventArgs {
+    description?: string;
+    descriptionType?: Allure.TYPE;
+}
+
+export interface AddAttachmentEventArgs {
+    name: string;
+    content: string | object;
+    type: string;
+}
+
