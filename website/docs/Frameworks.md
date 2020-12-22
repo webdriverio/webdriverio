@@ -13,7 +13,7 @@ Within your spec files (or step definitions), you can access the WebDriver insta
 
 First, install the adapter package from NPM:
 
-```sh
+```bash npm2yarn
 npm install @wdio/mocha-framework --save-dev
 ```
 
@@ -151,7 +151,7 @@ Default: `30000`
 
 First, install the adapter package from NPM:
 
-```sh
+```bash npm2yarn
 npm install @wdio/jasmine-framework --save-dev
 ```
 
@@ -259,7 +259,7 @@ Default: `false`
 
 First, install the adapter package from NPM:
 
-```sh
+```bash npm2yarn
 npm install @wdio/cucumber-framework --save-dev
 ```
 

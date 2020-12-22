@@ -3,6 +3,9 @@ id: autocompletion
 title: Autocompletion
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ## IntelliJ
 
 Autocompletion works out of the box in IDEA and WebStorm.
@@ -21,12 +24,22 @@ Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see 
 
 ## Visual Studio Code (VSCode)
 
-It's required to create `jsconfig.json` in project root and refer to used wdio packages to make autocompletion work in vanilla js. See examples below.
+Visual Studio Code usually has type support automatically integrated and there is no action needed.
 
 ![Autocompletion](/img/autocompletion/14.png)
 
-Sync version (you have `@wdio/sync` package installed) with Mocha
-```json
+If you use vanilla JavaScript and want to have proper type support for synchronous commands you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
+
+<Tabs
+  defaultValue="sync"
+  values={[
+    {label: 'Synchronous Mode w/ Mocha Example', value: 'sync'},
+    {label: 'Asynchronous Mode w/ Cucumber Example', value: 'async'}
+  ]
+}>
+<TabItem value="sync">
+
+```json title="jsconfig.json"
 {
   "include": [
     "**/*.js",
@@ -37,8 +50,10 @@ Sync version (you have `@wdio/sync` package installed) with Mocha
 }
 ```
 
-Async version with Cucumber
-```json
+</TabItem>
+<TabItem value="async">
+
+```json title="jsconfig.json"
 {
   "include": [
     "**/*.js",
@@ -48,3 +63,6 @@ Async version with Cucumber
   ]
 }
 ```
+
+</TabItem>
+</Tabs>
