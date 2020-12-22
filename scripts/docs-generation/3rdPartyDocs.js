@@ -44,6 +44,10 @@ exports.generate3rdPartyDocs = async (sidebars) => {
                 suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl))
             await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, { encoding: 'utf-8' })
 
+            if (namePlural === 'Testrunner') {
+                return
+            }
+
             if (!sidebars[category][namePlural]) {
                 sidebars[category][namePlural] = []
             }

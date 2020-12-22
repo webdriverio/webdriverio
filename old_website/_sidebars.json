@@ -48,13 +48,14 @@
       "bamboo"
     ]
   },
-  "api": {
-    "Introduction": [
-      "api"
-    ],
-    "Protocols": [],
-    "Testrunner": []
-  },
+  "api": [
+    "api",
+    "api/expect-webdriverio"
+  ],
+  "community": [
+    "support",
+    "team"
+  ],
   "flowcharts": {
       "Flowcharts": [
         "flowcharts/wdiocommands",

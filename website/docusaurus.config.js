@@ -57,6 +57,16 @@ module.exports = {
             }, {
                 to: 'blog', label: 'Blog', position: 'left'
             }, {
+                type: 'doc',
+                label: 'Contribute',
+                position: 'left',
+                docId: 'contribute',
+            }, {
+                type: 'doc',
+                label: 'Community',
+                position: 'left',
+                docId: 'support',
+            }, {
                 href: 'https://github.com/facebook/docusaurus',
                 position: 'right',
                 className: 'header-github-link',

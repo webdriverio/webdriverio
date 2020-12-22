@@ -24,6 +24,15 @@ exports.generateWdioDocs = (sidebars) => {
     }
 
     for (const [scope, files] of Object.entries(COMMANDS)) {
+        /**
+         * add scope to sidebar
+         */
+        sidebars.api.push({
+            type: 'category',
+            label: scope,
+            items: []
+        })
+
         for (const file of files) {
             const docDir = path.join(__dirname, '..', '..', 'docs', 'api', scope)
             if (!fs.existsSync(docDir)){
@@ -46,13 +55,8 @@ exports.generateWdioDocs = (sidebars) => {
                 }
             )
 
-            /**
-             * add command to sidebar
-             */
-            if (!sidebars.api[scope]) {
-                sidebars.api[scope] = []
-            }
-            sidebars.api[scope].push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
+            sidebars.api[sidebars.api.length - 1].items
+                .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
         }
     }
 }
