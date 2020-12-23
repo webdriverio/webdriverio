@@ -17,20 +17,20 @@ interface RunnableStats {
     start: Date;
     _duration: number;
 }
-interface Hook extends WDIOReporter.Hook, RunnableStats {
+export interface Hook extends WDIOReporter.Hook, RunnableStats {
     errors?: WDIOReporter.Error[];
     error?: WDIOReporter.Error;
     state?: WDIOReporter.TestState;
 
     argument?: StepArgument;
 }
-interface Test extends WDIOReporter.Test, RunnableStats {
+export interface Test extends WDIOReporter.Test, RunnableStats {
     argument?: StepArgument;
     uid: string;
 }
 
 // TODO: integrate with wdio-cucumber-framework
-interface StepArgument {
+export interface StepArgument {
     rows: Row[];
 }
 
@@ -42,9 +42,9 @@ export interface Suite extends WDIOReporter.Suite {
     suites: Suite[];
 }
 
-interface DesiredCapabilities extends WebDriver.DesiredCapabilities {
+export interface DesiredCapabilities extends WebDriver.DesiredCapabilities {
     sessionId?: string;
-    tunnelIdentifier: string;
+    tunnelIdentifier?: string;
     browser?: string;
     os?: string;
     'os_version'?: string;
@@ -52,7 +52,13 @@ interface DesiredCapabilities extends WebDriver.DesiredCapabilities {
     'sauce:options'?: {[key:string]: any;};
 }
 
-export type AnyCapabilites = DesiredCapabilities | WebDriverIO.MultiRemoteCapabilities
+interface MultiRemoteCapabilities {
+    [instanceName: string]: {
+        capabilities: DesiredCapabilities;
+    };
+}
+
+export type AnyCapabilites = DesiredCapabilities | MultiRemoteCapabilities
 
 export interface Config extends WebDriverIO.Config {
 }

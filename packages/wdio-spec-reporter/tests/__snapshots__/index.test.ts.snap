@@ -89,8 +89,8 @@ Array [
 [MultiremoteBrowser #0-0] 2) Bar test a failed test with no stack
 [MultiremoteBrowser #0-0] red expected foo to equal bar
 [MultiremoteBrowser #0-0]
-[MultiremoteBrowser #0-0] Check out browserA job at https://app.saucelabs.com/tests/foobar
-[MultiremoteBrowser #0-0] Check out browserB job at https://app.saucelabs.com/tests/barfoo
+[MultiremoteBrowser #0-0] Check out browserA job at https://app.saucelabs.com/tests/undefined
+[MultiremoteBrowser #0-0] Check out browserB job at https://app.saucelabs.com/tests/undefined
 ",
   ],
 ]

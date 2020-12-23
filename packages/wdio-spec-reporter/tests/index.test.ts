@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import SpecReporter from '../src'
 import { AnyCapabilites } from '../src'
+import { getFakeHook, getFakeTest, getFakeSuite, getFakeError } from './utils'
 import {
     RUNNER,
     SUITE_UIDS,
@@ -16,11 +17,13 @@ export interface RunnerConfigOptions {
     isMultiremote?: boolean;
     capabilities?: AnyCapabilites;
     hostname?: string;
+    region?: string;
+    headless?: boolean;
 }
 
 const reporter = new SpecReporter({})
 
-const defaultCaps = { browserName: 'loremipsum', version: 50, platform: 'Windows 10', sessionId: 'foobar' }
+const defaultCaps = { browserName: 'loremipsum', version: '50', platform: 'Windows 10', sessionId: 'foobar' }
 const defaultMultiCaps = { 'fake-instance': defaultCaps }
 const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
 const getRunnerConfig = (config: RunnerConfigOptions = {}) => {
@@ -78,30 +81,61 @@ describe('SpecReporter', () => {
     describe('onHookEnd', () => {
         it('should increase stateCount failures if hook failed', () => {
             expect(tmpReporter.stateCounts.failed).toBe(0)
-            tmpReporter.onHookEnd({
+            tmpReporter.onHookEnd(getFakeHook({
                 uid: 'foo1',
                 title: 'foo',
                 state: 'passed',
                 type: 'test',
-            })
+            }))
             expect(tmpReporter.stateCounts.failed).toBe(0)
-            tmpReporter.onHookEnd({ error: new Error('boom!') })
+            tmpReporter.onHookEnd(getFakeHook({ error: getFakeError({ message: 'boom!' }) }))
             expect(tmpReporter.stateCounts.failed).toBe(1)
         })
     })
 
     describe('getEventsToReport', () => {
         it('should return all tests and hook errors to report', () => {
-            expect(tmpReporter.getEventsToReport({
-                tests: [{ type: 'test',  title: '1' }, { type: 'test',  title: '2' }],
-                hooks: [{}],
-                hooksAndTests: [{}, { type: 'test',  title: '11' }, {}, { type: 'test',  title: '22' }, {}]
-            })).toEqual([{ type: 'test',  title: '11' }, { type: 'test',  title: '22' }])
-            expect(tmpReporter.getEventsToReport({
-                tests: [{ type: 'test',  title: '1' }, { type: 'test',  title: '2' }],
-                hooks: [{ error: 1 }, {}, { error: 2 }],
-                hooksAndTests: [{}, { error: 11 }, {}, { type: 'test',  title: '33' }, {}, { error: 22 }, {}]
-            })).toEqual([{ error: 11 }, { type: 'test',  title: '33' }, { error: 22 }])
+            expect(tmpReporter.getEventsToReport(getFakeSuite({
+                tests: [
+                    getFakeTest({ type: 'test',  title: '1' }),
+                    getFakeTest({ type: 'test',  title: '2' }),
+                ],
+                hooks: [getFakeHook()],
+                hooksAndTests: [
+                    getFakeHook(),
+                    getFakeHook({ type: 'test',  title: '11' }),
+                    getFakeHook(),
+                    getFakeHook({ type: 'test',  title: '22' }),
+                    getFakeHook(),
+                ]
+            }))).toEqual([
+                getFakeHook({ type: 'test',  title: '11' }),
+                getFakeHook({ type: 'test',  title: '22' }),
+            ])
+            expect(tmpReporter.getEventsToReport(getFakeSuite({
+                tests: [
+                    getFakeTest({ type: 'test',  title: '1' }),
+                    getFakeTest({ type: 'test',  title: '2' }),
+                ],
+                hooks: [
+                    getFakeHook({ error: getFakeError({ message: '1' }) }),
+                    getFakeHook(),
+                    getFakeHook({ error: getFakeError({ message: '1' }) }),
+                ],
+                hooksAndTests: [
+                    getFakeHook(),
+                    getFakeHook({ error: getFakeError({ message: '11' }) }),
+                    getFakeHook(),
+                    getFakeHook({ type: 'test',  title: '33' }),
+                    getFakeHook(),
+                    getFakeHook({ error: getFakeError({ message: '22' }) }),
+                    getFakeHook(),
+                ]
+            }))).toEqual([
+                getFakeHook({ error: getFakeError({ message: '11' }) }),
+                getFakeHook({ type: 'test',  title: '33' }),
+                getFakeHook({ error: getFakeError({ message: '22' }) }),
+            ])
         })
     })
 
@@ -152,21 +186,24 @@ describe('SpecReporter', () => {
 
     describe('onRunnerEnd', () => {
         it('should call printReport method', () => {
-            reporter.printReport = jest.fn()
+            const printReportMock = jest.fn()
+            reporter.printReport = printReportMock
             reporter.onRunnerEnd(RUNNER)
 
-            expect(reporter.printReport.mock.calls.length).toBe(1)
-            expect(reporter.printReport.mock.calls[0][0]).toEqual(RUNNER)
+            expect(printReportMock.mock.calls.length).toBe(1)
+            expect(printReportMock.mock.calls[0][0]).toEqual(RUNNER)
         })
     })
 
     describe('printReport', () => {
-        let printReporter = null
+        let printReporter: SpecReporter = new SpecReporter({})
+        let printReporterWriteMock = jest.fn()
 
         beforeEach(() => {
             printReporter = new SpecReporter({})
             printReporter.chalk.level = 0
-            printReporter.write = jest.fn()
+            printReporterWriteMock = jest.fn()
+            printReporter.write = printReporterWriteMock
         })
 
         describe('with normal setup', () => {
@@ -183,7 +220,7 @@ describe('SpecReporter', () => {
             it('should print the report to the console', () => {
                 const runner = getRunnerConfig({ hostname: 'localhost' })
                 printReporter.printReport(runner)
-                expect(printReporter.write.mock.calls).toMatchSnapshot()
+                expect(printReporterWriteMock.mock.calls).toMatchSnapshot()
             })
 
             it('should print link to Sauce Labs job details page', () => {
@@ -191,32 +228,32 @@ describe('SpecReporter', () => {
                     hostname: 'ondemand.saucelabs.com'
                 })
                 printReporter.printReport(runner)
-                expect(printReporter.write.mock.calls).toMatchSnapshot()
+                expect(printReporterWriteMock.mock.calls).toMatchSnapshot()
             })
 
             it('should print jobs of all instance when run with multiremote', () => {
                 const runner = getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
                     capabilities: {
-                        browserA: { sessionId: 'foobar' },
-                        browserB: { sessionId: 'barfoo' }
+                        browserA: { capabilities: { sessionId: 'foobar' } },
+                        browserB: { capabilities: { sessionId: 'barfoo' } },
                     },
                     isMultiremote: true
                 })
                 printReporter.printReport(runner)
-                expect(printReporter.write.mock.calls).toMatchSnapshot()
+                expect(printReporterWriteMock.mock.calls).toMatchSnapshot()
             })
 
             it('should print link to Sauce Labs job details page if run with Sauce Connect (w3c)', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
                         ...defaultCaps,
-                        'sauce:options': 'foobar'
+                        'sauce:options': { 'foo': 'bar' }
                     },
                     hostname: 'localhost'
                 })
                 printReporter.printReport(runner)
-                expect(printReporter.write.mock.calls).toMatchSnapshot()
+                expect(printReporterWriteMock.mock.calls).toMatchSnapshot()
             })
 
             it('should print link to Sauce Labs job details page if run with Sauce Connect (jsonwp)', () => {
@@ -228,7 +265,7 @@ describe('SpecReporter', () => {
                     hostname: 'localhost'
                 })
                 printReporter.printReport(runner)
-                expect(printReporter.write.mock.calls).toMatchSnapshot()
+                expect(printReporterWriteMock.mock.calls).toMatchSnapshot()
             })
 
             it('should print link to Sauce Labs EU job details page', () => {
@@ -236,21 +273,21 @@ describe('SpecReporter', () => {
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu'
                 }))
-                expect(printReporter.write.mock.calls).toMatchSnapshot()
+                expect(printReporterWriteMock.mock.calls).toMatchSnapshot()
 
-                printReporter.write.mockClear()
+                printReporterWriteMock.mockClear()
 
                 printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
                     region: 'eu-central-1'
                 }))
-                expect(printReporter.write.mock.calls).toMatchSnapshot()
+                expect(printReporterWriteMock.mock.calls).toMatchSnapshot()
 
                 printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
                     headless: true
                 }))
-                expect(printReporter.write.mock.calls).toMatchSnapshot()
+                expect(printReporterWriteMock.mock.calls).toMatchSnapshot()
             })
         })
 
@@ -264,8 +301,8 @@ describe('SpecReporter', () => {
             })
             printReporter.printReport(runner)
 
-            expect(printReporter.write.mock.calls.length).toBe(1)
-            expect(printReporter.write.mock.calls[0][0]).toContain('a failed hook')
+            expect(printReporterWriteMock.mock.calls.length).toBe(1)
+            expect(printReporterWriteMock.mock.calls[0][0]).toContain('a failed hook')
         })
 
         it('should not print the report because there are no tests', () => {
@@ -274,7 +311,7 @@ describe('SpecReporter', () => {
 
             printReporter.printReport(getRunnerConfig())
 
-            expect(printReporter.write.mock.calls.length).toBe(0)
+            expect(printReporterWriteMock.mock.calls.length).toBe(0)
         })
     })
 
@@ -347,38 +384,38 @@ describe('SpecReporter', () => {
     describe('getCountDisplay', () => {
         it('should return only passing counts', () => {
             tmpReporter.stateCounts.passed = 2
-            const result = tmpReporter.getCountDisplay(5)
+            const result = tmpReporter.getCountDisplay('5s')
 
             expect(result.length).toBe(1)
-            expect(result[0]).toBe('green 2 passing 5')
+            expect(result[0]).toBe('green 2 passing 5s')
         })
 
         it('should return passing and failing counts', () => {
             tmpReporter.stateCounts.passed = 2
             tmpReporter.stateCounts.failed = 1
-            const result = tmpReporter.getCountDisplay(5)
+            const result = tmpReporter.getCountDisplay('5s')
 
             expect(result.length).toBe(2)
-            expect(result[0]).toBe('green 2 passing 5')
+            expect(result[0]).toBe('green 2 passing 5s')
             expect(result[1]).toBe('red 1 failing')
         })
 
         it('should return failing and skipped counts', () => {
             tmpReporter.stateCounts.failed = 1
             tmpReporter.stateCounts.skipped = 2
-            const result = tmpReporter.getCountDisplay(5)
+            const result = tmpReporter.getCountDisplay('5s')
 
             expect(result.length).toBe(2)
-            expect(result[0]).toBe('red 1 failing 5')
+            expect(result[0]).toBe('red 1 failing 5s')
             expect(result[1]).toBe('cyan 2 skipped')
         })
 
         it('should only display skipped with duration', () => {
             tmpReporter.stateCounts.skipped = 2
-            const result = tmpReporter.getCountDisplay(5)
+            const result = tmpReporter.getCountDisplay('5s')
 
             expect(result.length).toBe(1)
-            expect(result[0]).toBe('cyan 2 skipped 5')
+            expect(result[0]).toBe('cyan 2 skipped 5s')
         })
     })
 
@@ -422,29 +459,36 @@ describe('SpecReporter', () => {
 
     describe('getOrderedSuites', () => {
         it('should return the suites in order based on uids', () => {
-            tmpReporter.foo = 'hellooo'
-            tmpReporter.suiteUids = [5, 3, 8]
-            tmpReporter.suites = [{ uid : 3 }, { uid : 5 }]
+            tmpReporter.suiteUids = ['5', '3', '8']
+            const uid3Suite = getFakeSuite({ uid : '3' })
+            const uid5Suite = getFakeSuite({ uid : '5' })
+            tmpReporter.suites = [
+                uid3Suite,
+                uid5Suite,
+            ]
 
             const result = tmpReporter.getOrderedSuites()
 
             expect(result.length).toBe(2)
-            expect(result[0]).toEqual({ uid : 5 })
-            expect(result[1]).toEqual({ uid : 3 })
+            expect(result[0]).toEqual(uid5Suite)
+            expect(result[1]).toEqual(uid3Suite)
 
-            expect(tmpReporter.orderedSuites.length).toBe(2)
-            expect(tmpReporter.orderedSuites[0]).toEqual({ uid : 5 })
-            expect(tmpReporter.orderedSuites[1]).toEqual({ uid : 3 })
+            const orderedSuites = tmpReporter.orderedSuites || []
+
+            expect(orderedSuites.length).toBe(2)
+            expect(orderedSuites[0]).toEqual(uid5Suite)
+            expect(orderedSuites[1]).toEqual(uid3Suite)
         })
 
         it('should return the cached ordered suites', () => {
-            tmpReporter.foo = 'hellooo boo'
-            tmpReporter.orderedSuites = ['foo', 'bar']
+            const fooSuite = getFakeSuite({ uid: 'foo' })
+            const barSuite = getFakeSuite({ uid: 'bar' })
+            tmpReporter.orderedSuites = [fooSuite, barSuite]
             const result = tmpReporter.getOrderedSuites()
 
             expect(result.length).toBe(2)
-            expect(result[0]).toBe('foo')
-            expect(result[1]).toBe('bar')
+            expect(result[0]).toBe(fooSuite)
+            expect(result[1]).toBe(barSuite)
         })
 
         it('should return no suites', () => {
@@ -453,7 +497,7 @@ describe('SpecReporter', () => {
     })
 
     describe('indent', () => {
-        const uid = 123
+        const uid = '123'
 
         it('should not indent', () => {
             tmpReporter.suiteIndents[uid] = 0
@@ -502,8 +546,8 @@ describe('SpecReporter', () => {
             expect(tmpReporter.getSymbol('failed')).toBe(options.symbols.failed)
         })
 
-        it('should get the skipped symbol that is not set', () => {
-            expect(tmpReporter.getSymbol('skipped')).toBe('-')
+        it('should get the skipped symbol', () => {
+            expect(tmpReporter.getSymbol('skipped')).toBe(options.symbols.skipped)
         })
     })
 
@@ -522,7 +566,7 @@ describe('SpecReporter', () => {
         })
 
         it('should get null', () => {
-            expect(tmpReporter.getColor()).toBe(null)
+            expect(tmpReporter.getColor(void 0)).toBe(null)
         })
     })
 
@@ -543,7 +587,7 @@ describe('SpecReporter', () => {
         it('should return verbose desktop combo', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
-                version: 50,
+                version: '50',
                 platform: 'Windows 8.1'
             })).toBe('chrome (v50) on Windows 8.1')
         })
@@ -551,7 +595,7 @@ describe('SpecReporter', () => {
         it('should return preface desktop combo', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
-                version: 50,
+                version: '50',
                 platform: 'Windows 8.1'
             }, false)).toBe('chrome 50 Windows 8.1')
         })
@@ -611,7 +655,7 @@ describe('SpecReporter', () => {
         it('should return verbose desktop combo when using BrowserStack capabilities', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browser: 'Chrome',
-                browser_version: 50,
+                browser_version: '50',
                 os: 'Windows',
                 os_version: '10'
             })).toBe('Chrome (v50) on Windows 10')
@@ -620,7 +664,7 @@ describe('SpecReporter', () => {
         it('should return preface desktop combo when using BrowserStack capabilities', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browser: 'Chrome',
-                browser_version: 50,
+                browser_version: '50',
                 os: 'Windows',
                 os_version: '10'
             }, false)).toBe('Chrome 50 Windows 10')
@@ -629,21 +673,21 @@ describe('SpecReporter', () => {
         it('should return verbose desktop combo when using BrowserStack capabilities without os', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browser: 'Chrome',
-                browser_version: 50,
+                browser_version: '50',
             })).toBe('Chrome (v50) on (unknown)')
         })
 
         it('should return preface desktop combo when using BrowserStack capabilities without os', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browser: 'Chrome',
-                browser_version: 50,
+                browser_version: '50',
             }, false)).toBe('Chrome 50 (unknown)')
         })
 
         it('should return verbose desktop combo when using BrowserStack capabilities without os_version', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browser: 'Chrome',
-                browser_version: 50,
+                browser_version: '50',
                 os: 'Windows',
             })).toBe('Chrome (v50) on Windows')
         })
@@ -651,7 +695,7 @@ describe('SpecReporter', () => {
         it('should return preface desktop combo when using BrowserStack capabilities without os_version', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browser: 'Chrome',
-                browser_version: 50,
+                browser_version: '50',
                 os: 'Windows',
             }, false)).toBe('Chrome 50 Windows')
         })
@@ -659,14 +703,14 @@ describe('SpecReporter', () => {
         it('should return verbose desktop combo without platform', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
-                version: 50,
+                version: '50',
             })).toBe('chrome (v50) on (unknown)')
         })
 
         it('should return preface desktop combo without platform', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
-                version: 50,
+                version: '50',
             }, false)).toBe('chrome 50 (unknown)')
         })
     })
