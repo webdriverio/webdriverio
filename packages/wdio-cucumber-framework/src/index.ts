@@ -1,64 +1,88 @@
-import * as Cucumber from 'cucumber'
+import path from 'path'
+import { EventEmitter } from 'events'
+
+import Cucumber, { parseGherkinMessageStream } from '@cucumber/cucumber'
+import EventDataCollector from '@cucumber/cucumber/lib/formatter/helpers/event_data_collector'
+import { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
+import { GherkinStreams } from '@cucumber/gherkin'
 import mockery from 'mockery'
 import isGlob from 'is-glob'
 import glob from 'glob'
-import path from 'path'
 
 import CucumberReporter from './reporter'
 
-import { EventEmitter } from 'events'
-
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
+import type { ConfigOptions } from '@wdio/config'
 import { DEFAULT_OPTS } from './constants'
+import { CucumberOpts } from './types'
 import { getDataFromResult, setUserHookNames } from './utils'
 
 class CucumberAdapter {
-    constructor(cid, config, specs, capabilities, reporter) {
-        this.cwd = process.cwd()
-        this.cid = cid
-        this.specs = specs
-        this.reporter = reporter
-        this.capabilities = capabilities
-        this.config = config
-        this.cucumberOpts = Object.assign(DEFAULT_OPTS, config.cucumberOpts)
+    private _cwd = process.cwd()
+    private _cucumberOpts: CucumberOpts
+    private _hasTests: boolean
+    private _cucumberFeaturesWithLineNumbers: string[]
+    private _eventBroadcaster: EventEmitter
+    private _cucumberReporter?: CucumberReporter
+    private _eventDataCollector: EventDataCollector
+    private _pickleIds: string[] = []
+
+    getCurrentStep?: Function
+
+    constructor(
+        private _cid: string,
+        private _config: ConfigOptions,
+        private _specs: string[],
+        private _capabilities: WebDriver.Capabilities,
+        private _reporter: EventEmitter
+    ) {
+        this._cucumberOpts = Object.assign(DEFAULT_OPTS, this._config.cucumberOpts)
         this._hasTests = true
-        this.cucumberFeaturesWithLineNumbers = this.config.cucumberFeaturesWithLineNumbers || []
-        this.eventBroadcaster = new EventEmitter()
+        this._cucumberFeaturesWithLineNumbers = this._config.cucumberFeaturesWithLineNumbers || []
+        this._eventBroadcaster = new EventEmitter()
+        this._eventDataCollector = new EventDataCollector(this._eventBroadcaster)
     }
 
     async init() {
         try {
             const reporterOptions = {
-                capabilities: this.capabilities,
-                ignoreUndefinedDefinitions: Boolean(this.cucumberOpts.ignoreUndefinedDefinitions),
-                failAmbiguousDefinitions: Boolean(this.cucumberOpts.failAmbiguousDefinitions),
-                tagsInTitle: Boolean(this.cucumberOpts.tagsInTitle),
-                scenarioLevelReporter: Boolean(this.cucumberOpts.scenarioLevelReporter)
+                capabilities: this._capabilities,
+                ignoreUndefinedDefinitions: Boolean(this._cucumberOpts.ignoreUndefinedDefinitions),
+                failAmbiguousDefinitions: Boolean(this._cucumberOpts.failAmbiguousDefinitions),
+                tagsInTitle: Boolean(this._cucumberOpts.tagsInTitle),
+                scenarioLevelReporter: Boolean(this._cucumberOpts.scenarioLevelReporter)
             }
-            this.cucumberReporter = new CucumberReporter(this.eventBroadcaster, reporterOptions, this.cid, this.specs, this.reporter)
+            this._cucumberReporter = new CucumberReporter(this._eventBroadcaster, reporterOptions, this._cid, this._specs, this._reporter)
 
-            const featurePathsToRun = this.cucumberFeaturesWithLineNumbers.length > 0 ? this.cucumberFeaturesWithLineNumbers : this.specs
+            const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0 ? this._cucumberFeaturesWithLineNumbers : this._specs
             const pickleFilter = new Cucumber.PickleFilter({
+                cwd: this._cwd,
                 featurePaths: featurePathsToRun,
-                names: this.cucumberOpts.name,
-                tagExpression: this.cucumberOpts.tagExpression
+                names: this._cucumberOpts.name,
+                tagExpression: this._cucumberOpts.tagExpression
             })
 
             const eventBroadcasterProxyFilter = new EventEmitter()
-            this.eventBroadcaster.eventNames()
+            this._eventBroadcaster.eventNames()
                 .forEach(n => eventBroadcasterProxyFilter.addListener(n, (...args) =>
-                    (n !== 'pickle-accepted' || this.filter(args[0])) && this.eventBroadcaster.emit(n, ...args)))
+                    (n !== 'pickle-accepted' || this.filter(args[0])) && this._eventBroadcaster.emit(n, ...args)))
 
-            this.testCases = (await Cucumber.getTestCasesFromFilesystem({
-                cwd: this.cwd,
+            const gherkinMessageStream = GherkinStreams.fromPaths(this._specs, {
+                defaultDialect: this._cucumberOpts.featureDefaultLanguage,
+                newId: () => this._cid
+            })
+
+            this._pickleIds = (await parseGherkinMessageStream({
+                cwd: this._cwd,
                 eventBroadcaster: eventBroadcasterProxyFilter,
-                featurePaths: this.specs,
-                order: this.cucumberOpts.order,
+                gherkinMessageStream,
+                eventDataCollector: this._eventDataCollector,
+                order: this._cucumberOpts.order,
                 pickleFilter
             })).filter(testCase => this.filter(testCase))
-            this._hasTests = this.testCases.length > 0
+            this._hasTests = this._pickleIds.length > 0
         } catch (runtimeError) {
-            await executeHooksWithArgs('after', this.config.after, [runtimeError, this.capabilities, this.specs])
+            await executeHooksWithArgs('after', this._config.after, [runtimeError, this._capabilities, this._specs])
             throw runtimeError
         }
 
@@ -68,8 +92,8 @@ class CucumberAdapter {
          */
         const { setOptions } = require('expect-webdriverio')
         setOptions({
-            wait: this.config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this.config.waitforInterval, // interval between attempts
+            wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
+            interval: this._config.waitforInterval, // interval between attempts
         })
 
         return this
@@ -84,21 +108,21 @@ class CucumberAdapter {
         let result
         try {
             this.registerRequiredModules()
-            Cucumber.supportCodeLibraryBuilder.reset(this.cwd)
+            // Cucumber.supportCodeLibraryBuilder.reset(this._cwd)
 
             /**
              * wdio hooks should be added before spec files are loaded
              */
-            this.addWdioHooks(this.config)
+            this.addWdioHooks(this._config)
             this.loadSpecFiles()
-            this.wrapSteps(this.config)
+            this.wrapSteps(this._config)
 
             /**
              * we need to somehow identify is function is step or hook
              * so we wrap every user hook function
              */
-            setUserHookNames(Cucumber.supportCodeLibraryBuilder.options)
-            Cucumber.setDefaultTimeout(this.cucumberOpts.timeout)
+            // setUserHookNames(Cucumber.supportCodeLibraryBuilder..options)
+            Cucumber.setDefaultTimeout(this._cucumberOpts.timeout)
             const supportCodeLibrary = Cucumber.supportCodeLibraryBuilder.finalize()
 
             /**
@@ -107,16 +131,20 @@ class CucumberAdapter {
              *
              * @return  {object|null}
              */
-            this.getCurrentStep = this.cucumberReporter
-                .eventListener
-                .getCurrentStep
-                .bind(this.cucumberReporter.eventListener)
+            if (this._cucumberReporter) {
+                this.getCurrentStep = this._cucumberReporter
+                    .eventListener
+                    .getCurrentStep
+                    .bind(this._cucumberReporter.eventListener)
+            }
 
             const runtime = new Cucumber.Runtime({
-                eventBroadcaster: this.eventBroadcaster,
-                options: this.cucumberOpts,
+                newId: () => this._cid,
+                eventBroadcaster: this._eventBroadcaster,
+                options: this._cucumberOpts as any as IRuntimeOptions,
                 supportCodeLibrary,
-                testCases: this.testCases
+                eventDataCollector: this._eventDataCollector,
+                pickleIds: this._pickleIds
             })
 
             result = await runtime.start() ? 0 : 1
@@ -125,15 +153,15 @@ class CucumberAdapter {
              * if we ignore undefined definitions we trust the reporter
              * with the fail count
              */
-            if (this.cucumberOpts.ignoreUndefinedDefinitions && result) {
-                result = this.cucumberReporter.failedCount
+            if (this._cucumberOpts.ignoreUndefinedDefinitions && result && this._cucumberReporter) {
+                result = this._cucumberReporter.failedCount
             }
         } catch (e) {
             runtimeError = e
             result = 1
         }
 
-        await executeHooksWithArgs('after', this.config.after, [runtimeError || result, this.capabilities, this.specs])
+        await executeHooksWithArgs('after', this._config.after, [runtimeError || result, this._capabilities, this._specs])
 
         /**
          * in case the spec has a runtime error throw after the wdio hook
@@ -151,10 +179,10 @@ class CucumberAdapter {
      * For example "@skip(browserName=firefox)" or "@skip(browserName=chrome,platform=/.+n?x/)"
      * @param {*} testCase
      */
-    filter(testCase) {
+    filter (testCase: string) {
         const skipTag = /^@skip\((.*)\)$/
 
-        const match = (value, expr) => {
+        const match = (value: string, expr: RegExp) => {
             if (Array.isArray(expr)) {
                 return expr.indexOf(value) >= 0
             } else if (expr instanceof RegExp) {
@@ -163,7 +191,7 @@ class CucumberAdapter {
             return (expr && ('' + expr).toLowerCase()) === (value && ('' + value).toLowerCase())
         }
 
-        const parse = (skipExpr) =>
+        const parse = (skipExpr: string) =>
             skipExpr.split(';').reduce((acc, splitItem) => {
                 const pos = splitItem.indexOf('=')
                 if (pos > 0) {
@@ -176,7 +204,7 @@ class CucumberAdapter {
             .map(p => p.name.match(skipTag))
             .filter(m => m).map(m => parse(m[1]))
             .find(filter => Object.keys(filter)
-                .every(key => match(this.capabilities[key], filter[key]))))
+                .every(key => match(this._capabilities[key], filter[key]))))
     }
 
     /**
@@ -189,11 +217,11 @@ class CucumberAdapter {
      * Usage: `[() => { require('@babel/register')({ ignore: [] }) }]`
      */
     registerRequiredModules() {
-        this.cucumberOpts.requireModule.map(requiredModule => {
+        this._cucumberOpts.requireModule.map(requiredModule => {
             if (Array.isArray(requiredModule)) {
                 require(requiredModule[0])(requiredModule[1])
             } else if (typeof requiredModule === 'function') {
-                requiredModule()
+                (requiredModule as Function)()
             } else {
                 require(requiredModule)
             }
@@ -201,8 +229,8 @@ class CucumberAdapter {
     }
 
     requiredFiles() {
-        return this.cucumberOpts.require.reduce(
-            (files, requiredFile) => files.concat(isGlob(requiredFile)
+        return this._cucumberOpts.require.reduce(
+            (files: string[], requiredFile: string) => files.concat(isGlob(requiredFile)
                 ? glob.sync(requiredFile)
                 : [requiredFile]
             ),
@@ -236,7 +264,7 @@ class CucumberAdapter {
      * set `beforeScenario`, `afterScenario`, `beforeFeature`, `afterFeature`
      * @param {object} config config
      */
-    addWdioHooks (config) {
+    addWdioHooks (config: ConfigOptions) {
         Cucumber.Before(function wdioHookBeforeScenario (world) {
             const { uri, feature } = getDataFromResult(global.result)
             return executeHooksWithArgs('beforeScenario', config.beforeScenario, [uri, feature, world.pickle, world.sourceLocation, world])
@@ -259,12 +287,12 @@ class CucumberAdapter {
      * wraps step definition code with sync/async runner with a retry option
      * @param {object} config
      */
-    wrapSteps(config) {
+    wrapSteps (config: ConfigOptions) {
         const wrapStep = this.wrapStep
-        const cid = this.cid
+        const cid = this._cid
         const getCurrentStep = () => this.getCurrentStep()
 
-        Cucumber.setDefinitionFunctionWrapper((fn, options = {}) => {
+        Cucumber.setDefinitionFunctionWrapper((fn: Function, options: Partial<CucumberOpts> = {}) => {
             /**
              * hooks defined in wdio.conf are already wrapped
              */
@@ -294,8 +322,15 @@ class CucumberAdapter {
      * @param   {Function}  getCurrentStep  step definition
      * @return  {Function}                  wrapped step definition for sync WebdriverIO code
      */
-    wrapStep(code, retryTest = 0, isStep, config, cid, getCurrentStep) {
-        return function (...args) {
+    wrapStep(
+        code: Function,
+        retryTest = 0,
+        isStep: boolean,
+        config: ConfigOptions,
+        cid: string,
+        getCurrentStep: Function
+    ) {
+        return function (...args: any[]) {
             /**
              * wrap user step/hook with wdio before/after hooks
              */
@@ -315,14 +350,15 @@ class CucumberAdapter {
 }
 
 const _CucumberAdapter = CucumberAdapter
-const adapterFactory = {}
+const adapterFactory: { init?: Function } = {}
 
 /**
  * tested by smoke tests
  */
 /* istanbul ignore next */
-adapterFactory.init = async function (...args) {
-    const adapter = new _CucumberAdapter(...args)
+adapterFactory.init = async function (...args: any[]) {
+    // @ts-ignore just passing through args
+    const adapter = new _CucumberAdapter(...args as any)
     const instance = await adapter.init()
     return instance
 }

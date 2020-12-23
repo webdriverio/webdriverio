@@ -22,6 +22,10 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@cucumber/cucumber": "^7.0.0",
+    "@cucumber/gherkin": "^16.0.0",
+    "@types/is-glob": "^4.0.1",
+    "@types/mockery": "^1.4.29",
     "@wdio/logger": "6.10.10",
     "@wdio/utils": "6.11.0",
     "cucumber": "^6.0.5",
