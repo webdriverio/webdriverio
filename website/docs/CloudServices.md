@@ -20,7 +20,7 @@ exports.config = config
 
 ## Sauce Labs
 
-It is easy to set up your tests to run remotely in [Sauce Labs]((https://saucelabs.com)).
+It is easy to set up your tests to run remotely in [Sauce Labs](https://saucelabs.com).
 
 The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
 

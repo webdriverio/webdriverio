@@ -41,7 +41,7 @@ export default async function getCookies(
     const namesList = Array.isArray(names) ? names : [names]
 
     if (namesList.every(obj => typeof obj !== 'string')) {
-        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/getCookies.html for documentation.')
+        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/getCookies for documentation)')
     }
 
     const allCookies = await this.getAllCookies()

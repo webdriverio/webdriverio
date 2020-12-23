@@ -35,7 +35,7 @@ browser.setTimeout({ 'pageLoad': 10000 })
 
 ### Session Implicit Wait Timeout
 
-A session has an associated session implicit wait timeout. This specifies the time to wait for the implicit element location strategy when locating elements using the [`findElement`](/docs/api/webdriver.html#findelement) or [`findElements`](/docs/api/webdriver.html#findelements) commands ([`$`](/docs/api/browser/$.html) or [`$$`](/docs/api/browser/$$.html), respectively, when running WebdriverIO with or without the WDIO testrunner). Unless stated otherwise, it is 0 milliseconds.
+A session has an associated session implicit wait timeout. This specifies the time to wait for the implicit element location strategy when locating elements using the [`findElement`](/docs/api/webdriver#findelement) or [`findElements`](/docs/api/webdriver#findelements) commands ([`$`](/docs/api/browser/$) or [`$$`](/docs/api/browser/$$), respectively, when running WebdriverIO with or without the WDIO testrunner). Unless stated otherwise, it is 0 milliseconds.
 
 You can set this timeout via:
 

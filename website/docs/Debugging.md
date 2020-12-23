@@ -26,7 +26,7 @@ exports.config = {
 
 ## The Debug Command
 
-In many cases, you can use [`browser.debug()`](/docs/api/browser/debug.html) to pause your test and inspect the browser.
+In many cases, you can use [`browser.debug()`](/docs/api/browser/debug) to pause your test and inspect the browser.
 
 Your command line interface will also switch into REPL mode. This mode allows you to fiddle around with commands and elements on the page. In REPL mode, you can access the `browser` object&mdash;or `$` and `$$` functions&mdash;just like you can in your tests.
 
@@ -77,9 +77,9 @@ $ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 
 ## Debugging with Visual Studio Code (VSCode)
 
-If you want to debug your tests with breakpoints in latest VSCode, you have to install and enable the [nightly version of the JavaScript Debugger](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly).  
+If you want to debug your tests with breakpoints in latest VSCode, you have to install and enable the [nightly version of the JavaScript Debugger](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly).
 
-> according to https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 this is only needed for windows and linux. mac os x is working without the nightly version.  
+> according to https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 this is only needed for windows and linux. mac os x is working without the nightly version.
 
 Additional info: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
 

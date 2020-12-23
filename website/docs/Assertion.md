@@ -3,7 +3,7 @@ id: assertion
 title: Assertion
 ---
 
-The [WDIO testrunner](https://webdriver.io/docs/clioptions.html) comes with a built in assertion library that allows you to make powerful assertions on various aspects of the browser or elements within your (web) application. It extends [Jests Matchers](https://jestjs.io/docs/en/using-matchers) functionality with additional, for e2e testing optimized, matchers, e.g.:
+The [WDIO testrunner](https://webdriver.io/docs/clioptions) comes with a built in assertion library that allows you to make powerful assertions on various aspects of the browser or elements within your (web) application. It extends [Jests Matchers](https://jestjs.io/docs/en/using-matchers) functionality with additional, for e2e testing optimized, matchers, e.g.:
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync Mode-->
@@ -37,7 +37,7 @@ await expect(selectOptions).toHaveChildren({ gte: 1 })
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-For the full list, see the [expect API doc](/docs/api/expect-webdriverio.html).
+For the full list, see the [expect API doc](/docs/api/expect-webdriverio).
 
 ## Migrating from Chai
 

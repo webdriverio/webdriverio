@@ -6,7 +6,7 @@ title: Getting Started
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
 :::info
-These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](versions.html)!
+These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
 :::
 
 ## Installation
@@ -84,4 +84,4 @@ You’ll need [Node.js](http://nodejs.org) installed.
 - Install at least v12.16.1 or higher as this is the oldest active LTS version
 - Only releases that are or will become an LTS release are officially supported
 
-If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions. If you are using the [WDIO Testrunner](/docs/setuptypes.html#the-wdio-testrunner) in [sync mode](https://webdriver.io/docs/sync-vs-async.html#sync-mode) you also need Python v3 or higher installed.
+If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions. If you are using the [WDIO Testrunner](/docs/setuptypes#the-wdio-testrunner) in [sync mode](/docs/sync-vs-async#sync-mode) you also need Python v3 or higher installed.

@@ -51,7 +51,7 @@ it('should test something', () => {
 })
 ```
 
-If you want to run something asynchronously, you can either use the [`browser.call`](api/browser/call.html) command or [custom commands](CustomCommands.md).
+If you want to run something asynchronously, you can either use the [`browser.call`](/docs/api/browser/call) command or [custom commands](CustomCommands.md).
 
 ### Mocha Options
 

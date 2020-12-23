@@ -17,7 +17,7 @@ The package will be automatically detected by the framework and the environment 
 
 ## Sync mode
 
-If you're using [`@wdio/sync`](https://www.npmjs.com/package/@wdio/sync) then you can avoid awaiting for command calls. It is still required to deal with Promises from 3rd-party libraries, you should use [browser.call](api/browser/call.html) for this to wrap them and make them synchronous too.
+If you're using [`@wdio/sync`](https://www.npmjs.com/package/@wdio/sync) then you can avoid awaiting for command calls. It is still required to deal with Promises from 3rd-party libraries, you should use [browser.call](api/browser/call) for this to wrap them and make them synchronous too.
 
 ```js
 // 3rd-party library example

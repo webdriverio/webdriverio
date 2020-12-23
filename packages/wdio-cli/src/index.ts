@@ -18,7 +18,7 @@ const DESCRIPTION = [
     'is the same as:',
     '$ wdio run wdio.conf.js',
     '',
-    'For more information, visit: https://webdriver.io/docs/clioptions.html'
+    'For more information, visit: https://webdriver.io/docs/clioptions'
 ]
 
 export const run = async () => {

@@ -21,7 +21,7 @@ You can simple do it by:
 npm install @wdio/cucumber-framework --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/guide/getstarted/install.html)
+Instructions on how to install `WebdriverIO` can be found [here.](http://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 

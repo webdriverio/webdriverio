@@ -3,7 +3,7 @@
  * Get the text content from a DOM-element. Make sure the element
  * you want to request the text from [is interactable](http://www.w3.org/TR/webdriver/#interactable)
  * otherwise you will get an empty string as return value. If the element is disabled or not
- * visible and you still want to receive the text content use [getHTML](https://webdriver.io/docs/api/element/getHTML.html)
+ * visible and you still want to receive the text content use [getHTML](https://webdriver.io/docs/api/element/getHTML)
  * as a workaround.
  *
  * <example>

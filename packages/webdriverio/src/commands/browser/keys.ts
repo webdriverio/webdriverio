@@ -9,7 +9,7 @@ import { UNICODE_CHARACTERS } from '../../constants'
  * To do that, the value has to correspond to a key from the table.
  *
  * Modifier like Ctrl, Shift, Alt and Meta will stay pressed so you need to trigger them again to release them.
- * Modifiying a click however requires you to use the WebDriver Actions API through the [performActions](https://webdriver.io/docs/api/webdriver.html#performactions) method.
+ * Modifiying a click however requires you to use the WebDriver Actions API through the [performActions](https://webdriver.io/docs/api/webdriver#performactions) method.
  *
  * <example>
     :keys.js

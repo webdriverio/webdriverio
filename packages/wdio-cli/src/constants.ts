@@ -54,7 +54,7 @@ export const TS_COMPILER_INSTRUCTIONS = `To have TypeScript support please add t
   }
 }
 
-For for information on TypeScript integration check out: https://webdriver.io/docs/typescript.html
+For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
 `
 
 /**

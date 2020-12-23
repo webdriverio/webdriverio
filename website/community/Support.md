@@ -5,7 +5,7 @@ title: Need Help?
 
 This project is maintained by a dedicated group of people.
 
-If you're interested in making a contribution to the WebdriverIO project, check out [the free "Office Hours" program](/blog/2020/07/01/office-hours.html) to help you with your efforts.
+If you're interested in making a contribution to the WebdriverIO project, check out [the free "Office Hours" program](/blog/2020/07/01/office-hours) to help you with your efforts.
 
 If you're seeking immediate help with your own project, reach out to a trusted WebdriverIO expert:
 

@@ -23,7 +23,7 @@ You can simple do it by:
 $ npm install @wdio/sumologic-reporter --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted.html).
+Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted).
 
 ## Configuration
 

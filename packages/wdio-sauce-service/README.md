@@ -27,7 +27,7 @@ You can simply do it by:
 npm install @wdio/sauce-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 
@@ -128,7 +128,7 @@ capabilities = [
 
 ## Sauce Service Options
 
-In order to authorize to the Sauce Labs service your config needs to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
+In order to authorize to the Sauce Labs service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
 ### maxErrorStackLength
 This service will automatically push the error stack to Sauce Labs when a test fails. By default it will only push the first 5

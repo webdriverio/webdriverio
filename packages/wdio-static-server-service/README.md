@@ -21,7 +21,7 @@ After that, your `package.json` should include the following:
 }
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted.html).
+Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted).
 
 ## Configuration
 

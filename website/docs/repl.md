@@ -60,4 +60,4 @@ You can apply any options (see `wdio repl --help`) available for your REPL sessi
 
 ![WebdriverIO REPL](https://webdriver.io/img/repl.gif)
 
-Another way to use the REPL is in inside your tests via the [`debug`](/docs/api/browser/debug.html) command. This will stop the browser when called, and enables you to jump into the application (e.g. to the dev tools) or control the browser from the command line. This is helpful when some commands don't trigger a certain action as expected. With the REPL, you can then try out the commands to see which are working most reliably.
+Another way to use the REPL is in inside your tests via the [`debug`](/docs/api/browser/debug) command. This will stop the browser when called, and enables you to jump into the application (e.g. to the dev tools) or control the browser from the command line. This is helpful when some commands don't trigger a certain action as expected. With the REPL, you can then try out the commands to see which are working most reliably.
