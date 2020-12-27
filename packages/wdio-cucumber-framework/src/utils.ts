@@ -106,7 +106,7 @@ export function buildStepPayload(
     params: {
         type: string
         state?: messages.TestStepFinished.TestStepResult.Status | string | null
-        error?: string | null
+        error?: Error
         duration?: number
         title?: string | null
         passed?: boolean
