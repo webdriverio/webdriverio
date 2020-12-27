@@ -17,10 +17,9 @@ import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import type { ConfigOptions } from '@wdio/config'
 
 import CucumberReporter from './reporter'
-
 import { DEFAULT_OPTS } from './constants'
 import { CucumberOpts, StepDefinitionOptions } from './types'
-import { /* getDataFromResult, */ setUserHookNames } from './utils'
+import { setUserHookNames } from './utils'
 
 const { incrementing } = IdGenerator
 
@@ -33,7 +32,6 @@ class CucumberAdapter {
     private _eventBroadcaster: EventEmitter
     private _cucumberReporter?: CucumberReporter
     private _eventDataCollector: EventDataCollector
-    private _pickleIds: string[] = []
 
     getHookParams?: Function
 
@@ -76,16 +74,16 @@ class CucumberAdapter {
                 createReadStream: (path) => fs.createReadStream(path, { encoding: 'utf-8' })
             })
 
-            this._pickleIds = (await Cucumber.parseGherkinMessageStream({
+            await Cucumber.parseGherkinMessageStream({
                 cwd: this._cwd,
                 eventBroadcaster: this._eventBroadcaster,
                 gherkinMessageStream,
                 eventDataCollector: this._eventDataCollector,
                 order: this._cucumberOpts.order,
                 pickleFilter
-            })) //.filter(this.filter.bind(this))
+            })
 
-            this._hasTests = this._pickleIds.length > 0
+            this._hasTests = this._cucumberReporter.eventListener.getPickleIds(this._capabilities).length > 0
         } catch (runtimeError) {
             await executeHooksWithArgs('after', this._config.after, [runtimeError, this._capabilities, this._specs])
             throw runtimeError
@@ -147,7 +145,7 @@ class CucumberAdapter {
                 options: this._cucumberOpts as any as IRuntimeOptions,
                 supportCodeLibrary,
                 eventDataCollector: this._eventDataCollector,
-                pickleIds: this._pickleIds
+                pickleIds: this._cucumberReporter!.eventListener.getPickleIds(this._capabilities)
             })
 
             result = await runtime.start() ? 0 : 1
@@ -175,41 +173,6 @@ class CucumberAdapter {
 
         return result
     }
-
-    /**
-     * Returns true/false if testCase should be kept for current capabilities
-     * according to tag in the syntax  @skip([conditions])
-     * For example "@skip(browserName=firefox)" or "@skip(browserName=chrome,platform=/.+n?x/)"
-     * @param {*} testCase
-     */
-    // filter (testCase: string) {
-    //     const skipTag = /^@skip\((.*)\)$/
-
-    //     const match = (value: string, expr: RegExp) => {
-    //         if (Array.isArray(expr)) {
-    //             return expr.indexOf(value) >= 0
-    //         } else if (expr instanceof RegExp) {
-    //             return expr.test(value)
-    //         }
-    //         return (expr && ('' + expr).toLowerCase()) === (value && ('' + value).toLowerCase())
-    //     }
-
-    //     const parse = (skipExpr: string) =>
-    //         skipExpr.split(';').reduce((acc, splitItem) => {
-    //             const pos = splitItem.indexOf('=')
-    //             if (pos > 0) {
-    //                 acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
-    //             }
-    //             return acc
-    //         }, {})
-
-    //     return !(testCase.pickle && testCase.pickle.tags && testCase.pickle.tags
-    //         .map(p => p.name.match(skipTag))
-    //         .filter(Boolean)
-    //         .map(m => parse(m[1]))
-    //         .find(filter => Object.keys(filter)
-    //             .every(key => match(this._capabilities[key], filter[key]))))
-    // }
 
     /**
      * Transpilation https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#transpilation

@@ -1,5 +1,7 @@
-import * as path from 'path'
+import path from 'path'
+
 import { isFunctionAsync } from '@wdio/utils'
+
 import * as Cucumber from '@cucumber/cucumber'
 import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import { messages } from '@cucumber/messages'
@@ -110,11 +112,6 @@ export function buildStepPayload(
 }
 
 /**
- * @param {object[]} result cucumber global result object
- */
-export const getDataFromResult = ([{ uri }, feature, ...scenarios]: any) => ({ uri, feature, scenarios })
-
-/**
  * wrap every user defined hook with function named `userHookFn`
  * to identify later on is function a step, user hook or wdio hook.
  * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
@@ -134,4 +131,39 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
             }
         })
     })
+}
+
+/**
+ * Returns true/false if testCase should be kept for current capabilities
+ * according to tag in the syntax  @skip([conditions])
+ * For example "@skip(browserName=firefox)" or "@skip(browserName=chrome,platform=/.+n?x/)"
+ * @param {*} testCase
+ */
+export function filterPickles (capabilities: WebDriver.Capabilities, pickle?: messages.IPickle) {
+    const skipTag = /^@skip\((.*)\)$/
+
+    const match = (value: string, expr: RegExp) => {
+        if (Array.isArray(expr)) {
+            return expr.indexOf(value) >= 0
+        } else if (expr instanceof RegExp) {
+            return expr.test(value)
+        }
+        return (expr && ('' + expr).toLowerCase()) === (value && ('' + value).toLowerCase())
+    }
+
+    const parse = (skipExpr: string) =>
+        skipExpr.split(';').reduce((acc: Record<string, string>, splitItem) => {
+            const pos = splitItem.indexOf('=')
+            if (pos > 0) {
+                acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
+            }
+            return acc
+        }, {})
+
+    return !(pickle && pickle.tags && pickle.tags
+        .map(p => p.name?.match(skipTag))
+        .filter(Boolean)
+        .map(m => parse(m![1]))
+        .find((filter: WebDriver.Capabilities) => Object.keys(filter)
+            .every((key: keyof WebDriver.Capabilities) => match(capabilities[key] as string, filter[key] as RegExp))))
 }

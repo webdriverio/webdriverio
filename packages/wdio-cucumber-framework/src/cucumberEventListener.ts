@@ -4,6 +4,7 @@ import { messages } from '@cucumber/messages'
 import logger from '@wdio/logger'
 
 import { HookParams } from './types'
+import { filterPickles } from './utils'
 
 const log = logger('CucumberEventListener')
 
@@ -351,5 +352,15 @@ export default class CucumberEventListener extends EventEmitter {
 
     getHookParams () {
         return this._currentPickle
+    }
+
+    /**
+     * returns a list of pickles to run based on capability tags
+     * @param caps session capabilities
+     */
+    getPickleIds (caps: WebDriver.Capabilities) {
+        return [...this._suiteMap.entries()]
+            .filter(([, fakeId]) => filterPickles(caps, this._scenarios.find(s => s.id === fakeId)))
+            .map(([id]) => id)
     }
 }
