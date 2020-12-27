@@ -218,11 +218,12 @@ class CucumberReporter {
     handleAfterScenario (
         uri: string,
         feature: messages.GherkinDocument.IFeature,
-        scenario: messages.IPickle
+        scenario: messages.IPickle,
+        result: messages.TestStepFinished.ITestStepResult
     ) {
-        // if (this._scenarioLevelReport) {
-        //     return this.afterTest(uri, feature, scenario, undefined, undefined, undefined)
-        // }
+        if (this._scenarioLevelReport) {
+            return this.afterTest(uri, feature, scenario, { id: scenario.id }, result)
+        }
 
         this.emit('suite:end', {
             uid: scenario.id,
