@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { EventEmitter } from 'events'
 
+import * as Cucumber from '@cucumber/cucumber'
 import EventDataCollector from '@cucumber/cucumber/lib/formatter/helpers/event_data_collector'
 import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
@@ -10,7 +11,6 @@ import { IdGenerator } from '@cucumber/messages'
 import mockery from 'mockery'
 import isGlob from 'is-glob'
 import glob from 'glob'
-import * as Cucumber from '@cucumber/cucumber'
 
 import CucumberReporter from './reporter'
 

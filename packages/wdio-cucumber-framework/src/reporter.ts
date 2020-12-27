@@ -75,7 +75,7 @@ class CucumberReporter {
         uri: string,
         feature: messages.GherkinDocument.IFeature,
         scenario: messages.IPickle,
-        step: messages.Pickle.IPickleStep
+        step: messages.Pickle.IPickleStep | messages.TestCase.ITestStep
     ) {
         this._testStart = new Date()
         const type = getStepType(step)
@@ -88,7 +88,7 @@ class CucumberReporter {
         uri: string,
         feature: messages.GherkinDocument.IFeature,
         scenario: messages.IPickle,
-        step: messages.Pickle.IPickleStep,
+        step: messages.Pickle.IPickleStep | messages.TestCase.ITestStep,
         result: messages.TestStepFinished.ITestStepResult
     ) {
         const type = getStepType(step)
@@ -102,7 +102,7 @@ class CucumberReporter {
         uri: string,
         feature: messages.GherkinDocument.IFeature,
         scenario: messages.IPickle,
-        step: messages.Pickle.IPickleStep,
+        step: messages.TestCase.ITestStep,
         result: messages.TestStepFinished.ITestStepResult,
     ) {
         let error
