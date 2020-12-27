@@ -105,10 +105,16 @@ class CucumberReporter {
         step: messages.Pickle.IPickleStep,
         result: messages.TestStepFinished.ITestStepResult,
     ) {
+        let error
+        if (result.message) {
+            error = new Error(result.message.split('\n')[0])
+            error.stack = result.message
+        }
+
         const payload = buildStepPayload(uri, feature, scenario, step, {
             type: 'hook',
             state: result.status,
-            error: result.message as string,
+            error,
             duration: Date.now() - this._testStart!?.getTime()
         })
 
@@ -136,7 +142,7 @@ class CucumberReporter {
         case Status.AMBIGUOUS:
             state = 'pending'
         }
-        let error = result.message
+        let error = result.message ? new Error(result.message) : undefined
         let title = step
             ? step?.text
             : this.getTitle(scenario)
@@ -154,27 +160,35 @@ class CucumberReporter {
                  */
                 this.failedCount++
 
-                error = (step ? `Step "${title}" is not defined` : `Scenario ${title} has undefined steps`) +
+                const err = new Error(
+                    (step ? `Step "${title}" is not defined. ` : `Scenario ${title} has undefined steps. `) +
                     'You can ignore this error by setting cucumberOpts.ignoreUndefinedDefinitions as true.'
-                // error.stack = step ? `${step.uri}:${step.line}` : `${scenario.uri}:${scenario.line}`
+                )
+
+                err.stack = `${err.message}\n\tat Feature(${uri}):1:1\n`
+                const featChildren = feature.children?.find(c => scenario.astNodeIds && c.scenario?.id === scenario.astNodeIds[0])
+                if (featChildren) {
+                    err.stack += `\tat Scenario(${featChildren.scenario?.name}):${featChildren.scenario?.location?.line}:${featChildren.scenario?.location?.column}\n`
+
+                    const featStep = featChildren.scenario?.steps?.find(s => step.astNodeIds && s.id === step.astNodeIds[0])
+                    if (featStep) {
+                        err.stack += `\tat Step(${featStep.text}):${featStep.location?.line}:${featStep.location?.column}\n`
+                    }
+                }
+
+                error = err
             }
         } else if (result.status === Status.FAILED) {
             if (!result.willBeRetried) {
                 this.failedCount++
             }
-            // if (false === result.exception instanceof Error) {
-            //     error = {
-            //         message: result.exception,
-            //         stack: ''
-            //     }
-            // }
+            error = new Error(result.message?.split('\n')[0])
+            error.stack = result.message as string
         } else if (result.status === Status.AMBIGUOUS && this._options.failAmbiguousDefinitions) {
             state = 'fail'
             this.failedCount++
-            // error = {
-            //     message: result.exception,
-            //     stack: ''
-            // }
+            error = new Error(result.message?.split('\n')[0])
+            error.stack = result.message as string
         }
 
         const common = {
