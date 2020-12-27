@@ -1,4 +1,4 @@
-import { messages } from '@cucumber/messages'
+import type { messages } from '@cucumber/messages'
 
 export interface CucumberOpts {
     /**
