@@ -2,22 +2,24 @@ import fs from 'fs'
 import path from 'path'
 import { EventEmitter } from 'events'
 
+import mockery from 'mockery'
+import isGlob from 'is-glob'
+import glob from 'glob'
+
 import * as Cucumber from '@cucumber/cucumber'
 import EventDataCollector from '@cucumber/cucumber/lib/formatter/helpers/event_data_collector'
 import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
 import { GherkinStreams } from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
-import mockery from 'mockery'
-import isGlob from 'is-glob'
-import glob from 'glob'
-
-import CucumberReporter from './reporter'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import type { ConfigOptions } from '@wdio/config'
+
+import CucumberReporter from './reporter'
+
 import { DEFAULT_OPTS } from './constants'
-import { CucumberOpts } from './types'
+import { CucumberOpts, StepDefinitionOptions } from './types'
 import { /* getDataFromResult, */ setUserHookNames } from './utils'
 
 const { incrementing } = IdGenerator
@@ -67,11 +69,6 @@ class CucumberAdapter {
                 names: this._cucumberOpts.name,
                 tagExpression: this._cucumberOpts.tagExpression
             })
-
-            // const eventBroadcasterProxyFilter = new EventEmitter()
-            // this._eventBroadcaster.eventNames()
-            //     .forEach(n => eventBroadcasterProxyFilter.addListener(n, (...args) =>
-            //         (n !== 'pickle-accepted' || this.filter(args[0])) && this._eventBroadcaster.emit(n, ...args)))
 
             const gherkinMessageStream = GherkinStreams.fromPaths(this._specs, {
                 defaultDialect: this._cucumberOpts.featureDefaultLanguage,
@@ -314,7 +311,7 @@ class CucumberAdapter {
         const cid = this._cid
         const getHookParams = () => this.getHookParams && this.getHookParams()
 
-        Cucumber.setDefinitionFunctionWrapper((fn: Function) => {
+        Cucumber.setDefinitionFunctionWrapper((fn: Function, options: StepDefinitionOptions = { retry: 0 }) => {
             /**
              * hooks defined in wdio.conf are already wrapped
              */
@@ -329,8 +326,7 @@ class CucumberAdapter {
              */
             const isStep = !fn.name.startsWith('userHook')
 
-            const retryTest = 0 // isStep && isFinite(options.retry) ? parseInt(options.retry, 10) : 0
-            return wrapStep(fn, retryTest, isStep, config, cid, getHookParams)
+            return wrapStep(fn, isStep, config, cid, options, getHookParams)
         })
     }
 
@@ -346,19 +342,21 @@ class CucumberAdapter {
      */
     wrapStep(
         code: Function,
-        retryTest = 0,
         isStep: boolean,
         config: ConfigOptions,
         cid: string,
+        options: StepDefinitionOptions,
         getHookParams: Function
     ) {
         return function (this: Cucumber.World, ...args: any[]) {
+            const hookParams = getHookParams()
+            const retryTest = isStep && isFinite(options.retry) ? options.retry : 0
+
             /**
              * wrap user step/hook with wdio before/after hooks
              */
             const beforeFn = isStep ? config.beforeStep : config.beforeHook
             const afterFn = isStep ? config.afterStep : config.afterHook
-            const hookParams = getHookParams()
             return testFnWrapper.call(this,
                 isStep ? 'Step' : 'Hook',
                 { specFn: code, specFnArgs: args },

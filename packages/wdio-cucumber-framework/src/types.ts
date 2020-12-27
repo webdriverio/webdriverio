@@ -119,3 +119,7 @@ export interface HookParams {
     scenario?: messages.IPickle,
     step?: messages.Pickle.IPickleStep
 }
+
+export interface StepDefinitionOptions {
+    retry: number
+}
