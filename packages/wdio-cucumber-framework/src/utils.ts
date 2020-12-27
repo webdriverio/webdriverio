@@ -1,5 +1,6 @@
 import * as path from 'path'
 import { isFunctionAsync } from '@wdio/utils'
+import * as Cucumber from '@cucumber/cucumber'
 import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import { messages } from '@cucumber/messages'
 
@@ -123,10 +124,10 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
         options[hookName].forEach((testRunHookDefinition: TestHookDefinitionConfig) => {
             const hookFn = testRunHookDefinition.code
             if (!hookFn.name.startsWith('wdioHook')) {
-                const userHookAsyncFn = async function (this: any, ...args: any) {
+                const userHookAsyncFn = async function (this: Cucumber.World, ...args: any) {
                     return hookFn.apply(this, args)
                 }
-                const userHookFn = function (this: any, ...args: any) {
+                const userHookFn = function (this: Cucumber.World, ...args: any) {
                     return hookFn.apply(this, args)
                 }
                 testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn

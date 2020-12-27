@@ -255,7 +255,7 @@ export default class CucumberEventListener extends EventEmitter {
         const testcase = this._testCases.find((testcase) => this._currentTestCase && testcase.id === this._currentTestCase.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(testcase?.pickleId as string))
         const teststep = testcase?.testSteps?.find((step) => step.id === testStepStartedEvent.testStepId)
-        const step = scenario?.steps?.find((s) => s.id === teststep?.pickleStepId)
+        const step = scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) || teststep
 
         if (!step) {
             return
@@ -287,7 +287,7 @@ export default class CucumberEventListener extends EventEmitter {
         const testcase = this._testCases.find((testcase) => testcase.id === this._currentTestCase?.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(testcase?.pickleId as string))
         const teststep = testcase?.testSteps?.find((step) => step.id === testStepFinishedEvent.testStepId)
-        const step = scenario?.steps?.find((s) => s.id === teststep?.pickleStepId)
+        const step = scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) || teststep
         const result = testStepFinishedEvent.testStepResult
 
         if (!step) {
