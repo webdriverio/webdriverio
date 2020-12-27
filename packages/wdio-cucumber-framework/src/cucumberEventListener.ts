@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import { Status } from '@cucumber/cucumber'
 import { messages } from '@cucumber/messages'
 import logger from '@wdio/logger'
 
@@ -16,6 +17,7 @@ export default class CucumberEventListener extends EventEmitter {
 
     constructor (eventBroadcaster: EventEmitter) {
         super()
+        let results: messages.TestStepFinished.ITestStepResult[] = []
         eventBroadcaster.on('envelope', (envelope: messages.Envelope) => {
             if (envelope.gherkinDocument) {
                 this.onGherkinDocument(envelope.gherkinDocument)
@@ -26,13 +28,15 @@ export default class CucumberEventListener extends EventEmitter {
             } else if (envelope.testCase) {
                 this.onTestCasePrepared(envelope.testCase)
             } else if (envelope.testCaseStarted) {
+                results = []
                 this.onTestCaseStarted(envelope.testCaseStarted)
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
             } else if (envelope.testStepFinished) {
+                results.push(envelope.testStepFinished.testStepResult!)
                 this.onTestStepFinished(envelope.testStepFinished)
             } else if (envelope.testCaseFinished) {
-                this.onTestCaseFinished()
+                this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
                 this.onTestRunFinished()
             } else {
@@ -307,7 +311,9 @@ export default class CucumberEventListener extends EventEmitter {
     //         "testCaseStartedId": "20"
     //     }
     // }
-    onTestCaseFinished () {
+    onTestCaseFinished (
+        results: messages.TestStepFinished.ITestStepResult[]
+    ) {
         const { uri, feature } = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
         const tc = this._testCases.find(tc => tc.id === this._currentTestCase?.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(tc?.pickleId as string))
@@ -316,9 +322,14 @@ export default class CucumberEventListener extends EventEmitter {
             return
         }
 
+        /**
+         * propagate the first non passing result or the last one
+         */
+        const finalResult = results.find((r) => r.status !== Status.PASSED) || results.pop()
+
         const doc = this._gherkinDocEvents.find(gde => gde.uri === scenario?.uri)
         this._currentPickle = { uri, feature, scenario }
-        this.emit('after-scenario', doc?.uri, doc?.feature, scenario)
+        this.emit('after-scenario', doc?.uri, doc?.feature, scenario, finalResult)
     }
 
     // testRunFinishedEvent = {
