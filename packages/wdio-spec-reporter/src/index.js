@@ -19,8 +19,6 @@ class SpecReporter extends WDIOReporter {
 
         // Keep track of the order that suites were called
         this.suiteUids = []
-
-        this.suites = []
         this.indents = 0
         this.suiteIndents = {}
         this.defaultTestIndent = '   '
@@ -38,9 +36,8 @@ class SpecReporter extends WDIOReporter {
         this.suiteIndents[suite.uid] = ++this.indents
     }
 
-    onSuiteEnd (suite) {
+    onSuiteEnd () {
         this.indents--
-        this.suites.push(suite)
     }
 
     onHookEnd (hook) {
@@ -314,8 +311,8 @@ class SpecReporter extends WDIOReporter {
 
         this.orderedSuites = []
         for (const uid of this.suiteUids) {
-            for (const suite of this.suites) {
-                if (suite.uid !== uid) {
+            for (const [suiteUid, suite] of Object.entries(this.suites)) {
+                if (suiteUid !== uid) {
                     continue
                 }
 

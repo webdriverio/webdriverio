@@ -1,21 +1,25 @@
 import * as path from 'path'
 import { isFunctionAsync } from '@wdio/utils'
+import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
+import { messages } from '@cucumber/messages'
+
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
+import { TestHookDefinitionConfig } from './types'
 
 /**
  * NOTE: this function is exported for testing only
  */
-export function createStepArgument ({ argument }) {
+export function createStepArgument ({ argument }: any) {
     if (!argument) {
         return undefined
     }
 
     if (argument.type === 'DataTable') {
         return {
-            rows: argument.rows.map(row => (
+            rows: argument.rows.map((row: any) => (
                 {
-                    cells: row.cells.map(cell => cell.value),
-                    locations: row.cells.map(cell => cell.location)
+                    cells: row.cells.map((cell: any) => cell.value),
+                    locations: row.cells.map((cell: any) => cell.location)
                 }
             ))
         }
@@ -34,7 +38,7 @@ export function createStepArgument ({ argument }) {
  * @param {object} feature cucumber feature object
  * @param {object} scenario cucumber scenario object
  */
-export function getTestParent(feature, scenario) {
+export function getTestParent(feature: any, scenario: any) {
     return `${feature.name || 'Undefined Feature'}: ${scenario.name || 'Undefined Scenario'}`
 }
 
@@ -42,7 +46,7 @@ export function getTestParent(feature, scenario) {
  * builds test title from step keyword and text
  * @param {object} step cucumber step object
  */
-export function getTestStepTitle (keyword = '', text = '', type) {
+export function getTestStepTitle (keyword = '', text = '', type = '') {
     const title = (!text && type !== 'hook') ? 'Undefined Step' : text
     return `${keyword.trim()} ${title.trim()}`.trim()
 }
@@ -53,52 +57,15 @@ export function getTestStepTitle (keyword = '', text = '', type) {
  * @param {string} parent parent suite/scenario
  * @param {string} stepTitle step/test title
  */
-export function getTestFullTitle(parent, stepTitle) {
+export function getTestFullTitle(parent: any, stepTitle: any) {
     return `${parent}: ${stepTitle}`
-}
-
-export function getUniqueIdentifier (target, sourceLocation) {
-    if (target.type === 'Hook') {
-        return `${path.basename(target.location.uri)}${target.location.line}`
-    }
-
-    if (target.type === 'ScenarioOutline') {
-        let name = target.name || target.text
-        const line = sourceLocation.line || ''
-
-        if (!name) {
-            console.warn('missing name for ScenarioOutline:', sourceLocation.uri)
-            name = path.basename(sourceLocation.uri)
-        } else if (Array.isArray(target.examples)) {
-            target.examples.forEach((example) => {
-                example.tableHeader.cells.forEach((header, idx) => {
-                    if (name.indexOf('<' + header.value + '>') === -1) {
-                        return
-                    }
-
-                    example.tableBody.forEach((tableEntry) => {
-                        if (tableEntry.location.line === sourceLocation.line) {
-                            name = name.replace('<' + header.value + '>', tableEntry.cells[idx].value)
-                        }
-                    })
-                })
-            })
-        }
-
-        return `${name}${line}`
-    }
-
-    const name = target.name || target.text
-    const location = target.location || target.locations[0]
-    const line = (location && location.line) || ''
-    return `${name}${line}`
 }
 
 /**
  * format message
  * @param {object} message { type: string, payload: object }
  */
-export function formatMessage ({ payload = {} }) {
+export function formatMessage ({ payload = {} }: any) {
     let content = { ...payload }
 
     /**
@@ -120,33 +87,51 @@ export function formatMessage ({ payload = {} }) {
  * Get step type
  * @param {string} type `Step` or `Hook`
  */
-export function getStepType(type) {
-    return type === 'Step' ? 'test' : 'hook'
+export function getStepType (step: messages.TestCase.ITestStep) {
+    return step.hookId ? 'hook' : 'test'
+}
+
+export function getFeatureId (uri: string, feature: messages.GherkinDocument.IFeature) {
+    return `${path.basename(uri)}:${feature.location?.line}:${feature.location?.column}`
 }
 
 /**
  * build payload for test/hook event
  */
-export function buildStepPayload(uri, feature, scenario, step, params = {}) {
+export function buildStepPayload(
+    uri: string,
+    feature: messages.GherkinDocument.IFeature,
+    scenario: messages.IPickle,
+    step: messages.Pickle.IPickleStep,
+    params: {
+        type: string
+        state?: messages.TestStepFinished.TestStepResult.Status | string | null
+        error?: string | null
+        duration?: number
+        title?: string | null
+        passed?: boolean
+        file?: string
+    }
+) {
     return {
-        uid: getUniqueIdentifier(step),
-        title: getTestStepTitle(step.keyword, step.text, params.type),
-        parent: getTestParent(feature, scenario),
+        uid: step.id,
+        title: step.text,
+        parent: scenario.id,
         argument: createStepArgument(step),
         file: uri,
         tags: scenario.tags,
-        keyword: step.keyword,
+        // keyword: step.keyword,
         featureName: feature.name,
         scenarioName: scenario.name,
         ...params
     }
 }
 
-export function compareScenarioLineWithSourceLine(scenario, sourceLocation) {
+export function compareScenarioLineWithSourceLine(scenario: any, sourceLocation: any) {
     if (scenario.type.indexOf('ScenarioOutline') > -1) {
         return scenario.examples
-            .some(example => example.tableBody
-                .some(tableEntry => tableEntry.location.line === sourceLocation.line))
+            .some((example: any) => example.tableBody
+                .some((tableEntry: any) => tableEntry.location.line === sourceLocation.line))
     }
 
     return scenario.location.line === sourceLocation.line
@@ -155,20 +140,24 @@ export function compareScenarioLineWithSourceLine(scenario, sourceLocation) {
 /**
  * @param {object[]} result cucumber global result object
  */
-export const getDataFromResult = ([{ uri }, feature, ...scenarios]) => ({ uri, feature, scenarios })
+export const getDataFromResult = ([{ uri }, feature, ...scenarios]: any) => ({ uri, feature, scenarios })
 
 /**
  * wrap every user defined hook with function named `userHookFn`
  * to identify later on is function a step, user hook or wdio hook.
  * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
  */
-export function setUserHookNames (options) {
+export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
     CUCUMBER_HOOK_DEFINITION_TYPES.forEach(hookName => {
-        options[hookName].forEach(testRunHookDefinition => {
+        options[hookName].forEach((testRunHookDefinition: TestHookDefinitionConfig) => {
             const hookFn = testRunHookDefinition.code
             if (!hookFn.name.startsWith('wdioHook')) {
-                const userHookAsyncFn = async function (...args) { return hookFn.apply(this, args) }
-                const userHookFn = function (...args) { return hookFn.apply(this, args) }
+                const userHookAsyncFn = async function (this: any, ...args: any) {
+                    return hookFn.apply(this, args)
+                }
+                const userHookFn = function (this: any, ...args: any) {
+                    return hookFn.apply(this, args)
+                }
                 testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn
             }
         })
@@ -183,10 +172,10 @@ export function setUserHookNames (options) {
  * @param   {object}    testCasePreparedEvent   cucumber's testCasePreparedEvent
  * @returns {object[]}
  */
-export function getTestCaseSteps (feature, scenario, pickle, testCasePreparedEvent) {
+export function getTestCaseSteps (feature: any, scenario: any, pickle: any, testCasePreparedEvent: any) {
     const allSteps = getAllSteps(feature, scenario)
 
-    const steps = testCasePreparedEvent.steps.map(eventStep => {
+    const steps = testCasePreparedEvent.steps.map((eventStep: any) => {
         /**
          * find scenario step matching eventStep
          */
@@ -227,9 +216,9 @@ export function getTestCaseSteps (feature, scenario, pickle, testCasePreparedEve
  * @param   {object}    pickle      cucumber's pickleEvent
  * @returns {string}
  */
-export function enhanceStepWithPickleData (origStep, pickle) {
+export function enhanceStepWithPickleData (origStep: any, pickle: any) {
     const step = { ...origStep }
-    const pickleStep = pickle.steps.find(s => s.locations.some(loc => loc.line === step.location.line))
+    const pickleStep = pickle.steps.find((s: any) => s.locations.some((loc: any) => loc.line === step.location.line))
 
     if (pickleStep) {
         step.text = pickleStep.text
@@ -252,12 +241,15 @@ export function enhanceStepWithPickleData (origStep, pickle) {
             //         }]
             //     }]
             // }
-            pickleStep.arguments.forEach(pStepArg => {
-                pStepArg.rows.forEach(pStepRow => {
-                    pStepRow.cells.forEach(pStepCell => {
+            pickleStep.arguments.forEach((pStepArg: any) => {
+                pStepArg.rows.forEach((pStepRow: any) => {
+                    pStepRow.cells.forEach((pStepCell: any) => {
+                        // @ts-ignore
                         if (!pickleStepValueLocation[pStepCell.location.line]) {
+                            // @ts-ignore
                             pickleStepValueLocation[pStepCell.location.line] = {}
                         }
+                        // @ts-ignore
                         pickleStepValueLocation[pStepCell.location.line][pStepCell.location.column] = pStepCell.value
                     })
                 })
@@ -276,8 +268,9 @@ export function enhanceStepWithPickleData (origStep, pickle) {
             //         }]
             //     }
             // }
-            step.argument.rows.forEach(stepRow => {
-                stepRow.cells.forEach(stepCell => {
+            step.argument.rows.forEach((stepRow: any) => {
+                stepRow.cells.forEach((stepCell: any) => {
+                    // @ts-ignore
                     stepCell.value = pickleStepValueLocation[stepCell.location.line][stepCell.location.column]
                 })
             })
@@ -293,9 +286,9 @@ export function enhanceStepWithPickleData (origStep, pickle) {
  * @param {object}      scenario cucumber's scenario
  * @returns {object[]}
  */
-export function getAllSteps (feature, scenario) {
+export function getAllSteps (feature: any, scenario: any) {
     const allSteps = []
-    const background = feature.children.find((child) => child.type === 'Background')
+    const background = feature.children.find((child: any) => child.type === 'Background')
     if (background) {
         allSteps.push(...background.steps)
     }

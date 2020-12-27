@@ -66,13 +66,13 @@ export default class WDIOReporter extends EventEmitter {
         this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
         this.on('client:afterCommand', this.onAfterCommand.bind(this))
 
-        this.on('runner:start',  /* istanbul ignore next */(runner: Runner) => {
+        this.on('runner:start', /* istanbul ignore next */ (runner: Runner) => {
             rootSuite.cid = runner.cid
             this.runnerStat = new RunnerStats(runner)
             this.onRunnerStart(this.runnerStat)
         })
 
-        this.on('suite:start',  /* istanbul ignore next */(params: Suite) => {
+        this.on('suite:start', /* istanbul ignore next */ (params: Suite) => {
             const suite = new SuiteStats(params)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.suites.push(suite)
@@ -81,7 +81,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteStart(suite)
         })
 
-        this.on('hook:start',  /* istanbul ignore next */(hook: Hook) => {
+        this.on('hook:start', /* istanbul ignore next */ (hook: Hook) => {
             const hookStats = new HookStats(hook)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.hooks.push(hookStats)
@@ -97,7 +97,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onHookEnd(hookStats)
         })
 
-        this.on('test:start',  /* istanbul ignore next */(test: Test) => {
+        this.on('test:start', /* istanbul ignore next */ (test: Test) => {
             test.retries = this.retries
             currentTest = new TestStats(test)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]

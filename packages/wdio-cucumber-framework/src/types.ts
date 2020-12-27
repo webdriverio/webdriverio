@@ -95,3 +95,18 @@ export interface CucumberOpts {
 
     featureDefaultLanguage: string
 }
+
+export interface ReporterOptions {
+    capabilities: WebDriver.Capabilities
+    ignoreUndefinedDefinitions: boolean
+    failAmbiguousDefinitions: boolean
+    tagsInTitle: boolean
+    scenarioLevelReporter: boolean
+}
+
+export interface TestHookDefinitionConfig {
+    code: Function;
+    line: number;
+    options: any;
+    uri: string;
+}
