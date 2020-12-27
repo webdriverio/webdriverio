@@ -85,7 +85,7 @@
     "cheerio": "^1.0.0-rc.3",
     "codecov": "^3.6.1",
     "copyfiles": "^2.1.1",
-    "cucumber": "^6.0.5",
+    "@cucumber/cucumber": "^7.0.0",
     "del": "^5.1.0",
     "depcheck": "^1.0.0",
     "dox": "^0.9.0",

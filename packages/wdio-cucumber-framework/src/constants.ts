@@ -25,8 +25,8 @@ export const DEFAULT_OPTS: CucumberOpts = {
 export const NOOP = /* istanbul ignore next */ function () {}
 
 export const CUCUMBER_HOOK_DEFINITION_TYPES = [
-    'beforeTestRunHookDefinitions',
-    'beforeTestCaseHookDefinitions',
-    'afterTestCaseHookDefinitions',
-    'afterTestRunHookDefinitions',
+    'beforeTestRunHookDefinitionConfigs',
+    'beforeTestCaseHookDefinitionConfigs',
+    'afterTestCaseHookDefinitionConfigs',
+    'afterTestRunHookDefinitionConfigs',
 ] as const
