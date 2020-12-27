@@ -1,3 +1,5 @@
+import { messages } from '@cucumber/messages'
+
 export interface CucumberOpts {
     /**
      * Show full backtrace for errors.
@@ -109,4 +111,11 @@ export interface TestHookDefinitionConfig {
     line: number;
     options: any;
     uri: string;
+}
+
+export interface HookParams {
+    uri?: string | null,
+    feature?: messages.GherkinDocument.IFeature | null,
+    scenario?: messages.IPickle,
+    step?: messages.Pickle.IPickleStep
 }

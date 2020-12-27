@@ -2,6 +2,8 @@ import { EventEmitter } from 'events'
 import { messages } from '@cucumber/messages'
 import logger from '@wdio/logger'
 
+import { HookParams } from './types'
+
 const log = logger('CucumberEventListener')
 
 export default class CucumberEventListener extends EventEmitter {
@@ -9,7 +11,7 @@ export default class CucumberEventListener extends EventEmitter {
     private _scenarios: messages.IPickle[] = []
     private _testCases: messages.ITestCase[] = []
     private _currentTestCase?: messages.ITestCaseStarted
-    private _currentStep?: messages.TestCase.ITestStep
+    private _currentPickle?: HookParams = {}
     private _suiteMap: Map<string, string> = new Map()
 
     constructor (eventBroadcaster: EventEmitter) {
@@ -88,6 +90,7 @@ export default class CucumberEventListener extends EventEmitter {
     //     }
     // }
     onGherkinDocument (gherkinDocEvent: messages.IGherkinDocument) {
+        this._currentPickle = { uri: gherkinDocEvent.uri, feature: gherkinDocEvent.feature }
         this._gherkinDocEvents.push(gherkinDocEvent)
     }
 
@@ -224,6 +227,7 @@ export default class CucumberEventListener extends EventEmitter {
     // }
     onTestCaseStarted (testcase: messages.ITestCaseStarted) {
         this._currentTestCase = testcase
+        const { uri, feature } = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
         const tc = this._testCases.find(tc => tc.id === testcase.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(tc?.pickleId as string))
 
@@ -232,6 +236,7 @@ export default class CucumberEventListener extends EventEmitter {
         }
 
         const doc = this._gherkinDocEvents.find(gde => gde.uri === scenario?.uri)
+        this._currentPickle = { uri, feature, scenario }
         this.emit('before-scenario', scenario.uri, doc?.feature, scenario)
     }
 
@@ -256,7 +261,7 @@ export default class CucumberEventListener extends EventEmitter {
             return
         }
 
-        this._currentStep = step
+        this._currentPickle = { uri, feature, scenario, step }
         this.emit('before-step', uri, feature, scenario, step)
     }
 
@@ -290,7 +295,7 @@ export default class CucumberEventListener extends EventEmitter {
         }
 
         this.emit('after-step', uri, feature, scenario, step, result)
-        delete this._currentStep
+        delete this._currentPickle
     }
 
     // {
@@ -303,6 +308,7 @@ export default class CucumberEventListener extends EventEmitter {
     //     }
     // }
     onTestCaseFinished () {
+        const { uri, feature } = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
         const tc = this._testCases.find(tc => tc.id === this._currentTestCase?.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(tc?.pickleId as string))
 
@@ -311,8 +317,8 @@ export default class CucumberEventListener extends EventEmitter {
         }
 
         const doc = this._gherkinDocEvents.find(gde => gde.uri === scenario?.uri)
+        this._currentPickle = { uri, feature, scenario }
         this.emit('after-scenario', doc?.uri, doc?.feature, scenario)
-        delete this._currentTestCase
     }
 
     // testRunFinishedEvent = {
@@ -322,6 +328,7 @@ export default class CucumberEventListener extends EventEmitter {
     //     }
     // }
     onTestRunFinished () {
+        delete this._currentTestCase
         const gherkinDocEvent = this._gherkinDocEvents.pop() // see .push() in `handleBeforeFeature()`
 
         if (!gherkinDocEvent) {
@@ -331,7 +338,7 @@ export default class CucumberEventListener extends EventEmitter {
         this.emit('after-feature', gherkinDocEvent.uri, gherkinDocEvent.feature)
     }
 
-    getCurrentStep () {
-        return this._currentStep
+    getHookParams () {
+        return this._currentPickle
     }
 }

@@ -3,6 +3,7 @@ import path from 'path'
 import { EventEmitter } from 'events'
 
 import EventDataCollector from '@cucumber/cucumber/lib/formatter/helpers/event_data_collector'
+import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
 import { GherkinStreams } from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
@@ -32,7 +33,7 @@ class CucumberAdapter {
     private _eventDataCollector: EventDataCollector
     private _pickleIds: string[] = []
 
-    getCurrentStep?: Function
+    getHookParams?: Function
 
     constructor(
         private _cid: string,
@@ -135,13 +136,11 @@ class CucumberAdapter {
             /**
              * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
              * or `null` for some hooks.
-             *
-             * @return  {object|null}
              */
             if (this._cucumberReporter) {
-                this.getCurrentStep = this._cucumberReporter
+                this.getHookParams = this._cucumberReporter
                     .eventListener
-                    .getCurrentStep
+                    .getHookParams
                     .bind(this._cucumberReporter.eventListener)
             }
 
@@ -273,17 +272,36 @@ class CucumberAdapter {
      * @param {object} config config
      */
     addWdioHooks (config: ConfigOptions) {
-        Cucumber.Before(async function wdioHookBeforeScenario () {
-            await executeHooksWithArgs('beforeScenario', config.beforeScenario, [])
-        })
-        Cucumber.After(async function wdioHookAfterScenario () {
-            await executeHooksWithArgs('afterScenario', config.afterScenario, [])
-        })
+        const eventListener = this._cucumberReporter?.eventListener
         Cucumber.BeforeAll(async function wdioHookBeforeFeature() {
-            await executeHooksWithArgs('beforeFeature', config.beforeFeature, [])
+            const params = eventListener?.getHookParams()
+            await executeHooksWithArgs(
+                'beforeFeature',
+                config.beforeFeature,
+                [params?.uri, params?.feature]
+            )
         })
         Cucumber.AfterAll(async function wdioHookAfterFeature() {
-            await executeHooksWithArgs('afterFeature', config.afterFeature, [])
+            const params = eventListener?.getHookParams()
+            await executeHooksWithArgs(
+                'afterFeature',
+                config.afterFeature,
+                [params?.uri, params?.feature]
+            )
+        })
+        Cucumber.Before(async function wdioHookBeforeScenario (world: ITestCaseHookParameter) {
+            await executeHooksWithArgs(
+                'beforeScenario',
+                config.beforeScenario,
+                [world]
+            )
+        })
+        Cucumber.After(async function wdioHookAfterScenario (world: ITestCaseHookParameter) {
+            await executeHooksWithArgs(
+                'afterScenario',
+                config.afterScenario,
+                [world]
+            )
         })
     }
 
@@ -294,7 +312,7 @@ class CucumberAdapter {
     wrapSteps (config: ConfigOptions) {
         const wrapStep = this.wrapStep
         const cid = this._cid
-        const getCurrentStep = () => this.getCurrentStep && this.getCurrentStep()
+        const getHookParams = () => this.getHookParams && this.getHookParams()
 
         Cucumber.setDefinitionFunctionWrapper((fn: Function) => {
             /**
@@ -312,7 +330,7 @@ class CucumberAdapter {
             const isStep = !fn.name.startsWith('userHook')
 
             const retryTest = 0 // isStep && isFinite(options.retry) ? parseInt(options.retry, 10) : 0
-            return wrapStep(fn, retryTest, isStep, config, cid, getCurrentStep)
+            return wrapStep(fn, retryTest, isStep, config, cid, getHookParams)
         })
     }
 
@@ -323,7 +341,7 @@ class CucumberAdapter {
      * @param   {boolean}   isStep
      * @param   {object}    config
      * @param   {string}    cid             cid
-     * @param   {Function}  getCurrentStep  step definition
+     * @param   {Function}  getHookParams  step definition
      * @return  {Function}                  wrapped step definition for sync WebdriverIO code
      */
     wrapStep(
@@ -332,21 +350,20 @@ class CucumberAdapter {
         isStep: boolean,
         config: ConfigOptions,
         cid: string,
-        getCurrentStep: Function
+        getHookParams: Function
     ) {
         return function (this: Cucumber.World, ...args: any[]) {
             /**
              * wrap user step/hook with wdio before/after hooks
              */
-            // const { uri, feature } = getDataFromResult([])
             const beforeFn = isStep ? config.beforeStep : config.beforeHook
             const afterFn = isStep ? config.afterStep : config.afterHook
-            const hookParams = { /* uri, feature,*/ step: getCurrentStep() }
+            const hookParams = getHookParams()
             return testFnWrapper.call(this,
                 isStep ? 'Step' : 'Hook',
                 { specFn: code, specFnArgs: args },
-                { beforeFn: beforeFn as Function[], beforeFnArgs: (context) => [hookParams, context] },
-                { afterFn: afterFn as Function[], afterFnArgs: (context) => [hookParams, context] },
+                { beforeFn: beforeFn as Function[], beforeFnArgs: (context) => [hookParams?.step, context] },
+                { afterFn: afterFn as Function[], afterFnArgs: (context) => [hookParams?.step, context] },
                 cid,
                 retryTest)
         }
