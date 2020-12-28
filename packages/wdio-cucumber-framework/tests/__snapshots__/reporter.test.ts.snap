@@ -1,5 +1,51 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`cucumber reporter emits messages for certain cucumber events should proper data when executing a hook 1`] = `
+Array [
+  Array [
+    "hook:end",
+    Object {
+      "argument": undefined,
+      "cid": "0-1",
+      "error": undefined,
+      "featureName": "Example feature",
+      "file": "/some/path/to/features/my-feature.feature",
+      "parent": "0",
+      "scenarioName": "Get size of an element",
+      "specs": Array [
+        "/foobar.js",
+      ],
+      "state": "PASSED",
+      "tags": Array [
+        Object {
+          "astNodeId": "9",
+          "name": "@feature-tag1",
+        },
+        Object {
+          "astNodeId": "10",
+          "name": "@feature-tag2",
+        },
+        Object {
+          "astNodeId": "5",
+          "name": "@skip(browserName='chrome';platformName='windows')",
+        },
+        Object {
+          "astNodeId": "6",
+          "name": "@scenario-tag1",
+        },
+        Object {
+          "astNodeId": "7",
+          "name": "@scenario-tag2",
+        },
+      ],
+      "title": undefined,
+      "type": "hook",
+      "uid": "24",
+    },
+  ],
+]
+`;
+
 exports[`cucumber reporter emits messages for certain cucumber events should send accepted pickle's data on \`test-case-started\` event 1`] = `
 Array [
   Array [
@@ -53,6 +99,43 @@ Array [
   to get informations about elements on the page",
       "file": "/some/path/to/features/my-feature.feature",
       "keyword": "Feature",
+      "specs": Array [
+        "/foobar.js",
+      ],
+      "tags": Array [
+        Object {
+          "id": "9",
+          "location": Object {
+            "column": 1,
+            "line": 1,
+          },
+          "name": "@feature-tag1",
+        },
+        Object {
+          "id": "10",
+          "location": Object {
+            "column": 1,
+            "line": 2,
+          },
+          "name": "@feature-tag2",
+        },
+      ],
+      "title": "Example feature",
+      "type": "feature",
+      "uid": "my-feature.feature:undefined:1",
+    },
+  ],
+]
+`;
+
+exports[`cucumber reporter emits messages for certain cucumber events should send proper data on onTestRunFinished 1`] = `
+Array [
+  Array [
+    "suite:end",
+    Object {
+      "cid": "0-1",
+      "duration": NaN,
+      "file": "/some/path/to/features/my-feature.feature",
       "specs": Array [
         "/foobar.js",
       ],
@@ -328,7 +411,52 @@ Array [
 ]
 `;
 
-exports[`cucumber reporter emits messages for certain cucumber events when executed in scenarioLeverReporter should send proper data on \`test-case-finished\` event 1`] = `Array []`;
+exports[`cucumber reporter emits messages for certain cucumber events when executed in scenarioLeverReporter should send proper data on \`test-case-finished\` event 1`] = `
+Array [
+  Array [
+    "test:undefined",
+    Object {
+      "argument": undefined,
+      "cid": "0-1",
+      "error": undefined,
+      "featureName": "Example feature",
+      "file": "/some/path/to/features/my-feature.feature",
+      "parent": "0",
+      "passed": false,
+      "scenarioName": "Get size of an element",
+      "specs": Array [
+        "/foobar.js",
+      ],
+      "state": "undefined",
+      "tags": Array [
+        Object {
+          "astNodeId": "9",
+          "name": "@feature-tag1",
+        },
+        Object {
+          "astNodeId": "10",
+          "name": "@feature-tag2",
+        },
+        Object {
+          "astNodeId": "5",
+          "name": "@skip(browserName='chrome';platformName='windows')",
+        },
+        Object {
+          "astNodeId": "6",
+          "name": "@scenario-tag1",
+        },
+        Object {
+          "astNodeId": "7",
+          "name": "@scenario-tag2",
+        },
+      ],
+      "title": undefined,
+      "type": "step",
+      "uid": "0",
+    },
+  ],
+]
+`;
 
 exports[`cucumber reporter emits messages for certain cucumber events when executed in scenarioLeverReporter should send proper data on \`test-run-started\` event 1`] = `
 Array [
@@ -341,6 +469,43 @@ Array [
   to get informations about elements on the page",
       "file": "/some/path/to/features/my-feature.feature",
       "keyword": "Feature",
+      "specs": Array [
+        "/foobar.js",
+      ],
+      "tags": Array [
+        Object {
+          "id": "9",
+          "location": Object {
+            "column": 1,
+            "line": 1,
+          },
+          "name": "@feature-tag1",
+        },
+        Object {
+          "id": "10",
+          "location": Object {
+            "column": 1,
+            "line": 2,
+          },
+          "name": "@feature-tag2",
+        },
+      ],
+      "title": "Example feature",
+      "type": "feature",
+      "uid": "my-feature.feature:undefined:1",
+    },
+  ],
+]
+`;
+
+exports[`cucumber reporter emits messages for certain cucumber events when executed in scenarioLeverReporter should send proper data on onTestRunFinished 1`] = `
+Array [
+  Array [
+    "suite:end",
+    Object {
+      "cid": "0-1",
+      "duration": NaN,
+      "file": "/some/path/to/features/my-feature.feature",
       "specs": Array [
         "/foobar.js",
       ],
