@@ -10,7 +10,8 @@ import {
     testCaseStarted,
     testStepStarted,
     testStepFinished,
-    testCaseFinished
+    testCaseFinished,
+    testRunFinished
 } from './fixtures/envelopes'
 
 const wdioReporter = {
@@ -125,6 +126,39 @@ describe('cucumber reporter', () => {
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
         })
+
+        it('should send proper data on onTestRunFinished', () => {
+            const passingStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: passingStep })
+            eventBroadcaster.emit('envelope', { testCaseFinished })
+            wdioReporter.emit.mockClear()
+
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
+        })
+
+        it('should proper data when executing a hook', () => {
+            const hookStarted: messages.ITestStepStarted = JSON.parse(JSON.stringify(testStepStarted))
+            hookStarted.testStepId = '24'
+            const hookFinished: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            hookFinished.testStepId = '24'
+
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted: hookStarted })
+            wdioReporter.emit.mockClear()
+            eventBroadcaster.emit('envelope', { testStepFinished: hookFinished })
+            delete wdioReporter.emit.mock.calls[0][1].duration
+            expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
+        })
     })
 
     describe('emits messages for certain cucumber events when executed in scenarioLeverReporter', () => {
@@ -178,16 +212,36 @@ describe('cucumber reporter', () => {
         })
 
         it('should send proper data on `test-case-finished` event', () => {
+            const passingStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
             prepareSuite(eventBroadcaster)
             startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: passingStep })
             wdioReporter.emit.mockClear()
 
-            eventBroadcaster.emit('test-case-finished', { testCaseFinished })
+            eventBroadcaster.emit('envelope', { testCaseFinished })
+            delete wdioReporter.emit.mock.calls[0][1].duration
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
+        it('should send proper data on onTestRunFinished', () => {
+            const passingStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+
+            loadGherkin(eventBroadcaster)
+            acceptPickle(eventBroadcaster)
+            prepareSuite(eventBroadcaster)
+            startSuite(eventBroadcaster)
+            eventBroadcaster.emit('envelope', { testStepStarted })
+            eventBroadcaster.emit('envelope', { testStepFinished: passingStep })
+            eventBroadcaster.emit('envelope', { testCaseFinished })
+            wdioReporter.emit.mockClear()
+
+            eventBroadcaster.emit('envelope', { testRunFinished })
+            expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
+        })
     })
 
     describe('provides a fail counter', () => {
