@@ -178,10 +178,7 @@ class CucumberReporter {
 
                 error = err
             }
-        } else if (result.status === Status.FAILED) {
-            if (!result.willBeRetried) {
-                this.failedCount++
-            }
+        } else if (result.status === Status.FAILED && !result.willBeRetried) {
             error = new Error(result.message?.split('\n')[0])
             error.stack = result.message as string
         } else if (result.status === Status.AMBIGUOUS && this._options.failAmbiguousDefinitions) {
@@ -189,6 +186,8 @@ class CucumberReporter {
             this.failedCount++
             error = new Error(result.message?.split('\n')[0])
             error.stack = result.message as string
+        } else if (result.willBeRetried) {
+            state = 'retry'
         }
 
         const common = {
