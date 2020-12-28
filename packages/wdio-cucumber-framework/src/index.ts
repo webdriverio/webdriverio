@@ -43,7 +43,7 @@ class CucumberAdapter {
         private _capabilities: WebDriver.Capabilities,
         private _reporter: EventEmitter
     ) {
-        this._cucumberOpts = Object.assign(DEFAULT_OPTS, this._config.cucumberOpts)
+        this._cucumberOpts = Object.assign({}, DEFAULT_OPTS, this._config.cucumberOpts)
         this._hasTests = true
         this._cucumberFeaturesWithLineNumbers = this._config.cucumberFeaturesWithLineNumbers || []
         this._eventBroadcaster = new EventEmitter()
@@ -153,7 +153,7 @@ class CucumberAdapter {
              * if we ignore undefined definitions we trust the reporter
              * with the fail count
              */
-            if (this._cucumberOpts.ignoreUndefinedDefinitions && result && this._cucumberReporter) {
+            if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
                 result = this._cucumberReporter.failedCount
             }
         } catch (e) {
