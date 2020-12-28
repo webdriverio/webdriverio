@@ -135,7 +135,8 @@ export const PROTOCOL_OPTIONS = [
 
 export const REGION_OPTION = [
     'us',
-    'eu'
+    'eu',
+    'apac'
 ] as const
 
 export const MODE_OPTIONS = [

@@ -122,6 +122,25 @@ test('onPrepare w/ SauceConnect w/ region EU', async () => {
     expect(SauceLabs.instances[0].options.region).toBe('eu')
 })
 
+test('onPrepare w/ SauceConnect w/ region APAC', async () => {
+    const options = {
+        sauceConnect: true
+    }
+    const caps = [{}]
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        region: 'apac'
+    }
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service.sauceConnectProcess).toBeUndefined()
+    await service.onPrepare(config, caps)
+
+    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.instances[0].options.region).toBe('apac')
+})
+
 test('onPrepare multiremote', async () => {
     const options = {
         sauceConnect: true,

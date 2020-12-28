@@ -131,7 +131,11 @@ class SpecReporter extends WDIOReporter {
         if (isSauceJob) {
             const dc = config.headless
                 ? '.us-east-1'
-                : ['eu', 'eu-central-1'].includes(config.region) ? '.eu-central-1' : ''
+                : ['eu', 'eu-central-1'].includes(config.region)
+                    ? '.eu-central-1'
+                    : ['apac', 'apac-southeast-1'].includes(config.region)
+                        ? '.apac-southeast-1'
+                        : ''
             const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
             return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}`]
         }

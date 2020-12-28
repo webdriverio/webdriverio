@@ -236,6 +236,28 @@ describe('SpecReporter', () => {
                 }))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
+
+            it('should print link to Sauce Labs APAC job details page', () => {
+                printReporter.printReport(getRunnerConfig({
+                    hostname: 'ondemand.saucelabs.com',
+                    region: 'apac'
+                }))
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+
+                printReporter.write.mockClear()
+
+                printReporter.printReport(getRunnerConfig({
+                    hostname: 'ondemand.saucelabs.com',
+                    region: 'apac-southeast-1'
+                }))
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+
+                printReporter.printReport(getRunnerConfig({
+                    hostname: 'ondemand.saucelabs.com',
+                    headless: true
+                }))
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
         })
 
         it('should print report for suites with no tests but failed hooks', () => {

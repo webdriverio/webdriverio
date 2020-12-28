@@ -167,14 +167,16 @@ export interface Options extends Omit<WebDriver.Options, 'capabilities'> {
     waitforInterval?: number
     /**
      * If running on Sauce Labs, you can choose to run tests between different datacenters:
-     * US or EU. To change your region to EU, add `region: 'eu'` to your config.
+     * US, EU or APAC.
+     * To change your region to EU, add `region: 'eu'` to your config.
+     * To change your region to APAC, add `region: 'apac'` to your config.
      *
      * __Note:__ This only has an effect if you provide `user` and `key` options that are
      * connected to your Sauce Labs account.
      *
      * @default 'us-west-1'
      */
-    region?: 'us' | 'eu' | 'us-west-1' | 'us-east-1' | 'eu-central-1'
+    region?: 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'eu-central-1' | 'apac-southeast-1'
     /**
      * Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing)
      * that allows you to run Chrome and Firefox tests headless.

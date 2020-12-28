@@ -10,7 +10,9 @@ const REGION_MAPPING = {
     'us': 'us-west-1.', // default endpoint
     'eu': 'eu-central-1.',
     'eu-central-1': 'eu-central-1.',
-    'us-east-1': 'us-east-1.'
+    'us-east-1': 'us-east-1.',
+    'apac': 'apac-southeast-1.',
+    'apac-southeast-1': 'apac-southeast-1',
 }
 
 export const validObjectOrArray = (object: any): object is object | Array<any> => (Array.isArray(object) && object.length > 0) ||

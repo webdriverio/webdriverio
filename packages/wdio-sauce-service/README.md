@@ -30,14 +30,14 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 In order to use the service for the virtual machine and em/simulator cloud you need to set `user` and `key` in your `wdio.conf.js` file. It will automatically
 use Sauce Labs to run your integration tests.
 If you run your tests on Sauce Labs you can specify the region you want to run your tests in via the `region` property.
-Available short handles for regions are `us` (default) and `eu`. These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud. If you don't provide the region, it defaults to `us`.
+Available short handles for regions are `us` (default), `eu` and `apac`. These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud. If you don't provide the region, it defaults to `us`.
 
 > NOTE:\
 > By default the `ondemand.us-west-1.saucelabs.com` US endpoint will be used. This is the new Unified Platform endpoint. If you want to use the *old* endpoint then
 > don't provide a region and add `hostname: ondemand.saucelabs.com` to your configuration file.
 
 If you want WebdriverIO to automatically spin up a [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) tunnel,
-you just need to set `sauceConnect: true`. If you would like to change data center to EU add `region:'eu'` as US data center is set as default (region only works on ^4.14.1 or ^5.0.0).
+you just need to set `sauceConnect: true`. If you would like to change data center to EU add `region:'eu'` or APAC add `region:'apac'` as US data center is set as default (region only works on ^4.14.1 or ^5.0.0).
 
 ```js
 // wdio.conf.js
@@ -72,7 +72,7 @@ export.config = {
         // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
         'sauce:options': {
             tunnelIdentifier: 'YourTunnelName',
-            
+
             // Example options
             build: 'your-build-name',
             screenResolution: '1600x1200',
@@ -94,7 +94,7 @@ export.config = {
         'sauce:options': {
             tunnelIdentifier: 'ParentTunnelName',
             parentTunnel: '<username of parent>,
-            
+
             // Example options
             build: 'your-build-name',
             screenResolution: '1600x1200',
