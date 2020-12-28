@@ -34,7 +34,13 @@ export default class CucumberEventListener extends EventEmitter {
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
             } else if (envelope.testStepFinished) {
-                results.push(envelope.testStepFinished.testStepResult!)
+                /**
+                 * only store result if step isn't retried
+                 */
+                if (!envelope.testStepFinished.testStepResult?.willBeRetried) {
+                    results.push(envelope.testStepFinished.testStepResult!)
+                }
+
                 this.onTestStepFinished(envelope.testStepFinished)
             } else if (envelope.testCaseFinished) {
                 this.onTestCaseFinished(results)

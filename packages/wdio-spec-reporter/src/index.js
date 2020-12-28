@@ -18,7 +18,7 @@ class SpecReporter extends WDIOReporter {
         }
 
         // Keep track of the order that suites were called
-        this.suiteUids = []
+        this.suiteUids = new Set()
         this.indents = 0
         this.suiteIndents = {}
         this.defaultTestIndent = '   '
@@ -32,7 +32,7 @@ class SpecReporter extends WDIOReporter {
     }
 
     onSuiteStart (suite) {
-        this.suiteUids.push(suite.uid)
+        this.suiteUids.add(suite.uid)
         this.suiteIndents[suite.uid] = ++this.indents
     }
 
