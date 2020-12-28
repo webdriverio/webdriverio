@@ -182,6 +182,7 @@ class CucumberReporter {
         } else if (result.status === Status.FAILED && !result.willBeRetried) {
             error = new Error(result.message?.split('\n')[0])
             error.stack = result.message as string
+            this.failedCount++
         } else if (result.status === Status.AMBIGUOUS && this._options.failAmbiguousDefinitions) {
             state = 'fail'
             this.failedCount++
