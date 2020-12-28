@@ -8,7 +8,7 @@ export const DEFAULT_OPTS: CucumberOpts = {
     failAmbiguousDefinitions: false, // <boolean> treat ambiguous definitions as errors
     failFast: false, // <boolean> abort the run on first failure
     ignoreUndefinedDefinitions: false, // <boolean> treat undefined definitions as warnings
-    name: [], // <REGEXP[]> only execute the scenarios with name matching the expression (repeatable)
+    names: [], // <(string|RegExp)[]> only execute the scenarios with name matching the expression (repeatable)
     profile: [], // <string> (name) specify the profile to use
     require: [], // <string> (file/dir/glob) require files before executing features
     order: 'defined', // <string> switch between deterministic  and random feature execution. Either "defined", "random" or "random:42" whereas 42 is the seed for randomization

@@ -36,7 +36,7 @@ export interface CucumberOpts {
      * Only execute the scenarios with name matching the expression (repeatable).
      * @default []
      */
-    name: string[]
+    names: (string|RegExp)[]
     /**
      * Specify the profile to use.
      * @default []

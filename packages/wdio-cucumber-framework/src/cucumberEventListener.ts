@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { Status } from '@cucumber/cucumber'
+import { Status, PickleFilter } from '@cucumber/cucumber'
 import { messages } from '@cucumber/messages'
 import logger from '@wdio/logger'
 
@@ -16,7 +16,7 @@ export default class CucumberEventListener extends EventEmitter {
     private _currentPickle?: HookParams = {}
     private _suiteMap: Map<string, string> = new Map()
 
-    constructor (eventBroadcaster: EventEmitter) {
+    constructor (eventBroadcaster: EventEmitter, private _pickleFilter: PickleFilter) {
         super()
         let results: messages.TestStepFinished.ITestStepResult[] = []
         eventBroadcaster.on('envelope', (envelope: messages.Envelope) => {
@@ -365,8 +365,19 @@ export default class CucumberEventListener extends EventEmitter {
      * @param caps session capabilities
      */
     getPickleIds (caps: WebDriver.Capabilities) {
+        const gherkinDocument = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
         return [...this._suiteMap.entries()]
+            /**
+             * match based on capability tags
+             */
             .filter(([, fakeId]) => filterPickles(caps, this._scenarios.find(s => s.id === fakeId)))
+            /**
+             * match based on Cucumber pickle filter
+             */
+            .filter(([, fakeId]) => this._pickleFilter.matches({
+                gherkinDocument,
+                pickle: this._scenarios.find(s => s.id === fakeId) as messages.IPickle
+            }))
             .map(([id]) => id)
     }
 }
