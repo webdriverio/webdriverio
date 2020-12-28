@@ -65,7 +65,7 @@ describe('cucumber reporter', () => {
             loadGherkin(eventBroadcaster)
             wdioReporter.emit.mockClear()
             eventBroadcaster.emit('envelope', { testRunStarted: {} })
-            expect(wdioReporter.emit).toMatchSnapshot()
+            expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
         it('should not send any data on `pickle-accepted` event', () => {
@@ -90,7 +90,7 @@ describe('cucumber reporter', () => {
             prepareSuite(eventBroadcaster)
             wdioReporter.emit.mockClear()
             startSuite(eventBroadcaster)
-            expect(wdioReporter.emit).toMatchSnapshot()
+            expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
         describe('step finished events', () => {
@@ -104,13 +104,14 @@ describe('cucumber reporter', () => {
 
             it('should send proper data on `test-step-started` event', () => {
                 eventBroadcaster.emit('envelope', { testStepStarted })
-                expect(wdioReporter.emit).toMatchSnapshot()
+                expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
 
             it('passed step', () => {
                 const passingStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
                 eventBroadcaster.emit('envelope', { testStepFinished: passingStep })
-                expect(wdioReporter.emit).toMatchSnapshot()
+                delete wdioReporter.emit.mock.calls[0][1].duration
+                expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
 
             it('failed step', () => {
@@ -120,7 +121,8 @@ describe('cucumber reporter', () => {
                     status: 'failed' as any
                 }
                 eventBroadcaster.emit('envelope', { testStepFinished: failedStep })
-                expect(wdioReporter.emit).toMatchSnapshot()
+                delete wdioReporter.emit.mock.calls[0][1].duration
+                expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
         })
     })
@@ -146,7 +148,7 @@ describe('cucumber reporter', () => {
             loadGherkin(eventBroadcaster)
             wdioReporter.emit.mockClear()
             eventBroadcaster.emit('envelope', { testRunStarted })
-            expect(wdioReporter.emit).toMatchSnapshot()
+            expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
         it('should not send any data on `pickle-accepted` event', () => {
@@ -172,7 +174,7 @@ describe('cucumber reporter', () => {
             wdioReporter.emit.mockClear()
             startSuite(eventBroadcaster)
 
-            expect(wdioReporter.emit).toMatchSnapshot()
+            expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
         it('should send proper data on `test-case-finished` event', () => {
@@ -183,7 +185,7 @@ describe('cucumber reporter', () => {
             wdioReporter.emit.mockClear()
 
             eventBroadcaster.emit('test-case-finished', { testCaseFinished })
-            expect(wdioReporter.emit).toMatchSnapshot()
+            expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
 
     })
@@ -259,7 +261,7 @@ describe('cucumber reporter', () => {
             expect(wdioReporter.emit).not.toBeCalled()
             eventBroadcaster.emit('envelope', { testRunStarted })
 
-            expect(wdioReporter.emit).toMatchSnapshot()
+            expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
     })
 
