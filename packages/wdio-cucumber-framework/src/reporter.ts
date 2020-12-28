@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { Status } from '@cucumber/cucumber'
+import { Status, PickleFilter } from '@cucumber/cucumber'
 import { messages } from '@cucumber/messages'
 
 import CucumberEventListener from './cucumberEventListener'
@@ -18,6 +18,7 @@ class CucumberReporter {
 
     constructor (
         eventBroadcaster: EventEmitter,
+        pickleFilter: PickleFilter,
         private _options: ReporterOptions,
         private _cid: string,
         private _specs: string[],
@@ -26,7 +27,7 @@ class CucumberReporter {
         this._tagsInTitle = this._options.tagsInTitle || false
         this._scenarioLevelReport = this._options.scenarioLevelReporter
 
-        this.eventListener = new CucumberEventListener(eventBroadcaster)
+        this.eventListener = new CucumberEventListener(eventBroadcaster, pickleFilter)
             .on('before-feature', this.handleBeforeFeature.bind(this))
             .on('before-scenario', this.handleBeforeScenario.bind(this))
             .on('after-scenario', this.handleAfterScenario.bind(this))

@@ -30,8 +30,9 @@ class CucumberAdapter {
     private _hasTests: boolean
     private _cucumberFeaturesWithLineNumbers: string[]
     private _eventBroadcaster: EventEmitter
-    private _cucumberReporter?: CucumberReporter
+    private _cucumberReporter: CucumberReporter
     private _eventDataCollector: EventDataCollector
+    private _pickleFilter: Cucumber.PickleFilter
 
     getHookParams?: Function
 
@@ -47,27 +48,27 @@ class CucumberAdapter {
         this._cucumberFeaturesWithLineNumbers = this._config.cucumberFeaturesWithLineNumbers || []
         this._eventBroadcaster = new EventEmitter()
         this._eventDataCollector = new EventDataCollector(this._eventBroadcaster)
+
+        const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0 ? this._cucumberFeaturesWithLineNumbers : this._specs
+        this._pickleFilter = new Cucumber.PickleFilter({
+            cwd: this._cwd,
+            featurePaths: featurePathsToRun,
+            names: this._cucumberOpts.names as string[],
+            tagExpression: this._cucumberOpts.tagExpression
+        })
+
+        const reporterOptions = {
+            capabilities: this._capabilities,
+            ignoreUndefinedDefinitions: Boolean(this._cucumberOpts.ignoreUndefinedDefinitions),
+            failAmbiguousDefinitions: Boolean(this._cucumberOpts.failAmbiguousDefinitions),
+            tagsInTitle: Boolean(this._cucumberOpts.tagsInTitle),
+            scenarioLevelReporter: Boolean(this._cucumberOpts.scenarioLevelReporter)
+        }
+        this._cucumberReporter = new CucumberReporter(this._eventBroadcaster, this._pickleFilter, reporterOptions, this._cid, this._specs, this._reporter)
     }
 
     async init() {
         try {
-            const reporterOptions = {
-                capabilities: this._capabilities,
-                ignoreUndefinedDefinitions: Boolean(this._cucumberOpts.ignoreUndefinedDefinitions),
-                failAmbiguousDefinitions: Boolean(this._cucumberOpts.failAmbiguousDefinitions),
-                tagsInTitle: Boolean(this._cucumberOpts.tagsInTitle),
-                scenarioLevelReporter: Boolean(this._cucumberOpts.scenarioLevelReporter)
-            }
-            this._cucumberReporter = new CucumberReporter(this._eventBroadcaster, reporterOptions, this._cid, this._specs, this._reporter)
-
-            const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0 ? this._cucumberFeaturesWithLineNumbers : this._specs
-            const pickleFilter = new Cucumber.PickleFilter({
-                cwd: this._cwd,
-                featurePaths: featurePathsToRun,
-                names: this._cucumberOpts.name,
-                tagExpression: this._cucumberOpts.tagExpression
-            })
-
             const gherkinMessageStream = GherkinStreams.fromPaths(this._specs, {
                 defaultDialect: this._cucumberOpts.featureDefaultLanguage,
                 newId: this._newId,
@@ -80,7 +81,7 @@ class CucumberAdapter {
                 gherkinMessageStream,
                 eventDataCollector: this._eventDataCollector,
                 order: this._cucumberOpts.order,
-                pickleFilter
+                pickleFilter: this._pickleFilter
             })
 
             this._hasTests = this._cucumberReporter.eventListener.getPickleIds(this._capabilities).length > 0
@@ -132,12 +133,10 @@ class CucumberAdapter {
              * gets current step data: `{ uri, feature, scenario, step, sourceLocation }`
              * or `null` for some hooks.
              */
-            if (this._cucumberReporter) {
-                this.getHookParams = this._cucumberReporter
-                    .eventListener
-                    .getHookParams
-                    .bind(this._cucumberReporter.eventListener)
-            }
+            this.getHookParams = this._cucumberReporter
+                .eventListener
+                .getHookParams
+                .bind(this._cucumberReporter.eventListener)
 
             const runtime = new Cucumber.Runtime({
                 newId: this._newId,
