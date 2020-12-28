@@ -6,8 +6,7 @@ import { isW3C } from '@wdio/utils'
  * UP is the platformName. Downside of the platformName is that is can also be EMUSIM. EMUSIM can be distinguished by
  * the `Emulator|Simulator` postfix
  *
- * @param {string} deviceName
- * @param {string} platformName
+ * @param {object} caps
  * @returns {boolean}
  *
  * This is what we get back from the UP (for now)
@@ -43,20 +42,25 @@ import { isW3C } from '@wdio/utils'
  *  deviceContextId: ''
  * }
  */
-export function isUnifiedPlatform({ deviceName = '', platformName = '' }){
+export function isUnifiedPlatform(caps){
+    const { 'appium:deviceName':appiumDeviceName = '', deviceName = '', platformName = '' } = caps
+    const name = appiumDeviceName || deviceName
+
     // If the string contains `simulator` or `emulator` it's an EMU/SIM session
-    return !deviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+    return !name.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
 }
 
 /**
  * Determine if this is an EMUSIM session
- * @param {string} deviceName
- * @param {string} platformName
+ * @param {object} caps
  * @returns {boolean}
  */
-export function isEmuSim({ deviceName = '', platformName = '' }){
+export function isEmuSim(caps){
+    const { 'appium:deviceName':appiumDeviceName = '', deviceName = '', platformName = '' } = caps
+    const name = appiumDeviceName || deviceName
+
     // If the string contains `simulator` or `emulator` it's an EMU/SIM session
-    return !!deviceName.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+    return !!name.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
 }
 
 /** Ensure capabilities are in the correct format for Sauce Labs
