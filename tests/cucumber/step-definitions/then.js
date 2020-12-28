@@ -1,7 +1,6 @@
 import assert from 'assert'
 
-// eslint-disable-next-line
-import { Then } from 'cucumber'
+import { Then } from '@cucumber/cucumber'
 
 Then(/^the title of the page should be:$/, (expectedTitle) => {
     const actualTitle = browser.getTitle()

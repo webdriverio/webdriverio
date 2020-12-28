@@ -144,7 +144,8 @@ const cucumberFailAmbiguousDefinitions = async () => {
             specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
             cucumberOpts: {
                 ignoreUndefinedDefinitions: true,
-                failAmbiguousDefinitions: true
+                failAmbiguousDefinitions: true,
+                names: ['failAmbiguousDefinitions']
             }
         }
     ).then(
