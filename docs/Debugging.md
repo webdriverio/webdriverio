@@ -81,6 +81,8 @@ If you want to debug your tests with breakpoints in latest VSCode, you have to i
 
 > according to https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 this is only needed for windows and linux. mac os x is working without the nightly version.  
 
+Additional info: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
+
 It's possible to run all or selected spec file(s). Debug configuration(s) have to be added to `.vscode/launch.json`, to debug selected spec add the following config:
 ```
 {
