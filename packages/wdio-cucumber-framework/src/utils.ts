@@ -1,6 +1,7 @@
 import path from 'path'
 
 import { isFunctionAsync } from '@wdio/utils'
+import logger from '@wdio/logger'
 
 import * as Cucumber from '@cucumber/cucumber'
 import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
@@ -8,6 +9,11 @@ import { messages } from '@cucumber/messages'
 
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
 import { TestHookDefinitionConfig } from './types'
+
+const log = logger('@wdio/cucumber-framework:utils')
+
+type IPickleTableRow = messages.PickleStepArgument.PickleTable.IPickleTableRow
+type IPickleTableCell = messages.PickleStepArgument.PickleTable.PickleTableRow.IPickleTableCell
 
 /**
  * NOTE: this function is exported for testing only
@@ -19,10 +25,9 @@ export function createStepArgument ({ argument }: messages.Pickle.IPickleStep) {
 
     if (argument.dataTable) {
         return {
-            rows: argument.dataTable.rows?.map((row: any) => (
+            rows: argument.dataTable.rows?.map((row: IPickleTableRow) => (
                 {
-                    cells: row.cells.map((cell: any) => cell.value),
-                    locations: row.cells.map((cell: any) => cell.location)
+                    cells: row.cells?.map((cell: IPickleTableCell) => cell.value)
                 }
             ))
         }
@@ -33,16 +38,6 @@ export function createStepArgument ({ argument }: messages.Pickle.IPickleStep) {
     }
 
     return undefined
-}
-
-/**
- * builds test full title from test parent and title
- * NOTE: this function is exported for testing only
- * @param {string} parent parent suite/scenario
- * @param {string} stepTitle step/test title
- */
-export function getTestFullTitle(parent: any, stepTitle: any) {
-    return `${parent}: ${stepTitle}`
 }
 
 /**
@@ -61,7 +56,7 @@ export function formatMessage ({ payload = {} }: any) {
     }
 
     if (payload.title && payload.parent) {
-        content.fullTitle = getTestFullTitle(payload.parent, payload.title)
+        content.fullTitle = `${payload.parent}: ${payload.title}`
     }
 
     return content
@@ -152,10 +147,14 @@ export function filterPickles (capabilities: WebDriver.Capabilities, pickle?: me
     }
 
     const parse = (skipExpr: string) =>
-        skipExpr.split(';').reduce((acc: Record<string, string>, splitItem) => {
+        skipExpr.split(';').reduce((acc: Record<string, string>, splitItem: string) => {
             const pos = splitItem.indexOf('=')
             if (pos > 0) {
-                acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
+                try {
+                    acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
+                } catch (e) {
+                    log.error(`Couldn't use tag "${splitItem}" for filtering because it is malformed`)
+                }
             }
             return acc
         }, {})
