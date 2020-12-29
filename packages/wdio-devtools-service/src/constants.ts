@@ -47,11 +47,12 @@ export const IGNORED_URLS = [
 ]
 
 export const FRAME_LOAD_START_TIMEOUT = 2000
-export const TRACING_TIMEOUT = 10000
-export const CPU_IDLE_TRESHOLD = 10000
+export const TRACING_TIMEOUT = 15000
+export const CPU_IDLE_TRESHOLD = 15000
 export const MAX_TRACE_WAIT_TIME = 45000
 export const NETWORK_IDLE_TIMEOUT = 5000
-export const DEFAULT_NETWORK_THROTTLING_STATE = 'Good 3G'
+export const DEFAULT_NETWORK_THROTTLING_STATE = 'online' as const
+export const DEFAULT_FORM_FACTOR = 'desktop' as const
 export const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up, and Chromium as the browserName!'
 
 export const NETWORK_STATES = {
@@ -122,6 +123,7 @@ export const NETWORK_STATES = {
 export const CLICK_TRANSITION = 'click transition'
 export const DEFAULT_THROTTLE_STATE = {
     networkThrottling: DEFAULT_NETWORK_THROTTLING_STATE as keyof typeof NETWORK_STATES,
-    cpuThrottling: 4,
-    cacheEnabled: false
-}
+    cpuThrottling: 0,
+    cacheEnabled: false,
+    formFactor: DEFAULT_FORM_FACTOR
+} as const

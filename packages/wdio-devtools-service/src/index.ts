@@ -3,7 +3,6 @@ import puppeteerCore from 'puppeteer-core'
 
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Viewport } from 'puppeteer-core/lib/cjs/puppeteer/common/PuppeteerViewport'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 
@@ -13,33 +12,10 @@ import TraceGatherer from './gatherer/trace'
 import DevtoolsGatherer, { CDPSessionOnMessageObject } from './gatherer/devtools'
 import { isBrowserSupported, setUnsupportedCommand } from './utils'
 import { NETWORK_STATES, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION, DEFAULT_THROTTLE_STATE } from './constants'
+import { FormFactor, EnablePerformanceAuditsOptions, DeviceDescription, Device } from './types'
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
-
-interface EnablePerformanceAuditsOptions {
-    cacheEnabled: boolean
-    cpuThrottling: number
-    networkThrottling: keyof typeof NETWORK_STATES
-}
-
-interface DeviceDescription {
-    viewport: Viewport;
-    userAgent: string;
-}
-
-interface Device {
-    name: string;
-    userAgent: string;
-    viewport: {
-        width: number;
-        height: number;
-        deviceScaleFactor: number;
-        isMobile: boolean;
-        hasTouch: boolean;
-        isLandscape: boolean;
-    };
-}
 
 export default class DevToolsService implements WebdriverIO.ServiceInstance {
     private _isSupported = false
@@ -49,9 +25,12 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
     private _target?: Target
     private _page: Page | null = null
     private _session?: CDPSession
+
     private _cacheEnabled?: boolean
     private _cpuThrottling?: number
     private _networkThrottling?: keyof typeof NETWORK_STATES
+    private _formFactor?: FormFactor
+
     private _traceGatherer?: TraceGatherer
     private _devtoolsGatherer?: DevtoolsGatherer
     private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
@@ -108,7 +87,7 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
          * update custom commands once tracing finishes
          */
         this._traceGatherer.once('tracingComplete', (traceEvents) => {
-            const auditor = new Auditor(traceEvents, this._devtoolsGatherer?.getLogs())
+            const auditor = new Auditor(traceEvents, this._devtoolsGatherer?.getLogs(), this._formFactor)
             auditor.updateCommands(this._browser as WebdriverIO.BrowserObject)
         })
 
@@ -138,7 +117,7 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
     /**
      * set flag to run performance audits for page transitions
      */
-    _enablePerformanceAudits ({ networkThrottling, cpuThrottling, cacheEnabled }: EnablePerformanceAuditsOptions = DEFAULT_THROTTLE_STATE) {
+    _enablePerformanceAudits ({ networkThrottling, cpuThrottling, cacheEnabled, formFactor }: EnablePerformanceAuditsOptions = DEFAULT_THROTTLE_STATE) {
         if (!NETWORK_STATES[networkThrottling]) {
             throw new Error(`Network throttling profile "${networkThrottling}" is unknown, choose between ${Object.keys(NETWORK_STATES).join(', ')}`)
         }
@@ -150,6 +129,7 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
         this._networkThrottling = networkThrottling
         this._cpuThrottling = cpuThrottling
         this._cacheEnabled = Boolean(cacheEnabled)
+        this._formFactor = formFactor
         this._shouldRunPerformanceAudits = true
     }
 
@@ -172,7 +152,7 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
             const deviceName = device + (inLandscape ? ' landscape' : '')
             const deviceCapabilities = puppeteerCore.devices[deviceName]
             if (!deviceCapabilities) {
-                const deviceNames = (puppeteerCore.devices as any)
+                const deviceNames = Object.values(puppeteerCore.devices as any)
                     .map((device: Device) => device.name)
                     .filter((device: string) => !device.endsWith('landscape'))
                 throw new Error(`Unknown device, available options: ${deviceNames.join(', ')}`)
@@ -189,8 +169,8 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
      */
     async _setThrottlingProfile(
         networkThrottling = DEFAULT_THROTTLE_STATE.networkThrottling,
-        cpuThrottling = DEFAULT_THROTTLE_STATE.cpuThrottling,
-        cacheEnabled = DEFAULT_THROTTLE_STATE.cacheEnabled
+        cpuThrottling: number = DEFAULT_THROTTLE_STATE.cpuThrottling,
+        cacheEnabled: boolean = DEFAULT_THROTTLE_STATE.cacheEnabled
     ) {
         if (!this._page || !this._session) {
             throw new Error('No page or session has been captured yet')
@@ -206,7 +186,7 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
             return setUnsupportedCommand(this._browser as WebdriverIO.BrowserObject)
         }
 
-        this._puppeteer = await this._browser.getPuppeteer() as unknown as Browser
+        this._puppeteer = await this._browser.getPuppeteer()
         /* istanbul ignore next */
         if (!this._puppeteer) {
             throw new Error('Could not initiate Puppeteer instance')
