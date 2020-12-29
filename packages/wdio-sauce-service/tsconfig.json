@@ -3,7 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./build",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "types": ["webdriverio", "@wdio/logger", "jest", "@wdio/mocha-framework", "@wdio/jasmine-framework", "@wdio/cucumber-framework"]
   },
   "include": [
     "src/**/*"

@@ -260,7 +260,7 @@ export interface W3CCapabilities {
     firstMatch: Capabilities[];
 }
 
-export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities, BrowserStackCapabilities {
+export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities, BrowserStackCapabilities {
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
     handlesAlerts?: boolean;
@@ -301,7 +301,7 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     excludeDriverLogs?: string[];
 }
 
-export interface VendorExtensions extends EdgeCapabilities {
+export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilities {
     // Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Testingbot w3c specific
@@ -324,6 +324,12 @@ export interface VendorExtensions extends EdgeCapabilities {
     'safari.options'?: {
         [name: string]: any;
     };
+
+    /**
+     * @deprecated
+     */
+    // eslint-disable-next-line
+    testobject_api_key?: string
 }
 
 // Selenium Grid specific
@@ -351,34 +357,38 @@ export interface ChromeCapabilities {
 // Appium General Capabilities
 export interface AppiumCapabilities {
     automationName?: string;
-    'appium:automationName'?: string;
     platformVersion?: string;
-    'appium:platformVersion'?: string;
     deviceName?: string;
-    'appium:deviceName'?: string;
     app?: string;
-    'appium:app'?: string;
     newCommandTimeout?: number;
-    'appium:newCommandTimeout'?: number;
     language?: string;
-    'appium:language'?: string;
     locale?: string;
-    'appium:locale'?: string;
     udid?: string;
-    'appium:udid'?: string;
     orientation?: string;
-    'appium:orientation'?: string;
     autoWebview?: boolean;
-    'appium:autoWebview'?: boolean;
     noReset?: boolean;
-    'appium:noReset'?: boolean;
     fullReset?: boolean;
-    'appium:fullReset'?: boolean;
     eventTimings?: boolean;
-    'appium:eventTimings'?: boolean;
     enablePerformanceLogging?: boolean;
-    'appium:enablePerformanceLogging'?: boolean;
     printPageSourceOnFindFailure?: boolean;
+}
+
+// Appium General W3C Capabilities
+export interface AppiumW3CCapabilities {
+    'appium:automationName'?: string;
+    'appium:platformVersion'?: string;
+    'appium:deviceName'?: string;
+    'appium:app'?: string;
+    'appium:newCommandTimeout'?: number;
+    'appium:language'?: string;
+    'appium:locale'?: string;
+    'appium:udid'?: string;
+    'appium:orientation'?: string;
+    'appium:autoWebview'?: boolean;
+    'appium:noReset'?: boolean;
+    'appium:fullReset'?: boolean;
+    'appium:eventTimings'?: boolean;
+    'appium:enablePerformanceLogging'?: boolean;
     'appium:printPageSourceOnFindFailure'?: boolean;
 }
 
@@ -516,6 +526,10 @@ export interface IECapabilities {
  */
 export interface SauceLabsCapabilities {
     // Sauce Labs Custom Testing Options
+    name?: string
+    build?: string
+    tags?: string[]
+    'custom-data'?: any
     tunnelIdentifier?: string
     parentTunnel?: string
     screenResolution?: string

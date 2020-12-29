@@ -1,5 +1,7 @@
 import { isW3C } from '@wdio/utils'
 
+import type { SauceServiceConfig } from './types'
+
 /**
  * Determine if the current instance is a Unified Platform instance. UP tests are Real Device tests
  * that can be started with different sets of capabilities. A deviceName is not mandatory, the only mandatory cap for
@@ -42,8 +44,8 @@ import { isW3C } from '@wdio/utils'
  *  deviceContextId: ''
  * }
  */
-export function isUnifiedPlatform(caps){
-    const { 'appium:deviceName':appiumDeviceName = '', deviceName = '', platformName = '' } = caps
+export function isUnifiedPlatform (caps: WebDriver.DesiredCapabilities){
+    const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
     const name = appiumDeviceName || deviceName
 
     // If the string contains `simulator` or `emulator` it's an EMU/SIM session
@@ -55,8 +57,8 @@ export function isUnifiedPlatform(caps){
  * @param {object} caps
  * @returns {boolean}
  */
-export function isEmuSim(caps){
-    const { 'appium:deviceName':appiumDeviceName = '', deviceName = '', platformName = '' } = caps
+export function isEmuSim (caps: WebDriver.DesiredCapabilities){
+    const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
     const name = appiumDeviceName || deviceName
 
     // If the string contains `simulator` or `emulator` it's an EMU/SIM session
@@ -68,8 +70,8 @@ export function isEmuSim(caps){
  * @param {object} options - Additional options to set on the capability
  * @returns {function(object): void} - A function that mutates a single capability
  */
-export function makeCapabilityFactory(tunnelIdentifier, options) {
-    return capability => {
+export function makeCapabilityFactory(tunnelIdentifier: string, options: any) {
+    return (capability: WebDriver.DesiredCapabilities) => {
         // If the capability appears to be using the legacy JSON Wire Protocol
         // we need to make sure the key 'sauce:options' is not present
         const isLegacy = Boolean(
@@ -85,7 +87,7 @@ export function makeCapabilityFactory(tunnelIdentifier, options) {
 
         Object.assign(capability, options)
 
-        const sauceOptions = !isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability) ? capability['sauce:options'] : capability
+        const sauceOptions = (!isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability) ? capability['sauce:options'] : capability) as SauceServiceConfig
         sauceOptions.tunnelIdentifier = (
             capability.tunnelIdentifier ||
             sauceOptions.tunnelIdentifier ||

@@ -1,12 +1,17 @@
 import logger from '@wdio/logger'
 import SauceLabs from 'saucelabs'
+
 import SauceServiceLauncher from '../src/launcher'
+import type { SauceServiceConfig } from '../src/types'
 
 jest.mock('saucelabs', () => {
     return class SauceLabsMock {
         static instances = []
-        constructor (options) {
-            this.options = options
+
+        stop: Function
+        startSauceConnect: Function
+
+        constructor (public options: SauceServiceConfig) {
             this.stop = jest.fn()
             this.startSauceConnect = jest.fn().mockReturnValue(this)
             SauceLabsMock.instances.push(this)
@@ -14,124 +19,134 @@ jest.mock('saucelabs', () => {
     }
 })
 
-const log = logger()
+const log = logger('')
 
 test('onPrepare', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: true,
         sauceConnectOpts: {
-            port: 4446,
+            sePort: 4446,
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps = [{}]
+    const caps = [{}] as WebDriver.Capabilities[]
     const config = {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual([{
         'sauce:options': { tunnelIdentifier: 'my-tunnel' }
     }])
+
+    // @ts-ignore mock feature
     expect(SauceLabs.instances).toHaveLength(1)
+    // @ts-ignore mock feature
     expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
-    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
 test('onPrepare w/o identifier', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: true
     }
-    const caps = [{}]
+    const caps = [{}] as WebDriver.Capabilities[]
     const config = {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options, {}, config)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps[0]['sauce:options'].tunnelIdentifier).toContain('SC-tunnel-')
-    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
+
+    // @ts-ignore mock feature
     expect(SauceLabs.instances).toHaveLength(1)
+    // @ts-ignore mock feature
     expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
-    expect(log.info.mock.calls[0][0]).toContain('Sauce Connect successfully started after')
+    expect((log.info as jest.Mock).mock.calls[0][0]).toContain('Sauce Connect successfully started after')
 })
 
 test('onPrepare w/ SauceConnect w/o scRelay', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: true
     }
-    const caps = [{}]
-    const config = {
+    const caps = [{}] as WebDriver.Capabilities[]
+    const config: WebdriverIO.Config = {
         user: 'foobaruser',
-        key: '12345',
-        sauceConnect: true
+        key: '12345'
     }
-    const service = new SauceServiceLauncher(options)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
-    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
     expect(config.port).toBe(undefined)
     expect(config.protocol).toBe(undefined)
     expect(config.hostname).toBe(undefined)
 })
 
 test('onPrepare w/ SauceConnect w/ scRelay w/ default port', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         scRelay: true,
         sauceConnect: true,
         sauceConnectOpts: { tunnelIdentifier: 'test123' }
     }
-    const caps = [{}]
+    const caps = [{}] as WebDriver.Capabilities[]
     const config = {}
-    const service = new SauceServiceLauncher(options)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
-    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
+    // @ts-ignore mock feature
     expect(SauceLabs.instances).toHaveLength(1)
+    // @ts-ignore mock feature
     expect(SauceLabs.instances[0].startSauceConnect).toBeCalledWith({
         noAutodetect: true,
         sePort: 4445,
         tunnelIdentifier: 'test123',
     })
+    // @ts-ignore
     expect(caps[0].port).toEqual(4445)
 })
 
 test('onPrepare w/ SauceConnect w/ region EU', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: true
     }
-    const caps = [{}]
+    const caps = [{}] as WebDriver.Capabilities[]
     const config = {
         user: 'foobaruser',
         key: '12345',
         region: 'eu'
     }
     const service = new SauceServiceLauncher(options, caps, config)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
-    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
+    // @ts-ignore mock feature
     expect(SauceLabs.instances).toHaveLength(1)
+    // @ts-ignore mock feature
     expect(SauceLabs.instances[0].options.region).toBe('eu')
 })
 
 test('onPrepare multiremote', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: true,
         scRelay: true,
         sauceConnectOpts: {
-            port: 4446,
+            sePort: 4446,
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps = {
+    const caps: WebdriverIO.MultiRemoteCapabilities = {
         browserA: {
             capabilities: { browserName: 'chrome' }
         },
@@ -143,8 +158,8 @@ test('onPrepare multiremote', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual({
@@ -167,39 +182,41 @@ test('onPrepare multiremote', async () => {
             },
         }
     })
-    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
 test('onPrepare if sauceTunnel is not set', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnectOpts: {
-            port: 4446,
+            sePort: 4446,
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps = [{}]
+    const caps = [{}] as WebDriver.Capabilities[]
     const config = {
         user: 'foobaruser',
         key: '12345'
     }
     const service = new SauceServiceLauncher(options, caps, config)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual([{}])
-    expect(service.sauceConnectProcess).toBeUndefined()
+    expect(service['_sauceConnectProcess']).toBeUndefined()
+    // @ts-ignore mock feature
     expect(SauceLabs.instances).toHaveLength(1)
+    // @ts-ignore mock feature
     expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(0)
 })
 
 test('onPrepare multiremote with tunnel identifier and with w3c caps ', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: true,
         sauceConnectOpts: {
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps = {
+    const caps: WebdriverIO.MultiRemoteCapabilities = {
         browserA: {
             capabilities: {
                 browserName: 'chrome',
@@ -222,8 +239,8 @@ test('onPrepare multiremote with tunnel identifier and with w3c caps ', async ()
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual({
@@ -246,14 +263,14 @@ test('onPrepare multiremote with tunnel identifier and with w3c caps ', async ()
             }
         }
     })
-    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
 test('onPrepare without tunnel identifier and without w3c caps ', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: false
     }
-    const caps = [{
+    const caps: WebDriver.DesiredCapabilities[] = [{
         browserName: 'chrome'
     }, {
         browserName: 'firefox',
@@ -263,8 +280,8 @@ test('onPrepare without tunnel identifier and without w3c caps ', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual([{
@@ -273,14 +290,14 @@ test('onPrepare without tunnel identifier and without w3c caps ', async () => {
         browserName: 'firefox',
         tunnelIdentifier: 'fish'
     }])
-    expect(service.sauceConnectProcess).toBeUndefined()
+    expect(service['_sauceConnectProcess']).toBeUndefined()
 })
 
 test('onPrepare without tunnel identifier and with w3c caps ', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: false
     }
-    const caps = [{
+    const caps: WebDriver.Capabilities[] = [{
         browserName: 'chrome',
         'sauce:options': {
             commandTimeout: 600,
@@ -296,8 +313,8 @@ test('onPrepare without tunnel identifier and with w3c caps ', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual([{
@@ -312,19 +329,19 @@ test('onPrepare without tunnel identifier and with w3c caps ', async () => {
             commandTimeout: 600
         }
     }])
-    expect(service.sauceConnectProcess).toBeUndefined()
+    expect(service['_sauceConnectProcess']).toBeUndefined()
 })
 
 test('onPrepare with tunnel identifier and with w3c caps ', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: true,
         scRelay: true,
         sauceConnectOpts: {
-            port: 4446,
+            sePort: 4446,
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps = [{
+    const caps: WebDriver.Capabilities[] = [{
         browserName: 'chrome',
         'sauce:options': {
             commandTimeout: 600,
@@ -340,8 +357,8 @@ test('onPrepare with tunnel identifier and with w3c caps ', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual([{
@@ -363,19 +380,19 @@ test('onPrepare with tunnel identifier and with w3c caps ', async () => {
             tunnelIdentifier: 'my-tunnel'
         }
     }])
-    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
 test('onPrepare with tunnel identifier and without w3c caps ', async () => {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: true,
         scRelay: true,
         sauceConnectOpts: {
-            port: 4446,
+            sePort: 4446,
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps = [{
+    const caps: WebDriver.DesiredCapabilities[] = [{
         browserName: 'internet explorer',
         platform: 'Windows 7',
         tunnelIdentifier: 'fish'
@@ -401,8 +418,8 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
         user: 'foobaruser',
         key: '12345'
     }
-    const service = new SauceServiceLauncher(options)
-    expect(service.sauceConnectProcess).toBeUndefined()
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual([{
@@ -448,40 +465,41 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
         platformName: 'iOS',
         tunnelIdentifier: 'my-tunnel'
     }])
-    expect(service.sauceConnectProcess).not.toBeUndefined()
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
 test('startTunnel fail twice and recover', async ()=> {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: true,
         sauceConnectOpts: {
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const service = new SauceServiceLauncher(options)
-    service.api.startSauceConnect
+    const service = new SauceServiceLauncher(options, [{}], {})
+    ;(service['_api'].startSauceConnect as jest.Mock)
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockRejectedValueOnce(new Error('ENOENT'))
-    await service.startTunnel()
+    await service.startTunnel({})
 
+    // @ts-ignore mock feature
     expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(3)
 })
 
 test('startTunnel fail three and throws error', async ()=> {
-    const options = {
+    const options: SauceServiceConfig = {
         sauceConnect: true,
         sauceConnectOpts: {
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const service = new SauceServiceLauncher(options)
-    service.api.startSauceConnect
+    const service = new SauceServiceLauncher(options, [{}], {})
+    ;(service['_api'].startSauceConnect as jest.Mock)
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockRejectedValueOnce(new Error('ENOENT'))
 
     expect(async () => {
-        await service.startTunnel()
+        await service.startTunnel({})
     }).rejects.toThrowError('ENOENT')
 
 })
@@ -490,11 +508,12 @@ test('onComplete', async () => {
     const service = new SauceServiceLauncher({}, [], {})
     expect(service.onComplete()).toBeUndefined()
 
-    service.sauceConnectProcess = { close: jest.fn() }
+    service['_sauceConnectProcess'] = { close: jest.fn() } as any
     service.onComplete()
-    expect(service.sauceConnectProcess.close).toBeCalled()
+    expect(service['_sauceConnectProcess'].close).toBeCalled()
 })
 
 afterEach(async () => {
+    // @ts-ignore mock feature
     SauceLabs.instances = []
 })
