@@ -68,7 +68,6 @@ Array [
       },
       "context",
       Object {
-        "duration": 0,
         "error": undefined,
         "passed": true,
         "result": "@wdio/sync: FooBar 0 0",
