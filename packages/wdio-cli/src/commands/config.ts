@@ -59,6 +59,24 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     }
 
     /**
+     * add ts-node if TypeScript is desired but not installed
+     */
+    if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
+        try {
+            /**
+             * this is only for testing purposes as we want to check whether
+             * we add `ts-node` to the packages to install when resolving fails
+             */
+            if (process.env.JEST_WORKER_ID && process.env.WDIO_TEST_THROW_RESOLVE) {
+                throw new Error('resolve error')
+            }
+            require.resolve('ts-node')
+        } catch (e) {
+            packagesToInstall.push('ts-node')
+        }
+    }
+
+    /**
      * add packages that are required by services
      */
     addServiceDeps(servicePackages, packagesToInstall)
