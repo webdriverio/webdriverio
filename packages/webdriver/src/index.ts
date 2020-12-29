@@ -27,6 +27,13 @@ export default class WebDriver {
         }
 
         /**
+         * Store all log events in a file
+         */
+        if (params.outputDir && !process.env.WDIO_LOG_PATH) {
+            process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
+        }
+
+        /**
          * if the server responded with direct connect information, update the
          * params to speak directly to the appium host instead of a load
          * balancer (see https://github.com/appium/python-client#direct-connect-urls
@@ -41,13 +48,6 @@ export default class WebDriver {
             params.hostname = directConnectHost
             params.port = directConnectPort
             params.path = directConnectPath
-        }
-
-        /**
-         * Store all log events in a file
-         */
-        if (params.outputDir) {
-            process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
         }
 
         const { sessionId, capabilities } = await startWebDriverSession(params)

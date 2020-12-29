@@ -63,6 +63,12 @@ export const DEFAULTS: DefaultOptions<Options> = {
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
+     * directory for log files
+     */
+    outputDir: {
+        type: 'string'
+    },
+    /**
      * Timeout for any WebDriver request to a driver or grid
      */
     connectionRetryTimeout: {
