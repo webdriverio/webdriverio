@@ -3,7 +3,6 @@ import logger from '@wdio/logger'
 
 import { isUnifiedPlatform } from './utils'
 import { SauceServiceConfig } from './types'
-import WebDriver from 'webdriver'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data'] as const
 
