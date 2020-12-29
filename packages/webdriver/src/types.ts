@@ -680,7 +680,11 @@ export interface SauceLabsVisualCapabilities {
  * https://testingbot.com/support/other/test-options#platform
  */
 export interface TestingbotCapabilities {
+    name?: string;
+    tags?: string[];
+    build?: string | number;
     public?: boolean;
+    'tunnel-identifier'?: string
 }
 
 export interface SeleniumRCCapabilities {

@@ -543,7 +543,7 @@ declare namespace WebDriver {
     export interface SauceLabsCapabilities {
         // Sauce Labs Custom Testing Options
         name?: string
-        build?: string
+        build?: string | number
         tags?: string[]
         'custom-data'?: any
         tunnelIdentifier?: string
