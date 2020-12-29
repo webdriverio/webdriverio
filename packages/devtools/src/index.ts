@@ -1,4 +1,5 @@
 import os from 'os'
+import path from 'path'
 import UAParser from 'ua-parser-js'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -27,6 +28,13 @@ export default class DevTools {
 
         if (params.logLevel && (!options.logLevels || !(options.logLevels as any)['devtools'])) {
             logger.setLevel('devtools', params.logLevel)
+        }
+
+        /**
+         * Store all log events in a file
+         */
+        if (params.outputDir && !process.env.WDIO_LOG_PATH) {
+            process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
         }
 
         const browser = await launch(params.capabilities as WebDriver.Capabilities)
