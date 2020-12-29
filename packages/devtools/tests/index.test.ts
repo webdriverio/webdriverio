@@ -1,10 +1,9 @@
+jest.unmock('@wdio/config')
+
 import path from 'path'
 // @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
-import * as webdriverio from '../src'
-
-// If you're making a change here, like adding a new export, the TypeScript
-// typings may need an update : packages/webdriverio/webdriverio.d.ts
+import DevTools from '../src'
 
 const OUTPUT_DIR = path.join('some', 'output', 'dir')
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'wdio.log')
@@ -27,44 +26,22 @@ const setUpLogCheck = (conditionFunction: () => boolean) => {
     logMock.debug.mockImplementation(logCheck)
 }
 
-describe('index.js', () => {
-    afterEach(() => {
-        delete process.env.WDIO_LOG_PATH
+describe('DevTools', () => {
+    describe('newSession', () => {
+        afterEach(() => {
+            delete process.env.WDIO_LOG_PATH
 
-        logMock.error.mockRestore()
-        logMock.warn.mockRestore()
-        logMock.info.mockRestore()
-        logMock.debug.mockRestore()
-    })
+            logMock.error.mockRestore()
+            logMock.warn.mockRestore()
+            logMock.info.mockRestore()
+            logMock.debug.mockRestore()
+        })
 
-    it('exports remote method', () => {
-        expect(webdriverio.remote).toBeDefined()
-    })
-
-    it('exports attach method', () => {
-        expect(webdriverio.attach).toBeDefined()
-    })
-
-    it('exports multiremote method', () => {
-        expect(webdriverio.multiremote).toBeDefined()
-    })
-
-    it('exports remote method', () => {
-        expect(webdriverio.remote).toBeDefined()
-    })
-
-    it('exports SevereServiceError class', () => {
-        expect(webdriverio.SevereServiceError).toBeDefined()
-    })
-
-    describe('remote method', () => {
         it('should be possible to skip setting outputDir', async () => {
             setUpLogCheck(() => !('WDIO_LOG_PATH' in process.env))
 
-            await webdriverio.remote({
-                capabilities: {
-                    browserName: 'chrome'
-                }
+            await DevTools.newSession({
+                capabilities: { browserName: 'chrome' },
             })
 
             expect('WDIO_LOG_PATH' in process.env).toBe(false)
@@ -73,10 +50,8 @@ describe('index.js', () => {
         it('should be possible to set outputDir', async () => {
             setUpLogCheck(() => process.env.WDIO_LOG_PATH === OUTPUT_FILE)
 
-            await webdriverio.remote({
-                capabilities: {
-                    browserName: 'chrome'
-                },
+            await DevTools.newSession({
+                capabilities: { browserName: 'chrome' },
                 outputDir: OUTPUT_DIR,
             })
 
@@ -90,7 +65,7 @@ describe('index.js', () => {
 
             process.env.WDIO_LOG_PATH = customPath
 
-            await webdriverio.remote({
+            await DevTools.newSession({
                 capabilities: { browserName: 'chrome' },
                 outputDir: OUTPUT_DIR,
             })

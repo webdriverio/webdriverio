@@ -12,8 +12,6 @@ import {
 } from './utils'
 import type { Options, MultiRemoteOptions } from './types'
 
-const log = logger('webdriverio')
-
 /**
  * A method to create a new session with WebdriverIO
  *
@@ -47,7 +45,6 @@ export const remote = async function (params: Options = {}, remoteModifier?: Fun
     }
 
     const prototype = getPrototype('browser')
-    log.info(`Initiate new session using the ${automationProtocol} protocol`)
     const ProtocolDriver = require(automationProtocol).default
 
     await updateCapabilities(params, automationProtocol)

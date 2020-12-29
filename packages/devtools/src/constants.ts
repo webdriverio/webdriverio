@@ -80,6 +80,12 @@ export const DEFAULTS: DefaultOptions<WebDriver.Options> = {
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
+     * directory for log files
+     */
+    outputDir: {
+        type: 'string'
+    },
+    /**
      * maxConnectionRetries in chrome-launcher
      */
     connectionRetryCount: {

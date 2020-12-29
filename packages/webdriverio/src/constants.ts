@@ -260,13 +260,6 @@ export const WDIO_DEFAULTS: Record<string, DefaultPropertyType> = {
         type: 'number'
     },
     /**
-     * directory for log files
-     */
-    outputDir: {
-        type: 'string',
-        default: process.cwd()
-    },
-    /**
      * list of strings to watch of `wdio` command is called with `--watch` flag
      */
     filesToWatch: {

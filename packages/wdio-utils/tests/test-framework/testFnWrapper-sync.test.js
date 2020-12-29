@@ -33,7 +33,13 @@ describe('testFnWrapper', () => {
         expect(result).toBe('@wdio/sync: FooBar 0 0')
         expect(executeHooksWithArgs).toBeCalledTimes(2)
 
-        delete executeHooksWithArgs.mock.calls[1][1][2].duration
+        expect(
+            Object.prototype.hasOwnProperty.call(
+                executeHooksWithArgs.mock.calls[1][2][2],
+                'duration'
+            )
+        ).toBe(true)
+        delete executeHooksWithArgs.mock.calls[1][2][2].duration
         expect(executeHooksWithArgs.mock.calls).toMatchSnapshot()
     })
 
