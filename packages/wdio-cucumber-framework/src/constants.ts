@@ -22,7 +22,8 @@ export const DEFAULT_OPTS: CucumberOpts = {
     featureDefaultLanguage: 'en'
 }
 
-export const NOOP = /* istanbul ignore next */ function () {}
+/* istanbul ignore next */
+export const NOOP = function () {}
 
 export const CUCUMBER_HOOK_DEFINITION_TYPES = [
     'beforeTestRunHookDefinitionConfigs',
