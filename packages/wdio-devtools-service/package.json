@@ -31,7 +31,7 @@
     "@wdio/logger": "6.10.10",
     "core-js": "~3.8.2",
     "devtools-protocol": "^0.0.841965",
-    "lighthouse": "^6.4.1",
+    "lighthouse": "^7.0.0",
     "puppeteer-core": "^5.1.0",
     "speedline": "^1.4.1",
     "stable": "^0.1.8"
