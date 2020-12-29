@@ -197,6 +197,10 @@ declare namespace WebdriverIO {
          */
         specFileRetriesDelay?: number;
         /**
+         * Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+         */
+        specFileRetriesDeferred?: boolean
+        /**
          * Default timeout for all `waitFor*` commands. (Note the lowercase f in the option name.)
          * This timeout only affects commands starting with `waitFor*` and their default wait time.
          */
