@@ -1392,6 +1392,15 @@ declare namespace WebdriverIO {
 
     interface BrowserObject {
         isMultiremote?: false;
+
+        /**
+         * @private
+         */
+        _NOT_FIBER?: boolean
+        /**
+         * @private
+         */
+        wdioRetries?: number
     }
 
     type MultiRemoteBrowserReference = Record<string, BrowserObject>
