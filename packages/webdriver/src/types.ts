@@ -527,7 +527,7 @@ export interface IECapabilities {
 export interface SauceLabsCapabilities {
     // Sauce Labs Custom Testing Options
     name?: string
-    build?: string
+    build?: string | number
     tags?: string[]
     'custom-data'?: any
     tunnelIdentifier?: string
@@ -682,7 +682,7 @@ export interface SauceLabsVisualCapabilities {
 export interface TestingbotCapabilities {
     name?: string;
     tags?: string[];
-    build?: string | number;
+    build?: string | number | number;
     public?: boolean;
     'tunnel-identifier'?: string
 }
