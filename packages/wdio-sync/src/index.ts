@@ -4,7 +4,7 @@ import executeHooksWithArgs from './executeHooksWithArgs'
 import runFnInFiberContext from './runFnInFiberContext'
 import wrapCommand from './wrapCommand'
 
-import { STACKTRACE_FILTER_FN } from './constants'
+import { stackTraceFilter } from './utils'
 const defaultRetries = { attempts: 0, limit: 0 }
 
 /**
@@ -15,7 +15,7 @@ const defaultRetries = { attempts: 0, limit: 0 }
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-async function executeSync(fn, retries = defaultRetries, args = []) {
+async function executeSync (this: WebdriverIO.BrowserObject, fn: Function, retries = defaultRetries, args: any[] = []): Promise<any> {
     /**
      * User can also use the `@wdio/sync` package directly to run commands
      * synchronously in standalone mode. In this case we neither have
@@ -55,7 +55,7 @@ async function executeSync(fn, retries = defaultRetries, args = []) {
             return Promise.reject(e)
         }
 
-        e.stack = e.stack.split('\n').filter(STACKTRACE_FILTER_FN).join('\n')
+        e.stack = e.stack.split('\n').filter(stackTraceFilter).join('\n')
         return Promise.reject(e)
     }
 }
@@ -63,8 +63,8 @@ async function executeSync(fn, retries = defaultRetries, args = []) {
 /**
  * run hook or spec via executeSync
  */
-function runSync(fn, repeatTest = 0, args = []) {
-    return (resolve, reject) =>
+function runSync (this: any, fn: Function, repeatTest?: typeof defaultRetries, args: any[] = []) {
+    return (resolve: (value: any) => void, reject: (error: Error) => void) =>
         Fiber(() => executeSync.call(this, fn, repeatTest, args).then(resolve, reject)).run()
 }
 
@@ -76,7 +76,7 @@ export {
     runSync,
 }
 
-export default function sync(testFn) {
+export default function sync(testFn: Function) {
     return new Promise((resolve, reject) => {
         return runSync(testFn)(resolve, reject)
     })

@@ -2,12 +2,14 @@ import { Future } from '../src/fibers'
 import wrapCommand from '../src/wrapCommand'
 import { anotherError } from './__mocks__/errors'
 
+import type FutureType from 'fibers/future'
+
 jest.mock('../src/executeHooksWithArgs', () => ({
     __esModule: true,
     default: jest.fn().mockImplementation(() => true)
 }))
 
-const futureWait = Future.wait
+const futureWait = (Future as any as FutureType<any>).wait
 const futurePrototypeWait = Future.prototype.wait
 
 describe('wrapCommand:runCommand', () => {
@@ -17,13 +19,13 @@ describe('wrapCommand:runCommand', () => {
     })
 
     it('should return result', async () => {
-        process.emit('WDIO_TIMER', { id: 0, start: true })
-        global.WDIO_WORKER = '1'
+        process.emit('WDIO_TIMER' as any, { id: 0, start: true } as any)
+        global.WDIO_WORKER = true
         const fn = jest.fn(x => (x + x))
         const runCommand = wrapCommand('foo', fn)
         const result = await runCommand.call({ options: {} }, 'bar')
         expect(result).toEqual('barbar')
-        process.emit('WDIO_TIMER', { id: 0 })
+        process.emit('WDIO_TIMER' as any, { id: 0 } as any)
     })
 
     it('should set _NOT_FIBER to false if elementId is missing', async () => {
@@ -62,6 +64,7 @@ describe('wrapCommand:runCommand', () => {
         const runCommand = wrapCommand('foo', jest.fn())
 
         const context = {
+            _NOT_FIBER: undefined,
             options: {}, elementId: 'foo', parent: { _NOT_FIBER: true }
         }
 
@@ -92,6 +95,7 @@ describe('wrapCommand:runCommand', () => {
         const runCommand = wrapCommand('waitUntil', jest.fn())
 
         const context = {
+            _hidden_: null,
             _hidden_changes_: [],
             constructor: { name: 'MultiRemoteDriver' },
             instances: ['browserA', 'browserB'],
@@ -141,7 +145,7 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error('AnotherError'))
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(3)
+            expect(err.stack.split(__filename)).toHaveLength(3)
             expect(err.stack).toContain('__mocks__')
         }
         expect.assertions(4)
@@ -156,12 +160,14 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error('bar'))
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
+            expect(err.stack.split(__filename)).toHaveLength(2)
         }
         expect.assertions(3)
     })
 
     it('should accept undefined', async () => {
+        expect.assertions(3)
+
         const fn = jest.fn(() => Promise.reject())
         const runCommand = wrapCommand('foo', fn)
         const result = runCommand.call({ options: {} })
@@ -170,24 +176,23 @@ describe('wrapCommand:runCommand', () => {
         } catch (err) {
             expect(err).toEqual(new Error())
             expect(err.name).toBe('Error')
-            expect(err.stack.split('wrapCommand.test.js')).toHaveLength(2)
+            expect(err.stack.split(__filename)).toHaveLength(2)
         }
-        expect.assertions(3)
     })
 
     describe('future', () => {
         beforeEach(() => {
-            Future.wait = jest.fn(() => { throw new Error() })
+            (Future as any as FutureType<any>).wait = jest.fn(() => { throw new Error() })
         })
 
         it('should throw regular error', () => {
             const fn = jest.fn(() => {})
             const runCommand = wrapCommand('foo', fn)
-            const context = { options: {} }
+            const context = { options: {}, _NOT_FIBER: undefined }
             try {
                 runCommand.call(context, 'bar')
             } catch (err) {
-                expect(Future.wait).toThrow()
+                expect((Future as any as FutureType<any>).wait).toThrow()
             }
             expect(context._NOT_FIBER).toBe(false)
             expect.assertions(2)
@@ -200,19 +205,19 @@ describe('wrapCommand:runCommand', () => {
      */
     describe('WDIO_TIMER', () => {
         it('WDIO_TIMER listener', () => {
-            process.emit('WDIO_TIMER', { id: 1, start: true })
-            process.emit('WDIO_TIMER', { id: 1 })
-            process.emit('WDIO_TIMER', { id: 2, start: true })
+            process.emit('WDIO_TIMER' as any, { id: 1, start: true } as any)
+            process.emit('WDIO_TIMER' as any, { id: 1 } as any)
+            process.emit('WDIO_TIMER' as any, { id: 2, start: true } as any)
 
-            process.emit('WDIO_TIMER', { id: 2, start: true })
-            process.emit('WDIO_TIMER', { id: 3, start: true })
-            process.emit('WDIO_TIMER', { id: 2, timeout: true })
-            process.emit('WDIO_TIMER', { id: 123, timeout: true })
+            process.emit('WDIO_TIMER' as any, { id: 2, start: true } as any)
+            process.emit('WDIO_TIMER' as any, { id: 3, start: true } as any)
+            process.emit('WDIO_TIMER' as any, { id: 2, timeout: true } as any)
+            process.emit('WDIO_TIMER' as any, { id: 123, timeout: true } as any)
         })
     })
 
     afterEach(() => {
-        Future.wait = futureWait
+        (Future as any as FutureType<any>).wait = futureWait
         Future.prototype.wait = futurePrototypeWait
     })
 })

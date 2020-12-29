@@ -1,15 +1,17 @@
 import logger from '@wdio/logger'
 
+import type { FiberConstructor, FutureConstructor } from './types'
+
 const log = logger('@wdio/sync')
 
-let Fiber
-let Future
+let Fiber: FiberConstructor
+let Future: FutureConstructor
 
 global._HAS_FIBER_CONTEXT = false
 
 const origErrorFn = console.error.bind(console)
-const errors = []
-console.error = /* istanbul ignore next */ (...args) => errors.push(args)
+const errors: Error[] = []
+console.error = /* istanbul ignore next */ (...args: Error[]) => errors.push(...args)
 
 /**
  * Helper method to retrieve a version of `fibers` for your Node version.
@@ -29,6 +31,7 @@ console.error = origErrorFn
 /**
  * throw if no fibers could be loaded
  */
+// @ts-ignore
 if (!Fiber || !Future) {
     throw new Error(
         'No proper `fibers` package could be loaded. It might be not ' +

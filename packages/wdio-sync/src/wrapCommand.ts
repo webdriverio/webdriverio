@@ -7,8 +7,12 @@ import { sanitizeErrorMessage } from './utils'
 const log = logger('@wdio/sync')
 
 let inCommandHook = false
-const timers = []
-const elements = new Set()
+const timers: any[] = []
+const elements: Set<WebdriverIO.Element> = new Set()
+
+declare global {
+    var WDIO_WORKER: boolean
+}
 
 /**
  * resets `_NOT_FIBER` if Timer has timed out
@@ -36,8 +40,8 @@ process.on('WDIO_TIMER', (payload) => {
  * @param  {Function[]} afterCommand   method to be executed after calling the actual function
  * @return {Function}   actual wrapped function
  */
-export default function wrapCommand(commandName, fn) {
-    return function wrapCommandFn(...args) {
+export default function wrapCommand (commandName: string, fn: Function) {
+    return function wrapCommandFn(this: WebdriverIO.BrowserObject | WebdriverIO.Element, ...args: any[]) {
         /**
          * print error if a user is using a fiberized command outside of the Fibers context
          */
@@ -52,14 +56,14 @@ export default function wrapCommand(commandName, fn) {
          * store element if Timer is running to reset `_NOT_FIBER` if timeout has occurred
          */
         if (timers.length > 0) {
-            elements.add(this)
+            elements.add(this as WebdriverIO.Element)
         }
 
         /**
          * Avoid running some functions in Future that are not in Fiber.
          */
         if (this._NOT_FIBER === true) {
-            this._NOT_FIBER = isNotInFiber(this, fn.name)
+            this._NOT_FIBER = isNotInFiber(this as WebdriverIO.Element, fn.name)
             return fn.apply(this, args)
         }
         /**
@@ -101,7 +105,12 @@ export default function wrapCommand(commandName, fn) {
 /**
  * helper method that runs the command with before/afterCommand hook
  */
-async function runCommandWithHooks(commandName, fn, ...args) {
+async function runCommandWithHooks(
+    this: WebdriverIO.BrowserObject | WebdriverIO.Element,
+    commandName: string,
+    fn: Function,
+    ...args: any[]
+) {
     // save error for getting full stack in case of failure
     // should be before any async calls
     const stackError = new Error()
@@ -125,7 +134,7 @@ async function runCommandWithHooks(commandName, fn, ...args) {
     return commandResult
 }
 
-async function runCommandHook(hookName, hookFn, args) {
+async function runCommandHook(hookName: string, hookFn?: Function | Function[], args?: any[]) {
     if (!inCommandHook) {
         inCommandHook = true
         await executeHooksWithArgs(hookName, hookFn, args)
@@ -139,30 +148,31 @@ async function runCommandHook(hookName, hookFn, args) {
  * @param {object} context browser or element
  * @param {string} fnName function name
  */
-function isNotInFiber(context, fnName) {
-    return fnName !== '' && !!(context.elementId || (context.parent && context.parent.elementId))
+function isNotInFiber(context: WebdriverIO.Element, fnName: string) {
+    return fnName !== '' && !!(context.elementId || (context.parent && (context.parent as WebdriverIO.Element).elementId))
 }
 
 /**
  * set `_NOT_FIBER` to `false` for element and its parents
  * @param {object} context browser or element
  */
-function inFiber(context) {
-    if (context.constructor.name === 'MultiRemoteDriver') {
-        return context.instances.forEach(instance => {
-            context[instance]._NOT_FIBER = false
-            let parent = context[instance].parent
+function inFiber (context: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject) {
+    const multiRemoteContext = context as WebdriverIO.MultiRemoteBrowserObject
+    if (multiRemoteContext.constructor.name === 'MultiRemoteDriver') {
+        return multiRemoteContext.instances.forEach(instance => {
+            multiRemoteContext[instance]._NOT_FIBER = false
+            let parent = (multiRemoteContext[instance] as WebdriverIO.Element).parent
             while (parent && parent._NOT_FIBER) {
                 parent._NOT_FIBER = false
-                parent = parent.parent
+                parent = (parent as WebdriverIO.Element).parent
             }
         })
     }
 
     context._NOT_FIBER = false
-    let parent = context.parent
+    let parent = (context as WebdriverIO.Element).parent
     while (parent && parent._NOT_FIBER) {
         parent._NOT_FIBER = false
-        parent = parent.parent
+        parent = (parent as WebdriverIO.Element).parent
     }
 }

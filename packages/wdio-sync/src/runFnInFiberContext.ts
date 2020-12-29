@@ -5,8 +5,8 @@ import Fiber from './fibers'
  * @param  {Function} fn  function to wrap around
  * @return {Function}     wrapped around function
  */
-export default function runFnInFiberContext (fn) {
-    return function (...args) {
+export default function runFnInFiberContext (fn: Function) {
+    return function (this: WebdriverIO.BrowserObject, ...args: any[]) {
         delete global.browser._NOT_FIBER
 
         return new Promise((resolve, reject) => Fiber(() => {

@@ -26,6 +26,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@types/fibers": "^3.1.0",
     "@types/puppeteer": "^5.4.0",
     "@wdio/logger": "6.10.10",
     "fibers": "^4.0.1"

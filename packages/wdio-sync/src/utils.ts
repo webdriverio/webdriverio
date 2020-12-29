@@ -1,4 +1,16 @@
-import { STACKTRACE_FILTER_FN } from './constants'
+import { STACK_START, STACKTRACE_FILTER } from './constants'
+
+/**
+ * filter stack array
+ * @param {string} stackRow
+ * @returns {boolean}
+ */
+export const stackTraceFilter = (stackRow: string) => {
+    if (stackRow.match(STACK_START)) {
+        return !STACKTRACE_FILTER.some(r => stackRow.includes(r))
+    }
+    return true
+}
 
 /**
  * Cleanup stack traces, merge and remove duplicates
@@ -6,7 +18,7 @@ import { STACKTRACE_FILTER_FN } from './constants'
  * @param {Error}   savedError      Error with root stack trace
  * @returns {Error}
  */
-export function sanitizeErrorMessage (commandError, savedError) {
+export function sanitizeErrorMessage (commandError: Error, savedError: Error) {
     let name, stack, message
     if (commandError instanceof Error) {
         ({ name, message, stack } = commandError)
@@ -18,7 +30,7 @@ export function sanitizeErrorMessage (commandError, savedError) {
     const err = new Error(message)
     err.name = name
 
-    let stackArr = savedError.stack.split('\n')
+    let stackArr = savedError.stack?.split('\n') || []
 
     /**
      * merge stack traces if `commandError` has stack trace
@@ -34,7 +46,7 @@ export function sanitizeErrorMessage (commandError, savedError) {
 
     err.stack = stackArr
         // filter stack trace
-        .filter(STACKTRACE_FILTER_FN)
+        .filter(stackTraceFilter)
         // remove duplicates from stack traces
         .reduce((acc, currentValue) => {
             return acc.includes(currentValue) ? acc : `${acc}\n${currentValue}`

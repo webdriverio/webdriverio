@@ -18,7 +18,7 @@ describe('executeSync', () => {
 
     it('should pass with args and async fn', async () => {
         const fn = async arg => arg
-        const scope = {}
+        const scope = {} as any
         expect(await executeSync.call(scope, fn, { limit: 1, attempts: 0 }, [2])).toEqual(2)
         expect(scope.wdioRetries).toBe(0)
     })
@@ -45,18 +45,18 @@ describe('executeSync', () => {
         try {
             await executeSync.call({}, () => {
                 const err = new Error('foobar')
-                err.stack = false
+                err.stack = 'false'
                 throw err
             }, {})
         } catch (err) {
             error = err
         }
-        expect(error.stack).toEqual(false)
+        expect(error.stack).toEqual('false')
     })
 
     it('should repeat step on failure', async () => {
         let counter = 3
-        const scope = {}
+        const scope = {} as any
         const repeatTest = { limit: counter, attempts: 0 }
 
         const fn = () => {
@@ -75,7 +75,7 @@ describe('executeSync', () => {
 
     it('should throw if repeatTest attempts exceeded', async () => {
         let counter = 3
-        const scope = {}
+        const scope = {} as any
         const repeatTest = { limit: counter - 1, attempts: 0 }
         let error
         try {
