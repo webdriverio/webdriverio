@@ -4,12 +4,20 @@ import glob from 'glob'
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
 
-import { detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray } from '../utils'
+import {
+    detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
+    loadTypeScriptCompiler
+} from '../utils'
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS } from '../constants'
 import type { Capabilities, ConfigOptions, Hooks } from '../types'
 
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
+
+interface MergeConfig extends Omit<Partial<ConfigOptions>, 'specs' | 'exclude'> {
+    specs?: string | string[]
+    exclude?: string | string[]
+}
 
 export default class ConfigParser {
     private _config: ConfigOptions = DEFAULT_CONFIGS()
@@ -27,6 +35,11 @@ export default class ConfigParser {
         const filePath = path.resolve(process.cwd(), filename)
 
         try {
+            /**
+             * load TypeScript if existing
+             */
+            loadTypeScriptCompiler()
+
             /**
              * clone the original config
              */
@@ -77,18 +90,18 @@ export default class ConfigParser {
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
      */
-    merge (object: Partial<ConfigOptions> = {}) {
+    merge (object: MergeConfig = {}) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
 
-        this._config = merge(this._config, object, MERGE_OPTIONS)
+        this._config = merge(this._config, object, MERGE_OPTIONS) as ConfigOptions
         /**
          * overwrite config specs that got piped into the wdio command
          */
         if (object.specs && object.specs.length > 0) {
-            this._config.specs = object.specs
+            this._config.specs = object.specs as string[]
         } else if (object.exclude && object.exclude.length > 0) {
-            this._config.exclude = object.exclude
+            this._config.exclude = object.exclude as string[]
         }
 
         /**

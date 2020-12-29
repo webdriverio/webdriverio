@@ -1,4 +1,9 @@
 import path from 'path'
+import tsNode from 'ts-node'
+import logger from '@wdio/logger'
+
+const log = logger('')
+
 import ConfigParser from '../src/lib/ConfigParser'
 
 const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
@@ -10,6 +15,10 @@ const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.f
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
 const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.feature:7')
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
+
+jest.mock('ts-node', () => ({
+    register: jest.fn()
+}))
 
 describe('ConfigParser', () => {
     it('should throw if getFilePaths is not a string', () => {
@@ -37,6 +46,29 @@ describe('ConfigParser', () => {
             const configParser = new ConfigParser()
             configParser.addConfigFile(FIXTURES_CONF_MULTIREMOTE_RDC)
             expect(configParser['_config'].hostname).not.toContain('appium.testobject.com')
+        })
+
+        describe('TypeScript integration', () => {
+            beforeEach(() => {
+                (log.debug as jest.Mock).mockClear()
+                ;(tsNode.register as jest.Mock).mockClear()
+            })
+
+            it('should initiate TypeScript compiler if ts-node exists', () => {
+                const configParser = new ConfigParser()
+                require.resolve = jest.fn() as any
+                configParser.addConfigFile(FIXTURES_CONF_RDC)
+                expect(tsNode.register).toBeCalledTimes(1)
+                expect(log.debug).toBeCalledTimes(0)
+            })
+
+            it('should just continue without initiation if ts-node does not exist', () => {
+                (tsNode.register as jest.Mock).mockImplementation(() => { throw new Error('boom') })
+                const configParser = new ConfigParser()
+                require.resolve = jest.fn() as any
+                configParser.addConfigFile(FIXTURES_CONF_RDC)
+                expect(log.debug).toBeCalledTimes(1)
+            })
         })
     })
 
@@ -318,8 +350,10 @@ describe('ConfigParser', () => {
             configParser.addService({
                 onPrepare: jest.fn(),
                 before: undefined,
+                // @ts-ignore test invalid param
                 beforeTest: 123,
                 afterTest: () => 'foobar',
+                // @ts-ignore test invalid param
                 after: [1, () => 'barfoo', () => 'lala'],
                 onComplete: jest.fn()
             })
@@ -336,9 +370,12 @@ describe('ConfigParser', () => {
     describe('getCapabilities', () => {
         it('allows to grab certain capabilities', () => {
             const configParser = new ConfigParser()
-            configParser['_capabilities'] = ['foo', 'bar']
+            configParser['_capabilities'] = [
+                { browserName: 'foo' },
+                { browserName: 'bar' }
+            ]
             expect(configParser.getCapabilities()).toEqual(configParser['_capabilities'])
-            expect(configParser.getCapabilities(1)).toEqual('bar')
+            expect(configParser.getCapabilities(1)).toEqual({ browserName: 'bar' })
         })
     })
 
