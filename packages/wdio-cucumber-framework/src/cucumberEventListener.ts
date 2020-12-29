@@ -47,6 +47,7 @@ export default class CucumberEventListener extends EventEmitter {
             } else if (envelope.testRunFinished) {
                 this.onTestRunFinished()
             } else {
+                /* istanbul ignore next */
                 log.debug(`Unknown envelope received: ${JSON.stringify(envelope, null, 4)}`)
             }
         })
@@ -242,6 +243,7 @@ export default class CucumberEventListener extends EventEmitter {
         const tc = this._testCases.find(tc => tc.id === testcase.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(tc?.pickleId as string))
 
+        /* istanbul ignore if */
         if (!scenario) {
             return
         }
@@ -268,6 +270,7 @@ export default class CucumberEventListener extends EventEmitter {
         const teststep = testcase?.testSteps?.find((step) => step.id === testStepStartedEvent.testStepId)
         const step = scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) || teststep
 
+        /* istanbul ignore if */
         if (!step) {
             return
         }
@@ -301,6 +304,7 @@ export default class CucumberEventListener extends EventEmitter {
         const step = scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) || teststep
         const result = testStepFinishedEvent.testStepResult
 
+        /* istanbul ignore if */
         if (!step) {
             return
         }
@@ -325,6 +329,7 @@ export default class CucumberEventListener extends EventEmitter {
         const tc = this._testCases.find(tc => tc.id === this._currentTestCase?.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(tc?.pickleId as string))
 
+        /* istanbul ignore if */
         if (!scenario) {
             return
         }
@@ -349,6 +354,7 @@ export default class CucumberEventListener extends EventEmitter {
         delete this._currentTestCase
         const gherkinDocEvent = this._gherkinDocEvents.pop() // see .push() in `handleBeforeFeature()`
 
+        /* istanbul ignore if */
         if (!gherkinDocEvent) {
             return
         }
