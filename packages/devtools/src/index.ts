@@ -37,6 +37,8 @@ export default class DevTools {
             process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
         }
 
+        log.info('Initiate new session using the DevTools protocol')
+
         const browser = await launch(params.capabilities as WebDriver.Capabilities)
         const pages = await browser.pages()
         const driver = new DevToolsDriver(browser, pages)
