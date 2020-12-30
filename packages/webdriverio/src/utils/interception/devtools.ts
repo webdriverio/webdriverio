@@ -20,7 +20,7 @@ type RequestOptions = {
 
 type ClientResponse = {
     body: string;
-    base64Encoded?: boolean
+    base64Encoded: boolean
 }
 
 type Client = {
