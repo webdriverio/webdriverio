@@ -57,7 +57,10 @@ describe('JSON.org page', () => {
     })
 
     it('should load within performance budget', () => {
-
+        /**
+         * this page load will take a bit longer as the DevTools service will
+         * capture all metrics in the background
+         */
         browser.url('http://json.org')
 
         let metrics = browser.getMetrics()
@@ -77,6 +80,17 @@ describe('JSON.org page', () => {
     after(() => {
         browser.disablePerformanceAudits()
     })
+})
+```
+
+You can emulate a mobile device by using the `emulateDevice` command, throttling CPU and network as well as setting `mobile` as form factor:
+
+```js
+browser.emulateDevice('iPhone X')
+browser.enablePerformanceAudits({
+    networkThrottling: 'Good 3G',
+    cpuThrottling: 4,
+    formFactor: 'mobile'
 })
 ```
 
@@ -170,7 +184,8 @@ Enables auto performance audits for all page loads that are cause by calling the
 browser.enablePerformanceAudits({
     networkThrottling: 'Good 3G',
     cpuThrottling: 4,
-    cacheEnabled: true
+    cacheEnabled: true,
+    formFactor: 'mobile'
 })
 ```
 
