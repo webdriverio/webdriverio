@@ -1,4 +1,4 @@
-import type { AuditResult } from './build/types'
+import type { AuditResult, PWAAudits } from './build/types'
 
 declare module WebdriverIO {
   interface ServiceOption extends DevtoolsConfig { }
@@ -97,8 +97,9 @@ interface DevtoolsBrowser {
 
   /**
    * Runs various PWA Lighthouse audits on the current opened page.
+   * Read more about Lighthouse PWA audits at https://web.dev/lighthouse-pwa/.
    */
-  checkPWA(): AuditResult;
+  checkPWA(auditsToBeRun: PWAAudits): AuditResult;
 
   /**
    * The cdp command is a custom command added to the browser scope that allows you to call directly commands to the protocol.

@@ -9,30 +9,22 @@ import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index'
 import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive'
 import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time'
 
-// PWA
-import InstallableManifest from 'lighthouse/lighthouse-core/audits/installable-manifest'
-import ServiceWorker from 'lighthouse/lighthouse-core/audits/service-worker'
-import SplashScreen from 'lighthouse/lighthouse-core/audits/splash-screen'
-import ThemedOmnibox from 'lighthouse/lighthouse-core/audits/themed-omnibox'
-import ContentWidth from 'lighthouse/lighthouse-core/audits/content-width'
-import Viewport from 'lighthouse/lighthouse-core/audits/viewport'
-import AppleTouchIcon from 'lighthouse/lighthouse-core/audits/apple-touch-icon'
-import MaskableIcon from 'lighthouse/lighthouse-core/audits/maskable-icon'
-
 import ReportScoring from 'lighthouse/lighthouse-core/scoring'
 import defaultConfig from 'lighthouse/lighthouse-core/config/default-config'
 import logger from '@wdio/logger'
 
-import { DEFAULT_FORM_FACTOR } from './constants'
+import { DEFAULT_FORM_FACTOR, PWA_AUDITS } from './constants'
 import type {
     FormFactor, Audit, AuditResults, AuditRef, MainThreadWorkBreakdownResult,
     DiagnosticsResults, ResponseTimeResult, MetricsResult, MetricsResults,
-    AuditResult, LHAuditResult, ErrorAudit
+    AuditResult, LHAuditResult, ErrorAudit, PWAAudits
 } from './types'
 import type { Trace } from './gatherer/trace'
 import type { CDPSessionOnMessageObject } from './gatherer/devtools'
 
 const log = logger('@wdio/devtools-service:Auditor')
+
+type RunAuditResult = [string, LHAuditResult | ErrorAudit]
 
 export default class Auditor {
     private _url?: string
@@ -157,17 +149,17 @@ export default class Auditor {
         return ReportScoring.arithmeticMean(scores)
     }
 
-    async _auditPWA (params: any): Promise<AuditResult> {
-        const audits: [string, LHAuditResult | ErrorAudit][] = await Promise.all([
-            ['isInstallable', await this._audit(InstallableManifest, params)],
-            ['serviceWorker', await this._audit(ServiceWorker, params)],
-            ['splashScreen', await this._audit(SplashScreen, params)],
-            ['themedOmnibox', await this._audit(ThemedOmnibox, params)],
-            ['contentWith', await this._audit(ContentWidth, params)],
-            ['viewport', await this._audit(Viewport, params)],
-            ['appleTouchIcon', await this._audit(AppleTouchIcon, params)],
-            ['maskableIcon', await this._audit(MaskableIcon, params)]
-        ])
+    async _auditPWA (
+        params: any,
+        auditsToBeRun = Object.keys(PWA_AUDITS) as PWAAudits[]
+    ): Promise<AuditResult> {
+        const audits: RunAuditResult[] = await Promise.all(
+            Object.entries(PWA_AUDITS)
+                .filter(([name]) => auditsToBeRun.includes(name as PWAAudits))
+                .map<Promise<RunAuditResult>>(
+                    async ([name, Audit]) => [name, await this._audit(Audit, params)]
+                )
+        )
         return {
             passed: !audits.find(([, result]) => result.score < 1),
             details: audits.reduce((details, [name, result]) => {

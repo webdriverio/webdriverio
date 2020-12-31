@@ -13,7 +13,7 @@ import TraceGatherer from './gatherer/trace'
 import DevtoolsGatherer, { CDPSessionOnMessageObject } from './gatherer/devtools'
 import { isBrowserSupported, setUnsupportedCommand } from './utils'
 import { NETWORK_STATES, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION, DEFAULT_THROTTLE_STATE } from './constants'
-import { FormFactor, EnablePerformanceAuditsOptions, DeviceDescription, Device } from './types'
+import { FormFactor, EnablePerformanceAuditsOptions, DeviceDescription, Device, PWAAudits } from './types'
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
@@ -243,10 +243,10 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
         this._browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
 
         const pwaGatherer = new PWAGatherer(this._session, this._page)
-        this._browser.addCommand('checkPWA', async () => {
+        this._browser.addCommand('checkPWA', async (auditsToBeRun: PWAAudits[]) => {
             const auditor = new Auditor()
             const artifacts = await pwaGatherer.gatherData()
-            return auditor._auditPWA(artifacts)
+            return auditor._auditPWA(artifacts, auditsToBeRun)
         })
     }
 }
