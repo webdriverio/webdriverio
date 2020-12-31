@@ -1,3 +1,12 @@
+import InstallableManifest from 'lighthouse/lighthouse-core/audits/installable-manifest'
+import ServiceWorker from 'lighthouse/lighthouse-core/audits/service-worker'
+import SplashScreen from 'lighthouse/lighthouse-core/audits/splash-screen'
+import ThemedOmnibox from 'lighthouse/lighthouse-core/audits/themed-omnibox'
+import ContentWidth from 'lighthouse/lighthouse-core/audits/content-width'
+import Viewport from 'lighthouse/lighthouse-core/audits/viewport'
+import AppleTouchIcon from 'lighthouse/lighthouse-core/audits/apple-touch-icon'
+import MaskableIcon from 'lighthouse/lighthouse-core/audits/maskable-icon'
+
 import { throttling } from 'lighthouse/lighthouse-core/config/constants'
 
 /**
@@ -137,3 +146,14 @@ export const NETWORK_RECORDER_EVENTS = [
     'Network.loadingFailed',
     'Network.resourceChangedPriority'
 ] as const
+
+export const PWA_AUDITS = {
+    isInstallable: InstallableManifest,
+    serviceWorker: ServiceWorker,
+    splashScreen: SplashScreen,
+    themedOmnibox: ThemedOmnibox,
+    contentWith: ContentWidth,
+    viewport: Viewport,
+    appleTouchIcon: AppleTouchIcon,
+    maskableIcon: MaskableIcon
+} as const

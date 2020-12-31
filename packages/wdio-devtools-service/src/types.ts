@@ -1,5 +1,5 @@
 import type { Viewport } from 'puppeteer-core/lib/cjs/puppeteer/common/PuppeteerViewport'
-import type { NETWORK_STATES } from './constants'
+import type { NETWORK_STATES, PWA_AUDITS } from './constants'
 
 export type FormFactor = 'mobile' | 'desktop' | 'none'
 
@@ -113,3 +113,5 @@ export interface ErrorAudit {
     score: 0
     error: Error
 }
+
+export type PWAAudits = keyof typeof PWA_AUDITS
