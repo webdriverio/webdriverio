@@ -127,3 +127,13 @@ export const DEFAULT_THROTTLE_STATE = {
     cacheEnabled: false,
     formFactor: DEFAULT_FORM_FACTOR
 } as const
+
+export const NETWORK_RECORDER_EVENTS = [
+    'Network.requestWillBeSent',
+    'Network.requestServedFromCache',
+    'Network.responseReceived',
+    'Network.dataReceived',
+    'Network.loadingFinished',
+    'Network.loadingFailed',
+    'Network.resourceChangedPriority'
+] as const

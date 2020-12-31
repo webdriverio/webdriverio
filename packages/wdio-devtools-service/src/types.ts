@@ -89,3 +89,27 @@ export interface MetricsResults {
         }[]
     }
 }
+
+export interface LHAuditResult {
+    score: number
+    warnings?: any[]
+    notApplicable?: boolean
+    numericValue?: number
+    numericUnit?: string
+    displayValue?: {
+        i18nId: string
+        values: any
+        formattedDefault: string
+    }
+    details?: any
+}
+
+export interface AuditResult {
+    passed: boolean
+    details: Record<string, LHAuditResult | ErrorAudit>
+}
+
+export interface ErrorAudit {
+    score: 0
+    error: Error
+}

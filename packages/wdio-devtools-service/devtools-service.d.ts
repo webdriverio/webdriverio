@@ -1,3 +1,5 @@
+import type { AuditResult } from './build/types'
+
 declare module WebdriverIO {
   interface ServiceOption extends DevtoolsConfig { }
   interface Browser extends DevtoolsBrowser { }
@@ -92,6 +94,11 @@ interface DevtoolsBrowser {
    * Note: This only works if you don't use mobileEmulation within capabilities['goog:chromeOptions']. If mobileEmulation is present the call to browser.emulateDevice() won't do anything.
    */
   emulateDevice(deviceProfile: DeviceProfiles): void;
+
+  /**
+   * Runs various PWA Lighthouse audits on the current opened page.
+   */
+  checkPWA(): AuditResult;
 
   /**
    * The cdp command is a custom command added to the browser scope that allows you to call directly commands to the protocol.

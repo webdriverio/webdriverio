@@ -8,6 +8,17 @@ import LargestContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/la
 import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index'
 import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive'
 import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time'
+
+// PWA
+import InstallableManifest from 'lighthouse/lighthouse-core/audits/installable-manifest'
+import ServiceWorker from 'lighthouse/lighthouse-core/audits/service-worker'
+import SplashScreen from 'lighthouse/lighthouse-core/audits/splash-screen'
+import ThemedOmnibox from 'lighthouse/lighthouse-core/audits/themed-omnibox'
+import ContentWidth from 'lighthouse/lighthouse-core/audits/content-width'
+import Viewport from 'lighthouse/lighthouse-core/audits/viewport'
+import AppleTouchIcon from 'lighthouse/lighthouse-core/audits/apple-touch-icon'
+import MaskableIcon from 'lighthouse/lighthouse-core/audits/maskable-icon'
+
 import ReportScoring from 'lighthouse/lighthouse-core/scoring'
 import defaultConfig from 'lighthouse/lighthouse-core/config/default-config'
 import logger from '@wdio/logger'
@@ -15,7 +26,8 @@ import logger from '@wdio/logger'
 import { DEFAULT_FORM_FACTOR } from './constants'
 import type {
     FormFactor, Audit, AuditResults, AuditRef, MainThreadWorkBreakdownResult,
-    DiagnosticsResults, ResponseTimeResult, MetricsResult, MetricsResults
+    DiagnosticsResults, ResponseTimeResult, MetricsResult, MetricsResults,
+    AuditResult, LHAuditResult, ErrorAudit
 } from './types'
 import type { Trace } from './gatherer/trace'
 import type { CDPSessionOnMessageObject } from './gatherer/devtools'
@@ -25,13 +37,17 @@ const log = logger('@wdio/devtools-service:Auditor')
 export default class Auditor {
     private _url?: string
 
-    constructor(private _traceLogs?: Trace, private _devtoolsLogs?: CDPSessionOnMessageObject[], private _formFactor?: FormFactor) {
+    constructor (
+        private _traceLogs?: Trace,
+        private _devtoolsLogs?: CDPSessionOnMessageObject[],
+        private _formFactor?: FormFactor
+    ) {
         if (_traceLogs) {
             this._url = _traceLogs.pageUrl
         }
     }
 
-    _audit (AUDIT: Audit, params = {}) {
+    _audit (AUDIT: Audit, params = {}): Promise<LHAuditResult> | ErrorAudit {
         const auditContext = {
             options: {
                 ...AUDIT.defaultOptions
@@ -51,9 +67,12 @@ export default class Auditor {
                 TestedAsMobileDevice: true,
                 ...params
             }, auditContext)
-        } catch (e) {
-            log.error(e)
-            return {}
+        } catch (error) {
+            log.error(error)
+            return {
+                score: 0,
+                error
+            }
         }
     }
 
@@ -67,14 +86,14 @@ export default class Auditor {
         commands.forEach(fnName => browser.addCommand(fnName, customFn || (this[fnName as keyof Auditor] as any).bind(this)))
     }
 
-    async getMainThreadWorkBreakdown() {
+    async getMainThreadWorkBreakdown () {
         const result = await this._audit(MainThreadWorkBreakdown) as MainThreadWorkBreakdownResult
         return result.details.items.map(
             ({ group, duration }) => ({ group, duration })
         )
     }
 
-    async getDiagnostics() {
+    async getDiagnostics () {
         const result = await this._audit(Diagnostics) as DiagnosticsResults
 
         /**
@@ -115,7 +134,7 @@ export default class Auditor {
         }
     }
 
-    async getPerformanceScore() {
+    async getPerformanceScore () {
         const auditResults: AuditResults = {
             'speed-index': await this._audit(SpeedIndex) as MetricsResult,
             'first-contentful-paint': await this._audit(FirstContentfulPaint) as MetricsResult,
@@ -136,5 +155,25 @@ export default class Auditor {
             weight: auditRef.weight,
         }))
         return ReportScoring.arithmeticMean(scores)
+    }
+
+    async _auditPWA (params: any): Promise<AuditResult> {
+        const audits: [string, LHAuditResult | ErrorAudit][] = await Promise.all([
+            ['isInstallable', await this._audit(InstallableManifest, params)],
+            ['serviceWorker', await this._audit(ServiceWorker, params)],
+            ['splashScreen', await this._audit(SplashScreen, params)],
+            ['themedOmnibox', await this._audit(ThemedOmnibox, params)],
+            ['contentWith', await this._audit(ContentWidth, params)],
+            ['viewport', await this._audit(Viewport, params)],
+            ['appleTouchIcon', await this._audit(AppleTouchIcon, params)],
+            ['maskableIcon', await this._audit(MaskableIcon, params)]
+        ])
+        return {
+            passed: !audits.find(([, result]) => result.score < 1),
+            details: audits.reduce((details, [name, result]) => {
+                details[name] = result
+                return details
+            }, {} as Record<string, LHAuditResult>)
+        }
     }
 }
