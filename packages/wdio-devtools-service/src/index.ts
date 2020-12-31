@@ -8,6 +8,7 @@ import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 
 import CommandHandler from './commands'
 import Auditor from './auditor'
+import PWAGatherer from './gatherer/pwa'
 import TraceGatherer from './gatherer/trace'
 import DevtoolsGatherer, { CDPSessionOnMessageObject } from './gatherer/devtools'
 import { isBrowserSupported, setUnsupportedCommand } from './utils'
@@ -240,5 +241,12 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
         this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
         this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
         this._browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
+
+        const pwaGatherer = new PWAGatherer(this._session, this._page)
+        this._browser.addCommand('checkPWA', async () => {
+            const auditor = new Auditor()
+            const artifacts = await pwaGatherer.gatherData()
+            return auditor._auditPWA(artifacts)
+        })
     }
 }
