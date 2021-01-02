@@ -30,6 +30,11 @@ devices['Nexus 6P landscape'] = devices[0]
 class CDPSessionMock {
     send = sendMock
     on = listenerMock
+    _connection = {
+        _transport: {
+            _ws: { addEventListener: jest.fn() }
+        }
+    }
 }
 const cdpSession = new CDPSessionMock()
 

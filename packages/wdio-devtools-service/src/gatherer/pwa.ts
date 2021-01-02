@@ -12,8 +12,6 @@ import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import collectMetaElements from '../scripts/collectMetaElements'
 import { NETWORK_RECORDER_EVENTS } from '../constants'
 
-// const log = logger('@wdio/devtools-service:PWAGatherer')
-
 export default class PWAGatherer {
     private _driver: typeof Driver
     private _networkRecorder: any
@@ -72,18 +70,14 @@ export default class PWAGatherer {
             URL: { requestedUrl: pageUrl, finalUrl: pageUrl },
             WebAppManifest: await GatherRunner.getWebAppManifest(passContext),
             InstallabilityErrors: await GatherRunner.getInstallabilityErrors(passContext),
-            MetaElements: await this.collectMetaElements(),
+            MetaElements: await this._driver.evaluate(collectMetaElements, {
+                args: [],
+                useIsolation: true,
+                deps: [pageFunctions.getElementsInDocument],
+            }),
             ViewportDimensions: await viewportDimensions.afterPass(passContext),
             ServiceWorker: { versions, registrations },
             LinkElements: await linkElements.afterPass(passContext, loadData)
         }
-    }
-
-    collectMetaElements () {
-        return this._driver.evaluate(collectMetaElements, {
-            args: [],
-            useIsolation: true,
-            deps: [pageFunctions.getElementsInDocument],
-        })
     }
 }
