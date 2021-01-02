@@ -1,11 +1,34 @@
-import type { AuditResult, PWAAudits } from './build/types'
-
 declare module WebdriverIO {
   interface ServiceOption extends DevtoolsConfig { }
   interface Browser extends DevtoolsBrowser { }
 }
 
+type PWAAudits = 'isInstallable' | 'serviceWorker' | 'splashScreen' | 'themedOmnibox' | 'contentWith' | 'viewport' | 'appleTouchIcon' | 'maskableIcon'
 type NetworkStates = 'offline' | 'GPRS' | 'Regular 2G' | 'Good 2G' | 'Regular 3G' | 'Good 3G' | 'Regular 4G' | 'DSL' | 'Wifi' | 'online';
+
+interface LHAuditResult {
+    score: number
+    warnings?: any[]
+    notApplicable?: boolean
+    numericValue?: number
+    numericUnit?: string
+    displayValue?: {
+        i18nId: string
+        values: any
+        formattedDefault: string
+    }
+    details?: any
+}
+
+interface AuditResult {
+    passed: boolean
+    details: Record<string, LHAuditResult | ErrorAudit>
+}
+
+interface ErrorAudit {
+    score: 0
+    error: Error
+}
 
 interface Viewport {
   /**
@@ -99,7 +122,7 @@ interface DevtoolsBrowser {
    * Runs various PWA Lighthouse audits on the current opened page.
    * Read more about Lighthouse PWA audits at https://web.dev/lighthouse-pwa/.
    */
-  checkPWA(auditsToBeRun: PWAAudits): AuditResult;
+  checkPWA(auditsToBeRun?: PWAAudits[]): AuditResult;
 
   /**
    * The cdp command is a custom command added to the browser scope that allows you to call directly commands to the protocol.

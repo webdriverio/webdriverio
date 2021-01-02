@@ -187,7 +187,11 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
             return setUnsupportedCommand(this._browser as WebdriverIO.BrowserObject)
         }
 
-        this._puppeteer = await this._browser.getPuppeteer()
+        /**
+         * casting is required as types differ between core and definitely typed types
+         */
+        this._puppeteer = await this._browser.getPuppeteer() as any as Browser
+
         /* istanbul ignore next */
         if (!this._puppeteer) {
             throw new Error('Could not initiate Puppeteer instance')
