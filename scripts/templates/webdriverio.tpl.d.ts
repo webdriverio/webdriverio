@@ -587,8 +587,8 @@ declare namespace WebdriverIO {
         statusCode: number;
     }
 
-    type PuppeteerBrowser = import('puppeteer-core/lib/cjs/puppeteer/common/Browser').Browser;
-    type CDPSession = Partial<import('puppeteer-core/lib/cjs/puppeteer/common/Connection').CDPSession>;
+    type PuppeteerBrowser = import('puppeteer').Browser;
+    type CDPSession = Partial<import('puppeteer').CDPSession>;
     type MockOverwriteFunction = (request: Matches, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;
 
