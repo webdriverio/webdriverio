@@ -1,17 +1,3 @@
-/**
- * workaround for bug
- * https://github.com/jsdom/jsdom/issues/2795
- * https://github.com/jsdom/jsdom/issues/2961
- */
-const SKIPPED_NODE_10_TESTS = process.version.startsWith('v10')
-    ? [
-        '<rootDir>/packages/webdriverio/tests/commands/browser/newWindow.test.ts',
-        '<rootDir>/packages/webdriverio/tests/commands/element/isFocused.test.ts',
-        '<rootDir>/packages/webdriverio/tests/scripts/resq.test.ts',
-        '<rootDir>/packages/webdriverio/tests/scripts/isFocused.test.ts'
-    ]
-    : []
-
 module.exports = {
     globals: {
         'ts-jest': {
@@ -26,8 +12,7 @@ module.exports = {
     },
     testPathIgnorePatterns: [
         '<rootDir>/tests/',
-        '<rootDir>/node_modules/',
-        ...SKIPPED_NODE_10_TESTS
+        '<rootDir>/node_modules/'
     ],
     collectCoverageFrom: [
         'packages/**/src/**/*.(js|ts)',
