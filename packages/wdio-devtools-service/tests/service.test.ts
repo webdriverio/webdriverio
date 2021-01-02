@@ -113,6 +113,8 @@ test('if supported by browser', async () => {
         'disablePerformanceAudits', expect.any(Function))
     expect(service['_browser']?.addCommand).toBeCalledWith(
         'emulateDevice', expect.any(Function))
+    expect(service['_browser']?.addCommand).toBeCalledWith(
+        'checkPWA', expect.any(Function))
 
     // @ts-ignore access private property
     const rawEventListener = service['_puppeteer']['_connection']._transport._ws.addEventListener
