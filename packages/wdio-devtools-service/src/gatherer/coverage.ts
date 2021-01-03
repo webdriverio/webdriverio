@@ -93,7 +93,7 @@ export default class CoverageGatherer extends EventEmitter {
         }, CAPTURE_INTERVAL)
     }
 
-    async logCoverage () {
+    async logCoverage (): Promise<void> {
         if (!this._coverageLogDir) {
             return
         }
@@ -121,6 +121,6 @@ export default class CoverageGatherer extends EventEmitter {
                 obj[path] = coverageData
                 return obj
             }, {} as any)
-        return promisify(fs.writeFile)(filename, JSON.stringify(data), 'utf8')
+        await promisify(fs.writeFile)(filename, JSON.stringify(data), 'utf8')
     }
 }
