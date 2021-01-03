@@ -30,6 +30,28 @@ interface ErrorAudit {
     error: Error
 }
 
+interface Totals {
+    total: number;
+    covered: number;
+    skipped: number;
+    pct: number;
+}
+
+interface CoverageSummaryData {
+    lines: Totals;
+    statements: Totals;
+    branches: Totals;
+    functions: Totals;
+}
+
+interface Coverage {
+    lines: Totals
+    statements: Totals
+    functions: Totals
+    branches: Totals
+    files: Record<string, CoverageSummaryData>
+}
+
 interface Viewport {
   /**
    * page width in pixels
@@ -144,6 +166,11 @@ interface DevtoolsBrowser {
    * Read more about Lighthouse PWA audits at https://web.dev/lighthouse-pwa/.
    */
   checkPWA(auditsToBeRun?: PWAAudits[]): AuditResult;
+
+  /**
+   * Returns the coverage report for the current opened page.
+   */
+  getCoverageReport(): Coverage;
 
   /**
    * The cdp command is a custom command added to the browser scope that allows you to call directly commands to the protocol.
