@@ -26,17 +26,23 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@babel/core": "^7.12.10",
     "@tracerbench/trace-event": "^4.5.2",
     "@types/puppeteer-core": "^2.0.0",
     "@wdio/logger": "6.10.10",
-    "axios": "^0.21.1",
+    "babel-plugin-istanbul": "^6.0.0",
     "core-js": "~3.7.0",
     "devtools-protocol": "^0.0.831461",
+    "istanbul-lib-coverage": "^3.0.0",
+    "istanbul-lib-report": "^3.0.0",
+    "istanbul-reports": "^3.0.2",
     "lighthouse": "^7.0.0",
-    "nyc": "^15.1.0",
     "puppeteer-core": "^5.1.0",
     "speedline": "^1.4.1",
     "stable": "^0.1.8"
+  },
+  "devDependencies": {
+    "@types/atob": "^2.1.2"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"

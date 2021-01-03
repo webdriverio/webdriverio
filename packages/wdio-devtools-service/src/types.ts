@@ -1,11 +1,31 @@
+import type { ReportOptions } from 'istanbul-reports'
+import type { Totals, CoverageSummaryData } from 'istanbul-lib-coverage'
 import type { Viewport } from 'puppeteer-core/lib/cjs/puppeteer/common/PuppeteerViewport'
 import type { NETWORK_STATES, PWA_AUDITS } from './constants'
 
 export interface DevtoolsConfig {
+    coverageReporter?: CoverageReporterOptions
+}
+
+export interface CoverageReporterOptions {
+    /**
+     * whether or not to enable code coverage reporting
+     * @default false
+     */
+    enable?: boolean
     /**
      * Directory where JS coverage reports are stored
      */
-    coverageLogDir?: string;
+    logDir?: string
+    /**
+     * format of report
+     * @default json
+     */
+    type?: keyof ReportOptions
+    /**
+     * Options for coverage report
+     */
+    options?: any
 }
 
 export type FormFactor = 'mobile' | 'desktop' | 'none'
@@ -122,3 +142,11 @@ export interface ErrorAudit {
 }
 
 export type PWAAudits = keyof typeof PWA_AUDITS
+
+export interface Coverage {
+    lines: Totals
+    statements: Totals
+    functions: Totals
+    branches: Totals
+    files: Record<string, CoverageSummaryData>
+}

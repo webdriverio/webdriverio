@@ -1,50 +1,79 @@
 import fs from 'fs'
 import path from 'path'
-import cp from 'child_process'
+import atob from 'atob'
 import { EventEmitter } from 'events'
-import axios from 'axios'
-import { promisify } from 'util'
+import { transformAsync as babelTransform } from '@babel/core'
+import babelPluginIstanbul from 'babel-plugin-istanbul'
+import libCoverage from 'istanbul-lib-coverage'
+import libReport from 'istanbul-lib-report'
+import reports from 'istanbul-reports'
 
 import logger from '@wdio/logger'
 
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRequest'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+
+import type { CoverageReporterOptions, Coverage } from '../types'
 
 const log = logger('@wdio/devtools-service:CoverageGatherer')
+
+const MAX_WAIT_RETRIES = 10
 const CAPTURE_INTERVAL = 1000
-const COVERAGE_FILENAME = 'wdio-coverage-all.json'
+const DEFAULT_REPORT_TYPE = 'json'
+const DEFAULT_REPORT_DIR = path.join(process.cwd(), 'coverage')
 
 export default class CoverageGatherer extends EventEmitter {
     private _coverageLogDir: string
-    private _coverage: any = {}
-    private _capturedData = false
+    private _coverageMap?: libCoverage.CoverageMap
     private _captureInterval?: NodeJS.Timeout
+    private _client?: CDPSession
 
-    constructor (private _page: Page, coverageLogDir: string) {
+    constructor (private _page: Page, private _options: CoverageReporterOptions) {
         super()
-        this._coverageLogDir = path.resolve(process.cwd(), coverageLogDir)
-        this._capturedData = false
-
-        this._page.on('request', this._handleRequests.bind(this))
+        this._coverageLogDir = path.resolve(process.cwd(), this._options.logDir || DEFAULT_REPORT_DIR)
         this._page.on('load', this._captureCoverage.bind(this))
-        this._page.setRequestInterception(true)
     }
 
-    private async _handleRequests (req: HTTPRequest) {
-        const requestUrl = req.url()
+    async init () {
+        this._client = await this._page.target().createCDPSession()
 
-        if (!requestUrl.endsWith('.js')) {
-            return req.continue()
+        await this._client.send('Fetch.enable', {
+            patterns: [{ requestStage: 'Response' }]
+        })
+
+        this._client.on(
+            'Fetch.requestPaused',
+            this._handleRequests.bind(this)
+        )
+    }
+
+    private async _handleRequests (event: any) {
+        const { requestId, request, responseStatusCode = 200 } = event
+
+        if (!this._client) {
+            return
         }
 
-        const source = await axios.get(requestUrl)
-        const fullPath = this._storeSourceFile(requestUrl, source.data)
-        const nyc = cp.spawn(`nyc instrument ${fullPath}`)
-        return nyc.stdout.pipe(req as any)
-    }
+        /**
+         * continue with requests that aren't JS files
+         */
+        if (!request.url.endsWith('.js')) {
+            return this._client.send(
+                'Fetch.continueRequest',
+                { requestId }
+            ).catch((err: Error) => log.debug(err.message))
+        }
 
-    private _storeSourceFile (requestUrl: string, source: string) {
-        const url = new URL(requestUrl)
+        /**
+         * fetch original response
+         */
+        const { body, base64Encoded } = await this._client.send(
+            'Fetch.getResponseBody',
+            { requestId }
+        ).catch((err: Error) => log.debug(err.message)) as any
+        const inputCode = base64Encoded ? atob(body) : body
+
+        const url = new URL(request.url)
         const fullPath = path.join(this._coverageLogDir, 'files', url.hostname, url.pathname)
         const dirPath = path.dirname(fullPath)
 
@@ -52,11 +81,39 @@ export default class CoverageGatherer extends EventEmitter {
          * create dir if not existing
          */
         if (!fs.existsSync(dirPath)) {
-            fs.mkdirSync(dirPath, { recursive: true })
+            await fs.promises.mkdir(dirPath, { recursive: true })
         }
 
-        fs.writeFileSync(fullPath, source, 'utf8')
-        return fullPath
+        await fs.promises.writeFile(fullPath, inputCode, 'utf-8')
+
+        const result = await babelTransform(inputCode, {
+            auxiliaryCommentBefore: ' istanbul ignore next ',
+            babelrc: false,
+            caller: {
+                name: '@wdio/devtools-service'
+            },
+            configFile: false,
+            filename: path.join(url.hostname, url.pathname),
+            plugins: [
+                [
+                    babelPluginIstanbul,
+                    {
+                        compact: false,
+                        exclude: [],
+                        extension: false,
+                        useInlineSourceMaps: false,
+                    },
+                ],
+            ],
+            sourceMaps: false
+        })
+
+        return this._client.send('Fetch.fulfillRequest', {
+            requestId,
+            responseCode: responseStatusCode,
+            /** do not mock body if it's undefined */
+            body: !result ? undefined : Buffer.from(result.code!, 'utf8').toString('base64')
+        }).catch((err: Error) => log.debug(err.message))
     }
 
     private _clearCaptureInterval () {
@@ -69,8 +126,6 @@ export default class CoverageGatherer extends EventEmitter {
     }
 
     private _captureCoverage () {
-        this._capturedData = false
-
         if (this._captureInterval) {
             this._clearCaptureInterval()
         }
@@ -79,13 +134,12 @@ export default class CoverageGatherer extends EventEmitter {
             log.info('capturing coverage data')
 
             try {
-                const pageCoverage = await this._page.evaluate(
+                const globalCoverageVar = await this._page.evaluate(
                     // eslint-disable-next-line no-undef
-                    () => window['__coverage__' as any])
+                    () => window['__coverage__' as any]) as any as libCoverage.CoverageMapData
 
-                this._capturedData = true
-                log.info(`Captured coverage data of ${Object.entries(pageCoverage).length} files`)
-                this._coverage = pageCoverage
+                this._coverageMap = libCoverage.createCoverageMap(globalCoverageVar)
+                log.info(`Captured coverage data of ${this._coverageMap.files().length} files`)
             } catch (e) {
                 log.warn(`Couldn't capture data: ${e.message}`)
                 this._clearCaptureInterval()
@@ -93,34 +147,70 @@ export default class CoverageGatherer extends EventEmitter {
         }, CAPTURE_INTERVAL)
     }
 
+    async _getCoverageMap (retries = 0): Promise<libCoverage.CoverageMap> {
+        if (retries > MAX_WAIT_RETRIES) {
+            return Promise.reject(new Error(`Couldn't capture coverage data for page`))
+        }
+
+        if (!this._coverageMap) {
+            log.info('No coverage data collected, waiting...')
+            await new Promise((resolve) => setTimeout(resolve, CAPTURE_INTERVAL))
+            return this._getCoverageMap(retries)
+        }
+
+        return this._coverageMap
+    }
+
     async logCoverage (): Promise<void> {
         if (!this._coverageLogDir) {
             return
         }
 
-        /**
-         * if no coverage data was captured yet, wait until it was
-         */
-        if (!this._capturedData) {
-            log.info('No coverage data collected, waiting...')
-            await new Promise((resolve) => setTimeout(resolve, CAPTURE_INTERVAL))
-            return this.logCoverage()
+        this._clearCaptureInterval()
+
+        // create a context for report generation
+        const coverageMap = await this._getCoverageMap()
+        const context = libReport.createContext({
+            dir: this._coverageLogDir,
+            // The summarizer to default to (may be overridden by some reports)
+            // values can be nested/flat/pkg. Defaults to 'pkg'
+            defaultSummarizer: 'nested',
+            coverageMap,
+            sourceFinder: (source) => {
+                const f = fs.readFileSync(path.join(this._coverageLogDir, 'files', source.replace(process.cwd(), '')))
+                return f.toString('utf8')
+            }
+        })
+
+        // create an instance of the relevant report class, passing the
+        // report name e.g. json/html/html-spa/text
+        const report = reports.create(
+            this._options.type || DEFAULT_REPORT_TYPE,
+            this._options.options
+        )
+
+        // call execute to synchronously create and write the report to disk
+        // @ts-ignore
+        report.execute(context)
+    }
+
+    async getCoverageReport (): Promise<Coverage | null> {
+        const files: Record<string, libCoverage.CoverageSummary> = {}
+        const coverageMap = await this._getCoverageMap()
+        const summary = libCoverage.createCoverageSummary()
+        for (const f of coverageMap.files()) {
+            const fc = coverageMap.fileCoverageFor(f)
+            const s = fc.toSummary()
+            files[f] = s
+            summary.merge(s)
         }
 
-        this._clearCaptureInterval()
-        const filename = path.join(this._coverageLogDir, COVERAGE_FILENAME)
-        log.info(`Store coverage log file at ${filename}`)
-        const data = Object.values(this._coverage)
-            .map((coverageData: any) => {
-                const url = new URL(coverageData.path)
-                const fullPath = path.join(this._coverageLogDir, 'files', url.hostname, url.pathname)
-                coverageData.path = fullPath
-                return [fullPath, coverageData]
-            })
-            .reduce((obj, [path, coverageData]) => {
-                obj[path] = coverageData
+        return {
+            ...summary.data,
+            files: Object.entries(files).reduce((obj, [filename, { data }]) => {
+                obj[filename.replace(process.cwd(), '')] = data
                 return obj
-            }, {} as any)
-        await promisify(fs.writeFile)(filename, JSON.stringify(data), 'utf8')
+            }, {} as Record<string, libCoverage.CoverageSummaryData>)
+        }
     }
 }

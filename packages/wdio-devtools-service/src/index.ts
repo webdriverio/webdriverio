@@ -243,8 +243,10 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
         /**
          * register coverage gatherer if options is set by user
          */
-        if (typeof this._options.coverageLogDir === 'string') {
-            this._coverageGatherer = new CoverageGatherer(this._page, this._options.coverageLogDir)
+        if (this._options.coverageReporter?.enable) {
+            this._coverageGatherer = new CoverageGatherer(this._page, this._options.coverageReporter)
+            this._browser.addCommand('getCoverageReport', this._coverageGatherer.getCoverageReport.bind(this._coverageGatherer))
+            await this._coverageGatherer.init()
         }
 
         this._devtoolsGatherer = new DevtoolsGatherer()

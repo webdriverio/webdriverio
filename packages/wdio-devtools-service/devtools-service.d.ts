@@ -64,9 +64,30 @@ type DeviceProfiles = 'Blackberry PlayBook' | 'BlackBerry Z30' | 'Galaxy Note 3'
 
 interface DevtoolsConfig {
   /**
-   * Directory where JS coverage reports are stored
+   * options for the code coverage reporter
    */
-  coverageLogDir?: string;
+  coverageReporter?: CoverageReporterOptions;
+}
+
+export interface CoverageReporterOptions {
+    /**
+     * whether or not to enable code coverage reporting
+     * @default false
+     */
+    enable?: boolean
+    /**
+     * Directory where JS coverage reports are stored
+     */
+    logDir?: string
+    /**
+     * format of report
+     * @default json
+     */
+    type?: 'none' | 'clover' | 'cobertura' | 'html-spa' | 'html' | 'json' | 'json-summary' | 'lcov' | 'lcovonly' | 'teamcity' | 'text' | 'text-lcov' | 'text-summary'
+    /**
+     * Options for coverage report, for details see https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/istanbul-lib-report/index.d.ts
+     */
+    options?: any
 }
 
 interface PerformanceAuditOptions {
