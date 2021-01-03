@@ -149,13 +149,13 @@ export default class CoverageGatherer extends EventEmitter {
 
     async _getCoverageMap (retries = 0): Promise<libCoverage.CoverageMap> {
         if (retries > MAX_WAIT_RETRIES) {
-            return Promise.reject(new Error(`Couldn't capture coverage data for page`))
+            return Promise.reject(new Error('Couldn\'t capture coverage data for page'))
         }
 
         if (!this._coverageMap) {
             log.info('No coverage data collected, waiting...')
             await new Promise((resolve) => setTimeout(resolve, CAPTURE_INTERVAL))
-            return this._getCoverageMap(retries)
+            return this._getCoverageMap(++retries)
         }
 
         return this._coverageMap
