@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CoverageGatherer _handleRequests should transform JS files 1`] = `
+Array [
+  Array [
+    "Fetch.getResponseBody",
+    Object {
+      "requestId": "123",
+    },
+  ],
+  Array [
+    "Fetch.fulfillRequest",
+    Object {
+      "body": "dHJhbnNwaWxlZCBjb2Rl",
+      "requestId": "123",
+      "responseCode": 444,
+    },
+  ],
+]
+`;
