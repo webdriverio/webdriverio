@@ -17,6 +17,44 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.11.0 (2021-01-04)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`
+  * [#6275](https://github.com/webdriverio/webdriverio/pull/6275) TypeScript auto compiling ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#6270](https://github.com/webdriverio/webdriverio/pull/6270) webdriverio: Fix log path in standalone mode ([@koggdal](https://github.com/koggdal))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#6262](https://github.com/webdriverio/webdriverio/pull/6262) feat: add support for Appium W3C caps ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* [#6272](https://github.com/webdriverio/webdriverio/pull/6272) Update Debugging.md ([@jpratt2](https://github.com/jpratt2))
+* [#6260](https://github.com/webdriverio/webdriverio/pull/6260) Add headless to testrunner config docs ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :house: Internal
+* `wdio-sync`, `webdriverio`
+  * [#6273](https://github.com/webdriverio/webdriverio/pull/6273) Rewrite wdio-sync package to TS ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sauce-service`, `webdriver`
+  * [#6274](https://github.com/webdriverio/webdriverio/pull/6274) Rewrite wdio-sauce-service package to TS ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#6279](https://github.com/webdriverio/webdriverio/pull/6279) Update webdriverio @types/lodash (and a few other @types) deps to be devDeps ([@starpit](https://github.com/starpit))
+* `wdio-allure-reporter`, `wdio-reporter`, `webdriver`
+  * [#6085](https://github.com/webdriverio/webdriverio/pull/6085) Tracking doc: rewrite `@wdio/allure-reporter` package into Typescript ([@hieuxlu](https://github.com/hieuxlu))
+
+#### Committers: 7
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Hieu Do ([@hieuxlu](https://github.com/hieuxlu))
+- Johannes Koggdal ([@koggdal](https://github.com/koggdal))
+- John Pratt ([@jpratt2](https://github.com/jpratt2))
+- Nick Mitchell ([@starpit](https://github.com/starpit))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.10.14 (2020-12-21)
 
 #### :bug: Bug Fix
