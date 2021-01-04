@@ -45,15 +45,15 @@ beforeEach(() => {
 
 it('should initialize correctly', () => {
     service = new BrowserstackService({}, [], {})
-    expect(service.failReasons).toEqual([])
-    expect(service.preferScenarioName).toEqual(false)
-    expect(service.strict).toEqual(false)
+    expect(service._failReasons).toEqual([])
+    expect(service._preferScenarioName).toEqual(false)
+    expect(service._strict).toEqual(false)
 })
 
 describe('onReload()', () => {
     it('should update and get session', async () => {
         const updateSpy = jest.spyOn(service, '_update')
-        service.browser = browser
+        service._browser = browser
         await service.onReload(1, 2)
         expect(updateSpy).toHaveBeenCalled()
         expect(got.put).toHaveBeenCalled()
@@ -62,7 +62,7 @@ describe('onReload()', () => {
 
     it('should update and get multiremote session', async () => {
         browser.isMultiremote = true
-        service.browser = browser
+        service._browser = browser
         const updateSpy = jest.spyOn(service, '_update')
         await service.onReload(1, 2)
         expect(updateSpy).toHaveBeenCalled()
@@ -72,39 +72,39 @@ describe('onReload()', () => {
 
     it('should reset failures', async () => {
         const updateSpy = jest.spyOn(service, '_update')
-        service.browser = browser
+        service._browser = browser
 
-        service.failReasons = ['Custom Error: Button should be enabled', 'Expected something']
+        service._failReasons = ['Custom Error: Button should be enabled', 'Expected something']
         await service.onReload(1, 2)
         expect(updateSpy).toHaveBeenCalledWith(1, {
             status: 'failed',
             reason: 'Custom Error: Button should be enabled' + '\n' + 'Expected something'
         })
-        expect(service.failReasons).toEqual([])
+        expect(service._failReasons).toEqual([])
     })
 })
 
 describe('beforeSession', () => {
     it('should set some default to make missing user and key parameter apparent', () => {
         service.beforeSession({})
-        expect(service.config).toEqual({ user: 'NotSetUser', key: 'NotSetKey' })
+        expect(service._config).toEqual({ user: 'NotSetUser', key: 'NotSetKey' })
     })
 
     it('should set username default to make missing user parameter apparent', () => {
         service.beforeSession({ user: 'foo' })
-        expect(service.config).toEqual({ user: 'foo', key: 'NotSetKey' })
+        expect(service._config).toEqual({ user: 'foo', key: 'NotSetKey' })
     })
 
     it('should set key default to make missing key parameter apparent', () => {
         service.beforeSession({ key: 'bar' })
-        expect(service.config).toEqual({ user: 'NotSetUser', key: 'bar' })
+        expect(service._config).toEqual({ user: 'NotSetUser', key: 'bar' })
     })
 })
 
 describe('_printSessionURL', () => {
     it('should get and log session details', async () => {
         browser.isMultiremote = false
-        service.browser = browser
+        service._browser = browser
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
@@ -118,7 +118,7 @@ describe('_printSessionURL', () => {
 
     it('should get and log multi remote session details', async () => {
         browser.isMultiremote = true
-        service.browser = browser
+        service._browser = browser
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
@@ -159,7 +159,7 @@ describe('_printSessionURL Appium', () => {
     })
 
     it('should get and log session details', async () => {
-        service.browser = browser
+        service._browser = browser
         await service._printSessionURL()
         expect(log.info).toHaveBeenCalled()
         expect(log.info).toHaveBeenCalledWith(
@@ -173,27 +173,27 @@ describe('before', () => {
         let service = new BrowserstackService({}, [{}], { capabilities: {} }, browser)
 
         await service.beforeSession({})
-        await service.before(service.config, [], browser)
+        await service.before(service._config, [], browser)
 
-        expect(service.failReasons).toEqual([])
-        expect(service.config.user).toEqual('NotSetUser')
-        expect(service.config.key).toEqual('NotSetKey')
+        expect(service._failReasons).toEqual([])
+        expect(service._config.user).toEqual('NotSetUser')
+        expect(service._config.key).toEqual('NotSetKey')
 
         service = new BrowserstackService({}, [{}], { capabilities: {} }, browser)
         service.beforeSession({ user: 'blah' })
-        await service.before(service.config, [], browser)
+        await service.before(service._config, [], browser)
 
-        expect(service.failReasons).toEqual([])
+        expect(service._failReasons).toEqual([])
 
-        expect(service.config.user).toEqual('blah')
-        expect(service.config.key).toEqual('NotSetKey')
+        expect(service._config.user).toEqual('blah')
+        expect(service._config.key).toEqual('NotSetKey')
         service = new BrowserstackService({}, [{}], { capabilities: {} }, browser)
         service.beforeSession({ key: 'blah' })
-        await service.before(service.config, [], browser)
+        await service.before(service._config, [], browser)
 
-        expect(service.failReasons).toEqual([])
-        expect(service.config.user).toEqual('NotSetUser')
-        expect(service.config.key).toEqual('blah')
+        expect(service._failReasons).toEqual([])
+        expect(service._config.user).toEqual('NotSetUser')
+        expect(service._config.key).toEqual('blah')
     })
 
     it('should initialize correctly', () => {
@@ -202,10 +202,10 @@ describe('before', () => {
             key: 'bar',
             capabilities: {}
         }, browser)
-        service.before(service.config, [], browser)
+        service.before(service._config, [], browser)
 
-        expect(service.failReasons).toEqual([])
-        expect(service.sessionBaseUrl).toEqual('https://api.browserstack.com/automate/sessions')
+        expect(service._failReasons).toEqual([])
+        expect(service._sessionBaseUrl).toEqual('https://api.browserstack.com/automate/sessions')
     })
 
     it('should initialize correctly for multiremote', () => {
@@ -215,10 +215,10 @@ describe('before', () => {
             capabilities: {}
         }, browser)
         delete browser.capabilities
-        service.before(service.config, [], browser)
+        service.before(service._config, [], browser)
 
-        expect(service.failReasons).toEqual([])
-        expect(service.sessionBaseUrl).toEqual('https://api.browserstack.com/automate/sessions')
+        expect(service._failReasons).toEqual([])
+        expect(service._sessionBaseUrl).toEqual('https://api.browserstack.com/automate/sessions')
     })
 
     it('should initialize correctly for appium', () => {
@@ -238,10 +238,10 @@ describe('before', () => {
             os_version: '12.1',
             browserName: '',
         }
-        service.before(service.config, [], browser)
+        service.before(service._config, [], browser)
 
-        expect(service.failReasons).toEqual([])
-        expect(service.sessionBaseUrl).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
+        expect(service._failReasons).toEqual([])
+        expect(service._sessionBaseUrl).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
     })
 
     it('should initialize correctly for appium without global browser capabilities', () => {
@@ -254,16 +254,16 @@ describe('before', () => {
                 app: 'test-app'
             }
         }, browser)
-        service.before(service.config, [], browser)
+        service.before(service._config, [], browser)
 
-        expect(service.failReasons).toEqual([])
-        expect(service.sessionBaseUrl).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
+        expect(service._failReasons).toEqual([])
+        expect(service._sessionBaseUrl).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
     })
 
     it('should log the url', async () => {
         const service = new BrowserstackService({}, [{}], { capabilities: {} }, browser)
 
-        await service.before(service.config, [], browser)
+        await service.before(service._config, [], browser)
         expect(log.info).toHaveBeenCalled()
         expect(log.info).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2')
@@ -272,59 +272,59 @@ describe('before', () => {
 
 describe('afterTest', () => {
     it('should increment failure reasons on fails', () => {
-        service.before(service.config, [], browser)
-        service.fullTitle = ''
+        service.before(service._config, [], browser)
+        service._fullTitle = ''
         service.beforeSuite({ title: 'foo', })
         service.afterTest(
             { title: 'foo', parent: 'bar' },
             undefined,
             { error: { message: 'cool reason' }, result: 1, duration: 5, passed: false, undefined })
-        expect(service.failReasons).toContain('cool reason')
+        expect(service._failReasons).toContain('cool reason')
 
         service.afterTest(
             { title: 'foo2', parent: 'bar2' },
             undefined,
             { error: { message: 'not so cool reason' }, result: 1, duration: 7, passed: false, undefined })
 
-        expect(service.failReasons).toHaveLength(2)
-        expect(service.failReasons).toContain('cool reason')
-        expect(service.failReasons).toContain('not so cool reason')
+        expect(service._failReasons).toHaveLength(2)
+        expect(service._failReasons).toContain('cool reason')
+        expect(service._failReasons).toContain('not so cool reason')
 
         service.afterTest(
             { title: 'foo3', parent: 'bar3' },
             undefined,
             { error: undefined, result: 1, duration: 7, passed: false, undefined })
 
-        expect(service.fullTitle).toBe('bar3 - foo3')
-        expect(service.failReasons).toHaveLength(3)
-        expect(service.failReasons).toContain('cool reason')
-        expect(service.failReasons).toContain('not so cool reason')
-        expect(service.failReasons).toContain('Unknown Error')
+        expect(service._fullTitle).toBe('bar3 - foo3')
+        expect(service._failReasons).toHaveLength(3)
+        expect(service._failReasons).toContain('cool reason')
+        expect(service._failReasons).toContain('not so cool reason')
+        expect(service._failReasons).toContain('Unknown Error')
     })
 
     it('should not increment failure reasons on passes', () => {
-        service.before(service.config, [], browser)
+        service.before(service._config, [], browser)
         service.beforeSuite({ title: 'foo', })
         service.afterTest(
             { title: 'foo', parent: 'bar' },
             undefined,
             { error: { message: 'cool reason' }, result: 1, duration: 5, passed: true, undefined })
-        expect(service.failReasons).toEqual([])
+        expect(service._failReasons).toEqual([])
 
         service.afterTest(
             { title: 'foo2', parent: 'bar2' },
             undefined,
             { error: { message: 'not so cool reason' }, result: 1, duration: 5, passed: true, undefined })
 
-        expect(service.fullTitle).toBe('bar2 - foo2')
-        expect(service.failReasons).toEqual([])
+        expect(service._fullTitle).toBe('bar2 - foo2')
+        expect(service._failReasons).toEqual([])
     })
 
     it('should set title for Mocha tests', () => {
-        service.before(service.config, [], browser)
+        service.before(service._config, [], browser)
         service.beforeSuite({ title: 'foo', })
         service.afterTest({ title: 'bar', parent: 'foo' }, undefined, {})
-        expect(service.fullTitle).toBe('foo - bar')
+        expect(service._fullTitle).toBe('foo - bar')
     })
 })
 
@@ -334,39 +334,39 @@ describe('afterScenario', () => {
         service = new BrowserstackService({}, [],
             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } })
 
-        expect(service.failReasons).toEqual([])
+        expect(service._failReasons).toEqual([])
 
         service.afterScenario(uri, {}, {}, { status: 'passed' })
-        expect(service.failReasons).toEqual([])
+        expect(service._failReasons).toEqual([])
 
         service.afterScenario(uri, {}, {}, { exception: 'I am Error, most likely', status: 'failed' })
-        expect(service.failReasons).toEqual(['I am Error, most likely'])
+        expect(service._failReasons).toEqual(['I am Error, most likely'])
 
         service.afterScenario(uri, {}, {}, { status: 'passed' })
-        expect(service.failReasons).toEqual(['I am Error, most likely'])
+        expect(service._failReasons).toEqual(['I am Error, most likely'])
 
         service.afterScenario(uri, {}, {}, { exception: 'I too am Error', status: 'failed' })
-        expect(service.failReasons).toEqual(['I am Error, most likely', 'I too am Error'])
+        expect(service._failReasons).toEqual(['I am Error, most likely', 'I too am Error'])
 
         service.afterScenario(uri, {}, {}, { exception: 'Step XYZ is undefined', status: 'undefined' })
-        expect(service.failReasons).toEqual(['I am Error, most likely', 'I too am Error', 'Step XYZ is undefined'])
+        expect(service._failReasons).toEqual(['I am Error, most likely', 'I too am Error', 'Step XYZ is undefined'])
 
         service.afterScenario(uri, {}, {}, { exception: 'Step XYZ2 is ambiguous', status: 'ambiguous' })
-        expect(service.failReasons).toEqual(
+        expect(service._failReasons).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
                 'Step XYZ is undefined',
                 'Step XYZ2 is ambiguous'])
 
         service.afterScenario(uri, {}, { name: 'Can do something' }, { status: 'pending' })
-        expect(service.failReasons).toEqual(
+        expect(service._failReasons).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
                 'Step XYZ is undefined',
                 'Step XYZ2 is ambiguous'])
 
         service.afterScenario(uri, {}, {}, { status: 'passed' })
-        expect(service.failReasons).toEqual([
+        expect(service._failReasons).toEqual([
             'I am Error, most likely',
             'I too am Error',
             'Step XYZ is undefined',
@@ -378,32 +378,32 @@ describe('afterScenario', () => {
         service = new BrowserstackService({}, [],
             { user: 'foo', key: 'bar', cucumberOpts: { strict: true } })
 
-        expect(service.failReasons).toEqual([])
+        expect(service._failReasons).toEqual([])
 
         service.afterScenario(uri, {}, {}, { status: 'passed' })
-        expect(service.failReasons).toEqual([])
+        expect(service._failReasons).toEqual([])
 
         service.afterScenario(uri, {}, {}, { exception: 'I am Error, most likely', status: 'failed' })
-        expect(service.failReasons).toEqual(['I am Error, most likely'])
+        expect(service._failReasons).toEqual(['I am Error, most likely'])
 
         service.afterScenario(uri, {}, {}, { status: 'passed' })
-        expect(service.failReasons).toEqual(['I am Error, most likely'])
+        expect(service._failReasons).toEqual(['I am Error, most likely'])
 
         service.afterScenario(uri, {}, {}, { exception: 'I too am Error', status: 'failed' })
-        expect(service.failReasons).toEqual(['I am Error, most likely', 'I too am Error'])
+        expect(service._failReasons).toEqual(['I am Error, most likely', 'I too am Error'])
 
         service.afterScenario(uri, {}, {}, { exception: 'Step XYZ is undefined', status: 'undefined' })
-        expect(service.failReasons).toEqual(['I am Error, most likely', 'I too am Error', 'Step XYZ is undefined'])
+        expect(service._failReasons).toEqual(['I am Error, most likely', 'I too am Error', 'Step XYZ is undefined'])
 
         service.afterScenario(uri, {}, {}, { exception: 'Step XYZ2 is ambiguous', status: 'ambiguous' })
-        expect(service.failReasons).toEqual(
+        expect(service._failReasons).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
                 'Step XYZ is undefined',
                 'Step XYZ2 is ambiguous'])
 
         service.afterScenario(uri, {}, { name: 'Can do something' }, { status: 'pending' })
-        expect(service.failReasons).toEqual(
+        expect(service._failReasons).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
                 'Step XYZ is undefined',
@@ -411,7 +411,7 @@ describe('afterScenario', () => {
                 'Some steps/hooks are pending for scenario "Can do something"'])
 
         service.afterScenario(uri, {}, {}, { status: 'passed' })
-        expect(service.failReasons).toEqual([
+        expect(service._failReasons).toEqual([
             'I am Error, most likely',
             'I too am Error',
             'Step XYZ is undefined',
@@ -423,14 +423,14 @@ describe('afterScenario', () => {
 describe('after', () => {
     it('should call _update when session has no errors (exit code 0)', async () => {
         const updateSpy = jest.spyOn(service, '_update')
-        await service.before(service.config, [], browser)
+        await service.before(service._config, [], browser)
 
-        service.failReasons = []
-        service.fullTitle = 'foo - bar'
+        service._failReasons = []
+        service._fullTitle = 'foo - bar'
 
         await service.after(0)
 
-        expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId,
+        expect(updateSpy).toHaveBeenCalledWith(service._browser.sessionId,
             {
                 status: 'passed',
                 name: 'foo - bar',
@@ -447,13 +447,13 @@ describe('after', () => {
 
     it('should call _update when session has errors (exit code 1)', async () => {
         const updateSpy = jest.spyOn(service, '_update')
-        await service.before(service.config, [], browser)
+        await service.before(service._config, [], browser)
 
-        service.fullTitle = 'foo - bar'
-        service.failReasons = ['I am failure']
+        service._fullTitle = 'foo - bar'
+        service._failReasons = ['I am failure']
         await service.after(1)
 
-        expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId,
+        expect(updateSpy).toHaveBeenCalledWith(service._browser.sessionId,
             {
                 status: 'failed',
                 name: 'foo - bar',
@@ -475,7 +475,7 @@ describe('after', () => {
 
             const updateSpy = jest.spyOn(service, '_update')
 
-            await service.before(service.config, [], browser)
+            await service.before(service._config, [], browser)
             await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
             await service.afterScenario({}, {},
@@ -487,7 +487,7 @@ describe('after', () => {
 
             await service.after(1)
 
-            expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
+            expect(updateSpy).toHaveBeenLastCalledWith(service._browser.sessionId, {
                 name: 'Feature1',
                 reason: 'Some steps/hooks are pending for scenario "Can do something but pending 1"' + '\n' +
                         'Some steps/hooks are pending for scenario "Can do something but pending 2"' + '\n' +
@@ -503,7 +503,7 @@ describe('after', () => {
 
             const updateSpy = jest.spyOn(service, '_update')
 
-            await service.before(service.config, [], browser)
+            await service.before(service._config, [], browser)
             await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
             await service.afterScenario({}, {},
@@ -516,7 +516,7 @@ describe('after', () => {
             await service.after(0)
 
             expect(updateSpy).toHaveBeenCalled()
-            expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
+            expect(updateSpy).toHaveBeenLastCalledWith(service._browser.sessionId, {
                 name: 'Feature1',
                 reason: undefined,
                 status: 'passed',
@@ -529,7 +529,7 @@ describe('after', () => {
 
             const updateSpy = jest.spyOn(service, '_update')
 
-            await service.before(service.config, [], browser)
+            await service.before(service._config, [], browser)
             await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
             await service.afterScenario({}, {},
@@ -542,7 +542,7 @@ describe('after', () => {
             await service.after(1)
 
             expect(updateSpy).toHaveBeenCalled()
-            expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId, {
+            expect(updateSpy).toHaveBeenCalledWith(service._browser.sessionId, {
                 name: 'Feature1',
                 reason: 'Some steps/hooks are pending for scenario "Can do something but pending"',
                 status: 'failed',
@@ -554,7 +554,7 @@ describe('after', () => {
 
             service.strict = true
 
-            await service.before(service.config, [], browser)
+            await service.before(service._config, [], browser)
             await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
             await service.afterScenario({}, {},
@@ -566,7 +566,7 @@ describe('after', () => {
 
             await service.after(0)
 
-            expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId, {
+            expect(updateSpy).toHaveBeenCalledWith(service._browser.sessionId, {
                 name: 'Feature1',
                 reason: undefined,
                 status: 'passed',
@@ -580,11 +580,11 @@ describe('after', () => {
             const updateSpy = jest.spyOn(service, '_update')
             const afterSpy = jest.spyOn(service, 'after')
 
-            await service.beforeSession(service.config)
-            await service.before(service.config, [], browser)
+            await service.beforeSession(service._config)
+            await service.before(service._config, [], browser)
             await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
-            expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId, {
+            expect(updateSpy).toHaveBeenCalledWith(service._browser.sessionId, {
                 name: 'Feature1'
             })
 
@@ -599,7 +599,7 @@ describe('after', () => {
 
             expect(updateSpy).toHaveBeenCalledTimes(2)
             expect(updateSpy).toHaveBeenLastCalledWith(
-                service.browser.sessionId, {
+                service._browser.sessionId, {
                     name: 'Feature1',
                     reason:
                         'I am error, hear me roar' +
@@ -615,11 +615,11 @@ describe('after', () => {
 
             service.strict = false
 
-            await service.beforeSession(service.config)
-            await service.before(service.config, [], browser)
+            await service.beforeSession(service._config)
+            await service.before(service._config, [], browser)
             await service.beforeFeature({}, { document: { feature: { name: 'Feature1' } } })
 
-            expect(updateSpy).toHaveBeenCalledWith(service.browser.sessionId, {
+            expect(updateSpy).toHaveBeenCalledWith(service._browser.sessionId, {
                 name: 'Feature1'
             })
 
@@ -634,7 +634,7 @@ describe('after', () => {
 
             expect(updateSpy).toHaveBeenCalledTimes(2)
             expect(updateSpy).toHaveBeenLastCalledWith(
-                service.browser.sessionId, {
+                service._browser.sessionId, {
                     name: 'Feature1',
                     reason: 'I am error, hear me roar',
                     status: 'failed',
@@ -659,7 +659,7 @@ describe('after', () => {
 
                         await service.after(1)
 
-                        expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
+                        expect(updateSpy).toHaveBeenLastCalledWith(service._browser.sessionId, {
                             name: 'Can do something single',
                             reason: 'Unknown Error',
                             status: 'failed',
@@ -681,7 +681,7 @@ describe('after', () => {
 
                     await service.after(0)
 
-                    expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
+                    expect(updateSpy).toHaveBeenLastCalledWith(service._browser.sessionId, {
                         name: 'Can do something single',
                         reason: undefined,
                         status: 'passed',
@@ -705,7 +705,7 @@ describe('after', () => {
 
                         await service.after(1)
 
-                        expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
+                        expect(updateSpy).toHaveBeenLastCalledWith(service._browser.sessionId, {
                             name: 'Feature1',
                             reason: 'Unknown Error',
                             status: 'failed',
@@ -727,7 +727,7 @@ describe('after', () => {
 
                     await service.after(0)
 
-                    expect(updateSpy).toHaveBeenLastCalledWith(service.browser.sessionId, {
+                    expect(updateSpy).toHaveBeenLastCalledWith(service._browser.sessionId, {
                         name: 'Feature1',
                         reason: undefined,
                         status: 'passed',
