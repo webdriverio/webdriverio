@@ -30,6 +30,7 @@
     "@tracerbench/trace-event": "^4.5.2",
     "@types/puppeteer-core": "^2.0.0",
     "@wdio/logger": "6.10.10",
+    "atob": "^2.1.2",
     "babel-plugin-istanbul": "^6.0.0",
     "core-js": "~3.8.2",
     "devtools-protocol": "^0.0.841965",
