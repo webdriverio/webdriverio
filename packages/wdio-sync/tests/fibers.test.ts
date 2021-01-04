@@ -1,5 +1,10 @@
+export {}
+
+declare global {
+    var requireFibers: boolean
+}
+
 global.requireFibers = true
-global.requireFibers8 = true
 
 const mockFibers = () => {
     jest.mock('fibers', () => {

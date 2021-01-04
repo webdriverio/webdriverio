@@ -1,6 +1,6 @@
-const STACK_START = /^\s+at /
+export const STACK_START = /^\s+at /
 
-const STACKTRACE_FILTER = [
+export const STACKTRACE_FILTER = [
     // exclude @wdio/sync from stack traces
     'node_modules/@wdio/sync/',
 
@@ -20,16 +20,4 @@ const STACKTRACE_FILTER = [
     'new Promise (<anonymous>)',
     'Generator.next (<anonymous>)',
     '__awaiter ('
-]
-
-/**
- * filter stack array
- * @param {string} stackRow
- * @returns {boolean}
- */
-export const STACKTRACE_FILTER_FN = (stackRow) => {
-    if (stackRow.match(STACK_START)) {
-        return !STACKTRACE_FILTER.some(r => stackRow.includes(r))
-    }
-    return true
-}
+] as const

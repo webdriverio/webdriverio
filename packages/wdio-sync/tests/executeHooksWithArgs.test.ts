@@ -1,5 +1,9 @@
 import executeHooksWithArgs from '../src/executeHooksWithArgs'
 
+declare global {
+    var browser: any
+}
+
 describe('executeHooksWithArgs', () => {
     beforeEach(() => {
         global.browser = {}

@@ -12,7 +12,7 @@ const log = logger('@wdio/sync')
  * @param  {Object[]} args  list of parameter for hook functions
  * @return {Promise}  promise that gets resolved once all hooks finished running
  */
-export default async function executeHooksWithArgs (hookName, hooks = [], args) {
+export default async function executeHooksWithArgs (hookName?: string, hooks: Function | Function[] = [], args?: any | undefined) {
     /**
      * make sure hooks are an array of functions
      */
@@ -27,7 +27,7 @@ export default async function executeHooksWithArgs (hookName, hooks = [], args) 
         args = [args]
     }
 
-    hooks = hooks.map((hook) => new Promise((resolve) => {
+    const hookPromise = hooks.map((hook) => new Promise((resolve) => {
         let result
 
         const execHook = () => {
@@ -40,7 +40,7 @@ export default async function executeHooksWithArgs (hookName, hooks = [], args) 
                 return resolve(e)
             }
             if (result && typeof result.then === 'function') {
-                return result.then(resolve, (e) => {
+                return result.then(resolve, (e: Error) => {
                     log.error(e.stack)
                     resolve(e)
                 })
@@ -56,8 +56,8 @@ export default async function executeHooksWithArgs (hookName, hooks = [], args) 
     }))
 
     const start = Date.now()
-    const result = await Promise.all(hooks)
-    if (hooks.length) {
+    const result = await Promise.all(hookPromise)
+    if (hookPromise.length) {
         log.debug(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
     }
 
