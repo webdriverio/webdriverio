@@ -1,4 +1,5 @@
 import fs from 'fs'
+import path from 'path'
 import CoverageGatherer from '../../src/gatherer/coverage'
 
 import libReport from 'istanbul-lib-report'
@@ -119,10 +120,12 @@ describe('CoverageGatherer', () => {
 
         expect(sessionMock.send.mock.calls.slice(1))
             .toMatchSnapshot()
-        expect((fs.promises.mkdir as jest.Mock).mock.calls[0][0])
-            .toBe('/foo/bar/files/json.org')
-        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0])
-            .toBe('/foo/bar/files/json.org/foo.js')
+        expect((fs.promises.mkdir as jest.Mock).mock.calls[0][0].endsWith(
+            path.join('foo', 'bar', 'files', 'json.org')
+        )).toBe(true)
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith(
+            path.join('foo', 'bar', 'files', 'json.org', 'foo.js')
+        )).toBe(true)
     })
 
     it('_clearCaptureInterval', () => {
@@ -169,7 +172,9 @@ describe('CoverageGatherer', () => {
         expect(
             (libReport.createContext as jest.Mock).mock.calls[0][0].sourceFinder('/to/a/file.js')
         ).toBe('barfoo')
-        expect(fs.readFileSync).toBeCalledWith('/foo/bar/files/to/a/file.js')
+        expect((fs.readFileSync as jest.Mock).mock.calls[0][0].endsWith(
+            path.join('foo', 'bar', 'files', 'to', 'a', 'file.js')
+        )).toBe(true)
         expect(reports.create).toBeCalledWith('json-summary', { foo: 'bar' })
         // @ts-ignore mock feature
         expect(reports.reportInstance.execute).toBeCalledWith('someContext')
