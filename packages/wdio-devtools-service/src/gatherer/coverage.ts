@@ -61,7 +61,7 @@ export default class CoverageGatherer extends EventEmitter {
             return this._client.send(
                 'Fetch.continueRequest',
                 { requestId }
-            ).catch((err: Error) => log.debug(err.message))
+            ).catch(/* istanbul ignore next */ (err: Error) => log.debug(err.message))
         }
 
         /**
@@ -69,8 +69,7 @@ export default class CoverageGatherer extends EventEmitter {
          */
         const { body, base64Encoded } = await this._client.send(
             'Fetch.getResponseBody',
-            { requestId }
-        ).catch((err: Error) => log.debug(err.message)) as any
+            { requestId })
         const inputCode = base64Encoded ? atob(body) : body
 
         const url = new URL(request.url)
@@ -113,7 +112,7 @@ export default class CoverageGatherer extends EventEmitter {
             responseCode: responseStatusCode,
             /** do not mock body if it's undefined */
             body: !result ? undefined : Buffer.from(result.code!, 'utf8').toString('base64')
-        }).catch((err: Error) => log.debug(err.message))
+        })
     }
 
     private _clearCaptureInterval () {
@@ -135,7 +134,7 @@ export default class CoverageGatherer extends EventEmitter {
 
             try {
                 const globalCoverageVar = await this._page.evaluate(
-                    // eslint-disable-next-line no-undef
+                    /* istanbul ignore next */
                     () => window['__coverage__' as any]) as any as libCoverage.CoverageMapData
 
                 this._coverageMap = libCoverage.createCoverageMap(globalCoverageVar)
@@ -148,6 +147,7 @@ export default class CoverageGatherer extends EventEmitter {
     }
 
     async _getCoverageMap (retries = 0): Promise<libCoverage.CoverageMap> {
+        /* istanbul ignore if */
         if (retries > MAX_WAIT_RETRIES) {
             return Promise.reject(new Error('Couldn\'t capture coverage data for page'))
         }
@@ -162,10 +162,6 @@ export default class CoverageGatherer extends EventEmitter {
     }
 
     async logCoverage (): Promise<void> {
-        if (!this._coverageLogDir) {
-            return
-        }
-
         this._clearCaptureInterval()
 
         // create a context for report generation

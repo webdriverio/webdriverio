@@ -1,7 +1,8 @@
 import fs from 'fs'
 import CoverageGatherer from '../../src/gatherer/coverage'
 
-import libCoverage from 'istanbul-lib-coverage'
+import libReport from 'istanbul-lib-report'
+import reports from 'istanbul-reports'
 import { transformAsync as babelTransform } from '@babel/core'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
@@ -15,12 +16,25 @@ jest.mock('babel-plugin-istanbul', () => jest.fn())
 jest.mock('istanbul-lib-coverage', () => ({
     createCoverageMap: jest.fn().mockReturnValue({
         files: jest.fn().mockReturnValue(['/foo/bar.js'])
+    }),
+    createCoverageSummary: jest.fn().mockReturnValue({
+        merge: jest.fn(),
+        data: { some: 'coverageData' }
     })
 }))
-jest.mock('istanbul-lib-report', () => jest.fn())
-jest.mock('istanbul-reports', () => jest.fn())
+jest.mock('istanbul-lib-report', () => ({
+    createContext: jest.fn().mockReturnValue('someContext')
+}))
+jest.mock('istanbul-reports', () => {
+    const reportInstance = { execute: jest.fn() }
+    return {
+        create: jest.fn().mockReturnValue(reportInstance),
+        reportInstance
+    }
+})
 jest.mock('fs', () => ({
     existsSync: jest.fn(),
+    readFileSync: jest.fn().mockReturnValue({ toString: () => 'barfoo' }),
     promises: {
         mkdir: jest.fn(),
         writeFile: jest.fn()
@@ -86,17 +100,22 @@ describe('CoverageGatherer', () => {
     })
 
     it('_handleRequests should transform JS files', async () => {
-        const gatherer = new CoverageGatherer(pageMock, {
-            logDir: '/foo/bar'
-        })
-        await gatherer.init()
-        await gatherer['_handleRequests']({
+        const params = {
             requestId: '123',
             request: {
                 url: 'http://json.org/foo.js'
             },
             responseStatusCode: 444
+        }
+        const gatherer = new CoverageGatherer(pageMock, {
+            logDir: '/foo/bar'
         })
+
+        // test without _client
+        await gatherer['_handleRequests'](params)
+
+        await gatherer.init()
+        await gatherer['_handleRequests'](params)
 
         expect(sessionMock.send.mock.calls.slice(1))
             .toMatchSnapshot()
@@ -133,5 +152,39 @@ describe('CoverageGatherer', () => {
         gatherer['_coverageMap'] = 'foobar' as any
         jest.advanceTimersByTime(1000)
         expect(await map).toEqual('foobar')
+    })
+
+    it('logCoverage', async () => {
+        const gatherer = new CoverageGatherer(pageMock, {
+            type: 'json-summary',
+            logDir: '/foo/bar',
+            options: { foo: 'bar' }
+        })
+        gatherer['_clearCaptureInterval'] = jest.fn()
+        gatherer['_getCoverageMap'] = jest.fn().mockResolvedValue({ bar: 'foo' })
+        await gatherer.logCoverage()
+
+        expect(gatherer['_clearCaptureInterval']).toBeCalledTimes(1)
+        expect(libReport.createContext).toBeCalledTimes(1)
+        expect(
+            (libReport.createContext as jest.Mock).mock.calls[0][0].sourceFinder('/to/a/file.js')
+        ).toBe('barfoo')
+        expect(fs.readFileSync).toBeCalledWith('/foo/bar/files/to/a/file.js')
+        expect(reports.create).toBeCalledWith('json-summary', { foo: 'bar' })
+        // @ts-ignore mock feature
+        expect(reports.reportInstance.execute).toBeCalledWith('someContext')
+    })
+
+    it('getCoverageReport', async () => {
+        const coverage = {
+            toSummary: jest.fn().mockReturnValue({ data: { some: 'coverage' } })
+        }
+        const coverageMap = {
+            files: jest.fn().mockReturnValue(['/foo/bar.js', '/bar/foo.js']),
+            fileCoverageFor: jest.fn().mockReturnValue(coverage)
+        }
+        const gatherer = new CoverageGatherer(pageMock, {})
+        gatherer['_getCoverageMap'] = jest.fn().mockResolvedValue(coverageMap)
+        expect(await gatherer.getCoverageReport()).toMatchSnapshot()
     })
 })

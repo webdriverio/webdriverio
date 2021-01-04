@@ -18,3 +18,17 @@ Array [
   ],
 ]
 `;
+
+exports[`CoverageGatherer getCoverageReport 1`] = `
+Object {
+  "files": Object {
+    "/bar/foo.js": Object {
+      "some": "coverage",
+    },
+    "/foo/bar.js": Object {
+      "some": "coverage",
+    },
+  },
+  "some": "coverageData",
+}
+`;
