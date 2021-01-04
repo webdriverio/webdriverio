@@ -1,4 +1,4 @@
-import { pickle } from 'cucumber'
+import type { pickle } from 'cucumber'
 
 import RunnableStats from './runnable'
 
