@@ -91,7 +91,7 @@ interface DevtoolsConfig {
   coverageReporter?: CoverageReporterOptions;
 }
 
-export interface CoverageReporterOptions {
+interface CoverageReporterOptions {
     /**
      * whether or not to enable code coverage reporting
      * @default false
