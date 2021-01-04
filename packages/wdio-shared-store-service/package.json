@@ -31,8 +31,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "shared-store-service.d.ts",
-  "devDependencies": {
-    "webdriverio": "6.10.11"
-  }
+  "types": "shared-store-service.d.ts"
 }
