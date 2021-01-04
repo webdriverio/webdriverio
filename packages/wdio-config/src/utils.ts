@@ -1,4 +1,8 @@
+import logger from '@wdio/logger'
+
 import type { DefaultOptions } from './types'
+
+const log = logger('@wdio/config:utils')
 
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
@@ -207,4 +211,13 @@ export function validateConfig<T>(defaults: DefaultOptions<T>, options: T, keysT
     }
 
     return params
+}
+
+export function loadTypeScriptCompiler () {
+    try {
+        require.resolve('ts-node')
+        require('ts-node').register({ transpileOnly: true })
+    } catch (e) {
+        return log.debug('Couldn\'t find ts-node package, no TypeScript compiling')
+    }
 }

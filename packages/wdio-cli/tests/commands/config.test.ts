@@ -22,6 +22,8 @@ beforeEach(() => {
     ;(yarnInstall as any as jest.Mock).mockReturnValue({ status: 0 })
     errorLogSpy.mockClear()
     consoleLogSpy.mockClear()
+
+    delete process.env.WDIO_TEST_THROW_RESOLVE
 })
 
 afterEach(() => {
@@ -99,6 +101,23 @@ test('should throw an error if something goes wrong', async () => {
 
 test('prints TypeScript setup message', async () => {
     (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+        executionMode: 'sync',
+        framework: '@wdio/mocha-framework$--$mocha',
+        reporters: [],
+        services: [
+            '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
+            'wdio-lambdatest-service$--$lambdatest'
+        ],
+        generateTestFiles: false,
+        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
+    }))
+    await handler({} as any)
+    expect(consoleLogSpy.mock.calls).toMatchSnapshot()
+})
+
+test('prints TypeScript setup message with ts-node installed', async () => {
+    process.env.WDIO_TEST_THROW_RESOLVE = '1'
+    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],

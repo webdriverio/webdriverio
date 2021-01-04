@@ -5,7 +5,7 @@ title: TypeScript Setup
 
 You can write tests using [TypeScript](http://www.typescriptlang.org) to get autocompletion and type safety.
 
-You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`.
+You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`. WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you.
 
 ```
 npm i typescript ts-node --save-dev
@@ -40,73 +40,6 @@ For sync mode (`@wdio/sync`), `webdriverio` types must be replaced with `@wdio/s
 
 Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
 `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`.
-
-### Typed Configuration
-
-We recommend using a typed configuration to prevent unexpected errors in the `wdio.conf`.
-All you have to do is create a plain JS config file that registers TypeScript and requires the typed config:
-
-```javascript
-require('ts-node').register({ transpileOnly: true })
-module.exports = require('./wdio.conf.ts')
-```
-
-And in your typed configuration file:
-
-```typescript
-import { Config } from 'webdriverio';
-
-const config: Config = {
-    // Put your webdriverio configuration here
-}
-
-export { config }
-```
-
-If you are using this approach for a typed configuration, you have to remove the line with 'ts-node/register' from your framework options in your config file.
-
-### Non-typed configuration
-
-If you still prefer to keep `wdio.conf` as a JavaScript file, the following framework configurations need to be applied to set up TypeScript properly with WebdriverIO.
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Mocha-->
-```js
-// wdio.conf.js
-exports.config = {
-    // ...
-    mochaOpts: {
-        require: ['ts-node/register'],
-    },
-    // ...
-}
-```
-<!--Jasmine-->
-```js
-// wdio.conf.js
-exports.config = {
-    // ...
-    jasmineNodeOpts: {
-        requires: ['ts-node/register']
-    },
-    // ...
-}
-```
-<!--Cucumber-->
-```js
-// wdio.conf.js
-exports.config = {
-    // ...
-    cucumberOpts: {
-        requireModule: [
-            () => { require('ts-node').register({ transpileOnly: true }) },
-        ],
-        require: [/* support and step definitions files here */],
-    },
-    // ...
-}
-```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Framework types
 
