@@ -150,3 +150,9 @@ export const DEFAULTS: DefaultOptions<Options> = {
         default: true
     }
 }
+
+export const VALID_CAPS = [
+    'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts',
+    'pageLoadStrategy', 'proxy', 'setWindowRect', 'timeouts', 'strictFileInteractability',
+    'unhandledPromptBehavior'
+]

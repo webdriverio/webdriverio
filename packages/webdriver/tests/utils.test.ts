@@ -209,6 +209,7 @@ describe('utils', () => {
                 logLevel: 'warn',
                 capabilities: {
                     browserName: 'chrome',
+                    platform: 'Windows'
                 }
             }
             const { sessionId, capabilities } = await startWebDriverSession(params)
@@ -225,6 +226,28 @@ describe('utils', () => {
                 logLevel: 'warn'
             }).catch((err) => err)
             expect(error.message).toContain('Failed to create session')
+        })
+
+        it('should break if JSONWire and WebDriver caps are mixed together', async () => {
+            const params: Options = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                logLevel: 'warn',
+                capabilities: {
+                    browserName: 'chrome',
+                    'sauce:options': {},
+                    platform: 'Windows',
+                    // @ts-ignore test invalid cap
+                    foo: 'bar'
+                }
+            }
+            const err: Error = await startWebDriverSession(params).catch((err) => err)
+            expect(err.message).toContain(
+                'Invalid or unsupported WebDriver capabilities found ' +
+                '("platform", "foo").'
+            )
         })
     })
 })
