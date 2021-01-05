@@ -1,6 +1,10 @@
 // @ts-ignore
 import junit from 'junit-report-builder'
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, {
+    RunnerStats,
+    SuiteStats,
+    WDIOReporterOptionsFromLogFile
+} from '@wdio/reporter'
 import { limit } from './utils'
 
 /**
@@ -17,22 +21,22 @@ export interface Capabilities {
     os_version: string
 }
 
-export interface Runner {
+/*export interface Runner {
     specs: string[]
     capabilities: Capabilities
     // TODO check .hostname
     config: any
     sanitizedCapabilities : string
-}
+}*/
 
-export interface Suite {
+/*export interface Suite {
     tests: any
     title: string
     type: string
     start: any
     _duration : number
     hooks: [{error: string, title: string, _duration: string, state:string}]
-}
+}*/
 
 export interface Data {
     type: any
@@ -44,25 +48,35 @@ export interface Data {
     params: string
 }
 
+export interface JunitReporterOptions extends WDIOReporterOptionsFromLogFile {
+    configFile: string;
+    logLevel: string;
+    stdout?: boolean;
+    suiteNameFormat?: RegExp
+    packageName?: string
+    addFileAttribute?: any
+    errorOptions?: any
+}
+
 export default class JunitReporter extends WDIOReporter {
     private suiteNameRegEx: RegExp;
-    private options: WDIOReporter.Options;
+    private _options: JunitReporterOptions;
     private packageName! : string;
     private isCucumberFrameworkRunner: boolean = false;
     private suiteTitleLabel!: string;
     private fileNameLabel!: string;
     // TODO check any
-    private suites: any;
+    private _suites: any;
     private activeFeature!: any
     private activeFeatureName!: string;
 
-    constructor (options : WDIOReporter.Options) {
+    constructor (options : JunitReporterOptions) {
         super(options)
-        this.options = options
-        this.suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp ? this.options.suiteNameFormat : /[^a-zA-Z0-9]+/
+        this._options = options
+        this.suiteNameRegEx = this._options.suiteNameFormat instanceof RegExp ? this._options.suiteNameFormat : /[^a-zA-Z0-9]+/
     }
 
-    onRunnerEnd (runner : Runner ): void {
+    onRunnerEnd (runner : RunnerStats ): void {
         const xml = this.buildJunitXml(runner)
         this.write(xml)
     }
@@ -73,7 +87,7 @@ export default class JunitReporter extends WDIOReporter {
         ).join('_')
     }
 
-    addFailedHooks(suite: Suite): Suite {
+    addFailedHooks(suite: SuiteStats): SuiteStats {
         /**
          * Add failed hooks to suite as tests.
          */
@@ -91,7 +105,7 @@ export default class JunitReporter extends WDIOReporter {
         return suite
     }
 
-    addCucumberFeatureToBuilder(builder: any, runner : Runner, specFileName : string, suite: Suite): any {
+    addCucumberFeatureToBuilder(builder: any, runner : RunnerStats, specFileName : string, suite: SuiteStats): any {
         const featureName = this.prepareName(suite.title)
         const filePath = specFileName.replace(process.cwd(), '.')
 
@@ -115,7 +129,7 @@ export default class JunitReporter extends WDIOReporter {
                 .name(`${this.activeFeatureName}.${testName}`)
                 .time(scenario._duration / 1000)
 
-            if (this.options.addFileAttribute) {
+            if (this._options.addFileAttribute) {
                 testCase.file(filePath)
             }
 
@@ -134,8 +148,8 @@ export default class JunitReporter extends WDIOReporter {
                         stepEmoji = '⚠️'
                     } else if (step.state === 'failed') {
                         if (step.error) {
-                            if (this.options.errorOptions) {
-                                const errorOptions = this.options.errorOptions
+                            if (this._options.errorOptions) {
+                                const errorOptions = this._options.errorOptions
                                 for (const key of Object.keys(errorOptions)) {
                                     testCase[key](step.error[errorOptions[key]])
                                 }
@@ -159,7 +173,7 @@ export default class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    addSuiteToBuilder(builder: any, runner: Runner, specFileName : string, suite: Suite): any {
+    addSuiteToBuilder(builder: any, runner: RunnerStats, specFileName : string, suite: SuiteStats): any {
         const suiteName = this.prepareName(suite.title)
         const filePath = specFileName.replace(process.cwd(), '.')
 
@@ -183,7 +197,7 @@ export default class JunitReporter extends WDIOReporter {
                     .name(testName)
                     .time(test._duration / 1000)
 
-                if (this.options.addFileAttribute) {
+                if (this._options.addFileAttribute) {
                     testCase.file(filePath)
                 }
 
@@ -191,8 +205,8 @@ export default class JunitReporter extends WDIOReporter {
                     testCase.skipped()
                 } else if (test.state === 'failed') {
                     if (test.error) {
-                        if (this.options.errorOptions) {
-                            const errorOptions = this.options.errorOptions
+                        if (this._options.errorOptions) {
+                            const errorOptions = this._options.errorOptions
                             for (const key of Object.keys(errorOptions)) {
                                 testCase[key](test.error[errorOptions[key]])
                             }
@@ -213,7 +227,7 @@ export default class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    buildJunitXml (runner : Runner): any {
+    buildJunitXml (runner : RunnerStats): any {
         let builder = junit.newBuilder()
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
@@ -227,9 +241,9 @@ export default class JunitReporter extends WDIOReporter {
                 .map((capability) => capability.toLowerCase())
                 .join('.')
                 .replace(/ /g, '') || runner.sanitizedCapabilities
-            this.packageName = this.options.packageName ? `${browserstackSanitizedCapabilities}-${this.options.packageName}` : browserstackSanitizedCapabilities
+            this.packageName = this._options.packageName ? `${browserstackSanitizedCapabilities}-${this._options.packageName}` : browserstackSanitizedCapabilities
         } else {
-            this.packageName = this.options.packageName ? `${runner.sanitizedCapabilities}-${this.options.packageName}` : runner.sanitizedCapabilities
+            this.packageName = this._options.packageName ? `${runner.sanitizedCapabilities}-${this._options.packageName}` : runner.sanitizedCapabilities
         }
 
         this.isCucumberFrameworkRunner = runner.config.framework === 'cucumber'
@@ -242,7 +256,7 @@ export default class JunitReporter extends WDIOReporter {
             this.fileNameLabel = 'file'
         }
 
-        for (let suiteKey of Object.keys(this.suites)) {
+        for (let suiteKey of Object.keys(this._suites)) {
             /**
              * ignore root before all
              */
@@ -253,7 +267,7 @@ export default class JunitReporter extends WDIOReporter {
 
             // there should only be one spec file per runner so we can safely take the first element of the array
             const specFileName = runner.specs[0]
-            const suite = this.suites[suiteKey]
+            const suite = this._suites[suiteKey]
 
             if (this.isCucumberFrameworkRunner) {
                 builder = this.addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
