@@ -1063,5 +1063,160 @@
         "required": true
       }]
     }
+  },
+  "/session/:sessionId/authenticator": {
+    "POST": {
+      "command": "addVirtualAuthenticator",
+      "description": "Creates a software [Virtual Authenticator](https://www.w3.org/TR/webauthn-2/#virtual-authenticators).",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-add-virtual-authenticator",
+      "parameters": [{
+        "name": "protocol",
+        "type": "string",
+        "description": "Valid values: 'ctap1/u2f', 'ctap2', 'ctap2_1'",
+        "required": false
+      }, {
+        "name": "transport",
+        "type": "string",
+        "description": "Valid values: 'usb', 'nfc', 'ble' or 'internal'",
+        "required": false
+      }, {
+        "name": "hasResidentKey",
+        "type": "boolean",
+        "description": "",
+        "required": false
+      }, {
+        "name": "hasUserVerification",
+        "type": "boolean",
+        "description": "",
+        "required": false
+      }, {
+        "name": "isUserConsenting",
+        "type": "boolean",
+        "description": "",
+        "required": false
+      }, {
+        "name": "isUserVerified",
+        "type": "boolean",
+        "description": "",
+        "required": false
+      }, {
+        "name": "extensions",
+        "type": "object[]",
+        "description": "",
+        "required": false
+      }, {
+        "name": "uvm",
+        "type": "object[]",
+        "description": "",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/authenticator/:authenticatorId": {
+    "DELETE": {
+      "command": "removeVirtualAuthenticator",
+      "description": "Removes a previously created Virtual Authenticator.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-remove-virtual-authenticator",
+      "variables": [{
+        "name": "authenticatorId",
+        "description": "id of authenticator"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/authenticator/:authenticatorId/credential": {
+    "POST": {
+      "command": "addCredential",
+      "description": "Injects a Public Key Credential Source into an existing Virtual Authenticator.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-add-credential",
+      "parameters": [{
+        "name": "credentialId",
+        "type": "string",
+        "description": "The Credential ID encoded using Base64url Encoding.",
+        "required": true
+      }, {
+        "name": "isResidentCredential",
+        "type": "boolean",
+        "description": "If set to true, a client-side discoverable credential is created. If set to false, a server-side credential is created instead.",
+        "required": true
+      }, {
+        "name": "rpId",
+        "type": "string",
+        "description": "The Relying Party ID the credential is scoped to.",
+        "required": true
+      }, {
+        "name": "privateKey",
+        "type": "string",
+        "description": "An asymmetric key package containing a single private key per [RFC5958], encoded using Base64url Encoding.",
+        "required": true
+      }, {
+        "name": "userHandle",
+        "type": "string",
+        "description": "The userHandle associated to the credential encoded using Base64url Encoding. This property may not be defined.",
+        "required": true
+      }, {
+        "name": "signCount",
+        "type": "number",
+        "description": "The initial value for a signature counter associated to the public key credential source.",
+        "required": true
+      }, {
+        "name": "largeBlob",
+        "type": "string",
+        "description": "The large, per-credential blob associated to the public key credential source, encoded using Base64url Encoding. This property may not be defined.",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/authenticator/:authenticatorId/credentials": {
+    "GET": {
+      "command": "getCredentials",
+      "description": "Returns one Credential Parameters object for every Public Key Credential Source stored in a Virtual Authenticator, regardless of whether they were stored using Add Credential or `navigator.credentials.create()`.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-get-credentials",
+      "variables": [{
+        "name": "authenticatorId",
+        "description": "id of authenticator"
+      }],
+      "parameters": []
+    },
+    "DELETE": {
+      "command": "removeAllCredentials",
+      "description": "Removes all Public Key Credential Sources stored on a Virtual Authenticator.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-remove-all-credentials",
+      "variables": [{
+        "name": "authenticatorId",
+        "description": "id of authenticator"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/authenticator/:authenticatorId/credentials/:credentialId": {
+    "DELETE": {
+      "command": "removeCredential",
+      "description": "Removes a Public Key Credential Source stored on a Virtual Authenticator.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-remove-credential",
+      "variables": [{
+        "name": "authenticatorId",
+        "description": "id of authenticator"
+      }, {
+        "name": "credentialId",
+        "description": "id of credential"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/authenticator/:authenticatorId/credentials/:credentialId/uv": {
+    "POST": {
+      "command": "setUserVerified",
+      "description": "The Set User Verified extension command sets the isUserVerified property on the Virtual Authenticator.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-set-user-verified",
+      "variables": [{
+        "name": "authenticatorId",
+        "description": "id of authenticator"
+      }, {
+        "name": "credentialId",
+        "description": "id of credential"
+      }],
+      "parameters": []
+    }
   }
 }
