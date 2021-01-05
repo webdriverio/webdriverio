@@ -5,7 +5,7 @@ import yarnInstall from 'yarn-install'
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
     TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
-    CONFIG_HELPER_SUCCESS_MESSAGE
+    CONFIG_HELPER_SUCCESS_MESSAGE, TS_SETUP_NOTE
 } from '../constants'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
@@ -61,6 +61,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * add ts-node if TypeScript is desired but not installed
      */
+    let isTypeScriptInstalled = false
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
         try {
             /**
@@ -71,8 +72,9 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                 throw new Error('resolve error')
             }
             require.resolve('ts-node')
+            isTypeScriptInstalled = true
         } catch (e) {
-            packagesToInstall.push('ts-node')
+            packagesToInstall.push('ts-node', 'typescript')
         }
     }
 
@@ -104,6 +106,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         services: servicePackages.map(({ short }) => short),
         packagesToInstall,
         isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
+        isTypeScriptInstalled,
         isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
         isSync: syncExecution,
         _async: syncExecution ? '' : 'async ',
@@ -143,6 +146,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                 .filter(service => service.startsWith('@wdio'))
         ].join('", "')}"`
         console.log(util.format(TS_COMPILER_INSTRUCTIONS, tsPkgs))
+    }
+
+    if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
+        console.log(util.format(TS_SETUP_NOTE, syncExecution ? '@wdio/sync' : 'webdriverio', frameworkPackage.package))
     }
 
     console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
