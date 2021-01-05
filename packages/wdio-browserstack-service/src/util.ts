@@ -10,7 +10,7 @@ type Browser = WebdriverIO.BrowserObject & WebdriverIO.MultiRemoteBrowserObject;
 export function getBrowserDescription(cap: Capabilities) {
     cap = cap || {}
     if (cap['bstack:options']) {
-        cap = { ...cap, ...cap['bstack:options'] }
+        cap = { ...cap, ...cap['bstack:options'] } as Capabilities
     }
 
     /**
