@@ -36,15 +36,6 @@ For for information on TypeScript integration check out: https://webdriver.io/do
   ],
   Array [
     "
-To enable TypeScript support please add the following types to your tsconfig.json:
-- @wdio/sync
-- @wdio/mocha-framework
-
-For more information, see https://webdriver.io/docs/typescript.html!
-",
-  ],
-  Array [
-    "
 Configuration file was created successfully!
 To run your tests, execute:
 $ npx wdio run wdio.conf.js
@@ -87,15 +78,6 @@ Packages installed successfully, creating configuration file...",
 }
 
 For for information on TypeScript integration check out: https://webdriver.io/docs/typescript.html
-",
-  ],
-  Array [
-    "
-To enable TypeScript support please add the following types to your tsconfig.json:
-- @wdio/sync
-- @wdio/mocha-framework
-
-For more information, see https://webdriver.io/docs/typescript.html!
 ",
   ],
   Array [

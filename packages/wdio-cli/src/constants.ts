@@ -17,14 +17,6 @@ WDIO Configuration Helper
 =========================
 `
 
-export const TS_SETUP_NOTE = `
-To enable TypeScript support please add the following types to your tsconfig.json:
-- %s
-- %s
-
-For more information, see https://webdriver.io/docs/typescript.html!
-`
-
 export const CONFIG_HELPER_SUCCESS_MESSAGE = `
 Configuration file was created successfully!
 To run your tests, execute:
