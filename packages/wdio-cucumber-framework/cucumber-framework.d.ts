@@ -47,7 +47,7 @@ interface CucumberOpts {
     /**
      * Require modules prior to requiring any support files.
      * @default []
-     * @example `['@babel/register']` or `[['@babel/register', { rootMode: 'upward', ignore: ['node_modules'] }]] or [() => { require('ts-node').register({ files: true }) }]`
+     * @example `['@babel/register']` or `[['@babel/register', { rootMode: 'upward', ignore: ['node_modules'] }]]`
      */
     requireModule?: string[];
     /**

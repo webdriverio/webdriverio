@@ -52,7 +52,7 @@ Require modules prior to requiring any support files.
 
 Type: `String[]`<br>
 Default: `[]`<br>
-Example: `['@babel/register']` or `[['@babel/register', { rootMode: 'upward', ignore: ['node_modules'] }]] or [() => { require('ts-node').register({ files: true }) }]`
+Example: `['@babel/register']` or `[['@babel/register', { rootMode: 'upward', ignore: ['node_modules'] }]]`
 
 ### failAmbiguousDefinitions
 **Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself**

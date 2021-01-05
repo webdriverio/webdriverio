@@ -180,10 +180,7 @@ exports.config = {
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
-        <% if(answers.isUsingTypeScript) {
-        %>// TypeScript setup
-        require: ['ts-node/register'],
-        <% } else if(answers.isUsingBabel) {
+        <% if(answers.isUsingBabel) {
         %>// Babel setup
         require: ['@babel/register'],
         <% }
@@ -195,10 +192,7 @@ exports.config = {
     //
     // Options to be passed to Jasmine.
     jasmineNodeOpts: {
-        <% if(answers.isUsingTypeScript) {
-        %>// TypeScript setup
-        requires: ['ts-node/register'],
-        <% } else if(answers.isUsingBabel) {
+        <% if(answers.isUsingBabel) {
         %>// Babel setup
         helpers: [require.resolve('@babel/register')],
         <% }
@@ -221,11 +215,7 @@ exports.config = {
         // <boolean> show full backtrace for errors
         backtrace: false,
         // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        <% if(answers.isUsingTypeScript) {
-        %>requireModule: [
-            () => { require('ts-node').register({ files: true }) },
-        ],
-        <% } else if(answers.isUsingBabel) {
+        <% if(answers.isUsingBabel) {
         %>requireModule: ['@babel/register'],
         <% } else {
         %>requireModule: [],

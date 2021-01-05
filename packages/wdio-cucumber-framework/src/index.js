@@ -186,7 +186,7 @@ class CucumberAdapter {
      * Pass an array with path to module and its configuration instead:
      * Usage: `[['module', {}]]`
      * Or pass your own function
-     * Usage: `[() => { require('ts-node').register({ files: true }) }]`
+     * Usage: `[() => { require('@babel/register')({ ignore: [] }) }]`
      */
     registerRequiredModules() {
         this.cucumberOpts.requireModule.map(requiredModule => {
