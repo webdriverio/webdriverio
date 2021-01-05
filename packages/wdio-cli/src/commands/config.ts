@@ -61,7 +61,6 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * add ts-node if TypeScript is desired but not installed
      */
-    let isTypeScriptInstalled = false
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
         try {
             /**
@@ -72,7 +71,6 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                 throw new Error('resolve error')
             }
             require.resolve('ts-node')
-            isTypeScriptInstalled = true
         } catch (e) {
             packagesToInstall.push('ts-node', 'typescript')
         }
@@ -106,7 +104,6 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         services: servicePackages.map(({ short }) => short),
         packagesToInstall,
         isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
-        isTypeScriptInstalled,
         isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
         isSync: syncExecution,
         _async: syncExecution ? '' : 'async ',

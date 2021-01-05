@@ -39,7 +39,6 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     services: string[]
     packagesToInstall: string[]
     isUsingTypeScript: boolean
-    isTypeScriptInstalled: boolean
     isUsingBabel: boolean
     isSync: boolean
     _async: string
