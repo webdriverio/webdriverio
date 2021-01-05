@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.11.3 (2021-01-05)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6288](https://github.com/webdriverio/webdriverio/pull/6288) Fix puppeteer typings #6287 ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### Committers: 1
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+
+
 ## v6.11.1 (2021-01-05)
 
 #### :bug: Bug Fix
