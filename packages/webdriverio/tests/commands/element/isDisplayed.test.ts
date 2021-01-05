@@ -183,9 +183,6 @@ describe('isDisplayed test', () => {
                 baseUrl: 'http://foobar.com',
                 capabilities: {
                     browserName: 'firefox',
-                    // @ts-ignore mock feature
-                    keepBrowserName: true,
-                    mobileMode: true
                 }
             })
             elem = await browser.$('#foo')
