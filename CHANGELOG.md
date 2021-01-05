@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.11.1 (2021-01-05)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#6286](https://github.com/webdriverio/webdriverio/pull/6286) Further TypeScript CLI improvements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v6.11.0 (2021-01-04)
 
 #### :rocket: New Feature
