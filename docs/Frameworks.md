@@ -298,10 +298,6 @@ cucumberOpts: {
                 ignore: ['node_modules']
             }
         ]
-    ],
-    // or
-    requireModule: [
-        () => { require('ts-node').register({ files: true }) }
     ]
  }
  ```
