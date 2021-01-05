@@ -252,23 +252,6 @@
       }
     }
   },
-  "/session/:sessionId/reporting/generate_test_report": {
-    "POST": {
-      "command": "generateTestReport",
-      "description": "Generates a report for testing. Extension for [Reporting API](https://developers.google.com/web/updates/2018/09/reportingapi).",
-      "ref": "https://w3c.github.io/reporting/#generate-test-report-command",
-      "parameters": [{
-        "name": "message",
-        "type": "string",
-        "description": "Message to be displayed in the report.",
-        "required": true
-      }, {
-        "name": "group",
-        "type": "string",
-        "description": "Specifies the endpoint group to deliver the report to."
-      }]
-    }
-  },
   "/session/:sessionId/file": {
     "POST": {
       "command": "file",
