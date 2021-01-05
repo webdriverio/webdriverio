@@ -27,46 +27,4 @@ module.exports = {
 }
 ```
 
-There are multiple ways to setup Babel using the WDIO testrunner depending on the test framework you are using:
-
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Mocha-->
-```js
-// wdio.conf.js
-exports.config = {
-    // ...
-    mochaOpts: {
-        ui: 'bdd',
-        require: ['@babel/register', './test/helpers/common.js'],
-        // ...
-    },
-    // ...
-}
-```
-<!--Jasmine-->
-```js
-// wdio.conf.js
-exports.config = {
-    // ...
-    jasmineNodeOpts: {
-        // Jasmine default timeout
-	    helpers: [require.resolve('@babel/register')],
-        // ...
-    },
-    // ...
-}
-```
-<!--Cucumber-->
-```js
-// wdio.conf.js
-exports.config = {
-    // ...
-    cucumberOpts: {
-        requireModule: ['@babel/register'],
-        require: ['./test/helpers/common.js'],
-        // ...
-    },
-    // ...
-}
-```
-<!--END_DOCUSAURUS_CODE_TABS-->
+Once this is set up WebdriverIO will take care of the rest.

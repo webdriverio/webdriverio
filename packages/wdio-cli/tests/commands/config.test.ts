@@ -132,6 +132,40 @@ test('prints TypeScript setup message with ts-node installed', async () => {
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
 
+test('should install @babel/register if not existing', async () => {
+    process.env.WDIO_TEST_THROW_RESOLVE = '1'
+    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+        executionMode: 'sync',
+        framework: '@wdio/mocha-framework$--$mocha',
+        reporters: [],
+        services: [
+            '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
+            'wdio-lambdatest-service$--$lambdatest'
+        ],
+        generateTestFiles: false,
+        isUsingCompiler: 'Babel (https://babeljs.io/)'
+    }))
+    await handler({} as any)
+    expect(consoleLogSpy.mock.calls).toMatchSnapshot()
+})
+
+test('should not install @babel/register if existing', async () => {
+    delete process.env.WDIO_TEST_THROW_RESOLVE
+    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+        executionMode: 'sync',
+        framework: '@wdio/mocha-framework$--$mocha',
+        reporters: [],
+        services: [
+            '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
+            'wdio-lambdatest-service$--$lambdatest'
+        ],
+        generateTestFiles: false,
+        isUsingCompiler: 'Babel (https://babeljs.io/)'
+    }))
+    await handler({} as any)
+    expect(consoleLogSpy.mock.calls).toMatchSnapshot()
+})
+
 describe('missingConfigurationPromp', () => {
     it('should prompt user', async () => {
         (inquirer.prompt as any as jest.Mock).mockImplementation(() => ({ config: true }))
