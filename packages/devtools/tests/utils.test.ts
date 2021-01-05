@@ -13,6 +13,18 @@ import {
 
 const debug = jest.requireActual('debug')
 
+/**
+ * some WebDriver commands are either not part of a recommended standard
+ * or not used enough by end users that it would make sense to implement
+ * parity to the devtools protocol
+ */
+const IGNORE_MISSING_COMMANDS = [
+    'addCredential', 'addVirtualAuthenticator', 'createMockSensor', 'deleteMockSensor',
+    'generateTestReport', 'getCredentials', 'getMockSensor', 'removeAllCredentials',
+    'removeCredential', 'removeVirtualAuthenticator', 'setPermissions', 'setTimeZone',
+    'setUserVerified', 'updateMockSensor'
+]
+
 const command = {
     endpoint: '/session/:sessionId/element/:elementId/element',
     method: 'POST',
@@ -104,7 +116,16 @@ describe('validate', () => {
 
 test('getPrototype', () => {
     let i = 0
-    expect(getPrototype(() => ++i)).toMatchSnapshot()
+    const commands = getPrototype(() => ++i)
+    const filteredCommands = Object.entries(commands)
+        .reduce((cmds, [name, description]) => {
+            if (IGNORE_MISSING_COMMANDS.includes(name)) {
+                return cmds
+            }
+            cmds[name] = description
+            return cmds
+        }, {} as Record<string, { value: Function }>)
+    expect(filteredCommands).toMatchSnapshot()
 })
 
 describe('findElement utils', () => {
