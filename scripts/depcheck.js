@@ -16,8 +16,8 @@ const ROOT_DIR = path.join(__dirname, '..')
 const EXEC_OPTIONS = { silent: true, async: true }
 const IGNORE_PACKAGES = {
     'wdio-reporter': ['cucumber'],
-    'wdio-cli': ['ts-node'],
-    'wdio-config': ['ts-node']
+    'wdio-cli': ['ts-node', '@babel/register'],
+    'wdio-config': ['ts-node', '@babel/register']
 }
 
 ;(async () => {
