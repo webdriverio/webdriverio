@@ -388,7 +388,7 @@
         "required": true
       }],
       "returns": {
-        "type": "WebDriver.ElementReference[]",
+        "type": "object",
         "name": "element",
         "description": "A JSON representation of an element object."
       }
@@ -411,7 +411,7 @@
         "required": true
       }],
       "returns": {
-        "type": "WebDriver.ElementReference[]",
+        "type": "object[]",
         "name": "elements",
         "description": "A (possibly empty) JSON list of representations of an element object."
       }
@@ -438,7 +438,7 @@
         "required": true
       }],
       "returns": {
-        "type": "WebDriver.ElementReference",
+        "type": "object",
         "name": "element",
         "description": "A JSON representation of an element object."
       }
@@ -465,7 +465,7 @@
         "required": true
       }],
       "returns": {
-        "type": "WebDriver.ElementReference[]",
+        "type": "object[]",
         "name": "elements",
         "description": "A (possibly empty) JSON list of representations of an element object."
       }

@@ -325,7 +325,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String",
+        "type": "object",
         "name": "ELEMENT",
         "description": "A WebElement JSON object for the located element."
       }
@@ -348,7 +348,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String[]",
+        "type": "object[]",
         "name": "ELEMENTS",
         "description": "A list of WebElement JSON objects for the located elements."
       }
@@ -375,7 +375,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String",
+        "type": "object",
         "name": "ELEMENT",
         "description": "A WebElement JSON object for the located element."
       }
@@ -402,7 +402,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String[]",
+        "type": "object[]",
         "name": "ELEMENTS",
         "description": "A list of WebElement JSON objects for the located elements."
       }
