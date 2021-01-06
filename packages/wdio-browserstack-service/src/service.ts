@@ -1,37 +1,10 @@
 import logger from '@wdio/logger'
-import got, { GotRequestFunction } from 'got'
+import got from 'got'
+import { Browser, Capabilities, Context, Feature, MultiRemoteAction, Pickle, SessionResponse } from './types'
 
 import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability } from './util'
 
 const log = logger('@wdio/browserstack-service')
-
-type Capabilities = WebDriver.Capabilities & WebdriverIO.MultiRemoteCapabilities;
-
-type Browser = WebdriverIO.BrowserObject & WebdriverIO.MultiRemoteBrowserObject;
-
-type Context = any;
-
-type Feature = {
-    document: {
-        feature: {
-            name: string;
-        }
-    }
-};
-
-type Pickle = {
-    name: string;
-}
-
-type MultiRemoteAction = (sessionId: string, browserName?: string) => ReturnType<GotRequestFunction> | Promise<void>;
-
-type SessionResponse = {
-    // eslint-disable-next-line camelcase
-    automation_session: {
-        // eslint-disable-next-line camelcase
-        browser_url: string
-    }
-}
 
 export default class BrowserstackService implements WebdriverIO.ServiceInstance {
     private _sessionBaseUrl: string = 'https://api.browserstack.com/automate/sessions';
