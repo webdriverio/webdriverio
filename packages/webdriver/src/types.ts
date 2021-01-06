@@ -313,6 +313,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
 
+    'browserstack.local'?: boolean
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
     // eslint-disable-next-line

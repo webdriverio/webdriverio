@@ -11,11 +11,7 @@ type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     stop(callback: (err?: any) => void): void;
 }
 
-type ExtendedCapabilities = WebDriver.Capabilities & {
-    'browserstack.local'?: boolean;
-}
-
-type Capabilities = (ExtendedCapabilities | ExtendedCapabilities[])
+type Capabilities = (WebDriver.Capabilities | WebDriver.Capabilities[])
 
 export default class BrowserstackLauncherService implements WebdriverIO.ServiceInstance {
     options: BrowserstackConfig
