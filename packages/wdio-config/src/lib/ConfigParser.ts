@@ -76,6 +76,7 @@ export default class ConfigParser {
             /**
              * detect Selenium backend
              */
+            // @ts-expect-error
             this._config = merge(detectBackend(this._config, isRDC), this._config, MERGE_OPTIONS)
 
             /**
@@ -130,6 +131,7 @@ export default class ConfigParser {
             this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         }
 
+        // @ts-expect-error
         this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
     }
 

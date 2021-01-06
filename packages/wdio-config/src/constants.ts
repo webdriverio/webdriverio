@@ -68,13 +68,13 @@ export const DEFAULT_CONFIGS: () => ConfigOptions = () => ({
     beforeStep: [],
     afterStep: [],
     afterScenario: [],
-    afterFeature: [],
+    afterFeature: []
 })
 
 export const SUPPORTED_HOOKS: (keyof Hooks)[] = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
-    'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
+    // 'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
     'onReload', 'onPrepare', 'onWorkerStart', 'onComplete'
 ]
 
