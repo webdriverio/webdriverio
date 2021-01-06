@@ -121,3 +121,4 @@ export default class WebDriver {
  * Helper methods consumed by webdriverio package
  */
 export { getPrototype, DEFAULTS }
+export * from './types'

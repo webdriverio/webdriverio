@@ -1,6 +1,6 @@
 import * as got from 'got'
-import http from 'http'
-import https from 'https'
+import * as http from 'http'
+import * as https from 'https'
 import { EventEmitter } from 'events'
 
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
