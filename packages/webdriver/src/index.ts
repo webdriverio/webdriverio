@@ -15,7 +15,7 @@ const log = logger('webdriver')
 
 export default class WebDriver {
     static async newSession (
-        options: Options = {},
+        options: Options,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
@@ -53,12 +53,16 @@ export default class WebDriver {
         }
 
         const { sessionId, capabilities } = await startWebDriverSession(params)
-        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities: params.requestedCapabilities })
+        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities: params.capabilities })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
 
-        const monad = webdriverMonad(params, modifier, prototype)
+        const monad = webdriverMonad(
+            { ...params, requestedCapabilities: params.capabilities },
+            modifier,
+            prototype
+        )
         return monad(sessionId, customCommandWrapper)
     }
 

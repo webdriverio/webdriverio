@@ -757,8 +757,7 @@ export interface Options {
     /**
      * Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your Selenium session.
      */
-    capabilities?: DesiredCapabilities | W3CCapabilities;
-    requestedCapabilities?: DesiredCapabilities | W3CCapabilities;
+    capabilities: W3CCapabilities | DesiredCapabilities
     /**
      * Level of logging verbosity.
      *
@@ -806,11 +805,11 @@ export interface Options {
     /**
      * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
      */
-    transformRequest?: (requestOptions: got.HTTPSOptions) => got.HTTPSOptions;
+    transformRequest?: (requestOptions: got.Options) => got.Options;
     /**
      * Function intercepting HTTP response objects after a WebDriver response has arrived.
      */
-    transformResponse?: (response: got.Response, requestOptions: got.HTTPSOptions) => got.Response;
+    transformResponse?: (response: got.Response, requestOptions: got.Options) => got.Response;
 
     /**
      * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)

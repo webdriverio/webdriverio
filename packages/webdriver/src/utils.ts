@@ -82,12 +82,6 @@ export async function startWebDriverSession (params: Options): Promise<{ session
     const sessionId = response.value.sessionId || response.sessionId
 
     /**
-     * save original set of capabilities to allow to request the same session again
-     * (e.g. for reloadSession command in WebdriverIO)
-     */
-    params.requestedCapabilities = params.capabilities
-
-    /**
      * save actual receveived session details
      */
     params.capabilities = response.value.capabilities || response.value

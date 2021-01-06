@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "lib": ["es2018"],
+    "types": [
+      "webdriver"
+    ]
+  }
+}
