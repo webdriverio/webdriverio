@@ -1,6 +1,5 @@
 import logger from '@wdio/logger'
 import got, { GotRequestFunction } from 'got'
-import WebDriver from 'webdriver'
 
 import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability } from './util'
 
