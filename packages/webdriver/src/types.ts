@@ -3,6 +3,9 @@ import * as http from 'http'
 import * as https from 'https'
 import { EventEmitter } from 'events'
 
+export type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
+export type ElementReference = Record<ElementReferenceId, string>
+
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
 export type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual';
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
@@ -755,7 +758,38 @@ export interface Options {
      */
     key?: string
     /**
-     * Defines the [capabilities](https://w3c.github.io/webdriver/webdriver-spec.html#capabilities) you want to run in your Selenium session.
+     * Defines the capabilities you want to run in your WebDriver session. Check out the
+     * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
+     * If you want to run multiremote session you need to define an object that has the
+     * browser instance names as string and their capabilities as values.
+     *
+     * @example
+     * ```js
+     * // WebDriver/DevTools session
+     * const browser = remote({
+     *   capabilities: {
+     *     browserName: 'chrome',
+     *     browserVersion: 86
+     *     platformName: 'Windows 10'
+     *   }
+     * })
+     *
+     * // multiremote session
+     * const browser = remote({
+     *   capabilities: {
+     *     browserA: {
+     *       browserName: 'chrome',
+     *       browserVersion: 86
+     *       platformName: 'Windows 10'
+     *     },
+     *     browserB: {
+     *       browserName: 'firefox',
+     *       browserVersion: 74
+     *       platformName: 'Mac OS X'
+     *     }
+     *   }
+     * })
+     * ```
      */
     capabilities: W3CCapabilities | DesiredCapabilities
     /**
@@ -876,6 +910,6 @@ type AsyncClient = {
 
 export interface AttachOptions extends Partial<SessionFlags>, Partial<Options> {
     sessionId: string
-    capabilities?: DesiredCapabilities
+    capabilities?: DesiredCapabilities | W3CCapabilities
     isW3C?: boolean
 }
