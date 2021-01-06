@@ -1,5 +1,7 @@
 import logger from '@wdio/logger'
-import WebDriver, { DEFAULTS } from 'webdriver'
+import type * as WebDriverTypes from 'webdriver'
+import WebDriver from 'webdriver'
+import { DEFAULTS } from 'webdriver'
 import { validateConfig, detectBackend } from '@wdio/config'
 import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 
@@ -19,12 +21,12 @@ import type { Options, MultiRemoteOptions } from './types'
  * @param  {function} remoteModifier  Modifier function to change the monad object
  * @return {object}                   browser object with sessionId
  */
-export const remote = async function (params: Options = {}, remoteModifier?: Function) {
+export const remote = async function (params: Options, remoteModifier?: Function) {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
 
     const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
     const automationProtocol = await getAutomationProtocol(config)
-    const modifier = (client: WebDriver.Client, options: WebdriverIO.Config) => {
+    const modifier = (client: WebDriverTypes.Client, options: Options) => {
         /**
          * overwrite instance options with default values of the protocol
          * package (without undefined properties)
@@ -71,7 +73,7 @@ export const remote = async function (params: Options = {}, remoteModifier?: Fun
     return instance
 }
 
-export const attach = function (params: WebDriver.AttachSessionOptions) {
+export const attach = function (params: WebDriverTypes.AttachOptions) {
     const prototype = getPrototype('browser')
     return WebDriver.attachToSession(params, undefined, prototype, wrapCommand)
 }

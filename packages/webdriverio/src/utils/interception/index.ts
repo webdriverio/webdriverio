@@ -1,24 +1,27 @@
 import Timer from '../Timer'
 
+import { BrowserObject, WaitForOptions } from '../../types'
+import { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } from './types'
+
 export default class Interception {
     url: string
-    filterOptions: WebdriverIO.MockFilterOptions
-    browser: WebdriverIO.BrowserObject
+    filterOptions: MockFilterOptions
+    browser: BrowserObject
     respondOverwrites: {
-        overwrite?: WebdriverIO.MockOverwrite
-        params?: WebdriverIO.MockResponseParams
+        overwrite?: MockOverwrite
+        params?: MockResponseParams
         sticky?: boolean
         errorReason?: string
     }[] = []
-    matches: WebdriverIO.Matches[] = []
+    matches: Matches[] = []
 
-    constructor (url: string, filterOptions: WebdriverIO.MockFilterOptions = {}, browser: WebdriverIO.BrowserObject) {
+    constructor (url: string, filterOptions: MockFilterOptions = {}, browser: BrowserObject) {
         this.url = url
         this.filterOptions = filterOptions
         this.browser = browser
     }
 
-    get calls (): WebdriverIO.Matches[] | Promise<WebdriverIO.Matches[]> {
+    get calls (): Matches[] | Promise<Matches[]> {
         throw new Error('Implement me')
     }
 
@@ -26,7 +29,7 @@ export default class Interception {
         timeout = this.browser.options.waitforTimeout,
         interval = this.browser.options.waitforInterval,
         timeoutMsg,
-    }: WebdriverIO.WaitForOptions = {}) {
+    }: WaitForOptions = {}) {
         /*!
          * ensure that timeout and interval are set properly
          */

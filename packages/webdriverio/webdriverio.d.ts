@@ -6,7 +6,7 @@ declare namespace WebdriverIO {
     ): Promise<BrowserObject>;
 
     function attach(
-        options: WebDriver.AttachSessionOptions,
+        options: WebDriver.AttachOptions,
     ): BrowserObject;
 
     function multiremote(

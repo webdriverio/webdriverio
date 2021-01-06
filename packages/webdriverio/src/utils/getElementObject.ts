@@ -1,10 +1,11 @@
 import { webdriverMonad, wrapCommand, runFnInFiberContext } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
+import type { ElementReference } from 'webdriver'
 
 import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '.'
 import { elementErrorHandler } from '../middlewares'
 import { ELEMENT_KEY } from '../constants'
-import type { ElementReference, ElementObject, Selector } from '../types'
+import type { ElementObject, Selector, BrowserObject, Element, ElementArray } from '../types'
 
 /**
  * transforms a findElement response into a WDIO element
@@ -13,11 +14,11 @@ import type { ElementReference, ElementObject, Selector } from '../types'
  * @return {Object}           WDIO element object
  */
 export const getElement = function findElement(
-    this: WebdriverIO.BrowserObject | WebdriverIO.Element,
+    this: BrowserObject | Element,
     selector?: Selector,
     res?: ElementReference | Error,
     isReactElement = false
-): WebdriverIO.Element {
+): Element {
     const browser = getBrowserObject(this)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
@@ -46,7 +47,7 @@ export const getElement = function findElement(
             client.error = res as Error
         }
 
-        client.selector = selector
+        client.selector = selector || ''
         client.parent = this
         client.emit = this.emit.bind(this)
         client.isReactElement = isReactElement
@@ -72,12 +73,12 @@ export const getElement = function findElement(
  * @return {Array}            array of WDIO elements
  */
 export const getElements = function getElements(
-    this: WebdriverIO.BrowserObject | WebdriverIO.Element,
+    this: BrowserObject | Element,
     selector: Selector,
     elemResponse: ElementReference[],
     isReactElement = false
-): WebdriverIO.ElementArray {
-    const browser = getBrowserObject(this as WebdriverIO.Element)
+): ElementArray {
+    const browser = getBrowserObject(this as Element)
     const propertiesObject = {
         ...clone(browser.__propertiesObject__),
         ...getWDIOPrototype('element')
@@ -122,5 +123,5 @@ export const getElements = function getElements(
         return elementInstance
     })
 
-    return elements as WebdriverIO.ElementArray
+    return elements as ElementArray
 }

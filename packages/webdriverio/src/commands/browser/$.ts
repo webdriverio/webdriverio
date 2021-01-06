@@ -50,10 +50,10 @@
 import { findElement } from '../../utils'
 import { getElement } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
-import type { Selector } from '../../types'
+import type { Selector, BrowserObject } from '../../types'
 
 export default async function $ (
-    this: WebdriverIO.BrowserObject,
+    this: BrowserObject,
     selector: Selector
 ) {
     /**

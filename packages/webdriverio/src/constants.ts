@@ -1,4 +1,5 @@
 import type { DefaultPropertyType } from '@wdio/utils'
+import type * as WebDriver from 'webdriver'
 
 /* istanbul ignore next */
 const HOOK_DEFINITION = {

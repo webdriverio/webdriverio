@@ -10,11 +10,12 @@ import isObject from 'lodash.isobject'
 import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
+import type * as WebDriver from 'webdriver'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
 import { findStrategy } from './findStrategy'
 import type {
-    ElementReference, ElementObject, ElementFunction, Selector, ParsedCSSValue,
+    Element, ElementArray, ElementObject, ElementFunction, Selector, ParsedCSSValue,
     Options
 } from '../types'
 
@@ -66,7 +67,7 @@ export const getPrototype = (scope: 'browser' | 'element') => {
  * @param  {?Object|undefined} res         body object from response or null
  * @return {?string}   element id or null if element couldn't be found
  */
-export const getElementFromResponse = (res: ElementReference) => {
+export const getElementFromResponse = (res: WebDriver.ElementReference) => {
     /**
     * a function selector can return null
     */
@@ -94,8 +95,8 @@ export const getElementFromResponse = (res: ElementReference) => {
 /**
  * traverse up the scope chain until browser element was reached
  */
-export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.BrowserObject): WebdriverIO.BrowserObject {
-    const elemObject = elem as WebdriverIO.Element
+export function getBrowserObject (elem: Element | BrowserObject): BrowserObject {
+    const elemObject = elem as Element
     return elemObject.parent ? getBrowserObject(elemObject.parent) : elem
 }
 
@@ -213,7 +214,7 @@ export function checkUnicode (
 
 function fetchElementByJSFunction (
     selector: ElementFunction,
-    scope: WebdriverIO.Element
+    scope: Element
 ): Promise<WebDriver.ElementReference | WebDriver.ElementReference[]> {
     if (!scope.elementId) {
         return scope.execute(selector as any)
@@ -231,7 +232,7 @@ function fetchElementByJSFunction (
  * logic to find an element
  */
 export async function findElement(
-    this: WebdriverIO.Element,
+    this: Element,
     selector: Selector
 ) {
     /**
@@ -241,8 +242,8 @@ export async function findElement(
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         return this.elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementFromElement(this.elementId, using, value) as any as ElementReference
-            : this.findElement(using, value) as any as ElementReference
+            ? this.findElementFromElement(this.elementId, using, value) as any as WebDriver.ElementReference
+            : this.findElement(using, value) as any as WebDriver.ElementReference
     }
 
     /**
@@ -262,7 +263,7 @@ export async function findElement(
  * logic to find a elements
  */
 export async function findElements(
-    this: WebdriverIO.Element,
+    this: Element,
     selector: Selector
 ) {
     /**
@@ -272,8 +273,8 @@ export async function findElements(
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
         return this.elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementsFromElement(this.elementId, using, value) as any as ElementReference[]
-            : this.findElements(using, value) as any as ElementReference[]
+            ? this.findElementsFromElement(this.elementId, using, value) as any as WebDriver.ElementReference[]
+            : this.findElements(using, value) as any as WebDriver.ElementReference[]
     }
 
     /**
@@ -281,7 +282,7 @@ export async function findElements(
      */
     if (typeof selector === 'function') {
         const elems = await fetchElementByJSFunction(selector, this)
-        const elemArray = Array.isArray(elems) ? elems as ElementReference[] : [elems]
+        const elemArray = Array.isArray(elems) ? elems as WebDriver.ElementReference[] : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
     }
 
@@ -314,7 +315,7 @@ export function verifyArgsAndStripIfElement(args: any) {
 /**
  * getElementRect
  */
-export async function getElementRect(scope: WebdriverIO.Element) {
+export async function getElementRect(scope: Element) {
     const rect = await scope.getElementRect(scope.elementId)
 
     let defaults = { x: 0, y: 0, width: 0, height: 0 }
@@ -396,14 +397,14 @@ export function validateUrl (url: string, origError?: Error): string {
  * get window's scrollX and scrollY
  * @param {object} scope
  */
-export function getScrollPosition (scope: WebdriverIO.Element) {
+export function getScrollPosition (scope: Element) {
     return getBrowserObject(scope)
         .execute(/* istanbul ignore next */function (this: Window) {
             return { scrollX: this.pageXOffset, scrollY: this.pageYOffset }
         })
 }
 
-export async function hasElementId (element: WebdriverIO.Element) {
+export async function hasElementId (element: Element) {
     /*
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
@@ -422,8 +423,8 @@ export async function hasElementId (element: WebdriverIO.Element) {
     return true
 }
 
-export function addLocatorStrategyHandler(scope: WebdriverIO.BrowserObject) {
-    return (name: string, script: () => ElementReference | ElementReference[]) => {
+export function addLocatorStrategyHandler(scope: BrowserObject) {
+    return (name: string, script: () => WebDriver.ElementReference | WebDriver.ElementReference[]) => {
         if (scope.strategies.get(name)) {
             throw new Error(`Strategy ${name} already exists`)
         }
@@ -442,8 +443,8 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.BrowserObject) {
  * @returns {object[]}  elements
  */
 export const enhanceElementsArray = (
-    elements: WebdriverIO.ElementArray,
-    parent: WebdriverIO.BrowserObject | WebdriverIO.Element,
+    elements: ElementArray,
+    parent: BrowserObject | Element,
     selector: string,
     foundWith = '$$',
     props: any[] = []

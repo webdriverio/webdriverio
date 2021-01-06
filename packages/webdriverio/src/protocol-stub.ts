@@ -1,4 +1,5 @@
 import { capabilitiesEnvironmentDetector } from '@wdio/utils'
+import type * as WebDriver from 'webdriver'
 
 /**
  * these commands can be used outside test scope and may be used accidentally by user before browser session is started
@@ -10,7 +11,7 @@ const WARN_ON_COMMANDS = ['addCommand', 'overwriteCommand']
  * so that Mocha/Jasmine users can filter their specs based on flags or use capabilities in test titles
  */
 export default class ProtocolStub {
-    static async newSession (options: WebDriver.Options = {}) {
+    static async newSession (options: WebDriver.Options) {
         const capabilities = emulateSessionCapabilities(
             (options.capabilities || {}) as unknown as WebDriver.DesiredCapabilities
         )
@@ -32,7 +33,7 @@ export default class ProtocolStub {
     }
 
     static attachToSession (
-        options?: WebDriver.AttachSessionOptions,
+        options: WebDriver.AttachOptions,
         modifier?: (...args: any[]) => any
     ) {
         if (options || !modifier) {

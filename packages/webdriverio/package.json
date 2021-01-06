@@ -44,7 +44,7 @@
     "cucumber",
     "testingbot"
   ],
-  "types": "./webdriverio.d.ts",
+  "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
     "@types/archiver": "^5.1.0",

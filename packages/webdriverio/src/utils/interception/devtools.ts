@@ -11,27 +11,27 @@ import { ERROR_REASON } from '../../constants'
 const log = logger('webdriverio')
 
 type RequestOptions = {
-    requestId: string;
-    responseCode?: number;
-    responseHeaders?: Record<string, string>[];
-    body?: string | WebdriverIO.JsonCompatible;
-    errorReason?: string;
+    requestId: string
+    responseCode?: number
+    responseHeaders?: Record<string, string>[]
+    body?: string | WebdriverIO.JsonCompatible
+    errorReason?: string
 }
 
 type ClientResponse = {
-    body: string;
-    base64Encoded: boolean
+    body: string
+    base64Encoded?: boolean
 }
 
 type Client = {
-    send: (requestName: string, requestOptions: RequestOptions) => Promise<ClientResponse>;
+    send: (requestName: string, requestOptions: RequestOptions) => Promise<ClientResponse>
 }
 
 type Event = {
-    requestId: string;
-    request: WebdriverIO.Matches & { mockedResponse: string | Buffer; };
-    responseStatusCode?: number;
-    responseHeaders: Record<string, string>[],
+    requestId: string
+    request: WebdriverIO.Matches & { mockedResponse: string | Buffer }
+    responseStatusCode?: number
+    responseHeaders: Record<string, string>[]
 }
 
 type ExpectParameter<T> = ((param: T) => boolean) | T;

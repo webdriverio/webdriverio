@@ -1,11 +1,41 @@
+import { EventEmitter } from 'events'
 import type cssValue from 'css-value'
-import type WebDriver from 'webdriver'
+import type * as WebDriver from 'webdriver'
+import type { HookFunctions } from '@wdio/config'
 
-export type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
+import type BrowserCommands from './commands/browser'
+import type ElementCommands from './commands/element'
 
-export type ElementReference = Record<ElementReferenceId, string>
+type BrowserCommandsType = typeof BrowserCommands
+type ElementCommandsType = typeof ElementCommands
+export interface Browser extends BrowserCommandsType {}
 
-export interface ElementObject extends ElementReference, WebdriverIO.BrowserObject {
+export interface Element extends ElementCommandsType, Omit<ElementObject, keyof ElementCommandsType> {}
+export interface ElementArray extends Array<Element> {
+    selector: string | Function;
+    parent: Element | BrowserObject;
+    foundWith: string;
+    props: any[];
+}
+
+export interface BrowserObject extends EventEmitter, Browser, WebDriver.Client {
+    sessionId: string
+    options: Options
+    strategies: Map<any, any>
+    isMultiremote?: false
+    __propertiesObject__: Record<string, PropertyDescriptor>
+
+    /**
+     * @private
+     */
+    _NOT_FIBER?: boolean
+    /**
+     * @private
+     */
+    wdioRetries?: number
+}
+
+export interface ElementObject extends WebDriver.ElementReference, BrowserObject {
     /**
      * WebDriver element reference
      */
@@ -20,7 +50,7 @@ export interface ElementObject extends ElementReference, WebdriverIO.BrowserObje
      * - a string if `findElement` was used and a reference was found
      * - or a functin if element was found via e.g. `$(() => document.body)`
      */
-    selector?: Selector
+    selector: Selector
     /**
      * index of the element if fetched with `$$`
      */
@@ -28,7 +58,7 @@ export interface ElementObject extends ElementReference, WebdriverIO.BrowserObje
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: ElementObject | WebdriverIO.BrowserObject
+    parent: ElementObject | BrowserObject
     /**
      * true if element is a React component
      */
@@ -38,6 +68,21 @@ export interface ElementObject extends ElementReference, WebdriverIO.BrowserObje
      */
     error?: Error
 }
+
+type MultiRemoteBrowserReference = Record<string, BrowserObject>
+
+export interface MultiRemoteBrowser extends Browser {
+    /**
+     * multiremote browser instance names
+     */
+    instances: string[];
+    /**
+     * flag to indicate multiremote browser session
+     */
+    isMultiremote: boolean;
+}
+
+export type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
 
 export type WaitForOptions = {
     timeout?: number,
@@ -92,46 +137,22 @@ export interface ActionParameter {
     actions: Action[]
 }
 
+export type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
+export interface TouchAction {
+    action: ActionTypes,
+    x?: number,
+    y?: number,
+    element?: Element,
+    ms?: number
+}
+export type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
+export type TouchActions = TouchActionParameter | TouchActionParameter[];
+
 export interface MultiRemoteOptions {
     [instanceName: string]: Options
 }
 
-export interface Options extends Omit<WebDriver.Options, 'capabilities'> {
-    /**
-     * Defines the capabilities you want to run in your WebdriverIO session. Check out the
-     * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
-     * If you want to run multiremote session you need to define an object that has the
-     * browser instance names as string and their capabilities as values.
-     *
-     * @example
-     * ```js
-     * // WebDriver/DevTools session
-     * const browser = remote({
-     *   capabilities: {
-     *     browserName: 'chrome',
-     *     browserVersion: 86
-     *     platformName: 'Windows 10'
-     *   }
-     * })
-     *
-     * // multiremote session
-     * const browser = remote({
-     *   capabilities: {
-     *     browserA: {
-     *       browserName: 'chrome',
-     *       browserVersion: 86
-     *       platformName: 'Windows 10'
-     *     },
-     *     browserB: {
-     *       browserName: 'firefox',
-     *       browserVersion: 74
-     *       platformName: 'Mac OS X'
-     *     }
-     *   }
-     * })
-     * ```
-     */
-    capabilities?: WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities
+export interface Options extends WebDriver.Options {
     /**
      * Define the protocol you want to use for your browser automation.
      * Currently only webdriver and devtools are supported, as these are
@@ -193,3 +214,5 @@ export interface Options extends Omit<WebDriver.Options, 'capabilities'> {
      */
     runner?: string
 }
+
+export interface RemoteOptions extends HookFunctions, Omit<Options, 'capabilities'> { }
