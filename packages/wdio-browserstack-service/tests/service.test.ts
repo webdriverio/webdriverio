@@ -46,7 +46,6 @@ beforeEach(() => {
 it('should initialize correctly', () => {
     service = new BrowserstackService({}, [], {})
     expect(service._failReasons).toEqual([])
-    expect(service._preferScenarioName).toEqual(false)
     expect(service._strict).toEqual(false)
 })
 

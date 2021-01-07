@@ -10,14 +10,12 @@ export default class BrowserstackService implements WebdriverIO.ServiceInstance 
     private _sessionBaseUrl: string = 'https://api.browserstack.com/automate/sessions';
     private _failReasons: string[] = [];
     private _scenariosThatRan: string[] = [];
-    private _preferScenarioName: boolean;
     private _strict: boolean;
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown'];
     private _browser?: Browser;
     private _fullTitle?: string;
     constructor (private _options: BrowserstackConfig = {}, private _caps: Capabilities, private _config: WebdriverIO.Config) {
         // Cucumber specific
-        this._preferScenarioName = Boolean(_options.preferScenarioName)
         this._strict = Boolean(_config.cucumberOpts && _config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
         if (this._strict) {
