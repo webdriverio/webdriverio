@@ -13,16 +13,16 @@ export default class BrowserstackService implements WebdriverIO.ServiceInstance 
     private _preferScenarioName: boolean;
     private _strict: boolean;
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown'];
-    private _caps: Capabilities;
     private _browser?: Browser;
     private _fullTitle?: string;
-    constructor (options: BrowserstackConfig = {}, caps: Capabilities, private _config: WebdriverIO.Config) {
+    constructor (private _options: BrowserstackConfig = {}, private _caps: Capabilities, private _config: WebdriverIO.Config) {
         // Cucumber specific
-        this._preferScenarioName = Boolean(options.preferScenarioName)
+        this._preferScenarioName = Boolean(_options.preferScenarioName)
         this._strict = Boolean(_config.cucumberOpts && _config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
-        this._strict && this._failureStatuses.push('pending')
-        this._caps = caps
+        if (this._strict) {
+            this._failureStatuses.push('pending')
+        }
     }
 
     /**
