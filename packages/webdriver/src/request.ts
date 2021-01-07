@@ -6,11 +6,13 @@ import { EventEmitter } from 'events'
 import * as got from 'got'
 import logger from '@wdio/logger'
 import { transformCommandLogResult } from '@wdio/utils'
+import type { Options } from '@wdio/types'
 
-import { Options } from './types'
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 
 const pkg = require('../package.json')
+
+type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
 
 export interface WebDriverResponse {
     value: any
@@ -56,7 +58,7 @@ export default class WebDriverRequest extends EventEmitter {
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
     }
 
-    makeRequest (options: Options, sessionId?: string) {
+    makeRequest (options: RequestOptions, sessionId?: string) {
         let fullRequestOptions: got.Options = Object.assign({
             method: this.method
         }, this.defaultOptions, this._createOptions(options, sessionId))
@@ -68,7 +70,7 @@ export default class WebDriverRequest extends EventEmitter {
         return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    private _createOptions (options: Options, sessionId?: string): got.Options {
+    private _createOptions (options: RequestOptions, sessionId?: string): got.Options {
         const requestOptions: got.Options = {
             https: {},
             agent: options.agent || agents,

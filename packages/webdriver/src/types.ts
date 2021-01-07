@@ -1,7 +1,5 @@
-import * as got from 'got'
-import * as http from 'http'
-import * as https from 'https'
 import { EventEmitter } from 'events'
+import type { Options, Capabilities } from '@wdio/types'
 
 export type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
 export type ElementReference = Record<ElementReferenceId, string>
@@ -893,11 +891,11 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     // id of WebDriver session
     sessionId: string;
     // assigned capabilities by the browser driver / WebDriver server
-    capabilities: DesiredCapabilities | W3CCapabilities;
+    capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities;
     // original requested capabilities
-    requestedCapabilities: DesiredCapabilities | W3CCapabilities;
+    requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities;
     // framework options
-    options: Options
+    options: Options.WebDriver
 }
 
 export interface Client extends BaseClient {}
@@ -908,8 +906,8 @@ type AsyncClient = {
     (...args: Parameters<Client[K]>) => Promise<ReturnType<Client[K]>>;
 }
 
-export interface AttachOptions extends Partial<SessionFlags>, Partial<Options> {
+export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.WebDriver> {
     sessionId: string
-    capabilities?: DesiredCapabilities | W3CCapabilities
+    capabilities?: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
     isW3C?: boolean
 }

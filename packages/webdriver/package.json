@@ -28,6 +28,7 @@
     "@wdio/config": "6.11.0",
     "@wdio/logger": "6.10.10",
     "@wdio/protocols": "6.10.6",
+    "@wdio/types": "^6.10.6",
     "@wdio/utils": "6.11.0",
     "got": "^11.0.2",
     "lodash.merge": "^4.6.1"

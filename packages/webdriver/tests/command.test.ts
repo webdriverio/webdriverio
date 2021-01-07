@@ -2,9 +2,10 @@ import { EventEmitter } from 'events'
 
 import logger from '@wdio/logger'
 import Protocols from '@wdio/protocols'
+import type { Options } from '@wdio/types'
 
 import commandWrapper from '../src/command'
-import { BaseClient, WebDriverLogTypes } from '../src/types'
+import { BaseClient } from '../src/types'
 
 /**
  * workaround as typescript compiler uses expect-webdriverio as global
@@ -65,7 +66,7 @@ class FakeClient extends EventEmitter {
     capabilities = {}
     requestedCapabilities = {}
     options = {
-        logLevel: 'warn' as WebDriverLogTypes
+        logLevel: 'warn' as Options.WebDriverLogTypes
     }
 }
 
