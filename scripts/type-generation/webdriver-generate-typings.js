@@ -2,28 +2,36 @@
 
 const fs = require('fs')
 const path = require('path')
+const camelCase = require('camelcase')
+
 const { PROTOCOLS } = require('../constants')
 
-const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'webdriver.tpl.d.ts')
+const TYPINGS_PATH = path.join(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src')
 const returnTypeMap = require('./webdriver-return-types.json')
 const paramTypeMap = require('./webdriver-param-types.json')
 
 const INDENTATION = ' '.repeat(4)
+const EXAMPLE_INDENTATION = `${INDENTATION} * `
 const jsDocTemplate = `
 ${INDENTATION}/**
-${INDENTATION} * [{PROTOCOL}]
+${INDENTATION} * {PROTOCOL} Protocol Command
+${INDENTATION} *
 ${INDENTATION} * {DESCRIPTION}
-${INDENTATION} * {REF}
+${INDENTATION} * @ref {REF}
+${INDENTATION} *{EXAMPLE}
 ${INDENTATION} */`
 
-const lines = []
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
+    const interfaceName = protocolName.slice(0, 1).toUpperCase() + protocolName.slice(1)
+    const customTypes = new Set()
+    const lines = ['']
+
     lines.push(`// ${protocolName} types`)
-    lines.push('interface Client extends BaseClient {')
+    lines.push(`export default interface ${interfaceName}Commands {`)
 
     for (const [, methods] of Object.entries(definition)) {
         for (const [, description] of Object.entries(methods)) {
-            const { command, parameters = [], variables = [], returns, ref } = description
+            const { command, parameters = [], variables = [], returns, ref, examples } = description
             if (!ref) {
                 throw new Error(`missing ref for command ${command} in ${protocolName}`)
             }
@@ -36,36 +44,53 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 const paramType = paramTypeMap[command] && paramTypeMap[command][idx] && paramTypeMap[command][idx].name === p.name
                     ? paramTypeMap[command][idx].type
                     : p.type.toLowerCase()
-                return `${p.name}${p.required === false ? '?' : ''}: ${paramType}`
+                return `${camelCase(p.name)}${p.required === false ? '?' : ''}: ${paramType}`
             })
             const varsAndParams = vars.concat(params)
             let returnValue = returns ? returns.type.toLowerCase() : 'void'
             returnValue = returnValue === '*' ? 'any' : returnValue
-            returnValue = returnValue === 'object' ? (returnTypeMap[command] || 'ProtocolCommandResponse') : returnValue
+            if (returnTypeMap[command]) {
+                returnValue = returnTypeMap[command]
+                customTypes.add(returnTypeMap[command].replace('[]', ''))
+            }
+            if (returnValue === 'object') {
+                returnValue = 'ProtocolCommandResponse'
+                customTypes.add(returnValue)
+            }
+
             const jsDoc = jsDocTemplate
-                .replace('{PROTOCOL}', protocolName)
-                .replace('{DESCRIPTION}', description.description || '')
+                .replace('{PROTOCOL}', interfaceName)
+                .replace('{DESCRIPTION}', description.description || 'No description available, please see reference link.')
+                .replace('{EXAMPLE}', (
+                    (examples || [])
+                        .map((example) => (
+                            `\n${EXAMPLE_INDENTATION}@example\n` +
+                            `${EXAMPLE_INDENTATION}\`\`\`js\n` +
+                            EXAMPLE_INDENTATION +
+                                `${example.map((l, i) => (i === 0
+                                    ? `${l}`
+                                    : `${EXAMPLE_INDENTATION}${l.replace(/(\/\*\*|\s\*\s|\s\*\/)/, '// ')}`.trimEnd())
+                                ).join('\n')}\n` +
+                            `${EXAMPLE_INDENTATION}` + '```'
+                        ))
+                        .join(`\n${EXAMPLE_INDENTATION}`.trim())
+                )
+                )
                 .replace('{REF}', ref)
             lines.push(jsDoc)
             lines.push(`${INDENTATION}${command}(${varsAndParams.join(', ')}): ${returnValue};`)
         }
     }
 
+    /**
+     * import missing protocol types
+     */
+    if (customTypes.size) {
+        lines.unshift(`import { ${[...customTypes].join(', ')} } from './types'`)
+    }
+
     lines.push('}')
+
+    fs.writeFileSync(path.join(TYPINGS_PATH, `${protocolName}.ts`), lines.join('\n'), 'utf8')
+    console.log(`Generated typings file for ${protocolName}`)
 }
-
-const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
-const outputFile = path.join(__dirname, '..', '..', 'packages', 'webdriver', 'build', 'types.d.ts')
-const generatedTypings = template.replace('// ... insert here ...', lines.join('\n'))
-
-let origTypings
-try {
-    origTypings = fs.readFileSync(outputFile, 'utf8')
-} catch (err) {
-    console.log('Can not generate WebDriver typings as project is not build')
-    return
-}
-fs.writeFileSync(outputFile, origTypings.replace('export {};', generatedTypings), { encoding: 'utf-8' })
-
-// eslint-disable-next-line no-console
-console.log(`Generated typings file at ${outputFile}`)

@@ -89,4 +89,11 @@ declare module "@wdio/protocols" {
     export const ChromiumProtocol: WDIOProtocols.Protocol
     export const SauceLabsProtocol: WDIOProtocols.Protocol
     export const SeleniumProtocol: WDIOProtocols.Protocol
+    export const AppiumCommands: import('./src/appium')
+    export const ChromiumCommands: import('./src/chromium')
+    export const JSONWPCommands: import('./src/jsonwp')
+    export const MJSONWPCommands: import('./src/jsonwp')
+    export const SauceLabsCommands: import('./src/saucelabs')
+    export const SeleniumCommands: import('./src/selenium')
+    export const WebDriverCommands: import('./src/webdriver')
 }
