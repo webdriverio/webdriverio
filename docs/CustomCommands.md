@@ -71,17 +71,17 @@ __Note:__ If you register a custom command to the `browser` scope, the command w
 browser.addCommand("myCustomBrowserCommand", function () { return 1 })
 const elem = $('body')
 console.log(typeof browser.myCustomBrowserCommand) // outputs "function"
-console.log(typeof elem.myCustomBrowserCommand()) // outputs "undefined"
+console.log(typeof elem.myCustomBrowserCommand) // outputs "undefined"
 
-browser.addCommand("myCustomElementCommand", function () { return 1 }, true)
+browser.addCommand("myCustomElementCommand2", function () { return 1 }, true)
 const elem2 = $('body')
-console.log(typeof browser.myCustomElementCommand) // outputs "undefined"
-console.log(elem2.myCustomElementCommand('foobar')) // outputs "function"
+console.log(typeof browser.myCustomElementCommand2) // outputs "undefined"
+console.log(typeof elem2.myCustomElementCommand2) // outputs "function"
 
 const elem3 = $('body')
-elem3.addCommand("myCustomElementCommand2", function () { return 1 })
-console.log(typeof browser.myCustomElementCommand2) // outputs "undefined"
-console.log(elem3.myCustomElementCommand2('foobar')) // outputs "function"
+elem3.addCommand("myCustomElementCommand3", function () { return 1 })
+console.log(typeof browser.myCustomElementCommand3) // outputs "undefined"
+console.log(typeof elem3.myCustomElementCommand3) // outputs "function"
 ```
 
 Be careful to not overload the `browser` scope with too many custom commands.
