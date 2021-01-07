@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { DesiredCapabilities } from 'webdriver'
+import type { Capabilities } from '@wdio/types'
 import type { MultiRemoteBrowserOptions } from 'webdriverio'
 
 import type { DefaultOptions } from './types'
@@ -55,7 +55,7 @@ export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
 }
 
-export function isCloudCapability(capabilities: DesiredCapabilities | MultiRemoteBrowserOptions) {
+export function isCloudCapability(capabilities: Capabilities.DesiredCapabilities | MultiRemoteBrowserOptions) {
     const caps = (capabilities as MultiRemoteBrowserOptions).capabilities || capabilities
     return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
 }

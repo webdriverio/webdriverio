@@ -3,13 +3,14 @@ import path from 'path'
 import glob from 'glob'
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 
 import {
     detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
     loadTypeScriptCompiler, loadBabelCompiler
 } from '../utils'
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS } from '../constants'
-import type { Capabilities, ConfigOptions, Hooks } from '../types'
+import type { ConfigOptions, Hooks } from '../types'
 
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
@@ -21,7 +22,7 @@ interface MergeConfig extends Omit<Partial<ConfigOptions>, 'specs' | 'exclude'> 
 
 export default class ConfigParser {
     private _config: ConfigOptions = DEFAULT_CONFIGS()
-    private _capabilities: Capabilities = [];
+    private _capabilities: Capabilities.RemoteCapabilities = [];
 
     /**
      * merges config file with default values
@@ -50,8 +51,8 @@ export default class ConfigParser {
             /**
              * merge capabilities
              */
-            const defaultTo: Capabilities = Array.isArray(this._capabilities) ? [] : {}
-            this._capabilities = merge<Capabilities>(this._capabilities, fileConfig.capabilities || defaultTo, MERGE_OPTIONS)
+            const defaultTo: Capabilities.RemoteCapabilities = Array.isArray(this._capabilities) ? [] : {}
+            this._capabilities = merge<Capabilities.RemoteCapabilities>(this._capabilities, fileConfig.capabilities || defaultTo, MERGE_OPTIONS)
             delete fileConfig.capabilities
 
             /**
