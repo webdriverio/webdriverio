@@ -37,7 +37,7 @@ export default class TestingBotLauncher implements WebdriverIO.ServiceInstance {
             }
         } else {
             for (const browserName of Object.keys(capabilities)) {
-                const capability = (capabilities as WebdriverIO.MultiRemoteOptions)[browserName]
+                const capability = (capabilities as WebdriverIO.MultiRemoteCapabilities)[browserName].capabilities
                 if (!capability['tb:options']) {
                     capability['tb:options'] = {} as WebDriver.TestingbotCapabilities
                 }
