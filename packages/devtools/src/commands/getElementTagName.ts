@@ -1,3 +1,7 @@
+import command from '../scripts/getElementTagName'
+import { getStaleElementError } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Get Element Tag Name command returns the qualified element name of the given web element.
  *
@@ -6,11 +10,6 @@
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @return {string}           The tagName attribute of the element.
  */
-
-import command from '../scripts/getElementTagName'
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function getElementTagName (
     this: DevToolsDriver,
     { elementId }: { elementId: string }

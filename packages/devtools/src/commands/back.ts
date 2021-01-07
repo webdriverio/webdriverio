@@ -1,3 +1,5 @@
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Back command causes the browser to traverse one step backward
  * in the joint session history of the current top-level browsing context.
@@ -6,8 +8,6 @@
  * @alias browser.back
  * @see https://w3c.github.io/webdriver/#dfn-back
  */
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function back (this: DevToolsDriver) {
     delete this.currentFrame
     const page = this.getPageHandle()

@@ -1,3 +1,7 @@
+import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
+import { findElement as findElementUtil } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Find Element command is used to find an element in the current browsing context
  * that can be used for future commands.
@@ -8,11 +12,6 @@
  * @param {string} value  the actual selector that will be used to find an element
  * @return {Object}       A JSON representation of an element object.
  */
-
-import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
-import { findElement as findElementUtil } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default function findElement (
     this: DevToolsDriver,
     { using, value }: { using: string, value: string }

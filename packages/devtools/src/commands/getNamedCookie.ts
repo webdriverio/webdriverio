@@ -1,3 +1,5 @@
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Get Named Cookie command returns the cookie with the requested name from the
  * associated cookies in the cookie store of the current browsing context's active document.
@@ -8,8 +10,6 @@
  * @param {string} name  name of the cookie to retrieve
  * @return {object}      A serialized cookie, with name and value fields. There are a number of optional fields like `path`, `domain`, and `expiry-time` which may also be present.
  */
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function getNamedCookie (
     this: DevToolsDriver,
     { name }: { name: string }

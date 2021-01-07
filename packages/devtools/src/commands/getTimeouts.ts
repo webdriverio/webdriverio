@@ -1,3 +1,5 @@
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Get Timeouts command gets timeout durations associated with the current session.
  *
@@ -5,8 +7,6 @@
  * @see https://w3c.github.io/webdriver/#dfn-get-timeouts
  * @return {Object}  Object containing timeout durations for `script`, `pageLoad` and `implicit` timeouts.
  */
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default function getTimeouts (this: DevToolsDriver) {
     return {
         implicit: this.timeouts.get('implicit'),

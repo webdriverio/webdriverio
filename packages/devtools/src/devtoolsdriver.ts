@@ -7,14 +7,16 @@ import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type WDIOProtocols from '@wdio/protocols'
+import type { BrowserObject } from 'webdriverio'
 
 import ElementStore from './elementstore'
 import { validate, sanitizeError } from './utils'
 import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants'
+import type Commands from './commands'
 
 const log = logger('devtools')
 
-export default class DevToolsDriver {
+export default class DevToolsDriver implements Commands {
     commands: Record<string, Function> = {}
     elementStore = new ElementStore()
     windows: Map<string, Page> = new Map()
@@ -93,7 +95,7 @@ export default class DevToolsDriver {
          * within here you find the webdriver scope
          */
         let retries = 0
-        const wrappedCommand = async function (this: WebdriverIO.BrowserObject, ...args: any[]): Promise<any> {
+        const wrappedCommand = async function (this: BrowserObject, ...args: any[]): Promise<any> {
             await self.checkPendingNavigations()
             const params = validate(command, parameters, variables as any, ref, args)
             let result

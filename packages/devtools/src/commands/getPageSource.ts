@@ -1,3 +1,5 @@
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Get Page Source command returns a string serialization of the DOM
  * of the current browsing context active document.
@@ -6,8 +8,6 @@
  * @alias browser.getPageSource
  * @return {string}  the DOM of the current browsing context active document
  */
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default function getPageSource (this: DevToolsDriver) {
     const page = this.getPageHandle(true)
     return page.content()

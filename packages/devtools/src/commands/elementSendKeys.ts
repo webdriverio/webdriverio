@@ -1,3 +1,8 @@
+import path from 'path'
+
+import { getStaleElementError } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Element Send Keys command scrolls into view the form control element and then sends
  * the provided keys to the element. In case the element is not keyboard-interactable,
@@ -9,12 +14,6 @@
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @param {string} text       string to send as keystrokes to the element
  */
-
-import path from 'path'
-
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function elementSendKeys (
     this: DevToolsDriver,
     { elementId, text }: { elementId: string, text: string }

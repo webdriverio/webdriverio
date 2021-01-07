@@ -1,3 +1,10 @@
+import os from 'os'
+import { v4 as uuidv4 } from 'uuid'
+
+import launch from '../launcher'
+import { sessionMap } from '../index'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The New Session command creates a new WebDriver session with the endpoint node.
  * If the creation fails, a session not created error is returned.
@@ -7,14 +14,6 @@
  * @param  {Object} capabilities An object describing the set of capabilities for the capability processing algorithm
  * @return {Object}              Object containing sessionId and capabilities of created WebDriver session.
  */
-
-import os from 'os'
-import { v4 as uuidv4 } from 'uuid'
-
-import launch from '../launcher'
-import { sessionMap } from '../index'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function newSession (
     this: DevToolsDriver,
     { capabilities }: { capabilities: WebDriver.Capabilities }

@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '@wdio/logger'
 import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
+import type * as WebDriver from 'webdriver'
+import type { BrowserObject } from 'webdriverio'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import DevToolsDriver from './devtoolsdriver'
@@ -23,7 +25,7 @@ patchDebug(log)
 export const sessionMap = new Map()
 
 export default class DevTools {
-    static async newSession (options: WebDriver.Options = {}, modifier?: Function, userPrototype = {}, customCommandWrapper?: Function) {
+    static async newSession (options: WebDriver.Options, modifier?: Function, userPrototype = {}, customCommandWrapper?: Function) {
         const params = validateConfig(DEFAULTS, options)
 
         if (params.logLevel && (!options.logLevels || !(options.logLevels as any)['devtools'])) {
@@ -55,12 +57,6 @@ export default class DevTools {
             .find(
                 (capKey: ValueOf<typeof VENDOR_PREFIX>) => availableVendorPrefixes.includes(capKey)
             ) as keyof WebDriver.Capabilities
-
-        /**
-         * save original set of capabilities to allow to request the same session again
-         * (e.g. for reloadSession command in WebdriverIO)
-         */
-        params.requestedCapabilities = { ...params.capabilities }
 
         params.capabilities = {
             browserName: userAgent.browser.name,
@@ -97,11 +93,15 @@ export default class DevTools {
             ...environmentPrototype
         }
 
-        const monad = webdriverMonad(params, modifier, prototype)
+        const monad = webdriverMonad(
+            { ...params, requestedCapabilities: params.capabilities },
+            modifier,
+            prototype
+        )
         return monad(sessionId, customCommandWrapper)
     }
 
-    static async reloadSession (instance: WebdriverIO.BrowserObject) {
+    static async reloadSession (instance: BrowserObject) {
         const { session } = sessionMap.get(instance.sessionId)
         const browser = await launch(instance.requestedCapabilities)
         const pages = await browser.pages()

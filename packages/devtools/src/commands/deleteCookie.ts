@@ -1,3 +1,5 @@
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Delete Cookie command allows you to delete either a single cookie by parameter name,
  * or all the cookies associated with the active document's address if name is undefined.
@@ -6,8 +8,6 @@
  * @see https://w3c.github.io/webdriver/#dfn-delete-cookie
  * @param {string} name  name of the cookie to delete
  */
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function deleteCookie (
     this: DevToolsDriver,
     { name }: { name: string }

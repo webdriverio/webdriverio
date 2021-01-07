@@ -1,6 +1,7 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
+import * as WebDriver from 'webdriver'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import browserFinder from './finder'
