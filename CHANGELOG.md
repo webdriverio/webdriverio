@@ -17,6 +17,16 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.11.4 (2021-01-07)
+
+#### :bug: Bug Fix
+* `wdio-testingbot-service`
+  * [#6293](https://github.com/webdriverio/webdriverio/pull/6293) fix for wdio-testingbot-service not correctly handling MultiRemoteCap… ([@testingbot](https://github.com/testingbot))
+
+#### Committers: 1
+- TestingBot ([@testingbot](https://github.com/testingbot))
+
+
 ## v6.11.3 (2021-01-05)
 
 #### :bug: Bug Fix
