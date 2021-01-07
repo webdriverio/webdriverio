@@ -119,19 +119,18 @@ export default class BrowserstackService implements WebdriverIO.ServiceInstance 
     }
 
     async onReload(oldSessionId: string, newSessionId: string) {
-        const { _browser } = this
-        if (!_browser) {
+        if (!this._browser) {
             return Promise.resolve()
         }
 
         const hasReasons = Boolean(this._failReasons.filter(Boolean).length)
 
         let status = hasReasons ? 'failed' : 'passed'
-        if (!_browser.isMultiremote) {
+        if (!this._browser.isMultiremote) {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
-            const browserName = _browser.instances.filter(
-                (browserName) => _browser[browserName].sessionId === newSessionId)[0]
+            const browserName = this._browser.instances.filter(
+                (browserName) => this._browser && this._browser[browserName].sessionId === newSessionId)[0]
             log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
@@ -188,8 +187,7 @@ export default class BrowserstackService implements WebdriverIO.ServiceInstance 
     }
 
     async _printSessionURL() {
-        const { _browser } = this
-        if (!_browser) {
+        if (!this._browser) {
             return Promise.resolve()
         }
         await this._multiRemoteAction(async (sessionId, browserName) => {
@@ -201,7 +199,7 @@ export default class BrowserstackService implements WebdriverIO.ServiceInstance 
                 responseType: 'json'
             })
 
-            const capabilities = getBrowserCapabilities(_browser, this._caps, browserName)
+            const capabilities = this._browser && getBrowserCapabilities(this._browser, this._caps, browserName)
             const browserString = getBrowserDescription(capabilities as Capabilities)
             log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
         })
