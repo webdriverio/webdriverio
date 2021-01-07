@@ -88,7 +88,7 @@ export default class BrowserstackService implements WebdriverIO.ServiceInstance 
     after(result: number) {
         // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
         // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
-        if (this._preferScenarioName && this._scenariosThatRan.length === 1){
+        if (this._options.preferScenarioName && this._scenariosThatRan.length === 1){
             this._fullTitle = this._scenariosThatRan.pop()
         }
 
