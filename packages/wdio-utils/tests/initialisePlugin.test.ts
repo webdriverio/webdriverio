@@ -1,6 +1,8 @@
+import type { ServiceInstance } from 'webdriverio'
+
 import initialisePlugin from '../src/initialisePlugin'
 
-interface TestService extends WebdriverIO.ServiceInstance {
+interface TestService extends ServiceInstance {
     foo: string
     isScoped: boolean
 }

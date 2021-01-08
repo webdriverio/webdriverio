@@ -1,5 +1,7 @@
 import logger from '@wdio/logger'
 
+// import { BrowserObject } from 'webdriverio'
+
 const log = logger('@wdio/utils:shim')
 
 let inCommandHook = false
@@ -70,7 +72,7 @@ let runFnInFiberContext = function (fn: Function) {
  * @param fn          command function
  */
 let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
-    return async function wrapCommandFn(this: WebdriverIO.BrowserObject, ...args: any[]) {
+    return async function wrapCommandFn(this: any, ...args: any[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
             inCommandHook = true

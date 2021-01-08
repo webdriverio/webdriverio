@@ -2,9 +2,11 @@ import * as got from 'got'
 import * as http from 'http'
 import * as https from 'https'
 
-import { W3CCapabilities, DesiredCapabilities } from './Capabilities'
+import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities } from './Capabilities'
+import { ServiceEntry, Hooks } from './Services'
 
-export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
+export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
+export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub'
 
 export interface WebDriver {
     /**
@@ -12,30 +14,30 @@ export interface WebDriver {
      *
      * @default 'http'
      */
-    protocol?: string;
+    protocol?: string
     /**
      * Host of your WebDriver server.
      *
      * @default 'localhost'
      */
-    hostname?: string;
+    hostname?: string
     /**
      * Port your WebDriver server is on.
      *
      * @default 4444
      */
-    port?: number;
+    port?: number
     /**
      * Path to WebDriver endpoint or grid server.
      *
      * @default '/'
      */
-    path?: string;
+    path?: string
     /**
      * Query paramaters that are propagated to the driver server.
      */
     queryParams?: {
-        [name: string]: string;
+        [name: string]: string
     },
     /**
      * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
@@ -95,30 +97,30 @@ export interface WebDriver {
      *
      * @default 'info'
      */
-    logLevel?: WebDriverLogTypes;
+    logLevel?: WebDriverLogTypes
     /**
      * Set specific log levels per logger
      * use 'silent' level to disable logger
      */
-    logLevels?: Record<string, WebDriverLogTypes | undefined>;
+    logLevels?: Record<string, WebDriverLogTypes | undefined>
     /**
      * Timeout for any WebDriver request to a driver or grid.
      *
      * @default 120000
      */
-    connectionRetryTimeout?: number;
+    connectionRetryTimeout?: number
     /**
      * Count of request retries to the Selenium server.
      *
      * @default 3
      */
-    connectionRetryCount?: number;
+    connectionRetryCount?: number
     /**
      * Specify custom headers to pass into every request.
      */
     headers?: {
-        [name: string]: string;
-    };
+        [name: string]: string
+    }
     /**
      * Allows you to use a custom http/https/http2 [agent](https://www.npmjs.com/package/got#agent) to make requests.
      *
@@ -133,15 +135,15 @@ export interface WebDriver {
     agent?: {
         http: http.Agent,
         https: https.Agent
-    };
+    }
     /**
      * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
      */
-    transformRequest?: (requestOptions: got.Options) => got.Options;
+    transformRequest?: (requestOptions: got.Options) => got.Options
     /**
      * Function intercepting HTTP response objects after a WebDriver response has arrived.
      */
-    transformResponse?: (response: got.Response, requestOptions: got.Options) => got.Response;
+    transformResponse?: (response: got.Response, requestOptions: got.Options) => got.Response
 
     /**
      * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
@@ -157,7 +159,7 @@ export interface WebDriver {
      *
      * @default true
      */
-    strictSSL?: boolean;
+    strictSSL?: boolean
 
     /**
      * Directory to store all testrunner log files (including reporter logs and `wdio` logs).
@@ -169,4 +171,179 @@ export interface WebDriver {
      * the `wdio` log.
      */
     outputDir?: string
+}
+
+export interface MultiRemoteBrowserOptions {
+    sessionId?: string
+    capabilities: DesiredCapabilities
+}
+
+export interface WebdriverIO extends WebDriver {
+    /**
+     * Define the protocol you want to use for your browser automation.
+     * Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and
+     * [`devtools`](https://www.npmjs.com/package/devtools) are supported,
+     * as these are the main browser automation technologies available.
+     */
+    automationProtocol?: SupportedProtocols
+    /**
+     * If running on Sauce Labs, you can choose to run tests between different datacenters:
+     * US or EU. To change your region to EU, add region: 'eu' to your config.
+     */
+    region?: string
+    /**
+     * Sauce Labs provides a headless offering that allows you to run Chrome and Firefox tests headless.
+     */
+    headless?: boolean
+    /**
+     * Shorten url command calls by setting a base URL.
+     */
+    baseUrl?: string
+    /**
+     * Default timeout for all `waitFor*` commands. (Note the lowercase f in the option name.)
+     * This timeout only affects commands starting with `waitFor*` and their default wait time.
+     */
+    waitforTimeout?: number
+    /**
+     * Default interval for all `waitFor*` commands to check if an expected state (e.g.,
+     * visibility) has been changed.
+     */
+    waitforInterval?: number
+}
+
+export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'> {
+    /**
+     * Defines the capabilities you want to run in your WebDriver session. Check out the
+     * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
+     * If you want to run a multiremote session you need to define instead of an array of
+     * capabilities an object that has an arbitrary browser instance name as string and its
+     * capabilities as values.
+     *
+     * @example
+     * ```js
+     * // wdio.conf.js
+     * export.config = {
+     *   // ...
+     *   capabilities: [{
+     *     browserName: 'safari',
+     *     platformName: 'MacOS 10.13',
+     *     ...
+     *   }, {
+     *     browserName: 'microsoftedge',
+     *     platformName: 'Windows 10',
+     *     ...
+     *   }]
+     * }
+     * ```
+     *
+     * @example
+     * ```
+     * // wdio.conf.js
+     * export.config = {
+     *   // ...
+     *   capabilities: {
+     *     browserA: {
+     *       browserName: 'chrome',
+     *       browserVersion: 86
+     *       platformName: 'Windows 10'
+     *     },
+     *     browserB: {
+     *       browserName: 'firefox',
+     *       browserVersion: 74
+     *       platformName: 'Mac OS X'
+     *     }
+     *   }
+     * })
+     * ```
+     */
+    capabilities: RemoteCapabilities
+    /**
+     * Define specs for test execution.
+     */
+    specs?: string[]
+    /**
+     * Exclude specs from test execution.
+     */
+    exclude?: string[]
+    /**
+     * An object describing various of suites, which you can then specify
+     * with the --suite option on the wdio CLI.
+     */
+    suites?: Record<string, string[]>
+    /**
+     * Maximum number of total parallel running workers.
+     */
+    maxInstances?: number
+    /**
+     * Maximum number of total parallel running workers per capability.
+     */
+    maxInstancesPerCapability?: number
+    /**
+     * If you want your test run to stop after a specific number of test failures, use bail.
+     * (It defaults to 0, which runs all tests no matter what.) Note: Please be aware that
+     * when using a third party test runner (such as Mocha), additional configuration might
+     * be required.
+     */
+    bail?: number
+    /**
+     * The number of retry attempts for an entire specfile when it fails as a whole.
+     */
+    specFileRetries?: number
+    /**
+     * Delay in seconds between the spec file retry attempts
+     */
+    specFileRetriesDelay?: number
+    /**
+     * Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+     */
+    specFileRetriesDeferred?: boolean
+    /**
+     * Services take over a specific job you don't want to take care of. They enhance
+     * your test setup with almost no effort.
+     */
+    services?: ServiceEntry[]
+    /**
+     * Defines the test framework to be used by the WDIO testrunner.
+     */
+    framework?: string
+    /**
+     * List of reporters to use. A reporter can be either a string, or an array of
+     * `['reporterName', { <reporter options> }]` where the first element is a string
+     * with the reporter name and the second element an object with reporter options.
+     */
+    reporters?: (string | object)[]
+    /**
+     * Determines in which interval the reporter should check if they are synchronised
+     * if they report their logs asynchronously (e.g. if logs are streamed to a 3rd
+     * party vendor).
+     */
+    reporterSyncInterval?: number
+    /**
+     * Determines the maximum time reporters have to finish uploading all their logs
+     * until an error is being thrown by the testrunner.
+     */
+    reporterSyncTimeout?: number
+    /**
+     * Node arguments to specify when launching child processes.
+     */
+    execArgv?: string[]
+    /**
+     * Files to watch when running `wdio` with the `--watch` flag.
+     */
+    filesToWatch?: string[]
+    /**
+     * List of cucumber features with line numbers (when using [cucumber framework](https://webdriver.io/docs/frameworks.html#using-cucumber)).
+     * @default []
+     */
+    cucumberFeaturesWithLineNumbers?: string[]
+}
+
+export type Definition<T> = {
+    [k in keyof T]?: {
+        type: 'string' | 'number' | 'object' | 'boolean' | 'function'
+        default?: T[k]
+        required?: boolean
+        validate?: (option: T[k]) => void
+        match?: RegExp
+    }
 }

@@ -1,4 +1,4 @@
-import { WebDriver as WebDriverOptions } from './Options'
+import { WebDriver as WebDriverOptions, Testrunner as TestrunnerOptions } from './Options'
 
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
 export type LoggingPreferenceType =
@@ -82,6 +82,11 @@ export interface W3CCapabilities {
 export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities;
 export interface MultiRemoteCapabilities {
     [instanceName: string]: WebDriverOptions;
+}
+
+export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;
+export interface Worker extends Omit<TestrunnerOptions, 'capabilities'> {
+    capabilities: RemoteCapability
 }
 
 export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities, BrowserStackCapabilities {

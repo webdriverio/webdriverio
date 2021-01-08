@@ -2,9 +2,8 @@
   "extends": "../../tsconfig",
   "compilerOptions": {
     "baseUrl": ".",
-    "outDir": "build",
-    "rootDir": "src",
-    "types": ["webdriverio", "@wdio/logger"]
+    "outDir": "./build",
+    "rootDir": "./src",
   },
   "include": [
     "src/**/*"

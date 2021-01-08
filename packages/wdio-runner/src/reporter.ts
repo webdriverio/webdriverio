@@ -9,8 +9,6 @@ import { sendFailureMessage } from './utils'
 const log = logger('@wdio/runner')
 
 const NOOP = () => { }
-const DEFAULT_SYNC_TIMEOUT = 5000 // 5s
-const DEFAULT_SYNC_INTERVAL = 100 // 100ms
 
 interface Reporter extends EventEmitter {
     isSynchronised: boolean
@@ -33,8 +31,6 @@ type ReporterOptions = {
  * to all these reporters
  */
 export default class BaseReporter {
-    private _reporterSyncInterval: number
-    private _reporterSyncTimeout: number
     private _reporters: Reporter[]
 
     constructor(
@@ -42,9 +38,6 @@ export default class BaseReporter {
         private _cid: string,
         public caps: Capability
     ) {
-        this._reporterSyncInterval = this._config.reporterSyncInterval || DEFAULT_SYNC_INTERVAL
-        this._reporterSyncTimeout = this._config.reporterSyncTimeout || DEFAULT_SYNC_TIMEOUT
-
         // ensure all properties are set before initializing the reporters
         this._reporters = this._config.reporters!.map(this.initReporter.bind(this))
     }
@@ -127,7 +120,7 @@ export default class BaseReporter {
                     .filter((reporter) => !reporter.isSynchronised)
                     .map((reporter) => reporter.constructor.name)
 
-                if ((Date.now() - startTime) > this._reporterSyncTimeout && unsyncedReporter.length) {
+                if ((Date.now() - startTime) > this._config._reporterSyncTimeout && unsyncedReporter.length) {
                     clearInterval(interval)
                     return reject(new Error(`Some reporters are still unsynced: ${unsyncedReporter.join(', ')}`))
                 }
@@ -142,7 +135,7 @@ export default class BaseReporter {
 
                 log.info(`Wait for ${unsyncedReporter.length} reporter to synchronise`)
                 // wait otherwise
-            }, this._reporterSyncInterval)
+            }, this._config._reporterSyncInterval)
         })
     }
 

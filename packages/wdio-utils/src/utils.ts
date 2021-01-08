@@ -1,6 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 
+import type { Services } from '@wdio/types'
+import type { Client } from 'webdriver'
+
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 
 /**
@@ -26,10 +29,10 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
         const origCommand = propertiesObject[commandName].value
         delete propertiesObject[commandName]
 
-        const newCommand = function (this: WebDriver.Client, ...args: any[]) {
+        const newCommand = function (this: Client, ...args: any[]) {
             const element = this
             return userDefinedCommand.apply(element, [
-                function origCommandFunction (this: WebDriver.Client) {
+                function origCommandFunction (this: Client) {
                     const context = this || element // respect explicite context binding, use element as default
                     return origCommand.apply(context, arguments)
                 },
@@ -149,7 +152,7 @@ export function getArgumentType (arg: any) {
  * @param  {string} name  of package
  * @return {object}       package content
  */
-export function safeRequire (name: string): WebdriverIO.ServicePlugin | null {
+export function safeRequire (name: string): Services.ServicePlugin | null {
     let requirePath
     try {
         /**

@@ -1,4 +1,6 @@
 import path from 'path'
+import { Services } from '@wdio/types'
+
 import { safeRequire } from './utils'
 
 /**
@@ -7,7 +9,7 @@ import { safeRequire } from './utils'
  * 2. otherwise try to require "@wdio/<name>-<type>"
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
-export default function initialisePlugin (name: string, type?: string): WebdriverIO.ServicePlugin | WebdriverIO.RunnerPlugin {
+export default function initialisePlugin (name: string, type?: string): Services.ServicePlugin | Services.RunnerPlugin {
     /**
      * directly import packages that are scoped or start with an absolute path
      */
