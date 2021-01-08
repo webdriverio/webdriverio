@@ -89,7 +89,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
             '--headless',
             '--no-sandbox'
         ] : []),
-        ...(chromeOptions.args || [])
+        ...(chromeOptions.args.map(x=>x.indexOf('--')==-1?'--'+x:x) || [])
     ]
 
     if (typeof deviceMetrics.pixelRatio === 'number') {
