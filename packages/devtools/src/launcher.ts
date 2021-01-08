@@ -79,6 +79,11 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
 
     const defaultFlags = Array.isArray(ignoreDefaultArgs) ? DEFAULT_FLAGS.filter(flag => !ignoreDefaultArgs.includes(flag)) : (!ignoreDefaultArgs) ? DEFAULT_FLAGS : []
     const deviceMetrics = mobileEmulation.deviceMetrics || {}
+
+    let chromeOptionsArgs = chromeOptions.args;
+    if(typeof chromeOptions.args !== "undefined") {
+        chromeOptionsArgs = chromeOptions.args.map(x=>x.indexOf('--')==-1?'--'+x:x);
+    }
     const chromeFlags = [
         ...defaultFlags,
         ...[
@@ -89,7 +94,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
             '--headless',
             '--no-sandbox'
         ] : []),
-        ...(chromeOptions.args.map(x=>x.indexOf('--')==-1?'--'+x:x) || [])
+        ...(chromeOptionsArgs || [])
     ]
 
     if (typeof deviceMetrics.pixelRatio === 'number') {
