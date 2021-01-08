@@ -1,10 +1,10 @@
-import type { ConfigOptions, Hooks } from './types'
+import { Options, Services } from '@wdio/types'
 
 const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
 
-export const DEFAULT_CONFIGS: () => ConfigOptions = () => ({
+export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = () => ({
     specs: [],
     suites: {},
     exclude: [],
@@ -26,6 +26,12 @@ export const DEFAULT_CONFIGS: () => ConfigOptions = () => ({
     execArgv: [],
     runnerEnv: {},
     runner: 'local' as const,
+    specFileRetries: 0,
+    specFileRetriesDelay: 0,
+    specFileRetriesDeferred: false,
+    reporterSyncInterval: 100,
+    reporterSyncTimeout: 5000,
+    cucumberFeaturesWithLineNumbers: [],
 
     /**
      * framework defaults
@@ -71,7 +77,7 @@ export const DEFAULT_CONFIGS: () => ConfigOptions = () => ({
     afterFeature: []
 })
 
-export const SUPPORTED_HOOKS: (keyof Hooks)[] = [
+export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     // 'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',

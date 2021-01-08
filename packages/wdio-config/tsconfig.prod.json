@@ -1,12 +1,11 @@
 {
-    "extends": "../../tsconfig.prod",
-    "compilerOptions": {
-        "baseUrl": ".",
-        "outDir": "./build",
-        "rootDir": "./src",
-        "types": ["webdriverio", "webdriver", "@wdio/cucumber-framework"]
-    },
-    "include": [
-        "src/**/*"
-    ]
+  "extends": "../../tsconfig.prod",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "./build",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/**/*"
+  ]
 }

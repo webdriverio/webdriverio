@@ -1,8 +1,5 @@
 import logger from '@wdio/logger'
-import type { Capabilities } from '@wdio/types'
-import type { MultiRemoteBrowserOptions } from 'webdriverio'
-
-import type { DefaultOptions } from './types'
+import type { Capabilities, Clients, Options } from '@wdio/types'
 
 const log = logger('@wdio/config:utils')
 
@@ -55,8 +52,8 @@ export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
 }
 
-export function isCloudCapability(capabilities: Capabilities.DesiredCapabilities | MultiRemoteBrowserOptions) {
-    const caps = (capabilities as MultiRemoteBrowserOptions).capabilities || capabilities
+export function isCloudCapability(capabilities: Capabilities.DesiredCapabilities | Clients.Multiremote) {
+    const caps = (capabilities as Clients.Multiremote).capabilities || capabilities
     return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
 }
 
@@ -166,10 +163,10 @@ export function detectBackend(options: BackendConfigurations = {}, isRDC = false
  * @param  {Object} options   option to check against
  * @return {Object}           validated config enriched with default values
  */
-export function validateConfig<T>(defaults: DefaultOptions<T>, options: T, keysToKeep = [] as (keyof T)[]) {
+export function validateConfig<T>(defaults: Options.Definition<T>, options: T, keysToKeep = [] as (keyof T)[]) {
     const params = {} as T
 
-    for (const [name, expectedOption] of Object.entries(defaults) as [keyof DefaultOptions<T>, NonNullable<DefaultOptions<T>[keyof DefaultOptions<T>]>][]) {
+    for (const [name, expectedOption] of Object.entries(defaults) as [keyof Options.Definition<T>, NonNullable<Options.Definition<T>[keyof Options.Definition<T>]>][]) {
         /**
          * check if options is given
          */
