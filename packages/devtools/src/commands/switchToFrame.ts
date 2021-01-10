@@ -1,5 +1,6 @@
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { ElementReference } from '@wdio/protocols'
 
 import { ELEMENT_KEY } from '../constants'
 import { getStaleElementError } from '../utils'
@@ -35,7 +36,7 @@ export default async function switchToFrame (
     /**
      * switch frame by element ID
      */
-    const idAsElementReference = id as unknown as WebDriver.ElementReference
+    const idAsElementReference = id as unknown as ElementReference
     if (typeof idAsElementReference[ELEMENT_KEY] === 'string') {
         const elementHandle = await this.elementStore.get(idAsElementReference[ELEMENT_KEY])
 

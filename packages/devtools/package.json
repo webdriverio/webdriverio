@@ -25,6 +25,7 @@
     "@wdio/config": "6.11.0",
     "@wdio/logger": "6.10.10",
     "@wdio/protocols": "6.10.6",
+    "@wdio/types": "^6.10.6",
     "@wdio/utils": "6.11.0",
     "chrome-launcher": "^0.13.1",
     "edge-paths": "^2.1.0",

@@ -1,3 +1,5 @@
+import { Cookie } from '@wdio/protocols'
+
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**
@@ -10,7 +12,7 @@ import type DevToolsDriver from '../devtoolsdriver'
  */
 export default async function addCookie(
     this: DevToolsDriver,
-    { cookie }: { cookie: WebDriver.Cookie }
+    { cookie }: { cookie: Cookie }
 ) {
     const page = this.getPageHandle()
 

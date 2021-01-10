@@ -1,8 +1,8 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
-import * as WebDriver from 'webdriver'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Capabilities } from '@wdio/types'
 
 import browserFinder from './finder'
 import { getPages } from './utils'
@@ -21,23 +21,11 @@ import {
     CHANNEL_FIREFOX_TRUNK,
     BROWSER_ERROR_MESSAGES
 } from './constants'
+import type { ExtendedCapabilities } from './types'
 
 const log = logger('devtools')
 
 const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.name)
-
-interface DevToolsOptions {
-    ignoreDefaultArgs?: string[] | boolean
-    headless?: boolean,
-    defaultViewport?: {
-        width: number,
-        height: number
-    }
-}
-
-interface ExtendedCapabilities extends WebDriver.Capabilities {
-    'wdio:devtoolsOptions'?: DevToolsOptions
-}
 
 /**
  * launches Chrome and returns a Puppeteer browser instance
@@ -45,7 +33,7 @@ interface ExtendedCapabilities extends WebDriver.Capabilities {
  * @return {object}               puppeteer browser instance
  */
 async function launchChrome (capabilities: ExtendedCapabilities) {
-    const chromeOptions: WebDriver.ChromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
+    const chromeOptions: Capabilities.ChromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
     const devtoolsOptions = capabilities['wdio:devtoolsOptions']
 
