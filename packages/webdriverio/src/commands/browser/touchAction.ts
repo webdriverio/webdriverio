@@ -1,3 +1,6 @@
+import type { Browser, TouchAction } from '../../types'
+import { touchAction as touchActionCommand } from '../constant'
+
 /**
  *
  * The Touch Action API provides the basis of all gestures that can be automated in Appium.
@@ -56,12 +59,9 @@
  * @for android, ios
  *
  */
-
-import { touchAction as touchActionCommand } from '../constant'
-
 export default function touchAction (
-    this: WebdriverIO.BrowserObject,
-    ...args: WebdriverIO.TouchAction[]
+    this: Browser,
+    ...args: TouchAction[]
 ) {
     return touchActionCommand.apply(this, args as any)
 }

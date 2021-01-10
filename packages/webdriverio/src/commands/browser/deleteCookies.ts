@@ -1,3 +1,5 @@
+import type { Browser } from '../../types'
+
 /**
  *
  * Delete cookies visible to the current page. By providing a cookie name it just removes the single cookie or more when multiple names are passed.
@@ -41,9 +43,8 @@
  * @type cookie
  *
  */
-
 export default function deleteCookies(
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     names?: string | string[]
 ) {
     if (names === undefined) {

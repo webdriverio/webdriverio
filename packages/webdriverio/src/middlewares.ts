@@ -2,7 +2,7 @@
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
 import { ELEMENT_KEY } from './constants'
-import type { Element, BrowserObject, MultiRemoteBrowserObject } from './types'
+import type { Element, Browser, MultiRemoteBrowserObject } from './types'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -51,7 +51,7 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
  */
 export const multiremoteHandler = (
     wrapCommand: Function
-) => (commandName: keyof BrowserObject) => {
+) => (commandName: keyof Browser) => {
     return wrapCommand(commandName, function (this: MultiRemoteBrowserObject, ...args: any[]) {
         // @ts-ignore
         const commandResults = this.instances.map((instanceName: string) => {

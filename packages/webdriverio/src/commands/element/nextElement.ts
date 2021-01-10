@@ -1,3 +1,4 @@
+import type { Element } from '../../types'
 
 /**
  *
@@ -22,8 +23,8 @@
  * @type utility
  */
 
-export default function nextElement (this: WebdriverIO.Element) {
+export default function nextElement (this: Element) {
     return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
-        return this.nextElementSibling
+        return this.nextElementSibling as HTMLElement
     })
 }

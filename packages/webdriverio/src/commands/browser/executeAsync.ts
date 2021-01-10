@@ -1,4 +1,6 @@
 import { verifyArgsAndStripIfElement } from '../../utils'
+import type { Browser } from '../../types'
+
 /**
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected
@@ -42,9 +44,8 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * @type protocol
  *
  */
-
 export default function executeAsync (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     script: string | Function,
     ...args: any[]
 ) {

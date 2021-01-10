@@ -1,3 +1,9 @@
+import { getBrowserObject } from '../../utils'
+import type { Browser } from '../../types'
+
+const minWindowSize = 0
+const maxWindowSize = Number.MAX_SAFE_INTEGER
+
 /**
  *
  * Resizes browser window outer size according to provided width and height.
@@ -16,17 +22,11 @@
  * @type window
  *
  */
-
-import { getBrowserObject } from '../../utils'
-
-const minWindowSize = 0
-const maxWindowSize = Number.MAX_SAFE_INTEGER
-
 export default async function setWindowSize(
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     width: number,
     height: number
-): Promise<void> {
+) {
     /**
      * type check
      */
@@ -43,7 +43,9 @@ export default async function setWindowSize(
 
     const browser = getBrowserObject(this)
 
-    return !browser.isW3C
-        ? browser._setWindowSize(width, height)
-        : browser.setWindowRect(null, null, width, height) as any as Promise<void>
+    if (!browser.isW3C) {
+        return browser._setWindowSize(width, height)
+    }
+
+    await browser.setWindowRect(null, null, width, height)
 }

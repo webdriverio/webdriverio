@@ -1,3 +1,4 @@
+import type { Element } from '../../types'
 
 /**
  *
@@ -21,9 +22,8 @@
  * @return {Element}
  * @type utility
  */
-
-export default function parentElement (this: WebdriverIO.Element) {
+export default function parentElement (this: Element) {
     return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
-        return this.parentElement
+        return this.parentElement as HTMLElement
     })
 }

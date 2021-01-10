@@ -20,7 +20,7 @@ export default async function implicitWait (currentElement: Element, commandName
             /**
              * if waitForExist was successful requery element and assign elementId to the scope
              */
-            return await currentElement.parent.$(currentElement.selector)
+            return await (currentElement.parent as Element).$(currentElement.selector)
         } catch {
             if (currentElement.selector.toString().includes('this.previousElementSibling')) {
                 throw new Error(

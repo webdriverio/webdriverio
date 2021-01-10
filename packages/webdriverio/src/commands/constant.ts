@@ -1,4 +1,4 @@
-import { TouchAction, BrowserObject, Element, TouchActions } from '../types'
+import { TouchAction, Browser, Element, TouchActions } from '../types'
 
 /**
  * Constants around commands
@@ -17,7 +17,7 @@ interface FormattedActions {
 }
 
 export const formatArgs = function (
-    scope: BrowserObject | Element,
+    scope: Browser | Element,
     actions: TouchActions[]
 ): FormattedActions[] {
     return actions.map((action: TouchAction) => {
@@ -98,7 +98,7 @@ export const validateParameters = (params: FormattedActions) => {
 }
 
 export const touchAction = function (
-    this: Element,
+    this: Browser | Element,
     actions: TouchActions
 ) {
     if (!this.multiTouchPerform || !this.touchPerform) {

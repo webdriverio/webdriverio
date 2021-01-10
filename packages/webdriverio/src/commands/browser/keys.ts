@@ -1,3 +1,7 @@
+import type { Browser } from '../../types'
+import { checkUnicode } from '../../utils'
+import { UNICODE_CHARACTERS } from '../../constants'
+
 /**
  *
  * Send a sequence of key strokes to the active element. You can also use characters like
@@ -24,12 +28,8 @@
  * @see https://w3c.github.io/webdriver/#dispatching-actions
  *
  */
-
-import { checkUnicode } from '../../utils'
-import { UNICODE_CHARACTERS } from '../../constants'
-
 export default function keys (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     value: string | string[]
 ) {
     let keySequence: string[] = []

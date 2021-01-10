@@ -1,3 +1,8 @@
+import { getElement } from '../../utils/getElementObject'
+import { getBrowserObject } from '../../utils'
+import { ELEMENT_KEY } from '../../constants'
+import type { Element } from '../../types'
+
 /**
  *
  * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
@@ -22,17 +27,13 @@
  * @param {Any} strategyArguments
  * @return {Element}
  */
-import { getElement } from '../../utils/getElementObject'
-import { getBrowserObject } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
-
 async function custom$ (
-    this: WebdriverIO.Element,
+    this: Element,
     strategyName: string,
     strategyArguments: string
 ) {
-    const browserObject: WebdriverIO.BrowserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as () => WebDriver.ElementReference
+    const browserObject = getBrowserObject(this)
+    const strategy = browserObject.strategies.get(strategyName) as () => HTMLElement
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)

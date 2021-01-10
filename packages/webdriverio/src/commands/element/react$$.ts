@@ -1,3 +1,13 @@
+import fs from 'fs'
+import type { ElementReference } from '@wdio/protocols'
+
+import { enhanceElementsArray } from '../../utils'
+import { getElements } from '../../utils/getElementObject'
+import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq'
+import type { Element, ReactSelectorOptions } from '../../types'
+
+const resqScript = fs.readFileSync(require.resolve('resq'))
+
 /**
  *
  * The `react$$` command is a useful command to query multiple React Components
@@ -25,23 +35,16 @@
  * @return {ElementArray}
  *
  */
-import fs from 'fs'
-import { enhanceElementsArray } from '../../utils'
-import { getElements } from '../../utils/getElementObject'
-import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq'
-
-const resqScript = fs.readFileSync(require.resolve('resq'))
-
 export default async function react$$(
-    this: WebdriverIO.Element,
+    this: Element,
     selector: string,
-    { props = {}, state = {} }: WebdriverIO.ReactSelectorOptions = {}
+    { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(
         react$$Script, selector, props, state, this
-    ) as any as WebDriver.ElementReference[]
+    ) as ElementReference[]
 
     const elements = await getElements.call(this, selector, res, true)
     return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])

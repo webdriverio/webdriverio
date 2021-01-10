@@ -1,3 +1,5 @@
+import newWindowHelper from '../../scripts/newWindow'
+import type { Browser } from '../../types'
 
 /**
  *
@@ -31,13 +33,8 @@
  * @alias browser.newWindow
  * @type window
  */
-
-/* istanbul ignore file */
-
-import newWindowHelper from '../../scripts/newWindow'
-
 export default async function newWindow (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     url: string,
     { windowName = 'New Window', windowFeatures = '' }: WebdriverIO.NewWindowOptions = {}
 ) {

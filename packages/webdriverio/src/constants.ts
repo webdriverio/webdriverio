@@ -1,10 +1,9 @@
-import type { DefaultPropertyType } from '@wdio/utils'
-import type * as WebDriver from 'webdriver'
+import type { Options, Capabilities, Services } from '@wdio/types'
 
 /* istanbul ignore next */
 const HOOK_DEFINITION = {
-    type: 'object',
-    validate: (param: Function[]) => {
+    type: 'object' as const,
+    validate: (param: any) => {
         /**
          * option must be an array
          */
@@ -25,19 +24,17 @@ const HOOK_DEFINITION = {
 
             throw new Error('expected hook to be type of function')
         }
-
-        return true
     }
 }
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
-export const WDIO_DEFAULTS: Record<string, DefaultPropertyType> = {
+export const WDIO_DEFAULTS: Options.Definition<Options.Testrunner> = {
     /**
      * allows to specify automation protocol
      */
     automationProtocol: {
         type: 'string',
-        validate: (param: string) => {
+        validate: (param: Options.SupportedProtocols) => {
             if (!['webdriver', 'devtools', './protocol-stub'].includes(param.toLowerCase())) {
                 throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
             }
@@ -87,7 +84,7 @@ export const WDIO_DEFAULTS: Record<string, DefaultPropertyType> = {
      */
     capabilities: {
         type: 'object',
-        validate: (param: WebDriver.Capabilities[]) => {
+        validate: (param: Capabilities.RemoteCapabilities) => {
             /**
              * should be an object
              */
@@ -212,7 +209,7 @@ export const WDIO_DEFAULTS: Record<string, DefaultPropertyType> = {
      */
     services: {
         type: 'object',
-        validate: (param: WebdriverIO.ServiceEntry[]) => {
+        validate: (param: Services.ServiceEntry[]) => {
             /**
              * should be an array
              */
@@ -241,7 +238,7 @@ export const WDIO_DEFAULTS: Record<string, DefaultPropertyType> = {
      */
     execArgv: {
         type: 'object',
-        validate: (param: object) => {
+        validate: (param: string[]) => {
             if (!Array.isArray(param)) {
                 throw new Error('the "execArgv" options needs to be a list of strings')
             }
@@ -295,12 +292,12 @@ export const WDIO_DEFAULTS: Record<string, DefaultPropertyType> = {
     /**
      * cucumber specific hooks
      */
-    beforeFeature: HOOK_DEFINITION,
-    beforeScenario: HOOK_DEFINITION,
-    beforeStep: HOOK_DEFINITION,
-    afterStep: HOOK_DEFINITION,
-    afterScenario: HOOK_DEFINITION,
-    afterFeature: HOOK_DEFINITION,
+    // beforeFeature: HOOK_DEFINITION,
+    // beforeScenario: HOOK_DEFINITION,
+    // beforeStep: HOOK_DEFINITION,
+    // afterStep: HOOK_DEFINITION,
+    // afterScenario: HOOK_DEFINITION,
+    // afterFeature: HOOK_DEFINITION,
 }
 
 /**

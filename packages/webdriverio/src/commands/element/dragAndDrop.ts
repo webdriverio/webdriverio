@@ -1,3 +1,19 @@
+import { getElementRect, getScrollPosition } from '../../utils'
+import type { Element } from '../../types'
+
+const ACTION_BUTTON = 0
+
+const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))
+
+type DragAndDropOptions = {
+    duration?: number
+}
+
+type ElementCoordinates = {
+    x?: number
+    y?: number
+}
+
 /**
  *
  * Drag an item to a destination element or position.
@@ -21,29 +37,13 @@
  * @param {DragAndDropOptions=} options           dragAndDrop command options
  * @param {Number=}             options.duration  how long the drag should take place
  */
-
-import { getElementRect, getScrollPosition } from '../../utils'
-
-const ACTION_BUTTON = 0
-
-const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))
-
-type DragAndDropOptions = {
-    duration?: number
-}
-
-type ElementCoordinates = {
-    x?: number
-    y?: number
-}
-
 export default async function dragAndDrop (
-    this: WebdriverIO.Element,
-    target: WebdriverIO.Element | ElementCoordinates,
+    this: Element,
+    target: Element | ElementCoordinates,
     { duration = 10 }: DragAndDropOptions = {}
 ) {
     const moveToCoordinates = target as ElementCoordinates
-    const moveToElement = target as WebdriverIO.Element
+    const moveToElement = target as Element
 
     /**
      * fail if

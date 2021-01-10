@@ -1,3 +1,4 @@
+import type { Element } from '../../types'
 
 /**
  *
@@ -21,9 +22,8 @@
  * @return {Element}
  * @type utility
  */
-
-export default function previousElement (this: WebdriverIO.Element) {
+export default function previousElement (this: Element) {
     return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
-        return this.previousElementSibling
+        return this.previousElementSibling as HTMLElement
     })
 }

@@ -1,11 +1,11 @@
 import { webdriverMonad, wrapCommand, runFnInFiberContext } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
-import type { ElementReference } from 'webdriver'
+import type { ElementReference } from '@wdio/protocols'
 
 import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '.'
 import { elementErrorHandler } from '../middlewares'
 import { ELEMENT_KEY } from '../constants'
-import type { ElementObject, Selector, BrowserObject, Element, ElementArray } from '../types'
+import type { Selector, Browser, Element, ElementArray } from '../types'
 
 /**
  * transforms a findElement response into a WDIO element
@@ -14,7 +14,7 @@ import type { ElementObject, Selector, BrowserObject, Element, ElementArray } fr
  * @return {Object}           WDIO element object
  */
 export const getElement = function findElement(
-    this: BrowserObject | Element,
+    this: Browser | Element,
     selector?: Selector,
     res?: ElementReference | Error,
     isReactElement = false
@@ -26,7 +26,7 @@ export const getElement = function findElement(
         scope: { value: 'element' }
     }
 
-    const element = webdriverMonad(this.options, (client: ElementObject) => {
+    const element = webdriverMonad(this.options, (client: Element) => {
         const elementId = getElementFromResponse(res as ElementReference)
 
         if (elementId) {
@@ -73,7 +73,7 @@ export const getElement = function findElement(
  * @return {Array}            array of WDIO elements
  */
 export const getElements = function getElements(
-    this: BrowserObject | Element,
+    this: Browser | Element,
     selector: Selector,
     elemResponse: ElementReference[],
     isReactElement = false
@@ -86,7 +86,7 @@ export const getElements = function getElements(
 
     const elements = elemResponse.map((res: ElementReference | Error, i) => {
         propertiesObject.scope = { value: 'element' }
-        const element = webdriverMonad(this.options, (client: ElementObject) => {
+        const element = webdriverMonad(this.options, (client: Element) => {
             const elementId = getElementFromResponse(res as ElementReference)
 
             if (elementId) {

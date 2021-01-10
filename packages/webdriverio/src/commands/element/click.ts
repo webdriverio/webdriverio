@@ -1,3 +1,11 @@
+import type { Element } from '../../types'
+
+type ClickOptions = {
+    button?: number | string,
+    x?: number,
+    y?: number
+}
+
 /**
  *
  * Click on an element.
@@ -68,15 +76,8 @@
  * @param {number=}           options.x      Number (optional)
  * @param {number=}           options.y      Number (optional)
  */
-
-type ClickOptions = {
-    button?: number | string,
-    x?: number,
-    y?: number
-}
-
 export default async function click (
-    this: WebdriverIO.Element,
+    this: Element,
     options?: ClickOptions
 ) {
     if (typeof options === 'undefined') {

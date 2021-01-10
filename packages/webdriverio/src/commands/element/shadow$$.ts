@@ -1,3 +1,6 @@
+import { shadowFnFactory } from '../../scripts/shadowFnFactory'
+import type { Element } from '../../types'
+
 /**
  *
  * Access elements inside a given element's shadowRoot
@@ -20,11 +23,8 @@
  * @type utility
  *
  */
-
-import { shadowFnFactory } from '../../scripts/shadowFnFactory'
-
 export default async function shadowRoot (
-    this: WebdriverIO.Element,
+    this: Element,
     selector: string
 ) {
     return await this.$$(shadowFnFactory(selector, true))

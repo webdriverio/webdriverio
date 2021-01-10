@@ -1,3 +1,12 @@
+import fs from 'fs'
+import { ElementReference } from '@wdio/protocols'
+
+import { getElement } from '../../utils/getElementObject'
+import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
+import type { Browser, ReactSelectorOptions } from '../../types'
+
+const resqScript = fs.readFileSync(require.resolve('resq'))
+
 /**
  *
  * The `react$` command is a useful command to query React Components by their
@@ -36,22 +45,16 @@
  * @return {Element}
  *
  */
-import fs from 'fs'
-import { getElement } from '../../utils/getElementObject'
-import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
-
-const resqScript = fs.readFileSync(require.resolve('resq'))
-
 export default async function react$ (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     selector: string,
-    { props = {}, state = {} }: WebdriverIO.ReactSelectorOptions = {}
+    { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(
         react$Script, selector, props, state
-    ) as any as WebDriver.ElementReference
+    ) as ElementReference
 
     return getElement.call(this, selector, res, true)
 }

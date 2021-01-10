@@ -1,3 +1,5 @@
+import type { Element, WaitForOptions } from '../../types'
+
 /**
  *
  * Wait for an element (selected by css selector) for the provided amount of
@@ -34,10 +36,8 @@
  * @type utility
  *
  */
-import type { WaitForOptions } from '../../types'
-
 export default async function waitForEnabled(
-    this: WebdriverIO.Element,
+    this: Element,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,

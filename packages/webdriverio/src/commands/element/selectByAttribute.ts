@@ -1,3 +1,6 @@
+import { getElementFromResponse } from '../../utils'
+import type { Element } from '../../types'
+
 /**
  *
  * Select option with a specific value.
@@ -33,11 +36,8 @@
  * @type action
  *
  */
-
-import { getElementFromResponse } from '../../utils'
-
 export default async function selectByAttribute (
-    this: WebdriverIO.Element,
+    this: Element,
     attribute: string,
     value: string | number
 ) {
@@ -56,7 +56,7 @@ export default async function selectByAttribute (
         this.elementId,
         'xpath',
         `./option${normalized}|./optgroup/option${normalized}`
-    ) as unknown as WebDriver.ElementReference
+    )
 
     if (optionElement && (optionElement as any).error === 'no such element') {
         throw new Error(`Option with attribute "${attribute}=${value}" not found.`)

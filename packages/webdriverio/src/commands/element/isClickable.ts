@@ -1,3 +1,7 @@
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+import isElementClickableScript from '../../scripts/isElementClickable'
+import type { Element } from '../../types'
 
 /**
  *
@@ -30,17 +34,12 @@
  * @type state
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import isElementClickableScript from '../../scripts/isElementClickable'
-
-export default async function isClickable (this: WebdriverIO.Element) {
+export default async function isClickable (this: Element) {
     if (!await this.isDisplayed()) {
         return false
     }
 
-    const browser: WebdriverIO.BrowserObject = getBrowserObject(this)
+    const browser = getBrowserObject(this)
     return browser.execute(isElementClickableScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible

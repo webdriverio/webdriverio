@@ -1,3 +1,11 @@
+import type Interception from '../../utils/interception/index'
+import DevtoolsNetworkInterception from '../../utils/interception/devtools'
+import WebDriverNetworkInterception from '../../utils/interception/webdriver'
+import { getBrowserObject } from '../../utils'
+import type { Browser } from '../../types'
+
+const SESSION_MOCKS: Record<string, Set<Interception>> = {}
+
 /**
  * Mock the response of a request. You can define a mock based on a matching
  * glob and corresponding header and status code. Calling the mock method
@@ -95,15 +103,8 @@
  * @type utility
  *
  */
-import type Interception from '../../utils/interception/index'
-import DevtoolsNetworkInterception from '../../utils/interception/devtools'
-import WebDriverNetworkInterception from '../../utils/interception/webdriver'
-import { getBrowserObject } from '../../utils'
-
-const SESSION_MOCKS: Record<string, Set<Interception>> = {}
-
 export default async function mock (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     url: string,
     filterOptions?: WebdriverIO.MockFilterOptions
 ): Promise<Interception> {
@@ -111,6 +112,10 @@ export default async function mock (
 
     if (!this.isSauce) {
         await this.getPuppeteer()
+    }
+
+    if (!this.puppeteer) {
+        throw new Error('No Puppeteer connection could be established which is required to use this command')
     }
 
     const browser = getBrowserObject(this)

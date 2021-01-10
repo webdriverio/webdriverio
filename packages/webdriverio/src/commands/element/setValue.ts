@@ -1,3 +1,6 @@
+import type { AddValueOptions } from './addValue'
+import type { Element } from '../../types'
+
 /**
  *
  * Send a sequence of key strokes to an element (clears value before). If the element
@@ -24,11 +27,8 @@
  * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
  *
  */
-
-import type { AddValueOptions } from './addValue'
-
 export default async function setValue (
-    this: WebdriverIO.Element,
+    this: Element,
     value: string,
     { translateToUnicode = true }: AddValueOptions = {}
 ) {

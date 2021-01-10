@@ -1,3 +1,6 @@
+import Timer from '../../utils/Timer'
+import type { Browser, Element, WaitUntilOptions } from '../../types'
+
 /**
  *
  * This wait command is your universal weapon if you want to wait on something. It expects a condition
@@ -39,17 +42,14 @@
  * @type utility
  *
  */
-
-import Timer from '../../utils/Timer'
-
 export default function waitUntil(
-    this: WebdriverIO.BrowserObject,
+    this: Browser | Element,
     condition: () => boolean | Promise<boolean>,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         timeoutMsg
-    }: Partial<WebdriverIO.WaitUntilOptions> = {}
+    }: Partial<WaitUntilOptions> = {}
 ) {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')

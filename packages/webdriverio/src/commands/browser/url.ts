@@ -1,3 +1,6 @@
+import { validateUrl } from '../../utils'
+import type { Browser } from '../../types'
+
 /**
  *
  * Protocol binding to load the URL of the browser. If a baseUrl is
@@ -31,12 +34,8 @@
  * @type protocol
  *
  */
-
-import nodeUrl from 'url'
-import { validateUrl } from '../../utils'
-
 export default function url (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     path: string
 ) {
     if (typeof path !== 'string') {
@@ -44,7 +43,7 @@ export default function url (
     }
 
     if (typeof this.options.baseUrl === 'string') {
-        path = nodeUrl.resolve(this.options.baseUrl, path)
+        path = (new URL(path, this.options.baseUrl)).href
     }
 
     return this.navigateTo(validateUrl(path))

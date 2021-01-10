@@ -1,28 +1,33 @@
-import { EventEmitter } from 'events'
 import type cssValue from 'css-value'
 import type * as WebDriver from 'webdriver'
-import type { HookFunctions } from '@wdio/config'
+import type { Options } from '@wdio/types'
+import type {
+    AppiumCommandsAsync, ChromiumCommandsAsync, JSONWPCommandsAsync, MJSONWPCommandsAsync,
+    SauceLabsCommandsAsync, SeleniumCommandsAsync, WebDriverCommandsAsync, ElementReference
+} from '@wdio/protocols'
+import { Browser as PuppeteerBrowser } from 'node_modules/puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import type BrowserCommands from './commands/browser'
 import type ElementCommands from './commands/element'
 
 type BrowserCommandsType = typeof BrowserCommands
 type ElementCommandsType = typeof ElementCommands
-export interface Browser extends BrowserCommandsType {}
 
-export interface Element extends ElementCommandsType, Omit<ElementObject, keyof ElementCommandsType> {}
+interface ProtocolCommands extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
+
 export interface ElementArray extends Array<Element> {
-    selector: string | Function;
-    parent: Element | BrowserObject;
-    foundWith: string;
-    props: any[];
+    selector: string | Function
+    parent: Element | Browser
+    foundWith: string
+    props: any[]
 }
 
-export interface BrowserObject extends EventEmitter, Browser, WebDriver.Client {
+export interface Browser extends BrowserCommandsType, Omit<WebDriver.Client, 'options'>, ProtocolCommands {
     sessionId: string
-    options: Options
+    options: Options.WebdriverIO | Options.Testrunner
     strategies: Map<any, any>
-    isMultiremote?: false
+    isMultiremote: false
+    puppeteer?: PuppeteerBrowser
     __propertiesObject__: Record<string, PropertyDescriptor>
 
     /**
@@ -35,7 +40,7 @@ export interface BrowserObject extends EventEmitter, Browser, WebDriver.Client {
     wdioRetries?: number
 }
 
-export interface ElementObject extends WebDriver.ElementReference, BrowserObject {
+export interface Element extends ElementReference, Omit<Browser, keyof ElementCommandsType>, ElementCommandsType {
     /**
      * WebDriver element reference
      */
@@ -58,7 +63,7 @@ export interface ElementObject extends WebDriver.ElementReference, BrowserObject
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: ElementObject | BrowserObject
+    parent: Element | Browser
     /**
      * true if element is a React component
      */
@@ -69,30 +74,23 @@ export interface ElementObject extends WebDriver.ElementReference, BrowserObject
     error?: Error
 }
 
-type MultiRemoteBrowserReference = Record<string, BrowserObject>
+type MultiRemoteBrowserReference = Record<string, Browser>
 
-export interface MultiRemoteBrowser extends Browser {
+export interface MultiRemoteBrowser extends Omit<Browser, 'isMultiremote'> {
     /**
      * multiremote browser instance names
      */
-    instances: string[];
+    instances: string[]
     /**
      * flag to indicate multiremote browser session
      */
-    isMultiremote: boolean;
+    isMultiremote: true
 }
 
 export type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
 
-export type WaitForOptions = {
-    timeout?: number,
-    interval?: number,
-    timeoutMsg?: string,
-    reverse?: boolean,
-}
-
-export type ElementFunction = ((elem: HTMLElement) => WebDriver.ElementReference) | ((elem: HTMLElement) => WebDriver.ElementReference[])
-export type Selector = string | WebDriver.ElementReference | ElementFunction
+export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
+export type Selector = string | ElementReference | ElementFunction
 
 interface ParsedColor extends Partial<cssValue.CSSValue> {
     rgb?: string
@@ -148,71 +146,65 @@ export interface TouchAction {
 export type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
 export type TouchActions = TouchActionParameter | TouchActionParameter[];
 
-export interface MultiRemoteOptions {
-    [instanceName: string]: Options
+export type Matcher = {
+    name: string,
+    args: Array<string | object>
+    class?: string
 }
 
-export interface Options extends WebDriver.Options {
-    /**
-     * Define the protocol you want to use for your browser automation.
-     * Currently only webdriver and devtools are supported, as these are
-     * the main browser automation technologies available.
-     *
-     * If you want to automate the browser using devtools, make sure you
-     * have the NPM package installed ($ npm install --save-dev devtools).
-     *
-     * @default 'webdriver'
-     */
-    automationProtocol?: 'webdriver' | 'devtools' | './protocol-stub'
-    /**
-     * Shorten `url` command calls by setting a base URL.
-     */
-    baseUrl?: string
-    /**
-     * Default timeout for all `waitFor*` commands.
-     * (Note the lowercase `f` in the option name.)
-     * This timeout only affects commands starting with `waitFor*` and their
-     * default wait time.
-     *
-     * To increase the timeout for a test, please see the framework docs.
-     *
-     * @default 3000
-     */
-    waitforTimeout?: number
-    /**
-     * Default interval for all waitFor* commands to check if an expected
-     * state (e.g., visibility) has been changed.
-     *
-     * @default 500
-     */
-    waitforInterval?: number
-    /**
-     * If running on Sauce Labs, you can choose to run tests between different datacenters:
-     * US or EU. To change your region to EU, add `region: 'eu'` to your config.
-     *
-     * __Note:__ This only has an effect if you provide `user` and `key` options that are
-     * connected to your Sauce Labs account.
-     *
-     * @default 'us-west-1'
-     */
-    region?: 'us' | 'eu' | 'us-west-1' | 'us-east-1' | 'eu-central-1'
-    /**
-     * Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing)
-     * that allows you to run Chrome and Firefox tests headless.
-     *
-     * __Note:__ This only has an effect if you provide `user` and `key` options that are
-     * connected to your Sauce Labs account.
-     *
-     * @default false
-     */
-    headless?: boolean
-    /**
-     * WebdriverIO allows to define custom runner extensions. Currently the only supported
-     * runner is `@wdio/local-runner`.
-     *
-     * @default 'local'
-     */
-    runner?: string
+export type ReactSelectorOptions = {
+    props?: object,
+    state?: any[] | number | string | object | boolean
 }
 
-export interface RemoteOptions extends HookFunctions, Omit<Options, 'capabilities'> { }
+export type MoveToOptions = {
+    xOffset?: number,
+    yOffset?: number
+}
+
+export type DragAndDropOptions = {
+    duration?: number
+}
+
+export type NewWindowOptions = {
+    windowName?: string,
+    windowFeatures?: string
+}
+
+export type PDFPrintOptions = {
+    orientation?: string,
+    scale?: number,
+    background?: boolean,
+    width?: number,
+    height?: number,
+    top?: number,
+    bottom?: number,
+    left?: number,
+    right?: number,
+    shrinkToFit?: boolean,
+    pageRanges?: object[]
+}
+
+export type ClickOptions = {
+    button?: number | string,
+    x?: number,
+    y?: number
+}
+
+export type WaitForOptions = {
+    timeout?: number,
+    interval?: number,
+    timeoutMsg?: string,
+    reverse?: boolean,
+}
+
+export type WaitUntilOptions = {
+    timeout?: number,
+    timeoutMsg?: string,
+    interval?: number
+}
+
+export type DragAndDropCoordinate = {
+    x: number,
+    y: number
+}

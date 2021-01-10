@@ -1,3 +1,12 @@
+import { Capabilities } from '@wdio/types'
+
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject, hasElementId } from '../../utils'
+import isElementDisplayedScript from '../../scripts/isElementDisplayed'
+import type { Element } from '../../types'
+
+const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome', 'safari technology preview']
+
 /**
  *
  * Return true if the selected DOM-element is displayed.
@@ -39,15 +48,8 @@
  * @type state
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject, hasElementId } from '../../utils'
-import isElementDisplayedScript from '../../scripts/isElementDisplayed'
-
-const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome', 'safari technology preview']
-
-export default async function isDisplayed (this: WebdriverIO.Element) {
-    const browser: WebdriverIO.BrowserObject = getBrowserObject(this)
+export default async function isDisplayed (this: Element) {
+    const browser = getBrowserObject(this)
 
     if (!await hasElementId(this)) {
         return false
@@ -68,7 +70,7 @@ export default async function isDisplayed (this: WebdriverIO.Element) {
         (
             browser.isW3C &&
             !browser.isMobile &&
-            noW3CEndpoint.includes(browser.capabilities.browserName?.toLowerCase()!)
+            noW3CEndpoint.includes((browser.capabilities as Capabilities.Capabilities).browserName?.toLowerCase()!)
         )
     )
 

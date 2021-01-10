@@ -1,3 +1,5 @@
+import type { Element } from '../../types'
+
 /**
  *
  * Double-click on an element.
@@ -21,7 +23,7 @@
  * @type action
  *
  */
-export default async function doubleClick (this: WebdriverIO.Element) {
+export default async function doubleClick (this: Element) {
     /**
      * move to element
      */

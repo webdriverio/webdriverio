@@ -1,3 +1,5 @@
+import type { Browser, PDFPrintOptions } from '../../types'
+
 /**
  *
  * Prints the page of the current browsing context to a PDF file on your OS.
@@ -32,9 +34,9 @@ import fs from 'fs'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
 
 export default async function savePDF (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     filepath: string,
-    options?: WebdriverIO.PDFPrintOptions
+    options?: PDFPrintOptions
 ) {
     /**
      * type check

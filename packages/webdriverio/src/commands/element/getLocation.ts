@@ -1,3 +1,6 @@
+import { getElementRect } from '../../utils'
+import type { Element } from '../../types'
+
 /**
  *
  * Determine an element’s location on the page. The point (0, 0) refers to
@@ -25,11 +28,8 @@
  * @uses protocol/elementIdLocation
  * @type property
  */
-
-import { getElementRect } from '../../utils'
-
 export default async function getLocation (
-    this: WebdriverIO.Element,
+    this: Element,
     prop: string
 ) {
     let location: {

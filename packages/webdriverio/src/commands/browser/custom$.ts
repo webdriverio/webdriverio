@@ -1,3 +1,9 @@
+import type { ElementReference } from '@wdio/protocols'
+
+import { getElement } from '../../utils/getElementObject'
+import { ELEMENT_KEY } from '../../constants'
+import type { Browser } from '../../types'
+
 /**
  *
  * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
@@ -21,12 +27,8 @@
  * @param {Any} strategyArguments
  * @return {Element}
  */
-import { getElement } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
-import type { ElementReference } from '../../types'
-
 export default async function custom$ (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     strategyName: string,
     ...strategyArguments: any[]
 ) {

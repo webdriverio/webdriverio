@@ -1,3 +1,7 @@
+import cssShorthandProps from 'css-shorthand-properties'
+import { parseCSS } from '../../utils'
+import type { Element } from '../../types'
+
 /**
  *
  * Get a css property from a DOM-element selected by given selector. The return value
@@ -63,12 +67,8 @@
  * @return {CSSProperty}             The specified css of the element
  *
  */
-
-import cssShorthandProps from 'css-shorthand-properties'
-import { parseCSS } from '../../utils'
-
 export default async function getCSSProperty (
-    this: WebdriverIO.Element,
+    this: Element,
     cssProperty: string
 ) {
     /**

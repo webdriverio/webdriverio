@@ -1,3 +1,6 @@
+import type { Element } from '../../types'
+import { ELEMENT_KEY } from '../../constants'
+
 /**
  *
  * Scroll element into viewport ([MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView)).
@@ -17,14 +20,11 @@
  * @type utility
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-
 export default function scrollIntoView (
-    this: WebdriverIO.Element,
+    this: Element,
     scrollIntoViewOptions = true
 ) {
-    return this.parent.execute(/* istanbul ignore next */function (elem: HTMLElement, options) {
+    return this.parent.execute(/* istanbul ignore next */function (elem: HTMLElement, options: ScrollIntoViewOptions) {
         elem.scrollIntoView(options)
     }, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible

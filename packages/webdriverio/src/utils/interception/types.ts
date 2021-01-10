@@ -1,3 +1,5 @@
+import type { CDPSession } from 'node_modules/puppeteer-core/lib/cjs/puppeteer/common/Connection'
+
 type JsonPrimitive = string | number | boolean | null
 type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }
 type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>
@@ -68,8 +70,6 @@ export interface Matches extends Request {
     statusCode: number
 }
 
-export type PuppeteerBrowser = Partial<import('puppeteer').Browser>
-export type CDPSession = Partial<import('puppeteer').CDPSession>
 export type MockOverwriteFunction = (request: Matches, client: CDPSession) => Promise<string | Record<string, any>>
 export type MockOverwrite = string | Record<string, any> | MockOverwriteFunction
 

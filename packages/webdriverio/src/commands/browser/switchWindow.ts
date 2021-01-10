@@ -1,3 +1,4 @@
+import type { Browser } from '../../types'
 
 /**
  *
@@ -26,9 +27,8 @@
  * @type window
  *
  */
-
 export default async function switchWindow (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     urlOrTitleToMatch: string | RegExp
 ) {
     /**

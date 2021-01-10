@@ -1,3 +1,6 @@
+import { getElementFromResponse } from '../../utils'
+import type { Element } from '../../types'
+
 /**
  *
  * Select option with displayed text matching the argument.
@@ -27,11 +30,8 @@
  * @type action
  *
  */
-
-import { getElementFromResponse } from '../../utils'
-
 export default async function selectByVisibleText (
-    this: WebdriverIO.Element,
+    this: Element,
     text: string | number
 ) {
     /**

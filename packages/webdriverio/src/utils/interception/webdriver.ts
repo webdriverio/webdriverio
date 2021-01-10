@@ -1,5 +1,6 @@
 import Interception from '.'
 import { ERROR_REASON } from '../../constants'
+import type { Matches, MockResponseParams, MockOverwrite } from './types'
 
 /**
  * Network interception class based on a WebDriver compliant endpoint.
@@ -20,7 +21,7 @@ export default class WebDriverInterception extends Interception {
      */
     get calls () {
         return this.browser.call(async () => (
-            this.browser.getMockCalls(this.mockId as string) as any as WebdriverIO.Matches[]
+            this.browser.getMockCalls(this.mockId as string) as any as Matches[]
         ))
     }
 
@@ -46,7 +47,7 @@ export default class WebDriverInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respond (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
+    respond (overwrite: MockOverwrite, params: MockResponseParams = {}) {
         return this.browser.call(
             async () => this.browser.respondMock(
                 this.mockId as string,
@@ -60,7 +61,7 @@ export default class WebDriverInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respondOnce (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
+    respondOnce (overwrite: MockOverwrite, params: MockResponseParams = {}) {
         return this.browser.call(
             async () => this.browser.respondMock(
                 this.mockId as string,

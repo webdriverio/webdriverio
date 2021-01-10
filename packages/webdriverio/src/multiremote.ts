@@ -1,10 +1,11 @@
 import zip from 'lodash.zip'
 import clone from 'lodash.clonedeep'
 import { webdriverMonad, wrapCommand } from '@wdio/utils'
+import { Options } from '@wdio/types'
 
 import { multiremoteHandler } from './middlewares'
 import { getPrototype } from './utils'
-import type { BrowserObject, RemoteOptions, MultiRemoteBrowserObject } from './types'
+import type { Browser, MultiRemoteBrowserObject } from './types'
 
 type EventEmitter = (args: any) => void
 
@@ -12,14 +13,14 @@ type EventEmitter = (args: any) => void
  * Multiremote class
  */
 export default class MultiRemote {
-    instances: Record<string, BrowserObject> = {}
+    instances: Record<string, Browser> = {}
     baseInstance?: MultiRemoteDriver
     sessionId?: string
 
     /**
      * add instance to multibrowser instance
      */
-    async addInstance (browserName: string, client: BrowserObject) {
+    async addInstance (browserName: string, client: Browser) {
         this.instances[browserName] = await client
         return this.instances[browserName]
     }
@@ -27,7 +28,7 @@ export default class MultiRemote {
     /**
      * modifier for multibrowser instance
      */
-    modifier (wrapperClient: { options: RemoteOptions, commandList: string[] }) {
+    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: string[] }) {
         const propertiesObject: Record<string, PropertyDescriptor> = {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
@@ -72,7 +73,7 @@ export default class MultiRemote {
      * ```
      */
     static elementWrapper (
-        instances: Record<string, BrowserObject>,
+        instances: Record<string, Browser>,
         result: any,
         propertiesObject: Record<string, PropertyDescriptor>
     ) {
@@ -101,7 +102,7 @@ export default class MultiRemote {
      */
     commandWrapper (commandName: string) {
         const instances = this.instances
-        return wrapCommand(commandName, async function (this: BrowserObject, ...args: any[]) {
+        return wrapCommand(commandName, async function (this: Browser, ...args: any[]) {
             const result = await Promise.all(
                 // @ts-ignore
                 Object.entries(instances).map(([, instance]) => instance[commandName](...args))
@@ -123,7 +124,7 @@ export default class MultiRemote {
 }
 
 interface MultiRemoteClient {
-    (instanceName: string): BrowserObject
+    (instanceName: string): Browser
 }
 
 /**
@@ -136,7 +137,7 @@ export class MultiRemoteDriver implements Partial<MultiRemoteClient> {
     __propertiesObject__: Record<string, PropertyDescriptor>
 
     constructor (
-        instances: Record<string, BrowserObject>,
+        instances: Record<string, Browser>,
         propertiesObject: Record<string, PropertyDescriptor>
     ) {
         this.instances = Object.keys(instances)

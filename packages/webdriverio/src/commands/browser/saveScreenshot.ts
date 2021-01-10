@@ -1,3 +1,7 @@
+import fs from 'fs'
+import type { Browser } from '../../types'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+
 /**
  *
  * Save a screenshot of the current browsing context to a PNG file on your OS. Be aware that
@@ -17,12 +21,8 @@
  * @type utility
  *
  */
-
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
-
 export default async function saveScreenshot (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     filepath: string
 ) {
     /**

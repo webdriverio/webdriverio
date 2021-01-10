@@ -1,3 +1,4 @@
+import type { WaitForOptions, Element } from '../../types'
 
 /**
  *
@@ -35,8 +36,6 @@
  * @type utility
  *
  */
-import type { WaitForOptions, Element } from '../../types'
-
 export default function waitForExist (
     this: Element,
     {

@@ -1,4 +1,6 @@
 import { verifyArgsAndStripIfElement } from '../../utils'
+import type { Browser, Element } from '../../types'
+
 /**
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
@@ -34,9 +36,8 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * @type protocol
  *
  */
-
 export default function execute (
-    this: WebdriverIO.BrowserObject,
+    this: Browser | Element,
     script: string | Function,
     ...args: any[]
 ) {

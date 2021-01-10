@@ -1,3 +1,5 @@
+import type { Browser } from '../../types'
+
 /**
  *
  * Retrieve a [cookie](https://w3c.github.io/webdriver/webdriver-spec.html#cookies)
@@ -31,11 +33,11 @@
  *
  */
 export default async function getCookies(
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     names?: string | string[]
 ) {
     if (names === undefined) {
-        return this.getAllCookies() as Promise<WebDriver.Cookie[]>
+        return this.getAllCookies()
     }
 
     const namesList = Array.isArray(names) ? names : [names]
@@ -44,6 +46,6 @@ export default async function getCookies(
         throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/getCookies.html for documentation.')
     }
 
-    const allCookies: WebDriver.Cookie[] = await this.getAllCookies() as WebDriver.Cookie[]
+    const allCookies = await this.getAllCookies()
     return allCookies.filter(cookie => namesList.includes(cookie.name))
 }

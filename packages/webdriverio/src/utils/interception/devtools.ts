@@ -2,6 +2,8 @@ import fse from 'fs-extra'
 import path from 'path'
 import atob from 'atob'
 import minimatch from 'minimatch'
+import type { CDPSession } from 'node_modules/puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type Protocol from 'devtools-protocol'
 
 import logger from '@wdio/logger'
 import Interception from '.'
@@ -10,34 +12,27 @@ import { ERROR_REASON } from '../../constants'
 
 const log = logger('webdriverio')
 
-type RequestOptions = {
-    requestId: string
-    responseCode?: number
-    responseHeaders?: Record<string, string>[]
-    body?: string | WebdriverIO.JsonCompatible
-    errorReason?: string
-}
-
 type ClientResponse = {
     body: string
     base64Encoded?: boolean
 }
 
-type Client = {
-    send: (requestName: string, requestOptions: RequestOptions) => Promise<ClientResponse>
+interface HeaderEntry {
+    name: string;
+    value: string;
 }
 
 type Event = {
     requestId: string
     request: WebdriverIO.Matches & { mockedResponse: string | Buffer }
     responseStatusCode?: number
-    responseHeaders: Record<string, string>[]
+    responseHeaders: HeaderEntry[]
 }
 
 type ExpectParameter<T> = ((param: T) => boolean) | T;
 
 export default class DevtoolsInterception extends Interception {
-    static handleRequestInterception (client: Client, mocks: Set<Interception>): (event: Event) => Promise<void | ClientResponse> {
+    static handleRequestInterception (client: CDPSession, mocks: Set<Interception>): (event: Event) => Promise<void | ClientResponse> {
         return async (event) => {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
@@ -46,7 +41,7 @@ export default class DevtoolsInterception extends Interception {
             const responseHeaders = eventResponseHeaders.reduce((headers, { name, value }) => {
                 headers[name] = value
                 return headers
-            }, {})
+            }, {} as Record<string, string>)
             const { requestId, request, responseStatusCode = 200 } = event
 
             for (const mock of mocks) {
@@ -133,7 +128,7 @@ export default class DevtoolsInterception extends Interception {
                     }
 
                     let responseCode = typeof params.statusCode === 'function' ? params.statusCode(request) : params.statusCode || responseStatusCode
-                    let responseHeaders = [
+                    let responseHeaders: HeaderEntry[] = [
                         ...eventResponseHeaders,
                         ...Object.entries(typeof params.headers === 'function' ? params.headers(request) : params.headers || {}).map(([name, value]) => ({ name, value }))
                     ]
@@ -224,7 +219,7 @@ export default class DevtoolsInterception extends Interception {
      * Abort the request with an error code
      * @param {string} errorCode  error code of the response
      */
-    abort (errorReason: string, sticky: boolean = true) {
+    abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean = true) {
         if (typeof errorReason !== 'string' || !ERROR_REASON.includes(errorReason)) {
             throw new Error(`Invalid value for errorReason, allowed are: ${ERROR_REASON.join(', ')}`)
         }
@@ -235,7 +230,7 @@ export default class DevtoolsInterception extends Interception {
      * Abort the request once with an error code
      * @param {string} errorReason  error code of the response
      */
-    abortOnce (errorReason: string) {
+    abortOnce (errorReason: Protocol.Network.ErrorReason) {
         this.abort(errorReason, false)
     }
 }

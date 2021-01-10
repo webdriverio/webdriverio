@@ -1,3 +1,7 @@
+import fs from 'fs'
+import type { Browser } from '../../types'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+
 /**
  *
  * Appium only. Save a video started by startRecordingScreen command to file.
@@ -18,12 +22,8 @@
  * @type utility
  *
  */
-
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
-
 export default async function saveRecordingScreen (
-    this: WebdriverIO.BrowserObject,
+    this: Browser,
     filepath: string
 ) {
     /**
