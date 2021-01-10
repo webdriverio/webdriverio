@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events'
 import type { Options, Capabilities } from '@wdio/types'
 
-export type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
 export type ElementReference = Record<ElementReferenceId, string>
 
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
@@ -872,19 +871,18 @@ export interface Options {
 }
 
 export interface JSONWPCommandError extends Error {
-    code?: string
-    statusCode?: string
     statusMessage?: string
 }
 
 export interface SessionFlags {
-    isW3C: boolean;
-    isChrome: boolean;
-    isAndroid: boolean;
-    isMobile: boolean;
-    isIOS: boolean;
-    isSauce: boolean;
-    isSeleniumStandalone: boolean;
+    isW3C: boolean
+    isChrome: boolean
+    isAndroid: boolean
+    isMobile: boolean
+    isIOS: boolean
+    isSauce: boolean
+    isSeleniumStandalone: boolean
+    isDevTools: boolean
 }
 
 export interface BaseClient extends EventEmitter, SessionFlags {
