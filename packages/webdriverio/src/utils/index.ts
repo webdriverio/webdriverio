@@ -461,7 +461,7 @@ export const enhanceElementsArray = (
  */
 export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub'
 
-export const getAutomationProtocol = async (config: Options.WebdriverIO) => {
+export const getAutomationProtocol = async (config: Options.WebdriverIO | Options.Testrunner) => {
     /**
      * if automation protocol is set by user prefer this
      */
@@ -526,7 +526,7 @@ export const getAutomationProtocol = async (config: Options.WebdriverIO) => {
  *
  * NOTE: this method is executed twice when running the WDIO testrunner
  */
-export const updateCapabilities = async (params: Options.WebdriverIO, automationProtocol?: string) => {
+export const updateCapabilities = async (params: Options.WebdriverIO | Options.Testrunner, automationProtocol?: string) => {
     const caps = params.capabilities as Capabilities.Capabilities
     /**
      * attach remote debugging port options to Firefox sessions

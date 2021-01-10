@@ -1,5 +1,5 @@
 import newWindowHelper from '../../scripts/newWindow'
-import type { Browser } from '../../types'
+import type { Browser, NewWindowOptions } from '../../types'
 
 /**
  *
@@ -36,7 +36,7 @@ import type { Browser } from '../../types'
 export default async function newWindow (
     this: Browser,
     url: string,
-    { windowName = 'New Window', windowFeatures = '' }: WebdriverIO.NewWindowOptions = {}
+    { windowName = 'New Window', windowFeatures = '' }: NewWindowOptions = {}
 ) {
     /**
      * parameter check

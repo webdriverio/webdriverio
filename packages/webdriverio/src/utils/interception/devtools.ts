@@ -7,6 +7,7 @@ import type Protocol from 'devtools-protocol'
 
 import logger from '@wdio/logger'
 import Interception from '.'
+import type { Matches, MockOverwrite, MockResponseParams } from './types'
 import { containsHeaderObject } from '..'
 import { ERROR_REASON } from '../../constants'
 
@@ -24,7 +25,7 @@ interface HeaderEntry {
 
 type Event = {
     requestId: string
-    request: WebdriverIO.Matches & { mockedResponse: string | Buffer }
+    request: Matches & { mockedResponse: string | Buffer }
     responseStatusCode?: number
     responseHeaders: HeaderEntry[]
 }
@@ -202,7 +203,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respond (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
+    respond (overwrite: MockOverwrite, params: MockResponseParams = {}) {
         this.respondOverwrites.push({ overwrite, params, sticky: true })
     }
 
@@ -211,7 +212,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respondOnce (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
+    respondOnce (overwrite: MockOverwrite, params: MockResponseParams = {}) {
         this.respondOverwrites.push({ overwrite, params })
     }
 

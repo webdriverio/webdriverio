@@ -35,7 +35,7 @@ async function custom$$ (
     strategyArguments: string
 ) {
     const browserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as () => ElementReference[]
+    const strategy = browserObject.strategies.get(strategyName) as () => HTMLElement[]
 
     if (!strategy) {
         /* istanbul ignore next */
