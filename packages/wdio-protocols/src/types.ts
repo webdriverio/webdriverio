@@ -96,3 +96,83 @@ export interface Cookie {
      */
     sameSite?: SameSiteOptions
 }
+
+export type CommandPath = 'string'
+export type CommandMethod = 'POST' | 'GET' | 'DELETE'
+export type Protocol = Record<CommandPath, Record<CommandMethod, CommandEndpoint>>
+
+/**
+ * describes a command endpoint
+ */
+export interface CommandEndpoint {
+    /**
+     * command name
+     */
+    command: string
+    /**
+     * command description
+     */
+    description: string
+    /**
+     * link to specification reference
+     */
+    ref: string
+    /**
+     * supported command parameters
+     */
+    parameters: CommandParameters[]
+    /**
+     * variables within the command path (e.g. /:sessionId/element)
+     */
+    variables?: CommandPathVariables[]
+    /**
+     * supported environments
+     */
+    support?: SupportedEnvironments
+    /**
+     * set to true if command is only supported in Selenium Hub Node
+     */
+    isHubCommand?: boolean,
+    /**
+     * information on return data
+     */
+    returns?: CommandReturnObject
+}
+
+export interface CommandReturnObject {
+    type: string
+    name: string
+    description: string
+}
+
+export interface CommandPathVariables {
+    name: string
+    description: string
+
+    /**
+     * the following are given for path variables, we should still define
+     * it as values are populated automatically
+     */
+    required?: boolean
+    type?: string
+}
+
+export interface CommandParameters {
+    name: string,
+    type: string,
+    description: string,
+    required: boolean
+}
+
+export type Platform = 'ios' | 'android'
+export type Environments = 'XCUITest' | 'UIAutomation' | 'UiAutomator'
+
+/**
+ * supported mobile environments, e.g.
+ * ```
+ * "ios": {
+ *   "UIAutomation": "8.0 to 9.3"
+ * }
+ * ```
+ */
+export type SupportedEnvironments = Record<Platform, Record<Environments, string>>
