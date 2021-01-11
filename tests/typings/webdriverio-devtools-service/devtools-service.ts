@@ -19,6 +19,8 @@ async function bar() {
   const diagnostics: object = browser.getDiagnostics()
   const mainThreadWorkBreakdown: object[] = browser.getMainThreadWorkBreakdown()
   const performanceScore: number = browser.getPerformanceScore()
+  const pwaCheck = browser.checkPWA()
+  const pwaFilterdCheck = browser.checkPWA(['maskableIcon', 'isInstallable'])
 
   browser.emulateDevice('iPad')
   browser.emulateDevice({ viewport: { height: 10, width: 10 }, userAgent: 'test' })

@@ -8,99 +8,48 @@ import LargestContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/la
 import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index'
 import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive'
 import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time'
+
 import ReportScoring from 'lighthouse/lighthouse-core/scoring'
 import defaultConfig from 'lighthouse/lighthouse-core/config/default-config'
 import logger from '@wdio/logger'
 
+import { DEFAULT_FORM_FACTOR, PWA_AUDITS } from './constants'
+import type {
+    FormFactor, Audit, AuditResults, AuditRef, MainThreadWorkBreakdownResult,
+    DiagnosticsResults, ResponseTimeResult, MetricsResult, MetricsResults,
+    AuditResult, LHAuditResult, ErrorAudit, PWAAudits
+} from './types'
 import type { Trace } from './gatherer/trace'
 import type { CDPSessionOnMessageObject } from './gatherer/devtools'
 
 const log = logger('@wdio/devtools-service:Auditor')
 
-const SHARED_AUDIT_CONTEXT = {
-    settings: { throttlingMethod: 'devtools' },
-    LighthouseRunWarnings: false,
-    computedCache: new Map()
-}
-
-interface Audit {
-    audit: (opts: any, context: any) => Promise<any>,
-    defaultOptions: Record<string, any>
-}
-
-interface AuditResults {
-    'speed-index': MetricsResult
-    'first-contentful-paint': MetricsResult
-    'largest-contentful-paint': MetricsResult
-    'cumulative-layout-shift': MetricsResult
-    'total-blocking-time': MetricsResult
-    interactive: MetricsResult
-}
-
-interface AuditRef {
-    id: keyof AuditResults
-    weight: number
-}
-
-interface MainThreadWorkBreakdownResult {
-    details: {
-        items: {
-            group: string,
-            duration: number
-        }[]
-    }
-}
-
-interface DiagnosticsResults {
-    details: {
-        items: any[]
-    }
-}
-
-interface ResponseTimeResult {
-    numericValue: number
-}
-
-interface MetricsResult {
-    score: number
-}
-
-interface MetricsResults {
-    details: {
-        items: {
-            estimatedInputLatency: number
-            observedDomContentLoaded: number
-            observedFirstVisualChange: number
-            observedFirstPaint: number
-            firstContentfulPaint: number
-            firstMeaningfulPaint: number
-            largestContentfulPaint: number
-            observedLastVisualChange: number
-            firstCPUIdle: number
-            interactive: number
-            observedLoad: number
-            speedIndex: number
-            totalBlockingTime: number
-        }[]
-    }
-}
+type RunAuditResult = [string, LHAuditResult | ErrorAudit]
 
 export default class Auditor {
     private _url?: string
 
-    constructor(private _traceLogs?: Trace, private _devtoolsLogs?: CDPSessionOnMessageObject[]) {
-        this._devtoolsLogs = _devtoolsLogs
-        this._traceLogs = _traceLogs
-
+    constructor (
+        private _traceLogs?: Trace,
+        private _devtoolsLogs?: CDPSessionOnMessageObject[],
+        private _formFactor?: FormFactor
+    ) {
         if (_traceLogs) {
             this._url = _traceLogs.pageUrl
         }
     }
 
-    _audit (AUDIT: Audit, params = {}) {
+    _audit (AUDIT: Audit, params = {}): Promise<LHAuditResult> | ErrorAudit {
         const auditContext = {
-            options: { ...AUDIT.defaultOptions },
-            ...SHARED_AUDIT_CONTEXT
+            options: {
+                ...AUDIT.defaultOptions
+            },
+            settings: {
+                throttlingMethod: 'devtools',
+                formFactor: this._formFactor || DEFAULT_FORM_FACTOR
+            },
+            LighthouseRunWarnings: false,
+            computedCache: new Map()
         }
 
         try {
@@ -110,9 +59,12 @@ export default class Auditor {
                 TestedAsMobileDevice: true,
                 ...params
             }, auditContext)
-        } catch (e) {
-            log.error(e)
-            return {}
+        } catch (error) {
+            log.error(error)
+            return {
+                score: 0,
+                error
+            }
         }
     }
 
@@ -126,14 +78,14 @@ export default class Auditor {
         commands.forEach(fnName => browser.addCommand(fnName, customFn || (this[fnName as keyof Auditor] as any).bind(this)))
     }
 
-    async getMainThreadWorkBreakdown() {
+    async getMainThreadWorkBreakdown () {
         const result = await this._audit(MainThreadWorkBreakdown) as MainThreadWorkBreakdownResult
         return result.details.items.map(
             ({ group, duration }) => ({ group, duration })
         )
     }
 
-    async getDiagnostics() {
+    async getDiagnostics () {
         const result = await this._audit(Diagnostics) as DiagnosticsResults
 
         /**
@@ -174,7 +126,7 @@ export default class Auditor {
         }
     }
 
-    async getPerformanceScore() {
+    async getPerformanceScore () {
         const auditResults: AuditResults = {
             'speed-index': await this._audit(SpeedIndex) as MetricsResult,
             'first-contentful-paint': await this._audit(FirstContentfulPaint) as MetricsResult,
@@ -195,5 +147,25 @@ export default class Auditor {
             weight: auditRef.weight,
         }))
         return ReportScoring.arithmeticMean(scores)
+    }
+
+    async _auditPWA (
+        params: any,
+        auditsToBeRun = Object.keys(PWA_AUDITS) as PWAAudits[]
+    ): Promise<AuditResult> {
+        const audits: RunAuditResult[] = await Promise.all(
+            Object.entries(PWA_AUDITS)
+                .filter(([name]) => auditsToBeRun.includes(name as PWAAudits))
+                .map<Promise<RunAuditResult>>(
+                    async ([name, Audit]) => [name, await this._audit(Audit, params)]
+                )
+        )
+        return {
+            passed: !audits.find(([, result]) => result.score < 1),
+            details: audits.reduce((details, [name, result]) => {
+                details[name] = result
+                return details
+            }, {} as Record<string, LHAuditResult>)
+        }
     }
 }

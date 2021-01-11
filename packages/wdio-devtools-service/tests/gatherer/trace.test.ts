@@ -213,21 +213,21 @@ test('onLoadEventFired', async () => {
     traceGatherer.completeTracing = jest.fn().mockReturnValue(Promise.resolve('yeahh'))
 
     traceGatherer['_waitForNetworkIdleEvent'] = {
-        promise: new Promise((resolve) => {
+        promise: new Promise<void>((resolve) => {
             jest.advanceTimersByTime(50)
             resolve()
         }),
         cancel: jest.fn()
     }
     traceGatherer['_waitForCPUIdleEvent'] = {
-        promise: new Promise((resolve) => {
+        promise: new Promise<void>((resolve) => {
             jest.advanceTimersByTime(100)
             resolve()
         }),
         cancel: jest.fn()
     }
 
-    process.nextTick(() => jest.advanceTimersByTime(10000))
+    process.nextTick(() => jest.advanceTimersByTime(15000))
     await traceGatherer.onLoadEventFired()
     expect(traceGatherer['_waitForNetworkIdleEvent'].cancel).toHaveBeenCalledTimes(1)
     expect(traceGatherer['_waitForCPUIdleEvent'].cancel).toHaveBeenCalledTimes(1)
@@ -240,14 +240,14 @@ test('onLoadEventFired: using min trace time', async () => {
 
     const doneCb = jest.fn()
     traceGatherer['_waitForNetworkIdleEvent'] = {
-        promise: new Promise((resolve) => {
+        promise: new Promise<void>((resolve) => {
             jest.advanceTimersByTime(50)
             resolve()
         }),
         cancel: jest.fn()
     }
     traceGatherer['_waitForCPUIdleEvent'] = {
-        promise: new Promise((resolve) => {
+        promise: new Promise<void>((resolve) => {
             jest.advanceTimersByTime(10)
             resolve()
         }),
