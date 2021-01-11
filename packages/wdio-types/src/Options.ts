@@ -385,6 +385,12 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'> {
      * @default []
      */
     cucumberFeaturesWithLineNumbers?: string[]
+    /**
+     * framework options
+     */
+    cucumberOpts?: any
+    mochaOpts?: any
+    jasmineOpts?: any
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {

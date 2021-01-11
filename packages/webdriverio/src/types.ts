@@ -1,6 +1,6 @@
 import type cssValue from 'css-value'
 import type * as WebDriver from 'webdriver'
-import type { Options } from '@wdio/types'
+import type { Options, Capabilities } from '@wdio/types'
 import type {
     AppiumCommandsAsync, ChromiumCommandsAsync, JSONWPCommandsAsync, MJSONWPCommandsAsync,
     SauceLabsCommandsAsync, SeleniumCommandsAsync, WebDriverCommandsAsync, ElementReference
@@ -53,8 +53,9 @@ interface CustomInstanceCommands {
     ): void
 }
 
-export interface Browser extends CustomInstanceCommands, BrowserCommandsType, Omit<WebDriver.Client, 'options'>, ProtocolCommands {
+export interface Browser extends CustomInstanceCommands, BrowserCommandsType, Omit<WebDriver.Client, 'options' | 'capabilities'>, ProtocolCommands {
     sessionId: string
+    capabilities: Capabilities.RemoteCapability
     options: Options.WebdriverIO | Options.Testrunner
     strategies: Map<any, any>
     isMultiremote: false

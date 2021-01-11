@@ -1,5 +1,6 @@
-import { DesiredCapabilities, RemoteCapability } from './Capabilities'
+import { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities'
 import { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options'
+import { Suite, Test } from './Frameworks'
 
 export interface RunnerInstance {
     initialise(): Promise<void>
@@ -72,7 +73,7 @@ export interface HookFunctions {
      */
     onPrepare?(
         config: TestrunnerOptions,
-        capabilities: DesiredCapabilities[]
+        capabilities: RemoteCapabilities
     ): void;
 
     /**
@@ -102,7 +103,7 @@ export interface HookFunctions {
      */
     onComplete?(
         exitCode: number,
-        config: TestrunnerOptions,
+        config: Omit<TestrunnerOptions, 'capabilities'>,
         capabilities: DesiredCapabilities,
         results: any // Results
     ): void;
@@ -125,7 +126,7 @@ export interface HookFunctions {
      * @param browser       instance of created browser/device session
      */
     before?(
-        capabilities: DesiredCapabilities,
+        capabilities: RemoteCapability,
         specs: string[],
         browser: any // BrowserObject
     ): void;
@@ -158,8 +159,8 @@ export interface HookFunctions {
      * @param specs         list of spec file paths that are to be run
      */
     beforeSession?(
-        config: TestrunnerOptions,
-        capabilities: DesiredCapabilities,
+        config: Omit<TestrunnerOptions, 'capabilities'>,
+        capabilities: RemoteCapability,
         specs: string[]
     ): void;
 
@@ -167,14 +168,14 @@ export interface HookFunctions {
      * Hook that gets executed before the suite starts.
      * @param suite suite details
      */
-    beforeSuite?(suite: any /* Suite */): void;
+    beforeSuite?(suite: Suite): void;
 
     /**
      * Function to be executed before a test (in Mocha/Jasmine) starts.
      * @param test      details to current running test (or step in Cucumber)
      * @param context   context to current running test
      */
-    beforeTest?(test: any /* Test */, context: any): void;
+    beforeTest?(test: Test, context: any): void;
 
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
@@ -196,7 +197,7 @@ export interface HookFunctions {
      */
     after?(
         result: number,
-        capabilities: DesiredCapabilities,
+        capabilities: RemoteCapability,
         specs: string[]
     ): void;
 
@@ -222,7 +223,7 @@ export interface HookFunctions {
      */
     afterSession?(
         config: TestrunnerOptions,
-        capabilities: DesiredCapabilities,
+        capabilities: RemoteCapability,
         specs: string[]
     ): void;
 

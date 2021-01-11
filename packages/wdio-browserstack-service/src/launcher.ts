@@ -3,6 +3,9 @@ import { performance, PerformanceObserver } from 'perf_hooks'
 
 import BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
+import type { Capabilities, Services, Options } from '@wdio/types'
+
+import { BrowserstackConfig } from './types'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -11,37 +14,43 @@ type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     stop(callback: (err?: any) => void): void;
 }
 
-type Capabilities = (WebDriver.Capabilities | WebDriver.Capabilities[])
-
-export default class BrowserstackLauncherService implements WebdriverIO.ServiceInstance {
-    options: BrowserstackConfig
-    config: WebdriverIO.Config
+export default class BrowserstackLauncherService implements Services.ServiceInstance {
     browserstackLocal?: BrowserstackLocal
-    constructor (options: BrowserstackConfig, capabilities: Capabilities, config: WebdriverIO.Config) {
-        this.options = options
-        this.config = config
-    }
 
-    onPrepare (config?: WebdriverIO.Config, capabilities?: Capabilities) {
-        if (!this.options.browserstackLocal) {
+    constructor (
+        private _options: BrowserstackConfig,
+        capabilities: Capabilities.RemoteCapability,
+        private _config: Options.Testrunner
+    ) {}
+
+    onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
+        if (!this._options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
 
         const opts = {
-            key: this.config.key,
+            key: this._config.key,
             forcelocal: true,
             onlyAutomate: true,
-            ...this.options.opts
+            ...this._options.opts
         }
 
         this.browserstackLocal = new BrowserstackLocalLauncher.Local()
 
         if (Array.isArray(capabilities)) {
-            capabilities.forEach(capability => {
-                capability['browserstack.local'] = true
+            capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
+                if (!capability['bstack:options']) {
+                    capability['bstack:options'] = {}
+                }
+                capability['bstack:options'].local = true
             })
         } else if (typeof capabilities === 'object') {
-            capabilities['browserstack.local'] = true
+            Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
+                if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
+                    (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = {}
+                }
+                (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true
+            })
         } else {
             throw TypeError('Capabilities should be an object or Array!')
         }
@@ -81,13 +90,13 @@ export default class BrowserstackLauncherService implements WebdriverIO.ServiceI
             return
         }
 
-        if (this.options.forcedStop) {
+        if (this._options.forcedStop) {
             return process.kill(this.browserstackLocal.pid as number)
         }
 
         let timer: NodeJS.Timeout
         return Promise.race([
-            new Promise((resolve, reject) => {
+            new Promise<void>((resolve, reject) => {
                 this.browserstackLocal?.stop((err: Error) => {
                     if (err) {
                         return reject(err)

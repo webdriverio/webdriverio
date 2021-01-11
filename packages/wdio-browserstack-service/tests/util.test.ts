@@ -1,3 +1,5 @@
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+
 import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability } from '../src/util'
 
 describe('getBrowserCapabilities', () => {
@@ -6,9 +8,9 @@ describe('getBrowserCapabilities', () => {
             capabilities: {
                 browser: 'browser'
             }
-        }
+        } as Browser
         expect(getBrowserCapabilities(browser))
-            .toEqual(browser.capabilities)
+            .toEqual(browser.capabilities as any)
     })
 
     it('should get multiremote browser capabilities', () => {
@@ -19,16 +21,16 @@ describe('getBrowserCapabilities', () => {
                     browser: 'browser'
                 }
             }
-        }
+        } as any as MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, {}, 'browserA'))
-            .toEqual(browser.browserA.capabilities)
+            .toEqual(browser.browserA.capabilities as any)
     })
 
     it('should handle null multiremote browser capabilities', () => {
         const browser = {
             isMultiremote: true,
             browserA: {}
-        }
+        } as any as MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, {}, 'browserB')).toEqual({})
     })
 
@@ -38,9 +40,9 @@ describe('getBrowserCapabilities', () => {
                 browser: 'browser',
                 os: 'OS X',
             }
-        }
+        } as any as Browser
         expect(getBrowserCapabilities(browser, { os: 'Windows' }))
-            .toEqual({ os:'Windows', browser: 'browser' })
+            .toEqual({ os:'Windows', browser: 'browser' } as any)
     })
 
     it('should merge multiremote service capabilities and browser capabilities', () => {
@@ -52,16 +54,16 @@ describe('getBrowserCapabilities', () => {
                     os: 'OS X',
                 }
             }
-        }
+        } as any as MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, { browserA: { capabilities: { os: 'Windows' } } }, 'browserA'))
-            .toEqual({ os:'Windows', browser: 'browser' })
+            .toEqual({ os:'Windows', browser: 'browser' } as any)
     })
 
     it('should handle null multiremote browser capabilities', () => {
         const browser = {
             isMultiremote: true,
             browserA: {}
-        }
+        } as any as MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, {}, 'browserB'))
             .toEqual({})
     })
@@ -70,8 +72,8 @@ describe('getBrowserCapabilities', () => {
         const browser = {
             isMultiremote: true,
             browserA: {}
-        }
-        expect(getBrowserCapabilities(browser, { browserB: {} }, 'browserB'))
+        } as any as MultiRemoteBrowser
+        expect(getBrowserCapabilities(browser, { browserB: {} } as any, 'browserB'))
             .toEqual({})
     })
 })
@@ -108,7 +110,9 @@ describe('getBrowserDescription', () => {
     })
 
     it('should not crash when capabilities is null or undefined', () => {
+        // @ts-expect-error test invalid params
         expect(getBrowserDescription(undefined)).toEqual('')
+        // @ts-expect-error test invalid params
         expect(getBrowserDescription(null)).toEqual('')
     })
 })
@@ -117,6 +121,7 @@ describe('isBrowserstackCapability', () => {
     it('should detect browserstack W3C capabilities', () => {
         expect(isBrowserstackCapability({})).toBe(false)
         expect(isBrowserstackCapability()).toBe(false)
+        // @ts-expect-error test invalid params
         expect(isBrowserstackCapability({ 'bstack:options': null })).toBe(false)
         expect(isBrowserstackCapability({ 'bstack:options': {} })).toBe(true)
     })

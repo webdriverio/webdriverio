@@ -7,4 +7,4 @@ export const BROWSER_DESCRIPTION = [
     'browser',
     'browserVersion',
     'browser_version'
-]
+] as const
