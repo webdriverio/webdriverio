@@ -5,3 +5,4 @@ import CrossBrowserTestingService from './service'
 
 export default CrossBrowserTestingService
 export const launcher = CrossBrowserTestingLauncher
+export * from './types'

@@ -1,19 +1,22 @@
 import { promisify } from 'util'
 import { performance, PerformanceObserver } from 'perf_hooks'
+import type { Capabilities, Services, Options } from '@wdio/types'
 
 import cbt from 'cbt_tunnels'
 import logger from '@wdio/logger'
 
+import { CrossBrowserTestingConfig } from './types'
+
 const log = logger('@wdio/crossbrowsertesting-service')
 
-export default class CrossBrowserTestingLauncher implements WebdriverIO.ServiceInstance {
+export default class CrossBrowserTestingLauncher implements Services.ServiceInstance {
     private _isUsingTunnel: boolean = false;
     private _cbtTunnelOpts: CBTConfigInterface;
 
     constructor (
-        private _options: WebdriverIO.ServiceOption,
-        private _caps: WebDriver.DesiredCapabilities,
-        private _config: WebdriverIO.Config
+        private _options: CrossBrowserTestingConfig,
+        private _caps: Capabilities.Capabilities,
+        private _config: Options.Testrunner
     ) {
         this._cbtTunnelOpts = Object.assign({
             username: this._config.user,

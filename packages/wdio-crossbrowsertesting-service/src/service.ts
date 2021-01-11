@@ -1,11 +1,13 @@
 import got from 'got'
 import logger from '@wdio/logger'
+import type { Capabilities, Services, Options, Frameworks } from '@wdio/types'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 const log = logger('@wdio/crossbrowsertesting-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
-export default class CrossBrowserTestingService implements WebdriverIO.ServiceInstance {
-    private _browser!: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+export default class CrossBrowserTestingService implements Services.ServiceInstance {
+    private _browser?: Browser | MultiRemoteBrowser
     private _testCnt = 0;
     private _failures = 0;
     private _isServiceEnabled: boolean;
@@ -14,8 +16,8 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
     private _cbtAuthkey: string;
 
     constructor(
-        private _config: WebdriverIO.Options,
-        private _capabilities: WebDriver.DesiredCapabilities
+        private _config: Options.Testrunner,
+        private _capabilities: Capabilities.Capabilities
     ) {
         this._cbtUsername = this._config.user as string
         this._cbtAuthkey = this._config.key as string
@@ -23,9 +25,9 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
     }
 
     before (
-        caps: WebDriver.Capabilities,
+        caps: Capabilities.Capabilities,
         specs: string[],
-        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+        browser: Browser | MultiRemoteBrowser
     ) {
         this._browser = browser
     }
@@ -34,7 +36,7 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
      * Before suite
      * @param {Object} suite Suite
     */
-    beforeSuite (suite: WebdriverIO.Suite) {
+    beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
     }
 
@@ -42,7 +44,7 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
      * Before test
      * @param {Object} test Test
     */
-    beforeTest (test: WebdriverIO.Test) {
+    beforeTest (test: Frameworks.Test) {
         if (!this._isServiceEnabled) {
             return
         }
@@ -58,7 +60,7 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
         }
     }
 
-    afterSuite (suite: WebdriverIO.Suite) {
+    afterSuite (suite: Frameworks.Suite) {
         if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
             ++this._failures
         }
@@ -68,7 +70,7 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
      * After test
      * @param {Object} test Test
      */
-    afterTest (test: WebdriverIO.Test, context: any, results: WebdriverIO.TestResult) {
+    afterTest (test: Frameworks.Test, context: any, results: Frameworks.TestResult) {
         if (!results.passed) {
             ++this._failures
         }
@@ -108,7 +110,7 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
      * @return {Promise} Promsie with result of updateJob method call
      */
     after (result?: number) {
-        if (!this._isServiceEnabled) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
 
@@ -118,7 +120,7 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
          * set failures if user has bail option set in which case afterTest and
          * afterSuite aren't executed before after hook
          */
-        if (this._browser.config.mochaOpts && this._browser.config.mochaOpts.bail && Boolean(result)) {
+        if (this._config.mochaOpts && this._config.mochaOpts.bail && Boolean(result)) {
             failures = 1
         }
 
@@ -136,7 +138,7 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
     }
 
     onReload (oldSessionId: string, newSessionId: string) {
-        if (!this._isServiceEnabled) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
         const status = 'status: ' + (this._failures > 0 ? 'failing' : 'passing')
@@ -147,7 +149,7 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
         }
 
         const browserName = this._browser.instances.filter(
-            (browserName) => (this._browser as WebdriverIO.MultiRemoteBrowserObject)[browserName].sessionId === newSessionId)[0]
+            (browserName) => (this._browser as MultiRemoteBrowser)[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this._failures, true, browserName)
     }
@@ -184,7 +186,7 @@ export default class CrossBrowserTestingService implements WebdriverIO.ServiceIn
         /**
          * add reload count to title if reload is used
          */
-        if (calledOnReload || this._testCnt) {
+        if ((calledOnReload || this._testCnt) && this._browser) {
             let testCnt = ++this._testCnt
             if (this._browser.isMultiremote) {
                 testCnt = Math.ceil(testCnt / this._browser.instances.length)

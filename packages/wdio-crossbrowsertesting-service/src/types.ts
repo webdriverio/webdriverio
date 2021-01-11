@@ -1,8 +1,4 @@
-declare module WebdriverIO {
-    interface ServiceOption extends CrossBrowserTestingConfig {}
-}
-
-interface CrossBrowserTestingConfig {
+export interface CrossBrowserTestingConfig {
     /**
      * If true secure CBT local connection is started.
      */
