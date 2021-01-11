@@ -84,7 +84,6 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
             this._suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.description) - 1)
         }
 
-        /* istanbul ignore else */
         if (this._browser && !this._isUP && !this._isJobNameSet) {
             this._browser.execute('sauce:job-name=' + this._suiteTitle)
             this._isJobNameSet = true
