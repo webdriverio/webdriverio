@@ -38,7 +38,7 @@ jspm_packages/
 
 # Typescript v1 declaration files
 /**/typings/*
-!/**/typings/types.ts
+/packages/wdio-protocols/src/commands
 !tests/typings
 !typings/types.ts
 tests/typings/**/dist

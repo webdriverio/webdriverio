@@ -16,5 +16,6 @@
     "findElement": "ElementReference",
     "findElements": "ElementReference[]",
     "findElementFromElement": "ElementReference",
-    "findElementsFromElement": "ElementReference[]"
+    "findElementsFromElement": "ElementReference[]",
+    "getAllCookies": "Cookie[]"
 }

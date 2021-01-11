@@ -6,7 +6,7 @@ const camelCase = require('camelcase')
 
 const { PROTOCOLS } = require('../constants')
 
-const TYPINGS_PATH = path.join(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src')
+const TYPINGS_PATH = path.join(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'commands')
 const returnTypeMap = require('./webdriver-return-types.json')
 const paramTypeMap = require('./webdriver-param-types.json')
 
@@ -20,6 +20,13 @@ ${INDENTATION} * {DESCRIPTION}
 ${INDENTATION} * @ref {REF}
 ${INDENTATION} *{EXAMPLE}
 ${INDENTATION} */`
+
+/**
+ * create directory if not existing
+ */
+if (!fs.existsSync(TYPINGS_PATH)) {
+    fs.mkdirSync(TYPINGS_PATH)
+}
 
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     const interfaceName = protocolName.slice(0, 1).toUpperCase() + protocolName.slice(1)
@@ -86,7 +93,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
      * import missing protocol types
      */
     if (customTypes.size) {
-        lines.unshift(`import { ${[...customTypes].join(', ')} } from './types'`)
+        lines.unshift(`import { ${[...customTypes].join(', ')} } from '../types'`)
     }
 
     lines.push('}')
