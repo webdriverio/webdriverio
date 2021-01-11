@@ -1,9 +1,11 @@
 import logger from '@wdio/logger'
 import puppeteerCore from 'puppeteer-core'
 
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+import type { Capabilities, Services } from '@wdio/types'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 
 import CommandHandler from './commands'
@@ -19,11 +21,11 @@ import { DevtoolsConfig, FormFactor, EnablePerformanceAuditsOptions, DeviceDescr
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
-export default class DevToolsService implements WebdriverIO.ServiceInstance {
+export default class DevToolsService implements Services.ServiceInstance {
     private _isSupported = false
     private _shouldRunPerformanceAudits = false
 
-    private _puppeteer?: Browser
+    private _puppeteer?: PuppeteerBrowser
     private _target?: Target
     private _page: Page | null = null
     private _session?: CDPSession
@@ -36,11 +38,11 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
     private _traceGatherer?: TraceGatherer
     private _devtoolsGatherer?: DevtoolsGatherer
     private _coverageGatherer?: CoverageGatherer
-    private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    private _browser?: Browser | MultiRemoteBrowser
 
     constructor (private _options: DevtoolsConfig) {}
 
-    beforeSession (_: WebdriverIO.Config, caps: WebDriver.DesiredCapabilities) {
+    beforeSession (_: never, caps: Capabilities.Capabilities) {
         if (!isBrowserSupported(caps)) {
             return log.error(UNSUPPORTED_ERROR_MESSAGE)
         }
@@ -48,9 +50,9 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
     }
 
     before (
-        caps: WebDriver.Capabilities,
+        caps: Capabilities.RemoteCapability,
         specs: string[],
-        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+        browser: Browser | MultiRemoteBrowser
     ) {
         this._browser = browser
         this._isSupported = this._isSupported || Boolean(this._browser.puppeteer)
@@ -63,7 +65,7 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
         }
 
         // resetting puppeteer on sessionReload, so a new puppeteer session will be attached
-        this._browser.puppeteer = null
+        delete this._browser.puppeteer
         return this._setupHandler()
     }
 
@@ -93,12 +95,12 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
          */
         this._traceGatherer.once('tracingComplete', (traceEvents) => {
             const auditor = new Auditor(traceEvents, this._devtoolsGatherer?.getLogs(), this._formFactor)
-            auditor.updateCommands(this._browser as WebdriverIO.BrowserObject)
+            auditor.updateCommands(this._browser as Browser)
         })
 
         this._traceGatherer.once('tracingError', (err: Error) => {
             const auditor = new Auditor()
-            auditor.updateCommands(this._browser as WebdriverIO.BrowserObject, /* istanbul ignore next */() => {
+            auditor.updateCommands(this._browser as Browser, /* istanbul ignore next */() => {
                 throw new Error(`Couldn't capture performance due to: ${err.message}`)
             })
         })
@@ -194,13 +196,13 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
 
     async _setupHandler () {
         if (!this._isSupported || !this._browser) {
-            return setUnsupportedCommand(this._browser as WebdriverIO.BrowserObject)
+            return setUnsupportedCommand(this._browser as Browser)
         }
 
         /**
          * casting is required as types differ between core and definitely typed types
          */
-        this._puppeteer = await this._browser.getPuppeteer() as any as Browser
+        this._puppeteer = await (this._browser as Browser).getPuppeteer()
 
         /* istanbul ignore next */
         if (!this._puppeteer) {
@@ -273,3 +275,5 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
         })
     }
 }
+
+export * from './types'

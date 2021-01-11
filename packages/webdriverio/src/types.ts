@@ -25,7 +25,7 @@ export interface ElementArray extends Array<Element> {
 type AddCommandFn<IsElement extends boolean = false> = (this: IsElement extends true ? Element : Browser, ...args: any[]) => any
 type OverwriteCommandFn<ElementKey extends keyof Element, BrowserKey extends keyof Browser, IsElement extends boolean = false> = (this: IsElement extends true ? Element : Browser, origCommand: IsElement extends true ? Element[ElementKey] : Browser[BrowserKey], ...args: any[]) => any
 
-interface CustomInstanceCommands {
+export interface CustomInstanceCommands {
     /**
      * add command to `browser` or `element` scope
      */

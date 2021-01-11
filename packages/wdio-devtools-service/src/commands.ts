@@ -1,6 +1,7 @@
 import 'core-js/modules/web.url'
 import logger from '@wdio/logger'
 
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { TraceEvent } from '@tracerbench/trace-event'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
@@ -21,7 +22,7 @@ export default class CommandHandler {
     constructor (
         private _session: CDPSession,
         private _page: Page,
-        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+        browser: Browser | MultiRemoteBrowser
     ) {
         this._session = _session
         this._page = _page

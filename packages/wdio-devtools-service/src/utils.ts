@@ -1,5 +1,7 @@
 import { IGNORED_URLS, UNSUPPORTED_ERROR_MESSAGE } from './constants'
 import { RequestPayload } from './handler/network'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+import type { Capabilities } from '@wdio/types'
 
 const VERSION_PROPS = ['browserVersion', 'browser_version', 'version']
 const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
@@ -9,7 +11,7 @@ const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
     'google chrome': 63
 }
 
-export function setUnsupportedCommand (browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject) {
+export function setUnsupportedCommand (browser: Browser | MultiRemoteBrowser) {
     return browser.addCommand('cdp', /* istanbul ignore next */() => {
         throw new Error(UNSUPPORTED_ERROR_MESSAGE)
     })
@@ -38,9 +40,9 @@ export function isSupportedUrl (url: string) {
  * @param {object} caps capabilities
  * @param {number} minVersion minimal chrome browser version
  */
-export function isBrowserVersionLower (caps: WebDriver.Capabilities, minVersion: number) {
+export function isBrowserVersionLower (caps: Capabilities.Capabilities, minVersion: number) {
     const versionProp = VERSION_PROPS.find(
-        (prop: keyof WebDriver.Capabilities) => caps[prop]
+        (prop: keyof Capabilities.Capabilities) => caps[prop]
     ) as 'browserVersion'
     const browserVersion = getBrowserMajorVersion(caps[versionProp])
     return typeof browserVersion === 'number' && browserVersion < minVersion
@@ -63,7 +65,7 @@ export function getBrowserMajorVersion (version?: string | number) {
  * check if browser is supported based on caps.browserName and caps.version
  * @param {object} caps capabilities
  */
-export function isBrowserSupported(caps: WebDriver.Capabilities) {
+export function isBrowserSupported(caps: Capabilities.Capabilities) {
     if (
         !caps.browserName ||
         !(caps.browserName.toLowerCase() in SUPPORTED_BROWSERS_AND_MIN_VERSIONS) ||

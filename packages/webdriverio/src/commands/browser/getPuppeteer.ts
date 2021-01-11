@@ -62,7 +62,7 @@ export default async function getPuppeteer (this: Browser) {
                 browserURL: `http://localhost:${rdPort}`,
                 defaultViewport: null
             }) as any as PuppeteerBrowser
-            return this.puppeteer as any as puppeteer.Browser
+            return this.puppeteer as any as PuppeteerBrowser
         }
     }
 
