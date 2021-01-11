@@ -147,6 +147,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     'sauce:visual'?: SauceLabsVisualCapabilities
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
+    'browserstack.local'?: boolean
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
