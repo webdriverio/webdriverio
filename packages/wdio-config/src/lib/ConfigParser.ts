@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 
 import {
     detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
-    loadTypeScriptCompiler
+    loadTypeScriptCompiler, loadBabelCompiler
 } from '../utils'
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS } from '../constants'
 import type { Capabilities, ConfigOptions, Hooks } from '../types'
@@ -36,9 +36,11 @@ export default class ConfigParser {
 
         try {
             /**
-             * load TypeScript if existing
+             * compile files if Babel or TypeScript are installed
              */
-            loadTypeScriptCompiler()
+            if (!loadTypeScriptCompiler() && !loadBabelCompiler()) {
+                log.debug('No compiler found, continue without compiling files')
+            }
 
             /**
              * clone the original config

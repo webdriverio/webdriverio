@@ -226,7 +226,28 @@ export function loadTypeScriptCompiler () {
     try {
         require.resolve('ts-node')
         require('ts-node').register({ transpileOnly: true })
+        log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
+        return true
     } catch (e) {
-        return log.debug('Couldn\'t find ts-node package, no TypeScript compiling')
+        return false
+    }
+}
+
+export function loadBabelCompiler () {
+    try {
+        require.resolve('@babel/register')
+
+        /**
+         * only for testing purposes
+         */
+        if (process.env.JEST_WORKER_ID && process.env.THROW_BABEL_REGISTER) {
+            throw new Error('test fail')
+        }
+
+        require('@babel/register')
+        log.debug('Found \'@babel/register\' package, auto-compiling files with Babel')
+        return true
+    } catch (e) {
+        return false
     }
 }
