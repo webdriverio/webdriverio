@@ -1,6 +1,8 @@
 import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
 import chalk from 'chalk'
 
+import type { Capabilities } from '@wdio/types'
+
 export default class ConciseReporter extends WDIOReporter {
     // keep track of the order that suites were called
     private _suiteUids: string[] = []
@@ -95,13 +97,12 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-        * Get information about the enviroment
-        * @param  {Object}  caps    Enviroment details
-        * @param  {Boolean} verbose
-        * @return {String}          Enviroment string
-        */
-
-    getEnviromentCombo (caps: WebDriver.DesiredCapabilities) {
+     * Get information about the enviroment
+     * @param  {Object}  caps    Enviroment details
+     * @param  {Boolean} verbose
+     * @return {String}          Enviroment string
+     */
+    getEnviromentCombo (caps: Capabilities.DesiredCapabilities) {
         const device = caps.deviceName
         const browser = caps.browserName || caps.browser
         const version = caps.version || caps.platformVersion || caps.browser_version

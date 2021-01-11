@@ -1,14 +1,4 @@
-declare module WebdriverIO {
-    interface ServiceOption extends AppiumServiceConfig {}
-}
-
-declare module WebDriver {
-    interface DesiredCapabilities extends AppiumSessionCapabilities {}
-}
-
-type ArgValue = string | number | boolean | null
-
-type AppiumServerArguments = {
+export type AppiumServerArguments = {
     [capability: string]: any
     /**
      * Port to listen on
@@ -16,7 +6,8 @@ type AppiumServerArguments = {
     port?: number | string
     basePath?: string
 }
-interface AppiumSessionCapabilities  {
+
+export interface AppiumSessionCapabilities  {
     /**
      * Default session parameters
      */
@@ -26,11 +17,7 @@ interface AppiumSessionCapabilities  {
     path?: string
 }
 
-type KeyValueArgs = {
-    [key: string]: ArgValue
-}
-
-interface AppiumServiceConfig {
+export interface AppiumServiceConfig {
     /**
      * Path where all logs from the Appium server should be stored.
      */
@@ -45,7 +32,5 @@ interface AppiumServiceConfig {
     args?: AppiumServerArguments | Array<string>
 }
 
-type Config = {
-    outputDir?: string
-    [key: string]: any
-}
+export type ArgValue = string | number | boolean | null
+export type KeyValueArgs = { [key: string]: ArgValue }

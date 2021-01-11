@@ -5,3 +5,4 @@ import BrowserstackService from './service'
 
 export default BrowserstackService
 export const launcher = BrowserstackLauncher
+export * from './types'

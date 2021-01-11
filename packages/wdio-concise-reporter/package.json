@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@wdio/reporter": "6.11.0",
+    "@wdio/types": "^6.10.6",
     "chalk": "^4.0.0",
     "pretty-ms": "^7.0.0"
   },

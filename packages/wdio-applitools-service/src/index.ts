@@ -108,3 +108,5 @@ export default class ApplitoolsService implements Services.ServiceInstance {
         this._browser.call(this._eyes.abortIfNotClosed.bind(this._eyes))
     }
 }
+
+export * from './types'

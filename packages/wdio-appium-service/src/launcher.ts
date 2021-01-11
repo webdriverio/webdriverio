@@ -2,10 +2,12 @@ import logger from '@wdio/logger'
 import { ChildProcessByStdio, spawn } from 'child_process'
 import { createWriteStream, ensureFileSync } from 'fs-extra'
 import { promisify } from 'util'
-import { getFilePath, formatCliArgs } from './utils'
 import { Readable } from 'stream'
 import { isCloudCapability } from '@wdio/config'
-import type { Services, Capabilities } from '@wdio/types'
+import type { Services, Capabilities, Options } from '@wdio/types'
+
+import { getFilePath, formatCliArgs } from './utils'
+import type { AppiumServerArguments, AppiumServiceConfig } from './types'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'wdio-appium.log'
@@ -25,9 +27,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     private _process?: ChildProcessByStdio<null, Readable, Readable>
 
     constructor(
-        private _options: Services.ServiceOption,
+        private _options: AppiumServiceConfig,
         private _capabilities: Capabilities.RemoteCapabilities,
-        private _config?: Config
+        private _config?: Options.Testrunner
     ) {
         this._args = {
             basePath: DEFAULT_CONNECTION.path,

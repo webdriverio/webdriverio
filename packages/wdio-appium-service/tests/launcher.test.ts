@@ -83,7 +83,7 @@ describe('Appium launcher', () => {
                 args: { foo: 'bar' }
             }
             const capabilities = [{ port: 1234, capabilities: [] }] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
-            const launcher = new AppiumLauncher(options, capabilities, {})
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
@@ -109,7 +109,7 @@ describe('Appium launcher', () => {
                 browserA: { port: 1234, capabilities: {} },
                 browserB: { capabilities: {} }
             }
-            const launcher = new AppiumLauncher(options, capabilities, {})
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
             expect(capabilities.browserA.protocol).toBe('http')
             expect(capabilities.browserA.hostname).toBe('localhost')
@@ -131,7 +131,7 @@ describe('Appium launcher', () => {
                 browserA: { port: 1234, capabilities: {} },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
-            const launcher = new AppiumLauncher(options, capabilities, {})
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
             launcher['_redirectLogStream'] = jest.fn()
             await launcher.onPrepare()
             expect(capabilities.browserA.protocol).toBe('http')
@@ -151,7 +151,7 @@ describe('Appium launcher', () => {
                 args: { foo: 'bar', port: 1234 }
             }
             const capabilities = [{} as Capabilities.DesiredCapabilities]
-            const launcher = new AppiumLauncher(options, capabilities, {})
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
             launcher['_startAppium'] = jest.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))
             await launcher.onPrepare()
@@ -176,7 +176,7 @@ describe('Appium launcher', () => {
                 args: { foo: 'bar', port: 1234, basePath: '/foo/bar' }
             }
             const capabilities = [{ port: 4321 } as Capabilities.DesiredCapabilities]
-            const launcher = new AppiumLauncher(options, capabilities, {})
+            const launcher = new AppiumLauncher(options, capabilities, {} as any)
             launcher['_startAppium'] = jest.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))
             await launcher.onPrepare()
@@ -204,7 +204,7 @@ describe('Appium launcher', () => {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { foo: 'bar' }
-            }, [], {})
+            }, [], {} as any)
             await launcher.onPrepare()
 
             expect(launcher['_command']).toBe('cmd')
@@ -220,7 +220,7 @@ describe('Appium launcher', () => {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { foo: 'bar' }
-            }, [], {})
+            }, [], {} as any)
             await launcher.onPrepare()
 
             expect(launcher['_command']).toBe('path/to/my_custom_appium')
@@ -236,7 +236,7 @@ describe('Appium launcher', () => {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
                 args: { foo: 'bar' }
-            }, [], {})
+            }, [], {} as any)
             await launcher.onPrepare()
 
             expect(launcher['_command']).toBe('path/to/my_custom_appium')
@@ -244,7 +244,7 @@ describe('Appium launcher', () => {
         })
 
         test('should set correct config properties when empty', async () => {
-            const launcher = new AppiumLauncher({}, [], {})
+            const launcher = new AppiumLauncher({}, [], {} as any)
             await launcher.onPrepare()
 
             expect(launcher['_logPath']).toBe(undefined)
@@ -256,12 +256,12 @@ describe('Appium launcher', () => {
         })
 
         test('should start Appium', async () => {
-            const launcher = new AppiumLauncher({ args: { superspeed: true } }, [], {})
+            const launcher = new AppiumLauncher({ args: { superspeed: true } }, [], {} as any)
             await launcher.onPrepare()
         })
 
         test('should fail if Appium exits', async () => {
-            const launcher = new AppiumLauncher({}, [], {})
+            const launcher = new AppiumLauncher({}, [], {} as any)
             childProcessMock.spawn.mockReturnValue(new MockFailingProcess(1) as unknown as childProcess.ChildProcess)
 
             let error
@@ -275,7 +275,7 @@ describe('Appium launcher', () => {
         })
 
         test('should fail and error message if Appium already runs', async () => {
-            const launcher = new AppiumLauncher({}, [], {})
+            const launcher = new AppiumLauncher({}, [], {} as any)
             childProcessMock.spawn.mockReturnValue(new MockFailingProcess(2) as unknown as childProcess.ChildProcess)
 
             let error
@@ -290,7 +290,7 @@ describe('Appium launcher', () => {
         })
 
         test('should fail with Appium error message', async () => {
-            const launcher = new AppiumLauncher({}, [], {})
+            const launcher = new AppiumLauncher({}, [], {} as any)
             childProcessMock.spawn.mockReturnValue(new MockCustomFailingProcess(2) as unknown as childProcess.ChildProcess)
 
             let error
@@ -306,7 +306,7 @@ describe('Appium launcher', () => {
 
     describe('onComplete', () => {
         test('should call process.kill', async () => {
-            const launcher = new AppiumLauncher({}, [], {})
+            const launcher = new AppiumLauncher({}, [], {} as any)
             await launcher.onPrepare()
             launcher['_process']!.kill = jest.fn()
             launcher.onComplete()
@@ -314,7 +314,7 @@ describe('Appium launcher', () => {
         })
 
         test('should not call process.kill', () => {
-            const launcher = new AppiumLauncher({}, [], {})
+            const launcher = new AppiumLauncher({}, [], {} as any)
             expect(launcher['_process']).toBe(undefined)
             launcher.onComplete()
             expect(launcher['_process']).toBe(undefined)
@@ -323,14 +323,14 @@ describe('Appium launcher', () => {
 
     describe('_redirectLogStream', () => {
         test('should not write output to file', async () => {
-            const launcher = new AppiumLauncher({}, [], {})
+            const launcher = new AppiumLauncher({}, [], {} as any)
             launcher['_redirectLogStream'] = jest.fn()
             await launcher.onPrepare()
             expect(launcher['_redirectLogStream']).not.toBeCalled()
         })
 
         test('should write output to file', async () => {
-            const launcher = new AppiumLauncher({ logPath: './' }, [], {})
+            const launcher = new AppiumLauncher({ logPath: './' }, [], {} as any)
             await launcher.onPrepare()
 
             expect(fsMocked.createWriteStream.mock.calls[0][0]).toBe('/some/file/path')
