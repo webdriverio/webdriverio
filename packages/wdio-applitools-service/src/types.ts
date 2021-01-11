@@ -1,8 +1,4 @@
-/// <reference types="@applitools/visual-grid-client"/>
-declare namespace WebdriverIO {
-    interface ServiceOption extends ApplitoolsConfig {}
-    interface Browser extends ApplitoolsBrowser {}
-}
+import { Browser, Element } from 'webdriverio'
 
 interface ProxySettings {
     url: string | boolean;
@@ -11,7 +7,7 @@ interface ProxySettings {
     isHttpOnly: boolean;
 }
 
-interface ApplitoolsConfig {
+export interface ApplitoolsConfig {
     /**
      * Applitools API key to be used. Can be passed via wdio config or via environment
      * variable `APPLITOOLS_KEY`
@@ -34,20 +30,20 @@ interface ApplitoolsConfig {
     proxy?: ProxySettings;
 }
 
-interface ApplitoolsBrowser {
+export interface ApplitoolsBrowser extends Browser {
     takeSnapshot(title: string): void;
     takeRegionSnapshot(
         title: string,
-        region: Eyes.Check.Region | WebdriverIO.Element | string,
-        frame?: WebdriverIO.Element | string
+        region: Eyes.Check.Region | Element | string,
+        frame?: Element | string
     ): void;
 }
 
-interface ApplitoolsBrowserAsync {
+export interface ApplitoolsBrowserAsync extends Browser {
     takeSnapshot(title: string): Promise<void>;
     takeRegionSnapshot(
         title: string,
-        region: Eyes.Check.Region | WebdriverIO.Element | string,
-        frame?: WebdriverIO.Element | string
+        region: Eyes.Check.Region | Element | string,
+        frame?: Element | string
     ): Promise<void>;
 }

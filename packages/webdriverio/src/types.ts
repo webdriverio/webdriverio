@@ -22,7 +22,38 @@ export interface ElementArray extends Array<Element> {
     props: any[]
 }
 
-export interface Browser extends BrowserCommandsType, Omit<WebDriver.Client, 'options'>, ProtocolCommands {
+type AddCommandFn<IsElement extends boolean = false> = (this: IsElement extends true ? Element : Browser, ...args: any[]) => any
+type OverwriteCommandFn<ElementKey extends keyof Element, BrowserKey extends keyof Browser, IsElement extends boolean = false> = (this: IsElement extends true ? Element : Browser, origCommand: IsElement extends true ? Element[ElementKey] : Browser[BrowserKey], ...args: any[]) => any
+
+interface CustomInstanceCommands {
+    /**
+     * add command to `browser` or `element` scope
+     */
+    addCommand<IsElement extends boolean = false>(
+        name: string,
+        func: AddCommandFn<IsElement>,
+        attachToElement?: IsElement
+    ): void;
+
+    /**
+     * overwrite `browser` or `element` command
+     */
+    overwriteCommand<ElementKey extends keyof Element, BrowserKey extends keyof Browser, IsElement extends boolean = false>(
+        name: IsElement extends true ? ElementKey : BrowserKey,
+        func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
+        attachToElement?: IsElement
+    ): void;
+
+    /**
+     * create custom selector
+     */
+    addLocatorStrategy(
+        name: string,
+        func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
+    ): void
+}
+
+export interface Browser extends CustomInstanceCommands, BrowserCommandsType, Omit<WebDriver.Client, 'options'>, ProtocolCommands {
     sessionId: string
     options: Options.WebdriverIO | Options.Testrunner
     strategies: Map<any, any>
