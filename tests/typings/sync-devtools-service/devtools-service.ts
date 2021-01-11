@@ -1,9 +1,14 @@
 const config: WebdriverIO.Config = {
-  services: [
-    ['devtools', {
-      debuggerAddress: 'localhost:24563'
-    }]
-  ]
+    services: [
+        ['devtools', {
+            coverageReporter: {
+                enable: true,
+                logDir: '/foo/bar',
+                type: 'json',
+                options: {}
+            }
+        }]
+    ]
 }
 
 browser.enablePerformanceAudits()
@@ -34,3 +39,6 @@ browser.endTracing()
 
 const traceLogs: object = browser.getTraceLogs()
 const pageWeight: object = browser.getPageWeight()
+
+const coverage = browser.getCoverageReport()
+coverage.lines.total.toFixed(2)

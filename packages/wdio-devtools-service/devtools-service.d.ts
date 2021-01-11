@@ -30,6 +30,28 @@ interface ErrorAudit {
     error: Error
 }
 
+interface Totals {
+    total: number;
+    covered: number;
+    skipped: number;
+    pct: number;
+}
+
+interface CoverageSummaryData {
+    lines: Totals;
+    statements: Totals;
+    branches: Totals;
+    functions: Totals;
+}
+
+interface Coverage {
+    lines: Totals
+    statements: Totals
+    functions: Totals
+    branches: Totals
+    files: Record<string, CoverageSummaryData>
+}
+
 interface Viewport {
   /**
    * page width in pixels
@@ -64,9 +86,30 @@ type DeviceProfiles = 'Blackberry PlayBook' | 'BlackBerry Z30' | 'Galaxy Note 3'
 
 interface DevtoolsConfig {
   /**
-   * Define endpoint for Chrome DevTools protocol manually (e.g. localhost:24563).
+   * options for the code coverage reporter
    */
-  debuggerAddress?: string;
+  coverageReporter?: CoverageReporterOptions;
+}
+
+interface CoverageReporterOptions {
+    /**
+     * whether or not to enable code coverage reporting
+     * @default false
+     */
+    enable?: boolean
+    /**
+     * Directory where JS coverage reports are stored
+     */
+    logDir?: string
+    /**
+     * format of report
+     * @default json
+     */
+    type?: 'none' | 'clover' | 'cobertura' | 'html-spa' | 'html' | 'json' | 'json-summary' | 'lcov' | 'lcovonly' | 'teamcity' | 'text' | 'text-lcov' | 'text-summary'
+    /**
+     * Options for coverage report, for details see https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/istanbul-lib-report/index.d.ts
+     */
+    options?: any
 }
 
 interface PerformanceAuditOptions {
@@ -123,6 +166,11 @@ interface DevtoolsBrowser {
    * Read more about Lighthouse PWA audits at https://web.dev/lighthouse-pwa/.
    */
   checkPWA(auditsToBeRun?: PWAAudits[]): AuditResult;
+
+  /**
+   * Returns the coverage report for the current opened page.
+   */
+  getCoverageReport(): Coverage;
 
   /**
    * The cdp command is a custom command added to the browser scope that allows you to call directly commands to the protocol.
