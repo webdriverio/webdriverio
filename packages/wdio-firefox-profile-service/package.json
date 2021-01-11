@@ -29,6 +29,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@wdio/types": "^6.10.6",
     "firefox-profile": "^4.0.0"
   },
   "peerDependencies": {
@@ -37,5 +38,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "firefox-profile-service.d.ts"
+  "types": "./build/index.d.ts"
 }
