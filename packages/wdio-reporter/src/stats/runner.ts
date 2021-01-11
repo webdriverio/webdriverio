@@ -1,13 +1,12 @@
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 import RunnableStats from './runnable'
 import { sanitizeCaps } from '../utils'
-import { WDIOReporterOptions } from '..'
 
 export interface Runner {
     cid: string
     specs: string[]
-    config: WDIOReporterOptions
+    config: Options.Testrunner
     isMultiremote: boolean
     sessionId?: string
     capabilities: Capabilities.Capabilities
@@ -24,7 +23,7 @@ export default class RunnerStats extends RunnableStats {
     cid: string
     capabilities: Capabilities.Capabilities
     sanitizedCapabilities: string
-    config: WDIOReporterOptions
+    config: Options.Testrunner
     specs: string[]
     sessionId?: string
     isMultiremote: boolean

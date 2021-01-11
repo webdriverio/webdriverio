@@ -35,10 +35,10 @@ const events = {
     endStep: 'allure:endStep',
     addStep: 'allure:addStep',
     addArgument: 'allure:addArgument'
-}
+} as const
 
-const mochaEachHooks = ['"before each" hook', '"after each" hook']
-const mochaAllHooks = ['"before all" hook', '"after all" hook']
+const mochaEachHooks = ['"before each" hook', '"after each" hook'] as const
+const mochaAllHooks = ['"before all" hook', '"after all" hook'] as const
 const linkPlaceholder = '{}'
 
 export { testStatuses, stepStatuses, events, mochaEachHooks, mochaAllHooks, linkPlaceholder }

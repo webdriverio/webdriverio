@@ -537,6 +537,8 @@ export interface BrowserStackCapabilities {
     // eslint-disable-next-line
     os_version?: string
     osVersion?: string
+    desired?: DesiredCapabilities
+    device?: string
     projectName?: string
     buildName?: string
     sessionName?: string

@@ -4,6 +4,7 @@ import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants'
 import stripAnsi from 'strip-ansi'
 import Allure from 'allure-js-commons'
 import { HookStats, TestStats } from '@wdio/reporter'
+import type { Options } from '@wdio/types'
 
 /**
  * Get allure test status by TestStat object
@@ -11,8 +12,8 @@ import { HookStats, TestStats } from '@wdio/reporter'
  * @param config {Object} - wdio config object
  * @private
  */
-export const getTestStatus = (test: TestStats | HookStats, config: WebdriverIO.Config) : Allure.Status => {
-    if (config.framework === 'jasmine') {
+export const getTestStatus = (test: TestStats | HookStats, config?: Options.Testrunner) : Allure.Status => {
+    if (config && config.framework === 'jasmine') {
         return 'failed'
     }
 

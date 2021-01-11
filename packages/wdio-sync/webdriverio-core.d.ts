@@ -272,182 +272,6 @@ declare namespace WebdriverIO {
         failed: number
     }
 
-    interface HookFunctions {
-        /**
-         * Gets executed once before all workers get launched.
-         * @param config        wdio configuration object
-         * @param capabilities  list of capabilities details
-         */
-        onPrepare?(
-            config: Config,
-            capabilities: WebDriver.DesiredCapabilities[]
-        ): void;
-
-        /**
-         * Gets executed before a worker process is spawned and can be used to initialise specific service
-         * for that worker as well as modify runtime environments in an async fashion.
-         * @param cid       capability id (e.g 0-0)
-         * @param caps      object containing capabilities for session that will be spawn in the worker
-         * @param specs     specs to be run in the worker process
-         * @param args      object that will be merged with the main configuration once worker is initialised
-         * @param execArgv  list of string arguments passed to the worker process
-         */
-        onWorkerStart?(
-            cid: string,
-            caps: WebDriver.DesiredCapabilities,
-            specs: string[],
-            args: Config,
-            execArgv: string[]
-        ): void;
-
-        /**
-         * Gets executed after all workers got shut down and the process is about to exit. An error
-         * thrown in the onComplete hook will result in the test run failing.
-         * @param exitCode      runner exit code
-         * @param config        wdio configuration object
-         * @param capabilities  list of capabilities details
-         * @param results       test results
-         */
-        onComplete?(
-            exitCode: number,
-            config: Config,
-            capabilities: WebDriver.DesiredCapabilities,
-            results: Results
-        ): void;
-
-        /**
-         * Gets executed when a refresh happens.
-         * @param oldSessionId session id of old session
-         * @param newSessionId session id of new session
-         */
-        onReload?(
-            oldSessionId: string,
-            newSessionId: string
-        ): void;
-
-        /**
-         * Gets executed before test execution begins. At this point you can access to all global
-         * variables like `browser`. It is the perfect place to define custom commands.
-         * @param capabilities  list of capabilities details
-         * @param specs         specs to be run in the worker process
-         * @param browser       instance of created browser/device session
-         */
-        before?(
-            capabilities: WebDriver.DesiredCapabilities,
-            specs: string[],
-            browser: BrowserObject
-        ): void;
-
-        /**
-         * Runs before a WebdriverIO command gets executed.
-         * @param commandName command name
-         * @param args        arguments that command would receive
-         */
-        beforeCommand?(
-            commandName: string,
-            args: any[]
-        ): void;
-
-        /**
-         * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
-         * beforeEach in Mocha). `stepData` and `world` are Cucumber framework specific properties.
-         * @param test      details to current running test (or step in Cucumber)
-         * @param context   context to current running test
-         * @param stepData  Cucumber step data
-         * @param world     Cucumber world
-         */
-        beforeHook?(test: any, context: any, stepData?: any, world?: any): void;
-
-        /**
-         * Gets executed just before initialising the webdriver session and test framework. It allows you
-         * to manipulate configurations depending on the capability or spec.
-         * @param config        wdio configuration object
-         * @param capabilities  list of capabilities details
-         * @param specs         list of spec file paths that are to be run
-         */
-        beforeSession?(
-            config: Config,
-            capabilities: WebDriver.DesiredCapabilities,
-            specs: string[]
-        ): void;
-
-        /**
-         * Hook that gets executed before the suite starts.
-         * @param suite suite details
-         */
-        beforeSuite?(suite: Suite): void;
-
-        /**
-         * Function to be executed before a test (in Mocha/Jasmine) starts.
-         * @param test      details to current running test (or step in Cucumber)
-         * @param context   context to current running test
-         */
-        beforeTest?(test: Test, context: any): void;
-
-        /**
-         * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
-         * afterEach in Mocha). `stepData` and `world` are Cucumber framework specific.
-         * @param test      details to current running test (or step in Cucumber)
-         * @param context   context to current running test
-         * @param result    test result
-         * @param stepData  Cucumber step data
-         * @param world     Cucumber world
-         */
-        afterHook?(test: any, context: any, result: TestResult, stepData?: any, world?: any): void;
-
-        /**
-         * Gets executed after all tests are done. You still have access to all global variables from
-         * the test.
-         * @param result        number of total failing tests
-         * @param capabilities  list of capabilities details
-         * @param specs         list of spec file paths that are to be run
-         */
-        after?(
-            result: number,
-            capabilities: WebDriver.DesiredCapabilities,
-            specs: string[]
-        ): void;
-
-        /**
-         * Runs after a WebdriverIO command gets executed
-         * @param commandName  command name
-         * @param args         arguments that command would receive
-         * @param result       result of the command
-         * @param error        error in case something went wrong
-         */
-        afterCommand?(
-            commandName: string,
-            args: any[],
-            result: any,
-            error?: Error
-        ): void;
-
-        /**
-         * Gets executed right after terminating the webdriver session.
-         * @param config        wdio configuration object
-         * @param capabilities  list of capabilities details
-         * @param specs         list of spec file paths that are to be run
-         */
-        afterSession?(
-            config: Config,
-            capabilities: WebDriver.DesiredCapabilities,
-            specs: string[]
-        ): void;
-
-        /**
-         * Hook that gets executed after the suite has ended
-         * @param suite suite details
-         */
-        afterSuite?(suite: Suite): void;
-
-        /**
-         * Function to be executed after a test (in Mocha/Jasmine) ends.
-         * @param test      details to current running test (or step in Cucumber)
-         * @param context   context to current running test
-         * @param result    test result
-         */
-        afterTest?(test: Test, context: any, result: TestResult): void;
-    }
     type _HooksArray = {
         [K in keyof Pick<HookFunctions, "onPrepare" | "onWorkerStart" | "onComplete" | "before" | "after" | "beforeSession" | "afterSession">]: HookFunctions[K] | Array<HookFunctions[K]>;
     };
@@ -667,7 +491,7 @@ declare namespace WebdriverIO {
             name: string,
             func: AddCommandFn<false>
         ): void;
-        
+
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
@@ -1048,7 +872,7 @@ declare namespace WebdriverIO {
          */
         calls: Matches[];
 
-        
+
         /**
          * Abort the request with one of the following error codes:
          * `Failed`, `Aborted`, `TimedOut`, `AccessDenied`, `ConnectionClosed`,
@@ -1143,7 +967,7 @@ declare namespace WebdriverIO {
             name: string,
             func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
         ): void
-        
+
         /**
          * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
          * to fetch multiple elements on the page. It returns an array with element results that will have an
@@ -1219,7 +1043,7 @@ declare namespace WebdriverIO {
         /**
          * Returns browser window size.
          */
-        getWindowSize(): WebDriver.RectReturn;
+        getWindowSize(): RectReturn;
 
         /**
          * Send a sequence of key strokes to the active element. You can also use characters like

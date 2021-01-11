@@ -1,17 +1,30 @@
-import WDIOReporter, { SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs, AfterCommandArgs, CommandArgs } from '@wdio/reporter'
 import Allure from 'allure-js-commons'
 import Step from 'allure-js-commons/beans/step'
-import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate } from './utils'
+
+import WDIOReporter, {
+    SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
+    AfterCommandArgs, CommandArgs
+} from '@wdio/reporter'
+import { Capabilities, Options } from '@wdio/types'
+
+import {
+    getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest,
+    isMochaAllHooks, getLinkByTemplate
+} from './utils'
 import { events, PASSED, PENDING, SKIPPED, stepStatuses } from './constants'
-import { AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs, AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs, AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions } from './types'
+import {
+    AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
+    AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
+    AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions
+} from './types'
 
 class AllureReporter extends WDIOReporter {
-    private _allure: Allure;
-    private _capabilities: WebDriver.DesiredCapabilities;
-    private _isMultiremote?: boolean;
-    private _config: WebdriverIO.Config ;
-    private _lastScreenshot?: string;
-    private _options: AllureReporterOptions;
+    private _allure: Allure
+    private _capabilities: Capabilities.RemoteCapability
+    private _isMultiremote?: boolean
+    private _config?: Options.Testrunner
+    private _lastScreenshot?: string
+    private _options: AllureReporterOptions
 
     constructor(options: AllureReporterOptions = {}) {
         const outputDir = options.outputDir || 'allure-results'
@@ -21,7 +34,6 @@ class AllureReporter extends WDIOReporter {
         })
         this._allure = new Allure()
         this._capabilities = {}
-        this._config = {}
         this._options = options
 
         this._allure.setOptions({ targetDir: outputDir })
@@ -123,14 +135,15 @@ class AllureReporter extends WDIOReporter {
         const currentTest = this._allure.getCurrentTest()
 
         if (!this._isMultiremote) {
-            const { browserName, deviceName, desired, device } = this._capabilities
+            const caps = this._capabilities as Capabilities.DesiredCapabilities
+            const { browserName, deviceName, desired, device } = caps
             let targetName = device || browserName || deviceName || cid
             // custom mobile grids can have device information in a `desired` cap
             if (desired && desired.deviceName && desired.platformVersion) {
                 targetName = `${device || desired.deviceName} ${desired.platformVersion}`
             }
-            const browserstackVersion = this._capabilities.os_version || this._capabilities.osVersion
-            const version = browserstackVersion || this._capabilities.browserVersion || this._capabilities.version || this._capabilities.platformVersion || ''
+            const browserstackVersion = caps.os_version || caps.osVersion
+            const version = browserstackVersion || caps.browserVersion || caps.version || caps.platformVersion || ''
             const paramName = (deviceName || device) ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
             currentTest.addParameter('argument', paramName, paramValue)
@@ -646,3 +659,4 @@ class AllureReporter extends WDIOReporter {
 export default AllureReporter
 
 export { AllureReporterOptions }
+export * from './types'

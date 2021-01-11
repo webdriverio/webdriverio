@@ -10,76 +10,76 @@ export interface AllureReporterOptions extends WDIOReporterBaseOptions {
      * has been populated with an `.xml` file for each spec, plus a number of `.txt` and `.png`
      * files and other attachments.
      */
-    outputDir?: string;
+    outputDir?: string
     /**
      * optional parameter (`false` by default), set it to true in order to change the report hierarchy
      * when using cucumber. Try it for yourself and see how it looks.
      */
-    useCucumberStepReporter?: boolean;
+    useCucumberStepReporter?: boolean
     /**
      * optional parameter (`false` by default), set it to true in order to not fetch the `before/after`
      * stacktrace/screenshot/result hooks into the Allure Reporter.
      */
-    disableMochaHooks?: boolean;
+    disableMochaHooks?: boolean
     /**
      * optional parameter(`false` by default), in order to log only custom steps to the reporter.
      */
-    disableWebdriverStepsReporting?: boolean;
+    disableWebdriverStepsReporting?: boolean
     /**
      * optional parameter(`false` by default), in order to not attach screenshots to the reporter.
      */
-    disableWebdriverScreenshotsReporting?: boolean;
+    disableWebdriverScreenshotsReporting?: boolean
     /**
      * optional parameter, in order to specify the issue link pattern. Reporter will replace `{}` placeholder
      * with value specified in `addIssue(value)` call parameter.
      * Example `https://example.org/issue/{}`
      */
-    issueLinkTemplate?: string;
+    issueLinkTemplate?: string
     /**
      * optional parameter, in order to specify the tms link pattern. Reporter will replace `{}` placeholder
      * with value specified in `addTestId(value)` call parameter. Example `https://example.org/tms/{}`
      */
-    tmsLinkTemplate?: string;
+    tmsLinkTemplate?: string
 }
 
 export interface AddLabelEventArgs {
-    name: string;
-    value: string;
+    name: string
+    value: string
 }
 
 export interface AddStoryEventArgs {
-    storyName: string;
+    storyName: string
 }
 
 export interface AddFeatureEventArgs {
-    featureName: string;
+    featureName: string
 }
 
 export interface AddSeverityEventArgs {
-    severity: string;
+    severity: string
 }
 
 export interface AddIssueEventArgs {
-    issue: string;
+    issue: string
 }
 
 export interface AddTestIdEventArgs {
-    testId: string;
+    testId: string
 }
 
 export interface AddEnvironmentEventArgs {
-    name: string;
-    value: string;
+    name: string
+    value: string
 }
 
 export interface AddDescriptionEventArgs {
-    description?: string;
-    descriptionType?: Allure.TYPE;
+    description?: string
+    descriptionType?: Allure.TYPE
 }
 
 export interface AddAttachmentEventArgs {
-    name: string;
-    content: string | object;
-    type: string;
+    name: string
+    content: string | object
+    type: string
 }
 
