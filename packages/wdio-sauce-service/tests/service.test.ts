@@ -26,7 +26,7 @@ const featureObject = {
         }
 }
 
-let browser
+let browser:any
 beforeEach(() => {
     browser = {
         config: {},
@@ -36,26 +36,6 @@ beforeEach(() => {
         chromeC: { sessionId: 'sessionChromeC' },
         instances: ['chromeA', 'chromeB', 'chromeC'],
     }
-})
-
-test('constructor should set setJobNameInBeforeSuite', () => {
-    let service = new SauceService({}, {}, {})
-    service['_browser'] = browser
-    expect(service['_options'].setJobNameInBeforeSuite).toBeFalsy()
-
-    let options = {
-        setJobNameInBeforeSuite: false
-    }
-    service = new SauceService(options, {}, {})
-    service['_browser'] = browser
-    expect(service['_options'].setJobNameInBeforeSuite).toBeFalsy()
-
-    options = {
-        setJobNameInBeforeSuite: true
-    }
-    service = new SauceService(options, {}, {})
-    service['_browser'] = browser
-    expect(service['_options'].setJobNameInBeforeSuite).toBeTruthy()
 })
 
 jest.mock('../src/utils', () => {
@@ -78,17 +58,6 @@ test('beforeSuite', () => {
     expect(service['_suiteTitle']).toBe('foobar')
 })
 
-test('beforeSuite should set job-name', () => {
-    const options = {
-        setJobNameInBeforeSuite: true
-    }
-    const service = new SauceService(options, {}, { user: 'foobar', key: '123' })
-    service['_browser'] = browser
-    service.beforeSession()
-    service.beforeSuite({ title: 'foobar' })
-    expect(browser.execute).toBeCalledWith('sauce:job-name=foobar')
-})
-
 test('beforeSession should set to unknown creds if no sauce user and key are found', () => {
     const config: WebdriverIO.Config = {}
     const service = new SauceService({}, {}, config)
@@ -96,6 +65,33 @@ test('beforeSession should set to unknown creds if no sauce user and key are fou
     service.beforeSession()
     expect(config.user).toBe('unknown_user')
     expect(config.key).toBe('unknown_key')
+})
+
+test('beforeTest should set job-name', () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123' })
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'Suite Title'
+    expect(service['_isJobNameSet']).toBe(false)
+    service.beforeTest({
+        fullName: 'my test can do something',
+        description: 'foobar'
+    })
+    expect(service['_isJobNameSet']).toBe(true)
+    expect(browser.execute).toBeCalledWith('sauce:job-name=Suite Title')
+})
+
+test('beforeTest not should set job-name when it has already been set', () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123' })
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'Suite Title'
+    service['_isJobNameSet'] = true
+    expect(service['_isJobNameSet']).toBe(true)
+    service.beforeTest({
+        fullName: 'my test can do something',
+        description: 'foobar'
+    })
+    expect(service['_isJobNameSet']).toBe(true)
+    expect(browser.execute).not.toBeCalledWith('sauce:job-name=Suite Title')
 })
 
 test('beforeTest should set context for jasmine test', () => {
@@ -487,7 +483,6 @@ test('getBody', () => {
 
     service['_capabilities'] = {} as WebDriver.Capabilities
     expect(service.getBody(1)).toEqual({
-        name: 'jojo',
         passed: false
     })
 
@@ -533,7 +528,6 @@ test('getBody', () => {
 
     service['_capabilities'] = {}
     expect(service.getBody(1)).toEqual({
-        name: 'jojo',
         passed: false
     })
 
