@@ -52,22 +52,55 @@ describe('ConfigParser', () => {
             beforeEach(() => {
                 (log.debug as jest.Mock).mockClear()
                 ;(tsNode.register as jest.Mock).mockClear()
+                process.env.THROW_BABEL_REGISTER = '1'
             })
 
             it('should initiate TypeScript compiler if ts-node exists', () => {
                 const configParser = new ConfigParser()
-                require.resolve = jest.fn() as any
                 configParser.addConfigFile(FIXTURES_CONF_RDC)
                 expect(tsNode.register).toBeCalledTimes(1)
-                expect(log.debug).toBeCalledTimes(0)
+                expect(log.debug).toBeCalledTimes(1)
+                expect((log.debug as jest.Mock).mock.calls[0][0])
+                    .toContain('auto-compiling TypeScript files')
             })
 
             it('should just continue without initiation if ts-node does not exist', () => {
-                (tsNode.register as jest.Mock).mockImplementation(() => { throw new Error('boom') })
+                (tsNode.register as jest.Mock)
+                    .mockImplementation(() => { throw new Error('boom') })
                 const configParser = new ConfigParser()
-                require.resolve = jest.fn() as any
                 configParser.addConfigFile(FIXTURES_CONF_RDC)
                 expect(log.debug).toBeCalledTimes(1)
+                expect((log.debug as jest.Mock).mock.calls[0][0])
+                    .toContain('No compiler found')
+            })
+        })
+
+        describe('Babel integration', () => {
+            beforeEach(() => {
+                (log.debug as jest.Mock).mockClear()
+                ;(tsNode.register as jest.Mock).mockClear()
+                ;(tsNode.register as jest.Mock).mockImplementation(() => {
+                    throw new Error('do not exist')
+                })
+
+                delete process.env.THROW_BABEL_REGISTER
+            })
+
+            it('should initiate with @babel/register compiler if package exists', () => {
+                const configParser = new ConfigParser()
+                configParser.addConfigFile(FIXTURES_CONF_RDC)
+                expect(log.debug).toBeCalledTimes(1)
+                expect((log.debug as jest.Mock).mock.calls[0][0])
+                    .toContain('auto-compiling files with Babel')
+            })
+
+            it('should just continue without initiation if @babel/register does not exist', () => {
+                process.env.THROW_BABEL_REGISTER = '1'
+                const configParser = new ConfigParser()
+                configParser.addConfigFile(FIXTURES_CONF_RDC)
+                expect(log.debug).toBeCalledTimes(1)
+                expect((log.debug as jest.Mock).mock.calls[0][0])
+                    .toContain('No compiler found')
             })
         })
     })

@@ -89,3 +89,70 @@ $ npx wdio run wdio.conf.js
   ],
 ]
 `;
+
+exports[`should install @babel/register if not existing 1`] = `
+Array [
+  Array [
+    "
+=========================
+WDIO Configuration Helper
+=========================
+",
+  ],
+  Array [
+    "
+Installing wdio packages:
+-",
+    "@wdio/local-runner
+- @wdio/mocha-framework
+- @wdio/crossbrowsertesting-service
+- wdio-lambdatest-service
+- @wdio/sync
+- @babel/register",
+  ],
+  Array [
+    "
+Packages installed successfully, creating configuration file...",
+  ],
+  Array [
+    "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.js
+",
+  ],
+]
+`;
+
+exports[`should not install @babel/register if existing 1`] = `
+Array [
+  Array [
+    "
+=========================
+WDIO Configuration Helper
+=========================
+",
+  ],
+  Array [
+    "
+Installing wdio packages:
+-",
+    "@wdio/local-runner
+- @wdio/mocha-framework
+- @wdio/crossbrowsertesting-service
+- wdio-lambdatest-service
+- @wdio/sync",
+  ],
+  Array [
+    "
+Packages installed successfully, creating configuration file...",
+  ],
+  Array [
+    "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.js
+",
+  ],
+]
+`;

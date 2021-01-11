@@ -77,6 +77,24 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     }
 
     /**
+     * add @babel/register package if not installed
+     */
+    if (answers.isUsingCompiler === COMPILER_OPTIONS.babel) {
+        try {
+            /**
+             * this is only for testing purposes as we want to check whether
+             * we add `@babel/register` to the packages to install when resolving fails
+             */
+            if (process.env.JEST_WORKER_ID && process.env.WDIO_TEST_THROW_RESOLVE) {
+                throw new Error('resolve error')
+            }
+            require.resolve('@babel/register')
+        } catch (e) {
+            packagesToInstall.push('@babel/register')
+        }
+    }
+
+    /**
      * add packages that are required by services
      */
     addServiceDeps(servicePackages, packagesToInstall)
