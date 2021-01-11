@@ -3,6 +3,7 @@ import child from 'child_process'
 import { EventEmitter } from 'events'
 import type { WritableStreamBuffer } from 'stream-buffers'
 import type { ChildProcess } from 'child_process'
+import type { Capabilities, Options } from '@wdio/types'
 
 import logger from '@wdio/logger'
 
@@ -27,9 +28,9 @@ stdErrStream.pipe(process.stderr)
  */
 export default class WorkerInstance extends EventEmitter {
     cid: string
-    config: WebdriverIO.Config
+    config: Options.Testrunner
     configFile: string
-    caps: WebDriver.Capabilities
+    caps: Capabilities.RemoteCapability
     specs: string[]
     execArgv: string[]
     retries: number
@@ -55,7 +56,7 @@ export default class WorkerInstance extends EventEmitter {
      * @param  {object}   execArgv    execution arguments for the test run
      */
     constructor(
-        config: WebdriverIO.Config,
+        config: Options.Testrunner,
         { cid, configFile, caps, specs, execArgv, retries }: WorkerRunPayload,
         stdout: WritableStreamBuffer,
         stderr: WritableStreamBuffer

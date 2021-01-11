@@ -1,6 +1,8 @@
 import RunnerTransformStream from '../src/transformStream'
 import { DEBUGGER_MESSAGES } from '../src/constants'
 
+const expect = global.expect as unknown as jest.Expect
+
 test('should add cid to message', () => {
     const stream = new RunnerTransformStream('0-5')
     const cb = jest.fn()

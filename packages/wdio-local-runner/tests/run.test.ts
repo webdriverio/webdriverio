@@ -2,6 +2,8 @@ import exitHook from 'async-exit-hook'
 // @ts-ignore mock exports instances, package doesn't
 import { instances } from '@wdio/runner'
 
+const expect = global.expect as unknown as jest.Expect
+
 jest.mock('../src/constants', () => ({
     SHUTDOWN_TIMEOUT: 1
 }))

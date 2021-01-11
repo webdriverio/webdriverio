@@ -1,5 +1,7 @@
 import RunnerStream from '../src/stdStream'
 
+const expect = global.expect as unknown as jest.Expect
+
 describe('RunnerStream', () => {
     let stream: RunnerStream
     let pushSpy: jest.SpyInstance

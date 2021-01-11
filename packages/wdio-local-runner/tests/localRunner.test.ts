@@ -16,7 +16,7 @@ test('should fork a new process', () => {
     const runner = new LocalRunner('/path/to/wdio.conf.js', {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
-    })
+    } as any)
     const worker = runner.run({
         cid: '0-5',
         command: 'run',
@@ -36,9 +36,9 @@ test('should fork a new process', () => {
     const { env } = (child.fork as jest.Mock).mock.calls[0][2]
     expect(env.WDIO_LOG_PATH).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-5\.log/)
     expect(env.FORCE_COLOR).toBe(1)
-    expect(childProcess?.on).toBeCalled()
+    expect(childProcess?.on).toHaveBeenCalled()
 
-    expect(childProcess?.send).toBeCalledWith({
+    expect(childProcess?.send).toHaveBeenCalledWith({
         args: {},
         caps: {},
         cid: '0-5',
@@ -55,7 +55,7 @@ test('should shut down worker processes', async () => {
     const runner = new LocalRunner('/path/to/wdio.conf.js', {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
-    })
+    } as any)
     const worker1 = runner.run({
         cid: '0-4',
         command: 'run',
@@ -100,7 +100,7 @@ test('should avoid shutting down if worker is not busy', async () => {
     const runner = new LocalRunner('/path/to/wdio.conf.js', {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
-    })
+    } as any)
 
     runner.run({
         cid: '0-8',
@@ -124,7 +124,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 },
         watch: true,
-    })
+    } as any)
 
     const worker = runner.run({
         cid: '0-6',
@@ -138,7 +138,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
     })
     runner.workerPool['0-6'].sessionId = 'abc'
     runner.workerPool['0-6'].server = { host: 'foo' }
-    runner.workerPool['0-6'].caps = { browser: 'chrome' } as WebDriver.Capabilities
+    runner.workerPool['0-6'].caps = { browser: 'chrome' } as any
 
     setTimeout(() => {
         worker.isBusy = false
@@ -165,7 +165,7 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 },
         watch: true,
-    })
+    } as any)
 
     const worker = runner.run({
         cid: '0-7',
@@ -183,7 +183,7 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
         foo: {
             capabilities: { browser: 'chrome' }
         }
-    } as WebdriverIO.MultiRemoteCapabilities
+    } as any
 
     setTimeout(() => {
         worker.isBusy = false
@@ -205,6 +205,6 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
 })
 
 test('should avoid shutting down if worker is not busy', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {})
+    const runner = new LocalRunner('/path/to/wdio.conf.js', {} as any)
     expect(runner.initialise()).toBe(undefined)
 })

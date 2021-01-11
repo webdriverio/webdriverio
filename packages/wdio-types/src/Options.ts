@@ -398,6 +398,10 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'> {
     cucumberOpts?: any
     mochaOpts?: any
     jasmineOpts?: any
+    /**
+     * flags
+     */
+    watch?: boolean
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {

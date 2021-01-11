@@ -27,7 +27,7 @@ test('should send child process message that debugger has started', () => {
     const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
     repl.start({})
     expect(childProcess.send)
-        .toBeCalledWith({ origin: 'debugger', name: 'start' })
+        .toHaveBeenCalledWith({ origin: 'debugger', name: 'start' })
 })
 
 test('should send command to child process', () => {
@@ -39,7 +39,7 @@ test('should send command to child process', () => {
     expect(repl.callback).toBe(undefined)
     repl.eval('1+1', {}, '/foo/bar', callback)
     expect(repl.commandIsRunning).toBe(true)
-    expect(childProcess.send).toBeCalledWith({
+    expect(childProcess.send).toHaveBeenCalledWith({
         origin: 'debugger',
         name: 'eval',
         content: { cmd: '1+1' }
@@ -47,7 +47,7 @@ test('should send command to child process', () => {
     expect(typeof repl.callback).toBe('function')
 
     repl.callback!(null, {})
-    expect(callback).toBeCalled()
+    expect(callback).toHaveBeenCalled()
 })
 
 test('should not send command if command is already running', () => {
@@ -57,7 +57,7 @@ test('should not send command if command is already running', () => {
     repl.commandIsRunning = true
 
     repl.eval('1+1', {}, '/foo/bar', callback)
-    expect(childProcess.send).toBeCalledTimes(0)
+    expect(childProcess.send).toHaveBeenCalledTimes(0)
 })
 
 test('should pass in result to callback', () => {
@@ -67,7 +67,7 @@ test('should pass in result to callback', () => {
     repl.commandIsRunning = true
 
     repl.onResult({ result: 'foobar' })
-    expect(repl.callback).toBeCalledWith(null, 'foobar')
+    expect(repl.callback).toHaveBeenCalledWith(null, 'foobar')
 })
 
 test('should switch flag even if no callback is set', () => {
