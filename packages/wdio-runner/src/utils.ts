@@ -1,17 +1,18 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
-import { remote, multiremote, attach, HookFunctions } from 'webdriverio'
+import { remote, multiremote, attach, Browser, MultiRemoteBrowser } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
-import { DEFAULT_CONFIGS, ConfigOptions, Capability } from '@wdio/config'
+import { DEFAULT_CONFIGS } from '@wdio/config'
+import type { Options, Capabilities } from '@wdio/types'
 
 const log = logger('@wdio/local-runner:utils')
 
 const MERGE_OPTIONS = { clone: false }
 const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
-export interface ConfigWithSessionId extends Omit<ConfigOptions, 'capabilities'> {
-    capabilities?: Capability
-    sessionId?: string
+export interface ConfigWithSessionId extends Omit<Options.Testrunner, 'capabilities'> {
+    sessionId?: string,
+    capabilities: Capabilities.RemoteCapability
 }
 
 /**
@@ -20,9 +21,9 @@ export interface ConfigWithSessionId extends Omit<ConfigOptions, 'capabilities'>
  * @return {Object}       sanitized caps
  */
 export function sanitizeCaps (
-    caps: Capability,
+    caps: Capabilities.RemoteCapability,
     filterOut?: boolean
-): Capability {
+): Omit<Capabilities.RemoteCapability, 'logLevel'> | Partial<Options.Testrunner> {
     const defaultConfigsKeys = [
         // WDIO config keys
         ...Object.keys(DEFAULT_CONFIGS()),
@@ -30,14 +31,14 @@ export function sanitizeCaps (
         ...Object.keys(DEFAULTS)
     ]
 
-    return Object.keys(caps).filter((key: keyof Capability) => (
+    return Object.keys(caps).filter((key: keyof Capabilities.RemoteCapability) => (
         /**
          * filter out all wdio config keys
          */
         !defaultConfigsKeys.includes(key as string) === !filterOut
     )).reduce((
-        obj: Capability,
-        key: keyof Capability
+        obj: Capabilities.RemoteCapability,
+        key: keyof Capabilities.RemoteCapability
     ) => {
         obj[key] = caps[key]
         return obj
@@ -53,7 +54,7 @@ export function sanitizeCaps (
  */
 export async function initialiseInstance (
     config: ConfigWithSessionId,
-    capabilities: Capability,
+    capabilities: Capabilities.RemoteCapability,
     isMultiremote?: boolean
 ) {
     /**
@@ -67,18 +68,22 @@ export async function initialiseInstance (
 
     if (!isMultiremote) {
         log.debug('init remote session')
-        const sessionConfig = { ...config, ...sanitizeCaps(capabilities, true) } as Omit<ConfigWithSessionId, keyof HookFunctions>
-        sessionConfig.capabilities = sanitizeCaps(capabilities)
+        const sessionConfig: Options.WebdriverIO = {
+            ...config,
+            ...sanitizeCaps(capabilities, true),
+            capabilities: sanitizeCaps(capabilities)
+        }
         return remote(sessionConfig)
     }
 
-    const options: WebdriverIO.MultiRemoteOptions = {}
+    const options: Record<string, Options.WebdriverIO> = {}
     log.debug('init multiremote session')
+    // @ts-expect-error ToDo(Christian): can be removed?
     delete config.capabilities
     for (let browserName of Object.keys(capabilities)) {
         options[browserName] = merge(
             config,
-            (capabilities as WebdriverIO.MultiRemoteCapabilities)[browserName],
+            (capabilities as Capabilities.MultiRemoteCapabilities)[browserName],
             MERGE_OPTIONS
         )
     }
@@ -158,14 +163,14 @@ type BrowserData = {
  * @return {object}
  */
 export function getInstancesData (
-    browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject,
+    browser: Browser | MultiRemoteBrowser,
     isMultiremote: boolean
 ) {
     if (!isMultiremote) {
         return
     }
 
-    const multiRemoteBrowser = browser as WebdriverIO.MultiRemoteBrowserObject
+    const multiRemoteBrowser = browser as MultiRemoteBrowser
     const instances: Record<string, Partial<BrowserData>> = {}
     multiRemoteBrowser.instances.forEach((browserName) => {
         const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser[browserName].options

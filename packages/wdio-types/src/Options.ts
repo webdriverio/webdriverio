@@ -2,7 +2,7 @@ import * as got from 'got'
 import * as http from 'http'
 import * as https from 'https'
 
-import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities } from './Capabilities'
+import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities'
 import { ServiceEntry, Hooks } from './Services'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
@@ -102,7 +102,7 @@ export interface WebDriver {
      * Set specific log levels per logger
      * use 'silent' level to disable logger
      */
-    logLevels?: Record<string, WebDriverLogTypes | undefined>
+    logLevels?: Record<string, WebDriverLogTypes>
     /**
      * Timeout for any WebDriver request to a driver or grid.
      *
@@ -178,7 +178,48 @@ export interface MultiRemoteBrowserOptions {
     capabilities: DesiredCapabilities
 }
 
-export interface WebdriverIO extends WebDriver {
+export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
+    /**
+     * Defines the capabilities you want to run in your WebDriver session. Check out the
+     * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
+     * If you want to run a multiremote session you need to define instead of an array of
+     * capabilities an object that has an arbitrary browser instance name as string and its
+     * capabilities as values.
+     *
+     * @example
+     * ```js
+     * // wdio.conf.js
+     * export.config = {
+     *   // ...
+     *   capabilities: {
+     *     browserName: 'safari',
+     *     platformName: 'MacOS 10.13',
+     *     ...
+     *   }
+     * }
+     * ```
+     *
+     * @example
+     * ```
+     * // wdio.conf.js
+     * export.config = {
+     *   // ...
+     *   capabilities: {
+     *     browserA: {
+     *       browserName: 'chrome',
+     *       browserVersion: 86
+     *       platformName: 'Windows 10'
+     *     },
+     *     browserB: {
+     *       browserName: 'firefox',
+     *       browserVersion: 74
+     *       platformName: 'Mac OS X'
+     *     }
+     *   }
+     * })
+     * ```
+     */
+    capabilities: RemoteCapability
     /**
      * Define the protocol you want to use for your browser automation.
      * Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and
@@ -213,7 +254,7 @@ export interface WebdriverIO extends WebDriver {
 
 export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'> {
     /**
-     * Defines the capabilities you want to run in your WebDriver session. Check out the
+     * Defines a set of capabilities you want to run in your testrunner session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
      * If you want to run a multiremote session you need to define instead of an array of
      * capabilities an object that has an arbitrary browser instance name as string and its
@@ -257,6 +298,10 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'> {
      * ```
      */
     capabilities: RemoteCapabilities
+    /**
+     * Type of runner (currently only "local" is supported)
+     */
+    runner?: 'local'
     /**
      * Define specs for test execution.
      */
@@ -328,6 +373,10 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'> {
      */
     execArgv?: string[]
     /**
+     * A set of environment variables to be injected into the worker process.
+     */
+    runnerEnv?: Record<string, any>
+    /**
      * Files to watch when running `wdio` with the `--watch` flag.
      */
     filesToWatch?: string[]
@@ -336,6 +385,10 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'> {
      * @default []
      */
     cucumberFeaturesWithLineNumbers?: string[]
+}
+
+export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {
+    capabilities: MultiRemoteCapabilities
 }
 
 export type Definition<T> = {

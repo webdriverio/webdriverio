@@ -7,7 +7,7 @@ import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
-import type { ConfigOptions, Capabilities } from '@wdio/config'
+import type { Options, Capabilities, Services } from '@wdio/types'
 
 import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
 import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
@@ -21,12 +21,12 @@ const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<stri
  * run service launch sequences
  */
 export async function runServiceHook(
-    launcher: WebdriverIO.ServiceInstance[],
-    hookName: keyof WebdriverIO.HookFunctions,
+    launcher: Services.ServiceInstance[],
+    hookName: keyof Services.HookFunctions,
     ...args: any[]
 ) {
     const start = Date.now()
-    return Promise.all(launcher.map(async (service: WebdriverIO.ServiceInstance) => {
+    return Promise.all(launcher.map(async (service: Services.ServiceInstance) => {
         try {
             if (typeof service[hookName] === 'function') {
                 await (service[hookName] as Function)(...args)
@@ -84,8 +84,8 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
  */
 export async function runOnCompleteHook(
     onCompleteHook: Function | Function[],
-    config: ConfigOptions,
-    capabilities: Capabilities,
+    config: Options.Testrunner,
+    capabilities: Capabilities.Capabilities,
     exitCode: number,
     results: OnCompleteResult
 ) {
@@ -107,7 +107,7 @@ export async function runOnCompleteHook(
 /**
  * get runner identification by caps
  */
-export function getRunnerName (caps: WebDriver.DesiredCapabilities = {}) {
+export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
     let runner =
         caps.browserName ||
         caps.appPackage ||

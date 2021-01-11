@@ -267,4 +267,7 @@ export default class WDIOReporter extends EventEmitter {
     onRunnerEnd(runnerStats: RunnerStats) { }
 }
 
-export { SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs, AfterCommandArgs, CommandArgs }
+export {
+    SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
+    AfterCommandArgs, CommandArgs
+}

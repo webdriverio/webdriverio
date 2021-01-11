@@ -444,7 +444,7 @@ export function addLocatorStrategyHandler(scope: Browser) {
 export const enhanceElementsArray = (
     elements: ElementArray,
     parent: Browser | Element,
-    selector: string,
+    selector: Selector,
     foundWith = '$$',
     props: any[] = []
 ) => {
@@ -492,7 +492,7 @@ export const getAutomationProtocol = async (config: Options.WebdriverIO | Option
     /**
      * run WebDriver if capabilities clearly identify it as it
      */
-    if (config.capabilities && (config.capabilities as Capabilities.W3CCapabilities).alwaysMatch) {
+    if (config.capabilities && ((config as Options.WebdriverIO).capabilities as Capabilities.W3CCapabilities).alwaysMatch) {
         return 'webdriver'
     }
 

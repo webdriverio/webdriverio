@@ -14,6 +14,8 @@ import {
     updateCapabilities
 } from './utils'
 
+type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
+
 /**
  * A method to create a new session with WebdriverIO
  *
@@ -21,10 +23,10 @@ import {
  * @param  {function} remoteModifier  Modifier function to change the monad object
  * @return {object}                   browser object with sessionId
  */
-export const remote = async function (params: Options.Testrunner, remoteModifier?: Function) {
+export const remote = async function (params: RemoteOptions, remoteModifier?: Function) {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
 
-    const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
+    const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
     const automationProtocol = await getAutomationProtocol(config)
     const modifier = (client: WebDriverTypes.Client, options: Options.WebdriverIO) => {
         /**
@@ -57,7 +59,7 @@ export const remote = async function (params: Options.Testrunner, remoteModifier
      * in order to wrap the function within Fibers (only if webdriverio
      * is used with @wdio/cli)
      */
-    if (params.framework && !isStub(automationProtocol)) {
+    if ((params as Options.Testrunner).framework && !isStub(automationProtocol)) {
         const origAddCommand = instance.addCommand.bind(instance)
         instance.addCommand = (name: string, fn: Function, attachToElement: boolean) => (
             origAddCommand(name, runFnInFiberContext(fn), attachToElement)
@@ -90,7 +92,6 @@ export const multiremote = async function (
      */
     await Promise.all(
         browserNames.map(async (browserName) => {
-            // @ts-expect-error ToDo(Christian): fix
             const instance = await remote(params[browserName])
             return multibrowser.addInstance(browserName, instance)
         })
@@ -138,3 +139,4 @@ export const multiremote = async function (
 }
 
 export const SevereServiceError = SevereServiceErrorImport
+export * from './types'

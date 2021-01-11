@@ -5,7 +5,7 @@ import { Options } from '@wdio/types'
 
 import { multiremoteHandler } from './middlewares'
 import { getPrototype } from './utils'
-import type { Browser, MultiRemoteBrowserObject } from './types'
+import type { Browser, MultiRemoteBrowser } from './types'
 
 type EventEmitter = (args: any) => void
 
@@ -79,7 +79,7 @@ export default class MultiRemote {
     ) {
         const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
 
-        const element = webdriverMonad({}, (client: MultiRemoteBrowserObject) => {
+        const element = webdriverMonad({}, (client: MultiRemoteBrowser) => {
             /**
              * attach instances to wrapper client
              */
@@ -144,41 +144,41 @@ export class MultiRemoteDriver implements Partial<MultiRemoteClient> {
         this.__propertiesObject__ = propertiesObject
     }
 
-    on (this: MultiRemoteBrowserObject, eventName: string, emitter: EventEmitter) {
+    on (this: MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
         this.instances.forEach((instanceName) => this[instanceName].on(eventName, emitter))
         return undefined as any
     }
 
-    once (this: MultiRemoteBrowserObject, eventName: string, emitter: EventEmitter) {
+    once (this: MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
         this.instances.forEach((instanceName) => this[instanceName].once(eventName, emitter))
         return undefined as any
     }
 
-    emit (this: MultiRemoteBrowserObject, eventName: string, emitter: EventEmitter) {
+    emit (this: MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
         return this.instances.map(
             (instanceName) => this[instanceName].emit(eventName, emitter)
         ).some(Boolean)
     }
 
-    eventNames (this: MultiRemoteBrowserObject) {
+    eventNames (this: MultiRemoteBrowser) {
         return this.instances.map(
             (instanceName) => this[instanceName].eventNames()
         ) as any // special behavior of event methods for multiremote
     }
 
-    getMaxListeners (this: MultiRemoteBrowserObject) {
+    getMaxListeners (this: MultiRemoteBrowser) {
         return this.instances.map(
             (instanceName) => this[instanceName].getMaxListeners()
         ) as any as number // special behavior of event methods for multiremote
     }
 
-    listenerCount (this: MultiRemoteBrowserObject, eventName: string) {
+    listenerCount (this: MultiRemoteBrowser, eventName: string) {
         return this.instances.map(
             (instanceName) => this[instanceName].listenerCount(eventName)
         ) as any as number // special behavior of event methods for multiremote
     }
 
-    listeners (this: MultiRemoteBrowserObject, eventName: string) {
+    listeners (this: MultiRemoteBrowser, eventName: string) {
         return this.instances.map(
             (instanceName) => this[instanceName].listeners(eventName)
         ).reduce((prev, cur) => {
@@ -187,12 +187,12 @@ export class MultiRemoteDriver implements Partial<MultiRemoteClient> {
         }, [])
     }
 
-    removeListener (this: MultiRemoteBrowserObject, eventName: string, emitter: EventEmitter) {
+    removeListener (this: MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
         this.instances.forEach((instanceName) => this[instanceName].removeListener(eventName, emitter))
         return undefined as any
     }
 
-    removeAllListeners (this: MultiRemoteBrowserObject, eventName: string) {
+    removeAllListeners (this: MultiRemoteBrowser, eventName: string) {
         this.instances.forEach((instanceName) => this[instanceName].removeAllListeners(eventName))
         return undefined as any
     }

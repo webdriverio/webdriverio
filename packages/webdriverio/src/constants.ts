@@ -28,7 +28,7 @@ const HOOK_DEFINITION = {
 }
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
-export const WDIO_DEFAULTS: Options.Definition<Options.Testrunner> = {
+export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Testrunner> = {
     /**
      * allows to specify automation protocol
      */

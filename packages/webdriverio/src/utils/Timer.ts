@@ -35,6 +35,7 @@ class Timer {
          *  - function name is not async
          *  - we run with the wdio testrunner
          */
+        // @ts-expect-error ToDo(Christian): fix global handling
         if (hasWdioSyncSupport && !_fn.name.includes('async') && Boolean(global.browser)) {
             this._fn = () => runFnInFiberContext(_fn)()
         }

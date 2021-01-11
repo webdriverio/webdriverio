@@ -5,7 +5,7 @@ import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
 
 import Launcher from './launcher'
-import { ConfigOptions } from '@wdio/config'
+import type { Options, Capabilities } from '@wdio/types'
 import { RunCommandArguments } from './types.js'
 import { EventEmitter } from 'events'
 
@@ -13,17 +13,18 @@ const log = logger('@wdio/cli:watch')
 
 export default class Watcher {
     private _launcher: Launcher
-    private _args: ConfigOptions
     private _specs: string[]
 
-    constructor (configFile: string, args: ConfigOptions) {
+    constructor (
+        private _configFile: string,
+        private _args: Omit<Options.Testrunner, 'capabilities'>
+    ) {
         log.info('Starting launcher in watch mode')
-        this._launcher = new Launcher(configFile, args, true)
-        this._args = args
+        this._launcher = new Launcher(this._configFile, this._args, true)
 
         const specs = this._launcher.configParser.getSpecs()
         const capSpecs = this._launcher.isMultiremote ? [] : union(flattenDeep(
-            (this._launcher.configParser.getCapabilities() as WebDriver.DesiredCapabilities[]).map(cap => cap.specs || [])
+            (this._launcher.configParser.getCapabilities() as Capabilities.DesiredCapabilities[]).map(cap => cap.specs || [])
         ))
         this._specs = [...specs, ...capSpecs]
     }
@@ -74,7 +75,7 @@ export default class Watcher {
      */
     getFileListener (passOnFile = true) {
         return (spec: string) => this.run(
-            Object.assign({}, this._args, passOnFile ? { spec } : {})
+            Object.assign({}, this._args, passOnFile ? { spec: [spec] } : {})
         )
     }
 

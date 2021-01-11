@@ -16,7 +16,7 @@ type ElementCommandsType = typeof ElementCommands
 interface ProtocolCommands extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
 
 export interface ElementArray extends Array<Element> {
-    selector: string | Function
+    selector: Selector
     parent: Element | Browser
     foundWith: string
     props: any[]
@@ -76,7 +76,7 @@ export interface Element extends ElementReference, Omit<Browser, keyof ElementCo
 
 type MultiRemoteBrowserReference = Record<string, Browser>
 
-export interface MultiRemoteBrowser extends Omit<Browser, 'isMultiremote'> {
+export interface MultiRemoteBase extends Omit<Browser, 'isMultiremote'> {
     /**
      * multiremote browser instance names
      */
@@ -87,7 +87,7 @@ export interface MultiRemoteBrowser extends Omit<Browser, 'isMultiremote'> {
     isMultiremote: true
 }
 
-export type MultiRemoteBrowserObject = MultiRemoteBrowser & MultiRemoteBrowserReference
+export type MultiRemoteBrowser = MultiRemoteBase & MultiRemoteBrowserReference
 
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
 export type Selector = string | ElementReference | ElementFunction

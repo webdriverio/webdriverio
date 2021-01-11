@@ -1,7 +1,7 @@
 import path from 'path'
 import logger from '@wdio/logger'
 import { initialisePlugin } from '@wdio/utils'
-import type { ConfigOptions, Capability } from '@wdio/config'
+import type { Options, Capabilities } from '@wdio/types'
 import type { EventEmitter } from 'events'
 
 import { sendFailureMessage } from './utils'
@@ -34,9 +34,9 @@ export default class BaseReporter {
     private _reporters: Reporter[]
 
     constructor(
-        private _config: ConfigOptions,
+        private _config: Options.Testrunner,
         private _cid: string,
-        public caps: Capability
+        public caps: Capabilities.RemoteCapability
     ) {
         // ensure all properties are set before initializing the reporters
         this._reporters = this._config.reporters!.map(this.initReporter.bind(this))
@@ -120,7 +120,7 @@ export default class BaseReporter {
                     .filter((reporter) => !reporter.isSynchronised)
                     .map((reporter) => reporter.constructor.name)
 
-                if ((Date.now() - startTime) > this._config._reporterSyncTimeout && unsyncedReporter.length) {
+                if ((Date.now() - startTime) > this._config.reporterSyncTimeout! && unsyncedReporter.length) {
                     clearInterval(interval)
                     return reject(new Error(`Some reporters are still unsynced: ${unsyncedReporter.join(', ')}`))
                 }
@@ -135,7 +135,7 @@ export default class BaseReporter {
 
                 log.info(`Wait for ${unsyncedReporter.length} reporter to synchronise`)
                 // wait otherwise
-            }, this._config._reporterSyncInterval)
+            }, this._config.reporterSyncInterval)
         })
     }
 

@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@types/cucumber": "^6.0.1",
+    "@wdio/types": "^6.10.6",
     "fs-extra": "^9.0.0"
   },
   "types": "./build/index.d.ts"
