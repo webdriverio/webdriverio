@@ -6,12 +6,12 @@ const log = logger('test')
 const error = new Error('I\'m an error!')
 
 beforeEach(() => {
-    log.info.mockClear()
+    jest.clearAllMocks()
 })
 
 describe('onPrepare', () => {
-    const options = { browserstackLocal: true }
-    const caps = [{}]
+    const options: BrowserstackConfig = { browserstackLocal: true }
+    const caps: any = [{}]
     const config = {
         user: 'foobaruser',
         key: '12345'
@@ -50,18 +50,18 @@ describe('onPrepare', () => {
 
     it('should add the "browserstack.local" property to a single capability', async () => {
         const service = new BrowserstackLauncher(options, caps, config)
-        global.capabilities = {}
+        const capabilities = {}
 
-        await service.onPrepare(config, global.capabilities)
-        expect(global.capabilities).toEqual({ 'browserstack.local': true })
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual({ 'browserstack.local': true })
     })
 
     it('should add the "browserstack.local" property to an array of capabilities', async () => {
         const service = new BrowserstackLauncher(options, caps, config)
-        global.capabilities = [{}, {}, {}]
+        const capabilities = [{}, {}, {}]
 
-        await service.onPrepare(config, global.capabilities)
-        expect(global.capabilities).toEqual([
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
             { 'browserstack.local': true },
             { 'browserstack.local': true },
             { 'browserstack.local': true }
@@ -70,43 +70,36 @@ describe('onPrepare', () => {
 
     it('should throw an error if "capabilities" is not an object/array', () => {
         const service = new BrowserstackLauncher(options, caps, config)
-        global.capabilities = 1
+        const capabilities = 1
 
-        expect(() => service.onPrepare(config, global.capabilities))
+        expect(() => service.onPrepare(config, capabilities as any))
             .toThrow(TypeError('Capabilities should be an object or Array!'))
     })
 
     it('should reject if local.start throws an error', () => {
         const service = new BrowserstackLauncher(options, caps, config)
-        Browserstack.Local.mockImplementationOnce(function () {
-            this.start = jest.fn().mockImplementationOnce((options, cb) => cb(error))
-        })
+        const BrowserstackLocalStartSpy = jest.spyOn(new Browserstack.Local(), 'start')
+        BrowserstackLocalStartSpy.mockImplementationOnce((options, cb) => cb(error))
 
         return expect(service.onPrepare(config, caps)).rejects.toThrow(error)
-            .then(() => expect(service.browserstackLocal.start).toHaveBeenCalled())
+            .then(() => expect(service.browserstackLocal?.start).toHaveBeenCalled())
     })
 
     it('should successfully resolve if local.start is successful', async () => {
+        const logInfoMock = jest.spyOn(log, 'info')
         const service = new BrowserstackLauncher(options, caps, config)
 
         await service.onPrepare(config, caps)
-        expect(service.browserstackLocal.start).toHaveBeenCalled()
-        expect(log.info.mock.calls[0][0]).toContain('Browserstack Local successfully started after')
+        expect(service.browserstackLocal?.start).toHaveBeenCalled()
+        expect(logInfoMock.mock.calls[0][0]).toContain('Browserstack Local successfully started after')
     })
 
     it('should correctly set up this-binding for local.start', async () => {
         const service = new BrowserstackLauncher(options, caps, config)
-        Browserstack.Local.mockImplementationOnce(function () {
-            this.start = jest.fn().mockImplementationOnce(function (options, cb) {
-                this.addArgs(options)
-                cb()
-            })
-            this.addArgs = jest.fn().mockImplementationOnce(() => undefined)
-        })
-
+        const BrowserstackLocalStartSpy = jest.spyOn(new Browserstack.Local(), 'start')
         await service.onPrepare(config, caps)
-        expect(service.browserstackLocal.start).toHaveBeenCalled()
-        expect(service.browserstackLocal.addArgs).toHaveBeenCalled()
+        expect(BrowserstackLocalStartSpy).toHaveBeenCalled()
+        jest.clearAllMocks()
     })
 })
 
@@ -114,8 +107,9 @@ describe('onComplete', () => {
     it('should do nothing if browserstack local is turned on, but not running', () => {
         const service = new BrowserstackLauncher({}, [{}], {})
         service.browserstackLocal = new Browserstack.Local()
-        service.browserstackLocal.isRunning.mockImplementationOnce(() => false)
-        service.onComplete(null, {})
+        const BrowserstackLocalIsRunningSpy = jest.spyOn(service.browserstackLocal, 'isRunning')
+        BrowserstackLocalIsRunningSpy.mockImplementationOnce(() => false)
+        service.onComplete()
         expect(service.browserstackLocal.stop).not.toHaveBeenCalled()
     })
 
@@ -133,15 +127,16 @@ describe('onComplete', () => {
     it('should reject with an error, if local.stop throws an error', () => {
         const service = new BrowserstackLauncher({}, [{}], {})
         service.browserstackLocal = new Browserstack.Local()
-        service.browserstackLocal.stop.mockImplementationOnce((cb) => cb(error))
-        return expect(service.onComplete(null, {})).rejects.toThrow(error)
-            .then(() => expect(service.browserstackLocal.stop).toHaveBeenCalled())
+        const BrowserstackLocalStopSpy = jest.spyOn(service.browserstackLocal, 'stop')
+        BrowserstackLocalStopSpy.mockImplementationOnce((cb) => cb(error))
+        return expect(service.onComplete()).rejects.toThrow(error)
+            .then(() => expect(service.browserstackLocal?.stop).toHaveBeenCalled())
     })
 
     it('should properly resolve if everything works', () => {
         const service = new BrowserstackLauncher({}, [{}], {})
         service.browserstackLocal = new Browserstack.Local()
-        return expect(service.onComplete(null, {})).resolves.toBe(undefined)
-            .then(() => expect(service.browserstackLocal.stop).toHaveBeenCalled())
+        return expect(service.onComplete()).resolves.toBe(undefined)
+            .then(() => expect(service.browserstackLocal?.stop).toHaveBeenCalled())
     })
 })

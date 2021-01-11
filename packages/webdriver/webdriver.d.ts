@@ -334,6 +334,7 @@ declare namespace WebDriver {
         // Browserstack w3c specific
         'bstack:options'?: BrowserStackCapabilities
 
+        'browserstack.local'?: boolean
         'goog:chromeOptions'?: ChromeOptions
         'moz:firefoxOptions'?: FirefoxOptions
         firefox_profile?: string
