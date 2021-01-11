@@ -6,7 +6,7 @@ WebdriverIO Sauce Service
 > - the Sauce Labs Real Device cloud (iOS and Android) and can **ONLY** update the job status to passed / failed
 
 > - By default the Sauce Service will update the 'name' of the job when the job starts. This will give you the option to update the name at any given point in time.
->The only time when you can't update the name of the job is when you execute a retry or a session reload.
+> - The only time when you can't update the name of the job is when you execute a retry or a session reload.
 
 ## Installation
 
