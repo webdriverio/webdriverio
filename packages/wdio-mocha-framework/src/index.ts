@@ -4,6 +4,7 @@ import { format } from 'util'
 
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import type { Capabilities, Services } from '@wdio/types'
 
 import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
@@ -46,7 +47,7 @@ class MochaAdapter {
         private _cid: string,
         private _config: MochaConfig,
         private _specs: string[],
-        private _capabilities: WebDriver.Capabilities,
+        private _capabilities: Capabilities.RemoteCapability,
         private _reporter: EventEmitter
     ) {
         this._config = Object.assign({
@@ -185,7 +186,7 @@ class MochaAdapter {
     /**
      * Hooks which are added as true Mocha hooks need to call done() to notify async
      */
-    wrapHook (hookName: keyof WebdriverIO.HookFunctions) {
+    wrapHook (hookName: keyof Services.HookFunctions) {
         return () => executeHooksWithArgs(
             hookName,
             this._config[hookName] as Function,
@@ -195,7 +196,7 @@ class MochaAdapter {
         })
     }
 
-    prepareMessage (hookName: keyof WebdriverIO.HookFunctions) {
+    prepareMessage (hookName: keyof Services.HookFunctions) {
         const params: FrameworkMessage = { type: hookName }
 
         switch (hookName) {

@@ -24,6 +24,7 @@
   "dependencies": {
     "@types/mocha": "^8.0.0",
     "@wdio/logger": "6.10.10",
+    "@wdio/types": "^6.10.6",
     "@wdio/utils": "6.11.0",
     "expect-webdriverio": "^1.1.5",
     "mocha": "^8.0.1"
@@ -34,5 +35,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "mocha-framework.d.ts"
+  "types": "./build/index.d.ts"
 }
