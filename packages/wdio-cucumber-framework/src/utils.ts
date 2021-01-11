@@ -6,6 +6,7 @@ import logger from '@wdio/logger'
 import * as Cucumber from '@cucumber/cucumber'
 import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import { messages } from '@cucumber/messages'
+import { Capabilities } from '@wdio/types'
 
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
 import { TestHookDefinitionConfig } from './types'
@@ -134,7 +135,7 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
  * For example "@skip(browserName=firefox)" or "@skip(browserName=chrome,platform=/.+n?x/)"
  * @param {*} testCase
  */
-export function filterPickles (capabilities: WebDriver.Capabilities, pickle?: messages.IPickle) {
+export function filterPickles (capabilities: Capabilities.RemoteCapability, pickle?: messages.IPickle) {
     const skipTag = /^@skip\((.*)\)$/
 
     const match = (value: string, expr: RegExp) => {
@@ -163,6 +164,6 @@ export function filterPickles (capabilities: WebDriver.Capabilities, pickle?: me
         .map(p => p.name?.match(skipTag))
         .filter(Boolean)
         .map(m => parse(m![1]))
-        .find((filter: WebDriver.Capabilities) => Object.keys(filter)
-            .every((key: keyof WebDriver.Capabilities) => match(capabilities[key] as string, filter[key] as RegExp))))
+        .find((filter: Capabilities.Capabilities) => Object.keys(filter)
+            .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
 }

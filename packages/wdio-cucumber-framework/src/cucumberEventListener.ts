@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 import { Status, PickleFilter } from '@cucumber/cucumber'
 import { messages } from '@cucumber/messages'
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 
 import { HookParams } from './types'
 import { filterPickles } from './utils'
@@ -370,7 +371,7 @@ export default class CucumberEventListener extends EventEmitter {
      * returns a list of pickles to run based on capability tags
      * @param caps session capabilities
      */
-    getPickleIds (caps: WebDriver.Capabilities) {
+    getPickleIds (caps: Capabilities.RemoteCapability) {
         const gherkinDocument = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
         return [...this._suiteMap.entries()]
             /**

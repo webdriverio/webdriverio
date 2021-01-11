@@ -8,7 +8,11 @@ import { ServiceEntry, Hooks } from './Services'
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub'
 
-export interface WebDriver {
+/**
+ * WebdriverIO allows to connect to different WebDriver endpoints by capability
+ * so these connection options need to be part of capabilities
+ */
+export interface Connection {
     /**
      * Protocol to use when communicating with the Selenium standalone server (or driver).
      *
@@ -39,6 +43,9 @@ export interface WebDriver {
     queryParams?: {
         [name: string]: string
     },
+}
+
+export interface WebDriver extends Connection {
     /**
      * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
      * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),

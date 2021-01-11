@@ -1,3 +1,4 @@
+import type { Capabilities } from '@wdio/types'
 import type { messages } from '@cucumber/messages'
 
 export interface CucumberOpts {
@@ -99,7 +100,7 @@ export interface CucumberOpts {
 }
 
 export interface ReporterOptions {
-    capabilities: WebDriver.Capabilities
+    capabilities: Capabilities.RemoteCapability
     ignoreUndefinedDefinitions: boolean
     failAmbiguousDefinitions: boolean
     tagsInTitle: boolean

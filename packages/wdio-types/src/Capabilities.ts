@@ -1,4 +1,8 @@
-import { WebDriver as WebDriverOptions, Testrunner as TestrunnerOptions } from './Options'
+import {
+    WebDriver as WebDriverOptions,
+    Testrunner as TestrunnerOptions,
+    Connection as ConnectionOptions
+} from './Options'
 
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
 export type LoggingPreferenceType =
@@ -30,12 +34,6 @@ export interface ProxyObject {
     socksUsername?: string;
     socksPassword?: string;
 }
-
-/**
- * WebdriverIO allows to connect to different WebDriver endpoints by capability
- * so these connection options need to be part of capabilities
- */
-type ConnectionOptions = Pick<WebDriverOptions, 'protocol' | 'hostname' | 'port' | 'path'>
 
 export interface Capabilities extends VendorExtensions, ConnectionOptions {
     /**

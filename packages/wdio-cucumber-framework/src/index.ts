@@ -14,7 +14,7 @@ import { GherkinStreams } from '@cucumber/gherkin'
 import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
-import type { ConfigOptions } from '@wdio/config'
+import type { Capabilities, Options } from '@wdio/types'
 
 import CucumberReporter from './reporter'
 import { DEFAULT_OPTS } from './constants'
@@ -38,9 +38,9 @@ class CucumberAdapter {
 
     constructor(
         private _cid: string,
-        private _config: ConfigOptions,
+        private _config: Options.Testrunner,
         private _specs: string[],
-        private _capabilities: WebDriver.Capabilities,
+        private _capabilities: Capabilities.RemoteCapability,
         private _reporter: EventEmitter
     ) {
         this._cucumberOpts = Object.assign({}, DEFAULT_OPTS, this._config.cucumberOpts)
@@ -230,7 +230,7 @@ class CucumberAdapter {
      * set `beforeScenario`, `afterScenario`, `beforeFeature`, `afterFeature`
      * @param {object} config config
      */
-    addWdioHooks (config: ConfigOptions) {
+    addWdioHooks (config: Options.Testrunner) {
         const eventListener = this._cucumberReporter?.eventListener
         Cucumber.BeforeAll(async function wdioHookBeforeFeature() {
             const params = eventListener?.getHookParams()
@@ -268,7 +268,7 @@ class CucumberAdapter {
      * wraps step definition code with sync/async runner with a retry option
      * @param {object} config
      */
-    wrapSteps (config: ConfigOptions) {
+    wrapSteps (config: Options.Testrunner) {
         const wrapStep = this.wrapStep
         const cid = this._cid
         const getHookParams = () => this.getHookParams && this.getHookParams()
@@ -305,7 +305,7 @@ class CucumberAdapter {
     wrapStep(
         code: Function,
         isStep: boolean,
-        config: ConfigOptions,
+        config: Options.Testrunner,
         cid: string,
         options: StepDefinitionOptions,
         getHookParams: Function

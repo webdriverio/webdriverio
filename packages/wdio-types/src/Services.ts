@@ -38,6 +38,44 @@ export interface ServiceInstance extends HookFunctions {
     config?: TestrunnerOptions
 }
 
+interface CucumberHookObject {
+    [key: string]: any;
+}
+
+interface StepData {
+    uri: string,
+    feature: CucumberHookObject,
+    step: any
+}
+
+interface SourceLocation {
+    line: number;
+    uri: string;
+}
+
+interface ScenarioResult {
+    duration: number;
+    status: Status;
+    exception?: Error;
+}
+
+interface CucumberHookResult extends ScenarioResult {
+    exception?: Error
+}
+
+interface World {
+    [key: string]: any;
+}
+
+enum Status {
+    AMBIGUOUS = 'ambiguous',
+    FAILED = 'failed',
+    PASSED = 'passed',
+    PENDING = 'pending',
+    SKIPPED = 'skipped',
+    UNDEFINED = 'undefined'
+}
+
 export type ServiceEntry = (
     /**
      * e.g. `services: ['@wdio/sauce-service']`
@@ -240,4 +278,60 @@ export interface HookFunctions {
      * @param result    test result
      */
     afterTest?(test: any /* Test */, context: any, result: any /* TestResult */): void;
+
+    /**
+     *
+     * Runs before a Cucumber Feature.
+     * @param uri      path to feature file
+     * @param feature  Cucumber feature object
+     * @param scenario Cucumber scenario object
+     */
+    beforeFeature?(uri: string, feature: CucumberHookObject, scenarios: CucumberHookObject[]): void;
+
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param uri            path to feature file
+     * @param feature        Cucumber feature object
+     * @param scenario       Cucumber scenario object
+     * @param sourceLocation location of step
+     */
+    beforeScenario?(uri: string, feature: CucumberHookObject, scenario: CucumberHookObject, sourceLocation: SourceLocation, context?: World): void;
+
+    /**
+     *
+     * Runs before a Cucumber Step.
+     * @param step    step data
+     * @param context Cucumber world
+     */
+    beforeStep?(step: StepData, context: World): void;
+
+    /**
+     *
+     * Runs after a Cucumber Step.
+     * @param step    step data
+     * @param context Cucumber world
+     * @param result  step result
+     */
+    afterStep?(step: StepData, context: World, result: { error?: any, result?: any, passed: boolean, duration: number }): void;
+
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param uri            path to feature file
+     * @param feature        Cucumber feature object
+     * @param scenario       Cucumber scenario object
+     * @param result         scenario result
+     * @param sourceLocation location of step
+     */
+    afterScenario?(uri: string, feature: CucumberHookObject, scenario: CucumberHookObject, result: CucumberHookResult, sourceLocation: SourceLocation, context?: World): void;
+
+    /**
+     *
+     * Runs after a Cucumber Feature.
+     * @param uri      path to feature file
+     * @param feature  Cucumber feature object
+     * @param scenario Cucumber scenario object
+     */
+    afterFeature?(uri: string, feature: CucumberHookObject, scenarios: CucumberHookObject[]): void;
 }
