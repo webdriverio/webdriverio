@@ -113,6 +113,8 @@ test('if supported by browser', async () => {
         'disablePerformanceAudits', expect.any(Function))
     expect(service['_browser']?.addCommand).toBeCalledWith(
         'emulateDevice', expect.any(Function))
+    expect(service['_browser']?.addCommand).toBeCalledWith(
+        'checkPWA', expect.any(Function))
 
     // @ts-ignore access private property
     const rawEventListener = service['_puppeteer']['_connection']._transport._ws.addEventListener
@@ -259,9 +261,10 @@ test('_enablePerformanceAudits: applies some default values', () => {
     service['_browser'] = browser
     service._enablePerformanceAudits()
 
-    expect(service['_networkThrottling']).toBe('Good 3G')
-    expect(service['_cpuThrottling']).toBe(4)
+    expect(service['_networkThrottling']).toBe('online')
+    expect(service['_cpuThrottling']).toBe(0)
     expect(service['_cacheEnabled']).toBe(false)
+    expect(service['_formFactor']).toBe('desktop')
 })
 
 test('_enablePerformanceAudits: applies some custom values', () => {
@@ -271,11 +274,13 @@ test('_enablePerformanceAudits: applies some custom values', () => {
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
         cacheEnabled: true,
+        formFactor: 'mobile'
     })
 
     expect(service['_networkThrottling']).toBe('Regular 2G')
     expect(service['_cpuThrottling']).toBe(42)
     expect(service['_cacheEnabled']).toBe(true)
+    expect(service['_formFactor']).toBe('mobile')
 })
 
 test('_disablePerformanceAudits', () => {
@@ -285,6 +290,7 @@ test('_disablePerformanceAudits', () => {
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
         cacheEnabled: true,
+        formFactor: 'mobile'
     })
     service._disablePerformanceAudits()
     expect(service['_shouldRunPerformanceAudits']).toBe(false)
@@ -314,12 +320,12 @@ test('_setThrottlingProfile', async () => {
     sessionMock.send.mockClear()
     await service._setThrottlingProfile()
     expect(pageMock.setCacheEnabled).toBeCalledWith(false)
-    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 4 })
+    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 0 })
     expect(sessionMock.send).toBeCalledWith('Network.emulateNetworkConditions', {
-        downloadThroughput: 188743,
-        latency: 562.5,
+        downloadThroughput: -1,
+        latency: 0,
         offline: false,
-        uploadThroughput: 86400
+        uploadThroughput: -1
     })
 })
 

@@ -593,7 +593,7 @@ declare namespace WebdriverIO {
         statusCode: number;
     }
 
-    type PuppeteerBrowser = Partial<import('puppeteer').Browser>;
+    type PuppeteerBrowser = import('puppeteer').Browser;
     type CDPSession = Partial<import('puppeteer').CDPSession>;
     type MockOverwriteFunction = (request: Matches, client: CDPSession) => Promise<string | Record<string, any>>;
     type MockOverwrite = string | Record<string, any> | MockOverwriteFunction;

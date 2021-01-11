@@ -15,21 +15,12 @@ import checkTimeSinceLastLongTask from '../scripts/checkTimeSinceLastLongTask'
 
 import {
     DEFAULT_TRACING_CATEGORIES, FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT,
-    MAX_TRACE_WAIT_TIME, CPU_IDLE_TRESHOLD, NETWORK_IDLE_TIMEOUT, CLICK_TRANSITION
+    MAX_TRACE_WAIT_TIME, CPU_IDLE_TRESHOLD, NETWORK_IDLE_TIMEOUT, CLICK_TRANSITION,
+    NETWORK_RECORDER_EVENTS
 } from '../constants'
 import { isSupportedUrl } from '../utils'
 
 const log = logger('@wdio/devtools-service:TraceGatherer')
-
-const NETWORK_RECORDER_EVENTS = [
-    'Network.requestWillBeSent',
-    'Network.requestServedFromCache',
-    'Network.responseReceived',
-    'Network.dataReceived',
-    'Network.loadingFinished',
-    'Network.loadingFailed',
-    'Network.resourceChangedPriority'
-]
 
 export interface Trace {
     traceEvents: TraceEvent[]
@@ -70,22 +61,18 @@ export default class TraceGatherer extends EventEmitter {
     private _pageLoadDetected = false
     private _networkListeners: Record<string, (params: any) => void> = {}
 
-    private _session: CDPSession
-    private _page: Page
     private _frameId?: string
     private _loaderId?: string
     private _pageUrl?: string
-    private _networkStatusMonitor?: typeof NetworkRecorder
+    private _networkStatusMonitor: typeof NetworkRecorder
     private _trace?: Trace
     private _traceStart?: number
     private _clickTraceTimeout?: NodeJS.Timeout
     private _waitForNetworkIdleEvent: WaitPromise = NOOP_WAIT_EVENT
     private _waitForCPUIdleEvent: WaitPromise = NOOP_WAIT_EVENT
 
-    constructor (session: CDPSession, page: Page) {
+    constructor (private _session: CDPSession, private _page: Page) {
         super()
-        this._session = session
-        this._page = page
 
         NETWORK_RECORDER_EVENTS.forEach((method) => {
             this._networkListeners[method] = (params) => this._networkStatusMonitor.dispatch({ method, params })
