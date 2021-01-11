@@ -72,7 +72,7 @@ export.config = {
         // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
         'sauce:options': {
             tunnelIdentifier: 'YourTunnelName',
-            
+
             // Example options
             build: 'your-build-name',
             screenResolution: '1600x1200',
@@ -94,7 +94,7 @@ export.config = {
         'sauce:options': {
             tunnelIdentifier: 'ParentTunnelName',
             parentTunnel: '<username of parent>,
-            
+
             // Example options
             build: 'your-build-name',
             screenResolution: '1600x1200',
@@ -141,12 +141,6 @@ Type: `Object`<br>
 Default: `{ noAutodetect: true }`
 
 *(only for vm and or em/simulators)*
-
-### setJobNameInBeforeSuite
-If true it updates the job name at the Sauce Labs job in the beforeSuite Hook. Attention: this comes at the cost of an additional call to Sauce Labs. The advantage of using this flag is the direct visibility of the job name in sauce labs also during the run time. This is especially useful for long running tests.
-
-Type: `Boolean`<br>
-Default: `false`
 
 ----
 

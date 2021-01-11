@@ -12,6 +12,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
     private _testCnt = 0
     private _failures = 0 // counts failures between reloads
     private _isServiceEnabled = true
+    private _isJobNameSet = false;
 
     private _api: SauceLabs
     private _isRDC: boolean
@@ -62,9 +63,6 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
 
     beforeSuite (suite: any) {
         this._suiteTitle = suite.title
-        if (this._browser && this._options.setJobNameInBeforeSuite && !this._isUP) {
-            this._browser.execute('sauce:job-name=' + this._suiteTitle)
-        }
     }
 
     beforeTest (test: any) {
@@ -84,6 +82,12 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
         /* istanbul ignore if */
         if (this._suiteTitle === 'Jasmine__TopLevel__Suite') {
             this._suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.description) - 1)
+        }
+
+        /* istanbul ignore if */
+        if (this._browser && !this._isUP && !this._isJobNameSet) {
+            this._browser.execute('sauce:job-name=' + this._suiteTitle)
+            this._isJobNameSet = true
         }
 
         const fullTitle = (
@@ -232,18 +236,18 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
         let body: Partial<Job> = {}
 
         /**
-         * set default values
-         */
-        body.name = this._suiteTitle
-
-        if (browserName) {
-            body.name = `${browserName}: ${body.name}`
-        }
-
-        /**
          * add reload count to title if reload is used
          */
         if (calledOnReload || this._testCnt) {
+            /**
+             * set default values
+             */
+            body.name = this._suiteTitle
+
+            if (browserName) {
+                body.name = `${browserName}: ${body.name}`
+            }
+
             let testCnt = ++this._testCnt
 
             const mulitremoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowserObject
