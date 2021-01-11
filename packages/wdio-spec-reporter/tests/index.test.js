@@ -33,10 +33,7 @@ describe('SpecReporter', () => {
 
     describe('on create', () => {
         it('should verify initial properties', () => {
-            expect(Array.isArray(reporter.suiteUids)).toBe(true)
-            expect(reporter.suiteUids.length).toBe(0)
-            expect(Array.isArray(reporter.suites)).toBe(true)
-            expect(reporter.suites.length).toBe(0)
+            expect(reporter.suiteUids.size).toBe(0)
             expect(reporter.indents).toBe(0)
             expect(reporter.suiteIndents).toEqual({})
             expect(reporter.defaultTestIndent).toBe('   ')
@@ -51,12 +48,12 @@ describe('SpecReporter', () => {
 
     describe('onSuiteStart', () => {
         beforeAll(() => {
-            reporter.onSuiteStart(SUITES[0])
+            reporter.onSuiteStart(Object.values(SUITES)[0])
         })
 
         it('should add to suiteUids', () => {
-            expect(reporter.suiteUids.length).toBe(1)
-            expect(reporter.suiteUids[0]).toBe('Foo test1')
+            expect(reporter.suiteUids.size).toBe(1)
+            expect([...reporter.suiteUids.values()][0]).toBe('Foo test1')
         })
 
         it('should increase suiteIndents', () => {
@@ -126,11 +123,6 @@ describe('SpecReporter', () => {
 
         it('should decrease indents', () => {
             expect(reporter.indents).toBe(0)
-        })
-
-        it('should add the suite to the suites array', () => {
-            expect(reporter.suites.length).toBe(1)
-            expect(reporter.suites[0]).toBe(SUITES[0])
         })
     })
 
@@ -283,7 +275,7 @@ describe('SpecReporter', () => {
 
     describe('getResultDisplay', () => {
         it('should validate the result output with tests', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => SUITES)
+            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES))
             tmpReporter.suites = SUITES
 
             const result = tmpReporter.getResultDisplay()
@@ -291,7 +283,7 @@ describe('SpecReporter', () => {
         })
 
         it('should validate the result output with no tests', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => SUITES_NO_TESTS)
+            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES_NO_TESTS))
             tmpReporter.suites = SUITES_NO_TESTS
 
             const result = tmpReporter.getResultDisplay()
@@ -299,7 +291,7 @@ describe('SpecReporter', () => {
         })
 
         it('should print data tables', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => SUITES_WITH_DATA_TABLE)
+            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES_WITH_DATA_TABLE))
             tmpReporter.suites = SUITES_WITH_DATA_TABLE
 
             const result = tmpReporter.getResultDisplay()
@@ -308,7 +300,7 @@ describe('SpecReporter', () => {
 
         it('should not print if data table format is not given', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => {
-                const suites = JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE)))
                 suites[0].hooksAndTests[0].argument = 'some different format'
                 return suites
             })
@@ -318,7 +310,7 @@ describe('SpecReporter', () => {
 
         it('should not print if data table is empty', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => {
-                const suites = JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE)))
                 suites[0].hooksAndTests[0].argument.rows = []
                 return suites
             })
@@ -368,7 +360,7 @@ describe('SpecReporter', () => {
 
     describe('getFailureDisplay', () => {
         it('should return failing results', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => SUITES)
+            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES))
             tmpReporter.suites = SUITES
 
             const result = tmpReporter.getFailureDisplay()
@@ -381,7 +373,7 @@ describe('SpecReporter', () => {
         })
 
         it('should return no results', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => SUITES_NO_TESTS)
+            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES_NO_TESTS))
             tmpReporter.suites = SUITES_NO_TESTS
 
             const result = tmpReporter.getFailureDisplay()
@@ -390,7 +382,7 @@ describe('SpecReporter', () => {
         })
 
         it('should return mutliple failing results if they exist', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => SUITES_MULTIPLE_ERRORS)
+            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES_MULTIPLE_ERRORS))
             tmpReporter.suites = SUITES_MULTIPLE_ERRORS
 
             const result = tmpReporter.getFailureDisplay()
@@ -407,8 +399,8 @@ describe('SpecReporter', () => {
     describe('getOrderedSuites', () => {
         it('should return the suites in order based on uids', () => {
             tmpReporter.foo = 'hellooo'
-            tmpReporter.suiteUids = [5, 3, 8]
-            tmpReporter.suites = [{ uid : 3 }, { uid : 5 }]
+            tmpReporter.suiteUids = new Set(['5', '3', '8'])
+            tmpReporter.suites = { '3': { uid : 3 }, '5': { uid : 5 } }
 
             const result = tmpReporter.getOrderedSuites()
 

@@ -1,6 +1,6 @@
 // eslint-disable-next-line
 import assert from 'assert'
-import { Given, BeforeAll, Before, After, AfterAll } from 'cucumber'
+import { Given, BeforeAll, Before, After, AfterAll } from '@cucumber/cucumber'
 
 browser.addCommand('rootLevel', () => {
     return true
