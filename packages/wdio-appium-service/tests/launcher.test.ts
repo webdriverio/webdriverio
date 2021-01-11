@@ -3,6 +3,7 @@ import childProcess from 'child_process'
 import fs from 'fs-extra'
 import { mocked } from 'ts-jest/utils'
 import path from 'path'
+import type { Capabilities, Options } from '@wdio/types'
 
 jest.mock('child_process', () => ({
     spawn: jest.fn(),
@@ -81,7 +82,7 @@ describe('Appium launcher', () => {
                 command:'path/to/my_custom_appium',
                 args: { foo: 'bar' }
             }
-            const capabilities = [{ port: 1234 }] as WebDriver.DesiredCapabilities[]
+            const capabilities = [{ port: 1234, capabilities: [] }] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
             const launcher = new AppiumLauncher(options, capabilities, {})
             await launcher.onPrepare()
 
@@ -104,9 +105,9 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { foo: 'bar' }
             }
-            const capabilities = {
-                browserA: { port: 1234 } as WebDriver.DesiredCapabilities,
-                browserB: {} as WebDriver.DesiredCapabilities
+            const capabilities: Capabilities.MultiRemoteCapabilities = {
+                browserA: { port: 1234, capabilities: {} },
+                browserB: { capabilities: {} }
             }
             const launcher = new AppiumLauncher(options, capabilities, {})
             await launcher.onPrepare()
@@ -126,9 +127,9 @@ describe('Appium launcher', () => {
                 args : { foo : 'foo' },
                 installArgs : { bar : 'bar' },
             }
-            const capabilities = {
-                browserA: { port: 1234 } as WebDriver.DesiredCapabilities,
-                browserB: { port: 4321, capabilities: { 'bstack:options': {} } } as WebDriver.DesiredCapabilities
+            const capabilities: Capabilities.MultiRemoteCapabilities = {
+                browserA: { port: 1234, capabilities: {} },
+                browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
             const launcher = new AppiumLauncher(options, capabilities, {})
             launcher['_redirectLogStream'] = jest.fn()
@@ -149,7 +150,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { foo: 'bar', port: 1234 }
             }
-            const capabilities = [{} as WebDriver.DesiredCapabilities]
+            const capabilities = [{} as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {})
             launcher['_startAppium'] = jest.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))
@@ -174,7 +175,7 @@ describe('Appium launcher', () => {
                 command: 'path/to/my_custom_appium',
                 args: { foo: 'bar', port: 1234, basePath: '/foo/bar' }
             }
-            const capabilities = [{ port: 4321 } as WebDriver.DesiredCapabilities]
+            const capabilities = [{ port: 4321 } as Capabilities.DesiredCapabilities]
             const launcher = new AppiumLauncher(options, capabilities, {})
             launcher['_startAppium'] = jest.fn().mockImplementation(
                 (cmd, args, cb) => cb(null, new MockProcess()))

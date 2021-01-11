@@ -31,7 +31,13 @@ export interface ProxyObject {
     socksPassword?: string;
 }
 
-export interface Capabilities extends VendorExtensions {
+/**
+ * WebdriverIO allows to connect to different WebDriver endpoints by capability
+ * so these connection options need to be part of capabilities
+ */
+type ConnectionOptions = Pick<WebDriverOptions, 'protocol' | 'hostname' | 'port' | 'path'>
+
+export interface Capabilities extends VendorExtensions, ConnectionOptions {
     /**
      * Identifies the user agent.
      */

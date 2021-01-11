@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { Capabilities, Clients, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 const log = logger('@wdio/config:utils')
 
@@ -52,8 +52,7 @@ export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
 }
 
-export function isCloudCapability(capabilities: Capabilities.DesiredCapabilities | Clients.Multiremote) {
-    const caps = (capabilities as Clients.Multiremote).capabilities || capabilities
+export function isCloudCapability(caps: Capabilities.Capabilities) {
     return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
 }
 

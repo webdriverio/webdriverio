@@ -5,6 +5,7 @@ import { promisify } from 'util'
 import { getFilePath, formatCliArgs } from './utils'
 import { Readable } from 'stream'
 import { isCloudCapability } from '@wdio/config'
+import type { Services, Capabilities } from '@wdio/types'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'wdio-appium.log'
@@ -16,32 +17,23 @@ const DEFAULT_CONNECTION = {
     path: '/'
 }
 
-export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
+export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _logPath?: string
-    private readonly _appiumCliArgs: Array<string> = []
-    private readonly _capabilities: Array<WebDriver.DesiredCapabilities>
+    private readonly _appiumCliArgs: string[] = []
     private readonly _args: AppiumServerArguments
     private _command: string
     private _process?: ChildProcessByStdio<null, Readable, Readable>
 
     constructor(
-        private _options: WebdriverIO.ServiceOption,
-        capabilities:
-            Array<WebDriver.DesiredCapabilities> | {[capabilitiy: string]: WebDriver.DesiredCapabilities } = {},
+        private _options: Services.ServiceOption,
+        private _capabilities: Capabilities.RemoteCapabilities,
         private _config?: Config
     ) {
-        /**
-         * Convert capability object to Array of capabilities
-         */
-        this._capabilities = Array.isArray(capabilities)
-            ? capabilities
-            : Object.values(capabilities)
-
         this._args = {
             basePath: DEFAULT_CONNECTION.path,
             ...(this._options.args || {})
         }
-        this._logPath = _options.logPath || _config?.outputDir
+        this._logPath = _options.logPath || this._config?.outputDir
         this._command = this._getCommand(_options.command)
     }
 
@@ -71,8 +63,24 @@ export default class AppiumLauncher implements WebdriverIO.ServiceInstance {
      * to Appium server
      */
     private _setCapabilities() {
+        /**
+         * Multiremote sessions
+         */
+        if (!Array.isArray(this._capabilities)) {
+            for (const [, cap] of Object.entries(this._capabilities)) {
+                !isCloudCapability(cap) && Object.assign(
+                    cap,
+                    DEFAULT_CONNECTION,
+                    'port' in this._args ? { port: this._args.port } : {},
+                    { path: this._args.basePath },
+                    { ...cap }
+                )
+            }
+            return
+        }
+
         this._capabilities.forEach(
-            (cap) => !isCloudCapability(cap) && Object.assign(
+            (cap) => !isCloudCapability(cap as Capabilities.DesiredCapabilities) && Object.assign(
                 cap,
                 DEFAULT_CONNECTION,
                 'port' in this._args ? { port: this._args.port } : {},

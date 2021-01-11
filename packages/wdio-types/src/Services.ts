@@ -1,4 +1,4 @@
-import { DesiredCapabilities } from './Capabilities'
+import { DesiredCapabilities, RemoteCapability } from './Capabilities'
 import { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options'
 
 export interface RunnerInstance {
@@ -23,7 +23,7 @@ export interface ServiceOption {
 }
 
 export interface ServiceClass {
-    new(options: ServiceOption, caps: DesiredCapabilities, config: Omit<WebdriverIOOptions, 'capabilities'>): ServiceInstance
+    new(options: ServiceOption, caps: RemoteCapability, config: Omit<WebdriverIOOptions, 'capabilities'>): ServiceInstance
 }
 
 export interface ServicePlugin extends ServiceClass {
@@ -33,7 +33,7 @@ export interface ServicePlugin extends ServiceClass {
 
 export interface ServiceInstance extends HookFunctions {
     options?: Record<string, any>,
-    capabilities?: DesiredCapabilities,
+    capabilities?: RemoteCapability,
     config?: TestrunnerOptions
 }
 
