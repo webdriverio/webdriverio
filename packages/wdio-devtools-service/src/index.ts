@@ -10,10 +10,11 @@ import CommandHandler from './commands'
 import Auditor from './auditor'
 import PWAGatherer from './gatherer/pwa'
 import TraceGatherer from './gatherer/trace'
+import CoverageGatherer from './gatherer/coverage'
 import DevtoolsGatherer, { CDPSessionOnMessageObject } from './gatherer/devtools'
 import { isBrowserSupported, setUnsupportedCommand } from './utils'
 import { NETWORK_STATES, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION, DEFAULT_THROTTLE_STATE } from './constants'
-import { FormFactor, EnablePerformanceAuditsOptions, DeviceDescription, Device, PWAAudits } from './types'
+import { DevtoolsConfig, FormFactor, EnablePerformanceAuditsOptions, DeviceDescription, Device, PWAAudits } from './types'
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
@@ -34,7 +35,10 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
 
     private _traceGatherer?: TraceGatherer
     private _devtoolsGatherer?: DevtoolsGatherer
+    private _coverageGatherer?: CoverageGatherer
     private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+
+    constructor (private _options: DevtoolsConfig) {}
 
     beforeSession (_: WebdriverIO.Config, caps: WebDriver.DesiredCapabilities) {
         if (!isBrowserSupported(caps)) {
@@ -113,6 +117,12 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
                 resolve()
             })
         })
+    }
+
+    async after () {
+        if (this._coverageGatherer) {
+            await this._coverageGatherer.logCoverage()
+        }
     }
 
     /**
@@ -229,6 +239,15 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
                 this._session?.send(`${domain}.enable` as any)
             ])
         ))
+
+        /**
+         * register coverage gatherer if options is set by user
+         */
+        if (this._options.coverageReporter?.enable) {
+            this._coverageGatherer = new CoverageGatherer(this._page, this._options.coverageReporter)
+            this._browser.addCommand('getCoverageReport', this._coverageGatherer.getCoverageReport.bind(this._coverageGatherer))
+            await this._coverageGatherer.init()
+        }
 
         this._devtoolsGatherer = new DevtoolsGatherer()
         this._puppeteer['_connection']._transport._ws.addEventListener('message', (event: { data: string }) => {
