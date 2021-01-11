@@ -2,8 +2,11 @@ WebdriverIO Sauce Service
 =========================
 
 > WebdriverIO service that provides a better integration into Sauce Labs. This service can be used for:
-> - the Sauce Labs virtual machine cloud (desktop web and em/simulators) and can update the job metadata ('name', 'passed', 'tags', 'public', 'build', 'custom-data') and runs Sauce Connect if desired.
+> - the Sauce Labs virtual machine cloud (desktop web and em/simulators) and can update the job metadata ('name'*, 'passed', 'tags', 'public', 'build', 'custom-data') and runs Sauce Connect if desired.
 > - the Sauce Labs Real Device cloud (iOS and Android) and can **ONLY** update the job status to passed / failed
+
+> - By default the Sauce Service will update the 'name' of the job when the job starts. This will give you the option to update the name at any given point in time.
+> - The only time when you can't update the name of the job is when you execute a retry or a session reload.
 
 ## Installation
 
@@ -72,7 +75,7 @@ export.config = {
         // Sauce options can be found here https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
         'sauce:options': {
             tunnelIdentifier: 'YourTunnelName',
-            
+
             // Example options
             build: 'your-build-name',
             screenResolution: '1600x1200',
@@ -94,7 +97,7 @@ export.config = {
         'sauce:options': {
             tunnelIdentifier: 'ParentTunnelName',
             parentTunnel: '<username of parent>,
-            
+
             // Example options
             build: 'your-build-name',
             screenResolution: '1600x1200',
@@ -141,12 +144,6 @@ Type: `Object`<br>
 Default: `{ noAutodetect: true }`
 
 *(only for vm and or em/simulators)*
-
-### setJobNameInBeforeSuite
-If true it updates the job name at the Sauce Labs job in the beforeSuite Hook. Attention: this comes at the cost of an additional call to Sauce Labs. The advantage of using this flag is the direct visibility of the job name in sauce labs also during the run time. This is especially useful for long running tests.
-
-Type: `Boolean`<br>
-Default: `false`
 
 ----
 
