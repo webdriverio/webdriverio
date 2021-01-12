@@ -147,7 +147,7 @@ test('onPrepare multiremote', async () => {
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps: WebdriverIO.MultiRemoteCapabilities = {
+    const caps: Capabilities.MultiRemoteCapabilities = {
         browserA: {
             capabilities: { browserName: 'chrome' }
         },
@@ -217,7 +217,7 @@ test('onPrepare multiremote with tunnel identifier and with w3c caps ', async ()
             tunnelIdentifier: 'my-tunnel'
         }
     }
-    const caps: WebdriverIO.MultiRemoteCapabilities = {
+    const caps: Capabilities.MultiRemoteCapabilities = {
         browserA: {
             capabilities: {
                 browserName: 'chrome',

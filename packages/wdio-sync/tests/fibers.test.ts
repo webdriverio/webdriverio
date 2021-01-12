@@ -1,7 +1,7 @@
 export {}
 
 declare global {
-    var requireFibers: boolean
+    var requireFibers: boolean | undefined
 }
 
 global.requireFibers = true

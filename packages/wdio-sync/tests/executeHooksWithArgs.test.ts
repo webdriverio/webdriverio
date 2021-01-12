@@ -1,12 +1,8 @@
 import executeHooksWithArgs from '../src/executeHooksWithArgs'
 
-declare global {
-    var browser: any
-}
-
 describe('executeHooksWithArgs', () => {
     beforeEach(() => {
-        global.browser = {}
+        global.browser = {} as any
     })
 
     it('multiple hooks, multiple args', async () => {
@@ -59,6 +55,7 @@ describe('executeHooksWithArgs', () => {
     })
 
     afterEach(() => {
+        // @ts-expect-error
         delete global.browser
     })
 })

@@ -303,7 +303,7 @@ test('after for UP', () => {
 })
 
 test('after for UP with multi remote', () => {
-    const caps: WebdriverIO.MultiRemoteCapabilities = {
+    const caps: Capabilities.MultiRemoteCapabilities = {
         chromeA: { capabilities: {} },
         chromeB: { capabilities: {} },
         chromeC: { capabilities: {} }
@@ -360,7 +360,7 @@ test('beforeScenario should not set context if no sauce user was applied', () =>
 })
 
 test('after in multiremote', () => {
-    const caps: WebdriverIO.MultiRemoteCapabilities = {
+    const caps: Capabilities.MultiRemoteCapabilities = {
         chromeA: { capabilities: {} },
         chromeB: { capabilities: {} },
         chromeC: { capabilities: {} }
@@ -426,7 +426,7 @@ test('onReload should not set context if no sauce user was applied', () => {
 })
 
 test('after in multiremote', () => {
-    const caps: WebdriverIO.MultiRemoteCapabilities = {
+    const caps: Capabilities.MultiRemoteCapabilities = {
         chromeA: { capabilities: {} },
         chromeB: { capabilities: {} },
         chromeC: { capabilities: {} }
