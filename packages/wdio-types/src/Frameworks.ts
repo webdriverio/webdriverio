@@ -42,3 +42,41 @@ export interface Results {
     passed: number
     failed: number
 }
+
+export interface CucumberHookObject {
+    [key: string]: any;
+}
+
+export interface StepData {
+    uri: string,
+    feature: CucumberHookObject,
+    step: any
+}
+
+export interface SourceLocation {
+    line: number;
+    uri: string;
+}
+
+export interface ScenarioResult {
+    duration: number;
+    status: Status;
+    exception?: Error;
+}
+
+export interface CucumberHookResult extends Omit<ScenarioResult, 'exception'> {
+    exception?: string
+}
+
+export interface World {
+    [key: string]: any;
+}
+
+export enum Status {
+    AMBIGUOUS = 'ambiguous',
+    FAILED = 'failed',
+    PASSED = 'passed',
+    PENDING = 'pending',
+    SKIPPED = 'skipped',
+    UNDEFINED = 'undefined'
+}

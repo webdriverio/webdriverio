@@ -113,7 +113,7 @@ export const getElements = function getElements(
             return client
         }, propertiesObject)
 
-        const elementInstance = element(this.sessionId, elementErrorHandler(wrapCommand))
+        const elementInstance = element((this as Browser).sessionId, elementErrorHandler(wrapCommand))
 
         const origAddCommand = elementInstance.addCommand.bind(elementInstance)
         elementInstance.addCommand = (name: string, fn: Function) => {

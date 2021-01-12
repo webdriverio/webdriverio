@@ -99,7 +99,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    after(result: number) {
+    after (result: number) {
         // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
         // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
         if (this._options.preferScenarioName && this._scenariosThatRan.length === 1){
@@ -119,7 +119,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * For CucumberJS
      */
 
-    afterScenario(uri: string, feature: Feature, pickle: Pickle, results: Frameworks.TestResult) {
+    afterScenario (uri: string, feature: Feature, pickle: Pickle, results: Frameworks.CucumberHookResult) {
         let { exception, status } = results
 
         if (status !== 'skipped') {

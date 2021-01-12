@@ -26,7 +26,7 @@ const log = logger('webdriverio')
  *
  */
 export default async function reloadSession (this: Browser | MultiRemoteBrowser) {
-    const oldSessionId = this.sessionId
+    const oldSessionId = (this as Browser).sessionId
 
     /**
      * end current running session, if session already gone suppress exceptions
@@ -47,7 +47,7 @@ export default async function reloadSession (this: Browser | MultiRemoteBrowser)
 
     const options = this.options as Options.Testrunner
     if (Array.isArray(options.onReload) && options.onReload.length) {
-        await Promise.all(options.onReload.map((hook) => hook(oldSessionId, this.sessionId)))
+        await Promise.all(options.onReload.map((hook) => hook(oldSessionId, (this as Browser).sessionId)))
     }
 
     return this.sessionId

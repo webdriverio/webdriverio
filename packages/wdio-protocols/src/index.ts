@@ -21,13 +21,13 @@ type MJSONWPCommandsAsync = MakeAsync<MJSONWPCommands>
 type SauceLabsCommandsAsync = MakeAsync<SauceLabsCommands>
 type SeleniumCommandsAsync = MakeAsync<SeleniumCommands>
 
-const WebDriverProtocol: Protocol = require('./protocols/webdriver.json')
-const MJsonWProtocol: Protocol = require('./protocols/mjsonwp.json')
-const JsonWProtocol: Protocol = require('./protocols/jsonwp.json')
-const AppiumProtocol: Protocol = require('./protocols/appium.json')
-const ChromiumProtocol: Protocol = require('./protocols/chromium.json')
-const SauceLabsProtocol: Protocol = require('./protocols/saucelabs.json')
-const SeleniumProtocol: Protocol = require('./protocols/selenium.json')
+const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')
+const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')
+const JsonWProtocol: Protocol = require('../protocols/jsonwp.json')
+const AppiumProtocol: Protocol = require('../protocols/appium.json')
+const ChromiumProtocol: Protocol = require('../protocols/chromium.json')
+const SauceLabsProtocol: Protocol = require('../protocols/saucelabs.json')
+const SeleniumProtocol: Protocol = require('../protocols/selenium.json')
 
 export * from './types'
 export {

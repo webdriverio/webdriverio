@@ -1,5 +1,5 @@
 import {
-    WebDriver as WebDriverOptions,
+    WebdriverIO as WebDriverIOOptions,
     Testrunner as TestrunnerOptions,
     Connection as ConnectionOptions
 } from './Options'
@@ -85,7 +85,7 @@ export interface W3CCapabilities {
 
 export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities;
 export interface MultiRemoteCapabilities {
-    [instanceName: string]: WebDriverOptions;
+    [instanceName: string]: WebDriverIOOptions;
 }
 
 export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;

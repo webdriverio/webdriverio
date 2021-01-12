@@ -10,10 +10,10 @@ import { Browser as PuppeteerBrowser } from 'node_modules/puppeteer-core/lib/cjs
 import type BrowserCommands from './commands/browser'
 import type ElementCommands from './commands/element'
 
-type BrowserCommandsType = typeof BrowserCommands
-type ElementCommandsType = typeof ElementCommands
+export type BrowserCommandsType = typeof BrowserCommands
+export type ElementCommandsType = typeof ElementCommands
 
-interface ProtocolCommands extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
+export interface ProtocolCommands extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
 
 export interface ElementArray extends Array<Element> {
     selector: Selector
@@ -108,7 +108,7 @@ export interface Element extends ElementReference, Omit<Browser, keyof ElementCo
 
 type MultiRemoteBrowserReference = Record<string, Browser>
 
-interface MultiRemoteBase extends ProtocolCommands, BrowserCommandsType, Omit<Browser, 'isMultiremote'> {
+interface MultiRemoteBase extends ProtocolCommands, BrowserCommandsType, CustomInstanceCommands, Omit<Browser, 'isMultiremote' | 'sessionId'> {
     /**
      * multiremote browser instance names
      */

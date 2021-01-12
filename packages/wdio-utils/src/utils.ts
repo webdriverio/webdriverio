@@ -1,8 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-import type { Services } from '@wdio/types'
-import type { Client } from 'webdriver'
+import type { Services, Clients } from '@wdio/types'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 
@@ -29,10 +28,10 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
         const origCommand = propertiesObject[commandName].value
         delete propertiesObject[commandName]
 
-        const newCommand = function (this: Client, ...args: any[]) {
+        const newCommand = function (this: Clients.Browser, ...args: any[]) {
             const element = this
             return userDefinedCommand.apply(element, [
-                function origCommandFunction (this: Client) {
+                function origCommandFunction (this: Clients.Browser) {
                     const context = this || element // respect explicite context binding, use element as default
                     return origCommand.apply(context, arguments)
                 },

@@ -1,6 +1,6 @@
 import { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities'
 import { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options'
-import { Suite, Test } from './Frameworks'
+import { Suite, Test, CucumberHookObject, CucumberHookResult, World, StepData, SourceLocation } from './Frameworks'
 
 export interface RunnerInstance {
     initialise(): Promise<void>
@@ -36,44 +36,6 @@ export interface ServiceInstance extends HookFunctions {
     options?: Record<string, any>,
     capabilities?: RemoteCapability,
     config?: TestrunnerOptions
-}
-
-interface CucumberHookObject {
-    [key: string]: any;
-}
-
-interface StepData {
-    uri: string,
-    feature: CucumberHookObject,
-    step: any
-}
-
-interface SourceLocation {
-    line: number;
-    uri: string;
-}
-
-interface ScenarioResult {
-    duration: number;
-    status: Status;
-    exception?: Error;
-}
-
-interface CucumberHookResult extends ScenarioResult {
-    exception?: Error
-}
-
-interface World {
-    [key: string]: any;
-}
-
-enum Status {
-    AMBIGUOUS = 'ambiguous',
-    FAILED = 'failed',
-    PASSED = 'passed',
-    PENDING = 'pending',
-    SKIPPED = 'skipped',
-    UNDEFINED = 'undefined'
 }
 
 export type ServiceEntry = (

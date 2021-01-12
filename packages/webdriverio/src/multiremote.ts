@@ -5,7 +5,7 @@ import { Options } from '@wdio/types'
 
 import { multiremoteHandler } from './middlewares'
 import { getPrototype } from './utils'
-import type { Browser, MultiRemoteBrowser } from './types'
+import type { Browser, MultiRemoteBrowser, ProtocolCommands, BrowserCommandsType } from './types'
 
 type EventEmitter = (args: any) => void
 
@@ -28,7 +28,7 @@ export default class MultiRemote {
     /**
      * modifier for multibrowser instance
      */
-    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: string[] }) {
+    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType))[] }) {
         const propertiesObject: Record<string, PropertyDescriptor> = {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
@@ -88,7 +88,6 @@ export default class MultiRemote {
             }
 
             client.instances = Object.keys(instances)
-            // @ts-ignore
             delete client.sessionId
             return client
         }, prototype)
@@ -100,11 +99,11 @@ export default class MultiRemote {
     /**
      * handle commands for multiremote instances
      */
-    commandWrapper (commandName: string) {
+    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType)) {
         const instances = this.instances
         return wrapCommand(commandName, async function (this: Browser, ...args: any[]) {
             const result = await Promise.all(
-                // @ts-ignore
+                // @ts-expect-error
                 Object.entries(instances).map(([, instance]) => instance[commandName](...args))
             )
 
