@@ -3,6 +3,8 @@ import fs from 'fs-extra'
 import Selenium from 'selenium-standalone'
 import SeleniumStandaloneLauncher from '../src/launcher'
 
+const expect = global.expect as any as jest.Expect
+
 jest.mock('fs-extra', () => ({
     createWriteStream: jest.fn(),
     ensureFileSync: jest.fn(),
@@ -105,7 +107,7 @@ describe('Selenium standalone launcher', () => {
                     }
                 }
             }
-            const launcher = new SeleniumStandaloneLauncher(options, [], {} as any)
+            const launcher = new SeleniumStandaloneLauncher(options, [], { outputDir: '/foo/bar' })
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({} as any)
 
@@ -127,7 +129,7 @@ describe('Selenium standalone launcher', () => {
                 },
                 skipSeleniumInstall: true
             }
-            const launcher = new SeleniumStandaloneLauncher(options, [], {} as any)
+            const launcher = new SeleniumStandaloneLauncher(options, [], { outputDir: '/foo/bar' })
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({} as any)
 

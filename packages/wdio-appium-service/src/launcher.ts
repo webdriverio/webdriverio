@@ -69,20 +69,22 @@ export default class AppiumLauncher implements Services.ServiceInstance {
          * Multiremote sessions
          */
         if (!Array.isArray(this._capabilities)) {
-            for (const [, cap] of Object.entries(this._capabilities)) {
-                !isCloudCapability(cap) && Object.assign(
-                    cap,
+            for (const [, capability] of Object.entries(this._capabilities)) {
+                const cap = (capability.capabilities as Capabilities.W3CCapabilities) || capability
+                const c = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
+                !isCloudCapability(c) && Object.assign(
+                    capability,
                     DEFAULT_CONNECTION,
                     'port' in this._args ? { port: this._args.port } : {},
                     { path: this._args.basePath },
-                    { ...cap }
+                    { ...capability }
                 )
             }
             return
         }
 
         this._capabilities.forEach(
-            (cap) => !isCloudCapability(cap as Capabilities.DesiredCapabilities) && Object.assign(
+            (cap) => !isCloudCapability((cap as Capabilities.W3CCapabilities).alwaysMatch || cap) && Object.assign(
                 cap,
                 DEFAULT_CONNECTION,
                 'port' in this._args ? { port: this._args.port } : {},

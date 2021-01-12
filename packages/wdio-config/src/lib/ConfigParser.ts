@@ -101,8 +101,8 @@ export default class ConfigParser {
     merge (object: MergeConfig = {}) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
+        this._config = { ...this._config, ...object } as Options.Testrunner
 
-        this._config = merge(this._config, object, MERGE_OPTIONS) as Options.Testrunner
         /**
          * overwrite config specs that got piped into the wdio command
          */

@@ -23,7 +23,7 @@ const caps = (): Capabilities.MultiRemoteCapabilities => ({
     }
 })
 
-test.only('should run command on all instances', async () => {
+test('should run command on all instances', async () => {
     const browser = await multiremote(caps())
 
     expect(browser.browserA).toBeDefined()

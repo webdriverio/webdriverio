@@ -46,7 +46,7 @@ export default class SeleniumStandaloneLauncher {
     constructor(
         private _options: SeleniumStandaloneOptions,
         private _capabilities: Capabilities.RemoteCapabilities,
-        private _config: Options.Testrunner
+        private _config: Omit<Options.Testrunner, 'capabilities'>
     ) {
         this.skipSeleniumInstall = Boolean(this._options.skipSeleniumInstall)
 

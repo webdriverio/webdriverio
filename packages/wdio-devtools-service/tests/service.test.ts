@@ -382,7 +382,7 @@ test('onReload hook', async () => {
     ;(service['_browser'] as any).puppeteer = 'suppose to be reset after reload' as any
     service.onReload()
     expect(service._setupHandler).toBeCalledTimes(1)
-    expect((service['_browser'] as any).puppeteer).toBeNull()
+    expect((service['_browser'] as any).puppeteer).toBeUndefined()
 })
 
 test('after hook', async () => {

@@ -10,6 +10,7 @@ import { Capabilities } from '@wdio/types'
 import WebDriver, { getPrototype, DEFAULTS } from '../src'
 import { Client } from '../src/types'
 
+const expect = global.expect as unknown as jest.Expect
 const got = gotMock as unknown as jest.Mock
 const sessionEnvironmentDetector = wdioUtils.sessionEnvironmentDetector as jest.Mock
 
@@ -48,6 +49,10 @@ interface TestClient extends Client {
     takeElementScreenshot (): void
     getDeviceTime (): void
 }
+
+beforeEach(() => {
+    sessionEnvironmentDetector.mockClear()
+})
 
 describe('WebDriver', () => {
     test('exports getPrototype, DEFAULTS', () => {
@@ -197,7 +202,7 @@ describe('WebDriver', () => {
 
     describe('attachToSession', () => {
         it('should allow to attach to existing session', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions }) as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as TestClient
             await client.getUrl()
             const url = got.mock.calls[0][0]
             expect(url.href).toBe('http://localhost:4444/session/foobar/url')

@@ -145,8 +145,8 @@ describe('watcher', () => {
         ;(chokidar.on as jest.Mock).mock.calls[2][1]('/some/another/path.js')
         // @ts-ignore mock feature
         ;(chokidar.on as jest.Mock).mock.calls[3][1]('/some/another/path.js')
-        expect(watcher.run).toHaveBeenNthCalledWith(1, { spec: '/some/path.js' })
-        expect(watcher.run).toHaveBeenNthCalledWith(2, { spec: '/some/other/path.js' })
+        expect(watcher.run).toHaveBeenNthCalledWith(1, { spec: ['/some/path.js'] })
+        expect(watcher.run).toHaveBeenNthCalledWith(2, { spec: ['/some/other/path.js'] })
         expect(watcher.run).toHaveBeenNthCalledWith(3, {})
         expect(watcher.run).toHaveBeenNthCalledWith(4, {})
     })

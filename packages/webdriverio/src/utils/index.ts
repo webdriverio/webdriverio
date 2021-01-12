@@ -17,8 +17,8 @@ import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEB
 import { findStrategy } from './findStrategy'
 import type { Browser, Element, MultiRemoteBrowser, ElementArray, ElementFunction, Selector, ParsedCSSValue } from '../types'
 
-const browserCommands = require('../commands/browser')
-const elementCommands = require('../commands/element')
+const browserCommands = require('../commands/browser').default
+const elementCommands = require('../commands/element').default
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'

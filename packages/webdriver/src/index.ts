@@ -50,14 +50,15 @@ export default class WebDriver {
             params.path = directConnectPath
         }
 
+        const requestedCapabilities = { ...params.capabilities }
         const { sessionId, capabilities } = await startWebDriverSession(params)
-        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities: params.capabilities })
+        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
 
         const monad = webdriverMonad(
-            { ...params, requestedCapabilities: params.capabilities },
+            { ...params, requestedCapabilities },
             modifier,
             prototype
         )
@@ -78,7 +79,7 @@ export default class WebDriver {
         }
 
         // logLevel can be undefined in watch mode when SIGINT is called
-        if (options.logLevel !== undefined) {
+        if (options.logLevel) {
             logger.setLevel('webdriver', options.logLevel)
         }
 

@@ -42,6 +42,7 @@ export default class DevTools {
 
         log.info('Initiate new session using the DevTools protocol')
 
+        const requestedCapabilities = { ...params.capabilities }
         const browser = await launch(params.capabilities as ExtendedCapabilities)
         const pages = await browser.pages()
         const driver = new DevToolsDriver(browser, pages)
@@ -95,7 +96,7 @@ export default class DevTools {
         }
 
         const monad = webdriverMonad(
-            { ...params, requestedCapabilities: params.capabilities },
+            { ...params, requestedCapabilities },
             modifier,
             prototype
         )

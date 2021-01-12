@@ -33,7 +33,7 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
         const capabilitiesEntries = Array.isArray(capabilities) ? capabilities : Object.values(capabilities)
         for (const capability of capabilitiesEntries) {
             const caps = (capability as Options.WebDriver).capabilities || capability
-            const c = (caps as Capabilities.W3CCapabilities).alwaysMatch || capability
+            const c = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
 
             if (!c['tb:options']) {
                 c['tb:options'] = {}

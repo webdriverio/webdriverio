@@ -265,6 +265,7 @@ test('after', () => {
 
     // @ts-expect-error
     browser.isMultiremote = false
+    // @ts-expect-error
     browser.sessionId = 'foobar'
     service.after({})
 
@@ -280,6 +281,7 @@ test('after for RDC', () => {
 
     // @ts-expect-error
     browser.isMultiremote = false
+    // @ts-expect-error
     browser.sessionId = 'foobar'
     service.after({})
 
@@ -322,6 +324,7 @@ test('after for UP with multi remote', () => {
     service['_failures'] = 0
 
     browser.isMultiremote = true
+    // @ts-expect-error
     browser.sessionId = 'foobar'
     service.after({})
 
@@ -329,7 +332,7 @@ test('after for UP with multi remote', () => {
 })
 
 test('after with bail set', () => {
-    const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123', mochaOpts: { bail: 1 } } as any)
     service['_browser'] = browser
     service.beforeSession()
     service['_failures'] = 5
@@ -337,8 +340,8 @@ test('after with bail set', () => {
 
     // @ts-expect-error
     browser.isMultiremote = false
+    // @ts-expect-error
     browser.sessionId = 'foobar'
-    browser.config = { mochaOpts: { bail: 1 } } as any
     service.after(1)
 
     expect(service.updateJob).toBeCalledWith('foobar', 1)
@@ -353,6 +356,7 @@ test('beforeScenario should not set context if no sauce user was applied', () =>
 
     // @ts-expect-error
     browser.isMultiremote = false
+    // @ts-expect-error
     browser.sessionId = 'foobar'
     service.after({})
 
@@ -372,6 +376,7 @@ test('after in multiremote', () => {
     service.updateJob = jest.fn()
 
     browser.isMultiremote = true
+    // @ts-expect-error
     browser.sessionId = 'foobar'
     service.after({})
 
@@ -389,6 +394,7 @@ test('onReload', () => {
 
     // @ts-expect-error
     browser.isMultiremote = false
+    // @ts-expect-error
     browser.sessionId = 'foobar'
     service.onReload('oldbar', 'newbar')
 
@@ -404,6 +410,7 @@ test('onReload with RDC', () => {
 
     // @ts-expect-error
     browser.isMultiremote = false
+    // @ts-expect-error
     browser.sessionId = 'foobar'
     service.onReload('oldbar', 'newbar')
 
@@ -419,6 +426,7 @@ test('onReload should not set context if no sauce user was applied', () => {
 
     // @ts-expect-error
     browser.isMultiremote = false
+    // @ts-expect-error
     browser.sessionId = 'foobar'
     service.onReload('oldbar', 'newbar')
 
@@ -438,6 +446,7 @@ test('after in multiremote', () => {
     service.updateJob = jest.fn()
 
     browser.isMultiremote = true
+    // @ts-expect-error
     browser.sessionId = 'foobar'
     browser.chromeB.sessionId = 'newSessionChromeB'
     service.onReload('sessionChromeB', 'newSessionChromeB')

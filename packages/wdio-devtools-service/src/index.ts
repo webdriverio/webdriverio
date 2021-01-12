@@ -42,7 +42,7 @@ export default class DevToolsService implements Services.ServiceInstance {
 
     constructor (private _options: DevtoolsConfig) {}
 
-    beforeSession (_: never, caps: Capabilities.Capabilities) {
+    beforeSession (_: unknown, caps: Capabilities.Capabilities) {
         if (!isBrowserSupported(caps)) {
             return log.error(UNSUPPORTED_ERROR_MESSAGE)
         }
