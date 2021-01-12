@@ -23,7 +23,7 @@ export default class SumoLogicReporter extends WDIOReporter {
     private _isSynchronising = false
     private _hasRunnerEnd = false
 
-    constructor(options: WDIOReporterOptions) {
+    constructor(options: Options & Partial<WDIOReporterOptions>) {
         super(options)
         this._options = Object.assign({
             // don't create a log file
@@ -166,3 +166,5 @@ export default class SumoLogicReporter extends WDIOReporter {
         }
     }
 }
+
+export * from './types'
