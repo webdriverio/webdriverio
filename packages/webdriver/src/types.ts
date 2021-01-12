@@ -1,5 +1,11 @@
 import { EventEmitter } from 'events'
 import type { Options, Capabilities } from '@wdio/types'
+import type {
+    AppiumCommandsAsync, ChromiumCommandsAsync, JSONWPCommandsAsync, MJSONWPCommandsAsync,
+    SauceLabsCommandsAsync, SeleniumCommandsAsync, WebDriverCommandsAsync
+} from '@wdio/protocols'
+
+export interface ProtocolCommands extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
 
 export interface JSONWPCommandError extends Error {
     code?: string
@@ -18,7 +24,7 @@ export interface SessionFlags {
     isDevTools: boolean
 }
 
-export interface BaseClient extends EventEmitter, SessionFlags {
+export interface BaseClient extends EventEmitter, SessionFlags, ProtocolCommands {
     // id of WebDriver session
     sessionId: string;
     // assigned capabilities by the browser driver / WebDriver server

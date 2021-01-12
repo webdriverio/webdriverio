@@ -1,3 +1,5 @@
+/// <reference types="@wdio/types"/>
+
 import logger from '@wdio/logger'
 import type * as WebDriverTypes from 'webdriver'
 import WebDriver from 'webdriver'
@@ -7,12 +9,19 @@ import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 import { Options, Capabilities } from '@wdio/types'
 
 import MultiRemote from './multiremote'
+import type ElementCommands from './commands/element'
 import SevereServiceErrorImport from './utils/SevereServiceError'
 import { WDIO_DEFAULTS } from './constants'
 import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
 } from './utils'
+import {
+    MultiRemoteBrowser,
+    Browser as BrowserType,
+    Element as ElementType,
+    TouchAction as TouchActionImport
+} from './types'
 
 type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 
@@ -52,7 +61,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     const ProtocolDriver = require(automationProtocol).default
 
     await updateCapabilities(params, automationProtocol)
-    const instance = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
+    const instance: BrowserType = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
@@ -61,13 +70,13 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
      */
     if ((params as Options.Testrunner).framework && !isStub(automationProtocol)) {
         const origAddCommand = instance.addCommand.bind(instance)
-        instance.addCommand = (name: string, fn: Function, attachToElement: boolean) => (
+        instance.addCommand = (name: string, fn: Function, attachToElement) => (
             origAddCommand(name, runFnInFiberContext(fn), attachToElement)
         )
 
         const origOverwriteCommand = instance.overwriteCommand.bind(instance)
-        instance.overwriteCommand = (name: string, fn: Function, attachToElement: boolean) => (
-            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement)
+        instance.overwriteCommand = (name: string, fn: Function, attachToElement) => (
+            origOverwriteCommand<keyof typeof ElementCommands, any, any>(name, runFnInFiberContext(fn), attachToElement)
         )
     }
 
@@ -77,7 +86,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
 
 export const attach = function (params: WebDriverTypes.AttachOptions) {
     const prototype = getPrototype('browser')
-    return WebDriver.attachToSession(params, undefined, prototype, wrapCommand)
+    return WebDriver.attachToSession(params, undefined, prototype, wrapCommand) as BrowserType
 }
 
 export const multiremote = async function (
@@ -115,7 +124,7 @@ export const multiremote = async function (
         multibrowser.modifier.bind(multibrowser),
         prototype,
         wrapCommand
-    )
+    ) as MultiRemoteBrowser
 
     /**
      * in order to get custom command overwritten or added to multiremote instance
@@ -123,20 +132,48 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name: string, fn: Function, attachToElement: boolean) => {
-            origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+        driver.addCommand = (name: string, fn: Function, attachToElement) => {
+            return origAddCommand(
+                name,
+                runFnInFiberContext(fn),
+                attachToElement,
+                Object.getPrototypeOf(multibrowser.baseInstance),
+                multibrowser.instances
+            )
         }
 
         const origOverwriteCommand = driver.overwriteCommand.bind(driver)
-        driver.overwriteCommand = (name: string, fn: Function, attachToElement: boolean) => {
-            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+        driver.overwriteCommand = (name: string, fn: Function, attachToElement) => {
+            return origOverwriteCommand<keyof typeof ElementCommands, any, any>(
+                name,
+                runFnInFiberContext(fn),
+                attachToElement,
+                Object.getPrototypeOf(multibrowser.baseInstance),
+                multibrowser.instances
+            )
         }
     }
 
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
-
     return driver
 }
 
 export const SevereServiceError = SevereServiceErrorImport
 export * from './types'
+
+declare global {
+    namespace WebdriverIO {
+        export type Browser = BrowserType
+        export type Element = ElementType
+        export type TouchAction = TouchActionImport
+        export type ClickAction = Required<Parameters<ElementType['click']>[0]>
+    }
+
+    module NodeJS {
+        interface Global {
+            browser: BrowserType
+            $: (...args: Parameters<BrowserType['$']>) => void
+            $$: (...args: Parameters<BrowserType['$$']>) => void
+        }
+    }
+}

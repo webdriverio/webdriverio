@@ -422,13 +422,13 @@ export async function hasElementId (element: Element) {
     return true
 }
 
-export function addLocatorStrategyHandler(scope: Browser) {
-    return (name: string, script: () => ElementReference | ElementReference[]) => {
+export function addLocatorStrategyHandler(scope: Browser | MultiRemoteBrowser) {
+    return (name: string, func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>) => {
         if (scope.strategies.get(name)) {
             throw new Error(`Strategy ${name} already exists`)
         }
 
-        scope.strategies.set(name, script)
+        scope.strategies.set(name, func)
     }
 }
 

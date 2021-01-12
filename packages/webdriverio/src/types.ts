@@ -1,19 +1,13 @@
-import type cssValue from 'css-value'
 import type * as WebDriver from 'webdriver'
 import type { Options, Capabilities } from '@wdio/types'
-import type {
-    AppiumCommandsAsync, ChromiumCommandsAsync, JSONWPCommandsAsync, MJSONWPCommandsAsync,
-    SauceLabsCommandsAsync, SeleniumCommandsAsync, WebDriverCommandsAsync, ElementReference
-} from '@wdio/protocols'
-import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { ElementReference } from '@wdio/protocols'
+import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import type BrowserCommands from './commands/browser'
 import type ElementCommands from './commands/element'
 
 export type BrowserCommandsType = typeof BrowserCommands
 export type ElementCommandsType = typeof ElementCommands
-
-export interface ProtocolCommands extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
 
 export interface ElementArray extends Array<Element> {
     selector: Selector
@@ -22,26 +16,45 @@ export interface ElementArray extends Array<Element> {
     props: any[]
 }
 
-type AddCommandFn<IsElement extends boolean = false> = (this: IsElement extends true ? Element : Browser, ...args: any[]) => any
-type OverwriteCommandFn<ElementKey extends keyof Element, BrowserKey extends keyof Browser, IsElement extends boolean = false> = (this: IsElement extends true ? Element : Browser, origCommand: IsElement extends true ? Element[ElementKey] : Browser[BrowserKey], ...args: any[]) => any
+type AddCommandFn<
+    InstanceType = Browser,
+    IsElement extends boolean = false
+> = (
+    this: IsElement extends true ? Element : InstanceType,
+    ...args: any[]
+) => any
 
-export interface CustomInstanceCommands {
+type OverwriteCommandFn<
+    ElementKey extends keyof ElementCommandsType,
+    BrowserKey extends keyof BrowserCommandsType,
+    IsElement extends boolean = false
+> = (
+    this: IsElement extends true ? Element : Browser,
+    origCommand: IsElement extends true ? Element[ElementKey] : Browser[BrowserKey],
+    ...args: any[]
+) => Promise<any>
+
+export interface CustomInstanceCommands<T> {
     /**
      * add command to `browser` or `element` scope
      */
     addCommand<IsElement extends boolean = false>(
         name: string,
-        func: AddCommandFn<IsElement>,
-        attachToElement?: IsElement
+        func: AddCommandFn<T, IsElement>,
+        attachToElement?: IsElement,
+        proto?: Record<string, any>,
+        instances?: Record<string, Browser | MultiRemoteBrowser>
     ): void;
 
     /**
      * overwrite `browser` or `element` command
      */
-    overwriteCommand<ElementKey extends keyof Element, BrowserKey extends keyof Browser, IsElement extends boolean = false>(
+    overwriteCommand<ElementKey extends keyof ElementCommandsType, BrowserKey extends keyof BrowserCommandsType, IsElement extends boolean = false>(
         name: IsElement extends true ? ElementKey : BrowserKey,
         func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
-        attachToElement?: IsElement
+        attachToElement?: IsElement,
+        proto?: Record<string, any>,
+        instances?: Record<string, Browser | MultiRemoteBrowser>
     ): void;
 
     /**
@@ -53,7 +66,7 @@ export interface CustomInstanceCommands {
     ): void
 }
 
-export interface Browser extends CustomInstanceCommands, BrowserCommandsType, Omit<WebDriver.Client, 'options' | 'capabilities'>, ProtocolCommands {
+export interface Browser extends CustomInstanceCommands<Browser>, BrowserCommandsType, Omit<WebDriver.Client, 'options' | 'capabilities'> {
     sessionId: string
     capabilities: Capabilities.RemoteCapability
     options: Options.WebdriverIO | Options.Testrunner
@@ -108,7 +121,7 @@ export interface Element extends ElementReference, Omit<Browser, keyof ElementCo
 
 type MultiRemoteBrowserReference = Record<string, Browser>
 
-interface MultiRemoteBase extends ProtocolCommands, BrowserCommandsType, CustomInstanceCommands, Omit<Browser, 'isMultiremote' | 'sessionId'> {
+interface MultiRemoteBase extends BrowserCommandsType, CustomInstanceCommands<MultiRemoteBrowser>, Omit<Browser, keyof CustomInstanceCommands<MultiRemoteBrowser> |  'isMultiremote' | 'sessionId'> {
     /**
      * multiremote browser instance names
      */
@@ -124,7 +137,14 @@ export type MultiRemoteBrowser = MultiRemoteBase & MultiRemoteBrowserReference
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
 export type Selector = string | ElementReference | ElementFunction
 
-interface ParsedColor extends Partial<cssValue.CSSValue> {
+interface CSSValue {
+    type: string
+    string: string
+    unit: string
+    value: any
+}
+
+interface ParsedColor extends Partial<CSSValue> {
     rgb?: string
     rgba?: string
 }

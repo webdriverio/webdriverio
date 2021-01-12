@@ -1,11 +1,12 @@
 import zip from 'lodash.zip'
 import clone from 'lodash.clonedeep'
 import { webdriverMonad, wrapCommand } from '@wdio/utils'
-import { Options } from '@wdio/types'
+import type { Options } from '@wdio/types'
+import type { ProtocolCommands } from 'webdriver'
 
 import { multiremoteHandler } from './middlewares'
 import { getPrototype } from './utils'
-import type { Browser, MultiRemoteBrowser, ProtocolCommands, BrowserCommandsType } from './types'
+import type { Browser, MultiRemoteBrowser, BrowserCommandsType } from './types'
 
 type EventEmitter = (args: any) => void
 

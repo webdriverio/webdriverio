@@ -7,19 +7,34 @@ import SauceLabsCommands from './commands/saucelabs'
 import SeleniumCommands from './commands/selenium'
 import WebDriverCommands from './commands/webdriver'
 
-type MakeAsync<M> = {
-    [K in keyof M]:
-    // @ts-expect-error
-    (...args: Parameters<M[K]>) => Promise<ReturnType<M[K]>>
+type WebDriverCommandsAsync = {
+    [K in keyof WebDriverCommands]:
+    (...args: Parameters<WebDriverCommands[K]>) => Promise<ReturnType<WebDriverCommands[K]>>
 }
-
-type WebDriverCommandsAsync = MakeAsync<WebDriverCommands>
-type AppiumCommandsAsync = MakeAsync<AppiumCommands>
-type ChromiumCommandsAsync = MakeAsync<ChromiumCommands>
-type JSONWPCommandsAsync = MakeAsync<JSONWPCommands>
-type MJSONWPCommandsAsync = MakeAsync<MJSONWPCommands>
-type SauceLabsCommandsAsync = MakeAsync<SauceLabsCommands>
-type SeleniumCommandsAsync = MakeAsync<SeleniumCommands>
+type AppiumCommandsAsync = {
+    [K in keyof AppiumCommands]:
+    (...args: Parameters<AppiumCommands[K]>) => Promise<ReturnType<AppiumCommands[K]>>
+}
+type ChromiumCommandsAsync = {
+    [K in keyof ChromiumCommands]:
+    (...args: Parameters<ChromiumCommands[K]>) => Promise<ReturnType<ChromiumCommands[K]>>
+}
+type JSONWPCommandsAsync = {
+    [K in keyof JSONWPCommands]:
+    (...args: Parameters<JSONWPCommands[K]>) => Promise<ReturnType<JSONWPCommands[K]>>
+}
+type MJSONWPCommandsAsync = {
+    [K in keyof MJSONWPCommands]:
+    (...args: Parameters<MJSONWPCommands[K]>) => Promise<ReturnType<MJSONWPCommands[K]>>
+}
+type SauceLabsCommandsAsync = {
+    [K in keyof SauceLabsCommands]:
+    (...args: Parameters<SauceLabsCommands[K]>) => Promise<ReturnType<SauceLabsCommands[K]>>
+}
+type SeleniumCommandsAsync = {
+    [K in keyof SeleniumCommands]:
+    (...args: Parameters<SeleniumCommands[K]>) => Promise<ReturnType<SeleniumCommands[K]>>
+}
 
 const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')
 const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')

@@ -10,3 +10,13 @@ export type JsonPrimitive = string | number | boolean | null
 export type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }
 export type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>
 export type JsonCompatible = JsonObject | JsonArray
+
+declare global {
+    namespace WebdriverIO {
+        export type Config = Options.Testrunner
+    }
+
+    namespace WebDriver {
+        export type DesiredCapabilities = Capabilities.DesiredCapabilities
+    }
+}
