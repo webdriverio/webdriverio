@@ -50,9 +50,7 @@ export interface DesiredCapabilities extends WebDriver.DesiredCapabilities {
 }
 
 interface MultiRemoteCapabilities {
-    [instanceName: string]: {
-        capabilities: DesiredCapabilities;
-    };
+    [instanceName: string]: DesiredCapabilities;
 }
 
 export type AnyCapabilites = DesiredCapabilities | MultiRemoteCapabilities

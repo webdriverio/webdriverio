@@ -249,8 +249,8 @@ describe('SpecReporter', () => {
                 const runner = getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
                     capabilities: {
-                        browserA: { capabilities: { sessionId: 'foobar' } },
-                        browserB: { capabilities: { sessionId: 'barfoo' } },
+                        browserA: { sessionId: 'foobar' },
+                        browserB: { sessionId: 'barfoo' },
                     },
                     isMultiremote: true
                 })
