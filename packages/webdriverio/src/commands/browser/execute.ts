@@ -1,5 +1,5 @@
 import { verifyArgsAndStripIfElement } from '../../utils'
-import type { Browser, Element } from '../../types'
+import type { Browser, Element, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -37,7 +37,7 @@ import type { Browser, Element } from '../../types'
  *
  */
 export default function execute (
-    this: Browser | Element,
+    this: Browser | Element | MultiRemoteBrowser,
     script: string | Function,
     ...args: any[]
 ) {

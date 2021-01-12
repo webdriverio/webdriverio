@@ -1,5 +1,7 @@
 import TestingBotService from '../src/service'
 import got from 'got'
+import type { Capabilities, Frameworks } from '@wdio/types'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 const uri = '/some/uri'
 const featureObject = {
@@ -28,7 +30,7 @@ const featureObject = {
 describe('wdio-testingbot-service', () => {
     const execute = jest.fn()
 
-    let browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    let browser: Browser | MultiRemoteBrowser
     beforeEach(() => {
         browser = {
             execute,
@@ -53,20 +55,21 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('before', () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        const capabilities: WebDriver.DesiredCapabilities = {
+        const caps = {
             name: 'Test suite',
             tags: ['tag1', 'tag2'],
             public: true,
             build: 344
-        } as any
-        tbService.beforeSession({
-            user: 'foobar',
-            key: 'fookey'
-        }, capabilities)
-
-        expect(tbService['_capabilities']).toEqual(capabilities)
+        } as Capabilities.RemoteCapability
+        const tbService = new TestingBotService(
+            {},
+            caps,
+            {
+                user: 'foobar',
+                key: 'fookey'
+            }
+        )
+        expect(tbService['_capabilities']).toEqual(caps)
         expect(tbService['_tbUser']).toEqual('foobar')
         expect(tbService['_tbSecret']).toEqual('fookey')
         expect(tbService['_testCnt']).toEqual(0)
@@ -74,21 +77,21 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeSuite', () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {})
         tbService['_browser'] = browser
         const suiteTitle = 'Test Suite Title'
-        tbService.beforeSuite({ title: suiteTitle } as WebdriverIO.Suite)
+        tbService.beforeSuite({ title: suiteTitle } as Frameworks.Suite)
 
         expect(tbService['_suiteTitle']).toEqual(suiteTitle)
     })
 
     it('beforeTest: execute not called', () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {})
         tbService['_browser'] = browser
         const test = {
             fullName: 'Test #1',
             parent: 'Test parent'
-        } as WebdriverIO.Test
+        } as Frameworks.Test
         tbService['_tbUser'] = undefined
         tbService['_tbSecret'] = undefined
         tbService['_suiteTitle'] = 'Test suite'
@@ -99,19 +102,18 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeTest: execute called', () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {
+            user: 'user',
+            key: 'secret'
+        })
         tbService['_browser'] = browser
-        const test: WebdriverIO.Test = {
+        const test: Frameworks.Test = {
             name: 'Test name',
             fullName: 'Test #1',
             title: 'Test title',
             parent: 'Test parent'
         } as any
-        tbService.beforeSession({
-            user: 'user',
-            key: 'secret'
-        }, {})
-        tbService.beforeSuite({ title: 'Test suite' } as WebdriverIO.Suite)
+        tbService.beforeSuite({ title: 'Test suite' } as Frameworks.Suite)
         tbService.beforeTest(test)
 
         expect(execute).toBeCalledWith('tb:test-context=Test #1')
@@ -119,20 +121,19 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeTest: execute called for Jasmine tests', () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {
+            user: 'user',
+            key: 'secret'
+        })
         tbService['_browser'] = browser
-        const test: WebdriverIO.Test = {
+        const test: Frameworks.Test = {
             name: 'Test name',
             fullName: 'Test #1',
             title: 'Test title',
             parent: 'Test parent'
         } as any
-        tbService.beforeSession({
-            user: 'user',
-            key: 'secret'
-        }, {})
 
-        tbService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as WebdriverIO.Suite)
+        tbService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as Frameworks.Suite)
         tbService.beforeTest(test)
 
         expect(execute).toBeCalledWith('tb:test-context=Test #1')
@@ -140,50 +141,49 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeTest: execute called for Mocha test', () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {
+            user: 'user',
+            key: 'secret'
+        })
         tbService['_browser'] = browser
-        const test: WebdriverIO.Test = {
+        const test: Frameworks.Test = {
             name: 'Test name',
             title: 'Test title',
             parent: 'Test parent'
         } as any
-        tbService.beforeSession({
-            user: 'user',
-            key: 'secret'
-        }, {})
 
-        tbService.beforeSuite({} as WebdriverIO.Suite)
+        tbService.beforeSuite({} as Frameworks.Suite)
         tbService.beforeTest(test)
 
         expect(execute).toBeCalledWith('tb:test-context=Test parent - Test title')
     })
 
     it('afterTest: failed test', () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {})
         tbService['_browser'] = browser
         tbService['_failures'] = 0
         const testResult = {
             passed: true
-        } as WebdriverIO.TestResult
-        tbService.afterTest({} as WebdriverIO.Test, {}, testResult)
+        } as Frameworks.TestResult
+        tbService.afterTest({} as Frameworks.Test, {}, testResult)
 
         expect(tbService['_failures']).toEqual(0)
     })
 
     it('afterTest: passed test', () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {})
         tbService['_browser'] = browser
         tbService['_failures'] = 0
         const testResult = {
             passed: false
-        } as WebdriverIO.TestResult
-        tbService.afterTest({} as WebdriverIO.Test, {}, testResult)
+        } as Frameworks.TestResult
+        tbService.afterTest({} as Frameworks.Test, {}, testResult)
 
         expect(tbService['_failures']).toEqual(1)
     })
 
     it('beforeFeature: execute not called', () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {})
         tbService['_browser'] = browser
         tbService.beforeFeature(uri, featureObject)
 
@@ -191,12 +191,11 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeFeature: execute called', () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        tbService.beforeSession({
+        const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
-        }, {})
+        })
+        tbService['_browser'] = browser
         tbService.beforeFeature(uri, featureObject)
 
         expect(tbService['_suiteTitle']).toEqual('Create a feature')
@@ -204,7 +203,7 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('afterScenario: exception happened', () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {})
         tbService['_browser'] = browser
         tbService['_failures'] = 0
 
@@ -224,56 +223,50 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('beforeScenario: execute not called', () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        const scenario = { name: 'Scenario name' }
-        tbService.beforeSession({
+        const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: undefined
-        }, {})
+        })
+        tbService['_browser'] = browser
+        const scenario = { name: 'Scenario name' }
         tbService.beforeScenario(uri, featureObject, scenario)
 
         expect(execute).not.toBeCalled()
     })
 
     it('beforeScenario: execute called', () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        const scenario = { name: 'Scenario name' }
-        tbService.beforeSession({
+        const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
-        }, {})
+        })
+        tbService['_browser'] = browser
+        const scenario = { name: 'Scenario name' }
         tbService.beforeScenario(uri, featureObject, scenario)
 
         expect(execute).toBeCalledWith('tb:test-context=Scenario: Scenario name')
     })
 
     it('after: updatedJob not called', async () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
-        tbService.beforeSession({
+        const tbService = new TestingBotService({}, {}, {
             user: undefined,
             key: undefined
-        }, {})
+        })
+        tbService['_browser'] = browser
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
         await tbService.after()
 
         expect(updateJobSpy).not.toBeCalled()
     })
 
     it('after: updatedJob called with passed params', async () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {
+            user: 'user',
+            key: 'secret',
+            mochaOpts: { bail: true }
+        })
         tbService['_browser'] = browser
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
-
-        tbService['_browser'].config = { mochaOpts: { bail: true } }
         tbService['_browser'].sessionId = 'sessionId'
-
-        tbService.beforeSession({
-            user: 'user',
-            key: 'secret'
-        }, {})
 
         tbService['_failures'] = 2
         await tbService.after()
@@ -282,35 +275,28 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('after: updatedJob called when bailed', async () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {
+            user: 'user',
+            key: 'secret',
+            mochaOpts: { bail: true }
+        })
         tbService['_browser'] = browser
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
-
-        tbService['_browser'].config = { mochaOpts: { bail: true } }
         tbService['_browser'].sessionId = 'sessionId'
-
-        tbService.beforeSession({
-            user: 'user',
-            key: 'secret'
-        }, {})
-
         await tbService.after(10)
 
         expect(updateJobSpy).toBeCalledWith('sessionId', 1)
     })
 
     it('after: updatedJob called when status passed', async () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {
+            user: 'user',
+            key: 'secret',
+            mochaOpts: { bail: true }
+        })
         tbService['_browser'] = browser
         const updateJobSpy = jest.spyOn(tbService, 'updateJob')
-
-        tbService['_browser'].config = { mochaOpts: { bail: true } }
         tbService['_browser'].sessionId = 'sessionId'
-
-        tbService.beforeSession({
-            user: 'user',
-            key: 'secret'
-        }, {})
 
         tbService['_failures'] = 0
         await tbService.after()
@@ -319,13 +305,17 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('after: with multi-remote: updatedJob called with passed params', async () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
-        tbService.beforeSession({
+        const caps = {
+            chromeA: { capabilities: {} },
+            chromeB: { capabilities: {} },
+            chromeC: { capabilities: {} }
+        }
+        const tbService = new TestingBotService({}, caps, {
             user: 'user',
             key: 'secret'
-        }, { chromeA: {}, chromeB: {}, chromeC: {} } as any)
+        })
+        tbService['_browser'] = browser
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
 
         tbService['_browser'].isMultiremote = true
         tbService['_browser'].sessionId = 'sessionId'
@@ -338,15 +328,14 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('onReload: updatedJob not called', async () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        const tbService2 = new TestingBotService()
-        tbService2['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService2, 'updateJob')
-        tbService.beforeSession({
+        const tbService = new TestingBotService({}, {}, {
             user: undefined,
             key: undefined
-        }, {})
+        })
+        tbService['_browser'] = browser
+        const tbService2 = new TestingBotService({}, {}, {})
+        tbService2['_browser'] = browser
+        const updateJobSpy = jest.spyOn(tbService2, 'updateJob')
 
         tbService['_browser'].sessionId = 'sessionId'
         await tbService.onReload('oldSessionId', 'newSessionId')
@@ -355,13 +344,12 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('onReload: updatedJob called with passed params', async () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
-        tbService.beforeSession({
+        const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
-        }, {})
+        })
+        tbService['_browser'] = browser
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
 
         tbService['_browser'].sessionId = 'sessionId'
         tbService['_failures'] = 2
@@ -372,13 +360,12 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('onReload with multi-remote: updatedJob called with passed params', async () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
-        tbService.beforeSession({
+        const tbService = new TestingBotService({}, {}, {
             user: 'user',
             key: 'secret'
-        }, {})
+        })
+        tbService['_browser'] = browser
+        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
 
         tbService['_browser'].isMultiremote = true
         tbService['_browser'].sessionId = 'sessionId'
@@ -390,23 +377,22 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('getRestUrl', () => {
-        const tbService = new TestingBotService()
+        const tbService = new TestingBotService({}, {}, {})
         tbService['_browser'] = browser
         expect(tbService.getRestUrl('testSessionId'))
             .toEqual('https://api.testingbot.com/v1/tests/testSessionId')
     })
 
     it('getBody', () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        tbService.beforeSession({}, {
+        const caps = {
             name: 'Test suite',
             tags: ['tag1', 'tag2'],
             public: true,
             build: 344
-        })
-
-        tbService.beforeSuite({ title: 'Suite title' } as WebdriverIO.Suite)
+        }
+        const tbService = new TestingBotService({}, caps, {})
+        tbService['_browser'] = browser
+        tbService.beforeSuite({ title: 'Suite title' } as Frameworks.Suite)
 
         expect(tbService.getBody(0, false)).toEqual({
             test: {
@@ -431,14 +417,14 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('getBody should contain browserName if passed', () => {
-        const tbService = new TestingBotService()
-        tbService['_browser'] = browser
-        tbService.beforeSession({}, {
+        const caps = {
             name: 'Test suite',
             tags: ['tag3', 'tag4'],
             public: true,
             build: 344
-        })
+        }
+        const tbService = new TestingBotService({}, caps, {})
+        tbService['_browser'] = browser
 
         expect(tbService.getBody(0, false, 'internet explorer')).toEqual({
             test: {
@@ -452,9 +438,8 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('updateJob success', async () => {
-        const service = new TestingBotService()
+        const service = new TestingBotService({}, {}, { user: 'foobar', key: '123' })
         service['_browser'] = browser
-        service.beforeSession({ user: 'foobar', key: '123' }, {})
         service['_suiteTitle'] = 'my test'
 
         await service.updateJob('12345', 23, true)
@@ -470,9 +455,8 @@ describe('wdio-testingbot-service', () => {
         response.statusCode = 500;
         (got.put as jest.Mock).mockReturnValue(Promise.reject(response))
 
-        const service = new TestingBotService()
+        const service = new TestingBotService({}, {}, { user: 'foobar', key: '123' })
         service['_browser'] = browser
-        service.beforeSession({ user: 'foobar', key: '123' }, {})
         service['_suiteTitle'] = 'my test'
         const err: any = await service.updateJob('12345', 23, true).catch((err) => err)
         expect(err.message).toBe('Failure')
@@ -482,12 +466,12 @@ describe('wdio-testingbot-service', () => {
     })
 
     it('afterSuite', () => {
-        const service = new TestingBotService()
+        const service = new TestingBotService({}, {}, {})
         service['_browser'] = browser
         expect(service['_failures']).toBe(0)
-        service.afterSuite({} as WebdriverIO.Suite)
+        service.afterSuite({} as Frameworks.Suite)
         expect(service['_failures']).toBe(0)
-        service.afterSuite({ error: new Error('boom!') } as WebdriverIO.Suite)
+        service.afterSuite({ error: new Error('boom!') } as Frameworks.Suite)
         expect(service['_failures']).toBe(1)
     })
 })

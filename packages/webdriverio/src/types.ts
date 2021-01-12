@@ -108,7 +108,7 @@ export interface Element extends ElementReference, Omit<Browser, keyof ElementCo
 
 type MultiRemoteBrowserReference = Record<string, Browser>
 
-export interface MultiRemoteBase extends Omit<Browser, 'isMultiremote'> {
+export interface MultiRemoteBase extends BrowserCommandsType, Omit<Browser, 'isMultiremote'> {
     /**
      * multiremote browser instance names
      */

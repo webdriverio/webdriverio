@@ -5,3 +5,4 @@ import TestingBotService from './service'
 
 export default TestingBotService
 export const launcher = TestingBotLauncher
+export * from './types'
