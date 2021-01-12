@@ -21,23 +21,6 @@ export interface Capabilities {
     os_version: string
 }
 
-/*export interface Runner {
-    specs: string[]
-    capabilities: Capabilities
-    // TODO check .hostname
-    config: any
-    sanitizedCapabilities : string
-}*/
-
-/*export interface Suite {
-    tests: any
-    title: string
-    type: string
-    start: any
-    _duration : number
-    hooks: [{error: string, title: string, _duration: string, state:string}]
-}*/
-
 export interface Data {
     type: any
     method: string
@@ -98,6 +81,8 @@ export default class JunitReporter extends WDIOReporter {
                 _duration,
                 title,
                 error,
+                // TODO possible undefined
+                // @ts-ignore
                 state,
                 output: []
             })
@@ -140,7 +125,8 @@ export default class JunitReporter extends WDIOReporter {
             for (let stepKey of Object.keys(scenario.tests)) { // tests are trested as steps in Cucumber
                 if (stepKey !== 'undefined') { // fix cucumber hooks crashing reporter
                     let stepEmoji = '✅'
-                    const step = scenario.tests[stepKey]
+                    // TODO remove any
+                    const step = (scenario.tests as any)[stepKey]
                     if (step.state === 'pending' || step.state === 'skipped') {
                         if (!isFailing) {
                             testCase.skipped()
@@ -190,7 +176,7 @@ export default class JunitReporter extends WDIOReporter {
 
         for (let testKey of Object.keys(suite.tests)) {
             if (testKey !== 'undefined') { // fix cucumber hooks crashing reporter (INFO: we may not need this anymore)
-                const test = suite.tests[testKey]
+                const test = (suite.tests as any)[testKey]
                 const testName = this.prepareName(test.title)
                 const testCase = testSuite.testCase()
                     .className(`${this.packageName}.${suiteName}`)
@@ -229,6 +215,7 @@ export default class JunitReporter extends WDIOReporter {
 
     buildJunitXml (runner : RunnerStats): any {
         let builder = junit.newBuilder()
+        // TODO WDIOReportOptions does not have a config type
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
             // NOTE: platformVersion is used to build sanitizedCapabilities which can be incorrect and includes a minor version for iOS which is not guaranteed to be the same under Browserstack.
