@@ -29,8 +29,6 @@ test.only('should run command on all instances', async () => {
     expect(browser.browserA).toBeDefined()
     expect(browser.browserB).toBeDefined()
 
-    console.log(browser);
-
     const result = await browser.execute(() => 'foobar')
     expect(result).toEqual(['foobar', 'foobar'])
 
