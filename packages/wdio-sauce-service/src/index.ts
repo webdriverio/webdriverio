@@ -3,3 +3,4 @@ import SauceService from './service'
 
 export default SauceService
 export const launcher = SauceLauncher
+export * from './types'

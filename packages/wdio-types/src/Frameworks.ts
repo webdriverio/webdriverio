@@ -17,6 +17,14 @@ export interface Test extends Suite {
     sync?: boolean
     timedOut?: boolean
     ctx: any
+
+    /**
+     * Mocha flags
+     */
+    description?: string
+    _retriedTest?: any
+    _currentRetry?: number
+    _retries?: number
 }
 
 export interface TestResult {

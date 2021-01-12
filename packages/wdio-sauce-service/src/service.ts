@@ -1,5 +1,7 @@
 import SauceLabs, { SauceLabsOptions, Job } from 'saucelabs'
 import logger from '@wdio/logger'
+import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { isUnifiedPlatform } from './utils'
 import { SauceServiceConfig } from './types'
@@ -8,21 +10,21 @@ const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data'] as 
 
 const log = logger('@wdio/sauce-service')
 
-export default class SauceService implements WebdriverIO.ServiceInstance {
+export default class SauceService implements Services.ServiceInstance {
     private _testCnt = 0
     private _failures = 0 // counts failures between reloads
     private _isServiceEnabled = true
 
     private _api: SauceLabs
     private _isRDC: boolean
-    private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    private _browser?: Browser | MultiRemoteBrowser
     private _isUP?: boolean
     private _suiteTitle?: string
 
     constructor (
         private _options: SauceServiceConfig,
-        private _capabilities: WebDriver.Capabilities | WebDriver.DesiredCapabilities,
-        private _config: WebdriverIO.Config
+        private _capabilities: Capabilities.RemoteCapability,
+        private _config: Options.Testrunner
     ) {
         this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
         this._isRDC = 'testobject_api_key' in this._capabilities
@@ -47,7 +49,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
         }
     }
 
-    before (caps: WebDriver.Capabilities, specs: string[], browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject) {
+    before (caps: unknown, specs: string[], browser: Browser | MultiRemoteBrowser) {
         this._browser = browser
 
         // Ensure capabilities are not null in case of multiremote
@@ -56,18 +58,18 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
         // contains `simulator` or `emulator` it's an EMU/SIM session
         // `this._browser.capabilities` returns the process data from Sauce which is without
         // the postfix
-        const capabilities = (this._browser as WebdriverIO.Browser).requestedCapabilities || {}
-        this._isUP = isUnifiedPlatform(capabilities)
+        const capabilities = (this._browser as Browser).requestedCapabilities || {}
+        this._isUP = isUnifiedPlatform(capabilities as Capabilities.Capabilities)
     }
 
-    beforeSuite (suite: any) {
+    beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
         if (this._browser && this._options.setJobNameInBeforeSuite && !this._isUP) {
-            this._browser.execute('sauce:job-name=' + this._suiteTitle)
+            (this._browser as Browser).execute('sauce:job-name=' + this._suiteTitle)
         }
     }
 
-    beforeTest (test: any) {
+    beforeTest (test: Frameworks.Test) {
         /**
          * Date:    20200714
          * Remark:  Sauce Unified Platform doesn't support updating the context yet.
@@ -83,7 +85,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
          */
         /* istanbul ignore if */
         if (this._suiteTitle === 'Jasmine__TopLevel__Suite') {
-            this._suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.description) - 1)
+            this._suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
         }
 
         const fullTitle = (
@@ -96,16 +98,16 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
              */
             `${test.parent} - ${test.title}`
         )
-        this._browser.execute('sauce:context=' + fullTitle)
+        ;(this._browser as Browser).execute('sauce:context=' + fullTitle)
     }
 
-    afterSuite (suite: any) {
+    afterSuite (suite: Frameworks.Suite) {
         if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
             ++this._failures
         }
     }
 
-    afterTest (test: any, context: any, results: any) {
+    afterTest (test: Frameworks.Test, context: unknown, results: Frameworks.Results) {
         /**
          * remove failure if test was retried and passed
          * > Mocha only
@@ -119,7 +121,15 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
          * don't bump failure number if test was retried and still failed
          * > Mocha only
          */
-        if (test._retriedTest && !results.passed && test._currentRetry < test._retries) {
+        if (
+            test._retriedTest &&
+            !results.passed &&
+            (
+                typeof test._currentRetry === 'number' &&
+                typeof test._retries === 'number' &&
+                test._currentRetry < test._retries
+            )
+        ) {
             return
         }
 
@@ -141,7 +151,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
         }
 
         this._suiteTitle = feature.document.feature.name
-        this._browser.execute('sauce:context=Feature: ' + this._suiteTitle)
+        ;(this._browser as Browser).execute('sauce:context=Feature: ' + this._suiteTitle)
     }
 
     beforeScenario (uri: any, feature: any, scenario: any) {
@@ -154,7 +164,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
         }
 
         const scenarioName = scenario.name
-        this._browser.execute('sauce:context=Scenario: ' + scenarioName)
+        ;(this._browser as Browser).execute('sauce:context=Scenario: ' + scenarioName)
     }
 
     afterScenario(uri: any, feature: any, pickle: any, result: any) {
@@ -177,7 +187,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
          * set failures if user has bail option set in which case afterTest and
          * afterSuite aren't executed before after hook
          */
-        if (this._browser.config.mochaOpts && this._browser.config.mochaOpts.bail && Boolean(result)) {
+        if (this._config.mochaOpts && this._config.mochaOpts.bail && Boolean(result)) {
             failures = 1
         }
 
@@ -187,7 +197,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
             return this._isUP ? this.updateUP(failures) : this.updateJob(this._browser.sessionId, failures)
         }
 
-        const mulitremoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowserObject
+        const mulitremoteBrowser = this._browser as MultiRemoteBrowser
         return Promise.all(Object.keys(this._capabilities).map((browserName) => {
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${mulitremoteBrowser[browserName].sessionId}, ${status}`)
             return this._isUP ? this.updateUP(failures) : this.updateJob(mulitremoteBrowser[browserName].sessionId, failures, false, browserName)
@@ -206,7 +216,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
             return this.updateJob(oldSessionId, this._failures, true)
         }
 
-        const mulitremoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowserObject
+        const mulitremoteBrowser = this._browser as MultiRemoteBrowser
         const browserName = mulitremoteBrowser.instances.filter(
             (browserName) => mulitremoteBrowser[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
@@ -246,7 +256,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
         if (calledOnReload || this._testCnt) {
             let testCnt = ++this._testCnt
 
-            const mulitremoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowserObject
+            const mulitremoteBrowser = this._browser as MultiRemoteBrowser
             if (this._browser && this._browser.isMultiremote) {
                 testCnt = Math.ceil(testCnt / mulitremoteBrowser.instances.length)
             }
@@ -254,7 +264,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
             body.name += ` (${testCnt})`
         }
 
-        let caps = this._capabilities['sauce:options'] || this._capabilities as WebDriver.SauceLabsCapabilities
+        let caps = (this._capabilities as Capabilities.Capabilities)['sauce:options'] || this._capabilities as Capabilities.SauceLabsCapabilities
 
         for (let prop of jobDataProperties) {
             if (!caps[prop]) {
@@ -277,6 +287,6 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
         if (!this._browser) {
             return
         }
-        return this._browser.execute(`sauce:job-result=${failures === 0}`)
+        return (this._browser as Browser).execute(`sauce:job-result=${failures === 0}`)
     }
 }
