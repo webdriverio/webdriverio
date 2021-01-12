@@ -22,7 +22,6 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/cucumber": "^6.0.1",
     "@types/easy-table": "0.0.32",
     "@wdio/reporter": "6.11.0",
     "chalk": "^4.0.0",
