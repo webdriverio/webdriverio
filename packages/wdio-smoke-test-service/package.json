@@ -19,5 +19,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "types": "./build/index.d.ts"
 }
