@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 
 const log = logger('webdriverio')
 
@@ -25,7 +25,7 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export default async function reloadSession (this: Browser) {
+export default async function reloadSession (this: Browser | MultiRemoteBrowser) {
     const oldSessionId = this.sessionId
 
     /**

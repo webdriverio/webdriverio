@@ -1,4 +1,4 @@
-import type { Browser, PDFPrintOptions } from '../../types'
+import type { Browser, MultiRemoteBrowser, PDFPrintOptions } from '../../types'
 
 /**
  *
@@ -34,7 +34,7 @@ import fs from 'fs'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
 
 export default async function savePDF (
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     filepath: string,
     options?: PDFPrintOptions
 ) {

@@ -17,7 +17,7 @@ interface ProtocolCommands extends WebDriverCommandsAsync, Omit<JSONWPCommandsAs
 
 export interface ElementArray extends Array<Element> {
     selector: Selector
-    parent: Element | Browser
+    parent: Element | Browser | MultiRemoteBrowser
     foundWith: string
     props: any[]
 }
@@ -95,7 +95,7 @@ export interface Element extends ElementReference, Omit<Browser, keyof ElementCo
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: Element | Browser
+    parent: Element | Browser | MultiRemoteBrowser
     /**
      * true if element is a React component
      */
@@ -108,7 +108,7 @@ export interface Element extends ElementReference, Omit<Browser, keyof ElementCo
 
 type MultiRemoteBrowserReference = Record<string, Browser>
 
-export interface MultiRemoteBase extends BrowserCommandsType, Omit<Browser, 'isMultiremote'> {
+interface MultiRemoteBase extends ProtocolCommands, BrowserCommandsType, Omit<Browser, 'isMultiremote'> {
     /**
      * multiremote browser instance names
      */

@@ -1,7 +1,7 @@
 import { serializeError } from 'serialize-error'
 import WDIORepl from '@wdio/repl'
 
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -34,7 +34,7 @@ import type { Browser } from '../../types'
  *
  */
 export default function debug(
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     commandTimeout = 5000
 ) {
     const repl = new WDIORepl()

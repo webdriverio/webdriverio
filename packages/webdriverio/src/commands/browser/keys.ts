@@ -1,4 +1,4 @@
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 import { checkUnicode } from '../../utils'
 import { UNICODE_CHARACTERS } from '../../constants'
 
@@ -29,7 +29,7 @@ import { UNICODE_CHARACTERS } from '../../constants'
  *
  */
 export default function keys (
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     value: string | string[]
 ) {
     let keySequence: string[] = []

@@ -15,7 +15,7 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
 import { findStrategy } from './findStrategy'
-import type { Browser, Element, ElementArray, ElementFunction, Selector, ParsedCSSValue } from '../types'
+import type { Browser, Element, MultiRemoteBrowser, ElementArray, ElementFunction, Selector, ParsedCSSValue } from '../types'
 
 const browserCommands = require('../commands/browser')
 const elementCommands = require('../commands/element')
@@ -93,7 +93,7 @@ export const getElementFromResponse = (res: ElementReference) => {
 /**
  * traverse up the scope chain until browser element was reached
  */
-export function getBrowserObject (elem: Element | Browser): Browser {
+export function getBrowserObject (elem: Element | Browser | MultiRemoteBrowser): Browser {
     const elemObject = elem as Element
     return (elemObject as Element).parent ? getBrowserObject(elemObject.parent) : elem as Browser
 }
@@ -443,7 +443,7 @@ export function addLocatorStrategyHandler(scope: Browser) {
  */
 export const enhanceElementsArray = (
     elements: ElementArray,
-    parent: Browser | Element,
+    parent: Browser | Element | MultiRemoteBrowser,
     selector: Selector,
     foundWith = '$$',
     props: any[] = []

@@ -5,7 +5,7 @@ import type { ElementReference } from '@wdio/protocols'
 import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '.'
 import { elementErrorHandler } from '../middlewares'
 import { ELEMENT_KEY } from '../constants'
-import type { Selector, Browser, Element, ElementArray } from '../types'
+import type { Selector, Browser, MultiRemoteBrowser, Element, ElementArray } from '../types'
 
 /**
  * transforms a findElement response into a WDIO element
@@ -73,7 +73,7 @@ export const getElement = function findElement(
  * @return {Array}            array of WDIO elements
  */
 export const getElements = function getElements(
-    this: Browser | Element,
+    this: Browser | Element | MultiRemoteBrowser,
     selector: Selector,
     elemResponse: ElementReference[],
     isReactElement = false

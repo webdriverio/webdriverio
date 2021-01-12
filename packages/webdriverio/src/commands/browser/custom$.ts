@@ -2,7 +2,7 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { getElement } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -28,7 +28,7 @@ import type { Browser } from '../../types'
  * @return {Element}
  */
 export default async function custom$ (
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     strategyName: string,
     ...strategyArguments: any[]
 ) {

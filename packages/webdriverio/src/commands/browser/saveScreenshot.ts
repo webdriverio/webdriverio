@@ -1,5 +1,5 @@
 import fs from 'fs'
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
 
 /**
@@ -22,7 +22,7 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
  *
  */
 export default async function saveScreenshot (
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     filepath: string
 ) {
     /**

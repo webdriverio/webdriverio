@@ -1,4 +1,4 @@
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -22,7 +22,7 @@ import type { Browser } from '../../types'
  *
  */
 export default function pause (
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     milliseconds = 1000
 ) {
     return new Promise((resolve) => setTimeout(resolve, milliseconds))

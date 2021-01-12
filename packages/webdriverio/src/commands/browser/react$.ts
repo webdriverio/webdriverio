@@ -3,7 +3,7 @@ import { ElementReference } from '@wdio/protocols'
 
 import { getElement } from '../../utils/getElementObject'
 import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
-import type { Browser, ReactSelectorOptions } from '../../types'
+import type { Browser, MultiRemoteBrowser, ReactSelectorOptions } from '../../types'
 
 const resqScript = fs.readFileSync(require.resolve('resq'))
 
@@ -46,7 +46,7 @@ const resqScript = fs.readFileSync(require.resolve('resq'))
  *
  */
 export default async function react$ (
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {

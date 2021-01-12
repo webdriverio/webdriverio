@@ -3,7 +3,7 @@ import { Capabilities } from '@wdio/types'
 import { Browser as PuppeteerBrowser } from 'node_modules/puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import { FF_REMOTE_DEBUG_ARG } from '../../constants'
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
@@ -14,7 +14,7 @@ import type { Browser } from '../../types'
  *
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
-export default async function getPuppeteer (this: Browser) {
+export default async function getPuppeteer (this: Browser | MultiRemoteBrowser) {
     /**
      * check if we already connected Puppeteer and if so return
      * that instance

@@ -3,7 +3,7 @@ import path from 'path'
 import archiver from 'archiver'
 import type { Capabilities } from '@wdio/types'
 
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  * Uploads a file to the Selenium Standalone server or other browser driver
@@ -36,7 +36,7 @@ import type { Browser } from '../../types'
  * @return {String} remote URL
  */
 export default async function uploadFile (
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     localPath: string
 ): Promise<string> {
     /**

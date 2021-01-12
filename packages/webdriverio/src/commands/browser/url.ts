@@ -1,5 +1,5 @@
 import { validateUrl } from '../../utils'
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -35,7 +35,7 @@ import type { Browser } from '../../types'
  *
  */
 export default function url (
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     path: string
 ) {
     if (typeof path !== 'string') {

@@ -1,5 +1,5 @@
 import Timer from '../../utils/Timer'
-import type { Browser, Element, WaitUntilOptions } from '../../types'
+import type { Browser, MultiRemoteBrowser, Element, WaitUntilOptions } from '../../types'
 
 /**
  *
@@ -43,7 +43,7 @@ import type { Browser, Element, WaitUntilOptions } from '../../types'
  *
  */
 export default function waitUntil(
-    this: Browser | Element,
+    this: Browser | MultiRemoteBrowser | Element,
     condition: () => boolean | Promise<boolean>,
     {
         timeout = this.options.waitforTimeout,

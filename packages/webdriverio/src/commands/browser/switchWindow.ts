@@ -1,4 +1,4 @@
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -28,7 +28,7 @@ import type { Browser } from '../../types'
  *
  */
 export default async function switchWindow (
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     urlOrTitleToMatch: string | RegExp
 ) {
     /**

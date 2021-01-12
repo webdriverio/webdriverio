@@ -1,4 +1,4 @@
-import type { Browser, TouchAction } from '../../types'
+import type { Browser, MultiRemoteBrowser, TouchAction } from '../../types'
 import { touchAction as touchActionCommand } from '../constant'
 
 /**
@@ -60,7 +60,7 @@ import { touchAction as touchActionCommand } from '../constant'
  *
  */
 export default function touchAction (
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     ...args: TouchAction[]
 ) {
     return touchActionCommand.apply(this, args as any)

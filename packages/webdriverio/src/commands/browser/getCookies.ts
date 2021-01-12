@@ -1,4 +1,4 @@
-import type { Browser } from '../../types'
+import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -33,7 +33,7 @@ import type { Browser } from '../../types'
  *
  */
 export default async function getCookies(
-    this: Browser,
+    this: Browser | MultiRemoteBrowser,
     names?: string | string[]
 ) {
     if (names === undefined) {
