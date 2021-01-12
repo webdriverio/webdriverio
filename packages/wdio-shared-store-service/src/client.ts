@@ -1,6 +1,8 @@
 import got, { Response } from 'got'
 import logger from '@wdio/logger'
 
+import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
+
 const log = logger('@wdio/shared-store-service')
 
 let baseUrl: string
@@ -11,9 +13,9 @@ export const setPort = (port: string) => { baseUrl = `http://localhost:${port}` 
  * @param   {string} key
  * @returns {*}
  */
-export const getValue = async (key: string) => {
+export const getValue = async (key: string): Promise<string | number | boolean | JsonObject | JsonArray | null | undefined> => {
     const res = await got.post(`${baseUrl}/get`, { json: { key }, responseType: 'json' }).catch(errHandler)
-    return (res && res.body) ? (res.body as WebdriverIO.JsonObject).value : undefined
+    return (res && res.body) ? (res.body as JsonObject).value : undefined
 }
 
 /**
@@ -21,7 +23,7 @@ export const getValue = async (key: string) => {
  * @param {string}  key
  * @param {*}       value `store[key]` value (plain object)
  */
-export const setValue = async (key: string, value: WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive) => {
+export const setValue = async (key: string, value: JsonCompatible | JsonPrimitive) => {
     await got.post(`${baseUrl}/set`, { json: { key, value } }).catch(errHandler)
 }
 

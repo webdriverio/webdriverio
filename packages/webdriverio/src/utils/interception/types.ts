@@ -1,9 +1,5 @@
 import type { CDPSession } from 'node_modules/puppeteer-core/lib/cjs/puppeteer/common/Connection'
-
-type JsonPrimitive = string | number | boolean | null
-type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }
-type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>
-type JsonCompatible = JsonObject | JsonArray
+import { JsonCompatible } from '@wdio/types'
 
 /**
  * HTTP request data. (copied from the puppeteer-core package as there is currently

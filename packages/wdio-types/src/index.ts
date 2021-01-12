@@ -5,3 +5,8 @@ import type * as Services from './Services'
 import type * as Frameworks from './Frameworks'
 
 export type { Capabilities, Clients, Options, Services, Frameworks }
+
+export type JsonPrimitive = string | number | boolean | null
+export type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }
+export type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>
+export type JsonCompatible = JsonObject | JsonArray

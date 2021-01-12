@@ -25,11 +25,13 @@
   "dependencies": {
     "@polka/parse": "^1.0.0-next.0",
     "@wdio/logger": "6.10.10",
+    "@wdio/types": "^6.10.6",
     "got": "^11.0.2",
-    "polka": "^0.5.2"
+    "polka": "^0.5.2",
+    "webdriverio": "^6.11.3"
   },
   "publishConfig": {
     "access": "public"
   },
-  "types": "shared-store-service.d.ts"
+  "types": "./build/index.d.ts"
 }
