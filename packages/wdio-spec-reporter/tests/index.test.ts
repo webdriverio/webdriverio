@@ -1,7 +1,10 @@
 import chalk from 'chalk'
+import {
+    SuiteStats as WDIOReporterSuiteStats,
+} from '@wdio/reporter'
 import SpecReporter from '../src'
 import { AnyCapabilites } from '../src'
-import { getFakeHook, getFakeTest, getFakeSuite, getFakeError } from './utils'
+import { getFakeHook, getFakeTest, getFakeSuite, getFakeError, getSuiteRecordFromList } from './utils'
 import {
     RUNNER,
     SUITE_UIDS,
@@ -49,8 +52,9 @@ describe('SpecReporter', () => {
         it('should verify initial properties', () => {
             expect(Array.isArray(reporter.suiteUids)).toBe(true)
             expect(reporter.suiteUids.length).toBe(0)
-            expect(Array.isArray(reporter.suites)).toBe(true)
-            expect(reporter.suites.length).toBe(0)
+            const suiteList = Object.values(reporter.suites)
+            expect(Array.isArray(suiteList)).toBe(true)
+            expect(suiteList.length).toBe(0)
             expect(reporter.indents).toBe(0)
             expect(reporter.suiteIndents).toEqual({})
             expect(reporter.defaultTestIndent).toBe('   ')
@@ -95,6 +99,10 @@ describe('SpecReporter', () => {
 
     describe('getEventsToReport', () => {
         it('should return all tests and hook errors to report', () => {
+
+            const test11 = getFakeHook({ type: 'test',  title: '11' })
+            const test22 = getFakeHook({ type: 'test',  title: '22' })
+
             expect(tmpReporter.getEventsToReport(getFakeSuite({
                 tests: [
                     getFakeTest({ type: 'test',  title: '1' }),
@@ -103,15 +111,20 @@ describe('SpecReporter', () => {
                 hooks: [getFakeHook()],
                 hooksAndTests: [
                     getFakeHook(),
-                    getFakeHook({ type: 'test',  title: '11' }),
+                    test11,
                     getFakeHook(),
-                    getFakeHook({ type: 'test',  title: '22' }),
+                    test22,
                     getFakeHook(),
                 ]
             }))).toEqual([
-                getFakeHook({ type: 'test',  title: '11' }),
-                getFakeHook({ type: 'test',  title: '22' }),
+                test11,
+                test22,
             ])
+
+            const hookError11 = getFakeHook({ error: getFakeError({ message: '11' }) })
+            const hookError22 = getFakeHook({ error: getFakeError({ message: '22' }) })
+            const test33 = getFakeHook({ type: 'test',  title: '33' })
+
             expect(tmpReporter.getEventsToReport(getFakeSuite({
                 tests: [
                     getFakeTest({ type: 'test',  title: '1' }),
@@ -124,17 +137,17 @@ describe('SpecReporter', () => {
                 ],
                 hooksAndTests: [
                     getFakeHook(),
-                    getFakeHook({ error: getFakeError({ message: '11' }) }),
+                    hookError11,
                     getFakeHook(),
-                    getFakeHook({ type: 'test',  title: '33' }),
+                    test33,
                     getFakeHook(),
-                    getFakeHook({ error: getFakeError({ message: '22' }) }),
+                    hookError22,
                     getFakeHook(),
                 ]
             }))).toEqual([
-                getFakeHook({ error: getFakeError({ message: '11' }) }),
-                getFakeHook({ type: 'test',  title: '33' }),
-                getFakeHook({ error: getFakeError({ message: '22' }) }),
+                hookError11,
+                test33,
+                hookError22,
             ])
         })
     })
@@ -179,8 +192,9 @@ describe('SpecReporter', () => {
         })
 
         it('should add the suite to the suites array', () => {
-            expect(reporter.suites.length).toBe(1)
-            expect(reporter.suites[0]).toBe(SUITES[0])
+            const suiteList = Object.values(reporter.suites)
+            expect(suiteList.length).toBe(1)
+            expect(suiteList[0]).toBe(SUITES[0])
         })
     })
 
@@ -209,7 +223,7 @@ describe('SpecReporter', () => {
         describe('with normal setup', () => {
             beforeEach(() => {
                 printReporter.suiteUids = SUITE_UIDS
-                printReporter.suites = SUITES
+                printReporter.suites = getSuiteRecordFromList(SUITES)
                 printReporter.stateCounts = {
                     passed : 4,
                     failed : 1,
@@ -293,7 +307,7 @@ describe('SpecReporter', () => {
 
         it('should print report for suites with no tests but failed hooks', () => {
             printReporter.suiteUids = SUITE_UIDS
-            printReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR
+            printReporter.suites = getSuiteRecordFromList(SUITES_NO_TESTS_WITH_HOOK_ERROR)
 
             const runner = getRunnerConfig({
                 capabilities: {},
@@ -307,7 +321,7 @@ describe('SpecReporter', () => {
 
         it('should not print the report because there are no tests', () => {
             printReporter.suiteUids = SUITE_UIDS
-            printReporter.suites = SUITES_NO_TESTS
+            printReporter.suites = getSuiteRecordFromList(SUITES_NO_TESTS)
 
             printReporter.printReport(getRunnerConfig())
 
@@ -337,7 +351,7 @@ describe('SpecReporter', () => {
     describe('getResultDisplay', () => {
         it('should validate the result output with tests', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => SUITES)
-            tmpReporter.suites = SUITES
+            tmpReporter.suites = getSuiteRecordFromList(SUITES)
 
             const result = tmpReporter.getResultDisplay()
             expect(result).toMatchSnapshot()
@@ -345,7 +359,7 @@ describe('SpecReporter', () => {
 
         it('should validate the result output with no tests', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => SUITES_NO_TESTS)
-            tmpReporter.suites = SUITES_NO_TESTS
+            tmpReporter.suites = getSuiteRecordFromList(SUITES_NO_TESTS)
 
             const result = tmpReporter.getResultDisplay()
             expect(result.length).toBe(0)
@@ -353,7 +367,7 @@ describe('SpecReporter', () => {
 
         it('should print data tables', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => SUITES_WITH_DATA_TABLE)
-            tmpReporter.suites = SUITES_WITH_DATA_TABLE
+            tmpReporter.suites = getSuiteRecordFromList(SUITES_WITH_DATA_TABLE)
 
             const result = tmpReporter.getResultDisplay()
             expect(result).toMatchSnapshot()
@@ -422,7 +436,7 @@ describe('SpecReporter', () => {
     describe('getFailureDisplay', () => {
         it('should return failing results', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => SUITES)
-            tmpReporter.suites = SUITES
+            tmpReporter.suites = getSuiteRecordFromList(SUITES)
 
             const result = tmpReporter.getFailureDisplay()
 
@@ -435,7 +449,7 @@ describe('SpecReporter', () => {
 
         it('should return no results', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => SUITES_NO_TESTS)
-            tmpReporter.suites = SUITES_NO_TESTS
+            tmpReporter.suites = getSuiteRecordFromList(SUITES_NO_TESTS)
 
             const result = tmpReporter.getFailureDisplay()
 
@@ -444,7 +458,7 @@ describe('SpecReporter', () => {
 
         it('should return mutliple failing results if they exist', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => SUITES_MULTIPLE_ERRORS)
-            tmpReporter.suites = SUITES_MULTIPLE_ERRORS
+            tmpReporter.suites = getSuiteRecordFromList(SUITES_MULTIPLE_ERRORS)
 
             const result = tmpReporter.getFailureDisplay()
             expect(result.length).toBe(6)
@@ -462,10 +476,10 @@ describe('SpecReporter', () => {
             tmpReporter.suiteUids = ['5', '3', '8']
             const uid3Suite = getFakeSuite({ uid : '3' })
             const uid5Suite = getFakeSuite({ uid : '5' })
-            tmpReporter.suites = [
-                uid3Suite,
-                uid5Suite,
-            ]
+            tmpReporter.suites = {
+                '3': uid3Suite as WDIOReporterSuiteStats,
+                '5': uid5Suite as WDIOReporterSuiteStats,
+            }
 
             const result = tmpReporter.getOrderedSuites()
 

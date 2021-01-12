@@ -1,9 +1,10 @@
 import Table from 'easy-table'
+import { pickle } from 'cucumber'
 
 const SEPARATOR = '│'
 
 // TODO: integrate with wdio-cucumber-framework
-export interface Row {
+export interface Row extends pickle.Argument  {
     cells: string[];
     locations: Location[];
 }

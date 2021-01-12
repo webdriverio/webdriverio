@@ -1,40 +1,37 @@
 import WebDriverIO from 'webdriverio'
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, {
+    HookStats as _HookStats,
+    TestStats as _TestStats,
+    SuiteStats as WDIOReporterSuiteStats,
+    WDIOReporterOptions
+} from '@wdio/reporter'
 import chalk from 'chalk'
-//import { string } from 'easy-table';
 import prettyMs from 'pretty-ms'
-import { buildTableData, printTable, getFormattedRows, Row } from './utils'
+import { buildTableData, printTable, getFormattedRows } from './utils'
 
-type TestState = WDIOReporter.TestState;
+// TODO: move to wdio-reporter
+export type TestState = 'pending' | 'passed' | 'skipped' | 'failed';
 
-// TODO: integrate with wdio-reporter
-interface Options extends WDIOReporter.Options{
-    symbols?: StateSymbols;
+interface WDIOSpecReporterOptions extends WDIOReporterOptions{
+    symbols: StateSymbols;
 }
 
-interface RunnableStats {
+interface SpecReporterStats {
     type: string;
-    start: Date;
-    _duration: number;
-}
-export interface Hook extends WDIOReporter.Hook, RunnableStats {
-    errors?: WDIOReporter.Error[];
-    error?: WDIOReporter.Error;
-    state?: WDIOReporter.TestState;
-
-    argument?: StepArgument;
-}
-export interface Test extends WDIOReporter.Test, RunnableStats {
-    argument?: StepArgument;
-    uid: string;
 }
 
-// TODO: integrate with wdio-cucumber-framework
-export interface StepArgument {
-    rows: Row[];
+export interface Hook extends Omit<_HookStats, 'state'>, SpecReporterStats {
+    state?: TestState;
+
+    // TODO: use pickle.Argument or similar when the typing definitions are correct
+    argument?: any;
+}
+export interface Test extends Omit<_TestStats, 'argument'>, SpecReporterStats {
+    // TODO: use pickle.Argument or similar when the typing definitions are correct
+    argument?: any;
 }
 
-export interface Suite extends WDIOReporter.Suite {
+export interface Suite extends Omit<WDIOReporterSuiteStats, 'suites' | 'hooks' | 'tests' | 'hooksAndTests'> {
     hooksAndTests: (Hook | Test)[];
     description?: string;
     hooks: Hook[];
@@ -68,7 +65,7 @@ interface SingleCapabilitiesConfig extends Omit<Config, 'capabilities'> {
 }
 
 interface BaseRunner{
-    sessionId: string;
+    sessionId?: string;
     isMultiremote: boolean;
 }
 export interface Runner extends BaseRunner{
@@ -95,7 +92,6 @@ type StateSymbols = {[K in TestState]: string;};
 class SpecReporter extends WDIOReporter {
     symbols: StateSymbols;
     suiteUids: string[];
-    suites: Suite[];
     indents: number;
     suiteIndents: {[key:string]: number; };
     defaultTestIndent: string;
@@ -103,11 +99,11 @@ class SpecReporter extends WDIOReporter {
     chalk: chalk.Chalk;
     orderedSuites?: Suite[];
 
-    constructor (options: Options) {
+    constructor (options: Partial<WDIOSpecReporterOptions>) {
         /**
          * make spec reporter to write to output stream by default
          */
-        let reporterOpts: Options = Object.assign({ stdout: true }, options)
+        let reporterOpts: Partial<WDIOReporterOptions> = Object.assign({ stdout: true }, options)
         super(reporterOpts)
 
         this.symbols = {
@@ -120,7 +116,6 @@ class SpecReporter extends WDIOReporter {
         // Keep track of the order that suites were called
         this.suiteUids = []
 
-        this.suites = []
         this.indents = 0
         this.suiteIndents = {}
         this.defaultTestIndent = '   '
@@ -140,7 +135,8 @@ class SpecReporter extends WDIOReporter {
 
     onSuiteEnd (suite: Suite) {
         this.indents--
-        this.suites.push(suite)
+        // TODO remove casting
+        this.suites[suite.uid] = suite as WDIOReporterSuiteStats
     }
 
     onHookEnd (hook: Hook) {
@@ -440,7 +436,7 @@ class SpecReporter extends WDIOReporter {
 
         this.orderedSuites = []
         for (const uid of this.suiteUids) {
-            for (const suite of this.suites) {
+            for (const suite of Object.values(this.suites)) {
                 if (suite.uid !== uid) {
                     continue
                 }

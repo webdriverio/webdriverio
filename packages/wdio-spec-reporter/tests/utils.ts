@@ -1,4 +1,7 @@
-import { AnyCapabilites, Hook, Suite, Test, StepArgument } from '../src'
+import {
+    SuiteStats as WDIOReporterSuiteStats,
+} from '@wdio/reporter'
+import { AnyCapabilites, Hook, Suite, Test } from '../src'
 
 export interface RunnerConfigOptions {
     sessionId?: string;
@@ -9,42 +12,9 @@ export interface RunnerConfigOptions {
     headless?: boolean;
 }
 
-export interface HookOptions{
-    uid?: string;
-    title?: string;
-    state?: WDIOReporter.TestState;
-    type?: string;
-    error?: WDIOReporter.Error;
-    argument?: StepArgument;
-}
-
-export interface TestOptions {
-    uid?: string;
-    type?: string;
-    state?: WDIOReporter.TestState;
-    title?: string;
-    error?: WDIOReporter.Error;
-    errors?: WDIOReporter.Error[];
-    argument?: StepArgument;
-}
-
-export interface SuiteOptions {
-    uid?: string;
-    title?: string;
-    description?: string;
-    suites?: Suite[];
-    tests?: Test[];
-    hooks?: Hook[];
-    hooksAndTests?: (Hook | Test)[];
-}
-
-export interface ErrorOptions {
-    message: string;
-    stack?: string;
-}
-
-export const getFakeHook = (opts: HookOptions = {}): Hook => {
+export const getFakeHook = (opts: Partial<Hook> = {}): Hook => {
     return {
+        cid: 'fake-cid',
         uid: opts.uid || 'fake-uid',
         title: opts.title || 'fake-title',
         state: opts.state || 'passed',
@@ -55,26 +25,37 @@ export const getFakeHook = (opts: HookOptions = {}): Hook => {
         start: new Date(),
         error: opts.error,
         argument: opts.argument,
+        complete: () => {},
     }
 }
 
-export const getFakeTest = (opts: TestOptions = {}): Test => {
+export const getFakeTest = (opts: Partial<Test> = {}): Test => {
     return {
+        cid: 'fake-cid',
         uid: opts.uid || 'fake-uid',
         title: opts.title || 'fake-title',
         type: opts.type || 'test',
         fullTitle: 'fake-full-title',
         state: opts.state || 'passed',
+        duration: 0,
         _duration: 0,
         start: new Date(),
         error: opts.error,
         errors: opts.errors,
         argument: opts.argument,
+        output: [],
+        complete: () => {},
+        pass: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        fail: (_errors?: Error[]) => {},
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        skip: (_reason: string) => {},
     }
 }
 
-export const getFakeSuite = (opts: SuiteOptions = {}): Suite => {
+export const getFakeSuite = (opts: Partial<Suite> = {}): Suite => {
     return {
+        cid: 'fake-cid',
         uid: opts.uid || 'fake-uid',
         description: opts.description,
         tests: opts.tests || [],
@@ -84,16 +65,25 @@ export const getFakeSuite = (opts: SuiteOptions = {}): Suite => {
         fullTitle: 'fake-full-title',
         type: 'suite',
         suites:  opts.suites || [],
+        start: new Date(),
         duration: 0,
+        _duration: 0,
+        complete: () => {},
     }
 }
 
-export const getFakeError = (opts: ErrorOptions): WDIOReporter.Error => {
+export const getFakeError = (opts: Partial<Error>): Error => {
     return {
-        message: opts.message,
+        name: opts.name || 'Error',
+        message: opts.message || 'generic-error',
         stack: opts.stack ||'',
-        type: 'Error',
-        expected: null,
-        actual: null,
     }
+}
+
+export function getSuiteRecordFromList(suites: Suite[]): Record<string, WDIOReporterSuiteStats> {
+    const suiteMap = {}
+    for (const s of suites) {
+        suiteMap[s.uid] = s
+    }
+    return suiteMap
 }
