@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer-core'
 import { Capabilities } from '@wdio/types'
-import { Browser as PuppeteerBrowser } from 'node_modules/puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import { FF_REMOTE_DEBUG_ARG } from '../../constants'
 import type { Browser, MultiRemoteBrowser } from '../../types'

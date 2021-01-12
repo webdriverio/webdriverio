@@ -1,4 +1,4 @@
-import type { CDPSession } from 'node_modules/puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import { JsonCompatible } from '@wdio/types'
 
 /**

@@ -5,7 +5,7 @@ import type {
     AppiumCommandsAsync, ChromiumCommandsAsync, JSONWPCommandsAsync, MJSONWPCommandsAsync,
     SauceLabsCommandsAsync, SeleniumCommandsAsync, WebDriverCommandsAsync, ElementReference
 } from '@wdio/protocols'
-import { Browser as PuppeteerBrowser } from 'node_modules/puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import type BrowserCommands from './commands/browser'
 import type ElementCommands from './commands/element'
