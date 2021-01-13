@@ -168,13 +168,14 @@ export * from './types'
 
 declare global {
     namespace WebdriverIO {
-        export type Browser = BrowserType
-        export type Element = ElementType
-        export type MultiRemoteBrowser = MultiRemoteBrowserType
-        export type TouchAction = TouchActionImport
-        export type ClickOptions = Required<Parameters<ElementType['click']>[0]>
-        export type MockOverwriteFunction = MockOverwriteFunctionImport
-        export type MockOverwrite = MockOverwriteImport
+        interface Browser extends BrowserType {}
+        interface Element extends ElementType {}
+
+        type MultiRemoteBrowser = MultiRemoteBrowserType
+        type TouchAction = TouchActionImport
+        type ClickOptions = Required<Parameters<ElementType['click']>[0]>
+        type MockOverwriteFunction = MockOverwriteFunctionImport
+        type MockOverwrite = MockOverwriteImport
     }
 
     module NodeJS {
