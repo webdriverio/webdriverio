@@ -1,10 +1,13 @@
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, MockOverwriteFunction, SevereServiceError } from 'webdriverio'
+import { remote, multiremote, SevereServiceError } from 'webdriverio'
 
-// An example of adding command within ts file to WebdriverIO (async)
 declare module "webdriverio" {
     interface Browser {
         browserCustomCommand: (arg: unknown) => Promise<void>
+    }
+
+    interface Element {
+        elementCustomCommand: (arg: unknown) => Promise<number>
     }
 }
 
@@ -12,13 +15,13 @@ async function bar() {
     // multiremote
     const mr = await multiremote({
         myBrowserInstance: {
-            browserName: 'chrome'
+            capabilities: { browserName: 'chrome' }
         }
     })
 
     multiremote({
         myBrowserInstance: {
-            browserName: 'chrome'
+            capabilities: { browserName: 'chrome' }
         }
     }).then(() => {}, () => {})
 
@@ -36,11 +39,48 @@ async function bar() {
     ////////////////////////////////////////////////////////////////////////////////
 
     // remote
-    const r = await remote({ capabilities: { browserName: 'chrome' } })
+    const browser = await remote({ capabilities: { browserName: 'chrome' } })
     remote({ capabilities: { browserName: 'chrome' } }).then(
         () => {}, () => {})
-    const rElem = await r.$('')
+    const rElem = await browser.$('')
     await rElem.click()
+
+    ////////////////////////////////////////////////////////////////////////////////
+
+    // addCommand
+    // element
+    browser.addCommand('getClass', async function () {
+        return this.getAttribute('class').catch()
+    }, true)
+
+    // browser
+    browser.addCommand('sleep', async function (ms: number) {
+        return this.pause(ms).catch()
+    }, false)
+
+    browser.addCommand('sleep', async function (ms: number) {
+        return this.pause(ms).catch()
+    })
+
+    // overwriteCommand
+
+    // element
+    type ClickOptionsExtended = WebdriverIO.ClickOptions & { wait?: boolean }
+    browser.overwriteCommand('click', async function (clickFn, opts: Partial<ClickOptionsExtended> = {}) {
+        if (opts.wait) {
+            await this.waitForClickable().catch()
+        }
+        return clickFn.call(this, opts).catch()
+    }, true)
+
+    // browser
+    browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
+        return pause(ms).catch()
+    }, false)
+
+    browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
+        return pause(ms).catch()
+    })
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -118,7 +158,7 @@ async function bar() {
     const { foo, bar } = await browser.takeHeapSnapshot()
 
     // browser command return mapped object value
-    const { x: x0, y: y0, width: w, height: h }  =  await browser.getWindowSize()
+    const { width: w, height: h }  =  await browser.getWindowSize()
 
     // browser custom command
     await browser.browserCustomCommand(14)
@@ -126,7 +166,7 @@ async function bar() {
     // $
     const el1 = await $('')
     const strFunction = (str: string) => str
-    strFunction(el1.selector)
+    strFunction(el1.selector as string)
     strFunction(el1.elementId)
     const el2 = await el1.$('')
     const el3 = await el2.$('')
@@ -178,8 +218,8 @@ async function bar() {
     elem1.setValue('Delete', { translateToUnicode: true })
     elem1.setValue('Delete', { translateToUnicode: false })
 
-    const selector$$: string | Function = elems.selector
-    const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
+    const selector$$: string | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> = elems.selector
+    const parent$$: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser = elems.parent
 
     // shadow$ shadow$$
     const el6 = await $('')
@@ -229,8 +269,8 @@ async function bar() {
 
     // test access to base client properties
     browser.sessionId
-    browser.capabilities.browserName
-    browser.requestedCapabilities.browserName
+    ;(browser.capabilities as WebDriver.Capabilities).browserName
+    ;(browser.requestedCapabilities as WebDriver.Capabilities).browserName
     browser.isMobile
     browser.isAndroid
     browser.isIOS
@@ -256,15 +296,15 @@ async function bar() {
         statusCode: 100,
         headers: { foo: 'bar' }
     })
-    const res: MockOverwriteFunction = async function (req, client) {
+    const res: WebdriverIO.MockOverwriteFunction = async function (req, client) {
         const url:string = req.url
-        await client.send('foo', { bar: 1 })
+        await client.send('Console.clearMessages')
         return url
     }
     mock.respond(res)
     mock.respond(async (req, client) => {
         const url:string = req.url
-        await client.send('foo', { bar: 1 })
+        await client.send('Console.clearMessages')
         return true
     })
     mock.respondOnce('/other/resource.jpg')
@@ -285,42 +325,6 @@ function testSevereServiceError_noParameters() {
 function testSevereServiceError_stringParameter() {
     throw new SevereServiceError("Something happened.");
 }
-
-// addCommand
-
-// element
-browser.addCommand('getClass', async function () {
-    return this.getAttribute('class').catch()
-}, true)
-
-// browser
-browser.addCommand('sleep', async function (ms: number) {
-    return this.pause(ms).catch()
-}, false)
-
-browser.addCommand('sleep', async function (ms: number) {
-    return this.pause(ms).catch()
-})
-
-// overwriteCommand
-
-// element
-type ClickOptionsExtended = WebdriverIO.ClickOptions & { wait?: boolean }
-browser.overwriteCommand('click', async function (clickFn, opts: ClickOptionsExtended = {}) {
-    if (opts.wait) {
-        await this.waitForClickable().catch()
-    }
-    return clickFn(opts).catch()
-}, true)
-
-// browser
-browser.overwriteCommand('pause', async function (pause, ms = 1000) {
-    return pause(ms).catch()
-}, false)
-
-browser.overwriteCommand('pause', async function (pause, ms = 1000) {
-    return pause(ms).catch()
-})
 
 // allure-reporter
 allure.addFeature('')
