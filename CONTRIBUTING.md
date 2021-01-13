@@ -18,8 +18,8 @@ In order to set up this project and start contributing follow this step by step 
     ```
 * On Windows, you need to set git config `core.symlinks` to `true` as we currently has some symbolic links for type definition committed to our repo.
   - To set git config globally: `git config --global --add core.symlinks true`
-  - To set git config locally when cloning the repo: `git -c core.symlinks=true clone git@github.com:<your-username>/webdriverio.git`. 
-  
+  - To set git config locally when cloning the repo: `git -c core.symlinks=true clone git@github.com:<your-username>/webdriverio.git`.
+
   See [https://github.com/git-for-windows/git/wiki/Symbolic-Links](https://github.com/git-for-windows/git/wiki/Symbolic-Links) for more information
 
 * If you need to update your fork you can do so following the steps [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
@@ -33,13 +33,15 @@ In order to set up this project and start contributing follow this step by step 
     $ npm run setup-full
     ```
 
+    The second command does two things:
+
     * Bootstraps sub-projects via ```npm run bootstrap```
 
-        Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks it is recommend to use the package bootstrap command:
+        Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks, it is recommended to use the package bootstrap command.
 
     * Builds all subpackages via ```npm run build```
 
-        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as compiler. We are currently transitioning to TypeScript so you will see a mixture of normal JS files and TypeScript files.
+        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as a compiler. We are currently transitioning to TypeScript so you will see a mixture of normal JS files and TypeScript files.
 
 * Run Tests to ensure that everything is set up correctly
 
@@ -54,9 +56,9 @@ In order to set up this project and start contributing follow this step by step 
 
 ## Link changes to your current project
 
-When modifying core WebdriverIO packages you can link those changes to your current project to test the changes that you made.
+When modifying core WebdriverIO packages, you can link those changes to your current project to test the changes that you made.
 
-If you are working on a package, lets say the @wdio/cli package, you can link this in the following way from the WebdriverIO repositority.
+If you are working on a package, let's say the @wdio/cli package, you can link this in the following way from the WebdriverIO repository.
 
 ```
 $ cd packages/wdio-cli
@@ -72,13 +74,13 @@ $ npm link @wdio/cli
 
 ## Work On Packages
 
-If you start making changes to specific packages, make sure you listen on file changes and transpile the code everytime you press save. To do that for all packages, run:
+If you start making changes to specific packages, make sure you listen to file changes and transpile the code every time you press save. To do that for all packages, run:
 
 ```sh
 $ npm run watch
 ```
 
-If you only work on a single package you can watch only for that one by calling:
+If you only work on a single package, you can watch only for that one by calling:
 
 ```sh
 # e.g. `$ npm run watch wdio-runner`
@@ -93,13 +95,13 @@ $ npx jest ./packages/<package-name>/tests --watch --coverageReporters lcov
 
 ## Create New Package
 
-All WebdriverIO sub packages require a certain structure to work within the wdio ecosystem. To simplify the process of creating a new sub package we build a NPM script that does all the boilerplate work for you. Just run:
+All WebdriverIO sub packages require a certain structure to work within the wdio ecosystem. To simplify the process of creating a new sub package, we built an NPM script that does all the boilerplate work for you. Just run:
 
 ```sh
 $ npm run create
 ```
 
-It will ask you about the type and name of the new package and creates all the files for you.
+It will ask you about the type and name of the new package and create all the files for you.
 
 ## Run e2e Experience With Smoke Tests
 
@@ -135,22 +137,22 @@ $ npm install
 $ npm start
 ```
 
-This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). You can now modify the content of the [`/docs`](https://github.com/webdriverio/webdriverio/tree/master/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places you have to rerun the `npm start` script to re-generate the docs.
+This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). You can now modify the content of the [`/docs`](https://github.com/webdriverio/webdriverio/tree/master/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun the `npm start` script to re-generate the docs.
 
-Everytime a new release is pushed to GitHub the WebdriverIO docs are automatically generated and pushed to the projects S3 bucket. The process is defined in a GitHub Actions [pipeline](https://github.com/webdriverio/webdriverio/blob/master/.github/workflows/deploy.yml) and does not need to be done manually.
+Every time a new release is pushed to GitHub the WebdriverIO docs are automatically generated and pushed to the project's S3 bucket. The process is defined in a GitHub Actions [pipeline](https://github.com/webdriverio/webdriverio/blob/master/.github/workflows/deploy.yml) and does not need to be done manually.
 
 For more information on Docusaurus please checkout their [documentation page](https://docusaurus.io/docs/en/installation).
 
 ## TypeScript definitions
 
-WebdriverIO provides their own type definitions for project that use TypeScript. Given the large amount of commands it would make it unmaintainable to __not__ automate the process of generating these. However there are certain edge cases where manual work is required.
+WebdriverIO provides its own type definitions for projects that use TypeScript. Given the large amount of commands it would make it unmaintainable to __not__ automate the process of generating these. However there are certain edge cases where manual work is required.
 
 All type definitions are located in the sub package folders. Some of them are autogenerated and should not be modified as changes might be overwritten. Each package defines its typings differently:
 
 - the `webdriver` and `devtools` package define all commands and their respective types in the json file of the `@wdio/protocols` package
 - the `webdriverio` package has the types defined in the comments above every command in `/packages/webdriverio/src/commands/**/*`
 - the `@wdio/allure-reporter` has its interface defined in comments within the service (`/packages/wdio-allure-reporter/src/index.js`)
-- all other packages have their type definitions directly in the `*.d.ts` in the root directory of that package (e.g. `/packages/wdio-cucumber-framework/cucumber-framework.d.ts`) - these are __not__ autogenerated and you can make modifications directly in these files
+- all other packages have their type definitions directly in the `*.d.ts` in the root directory of the package (e.g. `/packages/wdio-cucumber-framework/cucumber-framework.d.ts`) - these are __not__ autogenerated and you can make modifications directly in these files
 
 You can find all files responsible for the generating the typings here: https://github.com/webdriverio/webdriverio/tree/master/scripts/type-generation. You can trigger the process by calling:
 
@@ -158,11 +160,11 @@ You can find all files responsible for the generating the typings here: https://
 $ npm run generate:typings
 ```
 
-This will run the scripts in the directory shown above and generate the typings various packages located in `/packages/*`. Whenever you change the types in these packages, make sure you re-generate the types with the command shown above. In order to ensure that packages where type definitions have changed are released we keep the generated type definition in source control.
+This will run the scripts in the directory shown above and generate the typings for various packages located in `/packages/*`. Whenever you change the types in these packages, make sure you re-generate the types with the command shown above. In order to ensure that packages where type definitions have changed are released, we keep the generated type definitions in source control.
 
 ### Adding Types for WebdriverIO
 
-If you add a new command or extend an existing with a special option, follow this guide to ensure that types are generated properly. As mentioned above every WebdriverIO command contains a comment section that is used to generate the documentation and type definition. For example the `newWindow` command:
+If you add a new command or extend an existing one with a special option, follow this guide to ensure that types are generated properly. As mentioned above, every WebdriverIO command contains a comment section that is used to generate documentation and type definitions. For example, let's have a look at the `newWindow` command:
 
 ```js
 /**
@@ -177,7 +179,10 @@ If you add a new command or extend an existing with a special option, follow thi
     it('should open a new tab', () => {
         browser.url('http://google.com')
         console.log(browser.getTitle()) // outputs: "Google"
-        browser.newWindow('https://webdriver.io', 'WebdriverIO window', 'width=420,height=230,resizable,scrollbars=yes,status=1')
+        browser.newWindow('https://webdriver.io', {
+            windowName: 'WebdriverIO window',
+            windowFeatures: 'width=420,height=230,resizable,scrollbars=yes,status=1'
+        })
         console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
         browser.closeWindow()
         console.log(browser.getTitle()) // outputs: "Google"
@@ -197,7 +202,7 @@ If you add a new command or extend an existing with a special option, follow thi
  */
 ```
 
-WebdriverIO follows the pattern that every command property that is required for the command execution (e.g. in the example above the `url` parameter) is a parameter of the command. Every optional parameter that just modifies the way the command is being executed is being attached as a command option object (e.g. in the example above `windowName` and `windowFeatures`). To properly create typings for the options object we need to give this interface a new name (e.g. `NewWindowOptions`) and:
+WebdriverIO follows a convention that every command property that is required for the command execution (e.g. the `url` parameter in the example above) is a parameter of the command. Optional parameters that just modify the way the command is executed (e.g. `windowName` and `windowFeatures` in the example above) are properties of the command options object. To properly create typings for the options object, we need to name this interface (e.g. `NewWindowOptions`) and:
 
 - define this new interface in the [type definition template](/scripts/templates/webdriverio.tpl.d.ts)
 - add custom interfaces to the list of [`CUSTOM_INTERFACES`](/scripts/type-generation/constants.js)
@@ -205,15 +210,15 @@ WebdriverIO follows the pattern that every command property that is required for
 
 ### Testing Type Definitions
 
-To make sure that we don't accidently change the types and cause users test to break we run some simple typescript checks. You can run all type definition tests by running:
+To make sure that we don't accidentally change the types and cause users' test to break, we run some simple TypeScript checks. You can run all the type definition tests by running:
 
 ```sh
 $ npm run test:typings
 ```
 
-This will run all tests for all type definitions WebdriverIO provides. These tests just check if TypeScript can compile them according to the generated type definitions. All type checks are located in `/webdriverio/tests/typings`. If you extend a WebdriverIO command or interfaces for other type definitions please ensure that you have used it in these files. The directory contains tests for the asynchronous usage of WebdriverIO as well as for using it synchronously with `@wdio/sync`.
+This will run all the tests for all the type definitions WebdriverIO provides. These tests just check if TypeScript can compile them according to the generated type definitions. All the type checks are located in `/webdriverio/tests/typings`. If you extend a WebdriverIO command or interfaces for other type definitions, please ensure that you have used it in these files. The directory contains tests for the asynchronous usage of WebdriverIO as well as for using it synchronously with `@wdio/sync`.
 
-For example to test the `touchActions` properties we have it tested in `/tests/typings/webdriverio/async.ts`:
+For example, to test the `touchActions` properties, we have it tested in `/tests/typings/webdriverio/async.ts`:
 
 ```ts
 // touchAction
@@ -246,47 +251,47 @@ browser.touchAction(touchAction)
 
 ## Test Your Changes
 
-In order to test certain scenarios this project has a test directory that allows you to run predefined test. It allows you to check your code changes while you are working on it. You find all these files in `/examples`. You find all necessary information [in there](https://github.com/webdriverio/webdriverio/tree/master/examples/README.md). When submitting a PR, WebdriverIO runs the following checks:
+In order to test certain scenarios this project has a test directory that allows you to run predefined tests. It allows you to check your code changes while you are working on it. You can find all these files in `/examples` and additional information in [`/examples/README.md`](https://github.com/webdriverio/webdriverio/tree/master/examples/README.md). When a PR gets submitted, WebdriverIO runs the following checks:
 
 - *Dependency Checks*
-  We automatically check if every sub-package has all dependencies installed in the package.json.
+  We automatically check if every sub-package has all the dependencies from its `package.json` installed.
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:depcheck
   ```
-- *EsLint*
-  Common EsLint test to align code styles and detecting syntax errors early.
+- *ESLint*
+  A common ESLint test to align code styles and detect syntax errors early.
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:eslint
   ```
 - *TypeScript Definition Tests*
-  As we generate our type definitions we want to be cautious that the generated definitions actually define the interface as expected. Read more
+  As we generate our type definitions, we want to be cautious that the generated definitions actually define the interface as expected. Read more
   on that at [Testing Type Definitions](#testing-type-definitions).
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:typings
   ```
 - *Unit Tests*
-  Like every project we unit test our code and ensure that new patches are properly tested. The coverage treshold is pretty high so ensure that
-  your changes cover all necessary code paths. We are using [Jest](https://jestjs.io/) as unit test framework here.
+  Like every project we unit-test our code and ensure that new patches are properly tested. The coverage threshold is pretty high so ensure that
+  your changes cover all necessary code paths. We are using [Jest](https://jestjs.io/) as a unit test framework here.
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:coverage
   ```
 - *Smoke Tests*
-  While unit tests already cover a lot cases, we run in addition to that smoke tests that simulate test scenarios which are difficult to test
-  on a unit level as they include functionality of dependencies that are stubbed out in unit tests. Such scenarios are for example: proper
-  test retries or failure handling. Smoke test run actual e2e test where the driver is being stubbed (via [`@wdio/smoke-test-service`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-smoke-test-service/package.json)) to return fake results.
+  While unit tests already cover a lot of cases, we run in addition to that smoke tests that simulate test scenarios which are difficult to test
+  on a unit level as they include functionality of dependencies that are stubbed out in unit tests. Such scenarios are, for example, proper
+  test retries or failure handling. Smoke tests run actual e2e tests where the driver is being stubbed (via [`@wdio/smoke-test-service`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-smoke-test-service/package.json)) to return fake results.
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:smoke
   ```
 - *e2e Tests*
-  Last but not least we run actual e2e tests with real browser to ensure that our WebDriver DevTools implementation is working as expected. These
-  test spin up headless Chrome and Firefox browser to test the commands implemented in the `devtools` package. Given that WebDriver functionality
-  is already tested with [WPT](https://github.com/web-platform-tests/wpt) we don't need to do it there. 
-  In order to run these tests, an installation of [Firefox Nightly](https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly) and [Google Chrome](https://www.google.com/chrome/) are required.
+  Last but not least, we run actual e2e tests with a real browser to ensure that our WebDriver DevTools implementation is working as expected. These
+  tests spin up headless Chrome and Firefox browsers to test the commands implemented in the `devtools` package. Given that the WebDriver functionality
+  is already tested with [WPT](https://github.com/web-platform-tests/wpt), we don't need to do it there.
+  In order to run these tests, an installation of [Firefox Nightly](https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly) and [Google Chrome](https://www.google.com/chrome/) is required.
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:e2e
@@ -294,13 +299,13 @@ In order to test certain scenarios this project has a test directory that allows
 
 ## Back-Porting Bug Fixes
 
-Starting from v6 the WebdriverIO team tries to backport all features that would be still backwards compatible with older versions. The team tries to release a new major version every year (usually around December/January). With a new major version update (e.g. v6) we continue to maintain the last version (e.g. v5) and depcrecate the previous maintained version (e.g. v4). With that the team commits to always support 2 major versions.
+Starting from v6 the WebdriverIO team tries to backport all features that would be still backwards compatible with older versions. The team tries to release a new major version every year (usually around December/January). With a new major version update (e.g. v6) we continue to maintain the last version (e.g. v5) and deprecate the previous maintained version (e.g. v4). With that the team commits to always support 2 major versions.
 
-### As Triager
+### As a Triager
 
-Everyone triaging or reviewing a PR should label it with `backport-requested` if the changes can be applied to the maintained (previous) version. Generally every PR that would not be a breaking change for the previous version should be considered to be ported back. If a change relies on features or code pieces that are only available in the current version then a back port can still be considered if you feel comfortable making the necessary adjustments. That said, don't feel forced to back port code if the time investment and complexity is too high. Backporting functionality is a reasonable contribution that can be made by any contributor.
+Everyone triaging or reviewing a PR should label it with `backport-requested` if the changes can be applied to the maintained (previous) version. Generally every PR that would not be a breaking change for the previous version should be considered to be ported back. If a change relies on features or code pieces that are only available in the current version, then a back port can still be considered if you feel comfortable making the necessary adjustments. That said, don't feel forced to back port code if the time investment and complexity is too high. Backporting functionality is a reasonable contribution that can be made by any contributor.
 
-### As A Merger
+### As a Merger
 
 Once a PR with a `backport-requested` label got merged, you are responsible for backporting the patch to the older version. To do so, pull the latest code from GitHub:
 
@@ -310,13 +315,13 @@ $ git fetch --all
 $ git checkout v5
 ```
 
-Before you can start please export an `GITHUB_AUTH` token into your environment in order to allow the executing script to fetch data about pull requests and set proper labels. Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such token with only having the `public_repo` field enabled. Then export it into your environment and run the backport script. It fetches all commits connected with PRs that are labeled with `backport-requested` and cherry-picks them into the maintainance branch. Via an interactive console you can get the chance to review the PR again and whether you want to backport it or not. To start the process, just execute:
+Before you can start, please export an `GITHUB_AUTH` token into your environment in order to allow the executing script to fetch data about pull requests and set proper labels. Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such a token with only having the `public_repo` field enabled. Then export it into your environment and run the backport script. It fetches all commits connected with PRs that are labeled with `backport-requested` and cherry-picks them into the maintenance branch. Via an interactive console you can get the chance to review the PR again and whether you want to backport it or not. To start the process, just execute:
 
 ```sh
 $ npm run backport
 ```
 
-If during the process a cherry-pick fails you can always abort and manually troubleshoot. If you are not able to resolve the problem, create an issue in the repo and include the author of that PR. A successful backport of two PRs will look like this:
+If during the process a cherry-pick fails, you can always abort and manually troubleshoot. If you are not able to resolve the problem, create an issue in the repo and include the author of that PR. A successful backport of two PRs will look like this:
 
 ```
 $ npm run backport
@@ -347,7 +352,7 @@ You can always reach out to the `webdriverio/ProjectCommitters` channel on Gitte
 
 ## Release New Version
 
-Package releases are made using Lerna's release capabilities and executed by the [technical steering committee](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md#the-technical-committee) only. Before you can start please export an `GITHUB_AUTH` token into your environment in order to allow [`lerna-changelog`](https://www.npmjs.com/package/lerna-changelog#github-token) to gather data about the upcoming release and autogenerate the [CHANGELOG.md](/CHANGELOG.md). Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such token with only having the `public_repo` field enabled. Then export it into your environment:
+Package releases are made using Lerna's release capabilities and executed by the [technical steering committee](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md#the-technical-committee) only. Before you can start please export a `GITHUB_AUTH` token into your environment in order to allow [`lerna-changelog`](https://www.npmjs.com/package/lerna-changelog#github-token) to gather data about the upcoming release and autogenerate the [CHANGELOG.md](/CHANGELOG.md). Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such a token with only having the `public_repo` field enabled. Then export it into your environment:
 
 ```sh
 $ export GITHUB_AUTH=...
@@ -365,7 +370,7 @@ $ npm run release
 and choose the appropriate version upgrade based on the [Semantic Versioning](https://semver.org/). To help choose the right release type, here are some general guidelines:
 
 - __Breaking Changes__: never do these by yourself! A major release is always a collaborative effort between all TSC members. It requires consensus from all of them.
-- __Minor Release__: minor releases are always required if a new, user focused feature was added to one of the packages. For example if a command was added to WebdriverIO or a service provides a new form of integration a minor version bump would be appropiate. However if an internal package like `@wdio/local-runner` exposes a new interface that is solely used internally we can consider that as a patch release.
-- __Patch Release__: everytime a bug was fixed, documentation (this includes TypeScript definitions) got updated or existing functionality was improved we should do a patch release.
+- __Minor Release__: minor releases are always required if a new, user focused feature was added to one of the packages. For example, if a command was added to WebdriverIO or if a service provides a new form of integration, a minor version bump would be appropriate. However if an internal package like `@wdio/local-runner` exposes a new interface that is solely used internally, we can consider that as a patch release.
+- __Patch Release__: every time a bug is fixed, documentation (this includes TypeScript definitions) gets updated or existing functionality is improved, we should do a patch release.
 
 If you are unsure about which release type to pick, reach out in the TSC Gitter channel.

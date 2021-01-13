@@ -3,7 +3,7 @@ WebdriverIO
 
 > Next-gen browser and mobile automation test framework for Node.js
 
-This package provides and easy to manage API and a lot of syntactical sugar on top of the WebDriver specification. You can use WebdriverIO as a standalone package or via a testrunner using [`@wdio/cli`](https://webdriver.io/docs/clioptions.html). WebdriverIO allows to run tests locally using the WebDriver or Chrome DevTools protocol as well as remote user agents using cloud providers like [Sauce Labs](https://saucelabs.com/).
+This package provides an easy to manage API and a lot of syntactical sugar on top of the WebDriver specification. You can use WebdriverIO as a standalone package or via a testrunner using [`@wdio/cli`](https://webdriver.io/docs/clioptions.html). WebdriverIO allows to run tests locally using the WebDriver or Chrome DevTools protocol as well as remote user agents using cloud providers like [Sauce Labs](https://saucelabs.com/).
 
 ## Installation
 
@@ -15,7 +15,7 @@ $ npm install webdriverio
 
 ## Usage
 
-WebdriverIO by default uses Puppeteer to automate a browser like Chrome, Firefox or Chromium Edge. So if you have these installs the following script should start a browser for you and get the title of the page:
+WebdriverIO by default uses Puppeteer to automate a browser like Chrome, Firefox or Chromium Edge. So if you have Chrome installed, the following script should start a browser for you and get the title of the page:
 
 ```js
 import { remote } from 'webdriverio'
