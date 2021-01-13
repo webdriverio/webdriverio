@@ -17,7 +17,7 @@ export interface ElementArray extends Array<Element> {
     props: any[]
 }
 
-type AddCommandFn<
+type AddCommandFnScoped<
     InstanceType = Browser,
     IsElement extends boolean = false
 > = (
@@ -25,12 +25,23 @@ type AddCommandFn<
     ...args: any[]
 ) => any
 
-type OverwriteCommandFn<
+type AddCommandFn = (...args: any[]) => any
+
+type OverwriteCommandFnScoped<
     ElementKey extends keyof ElementCommandsType,
     BrowserKey extends keyof BrowserCommandsType,
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? Element : Browser,
+    origCommand: IsElement extends true ? Element[ElementKey] : Browser[BrowserKey],
+    ...args: any[]
+) => Promise<any>
+
+type OverwriteCommandFn<
+    ElementKey extends keyof ElementCommandsType,
+    BrowserKey extends keyof BrowserCommandsType,
+    IsElement extends boolean = false
+> = (
     origCommand: IsElement extends true ? Element[ElementKey] : Browser[BrowserKey],
     ...args: any[]
 ) => Promise<any>
@@ -41,7 +52,7 @@ export interface CustomInstanceCommands<T> {
      */
     addCommand<IsElement extends boolean = false>(
         name: string,
-        func: AddCommandFn<T, IsElement>,
+        func: AddCommandFn | AddCommandFnScoped<T, IsElement>,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
         instances?: Record<string, Browser | MultiRemoteBrowser>
@@ -52,7 +63,7 @@ export interface CustomInstanceCommands<T> {
      */
     overwriteCommand<ElementKey extends keyof ElementCommandsType, BrowserKey extends keyof BrowserCommandsType, IsElement extends boolean = false>(
         name: IsElement extends true ? ElementKey : BrowserKey,
-        func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement>,
+        func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement> | OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
         instances?: Record<string, Browser | MultiRemoteBrowser>
@@ -122,7 +133,7 @@ export interface Element extends ElementReference, Omit<Browser, keyof ElementCo
 
 type MultiRemoteBrowserReference = Record<string, Browser>
 
-interface MultiRemoteBase extends BrowserCommandsType, CustomInstanceCommands<MultiRemoteBrowser>, Omit<Browser, keyof CustomInstanceCommands<MultiRemoteBrowser> |  'isMultiremote' | 'sessionId'> {
+interface MultiRemoteBase extends BrowserCommandsType, CustomInstanceCommands<MultiRemoteBrowser>, Omit<Browser, keyof CustomInstanceCommands<MultiRemoteBrowser> | keyof CustomInstanceCommands<MultiRemoteBrowser> |  'isMultiremote' | 'sessionId'> {
     /**
      * multiremote browser instance names
      */

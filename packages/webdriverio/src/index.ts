@@ -179,7 +179,8 @@ declare global {
 
     module NodeJS {
         interface Global {
-            browser: BrowserType
+            browser: BrowserType | MultiRemoteBrowserType
+            driver: BrowserType | MultiRemoteBrowserType
         }
     }
 

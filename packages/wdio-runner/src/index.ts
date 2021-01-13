@@ -46,10 +46,6 @@ type MultiRemoteCaps = Record<string, (Capabilities.DesiredCapabilities | Capabi
 
 // Todo(Christian): move to a central place
 declare global {
-    var browser: Browser
-    var driver: Browser
-    var $: Browser['$']
-    var $$: Browser['$$']
     var _HAS_FIBER_CONTEXT: boolean
 }
 

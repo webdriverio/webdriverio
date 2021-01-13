@@ -1,5 +1,5 @@
 import pickBy from 'lodash.pickby'
-import { remote, Browser } from 'webdriverio'
+import { remote } from 'webdriverio'
 import { hasWdioSyncSupport } from '@wdio/utils'
 
 import { getCapabilities } from '../utils'
@@ -42,12 +42,6 @@ export const builder = (yargs: yargs.Argv) => {
         .example('$0 repl ios -v 11.3 -d "iPhone 7" -u 123432abc', 'Run repl browser on iOS device with capabilities')
         .epilogue(CLI_EPILOGUE)
         .help()
-}
-
-declare global {
-    var browser: Browser
-    var $: Browser['$']
-    var $$: Browser['$$']
 }
 
 export const handler = async (argv: ReplCommandArguments) => {
