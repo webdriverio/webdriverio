@@ -219,7 +219,14 @@ async function bar() {
     elem1.setValue('Delete', { translateToUnicode: false })
 
     const selector$$: string | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> = elems.selector
-    const parent$$: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser = elems.parent
+    ;(elems.parent as WebdriverIO.Element).click()
+    ;(elems.parent as WebdriverIO.Browser).url('')
+    ;(elems.parent as WebdriverIO.MultiRemoteBrowser).url('')
+    // @ts-expect-error
+    ;(elems.parent as WebdriverIO.Browser).click()
+
+    const isDevTools: boolean = browser.isDevTools
+    const isMobile: boolean = browser.isMobile
 
     // shadow$ shadow$$
     const el6 = await $('')

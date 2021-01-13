@@ -6,6 +6,48 @@ class CustomService {
 
 const config: WebdriverIO.Config = {
     services: [
+        ['sauce', {
+            sauceConnect: true,
+            sauceConnectOpts: {
+                directDomains: 'some.domain'
+            },
+            scRelay: true,
+            // @ts-expect-error test wrong parameter
+            parentTunnel: 123
+        }],
+        ['appium', {
+            args: {
+                basePath: 'some/path',
+                // @ts-expect-error test wrong parameter
+                port: true
+            }
+        }],
+        ['applitools', {
+            viewport: {
+                width: 123,
+                // @ts-expect-error test wrong parameter
+                height: 'wrong'
+            },
+            eyesProxy: {
+                url: 'some url',
+                // @ts-expect-error test wrong parameter
+                username: true,
+                password: 'pass',
+                isHttpOnly: false
+            }
+        }],
+        ['browserstack', {
+            browserstackLocal: true,
+            // @ts-expect-error test wrong parameter
+            forcedStop: 'no'
+        }],
+        ['devtools', {
+            coverageReporter: {
+                enable: true,
+                // @ts-expect-error test wrong parameter
+                type: 'foo'
+            }
+        }],
         ['selenium-standalone', {
             logs: 'string',
             installArgs: {
@@ -14,10 +56,16 @@ const config: WebdriverIO.Config = {
             args: {
                 basePath: ''
             },
-            skipSeleniumInstall: true
+            skipSeleniumInstall: true,
+            drivers: {
+                chrome: 'yes',
+                // @ts-expect-error test wrong parameter
+                brave: 'no'
+            }
         }],
         ['crossbrowsertesting', {
-            cbtTunnel: true,
+            // @ts-expect-error test wrong parameter
+            cbtTunnel: 'true',
             cbtTunnelOpts: {
                 foo: 'bar'
             }
@@ -25,13 +73,19 @@ const config: WebdriverIO.Config = {
         ['firefox-profile', {
             extensions: [],
             profileDirectory: '/foo/bar',
-            proxy: {},
+            proxy: { proxyType: 'direct' },
             legay: false
         }],
         ['static-server', {
-            folders: [{}],
+            folders: [{
+                mount: '',
+                path: ''
+            }],
             port: 1234,
-            middleware: [{}]
+            middleware: [{
+                mount: '',
+                middleware: ''
+            }]
         }],
         ['testingbot', {
             tbTunnel: true,
@@ -45,6 +99,36 @@ const config: WebdriverIO.Config = {
             someOption: true
         }]
     ],
+
+    reporters: [
+        ['allure', {
+            issueLinkTemplate: 'foo',
+            // @ts-expect-error
+            useCucumberStepReporter: 'wrong-param'
+        }],
+        ['sumologic', {
+            // @ts-expect-error
+            syncInterval: '123',
+            sourceAddress: 'http://foo'
+        }]
+    ],
+
+    jasmineOpts: {
+        requires: ['foo', 'bar'],
+        // @ts-expect-error test wrong parameter
+        random: 'true',
+        stopOnSpecFailure: true
+    },
+
+    mochaOpts: {
+        ui: 'qunit',
+        fullTrace: 'true'
+    },
+
+    cucumberOpts: {
+        timeout: 123,
+        require: ['123']
+    },
 
     automationProtocol: 'webdriver',
     logLevels: {
