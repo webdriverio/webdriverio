@@ -52,3 +52,7 @@ export interface TestingbotOptions {
      */
     tbTunnelOpts?: TunnelLauncherOptions;
 }
+
+export interface TestingbotTunnel {
+    close: (cb: unknown) => void;
+}

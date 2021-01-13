@@ -5,7 +5,7 @@ import testingbotTunnel from 'testingbot-tunnel-launcher'
 import logger from '@wdio/logger'
 import { Capabilities, Options, Services } from '@wdio/types'
 
-import { TestingbotOptions } from './types'
+import { TestingbotOptions, TestingbotTunnel, TunnelLauncherOptions } from './types'
 
 const log = logger('@wdio/testingbot-service')
 

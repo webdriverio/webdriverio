@@ -17,6 +17,7 @@ declare global {
     }
 
     namespace WebDriver {
+        export type Capabilities = Capabilities.Capabilities
         export type DesiredCapabilities = Capabilities.DesiredCapabilities
     }
 }

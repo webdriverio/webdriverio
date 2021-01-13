@@ -1,10 +1,11 @@
 import process from 'process'
-import CompoundError from './compoundError'
-import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants'
 import stripAnsi from 'strip-ansi'
-import Allure from 'allure-js-commons'
 import { HookStats, TestStats } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
+
+import CompoundError from './compoundError'
+import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants'
+import type { Status } from './types'
 
 /**
  * Get allure test status by TestStat object
@@ -12,7 +13,7 @@ import type { Options } from '@wdio/types'
  * @param config {Object} - wdio config object
  * @private
  */
-export const getTestStatus = (test: TestStats | HookStats, config?: Options.Testrunner) : Allure.Status => {
+export const getTestStatus = (test: TestStats | HookStats, config?: Options.Testrunner) : Status => {
     if (config && config.framework === 'jasmine') {
         return 'failed'
     }

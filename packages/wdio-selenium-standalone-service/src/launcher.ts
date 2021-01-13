@@ -4,7 +4,7 @@ import type { Capabilities, Options, Services } from '@wdio/types'
 
 import { promisify } from 'util'
 import fs from 'fs-extra'
-import SeleniumStandalone from 'selenium-standalone'
+import * as SeleniumStandalone from 'selenium-standalone'
 
 import { getFilePath } from './utils'
 import type { SeleniumStandaloneOptions } from './types'

@@ -1,6 +1,3 @@
-import Allure from 'allure-js-commons'
-import Step from 'allure-js-commons/beans/step'
-
 import WDIOReporter, {
     SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
     AfterCommandArgs, CommandArgs
@@ -15,11 +12,18 @@ import { events, PASSED, PENDING, SKIPPED, stepStatuses } from './constants'
 import {
     AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
-    AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions
+    AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
 } from './types'
 
+/**
+ * Allure v1 has no proper TS support
+ * ToDo(Christian): update to Allure v2 (https://github.com/webdriverio/webdriverio/issues/6313)
+ */
+const Allure = require('allure-js-commons')
+const Step = require('allure-js-commons/beans/step')
+
 class AllureReporter extends WDIOReporter {
-    private _allure: Allure
+    private _allure: any
     private _capabilities: Capabilities.RemoteCapability
     private _isMultiremote?: boolean
     private _config?: Options.Testrunner
@@ -183,7 +187,7 @@ class AllureReporter extends WDIOReporter {
     onTestFail(test: TestStats | HookStats) {
         if (this._options.useCucumberStepReporter) {
             const testStatus = getTestStatus(test, this._config)
-            const stepStatus: Allure.Status = Object.values(stepStatuses).indexOf(testStatus) >= 0 ?
+            const stepStatus: Status = Object.values(stepStatuses).indexOf(testStatus) >= 0 ?
                 testStatus : 'failed'
             this._allure.endStep(stepStatus)
             this._allure.endCase(testStatus, getErrorFromFailedTest(test))
@@ -329,7 +333,7 @@ class AllureReporter extends WDIOReporter {
 
                     // if it had any attachments, reattach them to current test
                     if (step && step.attachments.length >= 1) {
-                        step.attachments.forEach(attachment => {
+                        step.attachments.forEach((attachment: any) => {
                             this._allure.getCurrentTest().addAttachment(attachment)
                         })
                     }
@@ -454,7 +458,7 @@ class AllureReporter extends WDIOReporter {
         this._allure.startStep(title)
     }
 
-    endStep(status: Allure.Status) {
+    endStep(status: Status) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -615,7 +619,7 @@ class AllureReporter extends WDIOReporter {
      * @name endStep
      * @param {StepStatus} [status='passed'] - step status
      */
-    static endStep = (status: Allure.Status = 'passed') => {
+    static endStep = (status: Status = 'passed') => {
         if (!Object.values(stepStatuses).includes(status)) {
             throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
         }
@@ -636,7 +640,7 @@ class AllureReporter extends WDIOReporter {
         content,
         name = 'attachment',
         type = 'text/plain'
-    }: any = {}, status: Allure.Status = 'passed') => {
+    }: any = {}, status: Status = 'passed') => {
         if (!Object.values(stepStatuses).includes(status)) {
             throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
         }

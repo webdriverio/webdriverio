@@ -1,5 +1,4 @@
 import { WDIOReporterBaseOptions } from '@wdio/reporter'
-import Allure from 'allure-js-commons'
 
 /**
  * When you add a new option, please also update the docs at ./packages/wdio-allure-reporter/README.md
@@ -72,9 +71,15 @@ export interface AddEnvironmentEventArgs {
     value: string
 }
 
+enum TYPE {
+    TEXT = 'text',
+    HTML = 'html',
+    MARKDOWN = 'markdown'
+}
+
 export interface AddDescriptionEventArgs {
     description?: string
-    descriptionType?: Allure.TYPE
+    descriptionType?: TYPE
 }
 
 export interface AddAttachmentEventArgs {
@@ -83,3 +88,18 @@ export interface AddAttachmentEventArgs {
     type: string
 }
 
+export interface Step {
+    attachments: Attachment[];
+    addStep(step: Step): void;
+    addAttachment(attachment: Attachment): void;
+    end(status: Status, error: Error, timestamp?: number): void;
+    toXML(): string;
+}
+
+export type Status = 'passed' | 'pending' | 'skipped' | 'failed' | 'broken' | 'canceled';
+export interface Attachment {
+    addStep(step: Step): void;
+    addAttachment(attachment: Attachment): void;
+    end(status: Status, error: Error, timestamp?: number): void;
+    toXML(): string;
+}

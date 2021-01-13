@@ -1,4 +1,4 @@
-import Allure from 'allure-js-commons'
+import type { Status } from './types'
 
 export const PASSED = 'passed'
 export const FAILED = 'failed'
@@ -7,13 +7,13 @@ export const PENDING = 'pending'
 export const CANCELED = 'canceled'
 export const SKIPPED = 'skipped'
 
-const testStatuses: Record<string, Allure.Status> = {
+const testStatuses: Record<string, Status> = {
     PASSED,
     FAILED,
     BROKEN,
     PENDING
 } as const
-const stepStatuses: Record<string, Allure.Status> = {
+const stepStatuses: Record<string, Status> = {
     PASSED,
     FAILED,
     BROKEN,
