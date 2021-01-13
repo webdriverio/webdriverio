@@ -1,6 +1,6 @@
 import { findElements, enhanceElementsArray } from '../../utils'
 import { getElements } from '../../utils/getElementObject'
-import type { Browser, Element, Selector, MultiRemoteBrowser } from '../../types'
+import type { Browser, Element, Selector, MultiRemoteBrowser, ElementArray } from '../../types'
 
 /**
  * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
@@ -50,5 +50,5 @@ export default async function $$ (
 ) {
     const res = await findElements.call(this, selector)
     const elements = await getElements.call(this, selector, res)
-    return enhanceElementsArray(elements, this, selector) as Element[]
+    return enhanceElementsArray(elements, this, selector) as ElementArray
 }

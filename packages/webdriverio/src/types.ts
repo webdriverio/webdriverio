@@ -5,6 +5,7 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppete
 
 import type BrowserCommands from './commands/browser'
 import type ElementCommands from './commands/element'
+import type DevtoolsInterception from './utils/interception/devtools'
 
 export type BrowserCommandsType = typeof BrowserCommands
 export type ElementCommandsType = typeof ElementCommands
@@ -260,3 +261,12 @@ export type DragAndDropCoordinate = {
     x: number,
     y: number
 }
+
+/**
+ * WebdriverIO Mock definition
+ */
+type FunctionPropertyNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T]
+type FunctionProperties<T> = Pick<T, FunctionPropertyNames<T>>
+type MockFunctions = FunctionProperties<DevtoolsInterception>
+type MockProperties = Pick<DevtoolsInterception, 'calls'>
+export interface Mock extends MockFunctions, MockProperties {}

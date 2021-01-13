@@ -33,7 +33,7 @@ async function custom$$ (
     this: Element,
     strategyName: string,
     strategyArguments: string
-) {
+): Promise<ElementArray> {
     const browserObject = getBrowserObject(this)
     const strategy = browserObject.strategies.get(strategyName) as () => HTMLElement[]
 

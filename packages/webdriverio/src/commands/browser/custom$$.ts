@@ -31,7 +31,7 @@ export default async function custom$$ (
     this: Browser | MultiRemoteBrowser,
     strategyName: string,
     ...strategyArguments: any[]
-) {
+): Promise<ElementArray> {
     const strategy = this.strategies.get(strategyName)
 
     if (!strategy) {

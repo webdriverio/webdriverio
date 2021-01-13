@@ -20,8 +20,13 @@ import {
     MultiRemoteBrowser,
     Browser as BrowserType,
     Element as ElementType,
+    MultiRemoteBrowser as MultiRemoteBrowserType,
     TouchAction as TouchActionImport
 } from './types'
+import {
+    MockOverwriteFunction as MockOverwriteFunctionImport,
+    MockOverwrite as MockOverwriteImport
+} from './utils/interception/types'
 
 type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 
@@ -165,15 +170,19 @@ declare global {
     namespace WebdriverIO {
         export type Browser = BrowserType
         export type Element = ElementType
+        export type MultiRemoteBrowser = MultiRemoteBrowserType
         export type TouchAction = TouchActionImport
-        export type ClickAction = Required<Parameters<ElementType['click']>[0]>
+        export type ClickOptions = Required<Parameters<ElementType['click']>[0]>
+        export type MockOverwriteFunction = MockOverwriteFunctionImport
+        export type MockOverwrite = MockOverwriteImport
     }
 
     module NodeJS {
         interface Global {
             browser: BrowserType
-            $: (...args: Parameters<BrowserType['$']>) => void
-            $$: (...args: Parameters<BrowserType['$$']>) => void
         }
     }
+
+    function $(...args: Parameters<BrowserType['$']>): ReturnType<BrowserType['$']>
+    function $$(...args: Parameters<BrowserType['$$']>): ReturnType<BrowserType['$$']>
 }
