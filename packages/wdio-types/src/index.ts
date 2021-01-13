@@ -2,22 +2,30 @@ import type * as Capabilities from './Capabilities'
 import type * as Clients from './Clients'
 import type * as Options from './Options'
 import type * as Services from './Services'
+import type * as Reporters from './Reporters'
 import type * as Frameworks from './Frameworks'
 
-export type { Capabilities, Clients, Options, Services, Frameworks }
+export type { Capabilities, Clients, Options, Services, Frameworks, Reporters }
 
 export type JsonPrimitive = string | number | boolean | null
 export type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }
 export type JsonArray = Array<JsonPrimitive | JsonObject | JsonArray>
 export type JsonCompatible = JsonObject | JsonArray
 
+export type FunctionPropertyNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T]
+export type FunctionProperties<T> = Pick<T, FunctionPropertyNames<T>>
+
 declare global {
     namespace WebdriverIO {
-        export type Config = Options.Testrunner
+        interface MochaOpts {}
+        interface JasmineOpts {}
+        interface CucumberOpts {}
+        interface ServiceOption extends Services.ServiceOption {}
+        interface ReporterOption extends Reporters.Options {}
     }
 
     namespace WebDriver {
-        export type Capabilities = Capabilities.Capabilities
-        export type DesiredCapabilities = Capabilities.DesiredCapabilities
+        type Capabilities = Capabilities.Capabilities
+        type DesiredCapabilities = Capabilities.DesiredCapabilities
     }
 }

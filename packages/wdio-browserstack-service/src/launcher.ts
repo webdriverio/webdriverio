@@ -1,7 +1,7 @@
 import { promisify } from 'util'
 import { performance, PerformanceObserver } from 'perf_hooks'
 
-import BrowserstackLocalLauncher from 'browserstack-local'
+import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
 

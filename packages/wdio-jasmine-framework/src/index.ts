@@ -1,3 +1,5 @@
+/// <reference types="jasmine" />
+
 import Jasmine from 'jasmine'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
@@ -376,3 +378,9 @@ adapterFactory.init = async function (...args: any[]) {
 export default adapterFactory
 export { JasmineAdapter, adapterFactory }
 export * from './types'
+
+declare global {
+    namespace WebdriverIO {
+        interface JasmineOpts extends JasmineNodeOpts {}
+    }
+}

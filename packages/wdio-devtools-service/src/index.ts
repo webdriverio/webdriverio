@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import puppeteerCore from 'puppeteer-core'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
-import type { Capabilities, Services } from '@wdio/types'
+import type { Capabilities, Services, FunctionProperties } from '@wdio/types'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
@@ -38,6 +38,7 @@ export default class DevToolsService implements Services.ServiceInstance {
     private _traceGatherer?: TraceGatherer
     private _devtoolsGatherer?: DevtoolsGatherer
     private _coverageGatherer?: CoverageGatherer
+    private _pwaGatherer?: PWAGatherer
     private _browser?: Browser | MultiRemoteBrowser
 
     constructor (private _options: DevtoolsConfig) {}
@@ -194,6 +195,16 @@ export default class DevToolsService implements Services.ServiceInstance {
         await this._session.send('Network.emulateNetworkConditions', NETWORK_STATES[networkThrottling])
     }
 
+    async _checkPWA (auditsToBeRun: PWAAudits[] = []) {
+        const auditor = new Auditor()
+        const artifacts = await this._pwaGatherer!.gatherData()
+        return auditor._auditPWA(artifacts, auditsToBeRun)
+    }
+
+    _getCoverageReport () {
+        return this._coverageGatherer!.getCoverageReport()
+    }
+
     async _setupHandler () {
         if (!this._isSupported || !this._browser) {
             return setUnsupportedCommand(this._browser as Browser)
@@ -247,7 +258,7 @@ export default class DevToolsService implements Services.ServiceInstance {
          */
         if (this._options.coverageReporter?.enable) {
             this._coverageGatherer = new CoverageGatherer(this._page, this._options.coverageReporter)
-            this._browser.addCommand('getCoverageReport', this._coverageGatherer.getCoverageReport.bind(this._coverageGatherer))
+            this._browser.addCommand('getCoverageReport', this._getCoverageReport.bind(this))
             await this._coverageGatherer.init()
         }
 
@@ -267,13 +278,32 @@ export default class DevToolsService implements Services.ServiceInstance {
         this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
         this._browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
 
-        const pwaGatherer = new PWAGatherer(this._session, this._page)
-        this._browser.addCommand('checkPWA', async (auditsToBeRun: PWAAudits[]) => {
-            const auditor = new Auditor()
-            const artifacts = await pwaGatherer.gatherData()
-            return auditor._auditPWA(artifacts, auditsToBeRun)
-        })
+        this._pwaGatherer = new PWAGatherer(this._session, this._page)
+        this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
     }
 }
 
 export * from './types'
+
+type ServiceCommands = Omit<FunctionProperties<DevToolsService>, keyof Services.HookFunctions | '_setupHandler'>
+type CommandHandlerCommands = FunctionProperties<CommandHandler>
+type AuditorCommands = Omit<FunctionProperties<Auditor>, '_audit' | '_auditPWA' | 'updateCommands'>
+
+declare global {
+    namespace WebdriverIO {
+        interface ServiceOption extends DevtoolsConfig {}
+
+        /**
+         * ToDo(Christian): use key remapping with TS 4.1
+         * https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#key-remapping-in-mapped-types
+         */
+        interface Browser extends CommandHandlerCommands, AuditorCommands {
+            enablePerformanceAudits: ServiceCommands['_enablePerformanceAudits']
+            disablePerformanceAudits: ServiceCommands['_disablePerformanceAudits']
+            emulateDevice: ServiceCommands['_emulateDevice']
+            setThrottlingProfile: ServiceCommands['_setThrottlingProfile']
+            checkPWA: ServiceCommands['_checkPWA']
+            getCoverageReport: ServiceCommands['_getCoverageReport']
+        }
+    }
+}

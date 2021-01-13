@@ -2,10 +2,11 @@ import got from 'got'
 import dateFormat from 'dateformat'
 import stringify from 'json-stringify-safe'
 
-import WDIOReporter, { RunnerStats, SuiteStats, TestStats, WDIOReporterOptions } from '@wdio/reporter'
+import WDIOReporter, { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
 import type { Options } from './types'
+import { Reporters } from '../../wdio-reporter/node_modules/@wdio/types/build'
 
 const log = logger('@wdio/sumologic-reporter')
 
@@ -23,7 +24,7 @@ export default class SumoLogicReporter extends WDIOReporter {
     private _isSynchronising = false
     private _hasRunnerEnd = false
 
-    constructor(options: Options & Partial<WDIOReporterOptions>) {
+    constructor(options: Options) {
         super(options)
         this._options = Object.assign({
             // don't create a log file
@@ -168,3 +169,9 @@ export default class SumoLogicReporter extends WDIOReporter {
 }
 
 export * from './types'
+
+declare global {
+    namespace WebdriverIO {
+        interface ReporterOption extends Omit<Options, keyof Reporters.Options> {}
+    }
+}

@@ -1,7 +1,7 @@
 import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
 import chalk from 'chalk'
 
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Reporters } from '@wdio/types'
 
 export default class ConciseReporter extends WDIOReporter {
     // keep track of the order that suites were called
@@ -9,7 +9,7 @@ export default class ConciseReporter extends WDIOReporter {
     private _suites: SuiteStats[] = []
     private _stateCounts = { failed: 0 }
 
-    constructor(options: WDIOReporter) {
+    constructor(options: Reporters.Options) {
         /**
         * make Concise reporter to write to output stream by default
         */

@@ -664,3 +664,9 @@ export default AllureReporter
 
 export { AllureReporterOptions }
 export * from './types'
+
+declare global {
+    namespace WebdriverIO {
+        interface ReporterOption extends AllureReporterOptions {}
+    }
+}

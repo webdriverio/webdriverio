@@ -1,5 +1,5 @@
 import type * as WebDriver from 'webdriver'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities, FunctionProperties } from '@wdio/types'
 import type { ElementReference } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
@@ -276,8 +276,6 @@ export type DragAndDropCoordinate = {
 /**
  * WebdriverIO Mock definition
  */
-type FunctionPropertyNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T]
-type FunctionProperties<T> = Pick<T, FunctionPropertyNames<T>>
 type MockFunctions = FunctionProperties<DevtoolsInterception>
 type MockProperties = Pick<DevtoolsInterception, 'calls'>
 export interface Mock extends MockFunctions, MockProperties {}

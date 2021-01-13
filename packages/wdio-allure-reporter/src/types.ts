@@ -1,9 +1,7 @@
-import { WDIOReporterBaseOptions } from '@wdio/reporter'
-
 /**
  * When you add a new option, please also update the docs at ./packages/wdio-allure-reporter/README.md
  */
-export interface AllureReporterOptions extends WDIOReporterBaseOptions {
+export interface AllureReporterOptions {
     /**
      * defaults to `./allure-results`. After a test run is complete, you will find that this directory
      * has been populated with an `.xml` file for each spec, plus a number of `.txt` and `.png`

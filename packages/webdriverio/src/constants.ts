@@ -1,4 +1,4 @@
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Options, Capabilities, Services, Reporters } from '@wdio/types'
 
 /* istanbul ignore next */
 const HOOK_DEFINITION = {
@@ -158,7 +158,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      */
     reporters: {
         type: 'object',
-        validate: (param: (string | object)[]) => {
+        validate: (param: Reporters.ReporterEntry[]) => {
             /**
              * option must be an array
              */

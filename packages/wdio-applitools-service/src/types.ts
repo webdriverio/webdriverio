@@ -27,8 +27,16 @@ export interface ApplitoolsConfig {
     /**
      * Use proxy for http/https connections with Applitools.
      */
-    proxy?: ProxySettings;
+    eyesProxy?: ProxySettings;
 }
+
+export type Region = {
+    top: number
+    left: number
+    width: number
+    height: number
+} | Element | string;
+export type Frame = Element | string;
 
 export interface ApplitoolsBrowser extends Browser {
     takeSnapshot(title: string): void;

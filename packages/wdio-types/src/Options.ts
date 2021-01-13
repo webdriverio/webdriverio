@@ -3,7 +3,8 @@ import * as http from 'http'
 import * as https from 'https'
 
 import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities'
-import { ServiceEntry, Hooks } from './Services'
+import { Hooks, ServiceEntry } from './Services'
+import { ReporterEntry } from './Reporters'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub'
@@ -363,7 +364,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'> {
      * `['reporterName', { <reporter options> }]` where the first element is a string
      * with the reporter name and the second element an object with reporter options.
      */
-    reporters?: (string | object)[]
+    reporters?: ReporterEntry[]
     /**
      * Determines in which interval the reporter should check if they are synchronised
      * if they report their logs asynchronously (e.g. if logs are streamed to a 3rd
@@ -393,15 +394,15 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'> {
      */
     cucumberFeaturesWithLineNumbers?: string[]
     /**
-     * framework options
-     */
-    cucumberOpts?: any
-    mochaOpts?: any
-    jasmineOpts?: any
-    /**
      * flags
      */
     watch?: boolean
+    /**
+     * framework options
+     */
+    mochaOpts?: any | WebdriverIO.MochaOpts
+    jasmineOpts?: any | WebdriverIO.JasmineOpts
+    cucumberOpts?: any | WebdriverIO.CucumberOpts
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {

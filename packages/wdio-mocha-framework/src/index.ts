@@ -381,3 +381,9 @@ adapterFactory.init = async function (...args: any[]) {
 
 export default adapterFactory
 export { MochaAdapter, adapterFactory }
+
+declare global {
+    namespace WebdriverIO {
+        interface MochaOpts extends MochaOpts {}
+    }
+}

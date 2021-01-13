@@ -53,12 +53,20 @@ export type ServiceEntry = (
     ServiceClass |
     /**
      * e.g. `services: [['@wdio/sauce-service', { ... }]]`
+     *
+     * Note: we use `WebdriverIO.ServiceOptions` rather than referencing the
+     * interface directly to allow other services to extend the service option
+     * with theirs
      */
-    [string, ServiceOption] |
+    [string, WebdriverIO.ServiceOption] |
     /**
      * e.g. `services: [[CustomClass, { ... }]]`
+     *
+     * Note: we use `WebdriverIO.ServiceOptions` rather than referencing the
+     * interface directly to allow other services to extend the service option
+     * with theirs
      */
-    [ServiceClass, ServiceOption]
+    [ServiceClass, WebdriverIO.ServiceOption]
 )
 
 export type Hooks = {

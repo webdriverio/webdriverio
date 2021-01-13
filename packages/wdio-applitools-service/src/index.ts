@@ -1,8 +1,8 @@
 import logger from '@wdio/logger'
 import { Eyes, Target } from '@applitools/eyes-webdriverio'
-import type { Services, Capabilities } from '@wdio/types'
+import type { Services, Capabilities, FunctionProperties } from '@wdio/types'
 
-import { ApplitoolsConfig, ApplitoolsBrowserAsync } from './types'
+import { ApplitoolsConfig, ApplitoolsBrowserAsync, Frame, Region } from './types'
 
 const log = logger('@wdio/applitools-service')
 
@@ -40,8 +40,8 @@ export default class ApplitoolsService implements Services.ServiceInstance {
         this._isConfigured = true
         this._eyes.setApiKey(key)
 
-        if (this._options.proxy) {
-            this._eyes.setProxy(this._options.proxy)
+        if (this._options.eyesProxy) {
+            this._eyes.setProxy(this._options.eyesProxy)
         }
 
         this._viewport = Object.assign({ ...DEFAULT_VIEWPORT }, this._options.viewport)
@@ -61,26 +61,29 @@ export default class ApplitoolsService implements Services.ServiceInstance {
             return
         }
 
-        this._browser.addCommand('takeSnapshot', (title: string) => {
-            if (!title) {
-                throw new Error('A title for the Applitools snapshot is missing')
-            }
+        this._browser.addCommand('takeSnapshot', this._takeSnapshot.bind(this))
+        this._browser.addCommand('takeRegionSnapshot', this._takeRegionSnapshot.bind(this))
+    }
 
-            return this._eyes.check(title, Target.window())
-        })
+    _takeSnapshot (title: string) {
+        if (!title) {
+            throw new Error('A title for the Applitools snapshot is missing')
+        }
 
-        this._browser.addCommand('takeRegionSnapshot', (title: string, region: Region, frame: Frame) => {
-            if (!title) {
-                throw new Error('A title for the Applitools snapshot is missing')
-            }
-            if (!region || region === null) {
-                throw new Error('A region for the Applitools snapshot is missing')
-            }
-            if (!frame) {
-                return this._eyes.check(title, Target.region(region))
-            }
-            return this._eyes.check(title, Target.region(region, frame))
-        })
+        return this._eyes.check(title, Target.window())
+    }
+
+    _takeRegionSnapshot (title: string, region: Region, frame: Frame) {
+        if (!title) {
+            throw new Error('A title for the Applitools snapshot is missing')
+        }
+        if (!region || region === null) {
+            throw new Error('A region for the Applitools snapshot is missing')
+        }
+        if (!frame) {
+            return this._eyes.check(title, Target.region(region))
+        }
+        return this._eyes.check(title, Target.region(region, frame))
     }
 
     beforeTest(test: { title: string, parent: string }) {
@@ -110,3 +113,14 @@ export default class ApplitoolsService implements Services.ServiceInstance {
 }
 
 export * from './types'
+
+type ServiceCommands = FunctionProperties<ApplitoolsService>
+declare global {
+    namespace WebdriverIO {
+        interface ServiceOption extends ApplitoolsConfig {}
+        interface Browser {
+            takeSnapshot: ServiceCommands['_takeSnapshot']
+            takeRegionSnapshot: ServiceCommands['_takeRegionSnapshot']
+        }
+    }
+}
