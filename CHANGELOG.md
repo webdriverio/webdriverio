@@ -17,6 +17,31 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.12.0 (2021-01-13)
+
+#### :rocket: New Feature
+* `devtools`, `wdio-protocols`
+  * [#6289](https://github.com/webdriverio/webdriverio/pull/6289) Add new WebDriver extensions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#6310](https://github.com/webdriverio/webdriverio/pull/6310) Change sauce update jobname order ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* [#6295](https://github.com/webdriverio/webdriverio/pull/6295) Remove added boilerplate example ([@osmolyar](https://github.com/osmolyar))
+
+#### :house: Internal
+* `wdio-browserstack-service`, `webdriver`
+  * [#6172](https://github.com/webdriverio/webdriverio/pull/6172) Start refactoring wdio-browserstack to TypeScript ([@Fabianopb](https://github.com/Fabianopb))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fabiano Brito ([@Fabianopb](https://github.com/Fabianopb))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v6.11.4 (2021-01-07)
 
 #### :bug: Bug Fix
