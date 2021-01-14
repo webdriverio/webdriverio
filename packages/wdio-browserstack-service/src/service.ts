@@ -1,11 +1,11 @@
 import logger from '@wdio/logger'
 import got from 'got'
-import { Feature, Pickle } from './types'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability } from './util'
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
+import { CUCUMBER_STATUS_MAP } from './constants'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -75,8 +75,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return this._updateJob({ name: this._fullTitle })
     }
 
-    beforeFeature(uri: string, feature: Feature) {
-        this._fullTitle = feature.document.feature.name
+    beforeFeature(uri: unknown, feature: { name: string }) {
+        this._fullTitle = feature.name
         return this._updateJob({ name: this._fullTitle })
     }
 
@@ -118,18 +118,20 @@ export default class BrowserstackService implements Services.ServiceInstance {
     /**
      * For CucumberJS
      */
-
-    afterScenario (uri: string, feature: Feature, pickle: Pickle, results: Frameworks.CucumberHookResult) {
-        let { exception, status } = results
-
-        if (status !== 'skipped') {
-            this._scenariosThatRan.push(pickle.name)
+    afterScenario (world: Frameworks.World) {
+        const status = CUCUMBER_STATUS_MAP[world.result?.status || 0].toLowerCase()
+        if (status === 'skipped') {
+            this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
         }
 
         if (this._failureStatuses.includes(status)) {
-            exception = exception || (status === 'pending'
-                ? `Some steps/hooks are pending for scenario "${pickle.name}"`
-                : 'Unknown Error')
+            const exception = (
+                (world.result && (world.result.message || 'unknown error')) ||
+                (status === 'pending'
+                    ? `Some steps/hooks are pending for scenario "${world.pickle.name}"`
+                    : 'Unknown Error'
+                )
+            )
 
             this._failReasons.push(exception)
         }

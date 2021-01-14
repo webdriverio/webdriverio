@@ -19,7 +19,7 @@ import type { Capabilities, Options } from '@wdio/types'
 
 import CucumberReporter from './reporter'
 import { DEFAULT_OPTS } from './constants'
-import { CucumberOptions, StepDefinitionOptions } from './types'
+import { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types'
 import { setUserHookNames } from './utils'
 
 const { incrementing } = IdGenerator
@@ -357,5 +357,6 @@ export { CucumberAdapter, adapterFactory }
 declare global {
     namespace WebdriverIO {
         interface CucumberOpts extends CucumberOptions {}
+        interface HookFunctionExtension extends HookFunctionExtensionImport {}
     }
 }

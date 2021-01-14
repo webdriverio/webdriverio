@@ -1,6 +1,6 @@
 import { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities'
 import { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options'
-import { Suite, Test, CucumberHookObject, CucumberHookResult, World, StepData, SourceLocation } from './Frameworks'
+import { Suite, Test, TestResult } from './Frameworks'
 
 export interface RunnerInstance {
     initialise(): Promise<void>
@@ -186,6 +186,20 @@ export interface HookFunctions {
     beforeTest?(test: Test, context: any): void;
 
     /**
+     * Function to be executed after a test (in Mocha/Jasmine) ends.
+     * @param test      details to current running test (or step in Cucumber)
+     * @param context   context to current running test
+     * @param result    test result
+     */
+    afterTest?(test: Test, context: any, result: TestResult): void;
+
+    /**
+     * Hook that gets executed after the suite has ended
+     * @param suite suite details
+     */
+    afterSuite?(suite: Suite): void;
+
+    /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
      * afterEach in Mocha). `stepData` and `world` are Cucumber framework specific.
      * @param test      details to current running test (or step in Cucumber)
@@ -194,7 +208,7 @@ export interface HookFunctions {
      * @param stepData  Cucumber step data
      * @param world     Cucumber world
      */
-    afterHook?(test: any, context: any, result: any /* TestResult */, stepData?: any, world?: any): void;
+    afterHook?(test: Test, context: any, result: TestResult): void;
 
     /**
      * Gets executed after all tests are done. You still have access to all global variables from
@@ -234,74 +248,4 @@ export interface HookFunctions {
         capabilities: RemoteCapability,
         specs: string[]
     ): void;
-
-    /**
-     * Hook that gets executed after the suite has ended
-     * @param suite suite details
-     */
-    afterSuite?(suite: any /* Suite */): void;
-
-    /**
-     * Function to be executed after a test (in Mocha/Jasmine) ends.
-     * @param test      details to current running test (or step in Cucumber)
-     * @param context   context to current running test
-     * @param result    test result
-     */
-    afterTest?(test: any /* Test */, context: any, result: any /* TestResult */): void;
-
-    /**
-     *
-     * Runs before a Cucumber Feature.
-     * @param uri      path to feature file
-     * @param feature  Cucumber feature object
-     * @param scenario Cucumber scenario object
-     */
-    beforeFeature?(uri: string, feature: CucumberHookObject, scenarios: CucumberHookObject[]): void;
-
-    /**
-     *
-     * Runs before a Cucumber Scenario.
-     * @param uri            path to feature file
-     * @param feature        Cucumber feature object
-     * @param scenario       Cucumber scenario object
-     * @param sourceLocation location of step
-     */
-    beforeScenario?(uri: string, feature: CucumberHookObject, scenario: CucumberHookObject, sourceLocation: SourceLocation, context?: World): void;
-
-    /**
-     *
-     * Runs before a Cucumber Step.
-     * @param step    step data
-     * @param context Cucumber world
-     */
-    beforeStep?(step: StepData, context: World): void;
-
-    /**
-     *
-     * Runs after a Cucumber Step.
-     * @param step    step data
-     * @param context Cucumber world
-     * @param result  step result
-     */
-    afterStep?(step: StepData, context: World, result: { error?: any, result?: any, passed: boolean, duration: number }): void;
-
-    /**
-     *
-     * Runs before a Cucumber Scenario.
-     * @param uri            path to feature file
-     * @param feature        Cucumber feature object
-     * @param scenario       Cucumber scenario object
-     * @param result         scenario result
-     * @param sourceLocation location of step
-     */
-    afterScenario?(uri: string, feature: CucumberHookObject, scenario: CucumberHookObject, result: CucumberHookResult, sourceLocation: SourceLocation, context?: World): void;
-
-    /**
-     *
-     * Runs after a Cucumber Feature.
-     * @param uri      path to feature file
-     * @param feature  Cucumber feature object
-     * @param scenario Cucumber scenario object
-     */
-    afterFeature?(uri: string, feature: CucumberHookObject, scenarios: CucumberHookObject[]): void;
 }

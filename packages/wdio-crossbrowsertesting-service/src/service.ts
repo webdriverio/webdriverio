@@ -78,29 +78,25 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
 
     /**
      * For CucumberJS
-     */
-
-    /**
+     *
      * Before feature
      * @param {string} uri
      * @param {Object} feature
      */
-    beforeFeature (uri: string, feature: any) {
+    beforeFeature (uri: unknown, feature: { name: string }) {
         if (!this._isServiceEnabled) {
             return
         }
 
-        this._suiteTitle = feature.document.feature.name
+        this._suiteTitle = feature.name
     }
     /**
      * After step
-     * @param {string} uri
-     * @param {Object} feature
-     * @param {Object} pickle
-     * @param {Object} result
+     * @param {world} world
      */
-    afterScenario(uri: string, feature: any, pickle: any, result: any) {
-        if (result.status === 'failed') {
+    afterScenario(world: Frameworks.World) {
+        // check if scenario has failed
+        if (world.result && world.result.status === 6) {
             ++this._failures
         }
     }

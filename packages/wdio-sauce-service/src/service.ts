@@ -107,7 +107,7 @@ export default class SauceService implements Services.ServiceInstance {
         }
     }
 
-    afterTest (test: Frameworks.Test, context: unknown, results: Frameworks.Results) {
+    afterTest (test: Frameworks.Test, context: unknown, results: Frameworks.TestResult) {
         /**
          * remove failure if test was retried and passed
          * > Mocha only
@@ -141,7 +141,7 @@ export default class SauceService implements Services.ServiceInstance {
     /**
      * For CucumberJS
      */
-    beforeFeature (uri: any, feature: any) {
+    beforeFeature (uri: unknown, feature: { name: string }) {
         /**
          * Date:    20200714
          * Remark:  Sauce Unified Platform doesn't support updating the context yet.
@@ -150,11 +150,11 @@ export default class SauceService implements Services.ServiceInstance {
             return
         }
 
-        this._suiteTitle = feature.document.feature.name
+        this._suiteTitle = feature.name
         ;(this._browser as Browser).execute('sauce:context=Feature: ' + this._suiteTitle)
     }
 
-    beforeScenario (uri: any, feature: any, scenario: any) {
+    beforeScenario (world: Frameworks.World) {
         /**
          * Date:    20200714
          * Remark:  Sauce Unified Platform doesn't support updating the context yet.
@@ -163,12 +163,13 @@ export default class SauceService implements Services.ServiceInstance {
             return
         }
 
-        const scenarioName = scenario.name
+        const scenarioName = world.pickle.name || 'unknown scenario'
         ;(this._browser as Browser).execute('sauce:context=Scenario: ' + scenarioName)
     }
 
-    afterScenario(uri: any, feature: any, pickle: any, result: any) {
-        if (result.status === 'failed') {
+    afterScenario(world: Frameworks.World) {
+        // check if scenario has failed
+        if (world.result && world.result.status === 6) {
             ++this._failures
         }
     }

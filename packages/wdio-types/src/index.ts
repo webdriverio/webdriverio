@@ -23,6 +23,7 @@ declare global {
         interface ServiceOption extends Services.ServiceOption {}
         interface ReporterOption extends Reporters.Options {}
         interface Config extends Options.Testrunner {}
+        interface HookFunctionExtension {}
     }
 
     namespace WebDriver {

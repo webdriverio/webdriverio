@@ -80,7 +80,8 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
 export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
-    // 'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
+    // @ts-ignore not defined in core hooks but added with cucumber
+    'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
     'onReload', 'onPrepare', 'onWorkerStart', 'onComplete'
 ]
 

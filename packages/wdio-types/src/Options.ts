@@ -260,7 +260,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
     waitforInterval?: number
 }
 
-export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'> {
+export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, WebdriverIO.HookFunctionExtension {
     /**
      * Defines a set of capabilities you want to run in your testrunner session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.

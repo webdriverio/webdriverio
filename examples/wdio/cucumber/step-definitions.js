@@ -9,7 +9,7 @@
  * $ cucumber.js
  */
 
-const { Given, When, Then } = require('cucumber')
+const { Given, When, Then } = require('@cucumber/cucumber')
 
 Given(/^I go on the website "([^"]*)"$/, (url) => {
     browser.url(url)

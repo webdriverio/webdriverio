@@ -4,6 +4,19 @@ class CustomService {
     }
 }
 
+const configA: WebdriverIO.Config = {
+    // @ts-expect-error should not be available
+    beforeFeature () {
+
+    },
+
+    async beforeCommand (name) {
+        name.toLowerCase()
+        const title = await browser.getTitle()
+        title.slice(0, 1)
+    }
+}
+
 const config: WebdriverIO.Config = {
     services: [
         ['sauce', {
@@ -154,5 +167,5 @@ const config: WebdriverIO.Config = {
 
     filesToWatch: [
         '/foo/page-objects/**/*.page.js',
-    ],
+    ]
 }

@@ -102,12 +102,12 @@ export default class TestingBotService implements Services.ServiceInstance {
      * @param {string} uri
      * @param {Object} feature
      */
-    beforeFeature (uri: string, feature: any) {
+    beforeFeature (uri: unknown, feature: { name: string }) {
         if (!this._isServiceEnabled || !this._browser) {
             return
         }
 
-        this._suiteTitle = feature.document.feature.name
+        this._suiteTitle = feature.name
         this._browser.execute('tb:test-context=Feature: ' + this._suiteTitle)
     }
 
@@ -117,11 +117,11 @@ export default class TestingBotService implements Services.ServiceInstance {
      * @param {Object} feature
      * @param {Object} scenario
      */
-    beforeScenario (uri: string, feature: any, scenario: any) {
+    beforeScenario (world: Frameworks.World) {
         if (!this._isServiceEnabled || !this._browser) {
             return
         }
-        const scenarioName = scenario.name
+        const scenarioName = world.pickle.name
         this._browser.execute('tb:test-context=Scenario: ' + scenarioName)
     }
 
@@ -132,8 +132,9 @@ export default class TestingBotService implements Services.ServiceInstance {
      * @param {Object} pickle
      * @param {Object} result
      */
-    afterScenario(uri: string, feature: any, pickle: any, result: any) {
-        if (result.status === 'failed') {
+    afterScenario(world: Frameworks.World) {
+        // check if scenario has failed
+        if (world.result && world.result.status === 6) {
             ++this._failures
         }
     }

@@ -1,15 +1,3 @@
-export interface Feature {
-    document: {
-        feature: {
-            name: string;
-        }
-    }
-}
-
-export interface Pickle {
-    name: string;
-}
-
 export interface SessionResponse {
     // eslint-disable-next-line camelcase
     automation_session: {
