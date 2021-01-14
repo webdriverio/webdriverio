@@ -91,6 +91,8 @@ const config: WebdriverIO.Config = {
             tbTunnel: true,
             tbTunnelOpts: {
                 tunnelIdentifier: 'identifier',
+                // @ts-expect-error
+                tunnelVersion: 0,
                 apiKey: 'key',
                 apiSecret: 'secret',
             }
@@ -107,7 +109,6 @@ const config: WebdriverIO.Config = {
             useCucumberStepReporter: 'wrong-param'
         }],
         ['sumologic', {
-            // @ts-expect-error
             syncInterval: '123',
             sourceAddress: 'http://foo'
         }]
@@ -120,15 +121,15 @@ const config: WebdriverIO.Config = {
         stopOnSpecFailure: true
     },
 
-    mochaOpts: {
-        ui: 'qunit',
-        fullTrace: 'true'
-    },
+    // mochaOpts: {
+    //     ui: 'qunit',
+    //     fullTrace: 'true'
+    // },
 
-    cucumberOpts: {
-        timeout: 123,
-        require: ['123']
-    },
+    // cucumberOpts: {
+    //     timeout: 123,
+    //     require: ['123']
+    // },
 
     automationProtocol: 'webdriver',
     logLevels: {

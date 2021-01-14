@@ -20,7 +20,7 @@ export interface RunnerPlugin extends RunnerClass {
 }
 
 export interface ServiceOption {
-    [key: string]: any;
+    [key: string]: any
 }
 
 export interface ServiceClass {

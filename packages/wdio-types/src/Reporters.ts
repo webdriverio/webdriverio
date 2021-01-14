@@ -9,6 +9,11 @@ export interface Options {
     }
     stdout?: boolean
     logFile?: string
+
+    /**
+     * allow random typings from 3rd party reporters
+     */
+    [key: string]: any
 }
 
 export interface ReporterInstance extends EventEmitter {

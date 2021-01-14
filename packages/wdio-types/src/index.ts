@@ -17,11 +17,12 @@ export type FunctionProperties<T> = Pick<T, FunctionPropertyNames<T>>
 
 declare global {
     namespace WebdriverIO {
-        interface MochaOpts {}
-        interface JasmineOpts {}
-        interface CucumberOpts {}
+        interface MochaOpts { [key: string]: any }
+        interface JasmineOpts { [key: string]: any }
+        interface CucumberOpts { [key: string]: any }
         interface ServiceOption extends Services.ServiceOption {}
         interface ReporterOption extends Reporters.Options {}
+        interface Config extends Options.Testrunner {}
     }
 
     namespace WebDriver {

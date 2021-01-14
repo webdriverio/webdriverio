@@ -17,8 +17,7 @@
       "@wdio/static-server-service",
       "@wdio/testingbot-service",
       "@wdio/sauce-service",
-      "@wdio/sumologic-reporter"
-    ],
-    "typeRoots": ["./types"]
+      // "@wdio/sumologic-reporter"
+    ]
   }
 }
