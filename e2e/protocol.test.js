@@ -357,7 +357,7 @@ describe('PDF', () => {
 
     it('expect string', async () => {
         const stringData = await browser.printPage(opt)
-        expect(stringData).toBe('string')
+        expect(typeof stringData).toBe('string')
     })
 })
 
