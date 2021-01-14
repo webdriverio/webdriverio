@@ -10,11 +10,8 @@ import DevToolsDriver from '../devtoolsdriver'
 
 export default async function printPage(this: DevToolsDriver, options: any) {
     const page = this.getPageHandle()
-    if (!options) {
-        return page.pdf()
-    }
 
-    return page.pdf({
+    const pdfBuffer = await page.pdf({
         landscape: options.orientation === 'landscape',
         scale: options.scale,
         printBackground: options.background,
@@ -29,4 +26,6 @@ export default async function printPage(this: DevToolsDriver, options: any) {
         preferCSSPageSize: !options.shrinkToFit,
         pageRanges: options.pageRanges
     })
+
+    return pdfBuffer.toString()
 }

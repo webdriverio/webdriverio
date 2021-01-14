@@ -335,18 +335,6 @@ describe('executeScript', () => {
     })
 })
 
-// describe('Page PDF', () => {
-//     beforeAll("return promise", async () => {
-//         await browser.printPage().then(pdf => console.log(pdf));
-//     })
-
-// })
-
-// test('Page PDF', async () => {
-//   const data = await browser.printPage()
-//   expect(data).toBe('Buffer')
-// })
-
 describe('PDF', () => {
     beforeAll(async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
@@ -368,8 +356,7 @@ describe('PDF', () => {
     }
 
     it('expect string', async () => {
-        const data = await browser.printPage(opt)
-        const stringData = await data.toString()
+        const stringData = await browser.printPage(opt)
         expect(stringData).toBe('string')
     })
 })
