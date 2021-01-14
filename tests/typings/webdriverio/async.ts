@@ -335,5 +335,7 @@ function testSevereServiceError_stringParameter() {
 
 // allure-reporter
 allure.addFeature('')
+// @ts-expect-error
+allure.addDescription('with wrong param:', 123)
 
 export default {}

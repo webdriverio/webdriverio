@@ -6,7 +6,6 @@ import WDIOReporter, { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter
 import logger from '@wdio/logger'
 
 import type { Options } from './types'
-import { Reporters } from '../../wdio-reporter/node_modules/@wdio/types/build'
 
 const log = logger('@wdio/sumologic-reporter')
 
@@ -172,6 +171,6 @@ export * from './types'
 
 declare global {
     namespace WebdriverIO {
-        interface ReporterOption extends Omit<Options, keyof Reporters.Options> {}
+        interface ReporterOption extends Options {}
     }
 }

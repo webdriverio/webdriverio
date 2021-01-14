@@ -109,7 +109,8 @@ const config: WebdriverIO.Config = {
             useCucumberStepReporter: 'wrong-param'
         }],
         ['sumologic', {
-            syncInterval: '123',
+            // @ts-expect-error
+            syncInterval: 'wrong param',
             sourceAddress: 'http://foo'
         }]
     ],
