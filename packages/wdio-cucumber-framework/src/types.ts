@@ -1,7 +1,7 @@
 import type { Capabilities } from '@wdio/types'
 import type { messages } from '@cucumber/messages'
 
-export interface CucumberOpts {
+export interface CucumberOptions {
     /**
      * Show full backtrace for errors.
      * @default true

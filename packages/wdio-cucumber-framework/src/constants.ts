@@ -1,8 +1,8 @@
-import { CucumberOpts } from './types'
+import { CucumberOptions } from './types'
 
 export const DEFAULT_TIMEOUT = 60000
 
-export const DEFAULT_OPTS: CucumberOpts = {
+export const DEFAULT_OPTS: CucumberOptions = {
     backtrace: false, // <boolean> show full backtrace for errors
     requireModule: [], // <string[]> ("module") require MODULE files (repeatable)
     failAmbiguousDefinitions: false, // <boolean> treat ambiguous definitions as errors

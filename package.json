@@ -45,6 +45,7 @@
     "ts:webdriverio": "cd tests/typings/webdriverio && npx tsc",
     "ts:mocha": "cd tests/typings/mocha && npx tsc",
     "ts:jasmine": "cd tests/typings/jasmine && npx tsc",
+    "ts:cucumber": "cd tests/typings/cucumber && npx tsc",
     "tss:sync": "cd tests/typings/sync && npx tsc",
     "tss:sync-applitools": "cd tests/typings/sync-applitools && npx tsc",
     "tss:sync-browserstack": "cd tests/typings/sync-browserstack && npx tsc",

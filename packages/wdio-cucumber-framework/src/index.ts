@@ -11,6 +11,7 @@ import EventDataCollector from '@cucumber/cucumber/lib/formatter/helpers/event_d
 import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
 import { GherkinStreams } from '@cucumber/gherkin'
+import { Long }  from 'long'
 import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
@@ -18,7 +19,7 @@ import type { Capabilities, Options } from '@wdio/types'
 
 import CucumberReporter from './reporter'
 import { DEFAULT_OPTS } from './constants'
-import { CucumberOpts, StepDefinitionOptions } from './types'
+import { CucumberOptions, StepDefinitionOptions } from './types'
 import { setUserHookNames } from './utils'
 
 const { incrementing } = IdGenerator
@@ -26,7 +27,7 @@ const { incrementing } = IdGenerator
 class CucumberAdapter {
     private _cwd = process.cwd()
     private _newId = incrementing()
-    private _cucumberOpts: CucumberOpts
+    private _cucumberOpts: CucumberOptions
     private _hasTests: boolean
     private _cucumberFeaturesWithLineNumbers: string[]
     private _eventBroadcaster: EventEmitter
@@ -35,6 +36,12 @@ class CucumberAdapter {
     private _pickleFilter: Cucumber.PickleFilter
 
     getHookParams?: Function
+
+    /**
+     * make sure TS loads `@types/long` otherwise it won't find it in `@cucumber/messages`
+     * see also https://github.com/cucumber/cucumber-js/issues/1491
+     */
+    never?: Long
 
     constructor(
         private _cid: string,
@@ -346,3 +353,9 @@ adapterFactory.init = async function (...args: any[]) {
 
 export default adapterFactory
 export { CucumberAdapter, adapterFactory }
+
+declare global {
+    namespace WebdriverIO {
+        interface CucumberOpts extends CucumberOptions {}
+    }
+}

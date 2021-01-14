@@ -115,11 +115,6 @@ const config: WebdriverIO.Config = {
         }]
     ],
 
-    // cucumberOpts: {
-    //     timeout: 123,
-    //     require: ['123']
-    // },
-
     automationProtocol: 'webdriver',
     logLevels: {
         webdriver: 'info',
