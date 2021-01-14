@@ -115,18 +115,6 @@ const config: WebdriverIO.Config = {
         }]
     ],
 
-    jasmineOpts: {
-        requires: ['foo', 'bar'],
-        // @ts-expect-error test wrong parameter
-        random: 'true',
-        stopOnSpecFailure: true
-    },
-
-    // mochaOpts: {
-    //     ui: 'qunit',
-    //     fullTrace: 'true'
-    // },
-
     // cucumberOpts: {
     //     timeout: 123,
     //     require: ['123']

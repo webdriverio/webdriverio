@@ -8,7 +8,7 @@ import type { Capabilities, Services } from '@wdio/types'
 
 import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
-import type { MochaConfig, MochaOpts, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
+import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
 import type { EventEmitter } from 'events'
 
 const log = logger('@wdio/mocha-framework')
@@ -79,7 +79,7 @@ class MochaAdapter {
         return this
     }
 
-    async _loadFiles (mochaOpts: MochaOpts) {
+    async _loadFiles (mochaOpts: MochaOptsImport) {
         try {
             await this._mocha!.loadFilesAsync()
 
@@ -139,7 +139,7 @@ class MochaAdapter {
     }
 
     options (
-        options: MochaOpts,
+        options: MochaOptsImport,
         context: MochaContext
     ) {
         let { require = [], compilers = [] } = options
@@ -384,6 +384,6 @@ export { MochaAdapter, adapterFactory }
 
 declare global {
     namespace WebdriverIO {
-        interface MochaOpts extends MochaOpts {}
+        interface MochaOpts extends MochaOptsImport {}
     }
 }

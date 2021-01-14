@@ -12,7 +12,7 @@ const ROOT = path.resolve(__dirname, '..', '..')
 const outDirs = [
     // 'sync', 'sync-applitools', 'sync-browserstack', 'sync-mocha', 'sync-jasmine',
     // 'sync-cucumber', 'sync-saucelabs', 'sync-devtools-service',
-    'devtools', 'sync-devtools', 'webdriverio', 'webdriver'
+    'devtools', 'sync-devtools', 'webdriverio', 'webdriver', 'mocha', 'jasmine'
 ]
 
 const packages = {
