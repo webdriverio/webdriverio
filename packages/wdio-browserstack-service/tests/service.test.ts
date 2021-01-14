@@ -345,42 +345,41 @@ describe('afterTest', () => {
 
 describe('afterScenario', () => {
     it('should increment failure reasons on non-passing statuses (strict mode off)', () => {
-        const uri = '/some/uri'
         service = new BrowserstackService({}, [] as any,
             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
         expect(service['_failReasons']).toEqual([])
 
-        service.afterScenario(uri, {} as any, {} as any, { status: 'passed' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 2 } })
         expect(service['_failReasons']).toEqual([])
 
-        service.afterScenario(uri, {} as any, {} as any, { exception: 'I am Error, most likely', status: 'failed' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 6, message: 'I am Error, most likely' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely'])
 
-        service.afterScenario(uri, {} as any, {} as any, { status: 'passed' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 2 } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely'])
 
-        service.afterScenario(uri, {} as any, {} as any, { exception: 'I too am Error', status: 'failed' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 6, message: 'I too am Error' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely', 'I too am Error'])
 
-        service.afterScenario(uri, {} as any, {} as any, { exception: 'Step XYZ is undefined', status: 'undefined' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 4, message: 'Step XYZ is undefined' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely', 'I too am Error', 'Step XYZ is undefined'])
 
-        service.afterScenario(uri, {} as any, {} as any, { exception: 'Step XYZ2 is ambiguous', status: 'ambiguous' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 5, message: 'Step XYZ2 is ambiguous' } })
         expect(service['_failReasons']).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
                 'Step XYZ is undefined',
                 'Step XYZ2 is ambiguous'])
 
-        service.afterScenario(uri, {} as any, { name: 'Can do something' }, { status: 'pending' } as any)
+        service.afterScenario({ pickle: { name: 'Can do something' }, result: { status: 3 } })
         expect(service['_failReasons']).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
                 'Step XYZ is undefined',
                 'Step XYZ2 is ambiguous'])
 
-        service.afterScenario(uri, {} as any, {} as any, { status: 'passed' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 2 } })
         expect(service['_failReasons']).toEqual([
             'I am Error, most likely',
             'I too am Error',
@@ -389,35 +388,34 @@ describe('afterScenario', () => {
     })
 
     it('should increment failure reasons on non-passing statuses (strict mode on)', () => {
-        const uri = '/some/uri'
         service = new BrowserstackService({}, [] as any,
-            { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
+            { user: 'foo', key: 'bar', cucumberOpts: { strict: true }, capabilities: {} })
 
         expect(service['_failReasons']).toEqual([])
 
-        service.afterScenario(uri, {} as any, {} as any, { status: 'passed' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 2 } })
         expect(service['_failReasons']).toEqual([])
 
-        service.afterScenario(uri, {} as any, {} as any, { exception: 'I am Error, most likely', status: 'failed' } as any)
+        service.afterScenario({ pickle: {}, result: { message: 'I am Error, most likely', status: 6 } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely'])
 
-        service.afterScenario(uri, {} as any, {} as any, { status: 'passed' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 2 } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely'])
 
-        service.afterScenario(uri, {} as any, {} as any, { exception: 'I too am Error', status: 'failed' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 6, message: 'I too am Error' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely', 'I too am Error'])
 
-        service.afterScenario(uri, {} as any, {} as any, { exception: 'Step XYZ is undefined', status: 'undefined' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 4, message: 'Step XYZ is undefined' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely', 'I too am Error', 'Step XYZ is undefined'])
 
-        service.afterScenario(uri, {} as any, {} as any, { exception: 'Step XYZ2 is ambiguous', status: 'ambiguous' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 5, message: 'Step XYZ2 is ambiguous' } })
         expect(service['_failReasons']).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
                 'Step XYZ is undefined',
                 'Step XYZ2 is ambiguous'])
 
-        service.afterScenario(uri, {} as any, { name: 'Can do something' }, { status: 'pending' } as any)
+        service.afterScenario({ pickle: { name: 'Can do something' }, result: { status: 3 } })
         expect(service['_failReasons']).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
@@ -425,7 +423,7 @@ describe('afterScenario', () => {
                 'Step XYZ2 is ambiguous',
                 'Some steps/hooks are pending for scenario "Can do something"'])
 
-        service.afterScenario(uri, {} as any, {} as any, { status: 'passed' } as any)
+        service.afterScenario({ pickle: {}, result: { status: 2 } })
         expect(service['_failReasons']).toEqual([
             'I am Error, most likely',
             'I too am Error',
@@ -491,14 +489,11 @@ describe('after', () => {
             const updateSpy = jest.spyOn(service, '_update')
 
             await service.before(service['_config'], [], browser)
-            await service.beforeFeature({} as any, { document: { feature: { name: 'Feature1' } } })
+            await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something but pending 1' }, { status: 'pending' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something but pending 2' }, { status: 'pending' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something but pending 3' }, { status: 'pending' } as any)
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 1' },  result: { status: 3 } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 3 } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 3' },  result: { status: 3 } })
 
             await service.after(1)
 
@@ -519,14 +514,11 @@ describe('after', () => {
             const updateSpy = jest.spyOn(service, '_update')
 
             await service.before(service['_config'], [], browser)
-            await service.beforeFeature({} as any, { document: { feature: { name: 'Feature1' } } })
+            await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something' }, { status: 'passed' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something' }, { status: 'pending' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something' }, { status: 'passed' } as any)
+            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 1 } })
+            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 3 } })
+            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 1 } })
 
             await service.after(0)
 
@@ -545,14 +537,11 @@ describe('after', () => {
             const updateSpy = jest.spyOn(service, '_update')
 
             await service.before(service['_config'], [], browser)
-            await service.beforeFeature({} as any, { document: { feature: { name: 'Feature1' } } })
+            await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something 1' }, { status: 'passed' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something but pending' }, { status: 'pending' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something 2' }, { status: 'passed' } as any)
+            await service.afterScenario({ pickle: { name: 'Can do something 1' },  result: { status: 1 } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending' },  result: { status: 3 } })
+            await service.afterScenario({ pickle: { name: 'Can do something 2' },  result: { status: 1 } })
 
             await service.after(1)
 
@@ -568,14 +557,11 @@ describe('after', () => {
             const updateSpy = jest.spyOn(service, '_update')
 
             await service.before(service['_config'], [], browser)
-            await service.beforeFeature({} as any, { document: { feature: { name: 'Feature1' } } })
+            await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something skipped 1' }, { status: 'skipped' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something skipped 2' }, { status: 'skipped' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something skipped 3' }, { status: 'skipped' } as any)
+            await service.afterScenario({ pickle: { name: 'Can do something skipped 1' },  result: { status: 2 } })
+            await service.afterScenario({ pickle: { name: 'Can do something skipped 2' },  result: { status: 2 } })
+            await service.afterScenario({ pickle: { name: 'Can do something skipped 3' },  result: { status: 2 } })
 
             await service.after(0)
 
@@ -595,18 +581,15 @@ describe('after', () => {
 
             await service.beforeSession(service['_config'] as any)
             await service.before(service['_config'], [], browser)
-            await service.beforeFeature({} as any, { document: { feature: { name: 'Feature1' } } })
+            await service.beforeFeature(null, { name: 'Feature1' })
 
             expect(updateSpy).toHaveBeenCalledWith(service['_browser']?.sessionId, {
                 name: 'Feature1'
             })
 
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something failed 1' }, { exception: 'I am error, hear me roar', status: 'failed' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something but pending 2' }, { status: 'pending' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something but passed 3' }, { status: 'passed' } as any)
+            await service.afterScenario({ pickle: { name: 'Can do something failed 1' },  result: { message: 'I am error, hear me roar', status: 6 } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 3 } })
+            await service.afterScenario({ pickle: { name: 'Can do something but passed 3' },  result: { status: 2 } })
 
             await service.after(1)
 
@@ -628,18 +611,15 @@ describe('after', () => {
 
             await service.beforeSession(service['_config'] as any)
             await service.before(service['_config'], [], browser)
-            await service.beforeFeature({} as any, { document: { feature: { name: 'Feature1' } } })
+            await service.beforeFeature(null, { name: 'Feature1' })
 
             expect(updateSpy).toHaveBeenCalledWith(service['_browser']?.sessionId, {
                 name: 'Feature1'
             })
 
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something failed 1' }, { exception: 'I am error, hear me roar', status: 'failed' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something but pending 2' }, { status: 'pending' } as any)
-            await service.afterScenario({} as any, {} as any,
-                { name: 'Can do something but passed 3' }, { status: 'passed' } as any)
+            await service.afterScenario({ pickle: { name: 'Can do something failed 1' },  result: { message: 'I am error, hear me roar', status: 6 } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 3 } })
+            await service.afterScenario({ pickle: { name: 'Can do something but passed 3' },  result: { status: 2 } })
 
             await service.after(1)
 
@@ -655,7 +635,19 @@ describe('after', () => {
 
         describe('preferScenarioName', () => {
             describe('enabled', () => {
-                ['failed', 'ambiguous', 'undefined', 'unknown'].map(status =>
+                [
+                    { status: 6, body: {
+                        name: 'Feature1',
+                        reason: 'Unknown Error',
+                        status: 'failed',
+                    } },
+                    { status: 2, body: {
+                        name: 'Can do something single',
+                        reason: undefined,
+                        status: 'failed',
+                    } }
+                    /*, 5, 4, 0*/
+                ].map(({ status, body }) =>
                     it(`should call _update /w status failed and name of Scenario when single "${status}" Scenario ran`, async () => {
                         service = new BrowserstackService({ preferScenarioName : true }, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
@@ -663,18 +655,11 @@ describe('after', () => {
 
                         const updateSpy = jest.spyOn(service, '_update')
 
-                        await service.beforeFeature({} as any, { document: { feature: { name: 'Feature1' } } })
-
-                        await service.afterScenario({} as any, {} as any,
-                            { name: 'Can do something single' }, { status } as any)
-
+                        await service.beforeFeature(null, { name: 'Feature1' })
+                        await service.afterScenario({ pickle: { name: 'Can do something single' }, result: { status } })
                         await service.after(1)
 
-                        expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, {
-                            name: 'Can do something single',
-                            reason: 'Unknown Error',
-                            status: 'failed',
-                        })
+                        expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, body)
                     })
                 )
 
@@ -685,10 +670,9 @@ describe('after', () => {
 
                     const updateSpy = jest.spyOn(service, '_update')
 
-                    await service.beforeFeature({} as any, { document: { feature: { name: 'Feature1' } } })
+                    await service.beforeFeature(null, { name: 'Feature1' })
 
-                    await service.afterScenario({} as any, {} as any,
-                        { name: 'Can do something single' }, { status: 'passed' } as any)
+                    await service.afterScenario({ pickle: { name: 'Can do something single' }, result: { status: 2 } })
 
                     await service.after(0)
 
@@ -701,7 +685,7 @@ describe('after', () => {
             })
 
             describe('disabled', () => {
-                ['failed', 'ambiguous', 'undefined', 'unknown'].map(status =>
+                [6, 5, 4, 0].map(status =>
                     it(`should call _update /w status failed and name of Feature when single "${status}" Scenario ran`, async () => {
                         service = new BrowserstackService({ preferScenarioName : false }, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
@@ -709,10 +693,9 @@ describe('after', () => {
 
                         const updateSpy = jest.spyOn(service, '_update')
 
-                        await service.beforeFeature({} as any, { document: { feature: { name: 'Feature1' } } })
+                        await service.beforeFeature(null, { name: 'Feature1' })
 
-                        await service.afterScenario({} as any, {} as any,
-                            { name: 'Can do something single' }, { status } as any)
+                        await service.afterScenario({ pickle: { name: 'Can do something single' }, result: { status } })
 
                         await service.after(1)
 
@@ -731,11 +714,12 @@ describe('after', () => {
 
                     const updateSpy = jest.spyOn(service, '_update')
 
-                    await service.beforeFeature({} as any, { document: { feature: { name: 'Feature1' } } })
+                    await service.beforeFeature(null, { name: 'Feature1' })
 
-                    await service.afterScenario({} as any, {} as any,
-                        { name: 'Can do something single' }, { status: 'passed' } as any)
-
+                    await service.afterScenario({
+                        pickle: { name: 'Can do something single' },
+                        result: { status: 2 }
+                    })
                     await service.after(0)
 
                     expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, {

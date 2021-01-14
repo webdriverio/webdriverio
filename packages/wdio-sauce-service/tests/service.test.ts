@@ -7,24 +7,7 @@ import { isUnifiedPlatform } from '../src/utils'
 
 const uri = '/some/uri'
 const featureObject = {
-    type: 'gherkin-document',
-    uri: '__tests__/features/passed.feature',
-    document:
-        {
-            type: 'GherkinDocument',
-            feature:
-                {
-                    type: 'Feature',
-                    tags: ['tag'],
-                    location: ['Object'],
-                    language: 'en',
-                    keyword: 'Feature',
-                    name: 'Create a feature',
-                    description: '    the description',
-                    children: [''],
-                },
-            comments: []
-        }
+    name: 'Create a feature'
 }
 
 let browser: MultiRemoteBrowser
@@ -219,16 +202,16 @@ test('afterScenario', () => {
 
     expect(service['_failures']).toBe(0)
 
-    service.afterScenario(uri, {}, {}, { status: 'passed' })
+    service.afterScenario({ result: { status: 1 } })
     expect(service['_failures']).toBe(0)
 
-    service.afterScenario(uri, {}, {}, { status: 'failed' })
+    service.afterScenario({ result: { status: 6 } })
     expect(service['_failures']).toBe(1)
 
-    service.afterScenario(uri, {}, {}, { status: 'passed' })
+    service.afterScenario({ result: { status: 1 } })
     expect(service['_failures']).toBe(1)
 
-    service.afterScenario(uri, {}, {}, { status: 'failed' })
+    service.afterScenario({ result: { status: 6 } })
     expect(service['_failures']).toBe(2)
 })
 
@@ -236,7 +219,7 @@ test('beforeScenario should set context', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
     service.beforeSession()
-    service.beforeScenario(uri, featureObject, { name: 'foobar' })
+    service.beforeScenario({ pickle: { name: 'foobar' } })
     expect(browser.execute).toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
@@ -244,7 +227,7 @@ test('beforeScenario should not set context if RDC test', () => {
     const rdcService = new SauceService({}, { testobject_api_key: 'foobar' }, {} as any)
     rdcService['_browser'] = browser
     rdcService.beforeSession()
-    rdcService.beforeScenario(uri, featureObject, { name: 'foobar' })
+    rdcService.beforeScenario({ pickle: { name: 'foobar' } })
     expect(browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
@@ -252,7 +235,7 @@ test('beforeScenario should not set context if no sauce user was applied', () =>
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     service.beforeSession()
-    service.beforeScenario(uri, featureObject, { name: 'foobar' })
+    service.beforeScenario({ pickle: { name: 'foobar' } })
     expect(browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 

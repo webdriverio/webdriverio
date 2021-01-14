@@ -6,24 +6,7 @@ import { Frameworks } from '@wdio/types'
 
 const uri = 'some/uri'
 const featureObject = {
-    type: 'gherkin-document',
-    uri: '__tests__/features/passed.feature',
-    document:
-        {
-            type: 'GherkinDocument',
-            feature:
-                {
-                    type: 'Feature',
-                    tags: ['tag'],
-                    location: ['Object'],
-                    language: 'en',
-                    keyword: 'Feature',
-                    name: 'Create a feature',
-                    description: '    the description',
-                    children: [''],
-                },
-            comments: []
-        }
+    name: 'Create a feature'
 }
 
 const testArgumens = {
@@ -228,16 +211,16 @@ describe('wdio-crossbrowsertesting-service', () => {
 
         expect(cbtService['_failures']).toBe(0)
 
-        cbtService.afterScenario(uri, {}, {}, { status: 'passed' })
+        cbtService.afterScenario({ pickle: {}, result: { status: 1 } })
         expect(cbtService['_failures']).toBe(0)
 
-        cbtService.afterScenario(uri, {}, {}, { status: 'failed' })
+        cbtService.afterScenario({ pickle: {}, result: { status: 6 } })
         expect(cbtService['_failures']).toBe(1)
 
-        cbtService.afterScenario(uri, {}, {}, { status: 'passed' })
+        cbtService.afterScenario({ pickle: {}, result: { status: 1 } })
         expect(cbtService['_failures']).toBe(1)
 
-        cbtService.afterScenario(uri, {}, {}, { status: 'failed' })
+        cbtService.afterScenario({ pickle: {}, result: { status: 6 } })
         expect(cbtService['_failures']).toBe(2)
     })
 

@@ -126,7 +126,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._failureStatuses.includes(status)) {
             const exception = (
-                (world.result && (world.result.message || 'unknown error')) ||
+                (world.result && world.result.message) ||
                 (status === 'pending'
                     ? `Some steps/hooks are pending for scenario "${world.pickle.name}"`
                     : 'Unknown Error'

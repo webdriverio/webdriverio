@@ -79,7 +79,7 @@ describe('wdio-applitools-service', () => {
         }
         const service = new ApplitoolsService({
             key: 'foobar',
-            proxy: proxyOptions
+            eyesProxy: proxyOptions
         })
 
         service.beforeSession()

@@ -5,24 +5,7 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 const uri = '/some/uri'
 const featureObject = {
-    type: 'gherkin-document',
-    uri: '__tests__/features/passed.feature',
-    document:
-        {
-            type: 'GherkinDocument',
-            feature:
-                {
-                    type: 'Feature',
-                    tags: ['tag'],
-                    location: ['Object'],
-                    language: 'en',
-                    keyword: 'Feature',
-                    name: 'Create a feature',
-                    description: '    the description',
-                    children: [''],
-                },
-            comments: []
-        }
+    name: 'Create a feature'
 } as any
 
 (got.put as jest.Mock).mockReturnValue(Promise.resolve({ body: '{}' }))
@@ -209,16 +192,16 @@ describe('wdio-testingbot-service', () => {
 
         expect(tbService['_failures']).toBe(0)
 
-        tbService.afterScenario(uri, {}, {}, { status: 'passed' })
+        tbService.afterScenario({ pickle: {}, result: { status: 2 } })
         expect(tbService['_failures']).toBe(0)
 
-        tbService.afterScenario(uri, {}, {}, { status: 'failed' })
+        tbService.afterScenario({ pickle: {}, result: { status: 6 } })
         expect(tbService['_failures']).toBe(1)
 
-        tbService.afterScenario(uri, {}, {}, { status: 'passed' })
+        tbService.afterScenario({ pickle: {}, result: { status: 2 } })
         expect(tbService['_failures']).toBe(1)
 
-        tbService.afterScenario(uri, {}, {}, { status: 'failed' })
+        tbService.afterScenario({ pickle: {}, result: { status: 6 } })
         expect(tbService['_failures']).toBe(2)
     })
 
@@ -228,8 +211,7 @@ describe('wdio-testingbot-service', () => {
             key: undefined
         })
         tbService['_browser'] = browser
-        const scenario = { name: 'Scenario name' }
-        tbService.beforeScenario(uri, featureObject, scenario)
+        tbService.beforeScenario({ pickle: {} })
 
         expect(execute).not.toBeCalled()
     })
@@ -240,8 +222,7 @@ describe('wdio-testingbot-service', () => {
             key: 'secret'
         })
         tbService['_browser'] = browser
-        const scenario = { name: 'Scenario name' }
-        tbService.beforeScenario(uri, featureObject, scenario)
+        tbService.beforeScenario({ pickle: { name: 'Scenario name' } })
 
         expect(execute).toBeCalledWith('tb:test-context=Scenario: Scenario name')
     })
