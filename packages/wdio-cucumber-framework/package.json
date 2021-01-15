@@ -34,6 +34,7 @@
     "expect-webdriverio": "^1.1.5",
     "glob": "^7.1.2",
     "is-glob": "^4.0.0",
+    "long": "^4.0.0",
     "mockery": "~2.1.0"
   },
   "devDependencies": {
