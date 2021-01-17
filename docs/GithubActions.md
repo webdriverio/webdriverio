@@ -24,11 +24,11 @@ jobs:
         - name: Checkout
           uses: actions/checkout@v2
         - name: Install
-          uses: ianwalter/puppeteer@master
+          uses: ianwalter/puppeteer@main
           with:
             args: npm install
         - name: Test
-          uses: ianwalter/puppeteer@master
+          uses: ianwalter/puppeteer@main
           with:
             args: npm run test:local
         - uses: actions/upload-artifact@v1
