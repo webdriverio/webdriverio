@@ -7,19 +7,6 @@ Over time, our community has developed several boilerplate projects that you can
 
 ## v6 Boilerplate Projects
 
-### [webdriverio/Mock-and-Spies](https://github.com/17thSep/MonitorNetworkLogs/)
-
-Boiler plate project for 
-
-Capture Network Logs
-Capture all GET/POST calls or a specific REST API
-Assert Request parametes
-Assert Response parameters
-Store all the response in a seperate file
-
-You can watch it created in this link 
-https://www.youtube.com/watch?v=Be9IPyxHmLs
-
 ### [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
 
 Boilerplate project to run Appium tests with WebdriverIO for:
@@ -267,6 +254,19 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Page Object Model
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
+
+### [webdriverio/Mock-and-Spies](https://github.com/17thSep/MonitorNetworkLogs/)
+
+Boiler plate project for 
+
+Capture Network Logs
+Capture all GET/POST calls or a specific REST API
+Assert Request parametes
+Assert Response parameters
+Store all the response in a seperate file
+
+You can watch it created in this link 
+https://www.youtube.com/watch?v=Be9IPyxHmLs
 
 ## v5 Boilerplate Projects
 
