@@ -255,6 +255,18 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
 
+### [17thSep/Mock-and-Spies](https://github.com/17thSep/MonitorNetworkLogs/)
+
+Boiler plate project for:
+
+- Capture Network Logs
+- Capture all GET/POST calls or a specific REST API
+- Assert Request parametes
+- Assert Response parameters
+- Store all the response in a seperate file
+
+You can watch it created [on this video](https://www.youtube.com/watch?v=Be9IPyxHmLs).
+
 ## v5 Boilerplate Projects
 
 ### [labs42io/web-automation](https://github.com/labs42io/web-automation)
