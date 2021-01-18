@@ -255,7 +255,7 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
 
-### [webdriverio/Mock-and-Spies](https://github.com/17thSep/MonitorNetworkLogs/)
+### [17thSep/Mock-and-Spies](https://github.com/17thSep/MonitorNetworkLogs/)
 
 Boiler plate project for:
 
