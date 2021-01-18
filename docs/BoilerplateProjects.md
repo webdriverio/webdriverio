@@ -257,7 +257,7 @@ Boilerplate project to run appium tests for native and mobile browser using moch
 
 ### [webdriverio/Mock-and-Spies](https://github.com/17thSep/MonitorNetworkLogs/)
 
-Boiler plate project for 
+Boiler plate project for:
 
 - Capture Network Logs
 - Capture all GET/POST calls or a specific REST API
