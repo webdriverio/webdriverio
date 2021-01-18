@@ -265,7 +265,7 @@ Assert Request parametes
 Assert Response parameters
 Store all the response in a seperate file
 
-You can watch it created in this link 
+You can watch it created in this link.
 https://www.youtube.com/watch?v=Be9IPyxHmLs
 
 ## v5 Boilerplate Projects
