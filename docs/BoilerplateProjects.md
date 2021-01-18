@@ -259,11 +259,11 @@ Boilerplate project to run appium tests for native and mobile browser using moch
 
 Boiler plate project for 
 
-Capture Network Logs
-Capture all GET/POST calls or a specific REST API
-Assert Request parametes
-Assert Response parameters
-Store all the response in a seperate file
+- Capture Network Logs
+- Capture all GET/POST calls or a specific REST API
+- Assert Request parametes
+- Assert Response parameters
+- Store all the response in a seperate file
 
 You can watch it created in this link.
 https://www.youtube.com/watch?v=Be9IPyxHmLs
