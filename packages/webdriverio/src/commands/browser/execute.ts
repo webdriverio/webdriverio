@@ -1,5 +1,4 @@
 import { verifyArgsAndStripIfElement } from '../../utils'
-import type { Browser, Element, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -37,7 +36,7 @@ import type { Browser, Element, MultiRemoteBrowser } from '../../types'
  *
  */
 export default function execute (
-    this: Browser | Element | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
     script: string | Function,
     ...args: any[]
 ) {

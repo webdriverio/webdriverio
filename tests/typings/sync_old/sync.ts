@@ -1,22 +1,12 @@
 import allure from '@wdio/allure-reporter'
-import type { MockOverwriteFunction, ClickOptions } from 'webdriverio'
+import type { MockOverwriteFunction } from '@wdio/sync'
 
 const { SevereServiceError } = require('webdriverio')
 
-declare global {
-    namespace WebdriverIO {
-        // @ts-expect-error
-        interface Browser {
-            browserCustomCommand: (variable: number) => void
-        }
-        // @ts-expect-error
-        interface Element {
-            elementCustomCommand: (arg: unknown) => number
-        }
-        // @ts-expect-error
-        interface MultiRemoteBrowser {
-            browserCustomCommand: (variable: number) => void
-        }
+// An example of adding command withing ts file with @wdio/sync
+declare module "@wdio/sync" {
+    interface Element {
+        elementCustomCommand: (arg: unknown) => number
     }
 }
 
@@ -34,8 +24,7 @@ const waitUntil: boolean = browser.waitUntil(
         interval: 1
     }
 )
-const c = browser.getCookies()
-c[0].name.toLowerCase()
+browser.getCookies()
 browser.getCookies('foobar')
 browser.getCookies(['foobar'])
 browser.setCookies({
@@ -86,19 +75,12 @@ browser.getElementRect('elementId')
 
 // protocol command return mapped object value
 const { x, y, width, height } = browser.getWindowRect()
-x.toFixed(2)
-y.toFixed(2)
-width.toFixed(2)
-height.toFixed(2)
 
 // protocol command return unmapped object
 const { foo, bar } = browser.takeHeapSnapshot()
 
 // browser command return mapped object value
-const a = browser.getWindowSize()
-const { width: w, height: h } = browser.getWindowSize()
-w.toFixed(2)
-h.toFixed(2)
+const { x: x0, y: y0, width: w, height: h } = browser.getWindowSize()
 
 // browser custom command
 browser.browserCustomCommand(5)
@@ -106,7 +88,7 @@ browser.browserCustomCommand(5)
 // $
 const el1 = $('')
 const strFunction = (str: string) => str
-strFunction(el1.selector as string)
+strFunction(el1.selector)
 strFunction(el1.elementId)
 const el2 = el1.$('')
 const el3 = el2.$('')
@@ -158,9 +140,8 @@ const elem1 = $('')
 elem1.setValue('Delete', { translateToUnicode: true })
 elem1.setValue('Delete')
 
-const selector$$ = elems.selector as string
-const selector2$$ = elems.selector as Function
-const parent$$: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser = elems.parent
+const selector$$: string | Function = elems.selector
+const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
 
 // shadow$ shadow$$
 const el6 = $('')
@@ -189,8 +170,8 @@ reactElements[0].click()
 
 // touchAction
 const ele = $('')
-const touchAction = {
-    action: 'press' as const,
+const touchAction: WebdriverIO.TouchAction = {
+    action: "longPress",
     element: $(''),
     ms: 0,
     x: 0,
@@ -213,8 +194,8 @@ browser.sharedStore.set('foo', ['q', 1, true, null, {'w' : {}, 'e': [] }, [{}]])
 
 // test access to base client properties
 browser.sessionId
-;(browser.capabilities as WebDriver.Capabilities).browserName
-;(browser.requestedCapabilities as WebDriver.Capabilities).browserName
+browser.capabilities.browserName
+browser.requestedCapabilities.browserName
 browser.isMobile
 browser.isAndroid
 browser.isIOS
@@ -245,17 +226,13 @@ mock.respond('/other/resource.jpg', {
 })
 const res: MockOverwriteFunction = async function (req, client) {
     const url:string = req.url
-    await client.send('Debugger.disable')
-    // @ts-expect-error
-    await client.send('Debugger.continueToLocation', { wrong: 'param' })
+    await client.send('foo', { bar: 1 })
     return url
 }
 mock.respond(res)
 mock.respond(async (req, client) => {
     const url:string = req.url
-    await client.send('Debugger.disable')
-    // @ts-expect-error
-    await client.send('Debugger.continueToLocation', { wrong: 'param' })
+    await client.send('foo', { bar: 1 })
     return true
 })
 mock.respondOnce('/other/resource.jpg')
@@ -287,21 +264,21 @@ browser.addCommand('sleep', function (ms: number) {
 // overwriteCommand
 
 // element
-type ClickOptionsExtended = Partial<ClickOptions> & { wait?: boolean }
-browser.overwriteCommand('click', function (clickFn, opts: ClickOptionsExtended = {}): any {
+type ClickOptionsExtended = WebdriverIO.ClickOptions & { wait?: boolean }
+browser.overwriteCommand('click', function (clickFn, opts: ClickOptionsExtended = {}) {
     if (opts.wait) {
         this.waitForClickable()
     }
-    clickFn.bind(this, opts)
+    clickFn(opts)
 }, true)
 
 // browser
-browser.overwriteCommand('pause', function (pause, ms = 1000): any {
-    pause.bind(this, ms)
+browser.overwriteCommand('pause', function (pause, ms = 1000) {
+    pause(ms)
 }, false)
 
-browser.overwriteCommand('pause', function (pause, ms = 1000): any {
-    pause.bind(this, ms)
+browser.overwriteCommand('pause', function (pause, ms = 1000) {
+    pause(ms)
 })
 
 function testSevereServiceError_noParameters() {

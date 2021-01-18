@@ -2,7 +2,7 @@ import logger from '@wdio/logger'
 import { Eyes, Target } from '@applitools/eyes-webdriverio'
 import type { Services, Capabilities, FunctionProperties } from '@wdio/types'
 
-import { ApplitoolsConfig, ApplitoolsBrowserAsync, Frame, Region } from './types'
+import { ApplitoolsConfig, Frame, Region } from './types'
 
 const log = logger('@wdio/applitools-service')
 
@@ -15,7 +15,7 @@ export default class ApplitoolsService implements Services.ServiceInstance {
     private _isConfigured: boolean = false
     private _viewport: Required<ApplitoolsConfig['viewport']>
     private _eyes = new Eyes()
-    private _browser?: ApplitoolsBrowserAsync
+    private _browser?: WebdriverIO.Browser
 
     constructor(private _options: ApplitoolsConfig) {}
 
@@ -53,7 +53,7 @@ export default class ApplitoolsService implements Services.ServiceInstance {
     before(
         caps: Capabilities.RemoteCapability,
         specs: string[],
-        browser: ApplitoolsBrowserAsync
+        browser: WebdriverIO.Browser
     ) {
         this._browser = browser
 

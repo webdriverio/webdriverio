@@ -1,5 +1,4 @@
 import { validateUrl } from '../../utils'
-import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -35,7 +34,7 @@ import type { Browser, MultiRemoteBrowser } from '../../types'
  *
  */
 export default function url (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     path: string
 ) {
     if (typeof path !== 'string') {

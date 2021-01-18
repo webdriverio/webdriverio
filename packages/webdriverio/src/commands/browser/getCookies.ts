@@ -1,5 +1,3 @@
-import type { Browser, MultiRemoteBrowser } from '../../types'
-
 /**
  *
  * Retrieve a [cookie](https://w3c.github.io/webdriver/webdriver-spec.html#cookies)
@@ -33,7 +31,7 @@ import type { Browser, MultiRemoteBrowser } from '../../types'
  *
  */
 export default async function getCookies(
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     names?: string | string[]
 ) {
     if (names === undefined) {

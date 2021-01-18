@@ -1,4 +1,4 @@
-import type { Element, WaitForOptions } from '../../types'
+import type { WaitForOptions } from '../../types'
 
 /**
  * Wait for an element for the provided amount of
@@ -26,7 +26,7 @@ import type { Element, WaitForOptions } from '../../types'
  *
  */
 export default async function waitForClickable (
-    this: Element,
+    this: WebdriverIO.Element,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,

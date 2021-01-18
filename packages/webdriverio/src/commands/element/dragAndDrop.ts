@@ -1,5 +1,4 @@
 import { getElementRect, getScrollPosition } from '../../utils'
-import type { Element } from '../../types'
 
 const ACTION_BUTTON = 0
 
@@ -38,12 +37,12 @@ type ElementCoordinates = {
  * @param {Number=}             options.duration  how long the drag should take place
  */
 export default async function dragAndDrop (
-    this: Element,
-    target: Element | ElementCoordinates,
+    this: WebdriverIO.Element,
+    target: WebdriverIO.Element | ElementCoordinates,
     { duration = 10 }: DragAndDropOptions = {}
 ) {
     const moveToCoordinates = target as ElementCoordinates
-    const moveToElement = target as Element
+    const moveToElement = target as WebdriverIO.Element
 
     /**
      * fail if

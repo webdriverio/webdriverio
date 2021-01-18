@@ -1,5 +1,3 @@
-import type { Element } from '../../types'
-
 /**
  *
  * Returns the previous sibling element of the selected DOM-element.
@@ -22,7 +20,7 @@ import type { Element } from '../../types'
  * @return {Element}
  * @type utility
  */
-export default function previousElement (this: Element) {
+export default function previousElement (this: WebdriverIO.Element) {
     return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
         return this.previousElementSibling as HTMLElement
     })

@@ -1,5 +1,3 @@
-import type { Browser, MultiRemoteBrowser } from '../../types'
-
 /**
  *
  * Delete cookies visible to the current page. By providing a cookie name it just removes the single cookie or more when multiple names are passed.
@@ -44,7 +42,7 @@ import type { Browser, MultiRemoteBrowser } from '../../types'
  *
  */
 export default function deleteCookies(
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     names?: string | string[]
 ) {
     if (names === undefined) {

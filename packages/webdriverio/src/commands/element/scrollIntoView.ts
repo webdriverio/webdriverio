@@ -1,4 +1,3 @@
-import type { Element } from '../../types'
 import { ELEMENT_KEY } from '../../constants'
 
 /**
@@ -21,7 +20,7 @@ import { ELEMENT_KEY } from '../../constants'
  *
  */
 export default function scrollIntoView (
-    this: Element,
+    this: WebdriverIO.Element,
     scrollIntoViewOptions = true
 ) {
     return this.parent.execute(/* istanbul ignore next */function (elem: HTMLElement, options: ScrollIntoViewOptions) {

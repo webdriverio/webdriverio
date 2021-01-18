@@ -1,5 +1,4 @@
 import fs from 'fs'
-import type { Browser, MultiRemoteBrowser } from '../../types'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
 
 /**
@@ -23,7 +22,7 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
  *
  */
 export default async function saveRecordingScreen (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     filepath: string
 ) {
     /**

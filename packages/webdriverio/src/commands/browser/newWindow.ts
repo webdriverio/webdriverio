@@ -1,5 +1,5 @@
 import newWindowHelper from '../../scripts/newWindow'
-import type { Browser, MultiRemoteBrowser, NewWindowOptions } from '../../types'
+import type { NewWindowOptions } from '../../types'
 
 /**
  *
@@ -34,7 +34,7 @@ import type { Browser, MultiRemoteBrowser, NewWindowOptions } from '../../types'
  * @type window
  */
 export default async function newWindow (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     url: string,
     { windowName = 'New Window', windowFeatures = '' }: NewWindowOptions = {}
 ) {

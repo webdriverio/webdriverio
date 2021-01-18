@@ -3,7 +3,7 @@ import type { ElementReference } from '@wdio/protocols'
 import { findElement } from '../../utils'
 import { getElement } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
-import type { Selector, Element } from '../../types'
+import type { Selector } from '../../types'
 
 /**
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
@@ -56,9 +56,9 @@ import type { Selector, Element } from '../../types'
  *
  */
 export default async function $ (
-    this: Element,
+    this: WebdriverIO.Element,
     selector: Selector
-) {
+): Promise<WebdriverIO.Element> {
     /**
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`

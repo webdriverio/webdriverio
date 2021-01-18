@@ -1,5 +1,4 @@
 import { shadowFnFactory } from '../../scripts/shadowFnFactory'
-import type { Element } from '../../types'
 
 /**
  *
@@ -24,7 +23,7 @@ import type { Element } from '../../types'
  *
  */
 export default async function shadowRoot (
-    this: Element,
+    this: WebdriverIO.Element,
     selector: string
 ) {
     return await this.$(shadowFnFactory(selector))

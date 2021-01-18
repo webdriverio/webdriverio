@@ -1,5 +1,3 @@
-import type { Browser, MultiRemoteBrowser } from '../../types'
-
 /**
  *
  * Pauses execution for a specific amount of time. It is recommended to not use this command to wait for an
@@ -22,7 +20,7 @@ import type { Browser, MultiRemoteBrowser } from '../../types'
  *
  */
 export default function pause (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     milliseconds = 1000
 ) {
     return new Promise((resolve) => setTimeout(resolve, milliseconds))

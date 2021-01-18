@@ -3,7 +3,7 @@ import { ElementReference } from '@wdio/protocols'
 import { getElements } from '../../utils/getElementObject'
 import { getBrowserObject, enhanceElementsArray } from '../../utils'
 import { ELEMENT_KEY } from '../../constants'
-import type { Element, ElementArray } from '../../types'
+import type { ElementArray } from '../../types'
 
 /**
  *
@@ -30,7 +30,7 @@ import type { Element, ElementArray } from '../../types'
  * @return {ElementArray}
  */
 async function custom$$ (
-    this: Element,
+    this: WebdriverIO.Element,
     strategyName: string,
     strategyArguments: string
 ): Promise<ElementArray> {

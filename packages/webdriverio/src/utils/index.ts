@@ -15,7 +15,7 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
 import { findStrategy } from './findStrategy'
-import type { Browser, Element, MultiRemoteBrowser, ElementArray, ElementFunction, Selector, ParsedCSSValue } from '../types'
+import type { ElementArray, ElementFunction, Selector, ParsedCSSValue } from '../types'
 
 const browserCommands = require('../commands/browser').default
 const elementCommands = require('../commands/element').default
@@ -93,9 +93,9 @@ export const getElementFromResponse = (res: ElementReference) => {
 /**
  * traverse up the scope chain until browser element was reached
  */
-export function getBrowserObject (elem: Element | Browser | MultiRemoteBrowser): Browser {
-    const elemObject = elem as Element
-    return (elemObject as Element).parent ? getBrowserObject(elemObject.parent) : elem as Browser
+export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): WebdriverIO.Browser {
+    const elemObject = elem as WebdriverIO.Element
+    return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
 }
 
 /**
@@ -212,9 +212,9 @@ export function checkUnicode (
 
 function fetchElementByJSFunction (
     selector: ElementFunction,
-    scope: Browser | Element
+    scope: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser
 ): Promise<ElementReference | ElementReference[]> {
-    if (!(scope as Element).elementId) {
+    if (!(scope as WebdriverIO.Element).elementId) {
         return scope.execute(selector as any)
     }
     /**
@@ -230,7 +230,7 @@ function fetchElementByJSFunction (
  * logic to find an element
  */
 export async function findElement(
-    this: Browser | Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
     selector: Selector
 ) {
     /**
@@ -238,9 +238,9 @@ export async function findElement(
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
-        return (this as Element).elementId
+        return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementFromElement((this as Element).elementId, using, value) as any as ElementReference
+            ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as any as ElementReference
             : this.findElement(using, value) as any as ElementReference
     }
 
@@ -261,7 +261,7 @@ export async function findElement(
  * logic to find a elements
  */
 export async function findElements(
-    this: Browser | Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
     /**
@@ -269,9 +269,9 @@ export async function findElements(
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
-        return (this as Element).elementId
+        return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementsFromElement((this as Element).elementId, using, value) as any as ElementReference[]
+            ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as any as ElementReference[]
             : this.findElements(using, value) as any as ElementReference[]
     }
 
@@ -293,7 +293,7 @@ export async function findElements(
 export function verifyArgsAndStripIfElement(args: any) {
     function verify (arg: any) {
         if (isObject(arg) && arg.constructor.name === 'Element') {
-            const elem = arg as Element
+            const elem = arg as WebdriverIO.Element
             if (!elem.elementId) {
                 throw new Error(`The element with selector "${elem.selector}" you trying to pass into the execute method wasn't found`)
             }
@@ -313,7 +313,7 @@ export function verifyArgsAndStripIfElement(args: any) {
 /**
  * getElementRect
  */
-export async function getElementRect(scope: Element) {
+export async function getElementRect(scope: WebdriverIO.Element) {
     const rect = await scope.getElementRect(scope.elementId)
 
     let defaults = { x: 0, y: 0, width: 0, height: 0 }
@@ -395,14 +395,14 @@ export function validateUrl (url: string, origError?: Error): string {
  * get window's scrollX and scrollY
  * @param {object} scope
  */
-export function getScrollPosition (scope: Element) {
+export function getScrollPosition (scope: WebdriverIO.Element) {
     return getBrowserObject(scope)
         .execute(/* istanbul ignore next */function (this: Window) {
             return { scrollX: this.pageXOffset, scrollY: this.pageYOffset }
         })
 }
 
-export async function hasElementId (element: Element) {
+export async function hasElementId (element: WebdriverIO.Element) {
     /*
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
@@ -422,7 +422,7 @@ export async function hasElementId (element: Element) {
     return true
 }
 
-export function addLocatorStrategyHandler(scope: Browser | MultiRemoteBrowser) {
+export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
     return (name: string, func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>) => {
         if (scope.strategies.get(name)) {
             throw new Error(`Strategy ${name} already exists`)
@@ -443,7 +443,7 @@ export function addLocatorStrategyHandler(scope: Browser | MultiRemoteBrowser) {
  */
 export const enhanceElementsArray = (
     elements: ElementArray,
-    parent: Browser | Element | MultiRemoteBrowser,
+    parent: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
     selector: Selector,
     foundWith = '$$',
     props: any[] = []

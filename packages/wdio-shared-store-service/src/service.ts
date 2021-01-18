@@ -2,12 +2,11 @@ import { readFile, getPidPath } from './utils'
 import { getValue, setValue, setPort } from './client'
 
 import type { JsonCompatible, JsonPrimitive, Services } from '@wdio/types'
-import type { Browser } from 'webdriverio'
 
 /**
  * ToDo(Christian): make this public accessible
  */
-interface ServiceBrowser extends Browser {
+interface ServiceBrowser extends WebdriverIO.Browser {
     sharedStore: {
         get: (key: string) => JsonPrimitive | JsonCompatible;
         set: (key: string, value: JsonPrimitive | JsonCompatible) => void;

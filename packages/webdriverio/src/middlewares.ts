@@ -2,7 +2,6 @@
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
 import { ELEMENT_KEY } from './constants'
-import type { Element, Browser, MultiRemoteBrowser } from './types'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -11,8 +10,8 @@ import type { Element, Browser, MultiRemoteBrowser } from './types'
  * @param  {Function} fn  commandWrap from wdio-sync package (or shim if not running in sync)
  */
 export const elementErrorHandler = (fn: Function) => (commandName: string, commandFn: Function) => {
-    return function elementErrorHandlerCallback (this: Element, ...args: any[]) {
-        return fn(commandName, async function elementErrorHandlerCallbackFn (this: Element) {
+    return function elementErrorHandlerCallback (this: WebdriverIO.Element, ...args: any[]) {
+        return fn(commandName, async function elementErrorHandlerCallbackFn (this: WebdriverIO.Element) {
             const element = await implicitWait(this, commandName)
             this.elementId = element.elementId
             this[ELEMENT_KEY] = element.elementId
@@ -51,8 +50,8 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
  */
 export const multiremoteHandler = (
     wrapCommand: Function
-) => (commandName: keyof Browser) => {
-    return wrapCommand(commandName, function (this: MultiRemoteBrowser, ...args: any[]) {
+) => (commandName: keyof WebdriverIO.Browser) => {
+    return wrapCommand(commandName, function (this: WebdriverIO.MultiRemoteBrowser, ...args: any[]) {
         // @ts-ignore
         const commandResults = this.instances.map((instanceName: string) => {
             // @ts-ignore ToDo(Christian)

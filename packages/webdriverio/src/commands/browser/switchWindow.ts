@@ -1,5 +1,3 @@
-import type { Browser, MultiRemoteBrowser } from '../../types'
-
 /**
  *
  * Switch focus to a particular tab / window.
@@ -28,7 +26,7 @@ import type { Browser, MultiRemoteBrowser } from '../../types'
  *
  */
 export default async function switchWindow (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     urlOrTitleToMatch: string | RegExp
 ) {
     /**

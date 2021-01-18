@@ -3,7 +3,6 @@ import { Capabilities } from '@wdio/types'
 import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject, hasElementId } from '../../utils'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed'
-import type { Element } from '../../types'
 
 const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome', 'safari technology preview']
 
@@ -48,7 +47,7 @@ const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome', 'safari technology p
  * @type state
  *
  */
-export default async function isDisplayed (this: Element) {
+export default async function isDisplayed (this: WebdriverIO.Element) {
     const browser = getBrowserObject(this)
 
     if (!await hasElementId(this)) {

@@ -1,4 +1,3 @@
-import type { Element } from '../../types'
 import { getElementRect, getScrollPosition } from '../../utils'
 
 type MoveToOptions = {
@@ -21,7 +20,7 @@ type MoveToOptions = {
  * @type protocol
  */
 export default async function moveTo (
-    this: Element,
+    this: WebdriverIO.Element,
     { xOffset, yOffset }: MoveToOptions = {}
 ) {
     if (!this.isW3C) {

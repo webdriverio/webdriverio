@@ -1,5 +1,3 @@
-import type { Element } from '../../types'
-
 /**
  *
  * Returns the next sibling element of the selected DOM-element.
@@ -23,7 +21,7 @@ import type { Element } from '../../types'
  * @type utility
  */
 
-export default function nextElement (this: Element) {
+export default function nextElement (this: WebdriverIO.Element) {
     return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
         return this.nextElementSibling as HTMLElement
     })

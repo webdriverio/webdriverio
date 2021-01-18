@@ -1,7 +1,6 @@
 import { getElement } from '../../utils/getElementObject'
 import { getBrowserObject } from '../../utils'
 import { ELEMENT_KEY } from '../../constants'
-import type { Element } from '../../types'
 
 /**
  *
@@ -28,7 +27,7 @@ import type { Element } from '../../types'
  * @return {Element}
  */
 async function custom$ (
-    this: Element,
+    this: WebdriverIO.Element,
     strategyName: string,
     strategyArguments: string
 ) {

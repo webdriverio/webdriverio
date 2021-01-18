@@ -1,5 +1,3 @@
-import type { Element } from '../../types'
-
 /**
  *
  * Returns the parent element of the selected DOM-element.
@@ -22,7 +20,7 @@ import type { Element } from '../../types'
  * @return {Element}
  * @type utility
  */
-export default function parentElement (this: Element) {
+export default function parentElement (this: WebdriverIO.Element) {
     return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
         return this.parentElement as HTMLElement
     })

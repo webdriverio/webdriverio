@@ -16,17 +16,6 @@ import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
 } from './utils'
-import {
-    MultiRemoteBrowser,
-    Browser as BrowserType,
-    Element as ElementType,
-    MultiRemoteBrowser as MultiRemoteBrowserType,
-    TouchAction as TouchActionImport
-} from './types'
-import {
-    MockOverwriteFunction as MockOverwriteFunctionImport,
-    MockOverwrite as MockOverwriteImport
-} from './utils/interception/types'
 
 type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 
@@ -66,7 +55,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     const ProtocolDriver = require(automationProtocol).default
 
     await updateCapabilities(params, automationProtocol)
-    const instance: BrowserType = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
+    const instance: WebdriverIO.Browser = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
@@ -91,7 +80,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
 
 export const attach = function (params: WebDriverTypes.AttachOptions) {
     const prototype = getPrototype('browser')
-    return WebDriver.attachToSession(params, undefined, prototype, wrapCommand) as BrowserType
+    return WebDriver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
 }
 
 export const multiremote = async function (
@@ -129,7 +118,7 @@ export const multiremote = async function (
         multibrowser.modifier.bind(multibrowser),
         prototype,
         wrapCommand
-    ) as MultiRemoteBrowser
+    ) as WebdriverIO.MultiRemoteBrowser
 
     /**
      * in order to get custom command overwritten or added to multiremote instance
@@ -165,26 +154,27 @@ export const multiremote = async function (
 
 export const SevereServiceError = SevereServiceErrorImport
 export * from './types'
+export * from './utils/interception/types'
 
-declare global {
-    namespace WebdriverIO {
-        interface Browser extends BrowserType {}
-        interface Element extends ElementType {}
+// declare global {
+//     namespace WebdriverIO {
+//         interface Browser extends BrowserType {}
+//         interface Element extends ElementType {}
 
-        type MultiRemoteBrowser = MultiRemoteBrowserType
-        type TouchAction = TouchActionImport
-        type ClickOptions = Required<Parameters<ElementType['click']>[0]>
-        type MockOverwriteFunction = MockOverwriteFunctionImport
-        type MockOverwrite = MockOverwriteImport
-    }
+//         type MultiRemoteBrowser = MultiRemoteBrowserType
+//         type TouchAction = TouchActionImport
+//         type ClickOptions = Required<Parameters<ElementType['click']>[0]>
+//         type MockOverwriteFunction = MockOverwriteFunctionImport
+//         type MockOverwrite = MockOverwriteImport
+//     }
 
-    module NodeJS {
-        interface Global {
-            browser: BrowserType | MultiRemoteBrowserType
-            driver: BrowserType | MultiRemoteBrowserType
-        }
-    }
+//     module NodeJS {
+//         interface Global {
+//             browser: BrowserType | MultiRemoteBrowserType
+//             driver: BrowserType | MultiRemoteBrowserType
+//         }
+//     }
 
-    function $(...args: Parameters<BrowserType['$']>): ReturnType<BrowserType['$']>
-    function $$(...args: Parameters<BrowserType['$$']>): ReturnType<BrowserType['$$']>
-}
+//     function $(...args: Parameters<BrowserType['$']>): ReturnType<BrowserType['$']>
+//     function $$(...args: Parameters<BrowserType['$$']>): ReturnType<BrowserType['$$']>
+// }

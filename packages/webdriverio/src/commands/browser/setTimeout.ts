@@ -1,5 +1,4 @@
 import type { Timeouts } from '@wdio/protocols'
-import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -31,7 +30,7 @@ import type { Browser, MultiRemoteBrowser } from '../../types'
  */
 
 export default async function setTimeout(
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     timeouts: Partial<Timeouts>
 ): Promise<void> {
     if (typeof timeouts !== 'object') {

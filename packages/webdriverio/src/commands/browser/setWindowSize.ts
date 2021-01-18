@@ -1,5 +1,4 @@
 import { getBrowserObject } from '../../utils'
-import type { Browser, MultiRemoteBrowser } from '../../types'
 
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER
@@ -23,7 +22,7 @@ const maxWindowSize = Number.MAX_SAFE_INTEGER
  *
  */
 export default async function setWindowSize(
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     width: number,
     height: number
 ) {

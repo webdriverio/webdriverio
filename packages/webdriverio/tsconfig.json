@@ -6,6 +6,8 @@
     "rootDir": "./src"
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../../@types",
+    "./async.d.ts"
   ]
 }

@@ -1,13 +1,13 @@
 import Timer from '../Timer'
 
-import { Browser, WaitForOptions } from '../../types'
+import { WaitForOptions } from '../../types'
 import { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } from './types'
 import type Protocol from 'devtools-protocol'
 
 export default class Interception {
     url: string
     filterOptions: MockFilterOptions
-    browser: Browser
+    browser: WebdriverIO.Browser
     respondOverwrites: {
         overwrite?: MockOverwrite
         params?: MockResponseParams
@@ -16,7 +16,7 @@ export default class Interception {
     }[] = []
     matches: Matches[] = []
 
-    constructor (url: string, filterOptions: MockFilterOptions = {}, browser: Browser) {
+    constructor (url: string, filterOptions: MockFilterOptions = {}, browser: WebdriverIO.Browser) {
         this.url = url
         this.filterOptions = filterOptions
         this.browser = browser

@@ -1,4 +1,4 @@
-import { TouchAction, Browser, Element, TouchActions } from '../types'
+import { TouchAction, TouchActions } from '../types'
 
 /**
  * Constants around commands
@@ -17,7 +17,7 @@ interface FormattedActions {
 }
 
 export const formatArgs = function (
-    scope: Browser | Element,
+    scope: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
     actions: TouchActions[]
 ): FormattedActions[] {
     return actions.map((action: TouchAction) => {
@@ -37,9 +37,9 @@ export const formatArgs = function (
         /**
          * don't propagate for actions that don't require element options
          */
-        const actionElement = action.element && typeof (action.element as any as Element).elementId === 'string'
-            ? (action.element as any as Element).elementId
-            : (scope as Element).elementId
+        const actionElement = action.element && typeof (action.element as any as WebdriverIO.Element).elementId === 'string'
+            ? (action.element as any as WebdriverIO.Element).elementId
+            : (scope as WebdriverIO.Element).elementId
         if (POS_ACTIONS.includes(action.action) && formattedAction.options && actionElement) {
             formattedAction.options.element = actionElement
         }
@@ -98,7 +98,7 @@ export const validateParameters = (params: FormattedActions) => {
 }
 
 export const touchAction = function (
-    this: Browser | Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
     actions: TouchActions
 ) {
     if (!this.multiTouchPerform || !this.touchPerform) {

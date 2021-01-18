@@ -1,5 +1,4 @@
 import { getBrowserObject } from '../../utils'
-import type { Browser, MultiRemoteBrowser } from '../../types'
 import type { ThrottleOptions } from '../../utils/interception/types'
 
 const NETWORK_PRESETS = {
@@ -104,7 +103,7 @@ const NETWORK_PRESET_TYPES = Object.keys(NETWORK_PRESETS)
  *
  */
 export default async function throttle (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     params: ThrottleOptions
 ) {
     if (

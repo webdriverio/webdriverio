@@ -1,5 +1,4 @@
 import type { AddValueOptions } from './addValue'
-import type { Element } from '../../types'
 
 /**
  *
@@ -28,7 +27,7 @@ import type { Element } from '../../types'
  *
  */
 export default async function setValue (
-    this: Element,
+    this: WebdriverIO.Element,
     value: string,
     { translateToUnicode = true }: AddValueOptions = {}
 ) {

@@ -1,7 +1,7 @@
 import { findElement } from '../../utils'
 import { getElement } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
-import type { Selector, Browser, MultiRemoteBrowser } from '../../types'
+import type { Selector } from '../../types'
 
 /**
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
@@ -53,7 +53,7 @@ import type { Selector, Browser, MultiRemoteBrowser } from '../../types'
  *
  */
 export default async function $ (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     selector: Selector
 ) {
     /**

@@ -1,5 +1,4 @@
 import { getElementFromResponse } from '../../utils'
-import type { Element } from '../../types'
 
 /**
  *
@@ -31,7 +30,7 @@ import type { Element } from '../../types'
  *
  */
 export default async function selectByIndex (
-    this: Element,
+    this: WebdriverIO.Element,
     index: number
 ) {
     /**

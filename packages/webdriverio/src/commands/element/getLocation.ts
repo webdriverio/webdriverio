@@ -1,5 +1,4 @@
 import { getElementRect } from '../../utils'
-import type { Element } from '../../types'
 
 /**
  *
@@ -29,7 +28,7 @@ import type { Element } from '../../types'
  * @type property
  */
 export default async function getLocation (
-    this: Element,
+    this: WebdriverIO.Element,
     prop: string
 ) {
     let location: {

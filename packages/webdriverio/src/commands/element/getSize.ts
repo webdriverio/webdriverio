@@ -1,7 +1,6 @@
 import type { RectReturn } from '@wdio/protocols'
 
 import { getElementRect } from '../../utils'
-import type { Element } from '../../types'
 
 /**
  *
@@ -31,7 +30,7 @@ import type { Element } from '../../types'
  *
  */
 export default async function getSize (
-    this: Element,
+    this: WebdriverIO.Element,
     prop?: keyof RectReturn
 ) {
     let rect: Partial<RectReturn> = {}

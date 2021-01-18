@@ -1,5 +1,4 @@
 import type { Cookie } from '@wdio/protocols'
-import type { Browser, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -56,7 +55,7 @@ import type { Browser, MultiRemoteBrowser } from '../../types'
  *
  */
 export default async function setCookies(
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     cookieObjs: Cookie | Cookie[]
 ) {
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs

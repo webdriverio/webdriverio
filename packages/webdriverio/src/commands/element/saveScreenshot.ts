@@ -1,7 +1,5 @@
 import fs from 'fs'
-
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
-import type { Element } from '../../types'
 
 /**
  *
@@ -22,7 +20,7 @@ import type { Element } from '../../types'
  *
  */
 export default async function saveScreenshot (
-    this: Element,
+    this: WebdriverIO.Element,
     filepath: string
 ) {
     /**

@@ -1,5 +1,4 @@
 import { transformToCharString } from '../../utils'
-import type { Element } from '../../types'
 
 export type AddValueOptions = {
     translateToUnicode?: boolean
@@ -33,7 +32,7 @@ export type AddValueOptions = {
  *
  */
 export default function addValue (
-    this: Element,
+    this: WebdriverIO.Element,
     value: string | number | boolean | object | Array<any>,
     { translateToUnicode = true }: AddValueOptions = {}
 ) {
@@ -41,6 +40,5 @@ export default function addValue (
         return this.elementSendKeys(this.elementId, transformToCharString(value as string[], translateToUnicode) as any as string)
     }
 
-    // @ts-ignore TS takes `elementSendKeys` from JSONWP
     return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode).join(''))
 }

@@ -1,5 +1,3 @@
-import type { Element } from '../../types'
-
 /**
  *
  * Returns true if element exists in the DOM
@@ -40,7 +38,7 @@ import type { Element } from '../../types'
  * @type state
  *
  */
-export default function isExisting (this: Element) {
+export default function isExisting (this: WebdriverIO.Element) {
     const command = this.isReactElement ? this.parent.react$$.bind(this.parent) : this.parent.$$.bind(this.parent)
     return command(this.selector as string).then((res) => res.length > 0)
 }

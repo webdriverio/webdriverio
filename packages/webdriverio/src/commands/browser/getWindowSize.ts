@@ -1,4 +1,3 @@
-import type { Browser, MultiRemoteBrowser } from '../../types'
 import { getBrowserObject } from '../../utils'
 
 interface BrowserSize {
@@ -24,7 +23,7 @@ interface BrowserSize {
  * @type window
  *
  */
-export default async function getWindowSize(this: Browser | MultiRemoteBrowser) {
+export default async function getWindowSize(this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
     const browser = getBrowserObject(this)
 
     if (!browser.isW3C) {

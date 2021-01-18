@@ -2,13 +2,24 @@
   "compilerOptions": {
     "outDir": "dist",
     "noImplicitAny": true,
+    "lib": ["es2018", "dom"],
     "types": [
-      "@wdio/sync",
-      "@wdio/protocols",
-      "@wdio/allure-reporter",
-      "@wdio/shared-store-service",
-      "@wdio/appium-service"
-    ],
-    "typeRoots" : ["./types"]
+      "webdriverio/sync",
+      "@wdio/shared-store-service"
+      // "node_modules/@types"
+      // "@wdio/allure-reporter",
+      // "@wdio/appium-service",
+      // "@wdio/applitools-service",
+      // "@wdio/browserstack-service",
+      // "@wdio/devtools-service",
+      // "@wdio/jasmine-framework",
+      // "@wdio/selenium-standalone-service",
+      // "@wdio/crossbrowsertesting-service",
+      // "@wdio/firefox-profile-service",
+      // "@wdio/static-server-service",
+      // "@wdio/testingbot-service",
+      // "@wdio/sauce-service",
+      // "@wdio/sumologic-reporter"
+    ]
   }
 }

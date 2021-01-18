@@ -2,7 +2,7 @@ import { ElementReference } from '@wdio/protocols'
 import { enhanceElementsArray } from '../../utils'
 import { getElements } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
-import type { Browser, MultiRemoteBrowser, ElementArray } from '../../types'
+import type { ElementArray } from '../../types'
 
 /**
  *
@@ -28,7 +28,7 @@ import type { Browser, MultiRemoteBrowser, ElementArray } from '../../types'
  * @return {ElementArray}
  */
 export default async function custom$$ (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     strategyName: string,
     ...strategyArguments: any[]
 ): Promise<ElementArray> {

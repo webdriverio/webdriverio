@@ -1,4 +1,4 @@
-import { Browser, Element } from 'webdriverio'
+/// <reference types="webdriverio/async" />
 
 interface ProxySettings {
     url: string | boolean;
@@ -37,21 +37,3 @@ export type Region = {
     height: number
 } | Element | string;
 export type Frame = Element | string;
-
-export interface ApplitoolsBrowser extends Browser {
-    takeSnapshot(title: string): void;
-    takeRegionSnapshot(
-        title: string,
-        region: Eyes.Check.Region | Element | string,
-        frame?: Element | string
-    ): void;
-}
-
-export interface ApplitoolsBrowserAsync extends Browser {
-    takeSnapshot(title: string): Promise<void>;
-    takeRegionSnapshot(
-        title: string,
-        region: Eyes.Check.Region | Element | string,
-        frame?: Element | string
-    ): Promise<void>;
-}

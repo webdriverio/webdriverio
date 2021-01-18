@@ -1,5 +1,5 @@
-import type * as WebDriver from 'webdriver'
-import type { Options, Capabilities, FunctionProperties } from '@wdio/types'
+import type { EventEmitter } from 'events'
+import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
 import type { ElementReference } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
@@ -8,11 +8,17 @@ import type ElementCommands from './commands/element'
 import type DevtoolsInterception from './utils/interception/devtools'
 
 export type BrowserCommandsType = typeof BrowserCommands
+export type BrowserCommandsTypeSync = {
+    [K in keyof BrowserCommandsType]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<ReturnType<BrowserCommandsType[K]>>
+}
 export type ElementCommandsType = typeof ElementCommands
+export type ElementCommandsTypeSync = {
+    [K in keyof ElementCommandsType]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
+}
 
-export interface ElementArray extends Array<Element> {
+export interface ElementArray extends Array<WebdriverIO.Element> {
     selector: Selector
-    parent: Element | Browser | MultiRemoteBrowser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     foundWith: string
     props: any[]
 }
@@ -21,7 +27,7 @@ type AddCommandFnScoped<
     InstanceType = Browser,
     IsElement extends boolean = false
 > = (
-    this: IsElement extends true ? Element : InstanceType,
+    this: IsElement extends true ? WebdriverIO.Element : InstanceType,
     ...args: any[]
 ) => any
 
@@ -32,8 +38,8 @@ type OverwriteCommandFnScoped<
     BrowserKey extends keyof BrowserCommandsType,
     IsElement extends boolean = false
 > = (
-    this: IsElement extends true ? Element : Browser,
-    origCommand: IsElement extends true ? Element[ElementKey] : Browser[BrowserKey],
+    this: IsElement extends true ? WebdriverIO.Element : Browser,
+    origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
     ...args: any[]
 ) => Promise<any>
 
@@ -42,7 +48,7 @@ type OverwriteCommandFn<
     BrowserKey extends keyof BrowserCommandsType,
     IsElement extends boolean = false
 > = (
-    origCommand: IsElement extends true ? Element[ElementKey] : Browser[BrowserKey],
+    origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
     ...args: any[]
 ) => Promise<any>
 
@@ -78,7 +84,7 @@ export interface CustomInstanceCommands<T> {
     ): void
 }
 
-export interface Browser extends CustomInstanceCommands<Browser>, BrowserCommandsType, Omit<WebDriver.Client, 'options' | 'capabilities'> {
+export interface Browser extends EventEmitter, CustomInstanceCommands<Browser> {
     sessionId: string
     capabilities: Capabilities.RemoteCapability
     options: Options.WebdriverIO | Options.Testrunner
@@ -97,7 +103,8 @@ export interface Browser extends CustomInstanceCommands<Browser>, BrowserCommand
     wdioRetries?: number
 }
 
-export interface Element extends ElementReference, Omit<Browser, keyof ElementCommandsType>, ElementCommandsType {
+export interface Element extends EventEmitter, ElementReference, CustomInstanceCommands<WebdriverIO.Element> {
+    options: Options.WebdriverIO | Options.Testrunner
     /**
      * WebDriver element reference
      */
@@ -120,7 +127,7 @@ export interface Element extends ElementReference, Omit<Browser, keyof ElementCo
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: Element | Browser | MultiRemoteBrowser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     /**
      * true if element is a React component
      */
@@ -131,9 +138,13 @@ export interface Element extends ElementReference, Omit<Browser, keyof ElementCo
     error?: Error
 }
 
-type MultiRemoteBrowserReference = Record<string, Browser>
-
-interface MultiRemoteBase extends BrowserCommandsType, CustomInstanceCommands<MultiRemoteBrowser>, Omit<Browser, keyof CustomInstanceCommands<MultiRemoteBrowser> | keyof CustomInstanceCommands<MultiRemoteBrowser> |  'isMultiremote' | 'sessionId'> {
+interface MultiRemoteBase extends EventEmitter, CustomInstanceCommands<MultiRemoteBrowser> {
+    options: Options.WebdriverIO | Options.Testrunner
+    puppeteer?: PuppeteerBrowser
+    /**
+     * ToDo(Christian): merge with Browser
+     */
+    strategies: Map<any, any>
     /**
      * multiremote browser instance names
      */
@@ -144,6 +155,7 @@ interface MultiRemoteBase extends BrowserCommandsType, CustomInstanceCommands<Mu
     isMultiremote: true
 }
 
+type MultiRemoteBrowserReference = Record<string, Browser>
 export type MultiRemoteBrowser = MultiRemoteBase & MultiRemoteBrowserReference
 
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
@@ -204,7 +216,7 @@ export interface TouchAction {
     action: ActionTypes,
     x?: number,
     y?: number,
-    element?: Element,
+    element?: WebdriverIO.Element,
     ms?: number
 }
 export type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
@@ -233,20 +245,6 @@ export type DragAndDropOptions = {
 export type NewWindowOptions = {
     windowName?: string,
     windowFeatures?: string
-}
-
-export type PDFPrintOptions = {
-    orientation?: string,
-    scale?: number,
-    background?: boolean,
-    width?: number,
-    height?: number,
-    top?: number,
-    bottom?: number,
-    left?: number,
-    right?: number,
-    shrinkToFit?: boolean,
-    pageRanges?: object[]
 }
 
 export type ClickOptions = {

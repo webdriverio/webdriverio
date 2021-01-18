@@ -2,7 +2,7 @@ import type Interception from '../../utils/interception/index'
 import DevtoolsNetworkInterception from '../../utils/interception/devtools'
 import WebDriverNetworkInterception from '../../utils/interception/webdriver'
 import { getBrowserObject } from '../../utils'
-import type { Browser, MultiRemoteBrowser, Mock } from '../../types'
+import type { Mock } from '../../types'
 import type { MockFilterOptions } from '../../utils/interception/types'
 
 const SESSION_MOCKS: Record<string, Set<Interception>> = {}
@@ -105,7 +105,7 @@ const SESSION_MOCKS: Record<string, Set<Interception>> = {}
  *
  */
 export default async function mock (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     url: string,
     filterOptions?: MockFilterOptions
 ) {

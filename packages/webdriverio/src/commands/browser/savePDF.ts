@@ -1,4 +1,19 @@
-import type { Browser, MultiRemoteBrowser, PDFPrintOptions } from '../../types'
+import fs from 'fs'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+
+type PDFPrintOptions = {
+    orientation?: string,
+    scale?: number,
+    background?: boolean,
+    width?: number,
+    height?: number,
+    top?: number,
+    bottom?: number,
+    left?: number,
+    right?: number,
+    shrinkToFit?: boolean,
+    pageRanges?: object[]
+}
 
 /**
  *
@@ -29,12 +44,8 @@ import type { Browser, MultiRemoteBrowser, PDFPrintOptions } from '../../types'
  * @type utility
  *
  */
-
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
-
 export default async function savePDF (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     filepath: string,
     options?: PDFPrintOptions
 ) {

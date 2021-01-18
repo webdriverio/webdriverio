@@ -1,5 +1,5 @@
-import type { Browser, MultiRemoteBrowser, TouchAction } from '../../types'
 import { touchAction as touchActionCommand } from '../constant'
+import { TouchAction } from '../../types'
 
 /**
  *
@@ -60,7 +60,7 @@ import { touchAction as touchActionCommand } from '../constant'
  *
  */
 export default function touchAction (
-    this: Browser | MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     ...args: TouchAction[]
 ) {
     return touchActionCommand.apply(this, args as any)

@@ -1,11 +1,41 @@
 import { EventEmitter } from 'events'
 import type { Options, Capabilities } from '@wdio/types'
 import type {
-    AppiumCommandsAsync, ChromiumCommandsAsync, JSONWPCommandsAsync, MJSONWPCommandsAsync,
-    SauceLabsCommandsAsync, SeleniumCommandsAsync, WebDriverCommandsAsync
+    AppiumCommands, ChromiumCommands, JSONWPCommands, MJSONWPCommands,
+    SauceLabsCommands, SeleniumCommands, WebDriverCommands
 } from '@wdio/protocols'
 
-export interface ProtocolCommands extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
+type WebDriverCommandsAsync = {
+    [K in keyof WebDriverCommands]:
+    (...args: Parameters<WebDriverCommands[K]>) => Promise<ReturnType<WebDriverCommands[K]>>
+}
+type AppiumCommandsAsync = {
+    [K in keyof AppiumCommands]:
+    (...args: Parameters<AppiumCommands[K]>) => Promise<ReturnType<AppiumCommands[K]>>
+}
+type ChromiumCommandsAsync = {
+    [K in keyof ChromiumCommands]:
+    (...args: Parameters<ChromiumCommands[K]>) => Promise<ReturnType<ChromiumCommands[K]>>
+}
+type JSONWPCommandsAsync = {
+    [K in keyof JSONWPCommands]:
+    (...args: Parameters<JSONWPCommands[K]>) => Promise<ReturnType<JSONWPCommands[K]>>
+}
+type MJSONWPCommandsAsync = {
+    [K in keyof MJSONWPCommands]:
+    (...args: Parameters<MJSONWPCommands[K]>) => Promise<ReturnType<MJSONWPCommands[K]>>
+}
+type SauceLabsCommandsAsync = {
+    [K in keyof SauceLabsCommands]:
+    (...args: Parameters<SauceLabsCommands[K]>) => Promise<ReturnType<SauceLabsCommands[K]>>
+}
+type SeleniumCommandsAsync = {
+    [K in keyof SeleniumCommands]:
+    (...args: Parameters<SeleniumCommands[K]>) => Promise<ReturnType<SeleniumCommands[K]>>
+}
+
+export interface ProtocolCommands extends WebDriverCommands, Omit<JSONWPCommands, keyof WebDriverCommands>, AppiumCommands, ChromiumCommands, Omit<MJSONWPCommands, keyof AppiumCommands | keyof ChromiumCommands>, SauceLabsCommands, SeleniumCommands {}
+export interface ProtocolCommandsAsync extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
 
 export interface JSONWPCommandError extends Error {
     code?: string
@@ -24,7 +54,7 @@ export interface SessionFlags {
     isDevTools: boolean
 }
 
-export interface BaseClient extends EventEmitter, SessionFlags, ProtocolCommands {
+export interface BaseClient extends EventEmitter, SessionFlags {
     // id of WebDriver session
     sessionId: string;
     // assigned capabilities by the browser driver / WebDriver server
@@ -35,13 +65,8 @@ export interface BaseClient extends EventEmitter, SessionFlags, ProtocolCommands
     options: Options.WebDriver
 }
 
-export interface Client extends BaseClient {}
-export interface ClientAsync extends AsyncClient, BaseClient { }
-
-type AsyncClient = {
-    [K in keyof Pick<Client, Exclude<keyof Client, keyof BaseClient>>]:
-    (...args: Parameters<Client[K]>) => Promise<ReturnType<Client[K]>>;
-}
+export interface Client extends BaseClient, ProtocolCommandsAsync {}
+export interface ClientSync extends BaseClient, ProtocolCommands {}
 
 export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.WebDriver> {
     sessionId: string

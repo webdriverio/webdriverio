@@ -1,8 +1,7 @@
 import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject } from '../../utils'
-import type { Element } from '../../types'
 
-const getWebElement = (el: Element) => ({
+const getWebElement = (el: WebdriverIO.Element) => ({
     [ELEMENT_KEY]: el.elementId, // w3c compatible
     ELEMENT: el.elementId // jsonwp compatible
 })
@@ -30,8 +29,8 @@ const getWebElement = (el: Element) => ({
  *
  */
 export default async function isEqual (
-    this: Element,
-    el: Element
+    this: WebdriverIO.Element,
+    el: WebdriverIO.Element
 ) {
     const browser = getBrowserObject(this)
 
@@ -48,7 +47,7 @@ export default async function isEqual (
     try {
         result = await browser.execute(
             /* istanbul ignore next */
-            (el1: Element, el2: Element) => el1 === el2,
+            (el1: WebdriverIO.Element, el2: WebdriverIO.Element) => el1 === el2,
             getWebElement(this), getWebElement(el))
     } catch (err) {
         result = false
