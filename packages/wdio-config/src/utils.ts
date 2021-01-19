@@ -111,8 +111,8 @@ export function detectBackend(options: BackendConfigurations = {}) {
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
      *
-     * For Sauce Labs RDC we only need to determine if the sauce option has a `testobject_api_key`.
-     * Same for Sauce Visual where an apiKey can be passed in through the capabilities.
+     * For Sauce Labs Legacy RDC we only need to determine if the sauce option has a `testobject_api_key`.
+     * Same for Sauce Visual where an apiKey can be passed in through the capabilities (soon to be legacy too).
      */
     const isRDC = Boolean(!Array.isArray(capabilities) && (capabilities as WebDriver.DesiredCapabilities)?.testobject_api_key)
     const isVisual = Boolean(!Array.isArray(capabilities) && (capabilities as WebDriver.DesiredCapabilities)['sauce:visual']?.apiKey)
