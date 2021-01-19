@@ -122,28 +122,45 @@ describe('detectBackend', () => {
         expect(caps.protocol).toBe('tcp')
     })
 
-    it('should detect saucelabs rdc user that had not defaulted a region', () => {
-        const caps = detectBackend({}, true)
-        expect(caps.hostname).toBe('us1.appium.testobject.com')
-        expect(caps.port).toBe(443)
-        expect(caps.path).toBe('/wd/hub')
-        expect(caps.protocol).toBe('https')
+    describe('saucelabs legacy rdc', () => {
+        it('should detect saucelabs rdc user that had not defaulted a region', () => {
+            const caps = detectBackend({ capabilities: { testobject_api_key: '123' } })
+            expect(caps.hostname).toBe('us1.appium.testobject.com')
+            expect(caps.port).toBe(443)
+            expect(caps.path).toBe('/wd/hub')
+            expect(caps.protocol).toBe('https')
+        })
+
+        it('should detect saucelabs us rdc user', () => {
+            const caps = detectBackend({ region: 'us', capabilities: { testobject_api_key: '123' } })
+            expect(caps.hostname).toBe('us1.appium.testobject.com')
+            expect(caps.port).toBe(443)
+            expect(caps.path).toBe('/wd/hub')
+            expect(caps.protocol).toBe('https')
+        })
+
+        it('should detect saucelabs eu rdc user', () => {
+            const caps = detectBackend({ region: 'eu', capabilities: { testobject_api_key: '123' } })
+            expect(caps.hostname).toBe('eu1.appium.testobject.com')
+            expect(caps.port).toBe(443)
+            expect(caps.path).toBe('/wd/hub')
+            expect(caps.protocol).toBe('https')
+        })
     })
 
-    it('should detect saucelabs us rdc user', () => {
-        const caps = detectBackend({ region: 'us' }, true)
-        expect(caps.hostname).toBe('us1.appium.testobject.com')
-        expect(caps.port).toBe(443)
-        expect(caps.path).toBe('/wd/hub')
-        expect(caps.protocol).toBe('https')
-    })
+    describe('saucelabs visual', () => {
+        it('should not detect sauce visual if api key is missing', () => {
+            const caps = detectBackend({ capabilities: { 'sauce:visual': {} } })
+            expect(typeof caps.hostname).toBe('undefined')
+        })
 
-    it('should detect saucelabs eu rdc user', () => {
-        const caps = detectBackend({ region: 'eu' }, true)
-        expect(caps.hostname).toBe('eu1.appium.testobject.com')
-        expect(caps.port).toBe(443)
-        expect(caps.path).toBe('/wd/hub')
-        expect(caps.protocol).toBe('https')
+        it('should detect sauce visual if api key is existing', () => {
+            const caps = detectBackend({ capabilities: { 'sauce:visual': { apiKey: 'foobar' } } })
+            expect(caps.hostname).toBe('hub.screener.io')
+            expect(caps.port).toBe(443)
+            expect(caps.path).toBe('/wd/hub')
+            expect(caps.protocol).toBe('https')
+        })
     })
 
     it('should detect saucelabs headless user', () => {
