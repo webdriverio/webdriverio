@@ -116,7 +116,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'novus-visual-regression', value: 'wdio-novus-visual-regression-service$--$novus-visual-regression' },
         { name: 'rerun', value: 'wdio-rerun-service$--$rerun' },
         { name: 'winappdriver', value: 'wdio-winappdriver-service$--$winappdriver' },
-        { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' }
+        { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' },
+        { name: 'performancetotal', value: 'wdio-performancetotal-service$--$performancetotal' }
     ]
 } as const
 
