@@ -130,6 +130,15 @@ capabilities = [
 
 In order to authorize to the Sauce Labs service your config needs to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
 
+### maxErrorStackLength
+This service will automatically push the error stack to Sauce Labs when a test fails. By default it will only push the first 5
+lines, but if needed this can be changed. Be aware that more lines will result in more WebDriver calls which might slow down the execution.
+
+Type: `number`<br>
+Default: `5`
+
+*(only for vm and or em/simulators)*
+
 ### sauceConnect
 If true it runs Sauce Connect and opens a secure connection between a Sauce Labs virtual machine running your browser tests.
 

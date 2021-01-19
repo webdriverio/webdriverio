@@ -199,6 +199,7 @@ test('afterTest', () => {
         }
     })
     expect(browser.execute).toBeCalledTimes(0)
+    browser.execute.mockClear()
     service['_isUP'] = false
     service.afterTest({}, {}, {
         error: {
@@ -212,6 +213,23 @@ test('afterTest', () => {
     })
     expect(browser.execute).toBeCalledTimes(5)
     stack.split(/\r?\n/).forEach((line:string) => expect(browser.execute).toBeCalledWith(`sauce:context=${line}`))
+    browser.execute.mockClear()
+    const maxErrorStackLength = 3
+    service['_maxErrorStackLength'] = maxErrorStackLength
+    service.afterTest({}, {}, {
+        error: {
+            matcherName: 'toEqual',
+            message: 'Expected true to equal false.',
+            stack,
+            passed: false,
+            expected: [false, 'LoginPage page was not shown'],
+            actual: true
+        }
+    })
+    expect(browser.execute).toBeCalledTimes(maxErrorStackLength)
+    stack.split(/\r?\n/)
+        .slice(0, maxErrorStackLength)
+        .forEach((line:string) => expect(browser.execute).toBeCalledWith(`sauce:context=${line}`))
 })
 
 test('beforeFeature should set context', () => {

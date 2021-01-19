@@ -2,6 +2,12 @@ import type { SauceConnectOptions } from 'saucelabs'
 
 export interface SauceServiceConfig {
     /**
+     * Specify the max error stack length represents the amount of error stack lines that will be
+     * pushed to Sauce Labs when a test fails
+     */
+    maxErrorStackLength?: number
+
+    /**
      * Specify tunnel identifier for Sauce Connect tunnel
      */
     tunnelIdentifier?: string
