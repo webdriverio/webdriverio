@@ -182,8 +182,6 @@ test('afterTest', () => {
         _retries: 2
     }, {}, { passed: false })
     expect(service['_failures']).toBe(2)
-
-
     const stack = 'Error: Expected true to equal false.\n' +
         '    at <Jasmine>\n' +
         '    at UserContext.<anonymous> (/Users/test/specs/example.spec.js:12:44)\n' +
