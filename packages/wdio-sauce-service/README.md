@@ -7,6 +7,7 @@ WebdriverIO Sauce Service
 
 > - By default the Sauce Service will update the 'name' of the job when the job starts. This will give you the option to update the name at any given point in time.
 > - The only time when you can't update the name of the job is when you execute a retry or a session reload.
+> - The Sauce Service will also push the error stack of a failed test to the Sauce Labs commands tab
 
 ## Installation
 
