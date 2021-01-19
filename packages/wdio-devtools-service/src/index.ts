@@ -3,7 +3,7 @@
 import logger from '@wdio/logger'
 import puppeteerCore from 'puppeteer-core'
 
-import type { Capabilities, Services, FunctionProperties } from '@wdio/types'
+import type { Capabilities, Services, FunctionProperties, ThenArg } from '@wdio/types'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
@@ -290,21 +290,34 @@ type ServiceCommands = Omit<FunctionProperties<DevToolsService>, keyof Services.
 type CommandHandlerCommands = FunctionProperties<CommandHandler>
 type AuditorCommands = Omit<FunctionProperties<Auditor>, '_audit' | '_auditPWA' | 'updateCommands'>
 
+/**
+ * ToDo(Christian): use key remapping with TS 4.1
+ * https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#key-remapping-in-mapped-types
+ */
+interface BrowserExtension extends CommandHandlerCommands, AuditorCommands {
+    enablePerformanceAudits: ServiceCommands['_enablePerformanceAudits']
+    disablePerformanceAudits: ServiceCommands['_disablePerformanceAudits']
+    emulateDevice: ServiceCommands['_emulateDevice']
+    setThrottlingProfile: ServiceCommands['_setThrottlingProfile']
+    checkPWA: ServiceCommands['_checkPWA']
+    getCoverageReport: ServiceCommands['_getCoverageReport']
+}
+export type BrowserExtensionSync = {
+    [K in keyof BrowserExtension]: (...args: Parameters<BrowserExtension[K]>) => ThenArg<ReturnType<BrowserExtension[K]>>
+}
+
 declare global {
     namespace WebdriverIO {
         interface ServiceOption extends DevtoolsConfig {}
+    }
 
-        /**
-         * ToDo(Christian): use key remapping with TS 4.1
-         * https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#key-remapping-in-mapped-types
-         */
-        interface Browser extends CommandHandlerCommands, AuditorCommands {
-            enablePerformanceAudits: ServiceCommands['_enablePerformanceAudits']
-            disablePerformanceAudits: ServiceCommands['_disablePerformanceAudits']
-            emulateDevice: ServiceCommands['_emulateDevice']
-            setThrottlingProfile: ServiceCommands['_setThrottlingProfile']
-            checkPWA: ServiceCommands['_checkPWA']
-            getCoverageReport: ServiceCommands['_getCoverageReport']
-        }
+    namespace WebdriverIOAsync {
+        interface Browser extends BrowserExtension { }
+        interface MultiRemoteBrowser extends BrowserExtension { }
+    }
+
+    namespace WebdriverIOSync {
+        interface Browser extends BrowserExtensionSync { }
+        interface MultiRemoteBrowser extends BrowserExtensionSync { }
     }
 }

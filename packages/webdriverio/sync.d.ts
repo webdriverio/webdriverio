@@ -1,33 +1,27 @@
-import * as WebDriver from 'webdriver'
-import {
-    Browser as BrowserType,
-    Element as ElementType,
-    MultiRemoteBrowser as MultiRemoteBrowserType,
-    ElementArray,
+type BrowserType = import('./build/types').Browser
+type ElementType = import('./build/types').Element
+type MultiRemoteBrowserType = import('./build/types').MultiRemoteBrowser
+type BrowserCommandsTypeSync = import('./build/types').BrowserCommandsTypeSync
+type ElementCommandsTypeSync = import('./build/types').ElementCommandsTypeSync
+type ClientSync = import('webdriver').ClientSync
 
-    BrowserCommandsTypeSync,
-    ElementCommandsTypeSync,
-} from './src/types'
-
-declare global {
-    namespace WebdriverIO {
-        interface Browser extends BrowserType, BrowserCommandsTypeSync, Omit<WebDriver.ClientSync, 'options'> {}
-        interface Element extends ElementType, Omit<BrowserCommandsTypeSync, keyof ElementCommandsTypeSync>, ElementCommandsTypeSync, Omit<WebDriver.ClientSync, 'options'> {}
-        interface MultiRemoteBrowser extends MultiRemoteBrowserType, BrowserCommandsTypeSync, Omit<WebDriver.ClientSync, 'sessionId' | 'options'> {
-            sessionId?: string
-            (instanceName: string): WebdriverIO.Browser
-        }
+declare namespace WebdriverIO {
+    // @ts-expect-error
+    interface Browser extends BrowserType, BrowserCommandsTypeSync, Omit<ClientSync, 'options'>, WebdriverIOSync.Browser { }
+    // @ts-expect-error
+    interface Element extends ElementType, Omit<BrowserCommandsTypeSync, keyof ElementCommandsTypeSync>, ElementCommandsTypeSync, Omit<ClientSync, 'options'>, WebdriverIOSync.Element {
+        $(...args: Parameters<WebdriverIO.Browser['$']>): WebdriverIO.Element
+        $$(...args: Parameters<WebdriverIO.Browser['$$']>): ReturnType<WebdriverIO.Browser['$$']>
     }
-
-    module NodeJS {
-        interface Global {
-            browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-            driver: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-        }
+    // @ts-expect-error
+    interface MultiRemoteBrowser extends MultiRemoteBrowserType, BrowserCommandsTypeSync, Omit<ClientSync, 'sessionId' | 'options'>, WebdriverIOSync.MultiRemoteBrowser {
+        (instanceName: string): WebdriverIO.Browser
     }
-
-    function $(...args: Parameters<BrowserCommandsTypeSync['$']>): WebdriverIO.Element
-    function $$(...args: Parameters<BrowserCommandsTypeSync['$$']>): ElementArray
-    const browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-    const driver: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 }
+
+declare function $(...args: Parameters<WebdriverIO.Browser['$']>): WebdriverIO.Element
+declare function $$(...args: Parameters<WebdriverIO.Browser['$$']>): ReturnType<WebdriverIO.Browser['$$']>
+// @ts-expect-error
+declare const browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+// @ts-expect-error
+declare const driver: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser

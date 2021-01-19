@@ -11,9 +11,7 @@ declare global {
     namespace WebdriverIO {
         interface Browser extends BrowserType, BrowserCommandsType, Omit<Client, 'options'> { }
         interface Element extends ElementType, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType, Omit<Client, 'options'> {}
-        interface MultiRemoteBrowser extends MultiRemoteBrowserType, BrowserCommandsType, Omit<Client, 'sessionId' | 'options'> {
-            sessionId?: string
-        }
+        interface MultiRemoteBrowser extends MultiRemoteBrowserType, BrowserCommandsType, Omit<Client, 'sessionId' | 'options'> { }
     }
 
     module NodeJS {

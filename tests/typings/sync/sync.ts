@@ -5,20 +5,23 @@ const { SevereServiceError } = require('webdriverio')
 
 declare global {
     namespace WebdriverIO {
-        // @ts-expect-error
         interface Browser {
             browserCustomCommand: (variable: number) => void
         }
-        // @ts-expect-error
         interface Element {
             elementCustomCommand: (arg: unknown) => number
         }
-        // @ts-expect-error
         interface MultiRemoteBrowser {
             browserCustomCommand: (variable: number) => void
         }
     }
 }
+
+const nsBrowser: WebdriverIO.Browser = {} as any
+nsBrowser.clearMockCalls('')
+
+const nsElem: WebdriverIO.Element = {} as any
+nsElem.click()
 
 // browser
 browser.pause(1)
@@ -66,7 +69,7 @@ const callResult = <number>browser.call(() =>
 callResult.toFixed(2)
 
 // printPage
-browser.savePDF('./packages/bar.pdf', {
+const buffer = browser.savePDF('./packages/bar.pdf', {
     orientation: 'landscape',
     background: true,
     width: 24.5,
@@ -78,6 +81,7 @@ browser.savePDF('./packages/bar.pdf', {
     shrinkToFit: true,
     pageRanges: [{}]
 })
+buffer.byteLength.toFixed(2)
 
 browser.savePDF('./packages/bar.pdf')
 
@@ -92,10 +96,11 @@ width.toFixed(2)
 height.toFixed(2)
 
 // protocol command return unmapped object
-const { foo, bar } = browser.takeHeapSnapshot()
+const snapshot = browser.takeHeapSnapshot()
 
 // browser command return mapped object value
-const a = browser.getWindowSize()
+const size = browser.getWindowSize()
+size.height.toFixed(2)
 const { width: w, height: h } = browser.getWindowSize()
 w.toFixed(2)
 h.toFixed(2)

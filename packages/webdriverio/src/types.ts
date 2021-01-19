@@ -144,6 +144,7 @@ export interface Element extends EventEmitter, ElementReference, CustomInstanceC
 }
 
 interface MultiRemoteBase extends EventEmitter, CustomInstanceCommands<MultiRemoteBrowser> {
+    sessionId?: string
     options: Options.WebdriverIO | Options.Testrunner
     puppeteer?: PuppeteerBrowser
     /**
