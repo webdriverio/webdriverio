@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import type { DefaultOptions } from './types'
+import type { DefaultOptions, Capabilities } from './types'
 
 const log = logger('@wdio/config:utils')
 
@@ -72,7 +72,7 @@ interface BackendConfigurations {
     region?: string
     headless?: boolean
     path?: string
-    capabilities?: WebDriver.DesiredCapabilities
+    capabilities?: Capabilities | WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities
 }
 
 /**
@@ -114,8 +114,8 @@ export function detectBackend(options: BackendConfigurations = {}) {
      * For Sauce Labs RDC we only need to determine if the sauce option has a `testobject_api_key`.
      * Same for Sauce Visual where an apiKey can be passed in through the capabilities.
      */
-    const isRDC = Boolean(capabilities && capabilities.testobject_api_key)
-    const isVisual = Boolean(capabilities && capabilities['sauce:visual'] && capabilities['sauce:visual'].apiKey)
+    const isRDC = Boolean(!Array.isArray(capabilities) && (capabilities as WebDriver.DesiredCapabilities)?.testobject_api_key)
+    const isVisual = Boolean(!Array.isArray(capabilities) && (capabilities as WebDriver.DesiredCapabilities)['sauce:visual']?.apiKey)
     if ((typeof user === 'string' && typeof key === 'string' && key.length === 36) ||
         // Or only RDC or visual
         (isRDC || isVisual)

@@ -64,7 +64,7 @@ export default class ConfigParser {
             this._config = merge(this._config, fileConfig, MERGE_OPTIONS)
 
             /**
-             * detect Selenium backend
+             * detect WebDriver backend
              */
             this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
 
