@@ -25,8 +25,7 @@
     "@wdio/logger": "6.10.10",
     "@wdio/types": "^6.10.6",
     "cbt_tunnels": "^1.2.2",
-    "got": "^11.0.2",
-    "webdriverio": "^6.11.3"
+    "got": "^11.0.2"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"

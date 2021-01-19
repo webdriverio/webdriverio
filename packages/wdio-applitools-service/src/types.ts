@@ -1,5 +1,3 @@
-/// <reference types="webdriverio/async" />
-
 interface ProxySettings {
     url: string | boolean;
     username: string;

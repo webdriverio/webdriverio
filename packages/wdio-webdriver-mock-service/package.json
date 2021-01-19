@@ -22,8 +22,7 @@
     "@wdio/protocols": "6.10.6",
     "@wdio/types": "^6.10.6",
     "nock": "^13.0.0",
-    "uuid": "^8.0.0",
-    "webdriverio": "^6.11.3"
+    "uuid": "^8.0.0"
   },
   "publishConfig": {
     "access": "public"

@@ -41,8 +41,7 @@
     "lighthouse": "^7.0.0",
     "puppeteer-core": "^5.1.0",
     "speedline": "^1.4.1",
-    "stable": "^0.1.8",
-    "webdriverio": "^6.11.3"
+    "stable": "^0.1.8"
   },
   "devDependencies": {
     "@types/atob": "^2.1.2"

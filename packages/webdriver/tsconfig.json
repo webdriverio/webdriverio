@@ -6,6 +6,7 @@
     "rootDir": "src"
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../../@types"
   ]
 }

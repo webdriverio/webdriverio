@@ -26,8 +26,7 @@
     "@wdio/logger": "6.10.10",
     "@wdio/types": "^6.10.6",
     "@wdio/utils": "6.11.0",
-    "saucelabs": "^4.2.0",
-    "webdriverio": "^6.11.3"
+    "saucelabs": "^4.2.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"

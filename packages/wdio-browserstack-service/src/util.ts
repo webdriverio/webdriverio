@@ -1,4 +1,3 @@
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
 
 import { BROWSER_DESCRIPTION } from './constants'
@@ -28,7 +27,7 @@ export function getBrowserDescription(cap: Capabilities.DesiredCapabilities) {
  * @param caps browser capbilities object. In case of multiremote, the object itself should have a property named 'capabilities'
  * @param browserName browser name in case of multiremote
  */
-export function getBrowserCapabilities(browser: Browser | MultiRemoteBrowser, caps?: Capabilities.RemoteCapability, browserName?: string) {
+export function getBrowserCapabilities(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, caps?: Capabilities.RemoteCapability, browserName?: string) {
     if (!browser.isMultiremote) {
         return { ...browser.capabilities, ...caps }
     }

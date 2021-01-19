@@ -1,6 +1,5 @@
 import { IGNORED_URLS, UNSUPPORTED_ERROR_MESSAGE } from './constants'
 import { RequestPayload } from './handler/network'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
 
 const VERSION_PROPS = ['browserVersion', 'browser_version', 'version']
@@ -11,7 +10,7 @@ const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
     'google chrome': 63
 }
 
-export function setUnsupportedCommand (browser: Browser | MultiRemoteBrowser) {
+export function setUnsupportedCommand (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
     return browser.addCommand('cdp', /* istanbul ignore next */() => {
         throw new Error(UNSUPPORTED_ERROR_MESSAGE)
     })

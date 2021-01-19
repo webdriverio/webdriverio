@@ -1,13 +1,14 @@
+/// <reference types="webdriverio/async" />
+
 import got from 'got'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options, Frameworks } from '@wdio/types'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 const log = logger('@wdio/crossbrowsertesting-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class CrossBrowserTestingService implements Services.ServiceInstance {
-    private _browser?: Browser | MultiRemoteBrowser
+    private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     private _testCnt = 0;
     private _failures = 0;
     private _isServiceEnabled: boolean;
@@ -27,7 +28,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
     before (
         caps: Capabilities.Capabilities,
         specs: string[],
-        browser: Browser | MultiRemoteBrowser
+        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._browser = browser
     }
@@ -145,7 +146,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
         }
 
         const browserName = this._browser.instances.filter(
-            (browserName) => (this._browser as MultiRemoteBrowser)[browserName].sessionId === newSessionId)[0]
+            (browserName) => (this._browser as WebdriverIO.MultiRemoteBrowser)[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this._failures, true, browserName)
     }

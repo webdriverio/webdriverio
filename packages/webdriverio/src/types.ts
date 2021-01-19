@@ -136,6 +136,11 @@ export interface Element extends EventEmitter, ElementReference, CustomInstanceC
      * error response if element was not found
      */
     error?: Error
+
+    /**
+     * @private
+     */
+    _NOT_FIBER?: boolean
 }
 
 interface MultiRemoteBase extends EventEmitter, CustomInstanceCommands<MultiRemoteBrowser> {
@@ -155,7 +160,7 @@ interface MultiRemoteBase extends EventEmitter, CustomInstanceCommands<MultiRemo
     isMultiremote: true
 }
 
-type MultiRemoteBrowserReference = Record<string, Browser>
+type MultiRemoteBrowserReference = Record<string, WebdriverIO.Browser | WebdriverIO.Element>
 export type MultiRemoteBrowser = MultiRemoteBase & MultiRemoteBrowserReference
 
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])

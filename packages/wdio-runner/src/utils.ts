@@ -1,6 +1,6 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
-import { remote, multiremote, attach, Browser, MultiRemoteBrowser } from 'webdriverio'
+import { remote, multiremote, attach } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
@@ -163,14 +163,14 @@ type BrowserData = {
  * @return {object}
  */
 export function getInstancesData (
-    browser: Browser | MultiRemoteBrowser,
+    browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     isMultiremote: boolean
 ) {
     if (!isMultiremote) {
         return
     }
 
-    const multiRemoteBrowser = browser as MultiRemoteBrowser
+    const multiRemoteBrowser = browser as WebdriverIO.MultiRemoteBrowser
     const instances: Record<string, Partial<BrowserData>> = {}
     multiRemoteBrowser.instances.forEach((browserName) => {
         const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser[browserName].options

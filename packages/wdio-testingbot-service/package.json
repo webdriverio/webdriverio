@@ -26,8 +26,7 @@
     "@wdio/logger": "6.10.10",
     "@wdio/types": "^6.10.6",
     "got": "^11.0.2",
-    "testingbot-tunnel-launcher": "^1.1.7",
-    "webdriverio": "^6.11.3"
+    "testingbot-tunnel-launcher": "^1.1.7"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"

@@ -1,3 +1,5 @@
+/// <reference types="webdriverio/async" />
+
 import { readFile, getPidPath } from './utils'
 import { getValue, setValue, setPort } from './client'
 

@@ -1,5 +1,5 @@
-import * as WebDriver from 'webdriver'
-import {
+import type { Client } from 'webdriver'
+import type {
     Browser as BrowserType,
     Element as ElementType,
     BrowserCommandsType,
@@ -9,11 +9,10 @@ import {
 
 declare global {
     namespace WebdriverIO {
-        interface Browser extends BrowserType, BrowserCommandsType, Omit<WebDriver.Client, 'options'> {}
-        interface Element extends ElementType, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType, Omit<WebDriver.Client, 'options'> {}
-        interface MultiRemoteBrowser extends MultiRemoteBrowserType, BrowserCommandsType, Omit<WebDriver.Client, 'sessionId' | 'options'> {
+        interface Browser extends BrowserType, BrowserCommandsType, Omit<Client, 'options'> { }
+        interface Element extends ElementType, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType, Omit<Client, 'options'> {}
+        interface MultiRemoteBrowser extends MultiRemoteBrowserType, BrowserCommandsType, Omit<Client, 'sessionId' | 'options'> {
             sessionId?: string
-            (instanceName: string): WebdriverIO.Browser
         }
     }
 
@@ -24,8 +23,8 @@ declare global {
         }
     }
 
-    // function $(...args: Parameters<WebdriverIO.Browser['$']>): ReturnType<WebdriverIO.Browser['$']>
-    // function $$(...args: Parameters<WebdriverIO.Browser['$$']>): ReturnType<WebdriverIO.Browser['$$']>
-    // const browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-    // const driver: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    function $(...args: Parameters<WebdriverIO.Browser['$']>): ReturnType<WebdriverIO.Browser['$']>
+    function $$(...args: Parameters<WebdriverIO.Browser['$$']>): ReturnType<WebdriverIO.Browser['$$']>
+    const browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    const driver: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 }

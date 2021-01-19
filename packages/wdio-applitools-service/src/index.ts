@@ -1,3 +1,5 @@
+/// <reference types="webdriverio/async" />
+
 import logger from '@wdio/logger'
 import { Eyes, Target } from '@applitools/eyes-webdriverio'
 import type { Services, Capabilities, FunctionProperties } from '@wdio/types'

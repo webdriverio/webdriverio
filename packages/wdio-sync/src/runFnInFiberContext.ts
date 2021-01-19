@@ -1,5 +1,3 @@
-import type { Browser } from 'webdriverio'
-
 import Fiber from './fibers'
 
 /**
@@ -8,7 +6,7 @@ import Fiber from './fibers'
  * @return {Function}     wrapped around function
  */
 export default function runFnInFiberContext (fn: Function) {
-    return function (this: Browser, ...args: any[]) {
+    return function (this: WebdriverIO.Browser, ...args: any[]) {
         delete global.browser._NOT_FIBER
 
         return new Promise((resolve, reject) => Fiber(() => {
