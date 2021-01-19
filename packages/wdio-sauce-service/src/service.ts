@@ -110,6 +110,17 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
 
     afterTest (test: any, context: any, results: any) {
         /**
+         * If the test failed push the stack to Sauce Labs in separate lines
+         * This should not be done for UP because it's not supported yet and
+         * should be removed when UP supports `sauce:context`
+         */
+        const { error } = results
+        if (error && !this._isUP){
+            const lines = error.stack.split(/\r?\n/)
+            lines.forEach((line:string) => (this._browser as WebdriverIO.Browser).execute('sauce:context=' + line))
+        }
+
+        /**
          * remove failure if test was retried and passed
          * > Mocha only
          */
