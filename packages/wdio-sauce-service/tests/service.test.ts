@@ -182,6 +182,54 @@ test('afterTest', () => {
         _retries: 2
     }, {}, { passed: false })
     expect(service['_failures']).toBe(2)
+    const stack = 'Error: Expected true to equal false.\n' +
+        '    at <Jasmine>\n' +
+        '    at UserContext.<anonymous> (/Users/test/specs/example.spec.js:12:44)\n' +
+        '    at UserContext.executeSync (/Users/node_modules/@wdio/sync/build/index.js:25:22)\n' +
+        '    at /Users/node_modules/@wdio/sync/build/index.js:46:68'
+    service['_isUP'] = true
+    service.afterTest({}, {}, {
+        error: {
+            matcherName: 'toEqual',
+            message: 'Expected true to equal false.',
+            stack,
+            passed: false,
+            expected: [false, 'LoginPage page was not shown'],
+            actual: true
+        }
+    })
+    expect(browser.execute).toBeCalledTimes(0)
+    browser.execute.mockClear()
+    service['_isUP'] = false
+    service.afterTest({}, {}, {
+        error: {
+            matcherName: 'toEqual',
+            message: 'Expected true to equal false.',
+            stack,
+            passed: false,
+            expected: [false, 'LoginPage page was not shown'],
+            actual: true
+        }
+    })
+    expect(browser.execute).toBeCalledTimes(5)
+    stack.split(/\r?\n/).forEach((line:string) => expect(browser.execute).toBeCalledWith(`sauce:context=${line}`))
+    browser.execute.mockClear()
+    const maxErrorStackLength = 3
+    service['_maxErrorStackLength'] = maxErrorStackLength
+    service.afterTest({}, {}, {
+        error: {
+            matcherName: 'toEqual',
+            message: 'Expected true to equal false.',
+            stack,
+            passed: false,
+            expected: [false, 'LoginPage page was not shown'],
+            actual: true
+        }
+    })
+    expect(browser.execute).toBeCalledTimes(maxErrorStackLength)
+    stack.split(/\r?\n/)
+        .slice(0, maxErrorStackLength)
+        .forEach((line:string) => expect(browser.execute).toBeCalledWith(`sauce:context=${line}`))
 })
 
 test('beforeFeature should set context', () => {

@@ -10,6 +10,7 @@ const log = logger('@wdio/sauce-service')
 
 export default class SauceService implements WebdriverIO.ServiceInstance {
     private _testCnt = 0
+    private _maxErrorStackLength = 5
     private _failures = 0 // counts failures between reloads
     private _isServiceEnabled = true
     private _isJobNameSet = false;
@@ -27,6 +28,7 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
     ) {
         this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
         this._isRDC = 'testobject_api_key' in this._capabilities
+        this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
     }
 
     /**
@@ -109,6 +111,17 @@ export default class SauceService implements WebdriverIO.ServiceInstance {
     }
 
     afterTest (test: any, context: any, results: any) {
+        /**
+         * If the test failed push the stack to Sauce Labs in separate lines
+         * This should not be done for UP because it's not supported yet and
+         * should be removed when UP supports `sauce:context`
+         */
+        const { error } = results
+        if (error && !this._isUP){
+            const lines = error.stack.split(/\r?\n/).slice(0, this._maxErrorStackLength)
+            lines.forEach((line:string) => (this._browser as WebdriverIO.Browser).execute('sauce:context=' + line))
+        }
+
         /**
          * remove failure if test was retried and passed
          * > Mocha only
