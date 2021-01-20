@@ -98,5 +98,11 @@
     "githubUrl": "https://github.com/licanhua/wdio-ywinappdriver-service",
     "branch": "main",
     "npmUrl": "https://www.npmjs.com/package/wdio-ywinappdriver-service"
+  },
+  {
+    "packageName": "wdio-performancetotal-service",
+    "title": "PerformanceTotal",
+    "branch": "main",
+    "npmUrl": "https://www.npmjs.com/package/wdio-performancetotal-service"
   }
 ]
