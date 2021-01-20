@@ -102,7 +102,7 @@
   {
     "packageName": "wdio-performancetotal-service",
     "title": "PerformanceTotal",
-    "branch": "main",
+    "githubUrl": "https://github.com/tzurp/performance-total",
     "npmUrl": "https://www.npmjs.com/package/wdio-performancetotal-service"
   }
 ]
