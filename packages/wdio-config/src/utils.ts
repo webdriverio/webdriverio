@@ -115,7 +115,7 @@ export function detectBackend(options: BackendConfigurations = {}) {
      * Same for Sauce Visual where an apiKey can be passed in through the capabilities (soon to be legacy too).
      */
     const isRDC = Boolean(!Array.isArray(capabilities) && (capabilities as WebDriver.DesiredCapabilities)?.testobject_api_key)
-    const isVisual = Boolean(!Array.isArray(capabilities) && (capabilities as WebDriver.DesiredCapabilities)['sauce:visual']?.apiKey)
+    const isVisual = Boolean(!Array.isArray(capabilities) && capabilities && (capabilities as WebDriver.DesiredCapabilities)['sauce:visual']?.apiKey)
     if ((typeof user === 'string' && typeof key === 'string' && key.length === 36) ||
         // Or only RDC or visual
         (isRDC || isVisual)

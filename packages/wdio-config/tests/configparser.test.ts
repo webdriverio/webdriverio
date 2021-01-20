@@ -9,7 +9,6 @@ import ConfigParser from '../src/lib/ConfigParser'
 const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
 const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.ts')
 const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')
-const FIXTURES_CONF_MULTIREMOTE_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.ts')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.ts')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
@@ -34,18 +33,6 @@ describe('ConfigParser', () => {
         it('should throw if config file does not exist', () => {
             const configParser = new ConfigParser()
             expect(() => configParser.addConfigFile(path.resolve(__dirname, 'foobar.conf.ts'))).toThrow()
-        })
-
-        it('should add the rdc hostname when a rdc conf is provided', () => {
-            const configParser = new ConfigParser()
-            configParser.addConfigFile(FIXTURES_CONF_RDC)
-            expect(configParser['_config'].hostname).toContain('appium.testobject.com')
-        })
-
-        it('should default to the vm hostname when a multiremote conf with rdc props is provided', () => {
-            const configParser = new ConfigParser()
-            configParser.addConfigFile(FIXTURES_CONF_MULTIREMOTE_RDC)
-            expect(configParser['_config'].hostname).not.toContain('appium.testobject.com')
         })
 
         describe('TypeScript integration', () => {
