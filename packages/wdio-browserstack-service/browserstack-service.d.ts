@@ -1,10 +1,6 @@
 declare module WebdriverIO {
     interface ServiceOption extends BrowserstackConfig {}
 
-    interface Config extends CucumberOptsConfig {
-
-    }
-
     interface Suite {
         title: string;
         fullName: string;
@@ -44,16 +40,4 @@ interface BrowserstackConfig {
      * https://stackoverflow.com/questions/39040108/import-class-in-definition-file-d-ts
      */
     opts?: Partial<import('browserstack-local').Options>
-}
-
-interface CucumberOptsConfig {
-    cucumberOpts?: CucumberOpts
-}
-
-interface CucumberOpts {
-    /**
-     * Fail if there are any undefined or pending steps
-     * @default false
-     */
-    strict?: boolean
 }
