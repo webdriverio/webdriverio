@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import type { DefaultOptions } from './types'
+import type { DefaultOptions, Capabilities } from './types'
 
 const log = logger('@wdio/config:utils')
 
@@ -20,10 +20,15 @@ const REGION_MAPPING = {
 export const validObjectOrArray = (object: any): object is object | Array<any> => (Array.isArray(object) && object.length > 0) ||
     (typeof object === 'object' && Object.keys(object).length > 0)
 
-export function getSauceEndpoint (region: keyof typeof REGION_MAPPING, isRDC?: boolean) {
+export function getSauceEndpoint (
+    region: keyof typeof REGION_MAPPING,
+    { isRDC, isVisual }: { isRDC?: boolean, isVisual?: boolean } = {}
+) {
     const shortRegion = REGION_MAPPING[region] ? region : 'us'
-    if (isRDC){
+    if (isRDC) {
         return `${shortRegion}1.appium.testobject.com`
+    } else if (isVisual) {
+        return 'hub.screener.io'
     }
 
     return `ondemand.${REGION_MAPPING[shortRegion]}saucelabs.com`
@@ -67,13 +72,14 @@ interface BackendConfigurations {
     region?: string
     headless?: boolean
     path?: string
+    capabilities?: Capabilities | WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities
 }
 
 /**
  * helper to detect the Selenium backend according to given capabilities
  */
-export function detectBackend(options: BackendConfigurations = {}, isRDC = false) {
-    let { port, hostname, user, key, protocol, region, headless, path } = options
+export function detectBackend(options: BackendConfigurations = {}) {
+    let { port, hostname, user, key, protocol, region, headless, path, capabilities } = options
 
     /**
      * browserstack
@@ -104,19 +110,22 @@ export function detectBackend(options: BackendConfigurations = {}, isRDC = false
     /**
      * Sauce Labs
      * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
+     *
+     * For Sauce Labs Legacy RDC we only need to determine if the sauce option has a `testobject_api_key`.
+     * Same for Sauce Visual where an apiKey can be passed in through the capabilities (soon to be legacy too).
      */
+    const isRDC = Boolean(!Array.isArray(capabilities) && (capabilities as WebDriver.DesiredCapabilities)?.testobject_api_key)
+    const isVisual = Boolean(!Array.isArray(capabilities) && capabilities && (capabilities as WebDriver.DesiredCapabilities)['sauce:visual']?.apiKey)
     if ((typeof user === 'string' && typeof key === 'string' && key.length === 36) ||
-        // When SC is used a user needs to be provided and `isRDC` needs to be true
-        (typeof user === 'string' && isRDC) ||
-        // Or only RDC
-        isRDC
+        // Or only RDC or visual
+        (isRDC || isVisual)
     ) {
         // Sauce headless is currently only in us-east-1
         const sauceRegion = headless ? 'us-east-1' : region as keyof typeof REGION_MAPPING
 
         return {
             protocol: protocol || 'https',
-            hostname: hostname || getSauceEndpoint(sauceRegion, isRDC),
+            hostname: hostname || getSauceEndpoint(sauceRegion, { isRDC, isVisual }),
             port: port || 443,
             path: path || LEGACY_PATH
         }

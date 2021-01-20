@@ -64,17 +64,9 @@ export default class ConfigParser {
             this._config = merge(this._config, fileConfig, MERGE_OPTIONS)
 
             /**
-             * For Sauce Labs RDC we need to determine if the config file has a `testobject_api_key`
-             * If so, we need to provide a boolean to the `detectBackend` to set the correct hostname
-             *
-             * NOTE: This will not work for multi remote
+             * detect WebDriver backend
              */
-            const isRDC = Array.isArray(this._capabilities) && this._capabilities.some(capability => 'testobject_api_key' in capability)
-
-            /**
-             * detect Selenium backend
-             */
-            this._config = merge(detectBackend(this._config, isRDC), this._config, MERGE_OPTIONS)
+            this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
 
             /**
              * remove `watch` from config as far as it can be only passed as command line argument
