@@ -121,7 +121,7 @@ export default class SauceService implements Services.ServiceInstance {
         const { error } = results
         if (error && !this._isUP){
             const lines = error.stack.split(/\r?\n/).slice(0, this._maxErrorStackLength)
-            lines.forEach((line:string) => this._browser.execute('sauce:context=' + line))
+            lines.forEach((line:string) => this._browser!.execute('sauce:context=' + line))
         }
 
         /**
@@ -235,7 +235,7 @@ export default class SauceService implements Services.ServiceInstance {
 
         const mulitremoteBrowser = this._browser as MultiRemoteBrowser<'async'>
         const browserName = mulitremoteBrowser.instances.filter(
-            (browserName) => mulitremoteBrowser[browserName].sessionId === newSessionId)[0]
+            (browserName: string) => mulitremoteBrowser[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this._failures, true, browserName)
     }

@@ -10,7 +10,13 @@ const featureObject = {
     name: 'Create a feature'
 }
 
-let browser: MultiRemoteBrowser
+jest.mock('../src/utils', () => {
+    return {
+        isUnifiedPlatform: jest.fn().mockReturnValue(true),
+    }
+})
+
+let browser: MultiRemoteBrowser<'async'>
 beforeEach(() => {
     browser = {
         execute: jest.fn(),
@@ -18,33 +24,7 @@ beforeEach(() => {
         chromeB: { sessionId: 'sessionChromeB' },
         chromeC: { sessionId: 'sessionChromeC' },
         instances: ['chromeA', 'chromeB', 'chromeC'],
-    } as any as MultiRemoteBrowser
-})
-
-test('constructor should set setJobNameInBeforeSuite', () => {
-    let service = new SauceService({}, {}, {} as any)
-    service['_browser'] = browser
-    expect(service['_options'].setJobNameInBeforeSuite).toBeFalsy()
-
-    let options = {
-        setJobNameInBeforeSuite: false
-    }
-    service = new SauceService(options, {}, {} as any)
-    service['_browser'] = browser
-    expect(service['_options'].setJobNameInBeforeSuite).toBeFalsy()
-
-    options = {
-        setJobNameInBeforeSuite: true
-    }
-    service = new SauceService(options, {}, {} as any)
-    service['_browser'] = browser
-    expect(service['_options'].setJobNameInBeforeSuite).toBeTruthy()
-})
-
-jest.mock('../src/utils', () => {
-    return {
-        isUnifiedPlatform: jest.fn().mockReturnValue(true),
-    }
+    } as any as MultiRemoteBrowser<'async'>
 })
 
 test('before should call isUnifiedPlatform', () => {
@@ -59,17 +39,6 @@ test('beforeSuite', () => {
     expect(service['_suiteTitle']).toBeUndefined()
     service.beforeSuite({ title: 'foobar' } as any)
     expect(service['_suiteTitle']).toBe('foobar')
-})
-
-test('beforeSuite should set job-name', () => {
-    const options = {
-        setJobNameInBeforeSuite: true
-    }
-    const service = new SauceService(options, {}, { user: 'foobar', key: '123' } as any)
-    service['_browser'] = browser
-    service.beforeSession()
-    service.beforeSuite({ title: 'foobar' } as any)
-    expect(browser.execute).toBeCalledWith('sauce:job-name=foobar')
 })
 
 test('beforeSession should set to unknown creds if no sauce user and key are found', () => {

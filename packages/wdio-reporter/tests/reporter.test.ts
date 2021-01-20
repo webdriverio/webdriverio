@@ -1,16 +1,22 @@
-import tmp from 'tmp'
 import fse from 'fs-extra'
 import { EventEmitter } from 'events'
 import WDIOReporter from '../src'
 import { WriteStream } from 'fs'
-import fs from 'fs'
+
+jest.mock('fs-extra', () => ({
+    createWriteStream: jest.fn().mockReturnValue({
+        write: jest.fn(),
+        end: jest.fn((cb) => cb())
+    }),
+    ensureDirSync: jest.fn()
+}))
+jest.mock('fs')
 
 describe('WDIOReporter', () => {
     const eventsOnSpy = jest.spyOn(EventEmitter.prototype, 'on')
 
     it('constructor', () => {
-        const tmpobj = tmp.fileSync()
-        new WDIOReporter({ logFile: tmpobj.name })
+        new WDIOReporter({ logFile: '/some/logpath' })
         expect(eventsOnSpy).toBeCalledWith('client:beforeCommand', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('client:afterCommand', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('runner:start', expect.any(Function))
@@ -30,32 +36,22 @@ describe('WDIOReporter', () => {
     })
 
     it('should be by default synchronised', () => {
-        const tmpobj = tmp.fileSync()
-        const reporter = new WDIOReporter({ logFile: tmpobj.name })
+        const reporter = new WDIOReporter({ logFile: '/some/log/path' })
         expect(reporter.isSynchronised).toBe(true)
     })
 
     it('should provide a function to write to output stream', () => {
-        const tmpobj = tmp.fileSync()
-        const reporter = new WDIOReporter({ logFile: tmpobj.name })
+        const reporter = new WDIOReporter({ logFile: '/some/log/path' })
         reporter.write('foobar')
-
-        return new Promise((resolve) => reporter.outputStream.end(() => {
-            expect(reporter.outputStream.bytesWritten).toBe(6)
-            resolve()
-        }))
+        expect(reporter.outputStream.write).toBeCalledWith('foobar')
     })
 
     it('should allow an own writeable stream', () => {
-        const tmpobj = tmp.fileSync()
-        const customLogStream = fs.createWriteStream(tmpobj.name)
+        const customLogStream = fse.createWriteStream('/foo/bar')
         const reporter = new WDIOReporter({ stdout: true, writeStream: customLogStream })
         reporter.write('foobar')
 
-        return new Promise((resolve) => reporter.outputStream.end(() => {
-            expect(reporter.outputStream.bytesWritten).toBe(6)
-            resolve()
-        }))
+        expect(customLogStream.write).toBeCalledWith('foobar')
     })
 
     it('should not create log file if no file name is given', () => {
@@ -74,11 +70,12 @@ describe('WDIOReporter', () => {
     })
 
     describe('outputDir options', () => {
-        jest.mock('fs-extra')
         let ensureDirSyncSpy: jest.SpyInstance
+
         beforeEach(() => {
             ensureDirSyncSpy = jest.spyOn(fse, 'ensureDirSync')
         })
+
         it('should create directory if outputDir given and not existing', () => {
             const options = { outputDir: './tempDir', logFile: '' }
             new WDIOReporter(options)
@@ -86,12 +83,7 @@ describe('WDIOReporter', () => {
             expect(ensureDirSyncSpy).toHaveBeenCalled()
             expect(ensureDirSyncSpy).toHaveBeenCalledWith('./tempDir')
         })
-        it('should handle invalid directory for outputDir', () => {
-            expect(() => {
-                // @ts-expect-error
-                new WDIOReporter({ outputDir: true })
-            }).toThrowError()
-        })
+
         afterEach(() => {
             ensureDirSyncSpy.mockClear()
         })

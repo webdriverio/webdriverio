@@ -19,6 +19,7 @@
       "@wdio/testingbot-service",
       "@wdio/sauce-service",
       "@wdio/sumologic-reporter"
-    ]
+    ],
+    "typeRoots": ["./node_modules"]
   }
 }

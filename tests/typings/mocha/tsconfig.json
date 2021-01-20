@@ -7,6 +7,7 @@
     "types": [
       "webdriverio/async",
       "@wdio/mocha-framework"
-    ]
+    ],
+    "typeRoots": ["./node_modules"]
   }
 }

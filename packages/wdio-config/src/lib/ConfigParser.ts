@@ -52,13 +52,14 @@ export default class ConfigParser {
             /**
              * clone the original config
              */
-            const fileConfig = merge<Options.Testrunner>(require(filePath).config, {}, MERGE_OPTIONS)
+            const fileConfig = merge<Omit<Options.Testrunner, 'capabilities'> & { capabilities?: Capabilities.RemoteCapabilities }>(require(filePath).config, {}, MERGE_OPTIONS)
 
             /**
              * merge capabilities
              */
             const defaultTo: Capabilities.RemoteCapabilities = Array.isArray(this._capabilities) ? [] : {}
             this._capabilities = merge<Capabilities.RemoteCapabilities>(this._capabilities, fileConfig.capabilities || defaultTo, MERGE_OPTIONS)
+            delete fileConfig.capabilities
 
             /**
              * Add hooks from the file config and remove them from file config object to avoid
@@ -93,7 +94,7 @@ export default class ConfigParser {
     merge (object: MergeConfig = {}) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
-        this._config = { ...this._config, ...object } as Options.Testrunner
+        this._config = merge(this._config, object, MERGE_OPTIONS) as TestrunnerOptionsWithParameters
 
         /**
          * overwrite config specs that got piped into the wdio command
@@ -108,6 +109,7 @@ export default class ConfigParser {
          * overwrite capabilities
          */
         this._capabilities = validObjectOrArray(this._config.capabilities) ? this._config.capabilities : this._capabilities
+
         /**
          * save original specs if Cucumber's feature line number is provided
          */

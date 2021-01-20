@@ -57,7 +57,7 @@ export async function initialiseInstance (
     config: ConfigWithSessionId,
     capabilities: Capabilities.RemoteCapability,
     isMultiremote?: boolean
-) {
+): Promise<Browser<'async'> | MultiRemoteBrowser<'async'>> {
     /**
      * check if config has sessionId and attach it to a running session if so
      */
