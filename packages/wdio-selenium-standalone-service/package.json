@@ -31,6 +31,7 @@
     "@types/selenium-standalone": "^6.15.2",
     "@wdio/config": "6.12.1",
     "@wdio/logger": "6.10.10",
+    "@wdio/types": "^6.10.6",
     "fs-extra": "^9.0.1",
     "selenium-standalone": "^6.22.1"
   },
@@ -40,5 +41,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "selenium-standalone-service.d.ts"
+  "types": "./build/index.d.ts"
 }

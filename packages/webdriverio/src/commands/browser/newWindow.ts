@@ -1,3 +1,5 @@
+import newWindowHelper from '../../scripts/newWindow'
+import type { NewWindowOptions } from '../../types'
 
 /**
  *
@@ -31,15 +33,10 @@
  * @alias browser.newWindow
  * @type window
  */
-
-/* istanbul ignore file */
-
-import newWindowHelper from '../../scripts/newWindow'
-
 export default async function newWindow (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     url: string,
-    { windowName = 'New Window', windowFeatures = '' }: WebdriverIO.NewWindowOptions = {}
+    { windowName = 'New Window', windowFeatures = '' }: NewWindowOptions = {}
 ) {
     /**
      * parameter check

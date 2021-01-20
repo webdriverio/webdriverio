@@ -37,8 +37,9 @@ node_modules/
 jspm_packages/
 
 # Typescript v1 declaration files
-typings/
+/packages/wdio-protocols/src/commands
 !tests/typings
+!typings/types.ts
 tests/typings/**/dist
 
 # Optional npm cache directory

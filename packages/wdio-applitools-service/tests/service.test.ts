@@ -1,6 +1,11 @@
+import type { Capabilities } from '@wdio/types'
+import type { ApplitoolsBrowserAsync } from '../src/types'
+
 import ApplitoolsService from '../src'
 
-const caps: WebDriver.Capabilities = {
+const expect = global.expect as unknown as jest.Expect
+
+const caps: Capabilities.Capabilities = {
     browserName: 'chrome'
 }
 
@@ -17,7 +22,7 @@ class BrowserMock {
 }
 
 function getBrowser () {
-    return new BrowserMock() as unknown as WebdriverIO.BrowserObject
+    return new BrowserMock() as unknown as ApplitoolsBrowserAsync
 }
 
 describe('wdio-applitools-service', () => {
@@ -74,7 +79,7 @@ describe('wdio-applitools-service', () => {
         }
         const service = new ApplitoolsService({
             key: 'foobar',
-            proxy: proxyOptions
+            eyesProxy: proxyOptions
         })
 
         service.beforeSession()

@@ -1,4 +1,3 @@
-
 /**
  *
  * Switch focus to a particular tab / window.
@@ -26,9 +25,8 @@
  * @type window
  *
  */
-
 export default async function switchWindow (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     urlOrTitleToMatch: string | RegExp
 ) {
     /**

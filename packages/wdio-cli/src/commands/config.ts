@@ -116,7 +116,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
     const parsedAnswers: ParsedAnswers = {
         ...answers,
-        runner: runnerPackage.short,
+        runner: runnerPackage.short as 'local',
         framework: frameworkPackage.short,
         reporters: reporterPackages.map(({ short }) => short),
         services: servicePackages.map(({ short }) => short),

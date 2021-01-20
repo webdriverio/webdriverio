@@ -1,4 +1,3 @@
-
 /**
  *
  * Returns true if element exists in the DOM
@@ -39,9 +38,7 @@
  * @type state
  *
  */
-
 export default function isExisting (this: WebdriverIO.Element) {
-    const method = this.isReactElement ? 'react$$' : '$$'
-
-    return this.parent[method](this.selector).then((res) => res.length > 0)
+    const command = this.isReactElement ? this.parent.react$$.bind(this.parent) : this.parent.$$.bind(this.parent)
+    return command(this.selector as string).then((res) => res.length > 0)
 }

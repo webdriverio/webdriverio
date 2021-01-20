@@ -1,3 +1,11 @@
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+
+const getWebElement = (el: WebdriverIO.Element) => ({
+    [ELEMENT_KEY]: el.elementId, // w3c compatible
+    ELEMENT: el.elementId // jsonwp compatible
+})
+
 /**
  *
  * Return true if the selected element matches with the provided one.
@@ -20,20 +28,11 @@
  * @return  {Boolean}   true if elements are equal
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-
-const getWebElement = (el: WebdriverIO.Element) => ({
-    [ELEMENT_KEY]: el.elementId, // w3c compatible
-    ELEMENT: el.elementId // jsonwp compatible
-})
-
 export default async function isEqual (
     this: WebdriverIO.Element,
     el: WebdriverIO.Element
 ) {
-    const browser: WebdriverIO.BrowserObject = getBrowserObject(this)
+    const browser = getBrowserObject(this)
 
     // mobile native
     if (browser.isMobile) {
@@ -48,7 +47,7 @@ export default async function isEqual (
     try {
         result = await browser.execute(
             /* istanbul ignore next */
-            (el1, el2) => el1 === el2,
+            (el1: WebdriverIO.Element, el2: WebdriverIO.Element) => el1 === el2,
             getWebElement(this), getWebElement(el))
     } catch (err) {
         result = false

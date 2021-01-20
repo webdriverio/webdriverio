@@ -9,7 +9,6 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "types": "./webdriverio.d.ts",
   "typeScriptVersion": "3.8.3",
   "repository": {
     "type": "git",
@@ -29,9 +28,12 @@
     "@types/fibers": "^3.1.0",
     "@types/puppeteer": "^5.4.0",
     "@wdio/logger": "6.10.10",
-    "fibers": "^5.0.0"
+    "@wdio/types": "^6.10.6",
+    "fibers": "^5.0.0",
+    "webdriverio": "^6.11.3"
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "types": "./build/index.d.ts"
 }

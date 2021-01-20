@@ -7,6 +7,7 @@
     "types": ["webdriverio", "./"]
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../../@types"
   ]
 }

@@ -1,4 +1,5 @@
 import { isW3C } from '@wdio/utils'
+import type { Capabilities } from '@wdio/types'
 
 import type { SauceServiceConfig } from './types'
 
@@ -44,7 +45,7 @@ import type { SauceServiceConfig } from './types'
  *  deviceContextId: ''
  * }
  */
-export function isUnifiedPlatform (caps: WebDriver.DesiredCapabilities){
+export function isUnifiedPlatform (caps: Capabilities.DesiredCapabilities){
     const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
     const name = appiumDeviceName || deviceName
 
@@ -57,7 +58,7 @@ export function isUnifiedPlatform (caps: WebDriver.DesiredCapabilities){
  * @param {object} caps
  * @returns {boolean}
  */
-export function isEmuSim (caps: WebDriver.DesiredCapabilities){
+export function isEmuSim (caps: Capabilities.DesiredCapabilities){
     const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
     const name = appiumDeviceName || deviceName
 
@@ -71,7 +72,7 @@ export function isEmuSim (caps: WebDriver.DesiredCapabilities){
  * @returns {function(object): void} - A function that mutates a single capability
  */
 export function makeCapabilityFactory(tunnelIdentifier: string, options: any) {
-    return (capability: WebDriver.DesiredCapabilities) => {
+    return (capability: Capabilities.DesiredCapabilities) => {
         // If the capability appears to be using the legacy JSON Wire Protocol
         // we need to make sure the key 'sauce:options' is not present
         const isLegacy = Boolean(

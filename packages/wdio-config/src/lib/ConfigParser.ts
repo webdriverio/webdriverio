@@ -3,25 +3,32 @@ import path from 'path'
 import glob from 'glob'
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
+import type { Capabilities, Options, Services } from '@wdio/types'
 
 import {
     detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
     loadTypeScriptCompiler, loadBabelCompiler
 } from '../utils'
 import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS } from '../constants'
-import type { Capabilities, ConfigOptions, Hooks } from '../types'
 
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
-interface MergeConfig extends Omit<Partial<ConfigOptions>, 'specs' | 'exclude'> {
+interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capabilities'> {
+    watch?: boolean
+    spec?: string[]
+    suite?: string[]
+    capabilities?: Capabilities.RemoteCapabilities
+}
+
+interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
     specs?: string | string[]
     exclude?: string | string[]
 }
 
 export default class ConfigParser {
-    private _config: ConfigOptions = DEFAULT_CONFIGS()
-    private _capabilities: Capabilities = [];
+    private _config: TestrunnerOptionsWithParameters = DEFAULT_CONFIGS()
+    private _capabilities: Capabilities.RemoteCapabilities = [];
 
     /**
      * merges config file with default values
@@ -45,14 +52,13 @@ export default class ConfigParser {
             /**
              * clone the original config
              */
-            const fileConfig = merge<ConfigOptions>(require(filePath).config, {}, MERGE_OPTIONS)
+            const fileConfig = merge<Options.Testrunner>(require(filePath).config, {}, MERGE_OPTIONS)
 
             /**
              * merge capabilities
              */
-            const defaultTo: Capabilities = Array.isArray(this._capabilities) ? [] : {}
-            this._capabilities = merge<Capabilities>(this._capabilities, fileConfig.capabilities || defaultTo, MERGE_OPTIONS)
-            delete fileConfig.capabilities
+            const defaultTo: Capabilities.RemoteCapabilities = Array.isArray(this._capabilities) ? [] : {}
+            this._capabilities = merge<Capabilities.RemoteCapabilities>(this._capabilities, fileConfig.capabilities || defaultTo, MERGE_OPTIONS)
 
             /**
              * Add hooks from the file config and remove them from file config object to avoid
@@ -87,8 +93,8 @@ export default class ConfigParser {
     merge (object: MergeConfig = {}) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
+        this._config = { ...this._config, ...object } as Options.Testrunner
 
-        this._config = merge(this._config, object, MERGE_OPTIONS) as ConfigOptions
         /**
          * overwrite config specs that got piped into the wdio command
          */
@@ -129,9 +135,9 @@ export default class ConfigParser {
      * Add hooks from an existing service to the runner config.
      * @param {Object} service - an object that contains hook methods.
      */
-    addService (service: Hooks) {
-        const addHook = <T extends keyof Hooks>(hookName: T, hook: Extract<Hooks[T], Function>) => {
-            const existingHooks: ConfigOptions[keyof Hooks] = this._config[hookName]
+    addService (service: Services.Hooks) {
+        const addHook = <T extends keyof Services.Hooks>(hookName: T, hook: Extract<Services.Hooks[T], Function>) => {
+            const existingHooks: Options.Testrunner[keyof Services.Hooks] = this._config[hookName]
             if (!existingHooks) {
                 // @ts-ignore Expression produces a union type that is too complex to represent
                 this._config[hookName] = hook.bind(service)
@@ -253,7 +259,7 @@ export default class ConfigParser {
      * return configs
      */
     getConfig () {
-        return this._config as Required<ConfigOptions>
+        return this._config as Required<Options.Testrunner>
     }
 
     /**

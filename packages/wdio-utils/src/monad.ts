@@ -1,3 +1,5 @@
+import type { Clients } from '@wdio/types'
+
 import { EventEmitter } from 'events'
 import logger from '@wdio/logger'
 
@@ -80,7 +82,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
             client = modifier(client, options)
         }
 
-        client.addCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: WebDriver.Client) {
+        client.addCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: Clients.Multiremote | Clients.Browser) {
             const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
@@ -111,7 +113,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
          * @param  {Object=}  proto             prototype to add function to (optional)
          * @param  {Object=}  instances         multiremote instances
          */
-        client.overwriteCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: WebDriver.Client) {
+        client.overwriteCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: Clients.Multiremote | Clients.Browser) {
             let customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func

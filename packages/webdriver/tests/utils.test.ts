@@ -1,4 +1,4 @@
-import { Options, DesiredCapabilities } from '../src/types'
+import { Options } from '@wdio/types'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     getErrorFromResponseBody, CustomRequestError, startWebDriverSession
@@ -201,7 +201,7 @@ describe('utils', () => {
 
     describe('startWebDriverSession', () => {
         it('attaches capabilities to the params object', async () => {
-            const params: Options = {
+            const params: Options.WebDriver = {
                 hostname: 'localhost',
                 port: 4444,
                 path: '/',
@@ -216,20 +216,18 @@ describe('utils', () => {
             expect(sessionId).toBe('foobar-123')
             expect(capabilities.browserName)
                 .toBe('mockBrowser')
-            expect((params.requestedCapabilities as DesiredCapabilities).browserName)
-                .toBe('chrome')
-
         })
 
         it('should handle sessionRequest error', async () => {
             let error = await startWebDriverSession({
-                logLevel: 'warn'
+                logLevel: 'warn',
+                capabilities: {}
             }).catch((err) => err)
             expect(error.message).toContain('Failed to create session')
         })
 
         it('should break if JSONWire and WebDriver caps are mixed together', async () => {
-            const params: Options = {
+            const params: Options.WebDriver = {
                 hostname: 'localhost',
                 port: 4444,
                 path: '/',

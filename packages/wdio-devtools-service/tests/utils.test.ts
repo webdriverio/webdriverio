@@ -1,8 +1,12 @@
+import type { Browser } from 'webdriverio'
+
 import {
     sumByKey, isBrowserVersionLower, getBrowserMajorVersion,
     isBrowserSupported, setUnsupportedCommand
 } from '../src/utils'
 import { RequestPayload } from '../src/handler/network'
+
+const expect = global.expect as any as jest.Expect
 
 jest.mock('fs', () => ({
     readFileSync: jest.fn().mockReturnValue('1234\nsomepath'),
@@ -21,8 +25,8 @@ test('sumByKey', () => {
 
 test('setUnsupportedCommand', () => {
     const browser = { addCommand: jest.fn() }
-    setUnsupportedCommand(browser as unknown as WebdriverIO.BrowserObject)
-    expect(browser.addCommand).toBeCalledWith('cdp', expect.any(Function))
+    setUnsupportedCommand(browser as unknown as Browser)
+    expect(browser.addCommand).toHaveBeenCalledWith('cdp', expect.any(Function))
     const fn = browser.addCommand.mock.calls[0][1]
     expect(fn).toThrow()
 })
@@ -33,6 +37,7 @@ describe('isBrowserVersionLower', () => {
     })
 
     test('should return true if version is lower than required', () => {
+        // @ts-expect-error invalid param
         expect(isBrowserVersionLower({ version: 62 }, 63)).toBe(true)
     })
 
@@ -85,6 +90,7 @@ describe('isBrowserSupported', () => {
 
     test('should return true when the browserName is not specified', () => {
         const capsEmpty = { version: 83 }
+        // @ts-expect-error invalid param
         expect(isBrowserSupported(capsEmpty)).toEqual(false)
     })
     test('should return true when the version number is not specified', () => {

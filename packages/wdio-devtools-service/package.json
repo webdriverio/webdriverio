@@ -30,6 +30,7 @@
     "@tracerbench/trace-event": "^4.5.2",
     "@types/puppeteer-core": "^2.0.0",
     "@wdio/logger": "6.10.10",
+    "@wdio/types": "^6.10.6",
     "atob": "^2.1.2",
     "babel-plugin-istanbul": "^6.0.0",
     "core-js": "~3.8.2",
@@ -40,7 +41,8 @@
     "lighthouse": "^7.0.0",
     "puppeteer-core": "^5.1.0",
     "speedline": "^1.4.1",
-    "stable": "^0.1.8"
+    "stable": "^0.1.8",
+    "webdriverio": "^6.11.3"
   },
   "devDependencies": {
     "@types/atob": "^2.1.2"
@@ -51,5 +53,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "devtools-service.d.ts"
+  "types": "./build/index.d.ts"
 }

@@ -21,7 +21,6 @@
  * @type property
  *
  */
-
 export default function getValue (this: WebdriverIO.Element) {
     // `!this.isMobile` added to workaround https://github.com/appium/appium/issues/12218
     if (this.isW3C && !this.isMobile) {

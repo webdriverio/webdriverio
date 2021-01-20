@@ -1,3 +1,5 @@
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Set Window Rect command alters the size and the position of the operating system window
  * corresponding to the current top-level browsing context.
@@ -10,8 +12,6 @@
  * @param {number} height  the height of the outer dimensions of the top-level browsing context, including browser chrome etc...
  * @return {object}        A JSON representation of a "window rect" object based on the new window state.
  */
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function setWindowRect (
     this: DevToolsDriver,
     params: { width: number, height: number }

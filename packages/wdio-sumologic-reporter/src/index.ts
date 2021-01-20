@@ -2,7 +2,7 @@ import got from 'got'
 import dateFormat from 'dateformat'
 import stringify from 'json-stringify-safe'
 
-import WDIOReporter, { RunnerStats, SuiteStats, TestStats, WDIOReporterOptions } from '@wdio/reporter'
+import WDIOReporter, { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
 import type { Options } from './types'
@@ -23,7 +23,7 @@ export default class SumoLogicReporter extends WDIOReporter {
     private _isSynchronising = false
     private _hasRunnerEnd = false
 
-    constructor(options: WDIOReporterOptions) {
+    constructor(options: Options) {
         super(options)
         this._options = Object.assign({
             // don't create a log file
@@ -164,5 +164,13 @@ export default class SumoLogicReporter extends WDIOReporter {
         } catch (err) {
             return log.error('failed send data to Sumo Logic:\n', err.stack)
         }
+    }
+}
+
+export * from './types'
+
+declare global {
+    namespace WebdriverIO {
+        interface ReporterOption extends Options {}
     }
 }

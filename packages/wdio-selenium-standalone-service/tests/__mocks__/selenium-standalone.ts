@@ -1,4 +1,4 @@
-export default {
+export = {
     install : jest.fn((seleniumInstallArgs, cb) => {
         cb()
     }),

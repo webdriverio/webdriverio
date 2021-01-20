@@ -1,3 +1,20 @@
+import fs from 'fs'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+
+type PDFPrintOptions = {
+    orientation?: string,
+    scale?: number,
+    background?: boolean,
+    width?: number,
+    height?: number,
+    top?: number,
+    bottom?: number,
+    left?: number,
+    right?: number,
+    shrinkToFit?: boolean,
+    pageRanges?: object[]
+}
+
 /**
  *
  * Prints the page of the current browsing context to a PDF file on your OS.
@@ -27,14 +44,10 @@
  * @type utility
  *
  */
-
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
-
 export default async function savePDF (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     filepath: string,
-    options?: WebdriverIO.PDFPrintOptions
+    options?: PDFPrintOptions
 ) {
     /**
      * type check

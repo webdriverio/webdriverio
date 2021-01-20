@@ -1,7 +1,11 @@
 import DevTools from 'devtools'
 
 async function bar () {
-    const client = await DevTools.newSession({})
+    const client = await DevTools.newSession({
+        capabilities: {
+            browserName: 'chrome'
+        }
+    })
     await client.setTimeouts(1, 2, 3)
     const title: string = await client.getTitle()
 

@@ -1,11 +1,126 @@
-import type cssValue from 'css-value'
-import type WebDriver from 'webdriver'
+import type { EventEmitter } from 'events'
 
-export type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
+import type { SessionFlags } from 'webdriver'
+import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
+import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands } from '@wdio/protocols'
+import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
-export type ElementReference = Record<ElementReferenceId, string>
+import type BrowserCommands from './commands/browser'
+import type ElementCommands from './commands/element'
+import type DevtoolsInterception from './utils/interception/devtools'
 
-export interface ElementObject extends ElementReference, WebdriverIO.BrowserObject {
+export type BrowserCommandsType = typeof BrowserCommands
+export type BrowserCommandsTypeSync = {
+    [K in keyof BrowserCommandsType]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<ReturnType<BrowserCommandsType[K]>>
+}
+export type ElementCommandsType = typeof ElementCommands
+export type ElementCommandsTypeSync = {
+    [K in keyof ElementCommandsType]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
+}
+
+export interface ElementArray extends Array<WebdriverIO.Element> {
+    selector: Selector
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    foundWith: string
+    props: any[]
+}
+
+type AddCommandFnScoped<
+    InstanceType = WebdriverIO.Browser,
+    IsElement extends boolean = false
+> = (
+    this: IsElement extends true ? WebdriverIO.Element : InstanceType,
+    ...args: any[]
+) => any
+
+type AddCommandFn = (...args: any[]) => any
+
+type OverwriteCommandFnScoped<
+    ElementKey extends keyof ElementCommandsType,
+    BrowserKey extends keyof BrowserCommandsType,
+    IsElement extends boolean = false
+> = (
+    this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
+    origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
+    ...args: any[]
+) => Promise<any>
+
+type OverwriteCommandFn<
+    ElementKey extends keyof ElementCommandsType,
+    BrowserKey extends keyof BrowserCommandsType,
+    IsElement extends boolean = false
+> = (
+    origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
+    ...args: any[]
+) => Promise<any>
+
+export interface CustomInstanceCommands<T> {
+    /**
+     * add command to `browser` or `element` scope
+     */
+    addCommand<IsElement extends boolean = false>(
+        name: string,
+        func: AddCommandFn | AddCommandFnScoped<T, IsElement>,
+        attachToElement?: IsElement,
+        proto?: Record<string, any>,
+        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    ): void;
+
+    /**
+     * overwrite `browser` or `element` command
+     */
+    overwriteCommand<ElementKey extends keyof ElementCommandsType, BrowserKey extends keyof BrowserCommandsType, IsElement extends boolean = false>(
+        name: IsElement extends true ? ElementKey : BrowserKey,
+        func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement> | OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
+        attachToElement?: IsElement,
+        proto?: Record<string, any>,
+        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    ): void;
+
+    /**
+     * create custom selector
+     */
+    addLocatorStrategy(
+        name: string,
+        func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
+    ): void
+}
+
+interface InstanceBase extends EventEmitter, SessionFlags {
+    sessionId: string
+    capabilities: Capabilities.RemoteCapability
+    requestedCapabilities: Capabilities.RemoteCapability
+    options: Options.WebdriverIO | Options.Testrunner
+    puppeteer?: PuppeteerBrowser
+    strategies: Map<any, any>
+    __propertiesObject__: Record<string, PropertyDescriptor>
+
+    /**
+     * @private
+     */
+    _NOT_FIBER?: boolean
+    /**
+     * @private
+     */
+    wdioRetries?: number
+}
+
+/**
+ * a browser base that has everything besides commands which are defined for sync and async seperately
+ */
+export interface BrowserBase extends InstanceBase, CustomInstanceCommands<WebdriverIO.Browser> {
+    isMultiremote: false
+}
+
+/**
+ * export a browser interface that can be used for typing plugins
+ */
+interface BrowserAsync extends BrowserBase, BrowserCommandsType, ProtocolCommandsAsync {}
+interface BrowserSync extends BrowserBase, BrowserCommandsTypeSync, ProtocolCommands {}
+export type Browser<T extends 'sync' | 'async'> = T extends 'sync' ? BrowserSync : BrowserAsync
+
+export interface ElementBase extends InstanceBase, ElementReference, CustomInstanceCommands<WebdriverIO.Element> {
+    isMultiremote: false
     /**
      * WebDriver element reference
      */
@@ -20,7 +135,7 @@ export interface ElementObject extends ElementReference, WebdriverIO.BrowserObje
      * - a string if `findElement` was used and a reference was found
      * - or a functin if element was found via e.g. `$(() => document.body)`
      */
-    selector?: Selector
+    selector: Selector
     /**
      * index of the element if fetched with `$$`
      */
@@ -28,7 +143,7 @@ export interface ElementObject extends ElementReference, WebdriverIO.BrowserObje
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: ElementObject | WebdriverIO.BrowserObject
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     /**
      * true if element is a React component
      */
@@ -39,17 +154,38 @@ export interface ElementObject extends ElementReference, WebdriverIO.BrowserObje
     error?: Error
 }
 
-export type WaitForOptions = {
-    timeout?: number,
-    interval?: number,
-    timeoutMsg?: string,
-    reverse?: boolean,
+interface ElementAsync extends ElementBase, ProtocolCommandsAsync, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
+interface ElementSync extends ElementBase, ProtocolCommands, Omit<BrowserCommandsTypeSync, keyof ElementCommandsTypeSync>, ElementCommandsTypeSync {}
+export type Element<T extends 'sync' | 'async'> = T extends 'sync' ? ElementSync : ElementAsync
+
+interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
+    /**
+     * multiremote browser instance names
+     */
+    instances: string[]
+    /**
+     * flag to indicate multiremote browser session
+     */
+    isMultiremote: true
 }
 
-export type ElementFunction = ((elem: HTMLElement) => WebDriver.ElementReference) | ((elem: HTMLElement) => WebDriver.ElementReference[])
-export type Selector = string | WebDriver.ElementReference | ElementFunction
+type MultiRemoteBrowserReferenceAsync = Record<string, Browser<'async'> | Element<'async'>>
+type MultiRemoteBrowserReferenceSync = Record<string, Browser<'sync'> | Element<'sync'>>
+interface MultiRemoteBrowserAsync extends MultiRemoteBase, BrowserCommandsType, ProtocolCommandsAsync { }
+interface MultiRemoteBrowserSync extends MultiRemoteBase, BrowserCommandsTypeSync, ProtocolCommands { }
+export type MultiRemoteBrowser<T extends 'sync' | 'async'> = T extends 'sync' ? MultiRemoteBrowserReferenceSync & MultiRemoteBrowserSync : MultiRemoteBrowserReferenceAsync & MultiRemoteBrowserAsync
 
-interface ParsedColor extends Partial<cssValue.CSSValue> {
+export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
+export type Selector = string | ElementReference | ElementFunction
+
+interface CSSValue {
+    type: string
+    string: string
+    unit: string
+    value: any
+}
+
+interface ParsedColor extends Partial<CSSValue> {
     rgb?: string
     rgba?: string
 }
@@ -92,104 +228,69 @@ export interface ActionParameter {
     actions: Action[]
 }
 
-export interface MultiRemoteOptions {
-    [instanceName: string]: Options
+export type ActionTypes = 'press' | 'longPress' | 'tap' | 'moveTo' | 'wait' | 'release';
+export interface TouchAction {
+    action: ActionTypes,
+    x?: number,
+    y?: number,
+    element?: WebdriverIO.Element,
+    ms?: number
+}
+export type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
+export type TouchActions = TouchActionParameter | TouchActionParameter[];
+
+export type Matcher = {
+    name: string,
+    args: Array<string | object>
+    class?: string
 }
 
-export interface Options extends Omit<WebDriver.Options, 'capabilities'> {
-    /**
-     * Defines the capabilities you want to run in your WebdriverIO session. Check out the
-     * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
-     * If you want to run multiremote session you need to define an object that has the
-     * browser instance names as string and their capabilities as values.
-     *
-     * @example
-     * ```js
-     * // WebDriver/DevTools session
-     * const browser = remote({
-     *   capabilities: {
-     *     browserName: 'chrome',
-     *     browserVersion: 86
-     *     platformName: 'Windows 10'
-     *   }
-     * })
-     *
-     * // multiremote session
-     * const browser = remote({
-     *   capabilities: {
-     *     browserA: {
-     *       browserName: 'chrome',
-     *       browserVersion: 86
-     *       platformName: 'Windows 10'
-     *     },
-     *     browserB: {
-     *       browserName: 'firefox',
-     *       browserVersion: 74
-     *       platformName: 'Mac OS X'
-     *     }
-     *   }
-     * })
-     * ```
-     */
-    capabilities?: WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities
-    /**
-     * Define the protocol you want to use for your browser automation.
-     * Currently only webdriver and devtools are supported, as these are
-     * the main browser automation technologies available.
-     *
-     * If you want to automate the browser using devtools, make sure you
-     * have the NPM package installed ($ npm install --save-dev devtools).
-     *
-     * @default 'webdriver'
-     */
-    automationProtocol?: 'webdriver' | 'devtools' | './protocol-stub'
-    /**
-     * Shorten `url` command calls by setting a base URL.
-     */
-    baseUrl?: string
-    /**
-     * Default timeout for all `waitFor*` commands.
-     * (Note the lowercase `f` in the option name.)
-     * This timeout only affects commands starting with `waitFor*` and their
-     * default wait time.
-     *
-     * To increase the timeout for a test, please see the framework docs.
-     *
-     * @default 3000
-     */
-    waitforTimeout?: number
-    /**
-     * Default interval for all waitFor* commands to check if an expected
-     * state (e.g., visibility) has been changed.
-     *
-     * @default 500
-     */
-    waitforInterval?: number
-    /**
-     * If running on Sauce Labs, you can choose to run tests between different datacenters:
-     * US or EU. To change your region to EU, add `region: 'eu'` to your config.
-     *
-     * __Note:__ This only has an effect if you provide `user` and `key` options that are
-     * connected to your Sauce Labs account.
-     *
-     * @default 'us-west-1'
-     */
-    region?: 'us' | 'eu' | 'us-west-1' | 'us-east-1' | 'eu-central-1'
-    /**
-     * Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing)
-     * that allows you to run Chrome and Firefox tests headless.
-     *
-     * __Note:__ This only has an effect if you provide `user` and `key` options that are
-     * connected to your Sauce Labs account.
-     *
-     * @default false
-     */
-    headless?: boolean
-    /**
-     * WebdriverIO allows to define custom runner extensions. Currently the only supported
-     * runner is `@wdio/local-runner`.
-     *
-     * @default 'local'
-     */
-    runner?: string
+export type ReactSelectorOptions = {
+    props?: object,
+    state?: any[] | number | string | object | boolean
 }
+
+export type MoveToOptions = {
+    xOffset?: number,
+    yOffset?: number
+}
+
+export type DragAndDropOptions = {
+    duration?: number
+}
+
+export type NewWindowOptions = {
+    windowName?: string,
+    windowFeatures?: string
+}
+
+export type ClickOptions = {
+    button?: number | string,
+    x?: number,
+    y?: number
+}
+
+export type WaitForOptions = {
+    timeout?: number,
+    interval?: number,
+    timeoutMsg?: string,
+    reverse?: boolean,
+}
+
+export type WaitUntilOptions = {
+    timeout?: number,
+    timeoutMsg?: string,
+    interval?: number
+}
+
+export type DragAndDropCoordinate = {
+    x: number,
+    y: number
+}
+
+/**
+ * WebdriverIO Mock definition
+ */
+type MockFunctions = FunctionProperties<DevtoolsInterception>
+type MockProperties = Pick<DevtoolsInterception, 'calls'>
+export interface Mock extends MockFunctions, MockProperties {}

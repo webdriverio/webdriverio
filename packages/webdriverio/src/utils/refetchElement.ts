@@ -1,4 +1,5 @@
 import implicitWait from './implicitWait'
+import { Selector } from '../types'
 
 /**
  * helper utility to refetch an element and all its parent elements when running
@@ -8,7 +9,10 @@ export default async function refetchElement (
     currentElement: WebdriverIO.Element,
     commandName: string
 ): Promise<WebdriverIO.Element> {
-    let selectors = []
+    let selectors: {
+        selector: Selector
+        index: number
+    }[] = []
 
     //Crawl back to the browser object, and cache all selectors
     while (currentElement.elementId && currentElement.parent) {
@@ -22,7 +26,7 @@ export default async function refetchElement (
     // Beginning with the browser object, rechain
     return selectors.reduce(async (elementPromise, { selector, index }, currentIndex) => {
         const resolvedElement = await elementPromise
-        let nextElement = index > 0 ? (await resolvedElement.$$(selector))[index] : null
+        let nextElement = index > 0 ? (await resolvedElement.$$(selector as string))[index] : null
         nextElement = nextElement || await resolvedElement.$(selector)
         /**
          *  For error purposes, changing command name to '$' if we aren't

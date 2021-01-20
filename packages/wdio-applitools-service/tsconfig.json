@@ -3,10 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./build",
-    "rootDir": "./src",
-    "types": ["webdriver", "webdriverio", "@wdio/logger", "jest"]
+    "rootDir": "./src"
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../../@types"
   ]
 }

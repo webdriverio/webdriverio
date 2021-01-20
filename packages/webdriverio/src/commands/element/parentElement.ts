@@ -1,4 +1,3 @@
-
 /**
  *
  * Returns the parent element of the selected DOM-element.
@@ -21,9 +20,8 @@
  * @return {Element}
  * @type utility
  */
-
 export default function parentElement (this: WebdriverIO.Element) {
     return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
-        return this.parentElement
+        return this.parentElement as HTMLElement
     })
 }

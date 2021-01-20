@@ -27,7 +27,6 @@
  * @type state
  *
  */
-
 export default function isSelected (this: WebdriverIO.Element) {
     return this.isElementSelected(this.elementId)
 }

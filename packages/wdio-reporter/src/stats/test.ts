@@ -90,5 +90,4 @@ export default class TestStats extends RunnableStats {
             this.error = errors[0]
         }
     }
-
 }

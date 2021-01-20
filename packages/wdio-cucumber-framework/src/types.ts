@@ -1,6 +1,8 @@
+import type { Capabilities } from '@wdio/types'
 import type { messages } from '@cucumber/messages'
+import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 
-export interface CucumberOpts {
+export interface CucumberOptions {
     /**
      * Show full backtrace for errors.
      * @default true
@@ -99,7 +101,7 @@ export interface CucumberOpts {
 }
 
 export interface ReporterOptions {
-    capabilities: WebDriver.Capabilities
+    capabilities: Capabilities.RemoteCapability
     ignoreUndefinedDefinitions: boolean
     failAmbiguousDefinitions: boolean
     tagsInTitle: boolean
@@ -122,4 +124,54 @@ export interface HookParams {
 
 export interface StepDefinitionOptions {
     retry: number
+}
+
+export interface HookFunctionExtension {
+    /**
+     *
+     * Runs before a Cucumber Feature.
+     * @param uri      path to feature file
+     * @param feature  Cucumber feature object
+     */
+    beforeFeature?(uri: string, feature: messages.GherkinDocument.IFeature): void;
+
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
+    beforeScenario?(world: ITestCaseHookParameter): void;
+
+    /**
+     *
+     * Runs before a Cucumber Step.
+     * @param step    step data
+     * @param context Cucumber world
+     */
+    beforeStep?(step: messages.Pickle.IPickleStep, context: unknown): void;
+
+    /**
+     *
+     * Runs after a Cucumber Step.
+     * @param step    step data
+     * @param context Cucumber world
+     * @param result  step result
+     */
+    afterStep?(step: messages.Pickle.IPickleStep, context: unknown): void;
+
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
+    afterScenario?(world: ITestCaseHookParameter): void;
+
+    /**
+     *
+     * Runs after a Cucumber Feature.
+     * @param uri      path to feature file
+     * @param feature  Cucumber feature object
+     * @param scenario Cucumber scenario object
+     */
+    afterFeature?(uri: string, feature: messages.GherkinDocument.IFeature): void;
 }

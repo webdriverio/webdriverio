@@ -164,7 +164,7 @@ describe('WebdriverIO module interface', () => {
             const browser = await remote({
                 automationProtocol: 'webdriver',
                 capabilities: {},
-                runner: 'local'
+                framework: 'mocha'
             })
             const customCommand = jest.fn()
             browser.addCommand('someCommand', customCommand)

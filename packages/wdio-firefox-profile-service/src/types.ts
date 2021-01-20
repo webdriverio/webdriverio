@@ -25,7 +25,7 @@ interface ManualProxySettings {
 
 type ProxySettings = NoProxySettings | SystemProxySettings | AutomaticProxySettings | ManualProxySettings;
 
-export interface Options extends FirefoxSettings {
+export interface FirefoxProfileOptions extends FirefoxSettings {
     /**
      * Add one or multiple extensions to the browser session. All entries can be either an absolute path to the `.xpi`
      * file or the path to an unpacked Firefox extension directory.

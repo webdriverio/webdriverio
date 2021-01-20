@@ -1,3 +1,6 @@
+import getElementAttribute from './getElementAttribute'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * Is Element Enabled determines if the referenced element is enabled or not.
  * This operation only makes sense on form controls.
@@ -7,10 +10,6 @@
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @return {string}           If the element is in an xml document, or is a disabled form control: `false`, otherwise, `true`.
  */
-
-import getElementAttribute from './getElementAttribute'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function isElementEnabled (
     this: DevToolsDriver,
     { elementId }: { elementId: string }

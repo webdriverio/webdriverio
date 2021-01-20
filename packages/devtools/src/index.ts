@@ -6,12 +6,15 @@ import { v4 as uuidv4 } from 'uuid'
 import logger from '@wdio/logger'
 import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
+import type { CommandEndpoint } from '@wdio/protocols'
+import type { Options, Capabilities } from '@wdio/types'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import DevToolsDriver from './devtoolsdriver'
 import launch from './launcher'
 import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants'
 import { getPrototype, patchDebug } from './utils'
+import type { ExtendedCapabilities } from './types'
 
 const log = logger('devtools:puppeteer')
 
@@ -23,7 +26,7 @@ patchDebug(log)
 export const sessionMap = new Map()
 
 export default class DevTools {
-    static async newSession (options: WebDriver.Options = {}, modifier?: Function, userPrototype = {}, customCommandWrapper?: Function) {
+    static async newSession (options: Options.WebDriver, modifier?: Function, userPrototype = {}, customCommandWrapper?: Function) {
         const params = validateConfig(DEFAULTS, options)
 
         if (params.logLevel && (!options.logLevels || !(options.logLevels as any)['devtools'])) {
@@ -39,7 +42,8 @@ export default class DevTools {
 
         log.info('Initiate new session using the DevTools protocol')
 
-        const browser = await launch(params.capabilities as WebDriver.Capabilities)
+        const requestedCapabilities = { ...params.capabilities }
+        const browser = await launch(params.capabilities as ExtendedCapabilities)
         const pages = await browser.pages()
         const driver = new DevToolsDriver(browser, pages)
         const sessionId = uuidv4()
@@ -51,16 +55,10 @@ export default class DevTools {
          */
         type ValueOf<T> = T[keyof T]
         const availableVendorPrefixes = Object.values(VENDOR_PREFIX)
-        const vendorCapPrefix = Object.keys(params.capabilities as WebDriver.Capabilities)
+        const vendorCapPrefix = Object.keys(params.capabilities as Capabilities.Capabilities)
             .find(
                 (capKey: ValueOf<typeof VENDOR_PREFIX>) => availableVendorPrefixes.includes(capKey)
-            ) as keyof WebDriver.Capabilities
-
-        /**
-         * save original set of capabilities to allow to request the same session again
-         * (e.g. for reloadSession command in WebdriverIO)
-         */
-        params.requestedCapabilities = { ...params.capabilities }
+            ) as keyof Capabilities.Capabilities
 
         params.capabilities = {
             browserName: userAgent.browser.name,
@@ -88,7 +86,7 @@ export default class DevTools {
         const commandWrapper = (
             method: string,
             endpoint: string,
-            commandInfo: WDIOProtocols.CommandEndpoint
+            commandInfo: CommandEndpoint
         ) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
         const prototype = {
@@ -97,11 +95,15 @@ export default class DevTools {
             ...environmentPrototype
         }
 
-        const monad = webdriverMonad(params, modifier, prototype)
+        const monad = webdriverMonad(
+            { ...params, requestedCapabilities },
+            modifier,
+            prototype
+        )
         return monad(sessionId, customCommandWrapper)
     }
 
-    static async reloadSession (instance: WebdriverIO.BrowserObject) {
+    static async reloadSession (instance: any) {
         const { session } = sessionMap.get(instance.sessionId)
         const browser = await launch(instance.requestedCapabilities)
         const pages = await browser.pages()

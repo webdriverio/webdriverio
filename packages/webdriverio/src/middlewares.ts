@@ -50,10 +50,11 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
  */
 export const multiremoteHandler = (
     wrapCommand: Function
-) => (commandName: keyof WebdriverIO.BrowserObject) => {
-    return wrapCommand(commandName, function (this: WebdriverIO.MultiRemoteBrowserObject, ...args: any[]) {
+) => (commandName: keyof WebdriverIO.Browser) => {
+    return wrapCommand(commandName, function (this: WebdriverIO.MultiRemoteBrowser, ...args: any[]) {
         // @ts-ignore
         const commandResults = this.instances.map((instanceName: string) => {
+            // @ts-ignore ToDo(Christian)
             return this[instanceName][commandName](...args)
         })
 

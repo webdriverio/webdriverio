@@ -1,7 +1,9 @@
 import fs from 'fs'
-import { WriteStream } from 'fs'
+import type { WriteStream } from 'fs'
 import { createWriteStream, ensureDirSync } from 'fs-extra'
 import { EventEmitter } from 'events'
+import type { Reporters } from '@wdio/types'
+
 import { getErrorsFromEvent } from './utils'
 import SuiteStats, { Suite } from './stats/suite'
 import HookStats, { Hook } from './stats/hook'
@@ -9,23 +11,10 @@ import TestStats, { Test } from './stats/test'
 import RunnerStats, { Runner } from './stats/runner'
 import { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag } from './types'
 
-export interface WDIOReporterBaseOptions {
-    outputDir?: string
-}
-
-export interface WDIOReporterOptionsFromStdout extends WDIOReporterBaseOptions {
-    stdout: boolean
-    writeStream: WriteStream
-}
-
-export interface WDIOReporterOptionsFromLogFile extends WDIOReporterBaseOptions {
-    logFile: string
-}
-
-export type WDIOReporterOptions = WDIOReporterOptionsFromLogFile & WDIOReporterOptionsFromStdout
+type CustomWriteStream = { write: (content: any) => boolean }
 
 export default class WDIOReporter extends EventEmitter {
-    outputStream: WriteStream
+    outputStream: WriteStream | CustomWriteStream
     failures = 0
     suites: Record<string, SuiteStats> = {}
     hooks: Record<string, HookStats> = {}
@@ -43,7 +32,7 @@ export default class WDIOReporter extends EventEmitter {
     runnerStat?: RunnerStats
     isContentPresent = false
 
-    constructor(public options: Partial<WDIOReporterOptions>) {
+    constructor(public options: Partial<Reporters.Options>) {
         super()
 
         // ensure the report directory exists
@@ -51,9 +40,9 @@ export default class WDIOReporter extends EventEmitter {
             ensureDirSync(this.options.outputDir)
         }
 
-        this.outputStream = (this.options as WDIOReporterOptionsFromStdout).stdout || !(this.options as WDIOReporterOptionsFromLogFile).logFile
-            ? (this.options as WDIOReporterOptionsFromStdout).writeStream
-            : createWriteStream((this.options as WDIOReporterOptionsFromLogFile).logFile)
+        this.outputStream = (this.options.stdout || !this.options.logFile) && this.options.writeStream
+            ? this.options.writeStream as CustomWriteStream
+            : createWriteStream(this.options.logFile!)
 
         let currentTest: TestStats
 
@@ -182,7 +171,7 @@ export default class WDIOReporter extends EventEmitter {
                 this.runnerStat.complete()
                 this.onRunnerEnd(this.runnerStat)
             }
-            const logFile = (this.options as WDIOReporterOptionsFromLogFile).logFile
+            const logFile = (this.options as Reporters.Options).logFile
             if (!this.isContentPresent && logFile && fs.existsSync(logFile)) {
                 fs.unlinkSync(logFile)
             }
@@ -267,4 +256,7 @@ export default class WDIOReporter extends EventEmitter {
     onRunnerEnd(runnerStats: RunnerStats) { }
 }
 
-export { SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs, AfterCommandArgs, CommandArgs }
+export {
+    SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
+    AfterCommandArgs, CommandArgs
+}

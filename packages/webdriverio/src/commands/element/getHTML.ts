@@ -1,3 +1,7 @@
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+import getHTMLScript from '../../scripts/getHTML'
+
 /**
  *
  * Get source code of specified DOM element by selector.
@@ -28,16 +32,11 @@
  * @type property
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import getHTMLScript from '../../scripts/getHTML'
-
 export default function getHTML (
     this: WebdriverIO.Element,
     includeSelectorTag = true
 ) {
-    const browser: WebdriverIO.BrowserObject = getBrowserObject(this)
+    const browser = getBrowserObject(this)
     return browser.execute(getHTMLScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible

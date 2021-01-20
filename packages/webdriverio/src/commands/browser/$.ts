@@ -1,3 +1,8 @@
+import { findElement } from '../../utils'
+import { getElement } from '../../utils/getElementObject'
+import { ELEMENT_KEY } from '../../constants'
+import type { Selector } from '../../types'
+
 /**
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
  * to fetch a single element on the page. It returns an object that with an extended prototype to call
@@ -47,13 +52,8 @@
  * @type utility
  *
  */
-import { findElement } from '../../utils'
-import { getElement } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
-import type { Selector } from '../../types'
-
 export default async function $ (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     selector: Selector
 ) {
     /**

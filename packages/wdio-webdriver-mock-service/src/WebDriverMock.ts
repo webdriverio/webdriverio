@@ -1,4 +1,5 @@
 import nock from 'nock'
+import { CommandEndpoint } from '@wdio/protocols'
 
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
@@ -13,7 +14,7 @@ const protocols = [
 ]
 
 type RequestMethods = 'get' | 'post'
-type protocolFlattenedType = { method: string, endpoint: string, commandData: WDIOProtocols.CommandEndpoint }
+type protocolFlattenedType = { method: string, endpoint: string, commandData: CommandEndpoint }
 const protocolFlattened: Map<string, protocolFlattenedType> = new Map()
 
 export interface CommandMock {

@@ -1,3 +1,9 @@
+import puppeteer from 'puppeteer-core'
+import { Capabilities } from '@wdio/types'
+import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+
+import { FF_REMOTE_DEBUG_ARG } from '../../constants'
+
 /**
  * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
  * to run commands with Puppeteer. Note that all Puppeteer commands are
@@ -7,46 +13,45 @@
  *
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
-import puppeteer from 'puppeteer-core'
-import { FF_REMOTE_DEBUG_ARG } from '../../constants'
-
-export default async function getPuppeteer (this: WebdriverIO.BrowserObject) {
+export default async function getPuppeteer (this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
     /**
      * check if we already connected Puppeteer and if so return
      * that instance
      */
     if (this.puppeteer) {
-        return this.puppeteer as puppeteer.Browser
+        return this.puppeteer
     }
 
     /**
      * attach to Chromium debugger session
      */
-    const chromiumOptions = this.capabilities['goog:chromeOptions'] || this.capabilities['ms:edgeOptions']
+    const caps = (this.capabilities as Capabilities.W3CCapabilities).alwaysMatch || this.capabilities as Capabilities.DesiredCapabilities
+    const chromiumOptions = caps['goog:chromeOptions'] || caps['ms:edgeOptions']
     if (chromiumOptions && chromiumOptions.debuggerAddress) {
         this.puppeteer = await puppeteer.connect({
             browserURL: `http://${chromiumOptions.debuggerAddress}`,
             defaultViewport: null
-        })
-        return this.puppeteer as puppeteer.Browser
+        }) as any as PuppeteerBrowser
+        return this.puppeteer
     }
 
     /**
      * attach to Firefox debugger session
      */
-    if (this.capabilities.browserName?.toLowerCase() === 'firefox') {
-        if (!this.capabilities.browserVersion) {
+    if (caps.browserName?.toLowerCase() === 'firefox') {
+        if (!caps.browserVersion) {
             throw new Error('Can\'t find "browserVersion" in capabilities')
         }
 
-        const majorVersion = parseInt(this.capabilities.browserVersion.split('.').shift() || '', 10)
+        const majorVersion = parseInt(caps.browserVersion.split('.').shift() || '', 10)
         if (majorVersion >= 79) {
-            const ffOptions = this.capabilities['moz:firefoxOptions']
-            const ffArgs = this.requestedCapabilities['moz:firefoxOptions']?.args
+            const reqCaps = (this.requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch || this.requestedCapabilities as Capabilities.DesiredCapabilities
+            const ffOptions = caps['moz:firefoxOptions']
+            const ffArgs = reqCaps['moz:firefoxOptions']?.args
 
             const rdPort = ffOptions && ffOptions.debuggerAddress
                 ? ffOptions.debuggerAddress
-                : ffArgs?.[ffArgs.findIndex((arg) => arg === FF_REMOTE_DEBUG_ARG) + 1] ?? null
+                : ffArgs?.[ffArgs.findIndex((arg: string) => arg === FF_REMOTE_DEBUG_ARG) + 1] ?? null
 
             if (!rdPort) {
                 throw new Error('Could\'t find remote debug port in Firefox options')
@@ -55,8 +60,8 @@ export default async function getPuppeteer (this: WebdriverIO.BrowserObject) {
             this.puppeteer = await puppeteer.connect({
                 browserURL: `http://localhost:${rdPort}`,
                 defaultViewport: null
-            })
-            return this.puppeteer as puppeteer.Browser
+            }) as any as PuppeteerBrowser
+            return this.puppeteer as any as PuppeteerBrowser
         }
     }
 

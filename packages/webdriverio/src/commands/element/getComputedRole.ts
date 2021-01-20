@@ -16,7 +16,6 @@
  * @type property
  *
  */
-
 export default function getComputedRole (this: WebdriverIO.Element) {
     return this.getElementComputedRole(this.elementId)
 }

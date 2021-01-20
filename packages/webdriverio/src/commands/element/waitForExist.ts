@@ -1,3 +1,4 @@
+import type { WaitForOptions } from '../../types'
 
 /**
  *
@@ -35,8 +36,6 @@
  * @type utility
  *
  */
-import type { WaitForOptions } from '../../types'
-
 export default function waitForExist (
     this: WebdriverIO.Element,
     {

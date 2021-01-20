@@ -1,7 +1,9 @@
+import type { Capabilities } from '@wdio/types'
+
 export interface WorkerRunPayload {
     cid: string,
     configFile: string,
-    caps: WebDriver.Capabilities,
+    caps: Capabilities.RemoteCapability,
     specs: string[],
     execArgv: string[],
     retries: number

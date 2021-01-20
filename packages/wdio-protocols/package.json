@@ -5,8 +5,8 @@
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-protocols",
   "license": "MIT",
-  "main": "./index",
-  "types": "./index.d.ts",
+  "main": "./build/index",
+  "types": "./build/index.d.ts",
   "engines": {
     "node": ">=12.0.0"
   },

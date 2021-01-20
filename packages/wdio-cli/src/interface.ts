@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { EventEmitter } from 'events'
 import logger from '@wdio/logger'
-import type { ConfigOptions } from '@wdio/config'
+import type { Options, Capabilities } from '@wdio/types'
 
 import { getRunnerName } from './utils'
 
@@ -24,7 +24,7 @@ interface CLIInterfaceEvent {
 }
 
 interface Job {
-    caps: WebDriver.Capabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities
+    caps: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities
     specs: string[],
     hasTests: boolean
 }
@@ -54,7 +54,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     constructor(
-        private _config: ConfigOptions,
+        private _config: Options.Testrunner,
         public totalWorkerCnt: number,
         private _isWatchMode = false
     ) {
@@ -135,7 +135,7 @@ export default class WDIOCLInterface extends EventEmitter {
     onJobComplete(cid: string, job?: Job, retries = 0, message = '', _logger: Function = this.log) {
         const details = [`[${cid}]`, message]
         if (job) {
-            details.push('in', getRunnerName(job.caps as WebDriver.DesiredCapabilities), this.getFilenames(job.specs))
+            details.push('in', getRunnerName(job.caps as Capabilities.DesiredCapabilities), this.getFilenames(job.specs))
         }
         if (retries > 0) {
             details.push(`(${retries} retries)`)

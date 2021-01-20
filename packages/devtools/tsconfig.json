@@ -4,9 +4,10 @@
         "baseUrl": ".",
         "outDir": "./build",
         "rootDir": "./src",
-        "types": ["webdriverio", "@wdio/protocols"],
+        "types": ["@wdio/protocols"],
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "../../@types"
     ]
 }

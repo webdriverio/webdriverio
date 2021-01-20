@@ -1,3 +1,4 @@
+import type { WaitForOptions } from '../../types'
 
 /**
  *
@@ -34,8 +35,6 @@
  * @type utility
  *
  */
-import type { WaitForOptions } from '../../types'
-
 export default async function waitForDisplayed (
     this: WebdriverIO.Element,
     {

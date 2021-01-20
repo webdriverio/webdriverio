@@ -1,4 +1,3 @@
-
 /**
  *
  * Returns the next sibling element of the selected DOM-element.
@@ -24,6 +23,6 @@
 
 export default function nextElement (this: WebdriverIO.Element) {
     return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
-        return this.nextElementSibling
+        return this.nextElementSibling as HTMLElement
     })
 }

@@ -1,3 +1,9 @@
+import { ElementReference } from '@wdio/protocols'
+import { enhanceElementsArray } from '../../utils'
+import { getElements } from '../../utils/getElementObject'
+import { ELEMENT_KEY } from '../../constants'
+import type { ElementArray } from '../../types'
+
 /**
  *
  * The `customs$$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
@@ -21,16 +27,11 @@
  * @param {Any} strategyArguments
  * @return {ElementArray}
  */
-import { enhanceElementsArray } from '../../utils'
-import { getElements } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
-import type { ElementReference } from '../../types'
-
 export default async function custom$$ (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     strategyName: string,
     ...strategyArguments: any[]
-) {
+): Promise<ElementArray> {
     const strategy = this.strategies.get(strategyName)
 
     if (!strategy) {
@@ -53,6 +54,6 @@ export default async function custom$$ (
 
     res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategy.toString(), res) : ([] as any as WebdriverIO.ElementArray)
+    const elements = res.length ? await getElements.call(this, strategy.toString(), res) : [] as any as ElementArray
     return enhanceElementsArray(elements, this, strategyName, 'custom$$', [strategyArguments])
 }

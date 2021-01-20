@@ -1,5 +1,9 @@
 import logger from '@wdio/logger'
 import { Eyes, Target } from '@applitools/eyes-webdriverio'
+import type { Services, Capabilities, FunctionProperties } from '@wdio/types'
+import type { Browser } from 'webdriverio'
+
+import { ApplitoolsConfig, Frame, Region } from './types'
 
 const log = logger('@wdio/applitools-service')
 
@@ -8,11 +12,11 @@ const DEFAULT_VIEWPORT = {
     height: 900
 }
 
-export default class ApplitoolsService implements WebdriverIO.ServiceInstance {
+export default class ApplitoolsService implements Services.ServiceInstance {
     private _isConfigured: boolean = false
     private _viewport: Required<ApplitoolsConfig['viewport']>
     private _eyes = new Eyes()
-    private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowser
+    private _browser?: Browser<'async'>
 
     constructor(private _options: ApplitoolsConfig) {}
 
@@ -37,8 +41,8 @@ export default class ApplitoolsService implements WebdriverIO.ServiceInstance {
         this._isConfigured = true
         this._eyes.setApiKey(key)
 
-        if (this._options.proxy) {
-            this._eyes.setProxy(this._options.proxy)
+        if (this._options.eyesProxy) {
+            this._eyes.setProxy(this._options.eyesProxy)
         }
 
         this._viewport = Object.assign({ ...DEFAULT_VIEWPORT }, this._options.viewport)
@@ -48,9 +52,9 @@ export default class ApplitoolsService implements WebdriverIO.ServiceInstance {
      * set custom commands
      */
     before(
-        caps: WebDriver.Capabilities,
+        caps: Capabilities.RemoteCapability,
         specs: string[],
-        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+        browser: Browser<'async'>
     ) {
         this._browser = browser
 
@@ -58,26 +62,29 @@ export default class ApplitoolsService implements WebdriverIO.ServiceInstance {
             return
         }
 
-        this._browser.addCommand('takeSnapshot', (title: string) => {
-            if (!title) {
-                throw new Error('A title for the Applitools snapshot is missing')
-            }
+        this._browser.addCommand('takeSnapshot', this._takeSnapshot.bind(this))
+        this._browser.addCommand('takeRegionSnapshot', this._takeRegionSnapshot.bind(this))
+    }
 
-            return this._eyes.check(title, Target.window())
-        })
+    _takeSnapshot (title: string): void {
+        if (!title) {
+            throw new Error('A title for the Applitools snapshot is missing')
+        }
 
-        this._browser.addCommand('takeRegionSnapshot', (title: string, region: Region, frame: Frame) => {
-            if (!title) {
-                throw new Error('A title for the Applitools snapshot is missing')
-            }
-            if (!region || region === null) {
-                throw new Error('A region for the Applitools snapshot is missing')
-            }
-            if (!frame) {
-                return this._eyes.check(title, Target.region(region))
-            }
-            return this._eyes.check(title, Target.region(region, frame))
-        })
+        return this._eyes.check(title, Target.window())
+    }
+
+    _takeRegionSnapshot (title: string, region: Region, frame: Frame): void {
+        if (!title) {
+            throw new Error('A title for the Applitools snapshot is missing')
+        }
+        if (!region || region === null) {
+            throw new Error('A region for the Applitools snapshot is missing')
+        }
+        if (!frame) {
+            return this._eyes.check(title, Target.region(region))
+        }
+        return this._eyes.check(title, Target.region(region, frame))
     }
 
     beforeTest(test: { title: string, parent: string }) {
@@ -103,5 +110,29 @@ export default class ApplitoolsService implements WebdriverIO.ServiceInstance {
         }
 
         this._browser.call(this._eyes.abortIfNotClosed.bind(this._eyes))
+    }
+}
+
+export * from './types'
+
+type ServiceCommands = FunctionProperties<ApplitoolsService>
+interface BrowserExtension {
+    takeSnapshot: ServiceCommands['_takeSnapshot']
+    takeRegionSnapshot: ServiceCommands['_takeRegionSnapshot']
+}
+
+declare global {
+    namespace WebdriverIO {
+        interface ServiceOption extends ApplitoolsConfig {}
+    }
+
+    namespace WebdriverIOAsync {
+        interface Browser extends BrowserExtension { }
+        interface MultiRemoteBrowser extends BrowserExtension { }
+    }
+
+    namespace WebdriverIOSync {
+        interface Browser extends BrowserExtension { }
+        interface MultiRemoteBrowser extends BrowserExtension { }
     }
 }

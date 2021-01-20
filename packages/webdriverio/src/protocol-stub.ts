@@ -1,4 +1,6 @@
 import { capabilitiesEnvironmentDetector } from '@wdio/utils'
+import type { Capabilities, Options } from '@wdio/types'
+import type { AttachOptions } from 'webdriver'
 
 /**
  * these commands can be used outside test scope and may be used accidentally by user before browser session is started
@@ -10,9 +12,9 @@ const WARN_ON_COMMANDS = ['addCommand', 'overwriteCommand']
  * so that Mocha/Jasmine users can filter their specs based on flags or use capabilities in test titles
  */
 export default class ProtocolStub {
-    static async newSession (options: WebDriver.Options = {}) {
+    static async newSession (options: Options.WebDriver) {
         const capabilities = emulateSessionCapabilities(
-            (options.capabilities || {}) as unknown as WebDriver.DesiredCapabilities
+            (options.capabilities || {}) as unknown as Capabilities.DesiredCapabilities
         )
 
         const browser = addCommands({
@@ -32,11 +34,11 @@ export default class ProtocolStub {
     }
 
     static attachToSession (
-        options?: WebDriver.AttachSessionOptions,
+        options: AttachOptions,
         modifier?: (...args: any[]) => any
     ) {
         if (options || !modifier) {
-            return ProtocolStub.newSession(options)
+            return ProtocolStub.newSession(options as any)
         }
 
         /**
@@ -66,7 +68,7 @@ function addCommands (browser: Record<string, any>) {
  * @param   {object} caps user defined capabilities
  * @return  {object}
  */
-function emulateSessionCapabilities (caps: WebDriver.DesiredCapabilities) {
+function emulateSessionCapabilities (caps: Capabilities.DesiredCapabilities) {
     const capabilities: Record<string, any> = {}
 
     // remove appium vendor prefix from capabilities

@@ -1,3 +1,8 @@
+import fs from 'fs'
+import path from 'path'
+import archiver from 'archiver'
+import type { Capabilities } from '@wdio/types'
+
 /**
  * Uploads a file to the Selenium Standalone server or other browser driver
  * (e.g. Chromedriver) by using the [`file`](/docs/api/selenium.html#file) command.
@@ -28,12 +33,8 @@
  * @uses protocol/file
  * @return {String} remote URL
  */
-import fs from 'fs'
-import path from 'path'
-import archiver from 'archiver'
-
 export default async function uploadFile (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     localPath: string
 ): Promise<string> {
     /**
@@ -47,7 +48,7 @@ export default async function uploadFile (
      * check if command is available
      */
     if (typeof this.file !== 'function') {
-        throw new Error(`The uploadFile command is not available in ${this.capabilities.browserName}`)
+        throw new Error(`The uploadFile command is not available in ${(this.capabilities as Capabilities.Capabilities).browserName}`)
     }
 
     let zipData: Uint8Array[] = []

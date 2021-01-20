@@ -1,3 +1,5 @@
+import type { BrowserObject } from 'webdriverio'
+
 import {
     executeHooksWithArgs, runFnInFiberContext, hasWdioSyncSupport, executeSync,
     executeAsync, runSync, wrapCommand
@@ -190,7 +192,7 @@ describe('wrapCommand', () => {
         const rawCommand = jest.fn().mockReturnValue(Promise.resolve('Yayy!'))
         const commandA = wrapCommand('foobar', rawCommand)
         const commandB = wrapCommand('barfoo', rawCommand)
-        const scope: Partial<WebdriverIO.BrowserObject> = {
+        const scope: Partial<BrowserObject> = {
             options: {
                 beforeCommand: jest.fn(),
                 afterCommand: jest.fn().mockImplementation(
@@ -209,7 +211,7 @@ describe('wrapCommand', () => {
             Promise.reject(new Error('Uppsi!')))
         const commandA = wrapCommand('foobar', rawCommand)
         const commandB = wrapCommand('barfoo', rawCommand)
-        const scope: Partial<WebdriverIO.BrowserObject> = {
+        const scope: Partial<BrowserObject> = {
             options: {
                 beforeCommand: jest.fn(),
                 afterCommand: jest.fn().mockImplementation(

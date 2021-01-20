@@ -1,7 +1,8 @@
 import { performance, PerformanceObserver } from 'perf_hooks'
+import SauceLabs, { SauceLabsOptions, SauceConnectOptions, SauceConnectInstance } from 'saucelabs'
 
 import logger from '@wdio/logger'
-import SauceLabs, { SauceLabsOptions, SauceConnectOptions, SauceConnectInstance } from 'saucelabs'
+import type { Services, Capabilities, Options } from '@wdio/types'
 
 import { makeCapabilityFactory } from './utils'
 import type { SauceServiceConfig } from './types'
@@ -14,14 +15,14 @@ const SC_RELAY_DEPCRECATION_WARNING = [
 const MAX_SC_START_TRIALS = 3
 
 const log = logger('@wdio/sauce-service')
-export default class SauceLauncher {
+export default class SauceLauncher implements Services.ServiceInstance {
     private _api: SauceLabs
     private _sauceConnectProcess?: SauceConnectInstance
 
     constructor (
         private _options: SauceServiceConfig,
-        private _capabilities: WebDriver.Capabilities[] | WebdriverIO.MultiRemoteCapabilities,
-        private _config: WebdriverIO.Config
+        private _capabilities: unknown,
+        private _config: Options.Testrunner
     ) {
         this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
     }
@@ -30,8 +31,8 @@ export default class SauceLauncher {
      * modify config and launch sauce connect
      */
     async onPrepare (
-        config: WebdriverIO.Config,
-        capabilities: WebDriver.Capabilities[] | WebdriverIO.MultiRemoteCapabilities
+        config: Options.Testrunner,
+        capabilities: Capabilities.RemoteCapabilities
     ) {
         if (!this._options.sauceConnect) {
             return
@@ -67,11 +68,12 @@ export default class SauceLauncher {
 
         if (Array.isArray(capabilities)) {
             for (const capability of capabilities) {
-                prepareCapability(capability)
+                prepareCapability(capability as Capabilities.DesiredCapabilities)
             }
         } else {
             for (const browserName of Object.keys(capabilities)) {
-                prepareCapability((capabilities as WebdriverIO.MultiRemoteCapabilities)[browserName].capabilities)
+                const caps = capabilities[browserName].capabilities
+                prepareCapability((caps as Capabilities.W3CCapabilities).alwaysMatch || caps)
             }
         }
 

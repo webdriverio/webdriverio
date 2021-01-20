@@ -1,3 +1,6 @@
+import { getStaleElementError } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Take Element Screenshot command takes a screenshot of the visible region
  * encompassed by the bounding rectangle of an element.
@@ -7,10 +10,6 @@
  * @param {string} elementId the id of an element returned in a previous call to Find Element(s)
  * @return {string}          The base64-encoded PNG image data comprising the screenshot of the visible region of an element’s bounding rectangle after it has been scrolled into view.
  */
-
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function takeElementScreenshot (
     this: DevToolsDriver,
     { elementId }: { elementId: string }

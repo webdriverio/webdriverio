@@ -1,3 +1,5 @@
+import { getElementFromResponse } from '../../utils'
+
 /**
  *
  * Select option with a specific index.
@@ -27,9 +29,6 @@
  * @type action
  *
  */
-
-import { getElementFromResponse } from '../../utils'
-
 export default async function selectByIndex (
     this: WebdriverIO.Element,
     index: number

@@ -63,28 +63,5 @@ describe('utils', () => {
         it('should handle null or empty capabilities', ()  => {
             expect(isCloudCapability({})).toBe(false)
         })
-
-        describe('same thing but now multiremote options', () => {
-            it('should detect Browserstack capabilities', ()  => {
-                expect(isCloudCapability({ capabilities: { 'bstack:options': {} } })).toBe(true)
-            })
-
-            it('should detect Saucelabs capabilities', ()  => {
-                expect(isCloudCapability({ capabilities: { 'sauce:options': {} } })).toBe(true)
-            })
-
-            it('should detect Testingbot capabilities', ()  => {
-                expect(isCloudCapability({ capabilities: { 'tb:options': {} } })).toBe(true)
-            })
-
-            it('should detect non-cloud capabilities', ()  => {
-                expect(isCloudCapability({ capabilities: { 'selenoid:options': {} } })).toBe(false)
-            })
-
-            it('should handle null or empty capabilities', ()  => {
-                expect(isCloudCapability({ capabilities: null })).toBe(false)
-                expect(isCloudCapability({ capabilities: {} })).toBe(false)
-            })
-        })
     })
 })

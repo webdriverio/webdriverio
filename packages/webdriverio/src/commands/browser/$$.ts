@@ -1,3 +1,7 @@
+import { findElements, enhanceElementsArray } from '../../utils'
+import { getElements } from '../../utils/getElementObject'
+import type { Selector, ElementArray } from '../../types'
+
 /**
  * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
  * to fetch multiple elements on the page. It returns an array with element results that will have an
@@ -40,14 +44,11 @@
  * @type utility
  *
  */
-import { findElements, enhanceElementsArray } from '../../utils'
-import { getElements } from '../../utils/getElementObject'
-
 export default async function $$ (
-    this: WebdriverIO.BrowserObject,
-    selector: string
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    selector: Selector
 ) {
     const res = await findElements.call(this, selector)
     const elements = await getElements.call(this, selector, res)
-    return enhanceElementsArray(elements, this, selector) as WebdriverIO.Element[]
+    return enhanceElementsArray(elements, this, selector) as ElementArray
 }

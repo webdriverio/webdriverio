@@ -4,9 +4,9 @@
     "baseUrl": ".",
     "outDir": "./build",
     "rootDir": "./src",
-    "types": ["webdriverio", "@wdio/logger"]
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../../@types"
   ]
 }

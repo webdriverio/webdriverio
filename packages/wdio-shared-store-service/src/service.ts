@@ -1,8 +1,17 @@
+import { Browser } from 'webdriverio'
+import { BrowserExtension } from './index'
 import { readFile, getPidPath } from './utils'
 import { getValue, setValue, setPort } from './client'
 
-export default class SharedStoreService implements WebdriverIO.HookFunctions {
-    private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+import type { JsonCompatible, JsonPrimitive, Services } from '@wdio/types'
+
+/**
+ * ToDo(Christian): make this public accessible
+ */
+interface ServiceBrowser extends Browser<'async'>, BrowserExtension { }
+
+export default class SharedStoreService implements Services.ServiceInstance {
+    private _browser?: ServiceBrowser
 
     async beforeSession () {
         /**
@@ -14,9 +23,9 @@ export default class SharedStoreService implements WebdriverIO.HookFunctions {
     }
 
     before (
-        caps: WebDriver.Capabilities,
-        specs: string[],
-        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+        caps: unknown,
+        specs: unknown,
+        browser: ServiceBrowser
     ) {
         this._browser = browser
         const sharedStore = Object.create({}, {
@@ -26,7 +35,7 @@ export default class SharedStoreService implements WebdriverIO.HookFunctions {
             set: {
                 value: (
                     key: string,
-                    value: WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive
+                    value: JsonCompatible | JsonPrimitive
                 ) => this._browser?.call(() => setValue(key, value))
             }
         })

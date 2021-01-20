@@ -1,3 +1,6 @@
+import { v4 as uuidv4 } from 'uuid'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Get Window Handles command returns a list of window handles
  * for every open top-level browsing context.
@@ -7,10 +10,6 @@
  * @see https://w3c.github.io/webdriver/#dfn-get-window-handles
  * @return {string[]}  An array which is a list of window handles.
  */
-
-import { v4 as uuidv4 } from 'uuid'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function getWindowHandles(this: DevToolsDriver) {
     let newPages = await this.browser.pages()
 

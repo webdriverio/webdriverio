@@ -1,3 +1,7 @@
+import type { RectReturn } from '@wdio/protocols'
+
+import { getElementRect } from '../../utils'
+
 /**
  *
  * Get the width and height for an DOM-element.
@@ -25,19 +29,16 @@
  * @type property
  *
  */
-
-import { getElementRect } from '../../utils'
-
 export default async function getSize (
     this: WebdriverIO.Element,
-    prop?: keyof WebDriver.RectReturn
+    prop?: keyof RectReturn
 ) {
-    let rect: Partial<WebDriver.RectReturn> = {}
+    let rect: Partial<RectReturn> = {}
 
     if (this.isW3C) {
         rect = await getElementRect(this)
     } else {
-        rect = await this.getElementSize(this.elementId) as WebDriver.RectReturn
+        rect = await this.getElementSize(this.elementId) as RectReturn
     }
 
     if (prop && rect[prop]) {

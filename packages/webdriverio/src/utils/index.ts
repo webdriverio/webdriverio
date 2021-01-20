@@ -10,16 +10,15 @@ import isObject from 'lodash.isobject'
 import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
+import type { ElementReference } from '@wdio/protocols'
+import type { Options, Capabilities } from '@wdio/types'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
 import { findStrategy } from './findStrategy'
-import type {
-    ElementReference, ElementObject, ElementFunction, Selector, ParsedCSSValue,
-    Options
-} from '../types'
+import type { ElementArray, ElementFunction, Selector, ParsedCSSValue } from '../types'
 
-const browserCommands = require('../commands/browser')
-const elementCommands = require('../commands/element')
+const browserCommands = require('../commands/browser').default
+const elementCommands = require('../commands/element').default
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
@@ -94,9 +93,9 @@ export const getElementFromResponse = (res: ElementReference) => {
 /**
  * traverse up the scope chain until browser element was reached
  */
-export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.BrowserObject): WebdriverIO.BrowserObject {
+export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): WebdriverIO.Browser {
     const elemObject = elem as WebdriverIO.Element
-    return elemObject.parent ? getBrowserObject(elemObject.parent) : elem
+    return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
 }
 
 /**
@@ -213,9 +212,9 @@ export function checkUnicode (
 
 function fetchElementByJSFunction (
     selector: ElementFunction,
-    scope: WebdriverIO.Element
-): Promise<WebDriver.ElementReference | WebDriver.ElementReference[]> {
-    if (!scope.elementId) {
+    scope: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser
+): Promise<ElementReference | ElementReference[]> {
+    if (!(scope as WebdriverIO.Element).elementId) {
         return scope.execute(selector as any)
     }
     /**
@@ -231,7 +230,7 @@ function fetchElementByJSFunction (
  * logic to find an element
  */
 export async function findElement(
-    this: WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
     selector: Selector
 ) {
     /**
@@ -239,9 +238,9 @@ export async function findElement(
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
-        return this.elementId
+        return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementFromElement(this.elementId, using, value) as any as ElementReference
+            ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as any as ElementReference
             : this.findElement(using, value) as any as ElementReference
     }
 
@@ -262,7 +261,7 @@ export async function findElement(
  * logic to find a elements
  */
 export async function findElements(
-    this: WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
     /**
@@ -270,9 +269,9 @@ export async function findElements(
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
-        return this.elementId
+        return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementsFromElement(this.elementId, using, value) as any as ElementReference[]
+            ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as any as ElementReference[]
             : this.findElements(using, value) as any as ElementReference[]
     }
 
@@ -294,7 +293,7 @@ export async function findElements(
 export function verifyArgsAndStripIfElement(args: any) {
     function verify (arg: any) {
         if (isObject(arg) && arg.constructor.name === 'Element') {
-            const elem = arg as ElementObject
+            const elem = arg as WebdriverIO.Element
             if (!elem.elementId) {
                 throw new Error(`The element with selector "${elem.selector}" you trying to pass into the execute method wasn't found`)
             }
@@ -408,9 +407,10 @@ export async function hasElementId (element: WebdriverIO.Element) {
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
     if (!element.elementId) {
-        const method = element.isReactElement ? 'react$' : '$'
-
-        element.elementId = (await element.parent[method](element.selector as string)).elementId
+        const command = element.isReactElement
+            ? element.parent.react$.bind(element.parent)
+            : element.parent.$.bind(element.parent)
+        element.elementId = (await command(element.selector as string)).elementId
     }
 
     /*
@@ -422,13 +422,13 @@ export async function hasElementId (element: WebdriverIO.Element) {
     return true
 }
 
-export function addLocatorStrategyHandler(scope: WebdriverIO.BrowserObject) {
-    return (name: string, script: () => ElementReference | ElementReference[]) => {
+export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+    return (name: string, func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>) => {
         if (scope.strategies.get(name)) {
             throw new Error(`Strategy ${name} already exists`)
         }
 
-        scope.strategies.set(name, script)
+        scope.strategies.set(name, func)
     }
 }
 
@@ -442,9 +442,9 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.BrowserObject) {
  * @returns {object[]}  elements
  */
 export const enhanceElementsArray = (
-    elements: WebdriverIO.ElementArray,
-    parent: WebdriverIO.BrowserObject | WebdriverIO.Element,
-    selector: string,
+    elements: ElementArray,
+    parent: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    selector: Selector,
     foundWith = '$$',
     props: any[] = []
 ) => {
@@ -461,7 +461,7 @@ export const enhanceElementsArray = (
  */
 export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub'
 
-export const getAutomationProtocol = async (config: Options) => {
+export const getAutomationProtocol = async (config: Options.WebdriverIO | Options.Testrunner) => {
     /**
      * if automation protocol is set by user prefer this
      */
@@ -481,9 +481,9 @@ export const getAutomationProtocol = async (config: Options) => {
      */
     if (
         config.capabilities &&
-        typeof (config.capabilities as WebDriver.DesiredCapabilities).browserName === 'string' &&
+        typeof (config.capabilities as Capabilities.Capabilities).browserName === 'string' &&
         !SUPPORTED_BROWSER.includes(
-            (config.capabilities as WebDriver.DesiredCapabilities).browserName?.toLowerCase() as string
+            (config.capabilities as Capabilities.Capabilities).browserName?.toLowerCase() as string
         )
     ) {
         return 'webdriver'
@@ -492,7 +492,7 @@ export const getAutomationProtocol = async (config: Options) => {
     /**
      * run WebDriver if capabilities clearly identify it as it
      */
-    if (config.capabilities && (config.capabilities as WebDriver.W3CCapabilities).alwaysMatch) {
+    if (config.capabilities && ((config as Options.WebdriverIO).capabilities as Capabilities.W3CCapabilities).alwaysMatch) {
         return 'webdriver'
     }
 
@@ -526,8 +526,8 @@ export const getAutomationProtocol = async (config: Options) => {
  *
  * NOTE: this method is executed twice when running the WDIO testrunner
  */
-export const updateCapabilities = async (params: Options, automationProtocol?: string) => {
-    const caps = params.capabilities as WebDriver.DesiredCapabilities
+export const updateCapabilities = async (params: Options.WebdriverIO | Options.Testrunner, automationProtocol?: string) => {
+    const caps = params.capabilities as Capabilities.Capabilities
     /**
      * attach remote debugging port options to Firefox sessions
      * (this will be ignored if not supported)

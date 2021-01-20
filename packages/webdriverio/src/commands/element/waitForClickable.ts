@@ -1,3 +1,4 @@
+import type { WaitForOptions } from '../../types'
 
 /**
  * Wait for an element for the provided amount of
@@ -24,8 +25,6 @@
  * @return {Boolean} `true` if element is clickable (or doesn't if flag is set)
  *
  */
-import type { WaitForOptions } from '../../types'
-
 export default async function waitForClickable (
     this: WebdriverIO.Element,
     {

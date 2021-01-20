@@ -1,3 +1,9 @@
+import { transformToCharString } from '../../utils'
+
+export type AddValueOptions = {
+    translateToUnicode?: boolean
+}
+
 /**
  *
  * Add a value to an object found by given selector. You can also use unicode
@@ -25,22 +31,14 @@
  * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
  *
  */
-
-import { transformToCharString } from '../../utils'
-
-export type AddValueOptions = {
-    translateToUnicode?: boolean
-}
-
 export default function addValue (
     this: WebdriverIO.Element,
     value: string | number | boolean | object | Array<any>,
     { translateToUnicode = true }: AddValueOptions = {}
 ) {
     if (!this.isW3C) {
-        return this.elementSendKeys(this.elementId, transformToCharString(value as string[], translateToUnicode))
+        return this.elementSendKeys(this.elementId, transformToCharString(value as string[], translateToUnicode) as any as string)
     }
 
-    // @ts-ignore TS takes `elementSendKeys` from JSONWP
     return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode).join(''))
 }

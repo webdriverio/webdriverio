@@ -44,13 +44,23 @@ export const builder = (yargs: yargs.Argv) => {
         .help()
 }
 
+declare global {
+    namespace NodeJS {
+        interface Global {
+            $: any
+            $$: any
+            browser: any
+        }
+    }
+}
+
 export const handler = async (argv: ReplCommandArguments) => {
     const caps = getCapabilities(argv)
 
     /**
      * runner option required to wrap commands within Fibers context
      */
-    const execMode = hasWdioSyncSupport ? { runner: 'repl' } : {}
+    const execMode = hasWdioSyncSupport ? { runner: 'local' as const } : {}
     const client = await remote({ ...argv, ...caps, ...execMode })
 
     global.$ = client.$.bind(client)

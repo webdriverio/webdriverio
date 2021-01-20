@@ -16,7 +16,6 @@
  * @type property
  *
  */
-
 export default function getComputedLabel (this: WebdriverIO.Element) {
     return this.getElementComputedLabel(this.elementId)
 }

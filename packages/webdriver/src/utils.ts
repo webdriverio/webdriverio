@@ -5,11 +5,12 @@ import {
     SauceLabsProtocol, SeleniumProtocol
 } from '@wdio/protocols'
 import Protocols from '@wdio/protocols'
+import { Options, Capabilities } from '@wdio/types'
 
 import WebDriverRequest, { WebDriverResponse } from './request'
 import command from './command'
 import { VALID_CAPS } from './constants'
-import { Options, JSONWPCommandError, W3CCapabilities, SessionFlags, DesiredCapabilities } from './types'
+import type { JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')
 
@@ -23,7 +24,7 @@ const BROWSER_DRIVER_ERRORS = [
 /**
  * start browser session with WebDriver protocol
  */
-export async function startWebDriverSession (params: Options): Promise<{ sessionId: string, capabilities: DesiredCapabilities }> {
+export async function startWebDriverSession (params: Options.WebDriver): Promise<{ sessionId: string, capabilities: Capabilities.DesiredCapabilities }> {
     /**
      * validate capabilities to check if there are no obvious mix between
      * JSONWireProtocol and WebDriver protoocol, e.g.
@@ -52,11 +53,11 @@ export async function startWebDriverSession (params: Options): Promise<{ session
      * to check what style the user sent in so we know how to construct the
      * object for the other style
      */
-    const [w3cCaps, jsonwpCaps] = params.capabilities && (params.capabilities as W3CCapabilities).alwaysMatch
+    const [w3cCaps, jsonwpCaps] = params.capabilities && (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch
         /**
          * in case W3C compliant capabilities are provided
          */
-        ? [params.capabilities, (params.capabilities as W3CCapabilities).alwaysMatch]
+        ? [params.capabilities, (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch]
         /**
          * otherwise assume they passed in jsonwp-style caps (flat object)
          */
@@ -82,17 +83,11 @@ export async function startWebDriverSession (params: Options): Promise<{ session
     const sessionId = response.value.sessionId || response.sessionId
 
     /**
-     * save original set of capabilities to allow to request the same session again
-     * (e.g. for reloadSession command in WebdriverIO)
-     */
-    params.requestedCapabilities = params.capabilities
-
-    /**
      * save actual receveived session details
      */
     params.capabilities = response.value.capabilities || response.value
 
-    return { sessionId, capabilities: params.capabilities as DesiredCapabilities }
+    return { sessionId, capabilities: params.capabilities as Capabilities.DesiredCapabilities }
 }
 
 /**
@@ -261,7 +256,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * get human readable message from response error
  * @param {Error} err response error
  */
-export const getSessionError = (err: JSONWPCommandError, params: Partial<Options> = {}) => {
+export const getSessionError = (err: JSONWPCommandError, params: Partial<Options.WebDriver> = {}) => {
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +

@@ -13,6 +13,5 @@ Object {
 exports[`newSession 2`] = `
 Object {
   "browserName": "chrome",
-  "goog:chromeOptions": Object {},
 }
 `;

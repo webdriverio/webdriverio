@@ -9,7 +9,7 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "types": "./allure-reporter.d.ts",
+  "types": "./build/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"
@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@wdio/reporter": "6.11.0",
+    "@wdio/types": "^6.10.6",
     "allure-js-commons": "^1.3.2",
     "strip-ansi": "^6.0.0"
   },

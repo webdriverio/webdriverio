@@ -1,4 +1,3 @@
-
 /**
  *
  * Returns the previous sibling element of the selected DOM-element.
@@ -21,9 +20,8 @@
  * @return {Element}
  * @type utility
  */
-
 export default function previousElement (this: WebdriverIO.Element) {
     return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
-        return this.previousElementSibling
+        return this.previousElementSibling as HTMLElement
     })
 }

@@ -1,7 +1,10 @@
+/// <reference types="jasmine" />
+
 import Jasmine from 'jasmine'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
 import { EventEmitter } from 'events'
+import type { Options, Services, Capabilities } from '@wdio/types'
 
 import JasmineReporter from './reporter'
 import type { JasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
@@ -17,10 +20,10 @@ const DEFAULT_TIMEOUT_INTERVAL = 60000
 const log = logger('@wdio/jasmine-framework')
 
 type HooksArray = {
-    [K in keyof Required<WebdriverIO.HookFunctions>]: Required<WebdriverIO.HookFunctions>[K][]
+    [K in keyof Required<Services.HookFunctions>]: Required<Services.HookFunctions>[K][]
 }
 
-interface WebdriverIOJasmineConfig extends Omit<WebdriverIO.Config, keyof HooksArray>, HooksArray {
+interface WebdriverIOJasmineConfig extends Omit<Options.Testrunner, keyof HooksArray>, HooksArray {
     jasmineNodeOpts: Omit<JasmineNodeOpts, 'cleanStack'>
 }
 
@@ -42,7 +45,7 @@ class JasmineAdapter {
         private _cid: string,
         private _config: WebdriverIOJasmineConfig,
         private _specs: string[],
-        private _capabilities: WebDriver.Capabilities,
+        private _capabilities: Capabilities.RemoteCapabilities,
         reporter: EventEmitter
     ) {
         this._jasmineNodeOpts = Object.assign({
@@ -264,7 +267,7 @@ class JasmineAdapter {
     /**
      * Hooks which are added as true Jasmine hooks need to call done() to notify async
      */
-    wrapHook (hookName: keyof WebdriverIO.HookFunctions) {
+    wrapHook (hookName: keyof Services.HookFunctions) {
         return (done: Function) => executeHooksWithArgs(
             hookName,
             this._config[hookName],
@@ -275,7 +278,7 @@ class JasmineAdapter {
         })
     }
 
-    prepareMessage (hookName: keyof WebdriverIO.HookFunctions) {
+    prepareMessage (hookName: keyof Services.HookFunctions) {
         const params: FrameworkMessage = { type: hookName }
 
         switch (hookName) {
@@ -374,3 +377,10 @@ adapterFactory.init = async function (...args: any[]) {
 
 export default adapterFactory
 export { JasmineAdapter, adapterFactory }
+export * from './types'
+
+declare global {
+    namespace WebdriverIO {
+        interface JasmineOpts extends JasmineNodeOpts {}
+    }
+}

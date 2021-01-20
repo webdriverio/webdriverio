@@ -1,3 +1,10 @@
+import { getBrowserObject } from '../../utils'
+
+interface BrowserSize {
+    width: number
+    height: number
+}
+
 /**
  *
  * Returns browser window size.
@@ -16,15 +23,7 @@
  * @type window
  *
  */
-
-import { getBrowserObject } from '../../utils'
-
-interface BrowserSize {
-    width: number
-    height: number
-}
-
-export default async function getWindowSize(this: WebdriverIO.BrowserObject) {
+export default async function getWindowSize(this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
     const browser = getBrowserObject(this)
 
     if (!browser.isW3C) {

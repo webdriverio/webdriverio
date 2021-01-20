@@ -3,10 +3,13 @@ import { promisify } from 'util'
 
 import testingbotTunnel from 'testingbot-tunnel-launcher'
 import logger from '@wdio/logger'
+import { Capabilities, Options, Services } from '@wdio/types'
+
+import { TestingbotOptions, TestingbotTunnel, TunnelLauncherOptions } from './types'
 
 const log = logger('@wdio/testingbot-service')
 
-export default class TestingBotLauncher implements WebdriverIO.ServiceInstance {
+export default class TestingBotLauncher implements Services.ServiceInstance {
     options: TestingbotOptions;
     tbTunnelOpts!: TunnelLauncherOptions;
     tunnel?: TestingbotTunnel;
@@ -14,7 +17,7 @@ export default class TestingBotLauncher implements WebdriverIO.ServiceInstance {
         this.options = options
     }
 
-    async onPrepare (config: WebdriverIO.Config, capabilities: WebDriver.DesiredCapabilities[]) {
+    async onPrepare (config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities) {
         if (!this.options.tbTunnel || !config.user || !config.key) {
             return
         }
@@ -27,23 +30,16 @@ export default class TestingBotLauncher implements WebdriverIO.ServiceInstance {
             'tunnel-identifier': tbTunnelIdentifier,
         }, this.options.tbTunnelOpts)
 
-        if (Array.isArray(capabilities)) {
-            for (const capability of capabilities) {
-                if (!capability['tb:options']) {
-                    capability['tb:options'] = {} as WebDriver.TestingbotCapabilities
-                }
+        const capabilitiesEntries = Array.isArray(capabilities) ? capabilities : Object.values(capabilities)
+        for (const capability of capabilitiesEntries) {
+            const caps = (capability as Options.WebDriver).capabilities || capability
+            const c = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
 
-                capability['tb:options']['tunnel-identifier'] = tbTunnelIdentifier
+            if (!c['tb:options']) {
+                c['tb:options'] = {}
             }
-        } else {
-            for (const browserName of Object.keys(capabilities)) {
-                const capability = (capabilities as WebdriverIO.MultiRemoteCapabilities)[browserName].capabilities
-                if (!capability['tb:options']) {
-                    capability['tb:options'] = {} as WebDriver.TestingbotCapabilities
-                }
 
-                capability['tb:options']['tunnel-identifier'] = tbTunnelIdentifier
-            }
+            c['tb:options']['tunnel-identifier'] = tbTunnelIdentifier
         }
 
         /**

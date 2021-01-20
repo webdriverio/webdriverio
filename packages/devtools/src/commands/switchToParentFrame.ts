@@ -1,3 +1,7 @@
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Switch to Parent Frame command sets the current browsing context for future commands
  * to the parent of the current browsing context.
@@ -5,10 +9,6 @@
  * @alias browser.switchToParentFrame
  * @see https://w3c.github.io/webdriver/#dfn-switch-to-parent-frame
  */
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function switchToParentFrame (this: DevToolsDriver) {
     const page = this.getPageHandle(true) as unknown as Frame
 

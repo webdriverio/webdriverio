@@ -1,11 +1,12 @@
 import chalk from 'chalk'
-import WDIOReporter, { WDIOReporterOptions } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
+import type { Reporters } from '@wdio/types'
 
 /**
  * Initialize a new `Dot` matrix test reporter.
  */
 export default class DotReporter extends WDIOReporter {
-    constructor(options: Partial<WDIOReporterOptions>) {
+    constructor(options: Reporters.Options) {
         super(Object.assign({ stdout: true }, options))
     }
 

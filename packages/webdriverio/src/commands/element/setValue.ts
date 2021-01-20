@@ -1,3 +1,5 @@
+import type { AddValueOptions } from './addValue'
+
 /**
  *
  * Send a sequence of key strokes to an element (clears value before). If the element
@@ -24,9 +26,6 @@
  * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
  *
  */
-
-import type { AddValueOptions } from './addValue'
-
 export default async function setValue (
     this: WebdriverIO.Element,
     value: string,

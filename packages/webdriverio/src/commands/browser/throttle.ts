@@ -1,40 +1,5 @@
-/**
- * Throttle the network capabilities of the browser. This can help to
- * emulate certain scenarios where a user loses their internet connection
- * and your app needs to address that.
- *
- * There are many presets available with default configurations for ease of use.
- * They are `offline`, `GPRS`, `Regular2G`, `Good2G`, `Regular3G`, `Good3G`,
- * `Regular4G`, `DSL`, `WiFi`, `online`.
- *
- * You can see the values for these presets [in the source code](https://github.com/webdriverio/webdriverio/blob/6824e4eb118a8d20685f12f4bc42f13fd56f8a25/packages/webdriverio/src/commands/browser/throttle.js#L29).
- *
- * <example>
-    :throttle.js
-    it('should throttle the network', () => {
-        // via static string preset
-        browser.throttle('Regular 3G')
-
-        // via custom values
-        browser.throttle({
-            'offline': false,
-            'downloadThroughput': 200 * 1024 / 8,
-            'uploadThroughput': 200 * 1024 / 8,
-            'latency': 20
-        })
-    });
- * </example>
- *
- * @alias browser.throttle
- * @param {ThrottleOptions} params  parameters for throttling
- * @param {Boolean}        params.offline              True to emulate internet disconnection.
- * @param {Number}         params.latency              Minimum latency from request sent to response headers received (ms).
- * @param {Number}         params.downloadThroughput   Maximal aggregated download throughput (bytes/sec). -1 disables download throttling.
- * @param {Number}         params.uploadThroughput     Maximal aggregated upload throughput (bytes/sec). -1 disables upload throttling.
- * @type utility
- *
- */
 import { getBrowserObject } from '../../utils'
+import type { ThrottleOptions } from '../../utils/interception/types'
 
 const NETWORK_PRESETS = {
     'offline': {
@@ -97,12 +62,49 @@ const NETWORK_PRESETS = {
         downloadThroughput: -1,
         uploadThroughput: -1
     }
-}
+} as const
+
 const NETWORK_PRESET_TYPES = Object.keys(NETWORK_PRESETS)
 
+/**
+ * Throttle the network capabilities of the browser. This can help to
+ * emulate certain scenarios where a user loses their internet connection
+ * and your app needs to address that.
+ *
+ * There are many presets available with default configurations for ease of use.
+ * They are `offline`, `GPRS`, `Regular2G`, `Good2G`, `Regular3G`, `Good3G`,
+ * `Regular4G`, `DSL`, `WiFi`, `online`.
+ *
+ * You can see the values for these presets [in the source code](https://github.com/webdriverio/webdriverio/blob/6824e4eb118a8d20685f12f4bc42f13fd56f8a25/packages/webdriverio/src/commands/browser/throttle.js#L29).
+ *
+ * <example>
+    :throttle.js
+    it('should throttle the network', () => {
+        // via static string preset
+        browser.throttle('Regular 3G')
+
+        // via custom values
+        browser.throttle({
+            'offline': false,
+            'downloadThroughput': 200 * 1024 / 8,
+            'uploadThroughput': 200 * 1024 / 8,
+            'latency': 20
+        })
+    });
+ * </example>
+ *
+ * @alias browser.throttle
+ * @param {ThrottleOptions} params  parameters for throttling
+ * @param {Boolean}        params.offline              True to emulate internet disconnection.
+ * @param {Number}         params.latency              Minimum latency from request sent to response headers received (ms).
+ * @param {Number}         params.downloadThroughput   Maximal aggregated download throughput (bytes/sec). -1 disables download throttling.
+ * @param {Number}         params.uploadThroughput     Maximal aggregated upload throughput (bytes/sec). -1 disables upload throttling.
+ * @type utility
+ *
+ */
 export default async function throttle (
-    this: WebdriverIO.BrowserObject,
-    params: WebdriverIO.ThrottleOptions
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    params: ThrottleOptions
 ) {
     if (
         /**
@@ -128,6 +130,10 @@ export default async function throttle (
 
     // Connect to Chrome DevTools
     await this.getPuppeteer()
+    if (!this.puppeteer) {
+        throw new Error('No Puppeteer connection could be established which is required to use this command')
+    }
+
     const pages = await this.puppeteer.pages()
     const client = await pages[0].target().createCDPSession()
 

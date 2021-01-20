@@ -29,6 +29,7 @@
     "@types/fs-extra": "^9.0.4",
     "@wdio/config": "6.12.1",
     "@wdio/logger": "6.10.10",
+    "@wdio/types": "^6.10.6",
     "fs-extra": "^9.0.0",
     "param-case": "^3.0.0"
   },
@@ -38,5 +39,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "appium-service.d.ts"
+  "types": "./build/index.d.ts"
 }

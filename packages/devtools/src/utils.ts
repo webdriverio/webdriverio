@@ -3,7 +3,7 @@ import path from 'path'
 import { execFileSync } from 'child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
-import { WebDriverProtocol } from '@wdio/protocols'
+import { WebDriverProtocol, CommandParameters, CommandPathVariables, ElementReference } from '@wdio/protocols'
 import type { Logger } from '@wdio/logger'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
@@ -19,8 +19,8 @@ const log = logger('devtools')
 
 export const validate = function (
     command: string,
-    parameters: WDIOProtocols.CommandParameters[],
-    variables: WDIOProtocols.CommandPathVariables[],
+    parameters: CommandParameters[],
+    variables: CommandPathVariables[],
     ref: string,
     args: any[]
 ) {
@@ -101,7 +101,7 @@ export async function findElement (
     this: DevToolsDriver,
     context: Frame | Page | ElementHandle,
     using: string, value: string
-): Promise<WebDriver.ElementReference | Error>  {
+): Promise<ElementReference | Error>  {
     /**
      * implicitly wait for the element if timeout is set
      */
@@ -141,7 +141,7 @@ export async function findElements (
     this: DevToolsDriver, context: Page | Frame | ElementHandle,
     using: string,
     value: string
-): Promise<WebDriver.ElementReference[]> {
+): Promise<ElementReference[]> {
     /**
      * implicitly wait for the element if timeout is set
      */

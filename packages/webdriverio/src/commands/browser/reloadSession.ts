@@ -1,4 +1,6 @@
 import logger from '@wdio/logger'
+import type { Options } from '@wdio/types'
+
 const log = logger('webdriverio')
 
 /**
@@ -22,8 +24,8 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export default async function reloadSession (this: WebdriverIO.BrowserObject) {
-    const oldSessionId = this.sessionId
+export default async function reloadSession (this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+    const oldSessionId = (this as WebdriverIO.Browser).sessionId
 
     /**
      * end current running session, if session already gone suppress exceptions
@@ -42,9 +44,10 @@ export default async function reloadSession (this: WebdriverIO.BrowserObject) {
     const ProtocolDriver = require(this.options.automationProtocol!).default
     await ProtocolDriver.reloadSession(this)
 
-    if (Array.isArray(this.options.onReload) && this.options.onReload.length) {
-        await Promise.all(this.options.onReload.map((hook) => hook(oldSessionId, this.sessionId)))
+    const options = this.options as Options.Testrunner
+    if (Array.isArray(options.onReload) && options.onReload.length) {
+        await Promise.all(options.onReload.map((hook) => hook(oldSessionId, (this as WebdriverIO.Browser).sessionId)))
     }
 
-    return this.sessionId
+    return this.sessionId as string
 }

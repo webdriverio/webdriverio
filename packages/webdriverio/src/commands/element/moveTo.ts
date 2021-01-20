@@ -1,3 +1,10 @@
+import { getElementRect, getScrollPosition } from '../../utils'
+
+type MoveToOptions = {
+    xOffset?: number,
+    yOffset?: number
+}
+
 /**
  *
  * Move the mouse by an offset of the specified element. If no element is specified,
@@ -12,14 +19,6 @@
  * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
  * @type protocol
  */
-
-import { getElementRect, getScrollPosition } from '../../utils'
-
-type MoveToOptions = {
-    xOffset?: number,
-    yOffset?: number
-}
-
 export default async function moveTo (
     this: WebdriverIO.Element,
     { xOffset, yOffset }: MoveToOptions = {}

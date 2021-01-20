@@ -1,11 +1,7 @@
 import { loadModule } from '../src/utils'
 
 declare global {
-    module NodeJS {
-        interface Global {
-            foo: string
-        }
-    }
+    var foo: string | undefined
 }
 
 test('loadModule with existing package', () => {

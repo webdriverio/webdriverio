@@ -1,3 +1,6 @@
+import { getBrowserObject } from '../../utils'
+import getPropertyScript from '../../scripts/getProperty'
+
 /**
  * The Get Element Property command will return the result of getting a property of an element.
  *
@@ -14,10 +17,6 @@
  * @param {String} property  name of the element property
  * @return {Object|String|Boolean|Number|null} the value of the property of the selected element
  */
-
-import { getBrowserObject } from '../../utils'
-import getPropertyScript from '../../scripts/getProperty'
-
 export default function getProperty (
     this: WebdriverIO.Element,
     property: string
@@ -26,7 +25,7 @@ export default function getProperty (
         return this.getElementProperty(this.elementId, property)
     }
 
-    const browser: WebdriverIO.BrowserObject = getBrowserObject(this)
+    const browser = getBrowserObject(this)
     return browser.execute(
         getPropertyScript,
         { ELEMENT: this.elementId },

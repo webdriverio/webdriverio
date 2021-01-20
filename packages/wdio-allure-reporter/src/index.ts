@@ -1,17 +1,34 @@
-import WDIOReporter, { SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs, AfterCommandArgs, CommandArgs } from '@wdio/reporter'
-import Allure from 'allure-js-commons'
-import Step from 'allure-js-commons/beans/step'
-import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate } from './utils'
+import WDIOReporter, {
+    SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
+    AfterCommandArgs, CommandArgs
+} from '@wdio/reporter'
+import { Capabilities, Options } from '@wdio/types'
+
+import {
+    getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest,
+    isMochaAllHooks, getLinkByTemplate
+} from './utils'
 import { events, PASSED, PENDING, SKIPPED, stepStatuses } from './constants'
-import { AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs, AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs, AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions } from './types'
+import {
+    AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
+    AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
+    AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
+} from './types'
+
+/**
+ * Allure v1 has no proper TS support
+ * ToDo(Christian): update to Allure v2 (https://github.com/webdriverio/webdriverio/issues/6313)
+ */
+const Allure = require('allure-js-commons')
+const Step = require('allure-js-commons/beans/step')
 
 class AllureReporter extends WDIOReporter {
-    private _allure: Allure;
-    private _capabilities: WebDriver.DesiredCapabilities;
-    private _isMultiremote?: boolean;
-    private _config: WebdriverIO.Config ;
-    private _lastScreenshot?: string;
-    private _options: AllureReporterOptions;
+    private _allure: any
+    private _capabilities: Capabilities.RemoteCapability
+    private _isMultiremote?: boolean
+    private _config?: Options.Testrunner
+    private _lastScreenshot?: string
+    private _options: AllureReporterOptions
 
     constructor(options: AllureReporterOptions = {}) {
         const outputDir = options.outputDir || 'allure-results'
@@ -21,7 +38,6 @@ class AllureReporter extends WDIOReporter {
         })
         this._allure = new Allure()
         this._capabilities = {}
-        this._config = {}
         this._options = options
 
         this._allure.setOptions({ targetDir: outputDir })
@@ -123,14 +139,15 @@ class AllureReporter extends WDIOReporter {
         const currentTest = this._allure.getCurrentTest()
 
         if (!this._isMultiremote) {
-            const { browserName, deviceName, desired, device } = this._capabilities
+            const caps = this._capabilities as Capabilities.DesiredCapabilities
+            const { browserName, deviceName, desired, device } = caps
             let targetName = device || browserName || deviceName || cid
             // custom mobile grids can have device information in a `desired` cap
             if (desired && desired.deviceName && desired.platformVersion) {
                 targetName = `${device || desired.deviceName} ${desired.platformVersion}`
             }
-            const browserstackVersion = this._capabilities.os_version || this._capabilities.osVersion
-            const version = browserstackVersion || this._capabilities.browserVersion || this._capabilities.version || this._capabilities.platformVersion || ''
+            const browserstackVersion = caps.os_version || caps.osVersion
+            const version = browserstackVersion || caps.browserVersion || caps.version || caps.platformVersion || ''
             const paramName = (deviceName || device) ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
             currentTest.addParameter('argument', paramName, paramValue)
@@ -170,7 +187,7 @@ class AllureReporter extends WDIOReporter {
     onTestFail(test: TestStats | HookStats) {
         if (this._options.useCucumberStepReporter) {
             const testStatus = getTestStatus(test, this._config)
-            const stepStatus: Allure.Status = Object.values(stepStatuses).indexOf(testStatus) >= 0 ?
+            const stepStatus: Status = Object.values(stepStatuses).indexOf(testStatus) >= 0 ?
                 testStatus : 'failed'
             this._allure.endStep(stepStatus)
             this._allure.endCase(testStatus, getErrorFromFailedTest(test))
@@ -316,7 +333,7 @@ class AllureReporter extends WDIOReporter {
 
                     // if it had any attachments, reattach them to current test
                     if (step && step.attachments.length >= 1) {
-                        step.attachments.forEach(attachment => {
+                        step.attachments.forEach((attachment: any) => {
                             this._allure.getCurrentTest().addAttachment(attachment)
                         })
                     }
@@ -441,7 +458,7 @@ class AllureReporter extends WDIOReporter {
         this._allure.startStep(title)
     }
 
-    endStep(status: Allure.Status) {
+    endStep(status: Status) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -602,7 +619,7 @@ class AllureReporter extends WDIOReporter {
      * @name endStep
      * @param {StepStatus} [status='passed'] - step status
      */
-    static endStep = (status: Allure.Status = 'passed') => {
+    static endStep = (status: Status = 'passed') => {
         if (!Object.values(stepStatuses).includes(status)) {
             throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
         }
@@ -623,7 +640,7 @@ class AllureReporter extends WDIOReporter {
         content,
         name = 'attachment',
         type = 'text/plain'
-    }: any = {}, status: Allure.Status = 'passed') => {
+    }: any = {}, status: Status = 'passed') => {
         if (!Object.values(stepStatuses).includes(status)) {
             throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
         }
@@ -646,3 +663,10 @@ class AllureReporter extends WDIOReporter {
 export default AllureReporter
 
 export { AllureReporterOptions }
+export * from './types'
+
+declare global {
+    namespace WebdriverIO {
+        interface ReporterOption extends AllureReporterOptions {}
+    }
+}

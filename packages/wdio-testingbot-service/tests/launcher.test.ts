@@ -1,6 +1,8 @@
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 
 import TestingBotLauncher from '../src/launcher'
+import type { TestingbotOptions } from '../src/types'
 
 const log = logger('')
 
@@ -15,7 +17,7 @@ describe('wdio-testingbot-service', () => {
         const options = { tbTunnel: undefined } as any
         const tbLauncher = new TestingBotLauncher(options)
         const caps = {} as any
-        await tbLauncher.onPrepare({}, caps)
+        await tbLauncher.onPrepare({} as any, caps)
         expect(tbLauncher.tbTunnelOpts).toBeUndefined()
         expect(tbLauncher.tunnel).toBeUndefined()
         expect(options.protocol).toBeUndefined()
@@ -87,7 +89,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: WebdriverIO.MultiRemoteCapabilities = {
+        const caps: Capabilities.MultiRemoteCapabilities = {
             browserA: {
                 capabilities: {
                     'tb:options': {
@@ -162,7 +164,7 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps: WebdriverIO.MultiRemoteCapabilities = {
+        const caps: Capabilities.MultiRemoteCapabilities = {
             browserA: {
                 capabilities: {}
             },
@@ -177,8 +179,8 @@ describe('wdio-testingbot-service', () => {
         const tbLauncher = new TestingBotLauncher(options)
 
         await tbLauncher.onPrepare(config, caps as any)
-        expect(Object.keys(caps.browserA.capabilities['tb:options'])).toContain('tunnel-identifier')
-        expect(Object.keys(caps.browserB.capabilities['tb:options'])).toContain('build')
+        expect(Object.keys((caps.browserA.capabilities as Capabilities.DesiredCapabilities)['tb:options'] as any)).toContain('tunnel-identifier')
+        expect(Object.keys((caps.browserB.capabilities as Capabilities.DesiredCapabilities)['tb:options'] as any)).toContain('build')
     })
 
     it('onComplete', () => {

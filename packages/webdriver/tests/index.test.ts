@@ -5,10 +5,12 @@ import gotMock from 'got'
 // @ts-ignore mock feature
 import logger, { logMock } from '@wdio/logger'
 import * as wdioUtils from '@wdio/utils'
+import { Capabilities } from '@wdio/types'
 
 import WebDriver, { getPrototype, DEFAULTS } from '../src'
-import { DesiredCapabilities, Client } from '../src/types'
+import { Client } from '../src/types'
 
+const expect = global.expect as unknown as jest.Expect
 const got = gotMock as unknown as jest.Mock
 const sessionEnvironmentDetector = wdioUtils.sessionEnvironmentDetector as jest.Mock
 
@@ -47,6 +49,10 @@ interface TestClient extends Client {
     takeElementScreenshot (): void
     getDeviceTime (): void
 }
+
+beforeEach(() => {
+    sessionEnvironmentDetector.mockClear()
+})
 
 describe('WebDriver', () => {
     test('exports getPrototype, DEFAULTS', () => {
@@ -189,14 +195,14 @@ describe('WebDriver', () => {
                 path: '/',
                 capabilities: { browserName: 'firefox' }
             })
-            expect((browser.capabilities as DesiredCapabilities).browserName).toBe('mockBrowser')
-            expect((browser.requestedCapabilities as DesiredCapabilities).browserName).toBe('firefox')
+            expect((browser.capabilities as Capabilities.DesiredCapabilities).browserName).toBe('mockBrowser')
+            expect((browser.requestedCapabilities as Capabilities.DesiredCapabilities).browserName).toBe('firefox')
         })
     })
 
     describe('attachToSession', () => {
         it('should allow to attach to existing session', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'info' }) as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as TestClient
             await client.getUrl()
             const url = got.mock.calls[0][0]
             expect(url.href).toBe('http://localhost:4444/session/foobar/url')

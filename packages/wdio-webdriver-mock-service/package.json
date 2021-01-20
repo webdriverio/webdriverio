@@ -20,10 +20,12 @@
   "dependencies": {
     "@types/uuid": "^8.3.0",
     "@wdio/protocols": "6.12.0",
+    "@wdio/types": "^6.10.6",
     "nock": "^13.0.0",
     "uuid": "^8.0.0"
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "types": "./build/index.d.ts"
 }

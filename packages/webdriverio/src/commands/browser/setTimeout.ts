@@ -1,3 +1,5 @@
+import type { Timeouts } from '@wdio/protocols'
+
 /**
  *
  * Sets the timeouts associated with the current session, timeout durations control such
@@ -28,8 +30,8 @@
  */
 
 export default async function setTimeout(
-    this: WebdriverIO.BrowserObject,
-    timeouts: Partial<WebDriver.Timeouts>
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    timeouts: Partial<Timeouts>
 ): Promise<void> {
     if (typeof timeouts !== 'object') {
         throw new Error('Parameter for "setTimeout" command needs to be an object')

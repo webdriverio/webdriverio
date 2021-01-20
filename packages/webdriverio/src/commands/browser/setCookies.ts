@@ -1,3 +1,5 @@
+import type { Cookie } from '@wdio/protocols'
+
 /**
  *
  * Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page. Make sure you are
@@ -53,8 +55,8 @@
  *
  */
 export default async function setCookies(
-    this: WebdriverIO.BrowserObject,
-    cookieObjs: WebDriver.Cookie | WebDriver.Cookie[]
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    cookieObjs: Cookie | Cookie[]
 ) {
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
 

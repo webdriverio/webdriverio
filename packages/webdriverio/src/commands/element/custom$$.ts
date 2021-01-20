@@ -1,3 +1,10 @@
+import { ElementReference } from '@wdio/protocols'
+
+import { getElements } from '../../utils/getElementObject'
+import { getBrowserObject, enhanceElementsArray } from '../../utils'
+import { ELEMENT_KEY } from '../../constants'
+import type { ElementArray } from '../../types'
+
 /**
  *
  * The `customs$$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
@@ -22,17 +29,13 @@
  * @param {Any} strategyArguments
  * @return {ElementArray}
  */
-import { getElements } from '../../utils/getElementObject'
-import { getBrowserObject, enhanceElementsArray } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
-
 async function custom$$ (
     this: WebdriverIO.Element,
     strategyName: string,
     strategyArguments: string
-) {
-    const browserObject: WebdriverIO.BrowserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as () => WebDriver.ElementReference[]
+): Promise<ElementArray> {
+    const browserObject = getBrowserObject(this)
+    const strategy = browserObject.strategies.get(strategyName) as () => HTMLElement[]
 
     if (!strategy) {
         /* istanbul ignore next */
@@ -47,7 +50,7 @@ async function custom$$ (
         throw Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
     }
 
-    let res = await this.execute(strategy, strategyArguments, this)
+    let res = await this.execute(strategy, strategyArguments, this) as ElementReference[]
 
     /**
      * if the user's script return just one element
@@ -58,9 +61,9 @@ async function custom$$ (
         res = [res]
     }
 
-    res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
+    res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategy, res) : ([] as any as WebdriverIO.ElementArray)
+    const elements = res.length ? await getElements.call(this, strategy, res) : [] as any as ElementArray
     return enhanceElementsArray(elements, this, strategyName, 'custom$$', [strategyArguments])
 }
 

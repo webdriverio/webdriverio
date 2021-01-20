@@ -20,7 +20,7 @@ jest.mock('repl')
 
 describe('repl commandDir', () => {
     it('should call debug command', async () => {
-        const client = await handler({ browserName: 'chrome' } as any) as any as WebdriverIO.BrowserObject
+        const client = await handler({ browserName: 'chrome' } as any) as any
         expect(client.debug).toHaveBeenCalledTimes(1)
         expect(client.deleteSession).toHaveBeenCalledTimes(1)
     })
@@ -59,14 +59,15 @@ describe('Command: repl', () => {
     it('should set the correct browser', async () => {
         await handler({ option: 'foobar' } as any)
 
-        expect(remote).toHaveBeenCalledWith({ capabilities: { browserName: 'foobar' }, option: 'foobar' })
+        expect(remote).toHaveBeenCalledWith({ capabilities: { browserName: 'foobar' }, option: 'foobar' } as any)
     })
 
     it('should set runner if @wdio/sync is installed', async () => {
         setSyncSupport(true)
         await handler({ option: 'foobar' } as any)
         expect(remote).toHaveBeenCalledWith({
-            runner: 'repl',
+            runner: 'local',
+            // @ts-expect-error
             option: 'foobar',
             capabilities: {
                 browserName: 'foobar'

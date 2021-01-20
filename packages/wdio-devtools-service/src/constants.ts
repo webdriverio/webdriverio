@@ -53,7 +53,7 @@ export const IGNORED_URLS = [
     'data:,', // empty pages
     'about:', // new tabs
     'chrome-extension://' // all chrome extensions
-]
+] as const
 
 export const FRAME_LOAD_START_TIMEOUT = 2000
 export const TRACING_TIMEOUT = 15000

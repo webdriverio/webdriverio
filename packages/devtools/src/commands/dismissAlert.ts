@@ -1,3 +1,5 @@
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Dismiss Alert command dismisses a simple dialog if present, otherwise error.
  * A request to dismiss an alert user prompt, which may not necessarily have a dismiss button,
@@ -6,8 +8,6 @@
  * @alias browser.dismissAlert
  * @see https://w3c.github.io/webdriver/#dfn-dismiss-alert
  */
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function dismissAlert (this: DevToolsDriver) {
     if (!this.activeDialog) {
         throw new Error('no such alert')

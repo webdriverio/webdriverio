@@ -31,7 +31,7 @@ const adapterFactory = (config = {}) => new JasmineAdapter(
     '0-2',
     { beforeHook: [], afterHook: [], beforeTest: 'beforeTest', afterTest: 'afterTest', ...config } as any,
     ['/foo/bar.test.js'],
-    { browserName: 'chrome' },
+    { browserName: 'chrome' } as any,
     wdioReporter
 )
 

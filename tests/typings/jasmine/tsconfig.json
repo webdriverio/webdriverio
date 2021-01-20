@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "lib": ["es2018", "dom"],
+    "esModuleInterop": true,
+    "types": [
+      "webdriverio/async",
+      "@wdio/jasmine-framework"
+    ]
+  }
+}

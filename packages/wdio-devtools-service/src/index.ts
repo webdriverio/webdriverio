@@ -1,9 +1,11 @@
 import logger from '@wdio/logger'
 import puppeteerCore from 'puppeteer-core'
 
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+import type { Capabilities, Services, FunctionProperties, ThenArg } from '@wdio/types'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 
 import CommandHandler from './commands'
@@ -19,11 +21,11 @@ import { DevtoolsConfig, FormFactor, EnablePerformanceAuditsOptions, DeviceDescr
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
 
-export default class DevToolsService implements WebdriverIO.ServiceInstance {
+export default class DevToolsService implements Services.ServiceInstance {
     private _isSupported = false
     private _shouldRunPerformanceAudits = false
 
-    private _puppeteer?: Browser
+    private _puppeteer?: PuppeteerBrowser
     private _target?: Target
     private _page: Page | null = null
     private _session?: CDPSession
@@ -36,11 +38,12 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
     private _traceGatherer?: TraceGatherer
     private _devtoolsGatherer?: DevtoolsGatherer
     private _coverageGatherer?: CoverageGatherer
-    private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+    private _pwaGatherer?: PWAGatherer
+    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
 
     constructor (private _options: DevtoolsConfig) {}
 
-    beforeSession (_: WebdriverIO.Config, caps: WebDriver.DesiredCapabilities) {
+    beforeSession (_: unknown, caps: Capabilities.Capabilities) {
         if (!isBrowserSupported(caps)) {
             return log.error(UNSUPPORTED_ERROR_MESSAGE)
         }
@@ -48,9 +51,9 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
     }
 
     before (
-        caps: WebDriver.Capabilities,
+        caps: Capabilities.RemoteCapability,
         specs: string[],
-        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
     ) {
         this._browser = browser
         this._isSupported = this._isSupported || Boolean(this._browser.puppeteer)
@@ -63,7 +66,7 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
         }
 
         // resetting puppeteer on sessionReload, so a new puppeteer session will be attached
-        this._browser.puppeteer = null
+        delete this._browser.puppeteer
         return this._setupHandler()
     }
 
@@ -93,12 +96,12 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
          */
         this._traceGatherer.once('tracingComplete', (traceEvents) => {
             const auditor = new Auditor(traceEvents, this._devtoolsGatherer?.getLogs(), this._formFactor)
-            auditor.updateCommands(this._browser as WebdriverIO.BrowserObject)
+            auditor.updateCommands(this._browser as Browser<'async'>)
         })
 
         this._traceGatherer.once('tracingError', (err: Error) => {
             const auditor = new Auditor()
-            auditor.updateCommands(this._browser as WebdriverIO.BrowserObject, /* istanbul ignore next */() => {
+            auditor.updateCommands(this._browser as Browser<'async'>, /* istanbul ignore next */() => {
                 throw new Error(`Couldn't capture performance due to: ${err.message}`)
             })
         })
@@ -192,15 +195,25 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
         await this._session.send('Network.emulateNetworkConditions', NETWORK_STATES[networkThrottling])
     }
 
+    async _checkPWA (auditsToBeRun: PWAAudits[] = []) {
+        const auditor = new Auditor()
+        const artifacts = await this._pwaGatherer!.gatherData()
+        return auditor._auditPWA(artifacts, auditsToBeRun)
+    }
+
+    _getCoverageReport () {
+        return this._coverageGatherer!.getCoverageReport()
+    }
+
     async _setupHandler () {
         if (!this._isSupported || !this._browser) {
-            return setUnsupportedCommand(this._browser as WebdriverIO.BrowserObject)
+            return setUnsupportedCommand(this._browser as Browser<'async'>)
         }
 
         /**
          * casting is required as types differ between core and definitely typed types
          */
-        this._puppeteer = await this._browser.getPuppeteer() as any as Browser
+        this._puppeteer = await (this._browser as Browser<'async'>).getPuppeteer()
 
         /* istanbul ignore next */
         if (!this._puppeteer) {
@@ -245,7 +258,7 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
          */
         if (this._options.coverageReporter?.enable) {
             this._coverageGatherer = new CoverageGatherer(this._page, this._options.coverageReporter)
-            this._browser.addCommand('getCoverageReport', this._coverageGatherer.getCoverageReport.bind(this._coverageGatherer))
+            this._browser.addCommand('getCoverageReport', this._getCoverageReport.bind(this))
             await this._coverageGatherer.init()
         }
 
@@ -265,11 +278,45 @@ export default class DevToolsService implements WebdriverIO.ServiceInstance {
         this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
         this._browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
 
-        const pwaGatherer = new PWAGatherer(this._session, this._page)
-        this._browser.addCommand('checkPWA', async (auditsToBeRun: PWAAudits[]) => {
-            const auditor = new Auditor()
-            const artifacts = await pwaGatherer.gatherData()
-            return auditor._auditPWA(artifacts, auditsToBeRun)
-        })
+        this._pwaGatherer = new PWAGatherer(this._session, this._page)
+        this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
+    }
+}
+
+export * from './types'
+
+type ServiceCommands = Omit<FunctionProperties<DevToolsService>, keyof Services.HookFunctions | '_setupHandler'>
+type CommandHandlerCommands = FunctionProperties<CommandHandler>
+type AuditorCommands = Omit<FunctionProperties<Auditor>, '_audit' | '_auditPWA' | 'updateCommands'>
+
+/**
+ * ToDo(Christian): use key remapping with TS 4.1
+ * https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#key-remapping-in-mapped-types
+ */
+interface BrowserExtension extends CommandHandlerCommands, AuditorCommands {
+    enablePerformanceAudits: ServiceCommands['_enablePerformanceAudits']
+    disablePerformanceAudits: ServiceCommands['_disablePerformanceAudits']
+    emulateDevice: ServiceCommands['_emulateDevice']
+    setThrottlingProfile: ServiceCommands['_setThrottlingProfile']
+    checkPWA: ServiceCommands['_checkPWA']
+    getCoverageReport: ServiceCommands['_getCoverageReport']
+}
+export type BrowserExtensionSync = {
+    [K in keyof BrowserExtension]: (...args: Parameters<BrowserExtension[K]>) => ThenArg<ReturnType<BrowserExtension[K]>>
+}
+
+declare global {
+    namespace WebdriverIO {
+        interface ServiceOption extends DevtoolsConfig {}
+    }
+
+    namespace WebdriverIOAsync {
+        interface Browser extends BrowserExtension { }
+        interface MultiRemoteBrowser extends BrowserExtension { }
+    }
+
+    namespace WebdriverIOSync {
+        interface Browser extends BrowserExtensionSync { }
+        interface MultiRemoteBrowser extends BrowserExtensionSync { }
     }
 }

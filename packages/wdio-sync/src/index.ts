@@ -1,4 +1,5 @@
 import Fiber from './fibers'
+import type { Browser } from 'webdriverio'
 
 import executeHooksWithArgs from './executeHooksWithArgs'
 import runFnInFiberContext from './runFnInFiberContext'
@@ -6,6 +7,11 @@ import wrapCommand from './wrapCommand'
 
 import { stackTraceFilter } from './utils'
 const defaultRetries = { attempts: 0, limit: 0 }
+
+declare global {
+    var _HAS_FIBER_CONTEXT: boolean
+    var browser: any
+}
 
 /**
  * execute test or hook synchronously
@@ -15,7 +21,7 @@ const defaultRetries = { attempts: 0, limit: 0 }
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-async function executeSync (this: WebdriverIO.BrowserObject, fn: Function, retries = defaultRetries, args: any[] = []): Promise<any> {
+async function executeSync (this: Browser<'async'>, fn: Function, retries = defaultRetries, args: any[] = []): Promise<any> {
     /**
      * User can also use the `@wdio/sync` package directly to run commands
      * synchronously in standalone mode. In this case we neither have

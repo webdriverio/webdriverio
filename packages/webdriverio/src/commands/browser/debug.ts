@@ -1,3 +1,6 @@
+import { serializeError } from 'serialize-error'
+import WDIORepl from '@wdio/repl'
+
 /**
  *
  * This command helps you to debug your integration tests. It stops the running browser and gives
@@ -28,12 +31,8 @@
  * @type utility
  *
  */
-
-import { serializeError } from 'serialize-error'
-import WDIORepl from '@wdio/repl'
-
 export default function debug(
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     commandTimeout = 5000
 ) {
     const repl = new WDIORepl()

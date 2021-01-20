@@ -19,9 +19,8 @@
  * @type utility
  *
  */
-
 export default function pause (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     milliseconds = 1000
 ) {
     return new Promise((resolve) => setTimeout(resolve, milliseconds))

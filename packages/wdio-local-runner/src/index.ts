@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
+import type { Options } from '@wdio/types'
 
 import WorkerInstance from './worker'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants'
@@ -13,15 +14,15 @@ interface RunArgs extends WorkerRunPayload {
 }
 
 export default class LocalRunner {
-    config: WebdriverIO.Config
     workerPool: Record<string, WorkerInstance> = {}
 
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
 
-    constructor (configFile: string, config: WebdriverIO.Config) {
-        this.config = config
-    }
+    constructor (
+        configFile: unknown,
+        private _config: Options.Testrunner
+    ) {}
 
     /**
      * nothing to initialise when running locally
@@ -42,7 +43,7 @@ export default class LocalRunner {
             process.stderr.setMaxListeners(workerCnt + 2)
         }
 
-        const worker = new WorkerInstance(this.config, workerOptions, this.stdout, this.stderr)
+        const worker = new WorkerInstance(this._config, workerOptions, this.stdout, this.stderr)
         this.workerPool[workerOptions.cid] = worker
         worker.postMessage(command, args)
 
