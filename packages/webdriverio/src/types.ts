@@ -1,6 +1,8 @@
 import type { EventEmitter } from 'events'
+
+import type { SessionFlags } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
-import type { ElementReference } from '@wdio/protocols'
+import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import type BrowserCommands from './commands/browser'
@@ -24,7 +26,7 @@ export interface ElementArray extends Array<WebdriverIO.Element> {
 }
 
 type AddCommandFnScoped<
-    InstanceType = Browser,
+    InstanceType = WebdriverIO.Browser,
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? WebdriverIO.Element : InstanceType,
@@ -38,7 +40,7 @@ type OverwriteCommandFnScoped<
     BrowserKey extends keyof BrowserCommandsType,
     IsElement extends boolean = false
 > = (
-    this: IsElement extends true ? WebdriverIO.Element : Browser,
+    this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
     origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
     ...args: any[]
 ) => Promise<any>
@@ -61,7 +63,7 @@ export interface CustomInstanceCommands<T> {
         func: AddCommandFn | AddCommandFnScoped<T, IsElement>,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, Browser | MultiRemoteBrowser>
+        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
     ): void;
 
     /**
@@ -72,7 +74,7 @@ export interface CustomInstanceCommands<T> {
         func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement> | OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, Browser | MultiRemoteBrowser>
+        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
     ): void;
 
     /**
@@ -84,13 +86,13 @@ export interface CustomInstanceCommands<T> {
     ): void
 }
 
-export interface Browser extends EventEmitter, CustomInstanceCommands<Browser> {
+interface InstanceBase extends EventEmitter, SessionFlags {
     sessionId: string
     capabilities: Capabilities.RemoteCapability
+    requestedCapabilities: Capabilities.RemoteCapability
     options: Options.WebdriverIO | Options.Testrunner
-    strategies: Map<any, any>
-    isMultiremote: false
     puppeteer?: PuppeteerBrowser
+    strategies: Map<any, any>
     __propertiesObject__: Record<string, PropertyDescriptor>
 
     /**
@@ -103,8 +105,22 @@ export interface Browser extends EventEmitter, CustomInstanceCommands<Browser> {
     wdioRetries?: number
 }
 
-export interface Element extends EventEmitter, ElementReference, CustomInstanceCommands<WebdriverIO.Element> {
-    options: Options.WebdriverIO | Options.Testrunner
+/**
+ * a browser base that has everything besides commands which are defined for sync and async seperately
+ */
+export interface BrowserBase extends InstanceBase, CustomInstanceCommands<WebdriverIO.Browser> {
+    isMultiremote: false
+}
+
+/**
+ * export a browser interface that can be used for typing plugins
+ */
+interface BrowserAsync extends BrowserBase, BrowserCommandsType, ProtocolCommandsAsync {}
+interface BrowserSync extends BrowserBase, BrowserCommandsTypeSync, ProtocolCommands {}
+export type Browser<T extends 'sync' | 'async'> = T extends 'sync' ? BrowserSync : BrowserAsync
+
+export interface ElementBase extends InstanceBase, ElementReference, CustomInstanceCommands<WebdriverIO.Element> {
+    isMultiremote: false
     /**
      * WebDriver element reference
      */
@@ -136,21 +152,13 @@ export interface Element extends EventEmitter, ElementReference, CustomInstanceC
      * error response if element was not found
      */
     error?: Error
-
-    /**
-     * @private
-     */
-    _NOT_FIBER?: boolean
 }
 
-interface MultiRemoteBase extends EventEmitter, CustomInstanceCommands<MultiRemoteBrowser> {
-    sessionId?: string
-    options: Options.WebdriverIO | Options.Testrunner
-    puppeteer?: PuppeteerBrowser
-    /**
-     * ToDo(Christian): merge with Browser
-     */
-    strategies: Map<any, any>
+interface ElementAsync extends ElementBase, ProtocolCommandsAsync, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
+interface ElementSync extends ElementBase, ProtocolCommands, Omit<BrowserCommandsTypeSync, keyof ElementCommandsTypeSync>, ElementCommandsTypeSync {}
+export type Element<T extends 'sync' | 'async'> = T extends 'sync' ? ElementSync : ElementAsync
+
+interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
     /**
      * multiremote browser instance names
      */
@@ -161,8 +169,11 @@ interface MultiRemoteBase extends EventEmitter, CustomInstanceCommands<MultiRemo
     isMultiremote: true
 }
 
-type MultiRemoteBrowserReference = Record<string, WebdriverIO.Browser | WebdriverIO.Element>
-export type MultiRemoteBrowser = MultiRemoteBase & MultiRemoteBrowserReference
+type MultiRemoteBrowserReferenceAsync = Record<string, Browser<'async'> | Element<'async'>>
+type MultiRemoteBrowserReferenceSync = Record<string, Browser<'sync'> | Element<'sync'>>
+interface MultiRemoteBrowserAsync extends MultiRemoteBase, BrowserCommandsType, ProtocolCommandsAsync { }
+interface MultiRemoteBrowserSync extends MultiRemoteBase, BrowserCommandsTypeSync, ProtocolCommands { }
+export type MultiRemoteBrowser<T extends 'sync' | 'async'> = T extends 'sync' ? MultiRemoteBrowserReferenceSync & MultiRemoteBrowserSync : MultiRemoteBrowserReferenceAsync & MultiRemoteBrowserAsync
 
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
 export type Selector = string | ElementReference | ElementFunction

@@ -44,6 +44,16 @@ export const builder = (yargs: yargs.Argv) => {
         .help()
 }
 
+declare global {
+    namespace NodeJS {
+        interface Global {
+            $: any
+            $$: any
+            browser: any
+        }
+    }
+}
+
 export const handler = async (argv: ReplCommandArguments) => {
     const caps = getCapabilities(argv)
 

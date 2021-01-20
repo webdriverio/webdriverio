@@ -6,19 +6,21 @@ import SharedStoreService from './service'
 export default SharedStoreService
 export const launcher = SharedStoreLauncher
 
+export interface BrowserExtension {
+    sharedStore: {
+        get: (key: string) => JsonPrimitive | JsonCompatible;
+        set: (key: string, value: JsonPrimitive | JsonCompatible) => void;
+    }
+}
+
 declare global {
-    namespace WebdriverIO {
-        interface SharedStore {
-            get: (key: string) => JsonPrimitive | JsonCompatible;
-            set: (key: string, value: JsonPrimitive | JsonCompatible) => void;
-        }
+    namespace WebdriverIOAsync {
+        interface Browser extends BrowserExtension { }
+        interface MultiRemoteBrowser extends BrowserExtension { }
+    }
 
-        interface Browser {
-            sharedStore: SharedStore
-        }
-
-        interface MultiRemoteBrowser {
-            sharedStore: SharedStore
-        }
+    namespace WebdriverIOSync {
+        interface Browser extends BrowserExtension { }
+        interface MultiRemoteBrowser extends BrowserExtension { }
     }
 }

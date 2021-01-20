@@ -1,6 +1,6 @@
-type BrowserSync = import('./build/types').Browser<'async'>
-type ElementSync = import('./build/types').Element<'async'>
-type MultiRemoteBrowserSync = import('./build/types').MultiRemoteBrowser<'async'>
+type BrowserSync = import('../types').Browser<'async'>
+type ElementSync = import('../types').Element<'async'>
+type MultiRemoteBrowserSync = import('../types').MultiRemoteBrowser<'async'>
 
 declare namespace WebdriverIOAsync {
     interface Browser {}
@@ -13,6 +13,12 @@ declare namespace WebdriverIO {
     interface Element extends ElementSync, WebdriverIOAsync.Element { }
     // @ts-expect-error
     interface MultiRemoteBrowser extends MultiRemoteBrowserSync, WebdriverIOAsync.MultiRemoteBrowser { }
+}
+
+declare module NodeJS {
+    interface Global {
+        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    }
 }
 
 declare function $(...args: Parameters<WebdriverIO.Browser['$']>): WebdriverIO.Element

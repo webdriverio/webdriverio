@@ -1,8 +1,7 @@
-/// <reference types="webdriverio/async" />
-
 import logger from '@wdio/logger'
 import { Eyes, Target } from '@applitools/eyes-webdriverio'
 import type { Services, Capabilities, FunctionProperties } from '@wdio/types'
+import type { Browser } from 'webdriverio'
 
 import { ApplitoolsConfig, Frame, Region } from './types'
 
@@ -17,7 +16,7 @@ export default class ApplitoolsService implements Services.ServiceInstance {
     private _isConfigured: boolean = false
     private _viewport: Required<ApplitoolsConfig['viewport']>
     private _eyes = new Eyes()
-    private _browser?: WebdriverIO.Browser
+    private _browser?: Browser<'async'>
 
     constructor(private _options: ApplitoolsConfig) {}
 
@@ -55,7 +54,7 @@ export default class ApplitoolsService implements Services.ServiceInstance {
     before(
         caps: Capabilities.RemoteCapability,
         specs: string[],
-        browser: WebdriverIO.Browser
+        browser: Browser<'async'>
     ) {
         this._browser = browser
 
@@ -67,7 +66,7 @@ export default class ApplitoolsService implements Services.ServiceInstance {
         this._browser.addCommand('takeRegionSnapshot', this._takeRegionSnapshot.bind(this))
     }
 
-    _takeSnapshot (title: string) {
+    _takeSnapshot (title: string): void {
         if (!title) {
             throw new Error('A title for the Applitools snapshot is missing')
         }
@@ -75,7 +74,7 @@ export default class ApplitoolsService implements Services.ServiceInstance {
         return this._eyes.check(title, Target.window())
     }
 
-    _takeRegionSnapshot (title: string, region: Region, frame: Frame) {
+    _takeRegionSnapshot (title: string, region: Region, frame: Frame): void {
         if (!title) {
             throw new Error('A title for the Applitools snapshot is missing')
         }
@@ -117,12 +116,23 @@ export default class ApplitoolsService implements Services.ServiceInstance {
 export * from './types'
 
 type ServiceCommands = FunctionProperties<ApplitoolsService>
+interface BrowserExtension {
+    takeSnapshot: ServiceCommands['_takeSnapshot']
+    takeRegionSnapshot: ServiceCommands['_takeRegionSnapshot']
+}
+
 declare global {
     namespace WebdriverIO {
         interface ServiceOption extends ApplitoolsConfig {}
-        interface Browser {
-            takeSnapshot: ServiceCommands['_takeSnapshot']
-            takeRegionSnapshot: ServiceCommands['_takeRegionSnapshot']
-        }
+    }
+
+    namespace WebdriverIOAsync {
+        interface Browser extends BrowserExtension { }
+        interface MultiRemoteBrowser extends BrowserExtension { }
+    }
+
+    namespace WebdriverIOSync {
+        interface Browser extends BrowserExtension { }
+        interface MultiRemoteBrowser extends BrowserExtension { }
     }
 }

@@ -1,13 +1,20 @@
 import allure from '@wdio/allure-reporter'
 import { remote, multiremote, SevereServiceError } from 'webdriverio'
+import type { MockOverwriteFunction, ClickOptions, TouchAction } from 'webdriverio'
 
-declare module "webdriverio" {
-    interface Browser {
-        browserCustomCommand: (arg: unknown) => Promise<void>
-    }
+declare global {
+    namespace WebdriverIO {
+        interface Browser {
+            browserCustomCommand: (arg: unknown) => Promise<void>
+        }
 
-    interface Element {
-        elementCustomCommand: (arg: unknown) => Promise<number>
+        interface MultiRemoteBrowser {
+            browserCustomCommand: (arg: unknown) => Promise<void>
+        }
+
+        interface Element {
+            elementCustomCommand: (arg: unknown) => Promise<number>
+        }
     }
 }
 
@@ -26,20 +33,20 @@ async function bar() {
     }).then(() => {}, () => {})
 
     // interact with specific instance
-    const mrSingleElem = await mr.myBrowserInstance.$('')
-    await mrSingleElem.click()
+    // const mrSingleElem = await mr.myBrowserInstance.$('')
+    // await mrSingleElem.click()
 
-    // interact with all instances
-    const mrElem = await mr.$('')
-    await mrElem.click()
+    // // interact with all instances
+    // const mrElem = await mr.$('')
+    // await mrElem.click()
 
-    // instances array
-    mr.instances[0].substr(0, 1)
+    // // instances array
+    // mr.instances[0].substr(0, 1)
 
     ////////////////////////////////////////////////////////////////////////////////
 
     // remote
-    const browser = await remote({ capabilities: { browserName: 'chrome' } })
+    const remoteBrowser = await remote({ capabilities: { browserName: 'chrome' } })
     remote({ capabilities: { browserName: 'chrome' } }).then(
         () => {}, () => {})
     const rElem = await browser.$('')
@@ -65,7 +72,7 @@ async function bar() {
     // overwriteCommand
 
     // element
-    type ClickOptionsExtended = WebdriverIO.ClickOptions & { wait?: boolean }
+    type ClickOptionsExtended = ClickOptions & { wait?: boolean }
     browser.overwriteCommand('click', async function (clickFn, opts: Partial<ClickOptionsExtended> = {}) {
         if (opts.wait) {
             await this.waitForClickable().catch()
@@ -256,7 +263,7 @@ async function bar() {
 
     // touchAction
     const ele = await $('')
-    const touchAction: WebdriverIO.TouchAction = {
+    const touchAction: TouchAction = {
         action: "longPress",
         element: await $(''),
         ms: 0,
@@ -303,7 +310,7 @@ async function bar() {
         statusCode: 100,
         headers: { foo: 'bar' }
     })
-    const res: WebdriverIO.MockOverwriteFunction = async function (req, client) {
+    const res: MockOverwriteFunction = async function (req, client) {
         const url:string = req.url
         await client.send('Console.clearMessages')
         return url

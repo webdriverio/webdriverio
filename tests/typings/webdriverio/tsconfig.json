@@ -4,7 +4,7 @@
     "noImplicitAny": true,
     "lib": ["es2018", "dom"],
     "types": [
-      "webdriverio",
+      "webdriverio/async",
       "@wdio/allure-reporter",
       "@wdio/appium-service",
       "@wdio/applitools-service",

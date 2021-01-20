@@ -1,8 +1,7 @@
-/// <reference types="webdriverio/async" />
-
 import logger from '@wdio/logger'
 import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability } from './util'
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
@@ -15,7 +14,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _failReasons: string[] = []
     private _scenariosThatRan: string[] = []
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
-    private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _fullTitle?: string
 
     constructor (
@@ -58,7 +57,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
     }
 
-    before(caps: Capabilities.RemoteCapability, specs: string[], browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+    before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
         this._browser = browser
 
         // Ensure capabilities are not null in case of multiremote
@@ -149,8 +148,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (!this._browser.isMultiremote) {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
-            const browserName = (this._browser as WebdriverIO.MultiRemoteBrowser).instances.filter(
-                (browserName) => this._browser && (this._browser as WebdriverIO.MultiRemoteBrowser)[browserName].sessionId === newSessionId)[0]
+            const browserName = (this._browser as MultiRemoteBrowser<'async'>).instances.filter(
+                (browserName) => this._browser && (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
             log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 

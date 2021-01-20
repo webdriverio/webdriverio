@@ -1,9 +1,9 @@
-let browser: WebdriverIO.Browser
-
-browser.takeSnapshot('title')
-browser.takeRegionSnapshot('title', {
-    top: 1,
-    left: 1,
-    width: 1,
-    height: 1
-}, 'someFrame')
+(async () => {
+    browser.takeSnapshot('title')
+    browser.takeRegionSnapshot('title', {
+        top: 1,
+        left: 1,
+        width: 1,
+        height: 1
+    }, 'someFrame')
+})()

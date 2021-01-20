@@ -49,5 +49,5 @@ export default async function reloadSession (this: WebdriverIO.Browser | Webdriv
         await Promise.all(options.onReload.map((hook) => hook(oldSessionId, (this as WebdriverIO.Browser).sessionId)))
     }
 
-    return this.sessionId
+    return this.sessionId as string
 }

@@ -16,6 +16,7 @@ import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
 } from './utils'
+import type { Browser, MultiRemoteBrowser } from './types'
 
 type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 
@@ -26,7 +27,7 @@ type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilitie
  * @param  {function} remoteModifier  Modifier function to change the monad object
  * @return {object}                   browser object with sessionId
  */
-export const remote = async function (params: RemoteOptions, remoteModifier?: Function) {
+export const remote = async function (params: RemoteOptions, remoteModifier?: Function): Promise<Browser<'async'>> {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
 
     const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
@@ -78,7 +79,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     return instance
 }
 
-export const attach = function (params: WebDriverTypes.AttachOptions) {
+export const attach = function (params: WebDriverTypes.AttachOptions): Browser<'async'> {
     const prototype = getPrototype('browser')
     return WebDriver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
 }
@@ -86,7 +87,7 @@ export const attach = function (params: WebDriverTypes.AttachOptions) {
 export const multiremote = async function (
     params: Capabilities.MultiRemoteCapabilities,
     { automationProtocol }: { automationProtocol?: string } = {}
-) {
+): Promise<MultiRemoteBrowser<'async'>> {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
 
@@ -155,26 +156,3 @@ export const multiremote = async function (
 export const SevereServiceError = SevereServiceErrorImport
 export * from './types'
 export * from './utils/interception/types'
-
-// declare global {
-//     namespace WebdriverIO {
-//         interface Browser extends BrowserType {}
-//         interface Element extends ElementType {}
-
-//         type MultiRemoteBrowser = MultiRemoteBrowserType
-//         type TouchAction = TouchActionImport
-//         type ClickOptions = Required<Parameters<ElementType['click']>[0]>
-//         type MockOverwriteFunction = MockOverwriteFunctionImport
-//         type MockOverwrite = MockOverwriteImport
-//     }
-
-//     module NodeJS {
-//         interface Global {
-//             browser: BrowserType | MultiRemoteBrowserType
-//             driver: BrowserType | MultiRemoteBrowserType
-//         }
-//     }
-
-//     function $(...args: Parameters<BrowserType['$']>): ReturnType<BrowserType['$']>
-//     function $$(...args: Parameters<BrowserType['$$']>): ReturnType<BrowserType['$$']>
-// }

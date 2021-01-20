@@ -55,7 +55,7 @@ export const getElement = function findElement(
         return client
     }, propertiesObject)
 
-    const elementInstance = element(this.sessionId!, elementErrorHandler(wrapCommand))
+    const elementInstance = element(this.sessionId as string, elementErrorHandler(wrapCommand))
 
     const origAddCommand = elementInstance.addCommand.bind(elementInstance)
     elementInstance.addCommand = (name: string, fn: Function) => {

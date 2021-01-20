@@ -4,22 +4,21 @@
     "noImplicitAny": true,
     "lib": ["es2018", "dom"],
     "types": [
-      "node",
       "webdriverio/sync",
       "@wdio/devtools-service",
       "@wdio/shared-store-service",
-      // "@wdio/allure-reporter",
-      // "@wdio/appium-service",
-      // "@wdio/applitools-service",
-      // "@wdio/browserstack-service",
-      // "@wdio/jasmine-framework",
-      // "@wdio/selenium-standalone-service",
-      // "@wdio/crossbrowsertesting-service",
-      // "@wdio/firefox-profile-service",
-      // "@wdio/static-server-service",
-      // "@wdio/testingbot-service",
-      // "@wdio/sauce-service",
-      // "@wdio/sumologic-reporter"
+      "@wdio/allure-reporter",
+      "@wdio/appium-service",
+      "@wdio/applitools-service",
+      "@wdio/browserstack-service",
+      "@wdio/jasmine-framework",
+      "@wdio/selenium-standalone-service",
+      "@wdio/crossbrowsertesting-service",
+      "@wdio/firefox-profile-service",
+      "@wdio/static-server-service",
+      "@wdio/testingbot-service",
+      "@wdio/sauce-service",
+      "@wdio/sumologic-reporter"
     ]
   }
 }

@@ -1,5 +1,3 @@
-/// <reference types="webdriverio/async" />
-
 import fs from 'fs'
 import path from 'path'
 import util from 'util'
@@ -9,12 +7,23 @@ import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
-import type { Selector } from 'webdriverio'
+import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import BaseReporter from './reporter'
 import { initialiseInstance, filterLogTypes, getInstancesData } from './utils'
 
 const log = logger('@wdio/runner')
+
+declare global {
+    namespace NodeJS {
+        interface Global {
+            $: any
+            $$: any
+            browser: any
+            driver: any
+        }
+    }
+}
 
 interface Args extends Partial<Options.Testrunner> {
     ignoredWorkerServices?: string[]
@@ -155,7 +164,7 @@ export default class Runner extends EventEmitter {
         /**
          * initialisation successful, send start message
          */
-        const multiRemoteBrowser = browser as unknown as WebdriverIO.MultiRemoteBrowser
+        const multiRemoteBrowser = browser as unknown as MultiRemoteBrowser<'async'>
         this._reporter.emit('runner:start', {
             cid,
             specs,
@@ -214,19 +223,19 @@ export default class Runner extends EventEmitter {
      * @param  {Object}  browserStub   stubbed `browser` object with only capabilities, config and env flags
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
-    async _initSession (
+    private async _initSession (
         config: SingleConfigOption,
         caps: Capabilities.RemoteCapability,
-        browserStub?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+        browserStub?: Browser<'async'> | MultiRemoteBrowser<'async'>
     ) {
-        const browser = await this._startSession(config, caps) as WebdriverIO.Browser
+        const browser = await this._startSession(config, caps) as Browser<'async'>
 
         // return null if session couldn't get established
         if (!browser) { return }
 
         // add flags declared by user to browser object
         if (browserStub) {
-            Object.entries(browserStub).forEach(([key, value]: [keyof WebdriverIO.Browser, any]) => {
+            Object.entries(browserStub).forEach(([key, value]: [keyof Browser<'async'>, any]) => {
                 if (typeof browser[key] === 'undefined') {
                     // @ts-ignore allow to set value for undefined props
                     browser[key] = value
@@ -265,11 +274,11 @@ export default class Runner extends EventEmitter {
      * @param  {Object}  caps          desired capabilities of session
      * @return {Promise}               resolves with browser object or null if session couldn't get established
      */
-    async _startSession (
+    private async _startSession (
         config: SingleConfigOption,
         caps: Capabilities.RemoteCapability
     ) {
-        let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+        let browser: Browser<'async'> | MultiRemoteBrowser<'async'>
 
         try {
             browser = global.browser = global.driver = await initialiseInstance(config, caps, this._isMultiremote)
@@ -286,7 +295,7 @@ export default class Runner extends EventEmitter {
     /**
      * fetch logs provided by browser driver
      */
-    async _fetchDriverLogs (
+    private async _fetchDriverLogs (
         config: Options.Testrunner,
         excludeDriverLogs: string[]
     ) {
@@ -357,7 +366,7 @@ export default class Runner extends EventEmitter {
     /**
      * kill worker session
      */
-    async _shutdown (
+    private async _shutdown (
         failures: number,
         retries: number
     ) {
@@ -383,7 +392,7 @@ export default class Runner extends EventEmitter {
         /**
          * make sure instance(s) exist and have `sessionId`
          */
-        const multiremoteBrowser = global.browser as unknown as WebdriverIO.MultiRemoteBrowser
+        const multiremoteBrowser = global.browser as unknown as MultiRemoteBrowser<'async'>
         const hasSessionId = Boolean(global.browser) && (this._isMultiremote
             /**
              * every multiremote instance should exist and should have `sessionId`
@@ -429,7 +438,6 @@ export default class Runner extends EventEmitter {
 
         await executeHooksWithArgs(
             'afterSession',
-            // @ts-expect-error
             global.browser.config.afterSession as Function,
             [this._config, capabilities, this._specs as string[]]
         )

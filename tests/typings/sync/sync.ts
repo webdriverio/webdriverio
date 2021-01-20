@@ -1,5 +1,5 @@
 import allure from '@wdio/allure-reporter'
-import type { MockOverwriteFunction, ClickOptions } from 'webdriverio'
+import type { MockOverwriteFunction, ClickOptions, TouchAction } from 'webdriverio'
 
 const { SevereServiceError } = require('webdriverio')
 
@@ -194,7 +194,7 @@ reactElements[0].click()
 
 // touchAction
 const ele = $('')
-const touchAction = {
+const touchAction: TouchAction = {
     action: 'press' as const,
     element: $(''),
     ms: 0,

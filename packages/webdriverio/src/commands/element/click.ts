@@ -1,8 +1,4 @@
-type ClickOptions = {
-    button?: number | string,
-    x?: number,
-    y?: number
-}
+import { ClickOptions } from '../../types'
 
 /**
  *

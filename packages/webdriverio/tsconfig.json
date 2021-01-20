@@ -7,7 +7,6 @@
   },
   "include": [
     "src/**/*",
-    "../../@types",
-    "./async.d.ts"
+    "../../@types"
   ]
 }

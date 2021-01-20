@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
+import type { Browser, Element, MultiRemoteBrowser } from 'webdriverio'
 
 import executeHooksWithArgs from './executeHooksWithArgs'
 import { sanitizeErrorMessage } from './utils'
@@ -9,7 +10,7 @@ const log = logger('@wdio/sync')
 
 let inCommandHook = false
 const timers: any[] = []
-const elements: Set<WebdriverIO.Element> = new Set()
+const elements: Set<Element<'async'>> = new Set()
 
 declare global {
     var WDIO_WORKER: boolean
@@ -42,7 +43,7 @@ process.on('WDIO_TIMER', (payload) => {
  * @return {Function}   actual wrapped function
  */
 export default function wrapCommand (commandName: string, fn: Function) {
-    return function wrapCommandFn(this: WebdriverIO.Browser | WebdriverIO.Element, ...args: any[]) {
+    return function wrapCommandFn(this: Browser<'async'> | Element<'async'>, ...args: any[]) {
         /**
          * print error if a user is using a fiberized command outside of the Fibers context
          */
@@ -57,14 +58,14 @@ export default function wrapCommand (commandName: string, fn: Function) {
          * store element if Timer is running to reset `_NOT_FIBER` if timeout has occurred
          */
         if (timers.length > 0) {
-            elements.add(this as WebdriverIO.Element)
+            elements.add(this as Element<'async'>)
         }
 
         /**
          * Avoid running some functions in Future that are not in Fiber.
          */
         if (this._NOT_FIBER === true) {
-            this._NOT_FIBER = isNotInFiber(this as WebdriverIO.Element, fn.name)
+            this._NOT_FIBER = isNotInFiber(this as Element<'async'>, fn.name)
             return fn.apply(this, args)
         }
         /**
@@ -107,7 +108,7 @@ export default function wrapCommand (commandName: string, fn: Function) {
  * helper method that runs the command with before/afterCommand hook
  */
 async function runCommandWithHooks(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: Browser<'async'> | Element<'async'>,
     commandName: string,
     fn: Function,
     ...args: any[]
@@ -149,31 +150,31 @@ async function runCommandHook(hookName: string, hookFn?: Function | Function[], 
  * @param {object} context browser or element
  * @param {string} fnName function name
  */
-function isNotInFiber(context: WebdriverIO.Element, fnName: string) {
-    return fnName !== '' && !!(context.elementId || (context.parent && (context.parent as WebdriverIO.Element).elementId))
+function isNotInFiber(context: Element<'async'>, fnName: string) {
+    return fnName !== '' && !!(context.elementId || (context.parent && (context.parent as Element<'async'>).elementId))
 }
 
 /**
  * set `_NOT_FIBER` to `false` for element and its parents
  * @param {object} context browser or element
  */
-function inFiber (context: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser) {
-    const multiRemoteContext = context as WebdriverIO.MultiRemoteBrowser
+function inFiber (context: Browser<'async'> | Element<'async'> | MultiRemoteBrowser<'async'>) {
+    const multiRemoteContext = context as MultiRemoteBrowser<'async'>
     if (multiRemoteContext.constructor.name === 'MultiRemoteDriver') {
         return multiRemoteContext.instances.forEach(instance => {
             multiRemoteContext[instance]._NOT_FIBER = false
-            let parent = (multiRemoteContext[instance] as WebdriverIO.Element).parent
+            let parent = (multiRemoteContext[instance] as Element<'async'>).parent
             while (parent && parent._NOT_FIBER) {
                 parent._NOT_FIBER = false
-                parent = (parent as WebdriverIO.Element).parent
+                parent = (parent as Element<'async'>).parent
             }
         })
     }
 
     context._NOT_FIBER = false
-    let parent = (context as WebdriverIO.Element).parent
+    let parent = (context as Element<'async'>).parent
     while (parent && parent._NOT_FIBER) {
         parent._NOT_FIBER = false
-        parent = (parent as WebdriverIO.Element).parent
+        parent = (parent as Element<'async'>).parent
     }
 }

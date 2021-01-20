@@ -2,7 +2,7 @@ import zip from 'lodash.zip'
 import clone from 'lodash.clonedeep'
 import { webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
-import type { ProtocolCommands } from 'webdriver'
+import type { ProtocolCommands } from '@wdio/protocols'
 
 import { multiremoteHandler } from './middlewares'
 import { getPrototype } from './utils'
@@ -21,8 +21,8 @@ export default class MultiRemote {
     /**
      * add instance to multibrowser instance
      */
-    async addInstance (browserName: string, client: WebdriverIO.Browser) {
-        this.instances[browserName] = await client
+    async addInstance (browserName: string, client: any) {
+        this.instances[browserName] = await client as WebdriverIO.Browser
         return this.instances[browserName]
     }
 

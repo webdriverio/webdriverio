@@ -1,8 +1,7 @@
-/// <reference types="webdriverio/async" />
-
 import nock from 'nock'
 import { v4 as uuidv4 } from 'uuid'
 import type { Services } from '@wdio/types'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import WebDriverMock from './WebDriverMock'
 
@@ -14,7 +13,7 @@ const ELEMENT_REFETCHED = '80d860d0-b829-f540-812e-7078eb983795'
 const ELEMENT_ALT = '8bf4d107-a363-40d1-b823-d94bdbc58afb'
 
 export default class WebdriverMockService implements Services.ServiceInstance {
-    private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _mock = new WebDriverMock()
 
     constructor () {
@@ -39,7 +38,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
     before (
         caps: unknown,
         specs: unknown,
-        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
     ) {
         this._browser = browser
 
