@@ -17,6 +17,39 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v6.12.1 (2021-01-20)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#6330](https://github.com/webdriverio/webdriverio/pull/6330) Move cucumber-framework supporting types to private declaration in browserstack-service ([@reidj32](https://github.com/reidj32))
+
+#### :nail_care: Polish
+* `wdio-config`
+  * [#6326](https://github.com/webdriverio/webdriverio/pull/6326) Better integrate Sauce visual ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#6329](https://github.com/webdriverio/webdriverio/pull/6329) Update constants.ts ([@tzurp](https://github.com/tzurp))
+* `wdio-sauce-service`
+  * [#6327](https://github.com/webdriverio/webdriverio/pull/6327) Sauce Service: Push error stack to Sauce ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* Other
+  * [#6328](https://github.com/webdriverio/webdriverio/pull/6328) Update services.json ([@tzurp](https://github.com/tzurp))
+  * [#6319](https://github.com/webdriverio/webdriverio/pull/6319) Update BoilerplateProjects.md ([@17thSep](https://github.com/17thSep))
+  * [#6318](https://github.com/webdriverio/webdriverio/pull/6318) docs: fix the default branch in uses ([@megos](https://github.com/megos))
+* `webdriver`, `webdriverio`
+  * [#6314](https://github.com/webdriverio/webdriverio/pull/6314) docs: typos, grammar, etc. ([@thorn0](https://github.com/thorn0))
+
+#### Committers: 8
+- 17thSep.net ([@17thSep](https://github.com/17thSep))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Georgii Dolzhykov ([@thorn0](https://github.com/thorn0))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@reidj32](https://github.com/reidj32)
+- [@tzurp](https://github.com/tzurp)
+- megos ([@megos](https://github.com/megos))
+
+
 ## v6.12.0 (2021-01-13)
 
 #### :rocket: New Feature
