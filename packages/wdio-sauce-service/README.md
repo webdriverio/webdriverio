@@ -134,7 +134,7 @@ In order to authorize to the Sauce Labs service your config needs to contain a [
 This service will automatically push the error stack to Sauce Labs when a test fails. By default it will only push the first 5
 lines, but if needed this can be changed. Be aware that more lines will result in more WebDriver calls which might slow down the execution.
 
-Type: `number`<br>
+Type: `number`<br />
 Default: `5`
 
 *(only for vm and or em/simulators)*

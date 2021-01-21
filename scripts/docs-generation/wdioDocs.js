@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const markdox = require('markdox')
+const { promisify } = require('util')
 
 const formatter = require('../utils/formatter')
 const compiler = require('../utils/compiler')
@@ -11,11 +12,13 @@ const MARKDOX_OPTIONS = {
     template: TEMPLATE_PATH
 }
 
+const processDocs = promisify(markdox.process)
+
 /**
  * Generate WebdriverIO docs
  * @param {object} sidebars website/sidebars
  */
-exports.generateWdioDocs = (sidebars) => {
+exports.generateWdioDocs = async (sidebars) => {
     const COMMAND_DIR = path.join(__dirname, '..', '..', 'packages', 'webdriverio', 'src', 'commands')
     const COMMANDS = {
         browser: fs.readdirSync(path.join(COMMAND_DIR, 'browser')),
@@ -42,18 +45,8 @@ exports.generateWdioDocs = (sidebars) => {
             const filepath = path.join(COMMAND_DIR, scope, file)
             const output = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
             const options = Object.assign({}, MARKDOX_OPTIONS, { output })
-            markdox.process(
-                filepath,
-                options,
-                (err) => {
-                    if (err) {
-                        // eslint-disable-next-line no-console
-                        console.error(`ERROR: ${err.stack}`)
-                    }
-                    // eslint-disable-next-line no-console
-                    console.log(`Generated docs for ${scope}/${file} - ${output}`)
-                }
-            )
+            await processDocs(filepath, options)
+            console.log(`Generated docs for ${scope}/${file} - ${output}`)
 
             sidebars.api[sidebars.api.length - 1].items
                 .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)

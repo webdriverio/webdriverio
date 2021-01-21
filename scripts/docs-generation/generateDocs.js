@@ -8,14 +8,24 @@ const { generateWdioDocs } = require('./wdioDocs')
 const { generateReportersAndServicesDocs } = require('./packagesDocs')
 const { generate3rdPartyDocs } = require('./3rdPartyDocs')
 
+function print (title) {
+    console.log(`
+//////////////////////////////////////////////////
+${title}
+//////////////////////////////////////////////////`)
+}
+
 async function generateDocs() {
     /**
      * NOTE: all generate docs functions mutate `sidebars` object!
      */
 
     try {
+        print('Generate Protocol Docs')
         generateProtocolDocs(sidebars)
-        generateWdioDocs(sidebars)
+        print('Generate WebdriverIO Docs')
+        await generateWdioDocs(sidebars)
+        print('Generate Reporter & Services Docs')
         generateReportersAndServicesDocs(sidebars)
         await generate3rdPartyDocs(sidebars)
 
