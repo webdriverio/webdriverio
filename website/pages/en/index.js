@@ -174,7 +174,7 @@ const AutomationProtocolSupport = () => (
                     'WebdriverIO is always up to date with the latest automation frameworks and therefore, supports not only capabilities ' +
                     'of the <a href="https://w3c.github.io/webdriver/">WebDriver</a> but also commands of the <a href="https://chromedevtools.github.io/devtools-protocol/">Chrome DevTools</a> ' +
                     'protocol using tools like <a href="https://pptr.dev/">Puppeteer</a>. The framework allows you to freely switch between ' +
-                    'running remote WebDriver commands as well stubbing and mocking features of Puppeteer. Have a look into the <a href="https://github.com/webdriverio/webdriverio/blob/master/examples/devtools/intercept.js">examples</a> ' +
+                    'running remote WebDriver commands as well stubbing and mocking features of Puppeteer. Have a look into the <a href="https://github.com/webdriverio/webdriverio/blob/main/examples/devtools/intercept.js">examples</a> ' +
                     'directory.',
                 image: imgUrl('w3c-wdio-pptr.png'),
                 imageAlign: 'right',

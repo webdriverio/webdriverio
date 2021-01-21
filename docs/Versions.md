@@ -9,7 +9,7 @@ The project team releases new major versions roughly on a yearly cadence. LTS re
 
 | | | | |
 |----|--------------------|--------------------------------------------------------------------------------------|-----------------|
-| v6 | [Documentation](/) | [Release Notes](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md) | __Stable__ |
+| v6 | [Documentation](/) | [Release Notes](https://github.com/webdriverio/webdriverio/blob/main/CHANGELOG.md) | __Stable__ |
 
 ## Past Versions
 

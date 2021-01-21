@@ -3,7 +3,7 @@
   "version": "6.11.0",
   "description": "A WebdriverIO reporter plugin to create Allure Test Reports",
   "author": "Boris Osipov <osipov.boris@gmail.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-allure-reporter",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-allure-reporter",
   "license": "MIT",
   "main": "./build/index",
   "engines": {

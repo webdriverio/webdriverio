@@ -123,7 +123,7 @@ To make services easier to consume and discover by the WebdriverIO community, pl
 * Services should use this naming convention: `wdio-*-service`
 * Use NPM keywords: `wdio-plugin`, `wdio-service`
 * The `main` entry should `export` an instance of the service
-* Example services: [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service)
+* Example services: [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service)
 
 Following the recommended naming pattern allows services to be added by name:
 
@@ -142,5 +142,5 @@ We really appreciate every new plugin that could help other people run better te
 
 Please raise a pull request with the following changes:
 
-- add your service to the list of [supported services](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-cli/src/constants.ts#L83-L111)) in the CLI module
-- enhance the [service list](https://github.com/webdriverio/webdriverio/blob/master/scripts/docs-generation/3rd-party/services.json) for adding your docs to the offical Webdriver.io page
+- add your service to the list of [supported services](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/constants.ts#L83-L111)) in the CLI module
+- enhance the [service list](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/services.json) for adding your docs to the offical Webdriver.io page

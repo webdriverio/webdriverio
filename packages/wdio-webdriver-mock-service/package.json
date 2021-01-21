@@ -3,7 +3,7 @@
   "version": "6.12.0",
   "description": "A WebdriverIO service to stub all endpoints for internal testing purposes.",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-webdriver-mock-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service",
   "license": "MIT",
   "main": "./build/index",
   "engines": {

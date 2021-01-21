@@ -18,7 +18,7 @@ module.exports = {
         { href: repoUrl, label: 'GitHub' }
     ],
     repoUrl: repoUrl,
-    editUrl: repoUrl + '/edit/master/docs/',
+    editUrl: repoUrl + '/edit/main/docs/',
     footerIcon: 'img/twitter-profile.png',
     favicon: 'img/favicon.png',
 

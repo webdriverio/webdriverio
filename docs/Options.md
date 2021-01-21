@@ -333,7 +333,7 @@ Default: `null`
 
 WebdriverIO allows you to set hooks to trigger at specific times of the test lifecycle. This allows custom actions (e.g., take screenshot if a test fails).
 
-Every hook has as parameter specific information about the lifecycle (i.e. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
+Every hook has as parameter specific information about the lifecycle (i.e. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js#L183-L326).
 
 ### onPrepare
 

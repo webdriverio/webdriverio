@@ -3,7 +3,7 @@
   "version": "6.11.0",
   "description": "A WebdriverIO service to exchange data across processes",
   "author": "Mykola Grybyk <mykola.grybyk@gmail.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-shared-store-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service",
   "license": "MIT",
   "main": "./build",
   "engines": {

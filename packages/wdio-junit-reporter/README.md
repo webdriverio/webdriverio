@@ -143,7 +143,7 @@ Error: some assertion failure
 ## Configuration
 
 Following code shows the default wdio test runner configuration. Just add `'junit'` as reporter
-to the array. To get some output during the test you can run the [WDIO Dot Reporter](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-dot-reporter) and the WDIO JUnit Reporter at the same time:
+to the array. To get some output during the test you can run the [WDIO Dot Reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-dot-reporter) and the WDIO JUnit Reporter at the same time:
 
 ```js
 // wdio.conf.js

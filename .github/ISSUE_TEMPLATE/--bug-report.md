@@ -3,7 +3,7 @@ name: 🐛 Bug report
 about: Create a report to help us improve.
 ---
 
-[//]: # NOTE: This repository only maintains packages that are listed in the [Readme](https://github.com/webdriverio/webdriverio/blob/master/README.md#packages). Please make sure that your issue is directly caused by one of these packages and if not file an issue in the correct 3rd party package repository.
+[//]: # NOTE: This repository only maintains packages that are listed in the [Readme](https://github.com/webdriverio/webdriverio/blob/main/README.md#packages). Please make sure that your issue is directly caused by one of these packages and if not file an issue in the correct 3rd party package repository.
 
 **Environment (please complete the following information):**
  - **WebdriverIO version:** [e.g. 4.13.2]

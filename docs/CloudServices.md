@@ -3,7 +3,7 @@ id: cloudservices
 title: Using Cloud Services
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting or LambdaTest with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options. 
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting or LambdaTest with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
 
 Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 
@@ -32,7 +32,7 @@ If you want to run tests against a server that is not accessible to the Internet
 
 It is out of the scope of WebdriverIO to support this, so you'll have to start it by yourself.
 
-If you are using the WDIO testrunner download and configure the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service) in your `wdio.conf.js`. It helps getting Sauce Connect running and comes with additional features that better integrate your tests into the Sauce service.
+If you are using the WDIO testrunner download and configure the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) in your `wdio.conf.js`. It helps getting Sauce Connect running and comes with additional features that better integrate your tests into the Sauce service.
 
 ### With Travis CI
 
@@ -42,7 +42,7 @@ If you do so, you must set the `tunnel-identifier` test configuration option in 
 
 Also, if you want to have Sauce Labs group your tests by build number, you can set the `build` to `TRAVIS_BUILD_NUMBER`.
 
-Lastly, if you set `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sauce-service), WebdriverIO automatically sets a proper name for the test.
+Lastly, if you set `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service), WebdriverIO automatically sets a proper name for the test.
 
 Example `capabilities`:
 
@@ -117,7 +117,7 @@ If you want to run tests against a server that is not accessible to the Internet
 
 Their tunnel support page contains the information necessary to get this up and running.
 
-If you are using the WDIO testrunner, download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps get TestingBot running, and comes with additional features that better integrate your tests into the TestingBot service.
+If you are using the WDIO testrunner, download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps get TestingBot running, and comes with additional features that better integrate your tests into the TestingBot service.
 
 ## [CrossBrowserTesting](https://crossbrowsertesting.com/)
 
@@ -129,7 +129,7 @@ You can also pass in any optional [supported capabilities](https://help.crossbro
 
 If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use Local Testing. CrossBrowserTesting provides a tunnel to allow you to test websites not accessible from the internet.
 
-If you are using the WDIO testrunner, download and configure the [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-crossbrowsertesting-service) in your `wdio.conf.js`. It helps get CrossBrowserTesting running and comes with additional features that better integrate your tests into the CrossBrowserTesting service.
+If you are using the WDIO testrunner, download and configure the [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) in your `wdio.conf.js`. It helps get CrossBrowserTesting running and comes with additional features that better integrate your tests into the CrossBrowserTesting service.
 
 ## [LambdaTest](https://www.lambdatest.com)
 

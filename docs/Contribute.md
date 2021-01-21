@@ -7,12 +7,12 @@ You like WebdriverIO and want to help making it better? Awesome! We are working 
 
 ## Code of Conduct
 
-Everyone who participates in this project, either as a user or a contributor, is obliged to follow the projects [Code of Conduct](https://github.com/webdriverio/webdriverio/blob/master/CODE_OF_CONDUCT.md). Every violation against it will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident. Further details of specific enforcement policies may be posted separately.
+Everyone who participates in this project, either as a user or a contributor, is obliged to follow the projects [Code of Conduct](https://github.com/webdriverio/webdriverio/blob/main/CODE_OF_CONDUCT.md). Every violation against it will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident. Further details of specific enforcement policies may be posted separately.
 
 ## Requirements
 
 We accept and appreciate any contribution, either big or small by anyone, with any title or any kind of experience.
-In order to start contributing to the code we recommend to follow the [Set Up Project](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#set-up-project) guide. Once all tests are passing you are ready to work on your first contribution.
+In order to start contributing to the code we recommend to follow the [Set Up Project](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#set-up-project) guide. Once all tests are passing you are ready to work on your first contribution.
 
 __Note:__ If you struggle to follow the guide, join the WebdriverIO support channel on [Gitter](https://gitter.im/webdriverio/webdriverio) and reach out to the maintainer there. Don't be shy, they are there to help!
 
@@ -34,7 +34,7 @@ If you want to contribute code, a general good first way to find a task to work 
 
 Often issues require some amount of context to the problem which makes it difficult to get an idea about what needs to be done. Depending on your experience using / working with the project this context can be missing. Often it helps to start with tasks around missing documentation or just increase test coverage of some parts in the code. After some time you will get more familiar with the codebase which allows you to pick up more difficult tasks.
 
-If you can't find something that suits you, look into the [project roadmap](https://github.com/webdriverio/webdriverio/blob/master/ROADMAP.md) to see if there is something interesting for you. At the end you can also _always_ reach out to the maintainers in the [Gitter](https://gitter.im/webdriverio/webdriverio) support channel. They are responsible to find a task for you.
+If you can't find something that suits you, look into the [project roadmap](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md) to see if there is something interesting for you. At the end you can also _always_ reach out to the maintainers in the [Gitter](https://gitter.im/webdriverio/webdriverio) support channel. They are responsible to find a task for you.
 
 ## Proposing a Change
 
@@ -44,9 +44,9 @@ If you’re only fixing a bug, it’s fine to submit a pull request right away, 
 
 ## Work With The Code
 
-If you make any changes to the code, you want to test it quickly to see if they do what you expect. There are a couple of ways to do that in WebdriverIO. For one, you can link single sub-packages into your own project to see if the changes you've made have the effect you expected. Find a guide on how to [link changes to your current project](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#link-changes-to-your-current-project) in our contributing guide.
+If you make any changes to the code, you want to test it quickly to see if they do what you expect. There are a couple of ways to do that in WebdriverIO. For one, you can link single sub-packages into your own project to see if the changes you've made have the effect you expected. Find a guide on how to [link changes to your current project](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#link-changes-to-your-current-project) in our contributing guide.
 
-Another way to test changes in WebdriverIO is by using its [example directory](https://github.com/webdriverio/webdriverio/tree/master/examples) or by running its [smoke test suite](https://github.com/webdriverio/webdriverio/tree/master/tests). The example directory is a set of sample scripts that use WebdriverIO in various of ways. Here, you need to have a browser driver running to run the scripts. With the smoke test suite you can run various flavors of WebdriverIO within a predefined execution scenario. All of these scenarios are defined in our [WebDriver Mock Service](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-webdriver-mock-service) that mimics a browser driver by stubbing the endpoints with predefined responses. It is a great way to run WebdriverIO suites quickly without having to setup anything.
+Another way to test changes in WebdriverIO is by using its [example directory](https://github.com/webdriverio/webdriverio/tree/main/examples) or by running its [smoke test suite](https://github.com/webdriverio/webdriverio/tree/main/tests). The example directory is a set of sample scripts that use WebdriverIO in various of ways. Here, you need to have a browser driver running to run the scripts. With the smoke test suite you can run various flavors of WebdriverIO within a predefined execution scenario. All of these scenarios are defined in our [WebDriver Mock Service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service) that mimics a browser driver by stubbing the endpoints with predefined responses. It is a great way to run WebdriverIO suites quickly without having to setup anything.
 
 ## Make a Pull Request
 

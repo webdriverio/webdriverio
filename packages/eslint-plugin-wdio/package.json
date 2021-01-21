@@ -3,7 +3,7 @@
   "version": "6.6.0",
   "description": "Eslint rules for WebdriverIO",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/eslint-plugin-wdio",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/eslint-plugin-wdio",
   "license": "MIT",
   "main": "index.js",
   "engines": {

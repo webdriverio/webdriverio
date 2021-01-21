@@ -71,7 +71,7 @@ NOTE: there is no need to have neither `selenium-standalone` nor `chromedriver` 
 
 Now you can run a test (as shown below).
 
-(An example how to run this using WebdriverIO in [standalone mode](https://webdriver.io/docs/setuptypes.html#standalone-mode) can also be found [here](https://github.com/webdriverio/webdriverio/blob/master/examples/devtools/intercept.js).)
+(An example how to run this using WebdriverIO in [standalone mode](https://webdriver.io/docs/setuptypes.html#standalone-mode) can also be found [here](https://github.com/webdriverio/webdriverio/blob/main/examples/devtools/intercept.js).)
 
 ```js
 // example using WDIO testrunner

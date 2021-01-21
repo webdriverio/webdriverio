@@ -105,31 +105,31 @@ It will ask you about the type and name of the new package and create all the fi
 
 ## Run e2e Experience With Smoke Tests
 
-WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is set up in a way so it doesn't require an actual browser driver since all requests are mocked using the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-webdriver-mock-service). This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
+WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is set up in a way so it doesn't require an actual browser driver since all requests are mocked using the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service). This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
 
 ```sh
 $ npm run test:smoke
 ```
 
-There are several [test suites](https://github.com/webdriverio/webdriverio/blob/master/tests/smoke.runner.js#L363-L383) defined that run in different environments, e.g. Mocha, Jasmine and Cucumber. You can run a specific test suite by calling, e.g.:
+There are several [test suites](https://github.com/webdriverio/webdriverio/blob/main/tests/smoke.runner.js#L363-L383) defined that run in different environments, e.g. Mocha, Jasmine and Cucumber. You can run a specific test suite by calling, e.g.:
 
 ```sh
 $ npm run test:smoke mochaTestrunner
 ```
 
-You can define your own scenario of mock responses in the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-webdriver-mock-service/src/index.js#L136-L147).
+You can define your own scenario of mock responses in the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-webdriver-mock-service/src/index.js#L136-L147).
 
 ## Setting up and deploying the docs
 
 This repository contains everything to set up, build and deploy the WebdriverIO documentation pages. We are using [Docusaurus](https://docusaurus.io/) (v1) to generate the page. The content is generated based off:
 
-- the guidelines pages from markdown files of the [docs directory](https://github.com/webdriverio/webdriverio/tree/master/docs)
+- the guidelines pages from markdown files of the [docs directory](https://github.com/webdriverio/webdriverio/tree/main/docs)
 - service and reporter docs from the readme files of those packages within this repository
-- service and reporter docs from 3rd party plugins (defined in [these JSON files](https://github.com/webdriverio/webdriverio/tree/master/scripts/docs-generation/3rd-party)) that are downloaded from GitHub and parsed
-- the protocol APIs from the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-protocols/protocols) package
-- the WebdriverIO API that is parsed out of the JSDoc comments of individual commands (e.g., [`execute`](https://github.com/webdriverio/webdriverio/blob/master/packages/webdriverio/src/commands/browser/execute.js#L2-L36) command)
+- service and reporter docs from 3rd party plugins (defined in [these JSON files](https://github.com/webdriverio/webdriverio/tree/main/scripts/docs-generation/3rd-party)) that are downloaded from GitHub and parsed
+- the protocol APIs from the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/protocols) package
+- the WebdriverIO API that is parsed out of the JSDoc comments of individual commands (e.g., [`execute`](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/commands/browser/execute.js#L2-L36) command)
 
-After you have [set up the project](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#set-up-project) you can go into the `website` directory to set up the docs page and run it on your local machine. To do so, run:
+After you have [set up the project](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#set-up-project) you can go into the `website` directory to set up the docs page and run it on your local machine. To do so, run:
 
 ```sh
 $ cd website
@@ -137,9 +137,9 @@ $ npm install
 $ npm start
 ```
 
-This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). You can now modify the content of the [`/docs`](https://github.com/webdriverio/webdriverio/tree/master/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun the `npm start` script to re-generate the docs.
+This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). You can now modify the content of the [`/docs`](https://github.com/webdriverio/webdriverio/tree/main/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun the `npm start` script to re-generate the docs.
 
-Every time a new release is pushed to GitHub the WebdriverIO docs are automatically generated and pushed to the project's S3 bucket. The process is defined in a GitHub Actions [pipeline](https://github.com/webdriverio/webdriverio/blob/master/.github/workflows/deploy.yml) and does not need to be done manually.
+Every time a new release is pushed to GitHub the WebdriverIO docs are automatically generated and pushed to the project's S3 bucket. The process is defined in a GitHub Actions [pipeline](https://github.com/webdriverio/webdriverio/blob/main/.github/workflows/deploy.yml) and does not need to be done manually.
 
 For more information on Docusaurus please checkout their [documentation page](https://docusaurus.io/docs/en/installation).
 
@@ -154,7 +154,7 @@ All type definitions are located in the sub package folders. Some of them are au
 - the `@wdio/allure-reporter` has its interface defined in comments within the service (`/packages/wdio-allure-reporter/src/index.js`)
 - all other packages have their type definitions directly in the `*.d.ts` in the root directory of the package (e.g. `/packages/wdio-cucumber-framework/cucumber-framework.d.ts`) - these are __not__ autogenerated and you can make modifications directly in these files
 
-You can find all files responsible for the generating the typings here: https://github.com/webdriverio/webdriverio/tree/master/scripts/type-generation. You can trigger the process by calling:
+You can find all files responsible for the generating the typings here: https://github.com/webdriverio/webdriverio/tree/main/scripts/type-generation. You can trigger the process by calling:
 
 ```sh
 $ npm run generate:typings
@@ -251,7 +251,7 @@ browser.touchAction(touchAction)
 
 ## Test Your Changes
 
-In order to test certain scenarios this project has a test directory that allows you to run predefined tests. It allows you to check your code changes while you are working on it. You can find all these files in `/examples` and additional information in [`/examples/README.md`](https://github.com/webdriverio/webdriverio/tree/master/examples/README.md). When a PR gets submitted, WebdriverIO runs the following checks:
+In order to test certain scenarios this project has a test directory that allows you to run predefined tests. It allows you to check your code changes while you are working on it. You can find all these files in `/examples` and additional information in [`/examples/README.md`](https://github.com/webdriverio/webdriverio/tree/main/examples/README.md). When a PR gets submitted, WebdriverIO runs the following checks:
 
 - *Dependency Checks*
   We automatically check if every sub-package has all the dependencies from its `package.json` installed.
@@ -282,7 +282,7 @@ In order to test certain scenarios this project has a test directory that allows
 - *Smoke Tests*
   While unit tests already cover a lot of cases, we run in addition to that smoke tests that simulate test scenarios which are difficult to test
   on a unit level as they include functionality of dependencies that are stubbed out in unit tests. Such scenarios are, for example, proper
-  test retries or failure handling. Smoke tests run actual e2e tests where the driver is being stubbed (via [`@wdio/smoke-test-service`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-smoke-test-service/package.json)) to return fake results.
+  test retries or failure handling. Smoke tests run actual e2e tests where the driver is being stubbed (via [`@wdio/smoke-test-service`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-smoke-test-service/package.json)) to return fake results.
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:smoke
@@ -345,14 +345,14 @@ Backporting sha 77dc52fdb86c51242b92f299998d2904004cb347 from v6 to v5
  1 file changed, 2 deletions(-)
 
 Successfully backported 2 PRs 👏!
-Please now push them to master and make a new v5.x release!
+Please now push them to `v6` and make a new v6.x release!
 ```
 
 You can always reach out to the `webdriverio/ProjectCommitters` channel on Gitter for questions.
 
 ## Release New Version
 
-Package releases are made using Lerna's release capabilities and executed by the [technical steering committee](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md#the-technical-committee) only. Before you can start please export a `GITHUB_AUTH` token into your environment in order to allow [`lerna-changelog`](https://www.npmjs.com/package/lerna-changelog#github-token) to gather data about the upcoming release and autogenerate the [CHANGELOG.md](/CHANGELOG.md). Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such a token with only having the `public_repo` field enabled. Then export it into your environment:
+Package releases are made using Lerna's release capabilities and executed by the [technical steering committee](https://github.com/webdriverio/webdriverio/blob/main/GOVERNANCE.md#the-technical-committee) only. Before you can start please export a `GITHUB_AUTH` token into your environment in order to allow [`lerna-changelog`](https://www.npmjs.com/package/lerna-changelog#github-token) to gather data about the upcoming release and autogenerate the [CHANGELOG.md](/CHANGELOG.md). Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such a token with only having the `public_repo` field enabled. Then export it into your environment:
 
 ```sh
 $ export GITHUB_AUTH=...
@@ -362,7 +362,7 @@ You are now all set and just need to call:
 
 ```sh
 # ensure to have pulled the latest code
-$ git pull origin master --tags
+$ git pull origin main --tags
 # release using Lerna
 $ npm run release
 ```

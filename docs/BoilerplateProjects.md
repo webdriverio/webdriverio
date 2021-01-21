@@ -103,7 +103,7 @@ ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
   - Mocha
 - Features
   - [Page Object](PageObjects.md) Model
-  - Sauce Labs integration with [Sauce Service](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-sauce-service/README.md)
+  - Sauce Labs integration with [Sauce Service](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sauce-service/README.md)
   - Allure Report
   - Automatic screenshots capture for failing tests
   - CircleCI example
@@ -227,17 +227,17 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
 ### [AdarshKumarGM/WebDriverIO-with-CucumberJS](https://github.com/AdarshKumarGM/WebDriverIO-with-CucumberJS)
 Boilerplate for bulding cucumberJS with webdriverIO framework.
 
-- Framework: 
+- Framework:
    - WebdriverIO (v6.x)
    - CucumberJS (v6.x)
    - Node (v12.x)
-   
+
 - Features:
    - Capability for desktop browser
    - Multiple cucumber html reporting
    - Eslint
    - Folder structure containing support files to kick start
-   
+
 ### [Arjun-Ar91/WebdriverIO-V6-appium-mocha-boilerplate](https://github.com/Arjun-Ar91/WebdriverIO-V6-appium-mocha-boilerplate.git)
 
 Boilerplate project to run appium tests for native and mobile browser using mocha v6 and webdriverIO v6 with page object pattern.

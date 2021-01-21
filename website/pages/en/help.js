@@ -54,7 +54,7 @@ class Help extends React.Component {
 
                         <ul>
                             <li><a href="https://www.codementor.io/@kevinlamping">Kevin Lamping</a></li>
-                            <li><a href="https://github.com/webdriverio/webdriverio/blob/master/website/pages/en/help.js">Add your name to this list</a></li>
+                            <li><a href="https://github.com/webdriverio/webdriverio/blob/main/website/pages/en/help.js">Add your name to this list</a></li>
                         </ul>
 
                         <p>Otherwise, check out these free resources:</p>

@@ -82,7 +82,7 @@ A big goal with the new release was to make WebdriverIO more performant and fast
 
 ![bundle size comparison](./assets/bundlesize.png)
 
-By using [`got`](https://github.com/sindresorhus/got) as new dependency to make requests in WebDriver we are now technically also able to run WebdriverIO in the browser which creates interesting possibilities and was a requirement for our [roadmap item](https://github.com/webdriverio/webdriverio/blob/master/ROADMAP.md#upcoming-projects-in-no-particular-order) to build a fiddle platform for WebdriverIO scripts.
+By using [`got`](https://github.com/sindresorhus/got) as new dependency to make requests in WebDriver we are now technically also able to run WebdriverIO in the browser which creates interesting possibilities and was a requirement for our [roadmap item](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md#upcoming-projects-in-no-particular-order) to build a fiddle platform for WebdriverIO scripts.
 
 The new version v6 will also come with a lot of internal improvements that will speed up test execution and lower CPU and memory usage. Especially when it comes to fetching elements we were able to reduce a lot of overhead and spead things up:
 
@@ -211,6 +211,6 @@ If you are using the `@wdio/appium-service` you don't need to do anything.
 
 ## LTS Support
 
-With the release of v6 we will continue to support v5 until we decide to release a new major version v7. We created a [backporting process](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#back-porting-bug-fixes) that allows us to seamlessly backport bug fixes and features from v6 to v5. Please note that as the code between both versions diverge we won't be able to backport every feature and bug fix. We might ask code contributors to provide a similar PR that has been made to the `master` branch also to the `v5` branch.
+With the release of v6 we will continue to support v5 until we decide to release a new major version v7. We created a [backporting process](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#back-porting-bug-fixes) that allows us to seamlessly backport bug fixes and features from v6 to v5. Please note that as the code between both versions diverge we won't be able to backport every feature and bug fix. We might ask code contributors to provide a similar PR that has been made to the `master` branch also to the `v5` branch.
 
 That said, we generally recommend to update to the latest version as soon as possible to make sure that you leverage bug fixes that have been made to the project.

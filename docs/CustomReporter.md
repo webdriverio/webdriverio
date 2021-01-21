@@ -103,7 +103,7 @@ Note that you cannot defer the test execution in any way.
 
 All event handlers should execute synchronous routines (or you’ll run into race conditions).
 
-Be sure to check out the [example section](https://github.com/webdriverio/webdriverio/tree/master/examples/wdio) where you can find an example custom reporter that prints the event name for each event.
+Be sure to check out the [example section](https://github.com/webdriverio/webdriverio/tree/main/examples/wdio) where you can find an example custom reporter that prints the event name for each event.
 
 If you have implemented a custom reporter that could be useful for the community, don't hesitate to make a Pull Request so we can make the reporter available for the public!
 
@@ -122,7 +122,7 @@ const launcher = new Launcher('/path/to/config.file.js', {
 
 ## Wait Until `isSynchronised`
 
-If your reporter has to execute async operations to report the data (e.g. upload of log files or other assets) you can overwrite the `isSynchronised` method in your custom reporter to let the WebdriverIO runner wait until you have computed everything. An example of this can be seen in the [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/master/packages/wdio-sumologic-reporter/src/index.js):
+If your reporter has to execute async operations to report the data (e.g. upload of log files or other assets) you can overwrite the `isSynchronised` method in your custom reporter to let the WebdriverIO runner wait until you have computed everything. An example of this can be seen in the [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.js):
 
 ```js
 export default class SumoLogicReporter extends WDIOReporter {

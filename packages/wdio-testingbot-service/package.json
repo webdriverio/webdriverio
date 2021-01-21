@@ -3,7 +3,7 @@
   "version": "6.11.4",
   "description": "A WebdriverIO service that provides a better integration into TestingBot",
   "author": "Jochen Delabie <info@testingbot.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-testingbot-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service",
   "license": "MIT",
   "main": "./build",
   "engines": {

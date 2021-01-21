@@ -3,7 +3,7 @@
   "version": "6.6.2",
   "description": "A WebdriverIO utility to smoke test services for internal testing purposes.",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-smoke-test-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-service",
   "license": "MIT",
   "main": "./build/index",
   "engines": {

@@ -34,7 +34,7 @@ If you have been using `wdio-mocha-framework` or `wdio-spec-reporter` in your pr
 
 When people proposed new commands to the API, we contributors became more and more hesitent to introduce them. There were a vast number of existing commands; and many of these requested commands provided very little difference from existing commands. This was beginning to become a maintenance nightmare.<br>
 <br>
-Starting with v5 we created a "base" WebdriverIO package called [`webdriver`](https://www.npmjs.com/package/webdriver). It contains the bare logic to make a HTTP request to a WebDriver endpoint; and includes all of the commands from [various specifications](https://github.com/webdriverio/webdriverio/tree/master/packages/webdriver/protocol) (including the [WebDriver](https://w3c.github.io/webdriver/) spec as well as Appiums [Mobile JSONWire protocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md)) defined in a simple to maintain JSON object.<br>
+Starting with v5 we created a "base" WebdriverIO package called [`webdriver`](https://www.npmjs.com/package/webdriver). It contains the bare logic to make a HTTP request to a WebDriver endpoint; and includes all of the commands from [various specifications](https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver/protocol) (including the [WebDriver](https://w3c.github.io/webdriver/) spec as well as Appiums [Mobile JSONWire protocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md)) defined in a simple to maintain JSON object.<br>
 <br>
 As part of that effort we've renamed many of the commands in order to align them closer to the pattern that has been used in the protocol. The base WebDriver client now also returns the `value` property of all protocol command responses, so that we were able to get rid of a lot of redundancy (e.g. `title` is now called with `getTitle`).<br>
 <br>
@@ -59,13 +59,13 @@ We are still in the process of finalising this effort, as we want to continue pr
 
 ## How To Upgrade To v5
 
-There are significantly more things that we have been working on over the last year that you might like to read about. Check out the official [changelog](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v500-2018-12-20) to find all of the changes that describe the new version. We will probably continue to update this over time, as we weren't able to keep a list of every detail that changed. We would also like to ask you to have a look into the new [guide section](https://webdriver.io/docs/gettingstarted.html) and our updated docs in general.<br>
+There are significantly more things that we have been working on over the last year that you might like to read about. Check out the official [changelog](https://github.com/webdriverio/webdriverio/blob/main/CHANGELOG.md#v500-2018-12-20) to find all of the changes that describe the new version. We will probably continue to update this over time, as we weren't able to keep a list of every detail that changed. We would also like to ask you to have a look into the new [guide section](https://webdriver.io/docs/gettingstarted.html) and our updated docs in general.<br>
 <br>
 There is unfortunately no easy upgrade tool that you can download and run to update your test suites from v4 to v5 (even though we would love to have such a thing, PRs are welcome 😉). If you run into any issues upgrading to v5 please join our support [![Gitter](https://badges.gitter.im/webdriverio/webdriverio.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) and reach out to us.<br>
 <br>
 Every project is different, so it is impossible to have one single guide for everyone. However, the following step by step description will help you get closer to where you need to be:<br>
 <br>
-- read the [changelog](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v500-2018-12-20) to understand all breaking changes
+- read the [changelog](https://github.com/webdriverio/webdriverio/blob/main/CHANGELOG.md#v500-2018-12-20) to understand all breaking changes
 - remove all `wdio-*` packages from your `package.json`
 - remove your `node_modules` directory
 - install the latest version of webdriverio: `$ npm install webdriverio@latest`

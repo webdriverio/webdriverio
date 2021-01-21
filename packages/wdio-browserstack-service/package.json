@@ -3,7 +3,7 @@
   "version": "6.12.1",
   "description": "WebdriverIO service for better Browserstack integration",
   "author": "Adam Bjerstedt <abjerstedt@gmail.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service",
   "license": "MIT",
   "main": "./build",
   "engines": {

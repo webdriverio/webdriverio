@@ -34,7 +34,7 @@ This might result in errors like for example `browser.positionClick() is not a f
 See the API documentation [here](https://webdriver.io/docs/api.html) to see which command is a Webdriver Protocol (W3C) or a JSONWire protocol command.
 
 Just a little side note, we tried to keep all `browser` and `element` commands, see the link above, agnostic to the protocol. Nothing changed here for you.
-To provide you some insight on how this works please check for example the `keys` command, you will find the support for both protocols [here](https://github.com/webdriverio/webdriverio/blob/master/packages/webdriverio/src/commands/browser/keys.js#L45-L50).
+To provide you some insight on how this works please check for example the `keys` command, you will find the support for both protocols [here](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/commands/browser/keys.js#L45-L50).
 
 If you want to use W3C with cloud vendors, like for example Sauce Labs or Browserstack, you need to use a vendor specific prefix in your capabilities.
 Please check the websites of the vendors to see what you need to do.
@@ -45,10 +45,10 @@ So, W3C is a major step for us all!!
 
 ### Command changes
 Over the years WebdriverIO added more and more commands for different automation protocols without applying a pattern to it which resulted in having a bunch of duplication and inconsistent naming.
-Even though the list looks exhausting, most of the commands that have changed were used internally. Please check the [changelog of V5](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v500-2018-12-20) to see all the changes.
+Even though the list looks exhausting, most of the commands that have changed were used internally. Please check the [changelog of V5](https://github.com/webdriverio/webdriverio/blob/main/CHANGELOG.md#v500-2018-12-20) to see all the changes.
 
 ### Breaking changes
-When creating a better product and thus releasing a major version, you will always have breaking changes. We can't repeat it enough but please check the [changelog of V5](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v500-2018-12-20) to see all the breaking changes.
+When creating a better product and thus releasing a major version, you will always have breaking changes. We can't repeat it enough but please check the [changelog of V5](https://github.com/webdriverio/webdriverio/blob/main/CHANGELOG.md#v500-2018-12-20) to see all the breaking changes.
 
 **Don't only read the changes in the V5.0.0 release, but also read the rest of the changes!**
 

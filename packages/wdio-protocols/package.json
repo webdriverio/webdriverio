@@ -3,7 +3,7 @@
   "version": "6.12.0",
   "description": "Utility package providing information about automation protocols",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-protocols",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols",
   "license": "MIT",
   "main": "./build/index",
   "types": "./build/index.d.ts",

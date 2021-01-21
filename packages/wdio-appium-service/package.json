@@ -3,7 +3,7 @@
   "version": "6.12.1",
   "description": "A WebdriverIO service to start & stop Appium Server",
   "author": "Morten Bjerg Gregersen <morten@mogee.dk>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-appium-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service",
   "license": "MIT",
   "main": "./build/index",
   "engines": {

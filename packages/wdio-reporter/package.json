@@ -3,7 +3,7 @@
   "version": "6.11.0",
   "description": "A WebdriverIO utility to help reporting all events",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-reporter",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-reporter",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
