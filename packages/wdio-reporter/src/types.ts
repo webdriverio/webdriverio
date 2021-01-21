@@ -28,3 +28,9 @@ export interface AfterCommandArgs extends CommandArgs {
      */
     name?: string
 }
+
+export interface Argument {
+    rows?: {
+        cells: string[]
+    }[]
+}

@@ -9,7 +9,7 @@ import SuiteStats, { Suite } from './stats/suite'
 import HookStats, { Hook } from './stats/hook'
 import TestStats, { Test } from './stats/test'
 import RunnerStats, { Runner } from './stats/runner'
-import { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag } from './types'
+import { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types'
 
 type CustomWriteStream = { write: (content: any) => boolean }
 
@@ -258,5 +258,5 @@ export default class WDIOReporter extends EventEmitter {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs
+    AfterCommandArgs, CommandArgs, Argument
 }

@@ -47,6 +47,8 @@ export default class CucumberEventListener extends EventEmitter {
                 this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
                 this.onTestRunFinished()
+            } else if (envelope.source) {
+                // do nothing for step definition patterns
             } else {
                 /* istanbul ignore next */
                 log.debug(`Unknown envelope received: ${JSON.stringify(envelope, null, 4)}`)

@@ -1,6 +1,5 @@
-import type { pickle } from 'cucumber'
-
 import RunnableStats from './runnable'
+import { Argument } from '../types'
 
 export interface Test {
     type: 'test:start' | 'test:pass' | 'test:fail' | 'test:retry' | 'test:pending' | 'test:end'
@@ -17,7 +16,7 @@ export interface Test {
     error?: Error
     errors?: Error[]
     retries?: number
-    argument?: pickle.Argument
+    argument?: string | Argument
 }
 
 interface Output {
@@ -43,7 +42,7 @@ export default class TestStats extends RunnableStats {
     currentTest?: string
     fullTitle: string
     output: Output[]
-    argument?: pickle.Argument
+    argument?: string | Argument
     retries?: number
     /**
      * initial test state is pending

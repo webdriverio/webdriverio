@@ -1,71 +1,75 @@
-import WDIOReporter from '@wdio/reporter'
-import chalk from 'chalk'
+import WDIOReporter, { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
+import { Capabilities } from '@wdio/types'
+import chalk, { Chalk } from 'chalk'
 import prettyMs from 'pretty-ms'
 import { buildTableData, printTable, getFormattedRows } from './utils'
+import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types'
 
-class SpecReporter extends WDIOReporter {
-    constructor (options) {
+const DEFAULT_INDENT = '   '
+
+export default class SpecReporter extends WDIOReporter {
+    private _suiteUids = new Set()
+    private _indents = 0
+    private _suiteIndents: Record<string, number> = {}
+    private _orderedSuites: SuiteStats[] = []
+
+    // Keep track of the order that suites were called
+    private _stateCounts: StateCount = {
+        passed: 0,
+        failed: 0,
+        skipped: 0
+    }
+
+    private _symbols: Symbols = {
+        passed: '✓',
+        skipped: '-',
+        pending: '?',
+        failed: '✖'
+    }
+
+    constructor (options: SpecReporterOptions) {
         /**
          * make spec reporter to write to output stream by default
          */
-        options = Object.assign({ stdout: true }, options)
-        super(options)
-
-        this.symbols = {
-            passed: options.symbols?.passed || '✓',
-            skipped: options.symbols?.skipped || '-',
-            failed: options.symbols?.failed || '✖'
-        }
-
-        // Keep track of the order that suites were called
-        this.suiteUids = new Set()
-        this.indents = 0
-        this.suiteIndents = {}
-        this.defaultTestIndent = '   '
-        this.stateCounts = {
-            passed : 0,
-            failed : 0,
-            skipped : 0
-        }
-
-        this.chalk = chalk
+        super(Object.assign({ stdout: true }, options))
+        this._symbols = { ...this._symbols, ...this.options.symbols || {} }
     }
 
-    onSuiteStart (suite) {
-        this.suiteUids.add(suite.uid)
-        this.suiteIndents[suite.uid] = ++this.indents
+    onSuiteStart (suite: SuiteStats) {
+        this._suiteUids.add(suite.uid)
+        this._suiteIndents[suite.uid] = ++this._indents
     }
 
     onSuiteEnd () {
-        this.indents--
+        this._indents--
     }
 
-    onHookEnd (hook) {
+    onHookEnd (hook: HookStats) {
         if (hook.error) {
-            this.stateCounts.failed++
+            this._stateCounts.failed++
         }
     }
 
     onTestPass () {
-        this.stateCounts.passed++
+        this._stateCounts.passed++
     }
 
     onTestFail () {
-        this.stateCounts.failed++
+        this._stateCounts.failed++
     }
 
     onTestSkip () {
-        this.stateCounts.skipped++
+        this._stateCounts.skipped++
     }
 
-    onRunnerEnd (runner) {
+    onRunnerEnd (runner: RunnerStats) {
         this.printReport(runner)
     }
 
     /**
      * Print the report to the screen
      */
-    printReport(runner) {
+    printReport(runner: RunnerStats) {
         const duration = `(${prettyMs(runner._duration)})`
         const preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]`
         const divider = '------------------------------------------------------------------'
@@ -80,11 +84,12 @@ class SpecReporter extends WDIOReporter {
 
         const testLinks = runner.isMultiremote
             ? Object.entries(runner.capabilities).map(([instanceName, capabilities]) => this.getTestLink({
-                config: { ...runner.config, ...{ capabilities } },
+                config: runner.config,
+                capabilities,
                 sessionId: capabilities.sessionId,
                 isMultiremote: runner.isMultiremote,
                 instanceName
-            }))
+            })).filter((links) => links.length)
             : this.getTestLink(runner)
         const output = [
             ...this.getHeaderDisplay(runner),
@@ -113,22 +118,27 @@ class SpecReporter extends WDIOReporter {
     /**
      * get link to saucelabs job
      */
-    getTestLink ({ config, sessionId, isMultiremote, instanceName }) {
+    getTestLink ({ config, sessionId, isMultiremote, instanceName, capabilities }: TestLink) {
         const isSauceJob = (
             (config.hostname && config.hostname.includes('saucelabs')) ||
             // only show if multiremote is not used
-            config.capabilities && (
-                // check w3c caps
-                config.capabilities['sauce:options'] ||
+            capabilities && (
+                // check w3c cap in jsonwp caps
+                (capabilities as Capabilities.DesiredCapabilities)['sauce:options'] ||
                 // check jsonwp caps
-                config.capabilities.tunnelIdentifier
+                (capabilities as Capabilities.DesiredCapabilities).tunnelIdentifier ||
+                // check w3c caps
+                (
+                    (capabilities as Capabilities.W3CCapabilities).alwaysMatch &&
+                    (capabilities as Capabilities.W3CCapabilities).alwaysMatch['sauce:options']
+                )
             )
         )
 
         if (isSauceJob) {
             const dc = config.headless
                 ? '.us-east-1'
-                : ['eu', 'eu-central-1'].includes(config.region) ? '.eu-central-1' : ''
+                : ['eu', 'eu-central-1'].includes(config.region || '') ? '.eu-central-1' : ''
             const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
             return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}`]
         }
@@ -141,7 +151,7 @@ class SpecReporter extends WDIOReporter {
      * @param  {Object} runner Runner data
      * @return {Array}         Header data
      */
-    getHeaderDisplay(runner) {
+    getHeaderDisplay (runner: RunnerStats) {
         const combo = this.getEnviromentCombo(runner.capabilities, undefined, runner.isMultiremote).trim()
 
         // Spec file name and enviroment information
@@ -153,7 +163,9 @@ class SpecReporter extends WDIOReporter {
         /**
          * print session ID if not multiremote
          */
+        // @ts-expect-error
         if (runner.capabilities.sessionId) {
+            // @ts-expect-error
             output.push(`Session ID: ${runner.capabilities.sessionId}`)
         }
 
@@ -165,7 +177,7 @@ class SpecReporter extends WDIOReporter {
      * @param  {Object}    suite  test suite containing tests and hooks
      * @return {Object[]}         list of events to report
      */
-    getEventsToReport (suite) {
+    getEventsToReport (suite: SuiteStats) {
         return [
             /**
              * report all tests and only hooks that failed
@@ -201,7 +213,7 @@ class SpecReporter extends WDIOReporter {
             // display suite description (Cucumber only)
             if (suite.description) {
                 output.push(...suite.description.trim().split('\n')
-                    .map((l) => `${suiteIndent}${this.chalk.grey(l.trim())}`))
+                    .map((l) => `${suiteIndent}${chalk.grey(l.trim())}`))
                 output.push('') // empty line
             }
 
@@ -209,14 +221,15 @@ class SpecReporter extends WDIOReporter {
             for (const test of eventsToReport) {
                 const testTitle = test.title
                 const state = test.state
-                const testIndent = `${this.defaultTestIndent}${suiteIndent}`
+                const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
 
                 // Output for a single test
-                output.push(`${testIndent}${this.chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
+                output.push(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
 
                 // print cucumber data table cells
-                if (test.argument && test.argument.rows && test.argument.rows.length) {
-                    const data = buildTableData(test.argument.rows)
+                const args = (test as TestStats).argument as Argument
+                if (args && args.rows && args.rows.length) {
+                    const data = buildTableData(args.rows)
                     const rawTable = printTable(data)
                     const table = getFormattedRows(rawTable, testIndent)
                     output.push(...table)
@@ -237,27 +250,27 @@ class SpecReporter extends WDIOReporter {
      * @param  {String} duration Duration string
      * @return {Array} Count display
      */
-    getCountDisplay (duration) {
-        const output = []
+    getCountDisplay (duration: string) {
+        const output: string[] = []
 
         // Get the passes
-        if (this.stateCounts.passed > 0) {
-            const text = `${this.stateCounts.passed} passing ${duration}`
-            output.push(this.chalk[this.getColor('passed')](text))
+        if (this._stateCounts.passed > 0) {
+            const text = `${this._stateCounts.passed} passing ${duration}`
+            output.push(chalk[this.getColor('passed')](text))
             duration = ''
         }
 
         // Get the failures
-        if (this.stateCounts.failed > 0) {
-            const text = `${this.stateCounts.failed} failing ${duration}`.trim()
-            output.push(this.chalk[this.getColor('failed')](text))
+        if (this._stateCounts.failed > 0) {
+            const text = `${this._stateCounts.failed} failing ${duration}`.trim()
+            output.push(chalk[this.getColor('failed')](text))
             duration = ''
         }
 
         // Get the skipped tests
-        if (this.stateCounts.skipped > 0) {
-            const text = `${this.stateCounts.skipped} skipped ${duration}`.trim()
-            output.push(this.chalk[this.getColor('skipped')](text))
+        if (this._stateCounts.skipped > 0) {
+            const text = `${this._stateCounts.skipped} skipped ${duration}`.trim()
+            output.push(chalk[this.getColor('skipped')](text))
         }
 
         return output
@@ -281,7 +294,7 @@ class SpecReporter extends WDIOReporter {
                 }
 
                 const testTitle = test.title
-                const errors = test.errors || [test.error]
+                const errors: Error[] = test.errors || (test.error ? [test.error] : [])
                 // If we get here then there is a failed test
                 output.push(
                     '',
@@ -289,9 +302,9 @@ class SpecReporter extends WDIOReporter {
 
                 )
                 for (let error of errors) {
-                    output.push(this.chalk.red(error.message))
+                    output.push(chalk.red(error.message))
                     if (error.stack) {
-                        output.push(...error.stack.split(/\n/g).map(value => this.chalk.gray(value)))
+                        output.push(...error.stack.split(/\n/g).map(value => chalk.gray(value)))
                     }
                 }
             }
@@ -305,22 +318,22 @@ class SpecReporter extends WDIOReporter {
      * @return {Array} Ordered suites
      */
     getOrderedSuites () {
-        if (this.orderedSuites) {
-            return this.orderedSuites
+        if (this._orderedSuites.length) {
+            return this._orderedSuites
         }
 
-        this.orderedSuites = []
-        for (const uid of this.suiteUids) {
+        this._orderedSuites = []
+        for (const uid of this._suiteUids) {
             for (const [suiteUid, suite] of Object.entries(this.suites)) {
                 if (suiteUid !== uid) {
                     continue
                 }
 
-                this.orderedSuites.push(suite)
+                this._orderedSuites.push(suite)
             }
         }
 
-        return this.orderedSuites
+        return this._orderedSuites
     }
 
     /**
@@ -328,8 +341,8 @@ class SpecReporter extends WDIOReporter {
      * @param  {String} uid Unique suite key
      * @return {String}     Spaces for indentation
      */
-    indent (uid) {
-        const indents = this.suiteIndents[uid]
+    indent (uid: string) {
+        const indents = this._suiteIndents[uid]
         return indents === 0 ? '' : Array(indents).join('    ')
     }
 
@@ -338,8 +351,8 @@ class SpecReporter extends WDIOReporter {
      * @param  {String} state State of a test
      * @return {String}       Symbol to display
      */
-    getSymbol (state) {
-        return this.symbols[state] || '?'
+    getSymbol (state?: keyof Symbols) {
+        return (state && this._symbols[state]) || '?'
     }
 
     /**
@@ -347,9 +360,9 @@ class SpecReporter extends WDIOReporter {
      * @param  {String} state Test state
      * @return {String}       State color
      */
-    getColor (state) {
+    getColor (state?: string) {
         // In case of an unknown state
-        let color = null
+        let color: keyof Chalk = 'gray'
 
         switch (state) {
         case 'passed':
@@ -373,7 +386,11 @@ class SpecReporter extends WDIOReporter {
      * @param  {Boolean} verbose
      * @return {String}          Enviroment string
      */
-    getEnviromentCombo (caps, verbose = true, isMultiremote = false) {
+    getEnviromentCombo (capability: Capabilities.RemoteCapability, verbose = true, isMultiremote = false) {
+        const caps = (
+            ((capability as Capabilities.W3CCapabilities).alwaysMatch as Capabilities.DesiredCapabilities) ||
+            (capability as Capabilities.DesiredCapabilities)
+        )
         const device = caps.deviceName
         const browser = isMultiremote ? 'MultiremoteBrowser' : (caps.browserName || caps.browser)
         /**
@@ -390,7 +407,9 @@ class SpecReporter extends WDIOReporter {
          * platform: JSONWP format
          * os, os_version: invalid BS capability
          */
-        const platform = caps.platformName || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
+        const platform = isMultiremote
+            ? ''
+            : caps.platformName || caps.platform || (caps.os ? caps.os + (caps.os_version ?  ` ${caps.os_version}` : '') : '(unknown)')
 
         // Mobile capabilities
         if (device) {
@@ -406,8 +425,10 @@ class SpecReporter extends WDIOReporter {
             return (browser + (version ? ` ${version} ` : ' ') + (platform)).trim()
         }
 
+        if (isMultiremote) {
+            return browser + (version ? ` (v${version})` : '') + ` on ${Object.values(capability).map((c) => c.browserName).join(', ')}`
+        }
+
         return browser + (version ? ` (v${version})` : '') + (` on ${platform}`)
     }
 }
-
-export default SpecReporter

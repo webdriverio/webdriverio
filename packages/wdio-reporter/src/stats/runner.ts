@@ -21,7 +21,7 @@ export interface Runner {
  */
 export default class RunnerStats extends RunnableStats {
     cid: string
-    capabilities: Capabilities.Capabilities
+    capabilities: Capabilities.RemoteCapability
     sanitizedCapabilities: string
     config: Options.Testrunner
     specs: string[]

@@ -74,6 +74,7 @@ export const SUITES = {
     }
 }
 Object.values(SUITES).forEach(suite => {
+    // @ts-expect-error
     suite.hooksAndTests = [...suite.tests]
 })
 
@@ -128,6 +129,7 @@ export const SUITES_WITH_DATA_TABLE = {
     }
 }
 Object.values(SUITES_WITH_DATA_TABLE).forEach(suite => {
+    // @ts-expect-error
     suite.hooksAndTests = [...suite.tests]
 })
 
@@ -173,6 +175,7 @@ export const SUITES_MULTIPLE_ERRORS = {
     }
 }
 Object.values(SUITES_MULTIPLE_ERRORS).forEach(suite => {
+    // @ts-expect-error
     suite.hooksAndTests = [...suite.tests]
 })
 
@@ -206,5 +209,6 @@ export const SUITES_NO_TESTS_WITH_HOOK_ERROR = {
 }
 
 Object.values(SUITES_NO_TESTS_WITH_HOOK_ERROR).forEach(suite => {
+    // @ts-expect-error
     suite.hooksAndTests = [...suite.hooks]
 })

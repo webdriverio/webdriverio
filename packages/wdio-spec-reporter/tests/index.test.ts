@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import SpecReporter from '../src'
 import {
     RUNNER,
@@ -14,9 +13,11 @@ const reporter = new SpecReporter({})
 
 const defaultCaps = { browserName: 'loremipsum', version: 50, platform: 'Windows 10', sessionId: 'foobar' }
 const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
-const getRunnerConfig = (config = {}) => {
+const getRunnerConfig = (config: any = {}) => {
     return Object.assign({}, RUNNER, {
-        capabilities: config.capabilities || defaultCaps,
+        capabilities: config.isMultiremote
+            ? { myBrowser: config.capabilities || defaultCaps }
+            : config.capabilities || defaultCaps,
         config,
         sessionId: fakeSessionId,
         isMultiremote: Boolean(config.isMultiremote)
@@ -28,46 +29,43 @@ describe('SpecReporter', () => {
 
     beforeEach(() => {
         tmpReporter = new SpecReporter({})
-        tmpReporter.chalk.level = 0
     })
 
     describe('on create', () => {
         it('should verify initial properties', () => {
-            expect(reporter.suiteUids.size).toBe(0)
-            expect(reporter.indents).toBe(0)
-            expect(reporter.suiteIndents).toEqual({})
-            expect(reporter.defaultTestIndent).toBe('   ')
-            expect(reporter.stateCounts).toEqual({
+            expect(reporter['_suiteUids'].size).toBe(0)
+            expect(reporter['_indents']).toBe(0)
+            expect(reporter['_suiteIndents']).toEqual({})
+            expect(reporter['_stateCounts']).toEqual({
                 passed : 0,
                 skipped : 0,
                 failed : 0,
             })
-            expect(reporter.chalk).toBe(chalk)
         })
     })
 
     describe('onSuiteStart', () => {
         beforeAll(() => {
-            reporter.onSuiteStart(Object.values(SUITES)[0])
+            reporter.onSuiteStart(Object.values(SUITES)[0] as any)
         })
 
         it('should add to suiteUids', () => {
-            expect(reporter.suiteUids.size).toBe(1)
-            expect([...reporter.suiteUids.values()][0]).toBe('Foo test1')
+            expect(reporter['_suiteUids'].size).toBe(1)
+            expect([...reporter['_suiteUids'].values()][0]).toBe('Foo test1')
         })
 
         it('should increase suiteIndents', () => {
-            expect(reporter.suiteIndents['Foo test1']).toBe(1)
+            expect(reporter['_suiteIndents']['Foo test1']).toBe(1)
         })
     })
 
     describe('onHookEnd', () => {
         it('should increase stateCount failures if hook failed', () => {
-            expect(tmpReporter.stateCounts.failed).toBe(0)
+            expect(tmpReporter['_stateCounts'].failed).toBe(0)
             tmpReporter.onHookEnd({})
-            expect(tmpReporter.stateCounts.failed).toBe(0)
+            expect(tmpReporter['_stateCounts'].failed).toBe(0)
             tmpReporter.onHookEnd({ error: new Error('boom!') })
-            expect(tmpReporter.stateCounts.failed).toBe(1)
+            expect(tmpReporter['_stateCounts'].failed).toBe(1)
         })
     })
 
@@ -92,7 +90,7 @@ describe('SpecReporter', () => {
         })
 
         it('should increase stateCounts.passed by 1', () => {
-            expect(reporter.stateCounts.passed).toBe(1)
+            expect(reporter['_stateCounts'].passed).toBe(1)
         })
     })
 
@@ -102,7 +100,7 @@ describe('SpecReporter', () => {
         })
 
         it('should increase stateCounts.failed by 1', () => {
-            expect(reporter.stateCounts.failed).toBe(1)
+            expect(reporter['_stateCounts'].failed).toBe(1)
         })
     })
 
@@ -112,27 +110,27 @@ describe('SpecReporter', () => {
         })
 
         it('should increase stateCounts.skipped by 1', () => {
-            expect(reporter.stateCounts.skipped).toBe(1)
+            expect(reporter['_stateCounts'].skipped).toBe(1)
         })
     })
 
     describe('onSuiteEnd', () => {
         beforeAll(() => {
-            reporter.onSuiteEnd(SUITES[0])
+            reporter.onSuiteEnd()
         })
 
         it('should decrease indents', () => {
-            expect(reporter.indents).toBe(0)
+            expect(reporter['_indents']).toBe(0)
         })
     })
 
     describe('onRunnerEnd', () => {
         it('should call printReport method', () => {
             reporter.printReport = jest.fn()
-            reporter.onRunnerEnd(RUNNER)
+            reporter.onRunnerEnd(RUNNER as any)
 
-            expect(reporter.printReport.mock.calls.length).toBe(1)
-            expect(reporter.printReport.mock.calls[0][0]).toEqual(RUNNER)
+            expect((reporter.printReport as jest.Mock).mock.calls.length).toBe(1)
+            expect((reporter.printReport as jest.Mock).mock.calls[0][0]).toEqual(RUNNER)
         })
     })
 
@@ -141,15 +139,14 @@ describe('SpecReporter', () => {
 
         beforeEach(() => {
             printReporter = new SpecReporter({})
-            printReporter.chalk.level = 0
             printReporter.write = jest.fn()
         })
 
         describe('with normal setup', () => {
             beforeEach(() => {
-                printReporter.suiteUids = SUITE_UIDS
+                printReporter['_suiteUids'] = SUITE_UIDS
                 printReporter.suites = SUITES
-                printReporter.stateCounts = {
+                printReporter['_stateCounts'] = {
                     passed : 4,
                     failed : 1,
                     skipped : 1,
@@ -231,7 +228,7 @@ describe('SpecReporter', () => {
         })
 
         it('should print report for suites with no tests but failed hooks', () => {
-            printReporter.suiteUids = SUITE_UIDS
+            printReporter['_suiteUids'] = SUITE_UIDS
             printReporter.suites = SUITES_NO_TESTS_WITH_HOOK_ERROR
 
             const runner = getRunnerConfig({
@@ -245,7 +242,7 @@ describe('SpecReporter', () => {
         })
 
         it('should not print the report because there are no tests', () => {
-            printReporter.suiteUids = SUITE_UIDS
+            printReporter['_suiteUids'] = SUITE_UIDS
             printReporter.suites = SUITES_NO_TESTS
 
             printReporter.printReport(getRunnerConfig())
@@ -256,7 +253,7 @@ describe('SpecReporter', () => {
 
     describe('getHeaderDisplay', () => {
         it('should validate header output', () => {
-            const result = reporter.getHeaderDisplay(getRunnerConfig())
+            const result = reporter.getHeaderDisplay(getRunnerConfig() as any)
 
             expect(result.length).toBe(3)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
@@ -267,9 +264,9 @@ describe('SpecReporter', () => {
             const result = tmpReporter.getHeaderDisplay(
                 getRunnerConfig({ isMultiremote: true }))
 
-            expect(result.length).toBe(3)
+            expect(result.length).toBe(2)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: MultiremoteBrowser (v50) on Windows 10')
+            expect(result[1]).toBe('Running: MultiremoteBrowser on loremipsum')
         })
     })
 
@@ -300,7 +297,7 @@ describe('SpecReporter', () => {
 
         it('should not print if data table format is not given', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => {
-                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE)))
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
                 suites[0].hooksAndTests[0].argument = 'some different format'
                 return suites
             })
@@ -310,7 +307,7 @@ describe('SpecReporter', () => {
 
         it('should not print if data table is empty', () => {
             tmpReporter.getOrderedSuites = jest.fn(() => {
-                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE)))
+                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
                 suites[0].hooksAndTests[0].argument.rows = []
                 return suites
             })
@@ -322,7 +319,7 @@ describe('SpecReporter', () => {
 
     describe('getCountDisplay', () => {
         it('should return only passing counts', () => {
-            tmpReporter.stateCounts.passed = 2
+            tmpReporter['_stateCounts'].passed = 2
             const result = tmpReporter.getCountDisplay(5)
 
             expect(result.length).toBe(1)
@@ -330,8 +327,8 @@ describe('SpecReporter', () => {
         })
 
         it('should return passing and failing counts', () => {
-            tmpReporter.stateCounts.passed = 2
-            tmpReporter.stateCounts.failed = 1
+            tmpReporter['_stateCounts'].passed = 2
+            tmpReporter['_stateCounts'].failed = 1
             const result = tmpReporter.getCountDisplay(5)
 
             expect(result.length).toBe(2)
@@ -340,8 +337,8 @@ describe('SpecReporter', () => {
         })
 
         it('should return failing and skipped counts', () => {
-            tmpReporter.stateCounts.failed = 1
-            tmpReporter.stateCounts.skipped = 2
+            tmpReporter['_stateCounts'].failed = 1
+            tmpReporter['_stateCounts'].skipped = 2
             const result = tmpReporter.getCountDisplay(5)
 
             expect(result.length).toBe(2)
@@ -350,7 +347,7 @@ describe('SpecReporter', () => {
         })
 
         it('should only display skipped with duration', () => {
-            tmpReporter.stateCounts.skipped = 2
+            tmpReporter['_stateCounts'].skipped = 2
             const result = tmpReporter.getCountDisplay(5)
 
             expect(result.length).toBe(1)
@@ -399,7 +396,7 @@ describe('SpecReporter', () => {
     describe('getOrderedSuites', () => {
         it('should return the suites in order based on uids', () => {
             tmpReporter.foo = 'hellooo'
-            tmpReporter.suiteUids = new Set(['5', '3', '8'])
+            tmpReporter['_suiteUids'] = new Set(['5', '3', '8'])
             tmpReporter.suites = { '3': { uid : 3 }, '5': { uid : 5 } }
 
             const result = tmpReporter.getOrderedSuites()
@@ -408,14 +405,14 @@ describe('SpecReporter', () => {
             expect(result[0]).toEqual({ uid : 5 })
             expect(result[1]).toEqual({ uid : 3 })
 
-            expect(tmpReporter.orderedSuites.length).toBe(2)
-            expect(tmpReporter.orderedSuites[0]).toEqual({ uid : 5 })
-            expect(tmpReporter.orderedSuites[1]).toEqual({ uid : 3 })
+            expect(tmpReporter._orderedSuites.length).toBe(2)
+            expect(tmpReporter._orderedSuites[0]).toEqual({ uid : 5 })
+            expect(tmpReporter._orderedSuites[1]).toEqual({ uid : 3 })
         })
 
         it('should return the cached ordered suites', () => {
             tmpReporter.foo = 'hellooo boo'
-            tmpReporter.orderedSuites = ['foo', 'bar']
+            tmpReporter._orderedSuites = ['foo', 'bar']
             const result = tmpReporter.getOrderedSuites()
 
             expect(result.length).toBe(2)
@@ -432,14 +429,14 @@ describe('SpecReporter', () => {
         const uid = 123
 
         it('should not indent', () => {
-            tmpReporter.suiteIndents[uid] = 0
+            tmpReporter['_suiteIndents'][uid] = 0
             const result = tmpReporter.indent(uid)
 
             expect(result).toBe('')
         })
 
         it('should indent', () => {
-            tmpReporter.suiteIndents[uid] = 3
+            tmpReporter['_suiteIndents'][uid] = 3
             const result = tmpReporter.indent(uid)
 
             expect(result).toBe('        ')
@@ -498,22 +495,18 @@ describe('SpecReporter', () => {
         })
 
         it('should get null', () => {
-            expect(tmpReporter.getColor()).toBe(null)
+            expect(tmpReporter.getColor()).toBe('gray')
         })
     })
 
     describe('getEnviromentCombo', () => {
         it('should return Multibrowser as capability if multiremote is used', () => {
             expect(tmpReporter.getEnviromentCombo({
-                browserName: 'chrome',
-                platform: 'Windows 8.1'
-            }, true, true)).toBe('MultiremoteBrowser on Windows 8.1')
-        })
-
-        it('should return Multibrowser as capability if multiremote is used without platform', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browserName: 'chrome',
-            }, true, true)).toBe('MultiremoteBrowser on (unknown)')
+                myBrowser: {
+                    browserName: 'chrome',
+                    platform: 'Windows 8.1'
+                }
+            }, true, true)).toBe('MultiremoteBrowser on chrome')
         })
 
         it('should return verbose desktop combo', () => {
