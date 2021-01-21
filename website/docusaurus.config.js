@@ -19,7 +19,7 @@ module.exports = {
             respectPrefersColorScheme: true,
             switchConfig: {
                 darkIcon: '🌜',
-                lightIcon: '\u2600',
+                lightIcon: '☀️',
                 // React inline style object
                 // see https://reactjs.org/docs/dom-elements.html#style
                 darkIconStyle: {
@@ -48,7 +48,12 @@ module.exports = {
               `⭐️  &nbsp; If you like WebdriverIO, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/${organizationName}/${projectName}">GitHub</a>! ⭐️`,
         },
         navbar: {
-            title: 'I/O',
+            // title: 'I/O',
+            logo: {
+                alt: 'WebdriverIO',
+                src: 'img/logo-webdriver-io.svg',
+                srcDark: 'img/logo-webdriver-io.svg',
+            },
             items: [{
                 type: 'doc',
                 label: 'Docs',
@@ -179,5 +184,13 @@ module.exports = {
             },
         ]
     ],
-    themes: ['@saucelabs/theme-github-codeblock']
+    themes: ['@saucelabs/theme-github-codeblock'],
+    stylesheets: [
+        'https://fonts.googleapis.com/css?family=IBM+Plex+Sans',
+        'https://fonts.googleapis.com/css?family=IBM+Plex+Mono'
+    ],
+    scripts: [
+        'https://buttons.github.io/buttons.js',
+        'https://platform.twitter.com/widgets.js'
+    ]
 }
