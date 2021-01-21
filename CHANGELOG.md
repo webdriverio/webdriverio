@@ -17,6 +17,22 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 ---
 
+## v7.0.0-beta.0 (2021-01-21)
+
+#### :boom: Breaking Change
+* `devtools`, `wdio-devtools-service`, `wdio-sync`, `webdriverio`
+  * [#6276](https://github.com/webdriverio/webdriverio/pull/6276) Lighthouse v7 update ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-config`
+  * [#3407](https://github.com/webdriverio/webdriverio/pull/3407) Automatically run worker with Babel if setup ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`, `webdriverio`
+  * [#6054](https://github.com/webdriverio/webdriverio/pull/6054) Validate W3C Capabilities ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`, `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-applitools-service`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-protocols`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-shared-store-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-sync`, `wdio-testingbot-service`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#6236](https://github.com/webdriverio/webdriverio/pull/6236) Update fibers to v5 and drop Node.js support for v10 ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v6.12.1 (2021-01-20)
 
 #### :bug: Bug Fix

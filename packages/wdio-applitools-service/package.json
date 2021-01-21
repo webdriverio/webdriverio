@@ -1,6 +1,6 @@
 {
   "name": "@wdio/applitools-service",
-  "version": "6.10.10",
+  "version": "7.0.0-beta.0",
   "description": "A WebdriverIO service for visual regression testing using Applitools",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-applitools-service",
@@ -27,9 +27,9 @@
   },
   "dependencies": {
     "@applitools/eyes-webdriverio": "^5.8.4",
-    "@wdio/logger": "6.10.10",
-    "@wdio/types": "^6.10.6",
-    "webdriverio": "^6.11.3"
+    "@wdio/logger": "7.0.0-beta.0",
+    "@wdio/types": "7.0.0-beta.0",
+    "webdriverio": "7.0.0-beta.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^6.0.1"

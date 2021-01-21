@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-wdio",
-  "version": "6.6.0",
+  "version": "7.0.0-beta.0",
   "description": "Eslint rules for WebdriverIO",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/eslint-plugin-wdio",
