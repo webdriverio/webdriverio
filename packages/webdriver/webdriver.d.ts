@@ -1542,7 +1542,7 @@ declare namespace WebDriver {
          * Retrieve a file from the device's file system.
          * http://appium.io/docs/en/commands/device/files/pull-file/
          */
-        pullFile(path: string): void;
+        pullFile(path: string): string;
 
         /**
          * [appium]
