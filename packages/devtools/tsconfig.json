@@ -1,13 +1,12 @@
 {
-    "extends": "../../tsconfig",
-    "compilerOptions": {
-        "baseUrl": ".",
-        "outDir": "./build",
-        "rootDir": "./src",
-        "types": ["@wdio/protocols"],
-    },
-    "include": [
-        "src/**/*",
-        "../../@types"
-    ]
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "./build",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/**/*",
+    "../../@types"
+  ]
 }
