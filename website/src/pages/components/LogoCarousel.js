@@ -12,14 +12,27 @@ export default class LogoCarousel extends React.Component {
         this.state = {
             position: -0,
             activePage: 0,
-            swapInterval: setInterval(this.nextPage.bind(this), INTERVAL_LENGTH)
+            totalWidth: 1080, // default width in the beginning
+            swapInterval: 0
         }
 
+        this.containerRef = React.createRef()
         this.pages = Math.ceil(props.logos.length / 6)
     }
 
+    componentDidMount() {
+        this.setState({
+            swapInterval: setInterval(this.nextPage.bind(this), INTERVAL_LENGTH)
+        })
+    }
+
+    componentWillUnmount () {
+        clearInterval(this.state.swapInterval)
+    }
+
     animateTo (i) {
-        const x = i * -1080
+        const width = this.containerRef.current.getBoundingClientRect().width - 50 // 50px = margin
+        const x = i * -width
         this.setState({ position: x, activePage: i })
     }
 
@@ -55,7 +68,7 @@ export default class LogoCarousel extends React.Component {
         )
 
         return (
-            <div className={styles.companyUsage}>
+            <div className={styles.companyUsage} ref={this.containerRef}>
                 <h3>Who is using WebdriverIO?</h3>
                 <div className={clsx(styles.logos)}>
                     {this.list()}
