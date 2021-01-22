@@ -19,6 +19,11 @@
     --ifm-font-family-monospace: 'IBM Plex Mono';
     --ifm-button-padding-horizontal: 0.55rem;
     --ifm-button-padding-vertical: .7rem;
+
+    --wdio-link-background-color: #eee0d7;
+    --wdio-link-color: #000;
+    --wdio-section-background-color: #fff;
+    --wdio-dark-section-background-color: #efefef;
 }
 
 .footer--dark {
@@ -54,4 +59,14 @@ img[alt^=Support] {
     width: 20px;
     margin-right: 5px;
     display: inline-block;
+}
+
+.main-wrapper main a {
+    background-color: var(--wdio-link-background-color);
+    color: var(--wdio-link-color);
+    border-bottom: 1px solid var(--ifm-color-primary);
+}
+
+.main-wrapper main a:hover {
+    text-decoration: none;
 }

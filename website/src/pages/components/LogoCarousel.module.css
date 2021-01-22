@@ -1,0 +1,67 @@
+.companyUsage {
+    width: 100%;
+}
+
+body .companyUsage h3 {
+    font-size: 1.1em;
+    font-weight: 900;
+}
+
+.logos {
+    overflow: hidden;
+    margin: 0 25px;
+}
+
+.logos ul {
+    display: flex;
+    justify-content: space-around;
+    width: 3200px;
+    margin: 0;
+    transition: transform 1000ms ease;
+}
+.logos ul li {
+    display: flex;
+    min-width: 150px;
+    justify-content: center;
+    align-items: center;
+}
+.logos ul img {
+    transition: filter 200ms;
+    width: 100px;
+}
+
+.logos ul a {
+    background: none;
+    border: 0;
+}
+
+.logoNavigation {
+    text-align: center;
+}
+
+.button:focus {
+    outline: none;
+}
+
+.button::before {
+    content: "\2022";
+    color: black;
+    font-size: 25px;
+    opacity: .25;
+}
+
+.buttonActive::before {
+    opacity: 1;
+}
+
+.button {
+    transition: opacity 200ms ease;
+    color: transparent;
+    border: 0;
+    background: 0;
+    cursor: pointer;
+    padding: 10px 10px 0 10px;
+    width: 30px;
+    line-height: 10px;
+    margin: 0 5px;
+}
