@@ -12,7 +12,6 @@ export default class LogoCarousel extends React.Component {
         this.state = {
             position: -0,
             activePage: 0,
-            totalWidth: 1080, // default width in the beginning
             swapInterval: 0
         }
 
@@ -31,7 +30,7 @@ export default class LogoCarousel extends React.Component {
     }
 
     animateTo (i) {
-        const width = this.containerRef.current.getBoundingClientRect().width - 50 // 50px = margin
+        const width = this.containerRef.current.getBoundingClientRect().width - 70 // 50px = margin
         const x = i * -width
         this.setState({ position: x, activePage: i })
     }

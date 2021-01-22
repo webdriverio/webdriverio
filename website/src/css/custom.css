@@ -30,6 +30,11 @@
     --ifm-footer-background-color: #20232a;
 }
 
+html[data-theme=dark] {
+    --wdio-section-background-color: var(--ifm-footer-background-color);
+    --wdio-dark-section-background-color: #18191A;
+}
+
 .docusaurus-highlight-code-line {
     background-color: #484d5b;
     display: block;
@@ -61,12 +66,14 @@ img[alt^=Support] {
     display: inline-block;
 }
 
-.main-wrapper main a {
+.main-wrapper .markdown p > a {
     background-color: var(--wdio-link-background-color);
     color: var(--wdio-link-color);
+    text-decoration: none!important;
     border-bottom: 1px solid var(--ifm-color-primary);
+    padding: 2px;
 }
 
-.main-wrapper main a:hover {
-    text-decoration: none;
+.main-wrapper .markdown p > a:hover {
+    color: var(--ifm-color-primary)
 }
