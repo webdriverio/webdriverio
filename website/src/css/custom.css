@@ -26,8 +26,24 @@
     --wdio-dark-section-background-color: #efefef;
 }
 
+
+.footer__links {
+    width: 75%;
+    float: right;
+}
+.footer__bottom {
+    width: 25%;
+}
+.footer__bottom > div {
+    text-align: left;
+}
 .footer--dark {
     --ifm-footer-background-color: #20232a;
+    --ifm-footer-padding-vertical: 85px;
+}
+.footer__copyright {
+    font-size: .8em;
+    text-align: left;
 }
 
 html[data-theme=dark] {
