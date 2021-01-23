@@ -560,6 +560,45 @@ export interface BrowserStackCapabilities {
     }
     userName?: string
     accessKey?: string
+    localIdentifier?: string
+    consoleLogs?: 'disable' | 'errors' | 'warnings' | 'info' | 'verbose'
+    appiumLogs?: boolean
+    video?: boolean
+    seleniumLogs?: boolean
+    geoLocation?: string
+    timezone?: string
+    resolution?: string
+    'browserstack.maskCommands'?: string[]
+    idleTimeout?: number
+    maskBasicAuth?: boolean
+    autoWait?: number
+    hosts?: string
+    bfcache?: 0 | 1
+    wsLocalSupport?: boolean
+    deviceName?: string
+    realMobile?: boolean
+    appiumVersion?: string
+    deviceOrientation?: 'portrait' | 'landscape'
+    customNetwork?: string
+    networkProfile?: string
+    chrome?: {
+        driver?: string
+    }
+    edge?: {
+        enablePopups?: boolean
+    }
+    'browserstack.sendKeys'?: boolean
+    safari?: {
+        enablePopups?: boolean
+        allowAllCookies?: boolean
+        driver?: string
+    }
+    firefox?: {
+        driver?: string
+    }
+    browserName?: 'Firefox' | 'Safari' | 'IE' | 'Chrome' | 'Opera' | 'Edge'
+    browserVersion?: string
+    acceptSslCerts?: boolean
 }
 
 export interface SauceLabsVisualCapabilities {
