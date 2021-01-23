@@ -24,7 +24,7 @@ In order to set up this project and start contributing follow this step by step 
 
 * If you need to update your fork you can do so following the steps [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
 
-* Switch to Node v10 LTS (you should be able to use older/newer versions of Node but we recommend to use v10 LTS so all developers are on the same side)
+* Switch to Node v12 LTS (you should be able to use older/newer versions of Node but we recommend to use v12 LTS so all developers are on the same side)
 
 * Set up the project:
 
