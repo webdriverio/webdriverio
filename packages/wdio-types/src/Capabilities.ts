@@ -320,7 +320,6 @@ export interface EdgeCapabilities {
 
 // Chrome specific
 export interface ChromeCapabilities {
-    chrome?: string;
     chromeOptions?: ChromeOptions;
     mobileEmulationEnabled?: boolean;
 }
@@ -596,7 +595,7 @@ export interface BrowserStackCapabilities {
     firefox?: {
         driver?: string
     }
-    browserName?: 'Firefox' | 'Safari' | 'IE' | 'Chrome' | 'Opera' | 'Edge'
+    browserName?: string
     browserVersion?: string
     acceptSslCerts?: boolean
 }
