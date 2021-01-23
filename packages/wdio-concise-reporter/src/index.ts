@@ -40,7 +40,7 @@ export default class ConciseReporter extends WDIOReporter {
         const header = chalk.yellow('========= Your concise report ==========')
 
         const output = [
-            this.getEnviromentCombo(runner.capabilities),
+            this.getEnviromentCombo(runner.capabilities as Capabilities.DesiredCapabilities),
             this.getCountDisplay(),
             ...this.getFailureDisplay()
         ]
