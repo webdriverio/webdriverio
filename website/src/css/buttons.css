@@ -1,3 +1,7 @@
+html[data-theme=dark] .button {
+    --ifm-button-border-color: transparent;
+}
+
 .button--secondary {
     background-color: var(--ifm-color-primary);
     color: #fff;

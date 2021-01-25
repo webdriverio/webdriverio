@@ -186,8 +186,8 @@ module.exports = {
     ],
     themes: ['@saucelabs/theme-github-codeblock'],
     stylesheets: [
-        'https://fonts.googleapis.com/css?family=IBM+Plex+Sans',
-        'https://fonts.googleapis.com/css?family=IBM+Plex+Mono'
+        'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=swap',
+        'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap'
     ],
     scripts: [
         'https://buttons.github.io/buttons.js',
