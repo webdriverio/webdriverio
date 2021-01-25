@@ -8,6 +8,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl'
 import LogoCarousel from './components/LogoCarousel'
 import Feature from './components/Feature'
 import Section from './components/Section'
+import Highlight from './components/Highlight'
 
 import styles from './styles.module.css'
 import { logos, features } from './constants'
@@ -75,6 +76,33 @@ function Home() {
                 <Section>
                     <LogoCarousel logos={logos}></LogoCarousel>
                 </Section>
+                <Highlight
+                    img={
+                        <iframe
+                            width="560"
+                            height="315"
+                            src="https://www.youtube.com/embed/jOmvPpzLMf8?start=3204"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                        />
+                    }
+                    isDark
+                    title="Watch Talks about WebdriverIO"
+                    text={
+                        <>
+                            <p>
+                                The community around WebdriverIO is actively speaking on various user groups or
+                                conferences about specific topics around automated testing with WebdriverIO. Check out
+                                this talk on <a href="https://www.youtube.com/watch?v=jOmvPpzLMf8&feature=youtu.be&t=3204">The Nuts and Bolts of WebdriverIO</a> by <a href="https://twitter.com/bromann">@bromann</a> at <a href="https://seleniumcamp.com/">Selenium Camp 2020</a>.
+                            </p>
+                            <p>
+                                There is also many YouTube Channels with useful tutorials by community members
+                                such as <a href="https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0">Klamping</a>, <a href="https://www.youtube.com/watch?v=LQqrtdsFIcM&list=PL3DF7mGS8NcI0V-n44Betlfx890wQ29AL&ab_channel=JuliaPottinger">Julia Pottinger</a> or <a href="https://www.youtube.com/watch?v=e8goAKb6CC0&list=PL6AdzyjjD5HBbt9amjf3wIVMaobb28ZYN">Automation Bro</a>.
+                            </p>
+                        </>
+                    }
+                />
             </main>
         </Layout>
     )

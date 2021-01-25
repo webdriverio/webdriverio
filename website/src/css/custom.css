@@ -24,6 +24,7 @@
     --ifm-table-border-color: #efefef;
     --ifm-navbar-height: 85px;
 
+    --wdio-spacing-vertical: 60px;
     --wdio-link-background-color: #eee0d7;
     --wdio-link-color: #000;
     --wdio-section-background-color: #fff;
