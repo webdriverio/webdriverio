@@ -17,6 +17,7 @@ There are many wonderful curated resources the WebdriverIO community has put tog
 - [WebdriverIO - Tutorial for beginners](https://www.youtube.com/watch?v=e8goAKb6CC0&list=PL6AdzyjjD5HBbt9amjf3wIVMaobb28ZYN) by Automation Bro
 - [Learn WebdriverIO Course](https://www.youtube.com/watch?v=I5hRcPH5dx8&list=PL0y7qCn3hjLY6JvohBcmUHKHf_iOi8WuF&ab_channel=Front-endTestingwithKevin) by Kevin Lamping
 - [WebDriverIO - JavaScript Tool](https://www.youtube.com/watch?v=7J3FnyEGXd4&list=PLFGoYjJG_fqqswF8qDdWNG3b-BtZfiqQn&ab_channel=NaveenAutomationLabs) by Naveen AutomationLabs
+- [WebdriverIO : NETWORK LOGS](https://www.youtube.com/watch?v=Be9IPyxHmLs) by Seventeenth Sep
 
 ## Conference/Meetup Talks
 
