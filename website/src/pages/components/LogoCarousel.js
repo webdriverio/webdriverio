@@ -16,7 +16,7 @@ export default class LogoCarousel extends React.Component {
         }
 
         this.containerRef = React.createRef()
-        this.pages = Math.ceil(props.logos.length / 6)
+        this.pages = Math.ceil(props.logos ? props.logos.length / 6 : 1)
     }
 
     componentDidMount() {
@@ -54,6 +54,10 @@ export default class LogoCarousel extends React.Component {
     }
 
     render () {
+        if (!this.props || !this.props.logos) {
+            return
+        }
+
         this.buttons = () => [...Array(this.pages)].map((_, index) => (
             <button onClick={() => this.handleClick(index)} key={index} className={clsx(styles.button, index === this.state.activePage ? styles.buttonActive : '')}>{index + 1}</button>
         ))
