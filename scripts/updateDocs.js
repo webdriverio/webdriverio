@@ -13,7 +13,7 @@ const { version: PKG_VERSION } = require('../lerna.json')
 const PRODUCTION_VERSION = 'v6'
 const DISTRIBUTION_ID = process.env.DISTRIBUTION_ID
 const BUCKET_NAME = 'webdriver.io'
-const BUILD_DIR = path.resolve(__dirname, '..', 'website', 'build', 'webdriver.io')
+const BUILD_DIR = path.resolve(__dirname, '..', 'website', 'build')
 const UPLOAD_OPTIONS = { partSize: 10 * 1024 * 1024, queueSize: 1 }
 const IGNORE_FILE_SUFFIX = ['*.rb']
 
