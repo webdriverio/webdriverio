@@ -7,6 +7,10 @@
     padding: var(--wdio-spacing-vertical) 0 var(--wdio-spacing-vertical) calc(var(--ifm-spacing-horizontal) + 20px)!important;
 }
 
+.reversed {
+    padding: var(--wdio-spacing-vertical) calc(var(--ifm-spacing-horizontal) + 20px) var(--wdio-spacing-vertical) var(--ifm-spacing-horizontal)!important;
+}
+
 .featureImage {
     height: 100%;
     padding: var(--wdio-spacing-vertical) var(--ifm-spacing-horizontal)!important;

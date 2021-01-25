@@ -112,3 +112,24 @@ export const logos = [{
     alt: 'Rabobank',
     url: 'https://www.rabobank.com/'
 }]
+
+export const LHIntregrationExample = `browser.emulateDevice('iPhone X')
+browser.enablePerformanceAudits({
+    networkThrottling: 'Good 3G',
+    cacheEnabled: true,
+    formFactor: 'mobile'
+})
+
+// open application under test
+browser.url('https://localhost:3000')
+
+expect(browser.getMetrics().firstMeaningfulPaint).toBeBelow(2500)
+const pwaCheckResult = browser.checkPWA()
+expect(pwaCheckResult.passed).toBe(true)
+`
+
+export const SetupExample = `
+$ npm install --save-dev @wdio/cli
+$ npx wdio config --yes
+$ npx wdio run
+`

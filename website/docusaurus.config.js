@@ -182,7 +182,8 @@ module.exports = {
                 routeBasePath: 'community',
                 sidebarPath: require.resolve('./sidebarsCommunity.js')
             },
-        ]
+        ],
+        '@docusaurus/plugin-ideal-image'
     ],
     themes: ['@saucelabs/theme-github-codeblock'],
     stylesheets: [

@@ -23,3 +23,17 @@
   align-items: center;
   justify-content: center;
 }
+
+.frameworkLogos {
+    background-color: transparent!important;
+    border-bottom: 0!important;
+}
+.frameworkLogos img {
+    height: 60px;
+    padding: 0 10px 0 0;
+}
+
+.reactImage {
+    max-width: 115%;
+    transform: translateX(-45px);
+}

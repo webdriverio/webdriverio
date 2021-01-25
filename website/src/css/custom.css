@@ -146,7 +146,8 @@ img[alt^=Support] {
     border-bottom: 0;
 }
 
-.main-wrapper .markdown p > a:hover {
+.main-wrapper .markdown p > a:hover,
+.main-wrapper .container p > a:hover {
     color: var(--ifm-color-primary)
 }
 

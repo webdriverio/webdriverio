@@ -1,6 +1,7 @@
 import React from 'react'
 import clsx from 'clsx'
 import Layout from '@theme/Layout'
+import CodeBlock from '@theme/CodeBlock'
 import Link from '@docusaurus/Link'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 import useBaseUrl from '@docusaurus/useBaseUrl'
@@ -11,7 +12,7 @@ import Section from './components/Section'
 import Highlight from './components/Highlight'
 
 import styles from './styles.module.css'
-import { logos, features } from './constants'
+import { logos, features, LHIntregrationExample, SetupExample } from './constants'
 
 function Home() {
     const context = useDocusaurusContext()
@@ -99,6 +100,84 @@ function Home() {
                             <p>
                                 There is also many YouTube Channels with useful tutorials by community members
                                 such as <a href="https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0">Klamping</a>, <a href="https://www.youtube.com/watch?v=LQqrtdsFIcM&list=PL3DF7mGS8NcI0V-n44Betlfx890wQ29AL&ab_channel=JuliaPottinger">Julia Pottinger</a> or <a href="https://www.youtube.com/watch?v=e8goAKb6CC0&list=PL6AdzyjjD5HBbt9amjf3wIVMaobb28ZYN">Automation Bro</a>.
+                            </p>
+                        </>
+                    }
+                />
+                <Highlight
+                    img={
+                        <CodeBlock className="js" metastring="1-2" children={LHIntregrationExample}></CodeBlock>
+                    }
+                    reversed
+                    title="Google Lighthouse Integration"
+                    text={
+                        <>
+                            <p>
+                                WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages
+                                native browser APIs to enable integrations to popular developer tools such as <a href="https://chromedevtools.github.io/devtools-protocol/">Chrome DevTools</a> or
+                                <a href="https://developers.google.com/web/tools/lighthouse">Google Lighthouse</a>. With the <Link to={useBaseUrl('/docs/devtools-service')}><code>@wdio/devtools-service</code></Link> plugin you have access to
+                                commands for validating if you app is a valid PWA application as well as to commands for
+                                capturing frontend performance metrics such as <code>speedIndex</code> and others.
+                            </p>
+                            <p>
+                                <h4>Integration to developer tools such as:</h4>
+                                <a href="https://chromedevtools.github.io/devtools-protocol" class={styles.frameworkLogos}><img src="/img/icons/devtools.png" alt="Chrome DevTools" /></a>
+                                <a href="https://developers.google.com/web/tools/lighthouse" class={styles.frameworkLogos}><img src="/img/icons/lighthouse-logo.svg" alt="Google Lighthouse" /></a>
+                                <a href="https://www.deque.com/axe/" class={styles.frameworkLogos}><img src="/img/icons/axe.png" alt="Axe Accessibility Engine" /></a>
+                            </p>
+                        </>
+                    }
+                />
+                <Highlight
+                    img={
+                        <img
+                            src='/img/react-support.png'
+                            alt="React Support"
+                            className={styles.reactImage}
+                        />
+                    }
+                    isDark
+                    title="Support for Modern Web and Mobile Frameworks"
+                    text={
+                        <>
+                            <p>
+                                WebdriverIO allows you to automate any application written
+                                with modern web frameworks such as <a href="https://reactjs.org/">React</a>, <a href="https://angular.io/">Angular</a>, <a href="https://www.polymer-project.org/">Polymer</a>
+                                or <a href="https://vuejs.org/">Vue.js</a> as well as native mobile applications for Android
+                                and iOS.
+                            </p>
+                            <p>
+                                It comes with smart selector strategies that can, e.g. using
+                                the <Link to={useBaseUrl('/docs/api/browser/react$')}><code>react$</code></Link> command, fetch React components by its component
+                                name and filter it by its props or states. A similar command
+                                called <Link to={useBaseUrl('/docs/api/browser/shadow$')}><code>$shadow</code></Link> provides the ability to fetch elements within
+                                the <a href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM">shadow DOM</a> of a web component.
+                            </p>
+                            <p>
+                                <h4>Native Support for:</h4>
+                                <a href="https://reactjs.org/" class={styles.frameworkLogos}><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ii0xMS41IC0xMC4yMzE3NCAyMyAyMC40NjM0OCI+CiAgPHRpdGxlPlJlYWN0IExvZ288L3RpdGxlPgogIDxjaXJjbGUgY3g9IjAiIGN5PSIwIiByPSIyLjA1IiBmaWxsPSIjNjFkYWZiIi8+CiAgPGcgc3Ryb2tlPSIjNjFkYWZiIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiPgogICAgPGVsbGlwc2Ugcng9IjExIiByeT0iNC4yIi8+CiAgICA8ZWxsaXBzZSByeD0iMTEiIHJ5PSI0LjIiIHRyYW5zZm9ybT0icm90YXRlKDYwKSIvPgogICAgPGVsbGlwc2Ugcng9IjExIiByeT0iNC4yIiB0cmFuc2Zvcm09InJvdGF0ZSgxMjApIi8+CiAgPC9nPgo8L3N2Zz4K" alt="" /></a>
+                                <a href="https://vuejs.org/" class={styles.frameworkLogos}><img src="/img/icons/vue.png" alt="Vue.js" /></a>
+                                <a href="https://angular.io/" class={styles.frameworkLogos}><img src="/img/icons/angular.svg" alt="Angular" /></a>
+                                <a href="https://www.polymer-project.org/" class={styles.frameworkLogos}><img src="/img/icons/polymer.svg" alt="Polymer" /></a>
+                                <a href="https://svelte.dev/" class={styles.frameworkLogos}><img src="/img/icons/svelte.png" alt="Svelte" /></a>
+                            </p>
+                        </>
+                    }
+                />
+                <Highlight
+                    img={
+                        <CodeBlock className="bash" metastring="1-2" children={SetupExample}></CodeBlock>
+                    }
+                    reversed
+                    title="Get Started With WebdriverIO within Minutes"
+                    text={
+                        <>
+                            <p>
+                                The WebdriverIO testrunner comes with a command line interface that
+                                provides a nice configuration utility that helps you to create your
+                                config file in less than a minute. It also gives an overview of all
+                                available 3rd party packages like framework adaptions, reporter and
+                                services and installs them for you!
                             </p>
                         </>
                     }

@@ -6,7 +6,7 @@ import styles from './highlight.module.css'
 export default function Highlight({ reversed, title, img, text, isDark }) {
     const left = <div className={clsx('col col--6', styles.featureImage)}>{img}</div>
     const right = (
-        <div className={clsx('col col--6', styles.featureContent)}>
+        <div className={clsx('col col--6', styles.featureContent, reversed ? styles.reversed : '')}>
             <h3 className={styles.featureTitle}>{title}</h3>
             {text}
         </div>
