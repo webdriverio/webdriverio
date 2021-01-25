@@ -1,6 +1,7 @@
 const organizationName = 'webdriverio' // Usually your GitHub org/user name.
 const projectName = 'webdriverio' // Usually your repo name.
 const branch = 'cb-v7-website' // ToDo(Christian): switch to "master" once deployed to prod
+const repoUrl = exports.repoUrl = `https://github.com/${organizationName}/${projectName}`
 
 module.exports = {
     title: 'WebdriverIO',
@@ -81,7 +82,7 @@ module.exports = {
                 position: 'right',
                 to: '/versions'
             }, {
-                href: `https://github.com/${organizationName}/${projectName}`,
+                href: repoUrl,
                 position: 'right',
                 className: 'header-github-link',
                 'aria-label': 'GitHub repository',
@@ -129,7 +130,7 @@ module.exports = {
                     to: 'blog',
                 }, {
                     label: 'GitHub',
-                    href: `https://github.com/${organizationName}/${projectName}`,
+                    href: repoUrl,
                 }],
             }],
             logo: {
@@ -146,7 +147,7 @@ module.exports = {
                 docs: {
                     sidebarPath: require.resolve('./sidebars.js'),
                     // Please change this to your repo.
-                    editUrl:`https://github.com/${organizationName}/${projectName}/edit/${branch}/website/`,
+                    editUrl:`${repoUrl}/edit/${branch}/website/`,
                     remarkPlugins: [
                         [require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }],
                     ],
@@ -155,7 +156,7 @@ module.exports = {
                     showReadingTime: true,
                     postsPerPage: 3,
                     // Please change this to your repo.
-                    editUrl: `https://github.com/${organizationName}/${projectName}/edit/${branch}/website/blog/`,
+                    editUrl: `${repoUrl}/edit/${branch}/website/blog/`,
                 },
                 theme: {
                     customCss: require.resolve('./src/css/custom.css'),

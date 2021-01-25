@@ -142,7 +142,7 @@ Default: `5`
 ### sauceConnect
 If true it runs Sauce Connect and opens a secure connection between a Sauce Labs virtual machine running your browser tests.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 *(only for vm and or em/simulators)*
@@ -150,7 +150,7 @@ Default: `false`
 ### sauceConnectOpts
 Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://github.com/bermi/sauce-connect-launcher#advanced-usage) for more information. Per default the service disables SC proxy auto-detection as via `noAutodetect` as this can be unreliable for some machines.
 
-Type: `Object`<br>
+Type: `Object`<br />
 Default: `{ noAutodetect: true }`
 
 *(only for vm and or em/simulators)*

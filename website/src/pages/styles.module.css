@@ -6,22 +6,27 @@
  */
 
 .heroBanner {
-  padding: 4rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+    padding: 1rem 0 5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
 }
 
 @media screen and (max-width: 966px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+    .heroBanner {
+        padding: 2rem;
+    }
 }
 
 .buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 30px 0 0;
+}
+
+.buttons > a {
+    margin: 0 5px;
 }
 
 .frameworkLogos {
@@ -36,4 +41,8 @@
 .reactImage {
     max-width: 115%;
     transform: translateX(-45px);
+}
+
+.social {
+    margin-top: 20px;
 }

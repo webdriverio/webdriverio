@@ -37,7 +37,7 @@ exports.generateWdioDocs = async (sidebars) => {
         })
 
         for (const file of files) {
-            const docDir = path.join(__dirname, '..', '..', 'docs', 'api', scope)
+            const docDir = path.join(__dirname, '..', '..', 'website', 'docs', 'api', scope)
             if (!fs.existsSync(docDir)){
                 fs.mkdirSync(docDir)
             }

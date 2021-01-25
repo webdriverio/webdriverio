@@ -2,14 +2,14 @@ const fs = require('fs-extra')
 const path = require('path')
 const ejs = require('ejs')
 
-const config = require('../../website/siteConfig')
+const { repoUrl } = require('../../website/docusaurus.config.js')
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
 const {
     PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS, PROTOCOL_API_DESCRIPTION
 } = require('../constants')
 
 const category = 'api'
-const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..')
+const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..', 'website')
 const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
 
 /**
@@ -47,7 +47,7 @@ exports.generateProtocolDocs = (sidebars) => {
                 description.returnTags = [] // tbd
                 description.throwsTags = [] // tbd
                 description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
-                description.customEditUrl = `${config.repoUrl}/edit/main/packages/wdio-protocols/protocols/${protocolName}.json`
+                description.customEditUrl = `${repoUrl}/edit/main/packages/wdio-protocols/protocols/${protocolName}.json`
 
                 let protocolNote
                 if (VENDOR_PROTOCOLS.includes(protocolName)) {
@@ -60,7 +60,7 @@ exports.generateProtocolDocs = (sidebars) => {
                 }
 
                 if (description.description) {
-                    description.description += `<br><br>${protocolNote}`
+                    description.description += `<br /><br />${protocolNote}`
                 } else {
                     description.description = protocolNote
                 }

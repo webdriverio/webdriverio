@@ -25,7 +25,7 @@ exports.generateReportersAndServicesDocs = (sidebars) => {
             const readme = fs.readFileSync(path.join(__dirname, '..', '..', 'packages', pkg, 'README.md')).toString()
             const preface = buildPreface(id, pkgName, nameSingular, `https://github.com/webdriverio/webdriverio/edit/main/packages/${pkg}/README.md`)
             const doc = [...preface, ...readme.split('\n').slice(3)].join('\n')
-            fs.writeFileSync(path.join(__dirname, '..', '..', 'docs', `_${id}.md`), doc, { encoding: 'utf-8' })
+            fs.writeFileSync(path.join(__dirname, '..', '..', 'website', 'docs', `_${id}.md`), doc, { encoding: 'utf-8' })
 
             if (!sidebars.docs[namePlural]) {
                 sidebars.docs[namePlural] = []

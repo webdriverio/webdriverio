@@ -55,7 +55,9 @@ export default class LogoCarousel extends React.Component {
 
     render () {
         if (!this.props || !this.props.logos) {
-            return
+            return (
+                <div></div>
+            )
         }
 
         this.buttons = () => [...Array(this.pages)].map((_, index) => (
