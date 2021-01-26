@@ -37,7 +37,8 @@ html[data-theme=dark] {
     --wdio-link-background-color: #4e1e02;
     --wdio-link-color: #fff;
     --ifm-menu-color: #fff;
-    --ifm-table-border-color: var(--ifm-color-emphasis-300)
+    --ifm-table-border-color: var(--ifm-color-emphasis-300);
+    --ifm-toc-link-color: #fff;
 }
 
 @media (max-width: 996px) {
