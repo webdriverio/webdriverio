@@ -2,14 +2,14 @@ const fs = require('fs-extra')
 const path = require('path')
 const ejs = require('ejs')
 
-const config = require('../../website/siteConfig')
+const { repoUrl } = require('../../website/docusaurus.config.js')
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
 const {
     PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS, PROTOCOL_API_DESCRIPTION
 } = require('../constants')
 
 const category = 'api'
-const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..')
+const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..', 'website')
 const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
 
 /**
@@ -20,6 +20,12 @@ exports.generateProtocolDocs = (sidebars) => {
     fs.ensureDirSync(API_DOCS_ROOT_DIR)
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
     const protocolDocs = {}
+
+    sidebars[category].push({
+        type: 'category',
+        label: 'Protocols',
+        items: []
+    })
 
     for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
         const protocol = PROTOCOL_NAMES[protocolName]
@@ -41,7 +47,7 @@ exports.generateProtocolDocs = (sidebars) => {
                 description.returnTags = [] // tbd
                 description.throwsTags = [] // tbd
                 description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
-                description.customEditUrl = `${config.repoUrl}/edit/main/packages/wdio-protocols/protocols/${protocolName}.json`
+                description.customEditUrl = `${repoUrl}/edit/main/packages/wdio-protocols/protocols/${protocolName}.json`
 
                 let protocolNote
                 if (VENDOR_PROTOCOLS.includes(protocolName)) {
@@ -54,7 +60,7 @@ exports.generateProtocolDocs = (sidebars) => {
                 }
 
                 if (description.description) {
-                    description.description += `<br><br>${protocolNote}`
+                    description.description += `<br /><br />${protocolNote}`
                 } else {
                     description.description = protocolNote
                 }
@@ -87,6 +93,6 @@ exports.generateProtocolDocs = (sidebars) => {
         // eslint-disable-next-line no-console
         console.log(`Generated docs for ${protocolName} protocol`)
 
-        sidebars[category].Protocols.push(`${category}/${protocolName}`)
+        sidebars[category][sidebars[category].length - 1].items.push(`${category}/${protocolName}`)
     }
 }

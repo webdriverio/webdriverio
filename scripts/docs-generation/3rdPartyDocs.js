@@ -24,7 +24,7 @@ const readmeHeaders = ['===', '# ']
 const readmeBadges = ['https://badge', 'https://travis-ci.org/']
 
 const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..')
-const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs')
+const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'website', 'docs')
 
 /**
  * Generate docs for 3rd party reporters and services
@@ -32,10 +32,10 @@ const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs')
  */
 exports.generate3rdPartyDocs = async (sidebars) => {
     for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
-        const categoryDir = path.join(DOCS_ROOT_DIR, category)
+        const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
         await fs.ensureDir(categoryDir)
 
-        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme, branch = 'main' } of packages3rdParty) {
+        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme, branch = 'master' } of packages3rdParty) {
             const readme = await downloadReadme(githubUrl, branch, location)
             const id = `${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
@@ -44,6 +44,10 @@ exports.generate3rdPartyDocs = async (sidebars) => {
                 suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl))
             await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, { encoding: 'utf-8' })
 
+            if (namePlural === 'Testrunner') {
+                return
+            }
+
             if (!sidebars[category][namePlural]) {
                 sidebars[category][namePlural] = []
             }
@@ -51,7 +55,9 @@ exports.generate3rdPartyDocs = async (sidebars) => {
             // eslint-disable-next-line no-console
             console.log(`Generated docs for ${packageName}`)
 
-            sidebars[category][namePlural].push(`${category}/${id}`)
+            sidebars[category][namePlural].push(
+                category === 'api' ? `${category}/${id}` : id
+            )
         }
     }
 }
@@ -132,7 +138,9 @@ function normalizeDoc(readme, githubUrl, preface, repoInfo) {
         }
     })
 
-    return [...preface, ...repoInfo, ...readmeArr].join('\n')
+    return [...preface, ...repoInfo, ...readmeArr]
+        .join('\n')
+        .replace(/<br>/g, '<br />')
 }
 
 /**

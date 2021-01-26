@@ -1,6 +1,6 @@
 const path = require('path')
 
-const config = require('../../website/siteConfig')
+const { repoUrl } = require('../../website/docusaurus.config.js')
 
 module.exports = function (docfile) {
     const javadoc = docfile.javadoc[0]
@@ -114,7 +114,7 @@ module.exports = function (docfile) {
                     if (exampleFilename !== '' && code !== '') {
                         files.push({
                             file: exampleFilename,
-                            format: exampleFilename.split(/\./)[1],
+                            format: exampleFilename.split(/\./).pop(),
                             code: code
                         })
                     }
@@ -185,7 +185,7 @@ module.exports = function (docfile) {
         description: description,
         ignore: javadoc.ignore,
         examples: files,
-        customEditUrl: `${config.repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.js`,
+        customEditUrl: `${repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.js`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
         isElementScope : scope === 'element',

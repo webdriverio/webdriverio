@@ -1,0 +1,21 @@
+.navbar .DocSearch-Button {
+    height: 30px;
+}
+
+.navbar .DocSearch-Button-Placeholder {
+    font-size: 1.1rem;
+    font-family: 'IBM Plex Mono';
+    color: #999
+}
+
+body .navbar .DocSearch-Search-Icon {
+    width: 15px;
+    height: 15px;
+    color:#999
+}
+
+.navbar .DocSearch-Button-Key {
+    width: 18px;
+    height: 16px;
+    top: 0px;
+}

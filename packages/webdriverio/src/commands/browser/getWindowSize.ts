@@ -10,7 +10,7 @@ interface BrowserSize {
  * Returns browser window size.
  *
  * <example>
- * :getWindowSize.js
+    :getWindowSize.js
     it('should return browser window size', function () {
         const windowSize = browser.getWindowSize();
         console.log(windowSize);

@@ -119,7 +119,7 @@ You can also autogenerate the report by using the Allure command line tool progr
 $ npm i allure-commandline
 ```
 
-Then add or extend your `onComplete` hook or create a [custom service](/docs/customservices.html) for this:
+Then add or extend your `onComplete` hook or create a [custom service](/docs/customservices) for this:
 
 ```js
     onComplete: function() {

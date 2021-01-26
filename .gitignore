@@ -73,15 +73,15 @@ packages/**/package-lock.json
 
 website/.sass-cache/
 website/translated_docs
-website/static/css
 website/build/
+website/sidebars.json
 website/yarn.lock
 website/sidebars.json
 website/node_modules
 website/i18n/*
-docs/api/**/*.md
-docs/docs/**/*.md
-docs/_*.md
+website/docs/api/**/*.md
+website/docs/docs/**/*.md
+website/docs/_*.md
 
 # Editor files
 .idea

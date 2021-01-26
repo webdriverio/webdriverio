@@ -3,15 +3,20 @@ import { getElements } from '../../utils/getElementObject'
 import type { Selector, ElementArray } from '../../types'
 
 /**
- * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
+ * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver#findelements) command in order
  * to fetch multiple elements on the page. It returns an array with element results that will have an
  * extended prototype to call action commands without passing in a selector. However if you still pass
  * in a selector it will look for that element first and call the action on that element.
  *
  * Using the wdio testrunner this command is a global variable else it will be located on the browser object instead.
  *
- * You can chain `$` or `$$` together in order to walk down the DOM tree. For more information on how
- * to select specific elements, see [`Selectors`](/docs/selectors.html).
+ * You can chain `$` or `$$` together in order to walk down the DOM tree.
+ *
+ * :::info
+ *
+ * For more information on how to select specific elements, check out the [Selectors](/docs/selectors) guide.
+ *
+ * :::
  *
  * <example>
     :index.html

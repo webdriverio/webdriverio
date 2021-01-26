@@ -214,7 +214,7 @@
   "/session/:sessionId/chromium/send_command": {
     "POST": {
       "command": "sendCommand",
-      "description": "Send a command to the DevTools debugger.<br>For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).",
+      "description": "Send a command to the DevTools debugger.<br />For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).",
       "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1290-L1304",
       "parameters": [{
         "name": "cmd",
@@ -232,7 +232,7 @@
   "/session/:sessionId/chromium/send_command_and_get_result": {
     "POST": {
       "command": "sendCommandAndGetResult",
-      "description": "Send a command to the DevTools debugger and wait for the result.<br>For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).",
+      "description": "Send a command to the DevTools debugger and wait for the result.<br />For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).",
       "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1306-L1320",
       "parameters": [{
         "name": "cmd",

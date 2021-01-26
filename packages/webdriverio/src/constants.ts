@@ -197,7 +197,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
                 throw new Error(
                     'a reporter should be either a string in the format "wdio-<reportername>-reporter" ' +
                     'or a function/class. Please see the docs for more information on custom reporters ' +
-                    '(https://webdriver.io/docs/customreporter.html)'
+                    '(https://webdriver.io/docs/customreporter)'
                 )
             }
 

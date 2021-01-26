@@ -3,8 +3,13 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
 
 /**
  *
- * Appium only. Save a video started by startRecordingScreen command to file.
- * See [Appium docs](http://appium.io/docs/en/commands/device/recording-screen/start-recording-screen/)
+ * Save a video started by [`startRecordingScreen`](/docs/api/appium#startrecordingscreen) command to file.
+ *
+ * :::info
+ *
+ * This command is only supported for mobile sessions running on [Appium](http://appium.io/docs/en/commands/device/recording-screen/start-recording-screen/).
+ *
+ * :::
  *
  * <example>
     :saveRecordingScreen.js

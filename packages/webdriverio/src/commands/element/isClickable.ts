@@ -5,15 +5,20 @@ import isElementClickableScript from '../../scripts/isElementClickable'
 /**
  *
  * Return true if the selected DOM-element:
- * - exists;
- * - is visible;
- * - is within viewport (if not try scroll to it);
- * - its center is not overlapped with another element;
- * - is not disabled.
+ *
+ * - exists
+ * - is visible
+ * - is within viewport (if not try scroll to it)
+ * - its center is not overlapped with another element
+ * - is not disabled
  *
  * otherwise return false.
  *
- * Please note that `isClickable` works only in web and webviews, it doesn't work in mobile app native context.
+ * :::info
+ *
+ * Please note that `isClickable` works only in web browser and in mobile webviews, it doesn't work in mobile app native context.
+ *
+ * :::
  *
  * <example>
     :isClickable.js

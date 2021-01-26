@@ -25,7 +25,7 @@ Object {
   "error": Object {
     "actual": undefined,
     "expected": undefined,
-    "message": "The execution in the test \\"parentfoo barfoo\\" took too long. Try to reduce the run time or increase your timeout for test specs (https://webdriver.io/docs/timeouts.html).",
+    "message": "The execution in the test \\"parentfoo barfoo\\" took too long. Try to reduce the run time or increase your timeout for test specs (https://webdriver.io/docs/timeouts).",
     "name": "Error",
     "type": "Error",
   },

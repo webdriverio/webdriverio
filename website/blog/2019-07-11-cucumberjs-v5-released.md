@@ -9,7 +9,7 @@ We are pleased to announce that we now have support for CucumberJS in WebdriverI
 This has been a great challenge for the project committers so we're all very thankful for the time and effort they put into this.
 So normally we would say
 
-```sh
+```bash
 npm install @wdio/cucumber-framework --save-dev
 ```
 
@@ -31,7 +31,7 @@ If you want to know more about the NodeJS LTS support check [this](https://githu
 WebdriverIO is now fully supporting the W3C protocol, this has a lot of advantages, but for your existing scripts some minor downsides.
 One of the downsides might be that you are using methods that are based on the JSONWire Protocol, that are not supported by the newest drivers like for example ChromeDriver 74+.
 This might result in errors like for example `browser.positionClick() is not a function`. If you see this error you are using a not supported method for the W3C supported Driver.
-See the API documentation [here](https://webdriver.io/docs/api.html) to see which command is a Webdriver Protocol (W3C) or a JSONWire protocol command.
+See the API documentation [here](https://webdriver.io/docs/api.html) to see which command is a WebDriver Protocol (W3C) or a JSONWire protocol command.
 
 Just a little side note, we tried to keep all `browser` and `element` commands, see the link above, agnostic to the protocol. Nothing changed here for you.
 To provide you some insight on how this works please check for example the `keys` command, you will find the support for both protocols [here](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/commands/browser/keys.js#L45-L50).
@@ -67,7 +67,7 @@ When you do this you can easily disable scenario's in your old project, and run 
 Before installing dependencies, we need to initialize an empty NPM project (this will allow us to the cli to install needed dependencies to our local project).
 To do this, run:
 
-```sh
+```bash
 $ mkdir webdriverio-test && cd webdriverio-test
 $ npm init -y
 ```
@@ -79,14 +79,14 @@ We recommend using the test runner because it comes with a lot of useful feature
 
 Now we need to install the cli. Do that by running:
 
-```sh
+```bash
 $ npm i --save-dev @wdio/cli
 ```
 
 #### 3. Generate Configuration File
 We'll next want to generate a configuration file that stores all of our WebdriverIO settings. To do that just run the configuration utility:
 
-```sh
+```bash
 $ npx wdio config
 ```
 

@@ -27,7 +27,7 @@ You can simply do it by:
 npm install @wdio/sauce-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 
@@ -128,13 +128,13 @@ capabilities = [
 
 ## Sauce Service Options
 
-In order to authorize to the Sauce Labs service your config needs to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
+In order to authorize to the Sauce Labs service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
 ### maxErrorStackLength
 This service will automatically push the error stack to Sauce Labs when a test fails. By default it will only push the first 5
 lines, but if needed this can be changed. Be aware that more lines will result in more WebDriver calls which might slow down the execution.
 
-Type: `number`<br>
+Type: `number`<br />
 Default: `5`
 
 *(only for vm and or em/simulators)*
@@ -142,7 +142,7 @@ Default: `5`
 ### sauceConnect
 If true it runs Sauce Connect and opens a secure connection between a Sauce Labs virtual machine running your browser tests.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 *(only for vm and or em/simulators)*
@@ -150,7 +150,7 @@ Default: `false`
 ### sauceConnectOpts
 Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://github.com/bermi/sauce-connect-launcher#advanced-usage) for more information. Per default the service disables SC proxy auto-detection as via `noAutodetect` as this can be unreliable for some machines.
 
-Type: `Object`<br>
+Type: `Object`<br />
 Default: `{ noAutodetect: true }`
 
 *(only for vm and or em/simulators)*

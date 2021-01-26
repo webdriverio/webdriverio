@@ -4,7 +4,7 @@ import { ELEMENT_KEY } from '../../constants'
 import type { Selector } from '../../types'
 
 /**
- * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
+ * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver#findelement) command in order
  * to fetch a single element on the page. It returns an object that with an extended prototype to call
  * action commands without passing in a selector. However if you still pass in a selector it will look
  * for that element first and call the action on that element. You can also pass in an object as selector
@@ -13,8 +13,13 @@ import type { Selector } from '../../types'
  *
  * Using the wdio testrunner this command is a global variable else it will be located on the browser object instead.
  *
- * You can chain `$` or `$$` together in order to walk down the DOM tree. For more information on how
- * to select specific elements, see [`Selectors`](/docs/selectors.html).
+ * You can chain `$` or `$$` together in order to walk down the DOM tree.
+ *
+ * :::info
+ *
+ * For more information on how to select specific elements, check out the [Selectors](/docs/selectors) guide.
+ *
+ * :::
  *
  * <example>
     :index.html

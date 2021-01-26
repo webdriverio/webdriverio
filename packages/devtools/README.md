@@ -13,7 +13,7 @@ $ npm i webdriverio
 
 ## Example
 
-The following example demonstrates how WebdriverIO can be used with the `devtools` package as automation binding using the [`automationProtocol`](https://webdriver.io/docs/options.html#automationProtocol) option:
+The following example demonstrates how WebdriverIO can be used with the `devtools` package as automation binding using the [`automationProtocol`](https://webdriver.io/docs/options#automationProtocol) option:
 
 ```js
 const { remote } = require('webdriverio')

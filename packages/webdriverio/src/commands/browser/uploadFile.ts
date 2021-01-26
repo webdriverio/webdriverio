@@ -5,7 +5,7 @@ import type { Capabilities } from '@wdio/types'
 
 /**
  * Uploads a file to the Selenium Standalone server or other browser driver
- * (e.g. Chromedriver) by using the [`file`](/docs/api/selenium.html#file) command.
+ * (e.g. Chromedriver) by using the [`file`](https://webdriver.io/docs/api/selenium#file) command.
  * _Note:_ that this command is only supported if you use a Selenium Hub or
  * Chromedriver directly.
  *

@@ -25,7 +25,7 @@ You can simple do it by:
 npm install @wdio/devtools-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 
@@ -342,7 +342,7 @@ browser.cdp('Page', 'setDownloadBehavior', {
 
 ### Access Puppeteer Instance
 
-The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the [`getPuppeteer`](/docs/api/browser/getPuppeteer.html) command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
+The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the [`getPuppeteer`](https://webdriver.io/docs/api/browser/getPuppeteer) command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
 
 ```js
 describe('use Puppeteer', () => {

@@ -17,6 +17,14 @@ type ElementCoordinates = {
  *
  * Drag an item to a destination element or position.
  *
+ * :::info
+ *
+ * The functionality of this command highly depends on the way drag and drop is
+ * implemented in your app. If you experience issues please post your example
+ * in [#4134](https://github.com/webdriverio/webdriverio/issues/4134).
+ *
+ * :::
+ *
  * <example>
     :example.test.js
     it('should demonstrate the dragAndDrop command', () => {

@@ -14,7 +14,7 @@
     "clean:pkglock": "rimraf ./packages/*/package-lock.json",
     "clean:tgz": "rimraf ./packages/*/*.tgz",
     "clean:node_modules": "rimraf ./packages/node_modules",
-    "clean:website": "rimraf docs/_*.md docs/api/_*.md docs/api/**/_*.md website/sidebars.json",
+    "clean:website": "rimraf website/docs/_*.md website/docs/api/_*.md website/docs/api/**/_*.md website/sidebars.json",
     "clean:tests": "rimraf tests/typings/**/node_modules tests/typings/**/dist ./coverage",
     "clean:cache": "rimraf .eslintcache",
     "clean-full:package_modules": "rimraf ./packages/*/node_modules",
@@ -48,6 +48,7 @@
     "ts:cucumber": "cd tests/typings/cucumber && npx tsc",
     "ts:sync": "cd tests/typings/sync && npx tsc",
     "watch": "node ./scripts/build --watch",
+    "watch:docs": "npm run docs:generate && cd website && npm i && npm start",
     "version": "npm run changelog && git add CHANGELOG.md"
   },
   "devDependencies": {
@@ -77,7 +78,6 @@
     "@cucumber/cucumber": "^7.0.0",
     "del": "^5.1.0",
     "depcheck": "^1.0.0",
-    "dox": "^0.9.0",
     "ejs": "^3.0.2",
     "eslint": "^7.10.0",
     "husky": "^4.2.3",

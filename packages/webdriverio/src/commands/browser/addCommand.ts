@@ -1,11 +1,16 @@
 /**
  * The browser method  `addCommand` helps you to write your own set of commands. You can write your command in a synchronous way or in an asynchronous way.
  *
- * > That's interesting, right? You can view more info on `addCommand` [here](https://webdriver.io/docs/customcommands.html#adding-custom-commands)
+ * :::info
+ *
+ * You can find more information on adding custom commands in the [custom command](/docs/customcommands#adding-custom-commands) guide.
+ *
+ * :::
+ *
  * <example>
     :execute.js
     browser.addCommand('getUrlAndTitle', function (customParam) {
-    // `this` refers to the `browser` scope
+        // `this` refers to the `browser` scope
         return {
             url: this.getUrl(),
             title: this.getTitle(),

@@ -66,11 +66,11 @@ describe('my e2e tests', () => {
 })
 ```
 
-We have integrated Puppeteer so you can run "cross browser" tests on Chrome, Firefox (Nightly) and Chromium Edge. Note that the term cross browser is used with quotation marks here. A lot of automation tools today advertise their cross browser support while not being really honest about what it actually means. All Chromium based browser like Google Chrome, Chromium Edge or Electron based apps use the identical engine under the hood. It is questionable that there is much value testing on multiple Chromium based browser. In addition to that the support for Firefox is and will be experimental as it was implemented in an ad-hoc effort by a team at Mozilla which hasn't committed to bring it out of its experimental state and continue support for it.
+We have integrated Puppeteer so you can run "cross-browser" tests on Chrome, Firefox (Nightly) and Chromium Edge. Note that the term cross-browser is used with quotation marks here. A lot of automation tools today advertise their cross-browser support while not being really honest about what it actually means. All Chromium based browser like Google Chrome, Chromium Edge or Electron based apps use the identical engine under the hood. It is questionable that there is much value testing on multiple Chromium based browser. In addition to that the support for Firefox is and will be experimental as it was implemented in an ad-hoc effort by a team at Mozilla which hasn't committed to bring it out of its experimental state and continue support for it.
 
 We have not planned to integrate [Playwright](https://github.com/microsoft/playwright) as we can not affort to download their custom build browsers every time someone installs WebdriverIO. We will observe its development and might consider an integration at some point.
 
-The WebdriverIO team wants to emphasize that it continues to be invested in WebDriver as an automation standard which is till today the only true cross browser automation protocol. We will always prefer a standards based solution that has been developed by a diverse group of people representing the industry at large.
+The WebdriverIO team wants to emphasize that it continues to be invested in WebDriver as an automation standard which is till today the only true cross-browser automation protocol. We will always prefer a standards based solution that has been developed by a diverse group of people representing the industry at large.
 
 ### How to Update?
 
@@ -205,7 +205,7 @@ If you are using the `@wdio/appium-service` you don't need to do anything.
 - __Command Renaming:__ we renamed command `launchApp` to `launchChromeApp` for Chrome WebDriver sessions
 - __Spec Filtering:__ the [Spec Filtering](https://webdriver.io/blog/2019/11/01/spec-filtering.html) feature is now enabled by default so that browser sessions aren't started if the framework can't find a test to run in the file (this can not be disabled anymore)
 - __New Hook:__ we added a new hook to the testrunner called `onWorkerStart` which will be executed right before we launch the worker process
-- __Modified Hook Signature:__ we modified the signature of our before/after test/hook hooks to allow you to access the frameworks native event objects - please have a look into the config file [documentation](/docs/configurationfile.html) and update your hooks accordingly
+- __Modified Hook Signature:__ we modified the signature of our before/after test/hook hooks to allow you to access the frameworks native event objects - please have a look into the config file [documentation](/docs/configurationfile) and update your hooks accordingly
 - __Cucumber Update:__ we have updated the `@wdio/cucumber-framework` adapter to use v6 of Cucumber
 - __Overwrite Capabilities:__ By default the launcher will overwrite the capabilities instead of merging them when using the launcher
 

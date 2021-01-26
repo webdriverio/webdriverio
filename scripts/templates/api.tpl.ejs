@@ -31,7 +31,7 @@ title: <?= method.command ?>
     var paramKey = paramTag.types
         ? paramTag.types.map((type) => `<code>${type.replace(/>/g, "&gt;").replace(/</g, "&lt;")}</code>`).join('|')
         : paramTag.type
-    ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br><span class="label labelWarning">optional</span><? }
+    ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br /><span class="label labelWarning">optional</span><? }
     ?> | <?= paramKey.split('|').join(', ').replace('(', '').replace(')', '')
     ?> | <?= paramTag.description ?> |
 <? }) ?>
@@ -40,7 +40,7 @@ title: <?= method.command ?>
 <? if (method.examples.length) { ?>
 ##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
 <? method.examples.forEach(function(example) { ?>
-```<?= example.format ?><? if (example.file) { ?> <?= example.file ?><? } ?>
+```<?= example.format ?><? if (example.file) { ?> title="<?= example.file ?>"<? } ?>
 <?- example.code ?>
 ```
 <? }); ?>

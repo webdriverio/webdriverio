@@ -1,7 +1,7 @@
 WDIO Firefox Profile Service
 ============================
 
-You want to run your Firefox browser with a specific extension or need to set couple preferences? Selenium allows you to use a profile for the Firefox browser by passing this profile as `base64` string to the `firefox_profile` property in your desired capabilities. This requires to build that profile and convert it into `base64`. This service for the [wdio testrunner](https://webdriver.io/guide/testrunner/gettingstarted.html) takes the work of compiling the profile out of your hand and let's you define your desired options comfortable from the `wdio.conf.js` file.
+You want to run your Firefox browser with a specific extension or need to set couple preferences? Selenium allows you to use a profile for the Firefox browser by passing this profile as `base64` string to the `firefox_profile` property in your desired capabilities. This requires to build that profile and convert it into `base64`. This service for the [wdio testrunner](https://webdriver.io/docs/clioptions) takes the work of compiling the profile out of your hand and let's you define your desired options comfortable from the `wdio.conf.js` file.
 
 To find all possible options just open [about:config](about:config) in your Firefox browser or go to [mozillaZine](http://kb.mozillazine.org/About:config_entries) website to find the whole documentation about each setting. In Addition to that you can define compiled (as `*.xpi`) Firefox extensions that should get installed before the test starts.
 
@@ -23,7 +23,7 @@ You can simple do it by:
 npm install @wdio/firefox-profile-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 
@@ -60,14 +60,14 @@ Contains all settings as key value pair. You can find all available settings on 
 
 Add one or multiple extensions to the browser session. All entries can be either an absolute path to the `.xpi` file or the path to an unpacked Firefox extension directory.
 
-Type: `String[]`<br>
+Type: `String[]`<br />
 Default: `[]`
 
 ### profileDirectory
 
 Create Firefox profile based on an existing one by setting an absolute path to that profile.
 
-Type: `String`<br>
+Type: `String`<br />
 Default: `null`
 
 ### proxy
@@ -79,8 +79,8 @@ Set network proxy settings. The parameter `proxy` is a hash which structure depe
  * `pac` - use automatic proxy configuration set based on the value of `autoconfigUrl` key
  * `manual` - manual proxy settings defined separately for different protocols using values from following keys: `ftpProxy`, `httpProxy`, `sslProxy`, `socksProxy`
 
-Type: `Object`<br>
-Default: `null`<br>
+Type: `Object`<br />
+Default: `null`<br />
 Example:
 
 - Automatic Proxy:
@@ -139,7 +139,7 @@ Example:
 
 Please set this flag to `true` if you use Firefox v55 or lower.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 ----

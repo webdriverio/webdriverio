@@ -6,7 +6,7 @@ import { ELEMENT_KEY } from '../../constants'
 import type { Selector } from '../../types'
 
 /**
- * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver.html#findelement) command in order
+ * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver#findelement) command in order
  * to fetch a single element on the page similar to the `$` command from the browser scope. The difference when calling
  * it from an element scope is that the driver will look within the children of that element. You can also pass in an object as selector
  * where the object contains a property `element-6066-11e4-a52e-4f735466cecf` with the value of a reference
@@ -16,7 +16,11 @@ import type { Selector } from '../../types'
  * make unnecessary requests that slow down the test (e.g. `$('body').$('div')` will trigger two request whereas
  * `$('body div')` does literally the same with just one request)
  *
- * For more information on how to select specific elements, see [`Selectors`](/docs/selectors.html).
+ * :::info
+ *
+ * For more information on how to select specific elements, check out the [Selectors](/docs/selectors) guide.
+ *
+ * :::
  *
  * <example>
     :index.html

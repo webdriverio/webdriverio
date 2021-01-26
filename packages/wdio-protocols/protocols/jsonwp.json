@@ -549,7 +549,7 @@
   "/session/:sessionId/element/:elementId/location_in_view": {
     "GET": {
       "command": "getElementLocationInView",
-      "description": "Determine an element's location on the screen once it has been scrolled into view.<br><br>__Note:__ This is considered an internal command and should only be used to determine an element's location for correctly generating native events.",
+      "description": "Determine an element's location on the screen once it has been scrolled into view.<br /><br />__Note:__ This is considered an internal command and should only be used to determine an element's location for correctly generating native events.",
       "ref": "https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidelementidlocation_in_view",
       "variables": [{
         "name": "elementId",
