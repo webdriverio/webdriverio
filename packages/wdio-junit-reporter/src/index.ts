@@ -70,19 +70,17 @@ export default class JunitReporter extends WDIOReporter {
         ).join('_')
     }
 
-    addFailedHooks(suite: SuiteStats): SuiteStats {
+    addFailedHooks(suite: any): SuiteStats {
         /**
          * Add failed hooks to suite as tests.
          */
-        const failedHooks = suite.hooks.filter(hook => hook.error && hook.title.match(/^"(before|after)( all| each)?" hook/))
-        failedHooks.forEach(hook => {
+        const failedHooks = suite.hooks.filter((hook: { error: any; title: string; }) => hook.error && hook.title.match(/^"(before|after)( all| each)?" hook/))
+        failedHooks.forEach((hook: { title: any; _duration: any; error: any; state: any; }) => {
             const { title, _duration, error, state } = hook
             suite.tests.push({
                 _duration,
                 title,
                 error,
-                // TODO possible undefined
-                // @ts-ignore
                 state,
                 output: []
             })
@@ -213,7 +211,7 @@ export default class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    buildJunitXml (runner : RunnerStats): any {
+    buildJunitXml (runner : any): any {
         let builder = junit.newBuilder()
         // TODO WDIOReportOptions does not have a config type
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
