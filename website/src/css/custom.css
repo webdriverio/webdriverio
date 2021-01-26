@@ -15,8 +15,8 @@
     --ifm-background-color: #fafafa;
     --ifm-code-font-size: 95%;
     --ifm-navbar-link-color: #000;
-    --ifm-font-family-base: 'IBM Plex Sans';
-    --ifm-font-family-monospace: 'IBM Plex Mono';
+    --ifm-font-family-base: 'IBM Plex Sans', PT Sans, Montserrat, Lato;
+    --ifm-font-family-monospace: 'IBM Plex Mono', PT Sans, Open Sans, Roboto Slab, Roboto Condensed;
     --ifm-button-padding-horizontal: 0.55rem;
     --ifm-button-padding-vertical: .7rem;
     --ifm-menu-color: #000;
