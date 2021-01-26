@@ -32,9 +32,9 @@ export interface Data {
 }
 
 export interface JunitReporterOptions extends WDIOReporterOptionsFromLogFile {
-    configFile: string;
-    logLevel: string;
-    stdout?: boolean;
+    configFile: string
+    logLevel: string
+    stdout?: boolean
     suiteNameFormat?: RegExp
     packageName?: string
     addFileAttribute?: any
@@ -42,16 +42,15 @@ export interface JunitReporterOptions extends WDIOReporterOptionsFromLogFile {
 }
 
 export default class JunitReporter extends WDIOReporter {
-    private suiteNameRegEx: RegExp;
-    private _options: JunitReporterOptions;
-    private packageName! : string;
-    private isCucumberFrameworkRunner: boolean = false;
-    private suiteTitleLabel!: string;
-    private fileNameLabel!: string;
+    private suiteNameRegEx: RegExp
+    private _options: JunitReporterOptions
+    private packageName! : string
+    private isCucumberFrameworkRunner: boolean = false
+    private suiteTitleLabel!: string
+    private fileNameLabel!: string
     // TODO check any
-    private _suites: any;
     private activeFeature!: any
-    private activeFeatureName!: string;
+    private activeFeatureName!: string
 
     constructor (options : JunitReporterOptions) {
         super(options)
@@ -241,7 +240,7 @@ export default class JunitReporter extends WDIOReporter {
             this.fileNameLabel = 'file'
         }
 
-        for (let suiteKey of Object.keys(this._suites)) {
+        for (let suiteKey of Object.keys(this.suites)) {
             /**
              * ignore root before all
              */
@@ -252,7 +251,7 @@ export default class JunitReporter extends WDIOReporter {
 
             // there should only be one spec file per runner so we can safely take the first element of the array
             const specFileName = runner.specs[0]
-            const suite = this._suites[suiteKey]
+            const suite = this.suites[suiteKey]
 
             if (this.isCucumberFrameworkRunner) {
                 builder = this.addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
