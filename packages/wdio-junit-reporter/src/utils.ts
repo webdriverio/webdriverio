@@ -1,4 +1,6 @@
+// @ts-ignore
 import stringify from 'json-stringify-safe'
+// @ts-ignore
 import validator from 'validator'
 
 const OBJLENGTH = 10
@@ -6,7 +8,7 @@ const ARRLENGTH = 10
 const STRINGLIMIT = 1000
 const STRINGTRUNCATE = 200
 
-export const limit = function (rawVal) {
+export const limit = function (rawVal: string) {
     if (!rawVal) return rawVal
 
     // Ensure we're working with a copy

@@ -1,6 +1,11 @@
+// @ts-ignore
 import junit from 'junit-report-builder'
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, {
+    RunnerStats,
+    SuiteStats,
+} from '@wdio/reporter'
 import { limit } from './utils'
+import { Data, JunitReporterOptions } from './types'
 
 /**
  * Reporter that converts test results from a single instance/runner into an XML JUnit report. This class
@@ -8,31 +13,41 @@ import { limit } from './utils'
  * generated from this reporter should conform to the standard JUnit report schema
  * (https://github.com/junit-team/junit5/blob/master/platform-tests/src/test/resources/jenkins-junit.xsd).
  */
-class JunitReporter extends WDIOReporter {
-    constructor (options) {
+
+export default class JunitReporter extends WDIOReporter {
+    private suiteNameRegEx: RegExp
+    private _options: JunitReporterOptions
+    private packageName! : string
+    private isCucumberFrameworkRunner: boolean = false
+    private suiteTitleLabel!: string
+    private fileNameLabel!: string
+    // TODO check any
+    private activeFeature!: any
+    private activeFeatureName!: string
+
+    constructor (options : JunitReporterOptions) {
         super(options)
-        this.suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp
-            ? this.options.suiteNameFormat
-            : /[^a-zA-Z0-9]+/
+        this._options = options
+        this.suiteNameRegEx = this._options.suiteNameFormat instanceof RegExp ? this._options.suiteNameFormat : /[^a-zA-Z0-9]+/
     }
 
-    onRunnerEnd (runner) {
+    onRunnerEnd (runner : RunnerStats ): void {
         const xml = this.buildJunitXml(runner)
         this.write(xml)
     }
 
-    prepareName (name = 'Skipped test') {
+    prepareName (name = 'Skipped test'): string {
         return name.split(this.suiteNameRegEx).filter(
             (item) => item && item.length
         ).join('_')
     }
 
-    addFailedHooks(suite) {
+    addFailedHooks(suite: any): SuiteStats {
         /**
          * Add failed hooks to suite as tests.
          */
-        const failedHooks = suite.hooks.filter(hook => hook.error && hook.title.match(/^"(before|after)( all| each)?" hook/))
-        failedHooks.forEach(hook => {
+        const failedHooks = suite.hooks.filter((hook: { error: any; title: string; }) => hook.error && hook.title.match(/^"(before|after)( all| each)?" hook/))
+        failedHooks.forEach((hook: { title: any; _duration: any; error: any; state: any; }) => {
             const { title, _duration, error, state } = hook
             suite.tests.push({
                 _duration,
@@ -45,7 +60,7 @@ class JunitReporter extends WDIOReporter {
         return suite
     }
 
-    addCucumberFeatureToBuilder(builder, runner, specFileName, suite) {
+    addCucumberFeatureToBuilder(builder: any, runner : RunnerStats, specFileName : string, suite: SuiteStats): any {
         const featureName = this.prepareName(suite.title)
         const filePath = specFileName.replace(process.cwd(), '.')
 
@@ -69,7 +84,7 @@ class JunitReporter extends WDIOReporter {
                 .name(`${this.activeFeatureName}.${testName}`)
                 .time(scenario._duration / 1000)
 
-            if (this.options.addFileAttribute) {
+            if (this._options.addFileAttribute) {
                 testCase.file(filePath)
             }
 
@@ -80,7 +95,8 @@ class JunitReporter extends WDIOReporter {
             for (let stepKey of Object.keys(scenario.tests)) { // tests are trested as steps in Cucumber
                 if (stepKey !== 'undefined') { // fix cucumber hooks crashing reporter
                     let stepEmoji = '✅'
-                    const step = scenario.tests[stepKey]
+                    // TODO remove any
+                    const step = (scenario.tests as any)[stepKey]
                     if (step.state === 'pending' || step.state === 'skipped') {
                         if (!isFailing) {
                             testCase.skipped()
@@ -88,8 +104,8 @@ class JunitReporter extends WDIOReporter {
                         stepEmoji = '⚠️'
                     } else if (step.state === 'failed') {
                         if (step.error) {
-                            if (this.options.errorOptions) {
-                                const errorOptions = this.options.errorOptions
+                            if (this._options.errorOptions) {
+                                const errorOptions = this._options.errorOptions
                                 for (const key of Object.keys(errorOptions)) {
                                     testCase[key](step.error[errorOptions[key]])
                                 }
@@ -113,7 +129,7 @@ class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    addSuiteToBuilder(builder, runner, specFileName, suite) {
+    addSuiteToBuilder(builder: any, runner: RunnerStats, specFileName : string, suite: SuiteStats): any {
         const suiteName = this.prepareName(suite.title)
         const filePath = specFileName.replace(process.cwd(), '.')
 
@@ -130,14 +146,14 @@ class JunitReporter extends WDIOReporter {
 
         for (let testKey of Object.keys(suite.tests)) {
             if (testKey !== 'undefined') { // fix cucumber hooks crashing reporter (INFO: we may not need this anymore)
-                const test = suite.tests[testKey]
+                const test = (suite.tests as any)[testKey]
                 const testName = this.prepareName(test.title)
                 const testCase = testSuite.testCase()
                     .className(`${this.packageName}.${suiteName}`)
                     .name(testName)
                     .time(test._duration / 1000)
 
-                if (this.options.addFileAttribute) {
+                if (this._options.addFileAttribute) {
                     testCase.file(filePath)
                 }
 
@@ -145,8 +161,8 @@ class JunitReporter extends WDIOReporter {
                     testCase.skipped()
                 } else if (test.state === 'failed') {
                     if (test.error) {
-                        if (this.options.errorOptions) {
-                            const errorOptions = this.options.errorOptions
+                        if (this._options.errorOptions) {
+                            const errorOptions = this._options.errorOptions
                             for (const key of Object.keys(errorOptions)) {
                                 testCase[key](test.error[errorOptions[key]])
                             }
@@ -167,8 +183,9 @@ class JunitReporter extends WDIOReporter {
         return builder
     }
 
-    buildJunitXml (runner) {
+    buildJunitXml (runner : any): any {
         let builder = junit.newBuilder()
+        // TODO WDIOReportOptions does not have a config type
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
             // NOTE: platformVersion is used to build sanitizedCapabilities which can be incorrect and includes a minor version for iOS which is not guaranteed to be the same under Browserstack.
@@ -181,9 +198,9 @@ class JunitReporter extends WDIOReporter {
                 .map((capability) => capability.toLowerCase())
                 .join('.')
                 .replace(/ /g, '') || runner.sanitizedCapabilities
-            this.packageName = this.options.packageName ? `${browserstackSanitizedCapabilities}-${this.options.packageName}` : browserstackSanitizedCapabilities
+            this.packageName = this._options.packageName ? `${browserstackSanitizedCapabilities}-${this._options.packageName}` : browserstackSanitizedCapabilities
         } else {
-            this.packageName = this.options.packageName ? `${runner.sanitizedCapabilities}-${this.options.packageName}` : runner.sanitizedCapabilities
+            this.packageName = this._options.packageName ? `${runner.sanitizedCapabilities}-${this._options.packageName}` : runner.sanitizedCapabilities
         }
 
         this.isCucumberFrameworkRunner = runner.config.framework === 'cucumber'
@@ -219,15 +236,15 @@ class JunitReporter extends WDIOReporter {
         return builder.build()
     }
 
-    getStandardOutput (test) {
-        let standardOutput = []
-        test.output.forEach((data) => {
+    getStandardOutput (test: any): string {
+        let standardOutput: string[] = []
+        test.output.forEach((data: Data) => {
             switch (data.type) {
             case 'command':
                 standardOutput.push(
                     data.method
                         ? `COMMAND: ${data.method.toUpperCase()} ` +
-                          `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this.format(data.body)}`
+                            `${data.endpoint.replace(':sessionId', data.sessionId)} - ${this.format(data.body)}`
                         : `COMMAND: ${data.command} - ${this.format(data.params)}`
                 )
                 break
@@ -239,9 +256,7 @@ class JunitReporter extends WDIOReporter {
         return standardOutput.length ? standardOutput.join('\n') : ''
     }
 
-    format (val) {
+    format (val : string): string {
         return JSON.stringify(limit(val))
     }
 }
-
-export default JunitReporter
