@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import styles from './LogoCarousel.module.css'
 
 const INTERVAL_LENGTH = 5000
+const LOGO_WIDTH = 150
 
 let ticks = 0
 
@@ -12,16 +13,21 @@ export default class LogoCarousel extends React.Component {
         this.state = {
             position: -0,
             activePage: 0,
-            swapInterval: 0
+            swapInterval: 0,
+            pages: Math.ceil(props.logos ? props.logos.length / 6 : 1),
+            margin: 70
         }
 
         this.containerRef = React.createRef()
-        this.pages = Math.ceil(props.logos ? props.logos.length / 6 : 1)
     }
 
     componentDidMount() {
+        const rect = this.containerRef.current.getBoundingClientRect()
+        const logosPerPage = Math.floor(rect.width / LOGO_WIDTH)
         this.setState({
-            swapInterval: setInterval(this.nextPage.bind(this), INTERVAL_LENGTH)
+            swapInterval: setInterval(this.nextPage.bind(this), INTERVAL_LENGTH),
+            pages: Math.ceil(this.props.logos ? this.props.logos.length / logosPerPage : 1),
+            margin: rect.width < 700 ? 0 : 70
         })
     }
 
@@ -30,7 +36,7 @@ export default class LogoCarousel extends React.Component {
     }
 
     animateTo (i) {
-        const width = this.containerRef.current.getBoundingClientRect().width - 70 // 50px = margin
+        const width = this.containerRef.current.getBoundingClientRect().width - this.state.margin
         const x = i * -width
         this.setState({ position: x, activePage: i })
     }
@@ -44,7 +50,7 @@ export default class LogoCarousel extends React.Component {
     }
 
     nextPage () {
-        const pages = this.pages - 1
+        const pages = this.state.pages - 1
         const direction = Math.floor(ticks / pages) % 2
         this.animateTo(direction
             ? pages - (ticks % pages)
@@ -60,7 +66,7 @@ export default class LogoCarousel extends React.Component {
             )
         }
 
-        this.buttons = () => [...Array(this.pages)].map((_, index) => (
+        this.buttons = () => [...Array(this.state.pages)].map((_, index) => (
             <button onClick={() => this.handleClick(index)} key={index} className={clsx(styles.button, index === this.state.activePage ? styles.buttonActive : '')}>{index + 1}</button>
         ))
 

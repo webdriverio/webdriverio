@@ -20,6 +20,7 @@
 
 .buttons {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     margin: 30px 0 0;
@@ -27,6 +28,12 @@
 
 .buttons > a {
     margin: 0 5px;
+}
+
+@media (max-width: 650px) {
+    .buttons > a {
+        margin: 10px 5px;
+    }
 }
 
 .frameworkLogos {

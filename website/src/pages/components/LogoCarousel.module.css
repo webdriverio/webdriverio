@@ -19,6 +19,20 @@ body .companyUsage h3 {
     margin: 0;
     transition: transform 1000ms ease;
 }
+
+@media screen and (max-width: 1100px) {
+    .logos {
+        margin: 0;
+    }
+    .logos ul {
+        padding: 0;
+        width: 3000px;
+    }
+    .logos ul li {
+        min-width: 125px;
+    }
+}
+
 .logos ul li {
     display: flex;
     min-width: 150px;
@@ -45,8 +59,8 @@ body .companyUsage h3 {
 
 .button::before {
     content: "\2022";
-    color: black;
-    font-size: 25px;
+    color: var(--wdio-link-color);
+    font-size: 50px;
     opacity: .25;
 }
 
@@ -64,4 +78,5 @@ body .companyUsage h3 {
     width: 30px;
     line-height: 10px;
     margin: 0 5px;
+    transform: translateY(20px);
 }

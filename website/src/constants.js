@@ -5,7 +5,7 @@ export const features = [{
     description: (
         <>
             Adding helper functions, or more complicated sets and combinations
-            of existing commands is <strong>simple</strong> and really <strong>useful</strong>
+            of existing commands is <strong>simple</strong> and really <strong>useful</strong>.
         </>
     ),
 }, {
@@ -13,7 +13,7 @@ export const features = [{
     description: (
         <>
             WebdriverIO can be run on the <a href="https://w3c.github.io/webdriver/"><strong>WebDriver Protocol</strong></a> for
-            true cross browser testing as well as <a href="https://chromedevtools.github.io/devtools-protocol/"><strong>Chrome DevTools Protocol</strong></a> for
+            true cross-browser testing as well as <a href="https://chromedevtools.github.io/devtools-protocol/"><strong>Chrome DevTools Protocol</strong></a> for
             Chromium based automation using <a href="https://pptr.dev/">Puppeteer</a>.
         </>
     ),
@@ -64,13 +64,13 @@ export const logos = [{
     alt: 'Hilton',
     url: 'https://www.hilton.com/'
 }, {
-    img: 'github.png',
-    alt: 'GitHub',
-    url: 'https://www.electronjs.org/spectron'
+    img: 'schwab.png',
+    alt: 'Charles Schwab',
+    url: 'https://www.schwab.com/'
 }, {
-    img: 'oxford.png',
-    alt: 'Oxford University Press',
-    url: 'https://global.oup.com/'
+    img: 'jwplayer.png',
+    alt: 'JW Player',
+    url: 'https://www.jwplayer.com/'
 }, {
     img: 'bbva.png',
     alt: 'BBVA',
@@ -113,7 +113,8 @@ export const logos = [{
     url: 'https://www.rabobank.com/'
 }]
 
-export const LHIntregrationExample = `browser.emulateDevice('iPhone X')
+export const LHIntregrationExample = `
+browser.emulateDevice('iPhone X')
 browser.enablePerformanceAudits({
     networkThrottling: 'Good 3G',
     cacheEnabled: true,
@@ -123,7 +124,9 @@ browser.enablePerformanceAudits({
 // open application under test
 browser.url('https://localhost:3000')
 
-expect(browser.getMetrics().firstMeaningfulPaint).toBeBelow(2500)
+expect(browser.getMetrics().firstMeaningfulPaint)
+    .toBeBelow(2500)
+
 const pwaCheckResult = browser.checkPWA()
 expect(pwaCheckResult.passed).toBe(true)
 `
@@ -133,3 +136,23 @@ $ npm install --save-dev @wdio/cli
 $ npx wdio config --yes
 $ npx wdio run
 `
+
+export const ReactIntegration = `
+browser.url('https://ahfarmer.github.io/calculator/');
+const appWrapper = browser.$('div#root')
+
+browser.react$('t', {
+    props: { name: '7' }
+}).click()
+browser.react$('t', {
+    props: { name: 'x' }
+}).click()
+browser.react$('t', {
+    props: { name: '6' }
+}).click()
+browser.react$('t', {
+    props: { name: '=' }
+}).click()
+
+// prints "42"
+console.log($('.component-display').getText());`

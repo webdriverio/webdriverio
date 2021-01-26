@@ -18,13 +18,23 @@ html[data-theme=dark] {
     margin-right: 20px;
 }
 
-.navbar .navbar__brand {
+.navbar .navbar__items > .navbar__brand {
     height: 55px;
     margin: 10px 10px 10px 25px;
 }
 
+.navbar .navbar-sidebar .navbar__brand {
+    margin-left: 8px;
+}
+
 .navbar__link {
-    font-size: 1.1em;
+    font-size: 1.2em;
+}
+
+@media (max-width: 996px) {
+    .navbar__toggle {
+        margin-left: 1rem;
+    }
 }
 
 .header-github-link:hover {

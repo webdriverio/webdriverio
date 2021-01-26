@@ -21,6 +21,7 @@ There are many wonderful curated resources the WebdriverIO community has put tog
 
 ## Conference/Meetup Talks
 
+- [My favourite features of WebdriverIO](https://www.youtube.com/watch?v=CHcjEI3YZ7Y) by Julia Pottinger
 - [The Nuts and Bolts of WebdriverIO](https://www.youtube.com/watch?v=jOmvPpzLMf8) by Christian Bromann
 - [Using WebdriverIO with Data Provider](https://www.youtube.com/watch?v=0YQCVJk8K_Q) by Kumar Vikram
 

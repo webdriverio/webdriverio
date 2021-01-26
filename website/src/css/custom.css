@@ -21,8 +21,10 @@
     --ifm-button-padding-vertical: .7rem;
     --ifm-menu-color: #000;
     --ifm-menu-color-background-active: transparent;
+    --ifm-toc-link-color: #000;
     --ifm-table-border-color: #efefef;
     --ifm-navbar-height: 85px;
+    --ifm-button-border-width: 0;
 
     --wdio-spacing-vertical: 60px;
     --wdio-link-background-color: #eee0d7;
@@ -36,6 +38,12 @@ html[data-theme=dark] {
     --wdio-link-color: #fff;
     --ifm-menu-color: #fff;
     --ifm-table-border-color: var(--ifm-color-emphasis-300)
+}
+
+@media (max-width: 996px) {
+    :root {
+        --wdio-spacing-vertical: 20px;
+    }
 }
 
 .menu__link {
@@ -164,6 +172,9 @@ h1, h2, h3 {
 .prism-code > div {
     background-color: var(--ifm-table-border-color)!important;
 }
+.darkSection .prism-code > div {
+    background-color: var(--wdio-section-background-color)!important;
+}
 html[data-theme=dark] .prism-code > div {
     background-color: #282B36!important;
 }
@@ -173,9 +184,9 @@ a code {
 }
 
 switch g rect[x="366.5"] {
-    animation: blinker 5000ms infinite;
+    animation: headblinker 5000ms infinite;
 }
-@keyframes blinker {
+@keyframes headblinker {
     0% { opacity: 0; }
     10% { opacity: 1; }
     20% { opacity: 0; }
@@ -189,14 +200,59 @@ switch g rect[x="366.5"] {
 }
 
 switch g rect[x="194.2"] {
-    animation: blinker2 0.4s cubic-bezier(1, 0, 0, 1) infinite alternate;
+    animation: blinker1st 1s ease-in-out infinite;
 }
-@keyframes blinker2 { to { opacity: 0; } }
+@keyframes blinker1st {
+    10% { opacity: 0; }
+    20% { opacity: 1; }
+    60% { opacity: 1; }
+    70% { opacity: 0; }
+    80% { opacity: 1; }
+    90% { opacity: 0; }
+    100% { opacity: 1; }
+}
 
 switch g rect[x="208.2"] {
-    animation: blinker3 0.15s ease-in-out infinite alternate;
+    animation: blinker2nd 1s ease-in-out infinite;
 }
-@keyframes blinker3 { to { opacity: 0; } }
+@keyframes blinker2nd {
+    10% { opacity: 1; }
+    20% { opacity: 0; }
+    30% { opacity: 1; }
+    60% { opacity: 1; }
+    70% { opacity: 0; }
+    80% { opacity: 1; }
+    90% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+switch g rect[x="222.2"] {
+    animation: blinker3rd 1s ease-in-out infinite;
+}
+@keyframes blinker3rd {
+    20% { opacity: 1; }
+    30% { opacity: 0; }
+    40% { opacity: 1; }
+    60% { opacity: 1; }
+    70% { opacity: 0; }
+    80% { opacity: 1; }
+    90% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+switch g rect[x="236.2"] {
+    animation: blinker4th 1s ease-in-out infinite;
+}
+@keyframes blinker4th {
+    30% { opacity: 1; }
+    40% { opacity: 0; }
+    50% { opacity: 1; }
+    60% { opacity: 1; }
+    70% { opacity: 0; }
+    80% { opacity: 1; }
+    90% { opacity: 0; }
+    100% { opacity: 1; }
+}
 
 .head,
 .ear,
@@ -213,4 +269,47 @@ switch g rect[x="208.2"] {
     90% {transform: rotate(10deg);}
     95% {transform: rotate(-3deg);}
     100% {transform: rotate(0deg);}
+}
+
+.highlightSection .token-line {
+    font-size: 90%!important
+}
+
+.highlightSection .prism-code:before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    background: #ff5f56;
+    display: block;
+    border-radius: 50%;
+    position: absolute;
+    top: 12px;
+    left: 12px;
+}
+
+.highlightSection .prism-code:after {
+    content: "";
+    width: 12px;
+    height: 12px;
+    background: #ffbd2e;
+    display: block;
+    border-radius: 50%;
+    position: absolute;
+    top: 12px;
+    left: 32px;
+}
+
+.highlightSection .prism-code > div {
+    padding-top: calc(var(--ifm-pre-padding) + 5px);
+}
+.highlightSection .prism-code > div:before {
+    content: "";
+    display: block;
+    width: 12px;
+    height: 12px;
+    background: #27C941;
+    border-radius: 50%;
+    position: absolute;
+    top: 12px;
+    left: 52px;
 }

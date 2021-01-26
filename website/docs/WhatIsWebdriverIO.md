@@ -8,7 +8,7 @@ WebdriverIO is a progressive automation framework built to automate modern web a
 It is designed to be:
 
 - __Extendable__ - Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and __really useful__
-- __Compatible__ - WebdriverIO can be run on the [WebDriver Protocol](https://w3c.github.io/webdriver/) for __true cross browser testing__ as well as [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) for Chromium based automation using [Puppeteer](https://pptr.dev/).
+- __Compatible__ - WebdriverIO can be run on the [WebDriver Protocol](https://w3c.github.io/webdriver/) for __true cross-browser testing__ as well as [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) for Chromium based automation using [Puppeteer](https://pptr.dev/).
 - __Feature Rich__ - The huge variety of built-in and community plugins allows you to __easily integrate__ and __extend__ your setup to fulfill your requirements.
 
 You can use WebdriverIO to automate:
@@ -19,7 +19,7 @@ You can use WebdriverIO to automate:
 
 ## Based on Web Standards
 
-WebdriverIO leverages the power of the [WebDriver](https://w3c.github.io/webdriver/) protocol that is developed and supported by all browser vendors and guranteers a true cross browser testing experience. While other automation tools require you to download modified browser that aren't used by actual users or emulate user behavior by injecting JavaScript, WebdriverIO relies on a common agreed standard for automation that is [properly tested](https://wpt.fyi/results/webdriver/tests?label=experimental&label=master&aligned) and ensures compatibility for decades to come.
+WebdriverIO leverages the power of the [WebDriver](https://w3c.github.io/webdriver/) protocol that is developed and supported by all browser vendors and guranteers a true cross-browser testing experience. While other automation tools require you to download modified browser that aren't used by actual users or emulate user behavior by injecting JavaScript, WebdriverIO relies on a common agreed standard for automation that is [properly tested](https://wpt.fyi/results/webdriver/tests?label=experimental&label=master&aligned) and ensures compatibility for decades to come.
 
 During the development of this automation standard the web has changed a lot and many of the requirements that developers have today to test their web application can not be fullfiled using WebDriver anymore. While some of the core contributor of this project help support the [next generation](https://github.com/w3c/webdriver-bidi) of the WebDriver protocol, WebdriverIO provides an alternative automation solution based on the [Chrome DevTools](https://chromedevtools.github.io/devtools-protocol/) protocol. This allows the user to seamlessly switch between conventional commands based on WebDriver and powerful browser interactions through [Puppeteer](https://pptr.dev/).
 
