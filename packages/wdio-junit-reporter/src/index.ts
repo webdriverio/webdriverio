@@ -2,7 +2,7 @@
 import junit from 'junit-report-builder'
 import WDIOReporter, {
     RunnerStats,
-    SuiteStats,
+    SuiteStats
 } from '@wdio/reporter'
 import { limit } from './utils'
 import { Data, JunitReporterOptions } from './types'

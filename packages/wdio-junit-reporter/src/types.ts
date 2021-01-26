@@ -1,4 +1,4 @@
-import { WDIOReporterOptionsFromLogFile } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
 
 export interface Data {
     type: any
@@ -10,7 +10,7 @@ export interface Data {
     params: string
 }
 
-export interface JunitReporterOptions extends WDIOReporterOptionsFromLogFile {
+export interface JunitReporterOptions extends WDIOReporter {
     configFile: string
     logLevel: string
     stdout?: boolean
