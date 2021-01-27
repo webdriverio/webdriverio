@@ -55,7 +55,9 @@ To do that, just run the configuration utility:
 $ npx wdio config -y
 ```
 
-That's it! The configurator will install all required packages for you and create a config file called `wdio.conf.js`.
+That's it! 
+The configurator will install all required packages for you and create a config file called `wdio.conf.js`. Also, a test folder with sample spec file and pageobjects. 
+Check `Start the Testrunner` to execute the example test. 
 
 ### Create Spec Files
 
