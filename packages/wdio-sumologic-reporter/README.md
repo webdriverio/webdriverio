@@ -3,7 +3,7 @@ WebdriverIO Sumologic Reporter
 
 > A WebdriverIO reporter that sends test results to [Sumologic](https://www.sumologic.com/) for data analyses
 
-![Sumologic Dashboard](https://webdriver.io/images/sumologic.png "Sumologic Dashboard")
+![Sumologic Dashboard](/img/sumologic.png "Sumologic Dashboard")
 
 ## Installation
 

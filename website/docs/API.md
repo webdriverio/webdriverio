@@ -11,9 +11,9 @@ These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are
 
 ## Examples
 
-Each command documentation usually comes with an example that demonstrates its usage in WebdriverIO's testrunner (in sync mode).
+Each command documentation usually comes with an example that demonstrates its usage in WebdriverIO's testrunner in [sync mode](sync-vs-async#sync-mode). If you run WebdriverIO in standalone mode, you can still use all commands but you'll need to make sure that the execution order is handled properly by handling promises.
 
-If you run WebdriverIO in standalone mode, you can still use all commands, but you'll need to make sure that the execution order is handled properly by chaining the commands and resolving the promise chain. So, instead of assigning the value directly to a variable, as the WDIO testrunner allows it...
+While you e.g. assign the result of a command in sync mode directly to a variable:
 
 ```js
 it('can handle commands synchronously', () => {
@@ -22,17 +22,7 @@ it('can handle commands synchronously', () => {
 })
 ```
 
-...you need return the command promise, so it's resolved properly (and allows you to access the resolved value in your test):
-
-```js
-it('handles commands as promises', () => {
-    return $('#input').getValue().then((value) => {
-        console.log(value) // outputs: some value
-    })
-})
-```
-
-Of course you can use NodeJS’s latest [`async`/`await`](https://github.com/yortus/asyncawait) functionality to bring synchronous syntax into your testflow like:
+you need use `async/await` when running in standalone or not using sync mode at all:
 
 ```js
 it('can handle commands using async/await', async function () {
@@ -42,7 +32,7 @@ it('can handle commands using async/await', async function () {
 })
 ```
 
-However, it is recommended to use the testrunner to scale up your test suite, as it comes with a lot of useful add-ons like the [Sauce Service](_sauce-service.md) that save you from writing a lot of boilerplate code by yourself.
+It is recommended to use the testrunner to scale up your test suite, as it comes with a lot of useful add-ons like the [Sauce Service](_sauce-service.md) that save you from writing a lot of boilerplate code by yourself.
 
 ## Contribute
 

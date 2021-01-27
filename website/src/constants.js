@@ -40,7 +40,7 @@ export const logos = [{
     alt: 'Netflix',
     url: 'https://netflix.com/'
 }, {
-    img: 'microsoft.png',
+    img: 'microsoft.svg',
     alt: 'Microsoft',
     url: 'https://www.microsoft.com/'
 }, {

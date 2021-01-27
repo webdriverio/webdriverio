@@ -43,6 +43,7 @@
     "Integration": [
       "cloudservices",
       "autocompletion",
+      "docker",
       "githubactions",
       "jenkins",
       "bamboo"

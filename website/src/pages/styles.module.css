@@ -30,12 +30,6 @@
     margin: 0 5px;
 }
 
-@media (max-width: 650px) {
-    .buttons > a {
-        margin: 10px 5px;
-    }
-}
-
 .frameworkLogos {
     background-color: transparent!important;
     border-bottom: 0!important;
@@ -52,4 +46,14 @@
 
 .social {
     margin-top: 20px;
+}
+
+@media (max-width: 650px) {
+    .buttons > a {
+        margin: 10px 5px;
+    }
+
+    .frameworkLogos img {
+        height: 45px;
+    }
 }

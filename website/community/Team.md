@@ -40,7 +40,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars0.githubusercontent.com/u/25589559?s=460"
     github="mgrybyk"
 >
-    Senior Front End Engineer.
+    Senior Software Development Engineer in Test.
 </Card>
 
 <Card
@@ -67,7 +67,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="wswebcreation"
     twitter="wswebcreation"
 >
-    Automation Engineering Manager at <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
+    Senior Solution Architect <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
 and [many many more](https://github.com/orgs/webdriverio/people).

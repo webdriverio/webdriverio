@@ -11,19 +11,28 @@ html[data-theme=dark] .hero--primary {
 .hero__title {
     background-size: 110%;
     color: transparent;
-    width: 300px;
+    width: 100%;
+    max-width: 300px;
     margin: 0 auto;
     height: 280px;
 }
 
 .hero__title svg {
     fill: #ea5906;
+    width: 100%;
 }
 
 .hero__subtitle {
     font-size: 2em;
-    width: 600px;
+    max-width: 600px;
+    width: 100%;
     margin: 0 auto;
+}
+
+@media (max-width: 400px) {
+    .hero__subtitle {
+        font-size: 1.3em;
+    }
 }
 
 #fblike {

@@ -79,7 +79,7 @@ module.exports = {
                 position: 'left',
                 activeBaseRegex: '/community/'
             }, {
-                label: 'Versions',
+                label: 'v7',
                 position: 'right',
                 to: '/versions'
             }, {
@@ -189,8 +189,8 @@ module.exports = {
     ],
     themes: ['@saucelabs/theme-github-codeblock'],
     stylesheets: [
-        'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=block',
-        'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=block'
+        'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=block',
+        'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=block'
     ],
     scripts: [
         'https://buttons.github.io/buttons.js',

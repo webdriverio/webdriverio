@@ -64,7 +64,7 @@ body .companyUsage h3 {
     opacity: .25;
 }
 
-.buttonActive::before {
+.button.buttonActive::before {
     opacity: 1;
 }
 

@@ -24,7 +24,7 @@ function Version() {
         path: 'https://v6.webdriver.io',
         comment: (
             <div>
-                <b>LTS</b> (until January 2022)
+                <b>LTS</b> (until February 2022)
             </div>
         ),
         repoUrl
@@ -34,7 +34,7 @@ function Version() {
         path: 'https://v5.webdriver.io',
         comment: (
             <div>
-                <b>LTS</b> (until April 2021)
+                <b>LTS</b> (since January 2021)
             </div>
         ),
         repoUrl
@@ -97,7 +97,7 @@ function Version() {
 
                 {pastVersions.length > 0 && (
                     <div className="margin-bottom--lg">
-                        <h2 id="archive">Past versions (Not maintained anymore)</h2>
+                        <h2 id="archive">Past versions</h2>
                         <p>
                         Here you can find documentation for previous versions of
                         Docusaurus.

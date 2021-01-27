@@ -70,7 +70,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio", "@wdio/mocha-framework"]
+        "types": ["node", "webdriverio/sync", "@wdio/mocha-framework"]
     },
     "include": [
         "./test/**/*.ts"
@@ -84,7 +84,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio", "@wdio/jasmine-framework"]
+        "types": ["node", "webdriverio/sync", "@wdio/jasmine-framework"]
     },
     "include": [
         "./test/**/*.ts"
@@ -98,7 +98,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio", "@wdio/cucumber-framework"]
+        "types": ["node", "webdriverio/sync", "@wdio/cucumber-framework"]
     },
     "include": [
         "./test/**/*.ts"
@@ -109,15 +109,27 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 </TabItem>
 </Tabs>
 
-Instead of having all type definitions globally available, you can also `import` only the types that you need, like this:
+## Services
 
-```typescript
-/*
-* These import the type definition for the `test` and `suite` variables that are available in
-* the `beforeTest`, `afterTest`, `beforeSuite`, and `afterSuite` hooks.
-*/
-import { Suite, Test } from '@wdio/mocha-framework'
+If you use services that add commands to the browser scope you also need to include these into your `tsconfig.json`. For example if you use the `@wdio/devtools-service` ensure that you add it to the `types` as well, e.g.:
+
+```json title="tsconfig.json"
+{
+    "compilerOptions": {
+        "types": [
+            "node",
+            "webdriverio/sync",
+            "@wdio/mocha-framework",
+            "@wdio/devtools-service"
+        ]
+    },
+    "include": [
+        "./test/**/*.ts"
+    ]
+}
 ```
+
+Adding services and reporters to your TypeScript config also strengthen the type safety of your WebdriverIO config file.
 
 ## Adding custom commands
 
@@ -148,10 +160,19 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 <TabItem value="sync">
 
 ```typescript
-declare namespace WebdriverIO {
-    // adding command to `browser`
-    interface Browser {
-        browserCustomCommand: (arg) => void
+declare global {
+    namespace WebdriverIO {
+        interface Browser {
+            browserCustomCommand: (arg: any) => void
+        }
+
+        interface MultiRemoteBrowser {
+            browserCustomCommand: (arg: any) => void
+        }
+
+        interface Element {
+            elementCustomCommand: (arg: any) => number
+        }
     }
 }
 ```
@@ -160,11 +181,19 @@ declare namespace WebdriverIO {
 <TabItem value="async">
 
 ```typescript
-declare namespace WebdriverIO {
-    // adding command to `$()`
-    interface Element {
-        // don't forget to wrap return values with Promise
-        elementCustomCommand: (arg) => Promise<number>
+declare global {
+    namespace WebdriverIO {
+        interface Browser {
+            browserCustomCommand: (arg: any) => Promise<void>
+        }
+
+        interface MultiRemoteBrowser {
+            browserCustomCommand: (arg: any) => Promise<void>
+        }
+
+        interface Element {
+            elementCustomCommand: (arg: any) => Promise<number>
+        }
     }
 }
 ```
@@ -189,6 +218,7 @@ declare namespace WebdriverIO {
     "strictNullChecks": true,
     "types": [
       "node",
+      "webdriverio/sync",
       "@wdio/mocha-framework",
       "@wdio/sync"
     ],

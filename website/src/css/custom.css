@@ -47,6 +47,18 @@ html[data-theme=dark] {
     }
 }
 
+@media (max-width: 500px) {
+    :root {
+        --wdio-spacing-vertical: 10px;
+    }
+}
+
+@media only screen and (-webkit-min-device-pixel-ratio: 1) {
+    :root {
+        --ifm-line-height-base: 1.85;
+    }
+}
+
 .menu__link {
     font-weight: bold;
 }
@@ -178,6 +190,22 @@ h1, h2, h3 {
 }
 html[data-theme=dark] .prism-code > div {
     background-color: #282B36!important;
+}
+div[class^='codeBlockTitle'] {
+    background-color: var(--ifm-table-border-color)!important;
+    border-bottom: var(--ifm-color-emphasis-300) 1px solid;
+}
+html[data-theme=dark] div[class^='codeBlockTitle'] {
+    background-color: #282B36!important;
+}
+div[role="tabpanel"] .prism-code {
+    border-top-left-radius: 0;
+}
+.tabs__item:hover {
+    border-bottom-left-radius: 0;
+}
+.markdown > div > .margin-vert--md {
+    margin-top: 0!important;
 }
 
 a code {

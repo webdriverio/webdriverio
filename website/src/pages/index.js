@@ -39,11 +39,11 @@ function Home() {
                                 'button button--outline button--secondary button--lg',
                                 styles.getStarted,
                             )}
-                            to={useBaseUrl('/community/resources#conferencemeetup-talks')}>
+                            to={useBaseUrl('/docs/gettingstarted')}>
                         Get Started
                         </Link>
                         <Link
-                            to="#watch"
+                            to="/community/resources#conferencemeetup-talks"
                             className={clsx(
                                 'button button--outline button--secondary button--lg',
                                 styles.getStarted,

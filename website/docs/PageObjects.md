@@ -36,7 +36,7 @@ Sure, the browser can carry session information and therefore can display differ
 
 Let's start testing the first page. For demo purposes, we use [The Internet](http://the-internet.herokuapp.com) website by [Elemental Selenium](http://elementalselenium.com) as guinea pig. Let's try to build a page object example for the [login page](http://the-internet.herokuapp.com/login).
 
-### `Get` -ing Your Selectors
+## `Get` -ing Your Selectors
 
 The first step is to write all important selectors that are required in our `login.page` object as getter functions:
 
