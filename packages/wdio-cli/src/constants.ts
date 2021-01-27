@@ -85,7 +85,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
         { name: 'html', value: '@rpii/wdio-html-reporter$--$html' },
-        { name: 'markdown', value: 'carmenmitru/wdio-markdown-reporter' }
+        { name: 'markdown', value: 'carmenmitru/wdio-markdown-reporter' },
+        { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' }
     ],
     service: [
         // inquirerjs shows list as its orderer in array

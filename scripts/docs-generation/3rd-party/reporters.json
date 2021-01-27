@@ -41,11 +41,16 @@
     "githubUrl": "https://github.com/wswebcreation/wdio-cucumberjs-json-reporter",
     "npmUrl": "https://nodei.co/npm/wdio-cucumberjs-json-reporter"
   },
-  
-   {
+  {
     "packageName": "wdio-markdown-reporter",
     "title": "Markdown",
     "githubUrl": "https://github.com/carmenmitru/wdio-markdown-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-markdown-reporter"
-   }
+  },
+  {
+    "packageName": "wdio-delta-reporter-service",
+    "title": "Delta Reporter",
+    "githubUrl": "https://github.com/delta-reporter/delta-reporter-wdio",
+    "npmUrl": "https://www.npmjs.com/package/@delta-reporter/wdio-delta-reporter-service"
+  }
 ]
