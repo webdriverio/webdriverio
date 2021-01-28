@@ -17,11 +17,6 @@ html[data-theme=dark] .hero--primary {
     height: 280px;
 }
 
-.hero__title svg {
-    fill: #ea5906;
-    width: 100%;
-}
-
 .hero__subtitle {
     font-size: 2em;
     max-width: 600px;

@@ -193,7 +193,6 @@ module.exports = {
         'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=block'
     ],
     scripts: [
-        'https://buttons.github.io/buttons.js',
-        'https://platform.twitter.com/widgets.js'
+        'https://buttons.github.io/buttons.js'
     ]
 }
