@@ -58,6 +58,7 @@ browser.setCookies([{
 browser.deleteCookies('foobar')
 browser.deleteCookies(['foobar'])
 
+browser.execute('return 123')
 const executeResult = browser.execute(function (x: number) {
     return x
 }, 4)

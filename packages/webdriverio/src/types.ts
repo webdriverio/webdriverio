@@ -11,7 +11,16 @@ import type DevtoolsInterception from './utils/interception/devtools'
 
 export type BrowserCommandsType = typeof BrowserCommands
 export type BrowserCommandsTypeSync = {
-    [K in keyof BrowserCommandsType]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<ReturnType<BrowserCommandsType[K]>>
+    [K in keyof Omit<BrowserCommandsType, 'execute'>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<ReturnType<BrowserCommandsType[K]>>
+} & {
+    /**
+     * we need to copy type definitions for execute and executeAsync as we can't copy over
+     * generics with method used above
+     */
+    execute: <T, U extends any[] = any[], V extends U = any>(
+        script: string | ((...innerArgs: V) => T),
+        ...args: U
+    ) => T
 }
 export type ElementCommandsType = typeof ElementCommands
 export type ElementCommandsTypeSync = {
