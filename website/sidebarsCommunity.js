@@ -2,6 +2,7 @@ module.exports = {
     community: [
         'support',
         'team',
-        'resources'
+        'resources',
+        'materials'
     ]
 }
