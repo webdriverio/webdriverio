@@ -50,7 +50,7 @@ async function custom$$ (
         throw Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
     }
 
-    let res = await this.execute(strategy, strategyArguments, this) as ElementReference[]
+    let res = await this.execute(strategy, strategyArguments, this) as any as ElementReference[]
 
     /**
      * if the user's script return just one element

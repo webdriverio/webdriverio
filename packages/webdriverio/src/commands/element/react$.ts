@@ -58,8 +58,8 @@ export default async function react$(
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(
-        react$Script, selector, props, state, this
-    ) as ElementReference
+        react$Script as any, selector, props, state, this
+    ) as any as ElementReference
 
     return getElement.call(this, selector, res, true)
 }

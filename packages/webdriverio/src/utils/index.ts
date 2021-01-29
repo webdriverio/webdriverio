@@ -335,7 +335,7 @@ export async function getElementRect(scope: WebdriverIO.Element) {
                 width,
                 height
             }
-        }, scope)
+        }, scope as any as HTMLElement)
 
         // try set proper value
         Object.keys(defaults).forEach((key: keyof typeof defaults) => {

@@ -47,5 +47,5 @@ export default async function isDisplayedInViewport (this: WebdriverIO.Element) 
     return browser.execute(isElementInViewportScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    })
+    } as any as HTMLElement)
 }

@@ -1,3 +1,5 @@
+import type { ElementReference } from '@wdio/protocols'
+
 import { getElement } from '../../utils/getElementObject'
 import { getBrowserObject } from '../../utils'
 import { ELEMENT_KEY } from '../../constants'
@@ -46,7 +48,7 @@ async function custom$ (
         throw Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
     }
 
-    let res = await this.execute(strategy, strategyArguments, this)
+    let res = await this.execute(strategy, strategyArguments, this) as any as ElementReference | undefined
 
     /**
      * if the user's script returns multiple elements

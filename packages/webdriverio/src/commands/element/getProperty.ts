@@ -28,7 +28,7 @@ export default function getProperty (
     const browser = getBrowserObject(this)
     return browser.execute(
         getPropertyScript,
-        { ELEMENT: this.elementId },
+        { ELEMENT: this.elementId } as any as HTMLElement,
         property
     )
 }

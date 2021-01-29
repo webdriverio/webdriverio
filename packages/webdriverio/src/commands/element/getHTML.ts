@@ -40,5 +40,5 @@ export default function getHTML (
     return browser.execute(getHTMLScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    }, includeSelectorTag)
+    } as any as HTMLElement, includeSelectorTag)
 }
