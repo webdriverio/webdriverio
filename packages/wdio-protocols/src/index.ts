@@ -52,7 +52,11 @@ export {
     // protocols
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol,
-    // commands
+    // sync commands
     AppiumCommands, ChromiumCommands, JSONWPCommands, MJSONWPCommands,
-    SauceLabsCommands, SeleniumCommands, WebDriverCommands
+    SauceLabsCommands, SeleniumCommands, WebDriverCommands,
+    // async commands
+    WebDriverCommandsAsync, AppiumCommandsAsync, ChromiumCommandsAsync,
+    JSONWPCommandsAsync, MJSONWPCommandsAsync, SauceLabsCommandsAsync,
+    SeleniumCommandsAsync
 }
