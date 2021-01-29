@@ -68,6 +68,10 @@ const callResult = <number>browser.call(() =>
     new Promise(resolve => setTimeout(() => resolve(4), 1))
 )
 callResult.toFixed(2)
+browser.executeAsync((arg: number, cb: (arg: number) => void) => {
+    arg.toFixed()
+    cb(123)
+})
 
 // printPage
 const buffer = browser.savePDF('./packages/bar.pdf', {
