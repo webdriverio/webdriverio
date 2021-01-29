@@ -20,6 +20,8 @@ export interface Test {
 }
 
 interface Output {
+    command: string
+    params: any
     method: 'PUT' | 'POST' | 'GET' | 'DELETE'
     endpoint: string
     body: {}

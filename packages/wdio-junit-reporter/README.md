@@ -174,13 +174,14 @@ Required
 Define the xml files created after the test execution.
 
 Type: `Object`<br />
-Default: ``function(opts){return `wdio-${this.cid}-${name}-reporter.log`}``
+Default: ``function (opts) { return `wdio-${this.cid}-${name}-reporter.log` }``
 
 ```
 outputFileFormat: function (options) {
     return 'mycustomfilename.xml';
 }
 ```
+
 > Note: `options.capabilities` is your capabilities object for that runner, so specifying `${options.capabilities}` in your string will return [Object object]. You must specify which properties of capabilities you want in your filename.
 
 ### suiteNameFormat

@@ -1,16 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`wdio-junit-reporter can format output 1`] = `undefined`;
+exports[`wdio-junit-reporter can format output 1`] = `"1"`;
 
-exports[`wdio-junit-reporter can format output 2`] = `"1"`;
+exports[`wdio-junit-reporter can format output 2`] = `"{\\"a\\":\\"foo\\",\\"b\\":\\"bar\\"}"`;
 
-exports[`wdio-junit-reporter can format output 3`] = `"{\\"a\\":\\"foo\\",\\"b\\":\\"bar\\"}"`;
+exports[`wdio-junit-reporter can format output 3`] = `"{\\"a\\":\\"[base64] 600 bytes\\"}"`;
 
-exports[`wdio-junit-reporter can format output 4`] = `"{\\"a\\":\\"[base64] 600 bytes\\"}"`;
+exports[`wdio-junit-reporter can format output 4`] = `"{\\"a\\":\\"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ... (9800 more bytes)\\"}"`;
 
-exports[`wdio-junit-reporter can format output 5`] = `"{\\"a\\":\\"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ... (9800 more bytes)\\"}"`;
-
-exports[`wdio-junit-reporter can format output 6`] = `"{\\"a\\":[\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"(90 more items)\\"]}"`;
+exports[`wdio-junit-reporter can format output 5`] = `"{\\"a\\":[\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"@\\",\\"(90 more items)\\"]}"`;
 
 exports[`wdio-junit-reporter ensures that capabilities passed to buildJunitXml are not null/undefined 1`] = `"<?xmlversion=\\"1.0\\"encoding=\\"UTF-8\\"?><testsuites><testsuitename=\\"Sample_feature\\"timestamp=\\"2019-12-13T19:10:04.659Z\\"time=\\"15.907\\"tests=\\"1\\"failures=\\"0\\"errors=\\"1\\"skipped=\\"0\\"><properties><propertyname=\\"specId\\"value=\\"0\\"/><propertyname=\\"featureName\\"value=\\"Samplefeature\\"/><propertyname=\\"capabilities\\"value=\\"9A261FFAZ006DH.android.10_0\\"/><propertyname=\\"featureFile\\"value=\\"./features/sample_feature.feature\\"/></properties><testcaseclassname=\\"CucumberJUnitReport-googlepixel4.10_0.Sample_feature\\"name=\\"Sample_feature.Sample_scenario\\"time=\\"1.755\\"><errormessage=\\"expectedtruetoequalfalse\\"/><system-out><![CDATA[✅Givenstephaspassed✅Whenstephaspassed❗Thenstephasfailed]]></system-out><system-err><![CDATA[AssertionError:expectedtruetoequalfalseatWorld.<anonymous>(./step_definitions/steps.js:642:21)]]></system-err></testcase></testsuite></testsuites>"`;
 
