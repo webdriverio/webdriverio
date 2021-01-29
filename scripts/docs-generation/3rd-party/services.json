@@ -104,5 +104,12 @@
     "title": "PerformanceTotal",
     "githubUrl": "https://github.com/tzurp/performance-total",
     "npmUrl": "https://www.npmjs.com/package/wdio-performancetotal-service"
+  },
+  {
+    "packageName": "wdio-aws-device-farm-service",
+    "title": "AWS Device Farm",
+    "githubUrl": "https://github.com/awslabs/wdio-aws-device-farm-service",
+    "branch": "main",
+    "npmUrl": "https://www.npmjs.com/package/wdio-aws-device-farm-service"
   }
 ]

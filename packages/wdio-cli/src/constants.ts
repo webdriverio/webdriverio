@@ -118,7 +118,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'rerun', value: 'wdio-rerun-service$--$rerun' },
         { name: 'winappdriver', value: 'wdio-winappdriver-service$--$winappdriver' },
         { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' },
-        { name: 'performancetotal', value: 'wdio-performancetotal-service$--$performancetotal' }
+        { name: 'performancetotal', value: 'wdio-performancetotal-service$--$performancetotal' },
+        { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' }
     ]
 } as const
 
