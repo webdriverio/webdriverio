@@ -77,6 +77,6 @@ export default async function isDisplayed (this: WebdriverIO.Element) {
         ? await browser.execute(isElementDisplayedScript, {
             [ELEMENT_KEY]: this.elementId, // w3c compatible
             ELEMENT: this.elementId // jsonwp compatible
-        }) :
+        } as any as HTMLElement) :
         await this.isElementDisplayed(this.elementId)
 }

@@ -35,11 +35,15 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * @type protocol
  *
  */
-export default function execute (
+export default function execute<
+    T,
+    U extends any[] = any[],
+    V extends U = any
+>(
     this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
-    script: string | Function,
-    ...args: any[]
-) {
+    script: string | ((...innerArgs: V) => T),
+    ...args: U
+): Promise<T> {
     /**
      * parameter check
      */
