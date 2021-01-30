@@ -182,6 +182,21 @@ exports.config = {
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
     //
+    // Auto-compilation configuration
+    autoCompileOpts: {
+        // Enable/disable auto-compilation (enabled by default)
+        autoCompile: true,
+
+        // Configure how ts-node is automatically included when present
+        tsNodeOpts: {
+            transpileOnly: true,
+            project: 'tsconfig.json'
+        },
+
+        // Configure how @babel/register is automatically included when present (and ts-node isn't)
+        babelOpts: {}
+    },
+    //
     // =====
     // Hooks
     // =====

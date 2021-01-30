@@ -1,10 +1,14 @@
 import path from 'path'
 import tsNode from 'ts-node'
 import logger from '@wdio/logger'
+import ConfigParser from '../src/lib/ConfigParser'
+import { DEFAULT_AUTOCOMPILE_CONFIGS } from '../src/constants'
+import MockFileContentBuilder, { MockFileContent } from './lib/MockFileContentBuilder'
+import { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from './lib/MockPathService'
+import ConfigParserBuilder from './lib/ConfigParserBuilder'
+import { FileNamed, realReadFilePair, realRequiredFilePair } from './lib/FileNamed'
 
 const log = logger('')
-
-import ConfigParser from '../src/lib/ConfigParser'
 
 const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
 const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.ts')
@@ -19,6 +23,114 @@ jest.mock('ts-node', () => ({
     register: jest.fn()
 }))
 
+/**
+ * Entirely in memory config structure to avoid reading the file system at all
+ *
+ * Ideally we wouldn't need a fixtures folder, or it would have very minimal files in it and changes
+ * needed for tests would be modified on top of it.
+ *
+ * This is provided as a step to that direction.
+ *
+ * @constructor
+ */
+// eslint-disable-next-line camelcase
+const TestWdioConfig_AllInMemory = () : MockFileContent => ({
+    config: {
+        user: 'foobar',
+        key: '50fa142c-3121-4gb0-9p07-8q326vvbq7b0',
+        specs: [path.join(__dirname, '/tests/*.test.ts')],
+        exclude: [
+            path.join(__dirname, '/tests//validateConfig.test.ts')
+        ],
+        capabilities: [{
+            browserName: 'chrome'
+        }],
+        suites: {
+            unit: [path.join(__dirname, '/tests/configparser.test.ts')],
+            mobile: [path.join(__dirname, '/tests/detectBackend.test.ts')],
+            functional: [
+                path.join(__dirname, '/tests/validateConfig.test.ts'),
+                path.join(__dirname, '/tests/..', 'src/index.ts')
+            ]
+        }
+    }
+})
+
+/**
+ * Represent everything in the fixtures directory (at time of writing)
+ *
+ * All ts files are read and configs are loaded in from disk, so all
+ * parsing facilities should work as they would with the real file system.
+ *
+ * @constructor
+ */
+// eslint-disable-next-line camelcase
+function MockedFileSystem_LoadingAsMuchAsCanFromFileSystem() : FilePathsAndContents {
+    return [
+        realReadFilePair(path.resolve(FIXTURES_PATH, '../validateConfig.test.ts')),
+        realReadFilePair(path.resolve(FIXTURES_PATH, '../configparser.test.ts')),
+        realReadFilePair(path.resolve(FIXTURES_PATH, '../utils.test.ts')),
+        realReadFilePair(path.resolve(FIXTURES_PATH, '../detectBackend.test.ts')),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.cjs')).withContents('test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.es6')).withContents( 'test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.java')).withContents( 'test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test.mjs')).withContents( 'test file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test-a.feature')).withContents( 'feature file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'test-b.feature')).withContents( 'feature file contents'),
+        FileNamed(path.resolve(FIXTURES_PATH, 'typescript.ts')).withContents( 'test file contents'),
+        realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.ts')),
+        realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')),
+        realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.ts')),
+        realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.local.conf.ts')),
+        realRequiredFilePair(path.resolve(INDEX_PATH))
+    ]
+}
+
+/**
+ * Represent everything in the fixtures directory (at time of writing)
+ *
+ * Should be fast b/c only loads config, and should work for most machinery.
+ * But if anything requires configs recursively loading other configs, you
+ * probably want to use MockedFileSystem_LoadingAsMuchAsCanFromFileSystem instead.
+ * @param configFilepath
+ * @constructor
+ */
+// eslint-disable-next-line camelcase
+function MockedFileSystem_OnlyLoadingConfig(baseDir: MockSystemFolderPath, configFilepath: MockSystemFilePath) : FilePathsAndContents {
+    return [
+        FileNamed(configFilepath).withContents(TestWdioConfig_AllInMemory()),
+        FileNamed(path.join(baseDir, '../validateConfig.test.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, '../configparser.test.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, '../utils.test.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, '../detectBackend.test.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'test.cjs')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'test.es6')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'test.java')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'test.mjs')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'test-a.feature')).withContents('feature file contents'),
+        FileNamed(path.join(baseDir, 'test-b.feature')).withContents('feature file contents'),
+        FileNamed(path.join(baseDir, 'typescript.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, 'wdio.conf.multiremote.rdc.ts')).withContents('config contents'),
+        FileNamed(path.join(baseDir, 'wdio.conf.rdc.ts')).withContents('config contents'),
+        FileNamed(path.join(baseDir, 'wdio.conf.ts')).withContents('config contents'),
+        FileNamed(path.join(baseDir, 'wdio.local.conf.ts')).withContents('config contents'),
+        FileNamed(path.join(baseDir, '../app/src/index.ts')).withContents('source contents')]
+}
+
+function ConfigParserForTest(config = FIXTURES_CONF) {
+    return ConfigParserBuilder.withBaseDir(FIXTURES_PATH)
+        .withFiles(
+            MockedFileSystem_OnlyLoadingConfig(FIXTURES_PATH, config)
+        ).build()
+}
+
+function ConfigParserForTestWithAllFiles() {
+    return ConfigParserBuilder.withBaseDir(FIXTURES_PATH)
+        .withFiles(
+            MockedFileSystem_LoadingAsMuchAsCanFromFileSystem()
+        ).build()
+}
+
 describe('ConfigParser', () => {
     it('should throw if getFilePaths is not a string', () => {
         expect(() => ConfigParser.getFilePaths(123 as any)).toThrow()
@@ -26,13 +138,28 @@ describe('ConfigParser', () => {
 
     describe('addConfigFile', () => {
         it('should throw if config file is not a string', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             expect(() => configParser.addConfigFile(123 as any)).toThrow()
         })
 
-        it('should throw if config file does not exist', () => {
-            const configParser = new ConfigParser()
+        it('should throw if config file does not exist (absolute path)', () => {
+            const configParser = ConfigParserForTest()
             expect(() => configParser.addConfigFile(path.resolve(__dirname, 'foobar.conf.ts'))).toThrow()
+        })
+
+        it('should throw if config file does not exist (relative path)', () => {
+            const configParser = ConfigParserForTest()
+            expect(() => configParser.addConfigFile('foobar.conf.ts')).toThrow()
+        })
+
+        it('should throw if config file is not a config file (absolute path)', () => {
+            const configParser = ConfigParserForTest()
+            expect(() => configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'test-a.feature'))).toThrow()
+        })
+
+        it('should throw if config file is not a config file (relative path)', () => {
+            const configParser = ConfigParserForTest()
+            expect(() => configParser.addConfigFile('test-a.feature')).toThrow()
         })
 
         describe('TypeScript integration', () => {
@@ -42,20 +169,142 @@ describe('ConfigParser', () => {
                 process.env.THROW_BABEL_REGISTER = '1'
             })
 
-            it('should initiate TypeScript compiler if ts-node exists', () => {
-                const configParser = new ConfigParser()
+            it('when ts-node exists should initiate TypeScript compiler with defaults', function () {
+                let configFileContents = MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC).build()
+                const tsNodeRegister = jest.fn()
+                const configParser = ConfigParserBuilder
+                    .withBaseDir(path.join(FIXTURES_PATH, '/here'))
+                    .withTsNodeModule(tsNodeRegister)
+                    .withFiles([
+                        ...MockedFileSystem_LoadingAsMuchAsCanFromFileSystem(),
+                        FileNamed(path.join(FIXTURES_PATH, '/here/cool.conf')).withContents(configFileContents)
+                    ])
+                    .build()
+                configParser.addConfigFile('cool.conf')
+                configParser.autoCompile()
+                expect(tsNodeRegister).toBeCalledTimes(1)
+                expect(tsNodeRegister).toHaveBeenCalledWith( {
+                    'transpileOnly': true
+                } )
+            })
+
+            it('when ts-node exists should initiate TypeScript compiler with defaults if autoCompiled before config is read', function () {
+                let configFileContents = MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC).withTheseContentsMergedOn(
+                    {
+                        config: {
+                            autoCompileOpts: {
+                                tsNodeOpts: {
+                                    'ts-node': 'do this',
+                                    'and': 'that'
+                                }
+                            }
+                        }
+                    }
+                ).build()
+                const tsNodeRegister = jest.fn()
+                const configParser = ConfigParserBuilder
+                    .withBaseDir(path.join(__dirname, '/tests/'))
+                    .withFiles( [
+                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/')),
+                        FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
+                    ])
+                    .withTsNodeModule(tsNodeRegister).build()
+                configParser.autoCompile()
+                configParser.addConfigFile('tests/cool.conf')
+                expect(tsNodeRegister).toBeCalledTimes(1)
+                expect(tsNodeRegister).toHaveBeenCalledWith(DEFAULT_AUTOCOMPILE_CONFIGS().tsNodeOpts)
+            })
+
+            it('when ts-node exists should initiate TypeScript compiler with defaults + config, preferring config, if it is present and autocompiled after config is read', function () {
+                let configFileContents = MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC).withTheseContentsMergedOn(
+                    {
+                        config: {
+                            autoCompileOpts: {
+                                tsNodeOpts: {
+                                    'ts-node': 'do this',
+                                    'and': 'that'
+                                }
+                            }
+                        }
+                    }
+                ).build()
+                const tsNodeRegister = jest.fn()
+                const configParser = ConfigParserBuilder
+                    .withBaseDir(path.join(__dirname, '/tests/'))
+                    .withFiles( [
+                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/')),
+                        FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
+                    ])
+                    .withTsNodeModule(tsNodeRegister).build()
+                configParser.addConfigFile('tests/cool.conf')
+                configParser.autoCompile()
+                expect(tsNodeRegister).toBeCalledTimes(1)
+                expect(tsNodeRegister).toHaveBeenCalledWith( {
+                    'transpileOnly': true,
+                    'ts-node': 'do this',
+                    'and': 'that'
+                } )
+            })
+
+            it('config can overwrite defaults', function () {
+                let configFileContents = MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC).withTheseContentsMergedOn(
+                    {
+                        config: {
+                            autoCompileOpts: {
+                                tsNodeOpts: {
+                                    'transpileOnly': false
+                                }
+                            }
+                        }
+                    }
+                ).build()
+                const tsNodeRegister = jest.fn()
+                const configParser = ConfigParserBuilder
+                    .withBaseDir(path.join(__dirname, '/tests/'))
+                    .withFiles( [
+                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/')),
+                        FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
+                    ])
+                    .withTsNodeModule(tsNodeRegister).build()
+                configParser.addConfigFile('tests/cool.conf')
+                configParser.autoCompile()
+                expect(tsNodeRegister).toBeCalledTimes(1)
+                expect(tsNodeRegister).not.toHaveBeenCalledWith(DEFAULT_AUTOCOMPILE_CONFIGS().tsNodeOpts)
+                expect(tsNodeRegister).toHaveBeenCalledWith( {
+                    'transpileOnly': false
+                } )
+            })
+
+            it('should just continue without initiation when autoCompile:false', function () {
+                (tsNode.register as jest.Mock)
+                    .mockImplementation(() => { throw new Error('boom') })
+                const tsNodeRegister = jest.fn()
+                const configParser = ConfigParserBuilder
+                    .withBaseDir(FIXTURES_PATH)
+                    .withTsNodeModule(tsNodeRegister)
+                    .withFiles(MockedFileSystem_LoadingAsMuchAsCanFromFileSystem())
+                    .build()
                 configParser.addConfigFile(FIXTURES_CONF_RDC)
-                expect(tsNode.register).toBeCalledTimes(1)
-                expect(log.debug).toBeCalledTimes(1)
-                expect((log.debug as jest.Mock).mock.calls[0][0])
-                    .toContain('auto-compiling TypeScript files')
+                configParser.merge({
+                    autoCompileOpts: {
+                        autoCompile: false
+                    }
+                })
+                configParser.autoCompile()
+                expect(tsNodeRegister).toBeCalledTimes(0)
+                expect(log.debug).toBeCalledTimes(0)
             })
 
             it('should just continue without initiation if ts-node does not exist', () => {
                 (tsNode.register as jest.Mock)
                     .mockImplementation(() => { throw new Error('boom') })
-                const configParser = new ConfigParser()
+                const configParser = ConfigParserBuilder
+                    .withBaseDir(FIXTURES_PATH)
+                    .withFiles(MockedFileSystem_LoadingAsMuchAsCanFromFileSystem())
+                    .withNoModules()
+                    .build()
                 configParser.addConfigFile(FIXTURES_CONF_RDC)
+                configParser.autoCompile()
                 expect(log.debug).toBeCalledTimes(1)
                 expect((log.debug as jest.Mock).mock.calls[0][0])
                     .toContain('No compiler found')
@@ -73,21 +322,131 @@ describe('ConfigParser', () => {
                 delete process.env.THROW_BABEL_REGISTER
             })
 
-            it('should initiate with @babel/register compiler if package exists', () => {
-                const configParser = new ConfigParser()
+            it('when @babel/register package exists should initiate with @babel/register compiler', () => {
+                const configContents = MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC).build()
+                const babelRegister = jest.fn()
+                const configParser = ConfigParserBuilder
+                    .withBaseDir(
+                        FIXTURES_PATH)
+                    .withFiles([
+                        FileNamed(FIXTURES_CONF_RDC).withContents(configContents)
+                    ]
+                    )
+                    .withBabelModule(babelRegister)
+                    .build()
                 configParser.addConfigFile(FIXTURES_CONF_RDC)
+                configParser.autoCompile()
+
+                expect(babelRegister).toHaveBeenCalledWith({})
                 expect(log.debug).toBeCalledTimes(1)
                 expect((log.debug as jest.Mock).mock.calls[0][0])
                     .toContain('auto-compiling files with Babel')
             })
 
+            it('when @babel/register package exists should merge config, preferring config, if present', function () {
+                delete process.env.THROW_BABEL_REGISTER // Code in this test will bail early if we leave this set
+                let configFileContents = MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC).withTheseContentsMergedOn(
+                    {
+                        config: {
+                            autoCompileOpts: {
+                                babelOpts: {
+                                    'babel': 'do this',
+                                    'and': 'that'
+                                }
+                            }
+                        }
+                    }
+                ).build()
+                const babelRegister = jest.fn()
+                const configParser = ConfigParserBuilder.withBaseDir(path.join(__dirname, '/tests/'))
+                    .withFiles([
+                        FileNamed(path.join(__dirname, '/tests/cool.conf')).withContents(JSON.stringify(configFileContents)),
+                        FileNamed(path.join(__dirname, '/tests//validateConfig.test.ts')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/validateConfig.test.ts')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/configparser.test.ts')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/utils.test.ts')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/detectBackend.test.ts')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/test.cjs')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/test.es6')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/test.java')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/test.mjs')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/test-a.feature')).withContents('feature file contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/test-b.feature')).withContents('feature file contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/typescript.ts')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.conf.multiremote.rdc.ts')).withContents('config contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.conf.rdc.ts')).withContents('config contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.conf.ts')).withContents('config contents'),
+                        FileNamed(path.join(__dirname, '/tests/__fixtures__/wdio.local.conf.ts')).withContents('config contents'),
+                        FileNamed(path.join(__dirname, '/app/src/index.ts')).withContents('source contents')
+                    ])
+                    .withBabelModule(babelRegister).build()
+                configParser.addConfigFile(path.join(__dirname, '/tests/cool.conf'))
+                configParser.autoCompile()
+                expect(babelRegister).toBeCalledTimes(1)
+                expect(babelRegister).toHaveBeenCalledWith( {
+                    'babel': 'do this',
+                    'and': 'that'
+                } )
+            })
+
+            it('should just continue without initiation when autoCompile:false', () => {
+                process.env.THROW_BABEL_REGISTER = '1'
+                const configParserBuilder = ConfigParserBuilder
+                    .withBaseDir(FIXTURES_PATH)
+                    .withBabelModule()
+                    .withFiles([
+                        ...MockedFileSystem_OnlyLoadingConfig(process.cwd(), FIXTURES_CONF_RDC)
+                    ])
+                const { resolveMock, requireMock } = configParserBuilder.getMocks().modules.getMocks()
+                const configParser = configParserBuilder.build()
+                configParser.addConfigFile(FIXTURES_CONF_RDC)
+                configParser.merge({
+                    autoCompileOpts: {
+                        autoCompile: false
+                    }
+                })
+                configParser.autoCompile()
+                expect(resolveMock).not.toHaveBeenCalled()
+                expect(requireMock).not.toHaveBeenCalled()
+                expect(log.debug).toBeCalledTimes(0)
+            })
+
             it('should just continue without initiation if @babel/register does not exist', () => {
                 process.env.THROW_BABEL_REGISTER = '1'
-                const configParser = new ConfigParser()
+                const configParserBuilder = ConfigParserBuilder
+                    .withBaseDir(FIXTURES_PATH)
+                    .withFiles([
+                        ...MockedFileSystem_OnlyLoadingConfig(FIXTURES_PATH, FIXTURES_CONF_RDC)
+                    ])
+                    .withNoModules()
+                const { resolveMock, requireMock } = configParserBuilder.getMocks().modules.getMocks()
+                const configParser = configParserBuilder.build()
                 configParser.addConfigFile(FIXTURES_CONF_RDC)
+                configParser.autoCompile()
+                expect(resolveMock).toHaveBeenCalledWith('@babel/register')
+                expect(requireMock).not.toHaveBeenCalledWith('@babel/register')
                 expect(log.debug).toBeCalledTimes(1)
                 expect((log.debug as jest.Mock).mock.calls[0][0])
                     .toContain('No compiler found')
+            })
+
+            it('when both ts-node and @babel/register exist should prefer ts-node', () => {
+                process.env.THROW_BABEL_REGISTER = '1'
+                const configParserBuilder = ConfigParserBuilder
+                    .withBaseDir(FIXTURES_PATH)
+                    .withFiles([
+                        ...MockedFileSystem_OnlyLoadingConfig(FIXTURES_PATH, FIXTURES_CONF_RDC)
+                    ])
+                    .withTsNodeModule()
+                    .withBabelModule()
+                const { resolveMock, requireMock } = configParserBuilder.getMocks().modules.getMocks()
+                const configParser = configParserBuilder.build()
+                configParser.addConfigFile(FIXTURES_CONF_RDC)
+                configParser.autoCompile()
+                expect(resolveMock).not.toHaveBeenCalledWith('@babel/register')
+                expect(requireMock).not.toHaveBeenCalledWith('@babel/register')
+                expect(log.debug).toBeCalledTimes(1)
+                expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('auto-compiling TypeScript files'))
             })
         })
     })
@@ -95,7 +454,7 @@ describe('ConfigParser', () => {
     describe('merge', () => {
         const isWindows = process.platform === 'win32'
         it('should overwrite specs if piped into cli command', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ specs: INDEX_PATH })
 
@@ -105,7 +464,7 @@ describe('ConfigParser', () => {
         })
 
         it('should allow specifying a spec file', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [INDEX_PATH] })
             const specs = configParser.getSpecs()
@@ -114,7 +473,7 @@ describe('ConfigParser', () => {
         })
 
         it('should allow specifying a spec file which is Cucumber feature file with line number', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2] })
 
@@ -130,7 +489,7 @@ describe('ConfigParser', () => {
         })
 
         it('should allow specifying a spec file which is Cucumber feature file with line numbers', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12] })
 
@@ -146,7 +505,7 @@ describe('ConfigParser', () => {
         })
 
         it('should allow specifying a spec file which is Cucumber feature files with line number', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2, FIXTURES_CUCUMBER_FEATURE_B_LINE_7] })
 
@@ -166,7 +525,7 @@ describe('ConfigParser', () => {
         })
 
         it('should allow specifying mutliple single spec file', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec : [INDEX_PATH, FIXTURES_CONF] })
 
@@ -177,7 +536,7 @@ describe('ConfigParser', () => {
         })
 
         it('should allow to specify partial matching spec file', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec : ['Backend'] })
 
@@ -186,7 +545,7 @@ describe('ConfigParser', () => {
         })
 
         it('should exclude duplicate spec files', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec : [INDEX_PATH, INDEX_PATH] })
 
@@ -196,13 +555,13 @@ describe('ConfigParser', () => {
         })
 
         it('should throw if specified spec file does not exist', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             expect(() => configParser.merge({ spec: [path.resolve(__dirname, 'foobar.ts')] })).toThrow()
         })
 
         it('should allow to specify multiple suites', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['unit', 'functional', 'mobile'] })
 
@@ -214,21 +573,21 @@ describe('ConfigParser', () => {
         })
 
         it('should throw when suite is not defined', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['blabla'] })
             expect(() => configParser.getSpecs()).toThrow(/The suite\(s\) "blabla" you specified don't exist/)
         })
 
         it('should throw when multiple suites are not defined', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['blabla', 'lala'] })
             expect(() => configParser.getSpecs()).toThrow(/The suite\(s\) "blabla", "lala" you specified don't exist/)
         })
 
         it('should allow to specify a single suite', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['mobile'] })
 
@@ -238,7 +597,7 @@ describe('ConfigParser', () => {
         })
 
         it('should overwrite host and port if key are set as cli arguments', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ user: 'barfoo', key: '50fa1411-3121-4gb0-9p07-8q326vvbq7b0' })
 
@@ -251,7 +610,17 @@ describe('ConfigParser', () => {
         })
 
         it('should not overwrite host and port if specified in host file', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserBuilder.withBaseDir(FIXTURES_PATH)
+                .withFiles(
+                    [
+                        FileNamed(FIXTURES_LOCAL_CONF).withContents({
+                            config: {
+                                hostname: '127.0.0.1',
+                                port: 4444
+                            }
+                        })
+                    ]
+                ).build()
             configParser.addConfigFile(FIXTURES_LOCAL_CONF)
             configParser.merge({ user: 'barfoo', key: '50fa1411-3121-4gb0-9p07-8q326vvbq7b0' })
 
@@ -261,7 +630,7 @@ describe('ConfigParser', () => {
         })
 
         it('should allow specifying a exclude file', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [INDEX_PATH, FIXTURES_CONF] })
             configParser.merge({ exclude: [INDEX_PATH] })
@@ -271,7 +640,7 @@ describe('ConfigParser', () => {
         })
 
         it('should allow specifying multiple exclude files', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [INDEX_PATH, FIXTURES_CONF] })
             configParser.merge({ exclude: [INDEX_PATH, FIXTURES_CONF] })
@@ -280,13 +649,13 @@ describe('ConfigParser', () => {
         })
 
         it('should throw if specified exclude file does not exist', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             expect(() => configParser.merge({ exclude: [path.resolve(__dirname, 'foobar.ts')] })).toThrow()
         })
 
         it('should allow specifying a glob pattern for exclude', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [INDEX_PATH, FIXTURES_CONF] })
             configParser.merge({ exclude: [path.resolve(__dirname) + '/*'] })
@@ -295,7 +664,7 @@ describe('ConfigParser', () => {
         })
 
         it('should overwrite exclude if piped into cli command', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ exclude: [INDEX_PATH] })
             const specs = configParser.getSpecs()
@@ -303,7 +672,7 @@ describe('ConfigParser', () => {
         })
 
         it('should overwrite exclude if piped into cli command with params', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({})
 
@@ -314,7 +683,7 @@ describe('ConfigParser', () => {
         })
 
         it('should overwrite exclude if piped into cli command with params in suite', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['mobile'] })
 
@@ -325,7 +694,7 @@ describe('ConfigParser', () => {
         })
 
         it('should set hooks to empty arrays as default', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({})
 
@@ -336,7 +705,7 @@ describe('ConfigParser', () => {
         })
 
         it('should overwrite hooks if provided', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({
                 onPrepare: jest.fn(),
@@ -352,7 +721,7 @@ describe('ConfigParser', () => {
         })
 
         it('should overwrite capabilities', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             expect(configParser.getCapabilities()).toMatchObject([{ browserName: 'chrome' }])
             configParser.merge({
@@ -401,7 +770,7 @@ describe('ConfigParser', () => {
 
     describe('getSpecs', () => {
         it('should exclude files', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
 
             const specs = configParser.getSpecs()
@@ -410,7 +779,9 @@ describe('ConfigParser', () => {
         })
 
         it('should exclude/include capability excludes', () => {
-            const configParser = new ConfigParser()
+            // const configParser = ConfigParserForTest()
+            const configParser = ConfigParserForTestWithAllFiles()
+
             configParser.addConfigFile(FIXTURES_CONF)
 
             const specs = configParser.getSpecs([INDEX_PATH], [__filename])
@@ -420,7 +791,8 @@ describe('ConfigParser', () => {
         })
 
         it('should exclude/include capability excludes in suites', () => {
-            const configParser = new ConfigParser()
+            // const configParser = ConfigParserForTest()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['unit', 'mobile'] })
 
@@ -430,7 +802,7 @@ describe('ConfigParser', () => {
         })
 
         it('should include typescript files', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
 
             const tsFile = path.resolve(FIXTURES_PATH, '*.ts')
@@ -439,7 +811,7 @@ describe('ConfigParser', () => {
         })
 
         it('should include es6 files', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
 
             const es6File = path.resolve(FIXTURES_PATH, '*.es6')
@@ -448,7 +820,7 @@ describe('ConfigParser', () => {
         })
 
         it('should include mjs files', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
 
             const mjsFile = path.resolve(FIXTURES_PATH, '*.mjs')
@@ -457,7 +829,7 @@ describe('ConfigParser', () => {
         })
 
         it('should include cjs files', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
 
             const cjsFile = path.resolve(FIXTURES_PATH, '*.cjs')
@@ -466,7 +838,7 @@ describe('ConfigParser', () => {
         })
 
         it('should not include other file types', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
 
             const javaFile = path.resolve(FIXTURES_PATH, '*.java')
@@ -475,7 +847,7 @@ describe('ConfigParser', () => {
         })
 
         it('should include spec when specifying a suite', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['mobile'], spec: [INDEX_PATH] })
 
@@ -484,11 +856,90 @@ describe('ConfigParser', () => {
             expect(specs).toContain(INDEX_PATH)
             expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
         })
+
+        it('should include spec when specifying a suite unless excluded', () => {
+            const configParser = ConfigParserBuilder
+                .withBaseDir(path.resolve(__dirname))
+                .withFiles([
+                    ...MockedFileSystem_LoadingAsMuchAsCanFromFileSystem(),
+                    FileNamed(path.resolve(FIXTURES_PATH, 'sut-config')).withContents(MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF).withTheseContentsMergedOn({
+                        specs: [path.join(__dirname, '*.test.ts')],
+                        config: {
+                            exclude: [
+                                // FIXTURES_CONF already excludes validateConfig
+                                path.resolve(__dirname, 'ganondorf.test.ts')
+                            ],
+                            suites: {
+                                mobile: [
+                                    path.resolve(__dirname, 'detectBackend.test.ts'),
+                                    path.resolve(__dirname, 'validateConfig.test.ts'),
+                                    path.resolve(__dirname, 'link.test.ts'),
+                                    path.resolve(__dirname, 'ganondorf.test.ts')
+                                ]
+                            }
+                        }
+                    }).build()),
+                    FileNamed(path.resolve(__dirname, 'link.test.ts')).withContents(''),
+                    FileNamed(path.resolve(__dirname, 'ganondorf.test.ts')).withContents(''),
+                    FileNamed(path.resolve(__dirname, 'zelda.test.ts')).withContents('')
+                ]).build()
+
+            configParser.addConfigFile(path.resolve(FIXTURES_PATH, 'sut-config'))
+            configParser.merge({ suite: ['mobile'], spec: [INDEX_PATH] })
+
+            let specs = configParser.getSpecs()
+            expect(specs).toHaveLength(3)
+            expect(specs).toContain(INDEX_PATH)
+            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
+            expect(specs).toContain(path.resolve(__dirname, 'link.test.ts'))
+            expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
+            expect(specs).not.toContain(path.resolve(__dirname, 'ganondorf.test.ts'))
+            expect(specs).not.toContain(path.resolve(__dirname, 'zelda.test.ts'))
+        })
+
+        it("should throw if suite doesn't exist or doesn't contain any files", () => {
+            const configParser = ConfigParserBuilder
+                .withBaseDir(path.join(process.cwd(), '/workdir/'))
+                .withFiles(
+                    [
+                        FileNamed(path.join(process.cwd(), '/workdir/conf-under-test')).withContents({
+                            config: {
+                                user: 'foobar',
+                                key: '50fa142c-3121-4gb0-9p07-8q326vvbq7b0',
+                                specs: [path.join(__dirname, '/tests/*.test.ts')],
+                                exclude: [
+                                    path.join(__dirname, '/tests/and-this-test-two.test.ts')
+                                ],
+                                capabilities: [{
+                                    browserName: 'chrome'
+                                }],
+                                suites: {
+                                    unit: [path.join(__dirname, '/tests/configparser.test.ts')],
+                                    mobile: [path.join(__dirname, '/tests/detectBackend.test.ts')],
+                                    functional: [
+                                        path.join(__dirname, '/tests/validateConfig.test.ts'),
+                                        path.join(__dirname, '/tests/..', 'src/index.ts')
+                                    ],
+                                    'something': []
+                                },
+                                suite: ['something']
+                            }
+                        }),
+                        FileNamed(path.join(__dirname, '/tests/only-this-test-one.test.ts')).withContents('what1')
+                    ]
+                ).build()
+            configParser.addConfigFile('conf-under-test')
+            // eslint-disable-next-line no-useless-escape
+            expect(() => configParser.getSpecs()).toThrowError('The suite(s) \"something\" you specified don\'t exist in your config file or doesn\'t contain any files!')
+            configParser.merge({ suite: ['something-else'], spec: [path.join(__dirname, '/tests/only-this-test-one.test.ts')] })
+            // eslint-disable-next-line no-useless-escape
+            expect(() => configParser.getSpecs()).toThrowError('The suite(s) \"something\", \"something-else\" you specified don\'t exist in your config file or doesn\'t contain any files!')
+        })
     })
 
     describe('getConfig', () => {
         it('should set proper host and port to local selenium if user and key is specified', () => {
-            const configParser = new ConfigParser()
+            const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
 
             const config = configParser.getConfig()

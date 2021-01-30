@@ -9,7 +9,7 @@ import yargs from 'yargs'
 
 const IGNORED_ARGS = [
     'bail', 'framework', 'reporters', 'suite', 'spec', 'exclude',
-    'mochaOpts', 'jasmineNodeOpts', 'cucumberOpts'
+    'mochaOpts', 'jasmineNodeOpts', 'cucumberOpts', 'autoCompileOpts'
 ]
 
 export const command = 'repl <option> [capabilities]'

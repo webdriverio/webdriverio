@@ -101,6 +101,10 @@ export default class Runner extends EventEmitter {
          * merge cli arguments into config
          */
         this._configParser.merge(args)
+        // autocompile after parsing configs so we support ES6 features in tests with config driven by users
+        if ( this._configParser.autoCompile ) {
+            this._configParser.autoCompile()
+        }
 
         this._config = this._configParser.getConfig() as Options.Testrunner
         this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)

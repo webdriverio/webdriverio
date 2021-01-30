@@ -403,6 +403,16 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
     mochaOpts?: WebdriverIO.MochaOpts
     jasmineOpts?: WebdriverIO.JasmineOpts
     cucumberOpts?: WebdriverIO.CucumberOpts
+    /**
+     * autocompile options
+     */
+    autoCompileOpts?: AutoCompileConfig
+}
+
+export interface AutoCompileConfig {
+    autoCompile: boolean
+    tsNodeOpts: { [key: string]: any }
+    babelOpts: { [key: string]: any }
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {
