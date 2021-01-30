@@ -44,6 +44,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
      * ToDo(Christian): v7 cleanup
      */
     let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs
+    let port = (capabilities as any).port || (chromeOptions as any).port
     let headless = (chromeOptions as any).headless
 
     if (devtoolsOptions) {
@@ -94,7 +95,8 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
         ignoreDefaultFlags: true,
-        chromeFlags
+        chromeFlags,
+        port
     })
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)

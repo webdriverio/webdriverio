@@ -168,6 +168,48 @@ Array [
       ],
       "chromePath": "/foo/bar",
       "ignoreDefaultFlags": true,
+      "port": undefined,
+    },
+  ],
+]
+`;
+
+exports[`launch chrome with chrome port 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-hang-monitor",
+        "--disable-prompt-on-repost",
+        "--disable-client-side-phishing-detection",
+        "--password-store=basic",
+        "--use-mock-keychain",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-breakpad",
+        "--disable-dev-shm-usage",
+        "--disable-ipc-flooding-protection",
+        "--disable-renderer-backgrounding",
+        "--force-fieldtrials=*BackgroundTracing/default/",
+        "--enable-features=NetworkService,NetworkServiceInProcess",
+        "--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees",
+        "--window-position=0,0",
+        "--window-size=1200,900",
+      ],
+      "chromePath": undefined,
+      "ignoreDefaultFlags": true,
+      "port": 8041,
     },
   ],
 ]
@@ -208,6 +250,7 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
+      "port": undefined,
     },
   ],
 ]
@@ -234,6 +277,7 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
+      "port": undefined,
     },
   ],
 ]
@@ -286,6 +330,7 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
+      "port": undefined,
     },
   ],
 ]
@@ -325,6 +370,7 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
+      "port": undefined,
     },
   ],
 ]
