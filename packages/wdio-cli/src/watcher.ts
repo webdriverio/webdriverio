@@ -1,13 +1,12 @@
 import chokidar from 'chokidar'
 import logger from '@wdio/logger'
-import type { ValueKeyIteratee } from 'lodash'
 import pickBy from 'lodash.pickby'
 import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
 
 import Launcher from './launcher'
 import type { Capabilities } from '@wdio/types'
-import { RunCommandArguments } from './types.js'
+import { RunCommandArguments, ValueKeyIteratee } from './types.js'
 
 const log = logger('@wdio/cli:watch')
 

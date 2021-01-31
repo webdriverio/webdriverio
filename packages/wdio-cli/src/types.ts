@@ -105,3 +105,17 @@ export interface OnCompleteResult {
     retries: number
     failed: number
 }
+
+/** Extracted from @types/lodash@4.14.168 */
+export type ValueKeyIteratee<T> =
+    | ((value: T, key: string) => NotVoid)
+    | IterateeShorthand<T>;
+type IterateeShorthand<T> =
+    | PropertyName
+    | [PropertyName, any]
+    | PartialShallow<T>;
+type PropertyName = string | number | symbol;
+type PartialShallow<T> = {
+    [P in keyof T]?: T[P] extends object ? object : T[P];
+};
+type NotVoid = unknown;
