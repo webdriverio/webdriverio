@@ -1,10 +1,18 @@
 import path from 'path'
 import chokidar from 'chokidar'
+import EventEmitter from 'events'
+import type { Capabilities } from '@wdio/types'
 
+import { RunCommandArguments } from '../src/types'
 import Watcher from '../src/watcher'
 
 jest.mock('../src/launcher', () => {
     const { ConfigParser } = require('@wdio/config')
+
+    interface LauncherMockRunCommandArguments extends Omit<RunCommandArguments, 'configPath'> {
+        isMultiremote?: boolean;
+
+    }
 
     class LauncherMock {
         configParser = new ConfigParser()
@@ -12,10 +20,10 @@ jest.mock('../src/launcher', () => {
         runner: any
         interface: any
 
-        constructor (configFile, args) {
+        constructor (configFile: string, args: LauncherMockRunCommandArguments) {
             this.configParser.addConfigFile(configFile)
             this.configParser.merge(args)
-            this.isMultiremote = args.isMultiremote
+            this.isMultiremote = args.isMultiremote || false
             this.runner = {}
             this.interface = {
                 emit: jest.fn(),
@@ -26,20 +34,31 @@ jest.mock('../src/launcher', () => {
     return LauncherMock
 })
 
-class WorkerMock {
+interface WorkerMockRunPayload extends Partial<Omit<Capabilities.WorkerRunPayload, 'cid'>> {
+    cid?: string | null;
+    isBusy?: boolean;
+    sessionId?: string | null;
+    specs: string[];
+}
+
+class WorkerMock extends EventEmitter implements Capabilities.Worker {
     cid: string
     specs: string[]
     caps: WebDriver.DesiredCapabilities
+    capabilities: WebDriver.DesiredCapabilities
     sessionId: string
     isBusy: boolean
     postMessage = jest.fn()
 
-    constructor (cid, specs, sessionId, isBusy = false) {
-        this.cid = cid
-        this.specs = [specs]
+    constructor ({ cid, specs, sessionId, isBusy = false }: WorkerMockRunPayload) {
+        super()
+        this.cid = cid || `${Math.random()}`
+        this.specs = specs
         this.caps = { browserName: 'chrome' }
+        this.capabilities = this.caps
         this.sessionId = sessionId || `${Math.random()}`
         this.isBusy = isBusy
+        this.on = jest.fn()
     }
 }
 
@@ -74,7 +93,7 @@ describe('watcher', () => {
             },
             runner: {
                 workerPool: {
-                    '0-0': { on: jest.fn(), isBusy: false }
+                    '0-0': new WorkerMock({ specs: ['./tests/test1.js'] })
                 }
             }
         } as any
@@ -96,7 +115,7 @@ describe('watcher', () => {
             },
             runner: {
                 workerPool: {
-                    '0-0': { on: jest.fn(), isBusy: false }
+                    '0-0': new WorkerMock({ specs: ['./tests/test1.js'] })
                 }
             }
         } as any
@@ -130,7 +149,7 @@ describe('watcher', () => {
             },
             runner: {
                 workerPool: {
-                    '0-0': { on: jest.fn(), isBusy: false }
+                    '0-0': new WorkerMock({ specs: ['./tests/test1.js'] })
                 }
             }
         } as any
@@ -145,8 +164,8 @@ describe('watcher', () => {
         ;(chokidar.on as jest.Mock).mock.calls[2][1]('/some/another/path.js')
         // @ts-ignore mock feature
         ;(chokidar.on as jest.Mock).mock.calls[3][1]('/some/another/path.js')
-        expect(watcher.run).toHaveBeenNthCalledWith(1, { spec: ['/some/path.js'] })
-        expect(watcher.run).toHaveBeenNthCalledWith(2, { spec: ['/some/other/path.js'] })
+        expect(watcher.run).toHaveBeenNthCalledWith(1, { spec: '/some/path.js' })
+        expect(watcher.run).toHaveBeenNthCalledWith(2, { spec: '/some/other/path.js' })
         expect(watcher.run).toHaveBeenNthCalledWith(3, {})
         expect(watcher.run).toHaveBeenNthCalledWith(4, {})
     })
@@ -155,11 +174,9 @@ describe('watcher', () => {
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         const workerPool = {
-            // @ts-ignore mock feature
-            '0-0': new WorkerMock('0-0', '/foo/bar.js'),
-            '0-1': new WorkerMock('0-1', '/foo/bar2.js', null, true),
-            // @ts-ignore mock feature
-            '1-0': new WorkerMock('1-0', '/bar/foo.js')
+            '0-0': new WorkerMock({ cid: '0-0', specs: ['/foo/bar.js'] }),
+            '0-1': new WorkerMock({ cid: '0-1', specs: ['/foo/bar2.js'], isBusy: true }),
+            '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
         }
         watcher['_launcher'].runner.workerPool = workerPool
 
@@ -169,7 +186,7 @@ describe('watcher', () => {
             '1-0': workerPool['1-0']
         })
         expect(watcher.getWorkers(
-            (worker) => worker.specs.includes('/bar/foo.js'))
+            (worker: Capabilities.Worker) => worker.specs.includes('/bar/foo.js'))
         ).toEqual({ '1-0': workerPool['1-0'] })
     })
 
@@ -178,10 +195,10 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'].runner.workerPool = {
             // @ts-ignore mock feature
-            '0-0': new WorkerMock('0-0', '/foo/bar.js'),
-            '0-1': new WorkerMock('0-1', '/foo/bar2.js', null, true),
+            '0-0': new WorkerMock({ cid: '0-0', specs: ['/foo/bar.js'] }),
+            '0-1': new WorkerMock({ cid: '0-1', specs: ['/foo/bar2.js'], isBusy: true }),
             // @ts-ignore mock feature
-            '1-0': new WorkerMock('1-0', '/bar/foo.js')
+            '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
         }
         watcher['_launcher'].interface.emit = jest.fn()
         watcher.run({ spec: '/foo/bar.js' } as any)
@@ -201,10 +218,10 @@ describe('watcher', () => {
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'].runner.workerPool = {
             // @ts-ignore mock feature
-            '0-0': new WorkerMock('0-0', '/foo/bar.js'),
-            '0-1': new WorkerMock('0-1', '/foo/bar2.js', null, true),
+            '0-0': new WorkerMock({ cid: '0-0', specs: ['/foo/bar.js'] }),
+            '0-1': new WorkerMock({ cid: '0-1', specs: ['/foo/bar2.js'], isBusy: true }),
             // @ts-ignore mock feature
-            '1-0': new WorkerMock('1-0', '/bar/foo.js')
+            '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
         }
         watcher['_launcher'].interface.emit = jest.fn()
         watcher.run({ spec: '/foo/bar2.js' } as any)
@@ -218,10 +235,10 @@ describe('watcher', () => {
         watcher.cleanUp = jest.fn()
         watcher['_launcher'].runner.workerPool = {
             // @ts-ignore mock feature
-            '0-0': new WorkerMock('0-0', '/foo/bar.js'),
-            '0-1': new WorkerMock('0-1', '/foo/bar2.js', null, true),
+            '0-0': new WorkerMock({ cid: '0-0', specs: ['/foo/bar.js'] }),
+            '0-1': new WorkerMock({ cid: '0-1', specs: ['/foo/bar2.js'], isBusy: true }),
             // @ts-ignore mock feature
-            '1-0': new WorkerMock('1-0', '/bar/foo.js')
+            '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
         }
         watcher.run()
 
@@ -244,6 +261,58 @@ describe('watcher', () => {
             cid: '1-0',
             caps: { browserName: 'chrome' },
             specs: ['/bar/foo.js'] })
+    })
+
+    it('should re-run all specs when a filesToWatch file is added or changes', async () => {
+        const spec = ['/some/path.js', '/some/other/path.js']
+        const someOtherExcludedPath = '/some/other/excluded/path.js'
+        const filesToWatch = ['/some/another/path.js']
+        const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
+        const watcher = new Watcher(wdioConf, {})
+        watcher['_launcher'] = {
+            __args: { spec },
+            run: jest.fn(),
+            interface: {
+                emit: jest.fn(),
+                finalise: jest.fn()
+            },
+            configParser: {
+                getConfig: jest.fn().mockReturnValue({ filesToWatch })
+            },
+            runner: {
+                workerPool: {
+                    '0-0': new WorkerMock({ cid: '0-0', specs: [spec[0]] }),
+                    '0-1': new WorkerMock({ cid: '0-1', specs: [spec[1]] })
+                }
+            }
+        } as any
+        const runSpy = jest.spyOn(watcher, 'run')
+        const emitSpy = watcher['_launcher'].interface.emit
+        watcher.cleanUp = jest.fn()
+        await watcher.watch()
+
+        // @ts-ignore mock feature
+        ;(chokidar.on as jest.Mock).mock.calls[0][1](spec[0])
+        expect(runSpy).toHaveBeenNthCalledWith(1, { spec: spec[0] })
+        expect(emitSpy).toHaveBeenCalledTimes(1) // Only one Worker called
+
+        ;(emitSpy as jest.Mock).mockClear()
+        // @ts-ignore mock feature
+        ;(chokidar.on as jest.Mock).mock.calls[1][1](someOtherExcludedPath)
+        expect(runSpy).toHaveBeenNthCalledWith(2, { spec: someOtherExcludedPath })
+        expect(emitSpy).not.toHaveBeenCalled() // No Workers called
+
+        ;(emitSpy as jest.Mock).mockClear()
+        // @ts-ignore mock feature
+        ;(chokidar.on as jest.Mock).mock.calls[2][1](filesToWatch[0])
+        expect(runSpy).toHaveBeenNthCalledWith(3, {})
+        expect(emitSpy).toHaveBeenCalledTimes(2) // Both Workers called
+
+        ;(emitSpy as jest.Mock).mockClear()
+        // @ts-ignore mock feature
+        ;(chokidar.on as jest.Mock).mock.calls[3][1](filesToWatch[0])
+        expect(runSpy).toHaveBeenNthCalledWith(4, {})
+        expect(emitSpy).toHaveBeenCalledTimes(2) // Both Workers called
     })
 
     afterEach(() => {

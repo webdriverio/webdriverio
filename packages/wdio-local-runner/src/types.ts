@@ -1,15 +1,5 @@
 import type { Capabilities } from '@wdio/types'
-
-export interface WorkerRunPayload {
-    cid: string,
-    configFile: string,
-    caps: Capabilities.RemoteCapability,
-    specs: string[],
-    execArgv: string[],
-    retries: number
-}
-
-export interface WorkerCommand extends Omit<WorkerRunPayload, 'execArgv'> {
+export interface WorkerCommand extends Omit<Capabilities.WorkerRunPayload, 'execArgv'> {
     command: string,
     args: any
 }

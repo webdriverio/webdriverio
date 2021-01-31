@@ -11,7 +11,7 @@ import RunnerTransformStream from './transformStream'
 import ReplQueue from './replQueue'
 import RunnerStream from './stdStream'
 
-import type { WorkerRunPayload, WorkerMessage, WorkerCommand } from './types'
+import type { WorkerMessage, WorkerCommand } from './types'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -26,11 +26,12 @@ stdErrStream.pipe(process.stderr)
  * responsible for spawning a sub process to run the framework in and handle its
  * session lifetime.
  */
-export default class WorkerInstance extends EventEmitter {
+export default class WorkerInstance extends EventEmitter implements Capabilities.Worker {
     cid: string
     config: Options.Testrunner
     configFile: string
     caps: Capabilities.RemoteCapability
+    capabilities: Capabilities.RemoteCapability
     specs: string[]
     execArgv: string[]
     retries: number
@@ -57,7 +58,7 @@ export default class WorkerInstance extends EventEmitter {
      */
     constructor(
         config: Options.Testrunner,
-        { cid, configFile, caps, specs, execArgv, retries }: WorkerRunPayload,
+        { cid, configFile, caps, specs, execArgv, retries }: Capabilities.WorkerRunPayload,
         stdout: WritableStreamBuffer,
         stderr: WritableStreamBuffer
     ) {
@@ -66,6 +67,7 @@ export default class WorkerInstance extends EventEmitter {
         this.config = config
         this.configFile = configFile
         this.caps = caps
+        this.capabilities = caps
         this.specs = specs
         this.execArgv = execArgv
         this.retries = retries
@@ -179,11 +181,10 @@ export default class WorkerInstance extends EventEmitter {
 
     /**
      * sends message to sub process to execute functions in wdio-runner
-     * @param  {string} command  method to run in wdio-runner
-     * @param  {object} argv     arguments for functions to call
-     * @return null
+     * @param  command  method to run in wdio-runner
+     * @param  args     arguments for functions to call
      */
-    postMessage (command: string, args: any) {
+    postMessage (command: string, args: Capabilities.WorkerMessageArgs): void {
         const { cid, configFile, caps, specs, retries, isBusy } = this
 
         if (isBusy && command !== 'endSession') {

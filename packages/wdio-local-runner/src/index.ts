@@ -1,14 +1,13 @@
 import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
-import type { Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 import WorkerInstance from './worker'
 import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants'
-import type { WorkerRunPayload } from './types'
 
 const log = logger('@wdio/local-runner')
 
-interface RunArgs extends WorkerRunPayload {
+interface RunArgs extends Capabilities.WorkerRunPayload {
     command: string
     args: any
 }
