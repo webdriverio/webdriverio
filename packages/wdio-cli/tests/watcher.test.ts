@@ -263,7 +263,7 @@ describe('watcher', () => {
             specs: ['/bar/foo.js'] })
     })
 
-    it('should re-run all specs when a filesToWatch file is added or changes', async () => {
+    it('should re-run all specs when the --spec command line option is set and a filesToWatch file is added or changed', async () => {
         const spec = ['/some/path.js', '/some/other/path.js']
         const someOtherExcludedPath = '/some/other/excluded/path.js'
         const filesToWatch = ['/some/another/path.js']
