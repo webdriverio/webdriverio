@@ -136,7 +136,7 @@ async function bar() {
     await browser.executeAsync((arg: number, cb: (arg: number) => void) => {
         arg.toFixed()
         cb(123)
-    })
+    }, 456)
 
     const callResult = <number>await browser.call(() =>
         new Promise(resolve => setTimeout(() => resolve(4), 1))

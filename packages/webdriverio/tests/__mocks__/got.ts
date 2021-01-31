@@ -214,6 +214,12 @@ const requestMock: any = jest.fn().mockImplementation((uri, params) => {
         //false and 0 are valid results
         value = Boolean(result) || result === false || result === 0 || result === null ? result : {}
         break
+    } case `/session/${sessionId}/execute/async`: {
+        const script = Function(params.json.script)
+        let result
+        script.call(this, ...params.json.args, (_result: any) => result = _result)
+        value = result ?? {}
+        break
     } case `${path}/${sessionId}/element/${genericElementId}/elements`:
         value = [
             { [ELEMENT_KEY]: genericSubElementId },
