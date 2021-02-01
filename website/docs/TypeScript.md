@@ -219,8 +219,7 @@ declare global {
     "types": [
       "node",
       "webdriverio/sync",
-      "@wdio/mocha-framework",
-      "@wdio/sync"
+      "@wdio/mocha-framework"
     ],
   },
   "include": [
