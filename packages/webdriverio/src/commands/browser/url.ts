@@ -4,7 +4,8 @@ import { validateUrl } from '../../utils'
  *
  * Protocol binding to load the URL of the browser. If a baseUrl is
  * specified in the config, it will be prepended to the url parameter using
- * node's url.resolve() method.
+ * node's url.resolve() method. Calling `browser.url('...')` with the same url as last
+ * time will trigger a page reload.
  *
  * <example>
     :url.js
