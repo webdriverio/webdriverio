@@ -35,13 +35,9 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * @type protocol
  *
  */
-export default function execute<
-    T,
-    U extends any[] = any[],
-    V extends U = any
->(
+export default function execute<T, U extends any[]> (
     this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
-    script: string | ((...innerArgs: V) => T),
+    script: string | ((...innerArgs: U) => T),
     ...args: U
 ): Promise<T> {
     /**

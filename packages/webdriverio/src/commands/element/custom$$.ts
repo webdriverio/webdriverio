@@ -35,7 +35,7 @@ async function custom$$ (
     strategyArguments: string
 ): Promise<ElementArray> {
     const browserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as () => HTMLElement[]
+    const strategy = browserObject.strategies.get(strategyName) as (arg: string, context: any) => HTMLElement[]
 
     if (!strategy) {
         /* istanbul ignore next */
@@ -63,7 +63,7 @@ async function custom$$ (
 
     res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategy, res) : [] as any as ElementArray
+    const elements = res.length ? await getElements.call(this, strategy as any, res) : [] as any as ElementArray
     return enhanceElementsArray(elements, this, strategyName, 'custom$$', [strategyArguments])
 }
 
