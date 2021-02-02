@@ -202,6 +202,7 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
         }
     }
 }
+
 /**
  * @todo add JSComments
  */
@@ -330,12 +331,11 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                             : question.choices[0]
                         : {}
                 }
-        ), {})
+        ), {} as Questionnair)
         : await inquirer.prompt(QUESTIONNAIRE)
 }
 
 export function getPathForFileGeneration (answers: Questionnair) {
-
     const destSpecRootPath = path.join(
         process.cwd(),
         path.dirname(answers.specs || '').replace(/\*\*$/, ''))
@@ -366,4 +366,10 @@ export function getPathForFileGeneration (answers: Questionnair) {
         destPageObjectRootPath : destPageObjectRootPath,
         relativePath : relativePath
     }
+}
+
+export function getDefaultFiles (answers: Partial<Questionnair>, filePath: string) {
+    return answers?.isUsingCompiler?.toString().includes('TypeScript')
+        ? `${filePath}.ts`
+        : `${filePath}.js`
 }
