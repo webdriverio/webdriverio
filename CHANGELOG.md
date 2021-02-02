@@ -19,6 +19,26 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.0.0-beta.1 (2021-02-02)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#6364](https://github.com/webdriverio/webdriverio/pull/6364) Better type definition for execute and executeAsync command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6355](https://github.com/webdriverio/webdriverio/pull/6355) Adding Delta Reporter to docs and CLI ([@Jnegrier](https://github.com/Jnegrier))
+
+#### Committers: 7
+- Andy Edwards ([@jedwards1211](https://github.com/jedwards1211))
+- Boris Serdiuk ([@just-boris](https://github.com/just-boris))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmytro Shpakovskyi ([@Marketionist](https://github.com/Marketionist))
+- Juan ([@Jnegrier](https://github.com/Jnegrier))
+- Kanitkorn Sujautra ([@lukyth](https://github.com/lukyth))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v7.0.0-beta.0 (2021-01-21)
 
 #### :boom: Breaking Change
