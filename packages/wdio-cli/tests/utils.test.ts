@@ -20,9 +20,10 @@ import {
     getCapabilities,
     hasFile,
     generateTestFiles,
-    getPathForFileGeneration
-
+    getPathForFileGeneration,
+    getDefaultFiles
 } from '../src/utils'
+import { COMPILER_OPTION_ANSWERS } from '../src/constants'
 
 jest.mock('child_process', function () {
     const m = {
@@ -524,14 +525,6 @@ describe('generateTestFiles', () => {
     })
 })
 
-afterEach(() => {
-    (console.log as jest.Mock).mockRestore()
-    readDir.mockClear()
-    ;(fs.writeFileSync as jest.Mock).mockClear()
-    ;(fs.ensureDirSync as jest.Mock).mockClear()
-    ;(ejs.renderFile as jest.Mock).mockClear()
-})
-
 describe('getPathForFileGeneration', () => {
     it('Cucumber with pageobjects default values', () => {
         const generatedPaths = getPathForFileGeneration({
@@ -598,4 +591,22 @@ describe('getPathForFileGeneration', () => {
         } as any)
         expect(generatedPaths.relativePath).toEqual('')
     })
+})
+
+test('getDefaultFiles', () => {
+    const files = '/foo/bar'
+    expect(getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[0] }, files))
+        .toBe('/foo/bar.js')
+    expect(getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[1] }, files))
+        .toBe('/foo/bar.ts')
+    expect(getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[2] }, files))
+        .toBe('/foo/bar.js')
+})
+
+afterEach(() => {
+    (console.log as jest.Mock).mockRestore()
+    readDir.mockClear()
+    ;(fs.writeFileSync as jest.Mock).mockClear()
+    ;(fs.ensureDirSync as jest.Mock).mockClear()
+    ;(ejs.renderFile as jest.Mock).mockClear()
 })

@@ -8,5 +8,5 @@ test('runConfig with yes param', async () => {
     expect(answers.generateTestFiles).toBeTruthy()
     expect(answers.usePageObjects).toBeTruthy()
     expect(answers.framework).toEqual('@wdio/mocha-framework$--$mocha')
-    expect(answers.specs).toEqual('./test/specs/**/*.js')
+    expect(answers.specs).toEqual('./test/specs/**/*.ts')
 })

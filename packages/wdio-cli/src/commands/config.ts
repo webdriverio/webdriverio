@@ -160,7 +160,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      * print TypeScript configuration message
      */
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
-        const wdioTypes = syncExecution ? '@wdio/sync' : 'webdriverio'
+        const wdioTypes = syncExecution ? 'webdriverio/sync' : 'webdriverio/async'
         const tsPkgs = `"${[
             wdioTypes,
             frameworkPackage.package,

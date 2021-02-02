@@ -27,7 +27,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"@wdio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -71,7 +71,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"@wdio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -117,7 +117,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"@wdio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
