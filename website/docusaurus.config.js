@@ -1,3 +1,5 @@
+const path = require('path')
+
 const organizationName = 'webdriverio' // Usually your GitHub org/user name.
 const projectName = 'webdriverio' // Usually your repo name.
 const branch = 'cb-v7-website' // ToDo(Christian): switch to "master" once deployed to prod
@@ -185,7 +187,64 @@ module.exports = {
                 sidebarPath: require.resolve('./sidebarsCommunity.js')
             },
         ],
-        '@docusaurus/plugin-ideal-image'
+        '@docusaurus/plugin-ideal-image',
+        [
+            '@docusaurus/plugin-pwa',
+            {
+                debug: false,
+                offlineModeActivationStrategies: ['appInstalled', 'queryString'],
+                // swRegister: false,
+                swCustom: path.resolve(__dirname, 'src/sw.js'),
+                pwaHead: [
+                    {
+                        tagName: 'link',
+                        rel: 'icon',
+                        href: 'img/logo-webdriver-io.png',
+                    },
+                    {
+                        tagName: 'link',
+                        rel: 'manifest',
+                        href: '/manifest.json',
+                    },
+                    {
+                        tagName: 'meta',
+                        name: 'theme-color',
+                        content: 'rgb(234, 90, 7)',
+                    },
+                    {
+                        tagName: 'meta',
+                        name: 'apple-mobile-web-app-capable',
+                        content: 'yes',
+                    },
+                    {
+                        tagName: 'meta',
+                        name: 'apple-mobile-web-app-status-bar-style',
+                        content: '#000',
+                    },
+                    {
+                        tagName: 'link',
+                        rel: 'apple-touch-icon',
+                        href: 'img/logo-webdriver-io.png',
+                    },
+                    {
+                        tagName: 'link',
+                        rel: 'mask-icon',
+                        href: 'img/logo-webdriver-io.svg',
+                        color: 'rgb(234, 90, 7)',
+                    },
+                    {
+                        tagName: 'meta',
+                        name: 'msapplication-TileImage',
+                        content: 'img/logo-webdriver-io.png',
+                    },
+                    {
+                        tagName: 'meta',
+                        name: 'msapplication-TileColor',
+                        content: '#000',
+                    },
+                ],
+            },
+        ],
     ],
     themes: ['@saucelabs/theme-github-codeblock'],
     stylesheets: [
