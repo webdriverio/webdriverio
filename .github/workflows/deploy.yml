@@ -18,3 +18,5 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           DISTRIBUTION_ID: ${{ secrets.DISTRIBUTION_ID }}
+          DISTRIBUTION_ID_V6: ${{ secrets.DISTRIBUTION_ID_V6 }}
+          DISTRIBUTION_ID_V7: ${{ secrets.DISTRIBUTION_ID_V7 }}
