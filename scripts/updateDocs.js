@@ -52,8 +52,8 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
     const distributionId = version === PRODUCTION_VERSION
         ? DISTRIBUTION_ID
         : process.env[`DISTRIBUTION_ID_${version.toUpperCase()}`]
-    console.log(`Invalidate objects from distribution ${distributionId}`)
     if (distributionId) {
+        console.log(`Invalidate objects from distribution ${distributionId}`)
         const cloudfront = new CloudFront()
         const { Invalidation } = await promisify(cloudfront.createInvalidation.bind(cloudfront))({
             DistributionId: distributionId,
