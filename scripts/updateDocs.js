@@ -53,15 +53,17 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
         ? DISTRIBUTION_ID
         : process.env[`DISTRIBUTION_ID_${version.toUpperCase()}`]
     console.log(`Invalidate objects from distribution ${distributionId}`)
-    const cloudfront = new CloudFront()
-    const { Invalidation } = await promisify(cloudfront.createInvalidation.bind(cloudfront))({
-        DistributionId: distributionId,
-        InvalidationBatch: {
-            CallerReference: `${Date.now()}`,
-            Paths: { Quantity: 1, Items: ['/*'] }
-        }
-    })
-    console.log(`Created new invalidation with ID ${Invalidation.Id}`)
+    if (distributionId) {
+        const cloudfront = new CloudFront()
+        const { Invalidation } = await promisify(cloudfront.createInvalidation.bind(cloudfront))({
+            DistributionId: distributionId,
+            InvalidationBatch: {
+                CallerReference: `${timestamp}`,
+                Paths: { Quantity: 1, Items: ['/*'] }
+            }
+        })
+        console.log(`Created new invalidation with ID ${Invalidation.Id}`)
+    }
 
     /**
      * delete old assets
