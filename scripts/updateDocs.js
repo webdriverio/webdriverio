@@ -19,12 +19,16 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
 
 /* eslint-disable no-console */
 ;(async () => {
+    const timestamp = Date.now()
     const s3 = new S3()
     const files = await readDir(BUILD_DIR, IGNORE_FILE_SUFFIX)
 
     const version = `v${PKG_VERSION.split('.')[0]}`
     const bucketName = version === PRODUCTION_VERSION ? BUCKET_NAME : `${version}.${BUCKET_NAME}`
 
+    /**
+     * upload assets
+     */
     console.log(`Uploading ${BUILD_DIR} to S3 bucket ${bucketName}`)
     await Promise.all(files.map((file) => new Promise((resolve, reject) => s3.upload({
         Bucket: bucketName,
@@ -42,6 +46,9 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
         return resolve(res)
     }))))
 
+    /**
+     * invalidate distribution
+     */
     const distributionId = version === PRODUCTION_VERSION
         ? DISTRIBUTION_ID
         : process.env[`DISTRIBUTION_ID_${version.toUpperCase()}`]
@@ -55,6 +62,26 @@ const IGNORE_FILE_SUFFIX = ['*.rb']
         }
     })
     console.log(`Created new invalidation with ID ${Invalidation.Id}`)
+
+    /**
+     * delete old assets
+     */
+    const objects = await promisify(s3.listObjects.bind(s3))({
+        Bucket: bucketName
+    })
+    const objectsToDelete = objects.Contents.filter((obj) => (
+        (obj.LastModified)).getTime() < timestamp)
+    console.log(`Found ${objectsToDelete.length} outdated objects to remove...`)
+
+    await Promise.all(objectsToDelete.map((obj) => (
+        promisify(s3.deleteObject.bind(s3))({
+            Bucket: bucketName,
+            Key: obj.Key
+        })
+    )))
+    console.log('Deleted obsolete items successfully')
+
+    return
 })().then(
     () => console.log('Successfully updated webdriver.io docs'),
     (err) => console.error(`Error uploading docs: ${err.stack}`)
