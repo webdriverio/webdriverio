@@ -48,19 +48,19 @@ export type MultiRemoteBrowserCommandsType = {
     [K in keyof Omit<BrowserCommandsType, ElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
 } & MultiRemoteElementCommands
 export type MultiRemoteBrowserCommandsTypeSync = {
-    [K in keyof Omit<BrowserCommandsTypeSync, ElementCommandNames>]: (...args: Parameters<BrowserCommandsTypeSync[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsTypeSync[K]>>[]>
+    [K in keyof Omit<BrowserCommandsTypeSync, ElementCommandNames>]: (...args: Parameters<BrowserCommandsTypeSync[K]>) => ThenArg<ReturnType<BrowserCommandsTypeSync[K]>>[]
 } & MultiRemoteElementCommandsSync
 export type MultiRemoteElementCommandsType = {
     [K in keyof Omit<ElementCommandsType, ElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>
 } & MultiRemoteElementCommands
 export type MultiRemoteElementCommandsTypeSync = {
-    [K in keyof Omit<ElementCommandsTypeSync, ElementCommandNames>]: (...args: Parameters<ElementCommandsTypeSync[K]>) => Promise<ThenArg<ReturnType<ElementCommandsTypeSync[K]>>[]>
+    [K in keyof Omit<ElementCommandsTypeSync, ElementCommandNames>]: (...args: Parameters<ElementCommandsTypeSync[K]>) => ThenArg<ReturnType<ElementCommandsTypeSync[K]>>[]
 } & MultiRemoteElementCommandsSync
 export type MultiRemoteProtocolCommandsType = {
     [K in keyof ProtocolCommandsAsync]: (...args: Parameters<ProtocolCommandsAsync[K]>) => Promise<ThenArg<ReturnType<ProtocolCommandsAsync[K]>>[]>
 }
 export type MultiRemoteProtocolCommandsTypeSync = {
-    [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => Promise<ThenArg<ReturnType<ProtocolCommands[K]>>[]>
+    [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => ThenArg<ReturnType<ProtocolCommands[K]>>[]
 }
 
 export interface ElementArray extends Array<WebdriverIO.Element> {
