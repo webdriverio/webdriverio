@@ -67,12 +67,13 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
   * We added a new command test PWA apps based on Google Lighthouse audits, e.g.:
     ```js
     const result = browser.checkPWA()
+    expect(result.passed).toBe(true)
     ```
     Checks the following PWA criterias:
     - [Installable](https://web.dev/lighthouse-pwa/#installable)
     - [PWA optimized](https://web.dev/lighthouse-pwa/#pwa-optimized) (without checking for HTTPS redirect)
 
-    Other checks have not been added as we didn't want to
+    We have purposely not added the complete set of audits as they require data that can only be captured through additional automation commands. These could interfer with further test processes and skew results and create flakiness which would make integrating these commands difficult.
 * [#3407](https://github.com/webdriverio/webdriverio/pull/3407) Automatically run worker with Babel if setup
   * In order to improve the onboarding experience we will now automatically compile the configuration and your test files using Babel or TypeScript
   * This will allow you to have `import` statements in your config file without any additional setup
@@ -82,7 +83,7 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
     ```js
     capabilities: {
         browserName: 'Chrome',
-        platform: 'Windows 10', // invalid capability
+        platform: 'Windows 10', // invalid JSONWire Protocol capability
         'goog:chromeOptions': { ... }
     }
     ```
