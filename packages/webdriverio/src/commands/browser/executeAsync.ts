@@ -44,7 +44,7 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  *
  */
 export default function executeAsync<T, U extends any[]>(
-    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     script:
         string |
         ((...args: [...innerArgs: U, callback: (result: T) => void]) => void),

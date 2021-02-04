@@ -14,7 +14,7 @@ import type { Selector, ElementArray } from '../types'
  * @return {Object}           WDIO element object
  */
 export const getElement = function findElement(
-    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     selector?: Selector,
     res?: ElementReference | Error,
     isReactElement = false
@@ -73,7 +73,7 @@ export const getElement = function findElement(
  * @return {Array}            array of WDIO elements
  */
 export const getElements = function getElements(
-    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector,
     elemResponse: ElementReference[],
     isReactElement = false

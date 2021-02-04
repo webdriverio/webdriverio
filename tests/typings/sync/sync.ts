@@ -1,7 +1,7 @@
 import allure from '@wdio/allure-reporter'
 import type { MockOverwriteFunction, ClickOptions, TouchAction } from 'webdriverio'
 
-const { SevereServiceError } = require('webdriverio')
+import { SevereServiceError } from 'webdriverio'
 
 declare global {
     namespace WebdriverIO {
@@ -321,5 +321,19 @@ function testSevereServiceError_noParameters() {
 function testSevereServiceError_stringParameter() {
     throw new SevereServiceError("Something happened.");
 }
+
+/**
+ * Multiremote
+ */
+const mBrowser: WebdriverIO.MultiRemoteBrowser = {} as any
+const rect = mBrowser.getWindowRect()
+rect[0].x.toFixed(2)
+
+const mElem = mBrowser.$('foobar')
+const location = mElem.getLocation('x')
+;(location[0] as number).toFixed()
+
+const url = multiremotebrowser.getUrl()
+url.pop()
 
 export default {}

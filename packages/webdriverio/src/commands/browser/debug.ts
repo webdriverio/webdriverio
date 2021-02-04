@@ -32,7 +32,7 @@ import WDIORepl from '@wdio/repl'
  *
  */
 export default function debug(
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     commandTimeout = 5000
 ) {
     const repl = new WDIORepl()

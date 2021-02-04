@@ -45,7 +45,7 @@ type PDFPrintOptions = {
  *
  */
 export default async function savePDF (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     filepath: string,
     options?: PDFPrintOptions
 ) {

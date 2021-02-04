@@ -22,7 +22,7 @@ const maxWindowSize = Number.MAX_SAFE_INTEGER
  *
  */
 export default async function setWindowSize(
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     width: number,
     height: number
 ) {

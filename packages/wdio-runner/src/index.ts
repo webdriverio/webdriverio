@@ -14,6 +14,10 @@ import { initialiseInstance, filterLogTypes, getInstancesData } from './utils'
 
 const log = logger('@wdio/runner')
 
+/**
+ * user types for globals are set in webdriverio
+ * putting this here to make compiler happy
+ */
 declare global {
     namespace NodeJS {
         interface Global {
@@ -21,6 +25,7 @@ declare global {
             $$: any
             browser: any
             driver: any
+            multiremotebrowser: any
         }
     }
 }
@@ -282,6 +287,13 @@ export default class Runner extends EventEmitter {
 
         try {
             browser = global.browser = global.driver = await initialiseInstance(config, caps, this._isMultiremote)
+
+            /**
+             * attach browser to `multiremotebrowser` so user have better typing support
+             */
+            if (this._isMultiremote) {
+                global.multiremotebrowser = browser
+            }
         } catch (e) {
             log.error(e)
             return

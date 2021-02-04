@@ -39,7 +39,7 @@ import { FF_REMOTE_DEBUG_ARG } from '../../constants'
  *
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
-export default async function getPuppeteer (this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+export default async function getPuppeteer (this: WebdriverIO.Browser) {
     /**
      * check if we already connected Puppeteer and if so return
      * that instance

@@ -43,7 +43,7 @@ import type { WaitUntilOptions } from '../../types'
  *
  */
 export default function waitUntil(
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser | WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     condition: () => boolean | Promise<boolean>,
     {
         timeout = this.options.waitforTimeout,

@@ -24,7 +24,7 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export default async function reloadSession (this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+export default async function reloadSession (this: WebdriverIO.Browser) {
     const oldSessionId = (this as WebdriverIO.Browser).sessionId
 
     /**

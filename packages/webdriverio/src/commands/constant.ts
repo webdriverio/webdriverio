@@ -17,7 +17,7 @@ interface FormattedActions {
 }
 
 export const formatArgs = function (
-    scope: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    scope: WebdriverIO.Browser | WebdriverIO.Element,
     actions: TouchActions[]
 ): FormattedActions[] {
     return actions.map((action: TouchAction) => {
@@ -98,7 +98,7 @@ export const validateParameters = (params: FormattedActions) => {
 }
 
 export const touchAction = function (
-    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     actions: TouchActions
 ) {
     if (!this.multiTouchPerform || !this.touchPerform) {

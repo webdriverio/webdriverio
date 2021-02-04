@@ -9,6 +9,7 @@
       "setuptypes",
       "sync-vs-async",
       "automationProtocols",
+      "multiremote",
       "autowait"
     ],
     "Configuration": [
@@ -25,7 +26,6 @@
       "mocksandspies",
       "customcommands",
       "pageobjects",
-      "multiremote",
       "debugging",
       "repl"
     ],

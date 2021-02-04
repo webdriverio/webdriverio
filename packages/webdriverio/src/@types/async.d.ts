@@ -17,11 +17,13 @@ declare namespace WebdriverIO {
 
 declare module NodeJS {
     interface Global {
-        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+        browser: WebdriverIO.Browser
+        multiremotebrowser: WebdriverIO.MultiRemoteBrowser
     }
 }
 
 declare function $(...args: Parameters<WebdriverIO.Browser['$']>): WebdriverIO.Element
 declare function $$(...args: Parameters<WebdriverIO.Browser['$$']>): ReturnType<WebdriverIO.Browser['$$']>
-declare const browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-declare const driver: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+declare const browser: WebdriverIO.Browser
+declare const driver: WebdriverIO.Browser
+declare const multiremotebrowser: WebdriverIO.MultiRemoteBrowser

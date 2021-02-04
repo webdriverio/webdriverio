@@ -5,6 +5,7 @@ module.exports = {
                 $: false,
                 $$: false,
                 browser: false,
+                multiremotebrowser: false,
                 driver: false,
                 expect: false
             }
