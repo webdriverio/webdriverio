@@ -44,6 +44,10 @@ export const builder = (yargs: yargs.Argv) => {
         .help()
 }
 
+/**
+ * user types for globals are set in webdriverio
+ * putting this here to make compiler happy
+ */
 declare global {
     namespace NodeJS {
         interface Global {

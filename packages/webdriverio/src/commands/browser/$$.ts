@@ -50,7 +50,7 @@ import type { Selector, ElementArray } from '../../types'
  *
  */
 export default async function $$ (
-    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
     const res = await findElements.call(this, selector)

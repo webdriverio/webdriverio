@@ -34,7 +34,7 @@ import type { NewWindowOptions } from '../../types'
  * @type window
  */
 export default async function newWindow (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     url: string,
     { windowName = 'New Window', windowFeatures = '' }: NewWindowOptions = {}
 ) {

@@ -36,7 +36,7 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  *
  */
 export default function execute<T, U extends any[]> (
-    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     script: string | ((...innerArgs: U) => T),
     ...args: U
 ): Promise<T> {

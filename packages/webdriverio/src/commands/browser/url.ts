@@ -35,7 +35,7 @@ import { validateUrl } from '../../utils'
  *
  */
 export default function url (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     path: string
 ) {
     if (typeof path !== 'string') {

@@ -42,7 +42,7 @@
  *
  */
 export default function deleteCookies(
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     names?: string | string[]
 ) {
     if (names === undefined) {

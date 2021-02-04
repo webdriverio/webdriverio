@@ -51,7 +51,7 @@ const resqScript = fs.readFileSync(require.resolve('resq'))
  *
  */
 export default async function react$ (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {

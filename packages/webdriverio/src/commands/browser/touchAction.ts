@@ -60,7 +60,7 @@ import { TouchAction } from '../../types'
  *
  */
 export default function touchAction (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     ...args: TouchAction[]
 ) {
     return touchActionCommand.apply(this, args as any)
