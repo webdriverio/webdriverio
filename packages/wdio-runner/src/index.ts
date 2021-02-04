@@ -288,6 +288,9 @@ export default class Runner extends EventEmitter {
         try {
             browser = global.browser = global.driver = await initialiseInstance(config, caps, this._isMultiremote)
 
+            /**
+             * attach browser to `multiremotebrowser` so user have better typing support
+             */
             if (this._isMultiremote) {
                 global.multiremotebrowser = browser
             }
