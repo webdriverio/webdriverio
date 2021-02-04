@@ -19,27 +19,7 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
-## v7.0.0-beta.1 (2021-02-02)
-
-#### :rocket: New Feature
-* `webdriverio`
-  * [#6364](https://github.com/webdriverio/webdriverio/pull/6364) Better type definition for execute and executeAsync command ([@christian-bromann](https://github.com/christian-bromann))
-
-#### :memo: Documentation
-* `wdio-cli`
-  * [#6355](https://github.com/webdriverio/webdriverio/pull/6355) Adding Delta Reporter to docs and CLI ([@Jnegrier](https://github.com/Jnegrier))
-
-#### Committers: 7
-- Andy Edwards ([@jedwards1211](https://github.com/jedwards1211))
-- Boris Serdiuk ([@just-boris](https://github.com/just-boris))
-- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
-- Dmytro Shpakovskyi ([@Marketionist](https://github.com/Marketionist))
-- Juan ([@Jnegrier](https://github.com/Jnegrier))
-- Kanitkorn Sujautra ([@lukyth](https://github.com/lukyth))
-- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
-
-
-## v7.0.0-beta.0 (2021-01-21)
+## v7.0.0 (2021-02-09)
 
 #### :boom: Breaking Change
 * [#6302](https://github.com/webdriverio/webdriverio/pull/6302) TypeScript Rewrite
@@ -66,6 +46,8 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
     browser.browserCustomCommand(42)
     ```
     We do __not__ recommend to specify `webdriverio` or `@wdio/sync` in there anymore. For more information visit our updated docs on [TypeScript Integration](https://webdriver.io/docs/typescript).
+  * If you use WebdriverIO in [multiremote mode](https://webdriver.io/docs/multiremote) to get proper typing you should use the `multiremote` global variable
+  * It is required to have TypeScript v4 or higher
 * [#6309](https://github.com/webdriverio/webdriverio/pull/6309) Cucumber Framework update to v7
   * We have updated our Cucumber integration to use Cucumber v7
   * To provide proper type safety we updated the Cucumber hooks to match original Cucumber types

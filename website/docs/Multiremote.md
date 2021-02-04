@@ -3,7 +3,7 @@ id: multiremote
 title: Multiremote
 ---
 
-WebdriverIO allows you to run multiple WebDriver/Appium sessions in a single test. This becomes handy when you’re testing features that require multiple users (for example, chat or WebRTC applications).
+WebdriverIO allows you to run multiple automated sessions in a single test. This becomes handy when you’re testing features that require multiple users (for example, chat or WebRTC applications).
 
 Instead of creating a couple of remote instances where you need to execute common commands like [`newSession`](/docs/api/webdriver#newsession) or [`url`](/docs/api/browser/url) on each instance, you can simply create a **multiremote** instance and control all browsers at the same time.
 
@@ -15,6 +15,8 @@ Multiremote is _not_ meant to execute all your tests in parallel.
 It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
 
 :::
+
+All multiremote instances return an array of results. The first result represents the capability defined first in the capability object the second result the second capability and so on.
 
 ## Using Standalone Mode
 
@@ -39,6 +41,10 @@ import { multiremote } from 'webdriverio'
 
     // open url with both browser at the same time
     await browser.url('http://json.org')
+
+    // call commands at the same time
+    const title = await browser.getTitle()
+    expect(title).toEqual(['JSON', 'JSON'])
 
     // click on an element at the same time
     const elem = await browser.$('#someElem')
@@ -72,7 +78,7 @@ export.config = {
 }
 ```
 
-This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io).
+This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io) or one mobile device and one browser.
 
 You can even boot up one of the [cloud services backend](https://webdriver.io/docs/cloudservices.html) together with local Webdriver/Appium, or Selenium Standalone instances. WebdriverIO automatically detect cloud backend capabilities if you specified either of `bstack:options` ([Browserstack](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), or `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) in browser capbilities.
 
@@ -120,8 +126,8 @@ browser.url('https://www.whatismybrowser.com')
 const elem = $('.string-major')
 const result = elem.getText()
 
-console.log(result.resultChrome) // returns: 'Chrome 40 on Mac OS X (Yosemite)'
-console.log(result.resultFirefox) // returns: 'Firefox 35 on Mac OS X (Yosemite)'
+console.log(result[0]) // returns: 'Chrome 40 on Mac OS X (Yosemite)'
+console.log(result[1]) // returns: 'Firefox 35 on Mac OS X (Yosemite)'
 ```
 
 Notice that each command is executed one by one. This means that the command finishes once all browsers have executed it. This is helpful because it keeps the browser actions synced, which makes it easier to understand what’s currently happening.
@@ -134,12 +140,11 @@ When using the WDIO testrunner, it registers the browser names with their instan
 myChromeBrowser.$('#message').setValue('Hi, I am Chrome')
 myChromeBrowser.$('#send').click()
 
-const firefoxMessages = myFirefoxBrowser.$$('.messages')
 // wait until messages arrive
-firefoxMessages.waitForExist()
+$('.messages').waitForExist()
 // check if one of the messages contain the Chrome message
 assert.true(
-    firefoxMessages.map((m) => m.getText()).includes('Hi, I am Chrome')
+    $$('.messages').map((m) => m.getText()).includes('Hi, I am Chrome')
 )
 ```
 
