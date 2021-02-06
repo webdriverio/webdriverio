@@ -172,7 +172,9 @@ describe('SpecReporter', () => {
 
             it('should print link to Sauce Labs job details page', () => {
                 const runner = getRunnerConfig({
-                    hostname: 'ondemand.saucelabs.com'
+                    hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
                 })
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -218,6 +220,8 @@ describe('SpecReporter', () => {
             it('should print link to Sauce Labs EU job details page', () => {
                 printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
                     region: 'eu'
                 }))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -226,15 +230,44 @@ describe('SpecReporter', () => {
 
                 printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
                     region: 'eu-central-1'
                 }))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
 
                 printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
                     headless: true
                 }))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+        })
+
+        describe('with disabled sharable Sauce report links', ()=>{
+            const options = { sauceLabsSharableLinks: false }
+            beforeEach(() => {
+                tmpReporter = new SpecReporter(options)
+                tmpReporter.suiteUids = SUITE_UIDS
+                tmpReporter.suites = SUITES
+                tmpReporter.stateCounts = {
+                    passed : 4,
+                    failed : 1,
+                    skipped : 1,
+                }
+                tmpReporter.write = jest.fn()
+            })
+
+            it('should print the default Sauce Labs job details page link', () => {
+                const runner = getRunnerConfig({
+                    hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
+                })
+                tmpReporter.printReport(runner)
+                expect(tmpReporter.write.mock.calls).toMatchSnapshot()
             })
         })
 

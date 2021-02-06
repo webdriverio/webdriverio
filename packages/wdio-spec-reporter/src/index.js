@@ -1,7 +1,7 @@
 import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
-import { buildTableData, printTable, getFormattedRows } from './utils'
+import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils'
 
 class SpecReporter extends WDIOReporter {
     constructor (options) {
@@ -16,6 +16,7 @@ class SpecReporter extends WDIOReporter {
             skipped: options.symbols?.skipped || '-',
             failed: options.symbols?.failed || '✖'
         }
+        this.sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options ? options.sauceLabsSharableLinks : true
 
         // Keep track of the order that suites were called
         this.suiteUids = []
@@ -133,7 +134,10 @@ class SpecReporter extends WDIOReporter {
                 ? '.us-east-1'
                 : ['eu', 'eu-central-1'].includes(config.region) ? '.eu-central-1' : ''
             const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
-            return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}`]
+            const sauceLabsSharableLinks = this.sauceLabsSharableLinks
+                ? sauceAuthenticationToken( { user:config.user, key:config.key, sessionId } )
+                : ''
+            return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}${sauceLabsSharableLinks}`]
         }
 
         return []
