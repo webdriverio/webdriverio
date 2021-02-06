@@ -58,12 +58,14 @@ Array [
 ]
 `;
 
+exports[`SpecReporter printReport with disabled sharable Sauce report links should print the default Sauce Labs job details page link 1`] = `Array []`;
+
 exports[`SpecReporter printReport with normal setup should print jobs of all instance when run with multiremote 1`] = `
 Array [
   Array [
     "------------------------------------------------------------------
 [MultiremoteBrowser #0-0] Spec: /foo/bar/baz.js
-[MultiremoteBrowser #0-0] Running: MultiremoteBrowser on
+[MultiremoteBrowser #0-0] Running: MultiremoteBrowser on ,
 [MultiremoteBrowser #0-0]
 [MultiremoteBrowser #0-0] Foo test
 [MultiremoteBrowser #0-0]    green ✓ foo
@@ -89,7 +91,8 @@ Array [
 [MultiremoteBrowser #0-0] 2) Bar test a failed test with no stack
 [MultiremoteBrowser #0-0] red expected foo to equal bar
 [MultiremoteBrowser #0-0]
-[MultiremoteBrowser #0-0] Check out myBrowser job at https://app.saucelabs.com/tests/undefined
+[MultiremoteBrowser #0-0] Check out browserA job at https://app.saucelabs.com/tests/foobar?auth=2d3c4ca3cae505723f2fa903563fe019
+[MultiremoteBrowser #0-0] Check out browserB job at https://app.saucelabs.com/tests/barfoo?auth=64012ad809cda36d46c5c2175bc212b4
 ",
   ],
 ]
@@ -127,7 +130,7 @@ Array [
 [loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
 [loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=364414eae3ee11cb8b8bb3fc3e3b5e12
 ",
   ],
 ]
@@ -165,7 +168,7 @@ Array [
 [loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
 [loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=364414eae3ee11cb8b8bb3fc3e3b5e12
 ",
   ],
 ]
@@ -203,7 +206,7 @@ Array [
 [loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
 [loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=364414eae3ee11cb8b8bb3fc3e3b5e12
 ",
   ],
   Array [
@@ -236,7 +239,7 @@ Array [
 [loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
 [loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.us-east-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.us-east-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=364414eae3ee11cb8b8bb3fc3e3b5e12
 ",
   ],
 ]
@@ -274,7 +277,7 @@ Array [
 [loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
 [loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=364414eae3ee11cb8b8bb3fc3e3b5e12
 ",
   ],
 ]
@@ -312,7 +315,7 @@ Array [
 [loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
 [loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=df58c8ddea836c98710dbb1119625de8
 ",
   ],
 ]
@@ -350,7 +353,7 @@ Array [
 [loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
 [loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=df58c8ddea836c98710dbb1119625de8
 ",
   ],
 ]

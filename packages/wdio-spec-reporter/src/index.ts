@@ -2,7 +2,7 @@ import WDIOReporter, { SuiteStats, HookStats, RunnerStats, TestStats, Argument }
 import { Capabilities } from '@wdio/types'
 import chalk, { Chalk } from 'chalk'
 import prettyMs from 'pretty-ms'
-import { buildTableData, printTable, getFormattedRows } from './utils'
+import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils'
 import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types'
 
 const DEFAULT_INDENT = '   '
@@ -27,12 +27,17 @@ export default class SpecReporter extends WDIOReporter {
         failed: '✖'
     }
 
+    private _sauceLabsSharableLinks:boolean = true
+
     constructor (options: SpecReporterOptions) {
         /**
          * make spec reporter to write to output stream by default
          */
         super(Object.assign({ stdout: true }, options))
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
+        this._sauceLabsSharableLinks = <boolean>('sauceLabsSharableLinks' in options
+            ? options.sauceLabsSharableLinks
+            : this._sauceLabsSharableLinks)
     }
 
     onSuiteStart (suite: SuiteStats) {
@@ -140,7 +145,10 @@ export default class SpecReporter extends WDIOReporter {
                 ? '.us-east-1'
                 : ['eu', 'eu-central-1'].includes(config.region || '') ? '.eu-central-1' : ''
             const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
-            return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}`]
+            const sauceLabsSharableLinks = this._sauceLabsSharableLinks
+                ? sauceAuthenticationToken( <string>config.user, <string>config.key, <string>sessionId )
+                : ''
+            return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}${sauceLabsSharableLinks}`]
         }
 
         return []

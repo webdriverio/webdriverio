@@ -14,6 +14,7 @@ export interface Symbols {
 }
 
 export interface SpecReporterOptions {
+    sauceLabsSharableLinks?: boolean
     symbols?: Partial<Symbols>
 }
 

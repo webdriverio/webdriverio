@@ -1,4 +1,5 @@
 import Table from 'easy-table'
+import * as Crypto from 'crypto'
 
 const SEPARATOR = '│'
 
@@ -32,3 +33,24 @@ export const printTable = (data: any) => Table.print(data, undefined, (table) =>
  */
 export const getFormattedRows = (table: string, testIndent: string) =>
     table.split('\n').filter(Boolean).map((line) => `${testIndent}  ${line}`.trimRight())
+
+/**
+ * Get Sauce Labs Authentication url
+ * @param {string} user
+ * @param {string} key
+ * @param {string} sessionId
+ */
+export const sauceAuthenticationToken = (user:string, key:string, sessionId:string) => {
+    const secret = `${user}:${key}`
+
+    // Create the token
+    const token = Crypto
+        // Calling createHmac method
+        .createHmac('md5', secret)
+        // Update data
+        .update(sessionId)
+        // Encoding to be used
+        .digest('hex')
+
+    return `?auth=${token}`
+}
