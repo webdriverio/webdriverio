@@ -8,23 +8,35 @@
 
 import DevToolsDriver from '../devtoolsdriver'
 
-export default async function printPage(this: DevToolsDriver, options: any) {
+export default async function printPage(this: DevToolsDriver,
+    orientation?: string,
+    scale?: number,
+    background?: boolean,
+    width?: number | string,
+    height?: number | string,
+    top?: number | string,
+    right?: number | string,
+    bottom?: number | string,
+    left?: number | string,
+    shrinkToFit?: boolean,
+    pageRanges?: string) {
+
     const page = this.getPageHandle()
 
     const pdfBuffer = await page.pdf({
-        landscape: options.orientation === 'landscape',
-        scale: options.scale,
-        printBackground: options.background,
-        width: options.width,
-        height: options.height,
+        landscape: orientation === 'landscape',
+        scale: scale,
+        printBackground: background,
+        width: width,
+        height: height,
         margin: {
-            top: options.top,
-            right: options.right,
-            bottom: options.bottom,
-            left: options.left
+            top: top,
+            right: right,
+            bottom: bottom,
+            left: left
         },
-        preferCSSPageSize: !options.shrinkToFit,
-        pageRanges: options.pageRanges
+        preferCSSPageSize: !shrinkToFit,
+        pageRanges: pageRanges
     })
 
     return pdfBuffer.toString()
