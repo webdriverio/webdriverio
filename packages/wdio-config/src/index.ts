@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 
 import ConfigParser from './lib/ConfigParser'
-import { validateConfig, getSauceEndpoint, detectBackend, isCloudCapability } from './utils'
+import { validateConfig, getSauceEndpoint, detectBackend, isCloudCapability, ModuleRequireService } from './utils'
 import { DEFAULT_CONFIGS } from './constants'
 
 export {
@@ -14,5 +14,10 @@ export {
     /**
      * constants
      */
-    DEFAULT_CONFIGS
+    DEFAULT_CONFIGS,
+
+    /**
+     * types
+     */
+    ModuleRequireService
 }

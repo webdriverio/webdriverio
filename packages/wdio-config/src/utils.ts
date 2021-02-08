@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
+import { RegisterOptions } from 'ts-node'
 
 const log = logger('@wdio/config:utils')
 
@@ -220,10 +221,23 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
     return params
 }
 
-export function loadTypeScriptCompiler () {
+export interface ModuleRequireService {
+    resolve(request: string, options?: { paths?: string[]; }): string
+    require<T>(module: string): T;
+}
+
+export function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleRequireService) {
+    return autoCompileConfig.autoCompile && (
+        loadTypeScriptCompiler(autoCompileConfig.tsNodeOpts, requireService)
+        ||
+        loadBabelCompiler(autoCompileConfig.babelOpts, requireService)
+    )
+}
+
+export function loadTypeScriptCompiler (tsNodeOpts: RegisterOptions, requireService: ModuleRequireService) {
     try {
-        require.resolve('ts-node')
-        require('ts-node').register({ transpileOnly: true })
+        requireService.resolve('ts-node') as any
+        (requireService.require('ts-node') as any).register(tsNodeOpts)
         log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
         return true
     } catch (e) {
@@ -231,9 +245,9 @@ export function loadTypeScriptCompiler () {
     }
 }
 
-export function loadBabelCompiler () {
+export function loadBabelCompiler (babelOpts: { [key: string]: any }, requireService: ModuleRequireService) {
     try {
-        require.resolve('@babel/register')
+        requireService.resolve('@babel/register') as any
 
         /**
          * only for testing purposes
@@ -242,7 +256,7 @@ export function loadBabelCompiler () {
             throw new Error('test fail')
         }
 
-        require('@babel/register')
+        (requireService.require('@babel/register') as any)(babelOpts)
         log.debug('Found \'@babel/register\' package, auto-compiling files with Babel')
         return true
     } catch (e) {

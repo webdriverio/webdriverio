@@ -140,7 +140,9 @@ $ npm install
 $ npm start
 ```
 
-This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). You can now modify the content of the [`/docs`](https://github.com/webdriverio/webdriverio/tree/main/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun the `npm start` script to re-generate the docs.
+This will set up everything needed to run the page on [`localhost:3000`](http://localhost:3000/). If you need to run on a different host or port, pass them as additional arguments to npm start, like `-- --host 0.0.0.0`.
+
+You can now modify the content of the [`/docs`](https://github.com/webdriverio/webdriverio/tree/main/docs) files as well as change styles and templates. The page will be automatically updated. If you add documentation in other places, you have to rerun the `npm start` script to re-generate the docs.
 
 Every time a new release is pushed to GitHub the WebdriverIO docs are automatically generated and pushed to the project's S3 bucket. The process is defined in a GitHub Actions [pipeline](https://github.com/webdriverio/webdriverio/blob/main/.github/workflows/deploy.yml) and does not need to be done manually.
 
