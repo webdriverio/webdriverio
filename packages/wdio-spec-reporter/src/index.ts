@@ -27,7 +27,7 @@ export default class SpecReporter extends WDIOReporter {
         failed: '✖'
     }
 
-    private _sauceLabsSharableLinks:boolean = true
+    private _sauceLabsSharableLinks = true
 
     constructor (options: SpecReporterOptions) {
         /**
