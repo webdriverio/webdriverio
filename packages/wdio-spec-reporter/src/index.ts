@@ -35,9 +35,9 @@ export default class SpecReporter extends WDIOReporter {
          */
         super(Object.assign({ stdout: true }, options))
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
-        this._sauceLabsSharableLinks = <boolean>('sauceLabsSharableLinks' in options
-            ? options.sauceLabsSharableLinks
-            : this._sauceLabsSharableLinks)
+        this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
+            ? options.sauceLabsSharableLinks as boolean
+            : this._sauceLabsSharableLinks
     }
 
     onSuiteStart (suite: SuiteStats) {
@@ -140,13 +140,13 @@ export default class SpecReporter extends WDIOReporter {
             )
         )
 
-        if (isSauceJob) {
+        if (isSauceJob && config.user && config.key && sessionId) {
             const dc = config.headless
                 ? '.us-east-1'
                 : ['eu', 'eu-central-1'].includes(config.region || '') ? '.eu-central-1' : ''
             const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
             const sauceLabsSharableLinks = this._sauceLabsSharableLinks
-                ? sauceAuthenticationToken( <string>config.user, <string>config.key, <string>sessionId )
+                ? sauceAuthenticationToken( config.user, config.key, sessionId )
                 : ''
             return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}${sauceLabsSharableLinks}`]
         }

@@ -315,7 +315,7 @@ Array [
 [loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
 [loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=df58c8ddea836c98710dbb1119625de8
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=364414eae3ee11cb8b8bb3fc3e3b5e12
 ",
   ],
 ]
@@ -353,7 +353,7 @@ Array [
 [loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
 [loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=df58c8ddea836c98710dbb1119625de8
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=364414eae3ee11cb8b8bb3fc3e3b5e12
 ",
   ],
 ]

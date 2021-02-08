@@ -188,7 +188,10 @@ describe('SpecReporter', () => {
                         ...defaultCaps,
                         'sauce:options': 'foobar'
                     },
-                    hostname: 'localhost'
+                    hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
+                    sessionId: fakeSessionId
                 })
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -200,7 +203,10 @@ describe('SpecReporter', () => {
                         tunnelIdentifier: 'foobar',
                         ...defaultCaps
                     },
-                    hostname: 'localhost'
+                    hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
+                    sessionId: fakeSessionId
                 })
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
