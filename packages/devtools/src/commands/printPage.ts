@@ -25,18 +25,13 @@ export default async function printPage(this: DevToolsDriver,
 
     const pdfBuffer = await page.pdf({
         landscape: orientation === 'landscape',
-        scale: scale,
+        scale,
         printBackground: background,
-        width: width,
-        height: height,
-        margin: {
-            top: top,
-            right: right,
-            bottom: bottom,
-            left: left
-        },
+        width,
+        height,
+        margin: { top, right, bottom, left },
         preferCSSPageSize: !shrinkToFit,
-        pageRanges: pageRanges
+        pageRanges
     })
 
     return pdfBuffer.toString()
