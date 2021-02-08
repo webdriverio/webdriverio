@@ -340,23 +340,19 @@ describe('PDF', () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
     })
 
-    const opt = {
-        scale: 1,
-        printBackground: false,
-        width: '8in',
-        height: '11in',
-        margin: {
-            top: '1in',
-            right: '1in',
-            bottom: '1in',
-            left: '1in'
-        },
-        preferCSSPageSize: false,
-        pageRanges: ''
-    }
-
     it('expect string', async () => {
-        const stringData = await browser.printPage(opt)
+        const stringData = await browser.printPage(
+            'horizontal',
+            1,
+            false,
+            '8in',
+            '11in',
+            '1in',
+            '1in',
+            '1in',
+            '1in',
+            false
+        )
         expect(typeof stringData).toBe('string')
     })
 })
