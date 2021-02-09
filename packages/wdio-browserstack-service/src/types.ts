@@ -26,8 +26,15 @@ export interface BrowserstackConfig {
      */
     forcedStop?: boolean;
     /**
-     * Specified optional will be passed down to BrowserstackLocal. See this list for details:
-     * https://stackoverflow.com/questions/39040108/import-class-in-definition-file-d-ts
+     * Specified optional will be passed down to BrowserstackLocal. For more details check out the
+     * [`browserstack-local`](https://www.npmjs.com/package/browserstack-local#arguments) docs.
+     *
+     * @example
+     * ```js
+     * {
+     *   localIdentifier: 'some-identifier'
+     * }
+     * ```
      */
     opts?: Partial<import('browserstack-local').Options>
 }

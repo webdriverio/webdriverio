@@ -40,7 +40,8 @@ export default class CommandHandler {
     }
 
     /**
-     * allow to easily access the CDP from the browser object
+     * The cdp command is a custom command added to the browser scope that allows you
+     * to call directly commands to the protocol.
      */
     cdp (domain: string, command: string, args = {}) {
         log.info(`Send command "${domain}.${command}" with args: ${JSON.stringify(args)}`)
@@ -48,7 +49,9 @@ export default class CommandHandler {
     }
 
     /**
-     * get nodeId to use for other commands
+     * Helper method to get the nodeId of an element in the page.
+     * NodeIds are similar like WebDriver node ids an identifier for a node.
+     * It can be used as a parameter for other Chrome DevTools methods, e.g. DOM.focus.
      */
     async getNodeId (selector: string) {
         const document = await this._session.send('DOM.getDocument')
@@ -60,7 +63,9 @@ export default class CommandHandler {
     }
 
     /**
-     * get nodeIds to use for other commands
+     * Helper method to get the nodeId of an element in the page.
+     * NodeIds are similar like WebDriver node ids an identifier for a node.
+     * It can be used as a parameter for other Chrome DevTools methods, e.g. DOM.focus.
      */
     async getNodeIds (selector: string) {
         const document = await this._session.send('DOM.getDocument')
@@ -72,10 +77,8 @@ export default class CommandHandler {
     }
 
     /**
-     * start tracing the browser
-     *
-     * @param  {string[]} [categories=DEFAULT_TRACING_CATEGORIES]  categories to trace for
-     * @param  {Number}   [samplingFrequency=10000]                sampling frequency
+     * Start tracing the browser. You can optionally pass in custom tracing categories and the
+     * sampling frequency.
      */
     startTracing ({
         categories = DEFAULT_TRACING_CATEGORIES,
@@ -92,9 +95,7 @@ export default class CommandHandler {
     }
 
     /**
-     * stop tracing the browser
-     *
-     * @return {Number}  tracing id to use for other commands
+     * Stop tracing the browser.
      */
     async endTracing () {
         if (!this._isTracing) {
@@ -113,14 +114,16 @@ export default class CommandHandler {
     }
 
     /**
-     * get raw trace logs
+     * Returns the tracelogs that was captured within the tracing period.
+     * You can use this command to store the trace logs on the file system to analyse the trace
+     * via Chrome DevTools interface.
      */
     getTraceLogs () {
         return this._traceEvents
     }
 
     /**
-     * get page weight from last page load
+     * Returns page weight information of the last page load.
      */
     getPageWeight () {
         const requestTypes = Object.values(this._networkHandler.requestTypes).filter(Boolean) as RequestPayload[]

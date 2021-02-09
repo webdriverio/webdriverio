@@ -24,10 +24,12 @@ export interface AppiumServiceConfig {
     logPath?: string
     /**
      * To use your own installation of Appium, e.g. globally installed, specify the command which should be started.
+     * @default "node"
      */
     command?: string
     /**
      * Map of arguments for the Appium server, passed directly to `appium`.
+     * @default {}
      */
     args?: AppiumServerArguments | Array<string>
 }

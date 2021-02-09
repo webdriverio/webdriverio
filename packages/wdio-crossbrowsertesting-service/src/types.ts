@@ -4,7 +4,7 @@ export interface CrossBrowserTestingConfig {
      */
     cbtTunnel?: boolean;
     /**
-     * Any additional options to pass along to the `start()` function of [cbt_tunnels](https://www.npmjs.com/package/cbt_tunnels)
+     * Any additional options to pass along to the `start()` function of [cbt_tunnels](https://www.npmjs.com/package/cbt_tunnels).
      */
     cbtTunnelOpts?: object;
 }
