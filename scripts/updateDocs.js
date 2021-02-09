@@ -10,7 +10,7 @@ const { S3, CloudFront } = require('aws-sdk')
 
 const { version: PKG_VERSION } = require('../lerna.json')
 
-const PRODUCTION_VERSION = 'v6'
+const PRODUCTION_VERSION = 'v7'
 const DISTRIBUTION_ID = process.env.DISTRIBUTION_ID
 const BUCKET_NAME = 'webdriver.io'
 const BUILD_DIR = path.resolve(__dirname, '..', 'website', 'build')
