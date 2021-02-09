@@ -28,7 +28,7 @@
     "pretty-ms": "^7.0.0"
   },
   "peerDependencies": {
-    "@wdio/cli": "^6.0.1"
+    "@wdio/cli": "^7.0.0"
   },
   "publishConfig": {
     "access": "public"
