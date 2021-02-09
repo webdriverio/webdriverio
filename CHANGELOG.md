@@ -19,6 +19,18 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.0.0-beta.4 (2021-02-09)
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#6392](https://github.com/webdriverio/webdriverio/pull/6392) Add sauce sharable report links ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 3
+- Jasmine Hegman ([@r4j4h](https://github.com/r4j4h))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v7.0.0 (2021-02-09)
 
 #### :boom: Breaking Change
