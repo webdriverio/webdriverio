@@ -1,6 +1,6 @@
 {
   "name": "@wdio/junit-reporter",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "A WebdriverIO reporter that creates Jenkins compatible XML based JUnit reports",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-junit-reporter",

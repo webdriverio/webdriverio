@@ -1,6 +1,6 @@
 {
   "name": "@wdio/sumologic-reporter",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "A WebdriverIO reporter that sends test results to Sumologic for data analyses",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sumologic-reporter",
