@@ -19,18 +19,6 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
-## v7.0.0-beta.4 (2021-02-09)
-
-#### :nail_care: Polish
-* `wdio-spec-reporter`
-  * [#6392](https://github.com/webdriverio/webdriverio/pull/6392) Add sauce sharable report links ([@wswebcreation](https://github.com/wswebcreation))
-
-#### Committers: 3
-- Jasmine Hegman ([@r4j4h](https://github.com/r4j4h))
-- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
-- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
-
-
 ## v7.0.0 (2021-02-09)
 
 #### :boom: Breaking Change
@@ -59,6 +47,7 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
     ```
     We do __not__ recommend to specify `webdriverio` or `@wdio/sync` in there anymore. For more information visit our updated docs on [TypeScript Integration](https://webdriver.io/docs/typescript).
   * If you use WebdriverIO in [multiremote mode](https://webdriver.io/docs/multiremote) to get proper typing you should use the `multiremote` global variable
+  * Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h))
   * It is required to have TypeScript v4 or higher
 * [#6309](https://github.com/webdriverio/webdriverio/pull/6309) Cucumber Framework update to v7
   * We have updated our Cucumber integration to use Cucumber v7
@@ -130,6 +119,9 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 #### :house: Internal
 * We have renamed our main development branch from `master` to `main`
   * As the WebdriverIO community is committed to be an inclusive community we join the global effort to remove all unnecessary references to slavery and other non-inclusive terms.
+
+#### :nail_care: Polish
+* [#6392](https://github.com/webdriverio/webdriverio/pull/6392) Add Sauce Labs sharable report links in `@wdio/spec-reporter`
 
 #### :memo: Documentation
 * New Website Design and Documentation Overhaul

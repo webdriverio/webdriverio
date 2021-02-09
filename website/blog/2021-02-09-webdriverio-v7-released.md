@@ -74,6 +74,8 @@ declare global {
 }
 ```
 
+Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h)).
+
 You can read more about WebdriverIO TypeScript integration in our [docs](/docs/typescript).
 
 ## Cucumber v7 Update
