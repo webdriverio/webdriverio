@@ -18,7 +18,7 @@ import {
 } from './utils'
 import type { Browser, MultiRemoteBrowser } from './types'
 
-type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
+export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 
 /**
  * A method to create a new session with WebdriverIO
