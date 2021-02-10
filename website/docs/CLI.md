@@ -1,7 +1,6 @@
 ---
 id: clioptions
 title: WDIO CLI Options
----
 
 WebdriverIO comes with its own test runner to help you start testing as quickly as possible.
 
