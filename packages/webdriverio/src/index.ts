@@ -4,13 +4,14 @@ import logger from '@wdio/logger'
 import type * as WebDriverTypes from 'webdriver'
 import WebDriver from 'webdriver'
 import { DEFAULTS } from 'webdriver'
-import { validateConfig, detectBackend } from '@wdio/config'
+import { validateConfig } from '@wdio/config'
 import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 import { Options, Capabilities } from '@wdio/types'
 
 import MultiRemote from './multiremote'
 import type ElementCommands from './commands/element'
 import SevereServiceErrorImport from './utils/SevereServiceError'
+import detectBackend from './utils/detectBackend'
 import { WDIO_DEFAULTS } from './constants'
 import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
@@ -18,7 +19,7 @@ import {
 } from './utils'
 import type { Browser, MultiRemoteBrowser } from './types'
 
-type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
+export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 
 /**
  * A method to create a new session with WebdriverIO
@@ -48,13 +49,10 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
         return client
     }
 
-    if (params.user && params.key) {
-        params = Object.assign({}, detectBackend(params), params)
-    }
-
     const prototype = getPrototype('browser')
     const ProtocolDriver = require(automationProtocol).default
 
+    params = Object.assign({}, detectBackend(params), params)
     await updateCapabilities(params, automationProtocol)
     const instance: WebdriverIO.Browser = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 

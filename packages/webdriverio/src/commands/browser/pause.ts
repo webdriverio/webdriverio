@@ -20,7 +20,7 @@
  *
  */
 export default function pause (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     milliseconds = 1000
 ) {
     return new Promise((resolve) => setTimeout(resolve, milliseconds))

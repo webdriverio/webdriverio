@@ -5,7 +5,6 @@ import { executeHooksWithArgs } from '@wdio/utils'
 import { attach } from 'webdriverio'
 import WDIORunner from '../src'
 import logger from '@wdio/logger'
-
 jest.mock('fs')
 jest.mock('util')
 

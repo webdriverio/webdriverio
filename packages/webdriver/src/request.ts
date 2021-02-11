@@ -12,7 +12,7 @@ import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 
 const pkg = require('../package.json')
 
-type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
+type RequestOptions = Omit<Options.WebDriver, 'capabilities'> & Pick<Options.WebdriverIO, 'user' | 'key'>
 
 export interface WebDriverResponse {
     value: any

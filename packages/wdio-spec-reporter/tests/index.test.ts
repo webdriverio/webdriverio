@@ -15,9 +15,7 @@ const defaultCaps = { browserName: 'loremipsum', version: 50, platform: 'Windows
 const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
 const getRunnerConfig = (config: any = {}) => {
     return Object.assign({}, RUNNER, {
-        capabilities: config.isMultiremote
-            ? { myBrowser: config.capabilities || defaultCaps }
-            : config.capabilities || defaultCaps,
+        capabilities: config.capabilities || defaultCaps,
         config,
         sessionId: fakeSessionId,
         isMultiremote: Boolean(config.isMultiremote)
@@ -161,7 +159,9 @@ describe('SpecReporter', () => {
 
             it('should print link to Sauce Labs job details page', () => {
                 const runner = getRunnerConfig({
-                    hostname: 'ondemand.saucelabs.com'
+                    hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
                 })
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -170,6 +170,8 @@ describe('SpecReporter', () => {
             it('should print jobs of all instance when run with multiremote', () => {
                 const runner = getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
                     capabilities: {
                         browserA: { sessionId: 'foobar' },
                         browserB: { sessionId: 'barfoo' }
@@ -186,7 +188,10 @@ describe('SpecReporter', () => {
                         ...defaultCaps,
                         'sauce:options': 'foobar'
                     },
-                    hostname: 'localhost'
+                    hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
+                    sessionId: fakeSessionId
                 })
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -198,7 +203,10 @@ describe('SpecReporter', () => {
                         tunnelIdentifier: 'foobar',
                         ...defaultCaps
                     },
-                    hostname: 'localhost'
+                    hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
+                    sessionId: fakeSessionId
                 })
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -207,6 +215,8 @@ describe('SpecReporter', () => {
             it('should print link to Sauce Labs EU job details page', () => {
                 printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
                     region: 'eu'
                 }))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -215,15 +225,44 @@ describe('SpecReporter', () => {
 
                 printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
                     region: 'eu-central-1'
                 }))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
 
                 printReporter.printReport(getRunnerConfig({
                     hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
                     headless: true
                 }))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+        })
+
+        describe('with disabled sharable Sauce report links', ()=>{
+            const options = { sauceLabsSharableLinks: false }
+            beforeEach(() => {
+                tmpReporter = new SpecReporter(options)
+                tmpReporter.suiteUids = SUITE_UIDS
+                tmpReporter.suites = SUITES
+                tmpReporter.stateCounts = {
+                    passed : 4,
+                    failed : 1,
+                    skipped : 1,
+                }
+                tmpReporter.write = jest.fn()
+            })
+
+            it('should print the default Sauce Labs job details page link', () => {
+                const runner = getRunnerConfig({
+                    hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123',
+                })
+                tmpReporter.printReport(runner)
+                expect(tmpReporter.write.mock.calls).toMatchSnapshot()
             })
         })
 
@@ -262,11 +301,17 @@ describe('SpecReporter', () => {
 
         it('should validate header output in multiremote', () => {
             const result = tmpReporter.getHeaderDisplay(
-                getRunnerConfig({ isMultiremote: true }))
+                getRunnerConfig({
+                    capabilities: {
+                        browserA: { browserName: 'chrome' },
+                        browserB: { browserName: 'firefox' }
+                    },
+                    isMultiremote: true,
+                }))
 
             expect(result.length).toBe(2)
             expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: MultiremoteBrowser on loremipsum')
+            expect(result[1]).toBe('Running: MultiremoteBrowser on chrome, firefox')
         })
     })
 

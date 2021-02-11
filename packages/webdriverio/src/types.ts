@@ -27,6 +27,42 @@ export type ElementCommandsTypeSync = {
     [K in keyof ElementCommandsType]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
 }
 
+/**
+ * Multiremote command definition
+ */
+type SingleElementCommandNames = '$' | 'custom$' | 'react$'
+type MultiElementCommandNames = '$$' | 'custom$$' | 'react$$'
+type ElementCommandNames = SingleElementCommandNames | MultiElementCommandNames
+type MultiRemoteElementCommands = {
+    [K in keyof Pick<BrowserCommandsType, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<MultiRemoteElement<'async'>>
+} & {
+    [K in keyof Pick<BrowserCommandsType, MultiElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<MultiRemoteElement<'async'>[]>
+}
+type MultiRemoteElementCommandsSync = {
+    [K in keyof Pick<BrowserCommandsTypeSync, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsTypeSync[K]>) => MultiRemoteElement<'sync'>
+} & {
+    [K in keyof Pick<BrowserCommandsTypeSync, MultiElementCommandNames>]: (...args: Parameters<BrowserCommandsTypeSync[K]>) => MultiRemoteElement<'sync'>[]
+}
+
+export type MultiRemoteBrowserCommandsType = {
+    [K in keyof Omit<BrowserCommandsType, ElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
+} & MultiRemoteElementCommands
+export type MultiRemoteBrowserCommandsTypeSync = {
+    [K in keyof Omit<BrowserCommandsTypeSync, ElementCommandNames>]: (...args: Parameters<BrowserCommandsTypeSync[K]>) => ThenArg<ReturnType<BrowserCommandsTypeSync[K]>>[]
+} & MultiRemoteElementCommandsSync
+export type MultiRemoteElementCommandsType = {
+    [K in keyof Omit<ElementCommandsType, ElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>
+} & MultiRemoteElementCommands
+export type MultiRemoteElementCommandsTypeSync = {
+    [K in keyof Omit<ElementCommandsTypeSync, ElementCommandNames>]: (...args: Parameters<ElementCommandsTypeSync[K]>) => ThenArg<ReturnType<ElementCommandsTypeSync[K]>>[]
+} & MultiRemoteElementCommandsSync
+export type MultiRemoteProtocolCommandsType = {
+    [K in keyof ProtocolCommandsAsync]: (...args: Parameters<ProtocolCommandsAsync[K]>) => Promise<ThenArg<ReturnType<ProtocolCommandsAsync[K]>>[]>
+}
+export type MultiRemoteProtocolCommandsTypeSync = {
+    [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => ThenArg<ReturnType<ProtocolCommands[K]>>[]
+}
+
 export interface ElementArray extends Array<WebdriverIO.Element> {
     selector: Selector
     parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
@@ -152,7 +188,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    parent: WebdriverIO.Element | WebdriverIO.Browser
     /**
      * true if element is a React component
      */
@@ -177,12 +213,25 @@ interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanc
      */
     isMultiremote: true
 }
+interface MultiRemoteElementBase {
+    /**
+     * multiremote browser instance names
+     */
+    instances: string[]
+    addCommand: Function
+    overwriteCommand: Function
+}
 
-type MultiRemoteBrowserReferenceAsync = Record<string, Browser<'async'> | Element<'async'>>
-type MultiRemoteBrowserReferenceSync = Record<string, Browser<'sync'> | Element<'sync'>>
-interface MultiRemoteBrowserAsync extends MultiRemoteBase, BrowserCommandsType, ProtocolCommandsAsync { }
-interface MultiRemoteBrowserSync extends MultiRemoteBase, BrowserCommandsTypeSync, ProtocolCommands { }
+type MultiRemoteBrowserReferenceAsync = Record<string, Browser<'async'>>
+type MultiRemoteBrowserReferenceSync = Record<string, Browser<'sync'>>
+type MultiRemoteElementReferenceAsync = Record<string, Element<'async'>>
+type MultiRemoteElementReferenceSync = Record<string, Element<'sync'>>
+interface MultiRemoteBrowserAsync extends MultiRemoteBase, MultiRemoteBrowserCommandsType, MultiRemoteProtocolCommandsType { }
+interface MultiRemoteBrowserSync extends MultiRemoteBase, MultiRemoteBrowserCommandsTypeSync, MultiRemoteProtocolCommandsTypeSync { }
+interface MultiRemoteElementAsync extends MultiRemoteElementBase, MultiRemoteProtocolCommandsType, Omit<MultiRemoteBrowserCommandsType, keyof MultiRemoteElementCommandsType>, MultiRemoteElementCommandsType {}
+interface MultiRemoteElementSync extends MultiRemoteElementBase, MultiRemoteProtocolCommandsTypeSync, Omit<MultiRemoteBrowserCommandsTypeSync, keyof MultiRemoteElementCommandsTypeSync>, MultiRemoteElementCommandsTypeSync {}
 export type MultiRemoteBrowser<T extends 'sync' | 'async'> = T extends 'sync' ? MultiRemoteBrowserReferenceSync & MultiRemoteBrowserSync : MultiRemoteBrowserReferenceAsync & MultiRemoteBrowserAsync
+export type MultiRemoteElement<T extends 'sync' | 'async'> = T extends 'sync' ? MultiRemoteElementReferenceSync & MultiRemoteElementSync : MultiRemoteElementReferenceAsync & MultiRemoteElementAsync
 
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
 export type Selector = string | ElementReference | ElementFunction

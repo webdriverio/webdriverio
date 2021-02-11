@@ -111,7 +111,7 @@ const SESSION_MOCKS: Record<string, Set<Interception>> = {}
  *
  */
 export default async function mock (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     url: string,
     filterOptions?: MockFilterOptions
 ) {

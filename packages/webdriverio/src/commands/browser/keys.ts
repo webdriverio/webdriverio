@@ -28,7 +28,7 @@ import { UNICODE_CHARACTERS } from '../../constants'
  *
  */
 export default function keys (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     value: string | string[]
 ) {
     let keySequence: string[] = []

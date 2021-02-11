@@ -23,7 +23,7 @@ By default WebdriverIO provides an [assertion library](Assertion.md) that is bui
 describe('my awesome website', () => {
     it('should do some assertions', () => {
         browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO')
     })
 })
 ```
@@ -36,7 +36,7 @@ If you like to write your specs in TDD style, set the `ui` property in your `moc
 suite('my awesome website', () => {
     test('should do some assertions', () => {
         browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js')
+        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO')
     })
 })
 ```

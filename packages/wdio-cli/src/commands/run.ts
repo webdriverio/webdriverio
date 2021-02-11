@@ -90,6 +90,9 @@ export const cmdArgs = {
     },
     cucumberOpts: {
         desc: 'Cucumber options'
+    },
+    autoCompileOpts: {
+        desc: 'Auto compilation options'
     }
 } as const
 
@@ -99,6 +102,8 @@ export const builder = (yargs: yargs.Argv) => {
         .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
         .example('$0 run wdio.conf.js --mochaOpts.timeout 60000', 'Run suite with custom Mocha timeout')
+        .example('$0 run wdio.conf.js --autoCompileOpts.autoCompile=false', 'Disable auto-loading of ts-node or @babel/register')
+        .example('$0 run wdio.conf.js --autoCompileOpts.tsNodeOpts.project=configs/bdd-tsconfig.json', 'Run suite with ts-node using custom tsconfig.json')
         .epilogue(CLI_EPILOGUE)
         .help()
 }

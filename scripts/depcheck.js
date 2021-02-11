@@ -17,7 +17,8 @@ const EXEC_OPTIONS = { silent: true, async: true }
 const IGNORE_PACKAGES = {
     'wdio-reporter': ['cucumber'],
     'wdio-cli': ['ts-node', '@babel/register'],
-    'wdio-config': ['ts-node', '@babel/register']
+    'wdio-config': ['ts-node', '@babel/register'],
+    'wdio-types': ['ts-node']
 }
 
 ;(async () => {

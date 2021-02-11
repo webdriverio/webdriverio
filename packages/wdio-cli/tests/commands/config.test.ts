@@ -1,6 +1,7 @@
 import yargs from 'yargs'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
+import pkg from '../../package.json'
 
 import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
@@ -14,6 +15,17 @@ jest.mock('../../src/utils', () => ({
     generateTestFiles: jest.fn(),
     getPathForFileGeneration: jest.fn().mockImplementation(jest.requireActual('../../src/utils').getPathForFileGeneration),
 }))
+
+jest.mock('../../package.json', () => {
+    const pkg = jest.requireActual('../../package.json')
+    pkg.setFetchSpec = (fetchSpec: string) => {
+        pkg._requested = { fetchSpec }
+    }
+    pkg.clearFetchSpec = () => {
+        delete pkg._requested
+    }
+    return pkg
+})
 
 const errorLogSpy = jest.spyOn(console, 'error')
 const consoleLogSpy = jest.spyOn(console, 'log')
@@ -82,6 +94,34 @@ test('it should install with yarn when flag is passed', async () => {
         deps: expect.any(Object),
         dev: true,
         respectNpm5: false
+    })
+})
+
+describe('install compliant NPM tag packages', () => {
+    beforeAll(() => {
+        // @ts-expect-error
+        pkg.setFetchSpec('beta')
+    })
+
+    test('it should install tagged version if cli is tagged', async () => {
+        (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+            executionMode: 'sync',
+            framework: '@wdio/mocha-framework$--$mocha',
+            reporters: [],
+            services: [
+                '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
+                'wdio-lambdatest-service$--$lambdatest'
+            ],
+            generateTestFiles: false,
+            isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
+        }))
+        await handler({} as any)
+        expect(consoleLogSpy.mock.calls).toMatchSnapshot()
+    })
+
+    afterAll(() => {
+        // @ts-expect-error
+        pkg.clearFetchSpec()
     })
 })
 

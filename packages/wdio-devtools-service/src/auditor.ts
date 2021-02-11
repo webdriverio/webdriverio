@@ -79,6 +79,9 @@ export default class Auditor {
         commands.forEach(fnName => browser.addCommand(fnName, customFn || (this[fnName as keyof Auditor] as any).bind(this)))
     }
 
+    /**
+     * Returns a list with a breakdown of all main thread task and their total duration
+     */
     async getMainThreadWorkBreakdown () {
         const result = await this._audit(MainThreadWorkBreakdown) as MainThreadWorkBreakdownResult
         return result.details.items.map(
@@ -86,6 +89,9 @@ export default class Auditor {
         )
     }
 
+    /**
+     * Get some useful diagnostics about the page load
+     */
     async getDiagnostics () {
         const result = await this._audit(Diagnostics) as DiagnosticsResults
 
@@ -99,6 +105,9 @@ export default class Auditor {
         return result.details.items[0]
     }
 
+    /**
+     * Get most common used performance metrics
+     */
     async getMetrics () {
         const serverResponseTime = await this._audit(ServerResponseTime, { URL: this._url }) as ResponseTimeResult
         const cumulativeLayoutShift = await this._audit(CumulativeLayoutShift) as ResponseTimeResult
@@ -127,6 +136,9 @@ export default class Auditor {
         }
     }
 
+    /**
+     * Returns the Lighthouse Performance Score which is a weighted mean of the following metrics: firstMeaningfulPaint, firstCPUIdle, firstInteractive, speedIndex, estimatedInputLatency
+     */
     async getPerformanceScore () {
         const auditResults: AuditResults = {
             'speed-index': await this._audit(SpeedIndex) as MetricsResult,

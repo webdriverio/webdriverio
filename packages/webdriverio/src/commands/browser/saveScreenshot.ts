@@ -21,7 +21,7 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
  *
  */
 export default async function saveScreenshot (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     filepath: string
 ) {
     /**

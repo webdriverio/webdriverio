@@ -300,5 +300,11 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
             '\nIf you use a grid server ' + w3cCapMessage
     }
 
+    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && params.hostname?.endsWith('saucelabs.com')) {
+        return 'Session request was not authorized because you either did provide a wrong access key or tried to run ' +
+            'in a region that has not been enabled for your user. If have registered a free trial account it is connected ' +
+            'to a specific region. Ensure this region is set in your configuration (https://webdriver.io/docs/options.html#region).'
+    }
+
     return err.message
 }

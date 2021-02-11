@@ -56,6 +56,9 @@ class Launcher {
         private _isWatchMode = false
     ) {
         this.configParser = new ConfigParser()
+        if ( this.configParser.autoCompile ) {
+            this.configParser.autoCompile() // autocompile before parsing configs so we support ES6 features in configs
+        }
         this.configParser.addConfigFile(_configFilePath)
         this.configParser.merge(_args)
 
@@ -374,7 +377,7 @@ class Launcher {
             cid: runnerId,
             command: 'run',
             configFile: this._configFilePath,
-            args: this._args,
+            args: { ...this._args, ...(config?.autoCompileOpts ? { autoCompileOpts: config.autoCompileOpts } : {}) },
             caps,
             specs,
             execArgv,

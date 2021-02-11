@@ -62,7 +62,7 @@
     position: relative;
     height: 20px;
     box-sizing: border-box;
-    padding: 2px 8px 4px 6px;
+    padding: 2px 8px 4px 22px;
     background-color: #1b95e0;
     color: #fff;
     border-radius: 3px;
@@ -85,8 +85,9 @@
 }
 .tweetBtn::before {
     content: '';
-    position: relative;
+    position: absolute;
     top: 3px;
+    left: 5px;
     display: inline-block;
     width: 14px;
     height: 14px;

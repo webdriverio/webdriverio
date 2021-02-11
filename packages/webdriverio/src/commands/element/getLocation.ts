@@ -29,7 +29,7 @@ import { getElementRect } from '../../utils'
  */
 export default async function getLocation (
     this: WebdriverIO.Element,
-    prop: string
+    prop?: 'x' | 'y'
 ) {
     let location: {
         x?: number,

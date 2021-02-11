@@ -197,6 +197,13 @@ describe('utils', () => {
             expect(message).toContain('valid hostname:port or the port is not in use')
             expect(message).toContain('add vendor prefix')
         })
+
+        it('should hint for region issues for free-trial users', () => {
+            const message = getSessionError(
+                new Error('unknown error: failed serving request POST /wd/hub/session: Unauthorized'),
+                { hostname: 'https://ondemand.eu-central-1.saucelabs.com' })
+            expect(message).toContain('Ensure this region is set in your configuration')
+        })
     })
 
     describe('startWebDriverSession', () => {

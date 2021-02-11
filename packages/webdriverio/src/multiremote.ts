@@ -104,7 +104,7 @@ export default class MultiRemote {
         const instances = this.instances
         return wrapCommand(commandName, async function (this: WebdriverIO.Browser, ...args: any[]) {
             const result = await Promise.all(
-                // @ts-expect-error
+                // @ts-ignore
                 Object.entries(instances).map(([, instance]) => instance[commandName](...args))
             )
 

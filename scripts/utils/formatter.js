@@ -1,6 +1,6 @@
 const path = require('path')
 
-const { repoUrl } = require('../../website/docusaurus.config.js')
+const { customFields } = require('../../website/docusaurus.config.js')
 
 module.exports = function (docfile) {
     const javadoc = docfile.javadoc[0]
@@ -185,7 +185,7 @@ module.exports = function (docfile) {
         description: description,
         ignore: javadoc.ignore,
         examples: files,
-        customEditUrl: `${repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.js`,
+        customEditUrl: `${customFields.repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
         isElementScope : scope === 'element',

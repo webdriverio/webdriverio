@@ -16,6 +16,7 @@
     "@docusaurus/plugin-client-redirects": "2.0.0-alpha.70",
     "@docusaurus/plugin-google-analytics": "2.0.0-alpha.70",
     "@docusaurus/plugin-ideal-image": "^2.0.0-alpha.70",
+    "@docusaurus/plugin-pwa": "^2.0.0-alpha.70",
     "@docusaurus/preset-classic": "2.0.0-alpha.70",
     "@docusaurus/remark-plugin-npm2yarn": "2.0.0-alpha.70",
     "@docusaurus/theme-search-algolia": "2.0.0-alpha.70",
@@ -23,7 +24,9 @@
     "@saucelabs/theme-github-codeblock": "0.0.3",
     "clsx": "^1.1.1",
     "react": "^16.8.4",
-    "react-dom": "^16.8.4"
+    "react-dom": "^16.8.4",
+    "workbox-routing": "^6.1.0",
+    "workbox-strategies": "^6.1.0"
   },
   "browserslist": {
     "production": [

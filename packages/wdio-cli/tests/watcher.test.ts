@@ -21,6 +21,9 @@ jest.mock('../src/launcher', () => {
         interface: any
 
         constructor (configFile: string, args: LauncherMockRunCommandArguments) {
+            if ( this.configParser.autoCompile ) {
+                this.configParser.autoCompile()
+            }
             this.configParser.addConfigFile(configFile)
             this.configParser.merge(args)
             this.isMultiremote = args.isMultiremote || false

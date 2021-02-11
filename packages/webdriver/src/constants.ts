@@ -82,18 +82,6 @@ export const DEFAULTS: Options.Definition<Options.WebDriver> = {
         default: 3
     },
     /**
-     * cloud user if applicable
-     */
-    user: {
-        type: 'string'
-    },
-    /**
-     * access key to user
-     */
-    key: {
-        type: 'string'
-    },
-    /**
      * Override default agent
      */
     agent: {

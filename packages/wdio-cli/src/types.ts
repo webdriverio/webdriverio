@@ -67,6 +67,7 @@ export interface RunCommandArguments {
     mochaOpts?: any
     jasmineNodeOpts?: any
     cucumberOpts?: any
+    autoCompileOpts?: any
     configPath: string
 
     /**

@@ -93,7 +93,7 @@ export const getElementFromResponse = (res: ElementReference) => {
 /**
  * traverse up the scope chain until browser element was reached
  */
-export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): WebdriverIO.Browser {
+export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser): WebdriverIO.Browser {
     const elemObject = elem as WebdriverIO.Element
     return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
 }
@@ -212,7 +212,7 @@ export function checkUnicode (
 
 function fetchElementByJSFunction (
     selector: ElementFunction,
-    scope: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser
+    scope: WebdriverIO.Browser | WebdriverIO.Element
 ): Promise<ElementReference | ElementReference[]> {
     if (!(scope as WebdriverIO.Element).elementId) {
         return scope.execute(selector as any)
@@ -230,7 +230,7 @@ function fetchElementByJSFunction (
  * logic to find an element
  */
 export async function findElement(
-    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
     /**
@@ -443,7 +443,7 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
  */
 export const enhanceElementsArray = (
     elements: ElementArray,
-    parent: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+    parent: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector,
     foundWith = '$$',
     props: any[] = []

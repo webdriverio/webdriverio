@@ -1,16 +1,21 @@
-import fs from 'fs'
-import path from 'path'
-import glob from 'glob'
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
 import {
-    detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
-    loadTypeScriptCompiler, loadBabelCompiler
+    removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
+    loadAutoCompilers, ModuleRequireService
 } from '../utils'
-import { DEFAULT_CONFIGS, SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS } from '../constants'
-
+import {
+    SUPPORTED_HOOKS,
+    SUPPORTED_FILE_EXTENSIONS,
+    DEFAULT_AUTOCOMPILE_CONFIGS
+} from '../constants'
+import {
+    DEFAULT_CONFIGS
+} from '../'
+import FileSystemPathService from './FileSystemPathService'
+import RequireLibrary from './RequireLibrary'
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
@@ -26,9 +31,54 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
     exclude?: string | string[]
 }
 
+// Get current working directory
+interface CurrentPathFinder {
+    getcwd(): string
+}
+
+// Require a .js/.json/dotfile config file
+interface LoadConfigFile {
+    loadFile<T>(path: string): T
+}
+
+// Detect if a file is present
+interface IsFileDetector {
+    isFile(path: string): boolean
+}
+
+interface DeterminesAbsolutePath {
+    ensureAbsolutePath(path: string): string
+}
+
+// Glob to find file paths matching a pattern
+interface Globber {
+    glob(pattern: string): string[];
+}
+
+export interface PathService extends CurrentPathFinder, LoadConfigFile, IsFileDetector, Globber, DeterminesAbsolutePath {}
+
 export default class ConfigParser {
+    private _autocompileConfig : Options.AutoCompileConfig = DEFAULT_AUTOCOMPILE_CONFIGS()
     private _config: TestrunnerOptionsWithParameters = DEFAULT_CONFIGS()
     private _capabilities: Capabilities.RemoteCapabilities = [];
+    private _pathService: PathService;
+    private _moduleRequireService: ModuleRequireService;
+
+    constructor(pathService: PathService = new FileSystemPathService(), moduleRequireService:ModuleRequireService = new RequireLibrary()) {
+        this._pathService = pathService
+        this._moduleRequireService = moduleRequireService
+    }
+
+    autoCompile() {
+        /**
+         * on launcher compile files if Babel or TypeScript are installed using our defaults
+         */
+        if (!loadAutoCompilers(this._autocompileConfig, this._moduleRequireService)) {
+            if ( this._autocompileConfig.autoCompile ) {
+                log.debug('No compiler found, continue without compiling files')
+            }
+        }
+    }
 
     /**
      * merges config file with default values
@@ -39,20 +89,27 @@ export default class ConfigParser {
             throw new Error('addConfigFile requires filepath')
         }
 
-        const filePath = path.resolve(process.cwd(), filename)
+        const filePath = this._pathService.ensureAbsolutePath(filename)
 
         try {
+            const config = this._pathService.loadFile<{config: TestrunnerOptionsWithParameters}>(filePath).config
+
+            if (typeof config !== 'object') {
+                throw new Error('addConfigEntry requires config key')
+            }
+
             /**
-             * compile files if Babel or TypeScript are installed
+             * on launcher compile files if Babel or TypeScript are installed using our defaults
              */
-            if (!loadTypeScriptCompiler() && !loadBabelCompiler()) {
-                log.debug('No compiler found, continue without compiling files')
+            // Merge in config over defaults
+            if ( config.autoCompileOpts ) {
+                this._autocompileConfig = merge(this._autocompileConfig, config.autoCompileOpts, MERGE_OPTIONS)
             }
 
             /**
              * clone the original config
              */
-            const fileConfig = merge<Omit<Options.Testrunner, 'capabilities'> & { capabilities?: Capabilities.RemoteCapabilities }>(require(filePath).config, {}, MERGE_OPTIONS)
+            const fileConfig = merge<Omit<Options.Testrunner, 'capabilities'> & { capabilities?: Capabilities.RemoteCapabilities }>(config, {}, MERGE_OPTIONS)
 
             /**
              * merge capabilities
@@ -73,11 +130,6 @@ export default class ConfigParser {
             this._config = merge(this._config, fileConfig, MERGE_OPTIONS)
 
             /**
-             * detect WebDriver backend
-             */
-            this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
-
-            /**
              * remove `watch` from config as far as it can be only passed as command line argument
              */
             delete this._config.watch
@@ -95,6 +147,11 @@ export default class ConfigParser {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         this._config = merge(this._config, object, MERGE_OPTIONS) as TestrunnerOptionsWithParameters
+
+        // Merge in config over defaults
+        if ( object.autoCompileOpts ) {
+            this._autocompileConfig = merge(this._autocompileConfig, object.autoCompileOpts, MERGE_OPTIONS)
+        }
 
         /**
          * overwrite config specs that got piped into the wdio command
@@ -129,8 +186,6 @@ export default class ConfigParser {
         if (exclude.length > 0) {
             this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         }
-
-        this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
     }
 
     /**
@@ -172,9 +227,9 @@ export default class ConfigParser {
      * get excluded files from config pattern
      */
     getSpecs (capSpecs?: string[], capExclude?: string[]) {
-        let specs = ConfigParser.getFilePaths(this._config.specs!)
+        let specs = ConfigParser.getFilePaths(this._config.specs!, undefined, this._pathService)
         let spec  = Array.isArray(this._config.spec) ? this._config.spec : []
-        let exclude = ConfigParser.getFilePaths(this._config.exclude!)
+        let exclude = ConfigParser.getFilePaths(this._config.exclude!, undefined, this._pathService)
         let suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         /**
@@ -188,7 +243,7 @@ export default class ConfigParser {
                     log.warn(`No suite was found with name "${suiteName}"`)
                 }
                 if (Array.isArray(suite)) {
-                    suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite))
+                    suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite, undefined, this._pathService))
                 }
             }
 
@@ -202,11 +257,11 @@ export default class ConfigParser {
             let tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
 
             if (Array.isArray(capSpecs)) {
-                tmpSpecs = ConfigParser.getFilePaths(capSpecs)
+                tmpSpecs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
             }
 
             if (Array.isArray(capExclude)) {
-                exclude = ConfigParser.getFilePaths(capExclude)
+                exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
             }
 
             specs = [...new Set(tmpSpecs)]
@@ -214,11 +269,11 @@ export default class ConfigParser {
         }
 
         if (Array.isArray(capSpecs)) {
-            specs = ConfigParser.getFilePaths(capSpecs)
+            specs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
         }
 
         if (Array.isArray(capExclude)) {
-            exclude = ConfigParser.getFilePaths(capExclude)
+            exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
         }
 
         return specs.filter(spec => !exclude.includes(spec))
@@ -235,12 +290,12 @@ export default class ConfigParser {
      */
     setFilePathToFilterOptions (cliArgFileList: string[], config: string[]) {
         const filesToFilter = new Set<string>()
-        const fileList = ConfigParser.getFilePaths(config)
+        const fileList = ConfigParser.getFilePaths(config, undefined, this._pathService)
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
-            let globMatchedFiles = ConfigParser.getFilePaths(glob.sync(filteredFile))
-            if (fs.existsSync(filteredFile) && fs.lstatSync(filteredFile).isFile()) {
-                filesToFilter.add(path.resolve(process.cwd(), filteredFile))
+            let globMatchedFiles = ConfigParser.getFilePaths(this._pathService.glob(filteredFile), undefined, this._pathService)
+            if (this._pathService.isFile(filteredFile)) {
+                filesToFilter.add(this._pathService.ensureAbsolutePath(filteredFile))
             } else if (globMatchedFiles.length) {
                 globMatchedFiles.forEach(file => filesToFilter.add(file))
             } else {
@@ -281,7 +336,7 @@ export default class ConfigParser {
      * @param  {String[]} filenames  list of files to glob
      * @return {String[]} list of files
      */
-    static getFilePaths (patterns: string[], omitWarnings?: boolean) {
+    static getFilePaths (patterns: string[], omitWarnings?: boolean, findAndGlob: CurrentPathFinder & Globber & DeterminesAbsolutePath = new FileSystemPathService()) {
         let files: string[] = []
 
         if (typeof patterns === 'string') {
@@ -295,14 +350,12 @@ export default class ConfigParser {
         patterns = patterns.map(pattern => removeLineNumbers(pattern))
 
         for (let pattern of patterns) {
-            let filenames = glob.sync(pattern)
-
+            let filenames = findAndGlob.glob(pattern)
             filenames = filenames.filter(
                 (filename) => SUPPORTED_FILE_EXTENSIONS.find(
                     (ext) => filename.endsWith(ext)))
 
-            filenames = filenames.map(filename =>
-                path.isAbsolute(filename) ? path.normalize(filename) : path.resolve(process.cwd(), filename))
+            filenames = filenames.map(filename => findAndGlob.ensureAbsolutePath(filename))
 
             if (filenames.length === 0 && !omitWarnings) {
                 log.warn('pattern', pattern, 'did not match any file')

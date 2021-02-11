@@ -14,6 +14,10 @@ import { initialiseInstance, filterLogTypes, getInstancesData } from './utils'
 
 const log = logger('@wdio/runner')
 
+/**
+ * user types for globals are set in webdriverio
+ * putting this here to make compiler happy
+ */
 declare global {
     namespace NodeJS {
         interface Global {
@@ -21,6 +25,7 @@ declare global {
             $$: any
             browser: any
             driver: any
+            multiremotebrowser: any
         }
     }
 }
@@ -101,6 +106,10 @@ export default class Runner extends EventEmitter {
          * merge cli arguments into config
          */
         this._configParser.merge(args)
+        // autocompile after parsing configs so we support ES6 features in tests with config driven by users
+        if ( this._configParser.autoCompile ) {
+            this._configParser.autoCompile()
+        }
 
         this._config = this._configParser.getConfig() as Options.Testrunner
         this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
@@ -168,7 +177,7 @@ export default class Runner extends EventEmitter {
         this._reporter.emit('runner:start', {
             cid,
             specs,
-            config: this._config,
+            config: browser.options,
             isMultiremote,
             sessionId: browser.sessionId,
             capabilities: isMultiremote
@@ -282,6 +291,13 @@ export default class Runner extends EventEmitter {
 
         try {
             browser = global.browser = global.driver = await initialiseInstance(config, caps, this._isMultiremote)
+
+            /**
+             * attach browser to `multiremotebrowser` so user have better typing support
+             */
+            if (this._isMultiremote) {
+                global.multiremotebrowser = browser
+            }
         } catch (e) {
             log.error(e)
             return
