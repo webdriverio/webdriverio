@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
-import { RegisterOptions } from 'ts-node'
+import type { RegisterOptions } from 'ts-node'
 
 const log = logger('@wdio/config:utils')
 
@@ -103,7 +103,7 @@ export function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, 
     )
 }
 
-export function loadTypeScriptCompiler (tsNodeOpts: RegisterOptions, requireService: ModuleRequireService) {
+export function loadTypeScriptCompiler (tsNodeOpts: RegisterOptions = {}, requireService: ModuleRequireService) {
     try {
         requireService.resolve('ts-node') as any
         (requireService.require('ts-node') as any).register(tsNodeOpts)
@@ -114,7 +114,7 @@ export function loadTypeScriptCompiler (tsNodeOpts: RegisterOptions, requireServ
     }
 }
 
-export function loadBabelCompiler (babelOpts: { [key: string]: any }, requireService: ModuleRequireService) {
+export function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireService: ModuleRequireService) {
     try {
         requireService.resolve('@babel/register') as any
 

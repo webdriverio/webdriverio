@@ -1,6 +1,7 @@
 import * as got from 'got'
 import * as http from 'http'
 import * as https from 'https'
+import type { RegisterOptions } from 'ts-node'
 
 import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities'
 import { Hooks, ServiceEntry } from './Services'
@@ -411,8 +412,8 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
 
 export interface AutoCompileConfig {
     autoCompile?: boolean
-    tsNodeOpts?: { [key: string]: any }
-    babelOpts?: { [key: string]: any }
+    tsNodeOpts?: RegisterOptions
+    babelOpts?: Record<string, any>
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {
