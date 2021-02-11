@@ -47,7 +47,7 @@ const TestWdioConfig_AllInMemory = () : MockFileContent => ({
         }],
         suites: {
             unit: [path.join(__dirname, '/tests/configparser.test.ts')],
-            mobile: [path.join(__dirname, '/tests/detectBackend.test.ts')],
+            mobile: [path.join(__dirname, '/tests/RequireLibrary.test.ts')],
             functional: [
                 path.join(__dirname, '/tests/validateConfig.test.ts'),
                 path.join(__dirname, '/tests/..', 'src/index.ts')
@@ -70,7 +70,7 @@ function MockedFileSystem_LoadingAsMuchAsCanFromFileSystem() : FilePathsAndConte
         realReadFilePair(path.resolve(FIXTURES_PATH, '../validateConfig.test.ts')),
         realReadFilePair(path.resolve(FIXTURES_PATH, '../configparser.test.ts')),
         realReadFilePair(path.resolve(FIXTURES_PATH, '../utils.test.ts')),
-        realReadFilePair(path.resolve(FIXTURES_PATH, '../detectBackend.test.ts')),
+        realReadFilePair(path.resolve(FIXTURES_PATH, '../RequireLibrary.test.ts')),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.cjs')).withContents('test file contents'),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.es6')).withContents( 'test file contents'),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.java')).withContents( 'test file contents'),
@@ -102,7 +102,7 @@ function MockedFileSystem_OnlyLoadingConfig(baseDir: MockSystemFolderPath, confi
         FileNamed(path.join(baseDir, '../validateConfig.test.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, '../configparser.test.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, '../utils.test.ts')).withContents('test contents'),
-        FileNamed(path.join(baseDir, '../detectBackend.test.ts')).withContents('test contents'),
+        FileNamed(path.join(baseDir, '../RequireLibrary.test.ts')).withContents('test contents'),
         FileNamed(path.join(baseDir, 'test.cjs')).withContents('test contents'),
         FileNamed(path.join(baseDir, 'test.es6')).withContents('test contents'),
         FileNamed(path.join(baseDir, 'test.java')).withContents('test contents'),
@@ -204,7 +204,7 @@ describe('ConfigParser', () => {
                 const tsNodeRegister = jest.fn()
                 const configParser = ConfigParserBuilder
                     .withBaseDir(path.join(__dirname, '/tests/'))
-                    .withFiles( [
+                    .withFiles([
                         ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/')),
                         FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
                     ])
@@ -231,7 +231,7 @@ describe('ConfigParser', () => {
                 const tsNodeRegister = jest.fn()
                 const configParser = ConfigParserBuilder
                     .withBaseDir(path.join(__dirname, '/tests/'))
-                    .withFiles( [
+                    .withFiles([
                         ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/')),
                         FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
                     ])
@@ -261,7 +261,7 @@ describe('ConfigParser', () => {
                 const tsNodeRegister = jest.fn()
                 const configParser = ConfigParserBuilder
                     .withBaseDir(path.join(__dirname, '/tests/'))
-                    .withFiles( [
+                    .withFiles([
                         ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/')),
                         FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
                     ])
@@ -365,7 +365,7 @@ describe('ConfigParser', () => {
                         FileNamed(path.join(__dirname, '/tests/validateConfig.test.ts')).withContents('test contents'),
                         FileNamed(path.join(__dirname, '/tests/configparser.test.ts')).withContents('test contents'),
                         FileNamed(path.join(__dirname, '/tests/utils.test.ts')).withContents('test contents'),
-                        FileNamed(path.join(__dirname, '/tests/detectBackend.test.ts')).withContents('test contents'),
+                        FileNamed(path.join(__dirname, '/tests/RequireLibrary.test.ts')).withContents('test contents'),
                         FileNamed(path.join(__dirname, '/tests/__fixtures__/test.cjs')).withContents('test contents'),
                         FileNamed(path.join(__dirname, '/tests/__fixtures__/test.es6')).withContents('test contents'),
                         FileNamed(path.join(__dirname, '/tests/__fixtures__/test.java')).withContents('test contents'),
@@ -541,7 +541,7 @@ describe('ConfigParser', () => {
             configParser.merge({ spec : ['Backend'] })
 
             const specs = configParser.getSpecs()
-            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
         })
 
         it('should exclude duplicate spec files', () => {
@@ -569,7 +569,7 @@ describe('ConfigParser', () => {
             expect(specs).toContain(__filename)
             expect(specs).toContain(INDEX_PATH)
             expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
-            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
         })
 
         it('should throw when suite is not defined', () => {
@@ -593,7 +593,7 @@ describe('ConfigParser', () => {
 
             let specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
-            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
         })
 
         it('should overwrite host and port if key are set as cli arguments', () => {
@@ -796,8 +796,8 @@ describe('ConfigParser', () => {
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['unit', 'mobile'] })
 
-            const specs = configParser.getSpecs([INDEX_PATH], [path.join(__dirname, 'detectBackend.test.ts')])
-            expect(specs).not.toContain(path.join(__dirname, 'detectBackend.test.ts'))
+            const specs = configParser.getSpecs([INDEX_PATH], [path.join(__dirname, 'RequireLibrary.test.ts')])
+            expect(specs).not.toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
             expect(specs).toContain(INDEX_PATH)
         })
 
@@ -854,7 +854,7 @@ describe('ConfigParser', () => {
             let specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)
             expect(specs).toContain(INDEX_PATH)
-            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
         })
 
         it('should include spec when specifying a suite unless excluded', () => {
@@ -871,7 +871,7 @@ describe('ConfigParser', () => {
                             ],
                             suites: {
                                 mobile: [
-                                    path.resolve(__dirname, 'detectBackend.test.ts'),
+                                    path.resolve(__dirname, 'RequireLibrary.test.ts'),
                                     path.resolve(__dirname, 'validateConfig.test.ts'),
                                     path.resolve(__dirname, 'link.test.ts'),
                                     path.resolve(__dirname, 'ganondorf.test.ts')
@@ -890,7 +890,7 @@ describe('ConfigParser', () => {
             let specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
             expect(specs).toContain(INDEX_PATH)
-            expect(specs).toContain(path.join(__dirname, 'detectBackend.test.ts'))
+            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
             expect(specs).toContain(path.resolve(__dirname, 'link.test.ts'))
             expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
             expect(specs).not.toContain(path.resolve(__dirname, 'ganondorf.test.ts'))
@@ -915,7 +915,7 @@ describe('ConfigParser', () => {
                                 }],
                                 suites: {
                                     unit: [path.join(__dirname, '/tests/configparser.test.ts')],
-                                    mobile: [path.join(__dirname, '/tests/detectBackend.test.ts')],
+                                    mobile: [path.join(__dirname, '/tests/RequireLibrary.test.ts')],
                                     functional: [
                                         path.join(__dirname, '/tests/validateConfig.test.ts'),
                                         path.join(__dirname, '/tests/..', 'src/index.ts')

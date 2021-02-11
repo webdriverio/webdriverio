@@ -177,7 +177,7 @@ export default class Runner extends EventEmitter {
         this._reporter.emit('runner:start', {
             cid,
             specs,
-            config: this._config,
+            config: browser.options,
             isMultiremote,
             sessionId: browser.sessionId,
             capabilities: isMultiremote

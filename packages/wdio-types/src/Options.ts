@@ -48,24 +48,6 @@ export interface Connection {
 
 export interface WebDriver extends Connection {
     /**
-     * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
-     * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),
-     * [CrossBrowserTesting](https://crossbrowsertesting.com) or
-     * [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
-     * automatically set connection options for you. If you don't use a cloud provider this
-     * can be used to authenticate any other WebDriver backend.
-     */
-    user?: string
-    /**
-     * Your cloud service access key or secret key (only works for
-     * [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com),
-     * [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)
-     * or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
-     * automatically set connection options for you. If you don't use a cloud provider this
-     * can be used to authenticate any other WebDriver backend.
-     */
-    key?: string
-    /**
      * Defines the capabilities you want to run in your WebDriver session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
      * If you want to run multiremote session you need to define an object that has the
@@ -187,6 +169,24 @@ export interface MultiRemoteBrowserOptions {
 }
 
 export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
+    /**
+     * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
+     * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),
+     * [CrossBrowserTesting](https://crossbrowsertesting.com) or
+     * [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+     * automatically set connection options for you. If you don't use a cloud provider this
+     * can be used to authenticate any other WebDriver backend.
+     */
+    user?: string
+    /**
+     * Your cloud service access key or secret key (only works for
+     * [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com),
+     * [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com)
+     * or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will
+     * automatically set connection options for you. If you don't use a cloud provider this
+     * can be used to authenticate any other WebDriver backend.
+     */
+    key?: string
     /**
      * Defines the capabilities you want to run in your WebDriver session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
