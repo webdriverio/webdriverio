@@ -4,7 +4,7 @@ import { validateConfig } from '@wdio/config'
 import { runFnInFiberContext } from '@wdio/utils'
 
 import detectBackend from '../src/utils/detectBackend'
-import { remote, multiremote, attach } from '../src'
+import { remote, multiremote, attach, RemoteOptions } from '../src'
 
 jest.mock('../src/utils/detectBackend', () => jest.fn())
 
@@ -42,7 +42,7 @@ jest.mock('webdriver', () => {
 
 jest.mock('devtools', () => {
     const DevTools = jest.requireActual('devtools').default
-    const client = { sessionId: 'foobar-123', isDevtools: true }
+    const client = { sessionId: 'foobar-123', isDevTools: true }
     const newSessionMock = jest.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
     newSessionMock.mockImplementation((params, cb) => {
@@ -93,6 +93,7 @@ const WebDriver = require('webdriver').default
 describe('WebdriverIO module interface', () => {
     beforeEach(() => {
         WebDriver.newSession.mockClear()
+        ;(detectBackend as jest.Mock).mockClear()
     })
 
     it('should provide remote and multiremote access', () => {
@@ -103,12 +104,14 @@ describe('WebdriverIO module interface', () => {
 
     describe('remote function', () => {
         it('creates a webdriver session', async () => {
-            const browser = await remote({
+            const options: RemoteOptions = {
                 automationProtocol: 'webdriver',
                 capabilities: {},
                 logLevel: 'trace'
-            })
+            }
+            const browser = await remote(options)
             expect(browser.sessionId).toBe('foobar-123')
+            expect(detectBackend).toBeCalledWith(options)
             expect(logger.setLogLevelsConfig).toBeCalledWith(undefined, 'trace')
         })
 

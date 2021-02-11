@@ -410,9 +410,9 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
 }
 
 export interface AutoCompileConfig {
-    autoCompile: boolean
-    tsNodeOpts: { [key: string]: any }
-    babelOpts: { [key: string]: any }
+    autoCompile?: boolean
+    tsNodeOpts?: { [key: string]: any }
+    babelOpts?: { [key: string]: any }
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {

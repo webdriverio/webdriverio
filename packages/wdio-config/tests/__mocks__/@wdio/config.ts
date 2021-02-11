@@ -1,5 +1,8 @@
 import { DEFAULT_CONFIGS as DEFAULT_CONFIGS_IMPORT } from '../../../src/constants'
-import { isCloudCapability as isCloudCapabilityMock } from '../../../src/utils'
+import {
+    isCloudCapability as isCloudCapabilityMock,
+    validateConfig as validateConfigMock
+} from '../../../src/utils'
 
 class ConfigParserMock {
     addService = jest.fn()
@@ -27,16 +30,15 @@ class ConfigParserMock {
 export const ConfigParser = ConfigParserMock
 export const DEFAULT_CONFIGS = DEFAULT_CONFIGS_IMPORT
 export const isCloudCapability = jest.fn().mockImplementation(isCloudCapabilityMock)
-export const validateConfig = jest.fn().mockImplementation(
-    (_, config) => Object.assign(
-        DEFAULT_CONFIGS_IMPORT(),
-        {
-            hostname: 'localhost',
-            port: 4444,
-            protocol: 'http',
-            path: '/',
-            automationProtocol: 'webdriver'
-        },
-        config
-    )
-)
+export const validateConfig = jest.fn().mockImplementation((defaults, config) => {
+    const returnVal = validateConfigMock(defaults, config)
+    /**
+     * in order to ensure that WebdriverIO unit tests default to use the webdriver
+     * package we modify the default value here
+     */
+    if (!returnVal.hostname) {
+        returnVal.hostname = 'localhost'
+    }
+
+    return returnVal
+})

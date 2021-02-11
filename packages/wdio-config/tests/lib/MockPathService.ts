@@ -5,7 +5,7 @@ var Minimatch = require('minimatch').Minimatch
 
 export type MockSystemFolderPath = string;
 export type MockSystemFilePath = string;
-export type FilePathsAndContents = [FilePathAndContent][]
+export type FilePathsAndContents = FilePathAndContent[]
 
 /**
  * Test implementation of PathService
@@ -16,6 +16,11 @@ export type FilePathsAndContents = [FilePathAndContent][]
 export default class MockPathService implements PathService {
     private cwd : MockSystemFolderPath;
     private files : FilePathsAndContents;
+
+    getcwdMock: jest.SpyInstance
+    loadFileMock: jest.SpyInstance
+    isFileMock: jest.SpyInstance
+    globMock: jest.SpyInstance
 
     private constructor({ cwd, files } : {cwd: MockSystemFolderPath, files: FilePathsAndContents}) {
         this.cwd = cwd
@@ -67,7 +72,7 @@ export default class MockPathService implements PathService {
         let _path = path.normalize(filePath)
         const filePathKey = this.lookupFilesIndex(_path)
         const found = this.files.find(a => a[0] === filePathKey)
-        if ( found ) {
+        if (found) {
             try {
                 // JS's require on JS files auto-parses so let's emulate
                 // so that test file values don't matter if they are stringed json or objects

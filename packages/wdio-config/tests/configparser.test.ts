@@ -205,7 +205,7 @@ describe('ConfigParser', () => {
                 const configParser = ConfigParserBuilder
                     .withBaseDir(path.join(__dirname, '/tests/'))
                     .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/')),
+                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/'), '/path/to/config'),
                         FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
                     ])
                     .withTsNodeModule(tsNodeRegister).build()
@@ -232,7 +232,7 @@ describe('ConfigParser', () => {
                 const configParser = ConfigParserBuilder
                     .withBaseDir(path.join(__dirname, '/tests/'))
                     .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/')),
+                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/'), '/path/to/config'),
                         FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
                     ])
                     .withTsNodeModule(tsNodeRegister).build()
@@ -262,7 +262,7 @@ describe('ConfigParser', () => {
                 const configParser = ConfigParserBuilder
                     .withBaseDir(path.join(__dirname, '/tests/'))
                     .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/')),
+                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/'), '/path/to/config'),
                         FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
                     ])
                     .withTsNodeModule(tsNodeRegister).build()
@@ -538,7 +538,7 @@ describe('ConfigParser', () => {
         it('should allow to specify partial matching spec file', () => {
             const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ spec : ['Backend'] })
+            configParser.merge({ spec : ['Library'] })
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
@@ -594,19 +594,6 @@ describe('ConfigParser', () => {
             let specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
-        })
-
-        it('should overwrite host and port if key are set as cli arguments', () => {
-            const configParser = ConfigParserForTest()
-            configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ user: 'barfoo', key: '50fa1411-3121-4gb0-9p07-8q326vvbq7b0' })
-
-            const config = configParser.getConfig()
-            expect(config.hostname).toBe('ondemand.us-west-1.saucelabs.com')
-            expect(config.port).toBe(443)
-            expect(config.protocol).toBe('https')
-            expect(config.user).toBe('barfoo')
-            expect(config.key).toBe('50fa1411-3121-4gb0-9p07-8q326vvbq7b0')
         })
 
         it('should not overwrite host and port if specified in host file', () => {
@@ -934,19 +921,6 @@ describe('ConfigParser', () => {
             configParser.merge({ suite: ['something-else'], spec: [path.join(__dirname, '/tests/only-this-test-one.test.ts')] })
             // eslint-disable-next-line no-useless-escape
             expect(() => configParser.getSpecs()).toThrowError('The suite(s) \"something\", \"something-else\" you specified don\'t exist in your config file or doesn\'t contain any files!')
-        })
-    })
-
-    describe('getConfig', () => {
-        it('should set proper host and port to local selenium if user and key is specified', () => {
-            const configParser = ConfigParserForTest()
-            configParser.addConfigFile(FIXTURES_CONF)
-
-            const config = configParser.getConfig()
-            expect(config.hostname).toBe('ondemand.us-west-1.saucelabs.com')
-            expect(config.port).toBe(443)
-            expect(config.user).toBe('foobar')
-            expect(config.key).toBe('50fa142c-3121-4gb0-9p07-8q326vvbq7b0')
         })
     })
 })
