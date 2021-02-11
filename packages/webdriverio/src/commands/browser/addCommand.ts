@@ -23,7 +23,7 @@
         const result = browser.getUrlAndTitle('foobar')
 
         assert.strictEqual(result.url, 'https://webdriver.io')
-        assert.strictEqual(result.title, 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js')
+        assert.strictEqual(result.title, 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO')
         assert.strictEqual(result.customParam, 'foobar')
     })
  * </example>

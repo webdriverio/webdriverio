@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
 import {
-    detectBackend, removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
+    removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
     loadAutoCompilers, ModuleRequireService
 } from '../utils'
 import {
@@ -130,11 +130,6 @@ export default class ConfigParser {
             this._config = merge(this._config, fileConfig, MERGE_OPTIONS)
 
             /**
-             * detect WebDriver backend
-             */
-            this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
-
-            /**
              * remove `watch` from config as far as it can be only passed as command line argument
              */
             delete this._config.watch
@@ -191,8 +186,6 @@ export default class ConfigParser {
         if (exclude.length > 0) {
             this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         }
-
-        this._config = merge(detectBackend(this._config), this._config, MERGE_OPTIONS)
     }
 
     /**
