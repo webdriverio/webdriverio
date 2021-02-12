@@ -51,18 +51,6 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         }
     },
     /**
-     * cloud user if applicable
-     */
-    user: {
-        type: 'string'
-    },
-    /**
-     * access key to user
-     */
-    key: {
-        type: 'string'
-    },
-    /**
      * define specs for test execution
      */
     specs: {
