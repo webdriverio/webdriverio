@@ -37,10 +37,9 @@ jest.mock('../src/launcher', () => {
     return LauncherMock
 })
 
-interface WorkerMockRunPayload extends Partial<Omit<Capabilities.WorkerRunPayload, 'cid'>> {
-    cid?: string | null;
+interface WorkerMockRunPayload extends Partial<Capabilities.WorkerRunPayload> {
     isBusy?: boolean;
-    sessionId?: string | null;
+    sessionId?: string;
     specs: string[];
 }
 
