@@ -234,6 +234,15 @@ async function bar() {
     await elem.addValue('Delete', { translateToUnicode: true })
     await elem.addValue('Delete', { translateToUnicode: false })
 
+    // scroll into view
+    await elem.scrollIntoView(true)
+    const scrollOptions: ScrollIntoViewOptions = {
+        block: 'center',
+        // @ts-expect-error
+        foo: 'bar'
+    }
+    await elem.scrollIntoView(scrollOptions)
+
     // An examples of setValue command with enabled/disabled translation to Unicode
     const elem1 = await $('')
     elem1.setValue('Delete', { translateToUnicode: true })
