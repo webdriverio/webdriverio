@@ -1,5 +1,5 @@
-import type { Capabilities } from '@wdio/types'
-export interface WorkerCommand extends Omit<Capabilities.WorkerRunPayload, 'execArgv'> {
+import type { WorkerRunPayload } from '@wdio/types'
+export interface WorkerCommand extends Omit<WorkerRunPayload, 'execArgv'> {
     command: string,
     args: any
 }

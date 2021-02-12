@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import { WorkerMessageArgs } from '.'
 import {
     WebdriverIO as WebDriverIOOptions,
     Testrunner as TestrunnerOptions,
@@ -90,23 +91,6 @@ export interface MultiRemoteCapabilities {
 }
 
 export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;
-
-export interface Job {
-    caps: DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities
-    specs: string[],
-    hasTests: boolean
-}
-
-export type WorkerMessageArgs = Omit<Job, 'caps' | 'specs' | 'hasTests'>;
-
-export interface WorkerRunPayload {
-    cid: string;
-    configFile: string;
-    caps: RemoteCapability;
-    specs: string[];
-    execArgv: string[];
-    retries: number;
-}
 
 export interface Worker extends Omit<TestrunnerOptions, 'capabilities' | 'specs'>, EventEmitter {
     capabilities: RemoteCapability

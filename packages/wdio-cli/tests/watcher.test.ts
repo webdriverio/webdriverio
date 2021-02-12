@@ -1,7 +1,7 @@
 import path from 'path'
 import chokidar from 'chokidar'
 import EventEmitter from 'events'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, WorkerRunPayload } from '@wdio/types'
 
 import { RunCommandArguments } from '../src/types'
 import Watcher from '../src/watcher'
@@ -37,7 +37,7 @@ jest.mock('../src/launcher', () => {
     return LauncherMock
 })
 
-interface WorkerMockRunPayload extends Partial<Capabilities.WorkerRunPayload> {
+interface WorkerMockRunPayload extends Partial<WorkerRunPayload> {
     isBusy?: boolean;
     sessionId?: string;
     specs: string[];
