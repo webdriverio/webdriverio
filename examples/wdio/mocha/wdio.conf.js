@@ -4,8 +4,8 @@ exports.config = {
     /**
      * server configurations
      */
-    hostname: 'localhost',
-    port: 4444,
+    user: process.env.SAUCE_USERNAME,
+    key: process.env.SAUCE_ACCESS_KEY,
 
     /**
      * specify test files

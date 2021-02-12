@@ -34,7 +34,7 @@ function Version() {
         path: 'https://v5.webdriver.io',
         comment: (
             <div>
-                <b>LTS</b> (since January 2021)
+                <b>Deprecated</b> (since January 2021)
             </div>
         ),
         repoUrl

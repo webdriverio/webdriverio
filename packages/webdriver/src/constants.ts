@@ -47,6 +47,18 @@ export const DEFAULTS: Options.Definition<Options.WebDriver> = {
         type: 'object'
     },
     /**
+     * cloud user if applicable
+     */
+    user: {
+        type: 'string'
+    },
+    /**
+     * access key to user
+     */
+    key: {
+        type: 'string'
+    },
+    /**
      * capability of WebDriver session
      */
     capabilities: {

@@ -163,6 +163,15 @@ const el = $('')
 el.addValue('Delete')
 el.addValue('Delete', { translateToUnicode: false })
 
+// scroll into view
+el.scrollIntoView(true)
+const scrollOptions: ScrollIntoViewOptions = {
+    block: 'center',
+    // @ts-expect-error
+    foo: 'bar'
+}
+el.scrollIntoView(scrollOptions)
+
 // An examples of setValue command with enabled/disabled translation to Unicode
 const elem1 = $('')
 elem1.setValue('Delete', { translateToUnicode: true })
