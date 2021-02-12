@@ -4,7 +4,7 @@ exports.config = {
     /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, '*.e2e.js')],
+    specs: [path.resolve(__dirname, 'headless', '*.e2e.js')],
 
     /**
      * capabilities
