@@ -39,6 +39,7 @@
     "test:e2e": "jest --config e2e/jest.config.js",
     "test:e2e:edge": "npm run test:e2e -- --testMatch '**/edge.e2e.js'",
     "test:e2e:firefox": "npm run test:e2e -- --testMatch '<rootDir>/standalone/firefox.e2e.js'",
+    "test:e2e:cloud": "./packages/wdio-cli/bin/wdio.js ./e2e/wdio/wdio.sauce.conf.js",
     "ts": "run-p ts:*",
     "ts:webdriver": "cd tests/typings/webdriver && npx tsc",
     "ts:devtools": "cd tests/typings/devtools && npx tsc",
