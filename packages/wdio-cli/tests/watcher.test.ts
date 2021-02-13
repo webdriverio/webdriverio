@@ -1,7 +1,7 @@
 import path from 'path'
 import chokidar from 'chokidar'
 import EventEmitter from 'events'
-import type { Capabilities, WorkerRunPayload } from '@wdio/types'
+import type { Workers } from '@wdio/types'
 
 import { RunCommandArguments } from '../src/types'
 import Watcher from '../src/watcher'
@@ -37,13 +37,13 @@ jest.mock('../src/launcher', () => {
     return LauncherMock
 })
 
-interface WorkerMockRunPayload extends Partial<WorkerRunPayload> {
+interface WorkerMockRunPayload extends Partial<Workers.WorkerRunPayload> {
     isBusy?: boolean;
     sessionId?: string;
     specs: string[];
 }
 
-class WorkerMock extends EventEmitter implements Capabilities.Worker {
+class WorkerMock extends EventEmitter implements Workers.Worker {
     cid: string
     specs: string[]
     caps: WebDriver.DesiredCapabilities
@@ -188,7 +188,7 @@ describe('watcher', () => {
             '1-0': workerPool['1-0']
         })
         expect(watcher.getWorkers(
-            (worker: Capabilities.Worker) => worker.specs.includes('/bar/foo.js'))
+            (worker: Workers.Worker) => worker.specs.includes('/bar/foo.js'))
         ).toEqual({ '1-0': workerPool['1-0'] })
     })
 

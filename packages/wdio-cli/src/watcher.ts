@@ -5,7 +5,7 @@ import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
 
 import Launcher from './launcher'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Workers } from '@wdio/types'
 import { RunCommandArguments, ValueKeyIteratee } from './types.js'
 
 const log = logger('@wdio/cli:watch')
@@ -87,7 +87,7 @@ export default class Watcher {
      * @param  includeBusyWorker don't filter out busy worker (default: false)
      * @return                   Object with workers, e.g. {'0-0': { ... }}
      */
-    getWorkers (predicate?: ValueKeyIteratee<Capabilities.Worker> | null | undefined, includeBusyWorker?: boolean): Capabilities.WorkerPool {
+    getWorkers (predicate?: ValueKeyIteratee<Workers.Worker> | null | undefined, includeBusyWorker?: boolean): Workers.WorkerPool {
         let workers = this._launcher.runner.workerPool
 
         if (typeof predicate === 'function') {

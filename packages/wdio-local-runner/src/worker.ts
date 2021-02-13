@@ -3,15 +3,13 @@ import child from 'child_process'
 import { EventEmitter } from 'events'
 import type { WritableStreamBuffer } from 'stream-buffers'
 import type { ChildProcess } from 'child_process'
-import type { Capabilities, Options, WorkerMessageArgs, WorkerRunPayload } from '@wdio/types'
+import type { Capabilities, Options, Workers } from '@wdio/types'
 
 import logger from '@wdio/logger'
 
 import RunnerTransformStream from './transformStream'
 import ReplQueue from './replQueue'
 import RunnerStream from './stdStream'
-
-import type { WorkerMessage, WorkerCommand } from './types'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -26,7 +24,7 @@ stdErrStream.pipe(process.stderr)
  * responsible for spawning a sub process to run the framework in and handle its
  * session lifetime.
  */
-export default class WorkerInstance extends EventEmitter implements Capabilities.Worker {
+export default class WorkerInstance extends EventEmitter implements Workers.Worker {
     cid: string
     config: Options.Testrunner
     configFile: string
@@ -58,7 +56,7 @@ export default class WorkerInstance extends EventEmitter implements Capabilities
      */
     constructor(
         config: Options.Testrunner,
-        { cid, configFile, caps, specs, execArgv, retries }: WorkerRunPayload,
+        { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
         stderr: WritableStreamBuffer
     ) {
@@ -111,7 +109,7 @@ export default class WorkerInstance extends EventEmitter implements Capabilities
         return childProcess
     }
 
-    private _handleMessage (payload: WorkerMessage) {
+    private _handleMessage (payload: Workers.WorkerMessage) {
         const { cid, childProcess } = this
 
         /**
@@ -184,7 +182,7 @@ export default class WorkerInstance extends EventEmitter implements Capabilities
      * @param  command  method to run in wdio-runner
      * @param  args     arguments for functions to call
      */
-    postMessage (command: string, args: WorkerMessageArgs): void {
+    postMessage (command: string, args: Workers.WorkerMessageArgs): void {
         const { cid, configFile, caps, specs, retries, isBusy } = this
 
         if (isBusy && command !== 'endSession') {
@@ -199,7 +197,7 @@ export default class WorkerInstance extends EventEmitter implements Capabilities
             this.childProcess = this.startProcess()
         }
 
-        const cmd: WorkerCommand = { cid, command, configFile, args, caps, specs, retries }
+        const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps, specs, retries }
         this.childProcess.send(cmd)
         this.isBusy = true
     }
