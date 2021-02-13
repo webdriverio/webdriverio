@@ -100,7 +100,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                 expect(allureXml('test-case description[type="text"]')).toHaveLength(1)
             })
 
-            it('should move attachments from successfull hook to test-case', () => {
+            it('should move attachments from successful hook to test-case', () => {
                 expect(allureXml('test-case > attachments > attachment').length).toEqual(1)
             })
         })
@@ -193,7 +193,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('test-case description[type="text"]')).toHaveLength(1)
         })
 
-        it('should move attachments from successfull hook to test-case', () => {
+        it('should move attachments from successful hook to test-case', () => {
             expect(allureXml('test-case > attachments > attachment').length).toEqual(1)
         })
     })

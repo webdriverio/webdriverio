@@ -241,7 +241,7 @@ describe('findElement utils', () => {
             expect(pageMock.$x).toBeCalledWith('barfoo')
         })
 
-        it('should return immiadiatelly if no elements were found', async () => {
+        it('should return immediately if no elements were found', async () => {
             const scope = {
                 timeouts: { get: jest.fn() },
                 elementStore: { set: jest.fn() }

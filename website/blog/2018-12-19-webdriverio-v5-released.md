@@ -42,9 +42,9 @@ If you have been using `wdio-mocha-framework` or `wdio-spec-reporter` in your pr
 
 ## We Did Some Spring Cleaning
 
-When people proposed new commands to the API, we contributors became more and more hesitent to introduce them. There were a vast number of existing commands; and many of these requested commands provided very little difference from existing commands. This was beginning to become a maintenance nightmare.<br />
+When people proposed new commands to the API, we contributors became more and more hesitant to introduce them. There were a vast number of existing commands; and many of these requested commands provided very little difference from existing commands. This was beginning to become a maintenance nightmare.<br />
 <br />
-Starting with v5 we created a "base" WebdriverIO package called [`webdriver`](https://www.npmjs.com/package/webdriver). It contains the bare logic to make a HTTP request to a WebDriver endpoint; and includes all of the commands from [various specifications](https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver/protocol) (including the [WebDriver](https://w3c.github.io/webdriver/) spec as well as Appiums [Mobile JSONWire protocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md)) defined in a simple to maintain JSON object.<br />
+Starting with v5 we created a "base" WebdriverIO package called [`webdriver`](https://www.npmjs.com/package/webdriver). It contains the bare logic to make a HTTP request to a WebDriver endpoint; and includes all of the commands from [various specifications](https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver/protocol) (including the [WebDriver](https://w3c.github.io/webdriver/) spec as well as Appium's [Mobile JSONWire protocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md)) defined in a simple to maintain JSON object.<br />
 <br />
 As part of that effort we've renamed many of the commands in order to align them closer to the pattern that has been used in the protocol. The base WebDriver client now also returns the `value` property of all protocol command responses, so that we were able to get rid of a lot of redundancy (e.g. `title` is now called with `getTitle`).<br />
 <br />
@@ -65,7 +65,7 @@ elem.url('https://webdriver.io') // throws because the url command is scoped on 
 
 We already had an automated system that generated the docs for our website. As part of the new architecture and tech stack we however ported this from [Hexo](https://hexo.io/) to [Docusaurus](https://docusaurus.io/).<br />
 <br />
-We are still in the process of finalising this effort, as we want to continue providing everyone a way to easily [change the version](https://github.com/webdriverio/webdriverio/issues/3147) of the docs. We are also looking into [providing multiple translations](https://github.com/webdriverio/webdriverio/issues/3148) of the docs so that people who don't speak english can better understand and use WebdriverIO. Please reach out to us on [Twitter](https://twitter.com/webdriverio), or directly on the issue thread if you want to help out. This is probably one of the best ways to get involved into an open source project.
+We are still in the process of finalizing this effort, as we want to continue providing everyone a way to easily [change the version](https://github.com/webdriverio/webdriverio/issues/3147) of the docs. We are also looking into [providing multiple translations](https://github.com/webdriverio/webdriverio/issues/3148) of the docs so that people who don't speak english can better understand and use WebdriverIO. Please reach out to us on [Twitter](https://twitter.com/webdriverio), or directly on the issue thread if you want to help out. This is probably one of the best ways to get involved into an open source project.
 
 ## How To Upgrade To v5
 
@@ -82,7 +82,7 @@ Every project is different, so it is impossible to have one single guide for eve
 - install the new wdio testrunner: `$ npm install @wdio/cli --save-dev`
 - if you have a `wdio.conf.js` in your root directory, create a backup: `$ cp wdio.conf.js wdio_backup.conf.js`
 - rerun the configuration wizard: `$ npx wdio config`
-- merge custom modifications of your old `wdio_backup.conf.js` into your new config file. Don't merge everything at once - just begin with the basic setup using no services and just the e.g. spec reporter to run tests locally and work torwards a full migration
+- merge custom modifications of your old `wdio_backup.conf.js` into your new config file. Don't merge everything at once - just begin with the basic setup using no services and just the e.g. spec reporter to run tests locally and work towards a full migration
 - take the simplest test in your suite and rename the commands according to the changelog
 - have your log directory set in your config (e.g. `outputDir: __dirname`) to ensure you can see everything that is going on including errors (you can later set it to a proper log directory)
 - attempt to run the the test suite you modified `$ npx wdio wdio.conf.js --spec ./path/to/modified/test.js`
@@ -97,7 +97,7 @@ We will release further blog articles in our new blog with tutorials on how to u
 
 We didn't put put all this hard work into the project to end here. Instead, we just get started. We truly believe that [WebDriver](https://www.w3.org/TR/webdriver1/) is and always will be the automation standard of the industry. Therefore we are actively engaged in contributing to the standard to ensure that all commands are compliant to the protocols. We also will take your common problems and general feedback back to the [W3C Working Groups](https://www.w3.org/testing/browser/) in order to ensure that we can address major issues at the core of the technology.
 
-<br /><blockquote class="twitter-tweet" data-lang="de"><p lang="en" dir="ltr">To ensure that <a href="https://twitter.com/webdriverio?ref_src=twsrc%5Etfw">@webdriverio</a> is always conforming to the <a href="https://twitter.com/hashtag/WebDriver?src=hash&amp;ref_src=twsrc%5Etfw">#WebDriver</a> standard, it will sends its representatives directly to the <a href="https://twitter.com/w3c?ref_src=twsrc%5Etfw">@w3c</a> TPAC meetings so you can use the latest features as soon as they are available 🙌🏻 <a href="https://t.co/oJbHPn99Oc">pic.twitter.com/oJbHPn99Oc</a></p>&mdash; WebdriverIO (@webdriverio) <a href="https://twitter.com/webdriverio/status/1055813210480238593?ref_src=twsrc%5Etfw">26. Oktober 2018</a></blockquote><br />
+<br /><blockquote class="twitter-tweet" data-lang="de"><p lang="en" dir="ltr">To ensure that <a href="https://twitter.com/webdriverio?ref_src=twsrc%5Etfw">@webdriverio</a> is always conforming to the <a href="https://twitter.com/hashtag/WebDriver?src=hash&amp;ref_src=twsrc%5Etfw">#WebDriver</a> standard, it will sends its representatives directly to the <a href="https://twitter.com/w3c?ref_src=twsrc%5Etfw">@w3c</a> TPAC meetings so you can use the latest features as soon as they are available 🙌🏻 <a href="https://t.co/oJbHPn99Oc">pic.twitter.com/oJbHPn99Oc</a></p>&mdash; WebdriverIO (@webdriverio) <a href="https://twitter.com/webdriverio/status/1055813210480238593?ref_src=twsrc%5Etfw">26. October 2018</a></blockquote><br />
 
 After the release, we will be begin working on a detailed roadmap for the next year that allows you to participate in the progress and help us prioritizing features.
 

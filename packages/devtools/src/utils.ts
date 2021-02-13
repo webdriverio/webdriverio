@@ -127,7 +127,7 @@ export async function findElement (
 
     /**
      * if an element is not found we only return an error to allow
-     * refetching it at a later stage
+     * refetch it at a later stage
      */
     if (!element) {
         return new Error(`Element with selector "${value}" not found`)
@@ -280,7 +280,7 @@ export function sort(installations: string[], priorities: Priorities[]) {
 }
 
 /**
- * helper utitlity to clone a list
+ * helper utility to clone a list
  * @param  {Any[]} arr  list of things
  * @return {Any[]}      new list of same things
  */

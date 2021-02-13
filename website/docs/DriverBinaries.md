@@ -90,7 +90,7 @@ cd $unzipped_file
 
 ## Edgedriver
 
-You can download the drivr for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). After download you can start Edgedriver as follows:
+You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). After download you can start Edgedriver as follows:
 
 ```bash
 ./path/to/edgedriver --port=4444 --verbose

@@ -54,7 +54,7 @@ exports.config = {
     // Test runner services
     // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no self effort. Unlike plugins they don't add new
-    // commands but hook themself up into the test process.
+    // commands but hook themselves up into the test process.
     // services: [],//
     // Framework you want to run your specs with.
     // The following are supported: mocha, jasmine and cucumber
@@ -81,7 +81,7 @@ exports.config = {
     // =====
     // Hooks
     // =====
-    // WebdriverIO provides a several hooks you can use to intefere the test process in order to enhance
+    // WebdriverIO provides a several hooks you can use to interfere the test process in order to enhance
     // it and build services around it. You can either apply a single function to it or an array of
     // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
     // resolved to continue.
@@ -90,7 +90,7 @@ exports.config = {
     // onPrepare: function (config, capabilities) {
     // },
     //
-    // Gets executed before a worker process is spawned and can be used to initialise specific service
+    // Gets executed before a worker process is spawned and can be used to initialize specific service
     // for that worker as well as modify runtime environments in an async fashion.
     // onWorkerStart: function (cid, caps, specs, args, execArgv) {
     // },

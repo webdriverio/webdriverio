@@ -53,7 +53,7 @@ module.exports = class CustomService {
         console.log('execute onComplete(exitCode, config, capabilities, results)')
     }
     onReload() {
-        console.log('execute onReloadoldSessionId, newSessionId)')
+        console.log('execute onReloadedSessionId, newSessionId)')
     }
     beforeFeature () {
         console.log('execute beforeFeature(uri, feature, scenarios)')

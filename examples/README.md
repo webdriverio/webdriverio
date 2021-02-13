@@ -129,6 +129,6 @@ $ npm run test:jasmine
 $ npm run test:cucumber
 # testsuite with multiremote
 $ npm run test:multiremote
-# test suite with custome reporter
+# test suite with custom reporter
 $ npm run test:customReporter
 ```

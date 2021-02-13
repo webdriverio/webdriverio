@@ -21,7 +21,7 @@ module.exports = {
     // ...
 }
 ```
-Note: *It's always a good standard to keep the test results in seperate folder than in the root folder.*
+Note: *It's always a good standard to keep the test results in separate folder than in the root folder.*
 
 ```js
 // wdio.conf.js - For tests running in parallel

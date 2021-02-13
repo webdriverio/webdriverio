@@ -23,7 +23,7 @@ describe('My Performance Test', () => {
         expect(metrics.firstMeaningfulPaint).toBeLessThan(3 * 1000) // 3 seconds
     })
 
-    it('should not increase firstInteractive limi', function () {
+    it('should not increase firstInteractive limit', function () {
         expect(metrics.firstInteractive).toBeLessThan(3 * 1000) // 3 seconds
     })
 
