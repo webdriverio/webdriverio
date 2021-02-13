@@ -274,6 +274,10 @@ If you have been using Cucumber in the past, all you need to do to update to v7 
 ```git
 - const { Given, When, Then } = require('cucumber')
 + const { Given, When, Then } = require('@cucumber/cucumber')
+
+// Or
+- import {Given, When, Then} from 'cucumber'
++ import {Given, When, Then} from '@cucumber/cucumber'
 ```
 
 ### Cucumber Options
