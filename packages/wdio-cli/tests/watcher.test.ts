@@ -11,7 +11,6 @@ jest.mock('../src/launcher', () => {
 
     interface LauncherMockRunCommandArguments extends Omit<RunCommandArguments, 'configPath'> {
         isMultiremote?: boolean;
-
     }
 
     class LauncherMock {
