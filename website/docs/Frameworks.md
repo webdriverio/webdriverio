@@ -269,6 +269,13 @@ Options for Cucumber can be given in the config file with `cucumberOpts`. Check 
 
 To get up and running quickly with Cucumber, have a look on our [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all the step definitions you need to get stared, and you'll be writing feature files right away.
 
+If you have been using Cucumber in the past, all you need to do to update to v7 is to update your Cucumber imports to their new package:
+
+```git
+- const { Given, When, Then } = require('cucumber')
++ const { Given, When, Then } = require('@cucumber/cucumber')
+```
+
 ### Cucumber Options
 
 The following options can be applied in your `wdio.conf.js` to configure your Cucumber environment using the `cucumberOpts` property:
