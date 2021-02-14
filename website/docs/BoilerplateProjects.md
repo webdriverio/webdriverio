@@ -56,13 +56,15 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
 
    Boilerplate project to run **WebdriverIO v7** tests for the following <br>
    
-        - Mocha Framework with Typescript<br>
-        - Cucumber Framework with Typescript <br>
-        - Running your scripts in Docker containers both GRID+NODE / IMAGES <br>
-        - Monitor Networks logs using WebdriverIO <br>
-        - More to follow <br>
-    
-   You can also watch them created [here](https://www.youtube.com/channel/UCqaDA1xslraCbam2CxuKhUw)<br>
+   [1. BasicTypeScript](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/BasicTypeScript) - Only TypeScript<br>
+   [2. Cucumber](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Cucumber)               - WDIO 7 scripts with TypeScript in Cucumber Framework<br>
+   [3. Mocha](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Mocha)           - WDIO 7 scripts with TypeScript in Mocha Framework<br>
+   [4. Docker](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Docker)         - Run WDIO 7 script in Docker<br>
+   [5. Networklogs](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/NetworkLogs)     - Capture Network logs<br>
+   
+   More to follow...
+
+   ### You can also [watch them created here](https://www.youtube.com/channel/UCqaDA1xslraCbam2CxuKhUw)<br>
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
