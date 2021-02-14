@@ -52,14 +52,15 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
   - Page Object Pattern
   - Sauce Labs integration
 
-## [17thSep/WDIO7_Master](https://github.com/17thSep/WebdriverIO_Master)
+## [17thSep/WebdriverIO_Master](https://github.com/17thSep/WebdriverIO_Master)
 
-   Boilerplate project to run WebdriverIO tests in <br>
-    - Mocha Framework with Typescript using WebdriverIO v7 <br>
-    - Cucumber Framework with Typescript using WebdriverIO v7 <br>
-    - Running your scripts in Docker containers both GRID+NODE / IMAGES <br>
-    - Monitor Networks logs using WebdriverIO <br>
-    - More to follow <br>
+   Boilerplate project to run **WebdriverIO v7** tests for the following <br>
+   
+        - Mocha Framework with Typescript<br>
+        - Cucumber Framework with Typescript <br>
+        - Running your scripts in Docker containers both GRID+NODE / IMAGES <br>
+        - Monitor Networks logs using WebdriverIO <br>
+        - More to follow <br>
     
    You can also watch them created [here](https://www.youtube.com/channel/UCqaDA1xslraCbam2CxuKhUw)<br>
 
