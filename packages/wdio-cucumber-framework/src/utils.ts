@@ -88,13 +88,6 @@ export function getFeatureId (uri: string, feature: messages.GherkinDocument.IFe
     return `${path.basename(uri)}:${feature.location?.line}:${feature.location?.column}`
 }
 
-function createStepTitle(step: ExtendedPickleStep): string {
-    if (isStepTypeHook(step)) {
-        return `hook-${step.hookId}`
-    }
-    return step.text
-}
-
 /**
  * build payload for test/hook event
  */
@@ -102,7 +95,7 @@ export function buildStepPayload(
     uri: string,
     feature: messages.GherkinDocument.IFeature,
     scenario: messages.IPickle,
-    step: messages.Pickle.IPickleStep,
+    step: ExtendedPickleStep,
     params: {
         type: string
         state?: messages.TestStepFinished.TestStepResult.Status | string | null
@@ -115,7 +108,7 @@ export function buildStepPayload(
 ) {
     return {
         uid: step.id,
-        title: createStepTitle(step),
+        title: isStepTypeHook(step) ? `hook-${step.hookId}` : step.text,
         parent: scenario.id,
         argument: createStepArgument(step),
         file: uri,
