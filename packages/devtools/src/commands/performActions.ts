@@ -80,7 +80,7 @@ export default async function performActions(
                 }
 
                 /**
-                 * for special characters like emojies 😉 we need to
+                 * for special characters like emojis 😉 we need to
                  * send in the value as text because it is not unicode
                  */
                 if (!keyDefinitions[singleAction.value as unknown as KeyInput]) {

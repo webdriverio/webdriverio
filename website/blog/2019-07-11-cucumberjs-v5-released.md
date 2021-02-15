@@ -53,7 +53,7 @@ When creating a better product and thus releasing a major version, you will alwa
 **Don't only read the changes in the V5.0.0 release, but also read the rest of the changes!**
 
 ### It's not only WebdriverIO who evolved!
-When you are going to use the lastest version of the `@wdio/cucumber-framework`, you'll also get the latest version of Cucumber. **This means you also need to look at the breaking changes between CucumberJS 2 and CucumberJS 5.**
+When you are going to use the latest version of the `@wdio/cucumber-framework`, you'll also get the latest version of Cucumber. **This means you also need to look at the breaking changes between CucumberJS 2 and CucumberJS 5.**
 Please check the [changelog of CucumberJS](https://github.com/cucumber/cucumber-js/blob/master/CHANGELOG.md#300-2017-08-08) from version 3 till 5 to see what changed in CucumberJS.
 
 ### Migration steps

@@ -26,7 +26,7 @@ export function circleAction (h, k) {
 
 /**
  * helper function to draw an arc
- * @param  {Numver} start start point
+ * @param  {Number} start start point
  * @param  {Number} end   end point
  * @return {Actions[]}    list of action for touchAction command
  */
@@ -48,7 +48,7 @@ export function arcAction(start, end) {
 
 /**
  * helper function to draw an curved arc
- * @param  {Numver} start start point
+ * @param  {Number} start start point
  * @param  {Number} end   end point
  * @return {Actions[]}    list of action for touchAction command
  */

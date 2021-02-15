@@ -114,7 +114,7 @@ The project maintains various channels for providing information, supporting dev
 
 - Twitter Account ([`@webdriverio`](https://twitter.com/webdriverio)): for communicating and promoting news around the project or project related topics.
 - [Gitter Support Channel](https://gitter.im/webdriverio/webdriverio): chat for all WebdriverIO users to seek help and support on problems using the project.
-- [Project Committers Channel](https://gitter.im/webdriverio/ProjectCommitters): private channel for members of the Project Committers team to discuss contributions and organise other collaborative efforts.
+- [Project Committers Channel](https://gitter.im/webdriverio/ProjectCommitters): private channel for members of the Project Committers team to discuss contributions and organize other collaborative efforts.
 - [TSC Channel](https://gitter.im/webdriverio/TSC): private channel for members of the TSC team to discuss project governance.
 
 ## Consensus Seeking Process

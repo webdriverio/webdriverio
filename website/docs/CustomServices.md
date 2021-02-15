@@ -57,7 +57,7 @@ export default class CustomWorkerService {
 }
 ```
 
-It is recommended to store the browser object through the passed in paramater in the constructor. Lastly expose both types of workers as following:
+It is recommended to store the browser object through the passed in parameter in the constructor. Lastly expose both types of workers as following:
 
 ```js
 import CustomLauncherService from './launcher'
@@ -143,4 +143,4 @@ We really appreciate every new plugin that could help other people run better te
 Please raise a pull request with the following changes:
 
 - add your service to the list of [supported services](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/constants.ts#L83-L111)) in the CLI module
-- enhance the [service list](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/services.json) for adding your docs to the offical Webdriver.io page
+- enhance the [service list](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/services.json) for adding your docs to the official Webdriver.io page
