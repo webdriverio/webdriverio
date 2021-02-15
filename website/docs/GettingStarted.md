@@ -36,19 +36,19 @@ This will prompt a set questions that guides you through the setup. You can pass
 You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
 
 ```bash
-npx wdio run ./wdio.config.js
+npx wdio run ./wdio.conf.js
 ```
 
 If you like to run specific test files you can add a `--spec` parameter:
 
 ```bash
-npx wdio run ./wdio.config.js --spec checkout.e2e.js
+npx wdio run ./wdio.conf.js --spec example.e2e.js
 ```
 
 or define suites in your config file and run just the test files defined by in a suite:
 
 ```bash
-npx wdio run ./wdio.config.js --suite checkoutflow
+npx wdio run ./wdio.conf.js --suite exampleSuiteName
 ```
 
 ## Run in a script
