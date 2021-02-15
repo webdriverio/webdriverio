@@ -10,6 +10,7 @@ Array [
       "error": undefined,
       "featureName": "Example feature",
       "file": "/some/path/to/features/my-feature.feature",
+      "fullTitle": "0: Hook",
       "parent": "0",
       "scenarioName": "Get size of an element",
       "specs": Array [
@@ -38,7 +39,7 @@ Array [
           "name": "@scenario-tag2",
         },
       ],
-      "title": undefined,
+      "title": "Hook",
       "type": "hook",
       "uid": "24",
     },

@@ -63,12 +63,17 @@ export function formatMessage ({ payload = {} }: any) {
     return content
 }
 
+enum StepType {
+    hook = 'hook',
+    test = 'test'
+}
+
 /**
  * Get step type
  * @param {string} type `Step` or `Hook`
  */
-export function getStepType (step: messages.TestCase.ITestStep) {
-    return step.hookId ? 'hook' : 'test'
+export function getStepType (step: messages.TestCase.ITestStep): StepType[keyof StepType] {
+    return step.hookId ? StepType.hook : StepType.test
 }
 
 export function getFeatureId (uri: string, feature: messages.GherkinDocument.IFeature) {
@@ -95,7 +100,7 @@ export function buildStepPayload(
 ) {
     return {
         uid: step.id,
-        title: step.text,
+        title: step.text || 'Hook',
         parent: scenario.id,
         argument: createStepArgument(step),
         file: uri,
