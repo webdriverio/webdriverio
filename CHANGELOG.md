@@ -19,6 +19,41 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.0.4 (2021-02-15)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#6441](https://github.com/webdriverio/webdriverio/pull/6441) Ensure that 'title' property is passed down by cucumber framework to reporters ([@rickschubert](https://github.com/rickschubert))
+* `wdio-cli`, `wdio-local-runner`, `wdio-types`
+  * [#6373](https://github.com/webdriverio/webdriverio/pull/6373) @wdio/cli: Ensure watch mode re-runs all specs when the --spec command line option is set and a filesToWatch file is added or changed ([@kohlmannj](https://github.com/kohlmannj))
+
+#### :nail_care: Polish
+* `wdio-junit-reporter`
+  * [#6439](https://github.com/webdriverio/webdriverio/pull/6439) Removed _ from suite/test name in junit reporter ([@AutomationReddy](https://github.com/AutomationReddy))
+
+#### :memo: Documentation
+* `devtools`, `wdio-allure-reporter`
+  * [#6419](https://github.com/webdriverio/webdriverio/pull/6419) fix typos and version doc link ([@spnraju](https://github.com/spnraju))
+* Other
+  * [#6444](https://github.com/webdriverio/webdriverio/pull/6444) fixed typo in the wdio exec command ([@AutomationReddy](https://github.com/AutomationReddy))
+* `wdio-runner`, `webdriverio`
+  * [#6429](https://github.com/webdriverio/webdriverio/pull/6429) Improve typings for instance base ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-cucumber-framework`, `webdriverio`
+  * [#6431](https://github.com/webdriverio/webdriverio/pull/6431) fix docs for cucumber hooks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-junit-reporter`
+  * [#6430](https://github.com/webdriverio/webdriverio/pull/6430) bump junit reporter builder ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Joseph Kohlmann (he/him/his) ([@kohlmannj](https://github.com/kohlmannj))
+- Raju ([@spnraju](https://github.com/spnraju))
+- Rick Schubert ([@rickschubert](https://github.com/rickschubert))
+- Vinod Reddy ([@AutomationReddy](https://github.com/AutomationReddy))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v7.0.3 (2021-02-12)
 
 #### :bug: Bug Fix
