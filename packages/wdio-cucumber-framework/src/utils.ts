@@ -63,16 +63,27 @@ export function formatMessage ({ payload = {} }: any) {
     return content
 }
 
+function isStepTypeHook(step: messages.TestCase.ITestStep): boolean {
+    return step.hookId !== undefined && step.hookId !== null && step.hookId !== false
+}
+
 /**
  * Get step type
  * @param {string} type `Step` or `Hook`
  */
 export function getStepType (step: messages.TestCase.ITestStep) {
-    return step.hookId ? 'hook' : 'test'
+    return isStepTypeHook(step) ? 'hook' : 'test'
 }
 
 export function getFeatureId (uri: string, feature: messages.GherkinDocument.IFeature) {
     return `${path.basename(uri)}:${feature.location?.line}:${feature.location?.column}`
+}
+
+function createStepTitle(step: messages.Pickle.IPickleStep): string {
+    if (isStepTypeHook(step)) {
+        return `hook-${step.hookId}`
+    }
+    return step.text
 }
 
 /**
@@ -95,7 +106,7 @@ export function buildStepPayload(
 ) {
     return {
         uid: step.id,
-        title: step.text,
+        title: createStepTitle(step),
         parent: scenario.id,
         argument: createStepArgument(step),
         file: uri,
