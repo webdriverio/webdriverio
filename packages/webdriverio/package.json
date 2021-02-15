@@ -56,7 +56,6 @@
     "@types/lodash.zip": "^4.2.6"
   },
   "dependencies": {
-    "@types/puppeteer-core": "^5.4.0",
     "@wdio/config": "7.0.4",
     "@wdio/logger": "7.0.0",
     "@wdio/protocols": "7.0.0",

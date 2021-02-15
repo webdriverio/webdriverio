@@ -65,7 +65,6 @@
     "@types/lodash.merge": "^4.6.6",
     "@types/lodash.zip": "^4.2.6",
     "@types/node": "^14.14.13",
-    "@types/puppeteer-core": "^5.4.0",
     "@types/tmp": "^0.2.0",
     "@types/ua-parser-js": "^0.7.35",
     "@types/uuid": "^8.3.0",
