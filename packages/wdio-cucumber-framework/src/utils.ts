@@ -113,8 +113,7 @@ export function buildStepPayload(
 }
 
 /**
- * wrap ever
- * y user defined hook with function named `userHookFn`
+ * wrap every user defined hook with function named `userHookFn`
  * to identify later on is function a step, user hook or wdio hook.
  * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
  */
