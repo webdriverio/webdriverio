@@ -112,7 +112,7 @@ describe('utils', () => {
         const scenario = {}
         const stepTitle = 'I do some things'
         const step = {
-            astNodeIds: [ '23' ],
+            astNodeIds: ['23'],
             id: '51',
             text: stepTitle
         }
