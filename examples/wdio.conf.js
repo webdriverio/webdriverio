@@ -328,18 +328,51 @@ exports.config = {
     */
     onReload: function(oldSessionId, newSessionId) {
     },
-    //
-    // Cucumber specific hooks
-    beforeFeature: function (uri, feature, scenarios) {
+    /**
+     * Cucumber Hooks
+     *
+     * Runs before a Cucumber Feature.
+     * @param uri      path to feature file
+     * @param feature  Cucumber feature object
+     */
+    beforeFeature: function (uri, feature) {
     },
-    beforeScenario: function (uri, feature, scenario, sourceLocation) {
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
+    beforeScenario: function (world) {
     },
-    beforeStep: function ({ uri, feature, step }, context) {
+    /**
+     *
+     * Runs before a Cucumber Step.
+     * @param step    step data
+     * @param context Cucumber world
+     */
+    beforeStep: function (step, context) {
     },
-    afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
+    /**
+     *
+     * Runs after a Cucumber Step.
+     * @param step    step data
+     * @param context Cucumber world
+     */
+    afterStep: function (step, context) {
     },
-    afterScenario: function (uri, feature, scenario, result, sourceLocation) {
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
+    afterScenario: function (world) {
     },
-    afterFeature: function (uri, feature, scenarios) {
+    /**
+     *
+     * Runs after a Cucumber Feature.
+     * @param uri      path to feature file
+     * @param feature  Cucumber feature object
+     */
+    afterFeature: function (uri, feature) {
     }
 }

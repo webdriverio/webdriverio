@@ -137,27 +137,27 @@ exports.config = {
     // },
     //
     // Runs before a Cucumber Feature
-    // beforeFeature: function (uri, feature, scenarios) {
+    // beforeFeature: function (uri, feature) {
     // },
     //
     // Runs after a Cucumber Feature
-    // afterFeature: function (uri, feature, scenarios) {
+    // afterFeature: function (uri, feature) {
     // }
     //
     // Runs before a Cucumber Scenario
-    // beforeScenario: function (uri, feature, scenario, sourceLocation) {
+    // beforeScenario: function (world) {
     // },
     //
     // Runs after a Cucumber Scenario
-    // afterScenario: function (uri, feature, scenario, result, sourceLocation) {
+    // afterScenario: function (world) {
     // },
     //
     // Runs before a Cucumber Step
-    // beforeStep: function ({ uri, feature, step }, context) {
+    // beforeStep: function (step, context) {
     // },
     //
     // Runs after a Cucumber Step
-    // afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
+    // afterStep: function (step, context) {
     // },
     //
     // Gets executed after all tests are done. You still have access to all global variables from

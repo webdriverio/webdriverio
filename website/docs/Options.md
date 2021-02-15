@@ -483,8 +483,7 @@ Runs before a Cucumber Feature.
 
 Parameters:
 - `uri`: (`string`): path to feature file
-- `feature`: (`object`): Cucumber feature object
-- `scenario`: (`object`): Cucumber scenario object
+- `feature`: (`GherkinDocument.IFeature`): Cucumber feature object
 
 ### afterFeature
 
@@ -492,44 +491,34 @@ Runs after a Cucumber Feature.
 
 Parameters:
 - `uri`: (`string`): path to feature file
-- `feature`: (`object`): Cucumber feature object
-- `scenario`: (`object`): Cucumber scenario object
+- `feature`: (`GherkinDocument.IFeature`): Cucumber feature object
 
 ### beforeScenario
 
 Runs before a Cucumber Scenario.
 
 Parameters:
-- `uri`: (`string`): path to feature file
-- `feature`: (`object`): Cucumber feature object
-- `scenario`: (`object`): Cucumber scenario object
-- `sourceLocation`: (`object`): location of step
+- `world`: (`ITestCaseHookParameter`): world object containing information on pickle and test step
 
 ### afterScenario
 
 Runs after a Cucumber Scenario.
 
 Parameters:
-- `uri`: (`string`): path to feature file
-- `feature`: (`object`): Cucumber feature object
-- `scenario`: (`object`): Cucumber scenario object
-- `result`: (`object`): scenario result
-- `sourceLocation`: (`object`): location of step
+- `world`: (`ITestCaseHookParameter`): world object containing information on pickle and test step
 
 ### beforeStep
 
 Runs before a Cucumber Step.
 
 Parameters:
-- `uri`: (`string`): path to feature file
-- `feature`: (`object`): Cucumber feature object
-- `step`: (`object`): Cucumber step object
+- `step`: (`Pickle.IPickleStep`): Cucumber step object
+- `context`: (`object`): execution context
 
 ### afterStep
 
 Runs after a Cucumber Step.
 
 Parameters:
-- `details`: (`object`): step details (contains `uri`, `feature` and `step` property objects)
-- `context`: (`object`): Cucumber context object
-- `result` (`object`): step result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `step`: (`Pickle.IPickleStep`): Cucumber step object
+- `context`: (`object`): execution context
