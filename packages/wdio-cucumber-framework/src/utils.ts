@@ -108,7 +108,7 @@ export function buildStepPayload(
 ) {
     return {
         uid: step.id,
-        title: isStepTypeHook(step) ? `hook-${step.hookId}` : step.text,
+        title: isStepTypeHook(step) ? 'Hook' : step.text,
         parent: scenario.id,
         argument: createStepArgument(step),
         file: uri,

@@ -103,7 +103,7 @@ describe('utils', () => {
             hookId: '728'
         }
         const params = { type: 'hook' }
-        expect(buildStepPayload(uri, feature, scenario, step, params).title).toBe(`hook-${step.hookId}`)
+        expect(buildStepPayload(uri, feature, scenario, step, params).title).toBe('Hook')
     })
 
     it('buildStepPayload creates a title property if called in a step context', () => {
