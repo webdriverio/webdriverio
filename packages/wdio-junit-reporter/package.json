@@ -29,7 +29,7 @@
     "@wdio/reporter": "7.0.3",
     "@wdio/types": "7.0.3",
     "json-stringify-safe": "^5.0.1",
-    "junit-report-builder": "^2.1.0",
+    "junit-report-builder": "^3.0.0",
     "validator": "^13.0.0"
   },
   "peerDependencies": {
