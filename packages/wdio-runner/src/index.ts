@@ -303,7 +303,6 @@ export default class Runner extends EventEmitter {
             return
         }
 
-        // @ts-expect-error
         browser.config = config as Options.Testrunner
         return browser
     }
