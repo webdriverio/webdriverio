@@ -35,6 +35,7 @@ describe('wdio-junit-reporter', () => {
     it('should prepare name', () => {
         expect(reporter['_prepareName']()).toMatchSnapshot()
         expect(reporter['_prepareName']('Chrome something_odd.foobar')).toMatchSnapshot()
+        expect(reporter['_prepareName']('Chrome @something_odd.foobar')).toMatchSnapshot()
     })
 
     it('has a suiteNameFormat option for setting names manually', () => {
@@ -187,28 +188,12 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 
-    it('generates xml output with correct information when test is ran against Browserstack for iOS apps (with packageName)', () => {
-        reporter = new WDIOJunitReporter({ packageName: 'wdio-unit-tests', stdout: true })
-        reporter.suites = featuresLog as any
-
-        // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerBrowserstackIosLog as any).replace(/\s/g, '')).toMatchSnapshot()
-    })
-
     it('generates xml output with correct information when test is ran against Browserstack for iOS apps', () => {
         reporter = new WDIOJunitReporter({ stdout: true })
         reporter.suites = featuresLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter['_buildJunitXml'](cucumberRunnerBrowserstackIosLog as any).replace(/\s/g, '')).toMatchSnapshot()
-    })
-
-    it('generates xml output with correct information when test is ran against Browserstack for Android apps (with packageName)', () => {
-        reporter = new WDIOJunitReporter({ packageName: 'wdio-unit-test', stdout: true })
-        reporter.suites = featuresLog as any
-
-        // verifies the content of the report but omits format by stripping all whitespace and new lines
-        expect(reporter['_buildJunitXml'](cucumberRunnerBrowserstackAndroidLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output with correct information when test is ran against Browserstack for Android apps', () => {
