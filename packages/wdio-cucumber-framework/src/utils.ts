@@ -72,6 +72,10 @@ enum StepType {
     test = 'test'
 }
 
+interface ExtendedPickleStep extends messages.Pickle.IPickleStep {
+    hookId?: string | null
+}
+
 /**
  * Get step type
  * @param {string} type `Step` or `Hook`
@@ -84,7 +88,7 @@ export function getFeatureId (uri: string, feature: messages.GherkinDocument.IFe
     return `${path.basename(uri)}:${feature.location?.line}:${feature.location?.column}`
 }
 
-function createStepTitle(step: messages.Pickle.IPickleStep): string {
+function createStepTitle(step: ExtendedPickleStep): string {
     if (isStepTypeHook(step)) {
         return `hook-${step.hookId}`
     }
