@@ -44,7 +44,7 @@ export const isEmpty = (object) => !object || Object.keys(object).length === 0
  * @returns {boolean}
  * @private
  */
-export const isMochaEachHooks = title => mochaEachHooks.some(hook => title.includes(hook))
+export const isMochaEachHooks = title => mochaEachHooks.some(hook => typeof title === 'string' && title.includes(hook))
 
 /**
  * Is mocha beforeAll / afterAll hook
@@ -52,7 +52,7 @@ export const isMochaEachHooks = title => mochaEachHooks.some(hook => title.inclu
  * @returns {boolean}
  * @private
  */
-export const isMochaAllHooks = title => mochaAllHooks.some(hook => title.includes(hook))
+export const isMochaAllHooks = title => mochaAllHooks.some(hook => typeof title === 'string' && title.includes(hook))
 
 /**
  * Call reporter
