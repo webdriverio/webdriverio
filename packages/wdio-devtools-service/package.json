@@ -28,7 +28,6 @@
   "dependencies": {
     "@babel/core": "^7.12.10",
     "@tracerbench/trace-event": "^5.1.0",
-    "@types/puppeteer-core": "^2.0.0",
     "@wdio/logger": "7.0.0",
     "@wdio/types": "7.0.4",
     "atob": "^2.1.2",
