@@ -55,8 +55,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     const chromiumOptions = caps['goog:chromeOptions'] || caps['ms:edgeOptions']
     if (chromiumOptions && chromiumOptions.debuggerAddress) {
         this.puppeteer = await puppeteer.connect({
-            browserURL: `http://${chromiumOptions.debuggerAddress}`,
-            defaultViewport: null
+            browserURL: `http://${chromiumOptions.debuggerAddress}`
         }) as any as PuppeteerBrowser
         return this.puppeteer
     }
@@ -84,8 +83,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
             }
 
             this.puppeteer = await puppeteer.connect({
-                browserURL: `http://localhost:${rdPort}`,
-                defaultViewport: null
+                browserURL: `http://localhost:${rdPort}`
             }) as any as PuppeteerBrowser
             return this.puppeteer as any as PuppeteerBrowser
         }
