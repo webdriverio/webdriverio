@@ -64,15 +64,20 @@ export function formatMessage ({ payload = {} }: any) {
 }
 
 function isStepTypeHook(step: messages.TestCase.ITestStep): boolean {
-    return step.hookId !== undefined && step.hookId !== null && step.hookId !== false
+    return step.hookId !== undefined && step.hookId !== null
+}
+
+enum StepType {
+    hook = 'hook',
+    test = 'test'
 }
 
 /**
  * Get step type
  * @param {string} type `Step` or `Hook`
  */
-export function getStepType (step: messages.TestCase.ITestStep) {
-    return isStepTypeHook(step) ? 'hook' : 'test'
+export function getStepType (step: messages.TestCase.ITestStep): StepType[keyof StepType] {
+    return isStepTypeHook(step) ? StepType.hook : StepType.test
 }
 
 export function getFeatureId (uri: string, feature: messages.GherkinDocument.IFeature) {
