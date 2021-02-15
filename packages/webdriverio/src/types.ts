@@ -132,14 +132,38 @@ export interface CustomInstanceCommands<T> {
 }
 
 interface InstanceBase extends EventEmitter, SessionFlags {
+    /**
+     * Session id for the current running session
+     */
     sessionId: string
+    /**
+     * Applied capabilities used in the current session. Note: these can differ from the actual
+     * requested capabilities if the remote end couldn't provide an exact match.
+     */
     capabilities: Capabilities.RemoteCapability
+    /**
+     * Requested capabilities defined in the config object.
+     */
     requestedCapabilities: Capabilities.RemoteCapability
+    /**
+     * Applied WebdriverIO options (options that aren't officially part of WebdriverIO are stripped
+     * out of this object).
+     */
     options: Options.WebdriverIO | Options.Testrunner
+    /**
+     * Given WebdriverIO options (including custom configurations)
+     */
+    config: Options.WebdriverIO | Options.Testrunner
+    /**
+     * Puppeteer instance
+     */
     puppeteer?: PuppeteerBrowser
     strategies: Map<any, any>
-    __propertiesObject__: Record<string, PropertyDescriptor>
 
+    /**
+     * @private
+     */
+    __propertiesObject__: Record<string, PropertyDescriptor>
     /**
      * @private
      */
