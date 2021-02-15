@@ -63,17 +63,9 @@ export function formatMessage ({ payload = {} }: any) {
     return content
 }
 
-function isStepTypeHook(step: messages.TestCase.ITestStep): boolean {
-    return step.hookId !== undefined && step.hookId !== null
-}
-
 enum StepType {
     hook = 'hook',
     test = 'test'
-}
-
-interface ExtendedPickleStep extends messages.Pickle.IPickleStep {
-    hookId?: string | null
 }
 
 /**
@@ -81,7 +73,7 @@ interface ExtendedPickleStep extends messages.Pickle.IPickleStep {
  * @param {string} type `Step` or `Hook`
  */
 export function getStepType (step: messages.TestCase.ITestStep): StepType[keyof StepType] {
-    return isStepTypeHook(step) ? StepType.hook : StepType.test
+    return step.hookId ? StepType.hook : StepType.test
 }
 
 export function getFeatureId (uri: string, feature: messages.GherkinDocument.IFeature) {
@@ -95,7 +87,7 @@ export function buildStepPayload(
     uri: string,
     feature: messages.GherkinDocument.IFeature,
     scenario: messages.IPickle,
-    step: ExtendedPickleStep,
+    step: messages.Pickle.IPickleStep,
     params: {
         type: string
         state?: messages.TestStepFinished.TestStepResult.Status | string | null
@@ -108,7 +100,7 @@ export function buildStepPayload(
 ) {
     return {
         uid: step.id,
-        title: isStepTypeHook(step) ? 'Hook' : step.text,
+        title: step.text || 'Hook',
         parent: scenario.id,
         argument: createStepArgument(step),
         file: uri,
@@ -121,7 +113,8 @@ export function buildStepPayload(
 }
 
 /**
- * wrap every user defined hook with function named `userHookFn`
+ * wrap ever
+ * y user defined hook with function named `userHookFn`
  * to identify later on is function a step, user hook or wdio hook.
  * @param {object} options `Cucumber.supportCodeLibraryBuilder.options`
  */
