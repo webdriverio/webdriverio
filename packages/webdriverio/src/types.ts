@@ -17,10 +17,10 @@ export type BrowserCommandsTypeSync = {
      * we need to copy type definitions for execute and executeAsync as we can't copy over
      * generics with method used above
      */
-    execute: <T, U extends any[] = any[], V extends U = any>(
-        script: string | ((...innerArgs: V) => T),
-        ...args: U
-    ) => T
+    execute: <ReturnValue, InnerArguments extends any[] = any[], OuterArguments extends InnerArguments = any>(
+        script: string | ((...innerArgs: OuterArguments) => ReturnValue),
+        ...args: InnerArguments
+    ) => ReturnValue
 }
 export type ElementCommandsType = typeof ElementCommands
 export type ElementCommandsTypeSync = {
@@ -186,7 +186,7 @@ export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Webdri
  */
 interface BrowserAsync extends BrowserBase, BrowserCommandsType, ProtocolCommandsAsync {}
 interface BrowserSync extends BrowserBase, BrowserCommandsTypeSync, ProtocolCommands {}
-export type Browser<T extends 'sync' | 'async'> = T extends 'sync' ? BrowserSync : BrowserAsync
+export type Browser<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? BrowserSync : BrowserAsync
 
 export interface ElementBase extends InstanceBase, ElementReference, CustomInstanceCommands<WebdriverIO.Element> {
     isMultiremote: false
@@ -225,7 +225,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
 
 interface ElementAsync extends ElementBase, ProtocolCommandsAsync, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
 interface ElementSync extends ElementBase, ProtocolCommands, Omit<BrowserCommandsTypeSync, keyof ElementCommandsTypeSync>, ElementCommandsTypeSync {}
-export type Element<T extends 'sync' | 'async'> = T extends 'sync' ? ElementSync : ElementAsync
+export type Element<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? ElementSync : ElementAsync
 
 interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
     /**
@@ -254,8 +254,8 @@ interface MultiRemoteBrowserAsync extends MultiRemoteBase, MultiRemoteBrowserCom
 interface MultiRemoteBrowserSync extends MultiRemoteBase, MultiRemoteBrowserCommandsTypeSync, MultiRemoteProtocolCommandsTypeSync { }
 interface MultiRemoteElementAsync extends MultiRemoteElementBase, MultiRemoteProtocolCommandsType, Omit<MultiRemoteBrowserCommandsType, keyof MultiRemoteElementCommandsType>, MultiRemoteElementCommandsType {}
 interface MultiRemoteElementSync extends MultiRemoteElementBase, MultiRemoteProtocolCommandsTypeSync, Omit<MultiRemoteBrowserCommandsTypeSync, keyof MultiRemoteElementCommandsTypeSync>, MultiRemoteElementCommandsTypeSync {}
-export type MultiRemoteBrowser<T extends 'sync' | 'async'> = T extends 'sync' ? MultiRemoteBrowserReferenceSync & MultiRemoteBrowserSync : MultiRemoteBrowserReferenceAsync & MultiRemoteBrowserAsync
-export type MultiRemoteElement<T extends 'sync' | 'async'> = T extends 'sync' ? MultiRemoteElementReferenceSync & MultiRemoteElementSync : MultiRemoteElementReferenceAsync & MultiRemoteElementAsync
+export type MultiRemoteBrowser<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? MultiRemoteBrowserReferenceSync & MultiRemoteBrowserSync : MultiRemoteBrowserReferenceAsync & MultiRemoteBrowserAsync
+export type MultiRemoteElement<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? MultiRemoteElementReferenceSync & MultiRemoteElementSync : MultiRemoteElementReferenceAsync & MultiRemoteElementAsync
 
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
 export type Selector = string | ElementReference | ElementFunction
