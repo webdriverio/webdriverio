@@ -72,7 +72,7 @@ enum StepType {
  * Get step type
  * @param {string} type `Step` or `Hook`
  */
-export function getStepType (step: messages.TestCase.ITestStep): StepType[keyof StepType] {
+export function getStepType (step: messages.TestCase.ITestStep) {
     return step.hookId ? StepType.hook : StepType.test
 }
 
