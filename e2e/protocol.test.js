@@ -168,7 +168,7 @@ describe('cookies', () => {
 
         await browser.navigateTo('https://google.com')
         const cookies = await browser.getAllCookies()
-        const ourCookie = cookies.find((cookie) => cookie.name ==='foobar' && cookie.value === '42')
+        const ourCookie = cookies.find((cookie) => cookie.name === 'foobar' && cookie.value === '42')
         expect(ourCookie).toBe(undefined)
     })
 
@@ -332,6 +332,28 @@ describe('executeScript', () => {
         expect(await browser.executeScript('/* test */ console.log("test")')).toBe(undefined)
         expect(await browser.executeScript('return { foo: "bar" }')).toEqual({ foo: 'bar' })
         expect(await browser.executeScript('return ({ foo: "bar" })')).toEqual({ foo: 'bar' })
+    })
+})
+
+describe('PDF', () => {
+    beforeAll(async () => {
+        await browser.navigateTo('http://guinea-pig.webdriver.io')
+    })
+
+    it('expect string', async () => {
+        const stringData = await browser.printPage(
+            'horizontal',
+            1,
+            false,
+            '8in',
+            '11in',
+            '1in',
+            '1in',
+            '1in',
+            '1in',
+            false
+        )
+        expect(typeof stringData).toBe('string')
     })
 })
 
