@@ -31,7 +31,7 @@
  *
  */
 export default async function getCookies(
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     names?: string | string[]
 ) {
     if (names === undefined) {

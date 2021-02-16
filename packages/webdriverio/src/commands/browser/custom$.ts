@@ -27,7 +27,7 @@ import { ELEMENT_KEY } from '../../constants'
  * @return {Element}
  */
 export default async function custom$ (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     strategyName: string,
     ...strategyArguments: any[]
 ) {

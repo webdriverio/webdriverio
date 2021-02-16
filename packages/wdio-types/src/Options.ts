@@ -1,6 +1,7 @@
 import * as got from 'got'
 import * as http from 'http'
 import * as https from 'https'
+import type { RegisterOptions } from 'ts-node'
 
 import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities'
 import { Hooks, ServiceEntry } from './Services'
@@ -43,10 +44,7 @@ export interface Connection {
      */
     queryParams?: {
         [name: string]: string
-    },
-}
-
-export interface WebDriver extends Connection {
+    }
     /**
      * Your cloud service username (only works for [Sauce Labs](https://saucelabs.com),
      * [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com),
@@ -65,6 +63,9 @@ export interface WebDriver extends Connection {
      * can be used to authenticate any other WebDriver backend.
      */
     key?: string
+}
+
+export interface WebDriver extends Connection {
     /**
      * Defines the capabilities you want to run in your WebDriver session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
@@ -403,6 +404,16 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
     mochaOpts?: WebdriverIO.MochaOpts
     jasmineOpts?: WebdriverIO.JasmineOpts
     cucumberOpts?: WebdriverIO.CucumberOpts
+    /**
+     * autocompile options
+     */
+    autoCompileOpts?: AutoCompileConfig
+}
+
+export interface AutoCompileConfig {
+    autoCompile?: boolean
+    tsNodeOpts?: RegisterOptions
+    babelOpts?: Record<string, any>
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {

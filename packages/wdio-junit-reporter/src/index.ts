@@ -22,7 +22,7 @@ class JunitReporter extends WDIOReporter {
         super(options)
         this._suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp
             ? this.options.suiteNameFormat
-            : /[^a-zA-Z0-9]+/
+            : /[^a-zA-Z0-9@]+/ // Reason for ignoring @ is; reporters like wdio-report-portal will fetch the tags from testcase name given as @foo @bar
     }
 
     onRunnerEnd (runner: RunnerStats) {
@@ -33,7 +33,7 @@ class JunitReporter extends WDIOReporter {
     private _prepareName (name = 'Skipped test') {
         return name.split(this._suiteNameRegEx).filter(
             (item) => item && item.length
-        ).join('_')
+        ).join(' ')
     }
 
     private _addFailedHooks(suite: SuiteStats) {
@@ -207,9 +207,9 @@ class JunitReporter extends WDIOReporter {
                 .map((capability) => capability!.toLowerCase())
                 .join('.')
                 .replace(/ /g, '') || runner.sanitizedCapabilities
-            this._packageName = this.options.packageName ? `${browserstackSanitizedCapabilities}-${this.options.packageName}` : browserstackSanitizedCapabilities
+            this._packageName = this.options.packageName || browserstackSanitizedCapabilities
         } else {
-            this._packageName = this.options.packageName ? `${runner.sanitizedCapabilities}-${this.options.packageName}` : runner.sanitizedCapabilities
+            this._packageName = this.options.packageName || runner.sanitizedCapabilities
         }
 
         const isCucumberFrameworkRunner = runner.config.framework === 'cucumber'

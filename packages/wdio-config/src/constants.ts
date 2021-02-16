@@ -88,3 +88,11 @@ export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
 export const SUPPORTED_FILE_EXTENSIONS = [
     '.js', '.mjs', '.es6', '.ts', '.feature', '.coffee', '.cjs'
 ]
+
+export const DEFAULT_AUTOCOMPILE_CONFIGS: () => Options.AutoCompileConfig = () => ({
+    autoCompile: true,
+    tsNodeOpts: {
+        transpileOnly: true
+    },
+    babelOpts: {}
+})

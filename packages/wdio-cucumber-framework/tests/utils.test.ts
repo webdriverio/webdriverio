@@ -92,6 +92,34 @@ describe('utils', () => {
         }, { type: 'hook' })).toMatchSnapshot()
     })
 
+    it('buildStepPayload creates a title property if called in a hook context', () => {
+        const uri = '/long/path/to/file.feature'
+        const feature = {}
+        const scenario = {}
+        const step = {
+            stepDefinitionIds: [],
+            stepMatchArgumentsLists: [],
+            id: '731',
+            hookId: '728'
+        }
+        const params = { type: 'hook' }
+        expect(buildStepPayload(uri, feature, scenario, step, params).title).toBe('Hook')
+    })
+
+    it('buildStepPayload creates a title property if called in a step context', () => {
+        const uri = '/long/path/to/file.feature'
+        const feature = {}
+        const scenario = {}
+        const stepTitle = 'I do some things'
+        const step = {
+            astNodeIds: ['23'],
+            id: '51',
+            text: stepTitle
+        }
+        const params = { type: 'test' }
+        expect(buildStepPayload(uri, feature, scenario, step, params).title).toBe(stepTitle)
+    })
+
     it('setUserHookNames', () => {
         const options = {
             beforeTestRunHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: async function someHookFoo () { } }, { code: () => { } }],

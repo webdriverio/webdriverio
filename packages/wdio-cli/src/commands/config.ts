@@ -14,6 +14,8 @@ import {
 import { ConfigCommandArguments, ParsedAnswers } from '../types'
 import yargs from 'yargs'
 
+const pkg = require('../../package.json')
+
 export const command = 'config'
 export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'
 
@@ -46,7 +48,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
 
-    const packagesToInstall: string[] = [
+    let packagesToInstall: string[] = [
         runnerPackage.package,
         frameworkPackage.package,
         ...reporterPackages.map(reporter => reporter.package),
@@ -99,6 +101,16 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      */
     addServiceDeps(servicePackages, packagesToInstall)
 
+    /**
+     * ensure wdio packages have the same dist tag as cli
+     */
+    if (pkg._requested && pkg._requested.fetchSpec) {
+        packagesToInstall = packagesToInstall.map((p) => p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p)
+            ? `${p}@${pkg._requested.fetchSpec}`
+            : p
+        )
+    }
+
     console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
     const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
 
@@ -148,7 +160,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      * print TypeScript configuration message
      */
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
-        const wdioTypes = syncExecution ? '@wdio/sync' : 'webdriverio'
+        const wdioTypes = syncExecution ? 'webdriverio/sync' : 'webdriverio/async'
         const tsPkgs = `"${[
             wdioTypes,
             frameworkPackage.package,

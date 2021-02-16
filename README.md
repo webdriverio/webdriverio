@@ -46,7 +46,7 @@ WebdriverIO is a test automation framework that allows you to run tests based on
 
 ## Contributing
 
-You like WebdriverIO and want to help making it better? Awesome! Have a look into our [Contributor Guide](docs/Contribute.md) and check out our [Contributor Documentation](CONTRIBUTING.md) to get started with setting up the repo.
+You like WebdriverIO and want to help making it better? Awesome! Have a look into our [Contributor Guide](website/docs/Contribute.md) and check out our [Contributor Documentation](CONTRIBUTING.md) to get started with setting up the repo.
 
 If you're looking for issues to help out with, check out [the issues labelled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out in our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) if you have question on where to start contributing.
 

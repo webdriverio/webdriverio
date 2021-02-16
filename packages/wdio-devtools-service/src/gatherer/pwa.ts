@@ -46,7 +46,7 @@ export default class PWAGatherer {
          * clean up network records after every page load
          */
         this._page.on('load', () => {
-            this._networkRecords = this._networkRecorder.getRecords()
+            this._networkRecords = this._networkRecorder.getRawRecords()
             delete this._networkRecorder
             this._networkRecorder = new NetworkRecorder()
         })

@@ -43,13 +43,13 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * @type protocol
  *
  */
-export default function executeAsync<T extends any[], U extends T>(
-    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
+export default function executeAsync<ReturnValue, InnerArguments extends any[]>(
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     script:
         string |
-        ((...args: [...T: any, callback: () => void]) => void),
-    ...args: U
-): Promise<T> {
+        ((...args: [...innerArgs: InnerArguments, callback: (result: ReturnValue) => void]) => void),
+    ...args: InnerArguments
+): Promise<ReturnValue> {
     /**
      * parameter check
      */

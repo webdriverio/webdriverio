@@ -20,11 +20,15 @@ export interface SauceServiceConfig {
     /**
      * If true it runs Sauce Connect and opens a secure connection between a Sauce Labs virtual
      * machine running your browser tests.
+     *
+     * @default false
      */
     sauceConnect?: boolean
     /**
      * Apply Sauce Connect options (e.g. to change port number or logFile settings). See this
      * list for more information: https://github.com/bermi/sauce-connect-launcher#advanced-usage
+     *
+     * @default {}
      */
     sauceConnectOpts?: SauceConnectOptions
     /**

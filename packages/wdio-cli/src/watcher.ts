@@ -5,9 +5,8 @@ import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
 
 import Launcher from './launcher'
-import type { Options, Capabilities } from '@wdio/types'
-import { RunCommandArguments } from './types.js'
-import { EventEmitter } from 'events'
+import type { Capabilities, Workers } from '@wdio/types'
+import { RunCommandArguments, ValueKeyIteratee } from './types.js'
 
 const log = logger('@wdio/cli:watch')
 
@@ -17,7 +16,7 @@ export default class Watcher {
 
     constructor (
         private _configFile: string,
-        private _args: Omit<Options.Testrunner, 'capabilities'>
+        private _args: Omit<RunCommandArguments, 'configPath'>
     ) {
         log.info('Starting launcher in watch mode')
         this._launcher = new Launcher(this._configFile, this._args, true)
@@ -74,22 +73,25 @@ export default class Watcher {
      * @return {Function}                    chokidar event callback
      */
     getFileListener (passOnFile = true) {
-        return (spec: string) => this.run(
-            Object.assign({}, this._args, passOnFile ? { spec: [spec] } : {})
-        )
+        return (spec: string) => {
+            // Do not pass the `spec` command line option to `this.run()`
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { spec: _specArg, ...args } = this._args
+            return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
+        }
     }
 
     /**
      * helper method to get workers from worker pool of wdio runner
-     * @param  {Function} pickBy             filter by property value (see lodash.pickBy)
-     * @param  {Boolean}  includeBusyWorker  don't filter out busy worker (default: false)
-     * @return {Object}                      Object with workers, e.g. {'0-0': { ... }}
+     * @param  predicate         filter by property value (see lodash.pickBy)
+     * @param  includeBusyWorker don't filter out busy worker (default: false)
+     * @return                   Object with workers, e.g. {'0-0': { ... }}
      */
-    getWorkers (pickByFn?: (value: any, key: string) => any, includeBusyWorker?: boolean) {
+    getWorkers (predicate?: ValueKeyIteratee<Workers.Worker> | null | undefined, includeBusyWorker?: boolean): Workers.WorkerPool {
         let workers = this._launcher.runner.workerPool
 
-        if (typeof pickByFn === 'function') {
-            workers = pickBy(workers, pickByFn)
+        if (typeof predicate === 'function') {
+            workers = pickBy(workers, predicate)
         }
 
         /**
@@ -99,16 +101,16 @@ export default class Watcher {
             workers = pickBy(workers, (worker) => !worker.isBusy)
         }
 
-        return workers as EventEmitter
+        return workers
     }
 
     /**
      * run workers with params
-     * @param  {Object} [params={}]  parameters to run the worker with
+     * @param  params parameters to run the worker with
      */
-    run (params: Partial<RunCommandArguments> = {}) {
+    run (params: Omit<Partial<RunCommandArguments>, 'spec'> & { spec?: string } = {}) {
         const workers = this.getWorkers(
-            (params.spec ? (worker) => worker.specs.includes(params.spec) : undefined)
+            (params.spec ? (worker) => worker.specs.includes(params.spec!) : undefined)
         )
 
         /**

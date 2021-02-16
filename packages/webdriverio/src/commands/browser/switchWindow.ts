@@ -26,7 +26,7 @@
  *
  */
 export default async function switchWindow (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     urlOrTitleToMatch: string | RegExp
 ) {
     /**

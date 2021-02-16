@@ -5,7 +5,7 @@ title: TypeScript Setup
 
 You can write tests using [TypeScript](http://www.typescriptlang.org) to get autocompletion and type safety.
 
-You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`. WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you.
+You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`. WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. If you need to configure how ts-node runs please use the environment variables for [ts-node](TypeScript.md) or use wdio config's [autoCompileOpts section](ConfigurationFile.md).
 
 ```bash npm2yarn
 $ npm install typescript ts-node --save-dev
@@ -219,8 +219,7 @@ declare global {
     "types": [
       "node",
       "webdriverio/sync",
-      "@wdio/mocha-framework",
-      "@wdio/sync"
+      "@wdio/mocha-framework"
     ],
   },
   "include": [

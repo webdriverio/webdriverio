@@ -1,4 +1,5 @@
-import { validateServiceAnswers, hasFile } from './utils'
+import { validateServiceAnswers, hasFile, getDefaultFiles } from './utils'
+import { Questionnair } from './types'
 
 const pkg = require('../package.json')
 
@@ -162,38 +163,38 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'hostname',
     message: 'What is the host address of that cloud service?',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend.indexOf('different service') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('different service') > -1
 }, {
     type: 'input',
     name: 'port',
     message: 'What is the port on which that service is running?',
     default: '80',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend.indexOf('different service') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('different service') > -1
 }, {
     type: 'input',
     name: 'expEnvAccessKey',
     message: 'Access key from Experitest Cloud',
     default: 'EXPERITEST_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend === 'In the cloud using Experitest'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Experitest'
 }, {
     type: 'input',
     name: 'expEnvHostname',
     message: 'Environment variable for cloud url',
     default: 'example.experitest.com',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend === 'In the cloud using Experitest'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Experitest'
 }, {
     type: 'input',
     name: 'expEnvPort',
     message: 'Environment variable for port',
     default: '443',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend === 'In the cloud using Experitest'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Experitest'
 }, {
     type: 'list',
     name: 'expEnvProtocol',
     message: 'Choose a protocol for environment variable',
     default: 'https',
     choices: PROTOCOL_OPTIONS,
-    when: /* istanbul ignore next */ (answers: any) => {
+    when: /* istanbul ignore next */ (answers: Questionnair) => {
         return answers.backend === 'In the cloud using Experitest' && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
     }
 }, {
@@ -201,8 +202,8 @@ export const QUESTIONNAIRE = [{
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'LT_USERNAME',
-    when: /* istanbul ignore next */ (answers: any) => (
-        answers.backend.indexOf('LambdaTest') > -1 &&
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        answers.backend.toString().indexOf('LambdaTest') > -1 &&
         answers.hostname.indexOf('lambdatest.com') > -1
     )
 }, {
@@ -210,8 +211,8 @@ export const QUESTIONNAIRE = [{
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'LT_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: any) => (
-        answers.backend.indexOf('LambdaTest') > -1 &&
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        answers.backend.toString().indexOf('LambdaTest') > -1 &&
         answers.hostname.indexOf('lambdatest.com') > -1
     )
 }, {
@@ -219,55 +220,55 @@ export const QUESTIONNAIRE = [{
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'BROWSERSTACK_USER',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend.startsWith('In the cloud using Browserstack')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'BROWSERSTACK_ACCESSKEY',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend.startsWith('In the cloud using Browserstack')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
 }, {
     type: 'input',
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'SAUCE_USERNAME',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'SAUCE_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'confirm',
     name: 'headless',
     message: 'Do you want to run your test on Sauce Headless? (https://saucelabs.com/products/web-testing/sauce-headless)',
     default: false,
-    when: /* istanbul ignore next */ (answers: any) => answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'list',
     name: 'region',
     message: 'In which region do you want to run your Sauce Labs tests in?',
     choices: REGION_OPTION,
-    when: /* istanbul ignore next */ (answers: any) => !answers.headless && answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers: Questionnair) => !answers.headless && answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'input',
     name: 'hostname',
     message: 'What is the IP or URI to your Selenium standalone or grid server?',
     default: 'localhost',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend.indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'port',
     message: 'What is the port which your Selenium standalone or grid server is running on?',
     default: '4444',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend.indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'path',
     message: 'What is the path to your browser driver or grid server?',
     default: '/',
-    when: /* istanbul ignore next */ (answers: any) => answers.backend.indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('own Selenium cloud') > -1
 }, {
     type: 'list',
     name: 'framework',
@@ -279,23 +280,33 @@ export const QUESTIONNAIRE = [{
     message: 'Do you want to run WebdriverIO commands synchronous or asynchronous?',
     choices: MODE_OPTIONS
 }, {
+    type: 'list',
+    name: 'isUsingCompiler',
+    message: 'Are you using a compiler?',
+    choices: COMPILER_OPTION_ANSWERS,
+    default: /* istanbul ignore next */ () => hasFile('babel.config.js')
+        ? COMPILER_OPTIONS.babel // default to Babel
+        : hasFile('tsconfig.json')
+            ? COMPILER_OPTIONS.ts // default to TypeScript
+            : COMPILER_OPTIONS.nil // default to no compiler
+}, {
     type: 'input',
     name: 'specs',
     message: 'Where are your test specs located?',
-    default: './test/specs/**/*.js',
-    when: /* istanbul ignore next */ (answers: any) => answers.framework.match(/(mocha|jasmine)/)
+    default: (answers: Questionnair) => getDefaultFiles(answers, './test/specs/**/*'),
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.framework.match(/(mocha|jasmine)/)
 }, {
     type: 'input',
     name: 'specs',
     message: 'Where are your feature files located?',
     default: './features/**/*.feature',
-    when: /* istanbul ignore next */ (answers: any) => answers.framework.includes('cucumber')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.framework.includes('cucumber')
 }, {
     type: 'input',
     name: 'stepDefinitions',
     message: 'Where are your step definitions located?',
-    default: './features/step-definitions/steps.js',
-    when: /* istanbul ignore next */ (answers: any) => answers.framework.includes('cucumber')
+    default: (answers: Questionnair) => getDefaultFiles(answers, './features/step-definitions/steps'),
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.framework.includes('cucumber')
 }, {
     type: 'confirm',
     name: 'generateTestFiles',
@@ -306,27 +317,17 @@ export const QUESTIONNAIRE = [{
     name: 'usePageObjects',
     message: 'Do you want to use page objects (https://martinfowler.com/bliki/PageObject.html)?',
     default: true,
-    when: /* istanbul ignore next */ (answers: any) => answers.generateTestFiles
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles
 }, {
     type: 'input',
     name: 'pages',
     message: 'Where are your page objects located?',
-    default: /* istanbul ignore next */ (answers: any) => (
+    default: /* istanbul ignore next */ (answers: Questionnair) => (
         answers.framework.match(/(mocha|jasmine)/)
-            ? './test/pageobjects/**/*.js'
-            : './features/pageobjects/**/*.js'
+            ? getDefaultFiles(answers, './test/pageobjects/**/*')
+            : getDefaultFiles(answers, './features/pageobjects/**/*')
     ),
-    when: /* istanbul ignore next */ (answers: any) => answers.generateTestFiles && answers.usePageObjects
-}, {
-    type: 'list',
-    name: 'isUsingCompiler',
-    message: 'Are you using a compiler?',
-    choices: COMPILER_OPTION_ANSWERS,
-    default: /* istanbul ignore next */ () => hasFile('babel.config.js')
-        ? COMPILER_OPTIONS.babel // default to Babel
-        : hasFile('tsconfig.json')
-            ? COMPILER_OPTIONS.ts // default to TypeScript
-            : COMPILER_OPTIONS.nil // default to no compiler
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.usePageObjects
 }, {
     type: 'checkbox',
     name: 'reporters',
@@ -347,25 +348,25 @@ export const QUESTIONNAIRE = [{
         /* istanbul ignore next */
         ({ name }) => name === 'chromedriver').value
     ],
-    validate: /* istanbul ignore next */ (answers: any) => validateServiceAnswers(answers)
+    validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
 }, {
     type: 'input',
     name: 'outputDir',
     message: 'In which directory should the xunit reports get stored?',
     default: './',
-    when: /* istanbul ignore next */ (answers: any) => answers.reporters.includes('junit')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.reporters.includes('junit')
 }, {
     type: 'input',
     name: 'outputDir',
     message: 'In which directory should the json reports get stored?',
     default: './',
-    when: /* istanbul ignore next */ (answers: any) => answers.reporters.includes('json')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.reporters.includes('json')
 }, {
     type: 'input',
     name: 'outputDir',
     message: 'In which directory should the mochawesome json reports get stored?',
     default: './',
-    when: /* istanbul ignore next */ (answers: any) => answers.reporters.includes('mochawesome')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.reporters.includes('mochawesome')
 }, {
     type: 'input',
     name: 'baseUrl',

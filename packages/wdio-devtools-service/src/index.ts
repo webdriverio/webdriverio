@@ -294,13 +294,36 @@ type AuditorCommands = Omit<FunctionProperties<Auditor>, '_audit' | '_auditPWA' 
  * https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#key-remapping-in-mapped-types
  */
 interface BrowserExtension extends CommandHandlerCommands, AuditorCommands {
+    /**
+     * Enables auto performance audits for all page loads that are cause by calling the url command or clicking on a link or anything that causes a page load.
+     * You can pass in a config object to determine some throttling options. The default throttling profile is Good 3G network with a 4x CPU trottling.
+     */
     enablePerformanceAudits: ServiceCommands['_enablePerformanceAudits']
+    /**
+     * Disable the performance audits
+     */
     disablePerformanceAudits: ServiceCommands['_disablePerformanceAudits']
+    /**
+     * The service allows you to emulate a specific device type.
+     * If set, the browser viewport will be modified to fit the device capabilities as well as the user agent will set according to the device user agent.
+     * Note: This only works if you don't use mobileEmulation within capabilities['goog:chromeOptions']. If mobileEmulation is present the call to browser.emulateDevice() won't do anything.
+     */
     emulateDevice: ServiceCommands['_emulateDevice']
+    /**
+     * Throttle network speed of the browser.
+     */
     setThrottlingProfile: ServiceCommands['_setThrottlingProfile']
+    /**
+     * Runs various PWA Lighthouse audits on the current opened page.
+     * Read more about Lighthouse PWA audits at https://web.dev/lighthouse-pwa/.
+     */
     checkPWA: ServiceCommands['_checkPWA']
+    /**
+     * Returns the coverage report for the current opened page.
+     */
     getCoverageReport: ServiceCommands['_getCoverageReport']
 }
+
 export type BrowserExtensionSync = {
     [K in keyof BrowserExtension]: (...args: Parameters<BrowserExtension[K]>) => ThenArg<ReturnType<BrowserExtension[K]>>
 }

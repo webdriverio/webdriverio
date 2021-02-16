@@ -75,7 +75,7 @@ class AllureReporter extends WDIOReporter {
                 return this._allure.startSuite(suite.title)
             }
 
-            // handle cucumber scenarii as allure "case" instead of "suite"
+            // handle cucumber scenario as allure "case" instead of "suite"
             this._allure.startCase(suite.title)
             const currentTest = this._allure.getCurrentTest()
             this.getLabels(suite).forEach(({ name, value }) => {

@@ -34,7 +34,7 @@ import type { Capabilities } from '@wdio/types'
  * @return {String} remote URL
  */
 export default async function uploadFile (
-    this: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
+    this: WebdriverIO.Browser,
     localPath: string
 ): Promise<string> {
     /**

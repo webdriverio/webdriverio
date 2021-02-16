@@ -1,7 +1,7 @@
 import allure from '@wdio/allure-reporter'
 import type { MockOverwriteFunction, ClickOptions, TouchAction } from 'webdriverio'
 
-const { SevereServiceError } = require('webdriverio')
+import { SevereServiceError } from 'webdriverio'
 
 declare global {
     namespace WebdriverIO {
@@ -163,6 +163,15 @@ const el = $('')
 el.addValue('Delete')
 el.addValue('Delete', { translateToUnicode: false })
 
+// scroll into view
+el.scrollIntoView(true)
+const scrollOptions: ScrollIntoViewOptions = {
+    block: 'center',
+    // @ts-expect-error
+    foo: 'bar'
+}
+el.scrollIntoView(scrollOptions)
+
 // An examples of setValue command with enabled/disabled translation to Unicode
 const elem1 = $('')
 elem1.setValue('Delete', { translateToUnicode: true })
@@ -321,5 +330,19 @@ function testSevereServiceError_noParameters() {
 function testSevereServiceError_stringParameter() {
     throw new SevereServiceError("Something happened.");
 }
+
+/**
+ * Multiremote
+ */
+const mBrowser: WebdriverIO.MultiRemoteBrowser = {} as any
+const rect = mBrowser.getWindowRect()
+rect[0].x.toFixed(2)
+
+const mElem = mBrowser.$('foobar')
+const location = mElem.getLocation('x')
+;(location[0] as number).toFixed()
+
+const url = multiremotebrowser.getUrl()
+url.pop()
 
 export default {}

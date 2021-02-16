@@ -73,7 +73,7 @@ export default class LogoCarousel extends React.Component {
         this.list = () => (
             <ul style={{ transform: `translate(${this.state.position}px, 0px)` }}>
                 {this.props.logos.map((value, index) => (
-                    <li key={index}><a href={value.url} target="_blank"><img src={'/img/logos/' + value.img} alt={value.alt} /></a></li>
+                    <li key={index}><a href={value.url} target="_blank" rel="noopener noreferrer"><img src={'/img/logos/' + value.img} alt={value.alt} /></a></li>
                 ))}
             </ul>
         )

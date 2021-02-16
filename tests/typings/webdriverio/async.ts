@@ -26,6 +26,16 @@ async function bar() {
         }
     })
 
+    const rect = await mr.getWindowRect()
+    rect[0].x.toFixed(2)
+
+    const mElem = await mr.$('foobar')
+    const location = await mElem.getLocation('x')
+    ;(location[0] as number).toFixed()
+
+    const url = await multiremotebrowser.getUrl()
+    url.pop()
+
     multiremote({
         myBrowserInstance: {
             capabilities: { browserName: 'chrome' }
@@ -136,7 +146,7 @@ async function bar() {
     await browser.executeAsync((arg: number, cb: (arg: number) => void) => {
         arg.toFixed()
         cb(123)
-    })
+    }, 456)
 
     const callResult = <number>await browser.call(() =>
         new Promise(resolve => setTimeout(() => resolve(4), 1))
@@ -223,6 +233,15 @@ async function bar() {
     const elem = await $('')
     await elem.addValue('Delete', { translateToUnicode: true })
     await elem.addValue('Delete', { translateToUnicode: false })
+
+    // scroll into view
+    await elem.scrollIntoView(true)
+    const scrollOptions: ScrollIntoViewOptions = {
+        block: 'center',
+        // @ts-expect-error
+        foo: 'bar'
+    }
+    await elem.scrollIntoView(scrollOptions)
 
     // An examples of setValue command with enabled/disabled translation to Unicode
     const elem1 = await $('')

@@ -34,7 +34,7 @@ async function custom$ (
     strategyArguments: string
 ) {
     const browserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as () => HTMLElement
+    const strategy = browserObject.strategies.get(strategyName) as (arg: string, context: any) => HTMLElement
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
@@ -60,7 +60,7 @@ async function custom$ (
     }
 
     if (res && typeof res[ELEMENT_KEY] === 'string') {
-        return await getElement.call(this, strategy, res)
+        return await getElement.call(this, strategy as any, res)
     }
 
     throw Error('Your locator strategy script must return an element')

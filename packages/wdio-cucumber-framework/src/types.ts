@@ -155,7 +155,6 @@ export interface HookFunctionExtension {
      * Runs after a Cucumber Step.
      * @param step    step data
      * @param context Cucumber world
-     * @param result  step result
      */
     afterStep?(step: messages.Pickle.IPickleStep, context: unknown): void;
 
@@ -171,7 +170,6 @@ export interface HookFunctionExtension {
      * Runs after a Cucumber Feature.
      * @param uri      path to feature file
      * @param feature  Cucumber feature object
-     * @param scenario Cucumber scenario object
      */
     afterFeature?(uri: string, feature: messages.GherkinDocument.IFeature): void;
 }

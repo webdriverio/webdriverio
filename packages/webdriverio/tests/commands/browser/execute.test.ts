@@ -11,13 +11,25 @@ describe('isEnabled test', () => {
             }
         })
 
-        await browser.execute(() => 'foobar', 1, 2, 3)
+        await browser.execute((a, b, c) => a + b + c, 1, 2, 3)
         expect(got.mock.calls[1][0].pathname)
             .toBe('/session/foobar-123/execute/sync')
         expect(got.mock.calls[1][1].json.script)
-            .toBe('return (() => \'foobar\').apply(null, arguments)')
+            .toBe('return ((a, b, c) => a + b + c).apply(null, arguments)')
         expect(got.mock.calls[1][1].json.args)
             .toEqual([1, 2, 3])
+    })
+
+    it('should return correct value', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const result = await browser.execute((value) => value, 'foobar')
+        expect(result).toEqual('foobar')
     })
 
     it('should throw if script is wrong type', async () => {

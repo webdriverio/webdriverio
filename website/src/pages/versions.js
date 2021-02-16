@@ -34,7 +34,7 @@ function Version() {
         path: 'https://v5.webdriver.io',
         comment: (
             <div>
-                <b>LTS</b> (since January 2021)
+                <b>Deprecated</b> (since January 2021)
             </div>
         ),
         repoUrl
@@ -82,7 +82,7 @@ function Version() {
                                         <Link to={stableVersion.path}>Documentation</Link>
                                     </td>
                                     <td>
-                                        <a href={`${stableVersion.repoUrl}/blob/master/CHANGELOG.md`}>
+                                        <a href={`${stableVersion.repoUrl}/blob/main/CHANGELOG.md`}>
                                         Release Notes
                                         </a>
                                     </td>

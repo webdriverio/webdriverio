@@ -5,7 +5,7 @@ const WDIOReporter = require('../../../../packages/wdio-reporter/build').default
 module.exports = class CustomReporter extends WDIOReporter {
     constructor(options) {
         super(options)
-        console.log('initialised custom reporter with the following reporter options:', options)
+        console.log('initialized custom reporter with the following reporter options:', options)
 
         this.write('Some log line')
     }
