@@ -173,7 +173,7 @@ export default class SauceService implements Services.ServiceInstance {
             this._isJobNameSet = true
         }
 
-        ;(this._browser as Browser<'async'>).execute('sauce:context=Feature: ' + this._suiteTitle)
+        (this._browser as Browser<'async'>).execute('sauce:context=Feature: ' + this._suiteTitle)
     }
 
     beforeScenario (world: Frameworks.World) {
