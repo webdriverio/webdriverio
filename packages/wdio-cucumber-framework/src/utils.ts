@@ -87,7 +87,7 @@ export function getFeatureId (uri: string, feature: messages.GherkinDocument.IFe
  * @param {string} type
  */
 export function getTestStepTitle (keyword:string = '', text:string = '', type:string) {
-    const title = (!text && type !== 'hook') ? 'Undefined Step' : text
+    const title = (!text && type.toLowerCase() !== 'hook') ? 'Undefined Step' : text
     return `${keyword.trim()} ${title.trim()}`.trim()
 }
 
@@ -98,7 +98,7 @@ export function buildStepPayload(
     uri: string,
     feature: messages.GherkinDocument.IFeature,
     scenario: messages.IPickle,
-    step: messages.Pickle.IPickleStep,
+    step: ReporterStep,
     params: {
         type: string
         state?: messages.TestStepFinished.TestStepResult.Status | string | null
@@ -198,7 +198,7 @@ export function addKeywordToStep(steps:ReporterStep[], feature:messages.GherkinD
             // the second from the TableRow AST node.
             // See https://github.com/cucumber/cucumber/blob/master/messages/messages.md
             const astNodeId = step.astNodeIds[0]
-            feature.children.find((child: messages.GherkinDocument.Feature.IFeatureChild) =>
+            feature.children.find((child) =>
                 // @ts-ignore
                 child[Object.keys(child)[0]].steps.find((featureScenarioStep:ReporterStep) => {
                     if (featureScenarioStep.id === astNodeId.toString()) {
