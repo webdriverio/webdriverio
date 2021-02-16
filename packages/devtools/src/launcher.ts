@@ -44,7 +44,14 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
      * ToDo(Christian): v7 cleanup
      */
     let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs
-    let port = (capabilities as any).port || (chromeOptions as any).port
+
+    let debuggerAddress = (chromeOptions as any).debuggerAddress
+    let port
+    if (debuggerAddress) {
+        const requestedPort = debuggerAddress.split(':')[1]
+        port = parseInt(requestedPort, 10)
+    }
+
     let headless = (chromeOptions as any).headless
 
     if (devtoolsOptions) {
@@ -89,7 +96,8 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     if (typeof mobileEmulation.userAgent === 'string') {
         chromeFlags.push(`--user-agent=${mobileEmulation.userAgent}`)
     }
-
+    if(port)
+        log.info(`Requesting to connect to Google Chrome on port: ${port}`)
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
 
     const chrome = await launchChromeBrowser({
