@@ -8,7 +8,7 @@ import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import { messages } from '@cucumber/messages'
 import { Capabilities } from '@wdio/types'
 
-import {CUCUMBER_HOOK_DEFINITION_TYPES, ReporterStep} from './constants'
+import { CUCUMBER_HOOK_DEFINITION_TYPES, ReporterStep } from './constants'
 import { TestHookDefinitionConfig } from './types'
 
 const log = logger('@wdio/cucumber-framework:utils')
