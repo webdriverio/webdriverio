@@ -167,6 +167,12 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         this._suiteTitle = feature.name
+
+        if (this._browser && !this._isUP && !this._isJobNameSet) {
+            this._browser.execute('sauce:job-name=' + this._suiteTitle)
+            this._isJobNameSet = true
+        }
+
         ;(this._browser as Browser<'async'>).execute('sauce:context=Feature: ' + this._suiteTitle)
     }
 
