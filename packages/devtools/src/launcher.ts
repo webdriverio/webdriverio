@@ -96,7 +96,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     if (typeof mobileEmulation.userAgent === 'string') {
         chromeFlags.push(`--user-agent=${mobileEmulation.userAgent}`)
     }
-    if(port)
+    if (port)
         log.info(`Requesting to connect to Google Chrome on port: ${port}`)
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
 
