@@ -8,7 +8,7 @@ import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import { messages } from '@cucumber/messages'
 import { Capabilities } from '@wdio/types'
 
-import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants'
+import {CUCUMBER_HOOK_DEFINITION_TYPES, ReporterStep} from './constants'
 import { TestHookDefinitionConfig } from './types'
 
 const log = logger('@wdio/cucumber-framework:utils')
@@ -81,6 +81,17 @@ export function getFeatureId (uri: string, feature: messages.GherkinDocument.IFe
 }
 
 /**
+ * Builds test title from step keyword and text
+ * @param {string} keyword
+ * @param {string} text
+ * @param {string} type
+ */
+export function getTestStepTitle (keyword:string = '', text:string = '', type:string) {
+    const title = (!text && type !== 'hook') ? 'Undefined Step' : text
+    return `${keyword.trim()} ${title.trim()}`.trim()
+}
+
+/**
  * build payload for test/hook event
  */
 export function buildStepPayload(
@@ -100,12 +111,12 @@ export function buildStepPayload(
 ) {
     return {
         uid: step.id,
-        title: step.text || 'Hook',
+        // @ts-ignore
+        title: getTestStepTitle(step.keyword, step.text, params.type),
         parent: scenario.id,
         argument: createStepArgument(step),
         file: uri,
         tags: scenario.tags,
-        // keyword: step.keyword,
         featureName: feature.name,
         scenarioName: scenario.name,
         ...params
@@ -171,4 +182,33 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
         .map(m => parse(m![1]))
         .find((filter: Capabilities.Capabilities) => Object.keys(filter)
             .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
+}
+
+/**
+ * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
+ * on the scenario, they ARE on the feature.
+ * This will aad them
+ */
+export function addKeywordToStep(steps:ReporterStep[], feature:messages.GherkinDocument.IFeature){
+    return steps.map(step => {
+        // Steps without a astNodeIds are hooks
+        if (step.astNodeIds && step.astNodeIds.length > 0 && feature.children) {
+            // Points to the AST node locations of the pickle. The last one represents the unique id of the pickle.
+            // A pickle constructed from Examples will have the first id originating from the Scenario AST node, and
+            // the second from the TableRow AST node.
+            // See https://github.com/cucumber/cucumber/blob/master/messages/messages.md
+            const astNodeId = step.astNodeIds[0]
+            feature.children.find((child: messages.GherkinDocument.Feature.IFeatureChild) =>
+                // @ts-ignore
+                child[Object.keys(child)[0]].steps.find((featureScenarioStep:ReporterStep) => {
+                    if (featureScenarioStep.id === astNodeId.toString()) {
+                        step.keyword = featureScenarioStep.keyword
+                    }
+                    return
+                })
+            )
+            return step
+        }
+        return step
+    })
 }
