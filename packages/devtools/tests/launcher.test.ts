@@ -119,7 +119,7 @@ test('launch chrome with chrome port', async () => {
     const browser = await launch({
         browserName: 'chrome',
         'goog:chromeOptions': {
-            port: 8041
+            debuggerAddress: '127.0.0.1:8041'
         }
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
