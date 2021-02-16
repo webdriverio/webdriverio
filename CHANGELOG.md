@@ -19,6 +19,24 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.0.5 (2021-02-16)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#6454](https://github.com/webdriverio/webdriverio/pull/6454) Fix/sauce service cucumber ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* [#6446](https://github.com/webdriverio/webdriverio/pull/6446) chore: fix link to contributor guide in README ([@web-padawan](https://github.com/web-padawan))
+
+#### :house: Internal
+* `devtools`, `wdio-devtools-service`, `webdriverio`
+  * [#6447](https://github.com/webdriverio/webdriverio/pull/6447) chore: remove obsolete puppeteer types ([@web-padawan](https://github.com/web-padawan))
+
+#### Committers: 2
+- Serhii Kulykov ([@web-padawan](https://github.com/web-padawan))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v7.0.4 (2021-02-15)
 
 #### :bug: Bug Fix
