@@ -19,6 +19,20 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.0.6 (2021-02-17)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#6453](https://github.com/webdriverio/webdriverio/pull/6453) Fix/add cucumber keyword ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* [#6455](https://github.com/webdriverio/webdriverio/pull/6455) Update autocompletion.md ([@MikoSh95](https://github.com/MikoSh95))
+
+#### Committers: 2
+- Piotr Mikosz ([@MikoSh95](https://github.com/MikoSh95))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v7.0.5 (2021-02-16)
 
 #### :bug: Bug Fix
