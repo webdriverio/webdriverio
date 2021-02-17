@@ -48,3 +48,17 @@ test('reloadSession', async () => {
     const newClient = await DevTools.reloadSession(client)
     expect(origSessionId).toBe(newClient)
 })
+
+test('attachSession', async () => {
+    const client = await DevTools.newSession({
+        logLevel: 'trace',
+        capabilities: {
+            browserName: 'chrome'
+        }
+    })
+    const clientAttach = await DevTools.attachToSession({
+        sessionId: client.sessionId,
+        capabilities: { browserName: 'chrome' }
+    })
+    expect(JSON.stringify(clientAttach)).toEqual(JSON.stringify(client))
+})

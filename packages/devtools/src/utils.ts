@@ -14,6 +14,7 @@ import cleanUp from './scripts/cleanUpSerializationSelector'
 import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES, PPTR_LOG_PREFIX } from './constants'
 import type { Priorities } from './finder/firefox'
 import type DevToolsDriver from './devtoolsdriver'
+import type { SessionFlags } from './types'
 
 const log = logger('devtools')
 
@@ -342,5 +343,23 @@ export function patchDebug (scoppedLogger: Logger) {
             msg = msg.slice(msg.indexOf(PPTR_LOG_PREFIX) + PPTR_LOG_PREFIX.length).trim()
         }
         scoppedLogger.debug(msg)
+    }
+}
+
+/**
+ * return all supported flags and return them in a format so we can attach them
+ * to the instance protocol
+ * @param  {Object} options   driver instance or option object containing these flags
+ * @return {Object}           prototype object
+ */
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+    return {
+        isW3C: { value: isW3C },
+        isMobile: { value: isMobile },
+        isIOS: { value: isIOS },
+        isAndroid: { value: isAndroid },
+        isChrome: { value: isChrome },
+        isSauce: { value: isSauce },
+        isSeleniumStandalone: { value: isSeleniumStandalone }
     }
 }

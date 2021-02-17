@@ -14,7 +14,7 @@ import DevToolsDriver from './devtoolsdriver'
 import launch from './launcher'
 import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants'
 import { getPrototype, patchDebug } from './utils'
-import type { ExtendedCapabilities } from './types'
+import type { ExtendedCapabilities, AttachOptions } from './types'
 
 const log = logger('devtools:puppeteer')
 
@@ -122,12 +122,46 @@ export default class DevTools {
         return instance.sessionId
     }
 
-    /**
-     * allows user to attach to existing sessions
-     */
-    /* istanbul ignore next */
-    static attachToSession () {
-        throw new Error('not yet implemented')
+    static async attachToSession (options: AttachOptions, modifier?: Function, userPrototype = {}, customCommandWrapper?: Function) {
+        const browser = await launch(options.capabilities as ExtendedCapabilities)
+        const pages = await browser.pages()
+        const driver = new DevToolsDriver(browser, pages)
+        const uaParser = new UAParser(await browser.userAgent())
+        const userAgent = uaParser.getResult()
+
+        if (!options || typeof options.sessionId !== 'string') {
+            throw new Error('sessionId is required to attach to existing session')
+        }
+
+        if (options.logLevel) {
+            logger.setLevel('devtools', options.logLevel)
+        }
+
+        const environmentPrototype: Record<string, { value: Browser | boolean }> = { puppeteer: { value: browser } }
+
+        Object.entries(devtoolsEnvironmentDetector({
+            browserName: userAgent?.browser?.name?.toLowerCase()
+        })).forEach(([name, value]) => {
+            environmentPrototype[name] = { value }
+        })
+        const commandWrapper = (
+            method: string,
+            endpoint: string,
+            commandInfo: CommandEndpoint
+        ) => driver.register(commandInfo)
+        const protocolCommands = getPrototype(commandWrapper)
+        const prototype = {
+            ...protocolCommands,
+            ...userPrototype,
+            ...environmentPrototype
+        }
+
+        const monad = webdriverMonad(
+            options,
+            modifier,
+            prototype
+        )
+        return monad(options.sessionId, customCommandWrapper)
     }
 }
 
