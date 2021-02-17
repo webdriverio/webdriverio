@@ -59,8 +59,8 @@ If you use vanilla JavaScript and want to have proper type support for synchrono
     "compilerOptions": {
         "types": [
             "node",
-            "webdriverio",
-            "@wdio/cucumber-framewor"
+            "webdriverio/async",
+            "@wdio/cucumber-framework"
         ]
     }
 }
