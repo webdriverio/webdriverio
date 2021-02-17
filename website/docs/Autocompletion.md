@@ -41,12 +41,13 @@ If you use vanilla JavaScript and want to have proper type support for synchrono
 
 ```json title="jsconfig.json"
 {
-  "include": [
-    "**/*.js",
-    "**/*.json",
-    "node_modules/@wdio/sync",
-    "node_modules/@wdio/mocha-framework"
-  ]
+    "compilerOptions": {
+        "types": [
+            "node",
+            "webdriverio/sync",
+            "@wdio/mocha-framework"
+        ]
+    }
 }
 ```
 
@@ -55,12 +56,13 @@ If you use vanilla JavaScript and want to have proper type support for synchrono
 
 ```json title="jsconfig.json"
 {
-  "include": [
-    "**/*.js",
-    "**/*.json",
-    "node_modules/webdriverio"
-    "node_modules/@wdio/cucumber-framework"
-  ]
+    "compilerOptions": {
+        "types": [
+            "node",
+            "webdriverio",
+            "@wdio/cucumber-framewor"
+        ]
+    }
 }
 ```
 
