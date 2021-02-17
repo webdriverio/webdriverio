@@ -43,7 +43,7 @@ export default function url (
     }
 
     if (typeof this.options.baseUrl === 'string') {
-        path = (new URL(this.options.baseUrl, path)).href
+        path = (new URL(path, this.options.baseUrl)).href
     }
 
     return this.navigateTo(validateUrl(path))

@@ -28,6 +28,12 @@ describe('url', () => {
             .toEqual({ url: 'http://foobar.com/foobar' })
     })
 
+    it('should pass url remotely', async () => {
+        await browser.url('http://google.com/')
+        expect(got.mock.calls[0][1].json)
+            .toEqual({ url: 'http://google.com/'})
+    })
+
     it('should throw an exception when a non-string value passed in', async () => {
         // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
