@@ -34,19 +34,17 @@ import { validateUrl } from '../../utils'
  * @type protocol
  *
  */
+
 export default function url (
+
     this: WebdriverIO.Browser,
     path: string
 ) {
-
     if (typeof path !== 'string') {
-        throw new Error('Parameter for "url" command needs to be type of string')
+       throw new Error('Parameter for "url" command needs to be type of string')
     }
-
     if (typeof this.options.baseUrl === 'string') {
-        path = (new URL(path, this.options.baseUrl)).href
+       path = (new URL(path, this.options.baseUrl)).href
     }
-
     return this.navigateTo(validateUrl(path))
-
 }
