@@ -711,7 +711,7 @@ export interface SauceLabsCapabilities {
      *
      * @deprecated
      */
-    geckodriverVersion: string
+    geckodriverVersion?: string
     /**
      * As a safety measure to prevent tests from running indefinitely, Sauce limits the duration of
      * tests to 30 minutes by default. You can adjust this limit on per-job basis and the maximum
