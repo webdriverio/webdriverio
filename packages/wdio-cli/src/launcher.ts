@@ -56,13 +56,33 @@ class Launcher {
         private _isWatchMode = false
     ) {
         this.configParser = new ConfigParser()
-        if ( this.configParser.autoCompile ) {
-            this.configParser.autoCompile() // autocompile before parsing configs so we support ES6 features in configs
+
+        /**
+         * autocompile before parsing configs so we support ES6 features in configs, only if
+         */
+        if (
+            /**
+             * the auto compile option is not define in this case we automatically compile
+             */
+            typeof _args.autoCompileOpts?.autoCompile === 'undefined' ||
+            /**
+             * or it was define and its value is not false
+             */
+            (_args.autoCompileOpts?.autoCompile as any as string) !== 'false'
+        ) {
+            this.configParser.autoCompile()
         }
+
         this.configParser.addConfigFile(_configFilePath)
         this.configParser.merge(_args)
-
         const config = this.configParser.getConfig()
+
+        /**
+         * assign parsed autocompile options into args so it can be used within the worker
+         * without having to read the config again
+         */
+        this._args.autoCompileOpts = config.autoCompileOpts
+
         const capabilities = this.configParser.getCapabilities() as (Capabilities.Capabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities)
         this.isMultiremote = !Array.isArray(capabilities)
 

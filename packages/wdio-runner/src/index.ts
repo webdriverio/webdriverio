@@ -94,6 +94,19 @@ export default class Runner extends EventEmitter {
         this._caps = caps
 
         /**
+         * merge passed in arguments first
+         */
+        this._configParser.merge(args)
+        const tmpConfig = this._configParser.getConfig()
+
+        /**
+         * autocompile after parsing configs so we support ES6 features in tests with config driven by users
+         */
+        if (tmpConfig.autoCompileOpts.autoCompile) {
+            this._configParser.autoCompile()
+        }
+
+        /**
          * add config file
          */
         try {
@@ -103,15 +116,11 @@ export default class Runner extends EventEmitter {
         }
 
         /**
-         * merge cli arguments into config
+         * merge cli arguments again as some might have been overwritten by the config
          */
         this._configParser.merge(args)
-        // autocompile after parsing configs so we support ES6 features in tests with config driven by users
-        if ( this._configParser.autoCompile ) {
-            this._configParser.autoCompile()
-        }
 
-        this._config = this._configParser.getConfig() as Options.Testrunner
+        this._config = this._configParser.getConfig()
         this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
         logger.setLogLevelsConfig(this._config.logLevels, this._config.logLevel)
         const isMultiremote = this._isMultiremote = !Array.isArray(this._configParser.getCapabilities())
