@@ -94,15 +94,10 @@ export default class Runner extends EventEmitter {
         this._caps = caps
 
         /**
-         * merge passed in arguments first
-         */
-        this._configParser.merge(args)
-        const tmpConfig = this._configParser.getConfig()
-
-        /**
          * autocompile after parsing configs so we support ES6 features in tests with config driven by users
          */
-        if (tmpConfig.autoCompileOpts.autoCompile) {
+        if (args.autoCompileOpts?.autoCompile) {
+            this._configParser.merge({ autoCompileOpts: args.autoCompileOpts })
             this._configParser.autoCompile()
         }
 
