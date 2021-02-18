@@ -7,7 +7,7 @@ import { EventEmitter } from 'events'
 import type { Options, Services, Capabilities } from '@wdio/types'
 
 import JasmineReporter from './reporter'
-import type { JasmineOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
+import type { JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
 
 const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
@@ -24,14 +24,14 @@ type HooksArray = {
 }
 
 interface WebdriverIOJasmineConfig extends Omit<Options.Testrunner, keyof HooksArray>, HooksArray {
-    jasmineOpts: Omit<JasmineOpts, 'cleanStack'>
+    jasmineOpts: Omit<jasmineNodeOpts, 'cleanStack'>
 }
 
 /**
  * Jasmine 2.x runner
  */
 class JasmineAdapter {
-    private _jasmineOpts: JasmineOpts
+    private _jasmineOpts: jasmineNodeOpts
     private _reporter: JasmineReporter
     private _totalTests = 0
     private _hookIds = 0
@@ -350,7 +350,7 @@ class JasmineAdapter {
         const { expectationResultHandler } = this._jasmineOpts
         return function (this: jasmine.Spec, passed: boolean, data: ResultHandlerPayload) {
             try {
-                expectationResultHandler.call(this, passed, data)
+                expectationResultHandler!.call(this, passed, data)
             } catch (e) {
                 /**
                  * propagate expectationResultHandler error if actual assertion passed
@@ -385,6 +385,6 @@ export * from './types'
 
 declare global {
     namespace WebdriverIO {
-        interface JasmineOpts extends JasmineOpts {}
+        interface JasmineOpts extends jasmineNodeOpts {}
     }
 }

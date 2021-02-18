@@ -117,21 +117,21 @@ export interface JasmineOpts {
      * Clean up stack trace and remove all traces of node module packages.
      * @default false
      */
-    cleanStack: boolean
+    cleanStack?: boolean
     /**
      * Stops test suite (`describe`) execution on first spec (`it`) failure (other suites continue running)
      * @default false
      */
-    stopOnSpecFailure: boolean
+    stopOnSpecFailure?: boolean
     /**
      * Stops a spec (`it`) execution on a first expectation failure (other specs continue running)
      * @default false
      */
-    stopSpecOnExpectationFailure: boolean
+    stopSpecOnExpectationFailure?: boolean
     /**
      * The Jasmine framework allows it to intercept each assertion in order to log the state of the application
      * or website depending on the result. For example it is pretty handy to take a screenshot every time
      * an assertion fails.
      */
-    expectationResultHandler: (passed: boolean, data: ResultHandlerPayload) => void
+    expectationResultHandler?: (passed: boolean, data: ResultHandlerPayload) => void
 }
