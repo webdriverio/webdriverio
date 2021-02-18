@@ -1,4 +1,4 @@
-import { Status as RealStatus } from 'cucumber'
+import { Status as RealStatus } from '@cucumber/cucumber'
 
 export const supportCodeLibraryBuilder = {
     options: {
