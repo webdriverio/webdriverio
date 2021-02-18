@@ -112,7 +112,7 @@ export interface HookFunctions {
     onComplete?(
         exitCode: number,
         config: Omit<TestrunnerOptions, 'capabilities'>,
-        capabilities: DesiredCapabilities,
+        capabilities: RemoteCapabilities,
         results: any // Results
     ): void;
 

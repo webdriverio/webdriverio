@@ -120,7 +120,7 @@ class Launcher {
 
         try {
             const config = this.configParser.getConfig()
-            const caps = this.configParser.getCapabilities() as Capabilities.Capabilities
+            const caps = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
             const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps as Capabilities.DesiredCapabilities)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
@@ -172,7 +172,7 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    runMode (config: Required<Options.Testrunner>, caps: Capabilities.Capabilities): Promise<number> {
+    runMode (config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
         /**
          * fail if no caps were found
          */
@@ -198,7 +198,7 @@ class Launcher {
              */
             this._schedule.push({
                 cid: cid++,
-                caps,
+                caps: caps as Capabilities.MultiRemoteCapabilities,
                 specs: this.configParser.getSpecs((caps as Capabilities.DesiredCapabilities).specs, (caps as Capabilities.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
