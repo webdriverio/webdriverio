@@ -211,8 +211,8 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework#jasminenodeopts-options
-    jasmineNodeOpts: {
+    // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework#jasmineopts-options
+    jasmineOpts: {
         //
         // Jasmine default timeout
         defaultTimeoutInterval: 5000,

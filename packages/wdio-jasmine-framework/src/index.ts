@@ -7,7 +7,7 @@ import { EventEmitter } from 'events'
 import type { Options, Services, Capabilities } from '@wdio/types'
 
 import JasmineReporter from './reporter'
-import type { JasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
+import type { JasmineOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
 
 const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
@@ -24,14 +24,14 @@ type HooksArray = {
 }
 
 interface WebdriverIOJasmineConfig extends Omit<Options.Testrunner, keyof HooksArray>, HooksArray {
-    jasmineNodeOpts: Omit<JasmineNodeOpts, 'cleanStack'>
+    jasmineOpts: Omit<JasmineOpts, 'cleanStack'>
 }
 
 /**
  * Jasmine 2.x runner
  */
 class JasmineAdapter {
-    private _jasmineNodeOpts: JasmineNodeOpts
+    private _jasmineOpts: JasmineOpts
     private _reporter: JasmineReporter
     private _totalTests = 0
     private _hookIds = 0
@@ -48,14 +48,18 @@ class JasmineAdapter {
         private _capabilities: Capabilities.RemoteCapabilities,
         reporter: EventEmitter
     ) {
-        this._jasmineNodeOpts = Object.assign({
+        this._jasmineOpts = Object.assign({
             cleanStack: true
-        }, this._config.jasmineNodeOpts)
+        }, (
+            this._config.jasmineOpts ||
+            // @ts-expect-error legacy option
+            this._config.jasmineNodeOpts
+        ))
 
         this._reporter = new JasmineReporter(reporter, {
             cid: this._cid,
             specs: this._specs,
-            cleanStack: this._jasmineNodeOpts.cleanStack
+            cleanStack: this._jasmineOpts.cleanStack
         })
         this._hasTests = true
     }
@@ -74,23 +78,23 @@ class JasmineAdapter {
         this._jrunner.addSpecFiles(this._specs)
 
         // @ts-ignore only way to hack timeout into jasmine
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineNodeOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
         jasmineEnv.addReporter(this._reporter)
 
         /**
-         * Filter specs to run based on jasmineNodeOpts.grep and jasmineNodeOpts.invert
+         * Filter specs to run based on jasmineOpts.grep and jasmineOpts.invert
          */
         jasmineEnv.configure({
-            specFilter: this._jasmineNodeOpts.specFilter || this.customSpecFilter.bind(this),
-            stopOnSpecFailure: Boolean(this._jasmineNodeOpts.stopOnSpecFailure),
-            failSpecWithNoExpectations: Boolean(this._jasmineNodeOpts.failSpecWithNoExpectations),
-            failFast: this._jasmineNodeOpts.failFast,
-            random: Boolean(this._jasmineNodeOpts.random),
-            seed: Boolean(this._jasmineNodeOpts.seed),
+            specFilter: this._jasmineOpts.specFilter || this.customSpecFilter.bind(this),
+            stopOnSpecFailure: Boolean(this._jasmineOpts.stopOnSpecFailure),
+            failSpecWithNoExpectations: Boolean(this._jasmineOpts.failSpecWithNoExpectations),
+            failFast: this._jasmineOpts.failFast,
+            random: Boolean(this._jasmineOpts.random),
+            seed: Boolean(this._jasmineOpts.seed),
             oneFailurePerSpec: Boolean(
                 // depcrecated old property
-                this._jasmineNodeOpts.stopSpecOnExpectationFailure ||
-                this._jasmineNodeOpts.oneFailurePerSpec
+                this._jasmineOpts.stopSpecOnExpectationFailure ||
+                this._jasmineOpts.oneFailurePerSpec
             )
         })
 
@@ -195,13 +199,13 @@ class JasmineAdapter {
         }
 
         try {
-            if (Array.isArray(this._jasmineNodeOpts.requires)) {
+            if (Array.isArray(this._jasmineOpts.requires)) {
                 // @ts-ignore outdated types
-                this._jrunner.addRequires(this._jasmineNodeOpts.requires)
+                this._jrunner.addRequires(this._jasmineOpts.requires)
             }
-            if (Array.isArray(this._jasmineNodeOpts.helpers)) {
+            if (Array.isArray(this._jasmineOpts.helpers)) {
                 // @ts-ignore outdated types
-                this._jrunner.addHelperFiles(this._jasmineNodeOpts.helpers)
+                this._jrunner.addHelperFiles(this._jasmineOpts.helpers)
             }
             // @ts-ignore outdated types
             this._jrunner.loadRequires()
@@ -254,7 +258,7 @@ class JasmineAdapter {
     }
 
     customSpecFilter (spec: jasmine.Spec) {
-        const { grep, invertGrep } = this._jasmineNodeOpts
+        const { grep, invertGrep } = this._jasmineOpts
         const grepMatch = !grep || spec.getFullName().match(new RegExp(grep)) !== null
         if (grepMatch === Boolean(invertGrep)) {
             // @ts-ignore outdated types
@@ -332,7 +336,7 @@ class JasmineAdapter {
     }
 
     getExpectationResultHandler (jasmine: jasmine.Jasmine) {
-        let { expectationResultHandler } = this._jasmineNodeOpts
+        let { expectationResultHandler } = this._jasmineOpts
         const origHandler = jasmine.Spec.prototype.addExpectationResult
 
         if (typeof expectationResultHandler !== 'function') {
@@ -343,7 +347,7 @@ class JasmineAdapter {
     }
 
     expectationResultHandler (origHandler: Function) {
-        const { expectationResultHandler } = this._jasmineNodeOpts
+        const { expectationResultHandler } = this._jasmineOpts
         return function (this: jasmine.Spec, passed: boolean, data: ResultHandlerPayload) {
             try {
                 expectationResultHandler.call(this, passed, data)
@@ -381,6 +385,6 @@ export * from './types'
 
 declare global {
     namespace WebdriverIO {
-        interface JasmineOpts extends JasmineNodeOpts {}
+        interface JasmineOpts extends JasmineOpts {}
     }
 }

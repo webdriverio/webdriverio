@@ -53,7 +53,7 @@ export interface FormattedMessage {
     errors?: jasmine.FailedExpectation[]
 }
 
-export interface JasmineNodeOpts {
+export interface JasmineOpts {
     /**
      * Default Timeout Interval for Jasmine operations.
      * @default 60000
