@@ -39,7 +39,7 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     mochaOpts: {
         timeout: DEFAULT_TIMEOUT
     },
-    jasmineNodeOpts: {
+    jasmineOpts: {
         defaultTimeoutInterval: DEFAULT_TIMEOUT
     },
     cucumberOpts: {

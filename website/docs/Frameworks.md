@@ -155,18 +155,18 @@ First, install the adapter package from NPM:
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-You can then configure your Jasmine environment by setting a `jasmineNodeOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
+You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
 
 ### Intercept Assertion
 
 The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result.
 
-For example, it is pretty handy to take a screenshot every time an assertion fails. In your `jasmineNodeOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
+For example, it is pretty handy to take a screenshot every time an assertion fails. In your `jasmineOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
 
 The following example demonstrates how to take a screenshot if an assertion fails:
 
 ```js
-jasmineNodeOpts: {
+jasmineOpts: {
     defaultTimeoutInterval: 10000,
     expectationResultHandler: function(passed, assertion) {
         /**
@@ -187,7 +187,7 @@ commands the screenshot is taken anyway, which still gives _some_ valuable infor
 
 ### Jasmine Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineNodeOpts` property:
+The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property:
 
 #### defaultTimeoutInterval
 Default Timeout Interval for Jasmine operations.

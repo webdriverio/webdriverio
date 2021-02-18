@@ -30,7 +30,7 @@ exports.config = {
 
     reporters: ['spec'],
 
-    jasmineNodeOpts: {
+    jasmineOpts: {
         defaultTimeoutInterval: 1000 * 60 * 3
     },
 

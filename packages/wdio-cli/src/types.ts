@@ -65,7 +65,7 @@ export interface RunCommandArguments {
     spec?: string[]
     exclude?: string[]
     mochaOpts?: any
-    jasmineNodeOpts?: any
+    jasmineOpts?: any
     cucumberOpts?: any
     autoCompileOpts?: any
     configPath: string
