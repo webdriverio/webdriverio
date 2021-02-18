@@ -211,7 +211,7 @@
         "required": false
       }, {
         "name": "scale",
-        "type": "number",
+        "type": "(number|string)",
         "description": "page scale. Default: `1`",
         "required": false
       }, {
@@ -221,32 +221,32 @@
         "required": false
       }, {
         "name": "width",
-        "type": "number",
+        "type": "(number|string)",
         "description": "page width in cm. Default: `21.59` from page",
         "required": false
       }, {
         "name": "height",
-        "type": "number",
+        "type": "(number|string)",
         "description": "page height in cm. Default: `27.94` from page",
         "required": false
       }, {
         "name": "top",
-        "type": "number",
+        "type": "(number|string)",
         "description": "page margin in cm from top margin. Default: `1`",
         "required": false
       }, {
         "name": "bottom",
-        "type": "number",
+        "type": "(number|string)",
         "description": "page margin in cm from bottom margin. Default: `1`",
         "required": false
       }, {
         "name": "left",
-        "type": "number",
+        "type": "(number|string)",
         "description": "page margin in cm from left margin. Default: `1`",
         "required": false
       }, {
         "name": "right",
-        "type": "number",
+        "type": "(number|string)",
         "description": "page margin in cm from right margin. Default: `1`",
         "required": false
       }, {

@@ -40,13 +40,12 @@ export default class CustomWorkerService {
      *
      * the `serviceOptions` parameter will be: `{ foo: 'bar' }`
      */
-    constructor (serviceOptions, capabilities, config, browser) {
-        this.browser = browser
+    constructor (serviceOptions, capabilities, config) {
     }
 
-    before(config, capabilities) {
+    before(config, capabilities, browser) {
         // TODO: something before all tests are run, e.g.:
-        this.browser.setWindowSize(1024, 768)
+        browser.setWindowSize(1024, 768)
     }
 
     after(exitCode, config, capabilities) {
