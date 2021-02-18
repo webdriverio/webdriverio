@@ -1,6 +1,8 @@
 import type { Capabilities } from '@wdio/types'
 
-export interface ExtendedCapabilities extends Capabilities.Capabilities {
+export interface ExtendedCapabilities extends Capabilities.Capabilities, WDIODevtoolsOptions {}
+
+export interface WDIODevtoolsOptions {
     'wdio:devtoolsOptions'?: DevToolsOptions
 }
 
