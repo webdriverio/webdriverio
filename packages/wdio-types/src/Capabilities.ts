@@ -130,7 +130,7 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     excludeDriverLogs?: string[];
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilities {
+export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilities, WebdriverIO.WDIODevtoolsOptions {
     // Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Testingbot w3c specific

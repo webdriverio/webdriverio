@@ -24,7 +24,10 @@ let browser;
     browser = await remote({
         automationProtocol: 'devtools',
         capabilities: {
-            browserName: 'chrome'
+            browserName: 'chrome',
+            'wdio:devtoolsOptions': {
+                headless: true
+            }
         }
     })
 
@@ -61,6 +64,25 @@ let browser;
     console.error(e)
     await browser.deleteSession()
 })
+```
+
+## `wdio:devtoolsOptions` Capability
+
+In order to set [Puppeteer specific configurations](https://pptr.dev/#?product=Puppeteer&version=v5.5.0&show=api-puppeteerlaunchoptions) you can use the `wdio:devtoolsOptions` capability which is a custom property (compliant to the WebDriver protocol), e.g.:
+
+```js
+{
+    browserName: 'chrome',
+    'wdio:devtoolsOptions': {
+        headless: true,
+        defaultViewport: {
+            width: 800,
+            height: 600,
+            deviceScaleFactor: 1,
+            isMobile: false
+        }
+    }
+}
 ```
 
 ### Commands
