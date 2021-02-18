@@ -227,10 +227,10 @@ class JunitReporter extends WDIOReporter {
         // there should only be one spec file per runner so we can safely take the first element of the array
         const specFileName = runner.specs[0]
         if (isCucumberFrameworkRunner) {
-            builder = this._buildOrderedReport(builder, runner, specFileName, 'feature', isCucumberFrameworkRunner)
-            builder = this._buildOrderedReport(builder, runner, specFileName, 'scenario', isCucumberFrameworkRunner)
+            this._buildOrderedReport(builder, runner, specFileName, 'feature', isCucumberFrameworkRunner)
+            this._buildOrderedReport(builder, runner, specFileName, 'scenario', isCucumberFrameworkRunner)
         } else {
-            builder = this._buildOrderedReport(builder, runner, specFileName, '', isCucumberFrameworkRunner)
+            this._buildOrderedReport(builder, runner, specFileName, '', isCucumberFrameworkRunner)
         }
 
         return builder.build()
@@ -245,9 +245,12 @@ class JunitReporter extends WDIOReporter {
             if (suiteKey.match(/^"before all"/)) {
                 continue
             }
-            let suite = this.suites[suiteKey]
-            if (isCucumberFrameworkRunner && suite.type === type) builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
-            else if (!isCucumberFrameworkRunner) builder = this._addSuiteToBuilder(builder, runner, specFileName, suite)
+            const suite = this.suites[suiteKey]
+            if (isCucumberFrameworkRunner && suite.type === type) {
+                builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
+            } else if (!isCucumberFrameworkRunner) {
+                builder = this._addSuiteToBuilder(builder, runner, specFileName, suite)
+            }
         }
         return builder
     }
