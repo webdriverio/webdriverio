@@ -34,6 +34,7 @@ import { validateUrl } from '../../utils'
  * @type protocol
  *
  */
+
 export default function url (
     this: WebdriverIO.Browser,
     path: string
