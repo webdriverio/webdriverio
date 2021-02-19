@@ -68,7 +68,7 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
      - Assert Response parameters
      - Store all the response in a seperate file
      
-    You can watch it created [on this video](https://www.youtube.com/watch?v=Be9IPyxHmLs)
+   You can watch it created [on this video](https://www.youtube.com/watch?v=Be9IPyxHmLs)
     
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
