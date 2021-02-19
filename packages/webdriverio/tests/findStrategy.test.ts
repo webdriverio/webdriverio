@@ -403,4 +403,34 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('xpath')
         expect(element.value).not.toBe('random string')
     })
+
+    it('should find an element using "css selector" method with implicit & explicit ARIA roles of button in case of role selector', () => {
+        const element = findStrategy('[role=button]')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[role="button"],input[type="checkbox"],summary[aria-expanded="false"],summary[aria-expanded="true"],input[type="button"],input[type="image"],input[type="reset"],input[type="submit"],button')
+    })
+
+    it('should find an element using "css selector" method with implicit & explicit ARIA roles of checkbox in case of role selector', () => {
+        const element = findStrategy('[role=checkbox]')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[role="checkbox"],input[type="checkbox"]')
+    })
+
+    it('should find an element using "css selector" method with implicit & explicit ARIA roles of listbox in case of role selector', () => {
+        const element = findStrategy('[role=listbox]')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[role="listbox"],select[multiple],select[size],select[multiple],datalist')
+    })
+
+    it('should find an element using "css selector" method with implicit & explicit ARIA roles of rowgroup in case of role selector', () => {
+        const element = findStrategy('[role=rowgroup]')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[role="rowgroup"],tbody,tfoot,thead')
+    })
+
+    it('should find an element using "css selector" method with implicit & explicit ARIA roles of not matching roles in case of role selector', () => {
+        const element = findStrategy('[role=abcd]')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[role="abcd"]')
+    })
 })
