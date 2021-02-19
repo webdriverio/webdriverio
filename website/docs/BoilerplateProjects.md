@@ -55,21 +55,21 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
 ## [17thSep/WebdriverIO_Master](https://github.com/17thSep/WebdriverIO_Master)
 
    Boilerplate project to run **WebdriverIO v7** tests for the following <br>
-   
+
    [1. Cucumber](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Cucumber)               - WDIO 7 scripts with TypeScript in Cucumber Framework<br>
    [2. Mocha](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Mocha)           - WDIO 7 scripts with TypeScript in Mocha Framework<br>
    [3. Docker](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Docker)         - Run WDIO 7 script in Docker<br>
    [4. Network logs](https://github.com/17thSep/MonitorNetworkLogs/)<br>
-   
+
    - Boiler plate project for:
      - Capture Network Logs
      - Capture all GET/POST calls or a specific REST API
      - Assert Request parametes
      - Assert Response parameters
      - Store all the response in a seperate file
-     
+
    You can watch it created [on this video](https://www.youtube.com/watch?v=Be9IPyxHmLs)
-    
+
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: Cucumber (v5.x)
@@ -271,4 +271,17 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
 
+## [17thSep/WebdriverIO_Master](https://github.com/17thSep/WebdriverIO_Master)
 
+Boilerplate project to run **WebdriverIO v7** tests for the following:
+
+[WDIO 7 scripts with TypeScript in Cucumber Framework](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Cucumber)
+[WDIO 7 scripts with TypeScript in Mocha Framework](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Mocha)
+[Run WDIO 7 script in Docker](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Docker)
+[Network logs](https://github.com/17thSep/MonitorNetworkLogs/)
+Boiler plate project for:
+     - Capture Network Logs
+     - Capture all GET/POST calls or a specific REST API
+     - Assert Request parameters
+     - Assert Response parameters
+     - Store all the response in a separate file
