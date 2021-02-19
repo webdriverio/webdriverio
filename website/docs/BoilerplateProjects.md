@@ -261,9 +261,11 @@ Boilerplate project to run **WebdriverIO v7** tests for the following:
 [WDIO 7 scripts with TypeScript in Mocha Framework](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Mocha)
 [Run WDIO 7 script in Docker](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Docker)
 [Network logs](https://github.com/17thSep/MonitorNetworkLogs/)
+
 Boiler plate project for:
-     - Capture Network Logs
-     - Capture all GET/POST calls or a specific REST API
-     - Assert Request parameters
-     - Assert Response parameters
-     - Store all the response in a separate file
+
+- Capture Network Logs
+- Capture all GET/POST calls or a specific REST API
+- Assert Request parameters
+- Assert Response parameters
+- Store all the response in a separate file
