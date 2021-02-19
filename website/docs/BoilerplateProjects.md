@@ -60,10 +60,6 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
    [2. Mocha](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Mocha)           - WDIO 7 scripts with TypeScript in Mocha Framework<br>
    [3. Docker](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Docker)         - Run WDIO 7 script in Docker<br>
    
-   More to follow...
-
-   ### You can also [watch them created here](https://www.youtube.com/channel/UCqaDA1xslraCbam2CxuKhUw)<br>
-
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: Cucumber (v5.x)
