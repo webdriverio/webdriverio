@@ -56,13 +56,33 @@ class Launcher {
         private _isWatchMode = false
     ) {
         this.configParser = new ConfigParser()
-        if ( this.configParser.autoCompile ) {
-            this.configParser.autoCompile() // autocompile before parsing configs so we support ES6 features in configs
+
+        /**
+         * autocompile before parsing configs so we support ES6 features in configs, only if
+         */
+        if (
+            /**
+             * the auto compile option is not define in this case we automatically compile
+             */
+            typeof _args.autoCompileOpts?.autoCompile === 'undefined' ||
+            /**
+             * or it was define and its value is not false
+             */
+            (_args.autoCompileOpts?.autoCompile as any as string) !== 'false'
+        ) {
+            this.configParser.autoCompile()
         }
+
         this.configParser.addConfigFile(_configFilePath)
         this.configParser.merge(_args)
-
         const config = this.configParser.getConfig()
+
+        /**
+         * assign parsed autocompile options into args so it can be used within the worker
+         * without having to read the config again
+         */
+        this._args.autoCompileOpts = config.autoCompileOpts
+
         const capabilities = this.configParser.getCapabilities() as (Capabilities.Capabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities)
         this.isMultiremote = !Array.isArray(capabilities)
 
@@ -100,7 +120,7 @@ class Launcher {
 
         try {
             const config = this.configParser.getConfig()
-            const caps = this.configParser.getCapabilities() as Capabilities.Capabilities
+            const caps = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
             const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps as Capabilities.DesiredCapabilities)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
@@ -152,7 +172,7 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    runMode (config: Required<Options.Testrunner>, caps: Capabilities.Capabilities): Promise<number> {
+    runMode (config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
         /**
          * fail if no caps were found
          */
@@ -178,7 +198,7 @@ class Launcher {
              */
             this._schedule.push({
                 cid: cid++,
-                caps,
+                caps: caps as Capabilities.MultiRemoteCapabilities,
                 specs: this.configParser.getSpecs((caps as Capabilities.DesiredCapabilities).specs, (caps as Capabilities.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0

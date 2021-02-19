@@ -198,6 +198,7 @@ describe('elements', () => {
     })
 
     it('should allow to click relative to the center of an element', async () => {
+        await browser.executeScript('window.scrollTo(0, 0)')
         const message = await browser.findElement('css selector', '.btn1_right_clicked')
         const btn2 = await browser.findElement('css selector', '.btn2')
 

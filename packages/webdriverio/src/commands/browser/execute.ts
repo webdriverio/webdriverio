@@ -35,11 +35,11 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * @type protocol
  *
  */
-export default function execute<T, U extends any[]> (
+export default function execute<ReturnValue, InnerArguments extends any[]> (
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    script: string | ((...innerArgs: U) => T),
-    ...args: U
-): Promise<T> {
+    script: string | ((...innerArgs: InnerArguments) => ReturnValue),
+    ...args: InnerArguments
+): Promise<ReturnValue> {
     /**
      * parameter check
      */

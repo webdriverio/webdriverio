@@ -35,7 +35,7 @@ When using `browser.debug()`, you will likely need to increase the timeout of th
 In `wdio.conf`:
 
 ```js
-jasmineNodeOpts: {
+jasmineOpts: {
     defaultTimeoutInterval: (24 * 60 * 60 * 1000)
 }
 ```
@@ -60,7 +60,7 @@ exports.config = {
     maxInstances: debug ? 1 : 100,
     capabilities: debug ? [{ browserName: 'chrome' }] : defaultCapabilities,
     execArgv: debug ? ['--inspect'] : [],
-    jasmineNodeOpts: {
+    jasmineOpts: {
       defaultTimeoutInterval: debug ? (24 * 60 * 60 * 1000) : defaultTimeoutInterval
     }
     // ...

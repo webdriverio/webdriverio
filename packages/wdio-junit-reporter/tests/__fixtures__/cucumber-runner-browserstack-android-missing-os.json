@@ -81,7 +81,7 @@
             "tagExpression": "@run",
             "ignoreUndefinedDefinitions": false
         },
-        "jasmineNodeOpts": {
+        "jasmineOpts": {
             "defaultTimeoutInterval": 10000
         },
         "before": [],

@@ -19,6 +19,99 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.0.7 (2021-02-18)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-config`, `wdio-runner`, `wdio-types`
+  * [#6475](https://github.com/webdriverio/webdriverio/pull/6475) Fix auto compile mechanism ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`, `wdio-types`
+  * [#6473](https://github.com/webdriverio/webdriverio/pull/6473) better type and document `wdio:devtoolsOptions` ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-config`, `wdio-jasmine-framework`, `wdio-junit-reporter`
+  * [#6472](https://github.com/webdriverio/webdriverio/pull/6472) Rename `jasmineNodeOpts` into `jasmineOpts` ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#6474](https://github.com/webdriverio/webdriverio/pull/6474) Improve type definition for Sauce Labs capabilities ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#6462](https://github.com/webdriverio/webdriverio/pull/6462) Update autocompletion ([@MikoSh95](https://github.com/MikoSh95))
+
+#### :house: Internal
+* `wdio-cucumber-framework`
+  * [#6476](https://github.com/webdriverio/webdriverio/pull/6476) Cleanup cucumber-framework dependencies ([@esaari](https://github.com/esaari))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Eric Saari ([@esaari](https://github.com/esaari))
+- Piotr Mikosz ([@MikoSh95](https://github.com/MikoSh95))
+
+
+## v7.0.6 (2021-02-17)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#6453](https://github.com/webdriverio/webdriverio/pull/6453) Fix/add cucumber keyword ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* [#6455](https://github.com/webdriverio/webdriverio/pull/6455) Update autocompletion.md ([@MikoSh95](https://github.com/MikoSh95))
+
+#### Committers: 2
+- Piotr Mikosz ([@MikoSh95](https://github.com/MikoSh95))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v7.0.5 (2021-02-16)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#6454](https://github.com/webdriverio/webdriverio/pull/6454) Fix/sauce service cucumber ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* [#6446](https://github.com/webdriverio/webdriverio/pull/6446) chore: fix link to contributor guide in README ([@web-padawan](https://github.com/web-padawan))
+
+#### :house: Internal
+* `devtools`, `wdio-devtools-service`, `webdriverio`
+  * [#6447](https://github.com/webdriverio/webdriverio/pull/6447) chore: remove obsolete puppeteer types ([@web-padawan](https://github.com/web-padawan))
+
+#### Committers: 2
+- Serhii Kulykov ([@web-padawan](https://github.com/web-padawan))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v7.0.4 (2021-02-15)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#6441](https://github.com/webdriverio/webdriverio/pull/6441) Ensure that 'title' property is passed down by cucumber framework to reporters ([@rickschubert](https://github.com/rickschubert))
+* `wdio-cli`, `wdio-local-runner`, `wdio-types`
+  * [#6373](https://github.com/webdriverio/webdriverio/pull/6373) @wdio/cli: Ensure watch mode re-runs all specs when the --spec command line option is set and a filesToWatch file is added or changed ([@kohlmannj](https://github.com/kohlmannj))
+
+#### :nail_care: Polish
+* `wdio-junit-reporter`
+  * [#6439](https://github.com/webdriverio/webdriverio/pull/6439) Removed _ from suite/test name in junit reporter ([@AutomationReddy](https://github.com/AutomationReddy))
+
+#### :memo: Documentation
+* `devtools`, `wdio-allure-reporter`
+  * [#6419](https://github.com/webdriverio/webdriverio/pull/6419) fix typos and version doc link ([@spnraju](https://github.com/spnraju))
+* Other
+  * [#6444](https://github.com/webdriverio/webdriverio/pull/6444) fixed typo in the wdio exec command ([@AutomationReddy](https://github.com/AutomationReddy))
+* `wdio-runner`, `webdriverio`
+  * [#6429](https://github.com/webdriverio/webdriverio/pull/6429) Improve typings for instance base ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-cucumber-framework`, `webdriverio`
+  * [#6431](https://github.com/webdriverio/webdriverio/pull/6431) fix docs for cucumber hooks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-junit-reporter`
+  * [#6430](https://github.com/webdriverio/webdriverio/pull/6430) bump junit reporter builder ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Joseph Kohlmann (he/him/his) ([@kohlmannj](https://github.com/kohlmannj))
+- Raju ([@spnraju](https://github.com/spnraju))
+- Rick Schubert ([@rickschubert](https://github.com/rickschubert))
+- Vinod Reddy ([@AutomationReddy](https://github.com/AutomationReddy))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v7.0.3 (2021-02-12)
 
 #### :bug: Bug Fix

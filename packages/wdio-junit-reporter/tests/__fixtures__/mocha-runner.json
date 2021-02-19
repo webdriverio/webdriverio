@@ -67,7 +67,7 @@
                 "/path/to/project/test/specs/sync.spec.js"
             ]
         },
-        "jasmineNodeOpts": {
+        "jasmineOpts": {
             "defaultTimeoutInterval": 10000
         },
         "before": [],

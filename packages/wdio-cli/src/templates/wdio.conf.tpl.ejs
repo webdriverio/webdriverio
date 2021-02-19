@@ -191,7 +191,7 @@ exports.config = {
     if(answers.framework === 'jasmine') { %>
     //
     // Options to be passed to Jasmine.
-    jasmineNodeOpts: {
+    jasmineOpts: {
         <% if(answers.isUsingBabel) {
         %>// Babel setup
         helpers: [require.resolve('@babel/register')],
@@ -327,32 +327,32 @@ exports.config = {
     /**
      * Runs before a Cucumber feature
      */
-    // beforeFeature: function (uri, feature, scenarios) {
+    // beforeFeature: function (uri, feature) {
     // },
     /**
      * Runs before a Cucumber scenario
      */
-    // beforeScenario: function (uri, feature, scenario, sourceLocation, context) {
+    // beforeScenario: function (world) {
     // },
     /**
      * Runs before a Cucumber step
      */
-    // beforeStep: function ({ uri, feature, step }, context) {
+    // beforeStep: function (step, context) {
     // },
     /**
      * Runs after a Cucumber step
      */
-    // afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
+    // afterStep: function (step, context) {
     // },
     /**
      * Runs after a Cucumber scenario
      */
-    // afterScenario: function (uri, feature, scenario, result, sourceLocation, context) {
+    // afterScenario: function (world) {
     // },
     /**
      * Runs after a Cucumber feature
      */
-    // afterFeature: function (uri, feature, scenarios) {
+    // afterFeature: function (uri, feature) {
     // },
     <% } %>
     /**

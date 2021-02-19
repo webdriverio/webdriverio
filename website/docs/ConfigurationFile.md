@@ -211,8 +211,8 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework#jasminenodeopts-options
-    jasmineNodeOpts: {
+    // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework#jasmineopts-options
+    jasmineOpts: {
         //
         // Jasmine default timeout
         defaultTimeoutInterval: 5000,
@@ -254,7 +254,7 @@ exports.config = {
     // using TypeScript and future ES features.
     // Because this may not be ideal in every situation, the following options
     // may be used to customize the loading for test running, incase it has
-    // other requirements. 
+    // other requirements.
     autoCompileOpts: {
         //
         // To disable auto-loading entirely set this to false.
@@ -270,7 +270,7 @@ exports.config = {
         },
         //
         // If @babel/register is installed, you can customize how options are passed to it here:
-        // Any valid @babel/register config option is allowed.  
+        // Any valid @babel/register config option is allowed.
         // https://babeljs.io/docs/en/babel-register#specifying-options
         babelOpts: {
             ignore: []
@@ -411,19 +411,51 @@ exports.config = {
     onReload: function(oldSessionId, newSessionId) {
     },
     /**
-     * Cucumber-specific hooks
+     * Cucumber Hooks
+     *
+     * Runs before a Cucumber Feature.
+     * @param uri      path to feature file
+     * @param feature  Cucumber feature object
      */
-    beforeFeature: function (uri, feature, scenarios) {
+    beforeFeature: function (uri, feature) {
     },
-    beforeScenario: function (uri, feature, scenario, sourceLocation, context) {
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
+    beforeScenario: function (world) {
     },
-    beforeStep: function ({ uri, feature, step }, context) {
+    /**
+     *
+     * Runs before a Cucumber Step.
+     * @param step    step data
+     * @param context Cucumber world
+     */
+    beforeStep: function (step, context) {
     },
-    afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed }) {
+    /**
+     *
+     * Runs after a Cucumber Step.
+     * @param step    step data
+     * @param context Cucumber world
+     */
+    afterStep: function (step, context) {
     },
-    afterScenario: function (uri, feature, scenario, result, sourceLocation, context) {
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
+    afterScenario: function (world) {
     },
-    afterFeature: function (uri, feature, scenarios) {
+    /**
+     *
+     * Runs after a Cucumber Feature.
+     * @param uri      path to feature file
+     * @param feature  Cucumber feature object
+     */
+    afterFeature: function (uri, feature) {
     }
 }
 ```

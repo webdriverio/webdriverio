@@ -4,8 +4,9 @@ import type * as Options from './Options'
 import type * as Services from './Services'
 import type * as Reporters from './Reporters'
 import type * as Frameworks from './Frameworks'
+import type * as Workers from './Workers'
 
-export type { Capabilities, Clients, Options, Services, Frameworks, Reporters }
+export type { Capabilities, Clients, Options, Services, Frameworks, Reporters, Workers }
 
 export type JsonPrimitive = string | number | boolean | null
 export type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }
@@ -25,6 +26,7 @@ declare global {
         interface ReporterOption extends Reporters.Options {}
         interface Config extends Options.Testrunner {}
         interface HookFunctionExtension {}
+        interface WDIODevtoolsOptions {}
     }
 
     namespace WebDriver {

@@ -3,15 +3,13 @@ import child from 'child_process'
 import { EventEmitter } from 'events'
 import type { WritableStreamBuffer } from 'stream-buffers'
 import type { ChildProcess } from 'child_process'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options, Workers } from '@wdio/types'
 
 import logger from '@wdio/logger'
 
 import RunnerTransformStream from './transformStream'
 import ReplQueue from './replQueue'
 import RunnerStream from './stdStream'
-
-import type { WorkerRunPayload, WorkerMessage, WorkerCommand } from './types'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -26,11 +24,12 @@ stdErrStream.pipe(process.stderr)
  * responsible for spawning a sub process to run the framework in and handle its
  * session lifetime.
  */
-export default class WorkerInstance extends EventEmitter {
+export default class WorkerInstance extends EventEmitter implements Workers.Worker {
     cid: string
     config: Options.Testrunner
     configFile: string
     caps: Capabilities.RemoteCapability
+    capabilities: Capabilities.RemoteCapability
     specs: string[]
     execArgv: string[]
     retries: number
@@ -57,7 +56,7 @@ export default class WorkerInstance extends EventEmitter {
      */
     constructor(
         config: Options.Testrunner,
-        { cid, configFile, caps, specs, execArgv, retries }: WorkerRunPayload,
+        { cid, configFile, caps, specs, execArgv, retries }: Workers.WorkerRunPayload,
         stdout: WritableStreamBuffer,
         stderr: WritableStreamBuffer
     ) {
@@ -66,6 +65,7 @@ export default class WorkerInstance extends EventEmitter {
         this.config = config
         this.configFile = configFile
         this.caps = caps
+        this.capabilities = caps
         this.specs = specs
         this.execArgv = execArgv
         this.retries = retries
@@ -109,7 +109,7 @@ export default class WorkerInstance extends EventEmitter {
         return childProcess
     }
 
-    private _handleMessage (payload: WorkerMessage) {
+    private _handleMessage (payload: Workers.WorkerMessage) {
         const { cid, childProcess } = this
 
         /**
@@ -179,11 +179,10 @@ export default class WorkerInstance extends EventEmitter {
 
     /**
      * sends message to sub process to execute functions in wdio-runner
-     * @param  {string} command  method to run in wdio-runner
-     * @param  {object} argv     arguments for functions to call
-     * @return null
+     * @param  command  method to run in wdio-runner
+     * @param  args     arguments for functions to call
      */
-    postMessage (command: string, args: any) {
+    postMessage (command: string, args: Workers.WorkerMessageArgs): void {
         const { cid, configFile, caps, specs, retries, isBusy } = this
 
         if (isBusy && command !== 'endSession') {
@@ -198,7 +197,7 @@ export default class WorkerInstance extends EventEmitter {
             this.childProcess = this.startProcess()
         }
 
-        const cmd: WorkerCommand = { cid, command, configFile, args, caps, specs, retries }
+        const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps, specs, retries }
         this.childProcess.send(cmd)
         this.isBusy = true
     }

@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
 import { HookParams } from './types'
-import { filterPickles } from './utils'
+import { addKeywordToStep, filterPickles } from './utils'
 
 const log = logger('CucumberEventListener')
 
@@ -252,6 +252,16 @@ export default class CucumberEventListener extends EventEmitter {
         }
 
         const doc = this._gherkinDocEvents.find(gde => gde.uri === scenario?.uri)
+
+        /**
+         * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
+         * on the scenario, they ARE on the feature.
+         * This will aad them
+         */
+        if (scenario.steps && feature) {
+            scenario.steps = addKeywordToStep(scenario.steps, feature)
+        }
+
         this._currentPickle = { uri, feature, scenario }
         this.emit('before-scenario', scenario.uri, doc?.feature, scenario)
     }

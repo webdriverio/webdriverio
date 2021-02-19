@@ -14,7 +14,7 @@ import DevToolsDriver from './devtoolsdriver'
 import launch from './launcher'
 import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants'
 import { getPrototype, patchDebug } from './utils'
-import type { ExtendedCapabilities } from './types'
+import type { ExtendedCapabilities, WDIODevtoolsOptions as WDIODevtoolsOptionsExtension } from './types'
 
 const log = logger('devtools:puppeteer')
 
@@ -132,3 +132,10 @@ export default class DevTools {
 }
 
 export { SUPPORTED_BROWSER }
+export * from './types'
+
+declare global {
+    namespace WebdriverIO {
+        interface WDIODevtoolsOptions extends WDIODevtoolsOptionsExtension {}
+    }
+}

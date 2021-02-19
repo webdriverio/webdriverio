@@ -25,10 +25,10 @@ describe('PWAGatherer', () => {
             .toMatchSnapshot()
         pwaGatherer['_networkRecorder'].dispatch({ method: 'Network.requestWillBeSent', params: 'bar' })
         expect(pwaGatherer['_networkRecords']).toHaveLength(0)
-        expect(pwaGatherer['_networkRecorder'].getRecords()).toHaveLength(1)
+        expect(pwaGatherer['_networkRecorder'].getRawRecords()).toHaveLength(1)
         ;(pageMock.on as jest.Mock).mock.calls[0][1]()
         expect(pwaGatherer['_networkRecords']).toHaveLength(1)
-        expect(pwaGatherer['_networkRecorder'].getRecords()).toHaveLength(0)
+        expect(pwaGatherer['_networkRecorder'].getRawRecords()).toHaveLength(0)
     })
 
     it('gatherData', async () => {

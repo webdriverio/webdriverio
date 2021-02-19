@@ -6,6 +6,8 @@ import {
     buildStepPayload,
     setUserHookNames,
     filterPickles,
+    getTestStepTitle,
+    addKeywordToStep,
 } from '../src/utils'
 
 describe('utils', () => {
@@ -66,6 +68,16 @@ describe('utils', () => {
         })
     })
 
+    describe('getTestStepTitle', () => {
+        it('should determine a correct title', () => {
+            expect(getTestStepTitle('Given ', 'I do something good', 'Step')).toEqual('Given I do something good')
+        })
+
+        it('should determine a Undefined Step', () => {
+            expect(getTestStepTitle('', '', 'Step')).toEqual('Undefined Step')
+        })
+    })
+
     it('getStepType', () => {
         expect(getStepType({})).toBe('test')
         expect(getStepType({ hookId: '123' })).toBe('hook')
@@ -88,8 +100,9 @@ describe('utils', () => {
             tags: [{ name: 'some tag' }]
         }, {
             id: '123',
-            text: 'title'
-        }, { type: 'hook' })).toMatchSnapshot()
+            text: 'title',
+            keyword: 'Given'
+        }, { type: 'step' })).toMatchSnapshot()
     })
 
     it('setUserHookNames', () => {
@@ -140,5 +153,61 @@ describe('utils', () => {
             id: '123',
             tags: [{ name: '@skip(something=weird)' }]
         })).toBe(false)
+    })
+
+    it('addKeywordToStep should add keywords to the steps', ()=>{
+        const steps = [
+            // Should get a keyword
+            {
+                text: 'I have a background',
+                id: '20',
+                astNodeIds: ['0']
+            },
+            // Should get a keyword
+            {
+                text: 'I have 42 cukes in my belly',
+                id: '21',
+                astNodeIds: ['2']
+            },
+            // Should NOT get a keyword
+            {
+                id: '77',
+                hookId: '47'
+            }
+        ]
+        const feature = {
+            children: [
+                {
+                    background: {
+                        keyword: 'Background',
+                        name: '',
+                        steps: [
+                            {
+                                keyword: 'Given ',
+                                text: 'I have a background',
+                                id: '0'
+                            }
+                        ],
+                        id: '1'
+                    }
+                },
+                {
+                    scenario: {
+                        keyword: 'Scenario',
+                        name: 'cukes',
+                        steps: [
+                            {
+                                keyword: 'Given ',
+                                text: 'I have 42 cukes in my belly',
+                                id: '2'
+                            }
+                        ],
+                        id: '3'
+                    }
+                },
+            ]
+        }
+
+        expect(addKeywordToStep(steps, feature)).toMatchSnapshot()
     })
 })

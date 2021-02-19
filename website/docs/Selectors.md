@@ -137,7 +137,7 @@ const classNameAndText = $('[name="username"]')
 console.log(classNameAndText.getValue()) // outputs: "foobar"
 ```
 
-__Note:__ This selector strategy it depcrecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
+__Note:__ This selector strategy it deprecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
 
 ## xPath
 

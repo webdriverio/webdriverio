@@ -2,7 +2,6 @@ import path from 'path'
 import tsNode from 'ts-node'
 import logger from '@wdio/logger'
 import ConfigParser from '../src/lib/ConfigParser'
-import { DEFAULT_AUTOCOMPILE_CONFIGS } from '../src/constants'
 import MockFileContentBuilder, { MockFileContent } from './lib/MockFileContentBuilder'
 import { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from './lib/MockPathService'
 import ConfigParserBuilder from './lib/ConfigParserBuilder'
@@ -212,7 +211,6 @@ describe('ConfigParser', () => {
                 configParser.autoCompile()
                 configParser.addConfigFile('tests/cool.conf')
                 expect(tsNodeRegister).toBeCalledTimes(1)
-                expect(tsNodeRegister).toHaveBeenCalledWith(DEFAULT_AUTOCOMPILE_CONFIGS().tsNodeOpts)
             })
 
             it('when ts-node exists should initiate TypeScript compiler with defaults + config, preferring config, if it is present and autocompiled after config is read', function () {
@@ -269,7 +267,6 @@ describe('ConfigParser', () => {
                 configParser.addConfigFile('tests/cool.conf')
                 configParser.autoCompile()
                 expect(tsNodeRegister).toBeCalledTimes(1)
-                expect(tsNodeRegister).not.toHaveBeenCalledWith(DEFAULT_AUTOCOMPILE_CONFIGS().tsNodeOpts)
                 expect(tsNodeRegister).toHaveBeenCalledWith( {
                     'transpileOnly': false
                 } )
@@ -292,7 +289,6 @@ describe('ConfigParser', () => {
                 })
                 configParser.autoCompile()
                 expect(tsNodeRegister).toBeCalledTimes(0)
-                expect(log.debug).toBeCalledTimes(0)
             })
 
             it('should just continue without initiation if ts-node does not exist', () => {
@@ -408,7 +404,6 @@ describe('ConfigParser', () => {
                 configParser.autoCompile()
                 expect(resolveMock).not.toHaveBeenCalled()
                 expect(requireMock).not.toHaveBeenCalled()
-                expect(log.debug).toBeCalledTimes(0)
             })
 
             it('should just continue without initiation if @babel/register does not exist', () => {

@@ -287,17 +287,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
     afterSession: HOOK_DEFINITION,
     after: HOOK_DEFINITION,
     onComplete: HOOK_DEFINITION,
-    onReload: HOOK_DEFINITION,
-
-    /**
-     * cucumber specific hooks
-     */
-    // beforeFeature: HOOK_DEFINITION,
-    // beforeScenario: HOOK_DEFINITION,
-    // beforeStep: HOOK_DEFINITION,
-    // afterStep: HOOK_DEFINITION,
-    // afterScenario: HOOK_DEFINITION,
-    // afterFeature: HOOK_DEFINITION,
+    onReload: HOOK_DEFINITION
 }
 
 /**

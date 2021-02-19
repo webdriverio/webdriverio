@@ -119,7 +119,7 @@ describe('cucumber reporter', () => {
                 const failedStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
                 failedStep.testStepResult = {
                     ...failedStep.testStepResult,
-                    status: 'failed' as any
+                    status: 6
                 }
                 eventBroadcaster.emit('envelope', { testStepFinished: failedStep })
                 delete wdioReporter.emit.mock.calls[0][1].duration
@@ -262,7 +262,7 @@ describe('cucumber reporter', () => {
             const failedStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
             failedStep.testStepResult = {
                 ...failedStep.testStepResult,
-                status: 'failed' as any
+                status: 6
             }
             eventBroadcaster.emit('envelope', { testStepFinished: failedStep })
             expect(reporter.failedCount).toBe(1)
@@ -272,7 +272,7 @@ describe('cucumber reporter', () => {
             const ambiguousStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
             ambiguousStep.testStepResult = {
                 ...ambiguousStep.testStepResult,
-                status: 'ambiguous' as any
+                status: 5
             }
             eventBroadcaster.emit('envelope', { testStepFinished: ambiguousStep })
             expect(reporter.failedCount).toBe(1)
@@ -282,7 +282,7 @@ describe('cucumber reporter', () => {
             const undefinedStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
             undefinedStep.testStepResult = {
                 ...undefinedStep.testStepResult,
-                status: 'undefined' as any
+                status: 4
             }
             eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
             expect(reporter.failedCount).toBe(1)
@@ -293,7 +293,7 @@ describe('cucumber reporter', () => {
             const undefinedStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
             undefinedStep.testStepResult = {
                 ...undefinedStep.testStepResult,
-                status: 'undefined' as any
+                status: 4
             }
             eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
             expect(reporter.failedCount).toBe(0)

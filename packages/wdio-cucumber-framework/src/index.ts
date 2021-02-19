@@ -1,4 +1,3 @@
-import fs from 'fs'
 import path from 'path'
 import { EventEmitter } from 'events'
 
@@ -7,10 +6,10 @@ import isGlob from 'is-glob'
 import glob from 'glob'
 
 import * as Cucumber from '@cucumber/cucumber'
+import GherkinStreams from '@cucumber/gherkin/dist/src/stream/GherkinStreams'
 import EventDataCollector from '@cucumber/cucumber/lib/formatter/helpers/event_data_collector'
 import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
-import { GherkinStreams } from '@cucumber/gherkin'
 import { Long }  from 'long'
 import { IdGenerator } from '@cucumber/messages'
 
@@ -78,8 +77,7 @@ class CucumberAdapter {
         try {
             const gherkinMessageStream = GherkinStreams.fromPaths(this._specs, {
                 defaultDialect: this._cucumberOpts.featureDefaultLanguage,
-                newId: this._newId,
-                createReadStream: (path) => fs.createReadStream(path, { encoding: 'utf-8' })
+                newId: this._newId
             })
 
             await Cucumber.parseGherkinMessageStream({

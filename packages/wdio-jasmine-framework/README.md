@@ -32,14 +32,14 @@ Following code shows the default wdio test runner configuration...
 module.exports = {
   // ...
   framework: 'jasmine'
-  jasmineNodeOpts: {
+  jasmineOpts: {
     defaultTimeoutInterval: 10000
   }
   // ...
 };
 ```
 
-## `jasmineNodeOpts` Options
+## `jasmineOpts` Options
 
 ### defaultTimeoutInterval
 Timeout until specs will be marked as failed.

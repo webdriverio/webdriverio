@@ -82,7 +82,7 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
     - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
     - Task manage through Grunt
-    - Examples with demo app https://search.yahoo.com/  and http://the-internet.herokuapp.com, Chai assertion liberary (expect, assert, should)
+    - Examples with demo app https://search.yahoo.com/  and http://the-internet.herokuapp.com, Chai assertion library (expect, assert, should)
     - `Appium specific .config file for playback on mobile device.` For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
@@ -187,7 +187,7 @@ A WebdriverIO & Cucumber Boilerplate based on Page Object Model!
     - Supports Page Object Model
     - Compatible with Nodejs Versions 8.x to 13.x
     - Contains sample Scenarios written in Declarative style of BDD
-    - Supports Data externalisation
+    - Supports Data externalization
     - Integrated with [eslint](https://www.npmjs.com/package/eslint) for identifying and reporting on code patterns.
     - Integrated with [cucumber-html-reporter](https://www.npmjs.com/package/cucumber-html-reporter) for intuitive & detailed HTML reporting
     - Embeds screenshots on failure
@@ -241,7 +241,7 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
     - Integrated with multiple cucumber html reports
 
 ## [AdarshKumarGM/WebDriverIO-with-CucumberJS](https://github.com/AdarshKumarGM/WebDriverIO-with-CucumberJS)
-Boilerplate for bulding cucumberJS with webdriverIO framework.
+Boilerplate for building cucumberJS with webdriverIO framework.
 
 - Framework:
    - WebdriverIO (v6.x)
@@ -270,4 +270,5 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Page Object Model
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
+
 

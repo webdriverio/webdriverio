@@ -274,7 +274,7 @@ Type: `String`<br />
 Default: `mocha`<br />
 Options: `mocha` | `jasmine`
 
-### mochaOpts, jasmineNodeOpts and cucumberOpts
+### mochaOpts, jasmineOpts and cucumberOpts
 
 Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](./Frameworks.md).
 
@@ -308,7 +308,7 @@ reporters: [
 ```
 
 ### reporterSyncInterval
-Determines in which interval the reporter should check if they are synchronised if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
+Determines in which interval the reporter should check if they are synchronized if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
 
 Type: `Number`<br />
 Default: `100` (ms)
@@ -343,18 +343,18 @@ Parameters:
 
 ### onWorkerStart
 
-Gets executed before a worker process is spawned and can be used to initialise specific service for that worker as well as modify runtime environments in an async fashion.
+Gets executed before a worker process is spawned and can be used to initialize specific service for that worker as well as modify runtime environments in an async fashion.
 
 Parameters:
 - `cid` (`string`): capability id (e.g 0-0)
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
 - `specs` (`string[]`): specs to be run in the worker process
-- `args` (`object`): object that will be merged with the main configuration once worker is initialised
+- `args` (`object`): object that will be merged with the main configuration once worker is initialized
 - `execArgv` (`string[]`): list of string arguments passed to the worker process
 
 ### beforeSession
 
-Gets executed just before initialising the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
+Gets executed just before initializing the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
 
 Parameters:
 - `config` (`object`): WebdriverIO configuration object
@@ -483,8 +483,7 @@ Runs before a Cucumber Feature.
 
 Parameters:
 - `uri`: (`string`): path to feature file
-- `feature`: (`object`): Cucumber feature object
-- `scenario`: (`object`): Cucumber scenario object
+- `feature`: (`GherkinDocument.IFeature`): Cucumber feature object
 
 ### afterFeature
 
@@ -492,44 +491,34 @@ Runs after a Cucumber Feature.
 
 Parameters:
 - `uri`: (`string`): path to feature file
-- `feature`: (`object`): Cucumber feature object
-- `scenario`: (`object`): Cucumber scenario object
+- `feature`: (`GherkinDocument.IFeature`): Cucumber feature object
 
 ### beforeScenario
 
 Runs before a Cucumber Scenario.
 
 Parameters:
-- `uri`: (`string`): path to feature file
-- `feature`: (`object`): Cucumber feature object
-- `scenario`: (`object`): Cucumber scenario object
-- `sourceLocation`: (`object`): location of step
+- `world`: (`ITestCaseHookParameter`): world object containing information on pickle and test step
 
 ### afterScenario
 
 Runs after a Cucumber Scenario.
 
 Parameters:
-- `uri`: (`string`): path to feature file
-- `feature`: (`object`): Cucumber feature object
-- `scenario`: (`object`): Cucumber scenario object
-- `result`: (`object`): scenario result
-- `sourceLocation`: (`object`): location of step
+- `world`: (`ITestCaseHookParameter`): world object containing information on pickle and test step
 
 ### beforeStep
 
 Runs before a Cucumber Step.
 
 Parameters:
-- `uri`: (`string`): path to feature file
-- `feature`: (`object`): Cucumber feature object
-- `step`: (`object`): Cucumber step object
+- `step`: (`Pickle.IPickleStep`): Cucumber step object
+- `context`: (`object`): execution context
 
 ### afterStep
 
 Runs after a Cucumber Step.
 
 Parameters:
-- `details`: (`object`): step details (contains `uri`, `feature` and `step` property objects)
-- `context`: (`object`): Cucumber context object
-- `result` (`object`): step result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `step`: (`Pickle.IPickleStep`): Cucumber step object
+- `context`: (`object`): execution context
