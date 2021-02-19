@@ -168,7 +168,6 @@ Array [
       ],
       "chromePath": "/foo/bar",
       "ignoreDefaultFlags": true,
-      "port": undefined,
     },
   ],
 ]
@@ -250,7 +249,6 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
-      "port": undefined,
     },
   ],
 ]
@@ -276,7 +274,6 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
-      "port": undefined,
     },
   ],
 ]
@@ -328,7 +325,6 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
-      "port": undefined,
     },
   ],
 ]
@@ -368,7 +364,6 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
-      "port": undefined,
     },
   ],
 ]
