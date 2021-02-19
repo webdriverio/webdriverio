@@ -67,7 +67,9 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
      - Assert Request parametes
      - Assert Response parameters
      - Store all the response in a seperate file
-
+     
+    You can watch it created [on this video](https://www.youtube.com/watch?v=Be9IPyxHmLs).<br>
+    
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: Cucumber (v5.x)
@@ -269,14 +271,3 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
 
-### [17thSep/Mock-and-Spies](https://github.com/17thSep/MonitorNetworkLogs/)
-
-Boiler plate project for:
-
-- Capture Network Logs
-- Capture all GET/POST calls or a specific REST API
-- Assert Request parametes
-- Assert Response parameters
-- Store all the response in a seperate file
-
-You can watch it created [on this video](https://www.youtube.com/watch?v=Be9IPyxHmLs).
