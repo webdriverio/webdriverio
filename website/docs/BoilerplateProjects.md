@@ -61,12 +61,12 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
    [3. Docker](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Docker)         - Run WDIO 7 script in Docker<br>
    [4. Netowrk logs](https://github.com/17thSep/MonitorNetworkLogs/)<br>
    
-       Boiler plate project for:
-         Capture Network Logs
-         Capture all GET/POST calls or a specific REST API
-         Assert Request parametes
-         Assert Response parameters
-         Store all the response in a seperate file
+   - Boiler plate project for:
+     - Capture Network Logs
+     - Capture all GET/POST calls or a specific REST API
+     - Assert Request parametes
+     - Assert Response parameters
+     - Store all the response in a seperate file
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
