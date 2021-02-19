@@ -45,7 +45,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
      */
     let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs
 
-    let debuggerAddress = (chromeOptions as any).debuggerAddress
+    let debuggerAddress = chromeOptions.debuggerAddress
     let port
     if (debuggerAddress) {
         const requestedPort = debuggerAddress.split(':')[1]
@@ -97,15 +97,16 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         chromeFlags.push(`--user-agent=${mobileEmulation.userAgent}`)
     }
 
-    if (port)
+    if (port) {
         log.info(`Requesting to connect to Google Chrome on port: ${port}`)
+    }
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
 
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
         ignoreDefaultFlags: true,
         chromeFlags,
-        port
+        ...(port ? { port } : {})
     })
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
