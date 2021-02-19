@@ -26,6 +26,7 @@ declare global {
         interface ReporterOption extends Reporters.Options {}
         interface Config extends Options.Testrunner {}
         interface HookFunctionExtension {}
+        interface WDIODevtoolsOptions {}
     }
 
     namespace WebDriver {

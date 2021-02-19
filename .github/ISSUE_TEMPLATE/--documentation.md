@@ -1,5 +1,5 @@
 ---
-name: 📖 Documentation
+name: 📖  Documentation
 about: Suggest improvements or report missing/unclear documentation.
 
 ---
