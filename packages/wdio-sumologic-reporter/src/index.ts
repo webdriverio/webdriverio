@@ -17,7 +17,7 @@ const DATE_FORMAT = 'yyyy-mm-dd HH:mm:ss,l o'
  */
 export default class SumoLogicReporter extends WDIOReporter {
     private _options: Options
-    private _interval: number
+    private _interval: NodeJS.Timeout
 
     private _unsynced: string[] = []
     private _isSynchronising = false
