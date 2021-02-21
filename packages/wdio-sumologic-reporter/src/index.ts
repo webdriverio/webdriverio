@@ -38,7 +38,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             log.error('Sumo Logic requires "sourceAddress" paramater')
         }
 
-        this._interval = setInterval(this.sync.bind(this), this._options.syncInterval)
+        this._interval = global.setInterval(this.sync.bind(this), this._options.syncInterval)
     }
 
     // @ts-ignore
