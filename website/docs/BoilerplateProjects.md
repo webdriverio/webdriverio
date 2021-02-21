@@ -253,7 +253,14 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
 
-### [17thSep/Mock-and-Spies](https://github.com/17thSep/MonitorNetworkLogs/)
+## [17thSep/WebdriverIO_Master](https://github.com/17thSep/WebdriverIO_Master)
+
+Boilerplate project to run **WebdriverIO v7** tests for the following:
+
+[WDIO 7 scripts with TypeScript in Cucumber Framework](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Cucumber)
+[WDIO 7 scripts with TypeScript in Mocha Framework](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Mocha)
+[Run WDIO 7 script in Docker](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Docker)
+[Network logs](https://github.com/17thSep/MonitorNetworkLogs/)
 
 Boiler plate project for:
 
@@ -262,5 +269,3 @@ Boiler plate project for:
 - Assert Request parameters
 - Assert Response parameters
 - Store all the response in a separate file
-
-You can watch it created [on this video](https://www.youtube.com/watch?v=Be9IPyxHmLs).

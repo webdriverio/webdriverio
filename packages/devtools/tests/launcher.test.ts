@@ -115,6 +115,20 @@ test('overriding chrome default flags (backwards compat)', async () => {
     expect(pages[1].close).toBeCalledTimes(0)
 })
 
+test('launch chrome with chrome port', async () => {
+    const browser = await launch({
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+            debuggerAddress: '127.0.0.1:8041'
+        }
+    })
+    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(puppeteer.launch).toBeCalledTimes(0)
+
+    const pages = await browser.pages()
+    expect(pages[1].close).toBeCalledTimes(0)
+})
+
 test('throws an error if an unknown deviceName is picked', async () => {
     const err = await launch({
         browserName: 'chrome',
