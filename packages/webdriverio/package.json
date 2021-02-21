@@ -53,7 +53,8 @@
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.isobject": "^3.0.6",
     "@types/lodash.isplainobject": "^4.0.6",
-    "@types/lodash.zip": "^4.2.6"
+    "@types/lodash.zip": "^4.2.6",
+    "aria-query": "^4.2.2"
   },
   "dependencies": {
     "@wdio/config": "7.0.7",

@@ -1,6 +1,6 @@
 import fs from 'fs'
 import isPlainObject from 'lodash.isplainobject'
-import { roleElements } from 'aria-query'
+import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
 import { W3C_SELECTOR_STRATEGIES } from '../constants'
 
@@ -223,8 +223,12 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         break
     }
     case 'role': {
+        const match = stringSelector.match(/^\[role=(.+)\]/)
+        if (!match) {
+            throw new Error(`InvalidSelectorMatch. Strategy 'role' has failed to match '${stringSelector}'`)
+        }
         using = 'css selector'
-        value = createRoleBaseXpathSelector(stringSelector.replace(/^\[role=/, '').replace(/]$/, ''))
+        value = createRoleBaseXpathSelector(match[1] as ARIARoleDefintionKey)
         break
     }
     }
@@ -239,30 +243,30 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     return { using, value }
 }
 
-const createRoleBaseXpathSelector = (role : any) => {
-    let locatorArr : Array<string> = []
-    roleElements.get(role)?.forEach((value : any)=>{
-        let locator : string
-        let tagname : string, tagAttribute : string | undefined, tagAttributevalue : string | number | undefined
+const createRoleBaseXpathSelector = (role: ARIARoleDefintionKey) => {
+    const locatorArr: string[] = []
+    roleElements.get(role)?.forEach((value: ARIARoleRelationConcept) => {
+        let locator: string
+        let tagname: string, tagAttribute: string | undefined, tagAttributevalue: string | number | undefined
         tagname = value.name
         if (value.attributes instanceof Array) {
-            value.attributes.forEach((val : any)=>{
+            value.attributes.forEach((val: ARIARoleRelationConceptAttribute) => {
                 tagAttribute = val.name
                 tagAttributevalue = val.value
             })
         }
-        if (tagAttribute == undefined) {
+        if (!tagAttribute) {
             locator = tagname
-        } else if (tagAttributevalue == undefined){
+        } else if (!tagAttributevalue){
             locator = tagname+'['+tagAttribute+']'
         } else {
             locator = tagname+'['+tagAttribute+'="'+tagAttributevalue+'"]'
         }
         locatorArr.push(locator)
     })
-    let xpathLocator : string = '[role="'+role+'"]'
-    locatorArr.forEach((loc)=>{
-        xpathLocator += ','+loc
+    let xpathLocator: string = '[role="'+role+'"]'
+    locatorArr.forEach((loc) => {
+        xpathLocator += ',' + loc
     })
     return xpathLocator
 }

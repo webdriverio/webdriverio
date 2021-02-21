@@ -72,7 +72,6 @@
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.4.0",
     "@typescript-eslint/parser": "^4.4.0",
-    "aria-query": "^4.2.2",
     "aws-sdk": "^2.539.0",
     "camelcase": "^6.2.0",
     "cheerio": "^1.0.0-rc.3",
