@@ -270,6 +270,7 @@ interface CSSValue {
 interface ParsedColor extends Partial<CSSValue> {
     rgb?: string
     rgba?: string
+    hex?: string
 }
 
 export interface ParsedCSSValue {
