@@ -251,7 +251,7 @@ The service offers you to capture the code coverage of your application under te
 ```js
 // wdio.conf.js
 services: [
-    ['devtools' {
+    ['devtools', {
         coverageReporter: {
             enable: true,
             type: 'html',
