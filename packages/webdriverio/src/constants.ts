@@ -374,42 +374,6 @@ export const UNICODE_CHARACTERS = {
 
 export const W3C_SELECTOR_STRATEGIES = ['css selector', 'link text', 'partial link text', 'tag name', 'xpath']
 
-export const W3C_CAPABILITIES = [
-    'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts', 'pageLoadStrategy', 'proxy',
-    'setWindowRect', 'timeouts', 'unhandledPromptBehavior'
-]
-export const JSONWP_CAPABILITIES = [
-    'browserName', 'version', 'platform', 'javascriptEnabled', 'takesScreenshot', 'handlesAlerts', 'databaseEnabled',
-    'locationContextEnabled', 'applicationCacheEnabled', 'browserConnectionEnabled', 'cssSelectorsEnabled',
-    'webStorageEnabled', 'rotatable', 'acceptSslCerts', 'nativeEvents', 'proxy'
-]
-export const APPIUM_ANDROID_CAPABILITIES = [
-    'appActivity', 'appPackage', 'appWaitActivity', 'appWaitPackage', 'appWaitDuration', 'deviceReadyTimeout',
-    'androidCoverage', 'androidCoverageEndIntent', 'androidDeviceReadyTimeout', 'androidInstallTimeout',
-    'androidInstallPath', 'adbPort', 'systemPort', 'remoteAdbHost', 'androidDeviceSocket', 'avd', 'avdLaunchTimeout',
-    'avdReadyTimeout', 'avdArgs', 'useKeystore', 'keystorePath', 'keystorePassword', 'keyAlias', 'keyPassword',
-    'chromedriverExecutable', 'chromedriverExecutableDir', 'chromedriverChromeMappingFile', 'autoWebviewTimeout',
-    'intentAction', 'intentCategory', 'intentFlags', 'optionalIntentArguments', 'dontStopAppOnReset',
-    'unicodeKeyboard', 'resetKeyboard', 'noSign', 'ignoreUnimportantViews', 'disableAndroidWatchers', 'chromeOptions',
-    'recreateChromeDriverSessions', 'nativeWebScreenshot', 'androidScreenshotPath', 'autoGrantPermissions',
-    'networkSpeed', 'gpsEnabled', 'isHeadless', 'uiautomator2ServerLaunchTimeout', 'uiautomator2ServerInstallTimeout',
-    'otherApps'
-]
-export const APPIUM_IOS_CAPABILITIES = [
-    'calendarFormat', 'bundleId', 'udid', 'launchTimeout', 'locationServicesEnabled', 'locationServicesAuthorized',
-    'autoAcceptAlerts', 'autoDismissAlerts', 'nativeInstrumentsLib', 'nativeWebTap', 'safariInitialUrl',
-    'safariAllowPopups', 'safariIgnoreFraudWarning', 'safariOpenLinksInBackground', 'keepKeyChains',
-    'localizableStringsDir', 'processArguments', 'interKeyDelay', 'showIOSLog', 'sendKeyStrategy',
-    'screenshotWaitTimeout', 'waitForAppScript', 'webviewConnectRetries', 'appName', 'customSSLCert',
-    'webkitResponseTimeout'
-]
-export const APPIUM_CAPABILITES = [
-    'automationName', 'platformName', 'platformVersion', 'deviceName', 'app', 'browserName', 'newCommandTimeout',
-    'language', 'locale', 'udid', 'orientation', 'autoWebview', 'noReset', 'fullReset', 'eventTimings',
-    'enablePerformanceLogging', 'printPageSourceOnFindFailure',
-    ...APPIUM_ANDROID_CAPABILITIES,
-    ...APPIUM_IOS_CAPABILITIES
-]
 export const DRIVER_DEFAULT_ENDPOINT = {
     method: 'GET',
     host: 'localhost',
