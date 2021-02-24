@@ -439,7 +439,6 @@ export interface AppiumIOSCapabilities {
     autoAcceptAlerts?: boolean;
     autoDismissAlerts?: boolean;
     nativeInstrumentsLib?: boolean;
-    nativeWebTap?: boolean;
     safariInitialUrl?: string;
     safariAllowPopups?: boolean;
     safariIgnoreFraudWarning?: boolean;
@@ -460,6 +459,7 @@ export interface AppiumIOSCapabilities {
     enableAsyncExecuteFromHttps?: boolean;
     skipLogCapture?: boolean;
     webkitDebugProxyPort?: number;
+    'appium:nativeWebTap'?: boolean;
 }
 
 // IE specific
