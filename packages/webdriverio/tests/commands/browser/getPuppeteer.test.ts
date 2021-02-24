@@ -120,4 +120,17 @@ describe('attach Puppeteer', () => {
         expect(pptr).toBe('foobar')
         expect(puppeteerConnect).toHaveBeenCalledTimes(0)
     })
+
+    it('should pass for Selenium CDP', async () => {
+        const pptr = await browser.getPuppeteer.call({
+            ...browser,
+            capabilities: {
+                'se:options': {
+                    'cdp': 'http://my.grid:1234/session/mytestsession/se/cdp'
+                }
+            }
+        })
+        expect(typeof pptr).toBe('object')
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
+    })
 })

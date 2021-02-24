@@ -43,3 +43,13 @@ Array [
   ],
 ]
 `;
+
+exports[`attach Puppeteer should pass for Selenium CDP 1`] = `
+Array [
+  Array [
+    Object {
+      "browserWSEndpoint": "http://my.grid:1234/session/mytestsession/se/cdp",
+    },
+  ],
+]
+`;

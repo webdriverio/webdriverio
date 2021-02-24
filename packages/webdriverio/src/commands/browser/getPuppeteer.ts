@@ -48,10 +48,21 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
         return this.puppeteer
     }
 
+    const caps = (this.capabilities as Capabilities.W3CCapabilities).alwaysMatch || this.capabilities as Capabilities.DesiredCapabilities
+    /**
+     * attach to a Selenium 4 CDP Session if it's returned in the capabilities
+     */
+    const cdpEndpoint = caps['se:options']?.cdp
+    if (cdpEndpoint) {
+        this.puppeteer = await puppeteer.connect({
+            browserWSEndpoint: cdpEndpoint
+        }) as any as PuppeteerBrowser
+        return this.puppeteer
+    }
+
     /**
      * attach to Chromium debugger session
      */
-    const caps = (this.capabilities as Capabilities.W3CCapabilities).alwaysMatch || this.capabilities as Capabilities.DesiredCapabilities
     const chromiumOptions = caps['goog:chromeOptions'] || caps['ms:edgeOptions']
     if (chromiumOptions && chromiumOptions.debuggerAddress) {
         this.puppeteer = await puppeteer.connect({

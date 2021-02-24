@@ -155,6 +155,11 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
         [name: string]: any;
     };
 
+    // Selenium 4 Specific
+    'se:options'?: {
+        [cdp: string]: string;
+    };
+
     /**
      * @deprecated
      */
