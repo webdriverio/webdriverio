@@ -56,6 +56,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     if (chromiumOptions && chromiumOptions.debuggerAddress) {
         this.puppeteer = await puppeteer.connect({
             browserURL: `http://${chromiumOptions.debuggerAddress}`,
+            //@ts-ignore
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
@@ -85,6 +86,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
 
             this.puppeteer = await puppeteer.connect({
                 browserURL: `http://localhost:${rdPort}`,
+                //@ts-ignore
                 defaultViewport: null
             }) as any as PuppeteerBrowser
             return this.puppeteer as any as PuppeteerBrowser
