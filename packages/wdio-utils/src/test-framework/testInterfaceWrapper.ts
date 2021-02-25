@@ -165,7 +165,7 @@ export const wrapTestFunction = function (
          */
         let retryCnt = typeof specArguments[specArguments.length - 1] === 'number' ? specArguments.pop() : 0
         const specFn = typeof specArguments[0] === 'function' ? specArguments.shift()
-            : (typeof specArguments[1] === 'function' ? specArguments.pop() : undefined)
+            : (typeof specArguments[1] === 'function' ? specArguments[1] : undefined)
         const specTitle = specArguments[0]
 
         if (isSpec) {
