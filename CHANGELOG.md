@@ -19,6 +19,41 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.0.8 (2021-02-25)
+
+#### :rocket: New Feature
+* `devtools`
+  * [#6371](https://github.com/webdriverio/webdriverio/pull/6371) Added goog:chromeOption for passing the debugging port to the devtools chrome launcher (Closes [#6370](https://github.com/webdriverio/webdriverio/issues/6370)) ([@jamesmortensen](https://github.com/jamesmortensen))
+
+#### :bug: Bug Fix
+* `wdio-sumologic-reporter`
+  * [#6485](https://github.com/webdriverio/webdriverio/pull/6485) change internal variable type to resolve build issue ([@jayandran-Sampath](https://github.com/jayandran-Sampath))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#6498](https://github.com/webdriverio/webdriverio/pull/6498) add missing type property hex for ParsedColor ([@dannyfink](https://github.com/dannyfink))
+* `wdio-devtools-service`
+  * [#6497](https://github.com/webdriverio/webdriverio/pull/6497) add missing comma for code coverage snippet for devtools service ([@dannyfink](https://github.com/dannyfink))
+* Other
+  * [#6493](https://github.com/webdriverio/webdriverio/pull/6493) docs: fix minor typo ([@timbru31](https://github.com/timbru31))
+  * [#6484](https://github.com/webdriverio/webdriverio/pull/6484) Add og:image and twitter:image ([@38elements](https://github.com/38elements))
+
+#### :house: Internal
+* Other
+  * [#6504](https://github.com/webdriverio/webdriverio/pull/6504) Fix failed test from conflicting node type definition ([@lukyth](https://github.com/lukyth))
+* `webdriverio`
+  * [#6505](https://github.com/webdriverio/webdriverio/pull/6505) Remove unused constants ([@lukyth](https://github.com/lukyth))
+
+#### Committers: 7
+- 17thSep.net ([@17thSep](https://github.com/17thSep))
+- 38elements ([@38elements](https://github.com/38elements))
+- James ([@jamesmortensen](https://github.com/jamesmortensen))
+- Kanitkorn Sujautra ([@lukyth](https://github.com/lukyth))
+- Tim Brust ([@timbru31](https://github.com/timbru31))
+- [@dannyfink](https://github.com/dannyfink)
+- [@jayandran-Sampath](https://github.com/jayandran-Sampath)
+
+
 ## v7.0.7 (2021-02-18)
 
 #### :bug: Bug Fix
