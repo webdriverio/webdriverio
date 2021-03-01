@@ -12,6 +12,7 @@ declare namespace WebdriverIOAsync {
 declare namespace WebdriverIO {
     interface Browser extends BrowserSync, WebdriverIOAsync.Browser { }
     interface Element extends ElementSync, WebdriverIOAsync.Element { }
+    // @ts-expect-error
     interface MultiRemoteBrowser extends MultiRemoteBrowserAsync, WebdriverIOAsync.MultiRemoteBrowser { }
     interface ElementArray extends ElementArrayImport {}
 }
