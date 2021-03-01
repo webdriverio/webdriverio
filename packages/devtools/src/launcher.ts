@@ -113,7 +113,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     const browser = await puppeteer.connect({
         ...chromeOptions,
         browserURL: `http://localhost:${chrome.port}`,
-        //@ts-ignore
+        // @ts-ignore ToDo(@L0tso): remove once https://github.com/puppeteer/puppeteer/pull/6942 is merged
         defaultViewport: null
     }) as unknown as Browser // casting from @types/puppeteer to built in type
 
