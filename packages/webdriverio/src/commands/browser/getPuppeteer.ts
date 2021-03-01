@@ -86,7 +86,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
 
             this.puppeteer = await puppeteer.connect({
                 browserURL: `http://localhost:${rdPort}`,
-                //@ts-ignore
+                // @ts-ignore ToDo(@L0tso): remove once https://github.com/puppeteer/puppeteer/pull/6942 is merged
                 defaultViewport: null
             }) as any as PuppeteerBrowser
             return this.puppeteer as any as PuppeteerBrowser
