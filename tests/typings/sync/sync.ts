@@ -23,6 +23,9 @@ nsBrowser.clearMockCalls('')
 const nsElem: WebdriverIO.Element = {} as any
 nsElem.click()
 
+const nsElems: WebdriverIO.ElementArray = {} as any
+nsElems.foundWith.toUpperCase()
+
 // browser
 browser.pause(1)
 browser.newWindow('https://webdriver.io', {
