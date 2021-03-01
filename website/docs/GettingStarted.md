@@ -56,9 +56,9 @@ npx wdio run ./wdio.conf.js --suite exampleSuiteName
 If you like to use WebdriverIO as an automation engine in a Node.JS script you can also directly install WebdriverIO and use it as package, e.g. to generate a screenshot of a website:
 
 ```js
-const { remote } = require('webdriverio')
+const { remote } = require('webdriverio');
 
-;(async () => {
+(async () => {
     const browser = await remote({
         capabilities: {
             browserName: 'chrome'
