@@ -212,7 +212,13 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
     ```
     We do __not__ recommend to specify `webdriverio` or `@wdio/sync` in there anymore. For more information visit our updated docs on [TypeScript Integration](https://webdriver.io/docs/typescript).
   * If you use WebdriverIO in [multiremote mode](https://webdriver.io/docs/multiremote) to get proper typing you should use the `multiremote` global variable
-  * Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h))
+  * Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h)) 👏 With that you also don't need `ts-node/register` to be required in your Mocha, Jasmine or Cucumber options, e.g.:
+    ```suggestion
+    jasmineOpts: {
+        - requires: ['ts-node/register', 'tsconfig-paths/register'],
+        + requires: ['tsconfig-paths/register'],
+    },
+    ```
   * It is required to have TypeScript v4 or higher
 * [#6309](https://github.com/webdriverio/webdriverio/pull/6309) Cucumber Framework update to v7
   * We have updated our Cucumber integration to use Cucumber v7
