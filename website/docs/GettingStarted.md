@@ -58,7 +58,7 @@ If you like to use WebdriverIO as an automation engine in a Node.JS script you c
 ```js
 const { remote } = require('webdriverio');
 
-(async () => {
+;(async () => {
     const browser = await remote({
         capabilities: {
             browserName: 'chrome'
