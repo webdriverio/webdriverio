@@ -180,6 +180,7 @@ For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#doc
 const button = $('[role=button]')
 console.log(button.click()) // outputs: perform click on button element
 ```
+
 ## id
 
 Finding element by id has no specific syntax in WebDriver and one should use either CSS selectors (`#<my element ID>`) or xPath (`//*[@id="<my element ID>"]`).
