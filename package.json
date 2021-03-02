@@ -57,7 +57,6 @@
     "@octokit/rest": "^18.0.0",
     "@tsconfig/node12": "^1.0.0",
     "@types/archiver": "^5.1.0",
-    "@types/aria-query": "^4.2.1",
     "@types/atob": "^2.1.2",
     "@types/cheerio": "^0.22.22",
     "@types/fs-extra": "^9.0.6",

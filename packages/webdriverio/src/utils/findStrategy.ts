@@ -258,13 +258,13 @@ const createRoleBaseXpathSelector = (role: ARIARoleDefintionKey) => {
         if (!tagAttribute) {
             locator = tagname
         } else if (!tagAttributevalue){
-            locator = tagname+'['+tagAttribute+']'
+            locator = `${tagname}[${tagAttribute}]`
         } else {
-            locator = tagname+'['+tagAttribute+'="'+tagAttributevalue+'"]'
+            locator = `${tagname}[${tagAttribute}="${tagAttributevalue}"]`
         }
         locatorArr.push(locator)
     })
-    let xpathLocator: string = '[role="'+role+'"]'
+    let xpathLocator: string = `[role="${role}"]`
     locatorArr.forEach((loc) => {
         xpathLocator += ',' + loc
     })

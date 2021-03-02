@@ -48,13 +48,13 @@
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
     "@types/archiver": "^5.1.0",
+    "@types/aria-query": "^4.2.1",
     "@types/atob": "^2.1.2",
     "@types/fs-extra": "^9.0.2",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.isobject": "^3.0.6",
     "@types/lodash.isplainobject": "^4.0.6",
-    "@types/lodash.zip": "^4.2.6",
-    "aria-query": "^4.2.2"
+    "@types/lodash.zip": "^4.2.6"
   },
   "dependencies": {
     "@wdio/config": "7.0.7",
@@ -64,6 +64,7 @@
     "@wdio/types": "7.0.7",
     "@wdio/utils": "7.0.7",
     "archiver": "^5.0.0",
+    "aria-query": "^4.2.2",
     "atob": "^2.1.2",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
