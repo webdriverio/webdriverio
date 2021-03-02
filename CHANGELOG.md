@@ -19,6 +19,69 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.0.9 (2021-03-01)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6520](https://github.com/webdriverio/webdriverio/pull/6520) Fix TS return types for $ command ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`, `webdriverio`
+  * [#6487](https://github.com/webdriverio/webdriverio/pull/6487) Fix shrinked viewport for devtools package ([@L0tso](https://github.com/L0tso))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#6521](https://github.com/webdriverio/webdriverio/pull/6521) Expose ElementArray as type to the WebdriverIO namespace ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#6522](https://github.com/webdriverio/webdriverio/pull/6522) Minor typo in example in README.md ([@pgAdmin](https://github.com/pgAdmin))
+  * [#6509](https://github.com/webdriverio/webdriverio/pull/6509) Fix a typo ([@tai2](https://github.com/tai2))
+* `wdio-sauce-service`
+  * [#6513](https://github.com/webdriverio/webdriverio/pull/6513) change SC options link ([@enriquegh](https://github.com/enriquegh))
+
+#### Committers: 6
+- Bohdan Belenok ([@L0tso](https://github.com/L0tso))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Punit Gupta ([@pgAdmin](https://github.com/pgAdmin))
+- Taiju Muto ([@tai2](https://github.com/tai2))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v7.0.8 (2021-02-25)
+
+#### :rocket: New Feature
+* `devtools`
+  * [#6371](https://github.com/webdriverio/webdriverio/pull/6371) Added goog:chromeOption for passing the debugging port to the devtools chrome launcher (Closes [#6370](https://github.com/webdriverio/webdriverio/issues/6370)) ([@jamesmortensen](https://github.com/jamesmortensen))
+
+#### :bug: Bug Fix
+* `wdio-sumologic-reporter`
+  * [#6485](https://github.com/webdriverio/webdriverio/pull/6485) change internal variable type to resolve build issue ([@jayandran-Sampath](https://github.com/jayandran-Sampath))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#6498](https://github.com/webdriverio/webdriverio/pull/6498) add missing type property hex for ParsedColor ([@dannyfink](https://github.com/dannyfink))
+* `wdio-devtools-service`
+  * [#6497](https://github.com/webdriverio/webdriverio/pull/6497) add missing comma for code coverage snippet for devtools service ([@dannyfink](https://github.com/dannyfink))
+* Other
+  * [#6493](https://github.com/webdriverio/webdriverio/pull/6493) docs: fix minor typo ([@timbru31](https://github.com/timbru31))
+  * [#6484](https://github.com/webdriverio/webdriverio/pull/6484) Add og:image and twitter:image ([@38elements](https://github.com/38elements))
+
+#### :house: Internal
+* Other
+  * [#6504](https://github.com/webdriverio/webdriverio/pull/6504) Fix failed test from conflicting node type definition ([@lukyth](https://github.com/lukyth))
+* `webdriverio`
+  * [#6505](https://github.com/webdriverio/webdriverio/pull/6505) Remove unused constants ([@lukyth](https://github.com/lukyth))
+
+#### Committers: 7
+- 17thSep.net ([@17thSep](https://github.com/17thSep))
+- 38elements ([@38elements](https://github.com/38elements))
+- James ([@jamesmortensen](https://github.com/jamesmortensen))
+- Kanitkorn Sujautra ([@lukyth](https://github.com/lukyth))
+- Tim Brust ([@timbru31](https://github.com/timbru31))
+- [@dannyfink](https://github.com/dannyfink)
+- [@jayandran-Sampath](https://github.com/jayandran-Sampath)
+
+
 ## v7.0.7 (2021-02-18)
 
 #### :bug: Bug Fix
@@ -177,7 +240,13 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
     ```
     We do __not__ recommend to specify `webdriverio` or `@wdio/sync` in there anymore. For more information visit our updated docs on [TypeScript Integration](https://webdriver.io/docs/typescript).
   * If you use WebdriverIO in [multiremote mode](https://webdriver.io/docs/multiremote) to get proper typing you should use the `multiremote` global variable
-  * Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h))
+  * Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h)) 👏 With that you also don't need `ts-node/register` to be required in your Mocha, Jasmine or Cucumber options, e.g.:
+    ```suggestion
+    jasmineOpts: {
+        - requires: ['ts-node/register', 'tsconfig-paths/register'],
+        + requires: ['tsconfig-paths/register'],
+    },
+    ```
   * It is required to have TypeScript v4 or higher
 * [#6309](https://github.com/webdriverio/webdriverio/pull/6309) Cucumber Framework update to v7
   * We have updated our Cucumber integration to use Cucumber v7

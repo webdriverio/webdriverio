@@ -74,7 +74,14 @@ declare global {
 }
 ```
 
-Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h)).
+Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h)). With that you also don't need `ts-node/register` to be required in your Mocha, Jasmine or Cucumber options, e.g.:
+
+```suggestion
+jasmineOpts: {
+    - requires: ['ts-node/register', 'tsconfig-paths/register'],
+    + requires: ['tsconfig-paths/register'],
+},
+```
 
 You can read more about WebdriverIO TypeScript integration in our [docs](/docs/typescript).
 

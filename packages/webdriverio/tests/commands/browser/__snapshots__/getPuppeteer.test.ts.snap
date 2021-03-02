@@ -5,6 +5,7 @@ Array [
   Array [
     Object {
       "browserURL": "http://localhost:1234",
+      "defaultViewport": null,
     },
   ],
 ]
@@ -15,6 +16,7 @@ Array [
   Array [
     Object {
       "browserURL": "http://localhost:1234",
+      "defaultViewport": null,
     },
   ],
 ]
@@ -25,6 +27,7 @@ Array [
   Array [
     Object {
       "browserURL": "http://localhost:localhost:1234",
+      "defaultViewport": null,
     },
   ],
 ]
@@ -35,6 +38,7 @@ Array [
   Array [
     Object {
       "browserURL": "http://localhost:4321",
+      "defaultViewport": null,
     },
   ],
 ]

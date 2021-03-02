@@ -46,12 +46,15 @@ async function bar() {
     // const mrSingleElem = await mr.myBrowserInstance.$('')
     // await mrSingleElem.click()
 
-    // // interact with all instances
-    // const mrElem = await mr.$('')
-    // await mrElem.click()
+    // interact with all instances
+    const mrElem = await mr.$('')
+    await mrElem.click()
 
-    // // instances array
-    // mr.instances[0].substr(0, 1)
+    // instances array
+    mr.instances[0].substr(0, 1)
+
+    const nsElems: WebdriverIO.ElementArray = {} as any
+    nsElems.foundWith.toUpperCase()
 
     ////////////////////////////////////////////////////////////////////////////////
 
