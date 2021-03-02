@@ -9,8 +9,13 @@
     "minimizeWindow": "RectReturn",
     "fullscreenWindow": "RectReturn",
     "getElementRect": "RectReturn",
-    "getNamedCookie": "WebDriver.Cookie",
+    "getNamedCookie": "Cookie",
     "getStrings": "StringsReturn",
     "getSettings": "SettingsReturn",
-    "getWindowSize": "WebDriver.RectReturn"
+    "getWindowSize": "RectReturn",
+    "findElement": "ElementReference",
+    "findElements": "ElementReference[]",
+    "findElementFromElement": "ElementReference",
+    "findElementsFromElement": "ElementReference[]",
+    "getAllCookies": "Cookie[]"
 }

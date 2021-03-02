@@ -1,18 +1,9 @@
-/**
- * workaround for bug
- * https://github.com/jsdom/jsdom/issues/2795
- * https://github.com/jsdom/jsdom/issues/2961
- */
-const SKIPPED_NODE_10_TESTS = process.version.startsWith('v10')
-    ? [
-        '<rootDir>/packages/webdriverio/tests/commands/browser/newWindow.test.js',
-        '<rootDir>/packages/webdriverio/tests/commands/element/isFocused.test.js',
-        '<rootDir>/packages/webdriverio/tests/scripts/resq.test.js',
-        '<rootDir>/packages/webdriverio/tests/scripts/isFocused.test.js'
-    ]
-    : []
-
 module.exports = {
+    globals: {
+        'ts-jest': {
+            isolatedModules: true
+        }
+    },
     testMatch: [
         '**/tests/**/*.test.(js|ts)'
     ],
@@ -21,11 +12,11 @@ module.exports = {
     },
     testPathIgnorePatterns: [
         '<rootDir>/tests/',
-        '<rootDir>/node_modules/',
-        ...SKIPPED_NODE_10_TESTS
+        '<rootDir>/node_modules/'
     ],
     collectCoverageFrom: [
-        'packages/**/src/**/*.js'
+        'packages/**/src/**/*.(js|ts)',
+        '!packages/**/src/**/*.d.ts'
     ],
     moduleNameMapper: {
         'graceful-fs': '<rootDir>/tests/helpers/fs.js'
@@ -34,10 +25,10 @@ module.exports = {
     collectCoverage: true,
     coverageThreshold: {
         global: {
-            branches: 95,
-            functions: 98,
-            lines: 99,
-            statements: 99
+            branches: 92,
+            functions: 97,
+            lines: 98,
+            statements: 98
         }
     },
     testEnvironment: 'node',

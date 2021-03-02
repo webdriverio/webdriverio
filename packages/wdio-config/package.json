@@ -1,13 +1,13 @@
 {
   "name": "@wdio/config",
-  "version": "6.6.0",
+  "version": "7.0.7",
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-config",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",
@@ -21,12 +21,17 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "types": "./build/index.d.ts",
   "dependencies": {
-    "@wdio/logger": "6.6.0",
+    "@wdio/logger": "7.0.0",
+    "@wdio/types": "7.0.7",
     "deepmerge": "^4.0.0",
     "glob": "^7.1.2"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "minimatch": "^3.0.4"
   }
 }

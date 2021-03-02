@@ -1,7 +1,7 @@
 WebdriverIO Appium Service
 ==========================
 
-Handling the Appium server is out of scope of the actual WebdriverIO project. This service helps you to run the Appium server seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/guide/testrunner/gettingstarted.html). It starts the [Appium Server](http://appium.io/docs/en/about-appium/getting-started/index.html#starting-appium) in a child process.
+Handling the Appium server is out of scope of the actual WebdriverIO project. This service helps you to run the Appium server seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/docs/clioptions). It starts the [Appium Server](http://appium.io/docs/en/about-appium/getting-started/index.html#starting-appium) in a child process.
 
 ## Installation
 
@@ -21,7 +21,7 @@ You can simple do it by:
 npm install @wdio/appium-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 

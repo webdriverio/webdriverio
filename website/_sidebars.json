@@ -1,58 +1,58 @@
 {
   "docs": {
     "Introduction": [
+      "what-is-webdriverio",
       "gettingstarted",
-      "boilerplate",
-      "setuptypes"
+      "boilerplates"
+    ],
+    "Core Concepts": [
+      "setuptypes",
+      "sync-vs-async",
+      "automationProtocols",
+      "multiremote",
+      "autowait"
     ],
     "Configuration": [
       "options",
       "babel",
       "typescript",
-      "proxy"
+      "proxy",
+      "driverbinaries"
     ],
-    "Usage": [
+    "Guides": [
       "selectors",
+      "timeouts",
       "browserobject",
+      "mocksandspies",
       "customcommands",
-      "multiremote",
-      "cloudservices",
-      "sync-vs-async",
-      "autocompletion",
-      "automationProtocols"
+      "pageobjects",
+      "debugging",
+      "repl"
     ],
     "Testrunner": [
       "clioptions",
       "configurationfile",
       "frameworks",
       "assertion",
+      "organizingsuites",
+      "retry",
+      "watcher",
       "customreporter",
       "customservices"
     ],
-    "Guides": [
-      "pageobjects",
-      "timeouts",
-      "organizingsuites",
-      "retry",
-      "mocksandspies",
-      "debugging",
-      "repl",
-      "watcher",
+    "Integration": [
+      "cloudservices",
+      "autocompletion",
+      "docker",
+      "githubactions",
       "jenkins",
-      "bamboo",
-      "runprogrammatically",
-      "driverbinaries",
-      "flowchartsoverview",
-      "githubactions"
+      "bamboo"
     ]
   },
-  "api": {
-    "Introduction": [
-      "api"
-    ],
-    "Protocols": [],
-    "Testrunner": []
-  },
+  "api": [
+    "api",
+    "api/expect-webdriverio"
+  ],
   "flowcharts": {
       "Flowcharts": [
         "flowcharts/wdiocommands",

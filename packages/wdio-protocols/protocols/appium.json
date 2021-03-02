@@ -627,6 +627,11 @@
         "android": {
           "UiAutomator": "4.2+"
         }
+      },
+      "returns": {
+        "type": "string",
+        "name": "response",
+        "description": "Contents of file in base64"
       }
     }
   },

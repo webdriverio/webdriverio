@@ -1,10 +1,20 @@
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, MockOverwriteFunction, SevereServiceError } from 'webdriverio'
+import { remote, multiremote, SevereServiceError } from 'webdriverio'
+import type { MockOverwriteFunction, ClickOptions, TouchAction } from 'webdriverio'
 
-// An example of adding command within ts file to WebdriverIO (async)
-declare module "webdriverio" {
-    interface Browser {
-        browserCustomCommand: (arg: unknown) => Promise<void>
+declare global {
+    namespace WebdriverIO {
+        interface Browser {
+            browserCustomCommand: (arg: unknown) => Promise<void>
+        }
+
+        interface MultiRemoteBrowser {
+            browserCustomCommand: (arg: unknown) => Promise<void>
+        }
+
+        interface Element {
+            elementCustomCommand: (arg: unknown) => Promise<number>
+        }
     }
 }
 
@@ -12,19 +22,29 @@ async function bar() {
     // multiremote
     const mr = await multiremote({
         myBrowserInstance: {
-            browserName: 'chrome'
+            capabilities: { browserName: 'chrome' }
         }
     })
 
+    const rect = await mr.getWindowRect()
+    rect[0].x.toFixed(2)
+
+    const mElem = await mr.$('foobar')
+    const location = await mElem.getLocation('x')
+    ;(location[0] as number).toFixed()
+
+    const url = await multiremotebrowser.getUrl()
+    url.pop()
+
     multiremote({
         myBrowserInstance: {
-            browserName: 'chrome'
+            capabilities: { browserName: 'chrome' }
         }
     }).then(() => {}, () => {})
 
     // interact with specific instance
-    const mrSingleElem = await mr.myBrowserInstance.$('')
-    await mrSingleElem.click()
+    // const mrSingleElem = await mr.myBrowserInstance.$('')
+    // await mrSingleElem.click()
 
     // interact with all instances
     const mrElem = await mr.$('')
@@ -33,14 +53,54 @@ async function bar() {
     // instances array
     mr.instances[0].substr(0, 1)
 
+    const nsElems: WebdriverIO.ElementArray = {} as any
+    nsElems.foundWith.toUpperCase()
+
     ////////////////////////////////////////////////////////////////////////////////
 
     // remote
-    const r = await remote({ capabilities: { browserName: 'chrome' } })
+    const remoteBrowser = await remote({ capabilities: { browserName: 'chrome' } })
     remote({ capabilities: { browserName: 'chrome' } }).then(
         () => {}, () => {})
-    const rElem = await r.$('')
+    const rElem = await browser.$('')
     await rElem.click()
+
+    ////////////////////////////////////////////////////////////////////////////////
+
+    // addCommand
+    // element
+    browser.addCommand('getClass', async function () {
+        return this.getAttribute('class').catch()
+    }, true)
+
+    // browser
+    browser.addCommand('sleep', async function (ms: number) {
+        return this.pause(ms).catch()
+    }, false)
+
+    browser.addCommand('sleep', async function (ms: number) {
+        return this.pause(ms).catch()
+    })
+
+    // overwriteCommand
+
+    // element
+    type ClickOptionsExtended = ClickOptions & { wait?: boolean }
+    browser.overwriteCommand('click', async function (clickFn, opts: Partial<ClickOptionsExtended> = {}) {
+        if (opts.wait) {
+            await this.waitForClickable().catch()
+        }
+        return clickFn.call(this, opts).catch()
+    }, true)
+
+    // browser
+    browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
+        return pause(ms).catch()
+    }, false)
+
+    browser.overwriteCommand('pause', async function (pause: Function, ms = 1000) {
+        return pause(ms).catch()
+    })
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -53,8 +113,6 @@ async function bar() {
 
     await browser.createWindow('tab')
     await browser.createWindow('window')
-    // @ts-expect-error
-    await browser.createWindow('something else')
 
     const waitUntil: boolean = await browser.waitUntil(
         () => Promise.resolve(true),
@@ -88,11 +146,31 @@ async function bar() {
         return x
     }, 4)
     executeResult.toFixed(2)
+    await browser.executeAsync((arg: number, cb: (arg: number) => void) => {
+        arg.toFixed()
+        cb(123)
+    }, 456)
 
     const callResult = <number>await browser.call(() =>
         new Promise(resolve => setTimeout(() => resolve(4), 1))
     )
     callResult.toFixed(2)
+
+    // printPage
+    await browser.savePDF('./packages/bar.pdf', {
+        orientation: 'landscape',
+        background: true,
+        width: 24.5,
+        height: 26.9,
+        top: 10,
+        bottom: 10,
+        left: 5,
+        right: 5,
+        shrinkToFit: true,
+        pageRanges: [{}]
+    })
+
+    await browser.savePDF('./packages/bar.pdf')
 
     // browser element command
     browser.getElementRect('elementId')
@@ -104,7 +182,7 @@ async function bar() {
     const { foo, bar } = await browser.takeHeapSnapshot()
 
     // browser command return mapped object value
-    const { x: x0, y: y0, width: w, height: h }  =  await browser.getWindowSize()
+    const { width: w, height: h }  =  await browser.getWindowSize()
 
     // browser custom command
     await browser.browserCustomCommand(14)
@@ -112,7 +190,7 @@ async function bar() {
     // $
     const el1 = await $('')
     const strFunction = (str: string) => str
-    strFunction(el1.selector)
+    strFunction(el1.selector as string)
     strFunction(el1.elementId)
     const el2 = await el1.$('')
     const el3 = await el2.$('')
@@ -159,13 +237,29 @@ async function bar() {
     await elem.addValue('Delete', { translateToUnicode: true })
     await elem.addValue('Delete', { translateToUnicode: false })
 
+    // scroll into view
+    await elem.scrollIntoView(true)
+    const scrollOptions: ScrollIntoViewOptions = {
+        block: 'center',
+        // @ts-expect-error
+        foo: 'bar'
+    }
+    await elem.scrollIntoView(scrollOptions)
+
     // An examples of setValue command with enabled/disabled translation to Unicode
     const elem1 = await $('')
     elem1.setValue('Delete', { translateToUnicode: true })
     elem1.setValue('Delete', { translateToUnicode: false })
 
-    const selector$$: string | Function = elems.selector
-    const parent$$: WebdriverIO.Element | WebdriverIO.BrowserObject = elems.parent
+    const selector$$: string | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> = elems.selector
+    ;(elems.parent as WebdriverIO.Element).click()
+    ;(elems.parent as WebdriverIO.Browser).url('')
+    ;(elems.parent as WebdriverIO.MultiRemoteBrowser).url('')
+    // @ts-expect-error
+    ;(elems.parent as WebdriverIO.Browser).click()
+
+    const isDevTools: boolean = browser.isDevTools
+    const isMobile: boolean = browser.isMobile
 
     // shadow$ shadow$$
     const el6 = await $('')
@@ -195,7 +289,7 @@ async function bar() {
 
     // touchAction
     const ele = await $('')
-    const touchAction: WebdriverIO.TouchAction = {
+    const touchAction: TouchAction = {
         action: "longPress",
         element: await $(''),
         ms: 0,
@@ -210,12 +304,13 @@ async function bar() {
     await ele.dragAndDrop({ x: 1, y: 2 })
 
     // addLocatorStrategy
-    browser.addLocatorStrategy('myStrat', () => {})
+    browser.addLocatorStrategy('myStrat', () => document.body)
+    browser.addLocatorStrategy('myStrat', () => document.querySelectorAll('div'))
 
     // test access to base client properties
     browser.sessionId
-    browser.capabilities.browserName
-    browser.requestedCapabilities.browserName
+    ;(browser.capabilities as WebDriver.Capabilities).browserName
+    ;(browser.requestedCapabilities as WebDriver.Capabilities).browserName
     browser.isMobile
     browser.isAndroid
     browser.isIOS
@@ -243,13 +338,13 @@ async function bar() {
     })
     const res: MockOverwriteFunction = async function (req, client) {
         const url:string = req.url
-        await client.send('foo', { bar: 1 })
+        await client.send('Console.clearMessages')
         return url
     }
     mock.respond(res)
     mock.respond(async (req, client) => {
         const url:string = req.url
-        await client.send('foo', { bar: 1 })
+        await client.send('Console.clearMessages')
         return true
     })
     mock.respondOnce('/other/resource.jpg')
@@ -271,43 +366,9 @@ function testSevereServiceError_stringParameter() {
     throw new SevereServiceError("Something happened.");
 }
 
-// addCommand
-
-// element
-browser.addCommand('getClass', async function () {
-    return this.getAttribute('class').catch()
-}, true)
-
-// browser
-browser.addCommand('sleep', async function (ms: number) {
-    return this.pause(ms).catch()
-}, false)
-
-browser.addCommand('sleep', async function (ms: number) {
-    return this.pause(ms).catch()
-})
-
-// overwriteCommand
-
-// element
-type ClickOptionsExtended = WebdriverIO.ClickOptions & { wait?: boolean }
-browser.overwriteCommand('click', async function (clickFn, opts: ClickOptionsExtended = {}) {
-    if (opts.wait) {
-        await this.waitForClickable().catch()
-    }
-    return clickFn(opts).catch()
-}, true)
-
-// browser
-browser.overwriteCommand('pause', async function (pause, ms = 1000) {
-    return pause(ms).catch()
-}, false)
-
-browser.overwriteCommand('pause', async function (pause, ms = 1000) {
-    return pause(ms).catch()
-})
-
 // allure-reporter
 allure.addFeature('')
+// @ts-expect-error
+allure.addDescription('with wrong param:', 123)
 
 export default {}

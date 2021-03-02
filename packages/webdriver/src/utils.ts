@@ -5,10 +5,12 @@ import {
     SauceLabsProtocol, SeleniumProtocol
 } from '@wdio/protocols'
 import Protocols from '@wdio/protocols'
+import { Options, Capabilities } from '@wdio/types'
 
 import WebDriverRequest, { WebDriverResponse } from './request'
 import command from './command'
-import { Options, JSONWPCommandError, W3CCapabilities, SessionFlags } from './types'
+import { VALID_CAPS } from './constants'
+import type { JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')
 
@@ -22,18 +24,40 @@ const BROWSER_DRIVER_ERRORS = [
 /**
  * start browser session with WebDriver protocol
  */
-export async function startWebDriverSession (params: Options): Promise<string> {
+export async function startWebDriverSession (params: Options.WebDriver): Promise<{ sessionId: string, capabilities: Capabilities.DesiredCapabilities }> {
+    /**
+     * validate capabilities to check if there are no obvious mix between
+     * JSONWireProtocol and WebDriver protoocol, e.g.
+     */
+    if (params.capabilities) {
+        const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
+        const invalidWebDriverCaps = Object.keys(params.capabilities)
+            .filter((cap) => !VALID_CAPS.includes(cap) && !cap.includes(':'))
+
+        /**
+         * if there are vendor extensions, e.g. sauce:options or appium:app
+         * used (only WebDriver compatible) and caps that aren't defined
+         * in the WebDriver spec
+         */
+        if (extensionCaps.length && invalidWebDriverCaps.length) {
+            throw new Error(
+                `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join('", "')}"). ` +
+                'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).'
+            )
+        }
+    }
+
     /**
      * the user could have passed in either w3c style or jsonwp style caps
      * and we want to pass both styles to the server, which means we need
      * to check what style the user sent in so we know how to construct the
      * object for the other style
      */
-    const [w3cCaps, jsonwpCaps] = params.capabilities && (params.capabilities as W3CCapabilities).alwaysMatch
+    const [w3cCaps, jsonwpCaps] = params.capabilities && (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch
         /**
          * in case W3C compliant capabilities are provided
          */
-        ? [params.capabilities, (params.capabilities as W3CCapabilities).alwaysMatch]
+        ? [params.capabilities, (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch]
         /**
          * otherwise assume they passed in jsonwp-style caps (flat object)
          */
@@ -59,17 +83,11 @@ export async function startWebDriverSession (params: Options): Promise<string> {
     const sessionId = response.value.sessionId || response.sessionId
 
     /**
-     * save original set of capabilities to allow to request the same session again
-     * (e.g. for reloadSession command in WebdriverIO)
-     */
-    params.requestedCapabilities = params.capabilities
-
-    /**
      * save actual receveived session details
      */
     params.capabilities = response.value.capabilities || response.value
 
-    return sessionId
+    return { sessionId, capabilities: params.capabilities as Capabilities.DesiredCapabilities }
 }
 
 /**
@@ -238,7 +256,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * get human readable message from response error
  * @param {Error} err response error
  */
-export const getSessionError = (err: JSONWPCommandError, params: Partial<Options> = {}) => {
+export const getSessionError = (err: JSONWPCommandError, params: Partial<Options.WebDriver> = {}) => {
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +
@@ -280,6 +298,12 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
     if (err.message === 'Response has empty body') {
         return 'Make sure to connect to valid hostname:port or the port is not in use.' +
             '\nIf you use a grid server ' + w3cCapMessage
+    }
+
+    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && params.hostname?.endsWith('saucelabs.com')) {
+        return 'Session request was not authorized because you either did provide a wrong access key or tried to run ' +
+            'in a region that has not been enabled for your user. If have registered a free trial account it is connected ' +
+            'to a specific region. Ensure this region is set in your configuration (https://webdriver.io/docs/options.html#region).'
     }
 
     return err.message

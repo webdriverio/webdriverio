@@ -23,7 +23,7 @@ You can simple do it by:
 $ npm install @wdio/spec-reporter --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted.html).
+Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted).
 
 ## Configuration
 
@@ -37,4 +37,43 @@ module.exports = {
   reporters: ['dot', 'spec'],
   // ...
 };
+```
+
+## Spec Reporter Options
+### symbols
+Provide custom symbols for `passed`, `failed` and or `skipped` tests
+
+Type: `object`
+Default: `{passed: '✓', skipped: '-', failed: '✖'}`
+
+#### Example
+```js
+[
+  "spec",
+  {
+    symbols: {
+      passed: '[PASS]',
+      failed: '[FAIL]',
+    },
+  },
+]
+```
+
+### sauceLabsSharableLinks
+Be default the test results in Sauce Labs can only be viewed by a team member from the same team, not by a team member
+from a different team. This options will enable [sharable links](https://wiki.saucelabs.com/display/DOCS/Building+Sharable+Links+to+Test+Results)
+by default, which means that all tests that are executed in Sauce Labs can be viewed by everybody.
+Just add `sauceLabsSharableLinks: false`, as shown below, in the reporter options to disable this feature.
+
+Type: `boolean`
+Default: `true`
+
+#### Example
+```js
+[
+  "spec",
+  {
+    sauceLabsSharableLinks: false,
+  },
+]
 ```

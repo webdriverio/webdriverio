@@ -23,7 +23,7 @@ npm install  @wdio/crossbrowsertesting-service --save-dev
 ```
 
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 
@@ -50,18 +50,18 @@ export.config = {
 
 ## Options
 
-In order to authorize to the CrossBrowserTesting service your config needs to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
+In order to authorize to the CrossBrowserTesting service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
 ### cbtTunnel
 If true secure CBT local connection is started.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 ### cbtTunnelOpts
 Any additional options to pass along to the `start()` function of [cbt_tunnels](https://www.npmjs.com/package/cbt_tunnels)
 
-Type: `Object`<br>
+Type: `Object`<br />
 Default: `{}`
 
 ---

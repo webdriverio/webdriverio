@@ -30,6 +30,14 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-docker-service"
   },
   {
+    "packageName": "wdio-ui5-service",
+    "title": "UI5",
+    "githubUrl": "https://github.com/js-soft/wdi5",
+    "branch": "develop",
+    "npmUrl": "https://www.npmjs.com/package/wdio-ui5-service",
+    "location": "/wdio-ui5-service/README.md"
+  },
+  {
     "packageName": "wdio-wiremock-service",
     "title": "WireMock",
     "githubUrl": "https://github.com/erwinheitzman/wdio-wiremock-service",
@@ -76,5 +84,32 @@
     "title": "Re-run",
     "githubUrl": "https://github.com/jwplayer/wdio-rerun-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-rerun-service"
+  },
+  {
+    "packageName": "wdio-winappdriver-service",
+    "title": "winappdriver",
+    "githubUrl": "https://github.com/licanhua/wdio-winappdriver-service",
+    "branch": "main",
+    "npmUrl": "https://www.npmjs.com/package/wdio-winappdriver-service"
+  },
+  {
+    "packageName": "wdio-ywinappdriver-service",
+    "title": "ywinappdriver",
+    "githubUrl": "https://github.com/licanhua/wdio-ywinappdriver-service",
+    "branch": "main",
+    "npmUrl": "https://www.npmjs.com/package/wdio-ywinappdriver-service"
+  },
+  {
+    "packageName": "wdio-performancetotal-service",
+    "title": "PerformanceTotal",
+    "githubUrl": "https://github.com/tzurp/performance-total",
+    "npmUrl": "https://www.npmjs.com/package/wdio-performancetotal-service"
+  },
+  {
+    "packageName": "wdio-aws-device-farm-service",
+    "title": "AWS Device Farm",
+    "githubUrl": "https://github.com/awslabs/wdio-aws-device-farm-service",
+    "branch": "main",
+    "npmUrl": "https://www.npmjs.com/package/wdio-aws-device-farm-service"
   }
 ]

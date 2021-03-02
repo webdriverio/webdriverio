@@ -54,7 +54,7 @@ exports.config = {
     // Test runner services
     // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no self effort. Unlike plugins they don't add new
-    // commands but hook themself up into the test process.
+    // commands but hook themselves up into the test process.
     // services: [],//
     // Framework you want to run your specs with.
     // The following are supported: mocha, jasmine and cucumber
@@ -81,7 +81,7 @@ exports.config = {
     // =====
     // Hooks
     // =====
-    // WebdriverIO provides a several hooks you can use to intefere the test process in order to enhance
+    // WebdriverIO provides a several hooks you can use to interfere the test process in order to enhance
     // it and build services around it. You can either apply a single function to it or an array of
     // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
     // resolved to continue.
@@ -90,14 +90,14 @@ exports.config = {
     // onPrepare: function (config, capabilities) {
     // },
     //
-    // Gets executed before a worker process is spawned and can be used to initialise specific service
+    // Gets executed before a worker process is spawned and can be used to initialize specific service
     // for that worker as well as modify runtime environments in an async fashion.
     // onWorkerStart: function (cid, caps, specs, args, execArgv) {
     // },
     //
     // Gets executed before test execution begins. At this point you can access to all global
     // variables like `browser`. It is the perfect place to define custom commands.
-    // before: function (capabilities, specs) {
+    // before: function (capabilities, specs, browser) {
     // },
     //
     // Hook that gets executed before the suite starts
@@ -137,27 +137,27 @@ exports.config = {
     // },
     //
     // Runs before a Cucumber Feature
-    // beforeFeature: function (uri, feature, scenarios) {
+    // beforeFeature: function (uri, feature) {
     // },
     //
     // Runs after a Cucumber Feature
-    // afterFeature: function (uri, feature, scenarios) {
+    // afterFeature: function (uri, feature) {
     // }
     //
     // Runs before a Cucumber Scenario
-    // beforeScenario: function (uri, feature, scenario, sourceLocation) {
+    // beforeScenario: function (world) {
     // },
     //
     // Runs after a Cucumber Scenario
-    // afterScenario: function (uri, feature, scenario, result, sourceLocation) {
+    // afterScenario: function (world) {
     // },
     //
     // Runs before a Cucumber Step
-    // beforeStep: function ({ uri, feature, step }, context) {
+    // beforeStep: function (step, context) {
     // },
     //
     // Runs after a Cucumber Step
-    // afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
+    // afterStep: function (step, context) {
     // },
     //
     // Gets executed after all tests are done. You still have access to all global variables from

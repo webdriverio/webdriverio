@@ -1,7 +1,7 @@
 WebdriverIO Selenium Standalone Service
 =======================================
 
-Handling the Selenium server is out of scope of the actual WebdriverIO project. This service helps you to run Selenium seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/guide/testrunner/gettingstarted.html). It uses the well known [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) NPM package that automatically sets up the standalone server and all required driver for you.
+Handling the Selenium server is out of scope of the actual WebdriverIO project. This service helps you to run Selenium seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/guide/testrunner/gettingstarted). It uses the well known [selenium-standalone](https://www.npmjs.com/package/selenium-standalone) NPM package that automatically sets up the standalone server and all required driver for you.
 
 __Note:__ If you use this service you don't need any other driver services (e.g. [wdio-chromedriver-service](https://www.npmjs.com/package/wdio-chromedriver-service)) anymore. All local browser can be started using this service.
 
@@ -14,7 +14,7 @@ The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependenc
 ```json
 {
     "devDependencies": {
-        "@wdio/selenium-standalone-service": "^6.6.1"
+        "@wdio/selenium-standalone-service": "^6.11.0"
     }
 }
 ```
@@ -25,17 +25,32 @@ You can simple do it by:
 npm install @wdio/selenium-standalone-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 
-By default, Google Chrome and Firefox are available when installed on the host system. In order to use the service you need to add `selenium-standalone` to your service array:
+By default, ChromeDriver, geckodriver and some other browser drivers based on the OS are available when installed on the host system. In order to use the service you need to add `selenium-standalone` to your service array:
 
+```js
+/**
+ * simplified mode (available since v6.11.0)
+ * set `true` to use the version provided by `selenium-standalone`, 'latest' by default
+*/
+export.config = {
+    // ...
+    services: [
+        ['selenium-standalone', { drivers: { firefox: '0.28.0', chrome: true, chromiumedge: 'latest' } }]
+    ],
+    // ...
+};
+```
+
+Control browser driver installation/running separately.
 ```js
 // wdio.conf.js
 const drivers = {
     chrome: { version: '86.0.4240.22' }, // https://chromedriver.chromium.org/
-    firefox: { version: '0.27.0' } // https://github.com/mozilla/geckodriver/releases
+    firefox: { version: '0.27.0' }, // https://github.com/mozilla/geckodriver/releases
     chromiumedge: { version: '85.0.564.70' } // https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
 }
 
@@ -44,8 +59,8 @@ export.config = {
     services: [
         ['selenium-standalone', {
             logPath: 'logs',
-            installArgs: { drivers },
-            args: { drivers },
+            installArgs: { drivers }, // drivers to install
+            args: { drivers } // drivers to use
         }]
     ],
     // ...
@@ -114,7 +129,7 @@ args: {
     drivers : {
         chrome : {
             version : "86.0.4240.22",
-            arch    : process.arch,
+            arch    : process.arch
         }
     }
 },
@@ -138,7 +153,7 @@ installArgs: {
         chrome : {
             version : "86.0.4240.22",
             arch    : process.arch,
-            baseURL : "https://chromedriver.storage.googleapis.com",
+            baseURL : "https://chromedriver.storage.googleapis.com"
         }
     }
 },

@@ -9,7 +9,7 @@ We are pleased to announce that we now have support for CucumberJS in WebdriverI
 This has been a great challenge for the project committers so we're all very thankful for the time and effort they put into this.
 So normally we would say
 
-```sh
+```bash
 npm install @wdio/cucumber-framework --save-dev
 ```
 
@@ -31,10 +31,10 @@ If you want to know more about the NodeJS LTS support check [this](https://githu
 WebdriverIO is now fully supporting the W3C protocol, this has a lot of advantages, but for your existing scripts some minor downsides.
 One of the downsides might be that you are using methods that are based on the JSONWire Protocol, that are not supported by the newest drivers like for example ChromeDriver 74+.
 This might result in errors like for example `browser.positionClick() is not a function`. If you see this error you are using a not supported method for the W3C supported Driver.
-See the API documentation [here](https://webdriver.io/docs/api.html) to see which command is a Webdriver Protocol (W3C) or a JSONWire protocol command.
+See the API documentation [here](https://webdriver.io/docs/api.html) to see which command is a WebDriver Protocol (W3C) or a JSONWire protocol command.
 
 Just a little side note, we tried to keep all `browser` and `element` commands, see the link above, agnostic to the protocol. Nothing changed here for you.
-To provide you some insight on how this works please check for example the `keys` command, you will find the support for both protocols [here](https://github.com/webdriverio/webdriverio/blob/master/packages/webdriverio/src/commands/browser/keys.js#L45-L50).
+To provide you some insight on how this works please check for example the `keys` command, you will find the support for both protocols [here](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/commands/browser/keys.js#L45-L50).
 
 If you want to use W3C with cloud vendors, like for example Sauce Labs or Browserstack, you need to use a vendor specific prefix in your capabilities.
 Please check the websites of the vendors to see what you need to do.
@@ -45,15 +45,15 @@ So, W3C is a major step for us all!!
 
 ### Command changes
 Over the years WebdriverIO added more and more commands for different automation protocols without applying a pattern to it which resulted in having a bunch of duplication and inconsistent naming.
-Even though the list looks exhausting, most of the commands that have changed were used internally. Please check the [changelog of V5](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v500-2018-12-20) to see all the changes.
+Even though the list looks exhausting, most of the commands that have changed were used internally. Please check the [changelog of V5](https://github.com/webdriverio/webdriverio/blob/main/CHANGELOG.md#v500-2018-12-20) to see all the changes.
 
 ### Breaking changes
-When creating a better product and thus releasing a major version, you will always have breaking changes. We can't repeat it enough but please check the [changelog of V5](https://github.com/webdriverio/webdriverio/blob/master/CHANGELOG.md#v500-2018-12-20) to see all the breaking changes.
+When creating a better product and thus releasing a major version, you will always have breaking changes. We can't repeat it enough but please check the [changelog of V5](https://github.com/webdriverio/webdriverio/blob/main/CHANGELOG.md#v500-2018-12-20) to see all the breaking changes.
 
 **Don't only read the changes in the V5.0.0 release, but also read the rest of the changes!**
 
 ### It's not only WebdriverIO who evolved!
-When you are going to use the lastest version of the `@wdio/cucumber-framework`, you'll also get the latest version of Cucumber. **This means you also need to look at the breaking changes between CucumberJS 2 and CucumberJS 5.**
+When you are going to use the latest version of the `@wdio/cucumber-framework`, you'll also get the latest version of Cucumber. **This means you also need to look at the breaking changes between CucumberJS 2 and CucumberJS 5.**
 Please check the [changelog of CucumberJS](https://github.com/cucumber/cucumber-js/blob/master/CHANGELOG.md#300-2017-08-08) from version 3 till 5 to see what changed in CucumberJS.
 
 ### Migration steps
@@ -67,7 +67,7 @@ When you do this you can easily disable scenario's in your old project, and run 
 Before installing dependencies, we need to initialize an empty NPM project (this will allow us to the cli to install needed dependencies to our local project).
 To do this, run:
 
-```sh
+```bash
 $ mkdir webdriverio-test && cd webdriverio-test
 $ npm init -y
 ```
@@ -79,14 +79,14 @@ We recommend using the test runner because it comes with a lot of useful feature
 
 Now we need to install the cli. Do that by running:
 
-```sh
+```bash
 $ npm i --save-dev @wdio/cli
 ```
 
 #### 3. Generate Configuration File
 We'll next want to generate a configuration file that stores all of our WebdriverIO settings. To do that just run the configuration utility:
 
-```sh
+```bash
 $ npx wdio config
 ```
 

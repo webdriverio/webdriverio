@@ -1,13 +1,13 @@
 {
   "name": "eslint-plugin-wdio",
-  "version": "6.6.0",
+  "version": "7.0.0",
   "description": "Eslint rules for WebdriverIO",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/eslint-plugin-wdio",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/eslint-plugin-wdio",
   "license": "MIT",
   "main": "index.js",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",

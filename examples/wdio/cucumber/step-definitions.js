@@ -1,6 +1,6 @@
 /**
  * to run these tests you need install Cucumber.js on your machine
- * take a look at https://github.com/cucumber/cucumber-js for more informations
+ * take a look at https://github.com/cucumber/cucumber-js for more information
  *
  * first, install Cucumber.js via NPM
  * $ npm install -g cucumber
@@ -9,13 +9,13 @@
  * $ cucumber.js
  */
 
-const { Given, When, Then } = require('cucumber')
+const { Given, When, Then } = require('@cucumber/cucumber')
 
 Given(/^I go on the website "([^"]*)"$/, (url) => {
     browser.url(url)
 })
 
-When(/^I add the following grocieries$/, (table) => {
+When(/^I add the following groceries$/, (table) => {
     const newTodo = $('.new-todo')
     table.rawTable.shift()
 

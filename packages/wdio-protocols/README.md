@@ -32,6 +32,24 @@ import { WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, Chrom
 console.log(WebDriverProtocol['/session'].POST.description)
 ```
 
+## TypeScript Interfaces
+
+The package exposes TypeScript interfaces for all protocols. You can use them for your own project as follows:
+
+```ts
+import type { WebDriverCommands } from '@wdio/protocol'
+
+import { WebDriverCommands, WebDriverCommandsAsync } from './src'
+
+const browser = {} as WebDriverCommands
+browser.sendAlertText(true)
+// fails with "Argument of type 'boolean' is not assignable to parameter of type 'string'.ts(2345)"
+
+const asyncBrowser = {} as WebDriverCommandsAsync
+const a = await asyncBrowser.getTitle()
+type foo = typeof a // string
+```
+
 ----
 
 For more information on WebdriverIO see the [homepage](https://webdriver.io).

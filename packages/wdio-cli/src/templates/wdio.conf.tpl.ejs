@@ -159,7 +159,7 @@ exports.config = {
     //<% } %>
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
-    // see also: https://webdriver.io/docs/frameworks.html
+    // see also: https://webdriver.io/docs/frameworks
     //
     // Make sure you have the wdio adapter package for the specific framework installed
     // before running any tests.
@@ -180,10 +180,7 @@ exports.config = {
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
-        <% if(answers.isUsingTypeScript) {
-        %>// TypeScript setup
-        require: ['ts-node/register'],
-        <% } else if(answers.isUsingBabel) {
+        <% if(answers.isUsingBabel) {
         %>// Babel setup
         require: ['@babel/register'],
         <% }
@@ -194,11 +191,8 @@ exports.config = {
     if(answers.framework === 'jasmine') { %>
     //
     // Options to be passed to Jasmine.
-    jasmineNodeOpts: {
-        <% if(answers.isUsingTypeScript) {
-        %>// TypeScript setup
-        requires: ['ts-node/register'],
-        <% } else if(answers.isUsingBabel) {
+    jasmineOpts: {
+        <% if(answers.isUsingBabel) {
         %>// Babel setup
         helpers: [require.resolve('@babel/register')],
         <% }
@@ -221,11 +215,7 @@ exports.config = {
         // <boolean> show full backtrace for errors
         backtrace: false,
         // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        <% if(answers.isUsingTypeScript) {
-        %>requireModule: [
-            () => { require('ts-node').register({ files: true }) },
-        ],
-        <% } else if(answers.isUsingBabel) {
+        <% if(answers.isUsingBabel) {
         %>requireModule: ['@babel/register'],
         <% } else {
         %>requireModule: [],
@@ -290,7 +280,8 @@ exports.config = {
      * Gets executed before test execution begins. At this point you can access to all global
      * variables like `browser`. It is the perfect place to define custom commands.
      * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {Array.<String>} specs        List of spec file paths that are to be run
+     * @param {Object}         browser      instance of created browser/device session
      */
     // before: function (capabilities, specs) {
     // },
@@ -336,32 +327,32 @@ exports.config = {
     /**
      * Runs before a Cucumber feature
      */
-    // beforeFeature: function (uri, feature, scenarios) {
+    // beforeFeature: function (uri, feature) {
     // },
     /**
      * Runs before a Cucumber scenario
      */
-    // beforeScenario: function (uri, feature, scenario, sourceLocation, context) {
+    // beforeScenario: function (world) {
     // },
     /**
      * Runs before a Cucumber step
      */
-    // beforeStep: function ({ uri, feature, step }, context) {
+    // beforeStep: function (step, context) {
     // },
     /**
      * Runs after a Cucumber step
      */
-    // afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
+    // afterStep: function (step, context) {
     // },
     /**
      * Runs after a Cucumber scenario
      */
-    // afterScenario: function (uri, feature, scenario, result, sourceLocation, context) {
+    // afterScenario: function (world) {
     // },
     /**
      * Runs after a Cucumber feature
      */
-    // afterFeature: function (uri, feature, scenarios) {
+    // afterFeature: function (uri, feature) {
     // },
     <% } %>
     /**

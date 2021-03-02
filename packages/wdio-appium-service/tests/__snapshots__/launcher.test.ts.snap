@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Appium launcher onPrepare should set correct config properties for Windows 1`] = `
+Array [
+  "/c",
+  "path/to/my_custom_appium",
+  "--base-path",
+  "/",
+  "--foo",
+  "bar",
+]
+`;
+
+exports[`Appium launcher onPrepare should set correct config properties for linux 1`] = `
+Array [
+  "--base-path",
+  "/",
+  "--foo",
+  "bar",
+]
+`;
+
+exports[`Appium launcher onPrepare should set correct config properties for mac 1`] = `
+Array [
+  "--base-path",
+  "/",
+  "--foo",
+  "bar",
+]
+`;

@@ -5,15 +5,15 @@ Feature: Example feature
 
   Scenario: Get size of an element
     Given I go on the website "https://github.com/"
-    Then  should the element ".header-logged-out a" be 32px wide and 35px high
+    Then  should the element ".header-logged-out a" be 32px wide and 34px high
 
   Scenario: Get title of website
     Given I go on the website "https://github.com/"
-    Then  should the title of the page be "The world’s leading software development platform · GitHub"
+    Then  should the title of the page be "GitHub: Where the world builds software · GitHub"
 
   Scenario: Data Tables
     Given I go on the website "http://todomvc.com/examples/react/#/"
-    When  I add the following grocieries
+    When  I add the following groceries
         | Item       | Amount |
         | Milk       | 2      |
         | Butter     | 1      |

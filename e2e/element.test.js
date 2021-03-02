@@ -8,7 +8,7 @@ beforeAll(async () => {
         outputDir: __dirname,
         capabilities: {
             browserName: 'chrome',
-            'goog:chromeOptions': {
+            'wdio:devtoolsOptions': {
                 headless: true
             }
         }
@@ -63,6 +63,13 @@ describe('elements', () => {
         expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
         await browser.forward()
         expect(await browser.getTitle()).toBe('two')
+    })
+
+    it('is able to select an option', async () => {
+        const option = await browser.findElement('css selector', 'option[value="someValue5"]')
+        await browser.elementClick(option[ELEMENT_KEY])
+        const selectedValue = await browser.findElement('css selector', '#selectedValue')
+        expect(await browser.getElementText(selectedValue[ELEMENT_KEY])).toBe('someValue5')
     })
 
     it('element properties', async () => {
@@ -191,6 +198,7 @@ describe('elements', () => {
     })
 
     it('should allow to click relative to the center of an element', async () => {
+        await browser.executeScript('window.scrollTo(0, 0)')
         const message = await browser.findElement('css selector', '.btn1_right_clicked')
         const btn2 = await browser.findElement('css selector', '.btn2')
 

@@ -7,7 +7,9 @@ import ansiStrip from 'strip-ansi'
 
 prefix.reg(log)
 
-const DEFAULT_LEVEL = 'trace'
+const DEFAULT_LEVEL = process.env.WDIO_DEBUG
+    ? 'trace'
+    : 'info'
 const COLORS: Record<string, typeof Color> = {
     error: 'red',
     warn: 'yellow',
@@ -51,7 +53,7 @@ const SERIALIZERS = [{
 const loggers = log.getLoggers()
 let logLevelsConfig: Record<string, log.LogLevelDesc> = {}
 const logCache = new Set()
-let logFile: fs.WriteStream
+let logFile: fs.WriteStream | null
 
 const originalFactory = log.methodFactory
 const wdioLoggerMethodFactory = function (this: log.Logger, methodName: string, logLevel: log.LogLevelNumbers, loggerName: string) {
@@ -89,7 +91,11 @@ const wdioLoggerMethodFactory = function (this: log.Logger, methodName: string, 
              * empty logging cache if stuff got logged before
              */
             if (logCache.size) {
-                logCache.forEach((log) => logFile.write(log))
+                logCache.forEach((log) => {
+                    if (logFile) {
+                        logFile.write(log)
+                    }
+                })
                 logCache.clear()
             }
 
@@ -130,7 +136,7 @@ export default function getLogger (name: string) {
  * Wait for writable stream to be flushed.
  * Calling this prevents part of the logs in the very env to be lost.
  */
-getLogger.waitForBuffer = async () => new Promise(resolve => {
+getLogger.waitForBuffer = async () => new Promise<void>(resolve => {
     // @ts-ignore
     if (logFile && Array.isArray(logFile.writableBuffer) && logFile.writableBuffer.length !== 0) {
         return setTimeout(async () => {
@@ -138,9 +144,15 @@ getLogger.waitForBuffer = async () => new Promise(resolve => {
             resolve()
         }, 20)
     }
-    resolve(true)
+    resolve()
 })
 getLogger.setLevel = (name: string, level: log.LogLevelDesc) => loggers[name].setLevel(level)
+getLogger.clearLogger = () => {
+    if (logFile) {
+        logFile.end()
+    }
+    logFile = null
+}
 getLogger.setLogLevelsConfig = (logLevels: Record<string, log.LogLevelDesc> = {}, wdioLogLevel: log.LogLevelDesc = DEFAULT_LEVEL) => {
     /**
      * set log level
@@ -174,3 +186,5 @@ getLogger.setLogLevelsConfig = (logLevels: Record<string, log.LogLevelDesc> = {}
     })
 }
 const getLogLevelName = (logName: string) => logName.split(':').shift() as log.LogLevelDesc
+
+export type Logger = log.Logger

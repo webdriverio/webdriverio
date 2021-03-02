@@ -11,7 +11,7 @@ describe('wdio-logger node', () => {
         const log = nodeLogger('test:setLevel')
 
         it('DEFAULT_LEVEL', () => {
-            expect(log.getLevel()).toEqual(0)
+            expect(log.getLevel()).toEqual(2)
         })
 
         const scenarios: {
@@ -103,8 +103,8 @@ describe('wdio-logger node', () => {
         it('should apply logLevels after loggers are created', () => {
             const log1 = nodeLogger('test-applyLogLevelsConfig1')
             const log2 = nodeLogger('test-applyLogLevelsConfig1:foobar')
-            expect(log1.getLevel()).toEqual(0)
-            expect(log2.getLevel()).toEqual(0)
+            expect(log1.getLevel()).toEqual(2)
+            expect(log2.getLevel()).toEqual(2)
 
             nodeLogger.setLogLevelsConfig({ 'test-applyLogLevelsConfig1': 'error' })
 
@@ -114,20 +114,18 @@ describe('wdio-logger node', () => {
 
         it('should not change logLevel if not provided in config', () => {
             const log = nodeLogger('test-applyLogLevelsConfig')
-            expect(log.getLevel()).toEqual(0)
+            expect(log.getLevel()).toEqual(2)
 
             nodeLogger.setLogLevelsConfig(undefined)
 
-            expect(log.getLevel()).toEqual(0)
+            expect(log.getLevel()).toEqual(2)
         })
 
         it('should set wdio logLevel passed as argument', () => {
             const log = nodeLogger('test-wdio-log-level')
-            expect(log.getLevel()).toEqual(0)
-
-            nodeLogger.setLogLevelsConfig(undefined, 'info')
-
             expect(log.getLevel()).toEqual(2)
+            nodeLogger.setLogLevelsConfig(undefined, 'error')
+            expect(log.getLevel()).toEqual(4)
         })
 
         afterEach(() => {
@@ -149,7 +147,8 @@ describe('wdio-logger node', () => {
             get writableBuffer () {
                 // @ts-ignore
                 return writableBuffer
-            }
+            },
+            end: () => {}
         }))
 
         it('should be possible to add to cache', () => {
@@ -228,6 +227,20 @@ describe('wdio-logger node', () => {
             expect(write.mock.results[1].value).toContain('test-logFile4: Error: bar')
         })
 
+        describe('clearLogger', () => {
+            it('should be possible to change output directory', () => {
+                process.env.WDIO_LOG_PATH = 'wdio.test.log'
+                const log = nodeLogger('test-logFile5')
+                log.info('foo')
+                nodeLogger.clearLogger()
+
+                process.env.WDIO_LOG_PATH = 'wdio.test.log2'
+                log.info('bar')
+                expect(write.mock.instances[0].path).toContain('wdio.test.log')
+                expect(write.mock.instances[1].path).toContain('wdio.test.log2')
+            })
+        })
+
         describe('waitForBuffer with logFile', () => {
             const scenarios = [{
                 name: 'should be ok buffer is empty',
@@ -247,7 +260,7 @@ describe('wdio-logger node', () => {
 
                     writableBuffer = scenario.writableBuffer
 
-                    expect(await nodeLogger.waitForBuffer()).toBe(true)
+                    expect(await nodeLogger.waitForBuffer()).toBe(undefined)
                 })
             })
 
@@ -267,6 +280,8 @@ describe('wdio-logger node', () => {
 
         beforeEach(() => {
             delete process.env.WDIO_LOG_PATH
+            nodeLogger.clearLogger()
+            nodeLogger2.clearLogger()
         })
         afterEach(() => {
             logCacheForEachSpy.mockClear()
@@ -281,7 +296,7 @@ describe('wdio-logger node', () => {
     })
     describe('waitForBuffer with no logFile', () => {
         it('should be ok if logFile is undefined', async () => {
-            expect(await nodeLogger.waitForBuffer()).toBe(true)
+            expect(await nodeLogger.waitForBuffer()).toBe(undefined)
         })
     })
 })

@@ -21,3 +21,4 @@ export default function getLogger (component: string) {
 getLogger.setLevel = () => {}
 getLogger.setLogLevelsConfig = () => {}
 getLogger.waitForBuffer = () => {}
+getLogger.clearLogger = () => {}

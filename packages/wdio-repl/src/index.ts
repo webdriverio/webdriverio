@@ -13,7 +13,7 @@
  * you are using (e.g. Mocha or Jasmine) in order to prevent test termination due to a test timeout.
  * Also avoid executing the command with multiple capabilities running at the same time.
  *
- * <iframe width="560" height="315" src="https://www.youtube.com/embed/xWwP-3B_YyE" frameborder="0" allowfullscreen></iframe>
+ * <iframe width="560" height="315" src="https://www.youtube.com/embed/xWwP-3B_YyE" frameBorder="0" allowFullScreen></iframe>
  *
  * <example>
     :debug.js
@@ -33,18 +33,19 @@
 import vm from 'vm'
 import repl from 'repl'
 
-// @ts-ignore
 import { runFnInFiberContext, hasWdioSyncSupport } from '@wdio/utils'
 
 import { STATIC_RETURNS, INTRO_MESSAGE, DEFAULT_CONFIG } from './constants'
 
 export interface ReplConfig {
-    commandTimeout: number,
-    eval: repl.REPLEval,
-    prompt: string,
-    useGlobal: true,
-    useColor: true
+    commandTimeout: number
+    eval: repl.REPLEval
+    prompt: string
+    useGlobal: boolean
+    useColor: boolean
 }
+
+export type ReplCallback = (err: Error | null, result: any) => void
 
 export default class WDIORepl {
     static introMessage = INTRO_MESSAGE
@@ -52,7 +53,7 @@ export default class WDIORepl {
     private _isCommandRunning = false
     private _replServer: repl.REPLServer | undefined
 
-    constructor(config: ReplConfig) {
+    constructor(config?: ReplConfig) {
         this._config = Object.assign(
             DEFAULT_CONFIG,
             { eval: this.eval.bind(this) },
@@ -60,7 +61,7 @@ export default class WDIORepl {
         )
     }
 
-    eval (cmd: string, context: vm.Context, filename: string, callback: (err: Error | null, result: any) => void) {
+    eval (cmd: string, context: vm.Context, filename: string | undefined, callback: ReplCallback) {
         if (this._isCommandRunning) {
             return
         }
@@ -81,7 +82,7 @@ export default class WDIORepl {
         return this._runCmd(cmd, context, callback)
     }
 
-    private _runCmd (cmd: string, context: vm.Context, callback: (err: Error | null, result: any) => void) {
+    private _runCmd (cmd: string, context: vm.Context, callback: ReplCallback) {
         try {
             const result = vm.runInContext(cmd, context)
             return this._handleResult(result, callback)
@@ -91,7 +92,7 @@ export default class WDIORepl {
         }
     }
 
-    private _handleResult (result: any, callback: (err: Error | null, result: any) => void) {
+    private _handleResult (result: any, callback: ReplCallback) {
         if (!result || typeof result.then !== 'function') {
             this._isCommandRunning = false
             return callback(null, result)
@@ -134,7 +135,7 @@ export default class WDIORepl {
         })
     }
 
-    start (context: vm.Context) {
+    start (context?: vm.Context) {
         if (this._replServer) {
             throw new Error('a repl was already initialised')
         }

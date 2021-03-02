@@ -1,4 +1,4 @@
-import { Options, DesiredCapabilities } from '../src/types'
+import { Options } from '@wdio/types'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     getErrorFromResponseBody, CustomRequestError, startWebDriverSession
@@ -197,11 +197,18 @@ describe('utils', () => {
             expect(message).toContain('valid hostname:port or the port is not in use')
             expect(message).toContain('add vendor prefix')
         })
+
+        it('should hint for region issues for free-trial users', () => {
+            const message = getSessionError(
+                new Error('unknown error: failed serving request POST /wd/hub/session: Unauthorized'),
+                { hostname: 'https://ondemand.eu-central-1.saucelabs.com' })
+            expect(message).toContain('Ensure this region is set in your configuration')
+        })
     })
 
     describe('startWebDriverSession', () => {
         it('attaches capabilities to the params object', async () => {
-            const params: Options = {
+            const params: Options.WebDriver = {
                 hostname: 'localhost',
                 port: 4444,
                 path: '/',
@@ -209,22 +216,43 @@ describe('utils', () => {
                 logLevel: 'warn',
                 capabilities: {
                     browserName: 'chrome',
+                    platform: 'Windows'
                 }
             }
-            const sessionId = await startWebDriverSession(params)
+            const { sessionId, capabilities } = await startWebDriverSession(params)
             expect(sessionId).toBe('foobar-123')
-            expect((params.capabilities as DesiredCapabilities).browserName)
+            expect(capabilities.browserName)
                 .toBe('mockBrowser')
-            expect((params.requestedCapabilities as DesiredCapabilities).browserName)
-                .toBe('chrome')
-
         })
 
         it('should handle sessionRequest error', async () => {
             let error = await startWebDriverSession({
-                logLevel: 'warn'
+                logLevel: 'warn',
+                capabilities: {}
             }).catch((err) => err)
             expect(error.message).toContain('Failed to create session')
+        })
+
+        it('should break if JSONWire and WebDriver caps are mixed together', async () => {
+            const params: Options.WebDriver = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                logLevel: 'warn',
+                capabilities: {
+                    browserName: 'chrome',
+                    'sauce:options': {},
+                    platform: 'Windows',
+                    // @ts-ignore test invalid cap
+                    foo: 'bar'
+                }
+            }
+            const err: Error = await startWebDriverSession(params).catch((err) => err)
+            expect(err.message).toContain(
+                'Invalid or unsupported WebDriver capabilities found ' +
+                '("platform", "foo").'
+            )
         })
     })
 })

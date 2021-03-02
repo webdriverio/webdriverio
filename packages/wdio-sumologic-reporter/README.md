@@ -3,7 +3,7 @@ WebdriverIO Sumologic Reporter
 
 > A WebdriverIO reporter that sends test results to [Sumologic](https://www.sumologic.com/) for data analyses
 
-![Sumologic Dashboard](https://webdriver.io/images/sumologic.png "Sumologic Dashboard")
+![Sumologic Dashboard](/img/sumologic.png "Sumologic Dashboard")
 
 ## Installation
 
@@ -23,7 +23,7 @@ You can simple do it by:
 $ npm install @wdio/sumologic-reporter --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted.html).
+Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted).
 
 ## Configuration
 

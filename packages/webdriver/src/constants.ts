@@ -1,14 +1,9 @@
-import { Options } from './types'
+import type { Options } from '@wdio/types'
 
-interface Option {
-    type: 'string' | 'number' | 'object' | 'boolean' | 'function'
-    validate?: (option: any) => boolean
-    default?: any
-    match?: RegExp
-    required?: boolean
-}
+declare type HTTPRequestOptions = import('got').Options;
+declare type HTTPResponse = import('got').Response;
 
-export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, Option> = {
+export const DEFAULTS: Options.Definition<Options.WebDriver> = {
     /**
      * protocol of automation driver
      */
@@ -52,6 +47,18 @@ export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, O
         type: 'object'
     },
     /**
+     * cloud user if applicable
+     */
+    user: {
+        type: 'string'
+    },
+    /**
+     * access key to user
+     */
+    key: {
+        type: 'string'
+    },
+    /**
      * capability of WebDriver session
      */
     capabilities: {
@@ -67,6 +74,12 @@ export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, O
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
+     * directory for log files
+     */
+    outputDir: {
+        type: 'string'
+    },
+    /**
      * Timeout for any WebDriver request to a driver or grid
      */
     connectionRetryTimeout: {
@@ -79,18 +92,6 @@ export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, O
     connectionRetryCount: {
         type: 'number',
         default: 3
-    },
-    /**
-     * cloud user if applicable
-     */
-    user: {
-        type: 'string'
-    },
-    /**
-     * access key to user
-     */
-    key: {
-        type: 'string'
     },
     /**
      * Override default agent
@@ -115,14 +116,14 @@ export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, O
      */
     transformRequest: {
         type: 'function',
-        default: (requestOptions: object) => requestOptions
+        default: (requestOptions: HTTPRequestOptions) => requestOptions
     },
     /**
      * Function transforming the response object after it is received
      */
     transformResponse: {
         type: 'function',
-        default: (response: object) => response
+        default: (response: HTTPResponse) => response
     },
     /**
      * Appium direct connect options server (https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
@@ -138,5 +139,19 @@ export const DEFAULTS: Record<Exclude<keyof Options, 'requestedCapabilities'>, O
     },
     directConnectPath: {
         type: 'string'
+    },
+    /**
+     * Whether it requires SSL certificates to be valid in HTTP/s requests
+     * for an environment which cannot get process environment well.
+     */
+    strictSSL: {
+        type: 'boolean',
+        default: true
     }
 }
+
+export const VALID_CAPS = [
+    'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts',
+    'pageLoadStrategy', 'proxy', 'setWindowRect', 'timeouts', 'strictFileInteractability',
+    'unhandledPromptBehavior'
+]

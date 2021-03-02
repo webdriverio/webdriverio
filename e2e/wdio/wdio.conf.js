@@ -4,14 +4,14 @@ exports.config = {
     /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, '*.e2e.js')],
+    specs: [path.resolve(__dirname, 'headless', '*.e2e.js')],
 
     /**
      * capabilities
      */
     capabilities: [{
         browserName: 'chrome',
-        'goog:chromeOptions': { headless: true, dumpio: true }
+        'wdio:devtoolsOptions': { headless: true, dumpio: true }
     }],
 
     /**

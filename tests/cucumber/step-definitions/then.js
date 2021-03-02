@@ -1,7 +1,6 @@
 import assert from 'assert'
 
-// eslint-disable-next-line
-import { Then } from 'cucumber'
+import { Then } from '@cucumber/cucumber'
 
 Then(/^the title of the page should be:$/, (expectedTitle) => {
     const actualTitle = browser.getTitle()
@@ -32,7 +31,7 @@ Then('this test should fail', () => {
 
 let fail = true
 Then('this steps fails only the first time used', () => {
-    if(fail) {
+    if (fail) {
         fail = false
         assert.equal(true, false)
     }

@@ -95,7 +95,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "url",
         "description": "current document URL of the top-level browsing context."
       }
@@ -132,7 +132,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-get-title",
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "title",
         "description": "Returns a string which is the same as `document.title` of the current top-level browsing context."
       }
@@ -145,7 +145,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-get-window-handle",
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "handle",
         "description": "Returns a string which is the window handle for the current top-level browsing context."
       }
@@ -196,6 +196,74 @@
         "type": "String[]",
         "name": "handles",
         "description": "An array which is a list of window handles."
+      }
+    }
+  },
+  "/session/:sessionId/print": {
+    "POST": {
+      "command": "printPage",
+      "description": "The Print Page command renders the document to a paginated PDF document.",
+      "ref": "https://w3c.github.io/webdriver/#print-page",
+      "parameters": [{
+        "name": "orientation",
+        "type": "string",
+        "description": "page orientation. Default: `portrait`",
+        "required": false
+      }, {
+        "name": "scale",
+        "type": "number",
+        "description": "page scale. Default: `1`",
+        "required": false
+      }, {
+        "name": "background",
+        "type": "boolean",
+        "description": "page background. Default: `false`",
+        "required": false
+      }, {
+        "name": "width",
+        "type": "number",
+        "description": "page width in cm. Default: `21.59` from page",
+        "required": false
+      }, {
+        "name": "height",
+        "type": "number",
+        "description": "page height in cm. Default: `27.94` from page",
+        "required": false
+      }, {
+        "name": "top",
+        "type": "number",
+        "description": "page margin in cm from top margin. Default: `1`",
+        "required": false
+      }, {
+        "name": "bottom",
+        "type": "number",
+        "description": "page margin in cm from bottom margin. Default: `1`",
+        "required": false
+      }, {
+        "name": "left",
+        "type": "number",
+        "description": "page margin in cm from left margin. Default: `1`",
+        "required": false
+      }, {
+        "name": "right",
+        "type": "number",
+        "description": "page margin in cm from right margin. Default: `1`",
+        "required": false
+      }, {
+        "name": "shrinkToFit",
+        "type": "boolean",
+        "description": "shrink pdf to fit in page. Default: `true`",
+        "required": false
+      }, {
+        "name": "pageRanges",
+        "type": "object[]",
+        "description": "page ranges. Default `[]`",
+        "required": false
+      }],
+      "returns": {
+        "type": "string",
+        "name": "pdf",
+        "description": "The base64-encoded PDF representation of the paginated document."
       }
     }
   },
@@ -320,7 +388,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String",
+        "type": "object",
         "name": "element",
         "description": "A JSON representation of an element object."
       }
@@ -343,7 +411,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String[]",
+        "type": "object[]",
         "name": "elements",
         "description": "A (possibly empty) JSON list of representations of an element object."
       }
@@ -370,7 +438,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String",
+        "type": "object",
         "name": "element",
         "description": "A JSON representation of an element object."
       }
@@ -397,7 +465,7 @@
         "required": true
       }],
       "returns": {
-        "type": "String[]",
+        "type": "object[]",
         "name": "elements",
         "description": "A (possibly empty) JSON list of representations of an element object."
       }
@@ -410,7 +478,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-get-active-element",
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "element",
         "description": "A JSON representation of an element object."
       }
@@ -464,7 +532,7 @@
       }],
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "attribute",
         "description": "The named attribute of the element."
       }
@@ -484,7 +552,7 @@
       }],
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "property",
         "description": "The named property of the element, accessed by calling GetOwnProperty on the element object."
       }
@@ -504,7 +572,7 @@
       }],
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "cssValue",
         "description": "The computed value of the parameter corresponding to property name from the element's style declarations (unless the document type is xml, in which case the return value is simply the empty string)."
       }
@@ -521,7 +589,7 @@
       }],
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "text",
         "description": "The visible text of the element (including child elements), following the algorithm defined in the Selenium Atoms for [`bot.dom.getVisibleText`](https://github.com/SeleniumHQ/selenium/blob/e09e28f016c9f53196cf68d6f71991c5af4a35d4/javascript/atoms/dom.js#L981)."
       }
@@ -538,7 +606,7 @@
       }],
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "text",
         "description": "The tagName attribute of the element."
       }
@@ -605,7 +673,7 @@
   "/session/:sessionId/element/:elementId/value": {
     "POST": {
       "command": "elementSendKeys",
-      "description": "The Element Send Keys command scrolls into view the form control element and then sends the provided keys to the element. In case the element is not keyboard-interactable, an element not interactable error is returned.<br><br>The key input state used for input may be cleared mid-way through \"typing\" by sending the null key, which is U+E000 (NULL).",
+      "description": "The Element Send Keys command scrolls into view the form control element and then sends the provided keys to the element. In case the element is not keyboard-interactable, an element not interactable error is returned.<br /><br />The key input state used for input may be cleared mid-way through \"typing\" by sending the null key, which is U+E000 (NULL).",
       "ref": "https://w3c.github.io/webdriver/#dfn-element-send-keys",
       "variables": [{
         "name": "elementId",
@@ -777,7 +845,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-get-alert-text",
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "alertText",
         "description": "The message of the user prompt."
       }
@@ -801,7 +869,7 @@
       "ref": "https://w3c.github.io/webdriver/#dfn-take-screenshot",
       "parameters": [],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "screenshot",
         "description": "The base64-encoded PNG image data comprising the screenshot of the initial viewport."
       }
@@ -823,10 +891,332 @@
         "required": false
       }],
       "returns": {
-        "type": "String",
+        "type": "string",
         "name": "screenshot",
         "description": "The base64-encoded PNG image data comprising the screenshot of the visible region of an element’s bounding rectangle after it has been scrolled into view."
       }
+    }
+  },
+  "/session/:sessionId/element/:elementId/computedrole": {
+    "GET": {
+      "command": "getElementComputedRole",
+      "description": "Get the computed WAI-ARIA role of an element.",
+      "ref": "https://w3c.github.io/webdriver/#get-computed-role",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "role",
+        "description": "The result of computing the WAI-ARIA role of element."
+      }
+    }
+  },
+  "/session/:sessionId/element/:elementId/computedlabel": {
+    "GET": {
+      "command": "getElementComputedLabel",
+      "description": "Get the accessible name of the element.",
+      "ref": "https://w3c.github.io/webdriver/#get-computed-label",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "label",
+        "description": "The result of a Accessible Name and Description Computation for the Accessible Name of the element."
+      }
+    }
+  },
+  "/session/:sessionId/permissions": {
+    "POST": {
+      "command": "setPermissions",
+      "description": "Simulates user modification of a PermissionDescriptor's permission state. __Note:__ this feature has not landed in all browsers yet.",
+      "ref": "https://w3c.github.io/permissions/#set-permission-command",
+      "examples": [
+        [
+          "// set midi permissions",
+          "browser.setPermissions({",
+          "  name: 'midi',",
+          "  sysex; true",
+          ", 'granted'); // can be also 'denied' or 'prompt'"
+        ]
+      ],
+      "parameters": [{
+        "name": "descriptor",
+        "type": "object",
+        "description": "Each powerful feature has one or more aspects that websites can request permission to access. To describe these aspects, each feature defines a subtype of PermissionDescriptor to be its permission descriptor type. __Note:__ this feature has not landed in all browsers yet.",
+        "required": true
+      }, {
+        "name": "state",
+        "type": "string",
+        "description": "Determines whether permission is granted, denied or prompted.",
+        "required": true
+      }, {
+        "name": "oneRealm",
+        "type": "boolean",
+        "description": "Whether or not to apply permissions to all execution contexts.",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/reporting/generate_test_report": {
+    "POST": {
+      "command": "generateTestReport",
+      "description": "Generates a report for testing. Extension for [Reporting API](https://developers.google.com/web/updates/2018/09/reportingapi). __Note:__ this feature has not landed in all browsers yet.",
+      "ref": "https://w3c.github.io/reporting/#automation",
+      "parameters": [{
+        "name": "message",
+        "type": "string",
+        "description": "Message to be displayed in the report.",
+        "required": true
+      }, {
+        "name": "group",
+        "type": "string",
+        "description": "Specifies the endpoint group to deliver the report to."
+      }]
+    }
+  },
+  "/session/:sessionId/sensor": {
+    "POST": {
+      "command": "createMockSensor",
+      "description": "Creates a mock sensor to emulate sensors like Ambient Light Sensor. __Note:__ this feature has not landed in all browsers yet.",
+      "ref": "https://w3c.github.io/sensors/#create-mock-sensor-command",
+      "parameters": [{
+        "name": "mockSensorType",
+        "type": "string",
+        "description": "Type of sensor API to mock, e.g. 'ambient-light'",
+        "required": true
+      }, {
+        "name": "maxSamplingFrequency",
+        "type": "number",
+        "description": "A double representing frequency in Hz that is used to set maximum supported sampling frequency for the associated mock sensor."
+      }, {
+        "name": "minSamplingFrequency",
+        "type": "number",
+        "description": "A double representing frequency in Hz that is used to set minimum supported sampling frequency for the associated mock sensor."
+      }]
+    }
+  },
+  "/session/:sessionId/sensor/:type": {
+    "GET": {
+      "command": "getMockSensor",
+      "description": "Retrieves information about a given type of mock sensor. __Note:__ this feature has not landed in all browsers yet.",
+      "ref": "https://w3c.github.io/sensors/#get-mock-sensor-command",
+      "variables": [{
+        "name": "type",
+        "description": "Mock sensor type to retrieve information from."
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "object",
+        "name": "sensorReading",
+        "description": "Values of the mock sensor reading."
+      }
+    },
+    "POST": {
+      "command": "updateMockSensor",
+      "description": "Updates the mock sensor type. __Note:__ this feature has not landed in all browsers yet.",
+      "ref": "https://w3c.github.io/sensors/#update-mock-sensor-reading-command",
+      "variables": [{
+        "name": "type",
+        "description": "Mock sensor type to update information for."
+      }],
+      "parameters": [{
+        "name": "mockSensorType",
+        "type": "string",
+        "description": "Type of sensor API to mock, e.g. 'ambient-light'",
+        "required": true
+      }, {
+        "name": "maxSamplingFrequency",
+        "type": "number",
+        "description": "A double representing frequency in Hz that is used to set maximum supported sampling frequency for the associated mock sensor."
+      }, {
+        "name": "minSamplingFrequency",
+        "type": "number",
+        "description": "A double representing frequency in Hz that is used to set minimum supported sampling frequency for the associated mock sensor."
+      }]
+    },
+    "DELETE": {
+      "command": "deleteMockSensor",
+      "description": "The Delete Session command closes any top-level browsing contexts associated with the current session, terminates the connection, and finally closes the current session. __Note:__ this feature has not landed in all browsers yet.",
+      "ref": "https://w3c.github.io/sensors/#delete-mock-sensor-command",
+      "variables": [{
+        "name": "type",
+        "description": "Mock sensor type to delete."
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/time_zone": {
+    "POST": {
+      "command": "setTimeZone",
+      "description": "Simulates the changing of a time zone for the purposes of testing. __Note:__ this feature has not landed in all browsers yet.",
+      "ref": "https://w3c.github.io/sensors/#create-mock-sensor-command",
+      "parameters": [{
+        "name": "time_zone",
+        "type": "string",
+        "description": "Name of the timezone, e.g. Asia/Tokyo",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/authenticator": {
+    "POST": {
+      "command": "addVirtualAuthenticator",
+      "description": "Creates a software [Virtual Authenticator](https://www.w3.org/TR/webauthn-2/#virtual-authenticators).",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-add-virtual-authenticator",
+      "parameters": [{
+        "name": "protocol",
+        "type": "string",
+        "description": "Valid values: 'ctap1/u2f', 'ctap2', 'ctap2_1'",
+        "required": false
+      }, {
+        "name": "transport",
+        "type": "string",
+        "description": "Valid values: 'usb', 'nfc', 'ble' or 'internal'",
+        "required": false
+      }, {
+        "name": "hasResidentKey",
+        "type": "boolean",
+        "description": "",
+        "required": false
+      }, {
+        "name": "hasUserVerification",
+        "type": "boolean",
+        "description": "",
+        "required": false
+      }, {
+        "name": "isUserConsenting",
+        "type": "boolean",
+        "description": "",
+        "required": false
+      }, {
+        "name": "isUserVerified",
+        "type": "boolean",
+        "description": "",
+        "required": false
+      }, {
+        "name": "extensions",
+        "type": "object[]",
+        "description": "",
+        "required": false
+      }, {
+        "name": "uvm",
+        "type": "object[]",
+        "description": "",
+        "required": false
+      }]
+    }
+  },
+  "/session/:sessionId/authenticator/:authenticatorId": {
+    "DELETE": {
+      "command": "removeVirtualAuthenticator",
+      "description": "Removes a previously created Virtual Authenticator.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-remove-virtual-authenticator",
+      "variables": [{
+        "name": "authenticatorId",
+        "description": "id of authenticator"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/authenticator/:authenticatorId/credential": {
+    "POST": {
+      "command": "addCredential",
+      "description": "Injects a Public Key Credential Source into an existing Virtual Authenticator.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-add-credential",
+      "parameters": [{
+        "name": "credentialId",
+        "type": "string",
+        "description": "The Credential ID encoded using Base64url Encoding.",
+        "required": true
+      }, {
+        "name": "isResidentCredential",
+        "type": "boolean",
+        "description": "If set to true, a client-side discoverable credential is created. If set to false, a server-side credential is created instead.",
+        "required": true
+      }, {
+        "name": "rpId",
+        "type": "string",
+        "description": "The Relying Party ID the credential is scoped to.",
+        "required": true
+      }, {
+        "name": "privateKey",
+        "type": "string",
+        "description": "An asymmetric key package containing a single private key per [RFC5958], encoded using Base64url Encoding.",
+        "required": true
+      }, {
+        "name": "userHandle",
+        "type": "string",
+        "description": "The userHandle associated to the credential encoded using Base64url Encoding. This property may not be defined.",
+        "required": true
+      }, {
+        "name": "signCount",
+        "type": "number",
+        "description": "The initial value for a signature counter associated to the public key credential source.",
+        "required": true
+      }, {
+        "name": "largeBlob",
+        "type": "string",
+        "description": "The large, per-credential blob associated to the public key credential source, encoded using Base64url Encoding. This property may not be defined.",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/authenticator/:authenticatorId/credentials": {
+    "GET": {
+      "command": "getCredentials",
+      "description": "Returns one Credential Parameters object for every Public Key Credential Source stored in a Virtual Authenticator, regardless of whether they were stored using Add Credential or `navigator.credentials.create()`.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-get-credentials",
+      "variables": [{
+        "name": "authenticatorId",
+        "description": "id of authenticator"
+      }],
+      "parameters": []
+    },
+    "DELETE": {
+      "command": "removeAllCredentials",
+      "description": "Removes all Public Key Credential Sources stored on a Virtual Authenticator.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-remove-all-credentials",
+      "variables": [{
+        "name": "authenticatorId",
+        "description": "id of authenticator"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/authenticator/:authenticatorId/credentials/:credentialId": {
+    "DELETE": {
+      "command": "removeCredential",
+      "description": "Removes a Public Key Credential Source stored on a Virtual Authenticator.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-remove-credential",
+      "variables": [{
+        "name": "authenticatorId",
+        "description": "id of authenticator"
+      }, {
+        "name": "credentialId",
+        "description": "id of credential"
+      }],
+      "parameters": []
+    }
+  },
+  "/session/:sessionId/authenticator/:authenticatorId/credentials/:credentialId/uv": {
+    "POST": {
+      "command": "setUserVerified",
+      "description": "The Set User Verified extension command sets the isUserVerified property on the Virtual Authenticator.",
+      "ref": "https://www.w3.org/TR/webauthn-2/#sctn-automation-set-user-verified",
+      "variables": [{
+        "name": "authenticatorId",
+        "description": "id of authenticator"
+      }, {
+        "name": "credentialId",
+        "description": "id of credential"
+      }],
+      "parameters": []
     }
   }
 }

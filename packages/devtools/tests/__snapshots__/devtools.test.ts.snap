@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`newSession 1`] = `
+Object {
+  "browserName": "Chrome",
+  "browserVersion": "80.0.3987.149",
+  "goog:chromeOptions": Object {
+    "debuggerAddress": "localhost:49375",
+  },
+}
+`;
+
+exports[`newSession 2`] = `
+Object {
+  "browserName": "chrome",
+}
+`;

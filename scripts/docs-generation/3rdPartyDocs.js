@@ -17,14 +17,14 @@ const plugins = [{
 }]
 const githubHost = 'https://github.com/'
 const githubRawHost = 'https://raw.githubusercontent.com/'
-const githubReadme = 'master/README.md'
+const githubReadme = '/README.md'
 
 const readmeHeaderLines = 9
 const readmeHeaders = ['===', '# ']
 const readmeBadges = ['https://badge', 'https://travis-ci.org/']
 
 const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..')
-const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs')
+const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'website', 'docs')
 
 /**
  * Generate docs for 3rd party reporters and services
@@ -32,17 +32,21 @@ const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs')
  */
 exports.generate3rdPartyDocs = async (sidebars) => {
     for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
-        const categoryDir = path.join(DOCS_ROOT_DIR, category)
+        const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
         await fs.ensureDir(categoryDir)
 
-        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme } of packages3rdParty) {
-            const readme = await downloadReadme(githubUrl, location)
+        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme, branch = 'master' } of packages3rdParty) {
+            const readme = await downloadReadme(githubUrl, branch, location)
             const id = `${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
             const doc = normalizeDoc(readme, githubUrl,
-                buildPreface(id, title, nameSingular, `${githubUrl}/edit/${location}`),
+                buildPreface(id, title, nameSingular, `${githubUrl}/edit/${branch}/${location}`),
                 suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl))
             await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, { encoding: 'utf-8' })
+
+            if (namePlural === 'Testrunner') {
+                return
+            }
 
             if (!sidebars[category][namePlural]) {
                 sidebars[category][namePlural] = []
@@ -51,7 +55,9 @@ exports.generate3rdPartyDocs = async (sidebars) => {
             // eslint-disable-next-line no-console
             console.log(`Generated docs for ${packageName}`)
 
-            sidebars[category][namePlural].push(`${category}/${id}`)
+            sidebars[category][namePlural].push(
+                category === 'api' ? `${category}/${id}` : id
+            )
         }
     }
 }
@@ -62,9 +68,9 @@ exports.generate3rdPartyDocs = async (sidebars) => {
  * @param {string}              location    file location in repo
  * @return {Promise<string>}                readme content
  */
-function downloadReadme(githubUrl, location = githubReadme) {
+function downloadReadme(githubUrl, branch, location = githubReadme) {
     return new Promise((resolve, reject) => {
-        const url = `${githubUrl}/${location}`.replace(githubHost, githubRawHost)
+        const url = `${githubUrl}/${branch}${location}`.replace(githubHost, githubRawHost)
         // eslint-disable-next-line no-console
         console.log(`Downloading: ${url}`)
         request.get(url, (err, httpResponse, body) => {
@@ -132,7 +138,9 @@ function normalizeDoc(readme, githubUrl, preface, repoInfo) {
         }
     })
 
-    return [...preface, ...repoInfo, ...readmeArr].join('\n')
+    return [...preface, ...repoInfo, ...readmeArr]
+        .join('\n')
+        .replace(/<br>/g, '<br />')
 }
 
 /**

@@ -1,13 +1,13 @@
 {
   "name": "@wdio/selenium-standalone-service",
-  "version": "6.6.2",
+  "version": "7.0.7",
   "description": "A WebdriverIO service to start & stop Selenium Standalone",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-selenium-standalone-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-selenium-standalone-service",
   "license": "MIT",
   "main": "./build",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",
@@ -27,16 +27,19 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
+    "@types/fs-extra": "^9.0.1",
     "@types/selenium-standalone": "^6.15.2",
-    "@wdio/logger": "6.6.0",
+    "@wdio/config": "7.0.7",
+    "@wdio/logger": "7.0.0",
+    "@wdio/types": "7.0.7",
     "fs-extra": "^9.0.1",
-    "selenium-standalone": "^6.20.1"
+    "selenium-standalone": "^6.22.1"
   },
   "peerDependencies": {
-    "@wdio/cli": "^6.0.1"
+    "@wdio/cli": "^7.0.0"
   },
   "publishConfig": {
     "access": "public"
   },
-  "types": "selenium-standalone-service.d.ts"
+  "types": "./build/index.d.ts"
 }

@@ -2,9 +2,10 @@ import { EventEmitter } from 'events'
 
 import logger from '@wdio/logger'
 import Protocols from '@wdio/protocols'
+import type { Options } from '@wdio/types'
 
 import commandWrapper from '../src/command'
-import { BaseClient, WebDriverLogTypes } from '../src/types'
+import { BaseClient } from '../src/types'
 
 /**
  * workaround as typescript compiler uses expect-webdriverio as global
@@ -15,7 +16,7 @@ const commandPath = '/session/:sessionId/element/:elementId/element'
 const commandMethod = 'POST'
 const commandEndpoint: Protocols.CommandEndpoint = {
     command: 'findElementFromElement',
-    ref: new URL('https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element-from-element'),
+    ref: 'https://w3c.github.io/webdriver/webdriver-spec.html#dfn-find-element-from-element',
     description: '',
     variables: [{
         name: 'elementId',
@@ -65,7 +66,7 @@ class FakeClient extends EventEmitter {
     capabilities = {}
     requestedCapabilities = {}
     options = {
-        logLevel: 'warn' as WebDriverLogTypes
+        logLevel: 'warn' as Options.WebDriverLogTypes
     }
 }
 
@@ -175,7 +176,7 @@ describe('command wrapper result log', () => {
         method: 'GET',
         endpoint: {
             command: 'takeScreenshot',
-            ref: new URL('https://foobar.com'),
+            ref: 'https://foobar.com',
             parameters: [],
             description: ''
         }

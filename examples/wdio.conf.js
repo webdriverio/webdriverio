@@ -146,8 +146,8 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
-    jasmineNodeOpts: {
+    // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework#jasmineopts-options
+    jasmineOpts: {
         //
         // Jasmine default timeout
         defaultTimeoutInterval: 5000,
@@ -165,7 +165,7 @@ exports.config = {
     },
     //
     // If you are using Cucumber you need to specify the location of your step definitions.
-    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
@@ -180,6 +180,21 @@ exports.config = {
         tagExpression: '',  // <string> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 20000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
+    },
+    //
+    // Auto-compilation configuration
+    autoCompileOpts: {
+        // Enable/disable auto-compilation (enabled by default)
+        autoCompile: true,
+
+        // Configure how ts-node is automatically included when present
+        tsNodeOpts: {
+            transpileOnly: true,
+            project: 'tsconfig.json'
+        },
+
+        // Configure how @babel/register is automatically included when present (and ts-node isn't)
+        babelOpts: {}
     },
     //
     // =====
@@ -221,9 +236,10 @@ exports.config = {
      * Gets executed before test execution begins. At this point you can access to all global
      * variables like `browser`. It is the perfect place to define custom commands.
      * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {Array.<String>} specs        List of spec file paths that are to be run
+     * @param {Object}         browser      instance of created browser/device session
      */
-    before: function (capabilities, specs) {
+    before: function (capabilities, specs, browser) {
     },
     /**
      * Hook that gets executed before the suite starts
@@ -312,18 +328,51 @@ exports.config = {
     */
     onReload: function(oldSessionId, newSessionId) {
     },
-    //
-    // Cucumber specific hooks
-    beforeFeature: function (uri, feature, scenarios) {
+    /**
+     * Cucumber Hooks
+     *
+     * Runs before a Cucumber Feature.
+     * @param uri      path to feature file
+     * @param feature  Cucumber feature object
+     */
+    beforeFeature: function (uri, feature) {
     },
-    beforeScenario: function (uri, feature, scenario, sourceLocation) {
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
+    beforeScenario: function (world) {
     },
-    beforeStep: function ({ uri, feature, step }, context) {
+    /**
+     *
+     * Runs before a Cucumber Step.
+     * @param step    step data
+     * @param context Cucumber world
+     */
+    beforeStep: function (step, context) {
     },
-    afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
+    /**
+     *
+     * Runs after a Cucumber Step.
+     * @param step    step data
+     * @param context Cucumber world
+     */
+    afterStep: function (step, context) {
     },
-    afterScenario: function (uri, feature, scenario, result, sourceLocation) {
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
+    afterScenario: function (world) {
     },
-    afterFeature: function (uri, feature, scenarios) {
+    /**
+     *
+     * Runs after a Cucumber Feature.
+     * @param uri      path to feature file
+     * @param feature  Cucumber feature object
+     */
+    afterFeature: function (uri, feature) {
     }
 }

@@ -21,7 +21,7 @@ You can simple do it by:
 npm install @wdio/junit-reporter --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted.html).
+Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted).
 
 ## Output
 
@@ -143,7 +143,7 @@ Error: some assertion failure
 ## Configuration
 
 Following code shows the default wdio test runner configuration. Just add `'junit'` as reporter
-to the array. To get some output during the test you can run the [WDIO Dot Reporter](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-dot-reporter) and the WDIO JUnit Reporter at the same time:
+to the array. To get some output during the test you can run the [WDIO Dot Reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-dot-reporter) and the WDIO JUnit Reporter at the same time:
 
 ```js
 // wdio.conf.js
@@ -167,34 +167,35 @@ The following options are supported:
 ### outputDir
 Define a directory where your xml files should get stored.
 
-Type: `String`<br>
+Type: `String`<br />
 Required
 
 ### outputFileFormat
 Define the xml files created after the test execution.
 
-Type: `Object`<br>
-Default: ``function(opts){return `wdio-${this.cid}-${name}-reporter.log`}``
+Type: `Object`<br />
+Default: ``function (opts) { return `wdio-${this.cid}-${name}-reporter.log` }``
 
 ```
 outputFileFormat: function (options) {
     return 'mycustomfilename.xml';
 }
 ```
+
 > Note: `options.capabilities` is your capabilities object for that runner, so specifying `${options.capabilities}` in your string will return [Object object]. You must specify which properties of capabilities you want in your filename.
 
 ### suiteNameFormat
 
 Gives the ability to provide custom regex for formatting test suite name (e.g. in output xml ).
 
-Type: `Regex`,<br>
+Type: `Regex`,<br />
 Default: `/[^a-z0-9]+/`
 
 ### addFileAttribute
 
 Adds a file attribute to each testcase. This config is primarily for CircleCI. This setting provides richer details but may break on other CI platforms.
 
-Type: `Boolean`,<br>
+Type: `Boolean`,<br />
 Default: `false`
 
 
@@ -202,7 +203,7 @@ Default: `false`
 
 You can break out packages by an additional level by setting `'packageName'`. For example, if you wanted to iterate over a test suite with different environment variable set:
 
-Type: `String`<br>
+Type: `String`<br />
 Example:
 
 ```js
@@ -222,7 +223,7 @@ module.exports = {
 
 ### errorOptions
 
-Allows to set various combinations of error notifications inside xml.<br>
+Allows to set various combinations of error notifications inside xml.<br />
 Given a Jasmine test like `expect(true).toBe(false, 'my custom message')` you will get this test error:
 
 ```
@@ -238,8 +239,8 @@ Given a Jasmine test like `expect(true).toBe(false, 'my custom message')` you wi
 
 Therefore you can choose *which* key will be used *where*, see the example below.
 
-Type: `Object`,<br>
-Default: `errorOptions: { error: "message" }`<br>
+Type: `Object`,<br />
+Default: `errorOptions: { error: "message" }`<br />
 Example:
 
 ```js

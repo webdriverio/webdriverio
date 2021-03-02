@@ -1,13 +1,13 @@
 {
   "name": "@wdio/shared-store-service",
-  "version": "6.6.2",
+  "version": "7.0.9",
   "description": "A WebdriverIO service to exchange data across processes",
   "author": "Mykola Grybyk <mykola.grybyk@gmail.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-shared-store-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-shared-store-service",
   "license": "MIT",
   "main": "./build",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",
@@ -24,15 +24,14 @@
   },
   "dependencies": {
     "@polka/parse": "^1.0.0-next.0",
-    "@wdio/logger": "6.6.0",
+    "@wdio/logger": "7.0.0",
+    "@wdio/types": "7.0.7",
     "got": "^11.0.2",
-    "polka": "^0.5.2"
+    "polka": "^0.5.2",
+    "webdriverio": "7.0.9"
   },
   "publishConfig": {
     "access": "public"
   },
-  "types": "shared-store-service.d.ts",
-  "devDependencies": {
-    "webdriverio": "6.6.2"
-  }
+  "types": "./build/index.d.ts"
 }

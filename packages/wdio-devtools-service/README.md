@@ -25,7 +25,7 @@ You can simple do it by:
 npm install @wdio/devtools-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 
@@ -57,7 +57,10 @@ describe('JSON.org page', () => {
     })
 
     it('should load within performance budget', () => {
-
+        /**
+         * this page load will take a bit longer as the DevTools service will
+         * capture all metrics in the background
+         */
         browser.url('http://json.org')
 
         let metrics = browser.getMetrics()
@@ -77,6 +80,17 @@ describe('JSON.org page', () => {
     after(() => {
         browser.disablePerformanceAudits()
     })
+})
+```
+
+You can emulate a mobile device by using the `emulateDevice` command, throttling CPU and network as well as setting `mobile` as form factor:
+
+```js
+browser.emulateDevice('iPhone X')
+browser.enablePerformanceAudits({
+    networkThrottling: 'Good 3G',
+    cpuThrottling: 4,
+    formFactor: 'mobile'
 })
 ```
 
@@ -170,7 +184,8 @@ Enables auto performance audits for all page loads that are cause by calling the
 browser.enablePerformanceAudits({
     networkThrottling: 'Good 3G',
     cpuThrottling: 4,
-    cacheEnabled: true
+    cacheEnabled: true,
+    formFactor: 'mobile'
 })
 ```
 
@@ -208,6 +223,53 @@ browser.emulateDevice({
 
 This only works if you don't use `mobileEmulation` within `capabilities['goog:chromeOptions']`.
 If `mobileEmulation` is present the call to `browser.emulateDevice()` won't do anything.
+
+### PWA Testing
+
+With the `checkPWA` command you can validate if your webapp is compliant to latest web standards when it comes to progressive web apps. It checks:
+
+- whether your app is installable
+- provides a service worker
+- has a splash screen
+- provides apple touch and maskable icons
+- can be served on mobile devices
+
+If you are not interested in one of these checks you can pass in a list of checks you like to run. The `passed` property will return `true` if all checks pass. If they fail you can use the `details` property to enrich your failure message with details of the failure.
+
+```js
+// open page first
+browser.url('https://webdriver.io')
+// validate PWA
+const result = browser.checkPWA()
+expect(result.passed).toBe(true)
+```
+
+### Capture Code Coverage
+
+The service offers you to capture the code coverage of your application under test. To do so you need to enable this feature as part of the service settings:
+
+```js
+// wdio.conf.js
+services: [
+    ['devtools', {
+        coverageReporter: {
+            enable: true,
+            type: 'html',
+            logDir: __dirname + '/coverage'
+        }
+    }]
+]
+```
+
+Then you have access to a command that calculates the ratio of covered code lines and branches for you to assert within your test:
+
+```js
+const coverage = browser.getCoverageReport()
+expect(coverage.lines.total).toBeAbove(0.9)
+expect(coverage.statements.total).toBeAbove(0.9)
+expect(coverage.functions.total).toBeAbove(0.9)
+expect(coverage.branches.total).toBeAbove(0.9)
+```
 
 ### Chrome DevTools Access
 
@@ -263,7 +325,7 @@ console.log(nodeId) // outputs: [ 40, 41, 42, 43, 44, 45 ]
 
 ### `startTracing(categories, samplingFrequency)` Command
 
-Start tracing the browser. You can optionally pass in custom tracing categories (defaults to [this list](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-devtools-service/src/constants.js#L1-L9)) and the sampling frequency (defaults to `10000`).
+Start tracing the browser. You can optionally pass in custom tracing categories (defaults to [this list](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service/src/constants.js#L1-L9)) and the sampling frequency (defaults to `10000`).
 
 ```js
 browser.startTracing()
@@ -327,7 +389,7 @@ browser.cdp('Page', 'setDownloadBehavior', {
 
 ### Access Puppeteer Instance
 
-The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the [`getPuppeteer`](/docs/api/browser/getPuppeteer.html) command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
+The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the [`getPuppeteer`](https://webdriver.io/docs/api/browser/getPuppeteer) command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
 
 ```js
 describe('use Puppeteer', () => {

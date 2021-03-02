@@ -4,8 +4,8 @@ exports.config = {
     /**
      * server configurations
      */
-    hostname: 'localhost',
-    port: 4444,
+    user: process.env.SAUCE_USERNAME,
+    key: process.env.SAUCE_ACCESS_KEY,
 
     /**
      * specify test files
@@ -33,7 +33,7 @@ exports.config = {
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 5000
+        timeout: 15000
     },
 
     /**

@@ -1,5 +1,21 @@
 declare module WebdriverIO {
     interface ServiceOption extends BrowserstackConfig {}
+
+    interface Suite {
+        title: string;
+        fullName: string;
+        file: string;
+    }
+
+    interface Test extends Suite {
+        parent: string;
+        passed: boolean;
+    }
+
+    interface TestResult {
+        exception: string;
+        status: string;
+    }
 }
 
 interface BrowserstackConfig {

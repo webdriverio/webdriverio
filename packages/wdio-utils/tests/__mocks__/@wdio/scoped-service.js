@@ -1,4 +1,4 @@
-export default class MyService {
+module.exports = class MyService {
     constructor () {
         this.isScoped = true
     }

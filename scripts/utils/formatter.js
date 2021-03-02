@@ -1,12 +1,12 @@
 const path = require('path')
 
-const config = require('../../website/siteConfig')
+const { customFields } = require('../../website/docusaurus.config.js')
 
 module.exports = function (docfile) {
     const javadoc = docfile.javadoc[0]
 
     let type = (javadoc.ctx && javadoc.ctx.type)
-    const name = path.basename(docfile.filename, '.js')
+    const name = path.basename(path.basename(docfile.filename, '.js'), '.ts')
     const scope = docfile.filename.split('/').slice(-2, -1)[0]
 
     let description = ''
@@ -98,9 +98,9 @@ module.exports = function (docfile) {
             ++currentLine
 
             var checkForFilenameExpression = line.match(/\s\s\s\s(:(\S)*\.(\S)*)/g)
-            if((checkForFilenameExpression && checkForFilenameExpression.length) || (currentLine === example.length)) {
+            if ((checkForFilenameExpression && checkForFilenameExpression.length) || (currentLine === example.length)) {
 
-                if(exampleCodeLine.length) {
+                if (exampleCodeLine.length) {
 
                     /**
                      * remove filename expression in first line
@@ -111,10 +111,10 @@ module.exports = function (docfile) {
                     /**
                      * add example
                      */
-                    if(exampleFilename !== '' && code !== '') {
+                    if (exampleFilename !== '' && code !== '') {
                         files.push({
                             file: exampleFilename,
-                            format: exampleFilename.split(/\./)[1],
+                            format: exampleFilename.split(/\./).pop(),
                             code: code
                         })
                     }
@@ -128,7 +128,7 @@ module.exports = function (docfile) {
                 /**
                  * if this is the last line of code dont proceed
                  */
-                if(currentLine === example.length) {
+                if (currentLine === example.length) {
                     return
                 }
 
@@ -185,7 +185,7 @@ module.exports = function (docfile) {
         description: description,
         ignore: javadoc.ignore,
         examples: files,
-        customEditUrl: `${config.repoUrl}/edit/master/packages/webdriverio/src/commands/${scope}/${name}.js`,
+        customEditUrl: `${customFields.repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
         isElementScope : scope === 'element',

@@ -113,13 +113,13 @@ This will generate a report (by default in `./allure-report`), and open it in yo
 
 ### Autogenerate Report
 
-You can also autogenerate the report by using the Allure command line tool programatically. To do so install the package in your project by:
+You can also auto generate the report by using the Allure command line tool programmatically. To do so install the package in your project by:
 
 ```sh
 $ npm i allure-commandline
 ```
 
-Then add or extend your `onComplete` hook or create a [custom service](/docs/customservices.html) for this:
+Then add or extend your `onComplete` hook or create a [custom service](/docs/customservices) for this:
 
 ```js
     onComplete: function() {

@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const markdox = require('markdox')
+const { promisify } = require('util')
 
 const formatter = require('../utils/formatter')
 const compiler = require('../utils/compiler')
@@ -11,11 +12,13 @@ const MARKDOX_OPTIONS = {
     template: TEMPLATE_PATH
 }
 
+const processDocs = promisify(markdox.process)
+
 /**
  * Generate WebdriverIO docs
  * @param {object} sidebars website/sidebars
  */
-exports.generateWdioDocs = (sidebars) => {
+exports.generateWdioDocs = async (sidebars) => {
     const COMMAND_DIR = path.join(__dirname, '..', '..', 'packages', 'webdriverio', 'src', 'commands')
     const COMMANDS = {
         browser: fs.readdirSync(path.join(COMMAND_DIR, 'browser')),
@@ -24,35 +27,29 @@ exports.generateWdioDocs = (sidebars) => {
     }
 
     for (const [scope, files] of Object.entries(COMMANDS)) {
+        /**
+         * add scope to sidebar
+         */
+        sidebars.api.push({
+            type: 'category',
+            label: scope,
+            items: []
+        })
+
         for (const file of files) {
-            const docDir = path.join(__dirname, '..', '..', 'docs', 'api', scope)
+            const docDir = path.join(__dirname, '..', '..', 'website', 'docs', 'api', scope)
             if (!fs.existsSync(docDir)){
                 fs.mkdirSync(docDir)
             }
 
             const filepath = path.join(COMMAND_DIR, scope, file)
-            const output = path.join(docDir, `_${file.replace('js', 'md')}`)
+            const output = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
             const options = Object.assign({}, MARKDOX_OPTIONS, { output })
-            markdox.process(
-                filepath,
-                options,
-                (err) => {
-                    if (err) {
-                        // eslint-disable-next-line no-console
-                        console.error(`ERROR: ${err.stack}`)
-                    }
-                    // eslint-disable-next-line no-console
-                    console.log(`Generated docs for ${scope}/${file} - ${output}`)
-                }
-            )
+            await processDocs(filepath, options)
+            console.log(`Generated docs for ${scope}/${file} - ${output}`)
 
-            /**
-             * add command to sidebar
-             */
-            if (!sidebars.api[scope]) {
-                sidebars.api[scope] = []
-            }
-            sidebars.api[scope].push(`api/${scope}/${file.replace('.js', '')}`)
+            sidebars.api[sidebars.api.length - 1].items
+                .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
         }
     }
 }

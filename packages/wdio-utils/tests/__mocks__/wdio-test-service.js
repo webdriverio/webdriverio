@@ -1,5 +1,3 @@
-export default class MyService {
-    constructor () {
-        this.foo = 'bar'
-    }
+module.exports = class MyService {
+    foo = 'bar'
 }

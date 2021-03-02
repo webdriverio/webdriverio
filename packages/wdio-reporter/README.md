@@ -119,7 +119,7 @@ If `stdout` is set to `false` WebdriverIO will automatically write to a filestre
 
 ## Synchronization
 
-If your reporter needs to do some async computation after the test (e.g. upload logs to a server) you can overwrite the `isSynchronised` getter method to manage this. By default this property always returns true as most of the reporters don't require to do any async work. However in case you need to handle this overwrite the getter method with an custom implementation (e.g. [wdio-sumologic-reporter](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-sumologic-reporter)).
+If your reporter needs to do some async computation after the test (e.g. upload logs to a server) you can overwrite the `isSynchronised` getter method to manage this. By default this property always returns true as most of the reporters don't require to do any async work. However in case you need to handle this overwrite the getter method with an custom implementation (e.g. [wdio-sumologic-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sumologic-reporter)).
 
 ```js
 class MyReporter extends Reporter {

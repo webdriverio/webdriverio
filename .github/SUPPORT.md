@@ -23,5 +23,5 @@ The WebdriverIO Community is also active on Stack Overflow, you can post your qu
 
 ## Contributing
 
-* [Contributing Guidelines](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md)
-* [Governance](https://github.com/webdriverio/webdriverio/blob/master/GOVERNANCE.md)
+* [Contributing Guidelines](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md)
+* [Governance](https://github.com/webdriverio/webdriverio/blob/main/GOVERNANCE.md)

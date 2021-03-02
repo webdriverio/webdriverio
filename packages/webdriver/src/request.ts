@@ -5,13 +5,14 @@ import { EventEmitter } from 'events'
 
 import * as got from 'got'
 import logger from '@wdio/logger'
-// @ts-ignore
 import { transformCommandLogResult } from '@wdio/utils'
+import type { Options } from '@wdio/types'
 
-import { Options } from './types'
 import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
 
 const pkg = require('../package.json')
+
+type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
 
 export interface WebDriverResponse {
     value: any
@@ -23,6 +24,7 @@ export interface WebDriverResponse {
 }
 
 const DEFAULT_HEADERS = {
+    'Content-Type': 'application/json; charset=utf-8',
     'Connection': 'keep-alive',
     'Accept': 'application/json',
     'User-Agent': 'webdriver/' + pkg.version
@@ -56,7 +58,7 @@ export default class WebDriverRequest extends EventEmitter {
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
     }
 
-    makeRequest (options: Options, sessionId?: string) {
+    makeRequest (options: RequestOptions, sessionId?: string) {
         let fullRequestOptions: got.Options = Object.assign({
             method: this.method
         }, this.defaultOptions, this._createOptions(options, sessionId))
@@ -68,7 +70,7 @@ export default class WebDriverRequest extends EventEmitter {
         return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    private _createOptions (options: Options, sessionId?: string): got.Options {
+    private _createOptions (options: RequestOptions, sessionId?: string): got.Options {
         const requestOptions: got.Options = {
             https: {},
             agent: options.agent || agents,
@@ -118,8 +120,10 @@ export default class WebDriverRequest extends EventEmitter {
 
         /**
          * if the environment variable "STRICT_SSL" is defined as "false", it doesn't require SSL certificates to be valid.
+         * Or the requestOptions has strictSSL for an environment which cannot get the environment variable correctly like on an Electron app.
          */
         requestOptions.https!.rejectUnauthorized = !(
+            options.strictSSL === false ||
             process.env.STRICT_SSL === 'false' ||
             process.env.strict_ssl === 'false'
         )
@@ -218,7 +222,7 @@ export default class WebDriverRequest extends EventEmitter {
          *  stop retrying as this will never be successful.
          *  we will handle this at the elementErrorHandler
          */
-        if(error.name === 'stale element reference') {
+        if (error.name === 'stale element reference') {
             log.warn('Request encountered a stale element - terminating request')
             this.emit('response', { error })
             throw error

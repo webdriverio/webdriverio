@@ -1,16 +1,16 @@
 {
   "name": "webdriver",
-  "version": "6.6.2",
+  "version": "7.0.7",
   "description": "A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/webdriver",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
   "license": "MIT",
   "main": "./build",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
-  "types": "./webdriver.d.ts",
-  "typeScriptVersion": "3.7.3",
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"
@@ -21,12 +21,15 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "devDependencies": {
+    "@types/lodash.merge": "^4.6.6"
+  },
   "dependencies": {
-    "@types/lodash.merge": "^4.6.6",
-    "@wdio/config": "6.6.0",
-    "@wdio/logger": "6.6.0",
-    "@wdio/protocols": "6.6.0",
-    "@wdio/utils": "6.6.0",
+    "@wdio/config": "7.0.7",
+    "@wdio/logger": "7.0.0",
+    "@wdio/protocols": "7.0.0",
+    "@wdio/types": "7.0.7",
+    "@wdio/utils": "7.0.7",
     "got": "^11.0.2",
     "lodash.merge": "^4.6.1"
   }

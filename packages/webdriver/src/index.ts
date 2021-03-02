@@ -1,28 +1,37 @@
+import path from 'path'
 import logger from '@wdio/logger'
 
-// @ts-ignore
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
-// @ts-ignore
 import { validateConfig } from '@wdio/config'
+import type { Options, Capabilities } from '@wdio/types'
 
 import { DEFAULTS } from './constants'
-import { Options, Client, AttachOptions, SessionFlags } from './types'
 import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
+import type { Client, AttachOptions, SessionFlags } from './types'
 
 const log = logger('webdriver')
 
 export default class WebDriver {
     static async newSession (
-        options: Partial<Options> = {},
+        options: Options.WebDriver,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ): Promise<Client> {
-        const params: Options = validateConfig(DEFAULTS, options) as Options
+        const params = validateConfig(DEFAULTS, options)
 
         if (!options.logLevels || !options.logLevels.webdriver) {
-            logger.setLevel('webdriver', params.logLevel)
+            logger.setLevel('webdriver', params.logLevel!)
         }
+
+        /**
+         * Store all log events in a file
+         */
+        if (params.outputDir && !process.env.WDIO_LOG_PATH) {
+            process.env.WDIO_LOG_PATH = path.join(params.outputDir, 'wdio.log')
+        }
+
+        log.info('Initiate new session using the WebDriver protocol')
 
         /**
          * if the server responded with direct connect information, update the
@@ -41,13 +50,18 @@ export default class WebDriver {
             params.path = directConnectPath
         }
 
-        const sessionId = await startWebDriverSession(params)
-        const environment = sessionEnvironmentDetector(params)
+        const requestedCapabilities = { ...params.capabilities }
+        const { sessionId, capabilities } = await startWebDriverSession(params)
+        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
         const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
 
-        const monad = webdriverMonad(params, modifier, prototype)
+        const monad = webdriverMonad(
+            { ...params, requestedCapabilities },
+            modifier,
+            prototype
+        )
         return monad(sessionId, customCommandWrapper)
     }
 
@@ -65,7 +79,7 @@ export default class WebDriver {
         }
 
         // logLevel can be undefined in watch mode when SIGINT is called
-        if (options.logLevel !== undefined) {
+        if (options.logLevel) {
             logger.setLevel('webdriver', options.logLevel)
         }
 
@@ -87,13 +101,13 @@ export default class WebDriver {
      * @returns {string}           the new session id of the browser
     */
     static async reloadSession (instance: Client) {
-        const params = {
+        const params: Options.WebDriver = {
             ...instance.options,
-            capabilities: instance.requestedCapabilities
+            capabilities: instance.requestedCapabilities as Capabilities.DesiredCapabilities
         }
-        const sessionId = await startWebDriverSession(params)
+        const { sessionId, capabilities } = await startWebDriverSession(params)
         instance.sessionId = sessionId
-        instance.capabilities = params.capabilities
+        instance.capabilities = capabilities
         return sessionId
     }
 
@@ -106,3 +120,4 @@ export default class WebDriver {
  * Helper methods consumed by webdriverio package
  */
 export { getPrototype, DEFAULTS }
+export * from './types'

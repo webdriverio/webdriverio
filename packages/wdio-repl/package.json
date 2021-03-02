@@ -1,13 +1,13 @@
 {
   "name": "@wdio/repl",
-  "version": "6.6.0",
+  "version": "7.0.7",
   "description": "A WDIO helper utility to provide a repl interface for WebdriverIO",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-repl",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-repl",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",
@@ -23,9 +23,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "types": "./build/index.d.ts",
-  "typeScriptVersion": "3.7.3",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/utils": "6.6.0"
+    "@wdio/utils": "7.0.7"
   },
   "publishConfig": {
     "access": "public"

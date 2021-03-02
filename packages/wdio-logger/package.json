@@ -1,13 +1,13 @@
 {
   "name": "@wdio/logger",
-  "version": "6.6.0",
+  "version": "7.0.0",
   "description": "A helper utility for logging of WebdriverIO packages",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-logger",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-logger",
   "license": "MIT",
   "main": "./build/node",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",
@@ -22,7 +22,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "types": "./build/node.d.ts",
-  "typeScriptVersion": "3.7.3",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "chalk": "^4.0.0",
     "loglevel": "^1.6.0",

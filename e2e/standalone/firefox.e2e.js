@@ -7,7 +7,7 @@ beforeAll(async () => {
         outputDir: __dirname,
         capabilities: {
             browserName: 'firefox',
-            'moz:firefoxOptions': {
+            'wdio:devtoolsOptions': {
                 headless: true
             }
         }
