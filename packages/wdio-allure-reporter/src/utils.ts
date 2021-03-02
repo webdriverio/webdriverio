@@ -19,18 +19,13 @@ export const getTestStatus = (test: TestStats | HookStats, config?: Options.Test
     }
 
     if (test.error) {
-        if (test.error.name && test.error.message) {
-            const message = test.error.message.trim()
-            return (test.error.name === 'AssertionError' || message.includes('Expect'))  ? 'failed' : 'broken'
+        if (test.error.message) {
+            const message = test.error.message.trim();
+            return (message.startsWith('AssertionError') || message.includes('Expect') || message.includes('expect')) ? 'failed' : 'broken';
         }
-
-        if (test.error.name) {
-            return test.error.name === 'AssertionError' ? 'failed' : 'broken'
-        }
-
         if (test.error.stack) {
-            const stackTrace = test.error.stack.trim()
-            return (stackTrace.startsWith('AssertionError') || stackTrace.includes('Expect'))  ? 'failed' : 'broken'
+            const stackTrace = test.error.stack.trim();
+            return (stackTrace.startsWith('AssertionError') || stackTrace.includes('Expect')) ? 'failed' : 'broken';
         }
     }
 
