@@ -114,7 +114,7 @@ it('execute external library in a sync way', () => {
 
 **Note:** The result of your custom command is the result of the promise you return. Also, there is no support for synchronous commands in standalone mode; therefore, you must _always_ handle asynchronous commands using promises.
 
-### Overwriting native commands
+## Overwriting native commands
 
 You can also overwrite native commands with `overwriteCommand`.
 
@@ -124,7 +124,7 @@ The overall approach is similar to `addCommand`, the only difference is that the
 
 **NOTE:** Examples below assume sync mode. If you are not using it, don't forget to add `async`/`await`.
 
-#### Overwriting browser commands
+### Overwriting browser commands
 
 ```js
 /**
@@ -185,3 +185,54 @@ elem.click()
 // or pass params
 elem.click({ force: true })
 ```
+
+## Add More WebDriver Commands
+
+If you are using the WebDriver protocol and run tests on a platform that supports additional commands not defined by any of the protocol definitions in [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/protocols) you can manually add them through the `addCommand` interface. The `webdriver` package offers a command wrapper that allows to register these new endpoints in the same way as other commands, providing the same parameter checks and error handling. To register this new endpoint import the command wrapper and register a new command with it as follows:
+
+```js
+import { command } from 'webdriver'
+
+browser.addCommand('myNewCommand', command('POST', '/session/:sessionId/foobar/:someId', {
+    command: 'myNewCommand',
+    description: 'a new WebDriver command',
+    ref: 'https://vendor.com/commands/#myNewCommand',
+    variables: [{
+        name: 'someId',
+        description: 'some id to something'
+    }],
+    parameters: [{
+        name: 'foo',
+        type: 'string',
+        description: 'a valid parameter',
+        required: true
+    }]
+}))
+```
+
+Calling this command with invalid parameters results in the same error handling as predefined protocol commands, e.g.:
+
+```js
+// call command without required url parameter and payload
+browser.myNewCommand()
+
+/**
+ * results in the following error:
+ * Error: Wrong parameters applied for myNewCommand
+ * Usage: myNewCommand(someId, foo)
+ *
+ * Property Description:
+ *   "someId" (string): some id to something
+ *   "foo" (string): a valid parameter
+ *
+ * For more info see https://my-api.com
+ *    at Browser.protocolCommand (...)
+```
+
+Calling the command correctly, e.g. `browser.myNewCommand('foo', 'bar')`, correctly makes a WebDriver request to e.g. `http://localhost:4444/session/7bae3c4c55c3bf82f54894ddc83c5f31/foobar/foo` with a payload like `{ foo: 'bar' }`.
+
+:::note
+The `:sessionId` url parameter will be automatically substituted with the session id of the WebDriver session. Other url parameter can be applied but need to be defined within `variables`.
+:::
+
+See examples of how protocol commands can be defined in the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/protocols) package.
