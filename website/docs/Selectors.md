@@ -170,7 +170,7 @@ console.log(parent.getTagName()) // outputs: "body"
 
 ## ARIA - Role Attribute
 
-For querying elements based on ARIA roles (https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like [role=button] as selector parameter:
+For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like `[role=button]` as selector parameter:
 
 ```html
 <button>Click me</button>
