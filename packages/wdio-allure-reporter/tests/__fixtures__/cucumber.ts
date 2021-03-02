@@ -20,10 +20,10 @@ const suite = (type = 'feature') => ({
 } as any)
 
 const error = {
-    message: 'foo == bar',
+    message: 'AssertionError [ERR_ASSERTION]: foo == bar',
     stack: 'AssertionError [ERR_ASSERTION]: foo == bar',
     type: 'AssertionError [ERR_ASSERTION]',
-    name: 'AssertionError',
+    name: 'Error',
     expected: 'foo',
     actual: 'bar'
 }

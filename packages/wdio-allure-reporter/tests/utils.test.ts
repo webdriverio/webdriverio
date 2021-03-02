@@ -26,7 +26,7 @@ describe('utils', () => {
 
         it('failed for AssertionError', () => {
             const config = { framework: 'mocha' }
-            const test = { error: { name: 'AssertionError' } }
+            const test = { error: { name: 'Error', message: 'AssertionError' } }
             expect(getTestStatus(test as any, config)).toEqual(testStatuses.FAILED)
         })
 
