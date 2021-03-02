@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - main
-  pull_request_target:
+  pull_request:
 
 jobs:
   linux:
@@ -39,14 +39,14 @@ jobs:
           sudo apt-get install firefox-trunk
           npm run test:e2e:firefox
       - name: E2E Connection Test
-        if: ${{ matrix.node-version == '14.x' }}
+        if: ${{ matrix.node-version == '14.x' && github.event_name == 'push'}}
         run: |
           npm run test:e2e:cloud
         env:
           SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY: ${{secrets.SAUCE_ACCESS_KEY}}
       - name: E2E Connection Test w/ Params
-        if: ${{ matrix.node-version == '14.x' }}
+        if: ${{ matrix.node-version == '14.x' && github.event_name == 'push'}}
         run: |
           npm run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
         env:
