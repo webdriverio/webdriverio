@@ -50,7 +50,8 @@
     "ts:sync": "cd tests/typings/sync && npx tsc",
     "watch": "node ./scripts/build --watch",
     "watch:docs": "npm run docs:generate && cd website && npm i && npm start",
-    "version": "npm run changelog && git add CHANGELOG.md"
+    "version": "npm run changelog && git add CHANGELOG.md",
+    "postinstall": "husky install"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^7.0.0",
@@ -98,12 +99,6 @@
     "ts-node": "^9.0.0",
     "typescript": "4.0.5",
     "url-join": "^4.0.1"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "git diff-index --name-only --diff-filter=d HEAD | grep -E \"(.*)\\.js$\" | xargs node_modules/eslint/bin/eslint.js -c .eslintrc.js",
-      "pre-push": "npm run test:eslint"
-    }
   },
   "dependencies": {}
 }
