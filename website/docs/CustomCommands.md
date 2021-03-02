@@ -227,6 +227,8 @@ browser.myNewCommand()
  *
  * For more info see https://my-api.com
  *    at Browser.protocolCommand (...)
+ *    ...
+ */
 ```
 
 Calling the command correctly, e.g. `browser.myNewCommand('foo', 'bar')`, correctly makes a WebDriver request to e.g. `http://localhost:4444/session/7bae3c4c55c3bf82f54894ddc83c5f31/foobar/foo` with a payload like `{ foo: 'bar' }`.
