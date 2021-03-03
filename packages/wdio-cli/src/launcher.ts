@@ -199,7 +199,8 @@ class Launcher {
             this._schedule.push({
                 cid: cid++,
                 caps: caps as Capabilities.MultiRemoteCapabilities,
-                specs: this.configParser.getSpecs((caps as Capabilities.DesiredCapabilities).specs, (caps as Capabilities.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                // specs: this.configParser.getSpecs((caps as Capabilities.DesiredCapabilities).specs, (caps as Capabilities.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                specs: this.formatSpecs(caps, specFileRetries),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
@@ -211,7 +212,7 @@ class Launcher {
                 this._schedule.push({
                     cid: cid++,
                     caps: capabilities as Capabilities.Capabilities,
-                    specs: this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                    specs: this.formatSpecs(capabilities, specFileRetries),
                     availableInstances: (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability,
                     runningInstances: 0
                 })
@@ -237,6 +238,27 @@ class Launcher {
             }
         })
     }
+
+
+    /**
+     * Format the specs into an array of objects with files and retries
+     */
+    formatSpecs(capabilities, specFileRetries: number) {
+        let files: (string | string[])[] = []
+        let returnValue: WorkerSpecs[] = []
+
+        files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
+        files.forEach(file => {
+            if (typeof file === 'string') {
+                returnValue.push({ files: [file], retries: specFileRetries })
+            } else if (Array.isArray(file)){
+                returnValue.push({ files: file, retries: specFileRetries })
+            }
+        })
+        return returnValue
+    }
+
+
 
     /**
      * run multiple single remote tests

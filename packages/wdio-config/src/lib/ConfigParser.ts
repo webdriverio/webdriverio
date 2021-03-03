@@ -226,7 +226,8 @@ export default class ConfigParser {
                     log.warn(`No suite was found with name "${suiteName}"`)
                 }
                 if (Array.isArray(suite)) {
-                    suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite, undefined, this._pathService))
+                    // Not supporting hierarchical suites - return will always be string[]
+                    suiteSpecs = suiteSpecs.concat(<string[]> ConfigParser.getFilePaths(suite, undefined, this._pathService))
                 }
             }
 
@@ -258,7 +259,7 @@ export default class ConfigParser {
         if (Array.isArray(capExclude)) {
             exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
         }
-
+        console.log('ConfigParser: getSpecs: return value: ', specs.filter(spec => !exclude.includes(spec)))
         return specs.filter(spec => !exclude.includes(spec))
     }
 
@@ -266,7 +267,7 @@ export default class ConfigParser {
      * sets config attribute with file paths from filtering
      * options from cli argument
      *
-     * @param  {String} cliArgFileList  list of files in a string from
+     * @param  {String[]} cliArgFileList  list of files in a string form
      * @param  {Object} config  config object that stores the spec and exclude attributes
      * cli argument
      * @return {String[]} List of files that should be included or excluded
@@ -276,15 +277,26 @@ export default class ConfigParser {
         const fileList = ConfigParser.getFilePaths(config, undefined, this._pathService)
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
-            let globMatchedFiles = ConfigParser.getFilePaths(this._pathService.glob(filteredFile), undefined, this._pathService)
+            // Send single file/file glob to getFilePaths - not supporting hierarchy in spec
+            // Return value will alwyas be string[]
+            let globMatchedFiles = <string[]> ConfigParser.getFilePaths(this._pathService.glob(filteredFile), undefined, this._pathService)
             if (this._pathService.isFile(filteredFile)) {
                 filesToFilter.add(this._pathService.ensureAbsolutePath(filteredFile))
             } else if (globMatchedFiles.length) {
                 globMatchedFiles.forEach(file => filesToFilter.add(file))
             } else {
+                // fileList can be a string[] or a string[][]
                 fileList.forEach(file => {
-                    if (file.match(filteredFile)) {
-                        filesToFilter.add(file)
+                    if (typeof file === 'string') {
+                        if (file.match(filteredFile)) {
+                            filesToFilter.add(file)
+                        }
+                    } else if (Array.isArray(file)){
+                        file.forEach(subFile => {
+                            if (subFile.match(filteredFile)) {
+                                filesToFilter.add(subFile)
+                            }
+                        })
                     }
                 })
             }
@@ -316,37 +328,61 @@ export default class ConfigParser {
     /**
      * returns a flatten list of globed files
      *
-     * @param  {String[]} filenames  list of files to glob
-     * @return {String[]} list of files
+     * @param  {String[] | String[][]} filenames list of files to glob
+     * @param  {Boolean} flag to indicate omission of warnings
+     * @param  {FileSystemPathService} file system path service for expanding globbed file names
+     * @param  {number} hierarchy depth to prevent recursive calling beyond a depth of 1
+     * @return {String[] | String[][]} list of files
      */
-    static getFilePaths (patterns: string[], omitWarnings?: boolean, findAndGlob: CurrentPathFinder & Globber & DeterminesAbsolutePath = new FileSystemPathService()) {
-        let files: string[] = []
+    static getFilePaths (patterns: (string | string[])[], omitWarnings?: boolean, findAndGlob: CurrentPathFinder & Globber & DeterminesAbsolutePath = new FileSystemPathService(), hierarchyDepth?: number) {
+        let files: (string | string[])[] = []
+        let groupedFiles: string[] = []
+        let depth: number = hierarchyDepth || 0
 
+        // Convert a string into an array as a convenience
         if (typeof patterns === 'string') {
             patterns = [patterns]
         }
 
+        // Check we have an array
         if (!Array.isArray(patterns)) {
-            throw new Error('specs or exclude property should be an array of strings')
+            throw new Error('specs or exclude property should be an array of strings, specs may also be an array of string arrays')
         }
 
-        patterns = patterns.map(pattern => removeLineNumbers(pattern))
-
-        for (let pattern of patterns) {
-            let filenames = findAndGlob.glob(pattern)
-            filenames = filenames.filter(
-                (filename) => SUPPORTED_FILE_EXTENSIONS.find(
-                    (ext) => filename.endsWith(ext)))
-
-            filenames = filenames.map(filename => findAndGlob.ensureAbsolutePath(filename))
-
-            if (filenames.length === 0 && !omitWarnings) {
-                log.warn('pattern', pattern, 'did not match any file')
+        // Remove line numbers
+        patterns = patterns.map(pattern => {
+            if (Array.isArray(pattern)) {
+                return pattern.map(subPattern => removeLineNumbers(subPattern))
+            } else {
+                return removeLineNumbers(pattern)
             }
+        })
 
-            files = merge(files, filenames, MERGE_OPTIONS)
+        console.log('ConfigParser: patterns: ', patterns)
+        for (let pattern of patterns) {
+            // If pattern is an array, then call getFilePaths again
+            // But only call one level deep, can't have multiple levels of hierarchy
+            if (Array.isArray(pattern) && depth === 0) {
+                // Will always only get a string array back
+                groupedFiles = <string[]> ConfigParser.getFilePaths(pattern, omitWarnings, findAndGlob, 1)
+                files.push(groupedFiles)
+            } else {
+                // Otherwise process the files directly
+                let filenames = findAndGlob.glob(<string> pattern)
+                filenames = filenames.filter(
+                    (filename) => SUPPORTED_FILE_EXTENSIONS.find(
+                        (ext) => filename.endsWith(ext)))
+
+                filenames = filenames.map(filename => findAndGlob.ensureAbsolutePath(filename))
+
+                if (filenames.length === 0 && !omitWarnings) {
+                    log.warn('pattern', pattern, 'did not match any file')
+                }
+
+                files = merge(files, filenames, MERGE_OPTIONS)
+            }
         }
-
+        console.log('ConfigParser: getFilePaths: return value: ', files)
         return files
     }
 }

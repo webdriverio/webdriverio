@@ -12,7 +12,7 @@ const log = logger('@wdio/cli:watch')
 
 export default class Watcher {
     private _launcher: Launcher
-    private _specs: string[]
+    private _specs: ( string | string[])[]
 
     constructor (
         private _configFile: string,
@@ -32,9 +32,11 @@ export default class Watcher {
         /**
          * listen on spec changes and rerun specific spec file
          */
-        chokidar.watch(this._specs, { ignoreInitial: true })
-            .on('add', this.getFileListener())
-            .on('change', this.getFileListener())
+        this._specs.forEach(file => {
+            chokidar.watch(file, { ignoreInitial: true })
+                .on('add', this.getFileListener())
+                .on('change', this.getFileListener())
+        })
 
         /**
          * listen on filesToWatch changes an rerun complete suite
