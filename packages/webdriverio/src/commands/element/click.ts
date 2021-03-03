@@ -129,8 +129,14 @@ export default async function click (
                 button
             }]
         }])
-
-        return this.releaseActions()
+        try {
+            return await this.releaseActions()
+        } catch (e) {
+            if (e.name === 'no such window') {
+                return
+            }
+            throw e
+        }
     }
 
     const { width, height } = await this.getElementSize(this.elementId)
