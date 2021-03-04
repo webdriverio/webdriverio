@@ -243,7 +243,7 @@ class Launcher {
     /**
      * Format the specs into an array of objects with files and retries
      */
-    formatSpecs(capabilities, specFileRetries: number) {
+    formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
         let files: (string | string[])[] = []
         let returnValue: WorkerSpecs[] = []
 
