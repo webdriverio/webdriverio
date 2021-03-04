@@ -297,6 +297,7 @@ export default class ConfigParser {
                             }
                         })
                     }
+                    log.warn('Unexpected entry in specs that is neither string nor array: ', file)
                 })
             }
         })
@@ -338,7 +339,6 @@ export default class ConfigParser {
         let groupedFiles: string[] = []
         let depth: number = hierarchyDepth || 0
 
-        // Convert a string into an array as a convenience
         if (typeof patterns === 'string') {
             patterns = [patterns]
         }
@@ -348,7 +348,6 @@ export default class ConfigParser {
             throw new Error('specs or exclude property should be an array of strings, specs may also be an array of string arrays')
         }
 
-        // Remove line numbers
         patterns = patterns.map(pattern => {
             if (Array.isArray(pattern)) {
                 return pattern.map(subPattern => removeLineNumbers(subPattern))
@@ -364,7 +363,6 @@ export default class ConfigParser {
                 groupedFiles = <string[]> ConfigParser.getFilePaths(pattern, omitWarnings, findAndGlob, 1)
                 files.push(groupedFiles)
             } else {
-                // Otherwise process the files directly
                 let filenames = findAndGlob.glob(<string> pattern)
                 filenames = filenames.filter(
                     (filename) => SUPPORTED_FILE_EXTENSIONS.find(
