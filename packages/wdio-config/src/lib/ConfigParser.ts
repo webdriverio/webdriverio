@@ -259,7 +259,6 @@ export default class ConfigParser {
         if (Array.isArray(capExclude)) {
             exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
         }
-        console.log('ConfigParser: getSpecs: return value: ', specs.filter(spec => !exclude.includes(spec)))
         return specs.filter(spec => !exclude.includes(spec))
     }
 
@@ -358,7 +357,6 @@ export default class ConfigParser {
             }
         })
 
-        console.log('ConfigParser: patterns: ', patterns)
         for (let pattern of patterns) {
             // If pattern is an array, then call getFilePaths again
             // But only call one level deep, can't have multiple levels of hierarchy
@@ -382,7 +380,6 @@ export default class ConfigParser {
                 files = merge(files, filenames, MERGE_OPTIONS)
             }
         }
-        console.log('ConfigParser: getFilePaths: return value: ', files)
         return files
     }
 }
