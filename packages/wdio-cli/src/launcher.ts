@@ -239,7 +239,6 @@ class Launcher {
         })
     }
 
-
     /**
      * Format the specs into an array of objects with files and retries
      */
@@ -257,8 +256,6 @@ class Launcher {
         })
         return returnValue
     }
-
-
 
     /**
      * run multiple single remote tests

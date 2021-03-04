@@ -352,9 +352,8 @@ export default class ConfigParser {
         patterns = patterns.map(pattern => {
             if (Array.isArray(pattern)) {
                 return pattern.map(subPattern => removeLineNumbers(subPattern))
-            } else {
-                return removeLineNumbers(pattern)
             }
+            return removeLineNumbers(pattern)
         })
 
         for (let pattern of patterns) {
