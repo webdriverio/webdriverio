@@ -20,10 +20,10 @@ const suite = (type = 'feature') => ({
 } as any)
 
 const error = {
-    message: 'foo == bar',
+    message: 'AssertionError [ERR_ASSERTION]: foo == bar',
     stack: 'AssertionError [ERR_ASSERTION]: foo == bar',
     type: 'AssertionError [ERR_ASSERTION]',
-    name: 'AssertionError',
+    name: 'Error',
     expected: 'foo',
     actual: 'bar'
 }
@@ -99,8 +99,25 @@ const test = () => ({
     state: 'pending'
 } as any)
 
+const test2 = () => ({
+    type: 'test',
+    start: '2019-07-22T12:21:36.251Z',
+    _duration: 0,
+    uid: 'I check something4',
+    cid: '0-0',
+    title: 'I check something',
+    fullTitle: 'MyFeature: MyScenario: I do something',
+    output: [],
+    argument: undefined,
+    state: 'pending'
+} as any)
+
 export function testStart(): TestStats {
     return Object.assign(test())
+}
+
+export function test2start(): TestStats {
+    return Object.assign(test2())
 }
 
 export function testFail(): TestStats {
@@ -115,6 +132,12 @@ export function testFail(): TestStats {
 
 export function testSkipped(): TestStats {
     return Object.assign(test(), {
+        state: 'skipped'
+    })
+}
+
+export function test2Skipped(): TestStats {
+    return Object.assign(test2(), {
         state: 'skipped'
     })
 }

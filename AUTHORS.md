@@ -10,6 +10,7 @@ For information about the governance of the WebdriverIO project, see [GOVERNANCE
 [klamping](https://github.com/klamping) - __Kevin Lamping__ <[klamping@pm.me](klamping@pm.me)><br>
 [mgrybyk](https://github.com/mgrybyk) - __Mykola Grybyk__ <[mykola.grybyk@gmail.com](mykola.grybyk@gmail.com)><br>
 [WillBrock](https://github.com/WillBrock) - __Will Brock__ <[wpbrock@gmail.com](wpbrock@gmail.com)><br>
+[wswebcreation](https://github.com/wswebcreation) - __Wim Selles__ <[wim.selles@saucelabs.com](wim.selles@saucelabs.com)>
 
 ## Project Collaborators
 
@@ -27,6 +28,5 @@ For information about the governance of the WebdriverIO project, see [GOVERNANCE
 [TheSavior](https://github.com/TheSavior) - __Eli White__ <_tbd_><br>
 [ThomasFett](https://github.com/ThomasFett) - __Thomas Fett__ <[thomas.fett@saucelabs.com](thomas.fett@saucelabs.com)><br>
 [TuHuynhVan](https://github.com/TuHuynhVan) - __Tu Huynh__ <_tbd_><br>
-[wswebcreation](https://github.com/wswebcreation) - __Wim Selles__ <[wim.selles@saucelabs.com](wim.selles@saucelabs.com)><br>
 [wvankuipers](https://github.com/wvankuipers) - __W. van Kuipers__ <[github@pwnd.nl](github@pwnd.nl)><br>
 [zinserjan](https://github.com/zinserjan) - __Jan-André Zinser__ <_tbd_><br>
