@@ -55,7 +55,9 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     const cdpEndpoint = caps['se:options']?.cdp
     if (cdpEndpoint) {
         this.puppeteer = await puppeteer.connect({
-            browserWSEndpoint: cdpEndpoint
+            browserWSEndpoint: cdpEndpoint,
+            // @ts-ignore ToDo(@L0tso): remove once https://github.com/puppeteer/puppeteer/pull/6942 is merged
+            defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
     }

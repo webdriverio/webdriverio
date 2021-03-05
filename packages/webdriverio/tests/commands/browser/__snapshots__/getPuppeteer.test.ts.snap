@@ -49,6 +49,7 @@ Array [
   Array [
     Object {
       "browserWSEndpoint": "http://my.grid:1234/session/mytestsession/se/cdp",
+      "defaultViewport": null,
     },
   ],
 ]
