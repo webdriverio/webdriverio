@@ -1,5 +1,10 @@
 import { getElementRect } from '../../utils'
 
+type Location = {
+    x: number,
+    y: number
+}
+
 /**
  *
  * Determine an element’s location on the page. The point (0, 0) refers to
@@ -27,10 +32,15 @@ import { getElementRect } from '../../utils'
  * @uses protocol/elementIdLocation
  * @type property
  */
+export default async function getLocation(
+    this: WebdriverIO.Element): Promise<Location>
+export default async function getLocation(
+    this: WebdriverIO.Element,
+    prop: 'x' | 'y'): Promise<number>
 export default async function getLocation (
     this: WebdriverIO.Element,
     prop?: 'x' | 'y'
-) {
+): Promise<number | Location> {
     let location: {
         x?: number,
         y?: number,
@@ -50,8 +60,5 @@ export default async function getLocation (
         return location[prop] as number
     }
 
-    return location as {
-        x: number
-        y: number
-    }
+    return location as Location
 }
