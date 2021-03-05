@@ -2,12 +2,14 @@ import type { EventEmitter } from 'events'
 
 import type { SessionFlags } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
-import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands } from '@wdio/protocols'
+import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands, RectReturn } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import type BrowserCommands from './commands/browser'
 import type ElementCommands from './commands/element'
 import type DevtoolsInterception from './utils/interception/devtools'
+import type { Coordinates, Location } from './commands/element/getLocation'
+import type { Size } from './commands/element/getSize'
 
 export type BrowserCommandsType = typeof BrowserCommands
 export type BrowserCommandsTypeSync = {
@@ -24,7 +26,30 @@ export type BrowserCommandsTypeSync = {
 }
 export type ElementCommandsType = typeof ElementCommands
 export type ElementCommandsTypeSync = {
-    [K in keyof ElementCommandsType]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
+    [K in keyof Omit<ElementCommandsType, 'getLocation' | 'getSize'>]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
+} & {
+    /**
+     * same as execute, because generics
+     */
+    getLocation: (<T extends undefined>(
+        this: WebdriverIO.Element,
+    ) => Location<T>) & (<T extends keyof Coordinates>(
+        this: WebdriverIO.Element,
+        prop: T
+    ) => Location<T>) & (<T extends keyof Coordinates> (
+        this: WebdriverIO.Element,
+        prop?: T
+    ) => Location<T>),
+
+    getSize: (<T extends undefined>(
+        this: WebdriverIO.Element,
+    ) => Size<T>) & (<T extends keyof RectReturn>(
+        this: WebdriverIO.Element,
+        prop: T
+    ) => Size<T>) & (<T extends keyof RectReturn> (
+        this: WebdriverIO.Element,
+        prop?: T
+    ) => Size<T>)
 }
 
 /**

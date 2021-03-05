@@ -2,6 +2,12 @@ import type { RectReturn } from '@wdio/protocols'
 
 import { getElementRect } from '../../utils'
 
+export type Size<T> = T extends keyof RectReturn ? number : Pick<RectReturn, 'width' | 'height'>
+
+export function getSize<T extends undefined> (this: WebdriverIO.Element): Promise<Size<T>>;
+
+export function getSize<T extends keyof RectReturn> (this: WebdriverIO.Element, prop: T): Promise<Size<T>>;
+
 /**
  *
  * Get the width and height for an DOM-element.
@@ -29,9 +35,9 @@ import { getElementRect } from '../../utils'
  * @type property
  *
  */
-export default async function getSize (
+export async function getSize<T extends keyof RectReturn> (
     this: WebdriverIO.Element,
-    prop?: keyof RectReturn
+    prop?: T
 ) {
     let rect: Partial<RectReturn> = {}
 
@@ -42,11 +48,13 @@ export default async function getSize (
     }
 
     if (prop && rect[prop]) {
-        return rect[prop]
+        return rect[prop] as Size<T>
     }
 
     return {
         width: rect.width,
         height: rect.height
-    }
+    } as Size<T>
 }
+
+export default getSize
