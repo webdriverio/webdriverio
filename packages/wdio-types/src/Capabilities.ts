@@ -156,6 +156,13 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     };
 
     /**
+     * Selenium 4.0 Specific
+     */
+    'se:options'?: {
+        cdp?: string;
+    };
+
+    /**
      * @deprecated
      */
     // eslint-disable-next-line

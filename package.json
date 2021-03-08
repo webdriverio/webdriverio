@@ -53,6 +53,7 @@
     "version": "npm run changelog && git add CHANGELOG.md"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^7.0.0",
     "@octokit/rest": "^18.0.0",
     "@tsconfig/node12": "^1.0.0",
     "@types/archiver": "^5.1.0",
@@ -75,13 +76,12 @@
     "cheerio": "^1.0.0-rc.3",
     "codecov": "^3.6.1",
     "copyfiles": "^2.1.1",
-    "@cucumber/cucumber": "^7.0.0",
     "del": "^5.1.0",
     "depcheck": "^1.0.0",
     "ejs": "^3.0.2",
     "eslint": "^7.10.0",
-    "husky": "^4.2.3",
-    "inquirer": "^7.0.0",
+    "husky": "^5.1.0",
+    "inquirer": "^8.0.0",
     "jest": "^26.0.1",
     "jest-circus": "^26.0.1",
     "lerna": "^3.16.4",

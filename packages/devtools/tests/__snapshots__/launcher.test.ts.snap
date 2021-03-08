@@ -259,6 +259,7 @@ Array [
   Array [
     Object {
       "browserURL": "http://localhost:1234",
+      "defaultViewport": null,
     },
   ],
 ]
@@ -284,6 +285,7 @@ Array [
   Array [
     Object {
       "browserURL": "http://localhost:1234",
+      "defaultViewport": null,
     },
   ],
 ]

@@ -111,8 +111,6 @@
           "            // Network emulation requires device mode, which is only enabled when mobile emulation is on",
           "            mobileEmulation: { deviceName: 'iPad' },",
           "        },",
-          "        // Allow control over the state of network connectivity for testing",
-          "        networkConnectionEnabled: true",
           "    }",
           "});",
           "console.log(browser.getNetworkConnection()); // outputs: 6 (Both Wi-Fi and data)"
@@ -138,8 +136,6 @@
           "            // Network emulation requires device mode, which is only enabled when mobile emulation is on",
           "            mobileEmulation: { deviceName: 'iPad' },",
           "        },",
-          "        // Allow control over the state of network connectivity for testing",
-          "        networkConnectionEnabled: true",
           "    }",
           "});",
           "console.log(browser.setNetworkConnection({ type: 1 })); // outputs: 1 (Airplane Mode)"
