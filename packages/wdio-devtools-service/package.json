@@ -38,7 +38,7 @@
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.0.2",
     "lighthouse": "7.2.0",
-    "puppeteer-core": "^7.1.0",
+    "puppeteer-core": "^8.0.0",
     "speedline": "^1.4.1",
     "stable": "^0.1.8",
     "webdriverio": "7.1.1"
