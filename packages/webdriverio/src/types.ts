@@ -28,9 +28,9 @@ export type ElementCommandsType = typeof ElementCommands
 export type ElementCommandsTypeSync = {
     [K in keyof Omit<ElementCommandsType, 'getLocation' | 'getSize'>]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
 } & {
-    /**
-     * same as execute, because generics
-     */
+    //
+    // same as execute, because generics
+    //
     getLocation: (<T extends undefined>(
         this: WebdriverIO.Element,
     ) => Location<T>) & (<T extends keyof Coordinates>(

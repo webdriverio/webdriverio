@@ -4,9 +4,9 @@ import { getElementRect } from '../../utils'
 
 export type Size<T> = T extends keyof RectReturn ? number : Pick<RectReturn, 'width' | 'height'>
 
-export function getSize<T extends undefined> (this: WebdriverIO.Element): Promise<Size<T>>;
+function getSize<T extends undefined> (this: WebdriverIO.Element): Promise<Size<T>>;
 
-export function getSize<T extends keyof RectReturn> (this: WebdriverIO.Element, prop: T): Promise<Size<T>>;
+function getSize<T extends keyof RectReturn> (this: WebdriverIO.Element, prop: T): Promise<Size<T>>;
 
 /**
  *
@@ -35,10 +35,10 @@ export function getSize<T extends keyof RectReturn> (this: WebdriverIO.Element, 
  * @type property
  *
  */
-export async function getSize<T extends keyof RectReturn> (
+async function getSize<T extends keyof RectReturn> (
     this: WebdriverIO.Element,
     prop?: T
-) {
+): Promise<Size<T>> {
     let rect: Partial<RectReturn> = {}
 
     if (this.isW3C) {

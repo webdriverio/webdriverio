@@ -5,9 +5,9 @@ export type Coordinates = Pick<RectReturn, 'x' | 'y'>;
 
 export type Location<T> = T extends keyof Coordinates ? number : Coordinates
 
-export function getLocation<T extends undefined> (this: WebdriverIO.Element): Promise<Location<T>>
+function getLocation<T extends undefined> (this: WebdriverIO.Element): Promise<Location<T>>
 
-export function getLocation<T extends keyof Coordinates> (this: WebdriverIO.Element, prop: T): Promise<Location<T>>
+function getLocation<T extends keyof Coordinates> (this: WebdriverIO.Element, prop: T): Promise<Location<T>>
 
 /**
  *
@@ -36,10 +36,10 @@ export function getLocation<T extends keyof Coordinates> (this: WebdriverIO.Elem
  * @uses protocol/elementIdLocation
  * @type property
  */
-export async function getLocation<T extends keyof Coordinates> (
+async function getLocation<T extends keyof Coordinates> (
     this: WebdriverIO.Element,
     prop?: T
-) {
+): Promise<Location<T>> {
     let location: Partial<RectReturn> = {}
 
     if (this.isW3C) {
