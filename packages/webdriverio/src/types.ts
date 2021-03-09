@@ -2,7 +2,7 @@ import type { EventEmitter } from 'events'
 
 import type { SessionFlags } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
-import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands } from '@wdio/protocols'
+import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands, RectReturn } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import type BrowserCommands from './commands/browser'
@@ -42,10 +42,10 @@ export type ElementCommandsTypeSync = {
         this: WebdriverIO.Element,
     ) => Size) & ((
         this: WebdriverIO.Element,
-        prop: keyof Size
+        prop: keyof RectReturn
     ) => number) & ((
         this: WebdriverIO.Element,
-        prop?: keyof Size
+        prop?: keyof RectReturn
     ) => Size | number),
 }
 

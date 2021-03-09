@@ -154,6 +154,7 @@ const elementClickable: boolean = el2.waitForClickable({
 el1.getLocation('x').toFixed() // as number
 el1.getLocation().y // as Location
 
+el1.getSize('y').toFixed() // as number
 el1.getSize('width').toFixed() // as number
 el1.getSize().height // as Size
 

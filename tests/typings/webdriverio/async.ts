@@ -225,6 +225,7 @@ async function bar() {
     (await el1.getLocation('x')).toFixed(); // as number
     (await el1.getLocation()).y; // as Location
 
+    (await el1.getSize('y')).toFixed(); // as number
     (await el1.getSize('width')).toFixed(); // as number
     (await el1.getSize()).height; // as Size
 
