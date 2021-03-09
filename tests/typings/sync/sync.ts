@@ -150,6 +150,13 @@ const elementClickable: boolean = el2.waitForClickable({
     interval: 1,
     reverse: true
 })
+
+el1.getLocation('x').toFixed() // as number
+el1.getLocation().y // as Location
+
+el1.getSize('width').toFixed() // as number
+el1.getSize().height // as Size
+
 // element custom command
 const el2result = el3.elementCustomCommand(4)
 el2result.toFixed(2)
