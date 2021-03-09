@@ -19,6 +19,26 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.1.1 (2021-03-09)
+
+#### :rocket: New Feature
+* `wdio-types`, `webdriverio`
+  * [#6508](https://github.com/webdriverio/webdriverio/pull/6508) Support Selenium 4.0 Grid CDP for Devtools Service ([@dylanlive](https://github.com/dylanlive))
+
+#### :nail_care: Polish
+* `wdio-jasmine-framework`, `webdriverio`
+  * [#6558](https://github.com/webdriverio/webdriverio/pull/6558) docs(typings): #6549 improve typings using overloads - getLocation, getSize ([@iamkenos](https://github.com/iamkenos))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#6507](https://github.com/webdriverio/webdriverio/pull/6507) Fix unable to use nativeWebTap in capabilities ([@lukyth](https://github.com/lukyth))
+
+#### Committers: 3
+- Dylan Reichstadt ([@dylanlive](https://github.com/dylanlive))
+- Kanitkorn Sujautra ([@lukyth](https://github.com/lukyth))
+- iamkenos ([@iamkenos](https://github.com/iamkenos))
+
+
 ## v7.1.0 (2021-03-05)
 
 #### :rocket: New Feature
