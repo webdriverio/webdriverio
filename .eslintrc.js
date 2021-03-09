@@ -41,7 +41,9 @@ module.exports = {
             // see https://stackoverflow.com/questions/55280555/typescript-eslint-eslint-plugin-error-route-is-defined-but-never-used-no-un
             'no-unused-vars': 'off',
             '@typescript-eslint/no-unused-vars': 'error',
-            'no-undef': 'off'
+            'no-undef': 'off',
+            // allow overloads
+            'no-redeclare': 'off'
         }
     }]
 }
