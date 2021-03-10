@@ -13,6 +13,7 @@ import featuresLog from './__fixtures__/cucumber-features.json'
 import featuresWithFailingThenSkipStepLog from './__fixtures__/cucumber-features-with-failed-then-skipped-steps.json'
 import featuresWithPendingStepLog from './__fixtures__/cucumber-features-with-pending-step.json'
 import featuresWithErrorStepAndNoErrorObjectLog from './__fixtures__/cucumber-features-with-error-step-and-no-error-object.json'
+import unorderedFeatureAndScenarioWithError from './__fixtures__/cucumber-features-with-error-step-and-no-error-object-unordered.json'
 import suitesWithFailedBeforeEachHookLog from './__fixtures__/suites-with-failed-before-each-hook.json'
 import suitesWithFailedAfterEachHookLog from './__fixtures__/suites-with-failed-after-each-hook.json'
 import suitesHooksLog from './__fixtures__/suites-hooks.json'
@@ -120,6 +121,13 @@ describe('wdio-junit-reporter', () => {
 
     it('scenario will be marked failed if a single scenario step throws an error but there is no error object in JSON (Cucumber-style)', () => {
         reporter.suites = featuresWithErrorStepAndNoErrorObjectLog as any
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('should build the xml if feature and scenario are unordered in JSON (Cucumber-style)', () => {
+        reporter.suites = unorderedFeatureAndScenarioWithError as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
