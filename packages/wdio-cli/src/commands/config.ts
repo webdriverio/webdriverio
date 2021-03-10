@@ -105,9 +105,12 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      * ensure wdio packages have the same dist tag as cli
      */
     if (pkg._requested && pkg._requested.fetchSpec) {
-        packagesToInstall = packagesToInstall.map((p) => p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p)
-            ? `${p}@${pkg._requested.fetchSpec}`
-            : p
+        const { fetchSpec } = pkg._requested
+        packagesToInstall = packagesToInstall.map((p) =>
+            (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p)) &&
+            (fetchSpec.match(/(v)?\d+\.\d+\.\d+/) === null)
+                ? `${p}@${fetchSpec}`
+                : p
         )
     }
 

@@ -80,7 +80,7 @@ class JunitReporter extends WDIOReporter {
 
             const testCase = this._activeFeature.testCase()
                 .className(`${this._packageName}.${this._activeFeatureName}`)
-                .name(`${this._activeFeatureName}.${testName}`)
+                .name(`${testName}`)
                 .time(scenario._duration / 1000)
 
             if (this.options.addFileAttribute) {
@@ -121,6 +121,7 @@ class JunitReporter extends WDIOReporter {
                     } else {
                         testCase.error()
                     }
+                    testCase.failure()
                     isFailing = true
                     stepEmoji = '❗'
                 }
@@ -185,6 +186,7 @@ class JunitReporter extends WDIOReporter {
                 } else {
                     testCase.error()
                 }
+                testCase.failure()
             }
 
             const output = this._getStandardOutput(test)
@@ -222,6 +224,19 @@ class JunitReporter extends WDIOReporter {
             this._fileNameLabel = 'file'
         }
 
+        // there should only be one spec file per runner so we can safely take the first element of the array
+        const specFileName = runner.specs[0]
+        if (isCucumberFrameworkRunner) {
+            this._buildOrderedReport(builder, runner, specFileName, 'feature', isCucumberFrameworkRunner)
+            this._buildOrderedReport(builder, runner, specFileName, 'scenario', isCucumberFrameworkRunner)
+        } else {
+            this._buildOrderedReport(builder, runner, specFileName, '', isCucumberFrameworkRunner)
+        }
+
+        return builder.build()
+    }
+
+    private _buildOrderedReport(builder: any, runner: RunnerStats, specFileName: string, type: string, isCucumberFrameworkRunner: boolean) {
         for (let suiteKey of Object.keys(this.suites)) {
             /**
              * ignore root before all
@@ -230,19 +245,14 @@ class JunitReporter extends WDIOReporter {
             if (suiteKey.match(/^"before all"/)) {
                 continue
             }
-
-            // there should only be one spec file per runner so we can safely take the first element of the array
-            const specFileName = runner.specs[0]
             const suite = this.suites[suiteKey]
-
-            if (isCucumberFrameworkRunner) {
+            if (isCucumberFrameworkRunner && suite.type === type) {
                 builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
-            } else {
+            } else if (!isCucumberFrameworkRunner) {
                 builder = this._addSuiteToBuilder(builder, runner, specFileName, suite)
             }
         }
-
-        return builder.build()
+        return builder
     }
 
     private _getStandardOutput (test: TestStats) {

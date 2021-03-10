@@ -2,12 +2,14 @@ import type { EventEmitter } from 'events'
 
 import type { SessionFlags } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
-import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands } from '@wdio/protocols'
+import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands, RectReturn } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import type BrowserCommands from './commands/browser'
 import type ElementCommands from './commands/element'
 import type DevtoolsInterception from './utils/interception/devtools'
+import type { Location } from './commands/element/getLocation'
+import type { Size } from './commands/element/getSize'
 
 export type BrowserCommandsType = typeof BrowserCommands
 export type BrowserCommandsTypeSync = {
@@ -24,7 +26,27 @@ export type BrowserCommandsTypeSync = {
 }
 export type ElementCommandsType = typeof ElementCommands
 export type ElementCommandsTypeSync = {
-    [K in keyof ElementCommandsType]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
+    [K in keyof Omit<ElementCommandsType, 'getLocation' | 'getSize'>]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
+} & {
+    getLocation: ((
+        this: WebdriverIO.Element,
+    ) => Location) & ((
+        this: WebdriverIO.Element,
+        prop: keyof Location
+    ) => number) & ((
+        this: WebdriverIO.Element,
+        prop?: keyof Location
+    ) => Location | number),
+
+    getSize: ((
+        this: WebdriverIO.Element,
+    ) => Size) & ((
+        this: WebdriverIO.Element,
+        prop: keyof RectReturn
+    ) => number) & ((
+        this: WebdriverIO.Element,
+        prop?: keyof RectReturn
+    ) => Size | number),
 }
 
 /**

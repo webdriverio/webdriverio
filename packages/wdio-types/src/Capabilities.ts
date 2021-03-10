@@ -156,6 +156,13 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     };
 
     /**
+     * Selenium 4.0 Specific
+     */
+    'se:options'?: {
+        cdp?: string;
+    };
+
+    /**
      * @deprecated
      */
     // eslint-disable-next-line
@@ -356,6 +363,7 @@ export interface AppiumW3CCapabilities {
     'appium:eventTimings'?: boolean;
     'appium:enablePerformanceLogging'?: boolean;
     'appium:printPageSourceOnFindFailure'?: boolean;
+    'appium:nativeWebTap'?: boolean;
 }
 
 export interface AppiumAndroidCapabilities {

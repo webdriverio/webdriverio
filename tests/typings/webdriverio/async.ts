@@ -220,7 +220,15 @@ async function bar() {
         timeoutMsg: '',
         interval: 1,
         reverse: true
-    })
+    });
+
+    (await el1.getLocation('x')).toFixed(); // as number
+    (await el1.getLocation()).y; // as Location
+
+    (await el1.getSize('y')).toFixed(); // as number
+    (await el1.getSize('width')).toFixed(); // as number
+    (await el1.getSize()).height; // as Size
+
     // element custom command
     const el2result = await el3.elementCustomCommand(4)
     el2result.toFixed(2)
