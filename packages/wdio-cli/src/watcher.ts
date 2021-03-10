@@ -75,11 +75,41 @@ export default class Watcher {
      */
     getFileListener (passOnFile = true) {
 
+        // // ORIGINAL
+        // return (spec: string) => {
+        //     // Do not pass the `spec` command line option to `this.run()`
+        //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        //     const { spec: _specArg, ...args } = this._args
+        //     return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
+        // }
+
+        // NEW  - WITH CHRISTIAN
         return (spec: string) => {
+            let runSpecs: ( string | string[] )[] = []
+            let singleSpecFound: boolean = false
+            for (let index = 0, length = this._specs.length; index < length; index += 1) {
+                const value = this._specs[index]
+                if (Array.isArray(value) && value.indexOf(spec) > -1) {
+                    runSpecs.push(value)
+                } else if ( !singleSpecFound && spec === value) {
+                    // Only need to run a singleFile once  - so avoid duplicates
+                    singleSpecFound = true
+                    runSpecs.push(value)
+                }
+            }
+
+            // If the runSpecs array is empty, then this must be a new file/array
+            // so add the spec directly to the runSpecs
+            if (runSpecs.length === 0) {
+                runSpecs.push(spec)
+            }
+
             // Do not pass the `spec` command line option to `this.run()`
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { spec: _specArg, ...args } = this._args
-            return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
+            return runSpecs.map((spec) => {
+                return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
+            })
         }
 
         // NEED HELP HERE
@@ -100,7 +130,8 @@ export default class Watcher {
         //     // Do not pass the `spec` command line option to `this.run()`
         //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
         //     const { spec: _specArg, ...args } = this._args
-        //     runSpecs.forEach((spec) => {
+        //     ** Use a map and return a promise.All(spec
+        //     return runSpecs.map((spec) => {
         //         // Can't return multiple times - is the return value being used ?
         //         // Original: return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
         //         return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
@@ -136,9 +167,29 @@ export default class Watcher {
      * @param  params parameters to run the worker with
      */
     run (params: Omit<Partial<RunCommandArguments>, 'spec'> & { spec?: string | string[] } = {}) {
+
+        // ORIGINAL - added <string> to overcome typing issue
         const workers = this.getWorkers(
-            (params.spec ? (worker) => worker.specs.includes(<string> params.spec!) : undefined)
+            (params.spec ? (worker) => worker.specs.includes(<string>params.spec!) : undefined)
         )
+
+        // // NOTES FROM CHRISTIAN
+        // const workers = this.getWorkers(
+        //     if (Array.isArray(params.spec)) {
+        //         if (params.spec === worker.specs) // Validate that the arrays are exactly equal - JSON.stringify
+        //         (params.spec ? (worker) => worker.specs.includes(<string>params.spec!) : undefined)
+        //     }
+        // )
+
+        // // NEW
+        // const workers = this.getWorkers(
+        //     (params.spec ? (worker) => {
+        //         if (Array.isArray(params.spec)) {
+        //             return params.spec === worker.specs
+        //         }
+        //         worker.specs.includes(params.spec!)
+        //     } : undefined)
+        // )
 
         // NEED HELP HERE
         // let workers: Record<string, Workers.Worker> = {}

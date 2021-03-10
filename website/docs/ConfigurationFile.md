@@ -60,8 +60,8 @@ exports.config = {
     // from which `wdio` was called.
     //
     // The specs are defined as an array of spec files (optionally using wildcards
-    // that will be expanded).  The test for each spec file will be run in a separate
-    // worker process.  In order to have a group of spec files run in the same worker
+    // that will be expanded). The test for each spec file will be run in a separate
+    // worker process. In order to have a group of spec files run in the same worker
     // process simply enclose them in an array within the specs array.
     //
     // If you are calling `wdio` from an NPM script (see https://docs.npmjs.com/cli/run-script),
