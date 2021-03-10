@@ -14,7 +14,7 @@ Then just follow the instructions and test it out. Have fun!
 
 > **Note**
 
-> The examples don't have any `dev-dependencies`. Use one of the [boilerplates](http://www.webdriver.io/docs/boilerplate.html) to set up you project including the `dev-dependencies` and integrate the examples in that project.
+> The examples don't have any `dev-dependencies`. Use one of the [boilerplates](https://webdriver.io/docs/boilerplates) to set up you project including the `dev-dependencies` and integrate the examples in that project.
 
 # Cloudservices
 
@@ -129,6 +129,6 @@ $ npm run test:jasmine
 $ npm run test:cucumber
 # testsuite with multiremote
 $ npm run test:multiremote
-# test suite with custome reporter
+# test suite with custom reporter
 $ npm run test:customReporter
 ```

@@ -19,6 +19,198 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.1.1 (2021-03-09)
+
+#### :rocket: New Feature
+* `wdio-types`, `webdriverio`
+  * [#6508](https://github.com/webdriverio/webdriverio/pull/6508) Support Selenium 4.0 Grid CDP for Devtools Service ([@dylanlive](https://github.com/dylanlive))
+
+#### :nail_care: Polish
+* `wdio-jasmine-framework`, `webdriverio`
+  * [#6558](https://github.com/webdriverio/webdriverio/pull/6558) docs(typings): #6549 improve typings using overloads - getLocation, getSize ([@iamkenos](https://github.com/iamkenos))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#6507](https://github.com/webdriverio/webdriverio/pull/6507) Fix unable to use nativeWebTap in capabilities ([@lukyth](https://github.com/lukyth))
+
+#### Committers: 3
+- Dylan Reichstadt ([@dylanlive](https://github.com/dylanlive))
+- Kanitkorn Sujautra ([@lukyth](https://github.com/lukyth))
+- iamkenos ([@iamkenos](https://github.com/iamkenos))
+
+
+## v7.1.0 (2021-03-05)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#6480](https://github.com/webdriverio/webdriverio/pull/6480) make use of ARIA Sematics role to identify element(webdriverio#6363) ([@jayandran-Sampath](https://github.com/jayandran-Sampath))
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#6541](https://github.com/webdriverio/webdriverio/pull/6541) Fix test status in allure when several steps are passed and other skipped ([@lacell75](https://github.com/lacell75))
+  * [#6533](https://github.com/webdriverio/webdriverio/pull/6533) Closes [#6531](https://github.com/webdriverio/webdriverio/issues/6531) return correct test status in allure report ([@lacell75](https://github.com/lacell75))
+
+#### Committers: 2
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- [@jayandran-Sampath](https://github.com/jayandran-Sampath)
+
+
+## v7.0.9 (2021-03-01)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6520](https://github.com/webdriverio/webdriverio/pull/6520) Fix TS return types for $ command ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`, `webdriverio`
+  * [#6487](https://github.com/webdriverio/webdriverio/pull/6487) Fix shrinked viewport for devtools package ([@L0tso](https://github.com/L0tso))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#6521](https://github.com/webdriverio/webdriverio/pull/6521) Expose ElementArray as type to the WebdriverIO namespace ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#6522](https://github.com/webdriverio/webdriverio/pull/6522) Minor typo in example in README.md ([@pgAdmin](https://github.com/pgAdmin))
+  * [#6509](https://github.com/webdriverio/webdriverio/pull/6509) Fix a typo ([@tai2](https://github.com/tai2))
+* `wdio-sauce-service`
+  * [#6513](https://github.com/webdriverio/webdriverio/pull/6513) change SC options link ([@enriquegh](https://github.com/enriquegh))
+
+#### Committers: 6
+- Bohdan Belenok ([@L0tso](https://github.com/L0tso))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Enrique Gonzalez ([@enriquegh](https://github.com/enriquegh))
+- Punit Gupta ([@pgAdmin](https://github.com/pgAdmin))
+- Taiju Muto ([@tai2](https://github.com/tai2))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v7.0.8 (2021-02-25)
+
+#### :rocket: New Feature
+* `devtools`
+  * [#6371](https://github.com/webdriverio/webdriverio/pull/6371) Added goog:chromeOption for passing the debugging port to the devtools chrome launcher (Closes [#6370](https://github.com/webdriverio/webdriverio/issues/6370)) ([@jamesmortensen](https://github.com/jamesmortensen))
+
+#### :bug: Bug Fix
+* `wdio-sumologic-reporter`
+  * [#6485](https://github.com/webdriverio/webdriverio/pull/6485) change internal variable type to resolve build issue ([@jayandran-Sampath](https://github.com/jayandran-Sampath))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#6498](https://github.com/webdriverio/webdriverio/pull/6498) add missing type property hex for ParsedColor ([@dannyfink](https://github.com/dannyfink))
+* `wdio-devtools-service`
+  * [#6497](https://github.com/webdriverio/webdriverio/pull/6497) add missing comma for code coverage snippet for devtools service ([@dannyfink](https://github.com/dannyfink))
+* Other
+  * [#6493](https://github.com/webdriverio/webdriverio/pull/6493) docs: fix minor typo ([@timbru31](https://github.com/timbru31))
+  * [#6484](https://github.com/webdriverio/webdriverio/pull/6484) Add og:image and twitter:image ([@38elements](https://github.com/38elements))
+
+#### :house: Internal
+* Other
+  * [#6504](https://github.com/webdriverio/webdriverio/pull/6504) Fix failed test from conflicting node type definition ([@lukyth](https://github.com/lukyth))
+* `webdriverio`
+  * [#6505](https://github.com/webdriverio/webdriverio/pull/6505) Remove unused constants ([@lukyth](https://github.com/lukyth))
+
+#### Committers: 7
+- 17thSep.net ([@17thSep](https://github.com/17thSep))
+- 38elements ([@38elements](https://github.com/38elements))
+- James ([@jamesmortensen](https://github.com/jamesmortensen))
+- Kanitkorn Sujautra ([@lukyth](https://github.com/lukyth))
+- Tim Brust ([@timbru31](https://github.com/timbru31))
+- [@dannyfink](https://github.com/dannyfink)
+- [@jayandran-Sampath](https://github.com/jayandran-Sampath)
+
+
+## v7.0.7 (2021-02-18)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-config`, `wdio-runner`, `wdio-types`
+  * [#6475](https://github.com/webdriverio/webdriverio/pull/6475) Fix auto compile mechanism ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`, `wdio-types`
+  * [#6473](https://github.com/webdriverio/webdriverio/pull/6473) better type and document `wdio:devtoolsOptions` ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-config`, `wdio-jasmine-framework`, `wdio-junit-reporter`
+  * [#6472](https://github.com/webdriverio/webdriverio/pull/6472) Rename `jasmineNodeOpts` into `jasmineOpts` ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#6474](https://github.com/webdriverio/webdriverio/pull/6474) Improve type definition for Sauce Labs capabilities ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#6462](https://github.com/webdriverio/webdriverio/pull/6462) Update autocompletion ([@MikoSh95](https://github.com/MikoSh95))
+
+#### :house: Internal
+* `wdio-cucumber-framework`
+  * [#6476](https://github.com/webdriverio/webdriverio/pull/6476) Cleanup cucumber-framework dependencies ([@esaari](https://github.com/esaari))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Eric Saari ([@esaari](https://github.com/esaari))
+- Piotr Mikosz ([@MikoSh95](https://github.com/MikoSh95))
+
+
+## v7.0.6 (2021-02-17)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#6453](https://github.com/webdriverio/webdriverio/pull/6453) Fix/add cucumber keyword ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* [#6455](https://github.com/webdriverio/webdriverio/pull/6455) Update autocompletion.md ([@MikoSh95](https://github.com/MikoSh95))
+
+#### Committers: 2
+- Piotr Mikosz ([@MikoSh95](https://github.com/MikoSh95))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v7.0.5 (2021-02-16)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#6454](https://github.com/webdriverio/webdriverio/pull/6454) Fix/sauce service cucumber ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :memo: Documentation
+* [#6446](https://github.com/webdriverio/webdriverio/pull/6446) chore: fix link to contributor guide in README ([@web-padawan](https://github.com/web-padawan))
+
+#### :house: Internal
+* `devtools`, `wdio-devtools-service`, `webdriverio`
+  * [#6447](https://github.com/webdriverio/webdriverio/pull/6447) chore: remove obsolete puppeteer types ([@web-padawan](https://github.com/web-padawan))
+
+#### Committers: 2
+- Serhii Kulykov ([@web-padawan](https://github.com/web-padawan))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
+## v7.0.4 (2021-02-15)
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#6441](https://github.com/webdriverio/webdriverio/pull/6441) Ensure that 'title' property is passed down by cucumber framework to reporters ([@rickschubert](https://github.com/rickschubert))
+* `wdio-cli`, `wdio-local-runner`, `wdio-types`
+  * [#6373](https://github.com/webdriverio/webdriverio/pull/6373) @wdio/cli: Ensure watch mode re-runs all specs when the --spec command line option is set and a filesToWatch file is added or changed ([@kohlmannj](https://github.com/kohlmannj))
+
+#### :nail_care: Polish
+* `wdio-junit-reporter`
+  * [#6439](https://github.com/webdriverio/webdriverio/pull/6439) Removed _ from suite/test name in junit reporter ([@AutomationReddy](https://github.com/AutomationReddy))
+
+#### :memo: Documentation
+* `devtools`, `wdio-allure-reporter`
+  * [#6419](https://github.com/webdriverio/webdriverio/pull/6419) fix typos and version doc link ([@spnraju](https://github.com/spnraju))
+* Other
+  * [#6444](https://github.com/webdriverio/webdriverio/pull/6444) fixed typo in the wdio exec command ([@AutomationReddy](https://github.com/AutomationReddy))
+* `wdio-runner`, `webdriverio`
+  * [#6429](https://github.com/webdriverio/webdriverio/pull/6429) Improve typings for instance base ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-cucumber-framework`, `webdriverio`
+  * [#6431](https://github.com/webdriverio/webdriverio/pull/6431) fix docs for cucumber hooks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-junit-reporter`
+  * [#6430](https://github.com/webdriverio/webdriverio/pull/6430) bump junit reporter builder ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Joseph Kohlmann (he/him/his) ([@kohlmannj](https://github.com/kohlmannj))
+- Raju ([@spnraju](https://github.com/spnraju))
+- Rick Schubert ([@rickschubert](https://github.com/rickschubert))
+- Vinod Reddy ([@AutomationReddy](https://github.com/AutomationReddy))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v7.0.3 (2021-02-12)
 
 #### :bug: Bug Fix
@@ -84,7 +276,13 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
     ```
     We do __not__ recommend to specify `webdriverio` or `@wdio/sync` in there anymore. For more information visit our updated docs on [TypeScript Integration](https://webdriver.io/docs/typescript).
   * If you use WebdriverIO in [multiremote mode](https://webdriver.io/docs/multiremote) to get proper typing you should use the `multiremote` global variable
-  * Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h))
+  * Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h)) 👏 With that you also don't need `ts-node/register` to be required in your Mocha, Jasmine or Cucumber options, e.g.:
+    ```suggestion
+    jasmineOpts: {
+        - requires: ['ts-node/register', 'tsconfig-paths/register'],
+        + requires: ['tsconfig-paths/register'],
+    },
+    ```
   * It is required to have TypeScript v4 or higher
 * [#6309](https://github.com/webdriverio/webdriverio/pull/6309) Cucumber Framework update to v7
   * We have updated our Cucumber integration to use Cucumber v7

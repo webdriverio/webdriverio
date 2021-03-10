@@ -8,8 +8,7 @@ import {
 } from '../utils'
 import {
     SUPPORTED_HOOKS,
-    SUPPORTED_FILE_EXTENSIONS,
-    DEFAULT_AUTOCOMPILE_CONFIGS
+    SUPPORTED_FILE_EXTENSIONS
 } from '../constants'
 import {
     DEFAULT_CONFIGS
@@ -58,7 +57,6 @@ interface Globber {
 export interface PathService extends CurrentPathFinder, LoadConfigFile, IsFileDetector, Globber, DeterminesAbsolutePath {}
 
 export default class ConfigParser {
-    private _autocompileConfig : Options.AutoCompileConfig = DEFAULT_AUTOCOMPILE_CONFIGS()
     private _config: TestrunnerOptionsWithParameters = DEFAULT_CONFIGS()
     private _capabilities: Capabilities.RemoteCapabilities = [];
     private _pathService: PathService;
@@ -73,10 +71,8 @@ export default class ConfigParser {
         /**
          * on launcher compile files if Babel or TypeScript are installed using our defaults
          */
-        if (!loadAutoCompilers(this._autocompileConfig, this._moduleRequireService)) {
-            if ( this._autocompileConfig.autoCompile ) {
-                log.debug('No compiler found, continue without compiling files')
-            }
+        if (this._config.autoCompileOpts && !loadAutoCompilers(this._config.autoCompileOpts!, this._moduleRequireService)) {
+            log.debug('No compiler found, continue without compiling files')
         }
     }
 
@@ -96,14 +92,6 @@ export default class ConfigParser {
 
             if (typeof config !== 'object') {
                 throw new Error('addConfigEntry requires config key')
-            }
-
-            /**
-             * on launcher compile files if Babel or TypeScript are installed using our defaults
-             */
-            // Merge in config over defaults
-            if ( config.autoCompileOpts ) {
-                this._autocompileConfig = merge(this._autocompileConfig, config.autoCompileOpts, MERGE_OPTIONS)
             }
 
             /**
@@ -147,11 +135,6 @@ export default class ConfigParser {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         this._config = merge(this._config, object, MERGE_OPTIONS) as TestrunnerOptionsWithParameters
-
-        // Merge in config over defaults
-        if ( object.autoCompileOpts ) {
-            this._autocompileConfig = merge(this._autocompileConfig, object.autoCompileOpts, MERGE_OPTIONS)
-        }
 
         /**
          * overwrite config specs that got piped into the wdio command

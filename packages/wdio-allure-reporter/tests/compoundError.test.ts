@@ -38,14 +38,14 @@ describe('CompoundError', () => {
         //
         // IntroMessage
         // EndOfStackMessage
-        // Seperator
+        // Separator
         // SecondStack
         // EndOfStackMessage
 
         // So we split both the final CompoundError message
-        // and the traces that compose it on line seperators and then test to make sure that
+        // and the traces that compose it on line separators and then test to make sure that
         // the split traces are in the appropriate places in the CompoundError message.
-        // We do this rather than hardcoding strings, so we can use actual error stacks (which might be slightly)
+        // We do this rather than hard-coding strings, so we can use actual error stacks (which might be slightly)
         // different depending on how we run the tests.
 
         const e1split = e1.stack.split('\n')

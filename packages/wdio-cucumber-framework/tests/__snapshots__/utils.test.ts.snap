@@ -1,5 +1,30 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`utils addKeywordToStep should add keywords to the steps 1`] = `
+Array [
+  Object {
+    "astNodeIds": Array [
+      "0",
+    ],
+    "id": "20",
+    "keyword": "Given ",
+    "text": "I have a background",
+  },
+  Object {
+    "astNodeIds": Array [
+      "2",
+    ],
+    "id": "21",
+    "keyword": "Given ",
+    "text": "I have 42 cukes in my belly",
+  },
+  Object {
+    "hookId": "47",
+    "id": "77",
+  },
+]
+`;
+
 exports[`utils buildStepPayload 1`] = `
 Object {
   "argument": undefined,
@@ -12,8 +37,8 @@ Object {
       "name": "some tag",
     },
   ],
-  "title": "title",
-  "type": "hook",
+  "title": "Given title",
+  "type": "step",
   "uid": "123",
 }
 `;

@@ -163,6 +163,10 @@ const config: WebdriverIO.Config = {
             logName: 'test.log',
             videoName: 'test.mp4'
         }
+    }, {
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: false
+        }
     }] as WebDriver.DesiredCapabilities[],
 
     filesToWatch: [

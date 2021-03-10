@@ -137,7 +137,7 @@ const classNameAndText = $('[name="username"]')
 console.log(classNameAndText.getValue()) // outputs: "foobar"
 ```
 
-__Note:__ This selector strategy it depcrecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
+__Note:__ This selector strategy it deprecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
 
 ## xPath
 
@@ -167,6 +167,20 @@ You can use xPath to also traverse up and down the DOM tree:
 const parent = paragraph.$('..')
 console.log(parent.getTagName()) // outputs: "body"
 ```
+
+## ARIA - Role Attribute
+
+For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like `[role=button]` as selector parameter:
+
+```html
+<button>Click me</button>
+```
+
+```js
+const button = $('[role=button]')
+console.log(button.click()) // outputs: perform click on button element
+```
+
 ## id
 
 Finding element by id has no specific syntax in WebDriver and one should use either CSS selectors (`#<my element ID>`) or xPath (`//*[@id="<my element ID>"]`).

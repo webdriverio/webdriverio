@@ -17,6 +17,10 @@ jest.mock('../src/utils', () => ({
     setUserHookNames: jest.fn()
 }))
 
+jest.mock('@cucumber/gherkin/dist/src/stream/GherkinStreams', () => ({
+    fromPaths: jest.fn().mockReturnValue('GherkinStreams.fromPaths')
+}))
+
 declare global {
     var MODULE_A_WAS_LOADED: boolean
     var MODULE_B_WAS_LOADED_WITH: any

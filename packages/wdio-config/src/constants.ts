@@ -32,6 +32,13 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     reporterSyncInterval: 100,
     reporterSyncTimeout: 5000,
     cucumberFeaturesWithLineNumbers: [],
+    autoCompileOpts: {
+        autoCompile: true,
+        tsNodeOpts: {
+            transpileOnly: true
+        },
+        babelOpts: {}
+    },
 
     /**
      * framework defaults
@@ -39,7 +46,7 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     mochaOpts: {
         timeout: DEFAULT_TIMEOUT
     },
-    jasmineNodeOpts: {
+    jasmineOpts: {
         defaultTimeoutInterval: DEFAULT_TIMEOUT
     },
     cucumberOpts: {
@@ -88,11 +95,3 @@ export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
 export const SUPPORTED_FILE_EXTENSIONS = [
     '.js', '.mjs', '.es6', '.ts', '.feature', '.coffee', '.cjs'
 ]
-
-export const DEFAULT_AUTOCOMPILE_CONFIGS: () => Options.AutoCompileConfig = () => ({
-    autoCompile: true,
-    tsNodeOpts: {
-        transpileOnly: true
-    },
-    babelOpts: {}
-})

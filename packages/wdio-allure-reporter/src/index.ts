@@ -75,7 +75,7 @@ class AllureReporter extends WDIOReporter {
                 return this._allure.startSuite(suite.title)
             }
 
-            // handle cucumber scenarii as allure "case" instead of "suite"
+            // handle cucumber scenario as allure "case" instead of "suite"
             this._allure.startCase(suite.title)
             const currentTest = this._allure.getCurrentTest()
             this.getLabels(suite).forEach(({ name, value }) => {
@@ -105,10 +105,16 @@ class AllureReporter extends WDIOReporter {
                 return this._allure.endCase('passed')
             }
 
-            // A scenario is it skipped if is not passed and every steps/hooks are passed or skipped
-            const isSkipped = suiteChildren.every(item => [PASSED, SKIPPED].indexOf(item.state!) >= 0)
+            // A scenario is it skipped if every steps are skipped and hooks are passed or skipped
+            const isSkipped = suite.tests.every(item => [SKIPPED].indexOf(item.state!) >= 0) && suite.hooks.every(item => [PASSED, SKIPPED].indexOf(item.state!) >= 0)
             if (isSkipped) {
                 return this._allure.endCase(PENDING)
+            }
+
+            // A scenario is it passed if certain steps are passed and all other are skipped and every hooks are passed or skipped
+            const isPartiallySkipped = suiteChildren.every(item => [PASSED, SKIPPED].indexOf(item.state!) >= 0)
+            if (isPartiallySkipped) {
+                return this._allure.endCase('passed')
             }
 
             // Only close passing and skipped tests because

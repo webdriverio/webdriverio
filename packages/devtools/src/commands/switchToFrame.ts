@@ -73,5 +73,5 @@ export default async function switchToFrame (
         return null
     }
 
-    throw new Error(`Could not switch frame, unknwon id: ${id}`)
+    throw new Error(`Could not switch frame, unknown id: ${id}`)
 }

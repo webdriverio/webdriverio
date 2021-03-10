@@ -148,7 +148,10 @@ Default: `false`
 *(only for vm and or em/simulators)*
 
 ### sauceConnectOpts
-Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://github.com/bermi/sauce-connect-launcher#advanced-usage) for more information. Per default the service disables SC proxy auto-detection as via `noAutodetect` as this can be unreliable for some machines.
+Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy+Command-Line+Quick+Reference+Guide) for more information. Per default the service disables SC proxy auto-detection as via `noAutodetect` as this can be unreliable for some machines.  
+
+NOTE: When specifying the options the `--` should be omitted.  
+It can also be turned into camelCase (e.g. `shared-tunnel` or `sharedTunnel`).
 
 Type: `Object`<br />
 Default: `{ noAutodetect: true }`

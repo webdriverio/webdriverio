@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`install compliant NPM tag packages it should install tagged version if cli is tagged 1`] = `
+exports[`install compliant NPM tag packages it should install tagged version if cli is tagged with beta 1`] = `
 Array [
   Array [
     "
@@ -18,6 +18,138 @@ Installing wdio packages:
 - @wdio/crossbrowsertesting-service@beta
 - wdio-lambdatest-service
 - @wdio/sync@beta",
+  ],
+  Array [
+    "
+Packages installed successfully, creating configuration file...",
+  ],
+  Array [
+    "To have TypeScript support please add the following packages to your \\"types\\" list:
+{
+  \\"compilerOptions\\": {
+    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+  }
+}
+
+For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
+",
+  ],
+  Array [
+    "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.js
+",
+  ],
+]
+`;
+
+exports[`install compliant NPM tag packages it should install tagged version if cli is tagged with latest 1`] = `
+Array [
+  Array [
+    "
+=========================
+WDIO Configuration Helper
+=========================
+",
+  ],
+  Array [
+    "
+Installing wdio packages:
+-",
+    "@wdio/local-runner@latest
+- @wdio/mocha-framework@latest
+- @wdio/crossbrowsertesting-service@latest
+- wdio-lambdatest-service
+- @wdio/sync@latest",
+  ],
+  Array [
+    "
+Packages installed successfully, creating configuration file...",
+  ],
+  Array [
+    "To have TypeScript support please add the following packages to your \\"types\\" list:
+{
+  \\"compilerOptions\\": {
+    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+  }
+}
+
+For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
+",
+  ],
+  Array [
+    "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.js
+",
+  ],
+]
+`;
+
+exports[`install compliant NPM tag packages it should install tagged version if cli is tagged with next 1`] = `
+Array [
+  Array [
+    "
+=========================
+WDIO Configuration Helper
+=========================
+",
+  ],
+  Array [
+    "
+Installing wdio packages:
+-",
+    "@wdio/local-runner@next
+- @wdio/mocha-framework@next
+- @wdio/crossbrowsertesting-service@next
+- wdio-lambdatest-service
+- @wdio/sync@next",
+  ],
+  Array [
+    "
+Packages installed successfully, creating configuration file...",
+  ],
+  Array [
+    "To have TypeScript support please add the following packages to your \\"types\\" list:
+{
+  \\"compilerOptions\\": {
+    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+  }
+}
+
+For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
+",
+  ],
+  Array [
+    "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.js
+",
+  ],
+]
+`;
+
+exports[`install compliant NPM tag packages it should not install tagged version if cli is tagged with a specific version 1`] = `
+Array [
+  Array [
+    "
+=========================
+WDIO Configuration Helper
+=========================
+",
+  ],
+  Array [
+    "
+Installing wdio packages:
+-",
+    "@wdio/local-runner
+- @wdio/mocha-framework
+- @wdio/crossbrowsertesting-service
+- wdio-lambdatest-service
+- @wdio/sync",
   ],
   Array [
     "

@@ -23,6 +23,9 @@ nsBrowser.clearMockCalls('')
 const nsElem: WebdriverIO.Element = {} as any
 nsElem.click()
 
+const nsElems: WebdriverIO.ElementArray = {} as any
+nsElems.foundWith.toUpperCase()
+
 // browser
 browser.pause(1)
 browser.newWindow('https://webdriver.io', {
@@ -147,6 +150,14 @@ const elementClickable: boolean = el2.waitForClickable({
     interval: 1,
     reverse: true
 })
+
+el1.getLocation('x').toFixed() // as number
+el1.getLocation().y // as Location
+
+el1.getSize('y').toFixed() // as number
+el1.getSize('width').toFixed() // as number
+el1.getSize().height // as Size
+
 // element custom command
 const el2result = el3.elementCustomCommand(4)
 el2result.toFixed(2)

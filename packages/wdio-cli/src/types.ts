@@ -1,3 +1,4 @@
+import { Options, Reporters } from '@wdio/types'
 import { BACKEND_CHOICES, MODE_OPTIONS, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
 
 type ValueOf<T> = T[keyof T]
@@ -60,14 +61,14 @@ export interface RunCommandArguments {
     baseUrl?: string
     waitforTimeout?: number
     framework?: string
-    reporters?: any
+    reporters?: Reporters.ReporterEntry[]
     suite?: string[]
     spec?: string[]
     exclude?: string[]
-    mochaOpts?: any
-    jasmineNodeOpts?: any
-    cucumberOpts?: any
-    autoCompileOpts?: any
+    mochaOpts?: WebdriverIO.MochaOpts
+    jasmineOpts?: WebdriverIO.JasmineOpts
+    cucumberOpts?: WebdriverIO.CucumberOpts
+    autoCompileOpts?: Options.AutoCompileConfig
     configPath: string
 
     /**

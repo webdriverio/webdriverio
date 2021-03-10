@@ -1,5 +1,6 @@
 import fs from 'fs'
 import isPlainObject from 'lodash.isplainobject'
+import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
 import { W3C_SELECTOR_STRATEGIES } from '../constants'
 
@@ -100,6 +101,9 @@ const defineStrategy = function (selector: SelectorStrategy) {
     // e.g. h1.header=Welcome or [data-name=table-row]=Item or #content*=Intro
     if (stringSelector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))) {
         return 'xpath extended'
+    }
+    if (stringSelector.match(/^\[role=[A-Za-z]+]$/)){
+        return 'role'
     }
 }
 export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolean, isMobile?: boolean) {
@@ -218,6 +222,15 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         value = fs.readFileSync(stringSelector, { encoding: 'base64' })
         break
     }
+    case 'role': {
+        const match = stringSelector.match(/^\[role=(.+)\]/)
+        if (!match) {
+            throw new Error(`InvalidSelectorMatch. Strategy 'role' has failed to match '${stringSelector}'`)
+        }
+        using = 'css selector'
+        value = createRoleBaseXpathSelector(match[1] as ARIARoleDefintionKey)
+        break
+    }
     }
 
     /**
@@ -228,4 +241,32 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     }
 
     return { using, value }
+}
+
+const createRoleBaseXpathSelector = (role: ARIARoleDefintionKey) => {
+    const locatorArr: string[] = []
+    roleElements.get(role)?.forEach((value: ARIARoleRelationConcept) => {
+        let locator: string
+        let tagname: string, tagAttribute: string | undefined, tagAttributevalue: string | number | undefined
+        tagname = value.name
+        if (value.attributes instanceof Array) {
+            value.attributes.forEach((val: ARIARoleRelationConceptAttribute) => {
+                tagAttribute = val.name
+                tagAttributevalue = val.value
+            })
+        }
+        if (!tagAttribute) {
+            locator = tagname
+        } else if (!tagAttributevalue){
+            locator = `${tagname}[${tagAttribute}]`
+        } else {
+            locator = `${tagname}[${tagAttribute}="${tagAttributevalue}"]`
+        }
+        locatorArr.push(locator)
+    })
+    let xpathLocator: string = `[role="${role}"]`
+    locatorArr.forEach((loc) => {
+        xpathLocator += ',' + loc
+    })
+    return xpathLocator
 }

@@ -85,7 +85,7 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
 export async function runOnCompleteHook(
     onCompleteHook: Function | Function[],
     config: Options.Testrunner,
-    capabilities: Capabilities.Capabilities,
+    capabilities: Capabilities.RemoteCapabilities,
     exitCode: number,
     results: OnCompleteResult
 ) {

@@ -13,7 +13,7 @@ Feature: Example feature
 
   Scenario: Data Tables
     Given I go on the website "http://todomvc.com/examples/react/#/"
-    When  I add the following grocieries
+    When  I add the following groceries
         | Item       | Amount |
         | Milk       | 2      |
         | Butter     | 1      |

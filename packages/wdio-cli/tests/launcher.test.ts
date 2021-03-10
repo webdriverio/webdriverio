@@ -27,12 +27,27 @@ describe('launcher', () => {
         it('should have default for the argv parameter', () => {
             expect(launcher['_args']).toEqual({})
         })
+
+        it('should run autocompile by default', () => {
+            expect(launcher['configParser'].autoCompile).toBeCalledTimes(1)
+        })
+
+        it('should not run auto compile if cli param was provided', () => {
+            const otherLauncher = new Launcher('./', {
+                autoCompileOpts: {
+                    // @ts-expect-error cli params are always strings
+                    autoCompile: 'false'
+                }
+            })
+
+            expect(otherLauncher['configParser'].autoCompile).toBeCalledTimes(0)
+        })
     })
 
     describe('capabilities', () => {
         it('should NOT fail when capabilities are passed', async () => {
             launcher.runSpecs = jest.fn().mockReturnValue(1)
-            const exitCode = await launcher.runMode({ specs: ['./'] } as any, [caps, caps])
+            const exitCode = await launcher.runMode({ specs: ['./'] } as any, [caps])
             expect(launcher.runSpecs).toBeCalled()
             expect(exitCode).toEqual(0)
             expect(logger('').error).not.toBeCalled()
@@ -41,7 +56,7 @@ describe('launcher', () => {
         it('should fail if no specs were found', async () => {
             launcher.runSpecs = jest.fn()
             launcher.configParser.getSpecs = jest.fn().mockReturnValue([])
-            const exitCode = await launcher.runMode({ specs: ['./'] } as any, [caps, caps])
+            const exitCode = await launcher.runMode({ specs: ['./'] } as any, [caps])
             expect(launcher.runSpecs).toBeCalledTimes(0)
             expect(exitCode).toBe(1)
         })
@@ -56,7 +71,7 @@ describe('launcher', () => {
 
         it('should fail when no capabilities are set', async () => {
             launcher.runSpecs = jest.fn().mockReturnValue(1)
-            const exitCode = await launcher.runMode({ specs: ['./'] } as any, [])
+            const exitCode = await launcher.runMode({ specs: ['./'] } as any, undefined)
             expect(exitCode).toEqual(1)
             expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
         })
@@ -540,7 +555,7 @@ describe('launcher', () => {
     })
 
     describe('run', () => {
-        let config: WebdriverIO.Config = {}
+        let config: WebdriverIO.Config = { capabilities: {} }
 
         beforeEach(() => {
             global.console.error = jest.fn()
@@ -549,10 +564,12 @@ describe('launcher', () => {
                 // ConfigParser.addFileConfig() will return onPrepare and onComplete as arrays of functions
                 onPrepare: [jest.fn()],
                 onComplete: [jest.fn()],
+                capabilities: {}
             }
             launcher.configParser = {
                 getCapabilities: jest.fn().mockReturnValue(0),
-                getConfig: jest.fn().mockReturnValue(config)
+                getConfig: jest.fn().mockReturnValue(config),
+                autoCompile: jest.fn()
             } as any
             launcher.runner = { initialise: jest.fn(), shutdown: jest.fn() } as any
             launcher.runMode = jest.fn().mockImplementation((config, caps) => caps)

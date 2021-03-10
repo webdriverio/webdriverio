@@ -64,7 +64,7 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
     - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
     - Task manage through Grunt
-    - Examples with demo app https://search.yahoo.com/  and http://the-internet.herokuapp.com, Chai assertion liberary (expect, assert, should)
+    - Examples with demo app https://search.yahoo.com/  and http://the-internet.herokuapp.com, Chai assertion library (expect, assert, should)
     - `Appium specific .config file for playback on mobile device.` For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
@@ -169,7 +169,7 @@ A WebdriverIO & Cucumber Boilerplate based on Page Object Model!
     - Supports Page Object Model
     - Compatible with Nodejs Versions 8.x to 13.x
     - Contains sample Scenarios written in Declarative style of BDD
-    - Supports Data externalisation
+    - Supports Data externalization
     - Integrated with [eslint](https://www.npmjs.com/package/eslint) for identifying and reporting on code patterns.
     - Integrated with [cucumber-html-reporter](https://www.npmjs.com/package/cucumber-html-reporter) for intuitive & detailed HTML reporting
     - Embeds screenshots on failure
@@ -223,7 +223,7 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
     - Integrated with multiple cucumber html reports
 
 ## [AdarshKumarGM/WebDriverIO-with-CucumberJS](https://github.com/AdarshKumarGM/WebDriverIO-with-CucumberJS)
-Boilerplate for bulding cucumberJS with webdriverIO framework.
+Boilerplate for building cucumberJS with webdriverIO framework.
 
 - Framework:
    - WebdriverIO (v6.x)
@@ -253,14 +253,19 @@ Boilerplate project to run appium tests for native and mobile browser using moch
     - Contains sample test scenarios in mocha
     - Integrated with eslint and allure reporting
 
-### [17thSep/Mock-and-Spies](https://github.com/17thSep/MonitorNetworkLogs/)
+## [17thSep/WebdriverIO_Master](https://github.com/17thSep/WebdriverIO_Master)
+
+Boilerplate project to run **WebdriverIO v7** tests for the following:
+
+[WDIO 7 scripts with TypeScript in Cucumber Framework](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Cucumber)
+[WDIO 7 scripts with TypeScript in Mocha Framework](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Mocha)
+[Run WDIO 7 script in Docker](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Docker)
+[Network logs](https://github.com/17thSep/MonitorNetworkLogs/)
 
 Boiler plate project for:
 
 - Capture Network Logs
 - Capture all GET/POST calls or a specific REST API
-- Assert Request parametes
+- Assert Request parameters
 - Assert Response parameters
-- Store all the response in a seperate file
-
-You can watch it created [on this video](https://www.youtube.com/watch?v=Be9IPyxHmLs).
+- Store all the response in a separate file

@@ -11,6 +11,8 @@ class ConfigParserMock {
 
     merge = jest.fn()
 
+    autoCompile = jest.fn()
+
     getConfig = jest.fn().mockReturnValue({
         runnerEnv: {},
         runner: 'local',

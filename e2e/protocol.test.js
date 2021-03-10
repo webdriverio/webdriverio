@@ -99,7 +99,7 @@ describe('alerts', () => {
 
         const result = await browser.findElement('css selector', '#result')
         expect(await browser.getElementText(result[ELEMENT_KEY]))
-            .toBe('You successfuly clicked an alert')
+            .toBe('You successfully clicked an alert')
 
         try {
             await browser.getAlertText()

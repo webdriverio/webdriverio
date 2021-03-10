@@ -215,6 +215,14 @@ test('afterTest', () => {
         .forEach((line:string) => expect(browser.execute).toBeCalledWith(`sauce:context=${line}`))
 })
 
+test('beforeFeature should set job-name', () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
+    service['_browser'] = browser
+    service.beforeSession()
+    service.beforeFeature( uri, featureObject)
+    expect(browser.execute).toBeCalledWith('sauce:job-name=Create a feature')
+})
+
 test('beforeFeature should set context', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser

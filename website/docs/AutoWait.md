@@ -7,7 +7,7 @@ One of the most common reasons for flaky tests are interactions with elements th
 
 ## Implicit vs. Explicit
 
-The WebDriver protocol offers [implicit timeouts](https://w3c.github.io/webdriver/#timeouts) that allow specify how long the driver is suppose to wait for an element to show up. By default this timeout is set to `0` and therefor makes the driver return with an `no such element` error immediatelly if an element could not be found on the page. Increasing this timeout using the [`setTimeout`](/docs/api/browser/setTimeout) would make the driver wait and increases the changes that the element shows up eventually.
+The WebDriver protocol offers [implicit timeouts](https://w3c.github.io/webdriver/#timeouts) that allow specify how long the driver is suppose to wait for an element to show up. By default this timeout is set to `0` and therefor makes the driver return with an `no such element` error immediately if an element could not be found on the page. Increasing this timeout using the [`setTimeout`](/docs/api/browser/setTimeout) would make the driver wait and increases the chances that the element shows up eventually.
 
 :::note
 

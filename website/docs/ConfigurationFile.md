@@ -211,8 +211,8 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework#jasminenodeopts-options
-    jasmineNodeOpts: {
+    // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework#jasmineopts-options
+    jasmineOpts: {
         //
         // Jasmine default timeout
         defaultTimeoutInterval: 5000,
@@ -249,7 +249,7 @@ exports.config = {
     },
     // For convenience, if ts-node or @babel/register modules are detected
     // they are automatically loaded for config parsing so that TypeScript and
-    // future ES features can be used in wsdio configs, and are also
+    // future ES features can be used in wdio configs, and are also
     // automatically loaded for test running so that tests can be written
     // using TypeScript and future ES features.
     // Because this may not be ideal in every situation, the following options

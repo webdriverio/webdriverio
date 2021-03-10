@@ -46,12 +46,15 @@ async function bar() {
     // const mrSingleElem = await mr.myBrowserInstance.$('')
     // await mrSingleElem.click()
 
-    // // interact with all instances
-    // const mrElem = await mr.$('')
-    // await mrElem.click()
+    // interact with all instances
+    const mrElem = await mr.$('')
+    await mrElem.click()
 
-    // // instances array
-    // mr.instances[0].substr(0, 1)
+    // instances array
+    mr.instances[0].substr(0, 1)
+
+    const nsElems: WebdriverIO.ElementArray = {} as any
+    nsElems.foundWith.toUpperCase()
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -217,7 +220,15 @@ async function bar() {
         timeoutMsg: '',
         interval: 1,
         reverse: true
-    })
+    });
+
+    (await el1.getLocation('x')).toFixed(); // as number
+    (await el1.getLocation()).y; // as Location
+
+    (await el1.getSize('y')).toFixed(); // as number
+    (await el1.getSize('width')).toFixed(); // as number
+    (await el1.getSize()).height; // as Size
+
     // element custom command
     const el2result = await el3.elementCustomCommand(4)
     el2result.toFixed(2)
