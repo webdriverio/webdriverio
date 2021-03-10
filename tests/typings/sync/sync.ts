@@ -32,7 +32,7 @@ browser.newWindow('https://webdriver.io', {
     windowName: 'some name',
     windowFeatures: 'some features'
 })
-const waitUntil: boolean = browser.waitUntil(
+const waitUntil: true | void = browser.waitUntil(
     () => true,
     {
         timeout: 1,
@@ -126,25 +126,25 @@ const el3 = el2.$('')
 el1.getCSSProperty('style')
 el2.click()
 el1.moveTo({ xOffset: 0, yOffset: 0 })
-const elementExists: boolean = el2.waitForExist({
+const elementExists: true | void = el2.waitForExist({
     timeout: 1,
     timeoutMsg: '',
     interval: 1,
     reverse: true
 })
-const elementDisplayed: boolean = el2.waitForDisplayed({
+const elementDisplayed: true | void = el2.waitForDisplayed({
     timeout: 1,
     timeoutMsg: '',
     interval: 1,
     reverse: true
 })
-const elementEnabled: boolean = el2.waitForEnabled({
+const elementEnabled: true | void = el2.waitForEnabled({
     timeout: 1,
     timeoutMsg: '',
     interval: 1,
     reverse: true
 })
-const elementClickable: boolean = el2.waitForClickable({
+const elementClickable: true | void = el2.waitForClickable({
     timeout: 1,
     timeoutMsg: '',
     interval: 1,

@@ -50,7 +50,7 @@ export default function waitUntil(
         interval = this.options.waitforInterval,
         timeoutMsg
     }: Partial<WaitUntilOptions> = {}
-) {
+): Partial<true | void> {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
     }
