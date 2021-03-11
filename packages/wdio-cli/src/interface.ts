@@ -109,20 +109,20 @@ export default class WDIOCLInterface extends EventEmitter {
         this.onJobComplete(rid, this._jobs.get(rid), 0, chalk.bold.cyan('RUNNING'))
     }
 
-    onSpecRetry (rid: string, job: Workers.Job, retries: number) {
+    onSpecRetry (rid: string, job?: Workers.Job, retries = 0) {
         const delayMsg = this._specFileRetriesDelay > 0 ? ` after ${this._specFileRetriesDelay}s` : ''
         this.onJobComplete(rid, job, retries, chalk.bold(chalk.yellow('RETRYING') + delayMsg))
     }
 
-    onSpecPass (rid: string, job: Workers.Job, retries: number) {
+    onSpecPass (rid: string, job?: Workers.Job, retries = 0) {
         this.onJobComplete(rid, job, retries, chalk.bold.green('PASSED'))
     }
 
-    onSpecFailure (rid: string, job: Workers.Job, retries: number) {
+    onSpecFailure (rid: string, job?: Workers.Job, retries = 0) {
         this.onJobComplete(rid, job, retries, chalk.bold.red('FAILED'))
     }
 
-    onSpecSkip (rid: string, job: Workers.Job) {
+    onSpecSkip (rid: string, job?: Workers.Job) {
         this.onJobComplete(rid, job, 0, 'SKIPPED', log.info)
     }
 
@@ -182,10 +182,6 @@ export default class WDIOCLInterface extends EventEmitter {
 
         if (job && job.hasTests === false) {
             return this.onSpecSkip(cid, job)
-        }
-
-        if (!job) {
-            throw new Error('Could not find job')
         }
 
         if (passed) {
