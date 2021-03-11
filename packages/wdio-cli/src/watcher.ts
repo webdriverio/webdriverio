@@ -74,16 +74,6 @@ export default class Watcher {
      * @return {Function}                    chokidar event callback
      */
     getFileListener (passOnFile = true) {
-
-        // // ORIGINAL
-        // return (spec: string) => {
-        //     // Do not pass the `spec` command line option to `this.run()`
-        //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        //     const { spec: _specArg, ...args } = this._args
-        //     return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
-        // }
-
-        // NEW  - WITH CHRISTIAN
         return (spec: string) => {
             let runSpecs: ( string | string[] )[] = []
             let singleSpecFound: boolean = false
@@ -111,32 +101,6 @@ export default class Watcher {
                 return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
             })
         }
-
-        // NEED HELP HERE
-        // return (spec: string) => {
-        //     let runSpecs: ( string | string[] )[] = []
-        //     let singleSpecFound: boolean = false
-        //     for (let index = 0, length = this._specs.length; index < length; index += 1) {
-        //         const value = this._specs[index]
-        //         if (Array.isArray(value) && value.indexOf(spec) > -1) {
-        //             runSpecs.push(value)
-        //         } else if ( !singleSpecFound && spec === value) {
-        //             // Only need to run a singleFile once  - so avoid duplicates
-        //             singleSpecFound = true
-        //             runSpecs.push(value)
-        //         }
-        //     }
-        //
-        //     // Do not pass the `spec` command line option to `this.run()`
-        //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        //     const { spec: _specArg, ...args } = this._args
-        //     ** Use a map and return a promise.All(spec
-        //     return runSpecs.map((spec) => {
-        //         // Can't return multiple times - is the return value being used ?
-        //         // Original: return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
-        //         return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
-        //     })
-        // }
     }
 
     /**
@@ -153,7 +117,7 @@ export default class Watcher {
         }
 
         /**
-         * filter out busy workers, only skip if explicitely desired
+         * filter out busy workers, only skip if explicitly desired
          */
         if (!includeBusyWorker) {
             workers = pickBy(workers, (worker) => !worker.isBusy)
@@ -167,47 +131,14 @@ export default class Watcher {
      * @param  params parameters to run the worker with
      */
     run (params: Omit<Partial<RunCommandArguments>, 'spec'> & { spec?: string | string[] } = {}) {
-
-        // ORIGINAL - added <string> to overcome typing issue
         const workers = this.getWorkers(
-            (params.spec ? (worker) => worker.specs.includes(<string>params.spec!) : undefined)
+            (params.spec ? (worker) => {
+                if (Array.isArray(params.spec)) {
+                    return params.spec === worker.specs
+                }
+                return worker.specs.includes(params.spec!)
+            } : undefined)
         )
-
-        // // NOTES FROM CHRISTIAN
-        // const workers = this.getWorkers(
-        //     if (Array.isArray(params.spec)) {
-        //         if (params.spec === worker.specs) // Validate that the arrays are exactly equal - JSON.stringify
-        //         (params.spec ? (worker) => worker.specs.includes(<string>params.spec!) : undefined)
-        //     }
-        // )
-
-        // // NEW
-        // const workers = this.getWorkers(
-        //     (params.spec ? (worker) => {
-        //         if (Array.isArray(params.spec)) {
-        //             return params.spec === worker.specs
-        //         }
-        //         worker.specs.includes(params.spec!)
-        //     } : undefined)
-        // )
-
-        // NEED HELP HERE
-        // let workers: Record<string, Workers.Worker> = {}
-        // if (typeof params.spec === 'string') {
-        //     workers = this.getWorkers(
-        //         (params.spec ? (worker) => worker.specs.includes(<string> params.spec!) : undefined)
-        //     )
-        //     console.log("Spec is a string: workers: ", workers)
-        // } else if (typeof params.spec !== 'undefined') {
-        //     params.spec.forEach((file) => {
-        //         workers = Object.assign(
-        //             this.getWorkers(
-        //                 (file ? (worker) => worker.specs.includes(file!) : undefined)
-        //             ),
-        //             workers
-        //         )
-        //     })
-        // }
 
         /**
          * don't do anything if no worker was found
