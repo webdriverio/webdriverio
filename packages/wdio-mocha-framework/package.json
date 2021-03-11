@@ -26,7 +26,7 @@
     "@wdio/logger": "7.0.0",
     "@wdio/types": "7.1.1",
     "@wdio/utils": "7.1.1",
-    "expect-webdriverio": "^1.1.5",
+    "expect-webdriverio": "^2.0.0",
     "mocha": "^8.0.1"
   },
   "publishConfig": {
