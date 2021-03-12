@@ -32,7 +32,7 @@ module.exports = {
         ['junit', {
             outputDir: './testresults/',
             outputFileFormat: function (options) {
-            return `results-${options.cid}.xml`;
+                return `results-${options.cid}.xml`;
             }
         }]
     ],
