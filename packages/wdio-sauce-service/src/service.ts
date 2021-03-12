@@ -1,3 +1,6 @@
+import fs from 'fs'
+import path from 'path'
+
 import SauceLabs, { SauceLabsOptions, Job } from 'saucelabs'
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
@@ -199,7 +202,7 @@ export default class SauceService implements Services.ServiceInstance {
     /**
      * update Sauce Labs job
      */
-    after (result: any) {
+    async after (result: number) {
         if (!this._browser || (!this._isServiceEnabled && !this._isRDC)) {
             return
         }
@@ -216,15 +219,37 @@ export default class SauceService implements Services.ServiceInstance {
 
         const status = 'status: ' + (failures > 0 ? 'failing' : 'passing')
         if (!this._browser.isMultiremote) {
+            await this._uploadLogs(this._browser.sessionId)
             log.info(`Update job with sessionId ${this._browser.sessionId}, ${status}`)
             return this._isUP ? this.updateUP(failures) : this.updateJob(this._browser.sessionId, failures)
         }
 
         const mulitremoteBrowser = this._browser as MultiRemoteBrowser<'async'>
-        return Promise.all(Object.keys(this._capabilities).map((browserName) => {
+        return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
+            await this._uploadLogs(mulitremoteBrowser[browserName].sessionId)
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${mulitremoteBrowser[browserName].sessionId}, ${status}`)
             return this._isUP ? this.updateUP(failures) : this.updateJob(mulitremoteBrowser[browserName].sessionId, failures, false, browserName)
         }))
+    }
+
+    /**
+     * upload files to Sauce Labs platform
+     * @param jobId id of the job
+     * @returns a promise that is resolved once all files got uploaded
+     */
+    private async _uploadLogs (jobId: string) {
+        if (!this._options.uploadLogs || !this._config.outputDir) {
+            return
+        }
+
+        const files = (await fs.promises.readdir(this._config.outputDir))
+            .filter((file) => file.endsWith('.log'))
+        log.info(`Uploading WebdriverIO logs (${files.join(', ')}) to Sauce Labs`)
+
+        return this._api.uploadJobAssets(
+            jobId,
+            { files: files.map((file) => path.join(this._config.outputDir!, file)) }
+        ).catch((err) => log.error(`Couldn't upload log files to Sauce Labs: ${err.message}`))
     }
 
     onReload (oldSessionId: string, newSessionId: string) {
