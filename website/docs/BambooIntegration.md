@@ -30,10 +30,10 @@ module.exports = {
     reporters: [
         'dot',
         ['junit', {
-            outputDir: './testresults/'
-        },
-        outputFileFormat: function (options) {
+            outputDir: './testresults/',
+            outputFileFormat: function (options) {
             return `results-${options.cid}.xml`;
+            }
         }]
     ],
     // ...
