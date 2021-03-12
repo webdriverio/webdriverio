@@ -96,18 +96,39 @@ export interface ModuleRequireService {
 }
 
 export function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleRequireService) {
-    return autoCompileConfig.autoCompile && (
-        loadTypeScriptCompiler(autoCompileConfig.tsNodeOpts, requireService)
-        ||
-        loadBabelCompiler(autoCompileConfig.babelOpts, requireService)
+    return (
+        autoCompileConfig.autoCompile &&
+        (
+            loadTypeScriptCompiler(
+                autoCompileConfig.tsNodeOpts,
+                autoCompileConfig.tsConfigPathsOpts,
+                requireService
+            )
+            ||
+            loadBabelCompiler(
+                autoCompileConfig.babelOpts,
+                requireService
+            )
+        )
     )
 }
 
-export function loadTypeScriptCompiler (tsNodeOpts: RegisterOptions = {}, requireService: ModuleRequireService) {
+export function loadTypeScriptCompiler (
+    tsNodeOpts: RegisterOptions = {},
+    tsConfigPathsOpts: Options.TSConfigPathsOptions | undefined,
+    requireService: ModuleRequireService
+) {
     try {
         requireService.resolve('ts-node') as any
         (requireService.require('ts-node') as any).register(tsNodeOpts)
         log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
+
+        if (tsConfigPathsOpts) {
+            log.debug('Found \'tsconfig-paths\' options, register paths')
+            const tsConfigPaths = require('tsconfig-paths')
+            tsConfigPaths.register(tsConfigPathsOpts)
+        }
+
         return true
     } catch (e) {
         return false
