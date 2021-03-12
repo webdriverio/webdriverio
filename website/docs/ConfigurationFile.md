@@ -268,6 +268,11 @@ exports.config = {
             transpileOnly: true,
             project: 'tsconfig.json'
         },
+        // If you have tsconfig-paths installed and provide a tsConfigPathsOpts
+        // option, it will be automatically registered during bootstrap.
+        tsConfigPathsOpts: {
+            baseUrl: './'
+        },
         //
         // If @babel/register is installed, you can customize how options are passed to it here:
         // Any valid @babel/register config option is allowed.

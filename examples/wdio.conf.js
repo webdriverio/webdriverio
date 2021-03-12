@@ -193,6 +193,12 @@ exports.config = {
             project: 'tsconfig.json'
         },
 
+        // If you have tsconfig-paths installed and provide a tsConfigPathsOpts
+        // option, it will be automatically registered during bootstrap.
+        tsConfigPathsOpts: {
+            baseUrl: './'
+        },
+
         // Configure how @babel/register is automatically included when present (and ts-node isn't)
         babelOpts: {}
     },

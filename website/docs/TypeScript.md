@@ -11,7 +11,31 @@ You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-n
 $ npm install typescript ts-node --save-dev
 ```
 
-The minimum TypeScript version is 3.8.3.
+The minimum TypeScript version is `v4.0.5`.
+
+## Configuration
+
+You can provide custom `ts-node` and `tsconfig-paths` options through your `wdio.conf.ts`, e.g.:
+
+```ts title="wdio.conf.ts"
+export const config = {
+    // ...
+    autoCompileOpts: {
+        autoCompile: true,
+        // see https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
+        // for all available options
+        tsNodeOpts: {
+            transpileOnly: true,
+            project: 'tsconfig.json'
+        },
+        // tsconfig-paths is only used if "tsConfigPathsOpts" are provided, if you
+        // do please make sure "tsconfig-paths" is installed as dependency
+        tsConfigPathsOpts: {
+            baseUrl: './'
+        }
+    }
+}
+```
 
 ## Framework Setup
 
@@ -49,7 +73,7 @@ And your `tsconfig.json` needs the following:
 </Tabs>
 
 Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
-`WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`.
+`WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services or plugins, please also add them to the `types` list as many provide additional typings.
 
 ## Framework types
 
