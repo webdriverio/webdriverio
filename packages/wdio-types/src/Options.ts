@@ -410,10 +410,18 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
     autoCompileOpts?: AutoCompileConfig
 }
 
+export interface TSConfigPathsOptions {
+    baseUrl: string
+    paths: Record<string, string[]>
+    mainFields?: string[]
+    addMatchAll?: boolean
+}
+
 export interface AutoCompileConfig {
     autoCompile?: boolean
     tsNodeOpts?: RegisterOptions
     babelOpts?: Record<string, any>
+    tsConfigPathsOpts?: TSConfigPathsOptions
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {
