@@ -40,6 +40,19 @@ describe('url', () => {
         }
     })
 
+    it('should not fail with empty baseurl', async () => {
+        browser = await remote({
+            baseUrl: '',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        await browser.url('/foobar')
+        expect(got.mock.calls[1][1].json)
+            .toEqual({ url: 'http://foobar/' })
+    })
+
     afterEach(() => {
         got.mockClear()
     })
