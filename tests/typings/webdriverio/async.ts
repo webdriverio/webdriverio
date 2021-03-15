@@ -114,7 +114,7 @@ async function bar() {
     await browser.createWindow('tab')
     await browser.createWindow('window')
 
-    const waitUntil: boolean = await browser.waitUntil(
+    const waitUntil: true | void = await browser.waitUntil(
         () => Promise.resolve(true),
         {
             timeout: 1,
@@ -197,25 +197,25 @@ async function bar() {
     await el1.getCSSProperty('style')
     await el2.click()
     await el1.moveTo({ xOffset: 0, yOffset: 0 })
-    const elementExists: boolean = await el2.waitForExist({
+    const elementExists: true | void = await el2.waitForExist({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
         reverse: true
     })
-    const elementDisplayed: boolean = await el2.waitForDisplayed({
+    const elementDisplayed: true | void = await el2.waitForDisplayed({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
         reverse: true
     })
-    const elementEnabled: boolean = await el2.waitForEnabled({
+    const elementEnabled: true | void = await el2.waitForEnabled({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
         reverse: true
     })
-    const elementClickable: boolean = await el2.waitForClickable({
+    const elementClickable: true | void = await el2.waitForClickable({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
