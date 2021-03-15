@@ -36,7 +36,7 @@ describe('waitUntil', () => {
         }
     })
 
-    it('Should throw an error when the waitUntil times out', async () => {
+    it.each([false, '', 0])('Should throw an error when the waitUntil times out e.g. doesnt resolve to a truthy value: %i', async () => {
         let error
         let val
         // @ts-ignore uses expect-webdriverio
@@ -162,16 +162,16 @@ describe('waitUntil', () => {
         }
     })
 
-    it('Should pass', async() => {
+    it.each([true, 'false', 123])('Should pass for a truthy resolved value: %i', async(n) => {
         let error
         let val
         // @ts-ignore uses expect-webdriverio
         expect.assertions(2)
         try {
             val = await browser.waitUntil(
-                () => new Promise<boolean>(
+                () => new Promise<any>(
                     (resolve) => setTimeout(
-                        () => resolve(true),
+                        () => resolve(n),
                         200
                     )
                 ), {
@@ -184,7 +184,7 @@ describe('waitUntil', () => {
             error = e
         } finally {
             expect(error).toBeUndefined()
-            expect(val).toBe(true)
+            expect(val).toBe(n)
         }
     })
 
