@@ -35,7 +35,7 @@ export interface SauceServiceConfig {
 
     /**
      * Upload WebdriverIO logs to the Sauce Labs platform.
-     * @default false
+     * @default true
      */
     uploadLogs?: boolean
 

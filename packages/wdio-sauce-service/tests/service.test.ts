@@ -392,7 +392,7 @@ test('after for UP with multi remote', async () => {
 
 test('_uploadLogs should not upload if option is not set in config', async () => {
     const service = new SauceService(
-        {},
+        { uploadLogs: false },
         {},
         { outputDir: '/foo/bar' } as any
     )
@@ -402,7 +402,7 @@ test('_uploadLogs should not upload if option is not set in config', async () =>
 
 test('_uploadLogs should upload', async () => {
     const service = new SauceService(
-        { uploadLogs: true },
+        {},
         {},
         { outputDir: '/foo/bar' } as any
     )
@@ -416,7 +416,7 @@ test('_uploadLogs should upload', async () => {
 
 test('_uploadLogs should not fail in case of a platform error', async () => {
     const service = new SauceService(
-        { uploadLogs: true },
+        {},
         {},
         { outputDir: '/foo/bar' } as any
     )

@@ -8,6 +8,7 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { isUnifiedPlatform } from './utils'
 import { SauceServiceConfig } from './types'
+import { DEFAULT_OPTIONS } from './constants'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data'] as const
 
@@ -20,6 +21,7 @@ export default class SauceService implements Services.ServiceInstance {
     private _isServiceEnabled = true
     private _isJobNameSet = false;
 
+    private _options: SauceServiceConfig
     private _api: SauceLabs
     private _isRDC: boolean
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
@@ -27,10 +29,11 @@ export default class SauceService implements Services.ServiceInstance {
     private _suiteTitle?: string
 
     constructor (
-        private _options: SauceServiceConfig,
+        options: SauceServiceConfig,
         private _capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
+        this._options = { ...DEFAULT_OPTIONS, ...options }
         this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
         this._isRDC = 'testobject_api_key' in this._capabilities
         this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
