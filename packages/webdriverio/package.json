@@ -69,7 +69,7 @@
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "devtools": "7.1.1",
-    "devtools-protocol": "^0.0.856957",
+    "devtools-protocol": "^0.0.862770",
     "fs-extra": "^9.0.1",
     "get-port": "^5.1.1",
     "grapheme-splitter": "^1.0.2",
