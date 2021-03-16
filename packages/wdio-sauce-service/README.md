@@ -160,7 +160,7 @@ Default: `{ noAutodetect: true }`
 
 ### uploadLogs
 
-If `true` this options uploads all WebdriverIO log files to the Sauce Labs platform for further inspection.
+If `true` this options uploads all WebdriverIO log files to the Sauce Labs platform for further inspection. Make sure you have [`outputDir`](https://webdriver.io/docs/options#outputdir) set in your wdio config to write logs into files, otherwise data will be streamed to stdout and can't get uploaded.
 
 Type: `Boolean`<br />
 Default: `true`
