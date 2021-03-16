@@ -1,5 +1,6 @@
 import path from 'path'
 import tsNode from 'ts-node'
+import tsConfigPath from 'tsconfig-paths'
 import logger from '@wdio/logger'
 import ConfigParser from '../src/lib/ConfigParser'
 import MockFileContentBuilder, { MockFileContent } from './lib/MockFileContentBuilder'
@@ -20,6 +21,10 @@ const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.f
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
 
 jest.mock('ts-node', () => ({
+    register: jest.fn()
+}))
+
+jest.mock('tsconfig-paths', () => ({
     register: jest.fn()
 }))
 
@@ -167,6 +172,7 @@ describe('ConfigParser', () => {
             beforeEach(() => {
                 (log.debug as jest.Mock).mockClear()
                 ;(tsNode.register as jest.Mock).mockClear()
+                ;(tsConfigPath.register as jest.Mock).mockClear()
                 process.env.THROW_BABEL_REGISTER = '1'
             })
 
@@ -268,9 +274,37 @@ describe('ConfigParser', () => {
                     .withTsNodeModule(tsNodeRegister).build()
                 configParser.addConfigFile('tests/cool.conf')
                 configParser.autoCompile()
+                expect(tsConfigPath.register).toBeCalledTimes(0)
                 expect(tsNodeRegister).toBeCalledTimes(1)
                 expect(tsNodeRegister).toHaveBeenCalledWith( {
                     'transpileOnly': false
+                } )
+            })
+
+            it('bootstraps tsconfig-paths if options are given', function () {
+                let configFileContents = MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC).withTheseContentsMergedOn(
+                    {
+                        config: {
+                            autoCompileOpts: {
+                                tsConfigPathsOpts: {
+                                    base: '/foo/bar'
+                                }
+                            }
+                        }
+                    }
+                ).build()
+                const tsNodeRegister = jest.fn()
+                const configParser = ConfigParserBuilder
+                    .withBaseDir(path.join(__dirname, '/tests/'))
+                    .withFiles([
+                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/'), '/path/to/config'),
+                        FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
+                    ])
+                    .withTsNodeModule(tsNodeRegister).build()
+                configParser.addConfigFile('tests/cool.conf')
+                configParser.autoCompile()
+                expect(tsConfigPath.register).toHaveBeenCalledWith( {
+                    base: '/foo/bar'
                 } )
             })
 

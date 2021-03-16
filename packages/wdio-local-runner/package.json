@@ -1,6 +1,6 @@
 {
   "name": "@wdio/local-runner",
-  "version": "7.1.1",
+  "version": "7.1.2",
   "description": "A WebdriverIO runner to run tests locally",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-local-runner",

@@ -42,7 +42,7 @@ export default function url (
         throw new Error('Parameter for "url" command needs to be type of string')
     }
 
-    if (typeof this.options.baseUrl === 'string') {
+    if (typeof this.options.baseUrl === 'string' && this.options.baseUrl) {
         path = (new URL(path, this.options.baseUrl)).href
     }
 

@@ -41,7 +41,7 @@ process.on('message', (m: Workers.WorkerCommand) => {
         }),
         (e: Error) => {
             log.error(`Failed launching test session: ${e.stack}`)
-            process.exit(1)
+            setTimeout(() => process.exit(1), 10)
         }
     )
 })
