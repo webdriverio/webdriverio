@@ -84,7 +84,7 @@
     "inquirer": "^8.0.0",
     "jest": "^26.0.1",
     "jest-circus": "^26.0.1",
-    "lerna": "^3.16.4",
+    "lerna": "^4.0.0",
     "lerna-changelog": "^1.0.0",
     "markdox": "^0.1.10",
     "mime-types": "^2.1.24",
