@@ -19,6 +19,32 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.2.0 (2021-03-16)
+
+#### :rocket: New Feature
+* `wdio-sauce-service`
+  * [#6099](https://github.com/webdriverio/webdriverio/pull/6099) Upload WDIO logs to Sauce Labs via Sauce Service ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-config`, `wdio-types`
+  * [#6581](https://github.com/webdriverio/webdriverio/pull/6581) Support custom tsconfig-paths options ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6582](https://github.com/webdriverio/webdriverio/pull/6582) Only apply base url if not empty string ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#6574](https://github.com/webdriverio/webdriverio/pull/6574) docs(typings): #6458 use a more suitable return type for waitUntil ([@iamkenos](https://github.com/iamkenos))
+
+#### :memo: Documentation
+* [#6580](https://github.com/webdriverio/webdriverio/pull/6580) Update BambooIntegration.md ([@vishwanath7sh](https://github.com/vishwanath7sh))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Vishwanath S h ([@vishwanath7sh](https://github.com/vishwanath7sh))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- iamkenos ([@iamkenos](https://github.com/iamkenos))
+
+
 ## v7.1.2 (2021-03-11)
 
 #### :bug: Bug Fix
