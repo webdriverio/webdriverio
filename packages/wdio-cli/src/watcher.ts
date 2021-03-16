@@ -10,9 +10,10 @@ import { RunCommandArguments, ValueKeyIteratee } from './types.js'
 
 const log = logger('@wdio/cli:watch')
 
+type Spec = string | string[]
 export default class Watcher {
     private _launcher: Launcher
-    private _specs: ( string | string[])[]
+    private _specs: Spec[]
 
     constructor (
         private _configFile: string,
@@ -75,7 +76,7 @@ export default class Watcher {
      */
     getFileListener (passOnFile = true) {
         return (spec: string) => {
-            let runSpecs: ( string | string[] )[] = []
+            let runSpecs: Spec[] = []
             let singleSpecFound: boolean = false
             for (let index = 0, length = this._specs.length; index < length; index += 1) {
                 const value = this._specs[index]
@@ -130,7 +131,7 @@ export default class Watcher {
      * run workers with params
      * @param  params parameters to run the worker with
      */
-    run (params: Omit<Partial<RunCommandArguments>, 'spec'> & { spec?: string | string[] } = {}) {
+    run (params: Omit<Partial<RunCommandArguments>, 'spec'> & { spec?: Spec } = {}) {
         const workers = this.getWorkers(
             (params.spec ? (worker) => {
                 if (Array.isArray(params.spec)) {
