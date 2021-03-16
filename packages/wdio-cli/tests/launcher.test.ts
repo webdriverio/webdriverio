@@ -273,7 +273,7 @@ describe('launcher', () => {
         it('should return correctly formatted specs', () => {
             const capabilities = { specs: ['/a.js', ['/b.js', '/c.js']] }
             const specFileRetries = 17
-            const expected = [{"files": ["/a.js"], "retries": 17}, {"files": ["/b.js", "/c.js"], "retries": 17}]
+            const expected = [{ 'files': ['/a.js'], 'retries': 17 }, { 'files': ['/b.js', '/c.js'], 'retries': 17 }]
             // Expect: [{"files": ["/a.js"], "retries": 17}, {"files": ["/b.js", "/c.js"], "retries": 17}]
             // Get: [{"files": ["./tests/test1.js"], "retries": 17}]
             expect(launcher.formatSpecs(capabilities, specFileRetries)).toStrictEqual(expected)
