@@ -12,6 +12,7 @@ const log = logger('')
 const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
 const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.ts')
 const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')
+const FIXTURES_CONF_ARRAY = path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.ts')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
@@ -77,6 +78,7 @@ function MockedFileSystem_LoadingAsMuchAsCanFromFileSystem() : FilePathsAndConte
         FileNamed(path.resolve(FIXTURES_PATH, 'test-a.feature')).withContents( 'feature file contents'),
         FileNamed(path.resolve(FIXTURES_PATH, 'test-b.feature')).withContents( 'feature file contents'),
         FileNamed(path.resolve(FIXTURES_PATH, 'typescript.ts')).withContents( 'test file contents'),
+        realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')),
         realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.ts')),
         realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')),
         realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.ts')),
@@ -539,6 +541,15 @@ describe('ConfigParser', () => {
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
         })
 
+        it('should handle an array in the config_specs', () => {
+            const configParser = ConfigParserForTestWithAllFiles()
+            configParser.addConfigFile(FIXTURES_CONF_ARRAY)
+            configParser.merge({ spec : ['Library'] }, configParser._config.specs)
+
+            const specs = configParser.getSpecs()
+            expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
+        })
+
         it('should exclude duplicate spec files', () => {
             const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
@@ -819,6 +830,15 @@ describe('ConfigParser', () => {
             expect(specs).toContain(path.resolve(FIXTURES_PATH, 'test.cjs'))
         })
 
+        it('should include files in arrays to be run in a single worker', () => {
+            const configParser = ConfigParserForTestWithAllFiles()
+            configParser.addConfigFile(FIXTURES_CONF_ARRAY)
+
+            const specs = configParser.getSpecs()
+            expect(Array.isArray(specs[0])).toBe(true)
+            expect(specs[0].length).toBe(4)
+        })
+
         it('should not include other file types', () => {
             const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
@@ -916,6 +936,18 @@ describe('ConfigParser', () => {
             configParser.merge({ suite: ['something-else'], spec: [path.join(__dirname, '/tests/only-this-test-one.test.ts')] })
             // eslint-disable-next-line no-useless-escape
             expect(() => configParser.getSpecs()).toThrowError('The suite(s) \"something\", \"something-else\" you specified don\'t exist in your config file or doesn\'t contain any files!')
+        })
+    })
+
+    describe('getFilePaths', () => {
+        it('should include files in arrays to be run in a single worker', () => {
+            const configParser = ConfigParserForTestWithAllFiles()
+            configParser.addConfigFile(FIXTURES_CONF_ARRAY)
+
+            const filePaths = ConfigParser.getFilePaths(configParser._config.specs!, undefined, configParser._pathService)
+            expect(Array.isArray(filePaths[0])).toBe(true)
+            expect(filePaths[0].length).toBe(4)
+            expect(filePaths[0][0]).not.toContain('*')
         })
     })
 })
