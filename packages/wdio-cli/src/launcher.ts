@@ -252,6 +252,7 @@ class Launcher {
                 return { files: file, retries: specFileRetries }
             }
             log.warn('Unexpected entry in specs that is neither string nor array: ', file)
+            // Returning an empty structure to avoid undefined
             return { files: [], retries: specFileRetries }
         })
     }

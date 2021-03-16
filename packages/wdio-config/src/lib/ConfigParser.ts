@@ -276,7 +276,7 @@ export default class ConfigParser {
         const fileList = ConfigParser.getFilePaths(config, undefined, this._pathService)
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
-            // Send single file/file glob to getFilePaths - not supporting hierarchy in spec
+            // Send single file/file glob to getFilePaths - not supporting hierarchy in spec/exclude
             // Return value will alwyas be string[]
             let globMatchedFiles = <string[]> ConfigParser.getFilePaths(this._pathService.glob(filteredFile), undefined, this._pathService)
             if (this._pathService.isFile(filteredFile)) {
