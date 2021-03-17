@@ -7,6 +7,7 @@ const { generateProtocolDocs } = require('./protocolDocs')
 const { generateWdioDocs } = require('./wdioDocs')
 const { generateReportersAndServicesDocs } = require('./packagesDocs')
 const { generate3rdPartyDocs } = require('./3rdPartyDocs')
+const { copyContributingDocs } = require('./copyContributingDocs')
 
 function print (title) {
     console.log(`
@@ -28,6 +29,8 @@ async function generateDocs() {
         print('Generate Reporter & Services Docs')
         generateReportersAndServicesDocs(sidebars)
         await generate3rdPartyDocs(sidebars)
+        print('Copy over Contributing Guidelines')
+        await copyContributingDocs()
 
         writeSidebars(sidebars)
     } catch (err) {
