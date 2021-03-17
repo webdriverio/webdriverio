@@ -266,6 +266,42 @@ $ npx wdio run wdio.conf.js
 ]
 `;
 
+exports[`should create config file 1`] = `
+Object {
+  "installedPackages": Array [
+    "@wdio/local-runner",
+    "@wdio/mocha-framework",
+    "@wdio/spec-reporter",
+    "@wdio/sauce-service",
+  ],
+  "parsedAnswers": Object {
+    "_async": "async ",
+    "_await": "await ",
+    "destPageObjectRootPath": "",
+    "destSpecRootPath": "/Users/christianbromann/Sites/WebdriverIO/webdriverio",
+    "framework": "mocha",
+    "isSync": false,
+    "isUsingBabel": false,
+    "isUsingTypeScript": false,
+    "packagesToInstall": Array [
+      "@wdio/local-runner--$local",
+      "@wdio/mocha-framework",
+      "@wdio/spec-reporter",
+      "@wdio/sauce-service--$sauce",
+    ],
+    "relativePath": "",
+    "reporters": Array [
+      "spec",
+    ],
+    "runner": undefined,
+    "services": Array [
+      undefined,
+    ],
+  },
+  "success": true,
+}
+`;
+
 exports[`should install @babel/register if not existing 1`] = `
 Array [
   Array [
