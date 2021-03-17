@@ -1,14 +1,30 @@
+import fs from 'fs'
 import got from 'got'
+import logger from '@wdio/logger'
 import type { MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
 
 import SauceService from '../src'
 import { isUnifiedPlatform } from '../src/utils'
 
+const log = logger('test')
 const uri = '/some/uri'
 const featureObject = {
     name: 'Create a feature'
 }
+
+jest.createMockFromModule('fs')
+fs.createReadStream = jest.fn()
+fs.promises.stat = jest.fn().mockReturnValue(Promise.resolve({ size: 123 }))
+fs.promises.readdir = jest.fn().mockReturnValue(Promise.resolve([
+    'fileA.log',
+    'fileB.log',
+    'fileC.log'
+]))
+
+jest.mock('form-data', () => jest.fn().mockReturnValue({
+    append: jest.fn()
+}))
 
 jest.mock('../src/utils', () => {
     return {
@@ -25,6 +41,7 @@ beforeEach(() => {
         chromeC: { sessionId: 'sessionChromeC' },
         instances: ['chromeA', 'chromeB', 'chromeC'],
     } as any as MultiRemoteBrowser<'async'>
+    ;(log.error as jest.Mock).mockClear()
 })
 
 test('before should call isUnifiedPlatform', () => {
@@ -291,23 +308,25 @@ test('beforeScenario should not set context if no sauce user was applied', () =>
     expect(browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
-test('after', () => {
+test('after', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
     service.beforeSession()
     service['_failures'] = 5
     service.updateJob = jest.fn()
+    service['_uploadLogs'] = jest.fn()
 
     // @ts-expect-error
     browser.isMultiremote = false
     // @ts-expect-error
     browser.sessionId = 'foobar'
-    service.after({})
+    await service.after(1)
 
     expect(service.updateJob).toBeCalledWith('foobar', 5)
+    expect(service['_uploadLogs']).toBeCalledWith('foobar')
 })
 
-test('after for RDC', () => {
+test('after for RDC', async () => {
     const service = new SauceService({}, { testobject_api_key: '1' }, {} as any)
     service['_browser'] = browser
     service.beforeSession()
@@ -318,12 +337,12 @@ test('after for RDC', () => {
     browser.isMultiremote = false
     // @ts-expect-error
     browser.sessionId = 'foobar'
-    service.after({})
+    await service.after(1)
 
     expect(service.updateJob).toBeCalledWith('foobar', 5)
 })
 
-test('after for UP', () => {
+test('after for UP', async () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     browser.capabilities = {}
@@ -334,12 +353,12 @@ test('after for UP', () => {
 
     // @ts-expect-error
     browser.isMultiremote = false
-    service.after({})
+    await service.after(1)
 
     expect(service.updateUP).toBeCalledWith(5)
 })
 
-test('after for UP with multi remote', () => {
+test('after for UP with multi remote', async () => {
     const caps: Capabilities.MultiRemoteCapabilities = {
         chromeA: { capabilities: {} },
         chromeB: { capabilities: {} },
@@ -357,16 +376,57 @@ test('after for UP with multi remote', () => {
     service['_isServiceEnabled'] = true
     service['_isUP'] = true
     service['_failures'] = 0
+    service['_uploadLogs'] = jest.fn()
 
     browser.isMultiremote = true
     // @ts-expect-error
     browser.sessionId = 'foobar'
-    service.after({})
+    await service.after(123)
 
     expect(service.updateUP).toBeCalledTimes(3)
+    expect(service['_uploadLogs']).toBeCalledTimes(3)
+    expect(service['_uploadLogs']).toBeCalledWith('sessionChromeA')
+    expect(service['_uploadLogs']).toBeCalledWith('sessionChromeB')
+    expect(service['_uploadLogs']).toBeCalledWith('sessionChromeC')
 })
 
-test('after with bail set', () => {
+test('_uploadLogs should not upload if option is not set in config', async () => {
+    const service = new SauceService(
+        { uploadLogs: false },
+        {},
+        { outputDir: '/foo/bar' } as any
+    )
+    await service['_uploadLogs']('123')
+    expect((got as any as jest.Mock).mock.calls).toHaveLength(0)
+})
+
+test('_uploadLogs should upload', async () => {
+    const service = new SauceService(
+        {},
+        {},
+        { outputDir: '/foo/bar' } as any
+    )
+    await service['_uploadLogs']('123')
+    expect((got as any as jest.Mock).mock.calls).toHaveLength(1)
+    expect((got as any as jest.Mock)).toHaveBeenCalledWith(
+        'https://api.us-west-1.saucelabs.com/v1/testrunner/jobs/123/assets',
+        expect.any(Object)
+    )
+})
+
+test('_uploadLogs should not fail in case of a platform error', async () => {
+    const service = new SauceService(
+        {},
+        {},
+        { outputDir: '/foo/bar' } as any
+    )
+    ;(got as any as jest.Mock).mockRejectedValueOnce(new Error('upps'))
+    expect(log.error).toHaveBeenCalledTimes(0)
+    await service['_uploadLogs']('123')
+    expect(log.error).toHaveBeenCalledTimes(1)
+})
+
+test('after with bail set', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', mochaOpts: { bail: 1 } } as any)
     service['_browser'] = browser
     service.beforeSession()
@@ -377,12 +437,12 @@ test('after with bail set', () => {
     browser.isMultiremote = false
     // @ts-expect-error
     browser.sessionId = 'foobar'
-    service.after(1)
+    await service.after(1)
 
     expect(service.updateJob).toBeCalledWith('foobar', 1)
 })
 
-test('beforeScenario should not set context if no sauce user was applied', () => {
+test('beforeScenario should not set context if no sauce user was applied', async () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     service.beforeSession()
@@ -393,12 +453,12 @@ test('beforeScenario should not set context if no sauce user was applied', () =>
     browser.isMultiremote = false
     // @ts-expect-error
     browser.sessionId = 'foobar'
-    service.after({})
+    await service.after(1)
 
     expect(service.updateJob).not.toBeCalled()
 })
 
-test('after in multiremote', () => {
+test('after in multiremote', async () => {
     const caps: Capabilities.MultiRemoteCapabilities = {
         chromeA: { capabilities: {} },
         chromeB: { capabilities: {} },
@@ -413,7 +473,7 @@ test('after in multiremote', () => {
     browser.isMultiremote = true
     // @ts-expect-error
     browser.sessionId = 'foobar'
-    service.after({})
+    await service.after(1)
 
     expect(service.updateJob).toBeCalledWith('sessionChromeA', 5, false, 'chromeA')
     expect(service.updateJob).toBeCalledWith('sessionChromeB', 5, false, 'chromeB')

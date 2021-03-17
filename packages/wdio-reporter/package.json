@@ -1,6 +1,6 @@
 {
   "name": "@wdio/reporter",
-  "version": "7.1.1",
+  "version": "7.2.0",
   "description": "A WebdriverIO utility to help reporting all events",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-reporter",
@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@types/cucumber": "^6.0.1",
-    "@wdio/types": "7.1.1",
+    "@wdio/types": "7.2.0",
     "fs-extra": "^9.0.0"
   },
   "types": "./build/index.d.ts"

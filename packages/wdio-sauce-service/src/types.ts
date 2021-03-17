@@ -24,6 +24,7 @@ export interface SauceServiceConfig {
      * @default false
      */
     sauceConnect?: boolean
+
     /**
      * Apply Sauce Connect options (e.g. to change port number or logFile settings). See this
      * list for more information: https://github.com/bermi/sauce-connect-launcher#advanced-usage
@@ -31,6 +32,13 @@ export interface SauceServiceConfig {
      * @default {}
      */
     sauceConnectOpts?: SauceConnectOptions
+
+    /**
+     * Upload WebdriverIO logs to the Sauce Labs platform.
+     * @default true
+     */
+    uploadLogs?: boolean
+
     /**
      * Use Sauce Connect as a Selenium Relay. See more [here](https://wiki.saucelabs.com/display/DOCS/Using+the+Selenium+Relay+with+Sauce+Connect+Proxy).
      * @deprecated

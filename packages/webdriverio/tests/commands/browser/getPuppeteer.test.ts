@@ -125,9 +125,7 @@ describe('attach Puppeteer', () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
             capabilities: {
-                'se:options': {
-                    'cdp': 'http://my.grid:1234/session/mytestsession/se/cdp'
-                }
+                'se:cdp': 'http://my.grid:1234/session/mytestsession/se/cdp'
             }
         })
         expect(typeof pptr).toBe('object')
