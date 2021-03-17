@@ -199,6 +199,30 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   $ npm run test:e2e
   ```
 
+### Unit Tests
+
+The project tries to keep a high test coverage to ensure that changes to code are intentional and well thought through. Therefor "normally" there is a unit test file for every code file, located in a test directory. For example the unit tests for:
+
+```
+packages/webdriverio/src/commands/element/getCSSProperty.ts
+```
+
+are located in
+
+```
+packages/webdriverio/tests/commands/element/getCSSProperty.test.ts
+```
+
+If that is not the case the functionality of that file might be tested through a different file. We recommend to write unit tests for every new function being written in the code base. We advise to mock out every dependency to either other packages or modules using [Jests mock capabilities](https://jestjs.io/docs/manual-mocks).
+
+During development it makes sense to focus running unit tests for a single file rather the whole code base. For example if you work on the `getCSSProperty` command it makes sense to run only the unit test for that specific command by calling:
+
+```sh
+$ npx jest packages/webdriverio/tests/commands/element/getCSSProperty.test.ts --watch --collectCoverage=false
+```
+
+With the `--watch` flag the unit tests will be re-run as soon as you change something within the file.
+
 ### Run e2e Experience With Smoke Tests
 
 WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is set up in a way so it doesn't require an actual browser driver since all requests are mocked using the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service). This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
