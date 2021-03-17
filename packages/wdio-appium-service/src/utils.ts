@@ -38,7 +38,7 @@ export function formatCliArgs(args: KeyValueArgs | ArgValue[]): string[] {
 
         cliArgs.push(`--${paramCase(key)}`)
         // Only non-boolean and non-null values are added as option values
-        if (typeof value !== 'boolean' && value !== null) {
+        if (typeof value !== 'boolean') {
             cliArgs.push(sanitizeCliOptionValue(value))
         }
     }

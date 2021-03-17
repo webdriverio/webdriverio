@@ -25,7 +25,7 @@ module.exports = function (docfile) {
 
     for (const tag of javadoc.tags) {
         if (tag.type == 'param') {
-            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
             if (tag.typesDescription.includes('|<code>undefined</code>')) {
                 tag.typesDescription = `<code>${tag.joinedTypes}</code>`
@@ -34,13 +34,13 @@ module.exports = function (docfile) {
             paramTags.push(tag)
             paramStr.push(tag.name)
         } else if (tag.type == 'property') {
-            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             propertyTags.push(tag)
         } else if (tag.type == 'return' || tag.type == 'returns') {
-            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             returnTags.push(tag)
         } else if (tag.type == 'throws') {
-            tag.joinedTypes = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             throwsTags.push(tag)
         } else if (tag.type == 'fires') {
             fires.push(tag.string)
@@ -65,7 +65,7 @@ module.exports = function (docfile) {
         } else if (tag.type == 'author') {
             tagAuthor = tag.string
         } else if (tag.type == 'type') {
-            tagType = tag.types.join('|').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            tagType = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         }
     }
 
