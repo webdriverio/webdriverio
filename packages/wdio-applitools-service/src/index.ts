@@ -78,7 +78,7 @@ export default class ApplitoolsService implements Services.ServiceInstance {
         if (!title) {
             throw new Error('A title for the Applitools snapshot is missing')
         }
-        if (!region || region === null) {
+        if (!region) {
             throw new Error('A region for the Applitools snapshot is missing')
         }
         if (!frame) {

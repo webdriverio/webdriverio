@@ -24,8 +24,6 @@ export default class CommandHandler {
         private _page: Page,
         browser: Browser<'async'> | MultiRemoteBrowser<'async'>
     ) {
-        this._session = _session
-        this._page = _page
         this._networkHandler = new NetworkHandler(_session)
 
         /**
