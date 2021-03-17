@@ -52,7 +52,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     /**
      * attach to a Selenium 4 CDP Session if it's returned in the capabilities
      */
-    const cdpEndpoint = caps['se:options']?.cdp
+    const cdpEndpoint = caps['se:cdp']
     if (cdpEndpoint) {
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: cdpEndpoint,
