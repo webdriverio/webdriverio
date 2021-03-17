@@ -12,7 +12,7 @@ const fs = {
     rename: promisify(rename)
 }
 
-import  launch from './helpers/launch'
+import launch from './helpers/launch'
 import {
     SERVICE_LOGS,
     LAUNCHER_LOGS,
@@ -367,26 +367,6 @@ const mochaSpecGrouping = async () => {
 }
 
 /**
- * Jasmine with spec grouping feature enabled
- */
-const jasmineSpecGrouping = async () => {
-    const { skippedSpecs } = await launch(
-        path.resolve(__dirname, 'helpers', 'config.js'),
-        {
-            specs: [
-                [
-                    path.resolve(__dirname, 'jasmine', 'test.js'),
-                    path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
-                    path.resolve(__dirname, 'jasmine', 'test-skipped-grep.js')
-                ]
-            ],
-            framework: 'jasmine'
-        })
-    // Specs will be treated as a group, so no specs will be skipped
-    assert.strictEqual(skippedSpecs, 0)
-}
-
-/**
  * Mocha wdio testrunner tests
  */
 const standaloneTest = async () => {
@@ -419,7 +399,6 @@ const standaloneTest = async () => {
         mochaSpecFiltering,
         jasmineSpecFiltering,
         mochaSpecGrouping,
-        jasmineSpecGrouping,
         standaloneTest,
         mochaAsyncTestrunner
     ]
