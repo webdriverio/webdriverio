@@ -44,6 +44,7 @@ afterEach(() => {
 
 test('should create config file', async () => {
     const result = await handler({} as any)
+    delete result.parsedAnswers.destPageObjectRootPath
     expect(result).toMatchSnapshot()
     expect(addServiceDeps).toBeCalledTimes(1)
     expect(convertPackageHashToObject).toBeCalledTimes(4)

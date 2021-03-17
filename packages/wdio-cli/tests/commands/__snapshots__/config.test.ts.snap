@@ -277,7 +277,6 @@ Object {
   "parsedAnswers": Object {
     "_async": "async ",
     "_await": "await ",
-    "destPageObjectRootPath": "",
     "destSpecRootPath": "/Users/christianbromann/Sites/WebdriverIO/webdriverio",
     "framework": "mocha",
     "isSync": false,
