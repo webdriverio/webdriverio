@@ -97,7 +97,7 @@ In order to set up this project and start contributing follow this step by step 
     $ npx jest ./packages/webdriver/tests --collectCoverage=false
     ```
 
-    It should give you a passing result. Now you can move on to set up your development environment and start working on some code.
+    It should give you a passing result. Now you can move on to set up your development environment and start working on some code. If tests do not pass please create an issue and provide logs to the error.
 
 ## Work On Packages
 
