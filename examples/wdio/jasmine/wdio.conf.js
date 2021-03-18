@@ -5,13 +5,11 @@ exports.config = {
     /**
      * server configurations
      */
-    hostname: 'localhost',
-    port: 4444,
 
     /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, 'jasmine.spec.js')],
+    specs: [[path.resolve(__dirname, '*.spec.js')]],
 
     /**
      * capabilities

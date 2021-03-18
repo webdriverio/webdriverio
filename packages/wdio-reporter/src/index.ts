@@ -49,6 +49,7 @@ export default class WDIOReporter extends EventEmitter {
         const rootSuite = new SuiteStats({
             title: '(root)',
             fullTitle: '(root)',
+            file: ''
         })
         this.currentSuites.push(rootSuite)
 

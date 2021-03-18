@@ -2,17 +2,27 @@
 
 exports[`SpecReporter getHeaderDisplay should list multiple specs 1`] = `
 Array [
-  "Specs:",
-  "	- /foo/bar/baz.js",
-  "	- /foo/bar/loo.js",
-  "	- /bar/foo/baz.js",
   "Running: loremipsum (v50) on Windows 10",
   "Session ID: foobar",
 ]
 `;
 
+exports[`SpecReporter getHeaderDisplay should validate header output 1`] = `
+Array [
+  "Running: loremipsum (v50) on Windows 10",
+  "Session ID: foobar",
+]
+`;
+
+exports[`SpecReporter getHeaderDisplay should validate header output in multiremote 1`] = `
+Array [
+  "Running: MultiremoteBrowser on chrome, firefox",
+]
+`;
+
 exports[`SpecReporter getResultDisplay should not print if data table format is not given 1`] = `
 Array [
+  "» /foo/bar/loo.e2e.js",
   "Foo test",
   "grey Some important",
   "grey description to read!",
@@ -25,6 +35,7 @@ Array [
 
 exports[`SpecReporter getResultDisplay should not print if data table is empty 1`] = `
 Array [
+  "» /foo/bar/loo.e2e.js",
   "Foo test",
   "grey Some important",
   "grey description to read!",
@@ -37,6 +48,7 @@ Array [
 
 exports[`SpecReporter getResultDisplay should print data tables 1`] = `
 Array [
+  "» /foo/bar/loo.e2e.js",
   "Foo test",
   "grey Some important",
   "grey description to read!",
@@ -53,15 +65,18 @@ Array [
 
 exports[`SpecReporter getResultDisplay should validate the result output with tests 1`] = `
 Array [
+  "» /foo/bar/loo.e2e.js",
   "Foo test",
   "   green ✓ foo",
   "   green ✓ bar",
   "",
+  "» /bar/foo/loo.e2e.js",
   "Bar test",
   "   green ✓ some test",
   "   red ✖ a failed test",
   "   red ✖ a failed test with no stack",
   "",
+  "» /bar/loo/foo.e2e.js",
   "Baz test",
   "   green ✓ foo bar baz",
   "   cyan - a skipped test",
@@ -75,18 +90,20 @@ exports[`SpecReporter printReport with normal setup should print jobs of all ins
 Array [
   Array [
     "------------------------------------------------------------------
-[MultiremoteBrowser #0-0] Spec: /foo/bar/baz.js
 [MultiremoteBrowser #0-0] Running: MultiremoteBrowser on ,
 [MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] » /foo/bar/loo.e2e.js
 [MultiremoteBrowser #0-0] Foo test
 [MultiremoteBrowser #0-0]    green ✓ foo
 [MultiremoteBrowser #0-0]    green ✓ bar
 [MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] » /bar/foo/loo.e2e.js
 [MultiremoteBrowser #0-0] Bar test
 [MultiremoteBrowser #0-0]    green ✓ some test
 [MultiremoteBrowser #0-0]    red ✖ a failed test
 [MultiremoteBrowser #0-0]    red ✖ a failed test with no stack
 [MultiremoteBrowser #0-0]
+[MultiremoteBrowser #0-0] » /bar/loo/foo.e2e.js
 [MultiremoteBrowser #0-0] Baz test
 [MultiremoteBrowser #0-0]    green ✓ foo bar baz
 [MultiremoteBrowser #0-0]    cyan - a skipped test
@@ -113,19 +130,21 @@ exports[`SpecReporter printReport with normal setup should print link to Sauce L
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Foo test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Bar test
 [loremipsum 50 Windows 10 #0-0]    green ✓ some test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Baz test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
 [loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
@@ -151,19 +170,21 @@ exports[`SpecReporter printReport with normal setup should print link to Sauce L
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Foo test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Bar test
 [loremipsum 50 Windows 10 #0-0]    green ✓ some test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Baz test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
 [loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
@@ -189,19 +210,21 @@ exports[`SpecReporter printReport with normal setup should print link to Sauce L
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Foo test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Bar test
 [loremipsum 50 Windows 10 #0-0]    green ✓ some test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Baz test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
 [loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
@@ -222,19 +245,21 @@ Array [
   ],
   Array [
     "------------------------------------------------------------------
-[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Foo test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Bar test
 [loremipsum 50 Windows 10 #0-0]    green ✓ some test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Baz test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
 [loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
@@ -260,19 +285,21 @@ exports[`SpecReporter printReport with normal setup should print link to Sauce L
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Foo test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Bar test
 [loremipsum 50 Windows 10 #0-0]    green ✓ some test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Baz test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
 [loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
@@ -298,19 +325,21 @@ exports[`SpecReporter printReport with normal setup should print link to Sauce L
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Foo test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Bar test
 [loremipsum 50 Windows 10 #0-0]    green ✓ some test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Baz test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
 [loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
@@ -336,19 +365,21 @@ exports[`SpecReporter printReport with normal setup should print link to Sauce L
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Foo test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Bar test
 [loremipsum 50 Windows 10 #0-0]    green ✓ some test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Baz test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
 [loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
@@ -374,19 +405,21 @@ exports[`SpecReporter printReport with normal setup should print the report to t
 Array [
   Array [
     "------------------------------------------------------------------
-[loremipsum 50 Windows 10 #0-0] Spec: /foo/bar/baz.js
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Foo test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo
 [loremipsum 50 Windows 10 #0-0]    green ✓ bar
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Bar test
 [loremipsum 50 Windows 10 #0-0]    green ✓ some test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
 [loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
 [loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
 [loremipsum 50 Windows 10 #0-0] Baz test
 [loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
 [loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
