@@ -1,5 +1,3 @@
-import { getElementRect, getScrollPosition } from '../../utils'
-
 const ACTION_BUTTON = 0
 
 const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))

@@ -56,8 +56,6 @@ describe('dragAndDrop', () => {
         await elem.dragAndDrop(subElem)
 
         // move to
-        console.log(got.mock.calls[3]);
-
         expect(got.mock.calls[3][0].pathname).toContain('/foobar-123/actions')
         expect(got.mock.calls[3][1].json.actions).toMatchSnapshot()
         expect(got.mock.calls[4][0].pathname).toContain('/foobar-123/actions')
