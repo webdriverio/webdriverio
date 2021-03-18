@@ -389,6 +389,6 @@ If you are unsure about which release type to pick, reach out in the TSC Gitter 
 
 As part of the [OpenJS World 2020](https://events.linuxfoundation.org/openjs-world/) [Collaborator Summit](https://openjscs2020.sched.com/event/cf2J/contributing-to-webdriverio-christian-bromann) the WebdriverIO team hosted a workshop on "Contributing to WebdriverIO" that can help you get familiar with the code base and the project. Have a watch:
 
-<iframe width="800" height="600" src="https://www.youtube.com/embed/QaA5C1Y4BH0" frameborder="0" allowFullScreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/QaA5C1Y4BH0" frameborder="0" allowFullScreen></iframe>
 
 [This repository](https://github.com/webdriverio/webdriverio) contains all necessary packages of the WebdriverIO project (excluding plugins that were contributed by 3rd party developers). These packages have individual descriptions in their README files (`/packages/<package>/README.md`) providing information about their scope and responsibilities. Even though the build commands might differ from package to package the way to work with these is the same. This project uses [Lerna](https://lerna.js.org/) to manage all its subprojects in this monolith repository.
