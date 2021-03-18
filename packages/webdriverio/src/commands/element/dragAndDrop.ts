@@ -83,6 +83,7 @@ export default async function dragAndDrop (
     if (!this.isW3C) {
         await this.moveTo()
         await this.buttonDown(ACTION_BUTTON)
+        await sleep(duration)
 
         if (isMovingToElement) {
             await moveToElement.moveTo()
@@ -90,7 +91,6 @@ export default async function dragAndDrop (
             await this.moveToElement(null, moveToCoordinates.x, moveToCoordinates.y)
         }
 
-        await sleep(duration)
         return this.buttonUp(ACTION_BUTTON)
     }
 
@@ -106,7 +106,7 @@ export default async function dragAndDrop (
         actions: [
             { type: 'pointerMove', duration: 0, origin: this, x: 0, y: 0 },
             { type: 'pointerDown', button: ACTION_BUTTON },
-            { type: 'pause', duration: 10 }, // emulate human pause
+            { type: 'pause', duration }, // emulate human pause
             { type: 'pointerMove', duration, origin, x: moveToCoordinates.x || 0, y: moveToCoordinates.y || 0 },
             { type: 'pointerUp', button: ACTION_BUTTON }
         ]
