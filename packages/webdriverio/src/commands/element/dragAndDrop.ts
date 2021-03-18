@@ -96,23 +96,7 @@ export default async function dragAndDrop (
         return this.buttonUp(ACTION_BUTTON)
     }
 
-    /**
-     * get coordinates to drag and drop
-     */
-    const { scrollX, scrollY } = await getScrollPosition(this)
-    const sourceRect = await getElementRect(this)
-    const sourceX = Math.floor(sourceRect.x - scrollX + (sourceRect.width / 2))
-    const sourceY = Math.floor(sourceRect.y - scrollY + (sourceRect.height / 2))
-
-    let targetX, targetY
-    if (isMovingToElement) {
-        const targetRect = await getElementRect(moveToElement)
-        targetX = Math.floor(targetRect.x - scrollX + (targetRect.width / 2) - sourceX)
-        targetY = Math.floor(targetRect.y - scrollY + (targetRect.height / 2) - sourceY)
-    } else {
-        targetX = moveToCoordinates.x
-        targetY = moveToCoordinates.y
-    }
+    const origin = isMovingToElement ? target : 'pointer'
 
     /**
      * W3C way of handle the drag and drop action
@@ -122,10 +106,10 @@ export default async function dragAndDrop (
         id: 'finger1',
         parameters: { pointerType: 'mouse' },
         actions: [
-            { type: 'pointerMove', duration: 0, x: sourceX, y: sourceY },
+            { type: 'pointerMove', duration: 0, origin: this, x: 0, y: 0 },
             { type: 'pointerDown', button: ACTION_BUTTON },
             { type: 'pause', duration: 10 }, // emulate human pause
-            { type: 'pointerMove', duration, origin: 'pointer', x: targetX, y: targetY },
+            { type: 'pointerMove', duration, origin, x: moveToCoordinates.x || 0, y: moveToCoordinates.y || 0 },
             { type: 'pointerUp', button: ACTION_BUTTON }
         ]
     }]).then(() => this.releaseActions())

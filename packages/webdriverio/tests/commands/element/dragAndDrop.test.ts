@@ -56,12 +56,12 @@ describe('dragAndDrop', () => {
         await elem.dragAndDrop(subElem)
 
         // move to
-        expect(got.mock.calls[4][0].pathname).toContain('/element/some-elem-123/rect')
-        expect(got.mock.calls[5][0].pathname).toContain('/element/some-sub-elem-321/rect')
-        expect(got.mock.calls[6][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[6][1].json.actions).toMatchSnapshot()
-        expect(got.mock.calls[7][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[7][1].method).toContain('DELETE')
+        console.log(got.mock.calls[3]);
+
+        expect(got.mock.calls[3][0].pathname).toContain('/foobar-123/actions')
+        expect(got.mock.calls[3][1].json.actions).toMatchSnapshot()
+        expect(got.mock.calls[4][0].pathname).toContain('/foobar-123/actions')
+        expect(got.mock.calls[4][1].method).toContain('DELETE')
     })
 
     it('should do a dragAndDrop with coordinates', async () => {
@@ -78,12 +78,11 @@ describe('dragAndDrop', () => {
         await elem.dragAndDrop({ x: 123, y: 321 })
 
         // move to
-        expect(got.mock.calls[3][0].pathname).toContain('/element/some-elem-123/rect')
-        expect(got.mock.calls[4][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[4][1].json.actions).toHaveLength(1)
-        expect(got.mock.calls[4][1].json.actions).toMatchSnapshot()
-        expect(got.mock.calls[5][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[5][1].method).toContain('DELETE')
+        expect(got.mock.calls[2][0].pathname).toContain('/foobar-123/actions')
+        expect(got.mock.calls[2][1].json.actions).toHaveLength(1)
+        expect(got.mock.calls[2][1].json.actions).toMatchSnapshot()
+        expect(got.mock.calls[3][0].pathname).toContain('/foobar-123/actions')
+        expect(got.mock.calls[3][1].method).toContain('DELETE')
     })
 
     it('should allow drag and drop to 0 coordinates', async () => {
@@ -98,9 +97,8 @@ describe('dragAndDrop', () => {
         await elem.dragAndDrop({ x: 0, y: 0 })
 
         // move to
-        expect(got.mock.calls[3][0].pathname).toContain('/element/some-elem-123/rect')
-        expect(got.mock.calls[4][0].pathname).toContain('/foobar-123/actions')
-        expect(got.mock.calls[4][1].json.actions).toMatchSnapshot()
+        expect(got.mock.calls[2][0].pathname).toContain('/foobar-123/actions')
+        expect(got.mock.calls[2][1].json.actions).toMatchSnapshot()
     })
 
     it('should do a dragAndDrop (no w3c)', async () => {
