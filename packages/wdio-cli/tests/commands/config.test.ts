@@ -43,7 +43,10 @@ afterEach(() => {
 })
 
 test('should create config file', async () => {
-    await handler({} as any)
+    const result = await handler({} as any)
+    delete result.parsedAnswers.destPageObjectRootPath
+    delete result.parsedAnswers.destSpecRootPath
+    expect(result).toMatchSnapshot()
     expect(addServiceDeps).toBeCalledTimes(1)
     expect(convertPackageHashToObject).toBeCalledTimes(4)
     expect(renderConfigurationFile).toBeCalledTimes(1)
@@ -64,10 +67,10 @@ test('it should properly build command', () => {
     expect(yargs.help).toHaveBeenCalled()
 })
 
-test('should log error if creating config file fails', async () => {
+test('should throw error if creating config file fails', async () => {
     (renderConfigurationFile as jest.Mock).mockReturnValueOnce(Promise.reject(new Error('boom!')))
-    await handler({} as any)
-    expect(errorLogSpy).toHaveBeenCalledTimes(1)
+    const err = await handler({} as any).catch((err) => err)
+    expect(err.message).toContain('Error: boom!')
 })
 
 test('installs @wdio/sync if user requests to run in sync mode', async () => {
@@ -144,20 +147,6 @@ describe('install compliant NPM tag packages', () => {
         // @ts-expect-error
         pkg.clearFetchSpec()
     })
-})
-
-test('should throw an error if something goes wrong', async () => {
-    // @ts-ignore uses expect-webdriverio
-    expect.assertions(1)
-    ;(yarnInstall as any as jest.Mock).mockReturnValueOnce({ status: 1, stderr: 'uups' })
-
-    try {
-        await handler({} as any)
-    } catch (err) {
-        expect(
-            err.message.startsWith('something went wrong during setup: uups')
-        ).toBe(true)
-    }
 })
 
 test('prints TypeScript setup message', async () => {
