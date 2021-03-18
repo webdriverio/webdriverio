@@ -1,5 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`SpecReporter getHeaderDisplay should list multiple specs 1`] = `
+Array [
+  "Specs:",
+  "	- /foo/bar/baz.js",
+  "	- /foo/bar/loo.js",
+  "	- /bar/foo/baz.js",
+  "Running: loremipsum (v50) on Windows 10",
+  "Session ID: foobar",
+]
+`;
+
 exports[`SpecReporter getResultDisplay should not print if data table format is not given 1`] = `
 Array [
   "Foo test",

@@ -164,7 +164,11 @@ export default class SpecReporter extends WDIOReporter {
 
         // Spec file name and enviroment information
         const output = [
-            `Spec: ${runner.specs[0]}`,
+            'Spec' + (runner.specs.length === 1 ? `: ${runner.specs[0]}` : 's:'),
+            ...(runner.specs.length > 1
+                ? runner.specs.map((spec) => '\t- ' + spec.replace(process.cwd(), ''))
+                : []
+            ),
             `Running: ${combo}`
         ]
 
