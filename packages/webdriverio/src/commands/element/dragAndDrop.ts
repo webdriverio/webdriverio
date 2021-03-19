@@ -97,8 +97,12 @@ export default async function dragAndDrop (
         return this.buttonUp(ACTION_BUTTON)
     }
 
-    const origin = { [ELEMENT_KEY]: this[ELEMENT_KEY] }
-    const targetOrigin = isMovingToElement ? { [ELEMENT_KEY]: moveToElement[ELEMENT_KEY] } : 'pointer'
+    const sourceRef: ElementReference = { [ELEMENT_KEY]: this[ELEMENT_KEY] }
+    const targetRef: ElementReference = { [ELEMENT_KEY]: moveToElement[ELEMENT_KEY] }
+
+    const origin = sourceRef
+    const targetOrigin = isMovingToElement ? targetRef : 'pointer'
+
     const targetX = isMovingToElement ? 0 : moveToCoordinates.x
     const targetY = isMovingToElement ? 0 : moveToCoordinates.y
 
