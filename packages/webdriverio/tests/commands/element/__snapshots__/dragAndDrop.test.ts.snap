@@ -6,27 +6,8 @@ Array [
     "actions": Array [
       Object {
         "duration": 0,
-        "origin": Element {
-          "addCommand": [Function],
+        "origin": Object {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
-          "elementId": "some-elem-123",
-          "emit": [Function],
-          "isReactElement": false,
-          "overwriteCommand": [Function],
-          "parent": Browser {
-            "addCommand": [Function],
-            "addLocatorStrategy": [Function],
-            "capabilities": Object {
-              "browserName": "mockBrowser",
-              "browserVersion": "1234",
-              "platformName": "node",
-              "setWindowRect": true,
-            },
-            "overwriteCommand": [Function],
-            "sessionId": "foobar-123",
-          },
-          "selector": "#foo",
-          "sessionId": "foobar-123",
         },
         "type": "pointerMove",
         "x": 0,
@@ -67,27 +48,8 @@ Array [
     "actions": Array [
       Object {
         "duration": 0,
-        "origin": Element {
-          "addCommand": [Function],
+        "origin": Object {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
-          "elementId": "some-elem-123",
-          "emit": [Function],
-          "isReactElement": false,
-          "overwriteCommand": [Function],
-          "parent": Browser {
-            "addCommand": [Function],
-            "addLocatorStrategy": [Function],
-            "capabilities": Object {
-              "browserName": "mockBrowser",
-              "browserVersion": "1234",
-              "platformName": "node",
-              "setWindowRect": true,
-            },
-            "overwriteCommand": [Function],
-            "sessionId": "foobar-123",
-          },
-          "selector": "#foo",
-          "sessionId": "foobar-123",
         },
         "type": "pointerMove",
         "x": 0,
@@ -103,37 +65,8 @@ Array [
       },
       Object {
         "duration": 10,
-        "origin": Element {
-          "addCommand": [Function],
+        "origin": Object {
           "element-6066-11e4-a52e-4f735466cecf": "some-sub-elem-321",
-          "elementId": "some-sub-elem-321",
-          "emit": [Function],
-          "isReactElement": false,
-          "overwriteCommand": [Function],
-          "parent": Element {
-            "addCommand": [Function],
-            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
-            "elementId": "some-elem-123",
-            "emit": [Function],
-            "isReactElement": false,
-            "overwriteCommand": [Function],
-            "parent": Browser {
-              "addCommand": [Function],
-              "addLocatorStrategy": [Function],
-              "capabilities": Object {
-                "browserName": "mockBrowser",
-                "browserVersion": "1234",
-                "platformName": "node",
-                "setWindowRect": true,
-              },
-              "overwriteCommand": [Function],
-              "sessionId": "foobar-123",
-            },
-            "selector": "#foo",
-            "sessionId": "foobar-123",
-          },
-          "selector": "#subfoo",
-          "sessionId": "foobar-123",
         },
         "type": "pointerMove",
         "x": 0,
@@ -159,27 +92,8 @@ Array [
     "actions": Array [
       Object {
         "duration": 0,
-        "origin": Element {
-          "addCommand": [Function],
+        "origin": Object {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
-          "elementId": "some-elem-123",
-          "emit": [Function],
-          "isReactElement": false,
-          "overwriteCommand": [Function],
-          "parent": Browser {
-            "addCommand": [Function],
-            "addLocatorStrategy": [Function],
-            "capabilities": Object {
-              "browserName": "mockBrowser",
-              "browserVersion": "1234",
-              "platformName": "node",
-              "setWindowRect": true,
-            },
-            "overwriteCommand": [Function],
-            "sessionId": "foobar-123",
-          },
-          "selector": "#foo",
-          "sessionId": "foobar-123",
         },
         "type": "pointerMove",
         "x": 0,

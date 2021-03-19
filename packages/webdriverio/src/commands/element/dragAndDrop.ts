@@ -1,3 +1,6 @@
+import { ELEMENT_KEY } from '../../constants'
+import type { ElementReference } from '@wdio/protocols'
+
 const ACTION_BUTTON = 0
 
 const sleep = (time = 0) => new Promise((resolve) => setTimeout(resolve, time))
@@ -94,7 +97,8 @@ export default async function dragAndDrop (
         return this.buttonUp(ACTION_BUTTON)
     }
 
-    const origin = isMovingToElement ? target : 'pointer'
+    const origin = { [ELEMENT_KEY]: this[ELEMENT_KEY] }
+    const targetOrigin = isMovingToElement ? { [ELEMENT_KEY]: moveToElement[ELEMENT_KEY] } : 'pointer'
     const targetX = isMovingToElement ? 0 : moveToCoordinates.x
     const targetY = isMovingToElement ? 0 : moveToCoordinates.y
 
@@ -106,10 +110,10 @@ export default async function dragAndDrop (
         id: 'finger1',
         parameters: { pointerType: 'mouse' },
         actions: [
-            { type: 'pointerMove', duration: 0, origin: this, x: 0, y: 0 },
+            { type: 'pointerMove', duration: 0, origin, x: 0, y: 0 },
             { type: 'pointerDown', button: ACTION_BUTTON },
             { type: 'pause', duration: 10 }, // emulate human pause
-            { type: 'pointerMove', duration, origin, x: targetX, y: targetY },
+            { type: 'pointerMove', duration, origin: targetOrigin, x: targetX, y: targetY },
             { type: 'pointerUp', button: ACTION_BUTTON }
         ]
     }]).then(() => this.releaseActions())
