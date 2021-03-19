@@ -28,7 +28,7 @@ import type { AddValueOptions } from './addValue'
  */
 export default async function setValue (
     this: WebdriverIO.Element,
-    value: string,
+    value: string | number | boolean | object | Array<any>,
     { translateToUnicode = true }: AddValueOptions = {}
 ) {
     await this.clearValue()
