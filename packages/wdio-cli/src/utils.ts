@@ -126,7 +126,7 @@ export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
 function buildNewConfigArray (str: string, type: string, change: string) {
     const newStr = str
         .split(`${type}s: `)[1]
-        .replace('\'', '')
+        .replace(/'/g, '')
 
     let newArray = newStr.match(/(\w*)/gmi)?.filter(e => !!e).concat([change]) || []
 

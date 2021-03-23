@@ -7,7 +7,7 @@ import logger, { logMock } from '@wdio/logger'
 import * as wdioUtils from '@wdio/utils'
 import { Capabilities } from '@wdio/types'
 
-import WebDriver, { getPrototype, DEFAULTS } from '../src'
+import WebDriver, { getPrototype, DEFAULTS, command } from '../src'
 import { Client } from '../src/types'
 
 const expect = global.expect as unknown as jest.Expect
@@ -58,7 +58,9 @@ describe('WebDriver', () => {
     test('exports getPrototype, DEFAULTS', () => {
         expect(typeof getPrototype).toBe('function')
         expect(typeof DEFAULTS).toBe('object')
+        expect(typeof command).toBe('function')
     })
+
     describe('newSession', () => {
         afterEach(() => {
             delete process.env.WDIO_LOG_PATH

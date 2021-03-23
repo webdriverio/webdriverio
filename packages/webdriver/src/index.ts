@@ -5,6 +5,7 @@ import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
 
+import command from './command'
 import { DEFAULTS } from './constants'
 import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
 import type { Client, AttachOptions, SessionFlags } from './types'
@@ -119,5 +120,5 @@ export default class WebDriver {
 /**
  * Helper methods consumed by webdriverio package
  */
-export { getPrototype, DEFAULTS }
+export { getPrototype, DEFAULTS, command }
 export * from './types'

@@ -446,7 +446,7 @@ describe('utils', () => {
                 selector: 'div'
             })
 
-            expect(() => verifyArgsAndStripIfElement(fakeObj)).toThrow('The element with selector "div" you trying to pass into the execute method wasn\'t found')
+            expect(() => verifyArgsAndStripIfElement(fakeObj)).toThrow('The element with selector "div" you are trying to pass into the execute method wasn\'t found')
         })
     })
 

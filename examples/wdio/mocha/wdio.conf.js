@@ -2,12 +2,6 @@ const path = require('path')
 
 exports.config = {
     /**
-     * server configurations
-     */
-    user: process.env.SAUCE_USERNAME,
-    key: process.env.SAUCE_ACCESS_KEY,
-
-    /**
      * specify test files
      */
     specs: [

@@ -19,6 +19,44 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.2.2 (2021-03-22)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6600](https://github.com/webdriverio/webdriverio/pull/6600) Fix drag and drop ([@erwinheitzman](https://github.com/erwinheitzman))
+  * [#6610](https://github.com/webdriverio/webdriverio/pull/6610) fix(typo): Minor typo fixes and #6553 ([@JS31096](https://github.com/JS31096))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#6602](https://github.com/webdriverio/webdriverio/pull/6602) Fix typo in error message ([@cpeck-bi](https://github.com/cpeck-bi))
+
+#### Committers: 3
+- Christopher Peck ([@cpeck-bi](https://github.com/cpeck-bi))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Sri Harsha ([@JS31096](https://github.com/JS31096))
+
+
+## v7.2.1 (2021-03-18)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#6594](https://github.com/webdriverio/webdriverio/pull/6594) Better expose config handler ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`, `wdio-applitools-service`, `wdio-cli`, `wdio-devtools-service`, `wdio-jasmine-framework`
+  * [#6597](https://github.com/webdriverio/webdriverio/pull/6597) Mitigate LGTM scan warnings ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-types`, `webdriverio`
+  * [#6599](https://github.com/webdriverio/webdriverio/pull/6599) Use a flat namespace for selenium options for finding WebDriver Bidi endpoint ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### :memo: Documentation
+* Other
+  * [#6598](https://github.com/webdriverio/webdriverio/pull/6598) Improve project contributing guidelines ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#6317](https://github.com/webdriverio/webdriverio/pull/6317) Make it easier to add commands that make WebDriver based requests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v7.2.0 (2021-03-16)
 
 #### :rocket: New Feature

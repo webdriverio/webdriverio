@@ -10,7 +10,7 @@ const XPATH_SELECTORS_START = [
     '/', '(', '../', './', '*/'
 ]
 const NAME_MOBILE_SELECTORS_START = [
-    'uia', 'xcuielementtype', 'android.widget', 'cyi'
+    'uia', 'xcuielementtype', 'android.widget', 'cyi', 'android.view'
 ]
 const XPATH_SELECTOR_REGEXP = [
     // HTML tag

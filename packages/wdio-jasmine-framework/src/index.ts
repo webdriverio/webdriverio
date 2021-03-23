@@ -120,6 +120,8 @@ class JasmineAdapter {
                 type: 'hook' as const,
                 description: title,
                 fullName: title,
+                duration: null,
+                properties: {},
                 ...(error ? { error } : {})
             }
 
@@ -142,7 +144,6 @@ class JasmineAdapter {
                 afterHook.push(emitHookEvent(fnName, 'end'))
             }
 
-            this._config.beforeTest
             runTestInFiberContext(
                 isTest,
                 isTest ? this._config.beforeTest : beforeHook,

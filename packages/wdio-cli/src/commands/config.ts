@@ -154,9 +154,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
             await generateTestFiles(parsedAnswers)
         }
     } catch (e) {
-        console.error(`Couldn't write config file: ${e.stack}`)
-        /* istanbul ignore next */
-        return !process.env.JEST_WORKER_ID && process.exit(1)
+        throw new Error(`Couldn't write config file: ${e.stack}`)
     }
 
     /**
@@ -187,14 +185,16 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         /* istanbul ignore next */
         process.exit(0)
     }
+
+    return {
+        success: true,
+        parsedAnswers,
+        installedPackages: packagesToInstall.map((pkg) => pkg.split('--')[0])
+    }
 }
 
-export async function handler(argv: ConfigCommandArguments) {
-    try {
-        await runConfig(argv.yarn, argv.yes)
-    } catch (error) {
-        throw new Error(`something went wrong during setup: ${error.stack.slice(7)}`)
-    }
+export function handler(argv: ConfigCommandArguments) {
+    return runConfig(argv.yarn, argv.yes)
 }
 
 /**
