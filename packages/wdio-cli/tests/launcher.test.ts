@@ -91,6 +91,36 @@ describe('launcher', () => {
             expect(launcher.runSpecs).toBeCalledTimes(1)
         })
 
+        it('should start instance with grouped specs', () => {
+            launcher.runSpecs = jest.fn()
+            launcher.isMultiremote = false
+            launcher.runMode(
+                { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
+                [caps]
+            )
+
+            expect(launcher['_schedule']).toHaveLength(1)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+
+            expect(typeof launcher['_resolve']).toBe('function')
+            expect(launcher.runSpecs).toBeCalledTimes(1)
+        })
+
+        it('should start instance in multiremote with grouped specs', () => {
+            launcher.runSpecs = jest.fn()
+            launcher.isMultiremote = true
+            launcher.runMode(
+                { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
+                { foo: { capabilities: { browserName: 'chrome' } } }
+            )
+
+            expect(launcher['_schedule']).toHaveLength(1)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+
+            expect(typeof launcher['_resolve']).toBe('function')
+            expect(launcher.runSpecs).toBeCalledTimes(1)
+        })
+
         it('should ignore specFileRetries in watch mode', () => {
             launcher.runSpecs = jest.fn()
             launcher['_isWatchMode'] = true
@@ -269,16 +299,26 @@ describe('launcher', () => {
         })
     })
 
-    // describe('formatSpecs', () => {
-    //     it('should return correctly formatted specs', () => {
-    //         const capabilities = { specs: ['/a.js', ['/b.js', '/c.js']] }
-    //         const specFileRetries = 17
-    //         const expected = [{ 'files': ['/a.js'], 'retries': 17 }, { 'files': ['/b.js', '/c.js'], 'retries': 17 }]
-    //         // Expect: [{"files": ["/a.js"], "retries": 17}, {"files": ["/b.js", "/c.js"], "retries": 17}]
-    //         // Get: [{"files": ["./tests/test1.js"], "retries": 17}]
-    //         expect(launcher.formatSpecs(capabilities, specFileRetries)).toStrictEqual(expected)
-    //     })
-    // })
+    describe('formatSpecs', () => {
+        it('should return correctly formatted specs', () => {
+            // Define a capabilities that is sent to formatSpecs
+            // - only used in function call
+            const capabilities = { specs: ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js'] }
+            const specFileRetries = 17
+            // Define the golden result
+            const expected = [
+                { 'files': ['/a.js'], 'retries': 17 },
+                { 'files': ['/b.js', '/c.js', '/d.js'], 'retries': 17 },
+                { 'files': ['/e.js'], 'retries': 17 },
+            ]
+            // Mock the return value of getSpecs so we are not doing cross
+            // module testing
+            launcher.configParser = { getSpecs: jest.fn().mockReturnValue(
+                ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js']
+            ) } as any
+            expect(launcher.formatSpecs(capabilities, specFileRetries)).toStrictEqual(expected)
+        })
+    })
 
     describe('runSpecs', () => {
         beforeEach(() => {
