@@ -120,6 +120,8 @@ class JasmineAdapter {
                 type: 'hook' as const,
                 description: title,
                 fullName: title,
+                duration: null,
+                properties: {},
                 ...(error ? { error } : {})
             }
 
