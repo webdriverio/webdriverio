@@ -24,7 +24,7 @@
   "dependencies": {
     "@cucumber/cucumber": "^7.0.0",
     "@cucumber/gherkin": "^17.0.1",
-    "@cucumber/messages": "14.0.1",
+    "@cucumber/messages": "^14.0.1",
     "@types/is-glob": "^4.0.1",
     "@types/mockery": "^1.4.29",
     "@wdio/logger": "7.0.0",
