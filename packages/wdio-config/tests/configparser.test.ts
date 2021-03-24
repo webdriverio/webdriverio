@@ -805,6 +805,15 @@ describe('ConfigParser', () => {
             expect(specs).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
         })
 
+        it('should exclude files from arrays', () => {
+            const configParser = ConfigParserForTestWithAllFiles()
+            configParser.addConfigFile(FIXTURES_CONF_ARRAY)
+
+            const specs = configParser.getSpecs()
+            expect(specs[0]).toContain(__filename)
+            expect(specs[0]).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
+        })
+
         it('should exclude/include capability excludes', () => {
             // const configParser = ConfigParserForTest()
             const configParser = ConfigParserForTestWithAllFiles()
