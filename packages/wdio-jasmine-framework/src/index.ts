@@ -109,7 +109,7 @@ class JasmineAdapter {
                 console.log('YPP', path)
 
                 try { //*nix OSes
-                    return path.match(/[^\/]+\/[^\/]+$/)[0]
+                    return path.match(/[^/]+\/[^/]+$/)[0]
                 } catch (error) { //Windows based OSes
                     return path.match(/[^\\]+\\[^\\]+$/)[0]
                 }
@@ -266,9 +266,8 @@ class JasmineAdapter {
 
             console.log(this._jrunner.env)
 
-            const runner = this._jrunner.env.currentRunner
+            // const runner = this._jrunner.env.currentRunner
             // console.log(111, runner.specs())
-
 
             this._jrunner.onComplete(() => resolve(this._reporter.getFailedCount()))
             this._jrunner.execute()
