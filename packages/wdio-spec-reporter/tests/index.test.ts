@@ -14,7 +14,7 @@ const reporter = new SpecReporter({})
 const defaultCaps = { browserName: 'loremipsum', version: 50, platform: 'Windows 10', sessionId: 'foobar' }
 const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
 const getRunnerConfig = (config: any = {}) => {
-    return Object.assign({}, RUNNER, {
+    return Object.assign(JSON.parse(JSON.stringify(RUNNER)), {
         capabilities: config.capabilities || defaultCaps,
         config,
         sessionId: fakeSessionId,
@@ -23,7 +23,7 @@ const getRunnerConfig = (config: any = {}) => {
 }
 
 describe('SpecReporter', () => {
-    let tmpReporter = null
+    let tmpReporter:SpecReporter
 
     beforeEach(() => {
         tmpReporter = new SpecReporter({})
@@ -293,10 +293,14 @@ describe('SpecReporter', () => {
     describe('getHeaderDisplay', () => {
         it('should validate header output', () => {
             const result = reporter.getHeaderDisplay(getRunnerConfig() as any)
+            expect(result).toMatchSnapshot()
+        })
 
-            expect(result.length).toBe(3)
-            expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: loremipsum (v50) on Windows 10')
+        it('should list multiple specs', () => {
+            const config = getRunnerConfig() as any
+            config.specs.push('/foo/bar/loo.js', '/bar/foo/baz.js')
+            const result = reporter.getHeaderDisplay(config)
+            expect(result).toMatchSnapshot()
         })
 
         it('should validate header output in multiremote', () => {
@@ -309,9 +313,7 @@ describe('SpecReporter', () => {
                     isMultiremote: true,
                 }))
 
-            expect(result.length).toBe(2)
-            expect(result[0]).toBe('Spec: /foo/bar/baz.js')
-            expect(result[1]).toBe('Running: MultiremoteBrowser on chrome, firefox')
+            expect(result).toMatchSnapshot()
         })
     })
 

@@ -27,8 +27,9 @@
   "dependencies": {
     "@types/jasmine": "3.6.7",
     "@wdio/logger": "7.0.0",
-    "@wdio/types": "7.2.1",
-    "@wdio/utils": "7.2.1",
+    "@wdio/types": "7.2.0",
+    "@wdio/utils": "7.2.0",
+    "callsites": "^3.1.0",
     "expect-webdriverio": "^2.0.0",
     "jasmine": "3.6.4"
   },
