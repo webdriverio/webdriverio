@@ -357,6 +357,8 @@ const mochaSpecGrouping = async () => {
             specs: [
                 [
                     path.resolve(__dirname, 'mocha', 'test-empty.js'),
+                    path.resolve(__dirname, 'mocha', 'test-middleware.js'),
+                    path.resolve(__dirname, 'mocha', 'test-waitForElement.js'),
                     path.resolve(__dirname, 'mocha', 'test-skipped.js'),
                     path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
                 ]
