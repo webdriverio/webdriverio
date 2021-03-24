@@ -879,7 +879,7 @@ describe('ConfigParser', () => {
 
             const specs = configParser.getSpecs()
             expect(Array.isArray(specs[0])).toBe(true)
-            expect(specs[0].length).toBe(4)
+            expect(specs[0].length).toBe(3)
         })
 
         it('should not include other file types', () => {

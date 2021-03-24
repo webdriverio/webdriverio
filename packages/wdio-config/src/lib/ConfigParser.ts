@@ -388,12 +388,13 @@ export default class ConfigParser {
      * @return {String[] | String[][]} list of spec files with excludes removed
      */
     filterSpecs(specs: (string | string[])[], exclude: string[]) {
-        return specs.map(spec => {
+        return specs.reduce((returnVal: (string | string[])[], spec) => {
             if (Array.isArray(spec)) {
-                return spec.filter(spec_item => !exclude.includes(spec_item))
+                returnVal.push(spec.filter(specItem => !exclude.includes(specItem)))
             } else if (exclude.indexOf(spec) === -1) {
-                return spec
+                returnVal.push(spec)
             }
-        })
+            return returnVal
+        }, [])
     }
 }
