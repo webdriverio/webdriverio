@@ -101,5 +101,7 @@
     "typescript": "4.0.5",
     "url-join": "^4.0.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@types/aria-query": "^4.2.1"
+  }
 }
