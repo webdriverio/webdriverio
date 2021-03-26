@@ -4,6 +4,8 @@ export type AddValueOptions = {
     translateToUnicode?: boolean
 }
 
+type Value = string | number
+
 /**
  *
  * Add a value to an object found by given selector. You can also use unicode
@@ -26,14 +28,14 @@ export type AddValueOptions = {
  * </example>
  *
  * @alias element.addValue
- * @param {string | number | boolean | object | Array<any>}      value     value to be added
- * @param {AddValueOptions=} options                    command options (optional)
- * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
+ * @param {string | number | Array<string> | Array<number>} value                       value to be added
+ * @param {AddValueOptions=}                                options                     command options (optional)
+ * @param {boolean}                                         options.translateToUnicode  enable translation string to unicode value automatically
  *
  */
 export default function addValue (
     this: WebdriverIO.Element,
-    value: string | number | boolean | object | Array<any>,
+    value: Value | Value[],
     { translateToUnicode = true }: AddValueOptions = {}
 ) {
     if (!this.isW3C) {

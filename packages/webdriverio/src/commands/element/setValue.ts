@@ -1,5 +1,7 @@
 import type { AddValueOptions } from './addValue'
 
+type Value = string | number
+
 /**
  *
  * Send a sequence of key strokes to an element (clears value before). If the element
@@ -21,14 +23,14 @@ import type { AddValueOptions } from './addValue'
  * </example>
  *
  * @alias element.setValue
- * @param {string | number | boolean | object | Array<any>}      value    Value to be added
+ * @param {string | number | Array<string> | Array<number>}      value    Value to be added
  * @param {AddValueOptions=} options                    command options (optional)
  * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
  *
  */
 export default async function setValue (
     this: WebdriverIO.Element,
-    value: string | number | boolean | object | Array<any>,
+    value: Value | Value[],
     { translateToUnicode = true }: AddValueOptions = {}
 ) {
     await this.clearValue()
