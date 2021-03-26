@@ -26,7 +26,6 @@ export default class SuiteStats extends RunnableStats {
     cid?: string
     title: string
     fullTitle: string
-    file: string
     tags?: string[] | Tag[]
     tests: TestStats[] = []
     hooks: HookStats[] = []
@@ -44,7 +43,6 @@ export default class SuiteStats extends RunnableStats {
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags
-        this.file = suite.file
         /**
          * only Cucumber
          */

@@ -337,13 +337,13 @@ export default class ConfigParser {
     static getFilePaths(patterns: (string | string[])[], omitWarnings?: boolean, findAndGlob: CurrentPathFinder & Globber & DeterminesAbsolutePath = new FileSystemPathService(), hierarchyDepth?: number) {
         let files: (string | string[])[] = []
         let groupedFiles: string[] = []
-        let depth: number = hierarchyDepth || 0
 
         if (typeof patterns === 'string') {
             patterns = [patterns]
         }
 
-        // Check we have an array
+        // patterns must be an array of strings and/or string arrays
+        // check and throw and error if not
         if (!Array.isArray(patterns)) {
             throw new Error('specs or exclude property should be an array of strings, specs may also be an array of string arrays')
         }
@@ -358,7 +358,7 @@ export default class ConfigParser {
         for (let pattern of patterns) {
             // If pattern is an array, then call getFilePaths again
             // But only call one level deep, can't have multiple levels of hierarchy
-            if (Array.isArray(pattern) && depth === 0) {
+            if (Array.isArray(pattern) && hierarchyDepth) {
                 // Will always only get a string array back
                 groupedFiles = <string[]>ConfigParser.getFilePaths(pattern, omitWarnings, findAndGlob, 1)
                 files.push(groupedFiles)

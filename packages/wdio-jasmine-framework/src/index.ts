@@ -102,19 +102,6 @@ class JasmineAdapter {
          * enable expectHandler
          */
         jasmine.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(jasmine)
-        Object.defineProperty(global, '__filename', {
-            get: function () {
-                // @ts-expect-error
-                let path = __stack[1].getFileName()
-                console.log('YPP', path)
-
-                try { //*nix OSes
-                    return path.match(/[^/]+\/[^/]+$/)[0]
-                } catch (error) { //Windows based OSes
-                    return path.match(/[^\\]+\\[^\\]+$/)[0]
-                }
-            }
-        })
 
         const hookArgsFn = (context: unknown): [unknown, unknown] => [{ ...(self._lastTest || {}) }, context]
 
@@ -263,11 +250,6 @@ class JasmineAdapter {
 
             this._jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
             this._jrunner.env.afterAll(this.wrapHook('afterSuite'))
-
-            console.log(this._jrunner.env)
-
-            // const runner = this._jrunner.env.currentRunner
-            // console.log(111, runner.specs())
 
             this._jrunner.onComplete(() => resolve(this._reporter.getFailedCount()))
             this._jrunner.execute()
