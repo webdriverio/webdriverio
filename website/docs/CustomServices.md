@@ -56,7 +56,7 @@ export default class CustomWorkerService {
     // other hooks or custom service methods ...
 }
 ```
-
+Note that there are framework-specific hooks that you will have to add to the worker service, like `beforeTest` (for Mocha/Jasmine) and `beforeScenario` (for Cucumber).
 It is recommended to store the browser object through the passed in parameter in the constructor. Lastly expose both types of workers as following:
 
 ```js
