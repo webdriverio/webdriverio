@@ -39,13 +39,13 @@ So, the following specs definition:
 
 ```json
     "specs": [
-                [
-                    './test/specs/test_login.js',
-                    './test/specs/test_product_order.js',
-                    './test/specs/test_checkout.js'
-                ],
-                './test/specs/test_b*.js',
-            ],
+        [
+            "./test/specs/test_login.js",
+            "./test/specs/test_product_order.js",
+            "./test/specs/test_checkout.js"
+        ],
+        "./test/specs/test_b*.js",
+    ],
 ```
 when run against the previously described directory tree would result in three instances:
 - One instance would run the group of test_login.js, test_product_order.js and test_checkout.js
@@ -53,5 +53,4 @@ when run against the previously described directory tree would result in three i
 - A final instance would run test_b2.js
 
 It is only the specs definition that supports this syntax.
-
 
