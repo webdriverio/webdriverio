@@ -23,7 +23,7 @@ describe('Selenium standalone launcher', () => {
                 args: { drivers: { chrome: {} } },
                 installArgs: { drivers: { chrome: {} } },
             }
-            const capabilities: any = [{ port: 1234 }]
+            const capabilities: any = [{ port: 1234, browserName: 'firefox' }]
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true } as never)
@@ -45,8 +45,8 @@ describe('Selenium standalone launcher', () => {
                 installArgs: { drivers: { chrome: {} } },
             }
             const capabilities: any = {
-                browserA: { port: 1234 },
-                browserB: { port: 4321 }
+                browserA: { port: 1234, browserName: 'safari' },
+                browserB: { port: 4321, browserName: 'edge' }
             }
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
             launcher._redirectLogStream = jest.fn()
@@ -68,19 +68,55 @@ describe('Selenium standalone launcher', () => {
                 installArgs: { drivers: { chrome: {} } },
             }
             const capabilities: any = {
-                browserA: { port: 1234 },
+                browserA: {
+                    port: 1234,
+                    capabilities: {
+                        browserName: 'chrome',
+                        acceptInsecureCerts: true
+                    }
+                },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true } as never)
-            expect(capabilities.browserA.protocol).toBe('http')
-            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.capabilities.protocol).toBe('http')
+            expect(capabilities.browserA.capabilities.hostname).toBe('localhost')
+            expect(capabilities.browserA.capabilities.path).toBe('/wd/hub')
             expect(capabilities.browserA.port).toBe(1234)
-            expect(capabilities.browserA.path).toBe('/wd/hub')
             expect(capabilities.browserB.protocol).toBeUndefined()
             expect(capabilities.browserB.hostname).toBeUndefined()
             expect(capabilities.browserB.port).toBe(4321)
+            expect(capabilities.browserB.path).toBeUndefined()
+        })
+
+        test('should not override if capabilities do not match supported set of browser', async () => {
+            const options = {
+                logPath: './',
+                args: { drivers: { chrome: {} } },
+                installArgs: { drivers: { chrome: {} } },
+            }
+            const capabilities: any = {
+                browserA: {
+                    capabilities: {
+                        browserName: 'chrome',
+                        acceptInsecureCerts: true
+                    }
+                },
+                browserB: {
+                    capabilities: {
+                        platformName: 'Android',
+                        'appium:deviceName': 'pixel2',
+                        'appium:avd': 'pixel2',
+                    }
+                }
+            }
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
+            launcher._redirectLogStream = jest.fn()
+            await launcher.onPrepare({ watch: true } as never)
+            expect(capabilities.browserB.protocol).toBeUndefined()
+            expect(capabilities.browserB.hostname).toBeUndefined()
+            expect(capabilities.browserB.port).toBeUndefined()
             expect(capabilities.browserB.path).toBeUndefined()
         })
 
