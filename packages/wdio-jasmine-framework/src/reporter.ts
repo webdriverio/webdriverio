@@ -45,7 +45,6 @@ export default class JasmineReporter {
     }
 
     specStarted (test: jasmine.CustomReporterResult) {
-
         this._testStart = new Date()
         const newTest: TestEvent = {
             type: 'test',
