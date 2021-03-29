@@ -109,14 +109,14 @@ As described above, there are benefits in running the tests concurrently.  Howev
 To group tests to run in a single instance, simply define them as an array within the specs definition.
 
 ```json
-  "specs": [
-                [
-                    './test/specs/test_login.js',
-                    './test/specs/test_product_order.js',
-                    './test/specs/test_checkout.js'
-                ],
-                './test/specs/test_b*.js',
-            ],
+    "specs": [
+        [
+            "./test/specs/test_login.js",
+            "./test/specs/test_product_order.js",
+            "./test/specs/test_checkout.js"
+        ],
+        "./test/specs/test_b*.js",
+    ],
 ```
 In the example above, all of the "test_a*" tests will be run sequentially in a single instance and each of the "test_b*" tests will run concurrently in individual instances.
 
