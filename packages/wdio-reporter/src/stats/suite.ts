@@ -24,6 +24,7 @@ export interface Suite {
 export default class SuiteStats extends RunnableStats {
     uid: string
     cid?: string
+    file: string
     title: string
     fullTitle: string
     tags?: string[] | Tag[]
@@ -40,6 +41,7 @@ export default class SuiteStats extends RunnableStats {
         super(suite.type || 'suite')
         this.uid = RunnableStats.getIdentifier(suite)
         this.cid = suite.cid
+        this.file = suite.file
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags
