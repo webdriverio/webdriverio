@@ -30,7 +30,7 @@
     "@wdio/types": "7.2.1",
     "@wdio/utils": "7.2.1",
     "expect-webdriverio": "^2.0.0",
-    "jasmine": "3.6.4"
+    "jasmine": "3.7.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"
