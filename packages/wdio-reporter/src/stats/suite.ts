@@ -9,7 +9,7 @@ export interface Suite {
     parent?: string
     fullTitle: string
     pending?: boolean
-    file?: string
+    file: string
     duration?: number
     cid?: string
     specs?: string[]
