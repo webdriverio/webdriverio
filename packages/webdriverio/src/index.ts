@@ -1,12 +1,11 @@
-/// <reference types="@wdio/types"/>
-
 import logger from '@wdio/logger'
-import type * as WebDriverTypes from 'webdriver'
+
 import WebDriver from 'webdriver'
 import { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
 import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
 import { Options, Capabilities } from '@wdio/types'
+import type * as WebDriverTypes from 'webdriver'
 
 import MultiRemote from './multiremote'
 import type ElementCommands from './commands/element'
@@ -17,7 +16,7 @@ import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
 } from './utils'
-import type { Browser, MultiRemoteBrowser } from './types'
+import type { Browser, MultiRemoteBrowser, AttachOptions } from './types'
 
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 
@@ -53,6 +52,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     const ProtocolDriver = require(automationProtocol).default
 
     params = Object.assign({}, detectBackend(params), params)
+    params.automationProtocol = automationProtocol
     await updateCapabilities(params, automationProtocol)
     const instance: WebdriverIO.Browser = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
@@ -77,9 +77,15 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     return instance
 }
 
-export const attach = function (params: WebDriverTypes.AttachOptions): Browser<'async'> {
+export const attach = function (params: AttachOptions): Browser<'async'> {
     const prototype = getPrototype('browser')
-    return WebDriver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
+
+    let automationProtocol = 'webdriver'
+    if (params.options?.automationProtocol) {
+        automationProtocol = params.options?.automationProtocol
+    }
+    const ProtocolDriver = require(automationProtocol).default
+    return ProtocolDriver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
 }
 
 export const multiremote = async function (

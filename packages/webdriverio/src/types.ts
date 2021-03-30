@@ -1,6 +1,6 @@
 import type { EventEmitter } from 'events'
-
-import type { SessionFlags } from 'webdriver'
+import type { AttachOptions as DevToolsAttachOptions } from 'devtools'
+import type { SessionFlags, AttachOptions as WebDriverAttachOptions } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands, RectReturn } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
@@ -399,3 +399,10 @@ export type DragAndDropCoordinate = {
 type MockFunctions = FunctionProperties<DevtoolsInterception>
 type MockProperties = Pick<DevtoolsInterception, 'calls'>
 export interface Mock extends MockFunctions, MockProperties {}
+
+export interface AttachOptions extends Omit<DevToolsAttachOptions, 'capabilities'>, Omit<WebDriverAttachOptions, 'capabilities'> {
+    options?: {
+        automationProtocol?: Options.SupportedProtocols,
+    }
+    capabilities: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities']
+}
