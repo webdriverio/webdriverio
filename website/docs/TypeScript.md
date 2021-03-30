@@ -73,7 +73,7 @@ And your `tsconfig.json` needs the following:
 </Tabs>
 
 Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
-`WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services or plugins, please also add them to the `types` list as many provide additional typings.
+`WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services, plugins or the `devtools` automation package, please also add them to the `types` list as many provide additional typings.
 
 ## Framework types
 

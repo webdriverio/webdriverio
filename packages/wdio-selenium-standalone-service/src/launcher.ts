@@ -6,7 +6,7 @@ import { promisify } from 'util'
 import fs from 'fs-extra'
 import * as SeleniumStandalone from 'selenium-standalone'
 
-import { getFilePath } from './utils'
+import { getFilePath, hasCapsWithSupportedBrowser } from './utils'
 import type { SeleniumStandaloneOptions } from './types'
 
 const DEFAULT_LOG_FILENAME = 'wdio-selenium-standalone.log'
@@ -84,7 +84,7 @@ export default class SeleniumStandaloneLauncher {
             const cap = (capability as Options.WebDriver).capabilities || capability
             const c = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
 
-            if (!isCloudCapability(c)) {
+            if (!isCloudCapability(c) && hasCapsWithSupportedBrowser(c)) {
                 Object.assign(c, DEFAULT_CONNECTION, { ...c })
             }
         }

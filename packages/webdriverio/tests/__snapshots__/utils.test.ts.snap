@@ -19,6 +19,7 @@ Object {
 
 exports[`utils updateCapabilities setting devtools port in Firefox should set firefox options if there aren't any 1`] = `
 Object {
+  "automationProtocol": "webdriver",
   "capabilities": Object {
     "browserName": "firefox",
     "moz:firefoxOptions": Object {
@@ -33,6 +34,7 @@ Object {
 
 exports[`utils updateCapabilities setting devtools port in Firefox should set firefox options if there aren't any 2`] = `
 Object {
+  "automationProtocol": "devtools",
   "capabilities": Object {
     "browserName": "firefox",
   },
