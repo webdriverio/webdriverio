@@ -12,7 +12,8 @@ let browser
 test('allow to attach to an existing session', async () => {
     browser = await remote({
         capabilities: {
-            browserName: 'chrome'
+            browserName: 'chrome',
+            'wdio:devtoolsOptions': { headless: true, dumpio: true }
         }
     })
 
