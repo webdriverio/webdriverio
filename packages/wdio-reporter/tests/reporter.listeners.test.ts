@@ -5,6 +5,8 @@ import { Runner } from '../src/stats/runner'
 import { Suite } from '../src/stats/suite'
 import { Hook } from '../src/stats/hook'
 
+const runnerSpecs = ['/path/to/fileA.js', '/path/to/fileA.js']
+
 describe('WDIOReporter Listeners', () => {
     let reporter: WDIOReporter
     let testStartEvent: Test
@@ -161,7 +163,8 @@ describe('WDIOReporter Listeners', () => {
                 cid: 'runnerid',
                 capabilities: {
                     browserName: 'Chrome'
-                }
+                },
+                specs: runnerSpecs
             } as Runner
             reporter.onRunnerStart = jest.fn()
         })
@@ -190,7 +193,8 @@ describe('WDIOReporter Listeners', () => {
                 cid: 'runnerid',
                 capabilities: {
                     browserName: 'Chrome'
-                }
+                },
+                specs: runnerSpecs
             } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
@@ -244,7 +248,8 @@ describe('WDIOReporter Listeners', () => {
                 cid: 'runnerid',
                 capabilities: {
                     browserName: 'Chrome'
-                }
+                },
+                specs: runnerSpecs
             } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
@@ -288,7 +293,8 @@ describe('WDIOReporter Listeners', () => {
                 cid: 'runnerid',
                 capabilities: {
                     browserName: 'Chrome'
-                }
+                },
+                specs: runnerSpecs
             } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
@@ -373,7 +379,8 @@ describe('WDIOReporter Listeners', () => {
                 cid: 'runnerid',
                 capabilities: {
                     browserName: 'Chrome'
-                }
+                },
+                specs: runnerSpecs
             } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
@@ -417,7 +424,8 @@ describe('WDIOReporter Listeners', () => {
                 cid: 'runnerid',
                 capabilities: {
                     browserName: 'Chrome'
-                }
+                },
+                specs: runnerSpecs
             } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
@@ -468,7 +476,8 @@ describe('WDIOReporter Listeners', () => {
                 cid: 'runnerid',
                 capabilities: {
                     browserName: 'Chrome'
-                }
+                },
+                specs: runnerSpecs
             } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
@@ -552,7 +561,8 @@ describe('WDIOReporter Listeners', () => {
                 cid: 'runner-id',
                 capabilities: {
                     browserName: 'Chrome'
-                }
+                },
+                specs: runnerSpecs
             } as Runner
             suiteStartEvent = {
                 uid: 'suite-id',
@@ -644,7 +654,8 @@ describe('WDIOReporter Listeners', () => {
                 cid: 'runnerid',
                 capabilities: {
                     browserName: 'Chrome'
-                }
+                },
+                specs: runnerSpecs
             } as Runner
             suiteStartEvent = {
                 uid: 'suiteid',
