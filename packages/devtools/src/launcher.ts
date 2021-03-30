@@ -189,8 +189,21 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
     return puppeteer.launch(puppeteerOptions) as unknown as Promise<Browser>
 }
 
+function connectBrowser (browserURL: string) {
+    return puppeteer.connect({ browserURL }) as unknown as Promise<Browser>
+}
+
 export default function launch (capabilities: ExtendedCapabilities) {
     const browserName = capabilities.browserName?.toLowerCase()
+
+    /**
+     * check if capabilities already contains connection details and connect
+     * to that rather than starting a new browser
+     */
+    const browserOptions = capabilities['goog:chromeOptions'] || capabilities['ms:edgeOptions']
+    if (browserOptions?.debuggerAddress && !capabilities['wdio:devtoolsOptions']?.customDebuggerAddress) {
+        return connectBrowser(`http://${browserOptions?.debuggerAddress}`)
+    }
 
     if (browserName && CHROME_NAMES.includes(browserName)) {
         return launchChrome(capabilities)
