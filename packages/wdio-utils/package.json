@@ -1,6 +1,6 @@
 {
   "name": "@wdio/utils",
-  "version": "7.2.1",
+  "version": "7.3.0",
   "description": "A WDIO helper utility to provide several utility functions used across the project.",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-utils",

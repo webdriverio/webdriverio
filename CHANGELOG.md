@@ -19,6 +19,36 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.3.0 (2021-03-30)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-reporter`, `wdio-spec-reporter`
+  * [#6548](https://github.com/webdriverio/webdriverio/pull/6548) Implementation of grouped spec files for a single worker instance ([@RossVertizan](https://github.com/RossVertizan))
+* `devtools`, `webdriverio`
+  * [#6637](https://github.com/webdriverio/webdriverio/pull/6637) Implement`attachToSession` for devtools package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#6512](https://github.com/webdriverio/webdriverio/pull/6512) Issue #6511 fix  ([@patkunicki](https://github.com/patkunicki))
+* `wdio-runner`
+  * [#6629](https://github.com/webdriverio/webdriverio/pull/6629) Propagate connection details from capabilities ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-selenium-standalone-service`
+  * [#6628](https://github.com/webdriverio/webdriverio/pull/6628) Check caps in `@wdio/selenium-standalone-server` before modifying capabilities ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cucumber-framework`
+  * [#6619](https://github.com/webdriverio/webdriverio/pull/6619) Make CucumberOpts properties optional ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#6641](https://github.com/webdriverio/webdriverio/pull/6641) Fix name typo ([@klamping](https://github.com/klamping))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Ross Addinall ([@RossVertizan](https://github.com/RossVertizan))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@patkunicki](https://github.com/patkunicki)
+
+
 ## v7.2.2 (2021-03-22)
 
 #### :bug: Bug Fix
