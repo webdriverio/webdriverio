@@ -42,6 +42,6 @@ export function hasCapsWithSupportedBrowser (capabilities: Capabilities.Capabili
         return false
     }
     return SUPPORTED_CAPABILITIES.includes(
-        capabilities.browserName?.toLocaleLowerCase()
+        capabilities.browserName?.toLowerCase()
     )
 }
