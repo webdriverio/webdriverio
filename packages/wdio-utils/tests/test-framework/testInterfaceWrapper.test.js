@@ -44,7 +44,7 @@ describe('wrapTestFunction', () => {
     it('should run spec', () => {
         const specFn = jest.fn()
         const fn = wrapTestFunction(testFunction, true, 'beforeFn', () => [], 'afterFn', () => [], 'cid')
-        fn('test title', specFn, {})
+        fn('test title', specFn, { options: { foo: 'bar' } })
         expect(testFnWrapper).toBeCalledWith(
             'Test',
             { specFn, specFnArgs: ['foo', 'bar'] },
