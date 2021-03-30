@@ -7,9 +7,9 @@
  */
 import { remote, attach } from '../../packages/webdriverio'
 
-let browser;
+let browser
 
-(async () => {
+test('allow to attach to an existing session', async () => {
     browser = await remote({
         capabilities: {
             browserName: 'chrome'
@@ -23,7 +23,4 @@ let browser;
     expect(await otherBrowser.getTitle()).toBe('WebdriverJS Testpage')
 
     await otherBrowser.deleteSession()
-})().catch(async (e) => {
-    console.error(e)
-    await browser.deleteSession()
 })
