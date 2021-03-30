@@ -358,10 +358,12 @@ export default class ConfigParser {
         for (let pattern of patterns) {
             // If pattern is an array, then call getFilePaths again
             // But only call one level deep, can't have multiple levels of hierarchy
-            if (Array.isArray(pattern) && hierarchyDepth) {
+            if (Array.isArray(pattern) && !hierarchyDepth) {
                 // Will always only get a string array back
                 groupedFiles = <string[]>ConfigParser.getFilePaths(pattern, omitWarnings, findAndGlob, 1)
                 files.push(groupedFiles)
+            } else if (Array.isArray(pattern) && hierarchyDepth) {
+                log.error('Unexpected depth of hierarchical arrays')
             } else {
                 let filenames = findAndGlob.glob(<string>pattern)
                 filenames = filenames.filter(
@@ -373,7 +375,6 @@ export default class ConfigParser {
                 if (filenames.length === 0 && !omitWarnings) {
                     log.warn('pattern', pattern, 'did not match any file')
                 }
-
                 files = merge(files, filenames, MERGE_OPTIONS)
             }
         }
