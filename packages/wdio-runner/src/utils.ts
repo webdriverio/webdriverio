@@ -1,4 +1,3 @@
-import pick from 'lodash.pick'
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
@@ -69,10 +68,7 @@ export async function initialiseInstance (
         /**
          * propagate connection details defined by services or user in capabilities
          */
-        const { protocol, hostname, port, path } = pick(
-            capabilities as Capabilities.Capabilities,
-            ['protocol', 'hostname', 'port', 'path']
-        )
+        const { protocol, hostname, port, path } = capabilities as Capabilities.Capabilities
         return attach({ ...config, ...{ protocol, hostname, port, path } } as Required<ConfigWithSessionId>)
     }
 

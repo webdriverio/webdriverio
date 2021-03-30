@@ -28,14 +28,10 @@
     "@wdio/utils": "7.2.1",
     "deepmerge": "^4.0.0",
     "gaze": "^1.1.2",
-    "lodash.pick": "^4.4.0",
     "webdriver": "7.2.1",
     "webdriverio": "7.2.3"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "devDependencies": {
-    "@types/lodash.pick": "^4.4.6"
   }
 }
