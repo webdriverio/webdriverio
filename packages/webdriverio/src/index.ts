@@ -49,10 +49,9 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     }
 
     const prototype = getPrototype('browser')
-    const ProtocolDriver = require(automationProtocol).default
+    const ProtocolDriver = (await import(automationProtocol)).default
 
     params = Object.assign({}, detectBackend(params), params)
-    params.automationProtocol = automationProtocol
     await updateCapabilities(params, automationProtocol)
     const instance: WebdriverIO.Browser = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
@@ -77,14 +76,14 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     return instance
 }
 
-export const attach = function (params: AttachOptions): Browser<'async'> {
+export const attach = async function (params: AttachOptions): Promise<Browser<'async'>> {
     const prototype = getPrototype('browser')
 
     let automationProtocol = 'webdriver'
     if (params.options?.automationProtocol) {
         automationProtocol = params.options?.automationProtocol
     }
-    const ProtocolDriver = require(automationProtocol).default
+    const ProtocolDriver = (await import(automationProtocol)).default
     return ProtocolDriver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
 }
 

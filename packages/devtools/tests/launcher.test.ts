@@ -335,6 +335,6 @@ test('connect to existing browser session', async () => {
         }
     })
     expect(puppeteer.launch).not.toBeCalled()
-    expect((puppeteer.connect as jest.Mock))
+    expect(puppeteer.connect as jest.Mock)
         .toBeCalledWith({ browserURL: 'http://localhost:12345' })
 })
