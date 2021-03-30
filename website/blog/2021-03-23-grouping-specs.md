@@ -5,7 +5,7 @@ authorURL: http://twitter.com/rossaddinall
 authorImageURL: https://s.gravatar.com/avatar/340d9dcc2c732de725ea9d94bdfcfe82?s=80
 ---
 
-Until now, WebdriverIO has created a separate instance to run each of the spec files.  So, if we have a directory structure that looks something like this:
+Until now, WebdriverIO has created a separate instance to run each of the spec files. So, if we have a directory structure that looks something like this:
 
 ```
 test
