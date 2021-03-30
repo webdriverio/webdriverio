@@ -19,7 +19,7 @@ test
 and the config file has specs defined as follows:
 
 ```json
-"specs": [
+    "specs": [
         './test/specs/test*.js'
     ],
 ```
@@ -53,4 +53,3 @@ when run against the previously described directory tree would result in three i
 - A final instance would run test_b2.js
 
 It is only the specs definition that supports this syntax.
-
