@@ -29,7 +29,7 @@ This model has many advantages.  It means that tests can be run in parallel and 
 
 However, there are cases where this does not work so well.  In one case a users flow involved transpiling tens of thousands of Typescript files for each of the~250 test files, resulting in a huge overhead in the speed of the testing.  In another case a remote device farm was provisioning a new device for each test with all of the associated setup, impacting performance and cost.
 
-At Vertizan (https://www.vitaq.io) we are integrating our AI-driven and coverage-led Vitaq test automation tool with WebdriverIO and Mocha. For Vitaq AI to work, it needs to be able to select which test/action to run next and that requires having all of the tests available in a single instance.
+At [Vertizan](https://www.vitaq.io) we are integrating our AI-driven and coverage-led Vitaq test automation tool with WebdriverIO and Mocha. For Vitaq AI to work, it needs to be able to select which test/action to run next and that requires having all of the tests available in a single instance.
 
 Consequently, we have worked with the WebdriverIO team to implement a syntax which allows the user to specify which tests should be grouped together for execution in the same instance.  All of the three test execution frameworks (Mocha, Jasmine, Cucumber) are supported by this approach, and by default they will run the tests sequentially.
 
