@@ -300,8 +300,8 @@ describe('WebdriverIO module interface', () => {
     })
 
     describe('attach', () => {
-        it('attaches', () => {
-            attach({ sessionId: 'foobar' })
+        it('attaches', async () => {
+            await attach({ sessionId: 'foobar', capabilities: {} })
             expect(WebDriver.attachToSession).toBeCalled()
         })
     })
