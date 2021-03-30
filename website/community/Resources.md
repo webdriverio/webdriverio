@@ -27,5 +27,5 @@ There are many wonderful curated resources the WebdriverIO community has put tog
 
 ## Webinars
 
-- [Scale Your Automated Testing with BrowserStack and WebdriverIO](https://www.youtube.com/watch?v=bW3SM46xslE) by Kevin Klamping
+- [Scale Your Automated Testing with BrowserStack and WebdriverIO](https://www.youtube.com/watch?v=bW3SM46xslE) by Kevin Lamping
 - [WebdriverIO - Bootstrap your test suite in mins](https://www.youtube.com/watch?v=a7tdIkTeM0o) by Shweta Varma
