@@ -51,6 +51,15 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     Automation Engineering Manager at <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
 </Card>
 
+<Card
+    name="Wim Selles"
+    avatar="https://avatars2.githubusercontent.com/u/11979740?s=460"
+    github="wswebcreation"
+    twitter="wswebcreation"
+>
+    Senior Solutions Architect <a href="https://saucelabs.com/">@saucelabs</a>.
+</Card>
+
 ## Project Collaborators
 
 <Card
@@ -59,15 +68,6 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="baruchvlz"
     twitter="baruchvelez"
 >
-</Card>
-
-<Card
-    name="Wim Selles"
-    avatar="https://avatars2.githubusercontent.com/u/11979740?s=460"
-    github="wswebcreation"
-    twitter="wswebcreation"
->
-    Senior Solution Architect <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
 and [many many more](https://github.com/orgs/webdriverio/people).
