@@ -163,7 +163,7 @@ export default class DevTools {
         }
 
         const monad = webdriverMonad(
-            { ...options },
+            options,
             modifier,
             prototype
         )
