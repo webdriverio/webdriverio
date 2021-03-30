@@ -118,7 +118,7 @@ To group tests to run in a single instance, simply define them as an array withi
         "./test/specs/test_b*.js",
     ],
 ```
-In the example above, all of the "test_a*" tests will be run sequentially in a single instance and each of the "test_b*" tests will run concurrently in individual instances.
+In the example above, the tests 'test_login.js', 'test_product_order.js' and 'test_checkout.js' will be run sequentially in a single instance and each of the "test_b*" tests will run concurrently in individual instances.
 
 ## Run Selected Tests
 
