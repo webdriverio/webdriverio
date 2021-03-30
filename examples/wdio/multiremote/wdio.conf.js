@@ -4,7 +4,9 @@ exports.config = {
     /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, 'mocha.test.js')],
+    specs: [
+        [path.resolve(__dirname, '*.test.js')]
+    ],
 
     /**
      * capabilities

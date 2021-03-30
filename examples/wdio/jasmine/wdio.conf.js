@@ -1,10 +1,11 @@
 const path = require('path')
 
 exports.config = {
+
     /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, 'jasmine.spec.js')],
+    specs: [[path.resolve(__dirname, '*.spec.js')]],
 
     /**
      * capabilities

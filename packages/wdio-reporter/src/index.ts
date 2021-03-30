@@ -31,6 +31,8 @@ export default class WDIOReporter extends EventEmitter {
     retries = 0
     runnerStat?: RunnerStats
     isContentPresent = false
+    specs: string[] = []
+    currentSpec?: string
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -49,6 +51,7 @@ export default class WDIOReporter extends EventEmitter {
         const rootSuite = new SuiteStats({
             title: '(root)',
             fullTitle: '(root)',
+            file: ''
         })
         this.currentSuites.push(rootSuite)
 
@@ -57,11 +60,23 @@ export default class WDIOReporter extends EventEmitter {
 
         this.on('runner:start', /* istanbul ignore next */ (runner: Runner) => {
             rootSuite.cid = runner.cid
+            this.specs.push(...runner.specs)
             this.runnerStat = new RunnerStats(runner)
             this.onRunnerStart(this.runnerStat)
         })
 
         this.on('suite:start', /* istanbul ignore next */ (params: Suite) => {
+            /**
+             * the jasmine framework doesn't give us information about the file
+             * therefor we need to propagate these information into params
+             */
+            if (!params.file) {
+                params.file = !params.parent
+                    ? this.specs.shift() || 'unknown spec file'
+                    : this.currentSpec!
+                this.currentSpec = params.file
+            }
+
             const suite = new SuiteStats(params)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.suites.push(suite)

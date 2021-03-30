@@ -91,6 +91,36 @@ describe('launcher', () => {
             expect(launcher.runSpecs).toBeCalledTimes(1)
         })
 
+        it('should start instance with grouped specs', () => {
+            launcher.runSpecs = jest.fn()
+            launcher.isMultiremote = false
+            launcher.runMode(
+                { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
+                [caps]
+            )
+
+            expect(launcher['_schedule']).toHaveLength(1)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+
+            expect(typeof launcher['_resolve']).toBe('function')
+            expect(launcher.runSpecs).toBeCalledTimes(1)
+        })
+
+        it('should start instance in multiremote with grouped specs', () => {
+            launcher.runSpecs = jest.fn()
+            launcher.isMultiremote = true
+            launcher.runMode(
+                { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
+                { foo: { capabilities: { browserName: 'chrome' } } }
+            )
+
+            expect(launcher['_schedule']).toHaveLength(1)
+            expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
+
+            expect(typeof launcher['_resolve']).toBe('function')
+            expect(launcher.runSpecs).toBeCalledTimes(1)
+        })
+
         it('should ignore specFileRetries in watch mode', () => {
             launcher.runSpecs = jest.fn()
             launcher['_isWatchMode'] = true
@@ -257,7 +287,7 @@ describe('launcher', () => {
 
     describe('getNumberOfSpecsLeft', () => {
         it('should return number of spec', () => {
-            launcher['_schedule'] = [{ specs: [1, 2, 3] }, { specs: [1, 2] }] as any
+            launcher['_schedule'] = [{ specs: [1, 2, [3, 4, 5]] }, { specs: [1, 2] }] as any
             expect(launcher.getNumberOfSpecsLeft()).toBe(5)
         })
     })
@@ -266,6 +296,27 @@ describe('launcher', () => {
         it('should return number of spec', () => {
             launcher['_schedule'] = [{ runningInstances: 3 }, { runningInstances: 2 }] as any
             expect(launcher.getNumberOfRunningInstances()).toBe(5)
+        })
+    })
+
+    describe('formatSpecs', () => {
+        it('should return correctly formatted specs', () => {
+            // Define a capabilities that is sent to formatSpecs
+            // - only used in function call
+            const capabilities = { specs: ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js'] }
+            const specFileRetries = 17
+            // Define the golden result
+            const expected = [
+                { 'files': ['/a.js'], 'retries': 17 },
+                { 'files': ['/b.js', '/c.js', '/d.js'], 'retries': 17 },
+                { 'files': ['/e.js'], 'retries': 17 },
+            ]
+            // Mock the return value of getSpecs so we are not doing cross
+            // module testing
+            launcher.configParser = { getSpecs: jest.fn().mockReturnValue(
+                ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js']
+            ) } as any
+            expect(launcher.formatSpecs(capabilities, specFileRetries)).toStrictEqual(expected)
         })
     })
 
@@ -316,6 +367,43 @@ describe('launcher', () => {
             expect(launcher['_schedule'][0].availableInstances).toBe(47)
             expect(launcher['_schedule'][1].runningInstances).toBe(4)
             expect(launcher['_schedule'][1].availableInstances).toBe(56)
+            expect(launcher['_schedule'][2].runningInstances).toBe(2)
+            expect(launcher['_schedule'][2].availableInstances).toBe(68)
+        })
+
+        it('should run arrayed specs in a single instance', () => {
+            launcher.configParser = { getConfig: jest.fn().mockReturnValue({
+                maxInstances: 100
+            }) } as any
+            launcher['_schedule'] = [{
+                cid: 0,
+                caps: { browserName: 'chrome' },
+                specs: ['/a.js', ['b.js', 'c.js']],
+                availableInstances: 50,
+                runningInstances: 0,
+                seleniumServer: {}
+            }, {
+                cid: 1,
+                caps: { browserName: 'chrome2' },
+                specs: [['/a.js', 'b.js', 'c.js', 'd.js']],
+                availableInstances: 60,
+                runningInstances: 0,
+                seleniumServer: {}
+            }, {
+                cid: 1,
+                caps: { browserName: 'chrome2' },
+                specs: [['/a.js'], 'b.js'],
+                availableInstances: 70,
+                runningInstances: 0,
+                seleniumServer: {}
+            }] as any
+            expect(launcher.runSpecs()).toBe(false)
+            expect(launcher.getNumberOfRunningInstances()).toBe(5)
+            expect(launcher.getNumberOfSpecsLeft()).toBe(0)
+            expect(launcher['_schedule'][0].runningInstances).toBe(2)
+            expect(launcher['_schedule'][0].availableInstances).toBe(48)
+            expect(launcher['_schedule'][1].runningInstances).toBe(1)
+            expect(launcher['_schedule'][1].availableInstances).toBe(59)
             expect(launcher['_schedule'][2].runningInstances).toBe(2)
             expect(launcher['_schedule'][2].availableInstances).toBe(68)
         })
