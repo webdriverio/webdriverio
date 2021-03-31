@@ -21,7 +21,7 @@ module.exports = {
     },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',
-        metadatas: [{name: 'twitter:card', content: 'summary'}],
+        metadatas: [{ name: 'twitter:card', content: 'summary' }],
         colorMode: {
             defaultMode: 'light',
             disableSwitch: false,
@@ -133,6 +133,12 @@ module.exports = {
                 items: [{
                     label: 'Tidelift Subscription',
                     to: 'https://webdriver.io/docs/enterprise.html',
+                }, {
+                    label: 'Donate to WebdriverIO',
+                    href: 'https://opencollective.com/webdriverio',
+                }, {
+                    label: 'Swag Store',
+                    href: 'http://shop.webdriverio.io',
                 }, {
                     label: 'Blog',
                     to: 'blog',

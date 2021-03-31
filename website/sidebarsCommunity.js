@@ -3,6 +3,7 @@ module.exports = {
         'support',
         'team',
         'resources',
-        'materials'
+        'materials',
+        'donate'
     ]
 }

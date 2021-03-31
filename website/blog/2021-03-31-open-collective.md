@@ -9,6 +9,8 @@ Today the WebdriverIO team announced in their [OpenJS Foundation](https://openjs
 
 If your company uses WebdriverIO and benefits from it, please ask your manager or your marketing team to support the project by donating to the collective. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone.
 
+As part of this we also like to announce the official WebdriverIO Swag Store: [shop.webdriver.io](http://shop.webdriver.io), which will be used as an income source for the collective. All purchases from that store will directly go into our fund and to you.
+
 We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
 
 #### Event Expenses
