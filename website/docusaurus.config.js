@@ -138,7 +138,7 @@ module.exports = {
                     href: 'https://opencollective.com/webdriverio',
                 }, {
                     label: 'Swag Store',
-                    href: 'http://shop.webdriverio.io',
+                    href: 'http://shop.webdriver.io',
                 }, {
                     label: 'Blog',
                     to: 'blog',
