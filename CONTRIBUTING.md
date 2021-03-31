@@ -19,6 +19,7 @@ You can participate by:
 - spread the good word about the project (e.g. via Twitter)
 - create bugs if you discover them while using WebdriverIO
 - make feature requests if you are missing something in the project
+- if you'd like to support us monetarily, consider [donating to the project](https://webdriver.io/community/donate)
 
 The maintainers of the project try to organize all [issues](https://github.com/webdriverio/webdriverio/issues) in the way that should allow anyone to have enough context to start working on it. If this is not the case please mention it in the issue thread so that either the issue creator or a maintainer can provide more information.
 
