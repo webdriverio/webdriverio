@@ -13,16 +13,17 @@ import type { Size } from './commands/element/getSize'
 
 export type BrowserCommandsType = typeof BrowserCommands
 export type BrowserCommandsTypeSync = {
-    [K in keyof Omit<BrowserCommandsType, 'execute'>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<ReturnType<BrowserCommandsType[K]>>
+    [K in keyof Omit<BrowserCommandsType, 'execute' | 'call'>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<ReturnType<BrowserCommandsType[K]>>
 } & {
     /**
      * we need to copy type definitions for execute and executeAsync as we can't copy over
      * generics with method used above
      */
+    call: <T>(fn: () => Promise<T>) => T,
     execute: <ReturnValue, InnerArguments extends any[] = any[], OuterArguments extends InnerArguments = any>(
         script: string | ((...innerArgs: OuterArguments) => ReturnValue),
         ...args: InnerArguments
-    ) => ReturnValue
+    ) => ReturnValue,
 }
 export type ElementCommandsType = typeof ElementCommands
 export type ElementCommandsTypeSync = {
