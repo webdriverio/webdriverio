@@ -27,6 +27,14 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
 </Card>
 
 <Card
+    name="Erwin Heitzman"
+    avatar="https://avatars.githubusercontent.com/u/15839059?s=460"
+    github="erwinheitzman"
+>
+    Test Automation Engineer at Malmberg.
+</Card>
+
+<Card
     name="Kevin Lamping"
     avatar="https://avatars0.githubusercontent.com/u/706039?s=460"
     github="klamping"
