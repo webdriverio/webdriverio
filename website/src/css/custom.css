@@ -146,7 +146,8 @@ html[data-theme=dark] {
 .githubProfile {
     margin-left: 10px;
 }
-.twitterProfile svg {
+.twitterProfile svg,
+.githubProfile svg {
     width: 23px;
     color: #1B98E4;
     transform: translate(0, 3px);
