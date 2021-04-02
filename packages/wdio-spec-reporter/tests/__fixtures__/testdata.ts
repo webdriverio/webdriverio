@@ -16,6 +16,7 @@ export const SUITES = {
     [suiteIds[0]]: {
         uid: suiteIds[0],
         title: suiteIds[0].slice(0, -1),
+        file: '/foo/bar/loo.e2e.js',
         hooks: [],
         tests: [{
             uid: 'foo1',
@@ -32,6 +33,7 @@ export const SUITES = {
     [suiteIds[1]]: {
         uid: suiteIds[1],
         title: suiteIds[1].slice(0, -1),
+        file: '/bar/foo/loo.e2e.js',
         hooks: [],
         tests: [{
             uid: 'some test1',
@@ -59,6 +61,7 @@ export const SUITES = {
     [suiteIds[2]]: {
         uid: suiteIds[2],
         title: suiteIds[2].slice(0, -1),
+        file: '/bar/loo/foo.e2e.js',
         hooks: [],
         tests: [{
             uid: 'foo bar baz1',
@@ -83,6 +86,7 @@ export const SUITES_WITH_DATA_TABLE = {
         uid: suiteIds[0],
         title: suiteIds[0].slice(0, -1),
         description: '\tSome important\ndescription to read!',
+        file: '/foo/bar/loo.e2e.js',
         hooks: [],
         tests: [{
             uid: 'foo1',
@@ -137,6 +141,7 @@ export const SUITES_MULTIPLE_ERRORS = {
     [suiteIds[0]]: {
         uid: suiteIds[0],
         title: suiteIds[0].slice(0, -1),
+        file: '/foo/bar/loo.e2e.js',
         hooks: [],
         tests: [{
             uid: 'foo1',
@@ -153,6 +158,7 @@ export const SUITES_MULTIPLE_ERRORS = {
     [suiteIds[1]]: {
         uid: suiteIds[1],
         title: suiteIds[1].slice(0, -1),
+        file: '/bar/foo/loo.e2e.js',
         hooks: [],
         tests: [{
             uid: 'some test1',
@@ -183,6 +189,7 @@ export const SUITES_NO_TESTS = {
     [suiteIds[0]]: {
         uid: suiteIds[0],
         title: suiteIds[0].slice(0, -1),
+        file: '/foo/bar/loo.e2e.js',
         tests: [],
         suites: [],
         hooks: [],
@@ -194,6 +201,7 @@ export const SUITES_NO_TESTS_WITH_HOOK_ERROR = {
     [suiteIds[0]]: {
         uid: suiteIds[0],
         title: suiteIds[0].slice(0, -1),
+        file: '/foo/bar/loo.e2e.js',
         tests: [],
         suites: [],
         hooks: [{

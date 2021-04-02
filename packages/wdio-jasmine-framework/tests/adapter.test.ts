@@ -21,8 +21,10 @@ const wdioReporter: EventEmitter = {
 const hookPayload = (type: string, error?: Error) => ({
     id: '',
     description: `"${type} all" hook`,
+    duration: null,
     ...(error ? { error } : {}),
     fullName: `"${type} all" hook`,
+    properties: {},
     start: expect.any(Date),
     type: 'hook'
 })

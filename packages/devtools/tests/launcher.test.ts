@@ -120,6 +120,9 @@ test('launch chrome with chrome port', async () => {
         browserName: 'chrome',
         'goog:chromeOptions': {
             debuggerAddress: '127.0.0.1:8041'
+        },
+        'wdio:devtoolsOptions': {
+            customDebuggerAddress: true
         }
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
@@ -322,4 +325,16 @@ test('launch Edge without Puppeteer default args (backwards compat)', async () =
         }
     })
     expect((puppeteer.launch as jest.Mock).mock.calls).toMatchSnapshot()
+})
+
+test('connect to existing browser session', async () => {
+    await launch({
+        browserName: 'edge',
+        'ms:edgeOptions': {
+            debuggerAddress: 'localhost:12345'
+        }
+    })
+    expect(puppeteer.launch).not.toBeCalled()
+    expect(puppeteer.connect as jest.Mock)
+        .toBeCalledWith({ browserURL: 'http://localhost:12345' })
 })

@@ -199,7 +199,7 @@ class Launcher {
             this._schedule.push({
                 cid: cid++,
                 caps: caps as Capabilities.MultiRemoteCapabilities,
-                specs: this.configParser.getSpecs((caps as Capabilities.DesiredCapabilities).specs, (caps as Capabilities.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                specs: this.formatSpecs(caps, specFileRetries),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
@@ -211,7 +211,7 @@ class Launcher {
                 this._schedule.push({
                     cid: cid++,
                     caps: capabilities as Capabilities.Capabilities,
-                    specs: this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                    specs: this.formatSpecs(capabilities, specFileRetries),
                     availableInstances: (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability,
                     runningInstances: 0
                 })
@@ -235,6 +235,25 @@ class Launcher {
             if (this.runSpecs()) {
                 resolve(0)
             }
+        })
+    }
+
+    /**
+     * Format the specs into an array of objects with files and retries
+     */
+    formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
+        let files: (string | string[])[] = []
+
+        files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
+        return files.map(file => {
+            if (typeof file === 'string') {
+                return { files: [file], retries: specFileRetries }
+            } else if (Array.isArray(file)) {
+                return { files: file, retries: specFileRetries }
+            }
+            log.warn('Unexpected entry in specs that is neither string nor array: ', file)
+            // Returning an empty structure to avoid undefined
+            return { files: [], retries: specFileRetries }
         })
     }
 

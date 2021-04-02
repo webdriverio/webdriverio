@@ -18,12 +18,12 @@ function GitHubLink ({ url }) {
     }
 
     return (
-        <a
-            href={url}
+        <a href={url}
             className="githubProfile"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="GitHub profile">
+            aria-label="GitHub profile"
+        >
         </a>
     )
 }

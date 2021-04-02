@@ -120,14 +120,18 @@ export default class JasmineReporter {
             this.specStarted({
                 id,
                 description: '<unknown test>',
-                fullName: '<unknown test>'
+                fullName: '<unknown test>',
+                duration: null,
+                properties: {}
             })
             this.specDone({
                 id,
                 description: '<unknown test>',
                 fullName: '<unknown test>',
                 failedExpectations: suite.failedExpectations,
-                status: 'failed'
+                status: 'failed',
+                duration: null,
+                properties: {}
             })
         }
 

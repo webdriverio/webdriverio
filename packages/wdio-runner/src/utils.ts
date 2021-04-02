@@ -64,7 +64,12 @@ export async function initialiseInstance (
     if (config.sessionId) {
         log.debug(`attach to session with id ${config.sessionId}`)
         config.capabilities = sanitizeCaps(capabilities)
-        return attach({ ...config } as Required<ConfigWithSessionId>)
+
+        /**
+         * propagate connection details defined by services or user in capabilities
+         */
+        const { protocol, hostname, port, path } = capabilities as Capabilities.Capabilities
+        return attach({ ...config, ...{ protocol, hostname, port, path } } as Required<ConfigWithSessionId>)
     }
 
     if (!isMultiremote) {

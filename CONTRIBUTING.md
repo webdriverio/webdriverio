@@ -19,6 +19,7 @@ You can participate by:
 - spread the good word about the project (e.g. via Twitter)
 - create bugs if you discover them while using WebdriverIO
 - make feature requests if you are missing something in the project
+- if you'd like to support us monetarily, consider [donating to the project](https://webdriver.io/community/donate)
 
 The maintainers of the project try to organize all [issues](https://github.com/webdriverio/webdriverio/issues) in the way that should allow anyone to have enough context to start working on it. If this is not the case please mention it in the issue thread so that either the issue creator or a maintainer can provide more information.
 
@@ -149,7 +150,7 @@ $ cd ./examples/wdio
 $ npm run test:mocha
 ```
 
-This will run a simple test suite using the testrunner with Mochajs. There are similar examples for other frameworks, custom services and reporters as well as using the devtools prototocl as automation engine. Feel free to add examples if they help testing features you are working on.
+This will run a simple test suite using the testrunner with Mochajs. There are similar examples for other frameworks, custom services and reporters as well as using the devtools protocol as automation engine. Feel free to add examples if they help testing features you are working on.
 
 ### Test Pipeline
 
@@ -237,7 +238,7 @@ There is one [`smoke.runner.js`](https://github.com/webdriverio/webdriverio/blob
 $ npm run test:smoke mochaTestrunner
 ```
 
-Every of these test suites are functions that trigger the wdio testrunner programatically using the [`launch`](https://github.com/webdriverio/webdriverio/blob/main/tests/helpers/launch.js) helper method. All you need to pass in is a path to your config file and with what you want to overwrite the config. Most of the smoke test use a [common config file](https://github.com/webdriverio/webdriverio/blob/main/tests/helpers/config.js) and overwrite properties specific for their use case.
+Every of these test suites are functions that trigger the wdio testrunner programmatically using the [`launch`](https://github.com/webdriverio/webdriverio/blob/main/tests/helpers/launch.js) helper method. All you need to pass in is a path to your config file and with what you want to overwrite the config. Most of the smoke test use a [common config file](https://github.com/webdriverio/webdriverio/blob/main/tests/helpers/config.js) and overwrite properties specific for their use case.
 
 If you test custom WebDriver commands, you can define your own scenario of mock responses in the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-webdriver-mock-service/src/index.js#L136-L147).
 
@@ -292,7 +293,7 @@ This repository contains everything to set up, build and deploy the WebdriverIO 
 - the protocol APIs from the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/protocols) package
 - the WebdriverIO API that is parsed out of the JSDoc comments of individual commands (e.g., [`execute`](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/commands/browser/execute.js#L2-L36) command)
 
-Changes to the docs need to be done in one of these places. Please note that changes to e.g. the config file have to be updated in multiple places given that config files are wide spread (as examples or test files) within this repository. A good way to go about this is to look for all occurences of a certain string of the config and update changes in all findings.
+Changes to the docs need to be done in one of these places. Please note that changes to e.g. the config file have to be updated in multiple places given that config files are wide spread (as examples or test files) within this repository. A good way to go about this is to look for all occurrences of a certain string of the config and update changes in all findings.
 
 ### Deploying the Documentation Locally
 

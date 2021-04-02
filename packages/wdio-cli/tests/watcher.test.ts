@@ -103,6 +103,28 @@ describe('watcher', () => {
         expect(chokidar.watch).toHaveBeenCalledTimes(1)
     })
 
+    it('should run initial suite when starting watching with grouped specs', async () => {
+        const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
+        const watcher = new Watcher(wdioConf, {})
+        watcher['_launcher'] = {
+            run: jest.fn(),
+            interface: {
+                finalise: jest.fn()
+            },
+            configParser: {
+                getConfig: jest.fn().mockReturnValue({ filesToWatch: [] })
+            },
+            runner: {
+                workerPool: {
+                    '0-0': new WorkerMock(<WorkerMockRunPayload>{ specs: ['/a.js', ['/b.js', '/c.js', '/d.js'], 'e.js'] })
+                }
+            }
+        } as any
+        await watcher.watch()
+
+        expect(chokidar.watch).toHaveBeenCalledTimes(1)
+    })
+
     it('should run also watch `filesToWatch` files', async () => {
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
@@ -270,6 +292,59 @@ describe('watcher', () => {
         const filesToWatch = ['/some/another/path.js']
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
+        watcher['_launcher'] = {
+            __args: { spec },
+            run: jest.fn(),
+            interface: {
+                emit: jest.fn(),
+                finalise: jest.fn()
+            },
+            configParser: {
+                getConfig: jest.fn().mockReturnValue({ filesToWatch })
+            },
+            runner: {
+                workerPool: {
+                    '0-0': new WorkerMock({ cid: '0-0', specs: [spec[0]] }),
+                    '0-1': new WorkerMock({ cid: '0-1', specs: [spec[1]] })
+                }
+            }
+        } as any
+        const runSpy = jest.spyOn(watcher, 'run')
+        const emitSpy = watcher['_launcher'].interface.emit
+        watcher.cleanUp = jest.fn()
+        await watcher.watch()
+
+        // @ts-ignore mock feature
+        ;(chokidar.on as jest.Mock).mock.calls[0][1](spec[0])
+        expect(runSpy).toHaveBeenNthCalledWith(1, { spec: spec[0] })
+        expect(emitSpy).toHaveBeenCalledTimes(1) // Only one Worker called
+
+        ;(emitSpy as jest.Mock).mockClear()
+        // @ts-ignore mock feature
+        ;(chokidar.on as jest.Mock).mock.calls[1][1](someOtherExcludedPath)
+        expect(runSpy).toHaveBeenNthCalledWith(2, { spec: someOtherExcludedPath })
+        expect(emitSpy).not.toHaveBeenCalled() // No Workers called
+
+        ;(emitSpy as jest.Mock).mockClear()
+        // @ts-ignore mock feature
+        ;(chokidar.on as jest.Mock).mock.calls[2][1](filesToWatch[0])
+        expect(runSpy).toHaveBeenNthCalledWith(3, {})
+        expect(emitSpy).toHaveBeenCalledTimes(2) // Both Workers called
+
+        ;(emitSpy as jest.Mock).mockClear()
+        // @ts-ignore mock feature
+        ;(chokidar.on as jest.Mock).mock.calls[3][1](filesToWatch[0])
+        expect(runSpy).toHaveBeenNthCalledWith(4, {})
+        expect(emitSpy).toHaveBeenCalledTimes(2) // Both Workers called
+    })
+
+    it('should re-run all specs, with grouped specs, when the --spec command line option is set and a filesToWatch file is added or changed', async () => {
+        const spec = ['/a.js', ['/b.js', '/c.js', '/d.js']]
+        const someOtherExcludedPath = '/some/other/excluded/path.js'
+        const filesToWatch = ['/some/another/path.js']
+        const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
+        const watcher = new Watcher(wdioConf, {})
+        // @ts-ignore
         watcher['_launcher'] = {
             __args: { spec },
             run: jest.fn(),

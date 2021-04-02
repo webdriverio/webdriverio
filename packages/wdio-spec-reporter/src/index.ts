@@ -163,10 +163,7 @@ export default class SpecReporter extends WDIOReporter {
         const combo = this.getEnviromentCombo(runner.capabilities, undefined, runner.isMultiremote).trim()
 
         // Spec file name and enviroment information
-        const output = [
-            `Spec: ${runner.specs[0]}`,
-            `Running: ${combo}`
-        ]
+        const output = [`Running: ${combo}`]
 
         /**
          * print session ID if not multiremote
@@ -205,6 +202,7 @@ export default class SpecReporter extends WDIOReporter {
     getResultDisplay () {
         const output = []
         const suites = this.getOrderedSuites()
+        const specFileReferences: string[] = []
 
         for (const suite of suites) {
             // Don't do anything if a suite has no tests or sub suites
@@ -214,6 +212,12 @@ export default class SpecReporter extends WDIOReporter {
 
             // Get the indent/starting point for this suite
             const suiteIndent = this.indent(suite.uid)
+
+            // Display file path of spec
+            if (!specFileReferences.includes(suite.file)) {
+                output.push(`${suiteIndent}» ${suite.file.replace(process.cwd(), '')}`)
+                specFileReferences.push(suite.file)
+            }
 
             // Display the title of the suite
             output.push(`${suiteIndent}${suite.title}`)
