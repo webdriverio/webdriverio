@@ -31,7 +31,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     avatar="https://avatars.githubusercontent.com/u/15839059?s=460"
     github="erwinheitzman"
 >
-    Test Automation Engineer at Malmberg.
+    Senior Test Automation Engineer at <a href="https://detesters.nl/">deTesters</a>.
 </Card>
 
 <Card
