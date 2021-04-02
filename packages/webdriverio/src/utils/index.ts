@@ -101,11 +101,11 @@ export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browse
 /**
  * transform whatever value is into an array of char strings
  */
-export function transformToCharString (value: any, translateToUnicode = true) {
+export function toUnicodeCharacterArray (value: string | number | (string|number)[], translateToUnicode = true) {
     const ret: string[] = []
 
     if (!Array.isArray(value)) {
-        value = [value]
+        value = [value as (number | number)]
     }
 
     for (const val of value) {
@@ -115,13 +115,6 @@ export function transformToCharString (value: any, translateToUnicode = true) {
                 : ret.push(...`${val}`.split(''))
         } else if (typeof val === 'number') {
             const entry = `${val}`.split('')
-            ret.push(...entry)
-        } else if (val && typeof val === 'object') {
-            try {
-                ret.push(...JSON.stringify(val).split(''))
-            } catch (e) { /* ignore */ }
-        } else if (typeof val === 'boolean') {
-            const entry = val ? 'true'.split('') : 'false'.split('')
             ret.push(...entry)
         }
     }

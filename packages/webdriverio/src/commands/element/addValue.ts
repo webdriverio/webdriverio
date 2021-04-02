@@ -1,10 +1,10 @@
-import { transformToCharString } from '../../utils'
+import { toUnicodeCharacterArray } from '../../utils'
 
-export type AddValueOptions = {
+export type CommandOptions = {
     translateToUnicode?: boolean
 }
 
-type Value = string | number
+export type Value = string | number
 
 /**
  *
@@ -28,19 +28,19 @@ type Value = string | number
  * </example>
  *
  * @alias element.addValue
- * @param {string | number | Array<string> | Array<number>} value                       value to be added
- * @param {AddValueOptions=}                                options                     command options (optional)
+ * @param {string | number | Array<string | number>}        value                       value to be added
+ * @param {CommandOptions=}                                 options                     command options (optional)
  * @param {boolean}                                         options.translateToUnicode  enable translation string to unicode value automatically
  *
  */
 export default function addValue (
     this: WebdriverIO.Element,
     value: Value | Value[],
-    { translateToUnicode = true }: AddValueOptions = {}
+    { translateToUnicode = true }: CommandOptions = {}
 ) {
     if (!this.isW3C) {
-        return this.elementSendKeys(this.elementId, transformToCharString(value as string[], translateToUnicode) as any as string)
+        return this.elementSendKeys(this.elementId, toUnicodeCharacterArray(value, translateToUnicode) as any as string)
     }
 
-    return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode).join(''))
+    return this.elementSendKeys(this.elementId, toUnicodeCharacterArray(value, translateToUnicode).join(''))
 }

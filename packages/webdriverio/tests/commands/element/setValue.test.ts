@@ -37,16 +37,10 @@ describe('setValue', () => {
         expect(got.mock.calls[3][1].json.text).toEqual('42')
     })
 
-    test('should stringify object', async () => {
+    test('should stringify Array<string | number>', async () => {
         const elem = await browser.$('#foo')
-        await elem.setValue({ a: 22 })
-        expect(got.mock.calls[3][1].json.text).toEqual('{"a":22}')
-    })
-
-    test('should stringify Array<any>', async () => {
-        const elem = await browser.$('#foo')
-        await elem.setValue([1, '2', true, [1, 2]])
-        expect(got.mock.calls[3][1].json.text).toEqual('12true[1,2]')
+        await elem.setValue([1, '2'])
+        expect(got.mock.calls[3][1].json.text).toEqual('12')
     })
 
     test('should set the value clearning the element first', async () => {

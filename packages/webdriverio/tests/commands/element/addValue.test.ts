@@ -39,30 +39,12 @@ describe('addValue test', () => {
             expect(got.mock.calls[2][1].json.value).toEqual(undefined)
         })
 
-        it('add object', async () => {
+        it('add Array<string | number>', async () => {
             const elem = await browser.$('#foo')
-            await elem.addValue({ a: 42 })
+            await elem.addValue([2, '3'])
             expect(got.mock.calls[2][0].pathname)
                 .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.text).toEqual('{"a":42}')
-            expect(got.mock.calls[2][1].json.value).toEqual(undefined)
-        })
-
-        it('add boolean', async () => {
-            const elem = await browser.$('#foo')
-            await elem.addValue(true)
-            expect(got.mock.calls[2][0].pathname)
-                .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.text).toEqual('true')
-            expect(got.mock.calls[2][1].json.value).toEqual(undefined)
-        })
-
-        it('add Array<any>', async () => {
-            const elem = await browser.$('#foo')
-            await elem.addValue([2, '3', true, [1, 2]])
-            expect(got.mock.calls[2][0].pathname)
-                .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.text).toEqual('23true[1,2]')
+            expect(got.mock.calls[2][1].json.text).toEqual('23')
             expect(got.mock.calls[2][1].json.value).toEqual(undefined)
         })
     })
@@ -104,36 +86,14 @@ describe('addValue test', () => {
             expect(got.mock.calls[2][1].json.text).toEqual(undefined)
         })
 
-        it('add object', async () => {
+        it('add Array<string | number>', async () => {
             const elem = await browser.$('#foo')
 
-            await elem.addValue({ a: 42 })
+            await elem.addValue([1, '2'])
             expect(got.mock.calls[2][0].pathname)
                 .toBe('/session/foobar-123/element/some-elem-123/value')
             expect(got.mock.calls[2][1].json.value)
-                .toEqual(['{', '"', 'a', '"', ':', '4', '2', '}'])
-            expect(got.mock.calls[2][1].json.text).toEqual(undefined)
-        })
-
-        it('add boolean', async () => {
-            const elem = await browser.$('#foo')
-
-            await elem.addValue(true)
-            expect(got.mock.calls[2][0].pathname)
-                .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.value)
-                .toEqual(['t', 'r', 'u', 'e'])
-            expect(got.mock.calls[2][1].json.text).toEqual(undefined)
-        })
-
-        it('add Array<any>', async () => {
-            const elem = await browser.$('#foo')
-
-            await elem.addValue([1, '2', true, [1, 2]])
-            expect(got.mock.calls[2][0].pathname)
-                .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.value)
-                .toEqual(['1', '2', 't', 'r', 'u', 'e', '[', '1', ',', '2', ']'])
+                .toEqual(['1', '2'])
             expect(got.mock.calls[2][1].json.text).toEqual(undefined)
         })
     })
