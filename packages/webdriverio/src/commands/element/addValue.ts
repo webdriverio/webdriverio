@@ -7,10 +7,10 @@ export type CommandOptions = {
 export type Value = string | number
 
 function isValidType(value: unknown) {
-    const isNumberOrString = (_: unknown) => typeof _ === 'string' || typeof _ === 'number'
+    const isNumberOrString = (input: unknown) => typeof input === 'string' || typeof input === 'number'
 
     return (
-        isNumberOrString(value)) ||
+        isNumberOrString(value) ||
         Array.isArray(value) && value.every((item) => isNumberOrString(item))
     )
 }
