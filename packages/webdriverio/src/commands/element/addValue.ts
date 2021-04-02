@@ -9,12 +9,10 @@ export type Value = string | number
 function isValidType(value: unknown) {
     const isNumberOrString = (_: unknown) => typeof _ === 'string' || typeof _ === 'number'
 
-    if (isNumberOrString(value)) {
-        return true
-    } else if (Array.isArray(value) && value.every((item) => isNumberOrString(item))) {
-        return true
-    }
-    return false
+    return (
+        isNumberOrString(value)) ||
+        Array.isArray(value) && value.every((item) => isNumberOrString(item))
+    )
 }
 
 /**
