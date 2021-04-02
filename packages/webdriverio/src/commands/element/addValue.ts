@@ -6,6 +6,17 @@ export type CommandOptions = {
 
 export type Value = string | number
 
+function isValidType(value: unknown) {
+    const isNumberOrString = (_: unknown) => typeof _ === 'string' || typeof _ === 'number';
+
+    if (isNumberOrString(value)) {
+        return true;
+    } else if (Array.isArray(value) && value.every((item) => isNumberOrString(item))) {
+        return true;
+    }
+    return false;
+}
+
 /**
  *
  * Add a value to an object found by given selector. You can also use unicode
@@ -38,6 +49,10 @@ export default function addValue (
     value: Value | Value[],
     { translateToUnicode = true }: CommandOptions = {}
 ) {
+    if (!isValidType(value)) {
+        throw new TypeError('Value must be of type "string", "number" or "Array<string | number>"');
+    }
+
     if (!this.isW3C) {
         return this.elementSendKeys(this.elementId, toUnicodeCharacterArray(value, translateToUnicode) as any as string)
     }

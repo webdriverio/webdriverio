@@ -122,4 +122,29 @@ describe('addValue test', () => {
             expect(got.mock.calls[2][1].json.text).toEqual('Delete')
         })
     })
+
+    describe('when passing invalid types', () => {
+        let browser: WebdriverIO.BrowserObject
+
+        beforeEach(async () => {
+            browser = await remote({
+                baseUrl: 'http://foobar.com',
+                capabilities: {
+                    browserName: 'foobar'
+                }
+            })
+        })
+
+        afterEach(() => {
+            got.mockClear()
+        })
+
+        it('should throw', async () => {
+            const elem = await browser.$('#foo')
+
+            expect(async () => await elem.addValue('{}', { translateToUnicode: false }))
+                .rejects
+                .toThrowError('Value must be of type "string", "number" or "Array<string | number>"');
+        })
+    })
 })

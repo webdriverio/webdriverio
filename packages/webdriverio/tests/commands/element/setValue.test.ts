@@ -20,7 +20,7 @@ describe('setValue', () => {
         got.mockClear()
     })
 
-    test('should set the value clearning the element first', async () => {
+    test('should set the value clearing the element first', async () => {
         const elem = await browser.$('#foo')
 
         await elem.setValue('foobar')
@@ -43,7 +43,7 @@ describe('setValue', () => {
         expect(got.mock.calls[3][1].json.text).toEqual('12')
     })
 
-    test('should set the value clearning the element first', async () => {
+    test('should set the value clearing the element first when translateToUnicode is false', async () => {
         const elem = await browser.$('#foo')
 
         await elem.setValue('Delete', { translateToUnicode: false })
