@@ -7,14 +7,14 @@ export type CommandOptions = {
 export type Value = string | number
 
 function isValidType(value: unknown) {
-    const isNumberOrString = (_: unknown) => typeof _ === 'string' || typeof _ === 'number';
+    const isNumberOrString = (_: unknown) => typeof _ === 'string' || typeof _ === 'number'
 
     if (isNumberOrString(value)) {
-        return true;
+        return true
     } else if (Array.isArray(value) && value.every((item) => isNumberOrString(item))) {
-        return true;
+        return true
     }
-    return false;
+    return false
 }
 
 /**
@@ -50,7 +50,7 @@ export default function addValue (
     { translateToUnicode = true }: CommandOptions = {}
 ) {
     if (!isValidType(value)) {
-        throw new TypeError('Value must be of type "string", "number" or "Array<string | number>"');
+        throw new TypeError('Value must be of type "string", "number" or "Array<string | number>"')
     }
 
     if (!this.isW3C) {

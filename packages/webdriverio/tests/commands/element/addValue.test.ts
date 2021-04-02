@@ -144,7 +144,7 @@ describe('addValue test', () => {
 
             expect(async () => await elem.addValue('{}', { translateToUnicode: false }))
                 .rejects
-                .toThrowError('Value must be of type "string", "number" or "Array<string | number>"');
+                .toThrowError('Value must be of type "string", "number" or "Array<string | number>"')
         })
     })
 })
