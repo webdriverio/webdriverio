@@ -837,6 +837,17 @@ describe('ConfigParser', () => {
             expect(specs).toContain(INDEX_PATH)
         })
 
+        it('should handle grouped specs in suites', () => {
+            // const configParser = ConfigParserForTest()
+            const configParser = ConfigParserForTestWithAllFiles()
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ suite: ['unit', 'mobile'] })
+
+            const specs = configParser.getSpecs([INDEX_PATH], [path.join(__dirname, 'RequireLibrary.test.ts')])
+            expect(specs).not.toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
+            expect(specs).toContain(INDEX_PATH)
+        })
+
         it('should include typescript files', () => {
             const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
