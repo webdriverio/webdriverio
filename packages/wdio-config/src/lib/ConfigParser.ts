@@ -18,6 +18,8 @@ import RequireLibrary from './RequireLibrary'
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
+type Spec = string | string[]
+
 interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capabilities'> {
     watch?: boolean
     spec?: string[]
@@ -26,8 +28,8 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
 }
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
-    specs?: string | string[]
-    exclude?: string | string[]
+    specs?: Spec
+    exclude?: Spec
 }
 
 // Get current working directory
@@ -219,15 +221,14 @@ export default class ConfigParser {
          * check if user has specified a specific suites to run
          */
         if (suites.length > 0) {
-            let suiteSpecs: string[] = []
+            let suiteSpecs: Spec[] = []
             for (let suiteName of suites) {
                 let suite = this._config.suites?.[suiteName]
                 if (!suite) {
                     log.warn(`No suite was found with name "${suiteName}"`)
                 }
                 if (Array.isArray(suite)) {
-                    // Not supporting hierarchical suites - return will always be string[]
-                    suiteSpecs = suiteSpecs.concat(<string[]>ConfigParser.getFilePaths(suite, undefined, this._pathService))
+                    suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite, undefined, this._pathService))
                 }
             }
 
@@ -249,7 +250,7 @@ export default class ConfigParser {
             }
 
             specs = [...new Set(tmpSpecs)]
-            return specs.filter(spec => !exclude.includes(spec))
+            return this.filterSpecs(specs, <string[]> exclude)
         }
 
         if (Array.isArray(capSpecs)) {
@@ -334,8 +335,8 @@ export default class ConfigParser {
      * @param  {number} hierarchy depth to prevent recursive calling beyond a depth of 1
      * @return {String[] | String[][]} list of files
      */
-    static getFilePaths(patterns: (string | string[])[], omitWarnings?: boolean, findAndGlob: CurrentPathFinder & Globber & DeterminesAbsolutePath = new FileSystemPathService(), hierarchyDepth?: number) {
-        let files: (string | string[])[] = []
+    static getFilePaths(patterns: Spec[], omitWarnings?: boolean, findAndGlob: CurrentPathFinder & Globber & DeterminesAbsolutePath = new FileSystemPathService(), hierarchyDepth?: number) {
+        let files: Spec[] = []
         let groupedFiles: string[] = []
 
         if (typeof patterns === 'string') {
@@ -388,8 +389,8 @@ export default class ConfigParser {
      * @param  {String[]} exclude files -  list of exclude files
      * @return {String[] | String[][]} list of spec files with excludes removed
      */
-    filterSpecs(specs: (string | string[])[], exclude: string[]) {
-        return specs.reduce((returnVal: (string | string[])[], spec) => {
+    filterSpecs(specs: Spec[], exclude: string[]) {
+        return specs.reduce((returnVal: Spec[], spec) => {
             if (Array.isArray(spec)) {
                 returnVal.push(spec.filter(specItem => !exclude.includes(specItem)))
             } else if (exclude.indexOf(spec) === -1) {
