@@ -1,6 +1,6 @@
 ---
 id: donate
-title: Donate to WebdriverIO
+title: Donate
 ---
 
 If your company uses WebdriverIO and benefits from it, please ask your manager or your marketing team to support the project by donating to the collective. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone.
