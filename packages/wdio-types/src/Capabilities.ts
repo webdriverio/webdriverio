@@ -131,8 +131,10 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
 }
 
 export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilities, WebdriverIO.WDIODevtoolsOptions {
-    // Selenoid specific
+    // Aerokube Selenoid specific
     'selenoid:options'?: SelenoidOptions
+    // Aerokube Moon specific
+    'moon:options'?: MoonOptions
     // Testingbot w3c specific
     'tb:options'?: TestingbotCapabilities
     // Sauce Labs w3c specific
@@ -279,7 +281,7 @@ export interface FirefoxOptions {
         [name: string]: string | number | boolean
     }
 }
-
+// Aerokube Selenoid specific
 export interface SelenoidOptions {
     enableVNC?: boolean,
     screenResolution?: string,
@@ -301,6 +303,14 @@ export interface SelenoidOptions {
     labels?: Map<string, string>,
     skin?: string,
     s3KeyPattern?: string
+}
+
+// Aerokube Moon specific
+export type MoonMobileDeviceOrientation =
+    'portait' | 'vertical' | 'landscape' | 'horizontal'
+
+export interface MoonOptions extends SelenoidOptions {
+    mobileDevice?: {deviceName: string, orientation: MoonMobileDeviceOrientation}
 }
 
 // Selenium Grid specific

@@ -56,12 +56,25 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     if (cdpEndpoint) {
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: cdpEndpoint,
-            // @ts-ignore ToDo(@L0tso): remove once https://github.com/puppeteer/puppeteer/pull/6942 is merged
+            // @ts-ignore ToDo: remove once https://github.com/puppeteer/puppeteer/pull/6942 is released
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
     }
-
+    /**
+     * attach to a Selenoid\Moon CDP Session if there are Aerokube vendor capabilities
+     */
+    const requestedCapabilities = (this.requestedCapabilities as Capabilities.W3CCapabilities)?.alwaysMatch || this.requestedCapabilities as Capabilities.DesiredCapabilities
+    const isAerokubeSession = requestedCapabilities['selenoid:options'] || requestedCapabilities['moon:options']
+    if (isAerokubeSession) {
+        const { hostname, port, path } = this.options
+        this.puppeteer = await puppeteer.connect({
+            browserWSEndpoint: `ws://${hostname}:${port}${path}/devtools/${this.sessionId}`,
+            // @ts-ignore ToDo: remove once https://github.com/puppeteer/puppeteer/pull/6942 is released
+            defaultViewport: null
+        }) as any as PuppeteerBrowser
+        return this.puppeteer
+    }
     /**
      * attach to Chromium debugger session
      */
@@ -69,7 +82,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     if (chromiumOptions && chromiumOptions.debuggerAddress) {
         this.puppeteer = await puppeteer.connect({
             browserURL: `http://${chromiumOptions.debuggerAddress}`,
-            // @ts-ignore ToDo(@L0tso): remove once https://github.com/puppeteer/puppeteer/pull/6942 is merged
+            // @ts-ignore ToDo: remove once https://github.com/puppeteer/puppeteer/pull/6942 is released
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
