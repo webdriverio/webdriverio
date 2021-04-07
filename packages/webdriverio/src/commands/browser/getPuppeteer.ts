@@ -48,6 +48,17 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
         return this.puppeteer
     }
 
+    /**
+     * To connect to a WebSocket when running in selenoid
+     */
+    if (this.config?.selenoidWSEndpoint) {
+        this.puppeteer = await puppeteer.connect({
+            browserWSEndpoint: `ws://${this.config.hostname}:4444/devtools/${this.sessionId}`,
+        }) as any as PuppeteerBrowser
+
+        return this.puppeteer
+    }
+
     const caps = (this.capabilities as Capabilities.W3CCapabilities).alwaysMatch || this.capabilities as Capabilities.DesiredCapabilities
     /**
      * attach to a Selenium 4 CDP Session if it's returned in the capabilities

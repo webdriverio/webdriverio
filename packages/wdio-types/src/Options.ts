@@ -259,6 +259,11 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
      * visibility) has been changed.
      */
     waitforInterval?: number
+    /**
+     * If the parameter is true, devtools-service will connect to the WebSocket using the
+     * ws://${hostname}scheme:4444/devtools/${sessionID}
+     */
+     selenoidWSEndpoint?: boolean
 }
 
 export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, WebdriverIO.HookFunctionExtension {
