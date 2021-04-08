@@ -426,6 +426,20 @@ test('_uploadLogs should not fail in case of a platform error', async () => {
     expect(log.error).toHaveBeenCalledTimes(1)
 })
 
+test('_uploadLogs should strip out any ANSI color codes', async () => {
+  const service = new SauceService(
+      {},
+      {},
+      { outputDir: '/foo/bar' } as any
+  )
+  await service['_uploadLogs']('[32m-ANSItest[39m')
+  expect((got as any as jest.Mock).mock.calls).toHaveLength(1)
+  expect((got as any as jest.Mock)).toHaveBeenCalledWith(
+      'https://api.us-west-1.saucelabs.com/v1/testrunner/jobs/ANSItest/assets',
+      expect.any(Object)
+  )
+})
+
 test('after with bail set', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', mochaOpts: { bail: 1 } } as any)
     service['_browser'] = browser
