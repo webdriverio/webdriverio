@@ -67,9 +67,9 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     const requestedCapabilities = (this.requestedCapabilities as Capabilities.W3CCapabilities)?.alwaysMatch || this.requestedCapabilities as Capabilities.DesiredCapabilities
     const isAerokubeSession = requestedCapabilities['selenoid:options'] || requestedCapabilities['moon:options']
     if (isAerokubeSession) {
-        const { hostname, port, path } = this.options
+        const { hostname, port } = this.options
         this.puppeteer = await puppeteer.connect({
-            browserWSEndpoint: `ws://${hostname}:${port}${path}/devtools/${this.sessionId}`,
+            browserWSEndpoint: `ws://${hostname}:${port}/devtools/${this.sessionId}`,
             // @ts-ignore ToDo: remove once https://github.com/puppeteer/puppeteer/pull/6942 is released
             defaultViewport: null
         }) as any as PuppeteerBrowser
