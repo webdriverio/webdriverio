@@ -19,6 +19,34 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.3.1 (2021-04-08)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6676](https://github.com/webdriverio/webdriverio/pull/6676) Fix devtools url for Aerokube Selenoid\Moon sessions ([@BorisOsipov](https://github.com/BorisOsipov))
+  * [#6625](https://github.com/webdriverio/webdriverio/pull/6625) fix sync browser type for "call" method ([@giacomomagini](https://github.com/giacomomagini))
+
+#### :nail_care: Polish
+* `wdio-types`, `webdriverio`
+  * [#6673](https://github.com/webdriverio/webdriverio/pull/6673) webdriverio: Allow to use devtools features for Aerokube Selenoid\Moon sessions ([@BorisOsipov](https://github.com/BorisOsipov))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6668](https://github.com/webdriverio/webdriverio/pull/6668) feat: add wdio-ocr-service to the service menu and service cli ([@wswebcreation](https://github.com/wswebcreation))
+* Other
+  * [#6647](https://github.com/webdriverio/webdriverio/pull/6647) Fixed github logo color for dark mode ([@arsen1c](https://github.com/arsen1c))
+  * [#6646](https://github.com/webdriverio/webdriverio/pull/6646) Fixed missing github icon on the Team page ([@arsen1c](https://github.com/arsen1c))
+
+#### Committers: 7
+- Boris Osipov ([@BorisOsipov](https://github.com/BorisOsipov))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+- Giacomo Magini ([@giacomomagini](https://github.com/giacomomagini))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@arsen1c](https://github.com/arsen1c)
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v7.3.0 (2021-03-30)
 
 #### :rocket: New Feature
