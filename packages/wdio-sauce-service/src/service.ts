@@ -127,8 +127,8 @@ export default class SauceService implements Services.ServiceInstance {
         const { error } = results
         if (error && !this._isUP){
             const lines = error.stack.split(/\r?\n/).slice(0, this._maxErrorStackLength)
-            lines.forEach((line:string) => this._browser!.execute('sauce:context=' + line.replace(/[[]\d\d\w-?\+?/g, ""))
-        },
+            lines.forEach((line:string) => this._browser!.execute('sauce:context=' + line.replace(/[[]\d\d\w-?\+?/g), ""))
+        }
 
         /**
          * remove failure if test was retried and passed
