@@ -127,7 +127,7 @@ export default class SauceService implements Services.ServiceInstance {
         const { error } = results
         if (error && !this._isUP){
             const lines = error.stack.split(/\r?\n/).slice(0, this._maxErrorStackLength)
-            lines.forEach((line:string) => this._browser!.execute('sauce:context=' + line.replace((/[[]\d\d\w-?\+?/g), '')))
+            lines.forEach((line:string) => this._browser!.execute('sauce:context=' + line))
         }
 
         /**
@@ -247,6 +247,7 @@ export default class SauceService implements Services.ServiceInstance {
 
         const files = (await fs.promises.readdir(this._config.outputDir))
             .filter((file) => file.endsWith('.log'))
+        for (file in files) { file.replace((/[[]\d\d\w-?\+?/g), '') }
         log.info(`Uploading WebdriverIO logs (${files.join(', ')}) to Sauce Labs`)
 
         return this._api.uploadJobAssets(
