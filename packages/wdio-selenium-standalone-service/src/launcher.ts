@@ -82,10 +82,35 @@ export default class SeleniumStandaloneLauncher {
         const capabilities = (Array.isArray(this._capabilities) ? this._capabilities : Object.values(this._capabilities))
         for (const capability of capabilities) {
             const cap = (capability as Options.WebDriver).capabilities || capability
-            const c = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
 
-            if (!isCloudCapability(c) && hasCapsWithSupportedBrowser(c)) {
-                Object.assign(c, DEFAULT_CONNECTION, { ...c })
+            /**
+             * handle standard mode vs multiremote mode, e.g.
+             * ```js
+             * capabilities: [{
+             *   browserName: 'chrome',
+             *   hostname: 'localhost'
+             * }]
+             * ```
+             * vs.
+             * ```js
+             * capabilities: {
+             *   myBrowser: {
+             *     hostname: 'localhost',
+             *     capabilities: { browserName: 'chrome' }
+             *   }
+             * }
+             */
+            const remoteCapabilities = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
+            const objectToApplyConnectionDetails = Array.isArray(this._capabilities)
+                ? remoteCapabilities
+                : capability as Options.WebDriver
+
+            if (!isCloudCapability(remoteCapabilities) && hasCapsWithSupportedBrowser(remoteCapabilities)) {
+                Object.assign(
+                    objectToApplyConnectionDetails,
+                    DEFAULT_CONNECTION,
+                    { ...objectToApplyConnectionDetails }
+                )
             }
         }
 
