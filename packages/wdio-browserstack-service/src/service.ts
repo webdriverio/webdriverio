@@ -61,7 +61,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._browser = browser
 
         // Ensure capabilities are not null in case of multiremote
-        if ((this._browser.capabilities as Capabilities.DesiredCapabilities).app || (this._caps as Capabilities.DesiredCapabilities).app) {
+
+        if (this._isAppAutomate()) {
             this._sessionBaseUrl = 'https://api-cloud.browserstack.com/app-automate/sessions'
         }
 
@@ -162,6 +163,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
         delete this._fullTitle
         this._failReasons = []
         await this._printSessionURL()
+    }
+
+    _isAppAutomate(): boolean {
+        const browserDesiredCapabilities = (this._browser?.capabilities ?? {}) as Capabilities.DesiredCapabilities
+        const desiredCapabilities = (this._caps ?? {})  as Capabilities.DesiredCapabilities
+
+        return !!browserDesiredCapabilities['appium:app'] || !!desiredCapabilities['appium:app'] || !!browserDesiredCapabilities.app || !!desiredCapabilities.app
     }
 
     _updateJob (requestBody: any) {
