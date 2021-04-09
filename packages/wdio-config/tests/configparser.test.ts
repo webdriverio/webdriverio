@@ -879,7 +879,21 @@ describe('ConfigParser', () => {
 
             const specs = configParser.getSpecs()
             expect(Array.isArray(specs[0])).toBe(true)
+            // Answer here is 3 because FileSystemPathService.test.ts is not included
+            // in MockedFileSystem_LoadingAsMuchAsCanFromFileSystem
             expect(specs[0].length).toBe(3)
+        })
+
+        it('should handle grouped specs in suites', () => {
+            // const configParser = ConfigParserForTest()
+            const configParser = ConfigParserForTestWithAllFiles()
+            configParser.addConfigFile(FIXTURES_CONF_ARRAY)
+            configParser.merge({ suite: ['functional'] })
+
+            const specs = configParser.getSpecs()
+            expect(specs[0]).not.toContain(path.join(__dirname, 'validateConfig.test.ts'))
+            expect(specs[0]).toContain(INDEX_PATH)
+            expect(specs[1].length).toBe(3)
         })
 
         it('should not include other file types', () => {
