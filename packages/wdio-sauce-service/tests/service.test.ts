@@ -433,7 +433,7 @@ test('_uploadLogs should strip out any ANSI color codes', async () => {
         { outputDir: '/foo/bar' } as any
     )
     await service['_uploadLogs']('[32m-ANSItest[39m')
-    expect((got as any as jest.Mock).mock.calls).toHaveLength(1)
+    expect((got as any as jest.Mock).mock.calls).toHaveLength(3)
     expect((got as any as jest.Mock)).toHaveBeenCalledWith(
         'https://api.us-west-1.saucelabs.com/v1/testrunner/jobs/ANSItest/assets',
         expect.any(Object)
