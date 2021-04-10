@@ -1,13 +1,13 @@
 // @ts-ignore mocked (original defined in webdriver package)
 import gotMock from 'got'
 import { remote } from '../../../src'
-import { DeprecatedWarning } from '../../../../webdriverio/src/utils/DeprecatedWarning';
+import { DeprecatedWarning } from '../../../../webdriverio/src/utils/DeprecatedWarning'
 
-jest.mock('../../../../webdriverio/src/utils/DeprecatedWarning');
+jest.mock('../../../../webdriverio/src/utils/DeprecatedWarning')
 
 beforeEach(() => {
-  (DeprecatedWarning as jest.Mock).mockReset();
-});
+  (DeprecatedWarning as jest.Mock).mockReset()
+})
 
 const got = gotMock as jest.Mock
 
@@ -208,10 +208,10 @@ describe('addValue test', () => {
         it('should trigger a deprecation warning', async () => {
             const elem = await browser.$('#foo')
 
-            await elem.addValue({ a: 42 }, { translateToUnicode: false });
+            await elem.addValue({ a: 42 }, { translateToUnicode: false })
 
-            expect(DeprecatedWarning).toHaveBeenCalledTimes(1);
-            expect(DeprecatedWarning).toHaveBeenCalledWith('Support for values that are not of type "string", "number" or "Array<string | number>" will soon be dropped');
+            expect(DeprecatedWarning).toHaveBeenCalledTimes(1)
+            expect(DeprecatedWarning).toHaveBeenCalledWith('Support for values that are not of type "string", "number" or "Array<string | number>" will soon be dropped')
         })
     })
 })
