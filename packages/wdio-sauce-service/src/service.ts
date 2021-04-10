@@ -247,7 +247,7 @@ export default class SauceService implements Services.ServiceInstance {
 
         const files = (await fs.promises.readdir(this._config.outputDir))
             .filter((file) => file.endsWith('.log'))
-        for (file in files) { file.replace((/[[]\d\d\w-?\+?/g), '') }
+        for (let file in files) { file.replace((/[[]\d\d\w-?\+?/g), '') }
         log.info(`Uploading WebdriverIO logs (${files.join(', ')}) to Sauce Labs`)
 
         return this._api.uploadJobAssets(
