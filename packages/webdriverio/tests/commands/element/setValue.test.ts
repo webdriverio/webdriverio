@@ -31,24 +31,15 @@ describe('setValue', () => {
         expect(got.mock.calls[3][1].json.text).toEqual('foobar')
     })
 
-    test('should stringify number', async () => {
-        const elem = await browser.$('#boo')
-        await elem.setValue(42)
-        expect(got.mock.calls[3][1].json.text).toEqual('42')
-    })
-
-    test('should stringify Array<string | number>', async () => {
-        const elem = await browser.$('#foo')
-        await elem.setValue([1, '2'])
-        expect(got.mock.calls[3][1].json.text).toEqual('12')
-    })
-
-    test('should set the value clearing the element first when translateToUnicode is false', async () => {
+    test('should not translate to unicode', async () => {
         const elem = await browser.$('#foo')
 
         await elem.setValue('Delete', { translateToUnicode: false })
-        expect(got.mock.calls[2][0].pathname).toBe('/session/foobar-123/element/some-elem-123/clear')
-        expect(got.mock.calls[3][0].pathname).toBe('/session/foobar-123/element/some-elem-123/value')
-        expect(got.mock.calls[3][1].json.text).toEqual('Delete')
+        expect(got.mock.calls[2][0].pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/clear')
+        expect(got.mock.calls[3][0].pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/value')
+        expect(got.mock.calls[3][1].json.text)
+            .toEqual('Delete')
     })
 })

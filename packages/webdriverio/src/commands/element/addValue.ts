@@ -1,4 +1,5 @@
-import { toUnicodeCharacterArray } from '../../utils'
+import { DeprecatedWarning } from '../../utils/DeprecatedWarning'
+import { transformToCharString } from '../../utils'
 
 export type CommandOptions = {
     translateToUnicode?: boolean
@@ -48,12 +49,12 @@ export default function addValue (
     { translateToUnicode = true }: CommandOptions = {}
 ) {
     if (!isValidType(value)) {
-        throw new TypeError('Value must be of type "string", "number" or "Array<string | number>"')
+        new DeprecatedWarning('Support for values that are not of type "string", "number" or "Array<string | number>" will soon be dropped')
     }
 
     if (!this.isW3C) {
-        return this.elementSendKeys(this.elementId, toUnicodeCharacterArray(value, translateToUnicode) as any as string)
+        return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode) as any as string)
     }
 
-    return this.elementSendKeys(this.elementId, toUnicodeCharacterArray(value, translateToUnicode).join(''))
+    return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode).join(''))
 }
