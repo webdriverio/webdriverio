@@ -6,7 +6,7 @@ import { DeprecatedWarning } from '../../../../webdriverio/src/utils/DeprecatedW
 jest.mock('../../../../webdriverio/src/utils/DeprecatedWarning')
 
 beforeEach(() => {
-  (DeprecatedWarning as jest.Mock).mockReset()
+    (DeprecatedWarning as jest.Mock).mockReset()
 })
 
 const got = gotMock as jest.Mock
