@@ -15,7 +15,7 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
 import { findStrategy } from './findStrategy'
-import type { ElementArray, ElementFunction, Selector, ParsedCSSValue } from '../types'
+import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types'
 
 const browserCommands = require('../commands/browser').default
 const elementCommands = require('../commands/element').default
@@ -423,7 +423,7 @@ export async function hasElementId (element: WebdriverIO.Element) {
 }
 
 export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
-    return (name: string, func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>) => {
+    return (name: string, func: (selector: string, root?: HTMLElement) => CustomLocatorReturnValue) => {
         if (scope.strategies.get(name)) {
             throw new Error(`Strategy ${name} already exists`)
         }

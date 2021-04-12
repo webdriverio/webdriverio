@@ -122,6 +122,7 @@ type OverwriteCommandFn<
     ...args: any[]
 ) => Promise<any>
 
+export type CustomLocatorReturnValue = HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
 export interface CustomInstanceCommands<T> {
     /**
      * add command to `browser` or `element` scope
@@ -148,9 +149,11 @@ export interface CustomInstanceCommands<T> {
     /**
      * create custom selector
      */
-    addLocatorStrategy(
+    addLocatorStrategy<IsElement extends boolean = false>(
         name: string,
-        func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>
+        func: IsElement extends true
+            ? (selector: string, root: HTMLElement) => CustomLocatorReturnValue
+            : (selector: string) => CustomLocatorReturnValue
     ): void
 }
 
