@@ -79,9 +79,12 @@ export default class SeleniumStandaloneLauncher {
          * update capability connection options to connect
          * to standalone server
          */
-        const capabilities = (Array.isArray(this._capabilities) ? this._capabilities : Object.values(this._capabilities))
+        const isMultiremote = !Array.isArray(this._capabilities)
+        const capabilities = isMultiremote
+            ? Object.values(this._capabilities) as Options.WebdriverIO[]
+            : this._capabilities as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]
         for (const capability of capabilities) {
-            const cap = (capability as Options.WebDriver).capabilities || capability
+            const cap = (capability as Options.WebdriverIO).capabilities || capability
 
             /**
              * handle standard mode vs multiremote mode, e.g.
@@ -101,9 +104,9 @@ export default class SeleniumStandaloneLauncher {
              * }
              */
             const remoteCapabilities = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
-            const objectToApplyConnectionDetails = Array.isArray(this._capabilities)
+            const objectToApplyConnectionDetails = !isMultiremote
                 ? remoteCapabilities
-                : capability as Options.WebDriver
+                : capability
 
             if (!isCloudCapability(remoteCapabilities) && hasCapsWithSupportedBrowser(remoteCapabilities)) {
                 Object.assign(
