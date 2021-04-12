@@ -273,13 +273,12 @@ class JasmineAdapter {
      * Hooks which are added as true Jasmine hooks need to call done() to notify async
      */
     wrapHook (hookName: keyof Services.HookFunctions) {
-        return (done: Function) => executeHooksWithArgs(
+        return () => executeHooksWithArgs(
             hookName,
             this._config[hookName],
             [this.prepareMessage(hookName)]
-        ).then(() => done(), (e) => {
+        ).catch((e) => {
             log.info(`Error in ${hookName} hook: ${e.stack.slice(7)}`)
-            done()
         })
     }
 
