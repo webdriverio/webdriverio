@@ -1,8 +1,10 @@
 import Driver from 'lighthouse/lighthouse-core/gather/driver'
+import FRGatherer from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
 import pageFunctions from 'lighthouse/lighthouse-core/lib/page-functions'
 import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
 
-import GatherRunner from 'lighthouse/lighthouse-core/gather/gather-runner'
+import InstallabilityErrors from 'lighthouse/lighthouse-core/gather/gatherers/installability-errors'
+import WebAppManifest from 'lighthouse/lighthouse-core/gather/gatherers/web-app-manifest'
 import LinkElements from 'lighthouse/lighthouse-core/gather/gatherers/link-elements'
 import ViewportDimensions from 'lighthouse/lighthouse-core/gather/gatherers/viewport-dimensions'
 
@@ -14,6 +16,7 @@ import { NETWORK_RECORDER_EVENTS } from '../constants'
 
 export default class PWAGatherer {
     private _driver: typeof Driver
+    private _frGatherer: typeof FRGatherer
     private _networkRecorder: any
     private _networkRecords: any[] = []
 
@@ -21,6 +24,7 @@ export default class PWAGatherer {
         private _session: CDPSession,
         private _page: Page
     ) {
+        this._frGatherer = new FRGatherer(this._session)
         /**
          * setup network recorder
          */
@@ -68,8 +72,8 @@ export default class PWAGatherer {
         const { registrations } = await this._driver.getServiceWorkerRegistrations()
         return {
             URL: { requestedUrl: pageUrl, finalUrl: pageUrl },
-            WebAppManifest: await GatherRunner.getWebAppManifest(passContext),
-            InstallabilityErrors: await GatherRunner.getInstallabilityErrors(passContext),
+            WebAppManifest: await WebAppManifest.getWebAppManifest(this._frGatherer),
+            InstallabilityErrors: await InstallabilityErrors.getInstallabilityErrors(this._frGatherer),
             MetaElements: await this._driver.evaluate(collectMetaElements, {
                 args: [],
                 useIsolation: true,
