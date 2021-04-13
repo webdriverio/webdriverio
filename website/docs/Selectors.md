@@ -505,17 +505,33 @@ browser.react$$('MyComponent') // returns the WebdriverIO Elements for the array
 If your app requires a specific way to fetch elements you can define yourself a custom selector strategy that you can use with `custom$` and `custom$$`. For that register your strategy once in the beginning of the test:
 
 ```js
-browser.addLocatorStrategy('myCustomStrategy', (selector) => {
-    return document.querySelectorAll(selector)
+browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
+    /**
+     * scope should be document if called on browser object
+     * and `root` if called on an element object
+     */
+    const scope = root ? root : document
+    return scope.querySelectorAll(selector)
 })
 ```
 
-The use it by calling:
+Given the following HTML snippet:
+
+```html
+<div class="foobar" id="first">
+    <div class="foobar" id="second">
+        barfoo
+    </div>
+</div>
+```
+
+Then use it by calling:
 
 ```js
-browser.url('https://webdriver.io')
-const pluginWrapper = browser.custom$$('myStrat', '.pluginWrapper')
-console.log(pluginWrapper.length) // 4
+const elem = browser.custom$('myCustomStrategy', '.foobar')
+console.log(elem.getAttribute('id')) // returns "first"
+const nestedElem = elem.custom$('myCustomStrategy', '.foobar')
+console.log(elem.getAttribute('id')) // returns "second"
 ```
 
 **Note:** this only works in an web environment in which the [`execute`](/docs/api/browser/execute) command can be run.
