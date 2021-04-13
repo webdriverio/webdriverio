@@ -506,7 +506,12 @@ If your app requires a specific way to fetch elements you can define yourself a 
 
 ```js
 browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
-    return root.querySelectorAll(selector)
+    /**
+     * scope should be document if called on browser object
+     * and `root` if called on an element object
+     */
+    const scope = root ? root : document
+    return scope.querySelectorAll(selector)
 })
 ```
 
