@@ -1,6 +1,6 @@
 {
   "name": "@wdio/sumologic-reporter",
-  "version": "7.3.1",
+  "version": "7.4.0",
   "description": "A WebdriverIO reporter that sends test results to Sumologic for data analyses",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sumologic-reporter",
@@ -25,8 +25,8 @@
     "@types/dateformat": "^3.0.1",
     "@types/json-stringify-safe": "^5.0.0",
     "@wdio/logger": "7.0.0",
-    "@wdio/reporter": "7.3.1",
-    "@wdio/types": "7.3.1",
+    "@wdio/reporter": "7.4.0",
+    "@wdio/types": "7.4.0",
     "dateformat": "^4.0.0",
     "got": "^11.0.2",
     "json-stringify-safe": "^5.0.1"

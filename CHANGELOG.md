@@ -19,6 +19,43 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.4.0 (2021-04-13)
+
+#### :rocket: New Feature
+* `devtools`
+  * [#6684](https://github.com/webdriverio/webdriverio/pull/6684) Allow more options to connect to a remote devtools connection ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#6701](https://github.com/webdriverio/webdriverio/pull/6701) Fix `checkPWA` command ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-reporter`, `wdio-runner`, `wdio-spec-reporter`, `wdio-types`
+  * [#6700](https://github.com/webdriverio/webdriverio/pull/6700) Improve spec reporting for multiremote ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-selenium-standalone-service`
+  * [#6681](https://github.com/webdriverio/webdriverio/pull/6681) Fix connection details setting for multiremote in selenium server ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-jasmine-framework`
+  * [#6687](https://github.com/webdriverio/webdriverio/pull/6687) Remove done callback in Jasmine ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#6683](https://github.com/webdriverio/webdriverio/pull/6683) [BUGFIX] wdio-browserstack-service using the wrong session url when w3c properties are enforced ([@sanghun89](https://github.com/sanghun89))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#6699](https://github.com/webdriverio/webdriverio/pull/6699) Properly type config file if TypeScript is being used ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-config`
+  * [#6658](https://github.com/webdriverio/webdriverio/pull/6658) Added ability to group specs in suites ([@RossVertizan](https://github.com/RossVertizan))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#6682](https://github.com/webdriverio/webdriverio/pull/6682) Enhance docs for custom locator strategy ([@christian-bromann](https://github.com/christian-bromann))
+  * [#6698](https://github.com/webdriverio/webdriverio/pull/6698) Small typo ([@idanen](https://github.com/idanen))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Idan Entin ([@idanen](https://github.com/idanen))
+- Ross Addinall ([@RossVertizan](https://github.com/RossVertizan))
+- Sam Chun ([@sanghun89](https://github.com/sanghun89))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v7.3.1 (2021-04-08)
 
 #### :bug: Bug Fix
