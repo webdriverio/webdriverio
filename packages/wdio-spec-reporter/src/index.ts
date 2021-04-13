@@ -146,14 +146,12 @@ export default class SpecReporter extends WDIOReporter {
         )
 
         if (isSauceJob && config && config.user && config.key && sessionId) {
-            const dc = config.headless
-                ? '.us-east-1'
-                : ['eu', 'eu-central-1'].includes(config.region || '') ? '.eu-central-1' : ''
+            const hostname = config.hostname?.replace('ondemand', 'app')
             const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
             const sauceLabsSharableLinks = this._sauceLabsSharableLinks
                 ? sauceAuthenticationToken( config.user, config.key, sessionId )
                 : ''
-            return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}${sauceLabsSharableLinks}`]
+            return [`Check out${multiremoteNote} job at https://${hostname}/tests/${sessionId}${sauceLabsSharableLinks}`]
         }
 
         return []

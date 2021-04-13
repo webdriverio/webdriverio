@@ -229,10 +229,9 @@ describe('SpecReporter', () => {
 
             it('should print link to Sauce Labs EU job details page', () => {
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
-                    hostname: 'ondemand.saucelabs.com',
+                    hostname: 'ondemand.eu-central-1.saucelabs.com',
                     user: 'foobar',
-                    key: '123',
-                    region: 'eu'
+                    key: '123'
                 }
                 printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -240,19 +239,17 @@ describe('SpecReporter', () => {
                 printReporter.write.mockClear()
 
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
-                    hostname: 'ondemand.saucelabs.com',
+                    hostname: 'ondemand.eu-central-1.saucelabs.com',
                     user: 'foobar',
-                    key: '123',
-                    region: 'eu-central-1'
+                    key: '123'
                 }
                 printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
 
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
-                    hostname: 'ondemand.saucelabs.com',
+                    hostname: 'ondemand.us-east-1.saucelabs.com',
                     user: 'foobar',
-                    key: '123',
-                    headless: true
+                    key: '123'
                 }
                 printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
