@@ -37,6 +37,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
+      - name: Update NPM
         run: npm i -g npm
       - name: NPM Setup
         run: |
