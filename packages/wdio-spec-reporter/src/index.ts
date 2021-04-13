@@ -7,6 +7,10 @@ import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types
 
 const DEFAULT_INDENT = '   '
 
+interface CapabilitiesWithSessionId extends Capabilities.Capabilities {
+    sessionId: string
+}
+
 export default class SpecReporter extends WDIOReporter {
     private _suiteUids = new Set()
     private _indents = 0
@@ -88,8 +92,7 @@ export default class SpecReporter extends WDIOReporter {
         }
 
         const testLinks = runner.isMultiremote
-            ? Object.entries(runner.capabilities).map(([instanceName, capabilities]) => this.getTestLink({
-                config: runner.config,
+            ? Object.entries(runner.capabilities).map(([instanceName, capabilities]: [string, CapabilitiesWithSessionId]) => this.getTestLink({
                 capabilities,
                 sessionId: capabilities.sessionId,
                 isMultiremote: runner.isMultiremote,
@@ -123,9 +126,11 @@ export default class SpecReporter extends WDIOReporter {
     /**
      * get link to saucelabs job
      */
-    getTestLink ({ config, sessionId, isMultiremote, instanceName, capabilities }: TestLink) {
+    getTestLink ({ sessionId, isMultiremote, instanceName, capabilities }: TestLink) {
+        const config = this.runnerStat && this.runnerStat.instanceOptions[sessionId]
+
         const isSauceJob = (
-            (config.hostname && config.hostname.includes('saucelabs')) ||
+            (config && config.hostname && config.hostname.includes('saucelabs')) ||
             // only show if multiremote is not used
             capabilities && (
                 // check w3c cap in jsonwp caps
@@ -140,7 +145,7 @@ export default class SpecReporter extends WDIOReporter {
             )
         )
 
-        if (isSauceJob && config.user && config.key && sessionId) {
+        if (isSauceJob && config && config.user && config.key && sessionId) {
             const dc = config.headless
                 ? '.us-east-1'
                 : ['eu', 'eu-central-1'].includes(config.region || '') ? '.eu-central-1' : ''

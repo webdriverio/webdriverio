@@ -2,13 +2,13 @@ import fs from 'fs'
 import type { WriteStream } from 'fs'
 import { createWriteStream, ensureDirSync } from 'fs-extra'
 import { EventEmitter } from 'events'
-import type { Reporters } from '@wdio/types'
+import type { Reporters, Options } from '@wdio/types'
 
 import { getErrorsFromEvent } from './utils'
 import SuiteStats, { Suite } from './stats/suite'
 import HookStats, { Hook } from './stats/hook'
 import TestStats, { Test } from './stats/test'
-import RunnerStats, { Runner } from './stats/runner'
+import RunnerStats from './stats/runner'
 import { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types'
 
 type CustomWriteStream = { write: (content: any) => boolean }
@@ -58,7 +58,7 @@ export default class WDIOReporter extends EventEmitter {
         this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
         this.on('client:afterCommand', this.onAfterCommand.bind(this))
 
-        this.on('runner:start', /* istanbul ignore next */ (runner: Runner) => {
+        this.on('runner:start', /* istanbul ignore next */ (runner: Options.RunnerStart) => {
             rootSuite.cid = runner.cid
             this.specs.push(...runner.specs)
             this.runnerStat = new RunnerStats(runner)
@@ -178,7 +178,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteEnd(suiteStat)
         })
 
-        this.on('runner:end',  /* istanbul ignore next */(runner: Runner) => {
+        this.on('runner:end',  /* istanbul ignore next */(runner: Options.RunnerEnd) => {
             rootSuite.complete()
             if (this.runnerStat) {
                 this.runnerStat.failures = runner.failures
