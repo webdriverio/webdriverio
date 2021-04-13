@@ -202,7 +202,7 @@ describe('SpecReporter', () => {
                     sessionId: fakeSessionId
                 })
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
-                    hostname: 'ondemand.saucelabs.com',
+                    hostname: 'ondemand.us-west-1.saucelabs.com',
                     user: 'foobar',
                     key: '123'
                 }

@@ -146,7 +146,7 @@ export default class SpecReporter extends WDIOReporter {
         )
 
         if (isSauceJob && config && config.user && config.key && sessionId) {
-            const hostname = config.hostname?.replace('ondemand', 'app')
+            const hostname = config.hostname?.replace('ondemand', 'app').replace('us-west-1.', '')
             const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
             const sauceLabsSharableLinks = this._sauceLabsSharableLinks
                 ? sauceAuthenticationToken( config.user, config.key, sessionId )
