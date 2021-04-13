@@ -1,6 +1,6 @@
 const path = require('path')
 
-const DevtoolsService = require('../../packages/wdio-devtools-service')
+const DevtoolsService = require('../../packages/wdio-devtools-service').default
 
 exports.config = {
     /**
@@ -16,7 +16,7 @@ exports.config = {
         'wdio:devtoolsOptions': { headless: true, dumpio: true }
     }],
 
-    services: [DevtoolsService],
+    services: [[DevtoolsService, {}]],
 
     /**
      * test configurations

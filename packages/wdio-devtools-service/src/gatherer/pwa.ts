@@ -72,7 +72,7 @@ export default class PWAGatherer {
         const { registrations } = await this._driver.getServiceWorkerRegistrations()
         return {
             URL: { requestedUrl: pageUrl, finalUrl: pageUrl },
-            WebAppManifest: await WebAppManifest.getWebAppManifest(this._frGatherer),
+            WebAppManifest: await WebAppManifest.getWebAppManifest(this._frGatherer, pageUrl),
             InstallabilityErrors: await InstallabilityErrors.getInstallabilityErrors(this._frGatherer),
             MetaElements: await this._driver.evaluate(collectMetaElements, {
                 args: [],
