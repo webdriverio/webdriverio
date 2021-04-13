@@ -1,4 +1,4 @@
-exports.config = {
+<% if(answers.isUsingTypeScript) { %>exports.config = {<% } else { %>export const config: WebdriverIO.Config = {<% } %>
     //
     // ====================
     // Runner Configuration

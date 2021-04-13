@@ -38,9 +38,11 @@ jest.mock('../src/commands/config', () => ({
 }))
 
 jest.mock('fs-extra', () => ({
-    writeFileSync: jest.fn(),
     existsSync: jest.fn(),
-    ensureDirSync: jest.fn()
+    ensureDirSync: jest.fn(),
+    promises: {
+        writeFile: jest.fn().mockReturnValue(Promise.resolve())
+    }
 }))
 
 beforeEach(() => {
@@ -50,7 +52,7 @@ beforeEach(() => {
 describe('runServiceHook', () => {
     const hookSuccess = jest.fn()
     const slowSetupFn = jest.fn()
-    const asyncHookSuccess = jest.fn().mockImplementation(() => new Promise(resolve => {
+    const asyncHookSuccess = jest.fn().mockImplementation(() => new Promise<void>(resolve => {
         setTimeout(() => {
             slowSetupFn()
             resolve()
@@ -145,7 +147,7 @@ test('runOnCompleteHook handles array of functions', () => {
     const hookSuccess = jest.fn()
     const secondHook = jest.fn()
 
-    runOnCompleteHook([hookSuccess, secondHook], {}, {}, 0, {} as any)
+    runOnCompleteHook([hookSuccess, secondHook], { capabilities: {} }, {}, 0, {} as any)
     expect(hookSuccess).toBeCalledTimes(1)
     expect(secondHook).toBeCalledTimes(1)
 })
@@ -154,14 +156,14 @@ test('runOnCompleteHook handles async functions', async () => {
     const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 31))
 
     const start = Date.now()
-    await runOnCompleteHook([hookSuccess], {}, {}, 0, {} as any)
+    await runOnCompleteHook([hookSuccess], { capabilities: {} }, {}, 0, {} as any)
     expect(Date.now() - start).toBeGreaterThanOrEqual(30)
 })
 
 test('runOnCompleteHook handles a single function', () => {
     const hookSuccess = jest.fn()
 
-    runOnCompleteHook(hookSuccess, {}, {}, 0, {} as any)
+    runOnCompleteHook(hookSuccess, { capabilities: {} }, {}, 0, {} as any)
     expect(hookSuccess).toBeCalledTimes(1)
 })
 
@@ -169,7 +171,7 @@ test('runOnCompleteHook with no failure returns 0', async () => {
     const hookSuccess = jest.fn()
     const hookFailing = jest.fn()
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], {}, {}, 0, {} as any)
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
 
     expect(result).not.toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -180,7 +182,7 @@ test('runOnCompleteHook with failure returns 1', async () => {
     const hookSuccess = jest.fn()
     const hookFailing = jest.fn().mockImplementation(() => { throw new Error('buhh') })
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], {}, {}, 0, {} as any)
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
 
     expect(result).toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -229,7 +231,19 @@ describe('renderConfigurationFile', () => {
         await renderConfigurationFile({ foo: 'bar' } as any)
 
         expect(ejs.renderFile).toHaveBeenCalled()
-        expect(fs.writeFileSync).toHaveBeenCalled()
+        expect(fs.promises.writeFile).toHaveBeenCalled()
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith('wdio.conf.js')).toBe(true)
+    })
+
+    it('should write TS file', async () => {
+        // @ts-ignore mock feature
+        jest.spyOn(ejs, 'renderFile').mockImplementation((a, b, c) => c(null, true))
+
+        await renderConfigurationFile({ isUsingTypeScript: true } as any)
+
+        expect(ejs.renderFile).toHaveBeenCalled()
+        expect(fs.promises.writeFile).toHaveBeenCalled()
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith('wdio.conf.ts')).toBe(true)
     })
 
     it('should throw error', async () => {
@@ -421,9 +435,9 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(4)
-        expect((fs.writeFileSync as jest.Mock).mock.calls[0][0].endsWith('/page/objects/model/page.js'))
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith('/page/objects/model/page.js'))
             .toBe(true)
-        expect((fs.writeFileSync as jest.Mock).mock.calls[1][0].endsWith('/example.e2e.js'))
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[1][0].endsWith('/example.e2e.js'))
             .toBe(true)
     })
 
@@ -518,9 +532,9 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(6)
-        expect((fs.writeFileSync as jest.Mock).mock.calls[0][0].endsWith('/some/page/objects/page.ts'))
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith('/some/page/objects/page.ts'))
             .toBe(true)
-        expect((fs.writeFileSync as jest.Mock).mock.calls[2][0].endsWith('/example.feature'))
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[2][0].endsWith('/example.feature'))
             .toBe(true)
     })
 })
@@ -606,7 +620,7 @@ test('getDefaultFiles', () => {
 afterEach(() => {
     (console.log as jest.Mock).mockRestore()
     readDir.mockClear()
-    ;(fs.writeFileSync as jest.Mock).mockClear()
+    ;(fs.promises.writeFile as jest.Mock).mockClear()
     ;(fs.ensureDirSync as jest.Mock).mockClear()
     ;(ejs.renderFile as jest.Mock).mockClear()
 })
