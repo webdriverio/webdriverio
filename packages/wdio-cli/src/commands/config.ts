@@ -165,6 +165,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         const tsPkgs = `"${[
             wdioTypes,
             frameworkPackage.package,
+            'expect-webdriverio',
             ...servicePackages
                 .map(service => service.package)
                 /**
