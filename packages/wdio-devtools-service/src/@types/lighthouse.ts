@@ -1,7 +1,10 @@
 declare module 'lighthouse';
 declare module 'lighthouse/lighthouse-core/gather/driver'
 declare module 'lighthouse/lighthouse-core/gather/gather-runner'
+declare module 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
 declare module 'lighthouse/lighthouse-core/gather/connections/raw'
+declare module 'lighthouse/lighthouse-core/gather/gatherers/installability-errors'
+declare module 'lighthouse/lighthouse-core/gather/gatherers/web-app-manifest'
 declare module 'lighthouse/lighthouse-core/gather/gatherers/link-elements'
 declare module 'lighthouse/lighthouse-core/gather/gatherers/viewport-dimensions'
 declare module 'lighthouse/lighthouse-core/lib/page-functions'
