@@ -2,11 +2,15 @@ import RunnerStats from '../../src/stats/runner'
 
 test('should get initialised', () => {
     const capabilities = { browserName: 'chrome' }
-    const config = { outputDir: 'foo', logFile: 'bar' }
+    const config = { outputDir: 'foo', logFile: 'bar', capabilities: {} }
     const specs = ['./foo/bar.js']
     const runner = new RunnerStats({
         cid: '0-0',
         capabilities,
+        instanceOptions: {
+            'some-sessionId': config
+        },
+        sessionId: 'some-sessionId',
         config,
         specs,
         isMultiremote: false

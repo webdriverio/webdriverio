@@ -3,7 +3,7 @@ import * as http from 'http'
 import * as https from 'https'
 import type { RegisterOptions } from 'ts-node'
 
-import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities } from './Capabilities'
+import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
 import { Hooks, ServiceEntry } from './Services'
 import { ReporterEntry } from './Reporters'
 
@@ -436,4 +436,23 @@ export type Definition<T> = {
         validate?: (option: T[k]) => void
         match?: RegExp
     }
+}
+
+export interface RunnerStart {
+    cid: string
+    specs: string[]
+    config: Testrunner
+    isMultiremote: boolean
+    instanceOptions: Record<string, WebdriverIO>
+    sessionId: string
+    capabilities: Capabilities
+    retry?: number
+    failures?: number
+    retries?: number
+}
+
+export interface RunnerEnd {
+    failures: number
+    cid: string
+    retries: number
 }
