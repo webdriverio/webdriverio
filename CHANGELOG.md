@@ -19,6 +19,15 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.4.4 (2021-04-14)
+
+#### :memo: Documentation
+* [#6708](https://github.com/webdriverio/webdriverio/pull/6708) Update name and link to @wdio/browserstack-service ([@sbley](https://github.com/sbley))
+
+#### Committers: 1
+- Stefan Bley ([@sbley](https://github.com/sbley))
+
+
 ## v7.4.0 (2021-04-13)
 
 #### :rocket: New Feature
