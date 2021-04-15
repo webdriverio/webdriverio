@@ -3,6 +3,12 @@ id: sync-vs-async
 title: Sync vs. Async Mode
 ---
 
+:::caution
+
+As of __14/04/2021__ sync mode will not be supported anymore starting from Node.js v16 due to [changes](https://chromium-review.googlesource.com/c/v8/v8/+/2537690) in Chromium. [Read more.](https://github.com/laverdet/node-fibers/commit/8f2809869cc92c28c92880c4a38317ae3dbe654d) Please don't use sync mode anymore.
+
+:::
+
 WebdriverIO runs a set of asynchronous commands to interact with the browser or mobile device. In JavaScript asynchronous operations are handled via `async/await`. This however can be a confusing concept for people unfamiliar with the language. In addition to that it can make tests very verbose as almost every operation is asynchronous. To simplify its usage WebdriverIO provides the ability to run commands synchronous through [`node-fibers`](https://www.npmjs.com/package/fibers).
 
 ## How to enable/disable sync mode
