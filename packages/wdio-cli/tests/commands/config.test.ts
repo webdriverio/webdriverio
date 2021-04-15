@@ -73,23 +73,6 @@ test('should throw error if creating config file fails', async () => {
     expect(err.message).toContain('Error: boom!')
 })
 
-test('installs @wdio/sync if user requests to run in sync mode', async () => {
-    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        executionMode: 'sync',
-        framework: '@wdio/mocha-framework$--$mocha',
-        generateTestFiles: true,
-        reporters: [],
-        services: []
-    }))
-    await handler({} as any)
-    expect(generateTestFiles).toBeCalledTimes(1)
-    expect(yarnInstall).toHaveBeenCalledWith({
-        deps: ['@wdio/local-runner', '@wdio/mocha-framework', '@wdio/sync'],
-        dev: true,
-        respectNpm5: true
-    })
-})
-
 test('it should install with yarn when flag is passed', async () => {
     await handler({ yarn: true, yes: false } as any)
 
@@ -104,7 +87,6 @@ describe('install compliant NPM tag packages', () => {
     // @ts-expect-error
     const setFetchSpec = (fetchSpec) => pkg.setFetchSpec(fetchSpec)
     const args = {
-        executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -151,7 +133,6 @@ describe('install compliant NPM tag packages', () => {
 
 test('prints TypeScript setup message', async () => {
     (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -168,7 +149,6 @@ test('prints TypeScript setup message', async () => {
 test('prints TypeScript setup message with ts-node installed', async () => {
     process.env.WDIO_TEST_THROW_RESOLVE = '1'
     ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -185,7 +165,6 @@ test('prints TypeScript setup message with ts-node installed', async () => {
 test('should install @babel/register if not existing', async () => {
     process.env.WDIO_TEST_THROW_RESOLVE = '1'
     ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -202,7 +181,6 @@ test('should install @babel/register if not existing', async () => {
 test('should not install @babel/register if existing', async () => {
     delete process.env.WDIO_TEST_THROW_RESOLVE
     ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
