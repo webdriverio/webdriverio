@@ -62,19 +62,6 @@ describe('Command: repl', () => {
         expect(remote).toHaveBeenCalledWith({ capabilities: { browserName: 'foobar' }, option: 'foobar' } as any)
     })
 
-    it('should set runner if @wdio/sync is installed', async () => {
-        setSyncSupport(true)
-        await handler({ option: 'foobar' } as any)
-        expect(remote).toHaveBeenCalledWith({
-            runner: 'local',
-            // @ts-expect-error
-            option: 'foobar',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
-    })
-
     afterEach(() => {
         // @ts-ignore mock feature
         delete global.$

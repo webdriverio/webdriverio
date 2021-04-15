@@ -143,11 +143,6 @@ export const REGION_OPTION = [
     'eu'
 ] as const
 
-export const MODE_OPTIONS = [
-    'sync',
-    'async'
-] as const
-
 export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',
@@ -275,11 +270,6 @@ export const QUESTIONNAIRE = [{
     name: 'framework',
     message: 'Which framework do you want to use?',
     choices: SUPPORTED_PACKAGES.framework,
-}, {
-    type: 'list',
-    name: 'executionMode',
-    message: 'Do you want to run WebdriverIO commands synchronous or asynchronous?',
-    choices: MODE_OPTIONS
 }, {
     type: 'list',
     name: 'isUsingCompiler',
