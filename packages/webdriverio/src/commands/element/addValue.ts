@@ -1,5 +1,7 @@
-import { DeprecatedWarning } from '../../utils/DeprecatedWarning'
 import { transformToCharString } from '../../utils'
+import logger from '@wdio/logger';
+
+const log = logger('addValue');
 
 export type CommandOptions = {
     translateToUnicode?: boolean
@@ -7,14 +9,12 @@ export type CommandOptions = {
 
 export type Value = string | number
 
-function isValidType(value: unknown) {
-    const isNumberOrString = (input: unknown) => typeof input === 'string' || typeof input === 'number'
+const isNumberOrString = (input: unknown) => typeof input === 'string' || typeof input === 'number'
 
-    return (
-        isNumberOrString(value) ||
-        Array.isArray(value) && value.every((item) => isNumberOrString(item))
-    )
-}
+const isValidType = (value: unknown) => (
+    isNumberOrString(value) ||
+    Array.isArray(value) && value.every((item) => isNumberOrString(item))
+)
 
 /**
  *
@@ -49,7 +49,7 @@ export default function addValue (
     { translateToUnicode = true }: CommandOptions = {}
 ) {
     if (!isValidType(value)) {
-        new DeprecatedWarning('Support for values that are not of type "string", "number" or "Array<string | number>" will soon be dropped')
+        log.warn('@deprecated: support for type "string", "number" or "Array<string | number>" is deprecated')
     }
 
     if (!this.isW3C) {

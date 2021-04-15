@@ -1,7 +1,5 @@
 import logger from '@wdio/logger'
 
-// import { BrowserObject } from 'webdriverio'
-
 const log = logger('@wdio/utils:shim')
 
 let inCommandHook = false
