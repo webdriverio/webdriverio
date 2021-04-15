@@ -9,7 +9,7 @@ While we would love to have a fully automated process for this the reality looks
 
 ## Setup
 
-The Protractor and WebdriverIO API is actually very similar, to a point where the majority of commands can be rewritten in an automted way through a [codemod](https://github.com/webdriverio/codemod). For this tutorial we use a Protractor [boilerplate project](https://github.com/qaloop/protractor-jasmine-typescript) and fully migrate it to WebdriverIO.
+The Protractor and WebdriverIO API is actually very similar, to a point where the majority of commands can be rewritten in an automted way through a [codemod](https://github.com/webdriverio/codemod). For this tutorial we use a Protractor [boilerplate project](https://github.com/webdriverio/protractor-jasmine-typescript) and fully migrate it to WebdriverIO.
 
 To install the codemod, run:
 
@@ -37,7 +37,7 @@ $ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./conf.ts
 
 :::info
 
-This migration tutorial uses an example Protractor [boilerplate project](https://github.com/qaloop/protractor-jasmine-typescript). Your config can be named differently, however the principle should be the same: start migration the config first.
+This migration tutorial uses an example Protractor [boilerplate project](https://github.com/webdriverio/protractor-jasmine-typescript). Your config can be named differently, however the principle should be the same: start migration the config first.
 
 :::
 
