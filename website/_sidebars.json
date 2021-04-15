@@ -40,6 +40,9 @@
       "customreporter",
       "customservices"
     ],
+    "Migrate": [
+      "protractor"
+    ],
     "Integration": [
       "cloudservices",
       "autocompletion",
