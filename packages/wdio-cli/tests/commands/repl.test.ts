@@ -1,7 +1,5 @@
 import yargs from 'yargs'
 import { remote } from 'webdriverio'
-// @ts-ignore mock feature
-import { setSyncSupport } from '@wdio/utils'
 
 import { handler, builder } from '../../src/commands/repl'
 
