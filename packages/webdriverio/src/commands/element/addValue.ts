@@ -1,7 +1,7 @@
 import { transformToCharString } from '../../utils'
-import logger from '@wdio/logger';
+import logger from '@wdio/logger'
 
-const log = logger('addValue');
+const log = logger('addValue')
 
 export type CommandOptions = {
     translateToUnicode?: boolean
