@@ -201,10 +201,12 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 
 3. Add definitions for your commands according to your execution mode.
 
+For ambient type definition files:
+
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Sync Mode-->
 ```typescript
-declare module WebdriverIO {
+declare namespace WebdriverIO {
     // adding command to `browser`
     interface Browser {
         browserCustomCommand: (arg) => void
@@ -213,7 +215,7 @@ declare module WebdriverIO {
 ```
 <!--Async Mode-->
 ```typescript
-declare module WebdriverIO {
+declare namespace WebdriverIO {
     // adding command to `$()`
     interface Element {
         // don't forget to wrap return values with Promise
@@ -222,3 +224,32 @@ declare module WebdriverIO {
 }
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
+
+For type definition files implemented as modules (using import/export):
+
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Sync Mode-->
+```typescript
+declare global {
+    namespace WebdriverIO {
+		// adding command to `browser`
+		interface Browser {
+			browserCustomCommand: (arg) => void
+		}
+	}
+}
+```
+<!--Async Mode-->
+```typescript
+declare global {
+    namespace WebdriverIO {
+		// adding command to `$()`
+		interface Element {
+			// don't forget to wrap return values with Promise
+			elementCustomCommand: (arg) => Promise<number>
+		}
+	}
+}
+```
+<!--END_DOCUSAURUS_CODE_TABS-->
+
