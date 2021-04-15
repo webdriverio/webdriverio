@@ -1,8 +1,20 @@
 import { transformToCharString } from '../../utils'
+import logger from '@wdio/logger'
 
-export type AddValueOptions = {
+const log = logger('addValue')
+
+export type CommandOptions = {
     translateToUnicode?: boolean
 }
+
+export type Value = string | number
+
+const isNumberOrString = (input: unknown) => typeof input === 'string' || typeof input === 'number'
+
+const isValidType = (value: unknown) => (
+    isNumberOrString(value) ||
+    Array.isArray(value) && value.every((item) => isNumberOrString(item))
+)
 
 /**
  *
@@ -26,18 +38,22 @@ export type AddValueOptions = {
  * </example>
  *
  * @alias element.addValue
- * @param {string | number | boolean | object | Array<any>}      value     value to be added
- * @param {AddValueOptions=} options                    command options (optional)
- * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
+ * @param {string | number | Array<string | number>}        value                       value to be added
+ * @param {CommandOptions=}                                 options                     command options (optional)
+ * @param {boolean}                                         options.translateToUnicode  enable translation string to unicode value automatically
  *
  */
 export default function addValue (
     this: WebdriverIO.Element,
-    value: string | number | boolean | object | Array<any>,
-    { translateToUnicode = true }: AddValueOptions = {}
+    value: Value | Value[],
+    { translateToUnicode = true }: CommandOptions = {}
 ) {
+    if (!isValidType(value)) {
+        log.warn('@deprecated: support for type "string", "number" or "Array<string | number>" is deprecated')
+    }
+
     if (!this.isW3C) {
-        return this.elementSendKeys(this.elementId, transformToCharString(value as string[], translateToUnicode) as any as string)
+        return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode) as any as string)
     }
 
     return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode).join(''))
