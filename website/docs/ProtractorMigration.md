@@ -120,14 +120,14 @@ Congratulations 🥳 you just migrated the first file!
 From this point you continue to transform test by test and page object by page object. There are chances that the codemod will fail for certain files with an error such as:
 
 ```
-ERR /Users/christianbromann/Sites/WebdriverIO/protractor-codemod/test/testdata/failing_submit.js Transformation error (Error transforming /test/testdata/failing_submit.js:2)
+ERR /path/to/project/test/testdata/failing_submit.js Transformation error (Error transforming /test/testdata/failing_submit.js:2)
 Error transforming /test/testdata/failing_submit.js:2
 
 > login_form.submit()
   ^
 
 The command "submit" is not supported in WebdriverIO. We advise to use the click command to click on the submit button instead. For more information on this configuration, see https://webdriver.io/docs/api/element/click.
-  at /Users/christianbromann/Sites/WebdriverIO/protractor-codemod/test/testdata/failing_submit.js:132:0
+  at /path/to/project/test/testdata/failing_submit.js:132:0
 ```
 
 For some Protractor commands there is just no replacement for it in WebdriverIO. In this case the codemod will give you some advice how to refactor it. If you stumble upon such error messages too often, feel free to [raise an issue](https://github.com/webdriverio/codemod/issues/new) and request to add a certain transformation. While the codemod already transforms the majority of the Protractor API there is still a lot of room for improvements.
