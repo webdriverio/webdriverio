@@ -297,8 +297,9 @@ export default class ConfigParser {
                                 filesToFilter.add(subFile)
                             }
                         })
+                    } else {
+                        log.warn('Unexpected entry in specs that is neither string nor array: ', file)
                     }
-                    log.warn('Unexpected entry in specs that is neither string nor array: ', file)
                 })
             }
         })
