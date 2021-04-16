@@ -78,7 +78,7 @@ After the little questionaire the wizard will install all necessary packages and
 
 ## Migrate Configuration File
 
-After we have a transformed `conf.ts` and a new `wdio.conf.ts`, it is now time to migrate the configuration from one config to another. Make sure to only port code that is essential for all tests to be able to run. In our we port the hook function and framework timeout.
+After we have a transformed `conf.ts` and a new `wdio.conf.ts`, it is now time to migrate the configuration from one config to another. Make sure to only port code that is essential for all tests to be able to run. In ours we port the hook function and framework timeout.
 
 We will now continue with our `wdio.conf.ts` file only and therefor won't need any changes to the original Protractor config anymore. We can revert those so that both frameworks can run next to each other and we can port on file at the time.
 
