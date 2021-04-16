@@ -26,6 +26,9 @@ export default function findElement (
     } else if (using === 'partial link text') {
         using = 'xpath'
         value = `//a[contains(., "${value}")]`
+    } else if (using === 'shadow') {
+        using = 'css'
+        value = `shadow/${value}`
     }
 
     const page = this.getPageHandle(true)

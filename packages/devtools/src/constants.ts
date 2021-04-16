@@ -98,7 +98,7 @@ export const DEFAULT_IMPLICIT_TIMEOUT = 0
 export const DEFAULT_PAGELOAD_TIMEOUT = 5 * 60 * 1000 // 5 min
 export const DEFAULT_SCRIPT_TIMEOUT = 30 * 1000 // 30s
 
-export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name', 'xpath', 'link text', 'partial link text']
+export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name', 'xpath', 'link text', 'partial link text', 'shadow']
 export const SERIALIZE_PROPERTY = 'data-devtoolsdriver-fetchedElement'
 export const SERIALIZE_FLAG = '__executeElement'
 

@@ -3,6 +3,8 @@ import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Capabilities } from '@wdio/types'
+// @ts-expect-error
+import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer'
 
 import browserFinder from './finder'
 import { getPages } from './utils'
@@ -182,7 +184,8 @@ function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabiliti
     return puppeteer.connect(options) as unknown as Promise<Browser>
 }
 
-export default function launch (capabilities: ExtendedCapabilities) {
+export default async function launch (capabilities: ExtendedCapabilities) {
+    await puppeteer.registerCustomQueryHandler('shadow', QueryHandler)
     const browserName = capabilities.browserName?.toLowerCase()
 
     /**
