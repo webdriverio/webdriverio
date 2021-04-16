@@ -63,7 +63,7 @@ This will walk you through a couple of questions. For this migration scenario yo
 - pick the default choices
 - we recommend not to auto-generate example files
 - pick a different folder for WebdriverIO files
-- and to choose Mocha above Jasmine. 
+- and to choose Mocha above Jasmine.
 
 :::info Why Mocha?
 Even though you might have been using Protractor with Jasmine before, Mocha however provides better retry mechanisms. The choice is yours!
@@ -114,3 +114,24 @@ Congratulations 🥳 you just migrated the first file!
 
 - _move 1st Protractor test file into wdio directory_ [[29c4d49]](https://github.com/webdriverio/protractor-jasmine-typescript/commit/29c4d49c3e64a455c412ab7ce2c49e3c0fb59faf)
 - _transform first test file_ [[1af0478]](https://github.com/webdriverio/protractor-jasmine-typescript/commit/1af04786348a7549a29a4448cfc8474669e40b30)
+
+## Next Steps
+
+From this point you continue to transform test by test and page object by page object. There are chances that the codemod will fail for certain files with an error such as:
+
+```
+ERR /Users/christianbromann/Sites/WebdriverIO/protractor-codemod/test/testdata/failing_submit.js Transformation error (Error transforming /test/testdata/failing_submit.js:2)
+Error transforming /test/testdata/failing_submit.js:2
+
+> login_form.submit()
+  ^
+
+The command "submit" is not supported in WebdriverIO. We advise to use the click command to click on the submit button instead. For more information on this configuration, see https://webdriver.io/docs/api/element/click.
+  at /Users/christianbromann/Sites/WebdriverIO/protractor-codemod/test/testdata/failing_submit.js:132:0
+```
+
+For some Protractor commands there is just no replacement for it in WebdriverIO. In this case the codemod will give you some advice how to refactor it. If you stumble upon such error messages too often, feel free to [raise an issue](https://github.com/webdriverio/codemod/issues/new) and request to add a certain transformation. While the codemod already transforms the majority of the Protractor API there is still a lot of room for improvements.
+
+## Conclusion
+
+We hope this tutorial guides you a little bit through the migration process to WebdriverIO. The community continues to improve the codemod while testing it with various teams in various organisations. Don't hesitate to [raise an issue](https://github.com/webdriverio/codemod/issues/new) if you have feedback or [start a discussion](https://github.com/webdriverio/codemod/discussions/new) if you struggle during the migration process.
