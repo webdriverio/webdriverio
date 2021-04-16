@@ -59,7 +59,15 @@ Next we run the configuration wizard:
 $ npx wdio config
 ```
 
-This will walk you through a couple of questions. For this migration scenario you pick the default choices, we recommend not to auto-generate example files, pick a different folder for WebdriverIO files and to choose Mocha above Jasmine. Even though you might have been using Protractor with Jasmine before, Mocha however provides better retry mechanisms. The choice is yours!
+This will walk you through a couple of questions. For this migration scenario you:
+- pick the default choices
+- we recommend not to auto-generate example files
+- pick a different folder for WebdriverIO files
+- and to choose Mocha above Jasmine. 
+
+:::info Why Mocha?
+Even though you might have been using Protractor with Jasmine before, Mocha however provides better retry mechanisms. The choice is yours!
+:::
 
 After the little questionaire the wizard will install all necessary packages and stores them in your `package.json`.
 
