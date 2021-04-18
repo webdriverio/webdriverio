@@ -33,7 +33,7 @@
 
 <p align="center">
     <a href="https://webdriver.io">Homepage</a> |
-    <a href="https://webdriver.io/guide.html">Developer Guide</a> |
+    <a href="https://webdriver.io/docs/gettingstarted.html">Developer Guide</a> |
     <a href="https://webdriver.io/docs/api.html">API Reference</a> |
     <a href="https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md">Contribute</a> |
     <a href="https://github.com/webdriverio/webdriverio/blob/main/CHANGELOG.md">Changelog</a> |
