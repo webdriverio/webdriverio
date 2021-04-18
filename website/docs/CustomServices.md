@@ -57,6 +57,14 @@ export default class CustomWorkerService {
     after(exitCode, config, capabilities) {
         // TODO: something after all tests are run
     }
+    
+    beforeTest(test, context) {
+        // TODO: something before each Mocha/Jasmine test run
+    }
+    
+    beforeScenario(test, context) {
+        // TODO: something before each Cucumber scenario run
+    }
 
     // other hooks or custom service methods ...
 }
