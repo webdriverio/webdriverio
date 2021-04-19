@@ -30,7 +30,13 @@ test('launch chrome with default values', async () => {
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
     expect((puppeteer.connect as jest.Mock).mock.calls).toMatchSnapshot()
-    expect(puppeteer.registerCustomQueryHandler).toBeCalledWith('shadow', expect.any(Function))
+    expect(puppeteer.registerCustomQueryHandler).toBeCalledWith(
+        'shadow',
+        {
+            queryAll: expect.any(Function),
+            queryOne: expect.any(Function)
+        }
+    )
 
     const pages = await browser.pages()
     expect(pages[0].close).toBeCalledTimes(1)

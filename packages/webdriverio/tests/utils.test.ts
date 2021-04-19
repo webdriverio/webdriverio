@@ -409,6 +409,19 @@ describe('utils', () => {
             await expect(findElements.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
             await expect(findElements.call(scope)).rejects.toEqual(new Error(expectedMatch))
         })
+
+        it('fetches element using a function with browser scope', async () => {
+            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
+            const elem = await findElements.call(scope, '>>>.foobar')
+            expect(scope.findElements).not.toBeCalled()
+            expect(scope.findElementsFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalledWith(
+                expect.any(Function),
+                '.foobar'
+            )
+            expect(elem).toHaveLength(1)
+            expect(elem[0][ELEMENT_KEY]).toBe('foobar')
+        })
     })
     describe('verifyArgsAndStripIfElement', () => {
         class Element {

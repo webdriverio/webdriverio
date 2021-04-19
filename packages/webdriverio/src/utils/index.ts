@@ -279,6 +279,18 @@ export async function findElements(
     selector: Selector
 ) {
     /**
+     * check if shadow DOM integration is used
+     */
+    if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+        const elems: ElementReference | ElementReference[] = await this.execute(
+            locatorStrategy,
+            selector.slice(DEEP_SELECTOR.length)
+        )
+        const elemArray = Array.isArray(elems) ? elems : [elems]
+        return elemArray.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
+    /**
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {

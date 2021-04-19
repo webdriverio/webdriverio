@@ -26,6 +26,13 @@ export default async function findElements (
     } else if (using === 'partial link text') {
         using = 'xpath'
         value = `//a[contains(., "${value}")]`
+    } else if (using === 'shadow') {
+        /**
+         * `shadow/<selector>` is the way query-selector-shadow-dom
+         * understands to query for shadow elements
+         */
+        using = 'css'
+        value = `shadow/${value}`
     }
 
     const page = this.getPageHandle(true)
