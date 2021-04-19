@@ -152,11 +152,7 @@ export default class DevToolsDriver {
 
     framenavigatedHandler(frame: Frame) {
         this.currentFrameUrl = frame.url()
-        if (!frame.parentFrame()) {
-            this.elementStore.clear()
-        } else {
-            this.elementStore.clear(frame)
-        }
+        this.elementStore.clear(frame.parentFrame() ? frame : undefined)
     }
 
     setTimeouts(implicit?: number, pageLoad?: number, script?: number) {
