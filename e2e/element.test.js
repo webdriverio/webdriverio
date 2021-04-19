@@ -16,7 +16,7 @@ beforeAll(async () => {
 })
 
 describe('elements', () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
     })
 
