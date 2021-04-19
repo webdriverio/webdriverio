@@ -27,6 +27,10 @@ export default function findElement (
         using = 'xpath'
         value = `//a[contains(., "${value}")]`
     } else if (using === 'shadow') {
+        /**
+         * `shadow/<selector>` is the way query-selector-shadow-dom
+         * understands to query for shadow elements
+         */
         using = 'css'
         value = `shadow/${value}`
     }

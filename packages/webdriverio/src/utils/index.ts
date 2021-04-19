@@ -12,7 +12,6 @@ import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
 import type { ElementReference } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
-// @ts-expect-error
 import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio'
 
 import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG, DEEP_SELECTOR } from '../constants'
