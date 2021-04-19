@@ -40,7 +40,7 @@ If you run your test suite in multiple environments (e.g., dev and integration) 
 
 Similar to the [page object concept](PageObjects.md), the first thing you’ll need is a main config file. It contains all configurations you share across environments. 
 
-Then create another config file for each environment, and supplement the the main config with the environment-specific ones:
+Then create another config file for each environment, and supplement the main config with the environment-specific ones:
 
 ```js
 // wdio.dev.config.js
