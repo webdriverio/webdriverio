@@ -309,6 +309,18 @@ describe('utils', () => {
             await expect(findElement.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
             await expect(findElement.call(scope)).rejects.toEqual(new Error(expectedMatch))
         })
+
+        it('should use execute if shadow selector is used', async () => {
+            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
+            const elem = await findElement.call(scope, '>>>.foobar') as WebdriverIO.Element
+            expect(scope.findElement).not.toBeCalled()
+            expect(scope.findElementFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalledWith(
+                expect.any(Function),
+                '.foobar'
+            )
+            expect(elem[ELEMENT_KEY]).toBe('foobar')
+        })
     })
 
     describe('findElements', () => {
