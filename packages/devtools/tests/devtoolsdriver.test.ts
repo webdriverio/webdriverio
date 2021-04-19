@@ -279,13 +279,23 @@ test('dialogHandler', () => {
     expect(driver.activeDialog).toBe('foobar')
 })
 
-test('framenavigatedHandler', () => {
+test('framenavigatedHandler for main frame', () => {
     driver.elementStore.clear = jest.fn()
 
     const frameMock = { url: jest.fn().mockReturnValue('foobar'), parentFrame:jest.fn().mockReturnValue(null) }
     driver.framenavigatedHandler(frameMock as unknown as Frame)
     expect(driver.currentFrameUrl).toBe('foobar')
     expect(driver.elementStore.clear).toBeCalledTimes(1)
+})
+
+test('framenavigatedHandler for child frame', () => {
+    driver.elementStore.clear = jest.fn()
+
+    const frameMock = { url: jest.fn().mockReturnValue('foobar'), parentFrame:jest.fn().mockReturnValue({}) }
+    driver.framenavigatedHandler(frameMock as unknown as Frame)
+    expect(driver.currentFrameUrl).toBe('foobar')
+    expect(driver.elementStore.clear).toBeCalledTimes(1)
+    expect(driver.elementStore.clear).toBeCalledWith(frameMock)
 })
 
 test('setTimeouts with not value', () => {
