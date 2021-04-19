@@ -1,12 +1,23 @@
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 
 export default class ElementStore {
     private _index = 0
     private _elementMap: Map<string, ElementHandle> = new Map()
+    private _frameMap: Map<Frame, Set<string>> = new Map()
 
     set (elementHandle: ElementHandle) {
         const index = `ELEMENT-${++this._index}`
         this._elementMap.set(index, elementHandle)
+        const frame = elementHandle.executionContext().frame()
+        if (frame) {
+            let elementIndexes = this._frameMap.get(frame)
+            if (!elementIndexes) {
+                elementIndexes = new Set()
+                this._frameMap.set(frame, elementIndexes)
+            }
+            elementIndexes.add(index)
+        }
         return index
     }
 
@@ -25,7 +36,17 @@ export default class ElementStore {
         return isElementAttachedToDOM ? elementHandle : undefined
     }
 
-    clear () {
-        this._elementMap.clear()
+    clear (frame?: Frame) {
+        if (!frame) {
+            this._elementMap.clear()
+            this._frameMap.clear()
+            return
+        }
+
+        const elementIndexes = this._frameMap.get(frame)
+        if (elementIndexes) {
+            elementIndexes.forEach((elementIndex) => this._elementMap.delete(elementIndex))
+            this._frameMap.delete(frame)
+        }
     }
 }
