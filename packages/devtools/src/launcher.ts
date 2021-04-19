@@ -184,7 +184,8 @@ function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabiliti
 }
 
 export default async function launch (capabilities: ExtendedCapabilities) {
-    await puppeteer.registerCustomQueryHandler('shadow', QueryHandler)
+    puppeteer.unregisterCustomQueryHandler('shadow')
+    puppeteer.registerCustomQueryHandler('shadow', QueryHandler)
     const browserName = capabilities.browserName?.toLowerCase()
 
     /**
