@@ -40,12 +40,13 @@ export default class ElementStore {
         if (!frame) {
             this._elementMap.clear()
             this._frameMap.clear()
-        } else {
-            const elementIndexes = this._frameMap.get(frame)
-            if (elementIndexes) {
-                elementIndexes.forEach((elementIndex) => this._elementMap.delete(elementIndex))
-                this._frameMap.delete(frame)
-            }
+            return
+        }
+
+        const elementIndexes = this._frameMap.get(frame)
+        if (elementIndexes) {
+            elementIndexes.forEach((elementIndex) => this._elementMap.delete(elementIndex))
+            this._frameMap.delete(frame)
         }
     }
 }
