@@ -229,12 +229,11 @@ describe('elements', () => {
     })
 
     it('should support deep selectors', async () => {
-        await browser.navigateTo('chrome://downloads')
-        const moreActions = await browser.findElement('shadow', '#moreActions')
-        await browser.elementClick(moreActions[ELEMENT_KEY])
-        const span = await browser.findElement('shadow', '.dropdown-item:not([hidden])')
-        const text = await browser.getElementText(span[ELEMENT_KEY])
-        expect(text).toBe('Open downloads folder')
+        await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
+        const headerSlot = await browser.findElement('shadow', '#headerSlot')
+        expect(
+            await browser.getElementProperty(headerSlot[ELEMENT_KEY], 'name')
+        ).toBe('header')
     })
 })
 
