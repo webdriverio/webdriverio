@@ -209,6 +209,21 @@ const elem = $('#elem') // or $(() => document.getElementById('elem'))
 elem.$(function () { return this.nextSibling.nextSibling }) // (first sibling is #text with value ("↵"))
 ```
 
+## Deep Selectors
+
+Many frontend applications heavily rely on elements with [shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). It is technically impossible to query elements within the shadow DOM without workarounds. The [`shadow$`](https://webdriver.io/docs/api/element/shadow$) and [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) have been such workarounds that had their [limitations](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). With the deep selector you can now query all elements within any shadow DOM using the common query command.
+
+Given we have an application with the following structure:
+
+![Chrome Example](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
+
+With this selector you can query the `<button />` element that is nested within another shadow DOM, e.g.:
+
+```js
+const button = $('>>>.dropdown-item:not([hidden])')
+console.log(button.getText()) // outputs: "Open downloads folder"
+```
+
 ## Mobile Selectors
 
 For hybrid mobile testing, it's important that the automation server is in the correct *context* before executing commands. For automating gestures, the driver ideally should be set to native context. But to select elements from the DOM, the driver will need to be set to the platform's webview context. Only *then* can the methods mentioned above can be used.
