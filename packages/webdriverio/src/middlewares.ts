@@ -31,7 +31,7 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
 
                 return result
             } catch (error) {
-                if (error.name === 'stale element reference') {
+                if (error.name === 'stale element reference' && !process.env.WDIO_DISABLE_STALE_ELEMENT_HANDLER) {
                     const element = await refetchElement(this, commandName)
                     this.elementId = element.elementId
                     this.parent = element.parent
