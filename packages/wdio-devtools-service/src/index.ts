@@ -222,7 +222,7 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._target = await this._puppeteer.waitForTarget(
             /* istanbul ignore next */
-            (t) => t['_targetInfo'].browserContextId)
+            (t) => t.type() === 'page' || t['_targetInfo'].browserContextId)
         /* istanbul ignore next */
         if (!this._target) {
             throw new Error('No page target found')
