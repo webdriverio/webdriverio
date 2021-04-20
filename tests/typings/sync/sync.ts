@@ -19,6 +19,7 @@ declare global {
 
 const nsBrowser: WebdriverIO.Browser = {} as any
 nsBrowser.clearMockCalls('')
+nsBrowser.ambientCommand('foo')
 
 const nsElem: WebdriverIO.Element = {} as any
 nsElem.click()
