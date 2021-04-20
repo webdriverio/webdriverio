@@ -19,6 +19,34 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.5.0 (2021-04-20)
+
+#### :rocket: New Feature
+* `devtools`, `webdriverio`
+  * [#6709](https://github.com/webdriverio/webdriverio/pull/6709) Implement `>>>` (deep) selector for WebdriverIO ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#6725](https://github.com/webdriverio/webdriverio/pull/6725) Fix DevToolsDriver elements storing ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+
+#### :nail_care: Polish
+* `wdio-config`
+  * [#6720](https://github.com/webdriverio/webdriverio/pull/6720) fix: Only log when the entry is not a string or array ([@seanpoulter](https://github.com/seanpoulter))
+
+#### :memo: Documentation
+* [#6678](https://github.com/webdriverio/webdriverio/pull/6678) Document the transition from a Protractor to WebdriverIO framework ([@christian-bromann](https://github.com/christian-bromann))
+* [#6722](https://github.com/webdriverio/webdriverio/pull/6722) Update broken links ([@rueyaa332266](https://github.com/rueyaa332266))
+* [#6626](https://github.com/webdriverio/webdriverio/pull/6626) Update CustomServices.md ([@tzurp](https://github.com/tzurp))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jye Ruey ([@rueyaa332266](https://github.com/rueyaa332266))
+- Kyrylo ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+- Sean Poulter ([@seanpoulter](https://github.com/seanpoulter))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@tzurp](https://github.com/tzurp)
+
+
 ## v7.4.6 (2021-04-15)
 
 #### :nail_care: Polish
