@@ -76,6 +76,8 @@ export default {
     sendMock,
     listenerMock,
     devices,
+    registerCustomQueryHandler: jest.fn(),
+    unregisterCustomQueryHandler: jest.fn(),
     launch: jest.fn().mockImplementation(
         () => Promise.resolve(new PuppeteerMock())),
     connect: jest.fn().mockImplementation(

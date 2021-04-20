@@ -2,7 +2,7 @@ import { shadowFnFactory } from '../../scripts/shadowFnFactory'
 
 /**
  *
- * Access elements inside a given element's shadowRoot
+ * Access elements inside a given element's shadowRoot.
  *
  * <example>
     :shadow$$.js
@@ -13,8 +13,7 @@ import { shadowFnFactory } from '../../scripts/shadowFnFactory'
  * </example>
  *
  * If you are working with lots of nested shadow roots,
- * an alternative approach to `shadow$$` is to use a custom locator strategy,
- * for example: https://www.npmjs.com/package/query-selector-shadow-dom#webdriverio
+ * an alternative approach to `shadow$$` is to use the [deep selector](https://webdriver.io/docs/selectors#deep-selectors).
  *
  * @alias element.shadow$$
  * @param {String|Function} selector  selector or JS Function to fetch a certain element

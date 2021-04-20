@@ -100,7 +100,8 @@ export function getPrototype (commandWrapper: Function) {
 export async function findElement (
     this: DevToolsDriver,
     context: Frame | Page | ElementHandle,
-    using: string, value: string
+    using: string,
+    value: string
 ): Promise<ElementReference | Error>  {
     /**
      * implicitly wait for the element if timeout is set
@@ -206,7 +207,11 @@ export async function transformExecuteArgs (this: DevToolsDriver, args: any[] = 
 /**
  * fetch marked elements from execute script
  */
-export async function transformExecuteResult (this: DevToolsDriver, page: Page, result: any | any[]) {
+export async function transformExecuteResult (
+    this: DevToolsDriver,
+    page: Page,
+    result: any | any[]
+) {
     const isResultArray = Array.isArray(result)
     let tmpResult = isResultArray ? result : [result]
 

@@ -433,4 +433,10 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('css selector')
         expect(element.value).toBe('[role="abcd"]')
     })
+
+    it('should use shadow selector strategy if selector is prefixed with >>>', () => {
+        const element = findStrategy('>>>.foobar')
+        expect(element.using).toBe('shadow')
+        expect(element.value).toBe('.foobar')
+    })
 })
