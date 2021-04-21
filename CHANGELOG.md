@@ -19,6 +19,25 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.5.1 (2021-04-21)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#6736](https://github.com/webdriverio/webdriverio/pull/6736) `checkPWA` command is broken ([@christian-bromann](https://github.com/christian-bromann))
+  * [#6664](https://github.com/webdriverio/webdriverio/pull/6664) Fix Devtools hang on Android ([@nicolasbouffard](https://github.com/nicolasbouffard))
+* `wdio-cucumber-framework`
+  * [#6737](https://github.com/webdriverio/webdriverio/pull/6737) Pin Cucumber package versions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6732](https://github.com/webdriverio/webdriverio/pull/6732) add(service): waitFor external package ([@elaichenkov](https://github.com/elaichenkov))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Yevhen ([@elaichenkov](https://github.com/elaichenkov))
+- [@nicolasbouffard](https://github.com/nicolasbouffard)
+
+
 ## v7.5.0 (2021-04-20)
 
 #### :rocket: New Feature
