@@ -195,7 +195,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         await this._session.send('Network.emulateNetworkConditions', NETWORK_STATES[networkThrottling])
     }
 
-    async _checkPWA (auditsToBeRun: PWAAudits[] = []) {
+    async _checkPWA (auditsToBeRun: PWAAudits[]) {
         const auditor = new Auditor()
         const artifacts = await this._pwaGatherer!.gatherData()
         return auditor._auditPWA(artifacts, auditsToBeRun)

@@ -9,4 +9,9 @@ describe('main suite 1', () => {
         browser.url('https://webdriver.io')
         expect(browser.checkPWA().passed).toBe(true)
     })
+
+    it('should also detect non PWAs', () => {
+        browser.url('https://json.org')
+        expect(browser.checkPWA().passed).toBe(false)
+    })
 })
