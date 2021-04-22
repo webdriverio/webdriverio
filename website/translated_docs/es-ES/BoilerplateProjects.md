@@ -1,160 +1,161 @@
 ---
-id: boilerplate
-title: Boilerplate Projects
+id: ejemplos
+title: Proyectos de Ejemplo
 ---
-Over the time our community has developed a bunch of boilerplate projects that can be used as inspiration to set up your own test suite.
+
+Con el tiempo nuestra comunidad ha desarrollado un montón de `proyectos de ejemplo` que pueden ser utilizados como inspiración para crear su propia suite de pruebas.
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
 - Framework: Cucumber (v3.x)
-- Features: 
-    - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
-    - Examples of multi selector option to query element with more than one selector at a time
-    - Examples of headless browser execution using - PhantomJS and Chrome
-    - Integration with BrowserStack
-    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
-    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
-    - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
-    - Task manage through Grunt
-    - Examples with demo app https://search.yahoo.com/ and http://www.phptravels.net, Chai assertion liberary (expect, assert, should)
-    - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+- Características: 
+    - El modelo de Paginas Objetos usa el estilo base de clases ES6 y ofrece soporte completo de ES6-ES8 mediante Babel
+    - Ejemplos de selectores múltiples para consultar un elemento con más de un selector a la vez
+    - Ejemplos de ejecución con el browser en modo headless usando PhantomJS y Chrome
+    - Integración con BrowserStack
+    - Soporte para lectura/escritura de datos desde MS-Excel, para un fácil manejo y administración de datos de fuentes externas. Incluye Ejemplos
+    - Soporte para bases de datos de tipo RDBMS (Oracle, MySql, TeraData, Vertica etc.), ejecución de consultas y obtención de set de resultados, etc. Con ejemplos para testing E2E
+    - Multiples Reportes (Spec, Junit, Allure, JSON), incluyendo la vista local de reportes con formato Junit (.html)
+    - Administracion de tareas mediante Grunt
+    - Ejemplos con las app demo https://search.yahoo.com/ y http://www.phptravels.net. Chai como libreria de assertions (Expect, Assert, Should)
+    - Archivos .config específico de Appium para reproducción en dispositivos móviles. Para el seteo con 1 click de Appium consulte [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
-- Framework: Jasmine (v3.x)
-- Features: 
-    - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
-    - Examples of multi selector option to query element with more than one selector at a time
-    - Examples of headless browser execution using - PhantomJS and Chrome
-    - Integration with BrowserStack
-    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
-    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
-    - Multiple reporting (Spec, Junit, Allure, JSON), plus local view of Junit report(.html) format
-    - Task manage through Grunt
-    - Examples with demo app http://www.phptravels.net
-    - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+- Marco: Jasmine (v3.x)
+- Características: 
+    - El modelo de Paginas Objetos usa el estilo base de clases ES6 y ofrece soporte completo de ES6-ES8 mediante Babel
+    - Ejemplos de selectores múltiples para consultar un elemento con más de un selector a la vez
+    - Ejemplos de ejecución con el browser en modo headless usando PhantomJS y Chrome
+    - Integración con BrowserStack
+    - Soporte para lectura/escritura de datos desde MS-Excel, para un fácil manejo y administración de datos de fuentes externas. Incluye Ejemplos
+    - Soporte para bases de datos de tipo RDBMS (Oracle, MySql, TeraData, Vertica etc.), ejecución de consultas y obtención de set de resultados, etc. Con ejemplos para testing E2E
+    - Multiples Reportes (Spec, Junit, Allure, JSON), incluyendo la vista local de reportes con formato Junit (.html)
+    - Administracion de tareas mediante Grunt
+    - Ejemplos con la app demo http://www.phptravels.net
+    - Archivos .config específico de Appium para reproducción en dispositivos móviles. Para el seteo con 1 click de Appium consulte [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
-- Framework: Mocha (v5.x)
-- Features: 
-    - Page Objects Model uses with ES6 style class base approach and fully ES6 - ES8 support through Babel
-    - Examples of multi selector option to query element with more than one selector at a time
-    - Examples of headless browser execution using - PhantomJS and Chrome
-    - Integration with BrowserStack
-    - Support of read/write data from MS-Excel for easy test data management from external data sources with examples
-    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
-    - Multiple reporting (Spec, Junit, Allure, JSON, Mochawesome, Timeline), plus local view of Junit report(.html) format and Mochawesome report
-    - Task manage through Grunt
-    - Examples with demo app http://www.phptravels.net, Chai assertion liberary (expect, assert, should)
-    - Appium specific .config file for playback on mobile device. For one click Appium setup refer [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+- Marco: Mocha (v5.x)
+- Características: 
+    - El modelo de Paginas Objetos usa el estilo base de clases ES6 y ofrece soporte completo de ES6-ES8 mediante Babel
+    - Ejemplos de selectores múltiples para consultar un elemento con más de un selector a la vez
+    - Ejemplos de ejecución con el browser en modo headless usando PhantomJS y Chrome
+    - Integración con BrowserStack
+    - Soporte para lectura/escritura de datos desde MS-Excel, para un fácil manejo y administración de datos de fuentes externas. Incluye Ejemplos
+    - Soporte para bases de datos de tipo RDBMS (Oracle, MySql, TeraData, Vertica etc.), ejecución de consultas y obtención de set de resultados, etc. Con ejemplos para testing E2E
+    - Multiples Reportes (Spec, Junit, Allure, JSON), incluyendo la vista local de reportes con formato Junit (.html)
+    - Administración de tareas mediante Grunt
+    - Ejemplos con las app demo http://www.phptravels.net/ y Chai como libreria de assertions (Expect, Assert, Should)
+    - Archivos .config específico de Appium para reproducción en dispositivos móviles. Para el seteo con 1 click de Appium consulte [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
 
 ## [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
-Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you so that you can start write feature files for your project right away.
+Nuestro propio proyecto de ejemplo para suites de pruebas con Cucumber. Hemos creado más de 150 definiciones de pasos predefinidas para que puedas empezar a escribir archivos de características para tu proyecto inmediatamente.
 
-- Framework: Cucumber
-- Features: 
-    - over 150 predefined steps that cover almost everything you need
-    - integration of WebdriverIO's Multiremote functionality
-    - own demo app
+- Marco: Cucumber
+- Características: 
+    - más de 150 pasos predefinidos que cubren casi todo lo que necesitas
+    - integración de la funcionalidad Multiremota de WebdriverIO
+    - propia aplicación demo
 
 ## [saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium](https://github.com/saucelabs-sample-test-frameworks/JS-Mocha-WebdriverIO-Selenium)
 
-Simple boilerplate project that runs multiple browser on [SauceLabs](https://saucelabs.com/) in parallel.
+Proyecto simple que ejecuta múltiples navegadores en [SauceLabs](https://saucelabs.com/) en paralelo.
 
-- Framework: Mocha
-- Features: 
-    - Page Object usage
-    - Integration with [SauceLabs](https://saucelabs.com/)
+- Marco: Mocha
+- Características: 
+    - Uso de objeto de página
+    - Integración con [SauceLabs](https://saucelabs.com/)
 
 ## [jonyet/webdriverio-boilerplate](https://github.com/jonyet/webdriverio-boilerplate)
 
-Designed to be quick to get you started without getting terribly complex, as well as to share examples of how one can leverage external node modules to work in conjunction with wdio specs.
+Diseñado para ser rápido para empezar sin ser muy complejo, así como compartir ejemplos de cómo se puede apalancar módulos externos de Node para trabajar junto con especificaciones de wdio.
 
-- Framework: Mocha
-- Features: 
-    - examples for using Visual Regression testing with WebdriverIO v4
-    - cloud integration with [BrowserStack](https://www.browserstack.com/)
-    - Page Objects usage
+- Marco: Mocha
+- Características: 
+    - ejemplos para usar pruebas de Regresión Visual con WebdriverIO v4
+    - integración en la nube con [BrowserStack](https://www.browserstack.com/)
+    - Uso de objetos de página
 
 ## [cognitom/webdriverio-examples](https://github.com/cognitom/webdriverio-examples)
 
-Project with various examples to setup WebdriverIO with an internal grid and PhantomJS or using cloud services like [TestingBot](https://testingbot.com/).
+Proyecto con varios ejemplos para configurar WebdriverIO con una red interna y PhantomJS o usando servicios en la nube como [TestingBot](https://testingbot.com/).
 
-- Framework: Mocha
-- Features: 
-    - examples for the tunneling feature from TestingBot
-    - standalone examples
-    - simple demonstration of how to integrate PhantomJS as a service so no that no Java is required
+- Marco: Mocha
+- Características: 
+    - ejemplos para la función de túnel de TestingBot
+    - ejemplos independientes
+    - demostración simple de cómo integrar PhantomJS como un servicio para no que no se requiere Java
 
 ## [michaelguild13/Selenium-WebdriverIO-Mocha-Chai-Sinon-Boilerplate](https://github.com/michaelguild13/Selenium-WebdriverIO-Mocha-Chai-Sinon-Boilerplate)
 
-Enhance testing stack demonstration with Mocha and Chai allows you to write simple assertion using the [Chai](http://chaijs.com/) assertion library.
+Demostración de pila de pruebas con Mocha y Chai. Te permite escribir una simple aseveración usando la biblioteca de aseveración [Chai](http://chaijs.com/).
 
-- Framework: Mocha
-- Features: 
-    - Chai integration
-    - Babel setup
+- Marco: Mocha
+- Características: 
+    - Integración del chai
+    - Configuración de Babel
 
 ## [dcypherthis/wdio-boilerplate-cucumber](https://github.com/dcypherthis/wdio-boilerplate-cucumber)
 
-This project is an example of how to get started with WebdriverIO for Selenium testing in Node.js. It makes use of the Cucumber BDD framework and works with dot, junit, and allure reporters. It is ES6 friendly (via babel-register) and uses Grunt to manage tasks.
+Este proyecto es un ejemplo de cómo empezar con WebdriverIO para pruebas de Selenium en Node.js. Hace uso del marco de BDD Cucumber y trabaja con dot, junit y reportes de allure. Es amigable ES6 (a través del registro de bebés) y utiliza Grunt para gestionar tareas.
 
-- Framework: Cucumber
-- Features: 
-    - detailed documentation
-    - runs tests in a [Docker](https://www.docker.com/) container
-    - Babel setup
+- Marco: Cucumber
+- Características: 
+    - documentación detallada
+    - ejecuta pruebas en un contenedor de [Docker](https://www.docker.com/) 
+    - Configuración de Babel
 
 ## [WillLuce/WebdriverIO_Typescript](https://github.com/WillLuce/WebdriverIO_Typescript)
 
-This directory contains the WebdriverIO page object example written using TypeScript.
+Este directorio contiene el ejemplo de objeto de página web de la página de driverIO escrito usando TypeScript.
 
-- Framework: Mocha
-- Features: 
-    - examples of Page Object Model implementation
+- Marco: Mocha
+- Características: 
+    - ejemplos de implementación del Modelo de Objetos de Página
     - Intellisense
 
 ## [klamping/wdio-starter-kit](https://github.com/klamping/wdio-starter-kit)
 
-Boilerplate repo for quick set up of WebdriverIO test scripts with TravisCI, Sauce Labs and Visual Regression Testing
+Repo de Boilerplate para la configuración rápida de scripts de prueba WebdriverIO con TravisCI, Sauce Labs y pruebas de regresión visual
 
-- Framework: Mocha, Chai
-- Features: 
-    - Login & Registration Tests, with Page Objects
+- Marco: Mocha, Chai
+- Características: 
+    - Inicia sesión & Pruebas de Registro, con Objetos de Página
     - Mocha
-    - Chai with expect global
-    - Chai WebdriverIO
-    - Sauce Labs integration
-    - Visual Regression Tests
-    - Local notifications
-    - ESLint using Semistandard style
-    - WebdriverIO tuned Gitignore file
+    - Chai con expect global
+    - WebdriverIO Chai
+    - Integración de Sauce Labs
+    - Pruebas de Regresión Visual
+    - Notificaciones locales
+    - ESLint usando estilo semiestándar
+    - Archivo Gitignore de WebdriverIO sintonizado
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
 
-Boilerplate project to run Appium tests together with WebdriverIO for:
+Proyecto Boilerplate para ejecutar pruebas de Appium junto con WebdriverIO para:
 
 - iOS/Android Native Apps
 - iOS/Android Hybrid Apps
-- Android Chrome and iOS Safari browser
+- Navegador Android Chrome y iOS Safari
 
-The boilerplate holds the following things
+El proyecto contiene las siguientes
 
-- Framework: Jasmine
-- Features: 
-    - Configs for: 
-        - iOS and Android app
-        - iOS and Android browsers
-    - Helpers for: 
+- Marco: Jasmine
+- Características: 
+    - Configs para: 
+        - Apps para iOS y Android
+        - iOS y Android navegadores
+    - Ayuda para: 
         - WebView
-        - Gestures
-        - Native alerts
-        - Pickers
-        - Tests examples for:
+        - Gestos
+        - Alertas nativas
+        - Selectores
+        - Ejemplos de prueba para:
         - WebView
-        - Login
-        - Forms
-        - Swipe
-        - Browsers
+        - Ingreso
+        - Formularios
+        - Deslizar
+        - Navegadores
