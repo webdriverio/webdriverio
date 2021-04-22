@@ -1,21 +1,22 @@
 ---
 id: repl
-title: REPL interface
+title: Interfaz REPL
 ---
-With `v4.5.0` WebdriverIO introduces a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) interface that helps you to not only discover the framework API but also debug and inspect your tests. It can be used in multiple ways. First you can use it as CLI command and spawn a WebDriver session from the command line, e.g.
+
+Con `v4.5.0` WebdriverIO introduce una interfaz de [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) que te ayuda a no solo descubrir la API de framework, sino también depurar e inspeccionar tus pruebas. Puede ser usado de múltiples maneras. Primero puede usarlo como comando CLI y generar una sesión WebDriver desde la línea de comandos, p.ej.
 
 ```sh
 $ wdio repl chrome
 ```
 
-This would open a Chrome browser that you can control with the REPL interface. Make sure you have a browser driver running on port `4444` in order to initiate the session. If you have a [SauceLabs](https://saucelabs.com) (or other cloud vendor) account you can also directly run the browser on your command line in the cloud via:
+Esto abriría un navegador Chrome que puede controlar con la interfaz REPL. Asegúrese de que tiene un controlador de navegador en el puerto `4444` para iniciar la sesión. Si tienes una cuenta de [SauceLabs](https://saucelabs.com) (u otra cuenta de vendedor de nubes) también puedes ejecutar directamente el navegador en tu línea de comandos en la nube a través de:
 
 ```sh
 $ wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
-You can apply any options (see `wdio --help`) available for your REPL session.
+Puede aplicar cualquier opción (vea `wdio --help`) disponible para su sesión REPL.
 
 ![WebdriverIO REPL](http://webdriver.io/images/repl.gif)
 
-Another way to use the REPL is in between your tests via the [`debug`](/api/utility/debug.html) command. It will stop the browser when executed and enables you to jump into the application (e.g. to the dev tools) or control the browser from the command line. This is helpful when some commands don't trigger a certain action as expected. With the REPL you can then try out the commands to see which are working most reliable.
+Otra forma de usar el REPL está entre tus pruebas a través del comando [`debug`](/api/utility/debug.html). Se detendrá el navegador cuando se ejecute y le permite saltar a la aplicación (por ejemplo, a las herramientas de desarrollo) o controlar el navegador desde la línea de comandos. Esto es útil cuando algunos comandos no activan una acción determinada como se esperaba. Con el REPL, puede probar los comandos para ver que están funcionando más confiables.
