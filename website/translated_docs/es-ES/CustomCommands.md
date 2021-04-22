@@ -1,8 +1,9 @@
 ---
 id: customcommands
-title: Custom Commands
+title: Comandos Personalizados
 ---
-If you want to extend the browser instance with your own set of commands there is a method called `addCommand` available from the browser object. You can write your command in a synchronous (default) way the same way as in your specs or asynchronous (like when using WebdriverIO in standalone mode). The following example shows how to add a new command that returns the current url and title as one result only using synchronous commands:
+
+Si quieres ampliar la instancia del navegador con tu propio conjunto de comandos, hay un método llamado `addCommand` disponible desde el objeto browser. Puede escribir su comando de una manera síncrona (por defecto) de la misma manera que en sus specs o de modo asíncrono (como cuando se usa WebdriverIO en modo independiente). El siguiente ejemplo muestra cómo agregar un nuevo comando que devuelva la url actual y el título como un resultado, usando sólo comandos síncronos:
 
 ```js
 browser.addCommand("getUrlAndTitle", (customVar) => {
@@ -14,7 +15,7 @@ browser.addCommand("getUrlAndTitle", (customVar) => {
 });
 ```
 
-Custom commands give you the opportunity to bundle a specific sequence of commands that are used frequently in a handy single command call. You can define custom commands at any point in your test suite, just make sure that the command is defined before you first use it (the before hook in your wdio.conf.js might be a good point to create them). Once defined you can use them as follows:
+Los comandos personalizados le dan la oportunidad de agrupar una secuencia específica de comandos que se utilizan frecuentemente en una única llamada de comando. Puede definir comandos personalizados en cualquier momento de su suite de pruebas, sólo asegúrese de que el comando se define antes de que lo use primero (el hook "before" en su wdio.conf.js podría ser un buen punto para crearlos). Una vez definida puedes usarlos de la siguiente manera:
 
 ```js
 it('should use my custom command', () => {
@@ -27,11 +28,11 @@ it('should use my custom command', () => {
 });
 ```
 
-Be careful to not overload the `browser` scope with custom commands. It is advised to rather define custom logic into page objects so they are bound to a specific page.
+Tenga cuidado de no sobrecargar el alcance del objeto `browser` con comandos personalizados. Se recomienda en cambio, definir una lógica personalizada en los objetos de página para que estén vinculados a una página específica.
 
-## Integrate 3rd party libraries
+## Integrar bibliotecas de terceros
 
-If you use external libraries (e.g. to do database calls) that support promises, a nice approach to easily integrate them is to wrap certain API methods within a custom command. When returning the promise, WebdriverIO ensures that it doesn't continue with the next command until the promise is resolved. If the promise gets rejected the command will throw an error.
+Si utiliza bibliotecas externas (por ejemplo, para hacer llamadas de base de datos) que soportan promesas, un enfoque para integrarlas fácilmente es envolver ciertos métodos API dentro de un comando personalizado. Al devolver la promesa, WebdriverIO asegura que no se continúe con el siguiente comando hasta que la promesa se haya resuelto. Si la promesa es rechazada, el comando arrojará un error.
 
 ```js
 import request from 'request';
@@ -41,7 +42,7 @@ browser.addCommand('makeRequest', (url) => {
 });
 ```
 
-Then just use it in your wdio test specs synchronously:
+Luego, úsalo en tus specs de prueba de wdio síncronamente:
 
 ```js
 it('execute external library in a sync way', () => {
@@ -51,4 +52,4 @@ it('execute external library in a sync way', () => {
 });
 ```
 
-Note that the result of your custom command will be the result of the promise you return. Also there is no support for synchronous commands in standalone mode therefore you always have to handle asynchronous commands using promises.
+Tenga en cuenta que el resultado de su comando personalizado será el resultado de la promesa que usted retorna. Es importante mencionar que no hay soporte para comandos sincronicos cuando se usa Wdio en modo independiente, por lo tanto en esos casos siempre se deben manejar comandos asíncronos usando promesas.
