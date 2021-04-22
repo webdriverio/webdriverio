@@ -2,7 +2,8 @@
 id: selectors
 title: Selectors
 ---
-The JsonWireProtocol provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. The following selector types are supported:
+
+El JsonWireProtocol proporciona varias estrategias de selección para consultar un elemento. WebdriverIO los simplifica para mantener la selección de elementos simple. The following selector types are supported:
 
 ## CSS Query Selector
 
