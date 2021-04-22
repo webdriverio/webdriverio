@@ -1,8 +1,9 @@
 ---
 id: customreporter
-title: Custom Reporter
+title: Benutzerdefinierte Reporter
 ---
-You can write your own custom reporter for the wdio test runner that fits your needs. All you need to do is to create a node module that inherits from the `@wdio/reporter` package so it can receive messages from the test. The basic construction should look like:
+
+Du kannst deinen eigenen Reporter für WebdriverIO schreiben, der deinen Bedürfnissen entspricht. Alles was getan werden muss ist ein neues Node.js Modul zu erstellen, welches von `@wdio/reporter` erbt, sodass es Nachrichten ordnungsgemäß erhalten kann. Die Grundkonstruktion sollte wie folgt aussehen:
 
 ```js
 import WDIOReporter from '@wdio/reporter';
@@ -22,7 +23,7 @@ export default class CustomReporter extends WDIOReporter {
 };
 ```
 
-The only thing to do now in order to use this reporter is to assign it to the reporter property. Therefor your wdio.conf.js file should look like this:
+Zum Schluss muss der Reporter nur noch in der Konfiguration gesetzt werden. Dafür sollte die `wdio.conf.js` folgendermaßen geändert werden:
 
 ```js
 var CustomReporter = require('./reporter/my.custom.reporter');
@@ -36,11 +37,11 @@ exports.config = {
 };
 ```
 
-You can also publish the reporter to NPM so everyone can use it. Name the package like other reporters `wdio-<reportername>-reporter` and tag it with keywords like `wdio` or `wdio-reporter`.
+Der Reporter can ebenfalls auf NPM veröffentlicht werden, so das ihn jeder benutzen kann. Der Name des NPM Paketes sollte, wie andere Reporter auch, das folgende Namen Muster haben: `wdio-<reportername>-reporter`. Um den Reporter dann einfacher zu finden, sollten Tags und Keywords wie `wdio` oder `wdio-reporter` verwendet werden.
 
-## Event Handler
+## Ereignishandler
 
-You can register event handler for several events which get triggered during the test. All these handlers will receive payloads with useful information about the current state and progress. The structure of these payload objects depend on the event and are unified across the frameworks (Mocha, Jasmine and Cucumber). Once you implemented your custom reporter it should work for all frameworks. The following list contains all possible methods you can add to your reporter class:
+Ereignishändler können für verschiedene Events registriert werden. Diese erhalten dann Nachrichten mit nützlichen Informationen über den aktuellen Status des Tests. Die Struktur dieser Informationen hängen vom Event selber ab sind aber einheitlich unter den verschiedenen unterstützen Frameworks (Mocha, Jasmine, Cucumber). Ein Reporter sollte daher immer für all Frameworks gleich funktionieren. Die folgende Liste enthält alle möglichen Methoden-Events, die von der Reporter Klasse abgefangen werden können:
 
 ```js
 import WDIOReporter from '@wdio/reporter';
@@ -63,7 +64,7 @@ export default class CustomReporter extends WDIOReporter {
 };
 ```
 
-The method names are pretty self explanatory. To print something on a certain event, use the `this.write(...)` method which is provided by the parent class (`WDIOReporter`). It either streams the content to stdout or to a log file depending on the options of the reporter.
+Die Methodennamen sollten selbsterklärend sein. Um etwas in einem bestimmten Event auszugeben sollte die `this.write(...)` Methode verwendet werden. Sie wird von der Elternklasse (`WDIOReporter`) implementiert. Dies erzeugt dann entweder den Text im StdOut oder schreibt es in eine Datei abhängig, wie der Reporter eingestellt ist.
 
 ```js
 import WDIOReporter from '@wdio/reporter';
@@ -75,4 +76,4 @@ export default class CustomReporter extends WDIOReporter {
 };
 ```
 
-Note that you can't defer the test execution in any way. All event handler should execute synchronous routines otherwise you will run into race conditions. Make sure you check out the [example section](https://github.com/webdriverio/webdriverio/tree/master/examples/wdio) where you can find an example for a custom reporter that prints the event name for each event. If you have implemented a custom reporter that can be useful for the community, don't hesitate to make a Pull Request so we can make the reporter available for the public.
+Beachte, dass in Reporter keine asynchronen Operationen durchgeführt werden sollten. Alle Ereignishandler sollten synchrone Operationen ausführen, um ungewollte Seiteneffekte zu vermeiden. Schau am besten auf der [Beispielseite](https://github.com/webdriverio/webdriverio/tree/master/examples/wdio) vorbei, um so eine Beispiel-Implementierung eines benutzerdefinierten Reporter zu sehen, der alle Events einfach nur ausgibt. Wenn du einen benutzerdefinierten Reporter implementiert hast, der für die Community nützlich sein kann Zögern Sie nicht, eine Pull Request zu stellen, damit wir den Reporter für die Öffentlichkeit zur Verfügung stellen können. Zögere also nicht, auch deinen auf NPM zu veröffentlichen.
