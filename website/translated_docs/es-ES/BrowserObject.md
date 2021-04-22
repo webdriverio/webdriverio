@@ -1,18 +1,19 @@
 ---
 id: browserobject
-title: The Browser Object
+title: El objeto del navegador
 ---
-If you use the wdio test runner you can access the webdriver instance through the global `browser` or `driver` object. The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
 
-Besides all commands from the [api](API.md) the browser object provides some more information you might be interested in during your test run:
+Si utiliza el gestor de pruebas de wdio, puede acceder a la instancia del controlador web a través del `browser` global o el objeto del `driver`. La sesión está inicializada por el 'testrunner'. Lo mismo ocurre para terminar la sesión. Esto también lo hace el proceso del 'testrunner'.
 
-## Get Desired Capabilities
+Además de todos los comandos del [api](API.md) el objeto del navegador proporciona más información en la que podría estar interesado durante su ejecución de prueba:
+
+## Obtén las capacidades deseadas
 
 ```js
-console.log(browser.sessionId); // outputs: "57b15c6ea81d0edb9e5b372da3d9ce28"
+console.log(browser.sessionId); // salidas: "57b15c6ea81d0edb9e5b372da3d9ce28"
 console.log(browser.capabilities);
 /**
- * outputs:
+ * salidas:
    { acceptInsecureCerts: false,
      acceptSslCerts: false,
      applicationCacheEnabled: false,
@@ -42,9 +43,9 @@ console.log(browser.capabilities);
  */
 ```
 
-## Get Config Options
+## Obtener opciones de configuración
 
-You can always define custom options within you wdio config:
+Siempre puede definir opciones personalizadas dentro de la configuración de wdio:
 
 ```js
 // wdio.conf.js
@@ -56,12 +57,12 @@ exports.config = {
 }
 ```
 
-to then access it in your tests:
+luego lo puede acceder en sus pruebas:
 
 ```js
 console.log(browser.config);
 /**
- * outputs:
+ * salidas:
  * {
         port: 4444,
         protocol: 'http',
@@ -80,18 +81,18 @@ console.log(browser.config);
         // ...
  */
 
-console.log(browser.config.fakeUser); // outputs: "maxmustermann"
+console.log(browser.config.fakeUser); // salidas: "maxmustermann"
 ```
 
-## Mobile Flags
+## Banderas móviles
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check, e.g.:
+Si necesita modificar su prueba basándose en si su sesión se ejecuta o no en un dispositivo móvil, puede acceder a las banderas móviles para comprobar, por ejemplo.:
 
 ```js
 // wdio.conf.js
 exports.config = {
     // ...
-    capabilities: {
+    capacidades: {
         platformName: 'iOS',
         app: 'net.company.SafariLauncher',
         udid: '123123123123abc',
@@ -102,17 +103,17 @@ exports.config = {
 };
 ```
 
-In your test you can access these flags like:
+En tu prueba puedes acceder a estas banderas de la siguiente forma:
 
 ```js
-// Note: `driver` is the equivalent to the `browser` object but semantically more correct
-// you can choose which global variable you want to use
-console.log(driver.isMobile); // outputs: true
-console.log(driver.isIOS); // outputs: true
-console.log(driver.isAndroid); // outputs: false
+// Nota: `driver` es el equivalente al objeto `browser` pero semánticamente más correcto
+// puedes elegir la variable global que quieres usar
+console.log(driver.isMobile); // salidas: true
+console.log(driver.isIOS); // salidas: true
+console.log(driver.isAndroid); // salidas: false
 ```
 
-This can be useful if you want to define selectors in your page objects based on the device type, e.g.
+Esto puede ser útil si desea definir selectores en sus objetos de página basados en el tipo de dispositivo, por ejemplo.
 
 ```js
 // mypageobject.page.js
@@ -124,22 +125,22 @@ class LoginPage extends Page {
         const selectorAndroid = 'new UiSelector().text("Cancel").className("android.widget.Button")';
         const selectorIOS = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]';
         const selectorType = driver.isAndroid ? 'android' : 'ios';
-        const selector = driver.isAndroid ? selectorAndroid : selectorIOS;
+        'const selector = driver.isAndroid ? selectorAndroid : selectorIOS;
         return $(`${selectorType}=${selector}`);
     }
     // ...
 }
 ```
 
-You can also use these flags to only run certain tests for certain device types:
+También puedes usar estas banderas para ejecutar sólo ciertas pruebas para ciertos tipos de dispositivo:
 
 ```js
 // mytest.e2e.js
 describe('my test', () => {
     // ...
-    // only run test with Android devices
+    // sólo ejecutar pruebas con dispositivos Android
     if (driver.isAndroid) {
-        it('tests something only for Android', () => {
+        it('prueba algo sólo para Android', () => {
             // ...
         })
     }
