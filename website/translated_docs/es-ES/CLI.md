@@ -1,10 +1,11 @@
 ---
 id: clioptions
-title: WDIO CLI Options
+title: Opciones de CLI de WDIO
 ---
-WebdriverIO comes with its own test runner to help you get started with integration testing as quickly as possible. All the fiddling around hooking up WebdriverIO with a test framework belongs to the past. The WebdriverIO runner does all the work for you and helps you to run your tests as efficiently as possible.
 
-Starting with v5 of WebdriverIO the testrunner will be bundled as a seperated NPM package `@wdio/cli`. To see the command line interface help just type the following command in your terminal:
+WebdriverIO viene con su propio 'testrunner' para ayudarle a comenzar con las pruebas de integración lo antes posible. Todo el trasteo alrededor de utilizar WebdriverIO con un marco de pruebas pertenece al pasado. El corredor WebdriverIO hace todo el trabajo para usted y le ayuda a ejecutar sus pruebas de la forma más eficiente posible.
+
+A partir de v5 de WebdriverIO el testrunner será incluido como un paquete aparte en NPM: `@wdio/cli`. Para ver la ayuda del CLI solo escriba el siguiente comando en su terminal:
 
 ```sh
 $ npm install @wdio/cli
@@ -53,33 +54,33 @@ Options:
   --cucumberOpts        Cucumber options
 ```
 
-Sweet! Now you need to define a configuration file where all information about your tests, capabilities and settings are set. Switch over to the [Configuration File](ConfigurationFile.md) section to find out how that file should look like. With the `wdio` configuration helper it is super easy to generate your config file. Just run:
+¡Genial! Ahora necesita definir un archivo de configuración donde se establece toda la información sobre sus pruebas, capacidades y ajustes. Cambia a la sección [Archivo de configuración](ConfigurationFile.md) para averiguar cómo debe aparecer ese archivo. Con el asistente de configuración de `wdio` es fácil generar su archivo de configuración. Basta con ejecutar:
 
 ```sh
 $ ./node_modules/.bin/wdio config
 ```
 
-and it launches the helper utility. It will ask you questions depending on the answers you give. This way you can generate your config file in less than a minute.
+y lanza la utilidad de ayuda. Le hará preguntas dependiendo de las respuestas que dé. De esta manera puede generar su archivo de configuración en menos de un minuto.
 
-![WDIO configuration utility](/img/config-utility.gif)
+![Utilidad de configuración WDIO](/img/config-utility.gif)
 
-Once you have your configuration file set up you can start your integration tests by calling:
+Una vez que tenga su configuración de archivo listo, puede iniciar sus pruebas de integración llamando:
 
 ```sh
 $ ./node_modules/.bin/wdio wdio.conf.js
 ```
 
-That's it! Now, you can access to the selenium instance via the global variable `browser`.
+¡Eso es todo! Ahora, puedes acceder a la instancia de Selenium a través de la variable global `browser`.
 
-## Run the test runner programmatically
+## Ejectuar el 'testrunner' programaticamente
 
-Instead of calling the wdio command you can also include the test runner as module and run in within any arbitrary environment. For that you need to require the `@wdio/cli` package as module the following way:
+En lugar de llamar al comando wdio también puede incluir el 'testrunner' como módulo y ejecutarlo en cualquier entorno arbitrario. Para eso necesitas requerir el paquete `@wdio/cli` como módulo de la siguiente manera:
 
 ```js
 import Launcher from '@wdio/cli';
 ```
 
-After that you create an instance of the launcher and run the test. The Launcher class expects as parameter the url to the config file and parameters that will overwrite the value in the config.
+Después de eso crea una instancia del 'launcher' y ejecuta la prueba. La clase Launcher espera como parámetro la url al archivo de configuración y parámetros que sobreescribirán el valor en la configuración.
 
 ```js
 const wdio = new Launcher('/path/to/my/wdio.conf.js', opts);
@@ -91,4 +92,4 @@ wdio.run().then((code) => {
 });
 ```
 
-The run command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that gets resolved if the test ran successful or failed or gets rejected if the launcher was not able to start run the tests.
+El comando de ejecución devuelve una [promesa](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Promise) que se resuelve si la prueba tuvo éxito o falló y se rechaza si el lanzador no pudo iniciar las pruebas.
