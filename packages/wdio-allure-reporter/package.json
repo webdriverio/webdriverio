@@ -27,7 +27,7 @@
     "@wdio/reporter": "7.4.2",
     "@wdio/types": "7.4.2",
     "allure-js-commons": "^1.3.2",
-    "strip-ansi": "^6.0.0"
+    "strip-ansi": "^7.0.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"
