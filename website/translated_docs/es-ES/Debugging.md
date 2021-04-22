@@ -2,6 +2,7 @@
 id: debugging
 title: Debugging
 ---
+
 Debugging is significantly more difficult when there are several processes spawning dozens of tests in multiple browsers.
 
 For starters, it is extremely helpful to limit parallelism by setting `maxInstances` to 1 and targeting only those specs and browsers that need to be debugged.
