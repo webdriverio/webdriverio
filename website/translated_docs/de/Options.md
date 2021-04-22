@@ -2,6 +2,7 @@
 id: options
 title: Options
 ---
+
 WebdriverIO is not only a WebDriver protocol binding like Selenium. It is a full test framework that comes with a lot of additional features and utilities. It is based on the [webdriver](https://www.npmjs.com/package/webdriver) package which is a lightweight, non-opinionated implementation of the WebDriver specification including mobile commands supported by Appium. WebdriverIO takes the protocol commands and creates smart user commands that make it easier to use the protocol for test automation.
 
 WebdriverIO enhances the WebDriver package with additional commands. They share the same set of options when run in a standalone script. When running tests using `@wdio/cli` (wdio testrunner) some additional options are available that belong into the `wdio.conf.js`.
