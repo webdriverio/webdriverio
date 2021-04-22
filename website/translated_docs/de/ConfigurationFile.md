@@ -1,21 +1,22 @@
 ---
 id: configurationfile
-title: Testrunner Configuration
+title: Testrunner Konfiguration
 ---
-The configuration file contains all necessary information to run your test suite. It is a node module that exports a JSON. Here is an example configuration with all supported properties and additional information:
+
+Die Konfigurationsdatei enthält alle notwendigen Informationen, um Ihre Testsuite auszuführen. Es ist ein einfaches Node.js Modul, welches ein JSON Objekt exportiert. Hier ist eine Beispielkonfiguration mit allen unterstützten Eigenschaften und zusätzlichen Informationen:
 
 ```js
 exports.config = {
 
-    // =====================
-    // Server Configurations
-    // =====================
-    // Host address of the running Selenium server. This information is usually obsolete as
-    // WebdriverIO automatically connects to localhost. Also if you are using one of the
-    // supported cloud services like Sauce Labs, Browserstack or Testing Bot you also don't
-    // need to define host and port information because WebdriverIO can figure that out
-    // according to your user and key information. However if you are using a private Selenium
-    // backend you should define the host address, port, and path here.
+    // ====================
+    // Server Konfiguration
+    // ====================
+    // Host Adresse des laufenden Browser Drivers. Diese Informationen sind nur dann wichtig, wenn
+    // sich mit einem Driver verbinden wollen, der nicht auf Ihrem System läuft. Wenn Sie unterstützte Cloud Dienste,
+    // wie z.B. Sauce Labs, Browserstack oder Testingbot, nutzen ist es ebenfalls nicht nötig die
+    // Adresse dieser Dienste anzugeben, da WebdriverIO dies anhand ihres Access Keys herausfinden
+    // kann. Wenn Sie allerdings Ihr eigenes Selenium Grid betreuen, ist es von Nöten, die Adresse
+    // vom Grid anzugeben.
     //
     host: '0.0.0.0',
     port: 4444,
@@ -24,31 +25,31 @@ exports.config = {
     // =================
     // Service Providers
     // =================
-    // WebdriverIO supports Sauce Labs, Browserstack and Testing Bot (other cloud providers
-    // should work too though). These services define specific user and key (or access key)
-    // values you need to put in here in order to connect to these services.
+    // WebdriverIO unterstützt Sauce Labs, Browserstack und Testing Bot (andere Cloud Dienste können
+    // ebenfalls genutzt werden, benötigen allerdings weiter Einstellungen. Diese Dienste erfordern eine
+    // Autorisierung über ein User Namen und Key (Access Key), um sich mit diesen zu verbinden.
     //
     user: 'webdriverio',
     key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
-    // If you run your tests on SauceLabs you can specify the region you want to run your tests
-    // in via the `region` property. Available short handles for regions are:
+    // Wenn Sie Ihre Tests auf der Sauce Labs Platform ausführen, können Sie auch die Region des
+    // Datencenters angeben, wo der Test ausgeführt werden soll. Verfügbar sind die folgenden Regionen:
     // us: us-west-1 (default)
     // eu: eu-central-1
     region: 'us',
     //
-    // ==================
-    // Specify Test Files
-    // ==================
-    // Define which test specs should run. The pattern is relative to the directory
-    // from which `wdio` was called. Notice that, if you are calling `wdio` from an
-    // NPM script (see https://docs.npmjs.com/cli/run-script) then the current working
-    // directory is where your package.json resides, so `wdio` will be called from there.
+    // ========================
+    // Test Datei Spezifikation
+    // ========================
+    //  Die Dateien können relativ vom Ordner spezifiziert werden, von dem der WDIO Befehl ausgeführt
+    // wird. Beachten Sie, wenn Sie den `wdio` Befehl uüber einem NPM-Skript aufrufen (siehe
+    // https://docs.npmjs.com/cli/run-script), dann liegt das aktuelle Arbeitsverzeichnis
+    // dort, wo auch die package.json liegt.
     //
     specs: [
-        'test/spec/**'
+        'test/spec/***'
     ],
-    // Patterns to exclude.
+    // Muster zum Ausschließen.
     exclude: [
         'test/spec/multibrowser/**',
         'test/spec/mobile/**'
@@ -57,264 +58,257 @@ exports.config = {
     // ============
     // Capabilities
     // ============
-    // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
-    // time. Depending on the number of capabilities, WebdriverIO launches several test
-    // sessions. Within your capabilities you can overwrite the spec and exclude option in
-    // order to group specific specs to a specific capability.
+    // Definieren Sie Ihre Browser Spezifikationen hier. WebdriverIO kann mehrer Browser zur
+    // selber Zeit testen. Abhängig von der Anzahl der spezifizierten Browser started WebdriverIO
+    // mehrere Test Sessions zur selben Zeit. Innerhalb der Browser Spezifikation (Capabilities)
+    // können bestimmte Optionen, wie z.B. "specs", "exclude" oder host, überschreiben, um so
+    // nur bestimmte Test mit bestimmten Browsern zu testen.
     //
     //
-    // First you can define how many instances should be started at the same time. Let's
-    // say you have 3 different capabilities (Chrome, Firefox and Safari) and you have
-    // set maxInstances to 1, wdio will spawn 3 processes. Therefor if you have 10 spec
-    // files and you set maxInstances to 10, all spec files will get tested at the same time
-    // and 30 processes will get spawned. The property basically handles how many capabilities
-    // from the same test should run tests.
+    // Sie können ebenfalls festlegen, wie viele Browser Instanzen gleichzeitig gestartet werden
+    // sollen. Angenommen Sie definieren 3 verschiedene Browser (Chrome, Firefox und Safari)
+    // und setzen die maxInstances Option auf 1, so wird WebdriverIO 3 Sessions gleichzeitig
+    // starten. Wenn Sie nun 10 Test Dateien in Ihrer Suite haben, so werden insgesamt 30 Tests
+    // parallel gestartet werden. Die maxInstances Einstellung regelt daher, wie viele Tests
+    // insgesamt gleichzeitig laufen sollen.
     //
     maxInstances: 10,
     //
-    // Or set a limit to run tests with a specific capability.
+    // Oder setzen Sie ein Limit für die maximale Anzahl von spezifischen Browsern:
     maxInstancesPerCapability: 10,
     //
-    // If you have trouble getting all important capabilities together, check out the
-    // Sauce Labs platform configurator - a great tool to configure your capabilities:
+    // Wenn Sie nicht wissen, wie die einzelnen Werte, die den Browser spezifizieren, zusammen
+    // gesetzt werden, besuchen Sie den Sauce Labs Platform Konfigurator:
     // https://docs.saucelabs.com/reference/platforms-configurator
     //
     capabilities: [{
         browserName: 'chrome',
         chromeOptions: {
-        // to run chrome headless the following flags are required
-        // (see https://developers.google.com/web/updates/2017/04/headless-chrome)
+        // um Chrome im Headless Mode laufen zu lassen, fügen Sie diese Optionen hinzu:
+        // (siehe auch https://developers.google.com/web/updates/2017/04/headless-chrome)
         // args: ['--headless', '--disable-gpu'],
         }
     }, {
-        // maxInstances can get overwritten per capability. So if you have an in house Selenium
-        // grid with only 5 firefox instance available you can make sure that not more than
-        // 5 instance gets started at a time.
+        // maxInstances kann auf für einen bestimmten Browser spezifiziert werden Wenn Sie ein
+        // Selenium Grid benutzen und dieses z.B. nur maximal 5 Firefox Browser registriert hat,
+        // können Sie so festlegen, dass nicht mehr als 5 Firefox Browser gleichzeitig laufen.
         maxInstances: 5,
         browserName: 'firefox',
         specs: [
             'test/ffOnly/*'
         ],
         "moz:firefoxOptions": {
-          // flag to activate Firefox headless mode (see https://github.com/mozilla/geckodriver/blob/master/README.md#firefox-capabilities for more details about moz:firefoxOptions)
+          // Option, um Firefox im Headless Mode zu starten
+          // (siehe auch https://github.com/mozilla/geckodriver/blob/master/README.md#firefox-capabilities for more details about moz:firefoxOptions)
           // args: ['-headless']
         }
     }],
     //
-    // Additional list of node arguments to use when starting child processes
+    // Zusätzliche Node.JS Ausführungs Optionen, die dem Sub-Prozess übergeben werden
     execArgv: [],
     //
-    // ===================
-    // Test Configurations
-    // ===================
-    // Define all options that are relevant for the WebdriverIO instance here
+    // ====================
+    // Test Konfigurationen
+    // ====================
+    // Definieren Sie hier alle Optionen, die relevant für das Ausführen von WebdriverIO ist.
     //
-    // Level of logging verbosity: trace | debug | info | warn | error
+    // Level der Anzahl und Geschwätzigkeit der Log Nachrichten: trace | debug | info | warn | error
     logLevel: 'info',
     //
-    // If you only want to run your tests until a specific amount of tests have failed use
-    // bail (default is 0 - don't bail, run all tests).
+    // Wenn Sie die Tests ab einer bestimmen Anzahl von Fehlern beenden wollen, nutzen Sie
+    // bail (Standardwert ist 0 - bedeutet: nicht vorzeitig beenden und alle Tests ausführen).
     bail: 0,
     //
-    // Set a base URL in order to shorten url command calls. If your `url` parameter starts
-    // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
-    // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
-    // gets prepended directly.
+    // Setzen Sie hier die Basis URL für alle "url" Befehle. Sobald Ihr "url" Parameter mit "/"
+    // beginnt, fügt WebdriverIO die Basis URL an.
+    // Wenn der `url` Parameter ohne Schema oder mit `/` (wie `some/path`) beginnt, wird die Basisurl
+    // direkt vorangestellt.
     baseUrl: 'http://localhost:8080',
     //
-    // Default timeout for all waitForXXX commands.
+    // Standardwert für den Timeout von allen waitForXXX Befehlen.
     waitforTimeout: 1000,
     //
-    // Add files to watch (e.g. application code or page objects) when running `wdio` command
-    // with `--watch` flag (globbing is supported).
+    // Fügen Sie hier Dateien hinzu, die Sie zusätzlich beobachten wollen, wenn Sie das Watch
+    // Feature von WebdriverIO über den `--watch` Parameter benuzten.
     filesToWatch: [
-        // e.g. rerun tests if I change my application code
+        // e.g. wiederholen Sie all Tests, wenn ich mein Applikationscode ändere
         // './app/**/*.js'
     ],
     //
-    // Framework you want to run your specs with.
-    // The following are supported: mocha, jasmine and cucumber
-    // see also: http://webdriver.io/docs/frameworks.html
+    // Framework in dem Sie die Tests laufen lassen wollen.
+    // Die folgenden Frameworks sind unterstützt: mocha und jasmine
+    // sehen Sie auch: http://webdriver.io/docs/frameworks.html
     //
-    // Make sure you have the wdio adapter package for the specific framework installed before running any tests.
+    // Vergewissern Sie sich, dass Sie das zusätzliche Framework Package installiert haben bevor
+    // Sie die tests starten.
     framework: 'mocha',
     //
-    // Test reporter for stdout.
-    // The only one supported by default is 'dot'
-    // see also: http://webdriver.io/docs/dot-reporter.html and click on "Reporters" in left column
+    // =============
+    // Test Reporter
+    // =============
+    // WebdriverIO bietet verschiedenste Reporter an, die es Ihnen ermöglicht Informationen über
+    // Tests einzusehen. Reporter können folgendermaßen definiert werden:
     reporters: [
         'dot',
         ['allure', {
             //
-            // If you are using the "allure" reporter you should define the directory where
-            // WebdriverIO should save all allure reports.
+            // Wenn Sie den Allure Reporter verwenden, sollten Sie den Ordner definieren, wo alle
+            // Testreports abgelegt werden sollen.
             outputDir: './'
         }]
     ],
     //
-    // Options to be passed to Mocha.
-    // See the full list at http://mochajs.org/
+    // Optionen die dem Mocha Framework übergeben werden.
+    // Sie finden die komplette Liste von möglichen Optionen auf http://mochajs.org/
     mochaOpts: {
         ui: 'bdd'
     },
     //
-    // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
+    // Optionen, die dem Jasmine Framework übergeben werden.
+    // Die ganze Liste mit Optionen finden Sie auf: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
     jasmineNodeOpts: {
         //
-        // Jasmine default timeout
+        // Standard Timeout für Jasmine Tests
         defaultTimeoutInterval: 5000,
         //
-        // The Jasmine framework allows it to intercept each assertion in order to log the state of the application
-        // or website depending on the result. For example it is pretty handy to take a screenshot every time
-        // an assertion fails.
+        // Das Jasmine Framework erlaubt es jede Test Assertion abzufangen und dessen Ergebnis
+        // beliebig zu verändern. Zum Beispiel ist es ziemlich praktisch, jedes Mal einen
+        // Screenshot zu nehmen, wenn eine Behauptung fehlschlägt.
         expectationResultHandler: function(passed, assertion) {
-            // do something
+            // nehme einen Screenshort, wenn die Behauptung falsch ist (passed === false)
         },
         //
-        // Make use of Jasmine-specific grep functionality
+        // Nutze die Jasmine spezifische filter Funktion
         grep: null,
         invertGrep: null
     },
     //
-    // If you are using Cucumber you need to specify where your step definitions are located.
-    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
+    // WebdriverIO unterstützt derzeit noch nicht das Cucumber Framework. Daran wird allerdings
+    // gearbeitet und steht Ihnen bald zur Verfügung. Für dieses Framework stehen Ihnen dann
+    // die folgenden Optionen zu Verfügung:
+    // Sehen Sie auch: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
-        require: [],        // <string[]> (file/dir) require files before executing features
-        backtrace: false,   // <boolean> show full backtrace for errors
-        compiler: [],       // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        dryRun: false,      // <boolean> invoke formatters without executing steps
-        failFast: false,    // <boolean> abort the run on first failure
-        format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
-        colors: true,       // <boolean> disable colors in formatter output
-        snippets: true,     // <boolean> hide step definition snippets for pending steps
-        source: true,       // <boolean> hide source URIs
-        profile: [],        // <string[]> (name) specify the profile to use
-        strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tags: [],           // <string[]> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 20000,      // <number> timeout for step definitions
-        ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
+        require: [],        // <string[]> (file/dir) Dateien vor der Ausführung von Feature Test ausführen
+        backtrace: false,   // <boolean> den ganzen Backtrace der Fehler zeigen
+        compiler: [],       // <string[]> ("extension:module") lädt eine Datei gegeben seiner Dateiendung
+        dryRun: false,      // <boolean> Ausführung von "formatters" ohne die Steps ausgeführt zu haben
+        failFast: false,    // <boolean> Abbrechen der Tests nach dem ersten Fehler
+        colors: true,       // <boolean> Anzeige von Farben
+        snippets: true,     // <boolean> Zeige keine Schrittdefinition von ausstehenden Schritten an
+        source: true,       // <boolean> Datei Pfade URIs anzeigen
+        profile: [],        // <string[]> (name) Spezifikation des Test Profils
+        strict: false,      // <boolean> Schlag fehl, sobald ein Schritt nicht definiert ist oder austehend ist
+        timeout: 20000,      // <number> Timeout für Schritt Definierung
+        ignoreUndefinedDefinitions: false, // <boolean> Aktivieren Sie diese Option, wenn Sie nicht definierte Definitionen nur als Warnungen anzeigen wollen
     },
     //
     // =====
     // Hooks
     // =====
-    // WebdriverIO provides a several hooks you can use to interfere the test process in order to enhance
-    // it and build services around it. You can either apply a single function to it or an array of
-    // methods. If one of them returns with a promise, WebdriverIO will wait until that promise got
-    // resolved to continue.
+    // WebdriverIO ermöglicht es verschiedene Hooks zu nutzen, um in den Testausführungsprozess
+    // einzugreifen und verschiedenste Add-Ons bereitzustellen. Sie können entweder eine einzelne
+    // oder eine List von Funktionen ausführen. Sobald eine der Funktionen ein Promise zurückgibt,
+    // wird WebdriverIO mit der Ausführung des Tests warten, bis dieses aufgelöst wird.
     //
 
     /**
-     * Gets executed once before all workers get launched.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
+     * Wird ausgeführt bevor alle Sub-Prozesse gestartet werden
+     * @param {Object} config wdio Konfigurations Objekt
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
      */
     onPrepare: function (config, capabilities) {
     },
     /**
-     * Gets executed just before initialising the webdriver session and test framework. It allows you
-     * to manipulate configurations depending on the capability or spec.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * Wird ausgeführt, bevor der Browser gestartet wird. Es ermöglicht, die Browser Definition
+     * nochmal dynamisch zu variieren.
+     * @param {Object} config wdio Konfigurations Objekt
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
+     * @param {Array.<String>} specs Liste der Test-Dateien
      */
     beforeSession: function (config, capabilities, specs) {
     },
     /**
-     * Gets executed before test execution begins. At this point you can access to all global
-     * variables like `browser`. It is the perfect place to define custom commands.
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that are to be run
+     * Wird ausgeführt bevor der Test gestartet wird. Hier haben Sie bereits Zugriff auf die
+     * globalen Variablen, die im Test ebenfalls zur Verfügung stehen (z.B. `browser`). Es
+     * ist eine geeignete Stelle, benutzerdefinierte Befehle zu definieren.
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
+     * @param {Array.<String>} specs Liste der Test-Dateien
      */
     before: function (capabilities, specs) {
     },
     /**
-     * Hook that gets executed before the suite starts
-     * @param {Object} suite suite details
+     * Wird ausgeführt bevor die Test Suite gestartet wird.
+     * @param {Object} suite Suite Eigenschaften
      */
     beforeSuite: function (suite) {
     },
     /**
-     * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
-     * beforeEach in Mocha)
+     * Wird ausgeführt bevor eine Hook im Test ausgeführt wird (z.B. wird ausgeführt vor der
+     * "beforeEach" Hook in Mocha)
      */
     beforeHook: function () {
     },
     /**
-     * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
-     * afterEach in Mocha)
-     */
-    afterHook: function () {
-    },
-    /**
-     * Function to be executed before a test (in Mocha/Jasmine) or a step (in Cucumber) starts.
-     * @param {Object} test test details
+     * @param {Object} test Test Eigenschaften
      */
     beforeTest: function (test) {
     },
     /**
-     * Runs before a WebdriverIO command gets executed.
-     * @param {String} commandName hook command name
-     * @param {Array} args arguments that command would receive
+     * Wird ausgeführt bevor ein Befehl in WebdriverIO ausgeführt wird.
+     * @param {String} commandName Name des Befehls
+     * @param {Array} args Argumente, die der Befehl erhalten hat
      */
     beforeCommand: function (commandName, args) {
     },
     /**
-     * Runs after a WebdriverIO command gets executed
-     * @param {String} commandName hook command name
-     * @param {Array} args arguments that command would receive
-     * @param {Number} result 0 - command success, 1 - command error
-     * @param {Object} error error object if any
+     * Wird ausgeführt, nachdem ein Befehl in WebdriverIO ausgeführt wurde.
+     * @param {String} commandName Name des Befehls
+     * @param {Array} args Argumente, die der Befehl erhalten hat
+     * @param {Number} result 0 - Befehl war erfolgreich, 1 - Befehl hatte einen Fehler
+     * @param {Object} error Fehler Objekt (falls existierend)
      */
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) or a step (in Cucumber) ends.
-     * @param {Object} test test details
+     * Wird ausgeführt nachdem ein Test (in Mocha/Jasmine) oder ein Schritt (in Cucumber) ausgeführt wurde.
+     * @param {Object} test Test Eigenschaften
      */
     afterTest: function (test) {
     },
     /**
-     * Hook that gets executed after the suite has ended
-     * @param {Object} suite suite details
+     * Wird ausgeführt, sobald eine Test Suite ausgeführt wurde
+     * @param {Object} suite Suite Eigenschaften
      */
     afterSuite: function (suite) {
     },
     /**
-     * Gets executed after all tests are done. You still have access to all global variables from
-     * the test.
+     * Wird ausgeführt, sobald alle Tests ausgeführt wurden. Hier haben Sie immernoch Zugriff auf
+     * die Browser Instanz.
      * @param {Number} result 0 - test pass, 1 - test fail
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that ran
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
+     * @param {Array.<String>} specs Liste der Test Dateien
      */
     after: function (result, capabilities, specs) {
     },
     /**
-     * Gets executed right after terminating the webdriver session.
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {Array.<String>} specs List of spec file paths that ran
+     * Wird ausgeführt, sobald der Browser geschlossen wurde.
+     * @param {Object} config wdio Konfigurations Objekt
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
+     * @param {Array.<String>} specs Liste der Test Dateien
      */
     afterSession: function (config, capabilities, specs) {
     },
     /**
-     * Gets executed after all workers got shut down and the process is about to exit.
-     * @param {Object} exitCode 0 - success, 1 - fail
-     * @param {Object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     * @param {<Object>} results object containing test results
+     * Wird ausgeführt, sobald alle Test Prozesse geschlossen wurden.
+     * @param {Object} exitCode 0 - Erfolg, 1 - Fehlschlag
+     * @param {Object} config wdio Konfigurations Objekt
+     * @param {Array.<Object>} capabilities Liste der definierten Browser
+     * @param {<Object>} results Objekt mit den Test Resultaten
      */
     onComplete: function (exitCode, config, capabilities, results) {
     },
     /**
-    * Gets executed when an error happens, good place to take a screenshot
-    * @ {String} error message
-    */
-    onError: function(message) {
-    }
-    /**
-     * Cucumber specific hooks
+     * Cucumber spezifische Hooks
      */
     beforeFeature: function (feature) {
     },
@@ -331,4 +325,4 @@ exports.config = {
 };
 ```
 
-You can also find that file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js).
+Sie finden ebenfalls nochmal eine Konfigurationsdatei mit allen möglichen Werten im [Beispiel Verzeichnis](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js).
