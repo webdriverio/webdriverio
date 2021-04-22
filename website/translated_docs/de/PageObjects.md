@@ -2,6 +2,7 @@
 id: pageobjects
 title: Page Object Pattern
 ---
+
 The new version (v4) of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle it is now possible to build up large test suites using this pattern. There are no additional packages required to create page objects. It turns out that `Object.create` provides all necessary features we need:
 
 - inheritance between page objects
