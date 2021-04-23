@@ -151,3 +151,37 @@ assert.true(
 In this example, the `myFirefoxBrowser` instance will start waiting on a message once the `myChromeBrowser` instance has clicked on `#send` button.
 
 Multiremote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
+
+## Accessing browser instances using strings via the browser object
+In addition to accessing browser instance via their global variables (eg `myChromeBrowser`, `myFirefoxBrowser`), you can also access them via the `browser` object - eg `browser["myChromeBrowser"]` or `browser["myFirefoxBrowser"]`  
+This is especially useful when writing re-usable test steps that can be performed in either browser:  
+eg  
+
+wdio.conf.js:
+```js
+    capabilities: {
+        userA: {
+            capabilities: {
+                browserName: 'chrome'
+            }
+        },
+        userB: {
+            capabilities: {
+                browserName: 'chrome'
+            }
+        }
+    }
+```
+
+Cucumber file:
+```js
+When User A types a message into the chat
+```
+
+Step definition file:
+```
+When(/^User (.) types a message into the chat/, (userId) => {
+    browser["user" userId].$('#message').setValue('Hi, I am Chrome')
+    browser["user" userId].$('#send').click()
+})
+```
