@@ -206,19 +206,11 @@ Object {
 
 exports[`transformExecuteResult multiple results 1`] = `
 Array [
-  Array [
-    "foobar",
-    "__executeElement",
-    42,
-  ],
+  "foobar",
   Object {
     "element-6066-11e4-a52e-4f735466cecf": "foobar",
   },
-  Array [
-    "foobar",
-    "__executeElement",
-    42,
-  ],
+  42,
 ]
 `;
 

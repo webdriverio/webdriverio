@@ -221,7 +221,7 @@ export async function transformExecuteResult (
                 return findElement.call(this, page, 'css selector', `[${SERIALIZE_PROPERTY}="${r}"]`)
             }
 
-            return result
+            return r
         }))
 
         await page.$$eval(`[${SERIALIZE_PROPERTY}]`, cleanUp, SERIALIZE_PROPERTY)
