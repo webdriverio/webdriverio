@@ -19,6 +19,53 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.5.1 (2021-04-21)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#6736](https://github.com/webdriverio/webdriverio/pull/6736) `checkPWA` command is broken ([@christian-bromann](https://github.com/christian-bromann))
+  * [#6664](https://github.com/webdriverio/webdriverio/pull/6664) Fix Devtools hang on Android ([@nicolasbouffard](https://github.com/nicolasbouffard))
+* `wdio-cucumber-framework`
+  * [#6737](https://github.com/webdriverio/webdriverio/pull/6737) Pin Cucumber package versions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6732](https://github.com/webdriverio/webdriverio/pull/6732) add(service): waitFor external package ([@elaichenkov](https://github.com/elaichenkov))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Yevhen ([@elaichenkov](https://github.com/elaichenkov))
+- [@nicolasbouffard](https://github.com/nicolasbouffard)
+
+
+## v7.5.0 (2021-04-20)
+
+#### :rocket: New Feature
+* `devtools`, `webdriverio`
+  * [#6709](https://github.com/webdriverio/webdriverio/pull/6709) Implement `>>>` (deep) selector for WebdriverIO ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#6725](https://github.com/webdriverio/webdriverio/pull/6725) Fix DevToolsDriver elements storing ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+
+#### :nail_care: Polish
+* `wdio-config`
+  * [#6720](https://github.com/webdriverio/webdriverio/pull/6720) fix: Only log when the entry is not a string or array ([@seanpoulter](https://github.com/seanpoulter))
+
+#### :memo: Documentation
+* [#6678](https://github.com/webdriverio/webdriverio/pull/6678) Document the transition from a Protractor to WebdriverIO framework ([@christian-bromann](https://github.com/christian-bromann))
+* [#6722](https://github.com/webdriverio/webdriverio/pull/6722) Update broken links ([@rueyaa332266](https://github.com/rueyaa332266))
+* [#6626](https://github.com/webdriverio/webdriverio/pull/6626) Update CustomServices.md ([@tzurp](https://github.com/tzurp))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jye Ruey ([@rueyaa332266](https://github.com/rueyaa332266))
+- Kyrylo ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+- Sean Poulter ([@seanpoulter](https://github.com/seanpoulter))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@tzurp](https://github.com/tzurp)
+
+
 ## v7.4.6 (2021-04-15)
 
 #### :nail_care: Polish

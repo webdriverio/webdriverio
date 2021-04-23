@@ -5,7 +5,7 @@ title: Sync vs. Async Mode
 
 :::caution
 
-As of __14/04/2021__ sync mode will not be supported anymore starting from Node.js v16 due to [changes](https://chromium-review.googlesource.com/c/v8/v8/+/2537690) in Chromium. [Read more.](https://github.com/laverdet/node-fibers/commit/8f2809869cc92c28c92880c4a38317ae3dbe654d) Please don't use sync mode anymore.
+As of __14/04/2021__ sync mode will not be supported anymore starting from Node.js v16 due to [changes](https://chromium-review.googlesource.com/c/v8/v8/+/2537690) in Chromium. If you start a project with WebdriverIO we recommend to not use sync mode anymore. The community is working on a transition plan, [read more on that in this RFC](https://github.com/webdriverio/webdriverio/discussions/6702).
 
 :::
 

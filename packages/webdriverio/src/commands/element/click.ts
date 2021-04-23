@@ -93,7 +93,7 @@ export default async function click (
         || typeof yoffset !== 'number'
         || !Number.isInteger(xoffset)
         || !Number.isInteger(yoffset)) {
-        throw new TypeError('Coördinates must be integers')
+        throw new TypeError('Coordinates must be integers')
     }
 
     if (button === 'left') {

@@ -318,7 +318,7 @@ describe('click test', () => {
         })
         const elem = await browser.$('#foo')
 
-        expect(elem.click({ x: 'not-suppported' })).rejects.toThrow('Coördinates must be integers')
+        expect(elem.click({ x: 'not-suppported' })).rejects.toThrow('Coordinates must be integers')
     })
 
     it('should throw an error if no valid button type is passed', async () => {

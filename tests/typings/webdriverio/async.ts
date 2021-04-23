@@ -186,6 +186,8 @@ async function bar() {
 
     // browser custom command
     await browser.browserCustomCommand(14)
+    const ambientResult = await browser.ambientCommand(123)
+    ambientResult.toFixed()
 
     // $
     const el1 = await $('')

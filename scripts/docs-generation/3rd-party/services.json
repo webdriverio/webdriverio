@@ -117,5 +117,11 @@
     "title": "OCR service for Appium Native Apps",
     "githubUrl": "https://github.com/wswebcreation/wdio-ocr-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-ocr-service"
+  },
+  {
+    "packageName": "wdio-wait-for",
+    "title": "Library of useful expected conditions",
+    "githubUrl": "https://github.com/elaichenkov/wdio-wait-for",
+    "npmUrl": "https://www.npmjs.com/package/wdio-wait-for"
   }
 ]

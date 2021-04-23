@@ -16,7 +16,7 @@ beforeAll(async () => {
 })
 
 describe('elements', () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
     })
 
@@ -226,6 +226,14 @@ describe('elements', () => {
         await new Promise((r) => setTimeout(r, 3000))
         expect(await browser.getElementCSSValue(message[ELEMENT_KEY], 'display'))
             .toBe('block')
+    })
+
+    it('should support deep selectors', async () => {
+        await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
+        const headerSlot = await browser.findElement('shadow', '#headerSlot')
+        expect(
+            await browser.getElementProperty(headerSlot[ELEMENT_KEY], 'name')
+        ).toBe('header')
     })
 })
 
