@@ -154,8 +154,7 @@ Multiremote makes it easy and convenient to control multiple browsers, whether y
 
 ## Accessing browser instances using strings via the browser object
 In addition to accessing browser instance via their global variables (eg `myChromeBrowser`, `myFirefoxBrowser`), you can also access them via the `browser` object - eg `browser["myChromeBrowser"]` or `browser["myFirefoxBrowser"]`.
-This is especially useful when writing re-usable test steps that can be performed in either browser:  
-eg  
+This is especially useful when writing re-usable test steps that can be performed in either browser, e.g.:
 
 wdio.conf.js:
 ```js
