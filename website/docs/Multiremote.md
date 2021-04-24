@@ -153,7 +153,7 @@ In this example, the `myFirefoxBrowser` instance will start waiting on a message
 Multiremote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
 
 ## Accessing browser instances using strings via the browser object
-In addition to accessing browser instance via their global variables (eg `myChromeBrowser`, `myFirefoxBrowser`), you can also access them via the `browser` object - eg `browser["myChromeBrowser"]` or `browser["myFirefoxBrowser"]`  
+In addition to accessing browser instance via their global variables (eg `myChromeBrowser`, `myFirefoxBrowser`), you can also access them via the `browser` object - eg `browser["myChromeBrowser"]` or `browser["myFirefoxBrowser"]`.
 This is especially useful when writing re-usable test steps that can be performed in either browser:  
 eg  
 
