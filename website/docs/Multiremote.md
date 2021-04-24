@@ -178,7 +178,7 @@ Cucumber file:
     ```
 
 Step definition file:
-```
+```js
 When(/^User (.) types a message into the chat/, (userId) => {
     browser[`user${userId}`].$('#message').setValue('Hi, I am Chrome')
     browser[`user${userId}`].$('#send').click()
