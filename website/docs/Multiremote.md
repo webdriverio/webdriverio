@@ -173,9 +173,9 @@ wdio.conf.js:
 ```
 
 Cucumber file:
-```js
-When User A types a message into the chat
-```
+    ```feature
+    When User A types a message into the chat
+    ```
 
 Step definition file:
 ```
