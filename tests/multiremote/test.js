@@ -9,6 +9,12 @@ describe('smoke test multiremote', () => {
         assert.equal(browser.browserA.getTitle(), 'Mock Page Title')
     })
 
+    it('should return async value', async () => {
+        assert.deepEqual(await browser.getUrl(), ['https://mymockpage.com', 'https://mymockpage.com'])
+        assert.equal(await browser.browserA.getUrl(), 'https://mymockpage.com')
+        assert.equal(await browser.browserB.getUrl(), 'https://mymockpage.com')
+    })
+
     describe('add customCommands', () => {
         it('should respect promises', () => {
             browser.addCommand('customFn', () => {
