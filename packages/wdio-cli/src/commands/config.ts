@@ -113,7 +113,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
 
     if (result.status !== 0) {
-        throw new Error(result.stderr)
+        const customError = 'An unknown error happened! Please retry ' +
+            `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
+            `${packagesToInstall.join(' ')}"`
+        throw new Error(result.stderr || customError)
     }
 
     console.log('\nPackages installed successfully, creating configuration file...')
