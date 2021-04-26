@@ -86,6 +86,10 @@ export default class WebDriver {
 
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C === false ? false : true
+        options.protocol = options.protocol || DEFAULTS.protocol.default
+        options.hostname = options.hostname || DEFAULTS.hostname.default
+        options.port = options.port || DEFAULTS.port.default
+        options.path = options.path || DEFAULTS.path.default
 
         const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
         const protocolCommands = getPrototype(options as Partial<SessionFlags>)
