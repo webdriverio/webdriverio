@@ -37,7 +37,8 @@ export default class MultiRemote {
         for (const commandName of wrapperClient.commandList) {
             propertiesObject[commandName] = {
                 value: this.commandWrapper(commandName),
-                configurable: true
+                configurable: true,
+                writable: true
             }
         }
 
