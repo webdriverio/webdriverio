@@ -262,6 +262,18 @@ const requestMock: any = jest.fn().mockImplementation((uri, params) => {
     case '/grid/api/testsession':
         value = '<!DOCTYPE html><html lang="en"></html>'
         break
+    case '/connectionRefused':
+        if (requestMock.retryCnt < 5) {
+            ++requestMock.retryCnt
+            value = {
+                stacktrace: 'java.lang.RuntimeException: java.net.ConnectException: Connection refused',
+                stackTrace: [],
+                message: 'java.net.ConnectException: Connection refused: connect',
+                error: 'unknown error'
+            }
+        } else {
+            value = { foo: 'bar' }
+        }
     }
 
     if (uri.pathname.endsWith('timeout') && requestMock.retryCnt < 5) {
