@@ -429,7 +429,7 @@ export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {
 }
 
 export type Definition<T> = {
-    [k in keyof T]?: {
+    [k in keyof T]: {
         type: 'string' | 'number' | 'object' | 'boolean' | 'function'
         default?: T[k]
         required?: boolean
