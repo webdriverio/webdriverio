@@ -19,6 +19,30 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.5.2 (2021-04-26)
+
+#### :bug: Bug Fix
+* `wdio-types`, `webdriver`, `webdriverio`
+  * [#6759](https://github.com/webdriverio/webdriverio/pull/6759) attach to session improvements ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`
+  * [#6751](https://github.com/webdriverio/webdriverio/pull/6751) fix executeScript results transformation in devtools ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+
+#### :nail_care: Polish
+* `webdriver`, `webdriverio`
+  * [#6756](https://github.com/webdriverio/webdriverio/pull/6756) Retry connection refused errors ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#6758](https://github.com/webdriverio/webdriverio/pull/6758) Print custom error message if installing deps fails with no stderr ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#6755](https://github.com/webdriverio/webdriverio/pull/6755) Add documentation for accessing browser instances via strings ([@evilC](https://github.com/evilC))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Clive Galway ([@evilC](https://github.com/evilC))
+- Kyrylo ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v7.5.1 (2021-04-21)
 
 #### :bug: Bug Fix
