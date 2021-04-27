@@ -41,7 +41,8 @@
       "customservices"
     ],
     "Migrate": [
-      "protractor-migration"
+      "protractor-migration",
+      "v7-migration"
     ],
     "Integration": [
       "cloudservices",
