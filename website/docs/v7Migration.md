@@ -35,7 +35,7 @@ Given that all WebdriverIO version are tight to each other it is the best to alw
 npm i --save-dev @wdio/allure-reporter @wdio/cli @wdio/cucumber-framework @wdio/local-runner @wdio/spec-reporter @wdio/sync wdio-chromedriver-service wdio-timeline-reporter webdriverio
 ```
 
-Usually WebdriverIO dependencies are part of the dev dependencies. After this, you `package.json` and `package-lock.json` should be updated. __Note:__ these are the dependencies used by the [example project](https://github.com/WarleyGabriel/demo-webdriverio-cucumber), yours may differ.
+Usually WebdriverIO dependencies are part of the dev dependencies, depending on your project this can vary though. After this your `package.json` and `package-lock.json` should be updated. __Note:__ these are the dependencies used by the [example project](https://github.com/WarleyGabriel/demo-webdriverio-cucumber), yours may differ.
 
 #### Commits:
 
@@ -49,7 +49,7 @@ A good first step is to start with the config file. In WebdriverIO `v7` we don't
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./wdio.conf.js
 ```
 
-:::warn
+:::caution
 
 The codemod doesn't yet support TypeScript projects. See [`@webdriverio/codemod#10`](https://github.com/webdriverio/codemod/issues/10). We are working to implement support for it soon. If you are using TypeScript please get involved!
 
@@ -61,13 +61,13 @@ The codemod doesn't yet support TypeScript projects. See [`@webdriverio/codemod#
 
 ## Update Step Definitions
 
-If you are using Jasmine or Mocha, you are done here. The last update step is to update the Cucumber.js imports from `cucumber` to `@cucumber/cucumber`. This can also be done via the codemod automatically:
+If you are using Jasmine or Mocha, you are done here. The last step is to update the Cucumber.js imports from `cucumber` to `@cucumber/cucumber`. This can also be done via the codemod automatically:
 
 ```sh
 $ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./src/e2e/*
 ```
 
-That's it! No more changes necessary.
+That's it! No more changes necessary 🎉
 
 #### Commits:
 
