@@ -7,7 +7,7 @@ This tutorial is for people who are still using `v6` of WebdriverIO and want to 
 
 :::info
 
-If you are using WebdriverIO `v5` or below, please upgrade to `v6` first. A codemod for this might be available soon.
+If you are using WebdriverIO `v5` or below, please upgrade to `v6` first. Please checkout our [v6 migration guide](v6-migration).
 
 :::
 
@@ -29,7 +29,7 @@ $ npm install jscodeshift @wdio/codemod
 
 ## Upgrade WebdriverIO Dependencies
 
-Given that all WebdriverIO version are tight to each other it is the best to always upgrade to a specific tag, e.g. `latest`. To do so we copy all dependencies out of our `package.json` and re-install them via:
+Given that all WebdriverIO versions are tight to each other it is the best to always upgrade to a specific tag, e.g. `latest`. To do so we copy all WebdriverIO related dependencies out of our `package.json` and re-install them via:
 
 ```sh
 npm i --save-dev @wdio/allure-reporter @wdio/cli @wdio/cucumber-framework @wdio/local-runner @wdio/spec-reporter @wdio/sync wdio-chromedriver-service wdio-timeline-reporter webdriverio
