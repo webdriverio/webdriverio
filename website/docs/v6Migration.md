@@ -63,7 +63,7 @@ $ npm install jscodeshift @wdio/codemod
 Given that all WebdriverIO versions are tight to each other it is the best to always upgrade to a specific tag, e.g. `6.12.0`. If you decide to upgrade from `v5` directly to `v7` you can leave out the tag and install latest versions of all packages. To do so we copy all WebdriverIO related dependencies out of our `package.json` and re-install them via:
 
 ```sh
-npm i --save-dev @wdio/allure-reporter@v6.11.0 @wdio/cli@v6.12.1 @wdio/cucumber-framework@v6.11.1 @wdio/local-runner@v6.12.1 @wdio/spec-reporter@v6.11.0 @wdio/sync@v6.11.0 wdio-chromedriver-service@v6.0.4 webdriverio@v6.12.0
+npm i --save-dev @wdio/allure-reporter@6 @wdio/cli@6 @wdio/cucumber-framework@6 @wdio/local-runner@6 @wdio/spec-reporter@6 @wdio/sync@6 wdio-chromedriver-service@6 webdriverio@6
 ```
 
 Usually WebdriverIO dependencies are part of the dev dependencies, depending on your project this can vary though. After this your `package.json` and `package-lock.json` should be updated. __Note:__ these are example dependencies, yours may differ. Make sure you find the latest v6 version by calling, e.g.:
