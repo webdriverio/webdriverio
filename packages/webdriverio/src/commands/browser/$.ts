@@ -58,7 +58,7 @@ import type { Selector } from '../../types'
  *
  */
 export default async function $ (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
     /**
