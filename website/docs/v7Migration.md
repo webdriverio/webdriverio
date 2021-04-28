@@ -32,7 +32,7 @@ $ npm install jscodeshift @wdio/codemod
 Given that all WebdriverIO versions are tight to each other it is the best to always upgrade to a specific tag, e.g. `latest`. To do so we copy all WebdriverIO related dependencies out of our `package.json` and re-install them via:
 
 ```sh
-npm i --save-dev @wdio/allure-reporter @wdio/cli @wdio/cucumber-framework @wdio/local-runner @wdio/spec-reporter @wdio/sync wdio-chromedriver-service wdio-timeline-reporter webdriverio
+npm i --save-dev @wdio/allure-reporter@7 @wdio/cli@7 @wdio/cucumber-framework@7 @wdio/local-runner@7 @wdio/spec-reporter@7 @wdio/sync@7 wdio-chromedriver-service@7 wdio-timeline-reporter@7 webdriverio@7
 ```
 
 Usually WebdriverIO dependencies are part of the dev dependencies, depending on your project this can vary though. After this your `package.json` and `package-lock.json` should be updated. __Note:__ these are the dependencies used by the [example project](https://github.com/WarleyGabriel/demo-webdriverio-cucumber), yours may differ.
