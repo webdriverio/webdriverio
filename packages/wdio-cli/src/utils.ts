@@ -306,7 +306,7 @@ export async function generateTestFiles (answers: ParsedAnswers) {
 }
 
 export async function getAnswers(yes: boolean, framework?: Framework): Promise<Questionnair> {
-    let questions = QUESTIONNAIRE;
+    let questions = QUESTIONNAIRE
 
     const getDefaultValue = (answers: Answers, question: Answers) => {
         if (typeof question.default === 'function') {
@@ -350,9 +350,8 @@ export async function getAnswers(yes: boolean, framework?: Framework): Promise<Q
             }
         }
 
-        return question;
-    });
-
+        return question
+    })
 
     if (yes) {
         return questions.reduce(reducer, {})

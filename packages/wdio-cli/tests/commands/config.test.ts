@@ -2,7 +2,6 @@ import yargs from 'yargs'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 import pkg from '../../package.json'
-import * as fs from 'fs'
 
 import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
@@ -32,8 +31,9 @@ jest.mock('../../package.json', () => {
 const errorLogSpy = jest.spyOn(console, 'error')
 const consoleLogSpy = jest.spyOn(console, 'log')
 beforeEach(() => {
-    (yarnInstall as any as jest.Mock).mockClear()
-    ;(yarnInstall as any as jest.Mock).mockReturnValue({ status: 0 })
+    (yarnInstall as any as jest.Mock).mockClear();
+    (yarnInstall as any as jest.Mock).mockReturnValue({ status: 0 })
+
     errorLogSpy.mockClear()
     consoleLogSpy.mockClear()
 
@@ -46,8 +46,10 @@ afterEach(() => {
 
 test('should create config file', async () => {
     const result = await handler({} as any)
+
     delete result.parsedAnswers.destPageObjectRootPath
     delete result.parsedAnswers.destSpecRootPath
+
     expect(result).toMatchSnapshot()
     expect(addServiceDeps).toBeCalledTimes(1)
     expect(convertPackageHashToObject).toBeCalledTimes(4)
@@ -149,8 +151,8 @@ test('prints TypeScript setup message', async () => {
 })
 
 test('prints TypeScript setup message with ts-node installed', async () => {
-    process.env.WDIO_TEST_THROW_RESOLVE = '1'
-    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+    process.env.WDIO_TEST_THROW_RESOLVE = '1';
+    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -165,8 +167,8 @@ test('prints TypeScript setup message with ts-node installed', async () => {
 })
 
 test('should install @babel/register if not existing', async () => {
-    process.env.WDIO_TEST_THROW_RESOLVE = '1'
-    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+    process.env.WDIO_TEST_THROW_RESOLVE = '1';
+    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -181,8 +183,8 @@ test('should install @babel/register if not existing', async () => {
 })
 
 test('should not install @babel/register if existing', async () => {
-    delete process.env.WDIO_TEST_THROW_RESOLVE
-    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+    delete process.env.WDIO_TEST_THROW_RESOLVE;
+    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -206,22 +208,21 @@ describe('passing arguments', () => {
         }))
     })
 
-    test('should overwrite the default when "yes" is true',async () => {
+    test('should overwrite the default when "yes" is true', async () => {
         const result = await handler({ framework: 'cucumber', yes: true } as any)
         expect(result).toMatchSnapshot()
     })
 
-    test('should have the "when" method set so that an automatic answer is given',async () => {
+    test('should have the "when" method set so that an automatic answer is given', async () => {
         await handler({ framework: 'jasmine' } as any)
         const result = (inquirer.prompt as any as jest.Mock).mock.calls[0][0].find(({ name }) => name === 'framework')
         expect(result).toMatchSnapshot()
     })
 
     test('should throw when an invalid argument is passed', async () => {
-        await expect(async () => await handler({ framework: 'invalid' } as any)).rejects.toThrowError('InvalidArgumentError: Framework invalid is not supported.');
+        await expect(async () => await handler({ framework: 'invalid' } as any)).rejects.toThrowError('InvalidArgumentError: Framework invalid is not supported.')
     })
 })
-
 
 describe('missingConfigurationPromp', () => {
     it('should prompt user', async () => {
