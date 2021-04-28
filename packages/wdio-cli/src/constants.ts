@@ -1,5 +1,6 @@
 import { validateServiceAnswers, hasFile, getDefaultFiles } from './utils'
 import { Questionnair } from './types'
+import type { Answers } from 'inquirer'
 
 const pkg = require('../package.json')
 
@@ -144,7 +145,7 @@ export const REGION_OPTION = [
     'eu'
 ] as const
 
-export const QUESTIONNAIRE = [{
+export const QUESTIONNAIRE: Answers = [{
     type: 'list',
     name: 'runner',
     message: 'Where should your tests be launched?',

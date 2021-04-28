@@ -172,6 +172,73 @@ $ npx wdio run wdio.conf.js
 ]
 `;
 
+exports[`passing arguments should have the "when" method set so that an automatic answer is given 1`] = `
+Object {
+  "choices": Array [
+    Object {
+      "name": "mocha",
+      "value": "@wdio/mocha-framework$--$mocha",
+    },
+    Object {
+      "name": "jasmine",
+      "value": "@wdio/jasmine-framework$--$jasmine",
+    },
+    Object {
+      "name": "cucumber",
+      "value": "@wdio/cucumber-framework$--$cucumber",
+    },
+  ],
+  "message": "Which framework do you want to use?",
+  "name": "framework",
+  "type": "list",
+  "when": [Function],
+}
+`;
+
+exports[`passing arguments should overwrite the default when "yes" is true 1`] = `
+Object {
+  "installedPackages": Array [
+    "@wdio/local-runner",
+    "@wdio/cucumber-framework",
+    "@wdio/spec-reporter",
+    "wdio-chromedriver-service",
+  ],
+  "parsedAnswers": Object {
+    "_async": "async ",
+    "_await": "await ",
+    "backend": "On my local machine",
+    "baseUrl": "http://localhost",
+    "destPageObjectRootPath": "/Users/erwinheitzman/Documents/dev/erwin-wdio",
+    "destSpecRootPath": "/Users/erwinheitzman/Documents/dev/erwin-wdio/features/",
+    "framework": "cucumber",
+    "generateTestFiles": true,
+    "isSync": false,
+    "isUsingBabel": false,
+    "isUsingCompiler": "No!",
+    "isUsingTypeScript": false,
+    "packagesToInstall": Array [
+      "@wdio/local-runner",
+      "@wdio/cucumber-framework",
+      "@wdio/spec-reporter",
+      "wdio-chromedriver-service",
+    ],
+    "pages": undefined,
+    "relativePath": "",
+    "reporters": Array [
+      "spec",
+    ],
+    "runner": "local",
+    "services": Array [
+      "chromedriver",
+    ],
+    "specs": "./features/**/*.feature",
+    "stepDefinitions": undefined,
+    "usePageObjects": true,
+  },
+  "success": true,
+}
+`;
+
 exports[`prints TypeScript setup message 1`] = `
 Array [
   Array [

@@ -90,9 +90,12 @@ export interface InstallCommandArguments {
     name: string
 }
 
+export type Framework = 'mocha' | 'jasmine' | 'cucumber'
+
 export interface ConfigCommandArguments {
     yarn: boolean
     yes: boolean
+    framework?: Framework
 }
 
 export interface SupportedPackage {

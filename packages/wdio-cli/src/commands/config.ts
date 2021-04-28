@@ -11,7 +11,7 @@ import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
     hasFile, generateTestFiles, getAnswers, getPathForFileGeneration
 } from '../utils'
-import { ConfigCommandArguments, ParsedAnswers } from '../types'
+import { ConfigCommandArguments, Framework, ParsedAnswers } from '../types'
 import yargs from 'yargs'
 
 const pkg = require('../../package.json')
@@ -40,9 +40,9 @@ export const builder = (yargs: yargs.Argv) => {
         .help()
 }
 
-const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) {
+const runConfig = async function (useYarn: boolean, yes: boolean, framework: Framework, exit = false) {
     console.log(CONFIG_HELPER_INTRO)
-    const answers = await getAnswers(yes)
+    const answers = await getAnswers(yes, framework)
     const frameworkPackage = convertPackageHashToObject(answers.framework)
     const runnerPackage = convertPackageHashToObject(answers.runner || SUPPORTED_PACKAGES.runner[0].value)
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
@@ -192,7 +192,11 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 }
 
 export function handler(argv: ConfigCommandArguments) {
-    return runConfig(argv.yarn, argv.yes)
+    if (argv.framework && !SUPPORTED_PACKAGES.framework.find(({ name }) => name === argv.framework)) {
+        throw new Error(`InvalidArgumentError: Framework ${argv.framework} is not supported.`)
+    }
+
+    return runConfig(argv.yarn, argv.yes, argv.framework)
 }
 
 /**

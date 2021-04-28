@@ -2,11 +2,13 @@ import yargs from 'yargs'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 import pkg from '../../package.json'
+import * as fs from 'fs'
 
 import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
 
 jest.mock('../../src/utils', () => ({
+    getDefaultFiles: jest.fn(),
     addServiceDeps: jest.fn(),
     convertPackageHashToObject: jest.fn().mockImplementation(jest.requireActual('../../src/utils').convertPackageHashToObject),
     renderConfigurationFile: jest.fn(),
@@ -193,6 +195,33 @@ test('should not install @babel/register if existing', async () => {
     await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
+
+describe('passing arguments', () => {
+    beforeEach(() => {
+        (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+            framework: '@wdio/mocha-framework$--$mocha',
+            reporters: [],
+            services: [],
+            generateTestFiles: false,
+        }))
+    })
+
+    test('should overwrite the default when "yes" is true',async () => {
+        const result = await handler({ framework: 'cucumber', yes: true } as any)
+        expect(result).toMatchSnapshot()
+    })
+
+    test('should have the "when" method set so that an automatic answer is given',async () => {
+        await handler({ framework: 'jasmine' } as any)
+        const result = (inquirer.prompt as any as jest.Mock).mock.calls[0][0].find(({ name }) => name === 'framework')
+        expect(result).toMatchSnapshot()
+    })
+
+    test('should throw when an invalid argument is passed', async () => {
+        await expect(async () => await handler({ framework: 'invalid' } as any)).rejects.toThrowError('InvalidArgumentError: Framework invalid is not supported.');
+    })
+})
+
 
 describe('missingConfigurationPromp', () => {
     it('should prompt user', async () => {
