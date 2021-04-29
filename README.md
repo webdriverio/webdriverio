@@ -9,14 +9,8 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/webdriverio/webdriverio/actions?query=workflow%3ATest">
-        <img alt="Build Status" src="https://github.com/webdriverio/webdriverio/workflows/Test/badge.svg?branch=master">
-    </a>
-    <a href="https://travis-ci.org/webdriverio/webdriverio/branches">
-        <img alt="LTS v5 Build Status" src="https://img.shields.io/travis/webdriverio/webdriverio/v5.svg?label=LTS%20v5%20build">
-    </a>
-    <a href="https://codecov.io/gh/webdriverio/webdriverio">
-        <img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg">
+    <a href="https://github.com/webdriverio/webdriverio/actions/workflows/test.yml">
+        <img alt="Build Status" src="https://github.com/webdriverio/webdriverio/actions/workflows/test.yml/badge.svg">
     </a>
     <a href="https://gitter.im/webdriverio/webdriverio">
         <img alt="Gitter" src="https://badges.gitter.im/webdriverio/webdriverio.svg">
