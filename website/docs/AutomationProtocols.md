@@ -59,7 +59,7 @@ The communication happens without any proxy, directly to the browser using WebSo
 
 WebdriverIO allows you to use the DevTools capabilities as an alternative automation technology for WebDriver if you have special requirements to automate the browser. With the [`devtools`](https://www.npmjs.com/package/devtools) NPM package, you can use the same commands that WebDriver provides, which then can be used by WebdriverIO and the WDIO testrunner to run its useful commands on top of that protocol. It uses Puppeteer to under the hood and allows you to run a sequence of commands with Puppeteer if needed.
 
-To use DevTools as your automation protocol switch the `automationProtocol` flag to `devtools` in your configurations.
+To use DevTools as your automation protocol switch the `automationProtocol` flag to `devtools` in your configurations or just run WebdriverIO without a browser driver run in the background.
 
 <Tabs
   defaultValue="testrunner"
@@ -160,6 +160,44 @@ const { remote } = require('webdriverio')
 </Tabs>
 
 By accessing the Puppeteer interface, you have access to a variety of new capabilities to automate or inspect the browser and your application, e.g. intercepting network requests (see above), tracing the browser, throttle CPU or network capabilities, and much more.
+
+### `wdio:devtoolsOptions` Capability
+
+If you run WebdriverIO tests through the DevTools package, you can apply [custom Puppeteer options](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). These options will be directly passed into the [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) or [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) methods of Puppeteer. Other custom devtools options are the following:
+
+#### customPort
+Start Chrome on a custom port.
+
+Type: `number`<br />
+Default: `9222` (default of Puppeteer)
+
+Note: if you pass in `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` or `wdio:devtoolsOptions/browserURL` options, WebdriverIO will try to connect with given connection details rather than starting a browser. For example you can connect to Testingbots cloud via:
+
+```js
+import { format } from 'util'
+import { remote } from 'webdriverio'
+
+(async () => {
+    const browser = await remote({
+        capabilities: {
+            'wdio:devtoolsOptions': {
+                browserWSEndpoint: format(
+                    `wss://cloud.testingbot.com?key=%s&secret=%s&browserName=chrome&browserVersion=latest`,
+                    process.env.TESTINGBOT_KEY,
+                    process.env.TESTINGBOT_SECRET
+                )
+            }
+        }
+    })
+
+    await browser.url('https://webdriver.io')
+
+    const title = await browser.getTitle()
+    console.log(title) // returns "should return "WebdriverIO - click""
+
+    await browser.deleteSession()
+})()
+```
 
 ### Advantages
 

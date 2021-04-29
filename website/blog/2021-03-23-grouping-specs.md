@@ -53,3 +53,19 @@ when run against the previously described directory tree would result in three i
 - A final instance would run test_b2.js
 
 It is only the specs definition that supports this syntax.
+
+**EDIT:**
+This syntax has now been extended to support specs defined in suites, so you can now also define suites like this:
+```json
+    "suites": {
+        end2end: [
+            [
+                "./test/specs/test_login.js",
+                "./test/specs/test_product_order.js",
+                "./test/specs/test_checkout.js"
+            ]
+        ],
+        allb: ["./test/specs/test_b*.js"]
+},
+```
+and in this case all of the tests of the "end2end" suite would be run in a single instance.

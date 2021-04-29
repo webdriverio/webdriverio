@@ -1,7 +1,5 @@
 import yargs from 'yargs'
 import { remote } from 'webdriverio'
-// @ts-ignore mock feature
-import { setSyncSupport } from '@wdio/utils'
 
 import { handler, builder } from '../../src/commands/repl'
 
@@ -60,19 +58,6 @@ describe('Command: repl', () => {
         await handler({ option: 'foobar' } as any)
 
         expect(remote).toHaveBeenCalledWith({ capabilities: { browserName: 'foobar' }, option: 'foobar' } as any)
-    })
-
-    it('should set runner if @wdio/sync is installed', async () => {
-        setSyncSupport(true)
-        await handler({ option: 'foobar' } as any)
-        expect(remote).toHaveBeenCalledWith({
-            runner: 'local',
-            // @ts-expect-error
-            option: 'foobar',
-            capabilities: {
-                browserName: 'foobar'
-            }
-        })
     })
 
     afterEach(() => {

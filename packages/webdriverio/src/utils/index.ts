@@ -12,10 +12,11 @@ import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
 import type { ElementReference } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
+import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio'
 
-import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
+import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG, DEEP_SELECTOR } from '../constants'
 import { findStrategy } from './findStrategy'
-import type { ElementArray, ElementFunction, Selector, ParsedCSSValue } from '../types'
+import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types'
 
 const browserCommands = require('../commands/browser').default
 const elementCommands = require('../commands/element').default
@@ -234,6 +235,19 @@ export async function findElement(
     selector: Selector
 ) {
     /**
+     * check if shadow DOM integration is used
+     */
+    if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+        const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
+        let elem: ElementReference | ElementReference[] = await this.execute(
+            locatorStrategy,
+            selector.slice(DEEP_SELECTOR.length)
+        )
+        elem = Array.isArray(elem) ? elem[0] : elem
+        return getElementFromResponse(elem) ? elem : notFoundError
+    }
+
+    /**
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
@@ -264,6 +278,18 @@ export async function findElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
+    /**
+     * check if shadow DOM integration is used
+     */
+    if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+        const elems: ElementReference | ElementReference[] = await this.execute(
+            locatorStrategy,
+            selector.slice(DEEP_SELECTOR.length)
+        )
+        const elemArray = Array.isArray(elems) ? elems : [elems]
+        return elemArray.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
     /**
      * fetch element using regular protocol command
      */
@@ -423,7 +449,7 @@ export async function hasElementId (element: WebdriverIO.Element) {
 }
 
 export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
-    return (name: string, func: (selector: string) => HTMLElement | HTMLElement[] | NodeListOf<HTMLElement>) => {
+    return (name: string, func: (selector: string, root?: HTMLElement) => CustomLocatorReturnValue) => {
         if (scope.strategies.get(name)) {
             throw new Error(`Strategy ${name} already exists`)
         }

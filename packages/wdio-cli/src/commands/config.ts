@@ -55,11 +55,6 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         ...servicePackages.map(service => service.package)
     ]
 
-    const syncExecution = answers.executionMode === 'sync'
-    if (syncExecution) {
-        packagesToInstall.push('@wdio/sync')
-    }
-
     /**
      * add ts-node if TypeScript is desired but not installed
      */
@@ -118,7 +113,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
 
     if (result.status !== 0) {
-        throw new Error(result.stderr)
+        const customError = 'An unknown error happened! Please retry ' +
+            `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
+            `${packagesToInstall.join(' ')}"`
+        throw new Error(result.stderr || customError)
     }
 
     console.log('\nPackages installed successfully, creating configuration file...')
@@ -138,9 +136,9 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         packagesToInstall,
         isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
         isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
-        isSync: syncExecution,
-        _async: syncExecution ? '' : 'async ',
-        _await: syncExecution ? '' : 'await ',
+        isSync: false,
+        _async: 'async ',
+        _await: 'await ',
         destSpecRootPath: parsedPaths.destSpecRootPath,
         destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
         relativePath : parsedPaths.relativePath
@@ -161,10 +159,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      * print TypeScript configuration message
      */
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
-        const wdioTypes = syncExecution ? 'webdriverio/sync' : 'webdriverio/async'
         const tsPkgs = `"${[
-            wdioTypes,
+            'webdriverio/async',
             frameworkPackage.package,
+            'expect-webdriverio',
             ...servicePackages
                 .map(service => service.package)
                 /**

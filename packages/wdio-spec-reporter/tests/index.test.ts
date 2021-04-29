@@ -138,6 +138,11 @@ describe('SpecReporter', () => {
         beforeEach(() => {
             printReporter = new SpecReporter({})
             printReporter.write = jest.fn()
+            printReporter.runnerStat = {
+                instanceOptions: {
+                    [fakeSessionId]: {}
+                }
+            }
         })
 
         describe('with normal setup', () => {
@@ -158,26 +163,32 @@ describe('SpecReporter', () => {
             })
 
             it('should print link to Sauce Labs job details page', () => {
-                const runner = getRunnerConfig({
+                const options = {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
-                    key: '123',
-                })
+                    key: '123'
+                }
+                const runner = getRunnerConfig({})
+                printReporter.runnerStat.instanceOptions[fakeSessionId] = options
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
             it('should print jobs of all instance when run with multiremote', () => {
-                const runner = getRunnerConfig({
+                const options = {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
-                    key: '123',
+                    key: '123'
+                }
+                const runner = getRunnerConfig({
                     capabilities: {
                         browserA: { sessionId: 'foobar' },
                         browserB: { sessionId: 'barfoo' }
                     },
                     isMultiremote: true
                 })
+                printReporter.runnerStat.instanceOptions['foobar'] = options
+                printReporter.runnerStat.instanceOptions['barfoo'] = options
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
@@ -188,11 +199,13 @@ describe('SpecReporter', () => {
                         ...defaultCaps,
                         'sauce:options': 'foobar'
                     },
-                    hostname: 'ondemand.saucelabs.com',
-                    user: 'foobar',
-                    key: '123',
                     sessionId: fakeSessionId
                 })
+                printReporter.runnerStat.instanceOptions[fakeSessionId] = {
+                    hostname: 'ondemand.us-west-1.saucelabs.com',
+                    user: 'foobar',
+                    key: '123'
+                }
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
@@ -203,40 +216,42 @@ describe('SpecReporter', () => {
                         tunnelIdentifier: 'foobar',
                         ...defaultCaps
                     },
-                    hostname: 'ondemand.saucelabs.com',
-                    user: 'foobar',
-                    key: '123',
                     sessionId: fakeSessionId
                 })
+                printReporter.runnerStat.instanceOptions[fakeSessionId] = {
+                    hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123'
+                }
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
             it('should print link to Sauce Labs EU job details page', () => {
-                printReporter.printReport(getRunnerConfig({
-                    hostname: 'ondemand.saucelabs.com',
+                printReporter.runnerStat.instanceOptions[fakeSessionId] = {
+                    hostname: 'ondemand.eu-central-1.saucelabs.com',
                     user: 'foobar',
-                    key: '123',
-                    region: 'eu'
-                }))
+                    key: '123'
+                }
+                printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
 
                 printReporter.write.mockClear()
 
-                printReporter.printReport(getRunnerConfig({
-                    hostname: 'ondemand.saucelabs.com',
+                printReporter.runnerStat.instanceOptions[fakeSessionId] = {
+                    hostname: 'ondemand.eu-central-1.saucelabs.com',
                     user: 'foobar',
-                    key: '123',
-                    region: 'eu-central-1'
-                }))
+                    key: '123'
+                }
+                printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
 
-                printReporter.printReport(getRunnerConfig({
-                    hostname: 'ondemand.saucelabs.com',
+                printReporter.runnerStat.instanceOptions[fakeSessionId] = {
+                    hostname: 'ondemand.us-east-1.saucelabs.com',
                     user: 'foobar',
-                    key: '123',
-                    headless: true
-                }))
+                    key: '123'
+                }
+                printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
         })

@@ -9,11 +9,9 @@ export interface WDIODevtoolsOptions {
 
 export interface DevToolsOptions extends LaunchOptions, ChromeArgOptions, BrowserOptions, ConnectOptions {
     /**
-     * if you want to connect to custom chrome debugger address you
-     * need to set this flag otherwise WebdriverIO will try to connect
-     * to this address.
+     * If you want to start Google Chrome on a custom port
      */
-    customDebuggerAddress?: boolean
+    customPort?: number
 }
 
 export interface AttachOptions {

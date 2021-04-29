@@ -3,7 +3,7 @@ import type { Options } from '@wdio/types'
 declare type HTTPRequestOptions = import('got').Options;
 declare type HTTPResponse = import('got').Response;
 
-export const DEFAULTS: Options.Definition<Options.WebDriver> = {
+export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
     /**
      * protocol of automation driver
      */

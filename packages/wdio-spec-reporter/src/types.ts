@@ -1,4 +1,4 @@
-import { Options, Capabilities } from '@wdio/types'
+import { Capabilities } from '@wdio/types'
 
 export interface StateCount {
     passed: number
@@ -33,9 +33,8 @@ export interface SpecReporterOptions {
 }
 
 export interface TestLink {
-    config: Options.Testrunner
     capabilities: Capabilities.RemoteCapability
-    sessionId?: string
+    sessionId: string
     isMultiremote: boolean
     instanceName?: string
 }

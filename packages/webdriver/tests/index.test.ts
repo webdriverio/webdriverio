@@ -292,6 +292,14 @@ describe('WebDriver', () => {
             expect(anotherClient.isSauce).toBe(true)
         })
 
+        it('should apply default connection details', () => {
+            const client = WebDriver.attachToSession({ sessionId: '123' })
+            expect(client.options.protocol).toBe('http')
+            expect(client.options.hostname).toBe('localhost')
+            expect(client.options.port).toBe(4444)
+            expect(client.options.path).toBe('/')
+        })
+
         it('should fail attaching to session if sessionId is not given', () => {
             // @ts-ignore
             expect(() => WebDriver.attachToSession({}))

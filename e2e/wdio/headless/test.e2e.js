@@ -4,4 +4,14 @@ describe('main suite 1', () => {
         browser.url('http://guinea-pig.webdriver.io/')
         expect($('#useragent')).toHaveTextContaining(browserName)
     })
+
+    it('should allow to check for PWA', () => {
+        browser.url('https://webdriver.io')
+        expect(browser.checkPWA().passed).toBe(true)
+    })
+
+    it('should also detect non PWAs', () => {
+        browser.url('https://json.org')
+        expect(browser.checkPWA().passed).toBe(false)
+    })
 })

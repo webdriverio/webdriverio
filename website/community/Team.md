@@ -78,4 +78,12 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
 >
 </Card>
 
+<Card
+    name="Boris Osipov"
+    avatar="https://avatars.githubusercontent.com/u/6514276?v=4"
+    github="BorisOsipov"
+    twitter="bo_osipov"
+>
+</Card>
+
 and [many many more](https://github.com/orgs/webdriverio/people).

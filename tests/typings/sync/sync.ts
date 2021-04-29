@@ -19,6 +19,7 @@ declare global {
 
 const nsBrowser: WebdriverIO.Browser = {} as any
 nsBrowser.clearMockCalls('')
+nsBrowser.ambientCommand('foo')
 
 const nsElem: WebdriverIO.Element = {} as any
 nsElem.click()
@@ -236,6 +237,7 @@ ele.dragAndDrop({ x: 1, y: 2 })
 // addLocatorStrategy
 browser.addLocatorStrategy('myStrat', () => document.body)
 browser.addLocatorStrategy('myStrat', () => document.querySelectorAll('div'))
+browser.addLocatorStrategy<true>('myStrat', (selector: string, root) => root)
 
 // shared-store-service
 browser.sharedStore.get('foo')

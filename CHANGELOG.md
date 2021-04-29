@@ -19,6 +19,136 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.5.2 (2021-04-26)
+
+#### :bug: Bug Fix
+* `wdio-types`, `webdriver`, `webdriverio`
+  * [#6759](https://github.com/webdriverio/webdriverio/pull/6759) attach to session improvements ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`
+  * [#6751](https://github.com/webdriverio/webdriverio/pull/6751) fix executeScript results transformation in devtools ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+
+#### :nail_care: Polish
+* `webdriver`, `webdriverio`
+  * [#6756](https://github.com/webdriverio/webdriverio/pull/6756) Retry connection refused errors ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#6758](https://github.com/webdriverio/webdriverio/pull/6758) Print custom error message if installing deps fails with no stderr ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#6755](https://github.com/webdriverio/webdriverio/pull/6755) Add documentation for accessing browser instances via strings ([@evilC](https://github.com/evilC))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Clive Galway ([@evilC](https://github.com/evilC))
+- Kyrylo ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
+## v7.5.1 (2021-04-21)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#6736](https://github.com/webdriverio/webdriverio/pull/6736) `checkPWA` command is broken ([@christian-bromann](https://github.com/christian-bromann))
+  * [#6664](https://github.com/webdriverio/webdriverio/pull/6664) Fix Devtools hang on Android ([@nicolasbouffard](https://github.com/nicolasbouffard))
+* `wdio-cucumber-framework`
+  * [#6737](https://github.com/webdriverio/webdriverio/pull/6737) Pin Cucumber package versions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6732](https://github.com/webdriverio/webdriverio/pull/6732) add(service): waitFor external package ([@elaichenkov](https://github.com/elaichenkov))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Yevhen ([@elaichenkov](https://github.com/elaichenkov))
+- [@nicolasbouffard](https://github.com/nicolasbouffard)
+
+
+## v7.5.0 (2021-04-20)
+
+#### :rocket: New Feature
+* `devtools`, `webdriverio`
+  * [#6709](https://github.com/webdriverio/webdriverio/pull/6709) Implement `>>>` (deep) selector for WebdriverIO ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#6725](https://github.com/webdriverio/webdriverio/pull/6725) Fix DevToolsDriver elements storing ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+
+#### :nail_care: Polish
+* `wdio-config`
+  * [#6720](https://github.com/webdriverio/webdriverio/pull/6720) fix: Only log when the entry is not a string or array ([@seanpoulter](https://github.com/seanpoulter))
+
+#### :memo: Documentation
+* [#6678](https://github.com/webdriverio/webdriverio/pull/6678) Document the transition from a Protractor to WebdriverIO framework ([@christian-bromann](https://github.com/christian-bromann))
+* [#6722](https://github.com/webdriverio/webdriverio/pull/6722) Update broken links ([@rueyaa332266](https://github.com/rueyaa332266))
+* [#6626](https://github.com/webdriverio/webdriverio/pull/6626) Update CustomServices.md ([@tzurp](https://github.com/tzurp))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jye Ruey ([@rueyaa332266](https://github.com/rueyaa332266))
+- Kyrylo ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+- Sean Poulter ([@seanpoulter](https://github.com/seanpoulter))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+- [@tzurp](https://github.com/tzurp)
+
+
+## v7.4.6 (2021-04-15)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#6718](https://github.com/webdriverio/webdriverio/pull/6718) Remove `@wdio/sync` package from cli wizard ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`, `webdriverio`
+  * [#6606](https://github.com/webdriverio/webdriverio/pull/6606) webdriverio: fix setvalue typings ([@erwinheitzman](https://github.com/erwinheitzman))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Erwin Heitzman ([@erwinheitzman](https://github.com/erwinheitzman))
+
+
+## v7.4.4 (2021-04-14)
+
+#### :memo: Documentation
+* [#6708](https://github.com/webdriverio/webdriverio/pull/6708) Update name and link to @wdio/browserstack-service ([@sbley](https://github.com/sbley))
+
+#### Committers: 1
+- Stefan Bley ([@sbley](https://github.com/sbley))
+
+
+## v7.4.0 (2021-04-13)
+
+#### :rocket: New Feature
+* `devtools`
+  * [#6684](https://github.com/webdriverio/webdriverio/pull/6684) Allow more options to connect to a remote devtools connection ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#6701](https://github.com/webdriverio/webdriverio/pull/6701) Fix `checkPWA` command ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-reporter`, `wdio-runner`, `wdio-spec-reporter`, `wdio-types`
+  * [#6700](https://github.com/webdriverio/webdriverio/pull/6700) Improve spec reporting for multiremote ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-selenium-standalone-service`
+  * [#6681](https://github.com/webdriverio/webdriverio/pull/6681) Fix connection details setting for multiremote in selenium server ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-jasmine-framework`
+  * [#6687](https://github.com/webdriverio/webdriverio/pull/6687) Remove done callback in Jasmine ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#6683](https://github.com/webdriverio/webdriverio/pull/6683) [BUGFIX] wdio-browserstack-service using the wrong session url when w3c properties are enforced ([@sanghun89](https://github.com/sanghun89))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#6699](https://github.com/webdriverio/webdriverio/pull/6699) Properly type config file if TypeScript is being used ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-config`
+  * [#6658](https://github.com/webdriverio/webdriverio/pull/6658) Added ability to group specs in suites ([@RossVertizan](https://github.com/RossVertizan))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#6682](https://github.com/webdriverio/webdriverio/pull/6682) Enhance docs for custom locator strategy ([@christian-bromann](https://github.com/christian-bromann))
+  * [#6698](https://github.com/webdriverio/webdriverio/pull/6698) Small typo ([@idanen](https://github.com/idanen))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Idan Entin ([@idanen](https://github.com/idanen))
+- Ross Addinall ([@RossVertizan](https://github.com/RossVertizan))
+- Sam Chun ([@sanghun89](https://github.com/sanghun89))
+- [@dependabot-preview[bot]](https://github.com/apps/dependabot-preview)
+
+
 ## v7.3.1 (2021-04-08)
 
 #### :bug: Bug Fix

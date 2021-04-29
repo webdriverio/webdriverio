@@ -1,4 +1,4 @@
-import type { AddValueOptions } from './addValue'
+import type { CommandOptions, Value } from './addValue'
 
 /**
  *
@@ -21,15 +21,15 @@ import type { AddValueOptions } from './addValue'
  * </example>
  *
  * @alias element.setValue
- * @param {string | number | boolean | object | Array<any>}      value    Value to be added
- * @param {AddValueOptions=} options                    command options (optional)
- * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
+ * @param {string | number | Array<string | number>}        value                       value to be added
+ * @param {CommandOptions=}                                 options                     command options (optional)
+ * @param {boolean}                                         options.translateToUnicode  enable translation string to unicode value automatically
  *
  */
 export default async function setValue (
     this: WebdriverIO.Element,
-    value: string,
-    { translateToUnicode = true }: AddValueOptions = {}
+    value: Value | Value[],
+    { translateToUnicode = true }: CommandOptions = {}
 ) {
     await this.clearValue()
     return this.addValue(value, { translateToUnicode })

@@ -275,6 +275,22 @@ describe('before', () => {
         expect(service['_sessionBaseUrl']).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
     })
 
+    it('should initialize correctly for appium if using valid W3C Webdriver capabilities', () => {
+        const service = new BrowserstackService({}, {
+            app: 'bs://BrowserStackMobileAppId'
+        }, {
+            user: 'foo',
+            key: 'bar',
+            capabilities: {
+                ['appium:app']: 'test-app'
+            }
+        }, browser)
+        service.before(service._config, [], browser)
+
+        expect(service._failReasons).toEqual([])
+        expect(service._sessionBaseUrl).toEqual('https://api-cloud.browserstack.com/app-automate/sessions')
+    })
+
     it('should log the url', async () => {
         const service = new BrowserstackService({}, [{}] as any, { capabilities: {} })
 

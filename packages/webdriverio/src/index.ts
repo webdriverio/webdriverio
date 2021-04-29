@@ -76,7 +76,16 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     return instance
 }
 
-export const attach = async function (params: AttachOptions): Promise<Browser<'async'>> {
+export const attach = async function (attachOptions: AttachOptions): Promise<Browser<'async'>> {
+    /**
+     * copy instances properties into new object
+     */
+    const params = {
+        ...attachOptions,
+        options: { ...attachOptions.options },
+        ...detectBackend(attachOptions)
+    }
+
     const prototype = getPrototype('browser')
 
     let automationProtocol = 'webdriver'

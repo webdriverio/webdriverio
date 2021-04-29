@@ -3,8 +3,8 @@ import * as gotOrig from 'got'
 import http from 'http'
 import https from 'https'
 
+import { Options } from '@wdio/types'
 import WebDriverRequest from '../src/request'
-import { WebDriverLogTypes } from '../src/types'
 
 type LogMock = {
     warn: jest.Mock,
@@ -237,7 +237,7 @@ describe('webdriver request', () => {
                 ...defaultOptions,
                 path: '/',
                 headers: { foo: 'bar' },
-                logLevel: 'warn' as WebDriverLogTypes
+                logLevel: 'warn' as Options.WebDriverLogTypes
             }
 
             beforeEach(function() {
@@ -436,6 +436,26 @@ describe('webdriver request', () => {
                 (e) => e
             )
             expect(result).toEqual({ value: { value: {} } })
+            expect(reqRetryCnt).toBeCalledTimes(5)
+        })
+
+        it('should retry on connection refused error', async () => {
+            const retryCnt = 7
+            const req = new WebDriverRequest('POST', '/connectionRefused', {}, true)
+            const reqRetryCnt = jest.fn()
+            req.on('retry', reqRetryCnt)
+            const result = await req.makeRequest({
+                protocol: 'https',
+                hostname: 'localhost',
+                port: 4445,
+                path: '/connectionRefused',
+                connectionRetryCount: retryCnt,
+                logLevel: 'warn'
+            }, 'foobar').then(
+                (res) => res,
+                (e) => e
+            )
+            expect(result).toEqual({ value: { value: { foo: 'bar' } } })
             expect(reqRetryCnt).toBeCalledTimes(5)
         })
 

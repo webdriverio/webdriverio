@@ -17,8 +17,9 @@ export const config: ConfigOptions = {
         unit: [path.join(TEST_ROOT, 'configparser.test.ts')],
         mobile: [path.join(TEST_ROOT, 'RequireLibrary.test.ts')],
         functional: [
-            path.join(TEST_ROOT, 'validateConfig.test.ts'),
-            path.join(TEST_ROOT, '..', 'src/index.ts')
+            [path.join(TEST_ROOT, 'validateConfig.test.ts'),
+                path.join(TEST_ROOT, '..', 'src/index.ts')],
+            [path.join(TEST_ROOT, '*.test.ts')]
         ]
     }
 }

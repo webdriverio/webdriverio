@@ -77,7 +77,7 @@ It is out of the scope of WebdriverIO to support this, so you must start it by y
 
 If you do use local, you should set `browserstack.local` to `true` in your capabilities.
 
-If you are using the WDIO testrunner, download and configure the [`wdio-browserstack-service`](https://github.com/itszero/wdio-browserstack-service) in your `wdio.conf.js`. It helps get BrowserStack running, and comes with additional features that better integrate your tests into the BrowserStack service.
+If you are using the WDIO testrunner, download and configure the [`@wdio/browserstack-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service) in your `wdio.conf.js`. It helps get BrowserStack running, and comes with additional features that better integrate your tests into the BrowserStack service.
 
 ### With Travis CI
 

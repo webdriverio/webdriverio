@@ -14,6 +14,7 @@ This document is designed to be a living record of the current and projected pri
 |[More videos as documentation material](https://github.com/webdriverio/webdriverio/projects/9)|Add videos for setting up WebdriverIO, adding plugins and other use cases in the docs.|
 |[Network Recording](https://github.com/webdriverio/webdriverio/projects/15)|We want to make it seamless to assert network behavior of the browser. Inspired by Jest and their Snapshot functionality we can implement similar behavior in WebdriverIO.|
 |[Improved Frontend Framework Support](https://github.com/webdriverio/webdriverio/projects/16)|Almost all web applications are written in either React, Angular, Vue, Svelte or a different frontend framework that allows you to ship modern web application today. These frameworks are often difficult to deal with when it comes to selecting elements or introspection of app states and important parts. WebdriverIO has the capabilities to help the user to test these applications better.|
+|[Support for Multiple Environments](https://github.com/webdriverio/webdriverio/projects/17)|Currently WebdriverIO is only able to run in Node.js which is the environment that most users use it. However it would be nice to also enable WebdriverIO for other environment such as the browser or [Deno](https://deno.land/). For this to happen, all packages need to be made [ESM](https://nodejs.org/api/esm.html) compatible.|
 
 ## Completed Roadmap Projects
 

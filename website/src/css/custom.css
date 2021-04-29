@@ -273,3 +273,8 @@ a code {
     top: 12px;
     left: 52px;
 }
+
+div[role="tabpanel"] .margin-vert--md {
+    margin-top: 0!important;
+    margin-bottom: 0!important;
+}

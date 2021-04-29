@@ -195,7 +195,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         await this._session.send('Network.emulateNetworkConditions', NETWORK_STATES[networkThrottling])
     }
 
-    async _checkPWA (auditsToBeRun: PWAAudits[] = []) {
+    async _checkPWA (auditsToBeRun: PWAAudits[]) {
         const auditor = new Auditor()
         const artifacts = await this._pwaGatherer!.gatherData()
         return auditor._auditPWA(artifacts, auditsToBeRun)
@@ -222,7 +222,7 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._target = await this._puppeteer.waitForTarget(
             /* istanbul ignore next */
-            (t) => t.type() === 'page')
+            (t) => t.type() === 'page' || t['_targetInfo'].browserContextId)
         /* istanbul ignore next */
         if (!this._target) {
             throw new Error('No page target found')

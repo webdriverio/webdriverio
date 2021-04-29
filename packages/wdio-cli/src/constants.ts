@@ -121,7 +121,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' },
         { name: 'performancetotal', value: 'wdio-performancetotal-service$--$performancetotal' },
         { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' },
-        { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' }
+        { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
+        { name: 'wait-for', value: 'wdio-wait-for-service$--$wait-for' }
     ]
 } as const
 
@@ -141,11 +142,6 @@ export const PROTOCOL_OPTIONS = [
 export const REGION_OPTION = [
     'us',
     'eu'
-] as const
-
-export const MODE_OPTIONS = [
-    'sync',
-    'async'
 ] as const
 
 export const QUESTIONNAIRE = [{
@@ -275,11 +271,6 @@ export const QUESTIONNAIRE = [{
     name: 'framework',
     message: 'Which framework do you want to use?',
     choices: SUPPORTED_PACKAGES.framework,
-}, {
-    type: 'list',
-    name: 'executionMode',
-    message: 'Do you want to run WebdriverIO commands synchronous or asynchronous?',
-    choices: MODE_OPTIONS
 }, {
     type: 'list',
     name: 'isUsingCompiler',

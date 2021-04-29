@@ -30,6 +30,13 @@ test('launch chrome with default values', async () => {
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
     expect((puppeteer.connect as jest.Mock).mock.calls).toMatchSnapshot()
+    expect(puppeteer.registerCustomQueryHandler).toBeCalledWith(
+        'shadow',
+        {
+            queryAll: expect.any(Function),
+            queryOne: expect.any(Function)
+        }
+    )
 
     const pages = await browser.pages()
     expect(pages[0].close).toBeCalledTimes(1)
@@ -118,11 +125,9 @@ test('overriding chrome default flags (backwards compat)', async () => {
 test('launch chrome with chrome port', async () => {
     const browser = await launch({
         browserName: 'chrome',
-        'goog:chromeOptions': {
-            debuggerAddress: '127.0.0.1:8041'
-        },
+        'goog:chromeOptions': {},
         'wdio:devtoolsOptions': {
-            customDebuggerAddress: true
+            customPort: 8041
         }
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
@@ -337,4 +342,32 @@ test('connect to existing browser session', async () => {
     expect(puppeteer.launch).not.toBeCalled()
     expect(puppeteer.connect as jest.Mock)
         .toBeCalledWith({ browserURL: 'http://localhost:12345' })
+})
+
+test('connect to an existing devtools websocket', async () => {
+    await launch({
+        browserName: 'edge',
+        'ms:edgeOptions': {},
+        'wdio:devtoolsOptions': {
+            browserWSEndpoint: 'wss://cloud.vendor.com'
+        }
+    })
+    expect(puppeteer.launch).not.toBeCalled()
+    expect(puppeteer.connect as jest.Mock)
+        .toBeCalledWith({ browserWSEndpoint: 'wss://cloud.vendor.com' })
+})
+
+test('connect to an existing devtools browser url', async () => {
+    const devtoolsOptions = {
+        browserURL: 'http://localhost:1234',
+        ignoreHTTPSErrors: true
+    }
+    await launch({
+        browserName: 'edge',
+        'ms:edgeOptions': {},
+        'wdio:devtoolsOptions': devtoolsOptions
+    })
+    expect(puppeteer.launch).not.toBeCalled()
+    expect(puppeteer.connect as jest.Mock)
+        .toBeCalledWith(devtoolsOptions)
 })

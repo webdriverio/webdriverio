@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { remote, multiremote } from '../../packages/webdriverio'
+import { remote, attach, multiremote } from '../../packages/webdriverio'
 
 function sleep (ms) {
     return new Promise((resolve) => setTimeout(resolve, ms))
@@ -37,6 +37,20 @@ describe('scripts run in standalone mode', () => {
             assert.equal(beforeCmdCounter, 1)
             assert.equal(afterCmdCounter, 1)
             assert.ok((Date.now() - start) > 200)
+        })
+    })
+
+    describe('attach', () => {
+        it('can attach to a session', async () => {
+            const remoteBrowser = await remote({
+                automationProtocol: 'webdriver',
+                capabilities: {
+                    browserName: 'chrome'
+                }
+            })
+            assert.equal(await remoteBrowser.getTitle(), 'Mock Page Title')
+            const attachBrowser = await attach(remoteBrowser)
+            assert.equal(await attachBrowser.getTitle(), 'Mock Page Title')
         })
     })
 
