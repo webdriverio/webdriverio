@@ -86,7 +86,7 @@ export async function handler(argv: InstallCommandArguments) {
             const promptMessage = `Cannot install packages without a WebdriverIO configuration.
 You can create one by running 'wdio config'`
 
-            await missingConfigurationPrompt('install', promptMessage, yarn)
+            await missingConfigurationPrompt('install', promptMessage, { yarn })
         } catch {
             process.exit(1)
             return

@@ -227,27 +227,27 @@ describe('passing arguments', () => {
 describe('missingConfigurationPromp', () => {
     it('should prompt user', async () => {
         (inquirer.prompt as any as jest.Mock).mockImplementation(() => ({ config: true }))
-        await missingConfigurationPrompt('run', 'foobar', false, jest.fn())
+        await missingConfigurationPrompt('run', 'foobar', { yarn: false }, jest.fn())
         expect((inquirer.prompt as any as jest.Mock)).toHaveBeenCalled()
     })
 
     it('should call function to initalize configuration helper', async () => {
         const runConfig = jest.fn()
-        await missingConfigurationPrompt('test', 'foobar', false, runConfig)
-        expect(runConfig).toHaveBeenCalledWith(false, false, true)
+        await missingConfigurationPrompt('test', 'foobar', { yarn: false }, runConfig)
+        expect(runConfig).toHaveBeenCalledWith({ yarn: false, yes: undefined, framework: undefined }, true)
     })
 
     it('should pass "yarn" flag to runConfig', async () => {
         const runConfig = jest.fn()
-        await missingConfigurationPrompt('test', 'test message', true, runConfig)
-        expect(runConfig).toHaveBeenCalledWith(true, false, true)
+        await missingConfigurationPrompt('test', 'test message', { yarn: true }, runConfig)
+        expect(runConfig).toHaveBeenCalledWith({ yarn: true, yes: undefined, framework: undefined }, true)
     })
 
     it('should throw if error occurs', async () => {
         const runConfig = jest.fn().mockImplementation(Promise.reject)
 
         try {
-            await missingConfigurationPrompt('test', 'foobar', false, runConfig)
+            await missingConfigurationPrompt('test', 'foobar', { yarn: false }, runConfig)
         } catch (error) {
             expect(error).toBeTruthy()
         }

@@ -9,7 +9,7 @@ import { execSync } from 'child_process'
 import { promisify } from 'util'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
-import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, Framework } from './types'
+import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ConfigCommandArguments } from './types'
 import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, SUPPORTED_PACKAGES } from './constants'
 
 const log = logger('@wdio/cli:utils')
@@ -305,10 +305,10 @@ export async function generateTestFiles (answers: ParsedAnswers) {
     }
 }
 
-export async function getAnswers(yes: boolean, framework?: Framework): Promise<Questionnair> {
+export async function getAnswers({ yes, framework }: ConfigCommandArguments): Promise<Questionnair> {
     let questions = QUESTIONNAIRE
 
-    const getDefaultValue = (answers: Answers, question: Answers) => {
+    const getDefaultValue = (answers: Questionnair, question: Answers) => {
         if (typeof question.default === 'function') {
             return question.default(answers)
         }
@@ -316,7 +316,7 @@ export async function getAnswers(yes: boolean, framework?: Framework): Promise<Q
         return question.default
     }
 
-    const getAnswer = (answers: Answers, question: Answers) => {
+    const getAnswer = (answers: Questionnair, question: Answers) => {
         if (typeof question.default !== 'undefined') {
             return {
                 [question.name]: getDefaultValue(answers, question)
@@ -334,7 +334,7 @@ export async function getAnswers(yes: boolean, framework?: Framework): Promise<Q
         }
     }
 
-    const reducer = function (answers: Answers, question: Answers) {
+    const reducer = function (answers: Questionnair, question: Answers) {
         if (question.when && !question.when(answers)) {
             return Object.assign(answers, {}) // set nothing if question doesn't apply
         }
@@ -342,10 +342,10 @@ export async function getAnswers(yes: boolean, framework?: Framework): Promise<Q
         return Object.assign(answers, getAnswer(answers, question))
     }
 
-    questions = questions.map(question => {
+    questions = questions.map((question) => {
         if (framework && question.name === 'framework') {
-            question.when = (answers) => {
-                answers[question.name] = SUPPORTED_PACKAGES.framework.find(({ name }) => name === framework).value
+            question.when = (answers: Answers) => {
+                answers[question.name] = SUPPORTED_PACKAGES.framework.find(({ name }) => name === framework)?.value
                 return false
             }
         }
@@ -354,7 +354,7 @@ export async function getAnswers(yes: boolean, framework?: Framework): Promise<Q
     })
 
     if (yes) {
-        return questions.reduce(reducer, {})
+        return questions.reduce(reducer, {} as Questionnair)
     }
 
     return await inquirer.prompt(questions)

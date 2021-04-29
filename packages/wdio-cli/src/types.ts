@@ -1,4 +1,4 @@
-import { Options, Reporters } from '@wdio/types'
+import type { Options, Reporters, Frameworks } from '@wdio/types'
 import { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
 
 type ValueOf<T> = T[keyof T]
@@ -90,12 +90,10 @@ export interface InstallCommandArguments {
     name: string
 }
 
-export type Framework = 'mocha' | 'jasmine' | 'cucumber'
-
 export interface ConfigCommandArguments {
-    yarn: boolean
-    yes: boolean
-    framework?: Framework
+    yarn?: boolean
+    yes?: boolean
+    framework?: Frameworks.Framework
 }
 
 export interface SupportedPackage {

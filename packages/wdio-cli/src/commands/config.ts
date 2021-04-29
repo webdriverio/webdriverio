@@ -11,7 +11,7 @@ import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
     hasFile, generateTestFiles, getAnswers, getPathForFileGeneration
 } from '../utils'
-import { ConfigCommandArguments, Framework, ParsedAnswers } from '../types'
+import { ConfigCommandArguments, ParsedAnswers } from '../types'
 import yargs from 'yargs'
 
 const pkg = require('../../package.json')
@@ -40,9 +40,9 @@ export const builder = (yargs: yargs.Argv) => {
         .help()
 }
 
-const runConfig = async function (useYarn: boolean, yes: boolean, framework: Framework, exit = false) {
+const runConfig = async function ({ yarn, yes, framework }: ConfigCommandArguments, exit = false) {
     console.log(CONFIG_HELPER_INTRO)
-    const answers = await getAnswers(yes, framework)
+    const answers = await getAnswers({ yes, framework })
     const frameworkPackage = convertPackageHashToObject(answers.framework)
     const runnerPackage = convertPackageHashToObject(answers.runner || SUPPORTED_PACKAGES.runner[0].value)
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
@@ -110,11 +110,11 @@ const runConfig = async function (useYarn: boolean, yes: boolean, framework: Fra
     }
 
     console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
-    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
+    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !yarn })
 
     if (result.status !== 0) {
         const customError = 'An unknown error happened! Please retry ' +
-            `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
+            `installing dependencies via "${yarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
             `${packagesToInstall.join(' ')}"`
         throw new Error(result.stderr || customError)
     }
@@ -191,12 +191,12 @@ const runConfig = async function (useYarn: boolean, yes: boolean, framework: Fra
     }
 }
 
-export function handler(argv: ConfigCommandArguments) {
-    if (argv.framework && !SUPPORTED_PACKAGES.framework.find(({ name }) => name === argv.framework)) {
-        throw new Error(`InvalidArgumentError: Framework ${argv.framework} is not supported.`)
+export function handler({ yarn, yes, framework }: ConfigCommandArguments) {
+    if (framework && !SUPPORTED_PACKAGES.framework.find(({ name }) => name === framework)) {
+        throw new Error(`InvalidArgumentError: Framework ${framework} is not supported.`)
     }
 
-    return runConfig(argv.yarn, argv.yes, argv.framework)
+    return runConfig({ yarn, yes, framework })
 }
 
 /**
@@ -206,7 +206,7 @@ export function handler(argv: ConfigCommandArguments) {
  * @param {boolean}  useYarn        parameter set to true if yarn is used
  * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
  */
-export async function missingConfigurationPrompt(command: string, message: string, useYarn = false, runConfigCmd = runConfig) {
+export async function missingConfigurationPrompt(command: string, message: string, { yarn, yes, framework }: ConfigCommandArguments, runConfigCmd = runConfig) {
     const { config } = await inquirer.prompt([
         {
             type: 'confirm',
@@ -226,5 +226,5 @@ export async function missingConfigurationPrompt(command: string, message: strin
         return process.exit(0)
     }
 
-    return await runConfigCmd(useYarn, false, true)
+    return await runConfigCmd({ yarn, yes, framework }, true)
 }
