@@ -9,11 +9,11 @@ The examples works without any 3rd party dependencies for assertions. These can 
 To run the test, change into this directory:
 
 ```sh
-$ cd ./examples/pageobject
+cd ./examples/pageobject
 ```
 
 And run the demo:
 
 ```sh
-$ npm test
+npm test
 ```

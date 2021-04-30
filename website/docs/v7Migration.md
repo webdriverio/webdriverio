@@ -20,7 +20,7 @@ Similar to other migrations we can use the WebdriverIO [codemod](https://github.
 To install the codemod, run:
 
 ```sh
-$ npm install jscodeshift @wdio/codemod
+npm install jscodeshift @wdio/codemod
 ```
 
 #### Commits:
@@ -46,7 +46,7 @@ Usually WebdriverIO dependencies are part of the dev dependencies, depending on 
 A good first step is to start with the config file. In WebdriverIO `v7` we don't require to manually register any of the compilers anymore. In fact they need to be removed. This can be done with the codemod full automatically:
 
 ```sh
-$ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./wdio.conf.js
+npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./wdio.conf.js
 ```
 
 :::caution
@@ -64,7 +64,7 @@ The codemod doesn't yet support TypeScript projects. See [`@webdriverio/codemod#
 If you are using Jasmine or Mocha, you are done here. The last step is to update the Cucumber.js imports from `cucumber` to `@cucumber/cucumber`. This can also be done via the codemod automatically:
 
 ```sh
-$ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./src/e2e/*
+npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./src/e2e/*
 ```
 
 That's it! No more changes necessary 🎉

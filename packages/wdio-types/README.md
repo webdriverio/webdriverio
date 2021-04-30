@@ -8,7 +8,7 @@ This package contains a bunch of TypeScript types for internal WebdriverIO consu
 To install this package from NPM run:
 
 ```sh
-$ npm i @wdio/types
+npm i @wdio/types
 ```
 
 ## Example

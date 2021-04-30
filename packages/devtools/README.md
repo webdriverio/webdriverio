@@ -8,7 +8,7 @@ This package provides a low level interface to run browser automation scripts ba
 ## Install
 
 ```sh
-$ npm i webdriverio
+npm i webdriverio
 ```
 
 ## Example

@@ -20,7 +20,7 @@ The easiest way is to keep `@wdio/spec-reporter` as a devDependency in your `pac
 You can simple do it by:
 
 ```sh
-$ npm install @wdio/spec-reporter --save-dev
+npm install @wdio/spec-reporter --save-dev
 ```
 
 Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted).

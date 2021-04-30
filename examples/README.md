@@ -21,7 +21,7 @@ Then just follow the instructions and test it out. Have fun!
 Shows you how to use WebdriverIO using Sauce Labs, Browserstack, Testingbot or Kobiton. To run those tests make sure you have your credentials stored in your environment. Then change directory to the example folder:
 
 ```sh
-$ cd ./examples/cloudservices
+cd ./examples/cloudservices
 ```
 
 and run the demos by calling:
@@ -78,7 +78,7 @@ The multiremote examples demonstrate how you can use more than one browser to te
 Run this test by executing the file using node. It opens up a WebRTC page with two Chrome browser. Both browser will connect to each other and will have a two seconds long call.
 
 ```sh
-$ npm run test:webrtc
+npm run test:webrtc
 ```
 
 ## webdriverio.multiremote.chat.js
@@ -86,7 +86,7 @@ $ npm run test:webrtc
 This example demonstrates how you could test a chat system. Both browsers will connect to a text based chat. One browser will input something whereas the other browser reads the message, interprets it and returns with a proper response message. You can execute the test using Mocha. Make sure you pass a high timeout as argument to make the test work properly.
 
 ```sh
-$ npm run test:chat
+npm run test:chat
 ```
 
 
@@ -101,13 +101,13 @@ The examples works without any 3rd party dependencies for assertions. These can 
 To run the test, change into this directory:
 
 ```sh
-$ cd ./examples/pageobject
+cd ./examples/pageobject
 ```
 
 And run the demo:
 
 ```sh
-$ npm test
+npm test
 ```
 
 # WDIO Testrunner Examples
@@ -115,7 +115,7 @@ $ npm test
 This directory contains examples for each framework for the wdio test runner. It also shows you how to run multiremote test with the test runner or how to embed a custom reporter. First change directory to the example folder:
 
 ```sh
-$ cd ./examples/wdio
+cd ./examples/wdio
 ```
 
 Then run the test by calling the following commands:
