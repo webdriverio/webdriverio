@@ -286,3 +286,28 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
     - Page Object Model
     - Contains sample test scenarios in cucumber
     - Integrated with multiple cucumber html reports
+
+## [larryg01/klassi-test-suite](https://github.com/larryg01/klassi-test-suite.git)
+
+Boilerplate test suite to run E2E Tests using webdriverIO v7 and cucumber v7 with page object model
+
+- frameworks
+    - webdriverIO v7
+    - cucumber v7
+
+- Features
+    - Page Object Model
+    - ESlint
+    - Contain sample test scenario in cucumber
+    - Integrated cucumber html reports
+    - Integrated Lambdatest, Browserstack services
+    - Visual Regression Testing
+    - CircleCI Integration
+    - Email functionality
+    - Embeded video on failure from lambdatest/browserstack in reports
+    - Integrated Accessibility testing
+    - Integrated API testing
+    - Integrated s3 bucket for test reports storage and retrieval
+
+
+
