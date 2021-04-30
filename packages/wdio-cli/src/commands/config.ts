@@ -199,10 +199,10 @@ export function handler(configCommandArgs: ConfigCommandArguments) {
         }
 
         if (SUPPORTED_PACKAGES.framework.find(({ name }) => name === framework)) {
-            return true;
+            return true
         }
 
-        return false;
+        return false
     }
 
     const isValidPort = (port?: string) => {
@@ -219,11 +219,11 @@ export function handler(configCommandArgs: ConfigCommandArguments) {
     }
 
     if (!isValidFramework(configCommandArgs.framework)) {
-        throw new TypeError(`Invalid framework "${configCommandArgs.framework}"`);
+        throw new TypeError(`Invalid framework "${configCommandArgs.framework}"`)
     }
 
     if (!isValidPort(configCommandArgs.port)) {
-        throw new TypeError(`Invalid port "${configCommandArgs.port}"`);
+        throw new TypeError(`Invalid port "${configCommandArgs.port}"`)
     }
 
     return runConfig(configCommandArgs)
