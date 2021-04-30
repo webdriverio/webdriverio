@@ -291,7 +291,7 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
 
 Boilerplate test suite to run E2E Tests using WebdriverIO v7 and Cucumber v7 with page object model.
 
-- frameworks
+- Frameworks
     - WebdriverIO v7
     - Cucumber v7
 
@@ -308,4 +308,3 @@ Boilerplate test suite to run E2E Tests using WebdriverIO v7 and Cucumber v7 wit
     - Integrated Accessibility testing
     - Integrated API testing
     - Integrated s3 bucket for test reports storage and retrieval
-
