@@ -14,7 +14,7 @@ The Protractor and WebdriverIO API is actually very similar, to a point where th
 To install the codemod, run:
 
 ```sh
-$ npm install jscodeshift @wdio/codemod
+npm install jscodeshift @wdio/codemod
 ```
 
 #### Commits:
@@ -32,7 +32,7 @@ After we have installed the codemod we can start transforming the first file. Ha
 For the first migration we only transform the config file and run:
 
 ```sh
-$ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./conf.ts
+npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./conf.ts
 ```
 
 :::info
@@ -50,13 +50,13 @@ This migration tutorial uses an example Protractor [boilerplate project](https:/
 Next step is to configure a minimal WebdriverIO setup that we start building up as we migrate from one framework to another. First we install the WebdriverIO CLI via:
 
 ```sh
-$ npm install --save-dev @wdio/cli
+npm install --save-dev @wdio/cli
 ```
 
 Next we run the configuration wizard:
 
 ```sh
-$ npx wdio config
+npx wdio config
 ```
 
 This will walk you through a couple of questions. For this migration scenario you:
@@ -92,14 +92,14 @@ We will now continue with our `wdio.conf.ts` file only and therefor won't need a
 We are now set to port over the first test file. To start simple, let's start with one that has not many dependencies to 3rd party packages or other files like PageObjects. In our example the first file to migrate is `first-test.spec.ts`. First create the directory where the new WebdriverIO configuration expects its files and then move it over:
 
 ```sh
-$ mv mkdir -p ./test/specs/
-$ mv test-suites/first-test.spec.ts ./test/specs
+mv mkdir -p ./test/specs/
+mv test-suites/first-test.spec.ts ./test/specs
 ```
 
 Now let's transform this file:
 
 ```sh
-$ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./test/specs/first-test.spec.ts
+npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./test/specs/first-test.spec.ts
 ```
 
 That's it! This file is so simple that we don't need any additional changes anymore and directly can try to run WebdriverIO via:
