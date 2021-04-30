@@ -6,7 +6,7 @@ import { promisify } from 'util'
 import fs from 'fs-extra'
 import * as SeleniumStandalone from 'selenium-standalone'
 
-import { getFilePath } from './utils'
+import { getFilePath, hasCapsWithSupportedBrowser } from './utils'
 import type { SeleniumStandaloneOptions } from './types'
 
 const DEFAULT_LOG_FILENAME = 'wdio-selenium-standalone.log'
@@ -79,13 +79,41 @@ export default class SeleniumStandaloneLauncher {
          * update capability connection options to connect
          * to standalone server
          */
-        const capabilities = (Array.isArray(this._capabilities) ? this._capabilities : Object.values(this._capabilities))
+        const isMultiremote = !Array.isArray(this._capabilities)
+        const capabilities = isMultiremote
+            ? Object.values(this._capabilities) as Options.WebdriverIO[]
+            : this._capabilities as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]
         for (const capability of capabilities) {
-            const cap = (capability as Options.WebDriver).capabilities || capability
-            const c = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
+            const cap = (capability as Options.WebdriverIO).capabilities || capability
 
-            if (!isCloudCapability(c)) {
-                Object.assign(c, DEFAULT_CONNECTION, { ...c })
+            /**
+             * handle standard mode vs multiremote mode, e.g.
+             * ```js
+             * capabilities: [{
+             *   browserName: 'chrome',
+             *   hostname: 'localhost'
+             * }]
+             * ```
+             * vs.
+             * ```js
+             * capabilities: {
+             *   myBrowser: {
+             *     hostname: 'localhost',
+             *     capabilities: { browserName: 'chrome' }
+             *   }
+             * }
+             */
+            const remoteCapabilities = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
+            const objectToApplyConnectionDetails = !isMultiremote
+                ? remoteCapabilities
+                : capability
+
+            if (!isCloudCapability(remoteCapabilities) && hasCapsWithSupportedBrowser(remoteCapabilities)) {
+                Object.assign(
+                    objectToApplyConnectionDetails,
+                    DEFAULT_CONNECTION,
+                    { ...objectToApplyConnectionDetails }
+                )
             }
         }
 

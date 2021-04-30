@@ -348,6 +348,27 @@ const jasmineSpecFiltering = async () => {
 }
 
 /**
+ * Mocha with spec grouping feature enabled
+ */
+const mochaSpecGrouping = async () => {
+    const { skippedSpecs } = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [
+                [
+                    path.resolve(__dirname, 'mocha', 'test-empty.js'),
+                    path.resolve(__dirname, 'mocha', 'test-middleware.js'),
+                    path.resolve(__dirname, 'mocha', 'test-waitForElement.js'),
+                    path.resolve(__dirname, 'mocha', 'test-skipped.js'),
+                    path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
+                ]
+            ]
+        })
+    // Specs will be treated as a group, so no specs will be skipped
+    assert.strictEqual(skippedSpecs, 0)
+}
+
+/**
  * Mocha wdio testrunner tests
  */
 const standaloneTest = async () => {
@@ -379,6 +400,7 @@ const standaloneTest = async () => {
         sharedStoreServiceTest,
         mochaSpecFiltering,
         jasmineSpecFiltering,
+        mochaSpecGrouping,
         standaloneTest,
         mochaAsyncTestrunner
     ]

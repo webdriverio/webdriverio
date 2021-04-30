@@ -2,7 +2,7 @@ import fs from 'fs'
 import isPlainObject from 'lodash.isplainobject'
 import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
-import { W3C_SELECTOR_STRATEGIES } from '../constants'
+import { W3C_SELECTOR_STRATEGIES, DEEP_SELECTOR } from '../constants'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -10,7 +10,7 @@ const XPATH_SELECTORS_START = [
     '/', '(', '../', './', '*/'
 ]
 const NAME_MOBILE_SELECTORS_START = [
-    'uia', 'xcuielementtype', 'android.widget', 'cyi'
+    'uia', 'xcuielementtype', 'android.widget', 'cyi', 'android.view'
 ]
 const XPATH_SELECTOR_REGEXP = [
     // HTML tag
@@ -63,6 +63,10 @@ const defineStrategy = function (selector: SelectorStrategy) {
     // Use id strategy if the selector starts with id=
     if (stringSelector.startsWith('id=')) {
         return 'id'
+    }
+    // use shadow dom selector
+    if (stringSelector.startsWith(DEEP_SELECTOR)) {
+        return 'shadow'
     }
     // Recursive element search using the UiAutomator library (Android only)
     if (stringSelector.startsWith('android=')) {
@@ -141,6 +145,10 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         value = stringSelector.slice(2)
         break
     }
+    case 'shadow':
+        using = 'shadow'
+        value = stringSelector.slice(DEEP_SELECTOR.length)
+        break
     case '-android uiautomator': {
         using = '-android uiautomator'
         value = stringSelector.slice(8)
@@ -236,7 +244,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     /**
      * ensure selector strategy is supported
      */
-    if (!isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)) {
+    if (!isMobile && isW3C && (using !== 'shadow') && !W3C_SELECTOR_STRATEGIES.includes(using)) {
         throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
     }
 

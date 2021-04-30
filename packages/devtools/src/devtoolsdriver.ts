@@ -7,6 +7,7 @@ import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { CommandEndpoint } from '@wdio/protocols'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 
 import ElementStore from './elementstore'
 import { validate, sanitizeError } from './utils'
@@ -149,9 +150,9 @@ export default class DevToolsDriver {
         this.activeDialog = dialog
     }
 
-    framenavigatedHandler(frame: Page) {
+    framenavigatedHandler(frame: Frame) {
         this.currentFrameUrl = frame.url()
-        this.elementStore.clear()
+        this.elementStore.clear(frame.parentFrame() ? frame : undefined)
     }
 
     setTimeouts(implicit?: number, pageLoad?: number, script?: number) {

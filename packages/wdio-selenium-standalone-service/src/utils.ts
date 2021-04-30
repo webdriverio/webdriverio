@@ -1,6 +1,18 @@
+import { Capabilities } from '@wdio/types'
 import path from 'path'
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i
+const SUPPORTED_CAPABILITIES = [
+    'chrome',
+    'googlechrome',
+    'firefox',
+    'edge',
+    'msedge',
+    'microsoftedge',
+    'microsoft edge',
+    'safari',
+    'webkit'
+]
 
 /**
  * Resolves the given path into a absolute path and appends the default filename as fallback when the provided path is a directory.
@@ -18,4 +30,18 @@ export function getFilePath (filePath: string, defaultFilename: string): string 
     }
 
     return absolutePath
+}
+
+/**
+ * find whether a browser session could be supported by the selenium-standalone service
+ * @param   {Capabilities.Capabilities} capabilities capabilities used for the session
+ * @returns {Boolean}                                true, if capabilities suggest a supported platform
+ */
+export function hasCapsWithSupportedBrowser (capabilities: Capabilities.Capabilities) {
+    if (!capabilities.browserName) {
+        return false
+    }
+    return SUPPORTED_CAPABILITIES.includes(
+        capabilities.browserName?.toLowerCase()
+    )
 }

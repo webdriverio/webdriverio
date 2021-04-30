@@ -55,11 +55,6 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         ...servicePackages.map(service => service.package)
     ]
 
-    const syncExecution = answers.executionMode === 'sync'
-    if (syncExecution) {
-        packagesToInstall.push('@wdio/sync')
-    }
-
     /**
      * add ts-node if TypeScript is desired but not installed
      */
@@ -118,7 +113,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
 
     if (result.status !== 0) {
-        throw new Error(result.stderr)
+        const customError = 'An unknown error happened! Please retry ' +
+            `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
+            `${packagesToInstall.join(' ')}"`
+        throw new Error(result.stderr || customError)
     }
 
     console.log('\nPackages installed successfully, creating configuration file...')
@@ -138,9 +136,9 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         packagesToInstall,
         isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
         isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
-        isSync: syncExecution,
-        _async: syncExecution ? '' : 'async ',
-        _await: syncExecution ? '' : 'await ',
+        isSync: false,
+        _async: 'async ',
+        _await: 'await ',
         destSpecRootPath: parsedPaths.destSpecRootPath,
         destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
         relativePath : parsedPaths.relativePath
@@ -154,19 +152,17 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
             await generateTestFiles(parsedAnswers)
         }
     } catch (e) {
-        console.error(`Couldn't write config file: ${e.stack}`)
-        /* istanbul ignore next */
-        return !process.env.JEST_WORKER_ID && process.exit(1)
+        throw new Error(`Couldn't write config file: ${e.stack}`)
     }
 
     /**
      * print TypeScript configuration message
      */
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
-        const wdioTypes = syncExecution ? 'webdriverio/sync' : 'webdriverio/async'
         const tsPkgs = `"${[
-            wdioTypes,
+            'webdriverio/async',
             frameworkPackage.package,
+            'expect-webdriverio',
             ...servicePackages
                 .map(service => service.package)
                 /**
@@ -187,14 +183,16 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         /* istanbul ignore next */
         process.exit(0)
     }
+
+    return {
+        success: true,
+        parsedAnswers,
+        installedPackages: packagesToInstall.map((pkg) => pkg.split('--')[0])
+    }
 }
 
-export async function handler(argv: ConfigCommandArguments) {
-    try {
-        await runConfig(argv.yarn, argv.yes)
-    } catch (error) {
-        throw new Error(`something went wrong during setup: ${error.stack.slice(7)}`)
-    }
+export function handler(argv: ConfigCommandArguments) {
+    return runConfig(argv.yarn, argv.yes)
 }
 
 /**

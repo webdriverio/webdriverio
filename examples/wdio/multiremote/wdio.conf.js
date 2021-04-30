@@ -2,27 +2,22 @@ const path = require('path')
 
 exports.config = {
     /**
-     * server configurations
-     */
-    hostname: 'localhost',
-
-    /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, 'mocha.test.js')],
+    specs: [
+        [path.resolve(__dirname, '*.test.js')]
+    ],
 
     /**
      * capabilities
      */
     capabilities: {
         browserA: {
-            port: 4444,
             capabilities: {
                 browserName: 'chrome'
             }
         },
         browserB: {
-            port: 4445,
             capabilities: {
                 browserName: 'chrome'
             }

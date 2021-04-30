@@ -10,9 +10,10 @@ import { RunCommandArguments, ValueKeyIteratee } from './types.js'
 
 const log = logger('@wdio/cli:watch')
 
+type Spec = string | string[]
 export default class Watcher {
     private _launcher: Launcher
-    private _specs: string[]
+    private _specs: Spec[]
 
     constructor (
         private _configFile: string,
@@ -32,7 +33,8 @@ export default class Watcher {
         /**
          * listen on spec changes and rerun specific spec file
          */
-        chokidar.watch(this._specs, { ignoreInitial: true })
+        let flattenedSpecs = flattenDeep(this._specs)
+        chokidar.watch(flattenedSpecs, { ignoreInitial: true })
             .on('add', this.getFileListener())
             .on('change', this.getFileListener())
 
@@ -74,10 +76,31 @@ export default class Watcher {
      */
     getFileListener (passOnFile = true) {
         return (spec: string) => {
+            const runSpecs: Spec[] = []
+            let singleSpecFound: boolean = false
+            for (let index = 0, length = this._specs.length; index < length; index += 1) {
+                const value = this._specs[index]
+                if (Array.isArray(value) && value.indexOf(spec) > -1) {
+                    runSpecs.push(value)
+                } else if ( !singleSpecFound && spec === value) {
+                    // Only need to run a singleFile once  - so avoid duplicates
+                    singleSpecFound = true
+                    runSpecs.push(value)
+                }
+            }
+
+            // If the runSpecs array is empty, then this must be a new file/array
+            // so add the spec directly to the runSpecs
+            if (runSpecs.length === 0) {
+                runSpecs.push(spec)
+            }
+
             // Do not pass the `spec` command line option to `this.run()`
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { spec: _specArg, ...args } = this._args
-            return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
+            return runSpecs.map((spec) => {
+                return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
+            })
         }
     }
 
@@ -95,7 +118,7 @@ export default class Watcher {
         }
 
         /**
-         * filter out busy workers, only skip if explicitely desired
+         * filter out busy workers, only skip if explicitly desired
          */
         if (!includeBusyWorker) {
             workers = pickBy(workers, (worker) => !worker.isBusy)
@@ -108,9 +131,14 @@ export default class Watcher {
      * run workers with params
      * @param  params parameters to run the worker with
      */
-    run (params: Omit<Partial<RunCommandArguments>, 'spec'> & { spec?: string } = {}) {
+    run (params: Omit<Partial<RunCommandArguments>, 'spec'> & { spec?: Spec } = {}) {
         const workers = this.getWorkers(
-            (params.spec ? (worker) => worker.specs.includes(params.spec!) : undefined)
+            (params.spec ? (worker) => {
+                if (Array.isArray(params.spec)) {
+                    return params.spec === worker.specs
+                }
+                return worker.specs.includes(params.spec!)
+            } : undefined)
         )
 
         /**

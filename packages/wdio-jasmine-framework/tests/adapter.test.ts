@@ -21,8 +21,10 @@ const wdioReporter: EventEmitter = {
 const hookPayload = (type: string, error?: Error) => ({
     id: '',
     description: `"${type} all" hook`,
+    duration: null,
     ...(error ? { error } : {}),
     fullName: `"${type} all" hook`,
+    properties: {},
     start: expect.any(Date),
     type: 'hook'
 })
@@ -243,14 +245,12 @@ test('wrapHook if successful', async () => {
     const config = { beforeAll: 'somehook' }
     const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll' as any)
-    const doneCallback = jest.fn()
 
     ;(executeHooksWithArgs as jest.Mock).mockImplementation((...args) => Promise.resolve(args))
-    await wrappedHook(doneCallback)
+    await wrappedHook()
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
-    expect(doneCallback.mock.calls).toHaveLength(1)
 })
 
 test('wrapHook if failing', async () => {
@@ -258,14 +258,12 @@ test('wrapHook if failing', async () => {
     const config = { beforeAll: 'somehook' }
     const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll' as any)
-    const doneCallback = jest.fn()
 
     ;(executeHooksWithArgs as jest.Mock).mockImplementation(() => Promise.reject(new Error('uuuups')))
-    await wrappedHook(doneCallback)
+    await wrappedHook()
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
-    expect(doneCallback.mock.calls).toHaveLength(1)
     expect((logger('').info as jest.Mock).mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups')).toBe(true)
 })
 

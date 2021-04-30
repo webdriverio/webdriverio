@@ -1,4 +1,5 @@
-import { getElementRect, getScrollPosition } from '../../utils'
+import { ELEMENT_KEY } from '../../constants'
+import type { ElementReference } from '@wdio/protocols'
 
 const ACTION_BUTTON = 0
 
@@ -96,23 +97,14 @@ export default async function dragAndDrop (
         return this.buttonUp(ACTION_BUTTON)
     }
 
-    /**
-     * get coordinates to drag and drop
-     */
-    const { scrollX, scrollY } = await getScrollPosition(this)
-    const sourceRect = await getElementRect(this)
-    const sourceX = Math.floor(sourceRect.x - scrollX + (sourceRect.width / 2))
-    const sourceY = Math.floor(sourceRect.y - scrollY + (sourceRect.height / 2))
+    const sourceRef: ElementReference = { [ELEMENT_KEY]: this[ELEMENT_KEY] }
+    const targetRef: ElementReference = { [ELEMENT_KEY]: moveToElement[ELEMENT_KEY] }
 
-    let targetX, targetY
-    if (isMovingToElement) {
-        const targetRect = await getElementRect(moveToElement)
-        targetX = Math.floor(targetRect.x - scrollX + (targetRect.width / 2) - sourceX)
-        targetY = Math.floor(targetRect.y - scrollY + (targetRect.height / 2) - sourceY)
-    } else {
-        targetX = moveToCoordinates.x
-        targetY = moveToCoordinates.y
-    }
+    const origin = sourceRef
+    const targetOrigin = isMovingToElement ? targetRef : 'pointer'
+
+    const targetX = isMovingToElement ? 0 : moveToCoordinates.x
+    const targetY = isMovingToElement ? 0 : moveToCoordinates.y
 
     /**
      * W3C way of handle the drag and drop action
@@ -122,10 +114,10 @@ export default async function dragAndDrop (
         id: 'finger1',
         parameters: { pointerType: 'mouse' },
         actions: [
-            { type: 'pointerMove', duration: 0, x: sourceX, y: sourceY },
+            { type: 'pointerMove', duration: 0, origin, x: 0, y: 0 },
             { type: 'pointerDown', button: ACTION_BUTTON },
             { type: 'pause', duration: 10 }, // emulate human pause
-            { type: 'pointerMove', duration, origin: 'pointer', x: targetX, y: targetY },
+            { type: 'pointerMove', duration, origin: targetOrigin, x: targetX, y: targetY },
             { type: 'pointerUp', button: ACTION_BUTTON }
         ]
     }]).then(() => this.releaseActions())

@@ -38,9 +38,9 @@ const webviewApp = '/path/to/app'
         arcAction(2 * Math.PI / 3 * 2, 2 * Math.PI / 3 * 3)
     ])
     await driver.touchAction([
-        innerArcAction(2*Math.PI / 3*1 + Math.PI / 3, 2*Math.PI / 3*1 + Math.PI + Math.PI / 8 + Math.PI / 3),
-        innerArcAction(2*Math.PI / 3*2 + Math.PI / 3, 2*Math.PI / 3*2 + Math.PI + Math.PI / 8 + Math.PI / 3),
-        innerArcAction(2*Math.PI / 3*3 + Math.PI / 3, 2*Math.PI / 3*3 + Math.PI + Math.PI / 8 + Math.PI / 3)
+        innerArcAction(2 * Math.PI / 3 * 1 + Math.PI / 3, 2 * Math.PI / 3 * 1 + Math.PI + Math.PI / 8 + Math.PI / 3),
+        innerArcAction(2 * Math.PI / 3 * 2 + Math.PI / 3, 2 * Math.PI / 3 * 2 + Math.PI + Math.PI / 8 + Math.PI / 3),
+        innerArcAction(2 * Math.PI / 3 * 3 + Math.PI / 3, 2 * Math.PI / 3 * 3 + Math.PI + Math.PI / 8 + Math.PI / 3)
     ])
     await driver.deleteSession()
 })().catch(

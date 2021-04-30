@@ -116,7 +116,7 @@ This will generate a report (by default in `./allure-report`), and open it in yo
 You can also auto generate the report by using the Allure command line tool programmatically. To do so install the package in your project by:
 
 ```sh
-$ npm i allure-commandline
+npm i allure-commandline
 ```
 
 Then add or extend your `onComplete` hook or create a [custom service](/docs/customservices) for this:
@@ -150,9 +150,10 @@ Install and configure the [Allure Jenkins plugin](https://docs.qameta.io/allure#
 
 ## Add Screenshots
 
-Screenshots can be attached to the report by using the `takeScreenshot` function from WebDriverIO in afterStep hook.
-First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook
-```js
+Screenshots can be attached to the report by using the `takeScreenshot` function from WebDriverIO in the `afterStep` hook.
+First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook:
+
+```js title="wdio.conf.js"
 afterStep: function (test, context, { error, result, duration, passed, retries }) {
   if (error) {
     browser.takeScreenshot();

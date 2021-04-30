@@ -28,7 +28,8 @@ describe('attach Puppeteer', () => {
                 'goog:chromeOptions': {
                     debuggerAddress: 'localhost:1234'
                 }
-            }
+            },
+            requestedCapabilities: {}
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
@@ -80,9 +81,7 @@ describe('attach Puppeteer', () => {
                     debuggerAddress: 'localhost:1234'
                 }
             },
-            options: {
-                requestedCapabilities: {}
-            }
+            requestedCapabilities: {}
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
@@ -125,12 +124,57 @@ describe('attach Puppeteer', () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
             capabilities: {
-                'se:options': {
-                    'cdp': 'http://my.grid:1234/session/mytestsession/se/cdp'
-                }
+                'se:cdp': 'http://my.grid:1234/session/mytestsession/se/cdp'
             }
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
+
+    it('should pass for Aerokube Selenoid CDP', async () => {
+        const pptr = await browser.getPuppeteer.call({
+            ...browser,
+            capabilities: {
+                'selenoid:options': {
+                    foo: 'bar'
+                }
+            },
+            requestedCapabilities: {
+                'selenoid:options': {
+                    foo: 'bar'
+                }
+            },
+            options: {
+                hostname: 'my.grid',
+                port: 4444,
+                path: '/wd/hub'
+            }
+        })
+        expect(typeof pptr).toBe('object')
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
+    })
+
+    it('should pass for Aerokube Moon CDP', async () => {
+        const pptr = await browser.getPuppeteer.call({
+            ...browser,
+            capabilities: {
+                'moon:options': {
+                    foo: 'bar'
+                }
+            },
+            requestedCapabilities: {
+                'moon:options': {
+                    foo: 'bar'
+                }
+            },
+            options: {
+                hostname: 'my.grid',
+                port: 4444,
+                path: '/wd/hub'
+            }
+        })
+        expect(typeof pptr).toBe('object')
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
+    })
+
 })

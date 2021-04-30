@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "7.1.1",
+  "version": "7.5.3",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -57,19 +57,19 @@
   },
   "dependencies": {
     "@types/aria-query": "^4.2.1",
-    "@wdio/config": "7.1.1",
-    "@wdio/logger": "7.0.0",
-    "@wdio/protocols": "7.1.1",
-    "@wdio/repl": "7.1.1",
-    "@wdio/types": "7.1.1",
-    "@wdio/utils": "7.1.1",
+    "@wdio/config": "7.5.3",
+    "@wdio/logger": "7.5.3",
+    "@wdio/protocols": "7.5.3",
+    "@wdio/repl": "7.5.3",
+    "@wdio/types": "7.5.3",
+    "@wdio/utils": "7.5.3",
     "archiver": "^5.0.0",
     "aria-query": "^4.2.2",
     "atob": "^2.1.2",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
-    "devtools": "7.1.1",
-    "devtools-protocol": "^0.0.856957",
+    "devtools": "7.5.3",
+    "devtools-protocol": "^0.0.873728",
     "fs-extra": "^9.0.1",
     "get-port": "^5.1.1",
     "grapheme-splitter": "^1.0.2",
@@ -79,9 +79,10 @@
     "lodash.zip": "^4.2.0",
     "minimatch": "^3.0.4",
     "puppeteer-core": "^7.1.0",
+    "query-selector-shadow-dom": "^1.0.0",
     "resq": "^1.9.1",
     "rgb2hex": "0.2.3",
     "serialize-error": "^8.0.0",
-    "webdriver": "7.1.1"
+    "webdriver": "7.5.3"
   }
 }

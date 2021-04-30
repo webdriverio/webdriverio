@@ -5,6 +5,7 @@ import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
 
+import command from './command'
 import { DEFAULTS } from './constants'
 import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
 import type { Client, AttachOptions, SessionFlags } from './types'
@@ -85,6 +86,10 @@ export default class WebDriver {
 
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C === false ? false : true
+        options.protocol = options.protocol || DEFAULTS.protocol.default
+        options.hostname = options.hostname || DEFAULTS.hostname.default
+        options.port = options.port || DEFAULTS.port.default
+        options.path = options.path || DEFAULTS.path.default
 
         const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
         const protocolCommands = getPrototype(options as Partial<SessionFlags>)
@@ -119,5 +124,5 @@ export default class WebDriver {
 /**
  * Helper methods consumed by webdriverio package
  */
-export { getPrototype, DEFAULTS }
+export { getPrototype, DEFAULTS, command }
 export * from './types'

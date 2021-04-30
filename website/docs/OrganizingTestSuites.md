@@ -64,7 +64,7 @@ exports.config = merge(wdioConf.config, {
 exports.config.reporters.push('allure')
 ```
 
-## Grouping Test Specs
+## Grouping Test Specs In Suites
 
 You can easily group test specs in suites and run single specific suites instead of all of them.
 
@@ -101,6 +101,40 @@ Or, run multiple suites at once:
 ```bash
 wdio wdio.conf.js --suite login --suite otherFeature
 ```
+
+## Grouping Test Specs To Run Sequentially
+
+As described above, there are benefits in running the tests concurrently.  However, there are cases where it would be beneficial to group tests together to run sequentially in a single instance.  Examples of this are mainly where there is a large setup cost e.g. transpiling code or provisioning cloud instances, but there are also advanced usage models that benefit from this capability.
+
+To group tests to run in a single instance, simply define them as an array within the specs definition.
+
+```json
+    "specs": [
+        [
+            "./test/specs/test_login.js",
+            "./test/specs/test_product_order.js",
+            "./test/specs/test_checkout.js"
+        ],
+        "./test/specs/test_b*.js",
+    ],
+```
+In the example above, the tests 'test_login.js', 'test_product_order.js' and 'test_checkout.js' will be run sequentially in a single instance and each of the "test_b*" tests will run concurrently in individual instances.
+
+It is also possible to group specs defined in suites, so you can now also define suites like this:
+```json
+    "suites": {
+        end2end: [
+            [
+                "./test/specs/test_login.js",
+                "./test/specs/test_product_order.js",
+                "./test/specs/test_checkout.js"
+            ]
+        ],
+        allb: ["./test/specs/test_b*.js"]
+},
+```
+and in this case all of the tests of the "end2end" suite would be run in a single instance.
+
 
 ## Run Selected Tests
 

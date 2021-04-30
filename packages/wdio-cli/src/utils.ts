@@ -126,7 +126,7 @@ export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
 function buildNewConfigArray (str: string, type: string, change: string) {
     const newStr = str
         .split(`${type}s: `)[1]
-        .replace('\'', '')
+        .replace(/'/g, '')
 
     let newArray = newStr.match(/(\w*)/gmi)?.filter(e => !!e).concat([change]) || []
 
@@ -216,10 +216,9 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
 
 export async function renderConfigurationFile (answers: ParsedAnswers) {
     const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
-
+    const filename = `wdio.conf.${answers.isUsingTypeScript ? 'ts' : 'js'}`
     const renderedTpl = await renderFile(tplPath, { answers })
-
-    fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
+    return fs.promises.writeFile(path.join(process.cwd(), filename), renderedTpl)
 }
 
 export const validateServiceAnswers = (answers: string[]): Boolean | string => {
@@ -302,7 +301,7 @@ export async function generateTestFiles (answers: ParsedAnswers) {
         ).replace(/\.ejs$/, '').replace(/\.js$/, answers.isUsingTypeScript ? '.ts' : '.js')
 
         fs.ensureDirSync(path.dirname(destPath))
-        fs.writeFileSync(destPath, renderedTpl)
+        await fs.promises.writeFile(destPath, renderedTpl)
     }
 }
 

@@ -13,7 +13,7 @@ export interface ParentSuite {
 export interface TestEvent extends jasmine.CustomReporterResult {
     type: 'suite' | 'test' | 'hook'
     start: Date,
-    duration?: number,
+    duration: number | null,
     errors?: jasmine.FailedExpectation[],
     error?: jasmine.FailedExpectation
 }

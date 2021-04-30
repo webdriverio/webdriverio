@@ -7,4 +7,21 @@ export interface WDIODevtoolsOptions {
     'wdio:devtoolsOptions'?: DevToolsOptions
 }
 
-export interface DevToolsOptions extends LaunchOptions, ChromeArgOptions, BrowserOptions, ConnectOptions {}
+export interface DevToolsOptions extends LaunchOptions, ChromeArgOptions, BrowserOptions, ConnectOptions {
+    /**
+     * If you want to start Google Chrome on a custom port
+     */
+    customPort?: number
+}
+
+export interface AttachOptions {
+    capabilities: {
+        'goog:chromeOptions': {
+            debuggerAddress: string
+        }
+    } | {
+        'ms:edgeOptions': {
+            debuggerAddress: string
+        }
+    }
+}

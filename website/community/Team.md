@@ -27,6 +27,14 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
 </Card>
 
 <Card
+    name="Erwin Heitzman"
+    avatar="https://avatars.githubusercontent.com/u/15839059?s=460"
+    github="erwinheitzman"
+>
+    Senior Test Automation Engineer at <a href="https://detesters.nl/">deTesters</a>.
+</Card>
+
+<Card
     name="Kevin Lamping"
     avatar="https://avatars0.githubusercontent.com/u/706039?s=460"
     github="klamping"
@@ -51,6 +59,15 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     Automation Engineering Manager at <a href="https://focusschoolsoftware.com/">Focus School Software</a>.
 </Card>
 
+<Card
+    name="Wim Selles"
+    avatar="https://avatars2.githubusercontent.com/u/11979740?s=460"
+    github="wswebcreation"
+    twitter="wswebcreation"
+>
+    Senior Solutions Architect <a href="https://saucelabs.com/">@saucelabs</a>.
+</Card>
+
 ## Project Collaborators
 
 <Card
@@ -62,12 +79,11 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
 </Card>
 
 <Card
-    name="Wim Selles"
-    avatar="https://avatars2.githubusercontent.com/u/11979740?s=460"
-    github="wswebcreation"
-    twitter="wswebcreation"
+    name="Boris Osipov"
+    avatar="https://avatars.githubusercontent.com/u/6514276?v=4"
+    github="BorisOsipov"
+    twitter="bo_osipov"
 >
-    Senior Solution Architect <a href="https://saucelabs.com/">@saucelabs</a>.
 </Card>
 
 and [many many more](https://github.com/orgs/webdriverio/people).

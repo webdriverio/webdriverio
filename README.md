@@ -9,14 +9,8 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/webdriverio/webdriverio/actions?query=workflow%3ATest">
-        <img alt="Build Status" src="https://github.com/webdriverio/webdriverio/workflows/Test/badge.svg?branch=master">
-    </a>
-    <a href="https://travis-ci.org/webdriverio/webdriverio/branches">
-        <img alt="LTS v5 Build Status" src="https://img.shields.io/travis/webdriverio/webdriverio/v5.svg?label=LTS%20v5%20build">
-    </a>
-    <a href="https://codecov.io/gh/webdriverio/webdriverio">
-        <img alt="CodeCov" src="https://codecov.io/gh/webdriverio/webdriverio/branch/master/graph/badge.svg">
+    <a href="https://github.com/webdriverio/webdriverio/actions/workflows/test.yml">
+        <img alt="Build Status" src="https://github.com/webdriverio/webdriverio/actions/workflows/test.yml/badge.svg">
     </a>
     <a href="https://gitter.im/webdriverio/webdriverio">
         <img alt="Gitter" src="https://badges.gitter.im/webdriverio/webdriverio.svg">
@@ -33,7 +27,7 @@
 
 <p align="center">
     <a href="https://webdriver.io">Homepage</a> |
-    <a href="https://webdriver.io/guide.html">Developer Guide</a> |
+    <a href="https://webdriver.io/docs/gettingstarted.html">Developer Guide</a> |
     <a href="https://webdriver.io/docs/api.html">API Reference</a> |
     <a href="https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md">Contribute</a> |
     <a href="https://github.com/webdriverio/webdriverio/blob/main/CHANGELOG.md">Changelog</a> |
@@ -118,6 +112,18 @@ The maintainers of WebdriverIO and thousands of other packages are working with 
 ## Project Governance
 
 This project is maintained by [awesome people](/AUTHORS.md) following a common [set of rules](/GOVERNANCE.md) and treating each other with [respect and appreciation](/CODE_OF_CONDUCT.md).
+
+## Backers
+
+[Become a backer](https://opencollective.com/webdriverio) and show your support to our open source project.
+
+<a href="https://opencollective.com/webdriverio"><img src="https://opencollective.com/webdriverio/tiers/baker.svg?avatarHeight=36&width=600"></a>
+
+## Sponsors
+
+Does your company use WebdriverIO? Ask your manager or marketing team if your company would be interested in supporting our project. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone. Also, your company's logo will show [on GitHub](https://github.com/webdriverio/webdriverio#readme) - who doesn't want a little extra exposure? [Here's the info](https://opencollective.com/webdriverio).
+
+<a href="https://opencollective.com/webdriverio"><img src="https://opencollective.com/webdriverio/tiers/gold-sponsor.svg?avatarHeight=36&width=600"></a>
 
 ## License
 

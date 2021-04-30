@@ -2,13 +2,13 @@ import fs from 'fs'
 import type { WriteStream } from 'fs'
 import { createWriteStream, ensureDirSync } from 'fs-extra'
 import { EventEmitter } from 'events'
-import type { Reporters } from '@wdio/types'
+import type { Reporters, Options } from '@wdio/types'
 
 import { getErrorsFromEvent } from './utils'
 import SuiteStats, { Suite } from './stats/suite'
 import HookStats, { Hook } from './stats/hook'
 import TestStats, { Test } from './stats/test'
-import RunnerStats, { Runner } from './stats/runner'
+import RunnerStats from './stats/runner'
 import { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types'
 
 type CustomWriteStream = { write: (content: any) => boolean }
@@ -31,6 +31,8 @@ export default class WDIOReporter extends EventEmitter {
     retries = 0
     runnerStat?: RunnerStats
     isContentPresent = false
+    specs: string[] = []
+    currentSpec?: string
 
     constructor(public options: Partial<Reporters.Options>) {
         super()
@@ -49,19 +51,32 @@ export default class WDIOReporter extends EventEmitter {
         const rootSuite = new SuiteStats({
             title: '(root)',
             fullTitle: '(root)',
+            file: ''
         })
         this.currentSuites.push(rootSuite)
 
         this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
         this.on('client:afterCommand', this.onAfterCommand.bind(this))
 
-        this.on('runner:start', /* istanbul ignore next */ (runner: Runner) => {
+        this.on('runner:start', /* istanbul ignore next */ (runner: Options.RunnerStart) => {
             rootSuite.cid = runner.cid
+            this.specs.push(...runner.specs)
             this.runnerStat = new RunnerStats(runner)
             this.onRunnerStart(this.runnerStat)
         })
 
         this.on('suite:start', /* istanbul ignore next */ (params: Suite) => {
+            /**
+             * the jasmine framework doesn't give us information about the file
+             * therefor we need to propagate these information into params
+             */
+            if (!params.file) {
+                params.file = !params.parent
+                    ? this.specs.shift() || 'unknown spec file'
+                    : this.currentSpec!
+                this.currentSpec = params.file
+            }
+
             const suite = new SuiteStats(params)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.suites.push(suite)
@@ -163,7 +178,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteEnd(suiteStat)
         })
 
-        this.on('runner:end',  /* istanbul ignore next */(runner: Runner) => {
+        this.on('runner:end',  /* istanbul ignore next */(runner: Options.RunnerEnd) => {
             rootSuite.complete()
             if (this.runnerStat) {
                 this.runnerStat.failures = runner.failures

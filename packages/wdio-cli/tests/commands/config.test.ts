@@ -43,7 +43,10 @@ afterEach(() => {
 })
 
 test('should create config file', async () => {
-    await handler({} as any)
+    const result = await handler({} as any)
+    delete result.parsedAnswers.destPageObjectRootPath
+    delete result.parsedAnswers.destSpecRootPath
+    expect(result).toMatchSnapshot()
     expect(addServiceDeps).toBeCalledTimes(1)
     expect(convertPackageHashToObject).toBeCalledTimes(4)
     expect(renderConfigurationFile).toBeCalledTimes(1)
@@ -64,27 +67,10 @@ test('it should properly build command', () => {
     expect(yargs.help).toHaveBeenCalled()
 })
 
-test('should log error if creating config file fails', async () => {
+test('should throw error if creating config file fails', async () => {
     (renderConfigurationFile as jest.Mock).mockReturnValueOnce(Promise.reject(new Error('boom!')))
-    await handler({} as any)
-    expect(errorLogSpy).toHaveBeenCalledTimes(1)
-})
-
-test('installs @wdio/sync if user requests to run in sync mode', async () => {
-    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        executionMode: 'sync',
-        framework: '@wdio/mocha-framework$--$mocha',
-        generateTestFiles: true,
-        reporters: [],
-        services: []
-    }))
-    await handler({} as any)
-    expect(generateTestFiles).toBeCalledTimes(1)
-    expect(yarnInstall).toHaveBeenCalledWith({
-        deps: ['@wdio/local-runner', '@wdio/mocha-framework', '@wdio/sync'],
-        dev: true,
-        respectNpm5: true
-    })
+    const err = await handler({} as any).catch((err) => err)
+    expect(err.message).toContain('Error: boom!')
 })
 
 test('it should install with yarn when flag is passed', async () => {
@@ -101,7 +87,6 @@ describe('install compliant NPM tag packages', () => {
     // @ts-expect-error
     const setFetchSpec = (fetchSpec) => pkg.setFetchSpec(fetchSpec)
     const args = {
-        executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -146,23 +131,8 @@ describe('install compliant NPM tag packages', () => {
     })
 })
 
-test('should throw an error if something goes wrong', async () => {
-    // @ts-ignore uses expect-webdriverio
-    expect.assertions(1)
-    ;(yarnInstall as any as jest.Mock).mockReturnValueOnce({ status: 1, stderr: 'uups' })
-
-    try {
-        await handler({} as any)
-    } catch (err) {
-        expect(
-            err.message.startsWith('something went wrong during setup: uups')
-        ).toBe(true)
-    }
-})
-
 test('prints TypeScript setup message', async () => {
     (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -179,7 +149,6 @@ test('prints TypeScript setup message', async () => {
 test('prints TypeScript setup message with ts-node installed', async () => {
     process.env.WDIO_TEST_THROW_RESOLVE = '1'
     ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -196,7 +165,6 @@ test('prints TypeScript setup message with ts-node installed', async () => {
 test('should install @babel/register if not existing', async () => {
     process.env.WDIO_TEST_THROW_RESOLVE = '1'
     ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -213,7 +181,6 @@ test('should install @babel/register if not existing', async () => {
 test('should not install @babel/register if existing', async () => {
     delete process.env.WDIO_TEST_THROW_RESOLVE
     ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
-        executionMode: 'sync',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [

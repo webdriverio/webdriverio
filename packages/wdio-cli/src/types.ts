@@ -1,5 +1,5 @@
 import { Options, Reporters } from '@wdio/types'
-import { BACKEND_CHOICES, MODE_OPTIONS, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
+import { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
 
 type ValueOf<T> = T[keyof T]
 
@@ -20,7 +20,6 @@ export interface Questionnair {
     headless: boolean
     region: ValueOf<typeof REGION_OPTION>
     framework: string
-    executionMode: ValueOf<typeof MODE_OPTIONS>
     specs: string
     stepDefinitions: string
     generateTestFiles: boolean

@@ -7,13 +7,13 @@ export interface CucumberOptions {
      * Show full backtrace for errors.
      * @default true
      */
-    backtrace: boolean
+    backtrace?: boolean
     /**
      * Require modules prior to requiring any support files.
      * @default []
      * @example `['@babel/register']` or `[['@babel/register', { rootMode: 'upward', ignore: ['node_modules'] }]] or [() => { require('ts-node').register({ files: true }) }]`
      */
-    requireModule: string[]
+    requireModule?: string[]
     /**
      * Treat ambiguous definitions as errors.
      *
@@ -21,36 +21,36 @@ export interface CucumberOptions {
      * and not recognized by cucumber-js itself.
      * @default false
      */
-    failAmbiguousDefinitions: boolean
+    failAmbiguousDefinitions?: boolean
     /**
      * Abort the run on first failure.
      * @default false
      */
-    failFast: boolean
+    failFast?: boolean
     /**
      * Treat undefined definitions as warnings.
      * Please note that this is a @wdio/cucumber-framework specific option and
      * not recognized by cucumber-js itself.
      * @default false
      */
-    ignoreUndefinedDefinitions: boolean
+    ignoreUndefinedDefinitions?: boolean
     /**
      * Only execute the scenarios with name matching the expression (repeatable).
      * @default []
      */
-    names: (string|RegExp)[]
+    names?: (string|RegExp)[]
     /**
      * Specify the profile to use.
      * @default []
      */
-    profile: string[]
+    profile?: string[]
     /**
      * Require files containing your step definitions before executing features.
      * You can also specify a glob to your step definitions.
      * @default []
      * @example `[path.join(__dirname, 'step-definitions', 'my-steps.js')]`
      */
-    require: string[]
+    require?: string[]
     /**
      * Specify a custom snippet syntax.
      */
@@ -59,45 +59,50 @@ export interface CucumberOptions {
      * Hide step definition snippets for pending steps.
      * @default true
      */
-    snippets: boolean
+    snippets?: boolean
     /**
      * Hide source uris.
      * @default true
      */
-    source: boolean
+    source?: boolean
     /**
      * Fail if there are any undefined or pending steps
      * @default false
      */
-    strict: boolean
+    strict?: boolean
     /**
      * Only execute the features or scenarios with tags matching the expression.
      * Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
      */
-    tagExpression: string
+    tagExpression?: string
     /**
      * Add cucumber tags to feature or scenario name
      * @default false
      */
-    tagsInTitle: boolean
+    tagsInTitle?: boolean
     /**
      * Timeout in milliseconds for step definitions.
      * @default 30000
      */
-    timeout: number
+    timeout?: number
     /**
      * Enable this to make webdriver.io behave as if scenarios
      * and not steps were the tests.
      * @default false
      */
-    scenarioLevelReporter: boolean
+    scenarioLevelReporter?: boolean
     /**
      * Switch between deterministic  and random feature execution. Either "defined",
      * "random" or "random:42" whereas 42 is the seed for randomization
      */
-    order: string
-
-    featureDefaultLanguage: string
+    order?: string
+    /**
+     * The language you choose for Gherkin should be the same language your users and
+     * domain experts use when they talk about the domain. Translating between two
+     * languages should be avoided.
+     * @see https://cucumber.io/docs/gherkin/reference/#spoken-languages
+     */
+    featureDefaultLanguage?: string
 }
 
 export interface ReporterOptions {

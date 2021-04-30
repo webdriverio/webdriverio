@@ -40,7 +40,7 @@ export default (
                         return dataPropertyValue
                     }
 
-                    return result
+                    return r
                 })
             }
 

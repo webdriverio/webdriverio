@@ -16,8 +16,7 @@ Installing wdio packages:
     "@wdio/local-runner@beta
 - @wdio/mocha-framework@beta
 - @wdio/crossbrowsertesting-service@beta
-- wdio-lambdatest-service
-- @wdio/sync@beta",
+- wdio-lambdatest-service",
   ],
   Array [
     "
@@ -27,7 +26,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -60,8 +59,7 @@ Installing wdio packages:
     "@wdio/local-runner@latest
 - @wdio/mocha-framework@latest
 - @wdio/crossbrowsertesting-service@latest
-- wdio-lambdatest-service
-- @wdio/sync@latest",
+- wdio-lambdatest-service",
   ],
   Array [
     "
@@ -71,7 +69,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -104,8 +102,7 @@ Installing wdio packages:
     "@wdio/local-runner@next
 - @wdio/mocha-framework@next
 - @wdio/crossbrowsertesting-service@next
-- wdio-lambdatest-service
-- @wdio/sync@next",
+- wdio-lambdatest-service",
   ],
   Array [
     "
@@ -115,7 +112,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -148,8 +145,7 @@ Installing wdio packages:
     "@wdio/local-runner
 - @wdio/mocha-framework
 - @wdio/crossbrowsertesting-service
-- wdio-lambdatest-service
-- @wdio/sync",
+- wdio-lambdatest-service",
   ],
   Array [
     "
@@ -159,7 +155,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -192,8 +188,7 @@ Installing wdio packages:
     "@wdio/local-runner
 - @wdio/mocha-framework
 - @wdio/crossbrowsertesting-service
-- wdio-lambdatest-service
-- @wdio/sync",
+- wdio-lambdatest-service",
   ],
   Array [
     "
@@ -203,7 +198,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -237,7 +232,6 @@ Installing wdio packages:
 - @wdio/mocha-framework
 - @wdio/crossbrowsertesting-service
 - wdio-lambdatest-service
-- @wdio/sync
 - ts-node
 - typescript",
   ],
@@ -249,7 +243,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"webdriverio/sync\\", \\"@wdio/mocha-framework\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -264,6 +258,40 @@ $ npx wdio run wdio.conf.js
 ",
   ],
 ]
+`;
+
+exports[`should create config file 1`] = `
+Object {
+  "installedPackages": Array [
+    "@wdio/local-runner",
+    "@wdio/mocha-framework",
+    "@wdio/spec-reporter",
+    "@wdio/sauce-service",
+  ],
+  "parsedAnswers": Object {
+    "_async": "async ",
+    "_await": "await ",
+    "framework": "mocha",
+    "isSync": false,
+    "isUsingBabel": false,
+    "isUsingTypeScript": false,
+    "packagesToInstall": Array [
+      "@wdio/local-runner--$local",
+      "@wdio/mocha-framework",
+      "@wdio/spec-reporter",
+      "@wdio/sauce-service--$sauce",
+    ],
+    "relativePath": "",
+    "reporters": Array [
+      "spec",
+    ],
+    "runner": undefined,
+    "services": Array [
+      undefined,
+    ],
+  },
+  "success": true,
+}
 `;
 
 exports[`should install @babel/register if not existing 1`] = `
@@ -283,7 +311,6 @@ Installing wdio packages:
 - @wdio/mocha-framework
 - @wdio/crossbrowsertesting-service
 - wdio-lambdatest-service
-- @wdio/sync
 - @babel/register",
   ],
   Array [
@@ -316,8 +343,7 @@ Installing wdio packages:
     "@wdio/local-runner
 - @wdio/mocha-framework
 - @wdio/crossbrowsertesting-service
-- wdio-lambdatest-service
-- @wdio/sync",
+- wdio-lambdatest-service",
   ],
   Array [
     "

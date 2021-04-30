@@ -3,18 +3,6 @@ import type { Capabilities, Options } from '@wdio/types'
 import RunnableStats from './runnable'
 import { sanitizeCaps } from '../utils'
 
-export interface Runner {
-    cid: string
-    specs: string[]
-    config: Options.Testrunner
-    isMultiremote: boolean
-    sessionId?: string
-    capabilities: Capabilities.Capabilities
-    retry?: number
-    failures?: number
-    retries?: number
-}
-
 /**
  * Class to capture statistics about a test run. A test run is a single instance that
  * runs one or more spec files
@@ -25,13 +13,14 @@ export default class RunnerStats extends RunnableStats {
     sanitizedCapabilities: string
     config: Options.Testrunner
     specs: string[]
-    sessionId?: string
+    sessionId: string
     isMultiremote: boolean
+    instanceOptions: Record<string, Options.WebdriverIO>
     retry?: number
     failures?: number
     retries?: number
 
-    constructor (runner: Runner) {
+    constructor (runner: Options.RunnerStart) {
         super('runner')
         this.cid = runner.cid
         this.capabilities = runner.capabilities
@@ -40,6 +29,7 @@ export default class RunnerStats extends RunnableStats {
         this.specs = runner.specs
         this.sessionId = runner.sessionId
         this.isMultiremote = runner.isMultiremote
+        this.instanceOptions = runner.instanceOptions
         this.retry = runner.retry
     }
 }

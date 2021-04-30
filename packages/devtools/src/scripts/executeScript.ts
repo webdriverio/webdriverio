@@ -28,7 +28,7 @@ export default (_: HTMLElement, script: string, dataProperty: string, dataFlag: 
                 return dataPropertyValue
             }
 
-            return result
+            return r
         })
     }
 

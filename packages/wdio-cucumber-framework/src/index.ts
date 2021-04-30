@@ -26,7 +26,7 @@ const { incrementing } = IdGenerator
 class CucumberAdapter {
     private _cwd = process.cwd()
     private _newId = incrementing()
-    private _cucumberOpts: CucumberOptions
+    private _cucumberOpts: Required<CucumberOptions>
     private _hasTests: boolean
     private _cucumberFeaturesWithLineNumbers: string[]
     private _eventBroadcaster: EventEmitter
@@ -49,7 +49,7 @@ class CucumberAdapter {
         private _capabilities: Capabilities.RemoteCapability,
         private _reporter: EventEmitter
     ) {
-        this._cucumberOpts = Object.assign({}, DEFAULT_OPTS, this._config.cucumberOpts)
+        this._cucumberOpts = Object.assign({}, DEFAULT_OPTS, this._config.cucumberOpts as Required<CucumberOptions>)
         this._hasTests = true
         this._cucumberFeaturesWithLineNumbers = this._config.cucumberFeaturesWithLineNumbers || []
         this._eventBroadcaster = new EventEmitter()

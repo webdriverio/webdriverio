@@ -5,6 +5,7 @@ test('should get initialised', () => {
         cid: '0-0',
         title: 'foobar',
         fullTitle: 'barfoo',
+        file: '/this/is/a/file.txt',
         description: 'some description',
         tags: ['foo', 'bar']
     })

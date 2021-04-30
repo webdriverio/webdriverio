@@ -183,6 +183,14 @@ export default class Runner extends EventEmitter {
             specs,
             config: browser.options,
             isMultiremote,
+            instanceOptions: isMultiremote
+                ? multiRemoteBrowser.instances.reduce((prev, browserName) => {
+                    prev[multiRemoteBrowser[browserName].sessionId] = multiRemoteBrowser[browserName].options as Options.WebdriverIO
+                    return prev
+                }, {} as Record<string, Options.WebdriverIO>)
+                : {
+                    [browser.sessionId]: browser.options
+                },
             sessionId: browser.sessionId,
             capabilities: isMultiremote
                 ? multiRemoteBrowser.instances.reduce((caps, browserName) => {
@@ -192,7 +200,7 @@ export default class Runner extends EventEmitter {
                 }, {} as MultiRemoteCaps)
                 : { ...browser.capabilities, sessionId: browser.sessionId },
             retry: this._specFileRetryAttempts
-        })
+        } as Options.RunnerStart)
 
         /**
          * report sessionId and target connection information to worker
@@ -393,7 +401,7 @@ export default class Runner extends EventEmitter {
             failures,
             cid: this._cid,
             retries
-        })
+        } as Options.RunnerEnd)
         try {
             await this._reporter!.waitForSync()
         } catch (e) {

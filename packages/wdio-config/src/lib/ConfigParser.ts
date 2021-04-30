@@ -18,6 +18,8 @@ import RequireLibrary from './RequireLibrary'
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
+type Spec = string | string[]
+
 interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capabilities'> {
     watch?: boolean
     spec?: string[]
@@ -26,8 +28,8 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
 }
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
-    specs?: string | string[]
-    exclude?: string | string[]
+    specs?: Spec
+    exclude?: Spec
 }
 
 // Get current working directory
@@ -62,7 +64,7 @@ export default class ConfigParser {
     private _pathService: PathService;
     private _moduleRequireService: ModuleRequireService;
 
-    constructor(pathService: PathService = new FileSystemPathService(), moduleRequireService:ModuleRequireService = new RequireLibrary()) {
+    constructor(pathService: PathService = new FileSystemPathService(), moduleRequireService: ModuleRequireService = new RequireLibrary()) {
         this._pathService = pathService
         this._moduleRequireService = moduleRequireService
     }
@@ -80,7 +82,7 @@ export default class ConfigParser {
      * merges config file with default values
      * @param {String} filename path of file relative to current directory
      */
-    addConfigFile (filename: string) {
+    addConfigFile(filename: string) {
         if (typeof filename !== 'string') {
             throw new Error('addConfigFile requires filepath')
         }
@@ -88,7 +90,7 @@ export default class ConfigParser {
         const filePath = this._pathService.ensureAbsolutePath(filename)
 
         try {
-            const config = this._pathService.loadFile<{config: TestrunnerOptionsWithParameters}>(filePath).config
+            const config = this._pathService.loadFile<{ config: TestrunnerOptionsWithParameters }>(filePath).config
 
             if (typeof config !== 'object') {
                 throw new Error('addConfigEntry requires config key')
@@ -131,7 +133,7 @@ export default class ConfigParser {
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
      */
-    merge (object: MergeConfig = {}) {
+    merge(object: MergeConfig = {}) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         this._config = merge(this._config, object, MERGE_OPTIONS) as TestrunnerOptionsWithParameters
@@ -175,7 +177,7 @@ export default class ConfigParser {
      * Add hooks from an existing service to the runner config.
      * @param {Object} service - an object that contains hook methods.
      */
-    addService (service: Services.Hooks) {
+    addService(service: Services.Hooks) {
         const addHook = <T extends keyof Services.Hooks>(hookName: T, hook: Extract<Services.Hooks[T], Function>) => {
             const existingHooks: Options.Testrunner[keyof Services.Hooks] = this._config[hookName]
             if (!existingHooks) {
@@ -209,9 +211,9 @@ export default class ConfigParser {
     /**
      * get excluded files from config pattern
      */
-    getSpecs (capSpecs?: string[], capExclude?: string[]) {
+    getSpecs(capSpecs?: string[], capExclude?: string[]) {
         let specs = ConfigParser.getFilePaths(this._config.specs!, undefined, this._pathService)
-        let spec  = Array.isArray(this._config.spec) ? this._config.spec : []
+        let spec = Array.isArray(this._config.spec) ? this._config.spec : []
         let exclude = ConfigParser.getFilePaths(this._config.exclude!, undefined, this._pathService)
         let suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
@@ -219,7 +221,7 @@ export default class ConfigParser {
          * check if user has specified a specific suites to run
          */
         if (suites.length > 0) {
-            let suiteSpecs: string[] = []
+            let suiteSpecs: Spec[] = []
             for (let suiteName of suites) {
                 let suite = this._config.suites?.[suiteName]
                 if (!suite) {
@@ -232,7 +234,7 @@ export default class ConfigParser {
 
             if (suiteSpecs.length === 0) {
                 throw new Error(`The suite(s) "${suites.join('", "')}" you specified don't exist ` +
-                                'in your config file or doesn\'t contain any files!')
+                    'in your config file or doesn\'t contain any files!')
             }
 
             // Allow --suite and --spec to both be defined on the command line
@@ -248,7 +250,7 @@ export default class ConfigParser {
             }
 
             specs = [...new Set(tmpSpecs)]
-            return specs.filter(spec => !exclude.includes(spec))
+            return this.filterSpecs(specs, <string[]> exclude)
         }
 
         if (Array.isArray(capSpecs)) {
@@ -258,33 +260,45 @@ export default class ConfigParser {
         if (Array.isArray(capExclude)) {
             exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
         }
-
-        return specs.filter(spec => !exclude.includes(spec))
+        return this.filterSpecs(specs, <string[]> exclude)
     }
 
     /**
      * sets config attribute with file paths from filtering
      * options from cli argument
      *
-     * @param  {String} cliArgFileList  list of files in a string from
+     * @param  {String[]} cliArgFileList  list of files in a string form
      * @param  {Object} config  config object that stores the spec and exclude attributes
      * cli argument
      * @return {String[]} List of files that should be included or excluded
      */
-    setFilePathToFilterOptions (cliArgFileList: string[], config: string[]) {
+    setFilePathToFilterOptions(cliArgFileList: string[], config: string[]) {
         const filesToFilter = new Set<string>()
         const fileList = ConfigParser.getFilePaths(config, undefined, this._pathService)
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
-            let globMatchedFiles = ConfigParser.getFilePaths(this._pathService.glob(filteredFile), undefined, this._pathService)
+            // Send single file/file glob to getFilePaths - not supporting hierarchy in spec/exclude
+            // Return value will alwyas be string[]
+            let globMatchedFiles = <string[]>ConfigParser.getFilePaths(this._pathService.glob(filteredFile), undefined, this._pathService)
             if (this._pathService.isFile(filteredFile)) {
                 filesToFilter.add(this._pathService.ensureAbsolutePath(filteredFile))
             } else if (globMatchedFiles.length) {
                 globMatchedFiles.forEach(file => filesToFilter.add(file))
             } else {
+                // fileList can be a string[] or a string[][]
                 fileList.forEach(file => {
-                    if (file.match(filteredFile)) {
-                        filesToFilter.add(file)
+                    if (typeof file === 'string') {
+                        if (file.match(filteredFile)) {
+                            filesToFilter.add(file)
+                        }
+                    } else if (Array.isArray(file)) {
+                        file.forEach(subFile => {
+                            if (subFile.match(filteredFile)) {
+                                filesToFilter.add(subFile)
+                            }
+                        })
+                    } else {
+                        log.warn('Unexpected entry in specs that is neither string nor array: ', file)
                     }
                 })
             }
@@ -298,14 +312,14 @@ export default class ConfigParser {
     /**
      * return configs
      */
-    getConfig () {
+    getConfig() {
         return this._config as Required<Options.Testrunner>
     }
 
     /**
      * return capabilities
      */
-    getCapabilities (i?: number) {
+    getCapabilities(i?: number) {
         if (typeof i === 'number' && Array.isArray(this._capabilities) && this._capabilities[i]) {
             return this._capabilities[i]
         }
@@ -314,39 +328,76 @@ export default class ConfigParser {
     }
 
     /**
-     * returns a flatten list of globed files
+     * returns a flattened list of globbed files
      *
-     * @param  {String[]} filenames  list of files to glob
-     * @return {String[]} list of files
+     * @param  {String[] | String[][]} filenames list of files to glob
+     * @param  {Boolean} flag to indicate omission of warnings
+     * @param  {FileSystemPathService} file system path service for expanding globbed file names
+     * @param  {number} hierarchy depth to prevent recursive calling beyond a depth of 1
+     * @return {String[] | String[][]} list of files
      */
-    static getFilePaths (patterns: string[], omitWarnings?: boolean, findAndGlob: CurrentPathFinder & Globber & DeterminesAbsolutePath = new FileSystemPathService()) {
-        let files: string[] = []
+    static getFilePaths(patterns: Spec[], omitWarnings?: boolean, findAndGlob: CurrentPathFinder & Globber & DeterminesAbsolutePath = new FileSystemPathService(), hierarchyDepth?: number) {
+        let files: Spec[] = []
+        let groupedFiles: string[] = []
 
         if (typeof patterns === 'string') {
             patterns = [patterns]
         }
 
+        // patterns must be an array of strings and/or string arrays
+        // check and throw and error if not
         if (!Array.isArray(patterns)) {
-            throw new Error('specs or exclude property should be an array of strings')
+            throw new Error('specs or exclude property should be an array of strings, specs may also be an array of string arrays')
         }
 
-        patterns = patterns.map(pattern => removeLineNumbers(pattern))
+        patterns = patterns.map(pattern => {
+            if (Array.isArray(pattern)) {
+                return pattern.map(subPattern => removeLineNumbers(subPattern))
+            }
+            return removeLineNumbers(pattern)
+        })
 
         for (let pattern of patterns) {
-            let filenames = findAndGlob.glob(pattern)
-            filenames = filenames.filter(
-                (filename) => SUPPORTED_FILE_EXTENSIONS.find(
-                    (ext) => filename.endsWith(ext)))
+            // If pattern is an array, then call getFilePaths again
+            // But only call one level deep, can't have multiple levels of hierarchy
+            if (Array.isArray(pattern) && !hierarchyDepth) {
+                // Will always only get a string array back
+                groupedFiles = <string[]>ConfigParser.getFilePaths(pattern, omitWarnings, findAndGlob, 1)
+                files.push(groupedFiles)
+            } else if (Array.isArray(pattern) && hierarchyDepth) {
+                log.error('Unexpected depth of hierarchical arrays')
+            } else {
+                let filenames = findAndGlob.glob(<string>pattern)
+                filenames = filenames.filter(
+                    (filename) => SUPPORTED_FILE_EXTENSIONS.find(
+                        (ext) => filename.endsWith(ext)))
 
-            filenames = filenames.map(filename => findAndGlob.ensureAbsolutePath(filename))
+                filenames = filenames.map(filename => findAndGlob.ensureAbsolutePath(filename))
 
-            if (filenames.length === 0 && !omitWarnings) {
-                log.warn('pattern', pattern, 'did not match any file')
+                if (filenames.length === 0 && !omitWarnings) {
+                    log.warn('pattern', pattern, 'did not match any file')
+                }
+                files = merge(files, filenames, MERGE_OPTIONS)
             }
-
-            files = merge(files, filenames, MERGE_OPTIONS)
         }
-
         return files
+    }
+
+    /**
+     * returns specs files with the excludes filtered
+     *
+     * @param  {String[] | String[][]} spec files -  list of spec files
+     * @param  {String[]} exclude files -  list of exclude files
+     * @return {String[] | String[][]} list of spec files with excludes removed
+     */
+    filterSpecs(specs: Spec[], exclude: string[]) {
+        return specs.reduce((returnVal: Spec[], spec) => {
+            if (Array.isArray(spec)) {
+                returnVal.push(spec.filter(specItem => !exclude.includes(specItem)))
+            } else if (exclude.indexOf(spec) === -1) {
+                returnVal.push(spec)
+            }
+            return returnVal
+        }, [])
     }
 }

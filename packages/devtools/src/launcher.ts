@@ -3,6 +3,7 @@ import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Capabilities } from '@wdio/types'
+import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer'
 
 import browserFinder from './finder'
 import { getPages } from './utils'
@@ -35,7 +36,7 @@ const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.nam
 async function launchChrome (capabilities: ExtendedCapabilities) {
     const chromeOptions: Capabilities.ChromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
-    const devtoolsOptions = capabilities['wdio:devtoolsOptions']
+    const devtoolsOptions = capabilities['wdio:devtoolsOptions'] || {}
 
     /**
      * `ignoreDefaultArgs` and `headless` are currently expected to be part of the capabilities
@@ -43,21 +44,8 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
      * This should be cleaned up for v7 release
      * ToDo(Christian): v7 cleanup
      */
-    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs
-
-    let debuggerAddress = chromeOptions.debuggerAddress
-    let port
-    if (debuggerAddress) {
-        const requestedPort = debuggerAddress.split(':')[1]
-        port = parseInt(requestedPort, 10)
-    }
-
-    let headless = (chromeOptions as any).headless
-
-    if (devtoolsOptions) {
-        ignoreDefaultArgs = devtoolsOptions.ignoreDefaultArgs
-        headless = devtoolsOptions.headless
-    }
+    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs || devtoolsOptions.ignoreDefaultArgs
+    let headless = (chromeOptions as any).headless || devtoolsOptions.headless
 
     if (typeof mobileEmulation.deviceName === 'string') {
         const deviceProperties = Object.values(puppeteer.devices).find(device => device.name === mobileEmulation.deviceName)
@@ -97,24 +85,20 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         chromeFlags.push(`--user-agent=${mobileEmulation.userAgent}`)
     }
 
-    if (port) {
-        log.info(`Requesting to connect to Google Chrome on port: ${port}`)
-    }
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
-
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
         ignoreDefaultFlags: true,
         chromeFlags,
-        ...(port ? { port } : {})
+        ...(devtoolsOptions.customPort ? { port: devtoolsOptions.customPort } : {})
     })
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
     const browser = await puppeteer.connect({
         ...chromeOptions,
-        browserURL: `http://localhost:${chrome.port}`,
-        // @ts-ignore ToDo(@L0tso): remove once https://github.com/puppeteer/puppeteer/pull/6942 is merged
-        defaultViewport: null
+        // @ts-ignore ToDo(@L0tso): remove comment once https://github.com/puppeteer/puppeteer/pull/6942 is released
+        defaultViewport: null,
+        browserURL: `http://localhost:${chrome.port}`
     }) as unknown as Browser // casting from @types/puppeteer to built in type
 
     /**
@@ -189,8 +173,35 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
     return puppeteer.launch(puppeteerOptions) as unknown as Promise<Browser>
 }
 
-export default function launch (capabilities: ExtendedCapabilities) {
+function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabilities) {
+    const connectionProp = connectionUrl.startsWith('http') ? 'browserURL' : 'browserWSEndpoint'
+    const devtoolsOptions = capabilities['wdio:devtoolsOptions']
+    const options: puppeteer.ConnectOptions = {
+        [connectionProp]: connectionUrl,
+        ...devtoolsOptions
+    }
+    return puppeteer.connect(options) as unknown as Promise<Browser>
+}
+
+export default async function launch (capabilities: ExtendedCapabilities) {
+    puppeteer.unregisterCustomQueryHandler('shadow')
+    puppeteer.registerCustomQueryHandler('shadow', QueryHandler)
     const browserName = capabilities.browserName?.toLowerCase()
+
+    /**
+     * check if capabilities already contains connection details and connect
+     * to that rather than starting a new browser
+     */
+    const browserOptions = capabilities['goog:chromeOptions'] || capabilities['ms:edgeOptions']
+    const devtoolsOptions = capabilities['wdio:devtoolsOptions'] || {}
+    const connectionUrl = (
+        (browserOptions?.debuggerAddress && `http://${browserOptions?.debuggerAddress}`) ||
+        devtoolsOptions.browserURL ||
+        devtoolsOptions.browserWSEndpoint
+    )
+    if (connectionUrl) {
+        return connectBrowser(connectionUrl, capabilities)
+    }
 
     if (browserName && CHROME_NAMES.includes(browserName)) {
         return launchChrome(capabilities)

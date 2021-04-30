@@ -10,13 +10,13 @@ This package is used across all WebdriverIO packages to log information using th
 To install the package just call
 
 ```sh
-$ npm install @wdio/logger
+npm install @wdio/logger
 ```
 
 or when adding it to a WebdriverIO subpackage:
 
 ```sh
-$ lerna add @wdio/logger --scope <subpackage>
+lerna add @wdio/logger --scope <subpackage>
 ```
 
 ## Usage

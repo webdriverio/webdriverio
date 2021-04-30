@@ -7,7 +7,7 @@ import logger, { logMock } from '@wdio/logger'
 import * as wdioUtils from '@wdio/utils'
 import { Capabilities } from '@wdio/types'
 
-import WebDriver, { getPrototype, DEFAULTS } from '../src'
+import WebDriver, { getPrototype, DEFAULTS, command } from '../src'
 import { Client } from '../src/types'
 
 const expect = global.expect as unknown as jest.Expect
@@ -58,7 +58,9 @@ describe('WebDriver', () => {
     test('exports getPrototype, DEFAULTS', () => {
         expect(typeof getPrototype).toBe('function')
         expect(typeof DEFAULTS).toBe('object')
+        expect(typeof command).toBe('function')
     })
+
     describe('newSession', () => {
         afterEach(() => {
             delete process.env.WDIO_LOG_PATH
@@ -288,6 +290,14 @@ describe('WebDriver', () => {
             expect(anotherClient.isAndroid).toBe(true)
             expect(anotherClient.isChrome).toBe(true)
             expect(anotherClient.isSauce).toBe(true)
+        })
+
+        it('should apply default connection details', () => {
+            const client = WebDriver.attachToSession({ sessionId: '123' })
+            expect(client.options.protocol).toBe('http')
+            expect(client.options.hostname).toBe('localhost')
+            expect(client.options.port).toBe(4444)
+            expect(client.options.path).toBe('/')
         })
 
         it('should fail attaching to session if sessionId is not given', () => {

@@ -269,3 +269,20 @@ Boiler plate project for:
 - Assert Request parameters
 - Assert Response parameters
 - Store all the response in a separate file
+
+## [Arjun-Ar91/Wdio7-appium-cucumber](https://github.com/Arjun-Ar91/Wdio7-appium-cucumber.git)
+
+Boilerplate project to run appium tests for native and mobile browser using cucumber v7 and wdio v7 with page object pattern.
+
+- Frameworks
+    - WebdriverIO v7
+    - Cucumber v7
+    - Appium
+
+- Features
+    - Native Android and iOS apps
+    - Android Chrome browser
+    - iOS Safari browser
+    - Page Object Model
+    - Contains sample test scenarios in cucumber
+    - Integrated with multiple cucumber html reports

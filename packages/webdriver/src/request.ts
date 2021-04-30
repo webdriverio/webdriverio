@@ -195,6 +195,13 @@ export default class WebDriverRequest extends EventEmitter {
         const error = getErrorFromResponseBody(response.body)
 
         /**
+         * retry connection refused errors
+         */
+        if (error.message === 'java.net.ConnectException: Connection refused: connect') {
+            return retry(error, 'Connection to Selenium Standalone server was refused.')
+        }
+
+        /**
          * hub commands don't follow standard response formats
          * and can have empty bodies
          */
