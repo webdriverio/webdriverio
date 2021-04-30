@@ -249,3 +249,10 @@ export interface HookFunctions {
         specs: string[]
     ): void;
 }
+
+export type Service = 'chromedriver' | 'sauce' | 'testingbot' | 'selenium-standalone' |
+    'devtools' | 'applitools' | 'browserstack' | 'appium' | 'firefox-profile' |
+    'crossbrowsertesting' | 'lambdatest' | 'zafira-listener' | 'reportportal' | 'docker' |
+    'wdio-ui5' | 'wiremock' | 'ng-apimock' | 'slack' | 'intercept' | 'docker' |
+    'visual-regression-testing' | 'novus-visual-regression' | 'rerun' | 'winappdriver' |
+    'ywinappdriver' | 'performancetotal' | 'aws-device-farm' | 'ocr-native-apps' | 'wait-for'

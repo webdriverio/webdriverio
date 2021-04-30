@@ -1,4 +1,4 @@
-import type { Options, Reporters, Frameworks } from '@wdio/types'
+import type { Options, Frameworks, Reporters, Services, Runners } from '@wdio/types'
 import { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
 
 type ValueOf<T> = T[keyof T]
@@ -33,7 +33,7 @@ export interface Questionnair {
 }
 
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services'> {
-    runner: 'local'
+    runner: Runners.Runner
     framework: string
     reporters: string[]
     services: string[]
@@ -94,6 +94,11 @@ export interface ConfigCommandArguments {
     yarn?: boolean
     yes?: boolean
     framework?: Frameworks.Framework
+    port?: string
+    compiler?: 'typescript' | 'babel'
+    specs?: string
+    reporters?: Reporters.Reporter
+    services?: Services.Service
 }
 
 export interface SupportedPackage {

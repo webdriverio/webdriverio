@@ -305,9 +305,27 @@ export async function generateTestFiles (answers: ParsedAnswers) {
     }
 }
 
-export async function getAnswers({ yes, framework }: ConfigCommandArguments): Promise<Questionnair> {
-    let questions = QUESTIONNAIRE
+function setAutoAnswers({ framework, port }: ConfigCommandArguments) {
+    return QUESTIONNAIRE.map((question) => {
+        if (framework && question.name === 'framework') {
+            question.when = (answers: Answers) => {
+                answers[question.name] = SUPPORTED_PACKAGES.framework.find(({ name }) => name === framework)?.value
+                return false
+            }
+        }
 
+        if (port && question.name === 'port') {
+            question.when = (answers: Answers) => {
+                answers[question.name] = Number(port)
+                return false
+            }
+        }
+
+        return question
+    })
+}
+
+export async function getAnswers(configCommandArgs: ConfigCommandArguments): Promise<Questionnair> {
     const getDefaultValue = (answers: Questionnair, question: Answers) => {
         if (typeof question.default === 'function') {
             return question.default(answers)
@@ -342,18 +360,9 @@ export async function getAnswers({ yes, framework }: ConfigCommandArguments): Pr
         return Object.assign(answers, getAnswer(answers, question))
     }
 
-    questions = questions.map((question) => {
-        if (framework && question.name === 'framework') {
-            question.when = (answers: Answers) => {
-                answers[question.name] = SUPPORTED_PACKAGES.framework.find(({ name }) => name === framework)?.value
-                return false
-            }
-        }
+    const questions = setAutoAnswers(configCommandArgs)
 
-        return question
-    })
-
-    if (yes) {
+    if (configCommandArgs.yes) {
         return questions.reduce(reducer, {} as Questionnair)
     }
 

@@ -13,6 +13,7 @@ import {
 } from '../utils'
 import { ConfigCommandArguments, ParsedAnswers } from '../types'
 import yargs from 'yargs'
+import { Frameworks } from '@wdio/types'
 
 const pkg = require('../../package.json')
 
@@ -40,9 +41,9 @@ export const builder = (yargs: yargs.Argv) => {
         .help()
 }
 
-const runConfig = async function ({ yarn, yes, framework }: ConfigCommandArguments, exit = false) {
+const runConfig = async function (configCommandArgs: ConfigCommandArguments, exit = false) {
     console.log(CONFIG_HELPER_INTRO)
-    const answers = await getAnswers({ yes, framework })
+    const answers = await getAnswers(configCommandArgs)
     const frameworkPackage = convertPackageHashToObject(answers.framework)
     const runnerPackage = convertPackageHashToObject(answers.runner || SUPPORTED_PACKAGES.runner[0].value)
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
@@ -110,11 +111,11 @@ const runConfig = async function ({ yarn, yes, framework }: ConfigCommandArgumen
     }
 
     console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
-    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !yarn })
+    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !configCommandArgs.yarn })
 
     if (result.status !== 0) {
         const customError = 'An unknown error happened! Please retry ' +
-            `installing dependencies via "${yarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
+            `installing dependencies via "${configCommandArgs.yarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
             `${packagesToInstall.join(' ')}"`
         throw new Error(result.stderr || customError)
     }
@@ -191,12 +192,41 @@ const runConfig = async function ({ yarn, yes, framework }: ConfigCommandArgumen
     }
 }
 
-export function handler({ yarn, yes, framework }: ConfigCommandArguments) {
-    if (framework && !SUPPORTED_PACKAGES.framework.find(({ name }) => name === framework)) {
-        throw new Error(`InvalidArgumentError: Framework ${framework} is not supported.`)
+export function handler(configCommandArgs: ConfigCommandArguments) {
+    const isValidFramework = (framework?: Frameworks.Framework) => {
+        if (typeof framework === 'undefined') {
+            return true
+        }
+
+        if (SUPPORTED_PACKAGES.framework.find(({ name }) => name === framework)) {
+            return true;
+        }
+
+        return false;
     }
 
-    return runConfig({ yarn, yes, framework })
+    const isValidPort = (port?: string) => {
+        if (typeof port === 'undefined') {
+            return true
+        }
+
+        const num = Number(port)
+        if (Number.isInteger(num) && num > 0 && num < 65535) {
+            return true
+        }
+
+        return false
+    }
+
+    if (!isValidFramework(configCommandArgs.framework)) {
+        throw new TypeError(`Invalid framework "${configCommandArgs.framework}"`);
+    }
+
+    if (!isValidPort(configCommandArgs.port)) {
+        throw new TypeError(`Invalid port "${configCommandArgs.port}"`);
+    }
+
+    return runConfig(configCommandArgs)
 }
 
 /**
@@ -206,7 +236,7 @@ export function handler({ yarn, yes, framework }: ConfigCommandArguments) {
  * @param {boolean}  useYarn        parameter set to true if yarn is used
  * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
  */
-export async function missingConfigurationPrompt(command: string, message: string, { yarn, yes, framework }: ConfigCommandArguments, runConfigCmd = runConfig) {
+export async function missingConfigurationPrompt(command: string, message: string, configCommandArgs: ConfigCommandArguments = {}, runConfigCmd = runConfig) {
     const { config } = await inquirer.prompt([
         {
             type: 'confirm',
@@ -226,5 +256,5 @@ export async function missingConfigurationPrompt(command: string, message: strin
         return process.exit(0)
     }
 
-    return await runConfigCmd({ yarn, yes, framework }, true)
+    return await runConfigCmd(configCommandArgs, true)
 }
