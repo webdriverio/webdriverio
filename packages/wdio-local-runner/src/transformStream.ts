@@ -1,30 +1,27 @@
-import split = require('split2')
-import { Transform, Stream } from 'stream'
+import { Transform, TransformCallback } from 'stream'
 import { DEBUGGER_MESSAGES } from './constants'
 
-export default function runnerTransformStream(stream: Stream | null, cid: string): Stream | undefined {
-    return stream?.pipe(split())
-        .pipe(ignore(DEBUGGER_MESSAGES))
-        .pipe(map(line => `[${cid}] ${line}\n`))
-}
+export default class RunnerTransformStream extends Transform {
+    cid: string
 
-function ignore(patternsToIgnore: string[]) {
-    return new Transform({
-        decodeStrings: false,
-        transform(chunk, encoding, next) {
-            if (patternsToIgnore.some(m => chunk.startsWith(m))) {
-                return next()
-            }
-            return next(null, chunk)
-        },
-    })
-}
+    constructor (cid: string) {
+        super()
+        this.cid = cid
+    }
 
-function map(mapper: (line: string) => string) {
-    return new Transform({
-        decodeStrings: false,
-        transform(chunk, encoding, next) {
-            return next(null, mapper(chunk))
-        },
-    })
+    _transform (chunk: any, encoding: BufferEncoding, callback: TransformCallback): void {
+        const logMsg = chunk.toString()
+
+        if (DEBUGGER_MESSAGES.some(m => logMsg.startsWith(m))) {
+            return callback()
+        }
+
+        this.push(`[${this.cid}] ${logMsg}`)
+        callback()
+    }
+
+    _final (callback: (error?: Error | null) => void): void {
+        this.unpipe()
+        callback()
+    }
 }

@@ -68,7 +68,6 @@
     "@types/lodash.merge": "^4.6.6",
     "@types/lodash.zip": "^4.2.6",
     "@types/node": "^15.0.0",
-    "@types/split2": "^2.1.6",
     "@types/tmp": "^0.2.0",
     "@types/ua-parser-js": "^0.7.35",
     "@types/uuid": "^8.3.0",

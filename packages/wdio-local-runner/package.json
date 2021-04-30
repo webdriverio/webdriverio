@@ -29,7 +29,6 @@
     "@wdio/runner": "7.5.3",
     "@wdio/types": "7.5.3",
     "async-exit-hook": "^2.0.1",
-    "split2": "^3.2.2",
     "stream-buffers": "^3.0.2"
   },
   "peerDependencies": {
