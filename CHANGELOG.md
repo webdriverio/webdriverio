@@ -19,6 +19,15 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.5.4 (2021-04-30)
+
+#### :memo: Documentation
+* [#6783](https://github.com/webdriverio/webdriverio/pull/6783) Adding a example test suite  ([@larryg01](https://github.com/larryg01))
+
+#### Committers: 1
+- LarryG ([@larryg01](https://github.com/larryg01))
+
+
 ## v7.5.3 (2021-04-30)
 
 #### :nail_care: Polish
