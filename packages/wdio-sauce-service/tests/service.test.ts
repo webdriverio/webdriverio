@@ -409,7 +409,7 @@ test('_uploadLogs should upload', async () => {
     await service['_uploadLogs']('123')
     expect((got as any as jest.Mock).mock.calls).toHaveLength(1)
     expect((got as any as jest.Mock)).toHaveBeenCalledWith(
-        'https://api.us-west-1.saucelabs.com/v1/testrunner/jobs/123/assets',
+        'https://api.us-west-1.saucelabs.com/v1/testcomposer/jobs/123/assets',
         expect.any(Object)
     )
 })
