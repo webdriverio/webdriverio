@@ -301,9 +301,9 @@ Boilerplate test suite to run E2E Tests using webdriverIO v7 and cucumber v7 wit
     - Contain sample test scenario in cucumber
     - Integrated cucumber html reports
     - Integrated Lambdatest, Browserstack services
-    - Visual Regression Testing
+    - Integrated Visual Regression testing
     - CircleCI Integration
-    - Email functionality
+    - Integrated Email functionality
     - Embeded video on failure from lambdatest/browserstack in reports
     - Integrated Accessibility testing
     - Integrated API testing
