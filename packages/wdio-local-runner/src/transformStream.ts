@@ -1,11 +1,12 @@
 import split = require('split2')
-import { Transform, Stream } from 'stream'
+import { Readable, Transform, TransformCallback } from 'stream'
 import { DEBUGGER_MESSAGES } from './constants'
 
-export default function runnerTransformStream(stream: Stream | null, cid: string): Stream | undefined {
-    return stream?.pipe(split())
+export default function runnerTransformStream(cid: string, inputStream: Readable): Readable {
+    return inputStream
+        .pipe(split(/\r?\n/, line => `${line}\n`))
         .pipe(ignore(DEBUGGER_MESSAGES))
-        .pipe(map(line => `[${cid}] ${line}\n`))
+        .pipe(map(line => `[${cid}] ${line}`))
 }
 
 function ignore(patternsToIgnore: string[]) {
@@ -17,14 +18,22 @@ function ignore(patternsToIgnore: string[]) {
             }
             return next(null, chunk)
         },
+        final(next: TransformCallback): void {
+            this.unpipe()
+            next()
+        },
     })
 }
 
 function map(mapper: (line: string) => string) {
     return new Transform({
         decodeStrings: false,
-        transform(chunk, encoding, next) {
+        transform(chunk: any, encoding: BufferEncoding, next: TransformCallback) {
             return next(null, mapper(chunk))
+        },
+        final(next: TransformCallback): void {
+            this.unpipe()
+            next()
         },
     })
 }
