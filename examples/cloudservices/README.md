@@ -3,7 +3,7 @@
 Shows you how to use WebdriverIO using Sauce Labs, Browserstack, Testingbot or Kobiton. To run those tests make sure you have your credentials stored in your environment. Then change directory to the example folder:
 
 ```sh
-$ cd ./examples/cloudservices
+cd ./examples/cloudservices
 ```
 
 and run the demos by calling:

@@ -19,6 +19,31 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.5.4 (2021-04-30)
+
+#### :memo: Documentation
+* [#6783](https://github.com/webdriverio/webdriverio/pull/6783) Adding a example test suite  ([@larryg01](https://github.com/larryg01))
+
+#### Committers: 1
+- LarryG ([@larryg01](https://github.com/larryg01))
+
+
+## v7.5.3 (2021-04-30)
+
+#### :nail_care: Polish
+* `wdio-local-runner`
+  * [#6781](https://github.com/webdriverio/webdriverio/pull/6781) Add CID to every line printed to stdout ([@jan-molak](https://github.com/jan-molak))
+
+#### :memo: Documentation
+* [#6782](https://github.com/webdriverio/webdriverio/pull/6782) Documentation fix: Removed $ sign in commands so it wont be copied ([@Xotabu4](https://github.com/Xotabu4))
+* [#6762](https://github.com/webdriverio/webdriverio/pull/6762) Added wdio 7 with appium and cucumber boilerplate ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+
+#### Committers: 3
+- Arjun ([@Arjun-Ar91](https://github.com/Arjun-Ar91))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Oleksandr Khotemskyi ([@Xotabu4](https://github.com/Xotabu4))
+
+
 ## v7.5.2 (2021-04-26)
 
 #### :bug: Bug Fix

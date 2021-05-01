@@ -10,7 +10,7 @@ This package provides an easy to manage API and a lot of syntactical sugar on to
 You can install WebdriverIO via NPM:
 
 ```sh
-$ npm install webdriverio
+npm install webdriverio
 ```
 
 ## Usage

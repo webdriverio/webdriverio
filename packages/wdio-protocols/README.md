@@ -16,7 +16,7 @@ This package stores the definition for various automation protocols such as [Web
 To install the package, run:
 
 ```sh
-$ npm install @wdio/protocols
+npm install @wdio/protocols
 ```
 
 ## Usage

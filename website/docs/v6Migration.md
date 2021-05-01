@@ -55,7 +55,7 @@ While we would love to have a fully automated process for this the reality looks
 Similar to other migrations we can use the WebdriverIO [codemod](https://github.com/webdriverio/codemod). To install the codemod, run:
 
 ```sh
-$ npm install jscodeshift @wdio/codemod
+npm install jscodeshift @wdio/codemod
 ```
 
 ## Upgrade WebdriverIO Dependencies
@@ -69,7 +69,7 @@ npm i --save-dev @wdio/allure-reporter@6 @wdio/cli@6 @wdio/cucumber-framework@6 
 Usually WebdriverIO dependencies are part of the dev dependencies, depending on your project this can vary though. After this your `package.json` and `package-lock.json` should be updated. __Note:__ these are example dependencies, yours may differ. Make sure you find the latest v6 version by calling, e.g.:
 
 ```sh
-$ npm show webdriverio versions
+npm show webdriverio versions
 ```
 
 Try to install the latest version 6 available for all core WebdriverIO packages. For community packages this can differ from package to package. Here we recommend to check the changelog for information on which version is still compatible with v6.
@@ -79,7 +79,7 @@ Try to install the latest version 6 available for all core WebdriverIO packages.
 A good first step is to start with the config file. All breaking changes can be resolve using the codemod full automatically:
 
 ```sh
-$ npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./wdio.conf.js
+npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./wdio.conf.js
 ```
 
 :::caution
@@ -93,7 +93,7 @@ The codemod doesn't yet support TypeScript projects. See [`@webdriverio/codemod#
 In order to update all command changes run the codemod on all your e2e files that contain WebdriverIO commands, e.g.:
 
 ```sh
-$ npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./e2e/*
+npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./e2e/*
 ```
 
 That's it! No more changes necessary 🎉

@@ -22,7 +22,7 @@ Commands are added to the clients protocol based on assumptions of provided capa
 To install this package from NPM run:
 
 ```sh
-$ npm i webdriver
+npm i webdriver
 ```
 
 ## Example
