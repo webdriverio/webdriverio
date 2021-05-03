@@ -14,9 +14,6 @@ updates:
   - dependency-name: "@cucumber/gherkin"
     versions:
     - 18.1.1
-  - dependency-name: sass
-    versions:
-    - 1.32.11
   - dependency-name: "@types/jest"
     versions:
     - 26.0.23
