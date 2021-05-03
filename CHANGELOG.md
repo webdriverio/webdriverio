@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.5.5 (2021-05-03)
+
+#### :nail_care: Polish
+* `wdio-local-runner`
+  * [#6790](https://github.com/webdriverio/webdriverio/pull/6790) Corrected output stream handling (issue from 7.5.3) ([@jan-molak](https://github.com/jan-molak))
+
+#### Committers: 1
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+
+
 ## v7.5.4 (2021-04-30)
 
 #### :memo: Documentation
