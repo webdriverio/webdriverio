@@ -56,7 +56,6 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     if (cdpEndpoint) {
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: cdpEndpoint,
-            // @ts-ignore ToDo: remove once https://github.com/puppeteer/puppeteer/pull/6942 is released
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
@@ -70,7 +69,6 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
         const { hostname, port } = this.options
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: `ws://${hostname}:${port}/devtools/${this.sessionId}`,
-            // @ts-ignore ToDo(@L0tso): remove comment once https://github.com/puppeteer/puppeteer/pull/6942 is released
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
@@ -82,7 +80,6 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     if (chromiumOptions && chromiumOptions.debuggerAddress) {
         this.puppeteer = await puppeteer.connect({
             browserURL: `http://${chromiumOptions.debuggerAddress}`,
-            // @ts-ignore ToDo(@L0tso): remove comment once https://github.com/puppeteer/puppeteer/pull/6942 is released
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
@@ -112,7 +109,6 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
 
             this.puppeteer = await puppeteer.connect({
                 browserURL: `http://localhost:${rdPort}`,
-                // @ts-ignore ToDo(@L0tso): remove comment once https://github.com/puppeteer/puppeteer/pull/6942 is merged
                 defaultViewport: null
             }) as any as PuppeteerBrowser
             return this.puppeteer as any as PuppeteerBrowser
