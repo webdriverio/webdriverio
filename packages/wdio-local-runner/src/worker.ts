@@ -7,7 +7,7 @@ import type { Capabilities, Options, Workers } from '@wdio/types'
 
 import logger from '@wdio/logger'
 
-import RunnerTransformStream from './transformStream'
+import runnerTransformStream from './transformStream'
 import ReplQueue from './replQueue'
 import RunnerStream from './stdStream'
 
@@ -102,8 +102,13 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         /* istanbul ignore if */
         if (!process.env.JEST_WORKER_ID) {
-            childProcess.stdout?.pipe(new RunnerTransformStream(cid)).pipe(stdOutStream)
-            childProcess.stderr?.pipe(new RunnerTransformStream(cid)).pipe(stdErrStream)
+            if (childProcess.stdout !== null) {
+                runnerTransformStream(cid, childProcess.stdout).pipe(stdOutStream)
+            }
+
+            if (childProcess.stderr !== null) {
+                runnerTransformStream(cid, childProcess.stderr).pipe(stdErrStream)
+            }
         }
 
         return childProcess
