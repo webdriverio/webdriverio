@@ -24,8 +24,7 @@ import type { NewWindowOptions } from '../../types'
         browser.switchToWindow(handles[1])
         browser.closeWindow()
         browser.switchToWindow(handles[0])
-
-		console.log(browser.getTitle()) // outputs: "Google"
+        console.log(browser.getTitle()) // outputs: "Google"
     });
  * </example>
  *
