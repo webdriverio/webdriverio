@@ -14,11 +14,11 @@ import type { NewWindowOptions } from '../../types'
           browser.url('https://google.com')
           console.log(browser.getTitle()) // outputs: "Google"
 
-		browser.newWindow('https://webdriver.io', {
-			windowName: 'WebdriverIO window',
-			windowFeature: 'width=420,height=230,resizable,scrollbars=yes,status=1',
-		})
-		console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
+        browser.newWindow('https://webdriver.io', {
+            windowName: 'WebdriverIO window',
+            windowFeature: 'width=420,height=230,resizable,scrollbars=yes,status=1',
+        })
+        console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
 
 		const handles = browser.getWindowHandles()
         browser.switchToWindow(handles[1])
