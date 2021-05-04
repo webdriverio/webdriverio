@@ -11,8 +11,8 @@ import type { NewWindowOptions } from '../../types'
  * <example>
     :newWindowSync.js
     it('should open a new tab', () => {
-		browser.url('https://google.com')
-		console.log(browser.getTitle()) // outputs: "Google"
+          browser.url('https://google.com')
+          console.log(browser.getTitle()) // outputs: "Google"
 
 		browser.newWindow('https://webdriver.io', {
 			windowName: 'WebdriverIO window',
