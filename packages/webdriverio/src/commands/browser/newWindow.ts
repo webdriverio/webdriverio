@@ -11,19 +11,19 @@ import type { NewWindowOptions } from '../../types'
  * <example>
     :newWindowSync.js
     it('should open a new tab', () => {
-        browser.url('http://google.com')
+        browser.url('https://google.com')
         console.log(browser.getTitle()) // outputs: "Google"
 
-        browser.newWindow(
-            'https://webdriver.io',
-            {
-                windowName: 'WebdriverIO window',
-                windowFeature: 'width=420,height=230,resizable,scrollbars=yes,status=1'
-            }
-        )
+        browser.newWindow('https://webdriver.io', {
+            windowName: 'WebdriverIO window',
+            windowFeature: 'width=420,height=230,resizable,scrollbars=yes,status=1',
+        })
         console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
 
+        const handles = browser.getWindowHandles()
+        browser.switchToWindow(handles[1])
         browser.closeWindow()
+        browser.switchToWindow(handles[0])
         console.log(browser.getTitle()) // outputs: "Google"
     });
  * </example>
