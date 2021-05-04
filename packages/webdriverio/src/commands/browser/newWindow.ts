@@ -20,7 +20,7 @@ import type { NewWindowOptions } from '../../types'
         })
         console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
 
-		const handles = browser.getWindowHandles()
+        const handles = browser.getWindowHandles()
         browser.switchToWindow(handles[1])
         browser.closeWindow()
         browser.switchToWindow(handles[0])
