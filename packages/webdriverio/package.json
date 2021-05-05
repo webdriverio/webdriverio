@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "7.5.3",
+  "version": "7.5.6",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "license": "MIT",
@@ -68,7 +68,7 @@
     "atob": "^2.1.2",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
-    "devtools": "7.5.3",
+    "devtools": "7.5.6",
     "devtools-protocol": "^0.0.878340",
     "fs-extra": "^9.0.1",
     "get-port": "^5.1.1",
