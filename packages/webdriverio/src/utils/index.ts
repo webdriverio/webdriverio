@@ -241,7 +241,10 @@ export async function findElement(
         const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
         let elem: ElementReference | ElementReference[] = await this.execute(
             locatorStrategy,
-            selector.slice(DEEP_SELECTOR.length)
+            ...[
+                selector.slice(DEEP_SELECTOR.length),
+                (this as WebdriverIO.Element).elementId ? this : undefined
+            ].filter(Boolean)
         )
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
@@ -284,7 +287,10 @@ export async function findElements(
     if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const elems: ElementReference | ElementReference[] = await this.execute(
             locatorStrategy,
-            selector.slice(DEEP_SELECTOR.length)
+            ...[
+                selector.slice(DEEP_SELECTOR.length),
+                (this as WebdriverIO.Element).elementId ? this : undefined
+            ].filter(Boolean)
         )
         const elemArray = Array.isArray(elems) ? elems : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))

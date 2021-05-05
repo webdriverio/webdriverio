@@ -321,6 +321,20 @@ describe('utils', () => {
             )
             expect(elem[ELEMENT_KEY]).toBe('foobar')
         })
+
+        it('should use execute if shadow selector is used with element scope', async () => {
+            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
+            scope.elementId = 'foobar'
+            const elem = await findElement.call(scope, '>>>.foobar') as WebdriverIO.Element
+            expect(scope.findElement).not.toBeCalled()
+            expect(scope.findElementFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalledWith(
+                expect.any(Function),
+                '.foobar',
+                scope
+            )
+            expect(elem[ELEMENT_KEY]).toBe('foobar')
+        })
     })
 
     describe('findElements', () => {
@@ -418,6 +432,21 @@ describe('utils', () => {
             expect(scope.execute).toBeCalledWith(
                 expect.any(Function),
                 '.foobar'
+            )
+            expect(elem).toHaveLength(1)
+            expect(elem[0][ELEMENT_KEY]).toBe('foobar')
+        })
+
+        it('fetches element using a function with element scope', async () => {
+            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
+            scope.elementId = 'foobar'
+            const elem = await findElements.call(scope, '>>>.foobar')
+            expect(scope.findElements).not.toBeCalled()
+            expect(scope.findElementsFromElement).not.toBeCalled()
+            expect(scope.execute).toBeCalledWith(
+                expect.any(Function),
+                '.foobar',
+                scope
             )
             expect(elem).toHaveLength(1)
             expect(elem[0][ELEMENT_KEY]).toBe('foobar')
