@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.prod",
   "compilerOptions": {
     "baseUrl": ".",
-    "outDir": "build",
+    "outDir": "build/cjs",
     "rootDir": "src",
     "removeComments": false
   },

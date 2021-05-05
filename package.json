@@ -1,6 +1,7 @@
 {
   "name": "webdriverio-monorepo",
   "private": true,
+  "type": "module",
   "scripts": {
     "create": "node ./scripts/generateSubPackage",
     "backport": "node ./scripts/backport.js",

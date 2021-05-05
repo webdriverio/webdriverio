@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.prod",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "build/esm",
+    "rootDir": "src",
+    "module": "esnext",
+    "resolveJsonModule": false
+  }
+}

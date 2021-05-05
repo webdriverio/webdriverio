@@ -7,13 +7,13 @@ import SauceLabsCommands from './commands/saucelabs'
 import SeleniumCommands from './commands/selenium'
 import WebDriverCommands from './commands/webdriver'
 
-const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')
-const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')
-const JsonWProtocol: Protocol = require('../protocols/jsonwp.json')
-const AppiumProtocol: Protocol = require('../protocols/appium.json')
-const ChromiumProtocol: Protocol = require('../protocols/chromium.json')
-const SauceLabsProtocol: Protocol = require('../protocols/saucelabs.json')
-const SeleniumProtocol: Protocol = require('../protocols/selenium.json')
+const WebDriverProtocol: Protocol = require('../../protocols/webdriver.json')
+const MJsonWProtocol: Protocol = require('../../protocols/mjsonwp.json')
+const JsonWProtocol: Protocol = require('../../protocols/jsonwp.json')
+const AppiumProtocol: Protocol = require('../../protocols/appium.json')
+const ChromiumProtocol: Protocol = require('../../protocols/chromium.json')
+const SauceLabsProtocol: Protocol = require('../../protocols/saucelabs.json')
+const SeleniumProtocol: Protocol = require('../../protocols/selenium.json')
 
 type WebDriverCommandsAsync = {
     [K in keyof WebDriverCommands]:
