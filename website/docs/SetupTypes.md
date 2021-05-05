@@ -73,6 +73,62 @@ const DevTools = require('devtools');
 
 All [protocol commands](./api/_webdriver.md) return the raw response from the automation driver. The package is very lightweight and there is __no__ smart logic like auto-waits to simplify the interaction with the protocol usage. You can run the same set of commands using the Chrome DevTools protocol when importing the [`devtools`](https://www.npmjs.com/package/devtools) NPM package.
 
+### Package APIs
+
+The protocol packages ([`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools)) expose a class with the following static functions attached that allow you to initiate sessions:
+
+#### `newSession(options, modifier, userPrototype, customCommandWrapper)`
+
+Starts a new session with specific capabilities. Based on the session response commands from different protocols will be provided.
+
+##### Paramaters
+
+- `options`: [WebDriver Options](/docs/options#webdriver-options)
+- `modifier`: function that allows to modify the client instance before it is being returned
+- `userPrototype`: properties object that allows to extend the instance prototype
+- `customCommandWrapper`: function that allows to wrap functionality around function calls
+
+##### Example
+
+```js
+const client = await WebDriver.newSession({
+    capabilities: { browserName: 'chrome' }
+})
+```
+
+#### `attachSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
+
+Attaches to a running WebDriver or DevTools session.
+
+##### Paramaters
+
+- `attachInstance`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
+- `modifier`: function that allows to modify the client instance before it is being returned
+- `userPrototype`: properties object that allows to extend the instance prototype
+- `customCommandWrapper`: function that allows to wrap functionality around function calls
+
+##### Example
+
+```js
+const client = await WebDriver.newSession({...})
+const clonedClient = await WebDriver.attachSession(client)
+```
+
+#### `reloadSession(instance)`
+
+Reloads a session given provided instance.
+
+##### Paramaters
+
+- `instance`: package instance to reload
+
+##### Example
+
+```js
+const client = await WebDriver.newSession({...})
+await WebDriver.reloadSession(client)
+```
+
 ## Standalone Mode
 
 To simplify the interaction with the WebDriver protocol the `webdriverio` package implements a variety of commands on top of the protocol (e.g. the [`dragAndDrop`](./api/element/_dragAndDrop.md) command) and core concepts such as [smart selectors](./Selectors.md) or [auto-waits](./AutoWait.md). The example from above can be simplified like this:
@@ -131,6 +187,74 @@ If you now run the file, it will return the title:
 ```bash
 $ node standalone.js
 WebdriverIO · Next-gen browser and mobile automation test framework for Node.js
+```
+
+### Package API
+
+Similar as to the protocol packages (`webdriver` and `devtools`) you can also use the WebdriverIO package APIs to manage sessions. The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality:
+
+#### `remote(options, modifier)`
+
+Starts a WebdriverIO session. The instance contains all commands as the protocol package but with additional higher order functions, see [API docs](/docs/api).
+
+##### Paramaters
+
+- `options`: [WebdriverIO Options](/docs/options#webdriverio)
+- `modifier`: function that allows to modify the client instance before it is being returned
+
+##### Example
+
+```js
+import { remote } from 'webdriverio'
+
+const browser = await remote({
+    capabilities: { browserName: 'chrome' }
+})
+```
+
+#### `attach(attachOptions)`
+
+Attaches to a running WebdriverIO session.
+
+##### Paramaters
+
+- `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
+
+##### Example
+
+```js
+import { remote, attach } from 'webdriverio'
+
+const browser = await remote({...})
+const newBrowser = await attach(browser)
+```
+
+#### `multiremote(multiremoteOptions)`
+
+Initiates a multiremote instance which allows you to control multiple session within a single instance. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases.
+
+##### Paramaters
+
+- `multiremoteOptions`: an object with keys representing the browser name and their [WebdriverIO Options](/docs/options#webdriverio).
+
+##### Example
+
+```js
+import { multiremote } from 'webdriverio'
+
+const matrix = await multiremote({
+    myChromeBrowser: {
+        capabilities: { browserName: 'chrome' }
+    },
+    myFirefoxBrowser: {
+        capabilities: { browserName: 'firefox' }
+    }
+})
+await matrix.url('http://json.org')
+await matrix.browserA.url('https://google.com')
+
+console.log(await matrix.getTitle())
+// returns ['Google', 'JSON']
 ```
 
 ## The WDIO Testrunner
