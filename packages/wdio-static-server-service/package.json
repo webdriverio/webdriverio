@@ -33,7 +33,7 @@
     "@wdio/logger": "7.5.3",
     "@wdio/types": "7.5.3",
     "express": "^4.14.0",
-    "fs-extra": "^9.0.0",
+    "fs-extra": "^10.0.0",
     "morgan": "^1.7.0"
   },
   "publishConfig": {
