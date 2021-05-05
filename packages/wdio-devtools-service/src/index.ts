@@ -275,11 +275,16 @@ export default class DevToolsService implements Services.ServiceInstance {
         })
 
         this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
+        console.log(smth)
         this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
+        console.log(smth)
         this._browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
+        console.log(smth)
 
         this._pwaGatherer = new PWAGatherer(this._session, this._page)
+        console.log(smth)
         this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
+        console.log(smth)
     }
 }
 
