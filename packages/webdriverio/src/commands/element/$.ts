@@ -1,10 +1,3 @@
-import type { ElementReference } from '@wdio/protocols'
-
-import { findElement } from '../../utils'
-import { getElement } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
-import type { Selector } from '../../types'
-
 /**
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver#findelement) command in order
  * to fetch a single element on the page similar to the `$` command from the browser scope. The difference when calling
@@ -51,6 +44,21 @@ import type { Selector } from '../../types'
         const activeElement = browser.getActiveElement();
         console.log($(activeElement).getTagName()); // outputs active element
     });
+
+    it('should use Androids DataMatcher or ViewMatcher selector', () => {
+        const menuItem = $({
+            "name": "hasEntry",
+            "args": ["title", "ViewTitle"],
+            "class": "androidx.test.espresso.matcher.ViewMatchers"
+        });
+        menuItem.click();
+
+        const menuItem = $({
+            "name": "hasEntry",
+            "args": ["title", "ViewTitle"]
+        });
+        menuItem.click();
+    });
  * </example>
  *
  * @alias $
@@ -59,18 +67,5 @@ import type { Selector } from '../../types'
  * @type utility
  *
  */
-export default async function $ (
-    this: WebdriverIO.Element,
-    selector: Selector
-): Promise<WebdriverIO.Element> {
-    /**
-     * convert protocol result into WebdriverIO element
-     * e.g. when element was fetched with `getActiveElement`
-     */
-    if (selector && typeof (selector as ElementReference)[ELEMENT_KEY] === 'string') {
-        return getElement.call(this, undefined, selector as ElementReference)
-    }
-
-    const res = await findElement.call(this, selector)
-    return getElement.call(this, selector, res)
-}
+import $ from '../browser/$'
+export default $

@@ -49,16 +49,31 @@ import type { Selector } from '../../types'
         const activeElement = browser.getActiveElement();
         console.log($(activeElement).getTagName()); // outputs active element
     });
+
+    it('should use Androids DataMatcher or ViewMatcher selector', () => {
+        const menuItem = $({
+            "name": "hasEntry",
+            "args": ["title", "ViewTitle"],
+            "class": "androidx.test.espresso.matcher.ViewMatchers"
+        });
+        menuItem.click();
+
+        const menuItem = $({
+            "name": "hasEntry",
+            "args": ["title", "ViewTitle"]
+        });
+        menuItem.click();
+    });
  * </example>
  *
  * @alias $
- * @param {String|Function|Object} selector  selector or JS Function to fetch a certain element
+ * @param {String|Function|Matcher} selector  selector, JS Function, or Matcher object to fetch a certain element
  * @return {Element}
  * @type utility
  *
  */
 export default async function $ (
-    this: WebdriverIO.Browser,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
     /**
