@@ -8,8 +8,18 @@
 import { remote, attach } from '../../packages/webdriverio'
 
 let browser
+let testWasRun = false
 
 test('allow to attach to an existing session', async () => {
+    /**
+     * don't retry passing tests - this is a bit weird behavior of jest
+     * even if test passes the test is being re-run which causes the attach
+     * command to fail with a weird error
+     */
+    if (testWasRun) {
+        return
+    }
+
     browser = await remote({
         capabilities: {
             browserName: 'chrome',
@@ -24,4 +34,5 @@ test('allow to attach to an existing session', async () => {
     expect(await otherBrowser.getTitle()).toBe('WebdriverJS Testpage')
 
     await otherBrowser.deleteSession()
+    testWasRun = true
 })
