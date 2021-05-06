@@ -50,3 +50,7 @@ export type ReporterEntry = (
      */
     [ReporterClass, WebdriverIO.ReporterOption]
 )
+
+export type Reporter = 'spec' | 'dot' | 'junit' | 'allure' | 'sumologic' |
+    'concise' | 'reportportal' | 'video' | 'json' | 'cucumber' | 'mochawesome' |
+    'timeline' | 'html' | 'markdown' | 'delta'

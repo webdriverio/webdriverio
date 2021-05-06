@@ -52,3 +52,5 @@ export interface World {
         message?: string
     }
 }
+
+export type Framework = 'mocha' | 'jasmine' | 'cucumber'

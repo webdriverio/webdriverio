@@ -5,8 +5,9 @@ import type * as Services from './Services'
 import type * as Reporters from './Reporters'
 import type * as Frameworks from './Frameworks'
 import type * as Workers from './Workers'
+import type * as Runners from './Runners'
 
-export type { Capabilities, Clients, Options, Services, Frameworks, Reporters, Workers }
+export type { Capabilities, Clients, Options, Services, Frameworks, Reporters, Workers, Runners }
 
 export type JsonPrimitive = string | number | boolean | null
 export type JsonObject = { [x: string]: JsonPrimitive | JsonObject | JsonArray }

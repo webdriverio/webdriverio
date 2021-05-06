@@ -7,6 +7,7 @@ import { handler, builder, missingConfigurationPrompt } from '../../src/commands
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
 
 jest.mock('../../src/utils', () => ({
+    getDefaultFiles: jest.fn(),
     addServiceDeps: jest.fn(),
     convertPackageHashToObject: jest.fn().mockImplementation(jest.requireActual('../../src/utils').convertPackageHashToObject),
     renderConfigurationFile: jest.fn(),
@@ -30,8 +31,9 @@ jest.mock('../../package.json', () => {
 const errorLogSpy = jest.spyOn(console, 'error')
 const consoleLogSpy = jest.spyOn(console, 'log')
 beforeEach(() => {
-    (yarnInstall as any as jest.Mock).mockClear()
-    ;(yarnInstall as any as jest.Mock).mockReturnValue({ status: 0 })
+    (yarnInstall as any as jest.Mock).mockClear();
+    (yarnInstall as any as jest.Mock).mockReturnValue({ status: 0 })
+
     errorLogSpy.mockClear()
     consoleLogSpy.mockClear()
 
@@ -44,8 +46,10 @@ afterEach(() => {
 
 test('should create config file', async () => {
     const result = await handler({} as any)
+
     delete result.parsedAnswers.destPageObjectRootPath
     delete result.parsedAnswers.destSpecRootPath
+
     expect(result).toMatchSnapshot()
     expect(addServiceDeps).toBeCalledTimes(1)
     expect(convertPackageHashToObject).toBeCalledTimes(4)
@@ -147,8 +151,8 @@ test('prints TypeScript setup message', async () => {
 })
 
 test('prints TypeScript setup message with ts-node installed', async () => {
-    process.env.WDIO_TEST_THROW_RESOLVE = '1'
-    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+    process.env.WDIO_TEST_THROW_RESOLVE = '1';
+    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -163,8 +167,8 @@ test('prints TypeScript setup message with ts-node installed', async () => {
 })
 
 test('should install @babel/register if not existing', async () => {
-    process.env.WDIO_TEST_THROW_RESOLVE = '1'
-    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+    process.env.WDIO_TEST_THROW_RESOLVE = '1';
+    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -179,8 +183,8 @@ test('should install @babel/register if not existing', async () => {
 })
 
 test('should not install @babel/register if existing', async () => {
-    delete process.env.WDIO_TEST_THROW_RESOLVE
-    ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+    delete process.env.WDIO_TEST_THROW_RESOLVE;
+    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         services: [
@@ -194,30 +198,56 @@ test('should not install @babel/register if existing', async () => {
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
 
+describe('passing arguments', () => {
+    beforeEach(() => {
+        (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
+            framework: '@wdio/mocha-framework$--$mocha',
+            reporters: [],
+            services: [],
+            generateTestFiles: false,
+        }))
+    })
+
+    test('should overwrite the default when "yes" is true', async () => {
+        const result = await handler({ framework: 'cucumber', yes: true } as any)
+        expect(result).toMatchSnapshot()
+    })
+
+    test('should have the "when" method set so that an automatic answer is given', async () => {
+        await handler({ framework: 'jasmine' } as any)
+        const result = (inquirer.prompt as any as jest.Mock).mock.calls[0][0].find(({ name }) => name === 'framework')
+        expect(result).toMatchSnapshot()
+    })
+
+    test('should throw when an invalid argument is passed', async () => {
+        await expect(async () => await handler({ framework: 'invalid' } as any)).rejects.toThrowError('InvalidArgumentError: Framework invalid is not supported.')
+    })
+})
+
 describe('missingConfigurationPromp', () => {
     it('should prompt user', async () => {
         (inquirer.prompt as any as jest.Mock).mockImplementation(() => ({ config: true }))
-        await missingConfigurationPrompt('run', 'foobar', false, jest.fn())
+        await missingConfigurationPrompt('run', 'foobar', { yarn: false }, jest.fn())
         expect((inquirer.prompt as any as jest.Mock)).toHaveBeenCalled()
     })
 
     it('should call function to initalize configuration helper', async () => {
         const runConfig = jest.fn()
-        await missingConfigurationPrompt('test', 'foobar', false, runConfig)
-        expect(runConfig).toHaveBeenCalledWith(false, false, true)
+        await missingConfigurationPrompt('test', 'foobar', { yarn: false }, runConfig)
+        expect(runConfig).toHaveBeenCalledWith({ yarn: false, yes: undefined, framework: undefined }, true)
     })
 
     it('should pass "yarn" flag to runConfig', async () => {
         const runConfig = jest.fn()
-        await missingConfigurationPrompt('test', 'test message', true, runConfig)
-        expect(runConfig).toHaveBeenCalledWith(true, false, true)
+        await missingConfigurationPrompt('test', 'test message', { yarn: true }, runConfig)
+        expect(runConfig).toHaveBeenCalledWith({ yarn: true, yes: undefined, framework: undefined }, true)
     })
 
     it('should throw if error occurs', async () => {
         const runConfig = jest.fn().mockImplementation(Promise.reject)
 
         try {
-            await missingConfigurationPrompt('test', 'foobar', false, runConfig)
+            await missingConfigurationPrompt('test', 'foobar', { yarn: false }, runConfig)
         } catch (error) {
             expect(error).toBeTruthy()
         }

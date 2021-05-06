@@ -1,5 +1,6 @@
 import { validateServiceAnswers, hasFile, getDefaultFiles } from './utils'
 import { Questionnair } from './types'
+import { Frameworks, Reporters, Services, Runners } from '@wdio/types'
 
 const pkg = require('../package.json')
 
@@ -58,72 +59,80 @@ export const TS_COMPILER_INSTRUCTIONS = `To have TypeScript support please add t
 For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
 `
 
+const runner: { name: Runners.Runner, value: string }[] = [
+    { name: 'local', value: '@wdio/local-runner$--$local' }
+]
+
+const framework: { name: Frameworks.Framework, value: string }[] = [
+    { name: 'mocha', value: '@wdio/mocha-framework$--$mocha' },
+    { name: 'jasmine', value: '@wdio/jasmine-framework$--$jasmine' },
+    { name: 'cucumber', value: '@wdio/cucumber-framework$--$cucumber' }
+]
+
+const reporter: { name: Reporters.Reporter, value: string }[] = [
+    { name: 'spec', value: '@wdio/spec-reporter$--$spec' },
+    { name: 'dot', value: '@wdio/dot-reporter$--$dot' },
+    { name: 'junit', value: '@wdio/junit-reporter$--$junit' },
+    { name: 'allure', value: '@wdio/allure-reporter$--$allure' },
+    { name: 'sumologic', value: '@wdio/sumologic-reporter$--$sumologic' },
+    { name: 'concise', value: '@wdio/concise-reporter$--$concise' },
+    // external
+    { name: 'reportportal', value: 'wdio-reportportal-reporter$--$reportportal' },
+    { name: 'video', value: 'wdio-video-reporter$--$video' },
+    { name: 'json', value: 'wdio-json-reporter$--$json' },
+    { name: 'cucumber', value: 'wdio-cucumber-reporter$--$cucumber' },
+    { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
+    { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
+    { name: 'html', value: '@rpii/wdio-html-reporter$--$html' },
+    { name: 'markdown', value: 'carmenmitru/wdio-markdown-reporter' },
+    { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' }
+]
+
+const service: { name: Services.Service, value: string }[] = [
+    // inquirerjs shows list as its orderer in array
+    // put chromedriver first as it is the default option
+    { name: 'chromedriver', value: 'wdio-chromedriver-service$--$chromedriver' },
+    // internal
+    { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
+    { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
+    { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
+    { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
+    { name: 'applitools', value: '@wdio/applitools-service$--$applitools' },
+    { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
+    { name: 'appium', value: '@wdio/appium-service$--$appium' },
+    { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
+    { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
+    // external
+    { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
+    { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
+    { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
+    { name: 'docker', value: 'wdio-docker-service$--$docker' },
+    { name: 'wdio-ui5', value: 'wdio-ui5-service$--$wdio-ui5' },
+    { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
+    { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
+    { name: 'slack', value: 'wdio-slack-service$--$slack' },
+    { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
+    { name: 'docker', value: 'wdio-docker-service$--$docker' },
+    { name: 'visual-regression-testing', value: 'wdio-image-comparison-service$--$visual-regression-testing' },
+    { name: 'novus-visual-regression', value: 'wdio-novus-visual-regression-service$--$novus-visual-regression' },
+    { name: 'rerun', value: 'wdio-rerun-service$--$rerun' },
+    { name: 'winappdriver', value: 'wdio-winappdriver-service$--$winappdriver' },
+    { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' },
+    { name: 'performancetotal', value: 'wdio-performancetotal-service$--$performancetotal' },
+    { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' },
+    { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
+    { name: 'wait-for', value: 'wdio-wait-for-service$--$wait-for' }
+]
+
 /**
  * We have to use a string hash for value because InquirerJS default values do not work if we have
  * objects as a `value` to be stored from the user's answers.
  */
 export const SUPPORTED_PACKAGES = {
-    runner: [
-        { name: 'local', value: '@wdio/local-runner$--$local' }
-    ],
-    framework: [
-        { name: 'mocha', value: '@wdio/mocha-framework$--$mocha' },
-        { name: 'jasmine', value: '@wdio/jasmine-framework$--$jasmine' },
-        { name: 'cucumber', value: '@wdio/cucumber-framework$--$cucumber' }
-    ],
-    reporter: [
-        { name: 'spec', value: '@wdio/spec-reporter$--$spec' },
-        { name: 'dot', value: '@wdio/dot-reporter$--$dot' },
-        { name: 'junit', value: '@wdio/junit-reporter$--$junit' },
-        { name: 'allure', value: '@wdio/allure-reporter$--$allure' },
-        { name: 'sumologic', value: '@wdio/sumologic-reporter$--$sumologic' },
-        { name: 'concise', value: '@wdio/concise-reporter$--$concise' },
-        // external
-        { name: 'reportportal', value: 'wdio-reportportal-reporter$--$reportportal' },
-        { name: 'video', value: 'wdio-video-reporter$--$video' },
-        { name: 'json', value: 'wdio-json-reporter$--$json' },
-        { name: 'cucumber', value: 'wdio-cucumber-reporter$--$cucumber' },
-        { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
-        { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
-        { name: 'html', value: '@rpii/wdio-html-reporter$--$html' },
-        { name: 'markdown', value: 'carmenmitru/wdio-markdown-reporter' },
-        { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' }
-    ],
-    service: [
-        // inquirerjs shows list as its orderer in array
-        // put chromedriver first as it is the default option
-        { name: 'chromedriver', value: 'wdio-chromedriver-service$--$chromedriver' },
-        // internal
-        { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
-        { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
-        { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
-        { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
-        { name: 'applitools', value: '@wdio/applitools-service$--$applitools' },
-        { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
-        { name: 'appium', value: '@wdio/appium-service$--$appium' },
-        { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
-        { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
-        // external
-        { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
-        { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
-        { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
-        { name: 'docker', value: 'wdio-docker-service$--$docker' },
-        { name: 'wdio-ui5', value: 'wdio-ui5-service$--$wdio-ui5' },
-        { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
-        { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
-        { name: 'slack', value: 'wdio-slack-service$--$slack' },
-        { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
-        { name: 'docker', value: 'wdio-docker-service$--$docker' },
-        { name: 'visual-regression-testing', value: 'wdio-image-comparison-service$--$visual-regression-testing' },
-        { name: 'novus-visual-regression', value: 'wdio-novus-visual-regression-service$--$novus-visual-regression' },
-        { name: 'rerun', value: 'wdio-rerun-service$--$rerun' },
-        { name: 'winappdriver', value: 'wdio-winappdriver-service$--$winappdriver' },
-        { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' },
-        { name: 'performancetotal', value: 'wdio-performancetotal-service$--$performancetotal' },
-        { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' },
-        { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
-        { name: 'wait-for', value: 'wdio-wait-for-service$--$wait-for' }
-    ]
+    runner,
+    framework,
+    reporter,
+    service,
 } as const
 
 export const BACKEND_CHOICES = [

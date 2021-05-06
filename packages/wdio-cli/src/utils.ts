@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import ejs from 'ejs'
 import path from 'path'
-import inquirer from 'inquirer'
+import inquirer, { Answers } from 'inquirer'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
@@ -9,8 +9,8 @@ import { execSync } from 'child_process'
 import { promisify } from 'util'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
-import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
-import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
+import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ConfigCommandArguments } from './types'
+import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, SUPPORTED_PACKAGES } from './constants'
 
 const log = logger('@wdio/cli:utils')
 
@@ -305,33 +305,68 @@ export async function generateTestFiles (answers: ParsedAnswers) {
     }
 }
 
-export async function getAnswers(yes: boolean): Promise<Questionnair> {
-    return yes
-        ? QUESTIONNAIRE.reduce((answers, question) => Object.assign(
-            answers,
-            question.when && !question.when(answers)
-                /**
-                 * set nothing if question doesn't apply
-                 */
-                ? {}
-                : { [question.name]: typeof question.default !== 'undefined'
-                    /**
-                     * set default value if existing
-                     */
-                    ? typeof question.default === 'function'
-                        ? question.default(answers)
-                        : question.default
-                    : question.choices && question.choices.length
-                    /**
-                     * pick first choice, select value if it exists
-                     */
-                        ? (question.choices[0] as { value: any }).value
-                            ? (question.choices[0] as { value: any }).value
-                            : question.choices[0]
-                        : {}
-                }
-        ), {} as Questionnair)
-        : await inquirer.prompt(QUESTIONNAIRE)
+function setAutoAnswers({ framework, port }: ConfigCommandArguments) {
+    return QUESTIONNAIRE.map((question) => {
+        if (framework && question.name === 'framework') {
+            question.when = (answers: Answers) => {
+                answers[question.name] = SUPPORTED_PACKAGES.framework.find(({ name }) => name === framework)?.value
+                return false
+            }
+        }
+
+        if (port && question.name === 'port') {
+            question.when = (answers: Answers) => {
+                answers[question.name] = Number(port)
+                return false
+            }
+        }
+
+        return question
+    })
+}
+
+export async function getAnswers(configCommandArgs: ConfigCommandArguments): Promise<Questionnair> {
+    const getDefaultValue = (answers: Questionnair, question: Answers) => {
+        if (typeof question.default === 'function') {
+            return question.default(answers)
+        }
+
+        return question.default
+    }
+
+    const getAnswer = (answers: Questionnair, question: Answers) => {
+        if (typeof question.default !== 'undefined') {
+            return {
+                [question.name]: getDefaultValue(answers, question)
+            }
+        }
+
+        if (Array.isArray(question.choices)) {
+            return {
+                [question.name]: question.choices[0].value || question.choices[0]
+            }
+        }
+
+        return {
+            [question.name]: {}
+        }
+    }
+
+    const reducer = function (answers: Questionnair, question: Answers) {
+        if (question.when && !question.when(answers)) {
+            return Object.assign(answers, {}) // set nothing if question doesn't apply
+        }
+
+        return Object.assign(answers, getAnswer(answers, question))
+    }
+
+    const questions = setAutoAnswers(configCommandArgs)
+
+    if (configCommandArgs.yes) {
+        return questions.reduce(reducer, {} as Questionnair)
+    }
+
+    return await inquirer.prompt(questions)
 }
 
 export function getPathForFileGeneration (answers: Questionnair) {
