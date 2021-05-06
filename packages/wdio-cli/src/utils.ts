@@ -274,6 +274,26 @@ export function hasFile (filename: string) {
 }
 
 /**
+ * Check if package is installed
+ * @param {string} package to check existance for
+ */
+export function hasPackage (pkg: string) {
+    try {
+        /**
+         * this is only for testing purposes as we want to check whether
+         * we add `@babel/register` to the packages to install when resolving fails
+         */
+        if (process.env.JEST_WORKER_ID && process.env.WDIO_TEST_THROW_RESOLVE) {
+            throw new Error('resolve error')
+        }
+        require.resolve(pkg)
+        return true
+    } catch (e) {
+        return false
+    }
+}
+
+/**
  * generate test files based on CLI answers
  */
 export async function generateTestFiles (answers: ParsedAnswers) {
