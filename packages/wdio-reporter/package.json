@@ -30,7 +30,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/cucumber": "^7.0.0",
     "@wdio/types": "7.5.3",
     "fs-extra": "^10.0.0"
   },
