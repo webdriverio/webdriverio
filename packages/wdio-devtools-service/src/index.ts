@@ -65,8 +65,6 @@ export default class DevToolsService implements Services.ServiceInstance {
             return
         }
 
-        // resetting puppeteer on sessionReload, so a new puppeteer session will be attached
-        delete this._browser.puppeteer
         return this._setupHandler()
     }
 

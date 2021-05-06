@@ -83,7 +83,7 @@ export default class DevTools {
         }
 
         sessionMap.set(sessionId, { browser, session: driver })
-        const environmentPrototype: Record<string, { value: Browser | boolean }> = { puppeteer: { value: browser } }
+        const environmentPrototype: Record<string, { value: any }> = {}
         Object.entries(devtoolsEnvironmentDetector({
             browserName: userAgent?.browser?.name?.toLowerCase()
         })).forEach(([name, value]) => {
@@ -117,6 +117,7 @@ export default class DevTools {
         session.elementStore.clear()
         session.windows = new Map()
         session.browser = browser
+        instance.puppeteer = browser
 
         for (const page of pages) {
             const pageId = uuidv4()
