@@ -16,7 +16,9 @@ Installing wdio packages:
     "@wdio/local-runner@beta
 - @wdio/mocha-framework@beta
 - @wdio/crossbrowsertesting-service@beta
-- wdio-lambdatest-service",
+- wdio-lambdatest-service
+- ts-node
+- typescript",
   ],
   Array [
     "
@@ -59,7 +61,9 @@ Installing wdio packages:
     "@wdio/local-runner@latest
 - @wdio/mocha-framework@latest
 - @wdio/crossbrowsertesting-service@latest
-- wdio-lambdatest-service",
+- wdio-lambdatest-service
+- ts-node
+- typescript",
   ],
   Array [
     "
@@ -102,7 +106,9 @@ Installing wdio packages:
     "@wdio/local-runner@next
 - @wdio/mocha-framework@next
 - @wdio/crossbrowsertesting-service@next
-- wdio-lambdatest-service",
+- wdio-lambdatest-service
+- ts-node
+- typescript",
   ],
   Array [
     "
@@ -145,7 +151,9 @@ Installing wdio packages:
     "@wdio/local-runner
 - @wdio/mocha-framework
 - @wdio/crossbrowsertesting-service
-- wdio-lambdatest-service",
+- wdio-lambdatest-service
+- ts-node
+- typescript",
   ],
   Array [
     "
@@ -188,7 +196,9 @@ Installing wdio packages:
     "@wdio/local-runner
 - @wdio/mocha-framework
 - @wdio/crossbrowsertesting-service
-- wdio-lambdatest-service",
+- wdio-lambdatest-service
+- ts-node
+- typescript",
   ],
   Array [
     "
@@ -294,39 +304,6 @@ Object {
 }
 `;
 
-exports[`should install @babel/register if not existing 1`] = `
-Array [
-  Array [
-    "
-=========================
-WDIO Configuration Helper
-=========================
-",
-  ],
-  Array [
-    "
-Installing wdio packages:
--",
-    "@wdio/local-runner
-- @wdio/mocha-framework
-- @wdio/crossbrowsertesting-service
-- wdio-lambdatest-service
-- @babel/register",
-  ],
-  Array [
-    "
-Packages installed successfully, creating configuration file...",
-  ],
-  Array [
-    "
-Configuration file was created successfully!
-To run your tests, execute:
-$ npx wdio run wdio.conf.js
-",
-  ],
-]
-`;
-
 exports[`should not install @babel/register if existing 1`] = `
 Array [
   Array [
@@ -343,7 +320,45 @@ Installing wdio packages:
     "@wdio/local-runner
 - @wdio/mocha-framework
 - @wdio/crossbrowsertesting-service
-- wdio-lambdatest-service",
+- wdio-lambdatest-service
+- @babel/register
+- @babel/core
+- @babel/preset-env",
+  ],
+  Array [
+    "
+Packages installed successfully, creating configuration file...",
+  ],
+  Array [
+    "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.js
+",
+  ],
+]
+`;
+
+exports[`should setup Babel if not existing 1`] = `
+Array [
+  Array [
+    "
+=========================
+WDIO Configuration Helper
+=========================
+",
+  ],
+  Array [
+    "
+Installing wdio packages:
+-",
+    "@wdio/local-runner
+- @wdio/mocha-framework
+- @wdio/crossbrowsertesting-service
+- wdio-lambdatest-service
+- @babel/register
+- @babel/core
+- @babel/preset-env",
   ],
   Array [
     "

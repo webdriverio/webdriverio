@@ -21,7 +21,8 @@ import {
     hasFile,
     generateTestFiles,
     getPathForFileGeneration,
-    getDefaultFiles
+    getDefaultFiles,
+    hasPackage
 } from '../src/utils'
 import { COMPILER_OPTION_ANSWERS } from '../src/constants'
 
@@ -388,6 +389,11 @@ test('hasFile', () => {
     expect(hasFile('package.json')).toBe(true)
     ;(fs.existsSync as jest.Mock).mockReturnValue(false)
     expect(hasFile('xyz')).toBe(false)
+})
+
+test('hasPackage', () => {
+    expect(hasPackage('yargs')).toBe(true)
+    expect(hasPackage('foobar')).toBe(false)
 })
 
 describe('generateTestFiles', () => {

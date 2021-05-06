@@ -274,7 +274,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'list',
     name: 'isUsingCompiler',
-    message: 'Are you using a compiler?',
+    message: 'Do you want to use a compiler?',
     choices: COMPILER_OPTION_ANSWERS,
     default: /* istanbul ignore next */ () => hasFile('babel.config.js')
         ? COMPILER_OPTIONS.babel // default to Babel

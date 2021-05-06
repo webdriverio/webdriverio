@@ -1,3 +1,4 @@
+import fs from 'fs'
 import yargs from 'yargs'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
@@ -11,10 +12,13 @@ jest.mock('../../src/utils', () => ({
     convertPackageHashToObject: jest.fn().mockImplementation(jest.requireActual('../../src/utils').convertPackageHashToObject),
     renderConfigurationFile: jest.fn(),
     hasFile: jest.fn().mockReturnValue(false),
+    hasPackage: jest.fn().mockReturnValue(false),
     getAnswers: jest.fn().mockImplementation(jest.requireActual('../../src/utils').getAnswers),
     generateTestFiles: jest.fn(),
     getPathForFileGeneration: jest.fn().mockImplementation(jest.requireActual('../../src/utils').getPathForFileGeneration),
 }))
+
+jest.mock('fs')
 
 jest.mock('../../package.json', () => {
     const pkg = jest.requireActual('../../package.json')
@@ -162,7 +166,7 @@ test('prints TypeScript setup message with ts-node installed', async () => {
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
 
-test('should install @babel/register if not existing', async () => {
+test('should setup Babel if not existing', async () => {
     process.env.WDIO_TEST_THROW_RESOLVE = '1'
     ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
@@ -174,6 +178,9 @@ test('should install @babel/register if not existing', async () => {
         generateTestFiles: false,
         isUsingCompiler: 'Babel (https://babeljs.io/)'
     }))
+    // @ts-expect-error
+    fs.promises = { writeFile: jest.fn()
+        .mockReturnValue(Promise.resolve('')) }
     await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
