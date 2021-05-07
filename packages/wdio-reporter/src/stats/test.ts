@@ -46,6 +46,7 @@ export default class TestStats extends RunnableStats {
     output: Output[]
     argument?: string | Argument
     retries?: number
+    parent: string
     /**
      * initial test state is pending
      * the state can change to the following: passed, skipped, failed
@@ -64,6 +65,7 @@ export default class TestStats extends RunnableStats {
         this.output = []
         this.argument = test.argument
         this.retries = test.retries
+        this.parent=test.parent
 
         /**
          * initial test state is pending

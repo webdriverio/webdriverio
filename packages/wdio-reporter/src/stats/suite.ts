@@ -31,6 +31,7 @@ export default class SuiteStats extends RunnableStats {
     tests: TestStats[] = []
     hooks: HookStats[] = []
     suites: SuiteStats[] = []
+    parent?: string
     /**
      * an array of hooks and tests stored in order as they happen
      */
@@ -45,6 +46,7 @@ export default class SuiteStats extends RunnableStats {
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags
+        this.parent=suite.parent
         /**
          * only Cucumber
          */
