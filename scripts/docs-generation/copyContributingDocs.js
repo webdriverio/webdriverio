@@ -9,6 +9,7 @@ exports.copyContributingDocs = async function () {
     await fs.promises.writeFile(newDocsPath, `---
 id: contribute
 title: Contribute
+custom_edit_url: https://github.com/webdriverio/webdriverio/edit/main/CONTRIBUTING.md
 ---
 
 ${content.toString().split(/\n/).slice(2).join('\n')}`)
