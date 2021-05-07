@@ -46,7 +46,7 @@ export default class SuiteStats extends RunnableStats {
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags
-        this.parent=suite.parent
+        this.parent= suite.parent
         /**
          * only Cucumber
          */

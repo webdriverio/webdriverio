@@ -65,7 +65,7 @@ export default class TestStats extends RunnableStats {
         this.output = []
         this.argument = test.argument
         this.retries = test.retries
-        this.parent=test.parent
+        this.parent= test.parent
 
         /**
          * initial test state is pending
