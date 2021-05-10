@@ -52,7 +52,7 @@ or
 ],
 ```
 
-Lastly, if you define custom commands, you need to provide their types slightly different now:
+Lastly, if you define custom commands, you need to provide their types slightly different now, if using module-style type definition files (type definition file uses import/export; tsconfig.json contains `include` section):
 
 ```ts
 // define custom commands in v6
@@ -73,6 +73,7 @@ declare global {
     }
 }
 ```
+Otherwise, if using ambient type defintion files (no include section in tsconfig, no import/export in type definition file), then keep the custom command declaration the same as before, since including the `global` declaration as above will require the type definition file to be changed to a module.
 
 Alongside with this change we also equipped the testrunner to auto-compile your configuration if TypeScript is detected, this allows to leverage type safety in your WDIO configuration without any additional setup (big thanks for this contribution goes to [@r4j4h](https://github.com/r4j4h)). With that you also don't need `ts-node/register` to be required in your Mocha, Jasmine or Cucumber options, e.g.:
 
