@@ -20,8 +20,5 @@
       "@wdio/sumologic-reporter"
     ],
     "typeRoots": ["./node_modules"]
-  },
-  "include": [
-    "./ambient-definition.d.ts"
-  ]
+  }
 }

@@ -95,10 +95,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 {
     "compilerOptions": {
         "types": ["node", "webdriverio/sync", "@wdio/mocha-framework"]
-    },
-    "include": [
-        "./test/**/*.ts"
-    ]
+    }
 }
 ```
 
@@ -109,10 +106,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 {
     "compilerOptions": {
         "types": ["node", "webdriverio/sync", "@wdio/jasmine-framework"]
-    },
-    "include": [
-        "./test/**/*.ts"
-    ]
+    }
 }
 ```
 
@@ -123,10 +117,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 {
     "compilerOptions": {
         "types": ["node", "webdriverio/sync", "@wdio/cucumber-framework"]
-    },
-    "include": [
-        "./test/**/*.ts"
-    ]
+    }
 }
 ```
 
@@ -146,10 +137,7 @@ If you use services that add commands to the browser scope you also need to incl
             "@wdio/mocha-framework",
             "@wdio/devtools-service"
         ]
-    },
-    "include": [
-        "./test/**/*.ts"
-    ]
+    }
 }
 ```
 
@@ -160,18 +148,40 @@ Adding services and reporters to your TypeScript config also strengthen the type
 With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [custom commands](CustomCommands.md) like this:
 
 1. Create a type definition file (e.g., `./src/types/wdio.d.ts`)
-2. Make sure to include path in the `tsconfig.json`
+2. a. If using a module-style type definition file (using import/export and `declare global WebdriverIO` in the type definition file), make sure to include the file path in the `tsconfig.json` `include` property.
+
+   b.  If using ambient-style type definition files (no import/export in type definition files and `declare namespace WebdriverIO` for custom commands), make sure the `tsconfig.json` does *not* contain any `include` section, since this will cause all type definition files not listed in the `include` section to not be recognized by typescript.
+
+<Tabs
+  defaultValue="modules"
+  values={[
+    {label: 'Modules (using import/export)', value: 'modules'},
+    {label: 'Ambient Type Definitions (no tsconfig include)', value: 'ambient'},
+  ]
+}>
+<TabItem value="modules">
 
 ```json title="tsconfig.json"
 {
     "compilerOptions": { ... },
     "include": [
         "./test/**/*.ts",
-        "./src/**/*.ts"
+        "./src/types/**/*.ts"
     ]
 }
 ```
 
+</TabItem>
+<TabItem value="ambient">
+
+```json title="tsconfig.json"
+{
+    "compilerOptions": { ... }
+}
+```
+
+</TabItem>
+</Tabs>
 3. Add definitions for your commands according to your execution mode.
 
 <Tabs
@@ -290,6 +300,14 @@ declare namespace WebdriverIO {
 ## Tips and Hints
 
 ### tsconfig.json example
+<Tabs
+  defaultValue="modules"
+  values={[
+    {label: 'Modules (using import/export)', value: 'modules'},
+    {label: 'Ambient Type Definitions (no tsconfig include)', value: 'ambient'},
+  ]
+}>
+<TabItem value="modules">
 
 ```json
 {
@@ -306,13 +324,40 @@ declare namespace WebdriverIO {
       "node",
       "webdriverio/sync",
       "@wdio/mocha-framework"
-    ],
+    ]
   },
   "include": [
-    "./test/**/*.ts"
+    "./test/**/*.ts",
+    "./src/types/**/*.ts"
   ]
 }
 ```
+
+</TabItem>
+<TabItem value="ambient">
+
+```json
+{
+  "compilerOptionsY": {
+    "outDir": "./.tsbuild/",
+    "sourceMap": false,
+    "target": "es2019",
+    "module": "commonjs",
+    "removeComments": true,
+    "noImplicitAny": true,
+    "strictPropertyInitialization": true,
+    "strictNullChecks": true,
+    "types": [
+      "node",
+      "webdriverio/sync",
+      "@wdio/mocha-framework"
+    ]
+  }
+}
+```
+
+</TabItem>
+</Tabs>
 
 ### Compile & Lint
 
