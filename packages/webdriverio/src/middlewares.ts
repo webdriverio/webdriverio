@@ -24,9 +24,16 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                  * as `stale element reference`
                  */
                 if (result && result.error === 'no such element') {
-                    const err = new Error()
-                    err.name = 'stale element reference'
-                    throw err
+                    let currentElement = element
+                    //Crawl back to the browser object
+                    while (currentElement.elementId && currentElement.parent) {
+                        currentElement = currentElement.parent as WebdriverIO.Element
+                    }
+                    if (currentElement?.capabilities?.browserName?.includes('safari')) {
+                        const err = new Error()
+                        err.name = 'stale element reference'
+                        throw err
+                    }
                 }
 
                 return result
