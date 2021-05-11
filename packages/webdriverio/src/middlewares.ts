@@ -2,6 +2,7 @@
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
 import { ELEMENT_KEY } from './constants'
+import type { Capabilities } from '@wdio/types'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -29,7 +30,8 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                     while (currentElement.elementId && currentElement.parent) {
                         currentElement = currentElement.parent as WebdriverIO.Element
                     }
-                    if (currentElement?.capabilities?.browserName?.includes('safari')) {
+                    const capabilities = currentElement?.capabilities as Capabilities.Capabilities
+                    if (capabilities?.browserName?.includes('safari')) {
                         const err = new Error()
                         err.name = 'stale element reference'
                         throw err
