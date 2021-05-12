@@ -542,6 +542,17 @@ describe('SpecReporter', () => {
         })
     })
 
+    describe('onlyFailures', () => {
+        const options = { onlyFailures: true }
+        beforeEach(() => {
+            tmpReporter = new SpecReporter(options)
+        })
+
+        it('should get failures', () => {
+            expect(tmpReporter).not.toBe(undefined)
+        })
+    })
+
     describe('getColor', () => {
         it('should get green', () => {
             expect(tmpReporter.getColor('passed')).toBe('green')

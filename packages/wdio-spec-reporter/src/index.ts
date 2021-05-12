@@ -31,6 +31,7 @@ export default class SpecReporter extends WDIOReporter {
         failed: '✖'
     }
 
+    private _displayOnlyFailures = false
     private _sauceLabsSharableLinks = true
 
     constructor (options: SpecReporterOptions) {
@@ -38,6 +39,7 @@ export default class SpecReporter extends WDIOReporter {
          * make spec reporter to write to output stream by default
          */
         super(Object.assign({ stdout: true }, options))
+        this._displayOnlyFailures = options.onlyFailures || false
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
@@ -79,6 +81,11 @@ export default class SpecReporter extends WDIOReporter {
      * Print the report to the screen
      */
     printReport(runner: RunnerStats) {
+        // Don't print non failed tests
+        if (this._displayOnlyFailures === true && runner.failures !== 0){
+            return
+        }
+
         const duration = `(${prettyMs(runner._duration)})`
         const preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]`
         const divider = '------------------------------------------------------------------'
