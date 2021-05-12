@@ -543,13 +543,28 @@ describe('SpecReporter', () => {
     })
 
     describe('onlyFailures', () => {
-        const options = { onlyFailures: true }
-        beforeEach(() => {
-            tmpReporter = new SpecReporter(options)
+        let printReporter = null
+        const runner = getRunnerConfig({ hostname: 'localhost' })
+
+        it('false', () => {
+            printReporter = new SpecReporter({ onlyFailures: false })
+            printReporter.write = jest.fn()
+            printReporter['_suiteUids'] = SUITE_UIDS
+            printReporter.suites = SUITES
+            printReporter.printReport(runner)
+            expect(printReporter['_onlyFailures']).toBe(false)
+            expect(printReporter.write.mock.calls).toMatchSnapshot()
         })
 
-        it('should get failures', () => {
-            expect(tmpReporter).not.toBe(undefined)
+        it('true', () => {
+            printReporter = new SpecReporter({ onlyFailures: true })
+            printReporter.write = jest.fn()
+            printReporter['_suiteUids'] = SUITE_UIDS
+            printReporter.suites = SUITES
+            const runner = getRunnerConfig({ hostname: 'localhost' })
+            printReporter.printReport(runner)
+            expect(printReporter['_onlyFailures']).toBe(true)
+            expect(printReporter.write.mock.calls).toMatchSnapshot()
         })
     })
 
