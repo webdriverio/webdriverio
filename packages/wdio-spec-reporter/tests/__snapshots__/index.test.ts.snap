@@ -84,7 +84,7 @@ Array [
 ]
 `;
 
-exports[`SpecReporter onlyFailures false 1`] = `
+exports[`SpecReporter onlyFailures false 0 failures 1`] = `
 Array [
   Array [
     "------------------------------------------------------------------
@@ -119,7 +119,44 @@ Array [
 ]
 `;
 
-exports[`SpecReporter onlyFailures true 1`] = `
+exports[`SpecReporter onlyFailures false 1 failure 1`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Baz test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
+[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+",
+  ],
+]
+`;
+
+exports[`SpecReporter onlyFailures true 0 failures 1`] = `Array []`;
+
+exports[`SpecReporter onlyFailures true 1 failure 1`] = `
 Array [
   Array [
     "------------------------------------------------------------------

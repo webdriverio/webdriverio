@@ -546,25 +546,54 @@ describe('SpecReporter', () => {
         let printReporter = null
         const runner = getRunnerConfig({ hostname: 'localhost' })
 
-        it('false', () => {
-            printReporter = new SpecReporter({ onlyFailures: false })
-            printReporter.write = jest.fn()
-            printReporter['_suiteUids'] = SUITE_UIDS
-            printReporter.suites = SUITES
-            printReporter.printReport(runner)
-            expect(printReporter['_onlyFailures']).toBe(false)
-            expect(printReporter.write.mock.calls).toMatchSnapshot()
+        describe('false', () => {
+            beforeEach(() => {
+                printReporter = new SpecReporter({ onlyFailures: false })
+                printReporter.write = jest.fn()
+                printReporter['_suiteUids'] = SUITE_UIDS
+                printReporter.suites = SUITES
+            })
+
+            it('1 failure', () => {
+                runner.failures = 1
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(false)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('0 failures', () => {
+                runner.failures = 0
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(false)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
         })
 
-        it('true', () => {
-            printReporter = new SpecReporter({ onlyFailures: true })
-            printReporter.write = jest.fn()
-            printReporter['_suiteUids'] = SUITE_UIDS
-            printReporter.suites = SUITES
-            const runner = getRunnerConfig({ hostname: 'localhost' })
-            printReporter.printReport(runner)
-            expect(printReporter['_onlyFailures']).toBe(true)
-            expect(printReporter.write.mock.calls).toMatchSnapshot()
+        describe('true', () => {
+            beforeEach(() => {
+                printReporter = new SpecReporter({ onlyFailures: true })
+                printReporter.write = jest.fn()
+                printReporter['_suiteUids'] = SUITE_UIDS
+                printReporter.suites = SUITES
+            })
+
+            it('1 failure', () => {
+                runner.failures = 1
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(true)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('0 failures', () => {
+                runner.failures = 0
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(true)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
         })
     })
 
