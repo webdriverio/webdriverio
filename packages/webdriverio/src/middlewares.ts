@@ -2,6 +2,7 @@
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
 import { ELEMENT_KEY } from './constants'
+import { getBrowserObject } from './utils'
 import type { Capabilities } from '@wdio/types'
 
 /**
@@ -25,12 +26,8 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                  * as `stale element reference`
                  */
                 if (result && result.error === 'no such element') {
-                    let currentElement = element
-                    //Crawl back to the browser object
-                    while (currentElement.elementId && currentElement.parent) {
-                        currentElement = currentElement.parent as WebdriverIO.Element
-                    }
-                    const capabilities = currentElement?.capabilities as Capabilities.Capabilities
+                    const browser = getBrowserObject(element)
+                    const capabilities = browser?.capabilities as Capabilities.Capabilities
                     if (capabilities?.browserName?.includes('safari')) {
                         const err = new Error()
                         err.name = 'stale element reference'
