@@ -13,7 +13,7 @@ import type { Capabilities } from '@wdio/types'
  * only supported in Chrome and when running a [Selenium Grid](https://www.selenium.dev/documentation/en/grid/).
  *
  * <example>
-    :touchAction.js
+    :uploadFile.js
     const path = require('path');
 
     it('should upload a file', function () {
