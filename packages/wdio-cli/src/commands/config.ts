@@ -158,6 +158,9 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         isSync: false,
         _async: 'async ',
         _await: 'await ',
+        _expect: frameworkPackage.package === '@wdio/jasmine-framework'
+            ? 'expectAsync'
+            : 'expect',
         destSpecRootPath: parsedPaths.destSpecRootPath,
         destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
         relativePath : parsedPaths.relativePath

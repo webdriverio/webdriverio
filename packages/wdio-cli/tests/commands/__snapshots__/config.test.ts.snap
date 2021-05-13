@@ -281,6 +281,7 @@ Object {
   "parsedAnswers": Object {
     "_async": "async ",
     "_await": "await ",
+    "_expect": "expect",
     "framework": "mocha",
     "isSync": false,
     "isUsingBabel": false,
