@@ -1,4 +1,6 @@
 import path from 'path'
+import { UNICODE_CHARACTERS } from '@wdio/utils'
+import type { KeyInput } from 'puppeteer-core'
 
 import { getStaleElementError } from '../utils'
 import type DevToolsDriver from '../devtoolsdriver'
@@ -33,11 +35,29 @@ export default async function elementSendKeys (
 
     const tagName = await propertyHandles.tagName?.jsonValue() as unknown as string
     const type = await propertyHandles.type?.jsonValue() as unknown as string
+    let typeInput: string[] = [text]
+
+    for (const [key, value] of Object.entries(UNICODE_CHARACTERS)) {
+        typeInput = typeInput.reduce((input, val) => [
+            ...input,
+            ...val.split(value).flatMap(
+                (value: string, index: number, array: string[]) =>
+                    array.length - 1 !== index // check for the last item
+                        ? [value, key]
+                        : value,
+            )
+        ], [] as string[])
+    }
+
     if (tagName === 'INPUT' && type === 'file') {
         const paths = (text || '').split('\n').map(p => path.resolve(p))
         await elementHandle.uploadFile(...paths)
     } else {
-        await page.keyboard.type(text)
+        for (const input of typeInput) {
+            UNICODE_CHARACTERS[input as keyof typeof UNICODE_CHARACTERS]
+                ? await page.keyboard.press(input as KeyInput)
+                : await page.keyboard.type(input)
+        }
     }
 
     return null

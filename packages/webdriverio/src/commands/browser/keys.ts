@@ -1,5 +1,6 @@
+import { UNICODE_CHARACTERS } from '@wdio/utils'
+
 import { checkUnicode } from '../../utils'
-import { UNICODE_CHARACTERS } from '../../constants'
 
 /**
  *

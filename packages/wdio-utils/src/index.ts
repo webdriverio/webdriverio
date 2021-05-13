@@ -16,6 +16,7 @@ import {
     isW3C, capabilitiesEnvironmentDetector,
     sessionEnvironmentDetector, devtoolsEnvironmentDetector
 } from './envDetector'
+import { UNICODE_CHARACTERS } from './constants'
 
 export {
     initialisePlugin,
@@ -49,5 +50,10 @@ export {
     isW3C,
     sessionEnvironmentDetector,
     capabilitiesEnvironmentDetector,
-    devtoolsEnvironmentDetector
+    devtoolsEnvironmentDetector,
+
+    /**
+     * constants
+     */
+    UNICODE_CHARACTERS
 }
