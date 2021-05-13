@@ -542,6 +542,61 @@ describe('SpecReporter', () => {
         })
     })
 
+    describe('onlyFailures', () => {
+        let printReporter = null
+        const runner = getRunnerConfig({ hostname: 'localhost' })
+
+        describe('false', () => {
+            beforeEach(() => {
+                printReporter = new SpecReporter({ onlyFailures: false })
+                printReporter.write = jest.fn()
+                printReporter['_suiteUids'] = SUITE_UIDS
+                printReporter.suites = SUITES
+            })
+
+            it('1 failure', () => {
+                runner.failures = 1
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(false)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('0 failures', () => {
+                runner.failures = 0
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(false)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+        })
+
+        describe('true', () => {
+            beforeEach(() => {
+                printReporter = new SpecReporter({ onlyFailures: true })
+                printReporter.write = jest.fn()
+                printReporter['_suiteUids'] = SUITE_UIDS
+                printReporter.suites = SUITES
+            })
+
+            it('1 failure', () => {
+                runner.failures = 1
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(true)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('0 failures', () => {
+                runner.failures = 0
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(true)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+        })
+    })
+
     describe('getColor', () => {
         it('should get green', () => {
             expect(tmpReporter.getColor('passed')).toBe('green')

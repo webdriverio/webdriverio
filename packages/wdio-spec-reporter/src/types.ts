@@ -30,6 +30,12 @@ export interface SpecReporterOptions {
      * @default: {passed: '✓', skipped: '-', failed: '✖'}
      */
     symbols?: Partial<Symbols>
+    /**
+     * Ability to show only failed specs results
+     *
+     * @default: false
+     */
+    onlyFailures?: boolean
 }
 
 export interface TestLink {
