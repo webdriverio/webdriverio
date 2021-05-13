@@ -25,7 +25,7 @@ jest.mock('http', () => {
     const req = { on: jest.fn(), end: jest.fn() }
     let response = { statusCode: 200 }
     return {
-        setResponse: (data) => {
+        setResponse: (data: any) => {
             response = data
         },
         request: jest.fn((url, cb) => {
