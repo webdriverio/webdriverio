@@ -7,9 +7,9 @@ title: 赞助
 
 请查看我们的 [OpenCollective page](https://opencollective.com/webdriverio) 获取更多信息，了解如何捐赠该项目。
 
-感谢每一位将要或已经向这个集体捐款的人，感谢他们对这个项目的支持，并感谢每一位为这个项目做出贡献的人。 It really means a lot ❤️
+感谢每一位将要或已经向这个集体捐款的人，感谢他们对这个项目的支持，并感谢每一位为这个项目做出贡献的人。 这真的很重要 ❤️
 
-## Expense Policies
+## 支出政策
 
 We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
 
