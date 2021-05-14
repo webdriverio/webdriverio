@@ -5,9 +5,9 @@ title: 赞助
 
 如果您的公司使用了WebdriverIO，并从中盈利，请让您的管理者或您的营销团队赞助该项目。 资金捐赠将使维护者有更多精力和时间为大家提供功能维护和开发新特性。
 
-Please checkout our [OpenCollective page](https://opencollective.com/webdriverio) for further information on how to donate to the project.
+请查看我们的 [OpenCollective page](https://opencollective.com/webdriverio) 获取更多信息，了解如何捐赠该项目。
 
-Thank you to everyone who will or has donated money to the collective and therefor has supported the project and everyone who contributed to it. It really means a lot ❤️
+感谢每一位将要或已经向这个集体捐款的人，感谢他们对这个项目的支持，并感谢每一位为这个项目做出贡献的人。 It really means a lot ❤️
 
 ## Expense Policies
 
