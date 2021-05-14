@@ -11,7 +11,7 @@ title: 赞助
 
 ## 支出政策
 
-We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
+我们希望以透明的方式接受集体的开支。 Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
 
 ### Event Expenses
 
