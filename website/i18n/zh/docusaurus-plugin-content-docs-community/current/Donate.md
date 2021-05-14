@@ -3,7 +3,7 @@ id: 赞助
 title: 赞助
 ---
 
-If your company uses WebdriverIO and benefits from it, please ask your manager or your marketing team to support the project by donating to the collective. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone.
+如果您的公司使用了WebdriverIO，并从中盈利，请让您的管理者或您的营销团队赞助该项目。 资金捐赠将使维护者有更多精力和时间为大家提供功能维护和开发新特性。
 
 Please checkout our [OpenCollective page](https://opencollective.com/webdriverio) for further information on how to donate to the project.
 
