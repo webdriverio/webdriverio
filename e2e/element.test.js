@@ -118,6 +118,15 @@ describe('elements', () => {
         expect(await browser.getElementProperty(fileInput[ELEMENT_KEY], 'value')).toBe('C:\\fakepath\\README.md')
     })
 
+    it('elementSendKeys can use special characters', async () => {
+        await browser.navigateTo('https://todomvc.com/examples/vue/')
+        const todoInput = await browser.findElement('css selector', '.new-todo')
+        await browser.elementSendKeys(todoInput[ELEMENT_KEY], 'ToDo #1\uE007ToDo #2\uE007ToDo #3\uE007')
+        const todoCountElem = await browser.findElement('css selector', '.todo-count strong')
+        const todoCount = await browser.getElementText(todoCountElem[ELEMENT_KEY])
+        expect(todoCount).toBe('3')
+    })
+
     it('elementClear', async () => {
         const textarea = await browser.findElement('css selector', 'textarea')
         await browser.elementClear(textarea[ELEMENT_KEY])

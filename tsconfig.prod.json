@@ -8,7 +8,7 @@
     "resolveJsonModule": true,
     "removeComments": false,
     "strictFunctionTypes": false,
-    "lib": ["dom"],
+    "lib": ["dom", "es2019"],
     "types": [
       "node",
       "jest"
