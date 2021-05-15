@@ -104,6 +104,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         // external
+        { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
         { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
@@ -121,8 +122,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' },
         { name: 'performancetotal', value: 'wdio-performancetotal-service$--$performancetotal' },
         { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' },
-        { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
-        { name: 'wait-for', value: 'wdio-wait-for-service$--$wait-for' }
+        { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' }
     ]
 } as const
 
