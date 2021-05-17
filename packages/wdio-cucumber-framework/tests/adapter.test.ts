@@ -9,7 +9,7 @@ import { setUserHookNames } from '../src/utils'
 jest.mock('../src/reporter', () => class CucumberReporter {
     eventListener = {
         getPickleIds: jest.fn().mockReturnValue(['8']),
-        getHookParams: jest.fn().mockReturnValue({ uri: 'uri', feature: 'feature' , scenario: 'scenario', step: 'step', passed: false})
+        getHookParams: jest.fn().mockReturnValue({ uri: 'uri', feature: 'feature', scenario: 'scenario', step: 'step', passed: false })
     }
 })
 
@@ -192,7 +192,6 @@ describe('CucumberAdapter', () => {
         expect(Cucumber.BeforeStep).toBeCalledTimes(1)
         expect(Cucumber.AfterStep).toBeCalledTimes(1)
         expect(executeHooksWithArgs).toBeCalledTimes(0)
-
 
         ;(Cucumber.AfterStep as jest.Mock).mock.calls[0][0]('world')
         expect(executeHooksWithArgs)
