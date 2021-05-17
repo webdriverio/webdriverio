@@ -19,6 +19,42 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.6.0 (2021-05-17)
+
+#### :rocket: New Feature
+* `wdio-spec-reporter`
+  * [#6852](https://github.com/webdriverio/webdriverio/pull/6852) Spec Reporter - Display only failures ([@unickq](https://github.com/unickq))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#6858](https://github.com/webdriverio/webdriverio/pull/6858) Fix `wdio-wait-for` install via cli ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `devtools`, `wdio-utils`, `webdriverio`
+  * [#6661](https://github.com/webdriverio/webdriverio/pull/6661) Special characters not properly detected with Puppeteer ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#6860](https://github.com/webdriverio/webdriverio/pull/6860) removing Contributor Guide reference link ([@sadabnepal](https://github.com/sadabnepal))
+  * [#6753](https://github.com/webdriverio/webdriverio/pull/6753) chore: Docusaurus with webpack 5 ([@slorber](https://github.com/slorber))
+  * [#6846](https://github.com/webdriverio/webdriverio/pull/6846) Update typescript examples, documentation and release notes ([@osmolyar](https://github.com/osmolyar))
+* `webdriverio`
+  * [#6856](https://github.com/webdriverio/webdriverio/pull/6856) Rename uploadFile Doc Example File ([@klamping](https://github.com/klamping))
+
+#### :house: Internal
+* `wdio-cucumber-framework`, `wdio-jasmine-framework`, `wdio-mocha-framework`
+  * [#6869](https://github.com/webdriverio/webdriverio/pull/6869) Upgrade `expect-webdriverio` to v3 ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 7
+- Abhinaba Ghosh ([@abhinaba-ghosh](https://github.com/abhinaba-ghosh))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- MD SADAB SAQIB ([@sadabnepal](https://github.com/sadabnepal))
+- Nick Chursin ([@unickq](https://github.com/unickq))
+- Olga ([@osmolyar](https://github.com/osmolyar))
+- Sébastien Lorber ([@slorber](https://github.com/slorber))
+
+
 ## v7.5.7 (2021-05-06)
 
 #### :bug: Bug Fix
