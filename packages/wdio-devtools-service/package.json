@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.12.10",
-    "@tracerbench/trace-event": "^5.1.0",
+    "@tracerbench/trace-event": "^6.0.0",
     "@wdio/logger": "7.5.3",
     "@wdio/types": "7.5.3",
     "atob": "^2.1.2",
