@@ -15,9 +15,9 @@ title: 赞助
 
 ### 活动费用
 
-If you host an event that has a speaker talking about using WebdriverIO and it's features you can expense up to __$100__. Reimbursement requirements for event expenses include:
+如果您举办了一场活动，并有演讲者讨论使用WebdriverIO及其特性，把么你可以报销最多__$100__。 活动费用的报销要求包括：
 
-- You or the event account must share the project on social media (Twitter, Facebook or LinkedIn) at least 3x
+- 您或者活动账户必须至少在三个社交媒体（推特，脸书或领英）上分享该项目
 - The event page must have the WebdriverIO logo and a link to the project page in your meetup description
 - You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
 - You must submit receipts with your reimbursement request.
