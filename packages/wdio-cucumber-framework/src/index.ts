@@ -10,15 +10,15 @@ import GherkinStreams from '@cucumber/gherkin/dist/src/stream/GherkinStreams'
 import EventDataCollector from '@cucumber/cucumber/lib/formatter/helpers/event_data_collector'
 import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
-import { Long }  from 'long'
+import { Long } from 'long'
 import { IdGenerator } from '@cucumber/messages'
 
-import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
+import { executeHooksWithArgs } from '@wdio/utils'
 import type { Capabilities, Options } from '@wdio/types'
 
 import CucumberReporter from './reporter'
 import { DEFAULT_OPTS } from './constants'
-import { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types'
+import { CucumberOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types'
 import { setUserHookNames } from './utils'
 
 const { incrementing } = IdGenerator
@@ -124,7 +124,6 @@ class CucumberAdapter {
              */
             this.addWdioHooks(this._config)
             this.loadSpecFiles()
-            this.wrapSteps(this._config)
 
             /**
              * we need to somehow identify is function is step or hook
@@ -235,7 +234,7 @@ class CucumberAdapter {
      * set `beforeScenario`, `afterScenario`, `beforeFeature`, `afterFeature`
      * @param {object} config config
      */
-    addWdioHooks (config: Options.Testrunner) {
+    addWdioHooks(config: Options.Testrunner) {
         const eventListener = this._cucumberReporter?.eventListener
         Cucumber.BeforeAll(async function wdioHookBeforeFeature() {
             const params = eventListener?.getHookParams()
@@ -253,85 +252,36 @@ class CucumberAdapter {
                 [params?.uri, params?.feature]
             )
         })
-        Cucumber.Before(async function wdioHookBeforeScenario (world: ITestCaseHookParameter) {
+        Cucumber.Before(async function wdioHookBeforeScenario(world: ITestCaseHookParameter) {
             await executeHooksWithArgs(
                 'beforeScenario',
                 config.beforeScenario,
                 [world]
             )
         })
-        Cucumber.After(async function wdioHookAfterScenario (world: ITestCaseHookParameter) {
+        Cucumber.After(async function wdioHookAfterScenario(world: ITestCaseHookParameter) {
             await executeHooksWithArgs(
                 'afterScenario',
                 config.afterScenario,
                 [world]
             )
         })
-    }
-
-    /**
-     * wraps step definition code with sync/async runner with a retry option
-     * @param {object} config
-     */
-    wrapSteps (config: Options.Testrunner) {
-        const wrapStep = this.wrapStep
-        const cid = this._cid
-        const getHookParams = () => this.getHookParams && this.getHookParams()
-
-        Cucumber.setDefinitionFunctionWrapper((fn: Function, options: StepDefinitionOptions = { retry: 0 }) => {
-            /**
-             * hooks defined in wdio.conf are already wrapped
-             */
-            if (fn.name.startsWith('wdioHook')) {
-                return fn
-            }
-
-            /**
-             * this flag is used to:
-             * - avoid hook retry
-             * - avoid wrap hooks with beforeStep and afterStep
-             */
-            const isStep = !fn.name.startsWith('userHook')
-
-            return wrapStep(fn, isStep, config, cid, options, getHookParams)
+        Cucumber.BeforeStep(async function wdioHookBeforeStep() {
+            const params = eventListener?.getHookParams()
+            await executeHooksWithArgs(
+                'beforeStep',
+                config.beforeStep,
+                [params?.step, params?.scenario]
+            )
         })
-    }
-
-    /**
-     * wrap step definition to enable retry ability
-     * @param   {Function}  code            step definition
-     * @param   {Number}    retryTest       amount of allowed repeats is case of a failure
-     * @param   {boolean}   isStep
-     * @param   {object}    config
-     * @param   {string}    cid             cid
-     * @param   {Function}  getHookParams  step definition
-     * @return  {Function}                  wrapped step definition for sync WebdriverIO code
-     */
-    wrapStep(
-        code: Function,
-        isStep: boolean,
-        config: Options.Testrunner,
-        cid: string,
-        options: StepDefinitionOptions,
-        getHookParams: Function
-    ) {
-        return function (this: Cucumber.World, ...args: any[]) {
-            const hookParams = getHookParams()
-            const retryTest = isStep && isFinite(options.retry) ? options.retry : 0
-
-            /**
-             * wrap user step/hook with wdio before/after hooks
-             */
-            const beforeFn = isStep ? config.beforeStep : config.beforeHook
-            const afterFn = isStep ? config.afterStep : config.afterHook
-            return testFnWrapper.call(this,
-                isStep ? 'Step' : 'Hook',
-                { specFn: code, specFnArgs: args },
-                { beforeFn: beforeFn as Function[], beforeFnArgs: (context) => [hookParams?.step, context] },
-                { afterFn: afterFn as Function[], afterFnArgs: (context) => [hookParams?.step, context] },
-                cid,
-                retryTest)
-        }
+        Cucumber.AfterStep(async function wdioHookAfterStep(world: ITestCaseHookParameter) {
+            const params = eventListener?.getHookParams()
+            await executeHooksWithArgs(
+                'afterStep',
+                config.afterStep,
+                [params?.step, params?.scenario, world.result?.status === Cucumber.Status.PASSED]
+            )
+        })
     }
 }
 
@@ -354,7 +304,10 @@ export { CucumberAdapter, adapterFactory }
 
 declare global {
     namespace WebdriverIO {
-        interface CucumberOpts extends CucumberOptions {}
-        interface HookFunctionExtension extends HookFunctionExtensionImport {}
+        interface CucumberOpts extends CucumberOptions {
+        }
+
+        interface HookFunctionExtension extends HookFunctionExtensionImport {
+        }
     }
 }
