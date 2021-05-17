@@ -27,7 +27,7 @@ title: 赞助
 如果您已经完成了Gihub WebdriverIO内任何代码仓的开发工作，且满足以下要求，可以支付您最多 __$1000__ 。
 
 - 您必须提交符合条件的合并请求，且这些请求已关闭至少10个被标记为[`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)的问题
-- Every additional issue closed with that label can be expensed with $100
+- 使用该标签关闭的所有其他问题均可以支付$ 100
 - You must submit links to all issues you’ve closed due to your pull requests
 - In order to close the ticket automatically, you must have one commit message with the Fix keyword. For example, Fix #1234 to close ticket #1234.
 - Pull Requests must be merged by someone from the [core team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). If there are several Pull Requests, the core team member either selects the most recent one or the best one - that’s up to them to decide what is best for the project.
