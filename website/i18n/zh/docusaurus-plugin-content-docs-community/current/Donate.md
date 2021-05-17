@@ -22,7 +22,7 @@ title: 赞助
 - 您必须将资金用于特定活动费用，比如食物，饮料，房间或设备租金。
 - 您必须提交收据和您的报销请求。
 
-### 开发支出
+### 开发费用
 
 如果您已经完成了Gihub WebdriverIO内任何代码仓的开发工作，且满足以下要求，可以支付您最多 __$1000__ 。
 
@@ -32,9 +32,9 @@ title: 赞助
 - 为了自动关闭工单，您必须使用Fix关键字提交一条信息。 例如：Fix #1234 来关闭工单 #1234
 - 提交请求必须由[核心团队](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee)成员合并。 如果有多个合并请求，核心团队成员可能会选择最新的请求或最好的请求，由他们决定。
 - 您必须使用 [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)注释问题线程，以确保没有其他人在解决同一个问题。
-- Anyone contributing to WebdriverIO is eligible to expense their work if the implemented features or bug fixes are not objectives of a commercial job.
+- 如果实现的特性或修复的问题不是商业任务，任何对WebdriverIO有贡献的人都有资格使用其工作。
 
-### Travel Expenses
+### 差旅费用
 
 If you are a member of the [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) you are eligible to expense flights and hotel accommodations for travel to conferences or meetups as part of a speaking engagement on WebdriverIO, not paid by the event itself or a company. You may expense up to $500. Reimbursement requirements for travel expenses include:
 
