@@ -22,7 +22,7 @@ title: 赞助
 - 您必须将资金用于特定活动费用，比如食物，饮料，房间或设备租金。
 - 您必须提交收据和您的报销请求。
 
-### Development Expenses
+### 开发支出
 
 If you have done development work on any of the repositories within the GitHub WebdriverIO organisation you may reimburse up to __$1000__ if the following requirements are met:
 
