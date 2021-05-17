@@ -28,9 +28,9 @@ title: 赞助
 
 - 您必须提交符合条件的合并请求，且这些请求已关闭至少10个被标记为[`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)的问题
 - 使用该标签关闭的所有其他问题均可以支付$ 100
-- You must submit links to all issues you’ve closed due to your pull requests
-- In order to close the ticket automatically, you must have one commit message with the Fix keyword. For example, Fix #1234 to close ticket #1234.
-- Pull Requests must be merged by someone from the [core team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). If there are several Pull Requests, the core team member either selects the most recent one or the best one - that’s up to them to decide what is best for the project.
+- 您必须提交指向因拉取请求而关闭的所有问题的链接。
+- 为了自动关闭工单，您必须使用Fix关键字提交一条信息。 例如：Fix #1234 来关闭工单 #1234
+- 提交请求必须由[核心团队](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee)成员合并。 If there are several Pull Requests, the core team member either selects the most recent one or the best one - that’s up to them to decide what is best for the project.
 - You must claim an [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) issue by commenting to the issue thread to ensure that no one else is working on the same issue.
 - Anyone contributing to WebdriverIO is eligible to expense their work if the implemented features or bug fixes are not objectives of a commercial job.
 
