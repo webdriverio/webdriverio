@@ -18,9 +18,9 @@ title: 赞助
 如果您举办了一场活动，并有演讲者讨论使用WebdriverIO及其特性，把么你可以报销最多__$100__。 活动费用的报销要求包括：
 
 - 您或者活动账户必须至少在三个社交媒体（推特，脸书或领英）上分享该项目
-- The event page must have the WebdriverIO logo and a link to the project page in your meetup description
-- You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
-- You must submit receipts with your reimbursement request.
+- 活动主页必须包含WebdriverIO的logo，且在您的会议描述中有指向活动页面的链接
+- 您必须将资金用于特定活动费用，比如食物，饮料，房间或设备租金。
+- 您必须提交收据和您的报销请求。
 
 ### Development Expenses
 
