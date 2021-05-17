@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@types/jasmine": "3.6.9",
+    "@types/node": "^14.14.31",
     "@wdio/logger": "7.5.3",
     "@wdio/types": "7.5.3",
     "@wdio/utils": "7.5.3",

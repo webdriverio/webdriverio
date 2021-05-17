@@ -29,6 +29,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@types/node": "^14.14.31",
     "got": "^11.8.1"
   }
 }
