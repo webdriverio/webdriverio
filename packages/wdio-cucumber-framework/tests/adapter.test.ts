@@ -1,5 +1,5 @@
 import { setOptions } from 'expect-webdriverio'
-import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
+import { executeHooksWithArgs } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import mockery from 'mockery'
 
@@ -9,7 +9,7 @@ import { setUserHookNames } from '../src/utils'
 jest.mock('../src/reporter', () => class CucumberReporter {
     eventListener = {
         getPickleIds: jest.fn().mockReturnValue(['8']),
-        getHookParams: jest.fn().mockReturnValue({ uri: 'uri', feature: 'feature' })
+        getHookParams: jest.fn().mockReturnValue({ uri: 'uri', feature: 'feature' , scenario: 'scenario', step: 'step', passed: false})
     }
 })
 
@@ -41,9 +41,11 @@ describe('CucumberAdapter', () => {
         ;(Cucumber.AfterAll as jest.Mock).mockClear()
         ;(Cucumber.Before as jest.Mock).mockClear()
         ;(Cucumber.After as jest.Mock).mockClear()
+        ;(Cucumber.BeforeStep as jest.Mock).mockClear()
+        ;(Cucumber.AfterStep as jest.Mock).mockClear()
     })
 
-    it('can be initated with tests', async () => {
+    it('can be initiated with tests', async () => {
         const adapter = await CucumberAdapter.init('0-0', {
             waitforTimeout: 1,
             waitforInterval: 2
@@ -86,7 +88,6 @@ describe('CucumberAdapter', () => {
         adapter.registerRequiredModules = jest.fn()
         adapter.addWdioHooks = jest.fn()
         adapter.loadSpecFiles = jest.fn()
-        adapter.wrapSteps = jest.fn()
 
         const result = await adapter.run()
         expect(result).toBe(0)
@@ -94,7 +95,6 @@ describe('CucumberAdapter', () => {
         expect(adapter.registerRequiredModules).toBeCalledTimes(1)
         expect(adapter.addWdioHooks).toBeCalledTimes(1)
         expect(adapter.loadSpecFiles).toBeCalledTimes(1)
-        expect(adapter.wrapSteps).toBeCalledTimes(1)
         expect(setUserHookNames).toBeCalledTimes(1)
     })
 
@@ -107,7 +107,7 @@ describe('CucumberAdapter', () => {
         expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
 
-    it('can take cucumber reporte failure count', async () => {
+    it('can take cucumber report failure count', async () => {
         const adapter = await CucumberAdapter.init('0-0', {
             cucumberOpts: {
                 shouldFail: 123,
@@ -181,14 +181,25 @@ describe('CucumberAdapter', () => {
             beforeFeature: 'beforeFeature',
             afterFeature: 'afterFeature',
             beforeScenario: 'beforeScenario',
-            afterScenario: 'afterScenario'
+            afterScenario: 'afterScenario',
+            beforeStep: 'beforeStep',
+            afterStep: 'afterStep'
         })
         expect(Cucumber.BeforeAll).toBeCalledTimes(1)
         expect(Cucumber.AfterAll).toBeCalledTimes(1)
         expect(Cucumber.Before).toBeCalledTimes(1)
         expect(Cucumber.After).toBeCalledTimes(1)
+        expect(Cucumber.BeforeStep).toBeCalledTimes(1)
+        expect(Cucumber.AfterStep).toBeCalledTimes(1)
         expect(executeHooksWithArgs).toBeCalledTimes(0)
 
+
+        ;(Cucumber.AfterStep as jest.Mock).mock.calls[0][0]('world')
+        expect(executeHooksWithArgs)
+            .toBeCalledWith('afterStep', 'afterStep', ['step', 'scenario', false])
+        ;(Cucumber.BeforeStep as jest.Mock).mock.calls[0][0]()
+        expect(executeHooksWithArgs)
+            .toBeCalledWith('beforeStep', 'beforeStep', ['step', 'scenario'])
         ;(Cucumber.BeforeAll as jest.Mock).mock.calls[0][0]()
         expect(executeHooksWithArgs)
             .toBeCalledWith('beforeFeature', 'beforeFeature', ['uri', 'feature'])
@@ -203,44 +214,4 @@ describe('CucumberAdapter', () => {
             .toBeCalledWith('afterScenario', 'afterScenario', ['world'])
     })
 
-    it('wrapSteps', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
-        adapter.getHookParams = 'getHookParams'
-        adapter.wrapStep = jest.fn()
-
-        expect(adapter.wrapStep).toBeCalledTimes(0)
-        adapter.wrapSteps()
-        expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
-        ;(Cucumber.setDefinitionFunctionWrapper as jest.Mock).mock.calls[0][0](jest.fn())
-        expect(adapter.wrapStep).toBeCalledWith(
-            expect.any(Function),
-            true,
-            undefined,
-            '0-0',
-            { retry: 0 },
-            expect.any(Function)
-        )
-    })
-
-    it('wrapSteps does not wrap wdio hooks', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
-        adapter.getHookParams = 'getHookParams'
-        adapter.wrapStep = jest.fn()
-
-        expect(adapter.wrapStep).toBeCalledTimes(0)
-        adapter.wrapSteps()
-        function wdioHookFn () { return 'foobar' }
-        expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
-        expect(
-            (Cucumber.setDefinitionFunctionWrapper as jest.Mock).mock.calls[0][0](wdioHookFn)()
-        ).toBe('foobar')
-    })
-
-    it('wrapStep', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
-        const wrappedStep = adapter.wrapStep('code', true, {}, '0-2', {}, () => 'hookParams')
-        expect(testFnWrapper).toBeCalledTimes(0)
-        wrappedStep('someWorld', 1, 2, 3)
-        expect((testFnWrapper as jest.Mock).mock.calls).toMatchSnapshot()
-    })
 })
