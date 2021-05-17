@@ -24,9 +24,9 @@ title: 赞助
 
 ### 开发支出
 
-If you have done development work on any of the repositories within the GitHub WebdriverIO organisation you may reimburse up to __$1000__ if the following requirements are met:
+如果您已经完成了Gihub WebdriverIO内任何代码仓的开发工作，且满足以下要求，可以支付您最多 __$1000__ 。
 
-- You must have submitted qualifying pull requests that have closed at least 10 issues that were labeled with [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
+- 您必须提交符合条件的合并请求，且这些请求已关闭至少10个被标记为[`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)的问题
 - Every additional issue closed with that label can be expensed with $100
 - You must submit links to all issues you’ve closed due to your pull requests
 - In order to close the ticket automatically, you must have one commit message with the Fix keyword. For example, Fix #1234 to close ticket #1234.
