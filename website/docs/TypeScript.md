@@ -338,7 +338,7 @@ declare namespace WebdriverIO {
 
 ```json
 {
-  "compilerOptionsY": {
+  "compilerOptions": {
     "outDir": "./.tsbuild/",
     "sourceMap": false,
     "target": "es2019",
