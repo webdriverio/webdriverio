@@ -450,12 +450,16 @@ exports.config = {
      * Runs after a Cucumber Step.
      * @param step    step data
      * @param context Cucumber world
+     * @param retries info on whether executed step had been retried and its retry limit, ex. { attempts: 0, limit: 0 }
+     * @param error if executed step failed, prints the error
+     * @param duration step duration, in ms
+     * @param passed boolean value if executed step passed
      */
-    afterStep: function (step, context) {
+    afterStep: function (step, context, { retries, error, duration, passed }) {
     },
     /**
      *
-     * Runs before a Cucumber Scenario.
+     * Runs after a Cucumber Scenario.
      * @param world world object containing information on pickle and test step
      */
     afterScenario: function (world) {
