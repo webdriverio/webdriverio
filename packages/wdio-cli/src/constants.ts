@@ -104,6 +104,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         // external
+        //{ name: 'eslinter-service', value: 'wdio-eslinter-service$--$eslinter' },
         { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
         { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
