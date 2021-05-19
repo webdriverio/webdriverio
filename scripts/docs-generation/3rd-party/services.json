@@ -123,5 +123,11 @@
     "title": "Library of useful expected conditions",
     "githubUrl": "https://github.com/elaichenkov/wdio-wait-for",
     "npmUrl": "https://www.npmjs.com/package/wdio-wait-for"
+  },
+  {
+    "packageName": "wdio-eslinter-service",
+    "title": "Auto-detect missing imports w/eslint",
+    "githubUrl": "https://github.com/jamesmortensen/wdio-eslinter-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-eslinter-service"
   }
 ]

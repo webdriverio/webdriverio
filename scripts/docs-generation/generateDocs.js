@@ -8,6 +8,7 @@ const { generateWdioDocs } = require('./wdioDocs')
 const { generateReportersAndServicesDocs } = require('./packagesDocs')
 const { generate3rdPartyDocs } = require('./3rdPartyDocs')
 const { copyContributingDocs } = require('./copyContributingDocs')
+const { downloadAwesomeResources } = require('./downloadAwesomeResources')
 
 function print (title) {
     console.log(`
@@ -31,6 +32,8 @@ async function generateDocs() {
         await generate3rdPartyDocs(sidebars)
         print('Copy over Contributing Guidelines')
         await copyContributingDocs()
+        print('Copy over Awesome Resources')
+        await downloadAwesomeResources()
 
         writeSidebars(sidebars)
     } catch (err) {

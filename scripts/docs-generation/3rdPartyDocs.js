@@ -1,8 +1,8 @@
 const fs = require('fs-extra')
 const path = require('path')
-const request = require('request')
 const urljoin = require('url-join')
 
+const { downloadFromGitHub } = require('../utils')
 const { buildPreface } = require('../utils/helpers')
 const reporters3rdParty = require('./3rd-party/reporters.json')
 const services3rdParty = require('./3rd-party/services.json')
@@ -15,8 +15,7 @@ const plugins = [{
 }, {
     category: 'api', namePlural: 'Testrunner', nameSingular: '', packages3rdParty: api3rdParty
 }]
-const githubHost = 'https://github.com/'
-const githubRawHost = 'https://raw.githubusercontent.com/'
+
 const githubReadme = '/README.md'
 
 const readmeHeaderLines = 9
@@ -36,7 +35,7 @@ exports.generate3rdPartyDocs = async (sidebars) => {
         await fs.ensureDir(categoryDir)
 
         for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme, branch = 'master' } of packages3rdParty) {
-            const readme = await downloadReadme(githubUrl, branch, location)
+            const readme = await downloadFromGitHub(githubUrl, branch, location)
             const id = `${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
             const doc = normalizeDoc(readme, githubUrl,
@@ -60,30 +59,6 @@ exports.generate3rdPartyDocs = async (sidebars) => {
             )
         }
     }
-}
-
-/**
- * Download README.md from github
- * @param {string}              githubUrl   github url to project
- * @param {string}              location    file location in repo
- * @return {Promise<string>}                readme content
- */
-function downloadReadme(githubUrl, branch, location = githubReadme) {
-    return new Promise((resolve, reject) => {
-        const url = `${githubUrl}/${branch}${location}`.replace(githubHost, githubRawHost)
-        // eslint-disable-next-line no-console
-        console.log(`Downloading: ${url}`)
-        request.get(url, (err, httpResponse, body) => {
-            if (err || httpResponse.statusCode !== 200 || !body) {
-                return reject({
-                    err,
-                    statusCode: httpResponse.statusCode,
-                    body
-                })
-            }
-            resolve(body)
-        })
-    })
 }
 
 /**

@@ -37,7 +37,7 @@ If you’re only fixing a bug, it’s fine to submit a pull request right away, 
 
 ## Work With The Code
 
-If you make any changes to the code, you want to test it quickly to see if they do what you expect. There are a couple of ways to do that in WebdriverIO. For one, you can link single sub-packages into your own project to see if the changes you've made have the effect you expected. Find a guide on how to [link changes to your current project](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#link-changes-to-your-current-project) in our contributing guide.
+If you make any changes to the code, you want to test it quickly to see if they do what you expect. There are a couple of ways to do that in WebdriverIO. For one, you can link single sub-packages into your own project to see if the changes you've made have the effect you expected.
 
 Another way to test changes in WebdriverIO is by using its [example directory](https://github.com/webdriverio/webdriverio/tree/main/examples) or by running its [smoke test suite](https://github.com/webdriverio/webdriverio/tree/main/tests). The example directory is a set of sample scripts that use WebdriverIO in various of ways. Here, you need to have a browser driver running to run the scripts. With the smoke test suite you can run various flavors of WebdriverIO within a predefined execution scenario. All of these scenarios are defined in our [WebDriver Mock Service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service) that mimics a browser driver by stubbing the endpoints with predefined responses. It is a great way to run WebdriverIO suites quickly without having to setup anything.
 
