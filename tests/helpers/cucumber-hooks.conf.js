@@ -11,17 +11,18 @@ exports.config = Object.assign({}, config, {
         browser.pause(30)
         browser.Cucumber_Test = 1
     },
-    beforeStep: async function (step, world) {
+    beforeStep: async function (step, scenario) {
         await browser.pause(20)
         browser.Cucumber_Test += 2
         browser.Cucumber_CurrentStepText = step.text
-        browser.Cucumber_CurrentWorld = world
+        browser.Cucumber_CurrentScenario = scenario.name
     },
-    afterStep: function (step, world) {
+    afterStep: function (step, scenario, passed) {
         browser.pause(25)
         if (
             browser.Cucumber_CurrentStepText !== step.text ||
-            browser.Cucumber_CurrentWorld !== world
+            browser.Cucumber_CurrentScenario !== scenario.name ||
+            typeof passed !== 'boolean'
         ) {
             throw new Error("step data doesn't match")
         }
