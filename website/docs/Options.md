@@ -112,7 +112,13 @@ Default:
 ```
 
 ### headers
-Specify custom `headers` to pass into every request.
+Specify custom `headers` to pass into every WebDriver request.
+
+:::caution
+
+These headers __aren't__ passed into browser request. If you are looking for modifying request headers of browser requests, please get involved in [#6361](https://github.com/webdriverio/webdriverio/issues/6361)!
+
+:::
 
 Type: `Object`<br />
 Default: `{}`
