@@ -17,12 +17,12 @@ exports.config = Object.assign({}, config, {
         browser.Cucumber_CurrentStepText = step.text
         browser.Cucumber_CurrentScenario = scenario.name
     },
-    afterStep: function (step, scenario, passed) {
+    afterStep: function (step, scenario, result) {
         browser.pause(25)
         if (
             browser.Cucumber_CurrentStepText !== step.text ||
             browser.Cucumber_CurrentScenario !== scenario.name ||
-            typeof passed !== 'boolean'
+            typeof result.passed !== 'boolean'
         ) {
             throw new Error("step data doesn't match")
         }
