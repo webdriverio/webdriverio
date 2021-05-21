@@ -281,7 +281,7 @@ class CucumberAdapter {
                 'passed': world.result?.status === Cucumber.Status.PASSED,
                 'error': world.result?.message,
                 'duration': world.result?.duration
-            };
+            }
             await executeHooksWithArgs(
                 'afterStep',
                 config.afterStep,
