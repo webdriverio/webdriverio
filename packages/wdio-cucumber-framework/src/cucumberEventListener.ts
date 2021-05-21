@@ -16,6 +16,8 @@ export default class CucumberEventListener extends EventEmitter {
     private _currentTestCase?: messages.ITestCaseStarted
     private _currentPickle?: HookParams = {}
     private _suiteMap: Map<string, string> = new Map()
+    private _currentFeature: messages.IGherkinDocument = {}
+    private _activeFeatures: messages.IGherkinDocument[] = []
 
     constructor (eventBroadcaster: EventEmitter, private _pickleFilter: PickleFilter) {
         super()
@@ -140,7 +142,6 @@ export default class CucumberEventListener extends EventEmitter {
         const id = this._suiteMap.size.toString()
         this._suiteMap.set(pickleEvent.id as string, id)
         const scenario = { ...pickleEvent, id }
-
         this._scenarios.push(scenario)
     }
 
@@ -153,6 +154,9 @@ export default class CucumberEventListener extends EventEmitter {
     //     }
     // }
     onTestRunStarted () {
+        if ( this._gherkinDocEvents.length > 1) {
+            return
+        }
         const doc = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
         this.emit('before-feature', doc.uri, doc.feature)
     }
@@ -252,7 +256,15 @@ export default class CucumberEventListener extends EventEmitter {
         }
 
         const doc = this._gherkinDocEvents.find(gde => gde.uri === scenario?.uri)
-
+        if (this._currentFeature.uri && this._currentFeature.feature && this._currentFeature != doc) {
+            this.emit('after-feature', this._currentFeature.uri, this._currentFeature.feature)
+            this._activeFeatures = this._activeFeatures.filter(it => it !== doc)
+        }
+        if (this._gherkinDocEvents.length > 1 && doc && !this._activeFeatures.includes(doc)) {
+            this._currentFeature = doc
+            this.emit('before-feature', this._currentFeature.uri, this._currentFeature.feature)
+            this._activeFeatures.push(doc)
+        }
         /**
          * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
          * on the scenario, they ARE on the feature.
@@ -365,6 +377,7 @@ export default class CucumberEventListener extends EventEmitter {
     // }
     onTestRunFinished () {
         delete this._currentTestCase
+
         const gherkinDocEvent = this._gherkinDocEvents.pop() // see .push() in `handleBeforeFeature()`
 
         /* istanbul ignore if */
