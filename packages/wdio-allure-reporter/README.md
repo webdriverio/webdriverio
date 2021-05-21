@@ -154,7 +154,7 @@ Screenshots can be attached to the report by using the `takeScreenshot` function
 First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook:
 
 ```js title="wdio.conf.js"
-afterStep: function (test, context, { error, result, duration, passed, retries }) {
+afterStep: function (test, scenario, { error, duration, passed }) {
   if (error) {
     browser.takeScreenshot();
   }
