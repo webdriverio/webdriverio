@@ -277,10 +277,15 @@ class CucumberAdapter {
         })
         Cucumber.AfterStep(async function wdioHookAfterStep(world: ITestCaseHookParameter) {
             const params = eventListener?.getHookParams()
+            let result = {
+                'passed': world.result?.status === Cucumber.Status.PASSED,
+                'error': world.result?.message,
+                'duration': world.result?.duration
+            };
             await executeHooksWithArgs(
                 'afterStep',
                 config.afterStep,
-                [params?.step, params?.scenario, world.result?.status === Cucumber.Status.PASSED]
+                [params?.step, params?.scenario, result]
             )
         })
     }
