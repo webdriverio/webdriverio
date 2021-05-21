@@ -396,6 +396,7 @@ export default class CucumberEventListener extends EventEmitter {
         delete this._currentTestCase
 
         if (this.usesSpecGrouping()) {
+            this.emit('after-feature', this._currentDoc.uri, this._currentDoc.feature)
             return
         }
 

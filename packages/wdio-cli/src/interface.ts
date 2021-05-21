@@ -95,7 +95,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onStart() {
-        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} spec files started at`), this._start.toISOString())
+        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} workers started at`), this._start.toISOString())
         if (this._inDebugMode) {
             this.log(chalk.bgYellow.black('DEBUG mode enabled!'))
         }
