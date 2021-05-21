@@ -129,5 +129,11 @@
     "title": "Auto-detect missing imports w/eslint",
     "githubUrl": "https://github.com/jamesmortensen/wdio-eslinter-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-eslinter-service"
+  },
+  {
+    "packageName": "wdio-ms-teams-service",
+    "title": "Microsoft Teams",
+    "githubUrl": "https://github.com/marcelblijleven/wdio-ms-teams-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-ms-teams-service"
   }
 ]
