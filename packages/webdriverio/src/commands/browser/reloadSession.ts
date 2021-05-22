@@ -41,6 +41,9 @@ export default async function reloadSession (this: WebdriverIO.Browser) {
         log.warn(`Suppressing error closing the session: ${err.stack}`)
     }
 
+    if (this.puppeteer)
+        this.puppeteer = undefined;
+
     const ProtocolDriver = require(this.options.automationProtocol!).default
     await ProtocolDriver.reloadSession(this)
 
