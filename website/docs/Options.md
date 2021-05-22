@@ -519,7 +519,7 @@ Runs before a Cucumber Step.
 
 Parameters:
 - `step`: (`Pickle.IPickleStep`): Cucumber step object
-- `context`: (`object`): execution context
+- `scenario`: (`object`): Cucucmber scenario object
 
 ### afterStep
 
@@ -527,6 +527,6 @@ Runs after a Cucumber Step.
 
 Parameters:
 - `step`: (`Pickle.IPickleStep`): Cucumber step object
-- `context`: (`object`): execution context (Cucumber `world` object)
-- `result`: (`object`): results object containing step results (contains `retries`, `error`, `result`, `duration`, `passed` properties)
+- `scenario`: (`object`): Cucumber scenario object
+- `result`: (`object`): results object containing step results (contains `error`, `duration`, `passed` properties)
 
