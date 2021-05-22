@@ -49,7 +49,12 @@ export default class SpecReporter extends WDIOReporter {
 
     onSuiteStart (suite: SuiteStats) {
         this._suiteUids.add(suite.uid)
-        this._suiteIndents[suite.uid] = ++this._indents
+        if (suite.type === 'feature') {
+            this._indents = 0
+            this._suiteIndents[suite.uid] = this._indents
+        } else {
+            this._suiteIndents[suite.uid] = ++this._indents
+        }
     }
 
     onSuiteEnd () {

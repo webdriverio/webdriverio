@@ -4,8 +4,10 @@ export const supportCodeLibraryBuilder = {
     options: {
         beforeTestRunHookDefinitions: [],
         beforeTestCaseHookDefinitions: [],
+        beforeTestStepHookDefinitions: [],
+        afterTestStepHookDefinitions: [],
         afterTestCaseHookDefinitions: [],
-        afterTestRunHookDefinitions: [],
+        afterTestRunHookDefinitions: []
     },
     reset: jest.fn(),
     finalize: jest.fn()
@@ -31,5 +33,7 @@ export const Status = RealStatus
 
 export const Before = jest.fn()
 export const After = jest.fn()
+export const BeforeStep = jest.fn()
+export const AfterStep = jest.fn()
 export const BeforeAll = jest.fn()
 export const AfterAll = jest.fn()

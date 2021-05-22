@@ -60,7 +60,6 @@ Given(`${stepText} {string}`, function (url) {
     // World
     assert.strictEqual(typeof this.attach, 'function')
     assert.strictEqual(browser.Cucumber_CurrentStepText.startsWith(stepText), true)
-    assert.strictEqual(browser.Cucumber_CurrentWorld, this)
 
     browser.url(url)
 })

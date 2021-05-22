@@ -235,7 +235,7 @@ class CucumberAdapter {
      * set `beforeScenario`, `afterScenario`, `beforeFeature`, `afterFeature`
      * @param {object} config config
      */
-    addWdioHooks (config: Options.Testrunner) {
+    addWdioHooks(config: Options.Testrunner) {
         const eventListener = this._cucumberReporter?.eventListener
         Cucumber.BeforeAll(async function wdioHookBeforeFeature() {
             const params = eventListener?.getHookParams()
@@ -253,18 +253,39 @@ class CucumberAdapter {
                 [params?.uri, params?.feature]
             )
         })
-        Cucumber.Before(async function wdioHookBeforeScenario (world: ITestCaseHookParameter) {
+        Cucumber.Before(async function wdioHookBeforeScenario(world: ITestCaseHookParameter) {
             await executeHooksWithArgs(
                 'beforeScenario',
                 config.beforeScenario,
                 [world]
             )
         })
-        Cucumber.After(async function wdioHookAfterScenario (world: ITestCaseHookParameter) {
+        Cucumber.After(async function wdioHookAfterScenario(world: ITestCaseHookParameter) {
             await executeHooksWithArgs(
                 'afterScenario',
                 config.afterScenario,
                 [world]
+            )
+        })
+        Cucumber.BeforeStep(async function wdioHookBeforeStep() {
+            const params = eventListener?.getHookParams()
+            await executeHooksWithArgs(
+                'beforeStep',
+                config.beforeStep,
+                [params?.step, params?.scenario]
+            )
+        })
+        Cucumber.AfterStep(async function wdioHookAfterStep(world: ITestCaseHookParameter) {
+            const params = eventListener?.getHookParams()
+            let result = {
+                'passed': world.result?.status === Cucumber.Status.PASSED,
+                'error': world.result?.message,
+                'duration': world.result?.duration
+            }
+            await executeHooksWithArgs(
+                'afterStep',
+                config.afterStep,
+                [params?.step, params?.scenario, result]
             )
         })
     }
@@ -300,10 +321,10 @@ class CucumberAdapter {
     /**
      * wrap step definition to enable retry ability
      * @param   {Function}  code            step definition
-     * @param   {Number}    retryTest       amount of allowed repeats is case of a failure
      * @param   {boolean}   isStep
      * @param   {object}    config
      * @param   {string}    cid             cid
+     * @param   {StepDefinitionOptions} options
      * @param   {Function}  getHookParams  step definition
      * @return  {Function}                  wrapped step definition for sync WebdriverIO code
      */
@@ -322,8 +343,8 @@ class CucumberAdapter {
             /**
              * wrap user step/hook with wdio before/after hooks
              */
-            const beforeFn = isStep ? config.beforeStep : config.beforeHook
-            const afterFn = isStep ? config.afterStep : config.afterHook
+            const beforeFn = config.beforeHook
+            const afterFn = config.afterHook
             return testFnWrapper.call(this,
                 isStep ? 'Step' : 'Hook',
                 { specFn: code, specFnArgs: args },
