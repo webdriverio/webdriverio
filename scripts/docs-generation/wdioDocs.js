@@ -1,18 +1,9 @@
 const fs = require('fs')
 const path = require('path')
-const markdox = require('markdox')
-const { promisify } = require('util')
-
-const formatter = require('../utils/formatter')
-const compiler = require('../utils/compiler')
+const jsdoc2md = require('jsdoc-to-markdown')
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
-const MARKDOX_OPTIONS = {
-    formatter: formatter,
-    compiler: compiler,
-    template: TEMPLATE_PATH
-}
 
-const processDocs = promisify(markdox.process)
+const processDocs = (jsdoc2md.render)
 
 /**
  * Generate WebdriverIO docs
@@ -43,11 +34,11 @@ exports.generateWdioDocs = async (sidebars) => {
             }
 
             const filepath = path.join(COMMAND_DIR, scope, file)
-            const output = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
-            const options = Object.assign({}, MARKDOX_OPTIONS, { output })
-            await processDocs(filepath, options)
-            console.log(`Generated docs for ${scope}/${file} - ${output}`)
-
+            const outputpath = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
+            const out = await processDocs({data:[filepath],template:TEMPLATE_PATH })
+            fs.writeFileSync(outputpath, out)
+            
+            console.log(`Generated docs for ${scope}/${file} - ${outputpath}`)
             sidebars.api[sidebars.api.length - 1].items
                 .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
         }
