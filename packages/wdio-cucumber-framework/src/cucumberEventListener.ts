@@ -16,6 +16,8 @@ export default class CucumberEventListener extends EventEmitter {
     private _currentTestCase?: messages.ITestCaseStarted
     private _currentPickle?: HookParams = {}
     private _suiteMap: Map<string, string> = new Map()
+    private _currentDoc: messages.IGherkinDocument = {}
+    private _startedFeatures: string[] = []
 
     constructor (eventBroadcaster: EventEmitter, private _pickleFilter: PickleFilter) {
         super()
@@ -54,6 +56,14 @@ export default class CucumberEventListener extends EventEmitter {
                 log.debug(`Unknown envelope received: ${JSON.stringify(envelope, null, 4)}`)
             }
         })
+    }
+
+    usesSpecGrouping() {
+        return this._gherkinDocEvents.length > 1
+    }
+
+    featureIsStarted(feature: string) {
+        return this._startedFeatures.includes(feature)
     }
 
     // {
@@ -140,7 +150,6 @@ export default class CucumberEventListener extends EventEmitter {
         const id = this._suiteMap.size.toString()
         this._suiteMap.set(pickleEvent.id as string, id)
         const scenario = { ...pickleEvent, id }
-
         this._scenarios.push(scenario)
     }
 
@@ -153,6 +162,9 @@ export default class CucumberEventListener extends EventEmitter {
     //     }
     // }
     onTestRunStarted () {
+        if (this.usesSpecGrouping()) {
+            return
+        }
         const doc = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
         this.emit('before-feature', doc.uri, doc.feature)
     }
@@ -242,17 +254,27 @@ export default class CucumberEventListener extends EventEmitter {
     // }
     onTestCaseStarted (testcase: messages.ITestCaseStarted) {
         this._currentTestCase = testcase
-        const { uri, feature } = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
+
         const tc = this._testCases.find(tc => tc.id === testcase.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(tc?.pickleId as string))
-
         /* istanbul ignore if */
         if (!scenario) {
             return
         }
 
         const doc = this._gherkinDocEvents.find(gde => gde.uri === scenario?.uri)
+        const uri = doc?.uri
+        const feature = doc?.feature
 
+        if (this._currentDoc.uri && this._currentDoc.feature && this.usesSpecGrouping() && doc != this._currentDoc && this.featureIsStarted(this._currentDoc.uri)) {
+            this.emit('after-feature', this._currentDoc.uri, this._currentDoc.feature)
+        }
+
+        if (this.usesSpecGrouping() && doc && doc.uri && !this.featureIsStarted(doc.uri)) {
+            this.emit('before-feature', doc.uri, doc.feature)
+            this._currentDoc = doc
+            this._startedFeatures.push(doc.uri)
+        }
         /**
          * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
          * on the scenario, they ARE on the feature.
@@ -277,11 +299,14 @@ export default class CucumberEventListener extends EventEmitter {
     //     }
     // }
     onTestStepStarted (testStepStartedEvent: messages.ITestStepStarted) {
-        const { uri, feature } = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
         const testcase = this._testCases.find((testcase) => this._currentTestCase && testcase.id === this._currentTestCase.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(testcase?.pickleId as string))
         const teststep = testcase?.testSteps?.find((step) => step.id === testStepStartedEvent.testStepId)
         const step = scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) || teststep
+
+        const doc = this._gherkinDocEvents.find(gde => gde.uri === scenario?.uri)
+        const uri = doc?.uri
+        const feature = doc?.feature
 
         /* istanbul ignore if */
         if (!step) {
@@ -310,12 +335,15 @@ export default class CucumberEventListener extends EventEmitter {
     //     }
     // }
     onTestStepFinished (testStepFinishedEvent: messages.ITestStepFinished) {
-        const { uri, feature } = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
         const testcase = this._testCases.find((testcase) => testcase.id === this._currentTestCase?.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(testcase?.pickleId as string))
         const teststep = testcase?.testSteps?.find((step) => step.id === testStepFinishedEvent.testStepId)
         const step = scenario?.steps?.find((s) => s.id === teststep?.pickleStepId) || teststep
         const result = testStepFinishedEvent.testStepResult
+
+        const doc = this._gherkinDocEvents.find(gde => gde.uri === scenario?.uri)
+        const uri = doc?.uri
+        const feature = doc?.feature
 
         /* istanbul ignore if */
         if (!step) {
@@ -338,7 +366,6 @@ export default class CucumberEventListener extends EventEmitter {
     onTestCaseFinished (
         results: messages.TestStepFinished.ITestStepResult[]
     ) {
-        const { uri, feature } = this._gherkinDocEvents[this._gherkinDocEvents.length - 1]
         const tc = this._testCases.find(tc => tc.id === this._currentTestCase?.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(tc?.pickleId as string))
 
@@ -353,6 +380,8 @@ export default class CucumberEventListener extends EventEmitter {
         const finalResult = results.find((r) => r.status !== Status.PASSED) || results.pop()
 
         const doc = this._gherkinDocEvents.find(gde => gde.uri === scenario?.uri)
+        const uri = doc?.uri
+        const feature = doc?.feature
         this._currentPickle = { uri, feature, scenario }
         this.emit('after-scenario', doc?.uri, doc?.feature, scenario, finalResult)
     }
@@ -365,6 +394,12 @@ export default class CucumberEventListener extends EventEmitter {
     // }
     onTestRunFinished () {
         delete this._currentTestCase
+
+        if (this.usesSpecGrouping()) {
+            this.emit('after-feature', this._currentDoc.uri, this._currentDoc.feature)
+            return
+        }
+
         const gherkinDocEvent = this._gherkinDocEvents.pop() // see .push() in `handleBeforeFeature()`
 
         /* istanbul ignore if */
