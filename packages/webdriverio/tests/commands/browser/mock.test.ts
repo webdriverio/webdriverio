@@ -13,7 +13,8 @@ const pageMock = {
     evaluate: jest.fn().mockReturnValue(Promise.resolve(true))
 }
 const puppeteerMock = {
-    pages: jest.fn().mockReturnValue([pageMock])
+    pages: jest.fn().mockReturnValue([pageMock]),
+    isConnected: jest.fn().mockReturnValue(true)
 }
 
 jest.mock('../../../src/utils/interception/webdriver', () => class {
