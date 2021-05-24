@@ -25,7 +25,12 @@ export interface CoverageReporterOptions {
     /**
      * Options for coverage report
      */
-    options?: any
+    options?: any,
+    /**
+     * Include/exclude code coverage files
+     */
+     include?: string[];
+     exclude?: string[];
 }
 
 export type FormFactor = 'mobile' | 'desktop' | 'none'
