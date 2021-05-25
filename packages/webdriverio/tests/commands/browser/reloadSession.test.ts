@@ -120,6 +120,41 @@ describe('reloadSession test', () => {
         expect(hook).toBeCalledWith(null, scenario.newSessionId)
     })
 
+    it('should disconnect puppeteer session if active', async () => {
+
+        const clientMock = {
+            send: jest.fn(),
+            on: jest.fn()
+        }
+
+        const pageMock = {
+            target: jest.fn().mockReturnValue({
+                createCDPSession: jest.fn().mockReturnValue(Promise.resolve(clientMock))
+            }),
+            evaluate: jest.fn().mockReturnValue(Promise.resolve(true))
+        }
+
+        const puppeteerMock = {
+            pages: jest.fn().mockReturnValue([pageMock]),
+            isConnected: jest.fn().mockReturnValue(true),
+            disconnect: jest.fn()
+        }
+        const hook = jest.fn()
+
+        let browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                // @ts-ignore mock feature
+                browserName: 'chrome'
+            },
+            onReload: [hook]
+        })
+        browser.puppeteer = puppeteerMock
+        await browser.mock('/foobar')
+        await browser.reloadSession()
+        expect(puppeteerMock.disconnect).toBeCalled()
+    })
+
     afterEach(() => {
         got.mockClear()
         got.resetSessionId()
