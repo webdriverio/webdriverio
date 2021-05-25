@@ -2,6 +2,14 @@ const fs = require('fs')
 const path = require('path')
 const jsdoc2md = require('jsdoc-to-markdown')
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
+const formatter = require('../utils/formatter')
+const compiler = require('../utils/compiler')
+
+const JSDOC_OPTIONS = {
+    formatter: formatter,
+    compiler: compiler,
+    template: TEMPLATE_PATH
+}
 
 const processDocs = (jsdoc2md.render)
 
@@ -35,12 +43,11 @@ exports.generateWdioDocs = async (sidebars) => {
 
             const filepath = path.join(COMMAND_DIR, scope, file)
             const outputpath = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
-            const out = await processDocs({data:[filepath],template:TEMPLATE_PATH })
+            const out = await processDocs({data:[filepath],template:TEMPLATE_PATH, options:JSDOC_OPTIONS}) 
             fs.writeFileSync(outputpath, out)
             
             console.log(`Generated docs for ${scope}/${file} - ${outputpath}`)
-            sidebars.api[sidebars.api.length - 1].items
-                .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
+            sidebars.api[sidebars.api.length - 1].items.push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
         }
     }
 }
