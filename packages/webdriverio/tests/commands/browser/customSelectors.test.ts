@@ -21,6 +21,7 @@ describe('custom$', () => {
         const elems = await browser.custom$$('test', '.test')
 
         expect(elems).toHaveLength(2)
+        expect(typeof elems.selector).toBe('function')
         expect(elems[0].elementId).toBe('.test-foobar')
         expect(elems[1].elementId).toBe('.test-other-foobar')
         expect(elems.foundWith).toBe('custom$$')

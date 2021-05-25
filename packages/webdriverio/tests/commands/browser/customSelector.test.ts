@@ -19,6 +19,7 @@ describe('custom$', () => {
 
         const elem = await browser.custom$('test', '.test')
         expect(elem.elementId).toBe('.test-foobar')
+        expect(typeof elem.selector).toBe('function')
     })
 
     it('should error if no strategy found', async () => {
