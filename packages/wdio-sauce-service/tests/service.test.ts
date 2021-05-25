@@ -770,8 +770,27 @@ test('updateUP should set job status to false', () => {
     expect(browser.execute).toBeCalledWith('sauce:job-result=true')
 })
 
-afterEach(() => {
+test('afterHook', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_reportErrorLog'] = jest.fn()
+    expect(service['_failures']).toBe(0)
+    expect(service['_reportErrorLog']).toHaveBeenCalledTimes(0)
+
     // @ts-expect-error
+    service.afterHook(undefined, undefined, { passed: true })
+    expect(service['_failures']).toBe(0)
+    expect(service['_reportErrorLog']).toHaveBeenCalledTimes(0)
+
+    // @ts-expect-error
+    service.afterHook(undefined, undefined, {
+        error: new Error('foo'),
+        passed: false
+    })
+    expect(service['_failures']).toBe(1)
+    expect(service['_reportErrorLog']).toHaveBeenCalledTimes(1)
+})
+
+afterEach(() => {
     browser = undefined
     ;(got.put as jest.Mock).mockClear()
 })
