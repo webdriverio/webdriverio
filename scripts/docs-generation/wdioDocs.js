@@ -43,7 +43,7 @@ exports.generateWdioDocs = async (sidebars) => {
 
             const filepath = path.join(COMMAND_DIR, scope, file)
             const outputpath = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
-            const out = await processDocs({data:[filepath],template:TEMPLATE_PATH, options:JSDOC_OPTIONS}) 
+            const out = await processDocs({data:[filepath], options:JSDOC_OPTIONS}) 
             fs.writeFileSync(outputpath, out)
             
             console.log(`Generated docs for ${scope}/${file} - ${outputpath}`)
