@@ -118,16 +118,19 @@ export default class SauceService implements Services.ServiceInstance {
         }
     }
 
+    private _reportErrorLog (error: Error) {
+        const lines = (error.stack || '').split(/\r?\n/).slice(0, this._maxErrorStackLength)
+        lines.forEach((line:string) => this._browser!.execute('sauce:context=' + line))
+    }
+
     afterTest (test: Frameworks.Test, context: unknown, results: Frameworks.TestResult) {
         /**
          * If the test failed push the stack to Sauce Labs in separate lines
          * This should not be done for UP because it's not supported yet and
          * should be removed when UP supports `sauce:context`
          */
-        const { error } = results
-        if (error && !this._isUP){
-            const lines = error.stack.split(/\r?\n/).slice(0, this._maxErrorStackLength)
-            lines.forEach((line:string) => this._browser!.execute('sauce:context=' + line))
+        if (results.error && !this._isUP){
+            this._reportErrorLog(results.error)
         }
 
         /**
@@ -153,6 +156,21 @@ export default class SauceService implements Services.ServiceInstance {
             )
         ) {
             return
+        }
+
+        if (!results.passed) {
+            ++this._failures
+        }
+    }
+
+    afterHook (test: never, context: never, results: Frameworks.TestResult) {
+        /**
+         * If the test failed push the stack to Sauce Labs in separate lines
+         * This should not be done for UP because it's not supported yet and
+         * should be removed when UP supports `sauce:context`
+         */
+        if (results.error && !this._isUP){
+            this._reportErrorLog(results.error)
         }
 
         if (!results.passed) {
