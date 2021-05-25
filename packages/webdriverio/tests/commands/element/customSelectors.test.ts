@@ -23,6 +23,8 @@ describe('custom$', () => {
         const elems = await elem.custom$$('test', '.test')
 
         expect(elems).toHaveLength(2)
+        expect(typeof elems.selector).toBe('function')
+        expect(typeof elems[0].selector).toBe('function')
         expect(elems[0].elementId).toBe('.test-some-elem-123')
         expect(elems[1].elementId).toBe('.test-other-some-elem-123')
         expect(elems.foundWith).toBe('custom$$')
