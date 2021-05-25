@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@types/fs-extra": "^9.0.1",
-    "@types/node": "^14.14.31",
+    "@types/node": "^15.6.1",
     "@types/selenium-standalone": "^6.15.2",
     "@wdio/config": "7.6.0",
     "@wdio/logger": "7.5.3",
