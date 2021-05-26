@@ -67,19 +67,29 @@ export default class CoverageGatherer extends EventEmitter {
         /**
          * continue with requests that aren't part of include patterns
          */
+        var includeFlag = false;
          for(const includeFile of this._options.include){
-            if(!request.url.match(includeFile)){
-                return this._client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */ (err) => log.debug(err.message));
+            if(request.url.match(includeFile)){
+                includeFlag = true;
+                break;
             }
+        }
+        if(!includeFlag){
+            return this._client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */ (err) => log.debug(err.message));
         }
 
         /**
          * continue with requests that are part of exclude patterns
          */
+        var excludeFlag = false;
         for(const excludeFile of this._options.exclude){
             if(request.url.match(excludeFile)){
-                return this._client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */ (err) => log.debug(err.message));
+                excludeFlag = true;
+                break;
             }
+        }
+        if(excludeFlag){
+            return this._client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */ (err) => log.debug(err.message));
         }
 
         /**
