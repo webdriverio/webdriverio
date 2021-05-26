@@ -54,47 +54,32 @@ export default class CoverageGatherer extends EventEmitter {
             return
         }
 
+        
         /**
          * continue with requests that aren't JS files
          */
+        var skipCoverageFlag = false;
         if (!request.url.endsWith('.js')) {
-            return this._client.send(
-                'Fetch.continueRequest',
-                { requestId }
-            ).catch(/* istanbul ignore next */ (err: Error) => log.debug(err.message))
+            skipCoverageFlag = true;
         }
-        
-        /**
-         * continue with requests that aren't part of include patterns
-         */
-         if(this._options.include){
-            var includeFlag = false;
-            for(const includeFile of this._options.include){
-                if(request.url.match(includeFile)){
-                    includeFlag = true;
-                    break;
-                }
-            }
-            if(!includeFlag){
-                return this._client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */ (err) => log.debug(err.message));
-            }
-        }
-         
 
         /**
          * continue with requests that are part of exclude patterns
          */
         if(this._options.exclude){
-            var excludeFlag = false;
             for(const excludeFile of this._options.exclude){
                 if(request.url.match(excludeFile)){
-                    excludeFlag = true;
+                    skipCoverageFlag = true;
                     break;
                 }
             }
-            if(excludeFlag){
-                return this._client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */ (err) => log.debug(err.message));
-            }
+        }
+
+        if(skipCoverageFlag){
+            return this._client.send(
+                'Fetch.continueRequest',
+                { requestId }
+            ).catch(/* istanbul ignore next */ (err: Error) => log.debug(err.message))
         }
 
         /**

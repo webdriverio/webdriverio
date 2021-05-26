@@ -27,9 +27,8 @@ export interface CoverageReporterOptions {
      */
     options?: any,
     /**
-     * Include/exclude code coverage files
+     * Exclude code coverage files
      */
-     include?: any[];
      exclude?: any[];
 }
 
