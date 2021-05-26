@@ -54,7 +54,6 @@ export default class CoverageGatherer extends EventEmitter {
             return
         }
 
-        
         /**
          * continue with requests that aren't JS files
          */
