@@ -59,7 +59,7 @@ export default class CoverageGatherer extends EventEmitter {
          */
         var skipCoverageFlag = false
         if (!request.url.endsWith('.js')) {
-            skipCoverageFlag = true;
+            skipCoverageFlag = true
         }
 
         /**
