@@ -519,7 +519,7 @@ Runs before a Cucumber Step.
 
 Parameters:
 - `step`: (`Pickle.IPickleStep`): Cucumber step object
-- `scenario`: (`object`): Cucucmber scenario object
+- `scenario`: (`IPickle`): Cucumber scenario object
 
 ### afterStep
 
@@ -527,6 +527,6 @@ Runs after a Cucumber Step.
 
 Parameters:
 - `step`: (`Pickle.IPickleStep`): Cucumber step object
-- `scenario`: (`object`): Cucumber scenario object
-- `result`: (`object`): results object containing step results (contains `error`, `duration`, `passed` properties)
+- `scenario`: (`IPickle`): Cucumber scenario object
+- `result`: (`object`): results object containing step results {passed: boolean, error: string, duration: messages.IDuration}
 
