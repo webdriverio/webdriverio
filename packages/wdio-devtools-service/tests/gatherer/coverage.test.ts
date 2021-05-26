@@ -128,6 +128,26 @@ describe('CoverageGatherer', () => {
         )).toBe(true)
     })
 
+    it('_handleRequests should return if file is part of exclude', async () => {
+        const gatherer = new CoverageGatherer(pageMock, {
+            exclude: [/.*foo.js/]
+        })
+
+        await gatherer.init()
+        await gatherer['_handleRequests']({
+            requestId: '123',
+            request: {
+                url: 'http://json.org/foo.js'
+            },
+            responseStatusCode: 444
+        })
+
+        expect(sessionMock.send).toBeCalledTimes(2)
+        expect(sessionMock.send.mock.calls.pop())
+            .toEqual(['Fetch.continueRequest', { requestId: '123' }])
+        expect(babelTransform).toBeCalledTimes(0)
+    })
+
     it('_clearCaptureInterval', () => {
         const gatherer = new CoverageGatherer(pageMock, {})
         gatherer['_clearCaptureInterval']()
