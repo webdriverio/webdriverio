@@ -25,7 +25,7 @@ export interface CoverageReporterOptions {
     /**
      * Options for coverage report
      */
-    options?: any,
+    options?: any
     /**
      * Exclude code coverage files
      * @default []
