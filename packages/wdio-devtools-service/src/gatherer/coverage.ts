@@ -68,7 +68,7 @@ export default class CoverageGatherer extends EventEmitter {
         if(this._options.exclude){
             for(const excludeFile of this._options.exclude){
                 if(request.url.match(excludeFile)){
-                    skipCoverageFlag = true;
+                    skipCoverageFlag = true
                     break;
                 }
             }
