@@ -122,6 +122,11 @@ npm i allure-commandline
 Then add or extend your `onComplete` hook or create a [custom service](/docs/customservices) for this:
 
 ```js
+// wdio.conf.js
+const allure = require('allure-commandline')
+
+exports.config = {
+    // ...
     onComplete: function() {
         const reportError = new Error('Could not generate Allure report')
         const generation = allure(['generate', 'allure-results', '--clean'])
@@ -142,6 +147,8 @@ Then add or extend your `onComplete` hook or create a [custom service](/docs/cus
             })
         })
     }
+    // ...
+}
 ```
 
 ### Jenkins

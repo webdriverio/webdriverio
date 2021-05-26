@@ -19,6 +19,33 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.6.1 (2021-05-25)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#6896](https://github.com/webdriverio/webdriverio/pull/6896) Closes [#6786](https://github.com/webdriverio/webdriverio/issues/6786) ([@jonn-set](https://github.com/jonn-set))
+* `wdio-allure-reporter`, `wdio-cucumber-framework`
+  * [#6874](https://github.com/webdriverio/webdriverio/pull/6874) 6859 - Fixes the issue where wdio before/after Step gets wrapped around a Cucumber Before/After Step ([@jonn-set](https://github.com/jonn-set))
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-cucumber-framework`, `wdio-spec-reporter`
+  * [#6836](https://github.com/webdriverio/webdriverio/pull/6836) Modifies the cucumberEventListener to emit before-feature and after-feature events differently when using spec grouping configurations ([@mikesalvia](https://github.com/mikesalvia))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#6893](https://github.com/webdriverio/webdriverio/pull/6893) Add custom wdio-ms-teams-service ([@marcelblijleven](https://github.com/marcelblijleven))
+  * [#6862](https://github.com/webdriverio/webdriverio/pull/6862) Adding wdio-eslinter-service to auto-detect missing require imports i… ([@jamesmortensen](https://github.com/jamesmortensen))
+* Other
+  * [#6875](https://github.com/webdriverio/webdriverio/pull/6875) Add missing documentation on returned Cucumber afterStep 'results' object ([@esaari](https://github.com/esaari))
+
+#### Committers: 5
+- Eric Saari ([@esaari](https://github.com/esaari))
+- James ([@jamesmortensen](https://github.com/jamesmortensen))
+- Johnson E ([@jonn-set](https://github.com/jonn-set))
+- Marcel Blijleven ([@marcelblijleven](https://github.com/marcelblijleven))
+- Mike Salvia ([@mikesalvia](https://github.com/mikesalvia))
+
+
 ## v7.6.0 (2021-05-17)
 
 #### :rocket: New Feature

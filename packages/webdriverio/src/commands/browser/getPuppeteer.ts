@@ -1,8 +1,11 @@
 import puppeteer from 'puppeteer-core'
+import logger from '@wdio/logger'
 import { Capabilities } from '@wdio/types'
 import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import { FF_REMOTE_DEBUG_ARG } from '../../constants'
+
+const log = logger('webdriverio')
 
 /**
  * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
@@ -44,7 +47,8 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
      * check if we already connected Puppeteer and if so return
      * that instance
      */
-    if (this.puppeteer) {
+    if (this.puppeteer?.isConnected()) {
+        log.debug('Reusing existing puppeteer session')
         return this.puppeteer
     }
 

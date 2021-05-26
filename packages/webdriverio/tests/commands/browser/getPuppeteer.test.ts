@@ -114,9 +114,11 @@ describe('attach Puppeteer', () => {
                     debuggerAddress: 'localhost:1234'
                 }
             },
-            puppeteer: 'foobar'
+            puppeteer: {
+                isConnected: jest.fn().mockReturnValue(true)
+            }
         })
-        expect(pptr).toBe('foobar')
+        expect(typeof pptr).toBe('object')
         expect(puppeteerConnect).toHaveBeenCalledTimes(0)
     })
 
