@@ -28,8 +28,9 @@ export interface CoverageReporterOptions {
     options?: any,
     /**
      * Exclude code coverage files
+     * @default []
      */
-     exclude?: any[];
+    exclude?: (RegExp | string)[]
 }
 
 export type FormFactor = 'mobile' | 'desktop' | 'none'
