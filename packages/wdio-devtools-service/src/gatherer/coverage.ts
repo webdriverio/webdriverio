@@ -57,7 +57,7 @@ export default class CoverageGatherer extends EventEmitter {
         /**
          * continue with requests that aren't JS files
          */
-        var skipCoverageFlag = false
+        let skipCoverageFlag = false
         if (!request.url.endsWith('.js')) {
             skipCoverageFlag = true
         }
