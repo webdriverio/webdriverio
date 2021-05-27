@@ -285,6 +285,18 @@ describe('frames', () => {
         await browser.switchToFrame(null)
         expect(await browser.getTitle()).toBe('The Internet')
     })
+
+    it('allows to switch to parent frame even if there isn\'t any', async () => {
+        await browser.url('http://guinea-pig.webdriver.io/two.html')
+        expect(await browser.getTitle()).toBe('two')
+        const iframe = await browser.findElement('css selector', 'iframe')
+        await browser.switchToFrame(iframe)
+        expect(await browser.getTitle()).toBe('Light Bikes from Eric Corriel on Vimeo')
+        await browser.switchToFrame(null)
+        expect(await browser.getTitle()).toBe('two')
+        await browser.switchToFrame(null)
+        expect(await browser.getTitle()).toBe('two')
+    })
 })
 
 describe('executeScript', () => {

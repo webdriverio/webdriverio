@@ -24,13 +24,20 @@ export default async function switchToFrame (
     /**
      * switch to parent frame
      */
-    if (id === null && typeof page.parentFrame === 'function') {
+    if (id === null) {
+        /**
+         * if we are already in the parent frame, don't do anything
+         */
+        if (typeof page.parentFrame !== 'function') {
+            return { id: null }
+        }
+
         let parentFrame = await page.parentFrame()
         while (parentFrame) {
             parentFrame = await parentFrame.parentFrame()
         }
         this.currentFrame = parentFrame as unknown as Page
-        return null
+        return { id: null }
     }
 
     /**
@@ -51,7 +58,7 @@ export default async function switchToFrame (
         }
 
         this.currentFrame = contentFrame as unknown as Page
-        return null
+        return { id: idAsElementReference[ELEMENT_KEY] }
     }
 
     /**
@@ -70,7 +77,7 @@ export default async function switchToFrame (
         }
 
         this.currentFrame = childFrame as unknown as Page
-        return null
+        return { id: childFrame._id }
     }
 
     throw new Error(`Could not switch frame, unknown id: ${id}`)
