@@ -58,20 +58,10 @@ class Launcher {
         this.configParser = new ConfigParser()
 
         /**
-         * autocompile before parsing configs so we support ES6 features in configs, only if
+         * merge auto compile opts to understand how to parse the config
          */
-        if (
-            /**
-             * the auto compile option is not define in this case we automatically compile
-             */
-            typeof _args.autoCompileOpts?.autoCompile === 'undefined' ||
-            /**
-             * or it was define and its value is not false
-             */
-            (_args.autoCompileOpts?.autoCompile as any as string) !== 'false'
-        ) {
-            this.configParser.autoCompile()
-        }
+        this.configParser.merge({ autoCompileOpts: _args.autoCompileOpts })
+        this.configParser.autoCompile()
 
         this.configParser.addConfigFile(_configFilePath)
         this.configParser.merge(_args)
