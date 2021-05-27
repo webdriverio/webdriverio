@@ -29,6 +29,7 @@ jest.mock('form-data', () => jest.fn().mockReturnValue({
 jest.mock('../src/utils', () => {
     return {
         isUnifiedPlatform: jest.fn().mockReturnValue(true),
+        ansiRegex: jest.requireActual('../src/utils').ansiRegex
     }
 })
 
@@ -788,6 +789,14 @@ test('afterHook', () => {
     })
     expect(service['_failures']).toBe(1)
     expect(service['_reportErrorLog']).toHaveBeenCalledTimes(1)
+})
+
+test('strip ansi from _reportErrorLog', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_browser'] = { execute: jest.fn() } as any
+    const error = new Error('Received: [31m""[39m')
+    service['_reportErrorLog'](error)
+    expect(service['_browser'].execute).toBeCalledWith('sauce:context=Error: Received: ""')
 })
 
 afterEach(() => {

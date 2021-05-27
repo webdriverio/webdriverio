@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { isUnifiedPlatform } from './utils'
+import { isUnifiedPlatform, ansiRegex } from './utils'
 import { SauceServiceConfig } from './types'
 import { DEFAULT_OPTIONS } from './constants'
 
@@ -120,7 +120,7 @@ export default class SauceService implements Services.ServiceInstance {
 
     private _reportErrorLog (error: Error) {
         const lines = (error.stack || '').split(/\r?\n/).slice(0, this._maxErrorStackLength)
-        lines.forEach((line:string) => this._browser!.execute('sauce:context=' + line))
+        lines.forEach((line:string) => this._browser!.execute(`sauce:context=${line.replace(ansiRegex(), '')}`))
     }
 
     afterTest (test: Frameworks.Test, context: unknown, results: Frameworks.TestResult) {
