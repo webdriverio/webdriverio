@@ -339,9 +339,25 @@ test('getPageHandle', () => {
 
     expect(driver.getPageHandle(true)).toBe('barfoo')
 
-    driver.windows = { get: jest.fn().mockReturnValue(undefined) }
+    driver.windows = { get: jest.fn().mockReturnValue(undefined) } as any
     expect(() => driver.getPageHandle()).toThrow(/find page handle/)
 
     delete driver.currentWindowHandle
     expect(() => driver.getPageHandle()).toThrow(/no current window/)
+})
+
+test('_targetCreatedHandler', async () => {
+    expect(driver.windows.size).toBe(1)
+    await driver['_targetCreatedHandler']({ page: jest.fn().mockReturnValue(Promise.resolve(null)) } as any)
+    expect(driver.windows.size).toBe(1)
+    await driver['_targetCreatedHandler']({ page: jest.fn().mockReturnValue(Promise.resolve('foobar')) } as any)
+    expect(driver.windows.size).toBe(2)
+})
+
+test('_targetDestroyedHandler', async () => {
+    const target = { page: jest.fn().mockReturnValue(Promise.resolve('foobar')) } as any
+    await driver['_targetCreatedHandler'](target)
+    expect(driver.windows.size).toBe(2)
+    await driver['_targetDestroyedHandler'](target)
+    expect(driver.windows.size).toBe(1)
 })
