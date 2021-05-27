@@ -47,6 +47,7 @@ const page = {
 }
 
 const browser = {
+    on: jest.fn(),
     pages: jest.fn().mockImplementation(async () => {
         page.mainFrame = jest.fn().mockImplementation(() => frame)
         ++evaluateCommandCalls
@@ -93,6 +94,8 @@ beforeEach(() => {
 test('can be initiated', () => {
     expect(driver.commands).toEqual({ click: 'clickCommand', getAttribute: 'getAttributeCommand' })
     expect(driver.browser).toEqual(browser)
+    expect(browser.on).toBeCalledWith('targetcreated', expect.any(Function))
+    expect(browser.on).toBeCalledWith('targetdestroyed', expect.any(Function))
     expect(page.on).toBeCalledWith('dialog', expect.any(Function))
     expect(page.on).toBeCalledWith('framenavigated', expect.any(Function))
 })
