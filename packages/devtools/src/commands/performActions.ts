@@ -100,6 +100,30 @@ export default async function performActions(
                 throw new Error('Currently only "mouse" is supported as pointer type')
             }
 
+            /**
+             * detect double click
+             */
+            if (
+                action.actions.length === 6 &&
+                action.actions[0].type === 'pointerMove' &&
+                action.actions[1].type === 'pointerDown' &&
+                action.actions[2].type === 'pointerUp' &&
+                action.actions[3].type === 'pause' &&
+                action.actions[4].type === 'pointerDown' &&
+                action.actions[5].type === 'pointerUp'
+            ) {
+                let x = action.actions[0].x || 0
+                let y = action.actions[0].y || 0
+                if (action.actions[0].origin) {
+                    const location = await getElementRect.call(this, { elementId: action.actions[0].origin[ELEMENT_KEY] })
+                    x += location.x + (location.width / 2)
+                    y += location.y + (location.height / 2)
+                }
+
+                await page.mouse.click(x, y, { clickCount: 2 })
+                continue
+            }
+
             for (const singleAction of action.actions) {
                 if (singleAction.type === 'pause') {
                     await sleep(singleAction.duration)

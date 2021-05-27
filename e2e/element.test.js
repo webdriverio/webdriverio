@@ -248,6 +248,32 @@ describe('elements', () => {
             .toBe('block')
     })
 
+    it('should allow to double click on an element', async () => {
+        await browser.navigateTo('http://guinea-pig.webdriver.io/')
+        const elem = await browser.findElement('css selector', '.btn1')
+        const notifier = await browser.findElement('css selector', '.btn1_dblclicked')
+
+        expect(await browser.getElementAttribute(notifier[ELEMENT_KEY], 'style'))
+            .toBe(null)
+
+        await browser.performActions([{
+            type: 'pointer',
+            id: 'pointer1',
+            parameters: { pointerType: 'mouse' },
+            actions: [
+                { type: 'pointerMove', origin: elem, x: 0, y: 0 },
+                { type: 'pointerDown', button: 0 },
+                { type: 'pointerUp', button: 0 },
+                { type: 'pause', duration: 10 },
+                { type: 'pointerDown', button: 0 },
+                { type: 'pointerUp', button: 0 }
+            ]
+        }])
+
+        expect(await browser.getElementAttribute(notifier[ELEMENT_KEY], 'style'))
+            .toBe('display: block;')
+    })
+
     it('should support deep selectors', async () => {
         await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
         const headerSlot = await browser.findElement('shadow', '#headerSlot')
