@@ -73,7 +73,7 @@ const DevTools = require('devtools');
 
 All [protocol commands](./api/_webdriver.md) return the raw response from the automation driver. The package is very lightweight and there is __no__ smart logic like auto-waits to simplify the interaction with the protocol usage. You can run the same set of commands using the Chrome DevTools protocol when importing the [`devtools`](https://www.npmjs.com/package/devtools) NPM package.
 
-### Package APIs
+### Package API
 
 The protocol packages ([`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools)) expose a class with the following static functions attached that allow you to initiate sessions:
 
@@ -283,3 +283,47 @@ describe('DuckDuckGo search', () => {
 The test runner is an abstraction of popular test frameworks like Mocha, Jasmine, or Cucumber. A key difference when compared with standalone mode is that all commands that executed by the WDIO test runner are synchronous. That means that you don't need promises anymore to handle async code.
 
 To run your tests using the WDIO test runner, check out the [Getting Started](GettingStarted.md) section for more information.
+
+### Package API
+
+Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. For that, you'll need to require the `@wdio/cli` package as module, like this:
+
+<!--DOCUSAURUS_CODE_TABS-->
+<!--Using EcmaScript Modules-->
+```js
+import Launcher from '@wdio/cli'
+```
+<!--Using CommonJS-->
+```js
+const Launcher = require('@wdio/cli').default
+```
+<!--END_DOCUSAURUS_CODE_TABS-->
+
+After that, create an instance of the launcher, and run the test.
+
+#### `Launcher(configPath, opts)`
+
+The `Launcher` class constructor expects the URL to the config file, and an `opts` object with settings that will overwrite those in the config.
+
+##### Paramaters
+
+- `configPath`: path to the `wdio.conf.js` to run
+- `opts`: arguments ([`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77)) to overwrite values from the config file
+
+##### Example
+
+```js
+const wdio = new Launcher(
+    '/path/to/my/wdio.conf.js',
+    { spec: '/path/to/a/single/spec.e2e.js' }
+)
+
+wdio.run().then((exitCode) => {
+    process.exit(exitCode)
+}, (error) => {
+    console.error('Launcher failed to start the test', error.stacktrace)
+    process.exit(1)
+})
+```
+
+The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
