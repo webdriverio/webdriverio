@@ -335,6 +335,22 @@ describe('executeScript', () => {
     })
 })
 
+describe('handles windows', () => {
+    it('should be able to work with popups', async () => {
+        await browser.navigateTo('http://guinea-pig.webdriver.io/')
+        const parentButton = await browser.findElement('css selector', '#parentButton')
+        await browser.elementClick(parentButton[ELEMENT_KEY])
+
+        const handles = await browser.getWindowHandles()
+        await browser.switchToWindow(handles[handles.length - 1])
+
+        const closeButton = await browser.findElement('css selector', '#closeButton')
+        await browser.elementClick(closeButton[ELEMENT_KEY])
+
+        expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
+    })
+})
+
 afterAll(async () => {
     await browser.deleteSession()
 })
