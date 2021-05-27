@@ -160,9 +160,9 @@ export interface HookFunctionExtension {
      * Runs after a Cucumber Step.
      * @param step     step data
      * @param scenario scenario data
-     * @param passed   whether the step has passed
+     * @param result result object containing {passed: boolean, error: string, duration: messages.IDuration}
      */
-    afterStep?(step: messages.Pickle.IPickleStep, scenario: messages.IPickle, passed: boolean): void;
+    afterStep?(step: messages.Pickle.IPickleStep, scenario: messages.IPickle, result: { passed: boolean, duration: messages.IDuration, error: string }): void;
 
     /**
      *
