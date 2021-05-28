@@ -1,7 +1,9 @@
 import fs from 'fs'
 import http from 'http'
 import path from 'path'
-import type { Options } from '../src/types'
+import type { Element } from '../src/types'
+import type { Capabilities, Options } from '@wdio/types'
+import type { ElementReference } from '@wdio/protocols'
 
 import { ELEMENT_KEY } from '../src/constants'
 import {
@@ -237,7 +239,7 @@ describe('utils', () => {
             { [ELEMENT_KEY]: 'foobar' },
             { [ELEMENT_KEY]: 'barfoo' }
         ]
-        let scope: WebdriverIO.Element
+        let scope: Element<'sync'>
 
         beforeEach(() => {
             scope = {
@@ -246,7 +248,7 @@ describe('utils', () => {
                 findElements: jest.fn(),
                 findElement: jest.fn(),
                 execute: jest.fn()
-            } as any as WebdriverIO.Element
+            } as any as Element<'sync'>
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -265,7 +267,7 @@ describe('utils', () => {
 
         it('fetches element using a function with browser scope', async () => {
             (scope.execute as jest.Mock).mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope, () => { return global.document.body }) as WebdriverIO.Element
+            const elem = await findElement.call(scope, () => { return global.document.body }) as Element<'sync'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -275,7 +277,7 @@ describe('utils', () => {
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
             ;(scope.execute as jest.Mock).mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope, () => { return global.document.body }) as WebdriverIO.Element
+            const elem = await findElement.call(scope, () => { return global.document.body }) as Element<'sync'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -287,8 +289,8 @@ describe('utils', () => {
             (scope.execute as jest.Mock).mockReturnValue(elementsResponse)
             const elem = await findElement.call(
                 scope,
-                () => { return global.document.body as any as WebDriver.ElementReference }
-            ) as WebdriverIO.Element
+                () => { return global.document.body as any as ElementReference }
+            ) as Element<'sync'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -312,7 +314,7 @@ describe('utils', () => {
 
         it('should use execute if shadow selector is used', async () => {
             (scope.execute as jest.Mock).mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope, '>>>.foobar') as WebdriverIO.Element
+            const elem = await findElement.call(scope, '>>>.foobar') as Element<'sync'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
@@ -325,7 +327,7 @@ describe('utils', () => {
         it('should use execute if shadow selector is used with element scope', async () => {
             (scope.execute as jest.Mock).mockReturnValue(elementResponse)
             scope.elementId = 'foobar'
-            const elem = await findElement.call(scope, '>>>.foobar') as WebdriverIO.Element
+            const elem = await findElement.call(scope, '>>>.foobar') as Element<'sync'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
@@ -344,7 +346,7 @@ describe('utils', () => {
             { [ELEMENT_KEY]: 'foobar' },
             { [ELEMENT_KEY]: 'barfoo' }
         ]
-        let scope: WebdriverIO.Element
+        let scope: Element<'sync'>
 
         beforeEach(() => {
             scope = {
@@ -353,7 +355,7 @@ describe('utils', () => {
                 findElements: jest.fn(),
                 findElement: jest.fn(),
                 execute: jest.fn()
-            } as any as WebdriverIO.Element
+            } as any as Element<'sync'>
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -510,7 +512,7 @@ describe('utils', () => {
                 elementId: 123,
                 getElementRect: jest.fn(() => Promise.resolve({ x: 10, width: 300, height: 400 })),
                 execute: jest.fn(() => Promise.resolve({ x: 11, y: 22, width: 333, height: 444 }))
-            } as any as WebdriverIO.Element
+            } as any as Element<'sync'>
             expect(await getElementRect(fakeScope)).toEqual({ x: 10, y: 22, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).toHaveBeenCalled()
@@ -569,29 +571,37 @@ describe('utils', () => {
 
     describe('getAutomationProtocol', () => {
         it('should not default to devtools if there is an indication not to', async () => {
-            expect(await getAutomationProtocol({ hostname: 'foobar', automationProtocol: 'webdriver' }))
+            expect(await getAutomationProtocol({ hostname: 'foobar', automationProtocol: 'webdriver', capabilities: {} }))
                 .toBe('webdriver')
-            expect(await getAutomationProtocol({ port: 1234, automationProtocol: 'webdriver' }))
+            expect(await getAutomationProtocol({ port: 1234, automationProtocol: 'webdriver', capabilities: {} }))
                 .toBe('webdriver')
-            expect(await getAutomationProtocol({ user: 'a', key: 'b', automationProtocol: 'webdriver' }))
+            expect(await getAutomationProtocol({ user: 'a', key: 'b', automationProtocol: 'webdriver', capabilities: {} }))
                 .toBe('webdriver')
-            expect(await getAutomationProtocol({ capabilities: { alwaysMatch: { browserName: 'chrome' } } as WebDriver.W3CCapabilities }))
+            expect(await getAutomationProtocol({ capabilities: { alwaysMatch: { browserName: 'chrome' } } as Capabilities.W3CCapabilities }))
                 .toBe('webdriver')
         })
 
         it('should switch if /status returns with 200', async () => {
-            expect(await getAutomationProtocol({ automationProtocol: 'webdriver' }))
+            expect(await getAutomationProtocol({ capabilities: {} }))
                 .toBe('webdriver')
-            expect(await getAutomationProtocol({ automationProtocol: 'devtools' }))
+            expect(await getAutomationProtocol({ automationProtocol: 'webdriver', capabilities: {} }))
+                .toBe('webdriver')
+            expect(await getAutomationProtocol({ automationProtocol: 'devtools', capabilities: {} }))
                 .toBe('devtools')
         })
 
-        it('should default to devtools if /status request fails', async () => {
+        it('should default to devtools if /status request fails and browser name is valid', async () => {
             // @ts-ignore mock feature
             http.setResponse({ statusCode: 404 })
-            expect(await getAutomationProtocol({}))
+            expect(await getAutomationProtocol({ capabilities: {} }))
+                .toBe('webdriver')
+            expect(await getAutomationProtocol({ automationProtocol: 'webdriver', capabilities: {} }))
+                .toBe('webdriver')
+            expect(await getAutomationProtocol({ capabilities: { browserName: 'chrome' } }))
                 .toBe('devtools')
-            expect(await getAutomationProtocol({ automationProtocol: 'webdriver' }))
+            expect(await getAutomationProtocol({ capabilities: { browserName: 'chrome', 'appium:deviceName': 'iPhone' } }))
+                .toBe('webdriver')
+            expect(await getAutomationProtocol({ capabilities: { browserName: 'chrome', app: 'some app' } }))
                 .toBe('webdriver')
         })
 
@@ -605,7 +615,7 @@ describe('utils', () => {
 
     describe('updateCapabilities', () => {
         it('should do nothing if no browser specified', async () => {
-            const params: Options = { capabilities: {} }
+            const params: Options.WebdriverIO = { capabilities: {} }
             await updateCapabilities(params)
             expect(params).toMatchSnapshot()
         })
@@ -622,7 +632,7 @@ describe('utils', () => {
             })
 
             it('should not overwrite if already set', async () => {
-                const params: Options = {
+                const params: Options.WebdriverIO = {
                     capabilities: {
                         browserName: 'firefox',
                         'moz:firefoxOptions': {
