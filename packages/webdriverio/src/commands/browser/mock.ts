@@ -5,7 +5,7 @@ import { getBrowserObject } from '../../utils'
 import type { Mock } from '../../types'
 import type { MockFilterOptions } from '../../utils/interception/types'
 
-const SESSION_MOCKS: Record<string, Set<Interception>> = {}
+export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
 
 /**
  * Mock the response of a request. You can define a mock based on a matching

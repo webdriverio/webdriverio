@@ -21,7 +21,7 @@ jest.mock('../../../src/utils/interception/webdriver', () => class {
     init = jest.fn()
 })
 
-describe('custom$', () => {
+describe('mock', () => {
     let browser
     beforeEach(async () => {
         clientMock.send.mockClear()

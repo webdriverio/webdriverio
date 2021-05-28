@@ -12,6 +12,8 @@ import getPuppeteer from './browser/getPuppeteer'
 import getWindowSize from './browser/getWindowSize'
 import keys from './browser/keys'
 import mock from './browser/mock'
+import mockClearAll from './browser/mockClearAll'
+import mockRestoreAll from './browser/mockRestoreAll'
 import newWindow from './browser/newWindow'
 import pause from './browser/pause'
 import react$$ from './browser/react$$'
@@ -32,7 +34,7 @@ import waitUntil from './browser/waitUntil'
 
 export default {
     $$, $, call, custom$$, custom$, debug, deleteCookies, execute, executeAsync, getCookies,
-    getPuppeteer, getWindowSize, keys, mock, newWindow, pause, react$$, react$, reloadSession,
-    savePDF, saveRecordingScreen, saveScreenshot, setCookies, setTimeout, setWindowSize,
-    switchWindow, throttle, touchAction, uploadFile, url, waitUntil
+    getPuppeteer, getWindowSize, keys, mock, mockClearAll, mockRestoreAll, newWindow, pause,
+    react$$, react$, reloadSession, savePDF, saveRecordingScreen, saveScreenshot, setCookies,
+    setTimeout, setWindowSize, switchWindow, throttle, touchAction, uploadFile, url, waitUntil
 }

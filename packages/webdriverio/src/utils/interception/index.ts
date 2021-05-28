@@ -4,7 +4,15 @@ import { WaitForOptions } from '../../types'
 import { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } from './types'
 import type Protocol from 'devtools-protocol'
 
-export default class Interception {
+export default abstract class Interception {
+    abstract calls: Matches[] | Promise<Matches[]>
+    abstract clear (): void
+    abstract restore (): void
+    abstract respond (overwrite: MockOverwrite, params: MockResponseParams): void
+    abstract respondOnce (overwrite: MockOverwrite, params: MockResponseParams): void
+    abstract abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean): void
+    abstract abortOnce (errorReason: Protocol.Network.ErrorReason): void
+
     url: string
     filterOptions: MockFilterOptions
     browser: WebdriverIO.Browser
@@ -20,10 +28,6 @@ export default class Interception {
         this.url = url
         this.filterOptions = filterOptions
         this.browser = browser
-    }
-
-    get calls (): Matches[] | Promise<Matches[]> {
-        throw new Error('Implement me')
     }
 
     waitForResponse ({
