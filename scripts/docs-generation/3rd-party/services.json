@@ -63,7 +63,7 @@
   },
   {
     "packageName": "wdio-image-comparison-service",
-    "title": "Visual Regression Testing",
+    "title": "Image Comparison (Visual Regression Testing)",
     "githubUrl": "https://github.com/wswebcreation/wdio-image-comparison-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-image-comparison-service"
   },

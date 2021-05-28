@@ -116,7 +116,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
-        { name: 'visual-regression-testing', value: 'wdio-image-comparison-service$--$visual-regression-testing' },
+        { name: 'image-comparison', value: 'wdio-image-comparison-service$--$image-comparison' },
         { name: 'novus-visual-regression', value: 'wdio-novus-visual-regression-service$--$novus-visual-regression' },
         { name: 'rerun', value: 'wdio-rerun-service$--$rerun' },
         { name: 'winappdriver', value: 'wdio-winappdriver-service$--$winappdriver' },
