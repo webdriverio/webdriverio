@@ -8,9 +8,9 @@ beforeAll(async () => {
         outputDir: __dirname,
         capabilities: {
             browserName: 'chrome',
-            'wdio:devtoolsOptions': {
-                headless: true
-            }
+            // 'wdio:devtoolsOptions': {
+            //     headless: true
+            // }
         }
     })
 })
@@ -144,6 +144,19 @@ describe('elements', () => {
     })
 
     it('should be able to do a drag&drop', async () => {
+        const drag = await browser.findElement('css selector', '.ui-draggable')
+        const dragPosition = await browser.getElementRect(drag[ELEMENT_KEY])
+        const drop = await browser.findElement('css selector', '.ui-droppable')
+        const dropPosition = await browser.getElementRect(drop[ELEMENT_KEY])
+        const dragStart = {
+            x: dragPosition.x + (dragPosition.width / 2),
+            y: dragPosition.y + (dragPosition.height / 2)
+        }
+        const dropEnd = {
+            x: (dropPosition.x + (dropPosition.width / 2) - dragStart.x),
+            y: (dropPosition.y + (dropPosition.height / 2) - dragStart.y)
+        }
+
         await browser.executeScript('window.scrollTo(0, 0)', [])
         await browser.performActions([{
             type: 'pointer',
@@ -154,8 +167,7 @@ describe('elements', () => {
             actions: [{
                 type: 'pointerMove',
                 duration: 0,
-                x: 65,
-                y: 544
+                ...dragStart
             }, {
                 type: 'pointerDown',
                 button: 0
@@ -166,8 +178,7 @@ describe('elements', () => {
                 type: 'pointerMove',
                 duration: 100,
                 origin: 'pointer',
-                x: 1,
-                y: -251
+                ...dropEnd
             }, {
                 type: 'pointerUp',
                 button: 0
