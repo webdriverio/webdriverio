@@ -512,12 +512,22 @@ export const getAutomationProtocol = async (config: Options.WebdriverIO | Option
     /**
      * only run DevTools protocol if capabilities match supported platforms
      */
+    const caps = (
+        ((config as Options.WebdriverIO).capabilities as Capabilities.W3CCapabilities)?.alwaysMatch ||
+        config.capabilities as Capabilities.Capabilities
+    ) || {}
+    const desiredCaps = caps as Capabilities.DesiredCapabilities
+    if (!SUPPORTED_BROWSER.includes(caps.browserName?.toLowerCase() as string)) {
+        return 'webdriver'
+    }
+
+    /**
+     * check if we are on mobile and use WebDriver if so
+     */
     if (
-        config.capabilities &&
-        typeof (config.capabilities as Capabilities.Capabilities).browserName === 'string' &&
-        !SUPPORTED_BROWSER.includes(
-            (config.capabilities as Capabilities.Capabilities).browserName?.toLowerCase() as string
-        )
+        desiredCaps.deviceName || caps['appium:deviceName'] ||
+        desiredCaps.platformVersion || caps['appium:platformVersion'] ||
+        desiredCaps.app || caps['appium:app']
     ) {
         return 'webdriver'
     }
