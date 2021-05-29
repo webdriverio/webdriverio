@@ -44,7 +44,7 @@ import { ClickOptions } from '../../types'
     :example.js
     it('should demonstrate a click using an offset', () => {
         const myButton = $('#myButton')
-        myButton.click({ x: 30 }) // clicks 30 horizontal pixels away from location of the button
+        myButton.click({ x: 30 }) // clicks 30 horizontal pixels away from location of the button (from center point of element)
     })
  * </example>
  *
@@ -58,7 +58,7 @@ import { ClickOptions } from '../../types'
     })
     it('should demonstrate a right click passed as number while adding an offset', () => {
         const myButton = $('#myButton')
-        myButton.click({ button: 2, x: 30, y: 40 }) // opens the contextmenu 30 horizontal and 40 vertical pixels away from location of the button
+        myButton.click({ button: 2, x: 30, y: 40 }) // opens the contextmenu 30 horizontal and 40 vertical pixels away from location of the button (from the center of element)
     })
  * </example>
  *
