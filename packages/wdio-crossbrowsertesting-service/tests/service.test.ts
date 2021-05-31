@@ -211,16 +211,16 @@ describe('wdio-crossbrowsertesting-service', () => {
 
         expect(cbtService['_failures']).toBe(0)
 
-        cbtService.afterScenario({ pickle: {}, result: { status: 1 } })
+        cbtService.afterScenario({} as any, { passed: true })
         expect(cbtService['_failures']).toBe(0)
 
-        cbtService.afterScenario({ pickle: {}, result: { status: 6 } })
+        cbtService.afterScenario({} as any, { passed: false })
         expect(cbtService['_failures']).toBe(1)
 
-        cbtService.afterScenario({ pickle: {}, result: { status: 1 } })
+        cbtService.afterScenario({} as any, { passed: true })
         expect(cbtService['_failures']).toBe(1)
 
-        cbtService.afterScenario({ pickle: {}, result: { status: 6 } })
+        cbtService.afterScenario({} as any, { passed: false })
         expect(cbtService['_failures']).toBe(2)
     })
 

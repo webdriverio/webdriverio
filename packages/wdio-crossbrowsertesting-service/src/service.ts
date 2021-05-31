@@ -91,12 +91,17 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
         this._suiteTitle = feature.name
     }
     /**
-     * After step
-     * @param {world} world
+     *
+     * Runs before a Cucumber Scenario.
+     * @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
+     * @param {Object}                 result results object containing scenario results
+     * @param {boolean}                result.passed   true if scenario has passed
+     * @param {string}                 result.error    error stack if scenario failed
+     * @param {number}                 result.duration duration of scenario in milliseconds
      */
-    afterScenario(world: Frameworks.World) {
+    afterScenario(world: Frameworks.World, result: Frameworks.PickleResult) {
         // check if scenario has failed
-        if (world.result && world.result.status === 6) {
+        if (!result.passed) {
             ++this._failures
         }
     }

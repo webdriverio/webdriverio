@@ -14,7 +14,7 @@ import { Long }  from 'long'
 import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options, Frameworks } from '@wdio/types'
 
 import CucumberReporter from './reporter'
 import { DEFAULT_OPTS } from './constants'
@@ -22,6 +22,16 @@ import { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFu
 import { setUserHookNames } from './utils'
 
 const { incrementing } = IdGenerator
+
+function getResultObject (world: ITestCaseHookParameter): Frameworks.PickleResult {
+    console.log(world.result);
+
+    return {
+        passed: world.result?.status === Cucumber.Status.PASSED,
+        error: world.result?.message as string,
+        duration: world.result?.duration?.nanos as number / 10e6 // convert into ms
+    }
+}
 
 class CucumberAdapter {
     private _cwd = process.cwd()
@@ -264,7 +274,7 @@ class CucumberAdapter {
             await executeHooksWithArgs(
                 'afterScenario',
                 config.afterScenario,
-                [world]
+                [world, getResultObject(world)]
             )
         })
         Cucumber.BeforeStep(async function wdioHookBeforeStep() {
@@ -277,15 +287,10 @@ class CucumberAdapter {
         })
         Cucumber.AfterStep(async function wdioHookAfterStep(world: ITestCaseHookParameter) {
             const params = eventListener?.getHookParams()
-            let result = {
-                'passed': world.result?.status === Cucumber.Status.PASSED,
-                'error': world.result?.message,
-                'duration': world.result?.duration
-            }
             await executeHooksWithArgs(
                 'afterStep',
                 config.afterStep,
-                [params?.step, params?.scenario, result]
+                [params?.step, params?.scenario, getResultObject(world)]
             )
         })
     }

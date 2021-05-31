@@ -52,3 +52,21 @@ export interface World {
         message?: string
     }
 }
+
+/**
+ * Result of a pick (scenario or step)
+ */
+export interface PickleResult {
+    /**
+     * true if scenario has passed
+     */
+    passed: boolean
+    /**
+     * error stack if scenario failed
+     */
+    error?: string
+    /**
+     * duration of scenario in milliseconds
+     */
+    duration?: number
+}

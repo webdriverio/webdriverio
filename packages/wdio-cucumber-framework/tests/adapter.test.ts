@@ -210,7 +210,7 @@ describe('CucumberAdapter', () => {
             .toBeCalledWith('beforeScenario', 'beforeScenario', ['world'])
         ;(Cucumber.After as jest.Mock).mock.calls[0][0]('world')
         expect(executeHooksWithArgs)
-            .toBeCalledWith('afterScenario', 'afterScenario', ['world'])
+            .toBeCalledWith('afterScenario', 'afterScenario', ['world', { 'duration': undefined, 'error': undefined, 'passed': false }])
     })
 
     it('wrapSteps', async () => {
