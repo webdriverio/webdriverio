@@ -35,12 +35,16 @@ describe('launcher', () => {
         it('should not run auto compile if cli param was provided', () => {
             const otherLauncher = new Launcher('./', {
                 autoCompileOpts: {
-                    // @ts-expect-error cli params are always strings
-                    autoCompile: 'false'
+                    autoCompile: false
                 }
             })
 
-            expect(otherLauncher['configParser'].autoCompile).toBeCalledTimes(0)
+            expect(otherLauncher['configParser'].merge).toBeCalledWith({
+                autoCompileOpts: {
+                    autoCompile: false
+                }
+            })
+            expect(otherLauncher['configParser'].autoCompile).toBeCalledTimes(1)
         })
     })
 
