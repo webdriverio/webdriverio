@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
 import type DevToolsDriver from '../devtoolsdriver'
 
 import command from '../scripts/createWindow'
@@ -37,11 +36,7 @@ export default async function createWindow (
         newPage = await this.browser.newPage()
     }
 
-    const handle = uuidv4()
     await newPage.bringToFront()
-
-    this.currentWindowHandle = handle
-    this.windows.set(handle, newPage)
     return {
         handle: this.currentWindowHandle,
         type

@@ -5,6 +5,8 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
 let browser
 
+jest.retryTimes(0)
+
 beforeAll(async () => {
     browser = await DevTools.newSession({
         outputDir: __dirname,
@@ -287,7 +289,7 @@ describe('frames', () => {
     })
 
     it('allows to switch to parent frame even if there isn\'t any', async () => {
-        await browser.url('http://guinea-pig.webdriver.io/two.html')
+        await browser.navigateTo('http://guinea-pig.webdriver.io/two.html')
         expect(await browser.getTitle()).toBe('two')
         const iframe = await browser.findElement('css selector', 'iframe')
         await browser.switchToFrame(iframe)
