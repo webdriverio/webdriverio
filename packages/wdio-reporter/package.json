@@ -30,9 +30,15 @@
     "access": "public"
   },
   "dependencies": {
+    "@types/diff": "^5.0.0",
     "@types/node": "^15.12.5",
+    "@types/object-inspect": "^1.8.0",
+    "@types/supports-color": "^8.1.0",
     "@wdio/types": "7.7.5",
-    "fs-extra": "^10.0.0"
+    "diff": "^5.0.0",
+    "fs-extra": "^10.0.0",
+    "object-inspect": "^1.10.3",
+    "supports-color": "8.1.1"
   },
   "types": "./build/index.d.ts"
 }

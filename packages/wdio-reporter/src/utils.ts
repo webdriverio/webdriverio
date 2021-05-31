@@ -1,4 +1,7 @@
+import * as supportsColor from 'supports-color'
 import { Capabilities } from '@wdio/types'
+
+import { COLORS } from './constants'
 
 /**
  * replaces whitespaces with underscore and removes dots
@@ -63,4 +66,38 @@ export function getErrorsFromEvent(e: { errors?: any; error?: any }) {
     if (e.errors) return e.errors
     if (e.error) return [e.error]
     return []
+}
+
+/**
+ * Pads the given `str` to `len`.
+ *
+ * @private
+ * @param {string} str
+ * @param {number} len
+ * @return {string}
+ */
+export function pad (str: string, len: number) {
+    return Array(len - str.length + 1).join(' ') + str
+}
+
+export function color (type: keyof typeof COLORS, content: string) {
+    if (!supportsColor.stdout) {
+        return String(content)
+    }
+    return `\u001b[${COLORS[type]}m${content}\u001b[0m`
+}
+
+/**
+ * Colors lines for `str`, using the color `name`.
+ *
+ * @private
+ * @param {string} name
+ * @param {string} str
+ * @return {string}
+ */
+export function colorLines (name: keyof typeof COLORS, str: string) {
+    return str
+        .split('\n')
+        .map((str) => color(name, str))
+        .join('\n')
 }
