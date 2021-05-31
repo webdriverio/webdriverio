@@ -345,46 +345,54 @@ exports.config = {
      * Cucumber Hooks
      *
      * Runs before a Cucumber Feature.
-     * @param uri      path to feature file
-     * @param feature  Cucumber feature object
+     * @param {String}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     beforeFeature: function (uri, feature) {
     },
     /**
      *
      * Runs before a Cucumber Scenario.
-     * @param world world object containing information on pickle and test step
+     * @param {ITestCaseHookParameter} world world object containing information on pickle and test step
      */
     beforeScenario: function (world) {
     },
     /**
      *
      * Runs before a Cucumber Step.
-     * @param step    step data
-     * @param context Cucumber world
+     * @param {Pickle.IPickleStep} step     step data
+     * @param {IPickle}            scenario scenario pickle
      */
-    beforeStep: function (step, context) {
+    beforeStep: function (step, scenario) {
     },
     /**
      *
      * Runs after a Cucumber Step.
-     * @param step    step data
-     * @param context Cucumber world
+     * @param {Pickle.IPickleStep} step     step data
+     * @param {IPickle}            scenario scenario pickle
+     * @param {Object}             result   results object containing scenario results
+     * @param {boolean}            result.passed   true if scenario has passed
+     * @param {string}             result.error    error stack if scenario failed
+     * @param {number}             result.duration duration of scenario in milliseconds
      */
-    afterStep: function (step, context) {
+    afterStep: function (step, scenario, result) {
     },
     /**
      *
      * Runs before a Cucumber Scenario.
-     * @param world world object containing information on pickle and test step
+     * @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
+     * @param {Object}                 result results object containing scenario results
+     * @param {boolean}                result.passed   true if scenario has passed
+     * @param {string}                 result.error    error stack if scenario failed
+     * @param {number}                 result.duration duration of scenario in milliseconds
      */
-    afterScenario: function (world) {
+    afterScenario: function (world, result) {
     },
     /**
      *
      * Runs after a Cucumber Feature.
-     * @param uri      path to feature file
-     * @param feature  Cucumber feature object
+     * @param {String}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     afterFeature: function (uri, feature) {
     }

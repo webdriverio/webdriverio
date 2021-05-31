@@ -24,8 +24,6 @@ import { setUserHookNames } from './utils'
 const { incrementing } = IdGenerator
 
 function getResultObject (world: ITestCaseHookParameter): Frameworks.PickleResult {
-    console.log(world.result);
-
     return {
         passed: world.result?.status === Cucumber.Status.PASSED,
         error: world.result?.message as string,

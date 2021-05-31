@@ -143,37 +143,58 @@ exports.config = {
     // afterSuite: function (suite) {
     // },
     //
-    // Runs before a Cucumber Feature
+    // Cucumber Hooks
+    //
+    // Runs before a Cucumber Feature.
+    // @param {String}                   uri      path to feature file
+    // @param {GherkinDocument.IFeature} feature  Cucumber feature object
+    //
     // beforeFeature: function (uri, feature) {
     // },
     //
-    // Runs after a Cucumber Feature
-    // afterFeature: function (uri, feature) {
-    // }
     //
-    // Runs before a Cucumber Scenario
+    // Runs before a Cucumber Scenario.
+    // @param {ITestCaseHookParameter} world world object containing information on pickle and test step
+    //
     // beforeScenario: function (world) {
     // },
     //
-    // Runs after a Cucumber Scenario
-    // afterScenario: function (world) {
+    //
+    // Runs before a Cucumber Step.
+    // @param {Pickle.IPickleStep} step     step data
+    // @param {IPickle}            scenario scenario pickle
+    //
+    // beforeStep: function (step, scenario) {
     // },
     //
-    // Runs before a Cucumber Step
-    // beforeStep: function (step, context) {
+    //
+    // Runs after a Cucumber Step.
+    // @param {Pickle.IPickleStep} step     step data
+    // @param {IPickle}            scenario scenario pickle
+    // @param {Object}             result   results object containing scenario results
+    // @param {boolean}            result.passed   true if scenario has passed
+    // @param {string}             result.error    error stack if scenario failed
+    // @param {number}             result.duration duration of scenario in milliseconds
+    //
+    // afterStep: function (step, scenario, result) {
     // },
     //
-    // Runs after a Cucumber Step
-    // afterStep: function (step, context) {
+    //
+    // Runs before a Cucumber Scenario.
+    // @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
+    // @param {Object}                 result results object containing scenario results
+    // @param {boolean}                result.passed   true if scenario has passed
+    // @param {string}                 result.error    error stack if scenario failed
+    // @param {number}                 result.duration duration of scenario in milliseconds
+    //
+    // afterScenario: function (world, result) {
     // },
     //
-    // Gets executed after all tests are done. You still have access to all global variables from
-    // the test.
-    // after: function (result, capabilities, specs) {
-    // },
     //
-    // Gets executed after all workers got shut down and the process is about to exit. An error
-    // thrown in the onComplete hook will result in the test run failing.
-    // onComplete: function(exitCode, config, capabilities, results) {
+    // Runs after a Cucumber Feature.
+    // @param {String}                   uri      path to feature file
+    // @param {GherkinDocument.IFeature} feature  Cucumber feature object
+    //
+    // afterFeature: function (uri, feature) {
     // }
 }
