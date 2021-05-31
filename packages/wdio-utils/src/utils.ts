@@ -4,6 +4,7 @@ import path from 'path'
 import type { Services, Clients } from '@wdio/types'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
+const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
 
 /**
  * overwrite native element commands with user defined
@@ -95,7 +96,7 @@ export function transformCommandLogResult (result: { file?: string, script?: str
     if (typeof result.file === 'string' && isBase64(result.file)) {
         return SCREENSHOT_REPLACEMENT
     } else if (typeof result.script === 'string' && isBase64(result.script)) {
-        return 'Payload'
+        return SCRIPT_PLACEHOLDER
     }
 
     return result
