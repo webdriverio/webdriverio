@@ -52,7 +52,7 @@ export default async function custom$ (
     }
 
     if (res && typeof res[ELEMENT_KEY] === 'string') {
-        return await getElement.call(this, strategy.toString(), res)
+        return await getElement.call(this, strategy, res)
     }
 
     throw Error('Your locator strategy script must return an element')
