@@ -1,4 +1,6 @@
+import iterators from 'p-iteration'
 import logger from '@wdio/logger'
+import { Clients } from '@wdio/types'
 
 const log = logger('@wdio/utils:shim')
 
@@ -9,6 +11,36 @@ let runSync: (this: unknown, fn: Function, repeatTest: any, args: unknown[]) => 
 interface Retries {
     limit: number
     attempts: number
+}
+
+interface WDIOSync {
+    runFnInFiberContext: any
+    wrapCommand: any
+    executeHooksWithArgs: any
+    executeSync: any
+    runSync: any
+}
+
+interface PropertiesObject {
+    [key: string]: PropertyDescriptor
+}
+
+type Iterators = 'forEach' | 'forEachSeries' | 'map' | 'mapSeries' | 'find' |
+    'findSeries' | 'findIndex' | 'findIndexSeries' | 'some' | 'someSeries' |
+    'every' | 'everySeries' | 'filter' | 'filterSeries' | 'reduce'
+
+const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
+
+/**
+ * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
+ */
+let wdioSync: WDIOSync | undefined
+try {
+    const packageName = '@wdio/sync'
+    wdioSync = require(packageName)
+    hasWdioSyncSupport = true
+} catch (err) {
+    // do nothing
 }
 
 let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
@@ -69,8 +101,8 @@ let runFnInFiberContext = function (fn: Function) {
  * @param commandName name of the command (e.g. getTitle)
  * @param fn          command function
  */
-let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
-    return async function wrapCommandFn(this: any, ...args: any[]) {
+let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, propertiesObject: PropertiesObject): (...args: any) => Promise<T> {
+    async function wrapCommandFn(this: any, ...args: any[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
             inCommandHook = true
@@ -98,6 +130,114 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
         }
 
         return commandResult
+    }
+
+    function wrapElementFn (promise: Promise<Clients.Browser>, cmd: Function, args: any[], prevInnerArgs?: { prop: string, args: any[] }): any {
+        return new Proxy(
+            Promise.resolve(promise).then((ctx: Clients.Browser) => cmd.call(ctx, ...args)),
+            {
+                get: (target, prop: string) => {
+                    /**
+                     * if we call a query method on a resolve promise, e.g.:
+                     * ```js
+                     * const elem = await $('foo')
+                     * await elem.$('bar')
+                     * ```
+                     */
+                    if (ELEMENT_QUERY_COMMANDS.includes(prop)) {
+                        return wrapCommand(prop, propertiesObject[prop].value, propertiesObject)
+                    }
+
+                    /**
+                     * if we call "get" on an element array promise, e.g.:
+                     * ```js
+                     * const elems = await $$('foo').get(2)
+                     * ```
+                     */
+                    if (commandName.endsWith('$$') && prop === 'get') {
+                        return (index: number) => wrapElementFn(
+                            target,
+                            function (this: any, index: number) {
+                                return this[index]
+                            },
+                            [index],
+                            { prop, args }
+                        )
+                    }
+
+                    /**
+                     * if we call an array iterator function like map or forEach on an
+                     * set of elements, e.g.:
+                     * ```js
+                     * await $('body').$('header').$$('div').map((elem) => elem.getLocation())
+                     * ```
+                     */
+                    if (commandName.endsWith('$$') && typeof iterators[prop as Iterators] === 'function') {
+                        return (mapIterator: Function) => wrapElementFn(
+                            target,
+                            function (this: never, mapIterator: Function): any {
+                                // @ts-ignore
+                                return iterators[prop](this, mapIterator)
+                            },
+                            [mapIterator]
+                        )
+                    }
+
+                    /**
+                     * allow to grab the length of fetch element set, e.g.:
+                     * ```js
+                     * const elemAmount = await $$('foo').length
+                     * ```
+                     */
+                    if (prop === 'length') {
+                        return target.then((res) => res.length)
+                    }
+
+                    /**
+                     * allow to resolve an chained element query, e.g.:
+                     * ```js
+                     * const elem = await $('foo').$('bar')
+                     * console.log(elem.selector) // "bar"
+                     * ```
+                     */
+                    if (prop === 'then') {
+                        return target[prop].bind(target)
+                    }
+
+                    /**
+                     * call a command on an element query, e.g.:
+                     * ```js
+                     * const tagName = await $('foo').$('bar').getTagName()
+                     * ```
+                     */
+                    return (...args: any[]) => target.then(async (elem) => {
+                        if (!elem) {
+                            let errMsg = 'Element could not be found'
+                            const prevElem = await promise
+                            if (Array.isArray(prevElem) && prevInnerArgs && prevInnerArgs.prop === 'get') {
+                                errMsg = `Index out of bounds! $$(${prevInnerArgs.args[0]}) returned only ${prevElem.length} elements.`
+                            }
+
+                            throw new Error(errMsg)
+                        }
+                        return elem[prop](...args)
+                    })
+                }
+            }
+        )
+    }
+
+    return function (this: Clients.Browser, ...args: any[]) {
+        // @ts-ignore
+        const command = hasWdioSyncSupport && wdioSync && global._HAS_FIBER_CONTEXT
+            ? wdioSync.wrapCommand(commandName, fn)
+            : ELEMENT_QUERY_COMMANDS.includes(commandName)
+                ? function chainElementQuery(this: Promise<Clients.Browser>, ...args: any[]): any {
+                    return wrapElementFn(this, wrapCommandFn, args)
+                }
+                : wrapCommandFn
+
+        return command.apply(this, args)
     }
 }
 
@@ -160,27 +300,16 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
 let executeSync = executeSyncFn
 
 /**
- * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
+ * only require `@wdio/sync` if `WDIO_NO_SYNC_SUPPORT` which allows us to
+ * create a smoke test scenario to test actual absence of the package
+ * (internal use only)
  */
-try {
-    /**
-     * only require `@wdio/sync` if `WDIO_NO_SYNC_SUPPORT` which allows us to
-     * create a smoke test scenario to test actual absence of the package
-     * (internal use only)
-     */
-    /* istanbul ignore if */
-    if (!process.env.WDIO_NO_SYNC_SUPPORT) {
-        const packageName = '@wdio/sync'
-        const wdioSync = require(packageName)
-        hasWdioSyncSupport = true
-        runFnInFiberContext = wdioSync.runFnInFiberContext
-        wrapCommand = wdioSync.wrapCommand
-        executeHooksWithArgs = wdioSync.executeHooksWithArgs
-        executeSync = wdioSync.executeSync
-        runSync = wdioSync.runSync
-    }
-} catch {
-    // do nothing
+/* istanbul ignore if */
+if (!process.env.WDIO_NO_SYNC_SUPPORT && hasWdioSyncSupport && wdioSync) {
+    runFnInFiberContext = wdioSync.runFnInFiberContext
+    executeHooksWithArgs = wdioSync.executeHooksWithArgs
+    executeSync = wdioSync.executeSync
+    runSync = wdioSync.runSync
 }
 
 export {
