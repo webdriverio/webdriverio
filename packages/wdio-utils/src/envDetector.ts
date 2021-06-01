@@ -32,10 +32,13 @@ export function isW3C (capabilities?: Capabilities.DesiredCapabilities) {
         capabilities.appiumVersion
     )
     const hasW3CCaps = Boolean(
-        capabilities.platformName &&
-        capabilities.browserVersion &&
         /**
-         * local safari and BrowserStack don't provide platformVersion therefor
+         * safari docker image may not provide a platformName therefore
+         * check one of the available "platformName" or "browserVersion"
+         */
+        (capabilities.platformName || capabilities.browserVersion) &&
+        /**
+         * local safari and BrowserStack don't provide platformVersion therefore
          * check also if setWindowRect is provided
          */
         (capabilities.platformVersion || Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect'))

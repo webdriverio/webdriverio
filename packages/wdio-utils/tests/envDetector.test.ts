@@ -6,6 +6,8 @@ import chromedriverResponse from './__fixtures__/chromedriver.response.json'
 import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 import ghostdriverResponse from './__fixtures__/ghostdriver.response.json'
 import safaridriverResponse from './__fixtures__/safaridriver.response.json'
+import safaridriverdockerNpNResponse from './__fixtures__/safaridriverdockerNpN.response.json'
+import safaridriverdockerNbVResponse from './__fixtures__/safaridriverdockerNbV.response.json'
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
 import edgedriverResponse from './__fixtures__/edgedriver.response.json'
 import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json'
@@ -18,6 +20,8 @@ describe('sessionEnvironmentDetector', () => {
     const edgeCaps = edgedriverResponse.value.capabilities as WebDriver.Capabilities
     const phantomCaps = ghostdriverResponse.value as WebDriver.Capabilities
     const safariCaps = safaridriverResponse.value.capabilities as WebDriver.Capabilities
+    const safariDockerNpNCaps = safaridriverdockerNpNResponse.value.capabilities as WebDriver.Capabilities // absent capability.platformName
+    const safariDockerNbVCaps = safaridriverdockerNbVResponse.value.capabilities as WebDriver.Capabilities // absent capability.browserVersion
     const safariLegacyCaps = safaridriverLegacyResponse.value as WebDriver.Capabilities
     const standaloneCaps = seleniumstandaloneResponse.value as WebDriver.DesiredCapabilities
 
@@ -37,6 +41,8 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: safariCaps, requestedCapabilities }).isW3C).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: safariDockerNbVCaps, requestedCapabilities }).isW3C).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: safariDockerNpNCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: edgeCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: safariLegacyCaps, requestedCapabilities }).isW3C).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isW3C).toBe(false)
