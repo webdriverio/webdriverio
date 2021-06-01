@@ -1,9 +1,10 @@
 import { executeHooksWithArgs, runFnInFiberContext, wrapCommand, hasWdioSyncSupport, executeSync, runSync } from '../src/shim'
+import { wrapCommand as wrapCommandSync } from '@wdio/sync'
 
 jest.mock('@wdio/sync', () => ({
     executeHooksWithArgs: 'executeHooksWithArgs',
     runFnInFiberContext: 'runFnInFiberContext',
-    wrapCommand: 'wrapCommand',
+    wrapCommand: jest.fn().mockReturnValue(jest.fn()),
     executeSync: 'executeSync',
     runSync: 'runSync'
 }))
@@ -22,7 +23,10 @@ describe('runFnInFiberContext', () => {
 
 describe('wrapCommand', () => {
     it('should match @wdio/sync', async () => {
-        expect(wrapCommand).toBe('wrapCommand')
+        global._HAS_FIBER_CONTEXT = true
+        expect(wrapCommandSync).toBeCalledTimes(0)
+        wrapCommand('foo', jest.fn(), {})('foo')
+        expect(wrapCommandSync).toBeCalledTimes(1)
     })
 })
 
