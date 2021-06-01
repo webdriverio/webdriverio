@@ -60,7 +60,10 @@ class Launcher {
         /**
          * merge auto compile opts to understand how to parse the config
          */
-        this.configParser.merge({ autoCompileOpts: _args.autoCompileOpts })
+        if (_args.autoCompileOpts) {
+            this.configParser.merge({ autoCompileOpts: _args.autoCompileOpts })
+        }
+
         this.configParser.autoCompile()
 
         this.configParser.addConfigFile(_configFilePath)
