@@ -32,7 +32,6 @@ export function isW3C (capabilities?: Capabilities.DesiredCapabilities) {
         capabilities.appiumVersion
     )
     const hasW3CCaps = Boolean(
-        capabilities.platformName &&
         capabilities.browserVersion &&
         /**
          * local safari and BrowserStack don't provide platformVersion therefor
