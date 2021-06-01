@@ -128,6 +128,54 @@ describe('CoverageGatherer', () => {
         )).toBe(true)
     })
 
+    it('_handleRequests should return if file is part of exclude', async () => {
+        const gatherer = new CoverageGatherer(pageMock, {
+            exclude: [/.*foo.js/]
+        })
+
+        await gatherer.init()
+        await gatherer['_handleRequests']({
+            requestId: '123',
+            request: {
+                url: 'http://json.org/foo.js'
+            },
+            responseStatusCode: 444
+        })
+
+        expect(sessionMock.send).toBeCalledTimes(2)
+        expect(sessionMock.send.mock.calls.pop())
+            .toEqual(['Fetch.continueRequest', { requestId: '123' }])
+        expect(babelTransform).toBeCalledTimes(1)
+    })
+
+    it('_handleRequests should transform if file is not part of exclude', async () => {
+        const params = {
+            requestId: '123',
+            request: {
+                url: 'http://json.org/foo.js'
+            },
+            responseStatusCode: 444
+        }
+        const gatherer = new CoverageGatherer(pageMock, {
+            exclude: [/.*bar.js/]
+        })
+
+        // test without _client
+        await gatherer['_handleRequests'](params)
+
+        await gatherer.init()
+        await gatherer['_handleRequests'](params)
+
+        expect(sessionMock.send.mock.calls.slice(1))
+            .toMatchSnapshot()
+        expect((fs.promises.mkdir as jest.Mock).mock.calls[0][0].endsWith(
+            path.join('foo', 'bar', 'files', 'json.org')
+        )).toBe(true)
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith(
+            path.join('foo', 'bar', 'files', 'json.org', 'foo.js')
+        )).toBe(true)
+    })
+
     it('_clearCaptureInterval', () => {
         const gatherer = new CoverageGatherer(pageMock, {})
         gatherer['_clearCaptureInterval']()
