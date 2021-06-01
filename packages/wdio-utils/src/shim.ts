@@ -25,11 +25,12 @@ interface PropertiesObject {
     [key: string]: PropertyDescriptor
 }
 
-type Iterators = 'forEach' | 'forEachSeries' | 'map' | 'mapSeries' | 'find' |
-    'findSeries' | 'findIndex' | 'findIndexSeries' | 'some' | 'someSeries' |
-    'every' | 'everySeries' | 'filter' | 'filterSeries' | 'reduce'
+declare global {
+    var _HAS_FIBER_CONTEXT: boolean
+}
 
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
+const ELEMENT_PROPS = ['elementId', 'error', 'selector', 'parent', 'index', 'isReactElement', 'length']
 
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
@@ -172,7 +173,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                      * await $('body').$('header').$$('div').map((elem) => elem.getLocation())
                      * ```
                      */
-                    if (commandName.endsWith('$$') && typeof iterators[prop as Iterators] === 'function') {
+                    if (commandName.endsWith('$$') && typeof iterators[prop as keyof typeof iterators] === 'function') {
                         return (mapIterator: Function) => wrapElementFn(
                             target,
                             function (this: never, mapIterator: Function): any {
@@ -189,8 +190,8 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                      * const elemAmount = await $$('foo').length
                      * ```
                      */
-                    if (prop === 'length') {
-                        return target.then((res) => res.length)
+                    if (ELEMENT_PROPS.includes(prop)) {
+                        return target.then((res) => res[prop])
                     }
 
                     /**
@@ -228,7 +229,14 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
     }
 
     return function (this: Clients.Browser, ...args: any[]) {
-        // @ts-ignore
+        /**
+         * use sync mode if:
+         * - @wdio/sync package is installed and can be resolved
+         * - we are in a fiber context (flag is set when outer function is wrapped into fibers context)
+         *
+         * also if we run command asynchronous and the command suppose to return an element, we
+         * apply `chainElementQuery` to allow chaining of these promises.
+         */
         const command = hasWdioSyncSupport && wdioSync && global._HAS_FIBER_CONTEXT
             ? wdioSync.wrapCommand(commandName, fn)
             : ELEMENT_QUERY_COMMANDS.includes(commandName)
