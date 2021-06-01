@@ -358,6 +358,7 @@ describe('handles windows', () => {
         const handles = await browser.getWindowHandles()
         await browser.switchToWindow(handles[handles.length - 1])
 
+        console.log(await browser.getTitle())
         const closeButton = await browser.findElement('css selector', '#closeButton')
         await browser.elementClick(closeButton[ELEMENT_KEY])
 
