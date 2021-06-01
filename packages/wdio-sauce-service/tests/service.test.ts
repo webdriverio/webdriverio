@@ -272,16 +272,16 @@ test('afterScenario', () => {
 
     expect(service['_failures']).toBe(0)
 
-    service.afterScenario({ result: { status: 1 } })
+    service.afterScenario({} as any, { passed: true })
     expect(service['_failures']).toBe(0)
 
-    service.afterScenario({ result: { status: 6 } })
+    service.afterScenario({} as any, { passed: false })
     expect(service['_failures']).toBe(1)
 
-    service.afterScenario({ result: { status: 1 } })
+    service.afterScenario({} as any, { passed: true })
     expect(service['_failures']).toBe(1)
 
-    service.afterScenario({ result: { status: 6 } })
+    service.afterScenario({} as any, { passed: false })
     expect(service['_failures']).toBe(2)
 })
 

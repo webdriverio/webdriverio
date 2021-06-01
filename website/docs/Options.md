@@ -488,45 +488,52 @@ Parameters:
 Runs before a Cucumber Feature.
 
 Parameters:
-- `uri`: (`string`): path to feature file
-- `feature`: (`GherkinDocument.IFeature`): Cucumber feature object
+- `uri` (`string`): path to feature file
+- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
 
 ### afterFeature
 
 Runs after a Cucumber Feature.
 
 Parameters:
-- `uri`: (`string`): path to feature file
-- `feature`: (`GherkinDocument.IFeature`): Cucumber feature object
+- `uri` (`string`): path to feature file
+- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
 
 ### beforeScenario
 
 Runs before a Cucumber Scenario.
 
 Parameters:
-- `world`: (`ITestCaseHookParameter`): world object containing information on pickle and test step
+- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
 
 ### afterScenario
 
 Runs after a Cucumber Scenario.
 
 Parameters:
-- `world`: (`ITestCaseHookParameter`): world object containing information on pickle and test step
+- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
+- `result` (`object`): results object containing scenario results
+- `result.passed` (`boolean`): true if scenario has passed
+- `result.error` (`string`): error stack if scenario failed
+- `result.duration` (`number`): duration of scenario in milliseconds
 
 ### beforeStep
 
 Runs before a Cucumber Step.
 
 Parameters:
-- `step`: (`Pickle.IPickleStep`): Cucumber step object
-- `scenario`: (`IPickle`): Cucumber scenario object
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
 
 ### afterStep
 
 Runs after a Cucumber Step.
 
 Parameters:
-- `step`: (`Pickle.IPickleStep`): Cucumber step object
-- `scenario`: (`IPickle`): Cucumber scenario object
-- `result`: (`object`): results object containing step results {passed: boolean, error: string, duration: messages.IDuration}
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
+- `result`: (`object`): results object containing step results
+- `result.passed` (`boolean`): true if scenario has passed
+- `result.error` (`string`): error stack if scenario failed
+- `result.duration` (`number`): duration of scenario in milliseconds
 

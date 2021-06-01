@@ -195,7 +195,7 @@ describe('CucumberAdapter', () => {
 
         ;(Cucumber.AfterStep as jest.Mock).mock.calls[0][0]('world')
         expect(executeHooksWithArgs)
-            .toBeCalledWith('afterStep', 'afterStep', ['step', 'scenario', { 'duration': undefined, 'error': undefined, 'passed': false }])
+            .toBeCalledWith('afterStep', 'afterStep', ['step', 'scenario', { 'duration': NaN, 'error': undefined, 'passed': false }])
         ;(Cucumber.BeforeStep as jest.Mock).mock.calls[0][0]()
         expect(executeHooksWithArgs)
             .toBeCalledWith('beforeStep', 'beforeStep', ['step', 'scenario'])
@@ -210,7 +210,7 @@ describe('CucumberAdapter', () => {
             .toBeCalledWith('beforeScenario', 'beforeScenario', ['world'])
         ;(Cucumber.After as jest.Mock).mock.calls[0][0]('world')
         expect(executeHooksWithArgs)
-            .toBeCalledWith('afterScenario', 'afterScenario', ['world'])
+            .toBeCalledWith('afterScenario', 'afterScenario', ['world', { 'duration': NaN, 'error': undefined, 'passed': false }])
     })
 
     it('wrapSteps', async () => {

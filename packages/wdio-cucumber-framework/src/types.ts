@@ -1,4 +1,4 @@
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Frameworks } from '@wdio/types'
 import type { messages } from '@cucumber/messages'
 import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 
@@ -160,16 +160,23 @@ export interface HookFunctionExtension {
      * Runs after a Cucumber Step.
      * @param step     step data
      * @param scenario scenario data
-     * @param result result object containing {passed: boolean, error: string, duration: messages.IDuration}
+     * @param result result object containing
+     * @param result.passed   true if scenario has passed
+     * @param result.error    error stack if scenario failed
+     * @param result.duration duration of scenario in milliseconds
      */
-    afterStep?(step: messages.Pickle.IPickleStep, scenario: messages.IPickle, result: { passed: boolean, duration: messages.IDuration, error: string }): void;
+    afterStep?(step: messages.Pickle.IPickleStep, scenario: messages.IPickle, result: Frameworks.PickleResult): void;
 
     /**
      *
      * Runs before a Cucumber Scenario.
      * @param world world object containing information on pickle and test step
+     * @param result result object containing
+     * @param result.passed   true if scenario has passed
+     * @param result.error    error stack if scenario failed
+     * @param result.duration duration of scenario in milliseconds
      */
-    afterScenario?(world: ITestCaseHookParameter): void;
+    afterScenario?(world: ITestCaseHookParameter, result: Frameworks.PickleResult): void;
 
     /**
      *
