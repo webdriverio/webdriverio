@@ -19,6 +19,51 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.7.0 (2021-06-01)
+
+#### :rocket: New Feature
+* `wdio-logger`, `webdriverio`
+  * [#6930](https://github.com/webdriverio/webdriverio/pull/6930) Implement restore/clear all mocks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#6924](https://github.com/webdriverio/webdriverio/pull/6924) Improve window management in devtools ([@christian-bromann](https://github.com/christian-bromann))
+  * [#6927](https://github.com/webdriverio/webdriverio/pull/6927) Fix double click in devtools ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#6926](https://github.com/webdriverio/webdriverio/pull/6926) Better allow for manual TS transpiling ([@christian-bromann](https://github.com/christian-bromann))
+  * [#6933](https://github.com/webdriverio/webdriverio/pull/6933) CLI : Update visual-regression-testing to image-comparison ([@pjcalvo](https://github.com/pjcalvo))
+* `webdriverio`
+  * [#6915](https://github.com/webdriverio/webdriverio/pull/6915) keep original selector for custom locator strategy ([@christian-bromann](https://github.com/christian-bromann))
+  * [#6929](https://github.com/webdriverio/webdriverio/pull/6929) Use WebDriver if Appium capabilities are found ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sauce-service`
+  * [#6662](https://github.com/webdriverio/webdriverio/pull/6662) Strip color ascii characters when uploading error message to Sauce Labs job ([@christian-bromann](https://github.com/christian-bromann))
+  * [#6912](https://github.com/webdriverio/webdriverio/pull/6912) Report errors on Sauce Labs in test hooks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-devtools-service`
+  * [#6920](https://github.com/webdriverio/webdriverio/pull/6920) Issue #6877: Exclude files from code coverage ([@kailin0512](https://github.com/kailin0512))
+* `wdio-cli`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-sauce-service`, `wdio-testingbot-service`, `wdio-types`
+  * [#6941](https://github.com/webdriverio/webdriverio/pull/6941) Propagate better result object in `afterScenario` ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#6935](https://github.com/webdriverio/webdriverio/pull/6935) Update Debugging.md ([@jpratt2](https://github.com/jpratt2))
+* `webdriverio`
+  * [#6934](https://github.com/webdriverio/webdriverio/pull/6934) Click x and y are actually counted from center of element ([@stwippie](https://github.com/stwippie))
+* `wdio-cli`
+  * [#6933](https://github.com/webdriverio/webdriverio/pull/6933) CLI : Update visual-regression-testing to image-comparison ([@pjcalvo](https://github.com/pjcalvo))
+* `wdio-cucumber-framework`
+  * [#6922](https://github.com/webdriverio/webdriverio/pull/6922) Fixes Types for cucumber-framework ([@jonn-set](https://github.com/jonn-set))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- John Pratt ([@jpratt2](https://github.com/jpratt2))
+- Johnson E ([@jonn-set](https://github.com/jonn-set))
+- Kai ([@kailin0512](https://github.com/kailin0512))
+- Pablillo Calvo ([@pjcalvo](https://github.com/pjcalvo))
+- Stwippie ([@stwippie](https://github.com/stwippie))
+
+
 ## v7.6.1 (2021-05-25)
 
 #### :bug: Bug Fix
