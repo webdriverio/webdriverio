@@ -349,3 +349,6 @@ export function patchDebug (scoppedLogger: Logger) {
         scoppedLogger.debug(msg)
     }
 }
+
+export const sleep = (time = 0) => new Promise(
+    (resolve) => setTimeout(resolve, time))

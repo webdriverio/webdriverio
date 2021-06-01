@@ -3,13 +3,11 @@ import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/In
 
 import getElementRect from './getElementRect'
 import { ELEMENT_KEY } from '../constants'
+import { sleep } from '../utils'
 import type DevToolsDriver from '../devtoolsdriver'
 
 const KEY = 'key'
 const POINTER = 'pointer'
-
-const sleep = (time = 0) => new Promise(
-    (resolve) => setTimeout(resolve, time))
 
 interface Action {
     duration?: number

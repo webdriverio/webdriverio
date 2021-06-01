@@ -8,7 +8,7 @@ import { canAccess } from '@wdio/utils'
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
-    uniq, findByWhich, patchDebug
+    uniq, findByWhich, patchDebug, sleep
 } from '../src/utils'
 
 const debug = jest.requireActual('debug')
@@ -399,4 +399,10 @@ test('patchDebug with debug not install in puppeteer', () => {
     patchDebug(logMock as any)
     pptrDebugLog('something something - puppeteer:protocol barfoo')
     expect(logMock.debug).toBeCalledWith('barfoo')
+})
+
+test('sleep', async () => {
+    const start = Date.now()
+    await sleep(100)
+    expect(Date.now() - start).toBeGreaterThanOrEqual(100)
 })

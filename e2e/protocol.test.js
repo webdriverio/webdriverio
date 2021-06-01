@@ -5,6 +5,8 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
 let browser
 
+jest.retryTimes(0)
+
 beforeAll(async () => {
     browser = await DevTools.newSession({
         outputDir: __dirname,
@@ -285,6 +287,18 @@ describe('frames', () => {
         await browser.switchToFrame(null)
         expect(await browser.getTitle()).toBe('The Internet')
     })
+
+    it('allows to switch to parent frame even if there isn\'t any', async () => {
+        await browser.navigateTo('http://guinea-pig.webdriver.io/two.html')
+        expect(await browser.getTitle()).toBe('two')
+        const iframe = await browser.findElement('css selector', 'iframe')
+        await browser.switchToFrame(iframe)
+        expect(await browser.getTitle()).toBe('Light Bikes from Eric Corriel on Vimeo')
+        await browser.switchToFrame(null)
+        expect(await browser.getTitle()).toBe('two')
+        await browser.switchToFrame(null)
+        expect(await browser.getTitle()).toBe('two')
+    })
 })
 
 describe('executeScript', () => {
@@ -332,6 +346,23 @@ describe('executeScript', () => {
         expect(await browser.executeScript('/* test */ console.log("test")')).toBe(undefined)
         expect(await browser.executeScript('return { foo: "bar" }')).toEqual({ foo: 'bar' })
         expect(await browser.executeScript('return ({ foo: "bar" })')).toEqual({ foo: 'bar' })
+    })
+})
+
+describe('handles windows', () => {
+    it('should be able to work with popups', async () => {
+        await browser.navigateTo('http://guinea-pig.webdriver.io/')
+        const parentButton = await browser.findElement('css selector', '#parentButton')
+        await browser.elementClick(parentButton[ELEMENT_KEY])
+
+        const handles = await browser.getWindowHandles()
+        await browser.switchToWindow(handles[handles.length - 1])
+
+        console.log(await browser.getTitle())
+        const closeButton = await browser.findElement('css selector', '#closeButton')
+        await browser.elementClick(closeButton[ELEMENT_KEY])
+
+        expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
     })
 })
 
