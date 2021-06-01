@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.7.2 (2021-06-01)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#6958](https://github.com/webdriverio/webdriverio/pull/6958) Fix for isW3C ([@Oleksandr-Antonkin-epam](https://github.com/Oleksandr-Antonkin-epam))
+
+#### Committers: 1
+- Oleksandr Antonkin  ([@Oleksandr-Antonkin-epam](https://github.com/Oleksandr-Antonkin-epam))
+
+
 ## v7.7.0 (2021-06-01)
 
 #### :rocket: New Feature
