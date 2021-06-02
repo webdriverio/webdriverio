@@ -233,7 +233,7 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs EU job details page 1`] = `
+exports[`SpecReporter printReport with normal setup should print link to Sauce Labs for many regions 1`] = `
 Array [
   Array [
     "------------------------------------------------------------------
@@ -273,7 +273,7 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs EU job details page 2`] = `
+exports[`SpecReporter printReport with normal setup should print link to Sauce Labs for many regions 2`] = `
 Array [
   Array [
     "------------------------------------------------------------------
@@ -307,49 +307,14 @@ Array [
 [loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
 [loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
 [loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=364414eae3ee11cb8b8bb3fc3e3b5e12
+[loremipsum 50 Windows 10 #0-0] Check out job at https://app.apac-southeast-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=364414eae3ee11cb8b8bb3fc3e3b5e12
 ",
   ],
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs EU job details page 3`] = `
+exports[`SpecReporter printReport with normal setup should print link to Sauce Labs for many regions 3`] = `
 Array [
-  Array [
-    "------------------------------------------------------------------
-[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
-[loremipsum 50 Windows 10 #0-0] Session ID: foobar
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
-[loremipsum 50 Windows 10 #0-0] Foo test
-[loremipsum 50 Windows 10 #0-0]    green ✓ foo
-[loremipsum 50 Windows 10 #0-0]    green ✓ bar
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
-[loremipsum 50 Windows 10 #0-0] Bar test
-[loremipsum 50 Windows 10 #0-0]    green ✓ some test
-[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
-[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
-[loremipsum 50 Windows 10 #0-0] Baz test
-[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
-[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] green 4 passing (5s)
-[loremipsum 50 Windows 10 #0-0] red 1 failing
-[loremipsum 50 Windows 10 #0-0] cyan 1 skipped
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
-[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
-[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
-[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] Check out job at https://app.eu-central-1.saucelabs.com/tests/ba86cbcb70774ef8a0757c1702c3bdf9?auth=364414eae3ee11cb8b8bb3fc3e3b5e12
-",
-  ],
   Array [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10

@@ -187,6 +187,8 @@ export interface MultiRemoteBrowserOptions {
     capabilities: DesiredCapabilities
 }
 
+export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'eu-central-1' | 'apac-southeast-1'
+
 export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
     /**
      * Defines the capabilities you want to run in your WebDriver session. Check out the
@@ -240,7 +242,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
      * If running on Sauce Labs, you can choose to run tests between different datacenters:
      * US or EU. To change your region to EU, add region: 'eu' to your config.
      */
-    region?: string
+    region?: SauceRegions
     /**
      * Sauce Labs provides a headless offering that allows you to run Chrome and Firefox tests headless.
      */
