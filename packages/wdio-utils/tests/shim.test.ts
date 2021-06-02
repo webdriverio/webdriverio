@@ -72,6 +72,7 @@ describe('switchSyncFlag', () => {
             }
         })()
         expect(runAsync).toBe(false)
+        // eslint-disable-next-line
         runAsync = true
         fn()
         expect(runAsync).toBe(true)
@@ -87,6 +88,7 @@ describe('switchSyncFlag', () => {
             }
         })()
         expect(runAsync).toBe(false)
+        // eslint-disable-next-line
         runAsync = true
         await fn()
         expect(runAsync).toBe(true)
