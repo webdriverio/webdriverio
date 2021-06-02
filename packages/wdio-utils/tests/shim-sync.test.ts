@@ -2,22 +2,24 @@ import { executeHooksWithArgs, runFnInFiberContext, wrapCommand, hasWdioSyncSupp
 import { wrapCommand as wrapCommandSync } from '@wdio/sync'
 
 jest.mock('@wdio/sync', () => ({
-    executeHooksWithArgs: 'executeHooksWithArgs',
-    runFnInFiberContext: 'runFnInFiberContext',
+    executeHooksWithArgs: jest.fn().mockReturnValue('executeHooksWithArgs'),
+    runFnInFiberContext: jest.fn().mockReturnValue('runFnInFiberContext'),
     wrapCommand: jest.fn().mockReturnValue(jest.fn()),
-    executeSync: 'executeSync',
-    runSync: 'runSync'
+    executeSync: jest.fn().mockReturnValue('executeSync'),
+    runSync: jest.fn().mockReturnValue('runSync')
 }))
+
+const command = jest.fn().mockReturnValue({})
 
 describe('executeHooksWithArgs', () => {
     it('should match @wdio/sync', async () => {
-        expect(executeHooksWithArgs).toBe('executeHooksWithArgs')
+        expect(executeHooksWithArgs.call({}, command)).toBe('executeHooksWithArgs')
     })
 })
 
 describe('runFnInFiberContext', () => {
     it('should match @wdio/sync', async () => {
-        expect(runFnInFiberContext).toBe('runFnInFiberContext')
+        expect(runFnInFiberContext.call({}, command)).toBe('runFnInFiberContext')
     })
 })
 
@@ -38,12 +40,12 @@ describe('hasWdioSyncSupport', () => {
 
 describe('executeSync', () => {
     it('should match @wdio/sync', async () => {
-        expect(executeSync).toBe('executeSync')
+        expect(executeSync.call({}, command)).toBe('executeSync')
     })
 })
 
 describe('runSync', () => {
     it('should match @wdio/sync', async () => {
-        expect(runSync).toBe('runSync')
+        expect(runSync.call({}, command)).toBe('runSync')
     })
 })

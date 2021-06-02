@@ -36,7 +36,7 @@ const ELEMENT_PROPS = ['elementId', 'error', 'selector', 'parent', 'index', 'isR
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
  */
 let wdioSync: WDIOSync | undefined
-let runAsync = false
+export let runAsync = false
 try {
     const packageName = '@wdio/sync'
     wdioSync = require(packageName)
@@ -330,8 +330,8 @@ let executeSync = executeSyncFn
  * we flip `runAsync` flag to true to that commands are wrapped with the @wdio/sync
  * wrapper.
  */
-function switchSyncFlag (fn: Function) {
-    return function (this: never, ...args: any[]) {
+export function switchSyncFlag (fn: Function) {
+    return function (this: unknown, ...args: any[]) {
         const switchFlag = runAsync
         runAsync = false
         const result = fn.apply(this, args)
