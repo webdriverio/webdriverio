@@ -36,15 +36,28 @@ const ELEMENT_PROPS = ['elementId', 'error', 'selector', 'parent', 'index', 'isR
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
  */
 let wdioSync: WDIOSync | undefined
+let runAsync = false
 try {
     const packageName = '@wdio/sync'
     wdioSync = require(packageName)
     hasWdioSyncSupport = true
+
+    /**
+     * only print within worker process
+     */
+    if (process.send) {
+        log.warn(
+            'You are running tests with @wdio/sync which will be discontinued starting Node.js v16.' +
+            'Read more on https://github.com/webdriverio/webdriverio/discussions/6702'
+        )
+    }
 } catch (err) {
-    // do nothing
+    runAsync = true
 }
 
 let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
+    runAsync = true
+
     /**
      * make sure hooks are an array of functions
      */
@@ -93,6 +106,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName:
 
 let runFnInFiberContext = function (fn: Function) {
     return function (this: any, ...args: any[]) {
+        runAsync = true
         return Promise.resolve(fn.apply(this, args))
     }
 }
@@ -237,8 +251,8 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
          * also if we run command asynchronous and the command suppose to return an element, we
          * apply `chainElementQuery` to allow chaining of these promises.
          */
-        const command = hasWdioSyncSupport && wdioSync && global._HAS_FIBER_CONTEXT
-            ? wdioSync.wrapCommand(commandName, fn)
+        const command = hasWdioSyncSupport && wdioSync && !runAsync
+            ? wdioSync!.wrapCommand(commandName, fn)
             : ELEMENT_QUERY_COMMANDS.includes(commandName)
                 ? function chainElementQuery(this: Promise<Clients.Browser>, ...args: any[]): any {
                     return wrapElementFn(this, wrapCommandFn, args)
@@ -261,6 +275,7 @@ async function executeSyncFn (this: any, fn: Function, retries: Retries, args: a
     this.wdioRetries = retries.attempts
 
     try {
+        runAsync = true
         let res = fn.apply(this, args)
 
         /**
@@ -275,7 +290,7 @@ async function executeSyncFn (this: any, fn: Function, retries: Retries, args: a
     } catch (e) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
-            return await executeSync.call(this, fn, retries, args)
+            return await executeSyncFn.call(this, fn, retries, args)
         }
 
         return Promise.reject(e)
@@ -294,6 +309,7 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
     this.wdioRetries = retries.attempts
 
     try {
+        runAsync = true
         return await fn.apply(this, args)
     } catch (e) {
         if (retries.limit > retries.attempts) {
@@ -308,16 +324,51 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
 let executeSync = executeSyncFn
 
 /**
+ * Method to switch between sync and async execution. It allows to have async
+ * tests in between synchronous tests. `fn` can either return a promise (e.g. for `executeSync`)
+ * or a function (e.g. for `runSync`). In both cases we need to make sure that
+ * we flip `runAsync` flag to true to that commands are wrapped with the @wdio/sync
+ * wrapper.
+ */
+function switchSyncFlag (fn: Function) {
+    return function (this: never, ...args: any[]) {
+        const switchFlag = runAsync
+        runAsync = false
+        const result = fn.apply(this, args)
+
+        if (typeof result.finally === 'function') {
+            return result.finally(() => (runAsync = switchFlag))
+        }
+
+        if (typeof result === 'function') {
+            return function (this: any, ...args: any[]) {
+                const switchFlag = runAsync
+                const res = result.apply(this, args)
+                if (typeof result.finally === 'function') {
+                    return result.finally(() => (runAsync = switchFlag))
+                }
+
+                runAsync = switchFlag
+                return res
+            }
+        }
+
+        runAsync = switchFlag
+        return result
+    }
+}
+
+/**
  * only require `@wdio/sync` if `WDIO_NO_SYNC_SUPPORT` which allows us to
  * create a smoke test scenario to test actual absence of the package
  * (internal use only)
  */
 /* istanbul ignore if */
 if (!process.env.WDIO_NO_SYNC_SUPPORT && hasWdioSyncSupport && wdioSync) {
-    runFnInFiberContext = wdioSync.runFnInFiberContext
-    executeHooksWithArgs = wdioSync.executeHooksWithArgs
-    executeSync = wdioSync.executeSync
-    runSync = wdioSync.runSync
+    runFnInFiberContext = switchSyncFlag(wdioSync.runFnInFiberContext)
+    executeHooksWithArgs = switchSyncFlag(wdioSync.executeHooksWithArgs)
+    executeSync = switchSyncFlag(wdioSync.executeSync)
+    runSync = switchSyncFlag(wdioSync.runSync)
 }
 
 export {
