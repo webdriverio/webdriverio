@@ -22,13 +22,15 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/mocha": "^8.0.0",
-    "@types/node": "^14.14.31",
     "@wdio/logger": "7.7.0",
     "@wdio/types": "7.7.0",
     "@wdio/utils": "7.7.2",
     "expect-webdriverio": "^3.0.0",
     "mocha": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.31",
+    "@types/mocha": "^8.0.0"
   },
   "publishConfig": {
     "access": "public"
