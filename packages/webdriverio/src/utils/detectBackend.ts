@@ -1,4 +1,4 @@
-import { Capabilities } from '@wdio/types'
+import { Capabilities, Options } from '@wdio/types'
 
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
@@ -10,7 +10,9 @@ const REGION_MAPPING = {
     'us': 'us-west-1.', // default endpoint
     'eu': 'eu-central-1.',
     'eu-central-1': 'eu-central-1.',
-    'us-east-1': 'us-east-1.'
+    'us-east-1': 'us-east-1.',
+    'apac': 'apac-southeast-1.',
+    'apac-southeast-1': 'apac-southeast-1',
 }
 
 interface BackendConfigurations {
@@ -19,7 +21,7 @@ interface BackendConfigurations {
     user?: string
     key?: string
     protocol?: string
-    region?: string
+    region?: Options.SauceRegions
     headless?: boolean
     path?: string
     capabilities?: Capabilities.RemoteCapabilities | Capabilities.RemoteCapability

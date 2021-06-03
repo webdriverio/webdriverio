@@ -159,12 +159,15 @@ export default class SpecReporter extends WDIOReporter {
         )
 
         if (isSauceJob && config && config.user && config.key && sessionId) {
-            const hostname = config.hostname?.replace('ondemand', 'app').replace('us-west-1.', '')
+            const isUSEast = config.headless || (config.hostname?.includes('us-east-1'))
+            const isEUCentral = ['eu', 'eu-central-1'].includes(config?.region || '') || (config.hostname?.includes('eu-central'))
+            const isAPAC = ['apac', 'apac-southeast-1'].includes(config?.region || '') || (config.hostname?.includes('apac'))
+            const dc = isUSEast ? '.us-east-1' : isEUCentral ? '.eu-central-1' : isAPAC ? '.apac-southeast-1' : ''
             const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
             const sauceLabsSharableLinks = this._sauceLabsSharableLinks
                 ? sauceAuthenticationToken( config.user, config.key, sessionId )
                 : ''
-            return [`Check out${multiremoteNote} job at https://${hostname}/tests/${sessionId}${sauceLabsSharableLinks}`]
+            return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}${sauceLabsSharableLinks}`]
         }
 
         return []
