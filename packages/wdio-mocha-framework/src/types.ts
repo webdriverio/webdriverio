@@ -1,4 +1,5 @@
 import type { Options } from '@wdio/types'
+import type Mocha from 'mocha'
 
 export interface MochaOpts {
     /**
