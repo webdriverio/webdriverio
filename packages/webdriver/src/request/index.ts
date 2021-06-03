@@ -1,18 +1,26 @@
-import path from 'path'
-import http from 'http'
-import https from 'https'
 import { EventEmitter } from 'events'
+import path from 'path'
+import type { URL } from 'url'
+import { URLFactory } from './factory'
 
-import * as got from 'got'
 import logger from '@wdio/logger'
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
+import { isSuccessfulResponse, getErrorFromResponseBody } from '../utils'
 
-const pkg = require('../package.json')
+const pkg = require('../../package.json')
 
+type Agents = Options.Agents
+type RequestLibOptions = Options.RequestLibOptions
+type RequestLibResponse = Options.RequestLibResponse
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
+
+export class RequestLibError extends Error {
+    statusCode?: number
+    body?: any
+    code?: string
+}
 
 export interface WebDriverResponse {
     value: any
@@ -31,18 +39,15 @@ const DEFAULT_HEADERS = {
 }
 
 const log = logger('webdriver')
-const agents = {
-    http: new http.Agent({ keepAlive: true }),
-    https: new https.Agent({ keepAlive: true })
-}
 
-export default class WebDriverRequest extends EventEmitter {
+export default abstract class WebDriverRequest extends EventEmitter {
     body?: Record<string, unknown>
     method: string
     endpoint: string
     isHubCommand: boolean
     requiresSessionId: boolean
-    defaultOptions: got.Options = {
+    defaultAgents: Agents | null
+    defaultOptions: RequestLibOptions = {
         retry: 0, // we have our own retry mechanism
         followRedirect: true,
         responseType: 'json',
@@ -55,11 +60,12 @@ export default class WebDriverRequest extends EventEmitter {
         this.method = method
         this.endpoint = endpoint
         this.isHubCommand = isHubCommand
+        this.defaultAgents = null
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
     }
 
     makeRequest (options: RequestOptions, sessionId?: string) {
-        let fullRequestOptions: got.Options = Object.assign({
+        let fullRequestOptions: RequestLibOptions = Object.assign({
             method: this.method
         }, this.defaultOptions, this._createOptions(options, sessionId))
         if (typeof options.transformRequest === 'function') {
@@ -70,15 +76,19 @@ export default class WebDriverRequest extends EventEmitter {
         return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    private _createOptions (options: RequestOptions, sessionId?: string): got.Options {
-        const requestOptions: got.Options = {
+    protected _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): RequestLibOptions {
+        const agent = isBrowser ? undefined : (options.agent || this.defaultAgents)
+        const searchParams = isBrowser ?
+            undefined :
+            (typeof options.queryParams === 'object' ? options.queryParams : {})
+        const requestOptions: RequestLibOptions = {
             https: {},
-            agent: options.agent || agents,
+            agent,
             headers: {
                 ...DEFAULT_HEADERS,
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
-            searchParams: typeof options.queryParams === 'object' ? options.queryParams : {},
+            searchParams,
             timeout: options.connectionRetryTimeout
         }
 
@@ -104,11 +114,11 @@ export default class WebDriverRequest extends EventEmitter {
             endpoint = endpoint.replace(':sessionId', sessionId)
         }
 
-        requestOptions.url = new URL(
+        requestOptions.url = URLFactory.getInstance(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
             (this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint))
-        ) as import('url').URL
+        )
 
         /**
          * send authentication credentials only when creating new session
@@ -131,9 +141,13 @@ export default class WebDriverRequest extends EventEmitter {
         return requestOptions
     }
 
+    protected async _libRequest(url: URL, options: RequestLibOptions): Promise<RequestLibResponse> { // eslint-disable-line @typescript-eslint/no-unused-vars
+        throw new Error('This function must be implemented')
+    }
+
     private async _request (
-        fullRequestOptions: got.Options,
-        transformResponse?: (response: got.Response, requestOptions: got.HTTPSOptions) => got.Response,
+        fullRequestOptions: RequestLibOptions,
+        transformResponse?: (response: RequestLibResponse, requestOptions: RequestLibOptions) => RequestLibResponse,
         totalRetryCount = 0,
         retryCount = 0
     ): Promise<WebDriverResponse> {
@@ -143,10 +157,12 @@ export default class WebDriverRequest extends EventEmitter {
             log.info('DATA', transformCommandLogResult(fullRequestOptions.json))
         }
 
-        const { url, ...gotOptions } = fullRequestOptions
-        let response = await got.default(url!, gotOptions)
+        const { url, ...requestLibOptions } = fullRequestOptions
+        let response = await this._libRequest(url!, requestLibOptions)
             // @ts-ignore
-            .catch((err: got.RequestError) => err)
+            .catch((err: RequestLibError) => {
+                return err
+            })
 
         /**
          * handle retries for requests
@@ -178,7 +194,7 @@ export default class WebDriverRequest extends EventEmitter {
             /**
              * handle timeouts
              */
-            if ((response as got.RequestError).code === 'ETIMEDOUT') {
+            if ((response as RequestLibError).code === 'ETIMEDOUT') {
                 return retry(response, 'Request timed out! Consider increasing the "connectionRetryTimeout" option.')
             }
 
@@ -189,7 +205,7 @@ export default class WebDriverRequest extends EventEmitter {
         }
 
         if (typeof transformResponse === 'function') {
-            response = transformResponse(response, fullRequestOptions) as got.Response<string>
+            response = transformResponse(response, fullRequestOptions) as RequestLibResponse
         }
 
         const error = getErrorFromResponseBody(response.body)
