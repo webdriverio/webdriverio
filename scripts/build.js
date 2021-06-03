@@ -64,13 +64,13 @@ const packages = getSubPackages()
      */
     .filter((pkg) => args.length === 0 || args.includes(pkg))
 
-const compile = (packages, isESM) => {
+const compileESM = (packages) => {
     if (packages.length === 0) {
         return
     }
 
     const TSCONFIG_FILE = process.env.NODE_ENV === 'production'
-        ? isESM ? 'tsconfig.esm.json' : 'tsconfig.prod.json'
+        ? 'tsconfig.prod.json'
         : 'tsconfig.json'
     const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`).join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
     console.log(cmd)
@@ -81,8 +81,22 @@ const compile = (packages, isESM) => {
     }
 }
 
-shell.cd(path.join(__dirname, '..'))
-compile(packages)
+const compileCJS = (pkg) => {
+    if (packages.length === 0) {
+        return
+    }
 
-console.log('Compiling ESM compatible files')
-compile(packages.filter((p) => ESM_COMPATIBLE_PACKAGES.includes(p)), true)
+    const cmd = `npx rollup -c packages/${pkg}/rollup.config.js`
+    console.log(cmd)
+    const { code } = shell.exec(cmd)
+
+    if (code) {
+        throw new Error('Failed compiling CJS files!')
+    }
+}
+
+shell.cd(path.join(__dirname, '..'))
+compileESM(packages)
+
+console.log('Bundling files for CJS')
+ESM_COMPATIBLE_PACKAGES.forEach(compileCJS)

@@ -1,16 +1,26 @@
 {
   "name": "@wdio/protocols",
-  "version": "7.5.3",
+  "version": "8.0.0-alpha.1",
   "description": "Utility package providing information about automation protocols",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols",
   "license": "MIT",
-  "main": "./build/cjs/index",
-  "module": "./build/esm/index",
+  "main": "./build/index.cjs",
+  "module": "./build/index",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": [
+      {
+        "import": "./index.mjs",
+        "require": "./index.cjs"
+      },
+      "./index.cjs"
+    ]
+  },
   "types": "./build/index.d.ts",
-  "files": ["./build"],
+  "files": ["build"],
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=12"
   },
   "repository": {
     "type": "git",

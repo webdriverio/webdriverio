@@ -2,9 +2,13 @@
   "extends": "../../tsconfig.prod",
   "compilerOptions": {
     "baseUrl": ".",
-    "outDir": "build/cjs",
+    "outDir": "build",
     "rootDir": "src",
-    "removeComments": false
+    "module": "ESNext",
+    "target": "ES2017",
+    "moduleResolution": "Node",
+    "removeComments": false,
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*"

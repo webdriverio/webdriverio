@@ -1,19 +1,23 @@
-import { Protocol } from './types'
 import AppiumCommands from './commands/appium'
-import ChromiumCommands from './commands/chromium'
-import JSONWPCommands from './commands/jsonwp'
-import MJSONWPCommands from './commands/mjsonwp'
-import SauceLabsCommands from './commands/saucelabs'
-import SeleniumCommands from './commands/selenium'
-import WebDriverCommands from './commands/webdriver'
+import AppiumProtocol from './protocols/appium.json'
 
-const WebDriverProtocol: Protocol = require('../../protocols/webdriver.json')
-const MJsonWProtocol: Protocol = require('../../protocols/mjsonwp.json')
-const JsonWProtocol: Protocol = require('../../protocols/jsonwp.json')
-const AppiumProtocol: Protocol = require('../../protocols/appium.json')
-const ChromiumProtocol: Protocol = require('../../protocols/chromium.json')
-const SauceLabsProtocol: Protocol = require('../../protocols/saucelabs.json')
-const SeleniumProtocol: Protocol = require('../../protocols/selenium.json')
+import ChromiumCommands from './commands/chromium'
+import ChromiumProtocol from './protocols/chromium.json'
+
+import JSONWPCommands from './commands/jsonwp'
+import JSONWProtocol from './protocols/jsonwp.json'
+
+import MJSONWPCommands from './commands/mjsonwp'
+import MJSONWProtocol from './protocols/mjsonwp.json'
+
+import SauceLabsCommands from './commands/saucelabs'
+import SauceLabsProtocol from './protocols/saucelabs.json'
+
+import SeleniumCommands from './commands/selenium'
+import SeleniumProtocol from './protocols/selenium.json'
+
+import WebDriverCommands from './commands/webdriver'
+import WebDriverProtocol from './protocols/webdriver.json'
 
 type WebDriverCommandsAsync = {
     [K in keyof WebDriverCommands]:
@@ -50,7 +54,7 @@ export interface ProtocolCommandsAsync extends WebDriverCommandsAsync, Omit<JSON
 export * from './types'
 export {
     // protocols
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJSONWProtocol, JSONWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol,
     // sync commands
     AppiumCommands, ChromiumCommands, JSONWPCommands, MJSONWPCommands,
