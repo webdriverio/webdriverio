@@ -7,12 +7,10 @@ import {
     loadAutoCompilers, ModuleRequireService
 } from '../utils'
 import {
+    DEFAULT_CONFIGS,
     SUPPORTED_HOOKS,
     SUPPORTED_FILE_EXTENSIONS
 } from '../constants'
-import {
-    DEFAULT_CONFIGS
-} from '../'
 import FileSystemPathService from './FileSystemPathService'
 import RequireLibrary from './RequireLibrary'
 const log = logger('@wdio/config:ConfigParser')

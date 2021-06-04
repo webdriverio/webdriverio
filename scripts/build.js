@@ -30,7 +30,8 @@ const ROOT_PACKAGES = [
 ]
 
 const ESM_COMPATIBLE_PACKAGES = [
-    'wdio-utils'
+    'wdio-utils',
+    'wdio-config'
 ]
 
 const packages = getSubPackages()
