@@ -6,6 +6,7 @@
     "declaration": true,
     "declarationMap": true,
     "resolveJsonModule": true,
+    "moduleResolution": "node",
     "removeComments": false,
     "strictFunctionTypes": false,
     "lib": ["dom", "es2019"],

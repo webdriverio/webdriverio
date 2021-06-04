@@ -101,5 +101,7 @@ const compileCJS = (pkg) => {
 shell.cd(path.join(__dirname, '..'))
 compileESM(packages)
 
-console.log('Bundling files for CJS')
-packages.filter(pkg => ESM_COMPATIBLE_PACKAGES.includes(pkg)).forEach(compileCJS)
+if (process.env.NODE_ENV === 'production') {
+    console.log('Bundling files for CJS')
+    packages.filter(pkg => ESM_COMPATIBLE_PACKAGES.includes(pkg)).forEach(compileCJS)
+}
