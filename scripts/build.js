@@ -30,7 +30,7 @@ const ROOT_PACKAGES = [
 ]
 
 const ESM_COMPATIBLE_PACKAGES = [
-    'wdio-logger'
+    'wdio-utils'
 ]
 
 const packages = getSubPackages()

@@ -11,7 +11,7 @@ import {
     wrapCommand, runFnInFiberContext, executeHooksWithArgs,
     hasWdioSyncSupport, executeSync, executeAsync,
 } from './shim'
-import { testFnWrapper, runTestInFiberContext } from './test-framework'
+import { testFnWrapper, runTestInFiberContext } from './test-framework/index'
 import {
     isW3C, capabilitiesEnvironmentDetector,
     sessionEnvironmentDetector, devtoolsEnvironmentDetector
