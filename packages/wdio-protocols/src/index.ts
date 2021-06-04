@@ -64,5 +64,3 @@ export {
     JSONWPCommandsAsync, MJSONWPCommandsAsync, SauceLabsCommandsAsync,
     SeleniumCommandsAsync
 }
-
-export default 'foo'
