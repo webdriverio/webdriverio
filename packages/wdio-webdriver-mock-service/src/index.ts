@@ -32,6 +32,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.getUrl().times(Infinity).reply(200, { value: 'https://mymockpage.com' })
         this._mock.command.getElementRect(ELEMENT_ID).times(3).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
         this._mock.command.getElementRect(ELEMENT_ALT).times(3).reply(200, { value: { width: 10, height: 20, x: 30, y: 40 } })
+        this._mock.command.getElementRect(ELEMENT_REFETCHED).times(1).reply(200, { value: { width: 10, height: 20, x: 30, y: 40 } })
         this._mock.command.getLogTypes().reply(200, { value: [] })
     }
 
