@@ -32,7 +32,8 @@ const ROOT_PACKAGES = [
 const ESM_COMPATIBLE_PACKAGES = [
     'wdio-utils',
     'wdio-config',
-    'webdriver'
+    'wdio-webdriver-mock-service',
+    'webdriver',
 ]
 
 const packages = getSubPackages()

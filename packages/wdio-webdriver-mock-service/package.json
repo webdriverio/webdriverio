@@ -5,7 +5,22 @@
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service",
   "license": "MIT",
-  "main": "./build/index",
+  "main": "./build/index.cjs",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": [
+      {
+        "import": "./build/index.js",
+        "require": "./build/index.cjs"
+      },
+      "./build/index.cjs"
+    ]
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
+  "files": ["build"],
   "engines": {
     "node": ">=12.0.0"
   },
@@ -27,6 +42,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

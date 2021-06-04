@@ -2,8 +2,13 @@
   "extends": "../../tsconfig.prod",
   "compilerOptions": {
     "baseUrl": ".",
-    "outDir": "./build",
-    "rootDir": "./src"
+    "outDir": "build",
+    "rootDir": "src",
+    "module": "ESNext",
+    "target": "ES2019",
+    "moduleResolution": "Node",
+    "lib": ["es2020"],
+    "removeComments": false
   },
   "include": [
     "src/**/*",

@@ -1,0 +1,15 @@
+{
+  "name": "wdio-esm-tests",
+  "version": "1.0.0",
+  "description": "A test package to test ESM compatibility with WebdriverIO",
+  "type": "module",
+  "exports": "./index.js",
+  "engines": {
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Christian Bromann <christian@saucelabs.com>",
+  "license": "MIT"
+}

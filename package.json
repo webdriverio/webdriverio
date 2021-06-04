@@ -36,6 +36,7 @@
     "test:typings": "node tests/typings/setup && npm run ts && npm run clean:tests && node tests/typings/setup --ts=3.9 && npm run ts && npm run clean:tests",
     "test:coverage": "node --max-old-space-size=8192 ./node_modules/jest/bin/jest.js --coverage --logHeapUsage",
     "test:smoke": "ts-node ./tests/smoke.runner.js",
+    "test:esm": "node --experimental-json-modules ./tests/esm/index.js",
     "test:e2e": "jest --config e2e/jest.config.js",
     "test:e2e:edge": "npm run test:e2e -- --testMatch '**/edge.e2e.js'",
     "test:e2e:firefox": "npm run test:e2e -- --testMatch '<rootDir>/standalone/firefox.e2e.js'",
