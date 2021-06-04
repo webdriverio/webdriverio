@@ -1,7 +1,7 @@
 import merge from 'lodash.merge'
 import logger from '@wdio/logger'
 import {
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
+    WebDriverProtocol, MJSONWProtocol, JSONWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol
 } from '@wdio/protocols'
 import Protocols from '@wdio/protocols'
@@ -163,6 +163,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
  */
 export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
+    // @ts-ignore
     const ProtocolCommands: Protocols.Protocol = merge(
         /**
          * if mobile apply JSONWire and WebDriver protocol because
@@ -170,12 +171,12 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
          * (e.g. set/get geolocation)
          */
         isMobile
-            ? merge({}, JsonWProtocol, WebDriverProtocol)
-            : isW3C ? WebDriverProtocol : JsonWProtocol,
+            ? merge({}, JSONWProtocol, WebDriverProtocol)
+            : isW3C ? WebDriverProtocol : JSONWProtocol,
         /**
          * only apply mobile protocol if session is actually for mobile
          */
-        isMobile ? merge({}, MJsonWProtocol, AppiumProtocol) : {},
+        isMobile ? merge({}, MJSONWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chrome commands if session is using Chrome
          */

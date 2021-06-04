@@ -31,7 +31,8 @@ const ROOT_PACKAGES = [
 
 const ESM_COMPATIBLE_PACKAGES = [
     'wdio-utils',
-    'wdio-config'
+    'wdio-config',
+    'webdriver'
 ]
 
 const packages = getSubPackages()
@@ -100,4 +101,4 @@ shell.cd(path.join(__dirname, '..'))
 compileESM(packages)
 
 console.log('Bundling files for CJS')
-ESM_COMPATIBLE_PACKAGES.forEach(compileCJS)
+packages.filter(pkg => ESM_COMPATIBLE_PACKAGES.includes(pkg)).forEach(compileCJS)
