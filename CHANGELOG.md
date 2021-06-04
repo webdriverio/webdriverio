@@ -19,6 +19,22 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.7.3 (2021-06-04)
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-sauce-service`, `wdio-spec-reporter`, `wdio-types`, `webdriverio`
+  * [#6964](https://github.com/webdriverio/webdriverio/pull/6964) support APAC region for Sauce Labs ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#6965](https://github.com/webdriverio/webdriverio/pull/6965) fix: Remove scripts from log payload  ([@OlaoluwaM](https://github.com/OlaoluwaM))
+* `wdio-mocha-framework`
+  * [#6967](https://github.com/webdriverio/webdriverio/pull/6967) fix(mocha-framework): move @types/mocha and @types/node to devDepende… ([@PiQx](https://github.com/PiQx))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Olaoluwa Mustapha ([@OlaoluwaM](https://github.com/OlaoluwaM))
+- [@PiQx](https://github.com/PiQx)
+
+
 ## v7.7.2 (2021-06-01)
 
 #### :bug: Bug Fix
