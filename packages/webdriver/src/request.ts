@@ -1,6 +1,8 @@
+import fs from 'fs'
 import path from 'path'
 import http from 'http'
 import https from 'https'
+import { fileURLToPath, URL } from 'url'
 import { EventEmitter } from 'events'
 
 import * as got from 'got'
@@ -8,9 +10,10 @@ import logger from '@wdio/logger'
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import { isSuccessfulResponse, getErrorFromResponseBody } from './utils'
+import { isSuccessfulResponse, getErrorFromResponseBody } from './utils.js'
 
-const pkg = require('../package.json')
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf-8').toString())
 
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
 

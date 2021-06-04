@@ -3,10 +3,10 @@ import { v4 as uuidv4 } from 'uuid'
 import type { Services } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import WebDriverMock from './WebDriverMock'
+import WebDriverMock from './WebDriverMock.js'
 
-import { NO_SUCH_ELEMENT } from './constants'
-import { newSession, deleteSession } from './mocks/newSession'
+import { NO_SUCH_ELEMENT } from './constants.js'
+import { newSession, deleteSession } from './mocks/newSession.js'
 
 const ELEMENT_ID = '401c0039-3306-6a46-a98d-f5939870a249'
 const ELEMENT_REFETCHED = '80d860d0-b829-f540-812e-7078eb983795'

@@ -1,0 +1,14 @@
+const appiumProtocolModule = './protocols/appium.json'
+exports.AppiumProtocol = require(appiumProtocolModule)
+const chromiumProtocolModule = './protocols/chromium.json'
+exports.ChromiumProtocol = require(chromiumProtocolModule)
+const jsonwProtocolModule = './protocols/jsonwp.json'
+exports.JsonWProtocol = require(jsonwProtocolModule)
+const mjsonwProtocolModule = './protocols/mjsonwp.json'
+exports.MJsonWProtocol = require(mjsonwProtocolModule)
+const sauceLabsProtocolModule = './protocols/saucelabs.json'
+exports.SauceLabsProtocol = require(sauceLabsProtocolModule)
+const seleniumProtocolModule = './protocols/selenium.json'
+exports.SeleniumProtocol = require(seleniumProtocolModule)
+const webDriverProtocolModule = './protocols/webdriver.json'
+exports.WebDriverProtocol = require(webDriverProtocolModule)

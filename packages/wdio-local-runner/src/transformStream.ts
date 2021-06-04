@@ -1,4 +1,4 @@
-import split = require('split2')
+import split from 'split2'
 import { Readable, Transform, TransformCallback } from 'stream'
 import { DEBUGGER_MESSAGES } from './constants'
 

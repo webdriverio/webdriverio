@@ -8,7 +8,6 @@ const { getSubPackages } = require('./utils/helpers')
 const IGNORE_COMPILING_FOR_PACKAGES = ['eslint-plugin-wdio', 'wdio-protocols']
 const args = process.argv.slice(2)
 const HAS_WATCH_FLAG = args[0] === '--watch'
-const TSCONFIG_FILE = process.env.NODE_ENV === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'
 
 if (HAS_WATCH_FLAG) {
     args.shift()
@@ -28,6 +27,13 @@ const ROOT_PACKAGES = [
     'webdriver',
     'devtools',
     'webdriverio',
+]
+
+const ESM_COMPATIBLE_PACKAGES = [
+    'wdio-utils',
+    'wdio-config',
+    'wdio-webdriver-mock-service',
+    'webdriver',
 ]
 
 const packages = getSubPackages()
@@ -61,12 +67,41 @@ const packages = getSubPackages()
      */
     .filter((pkg) => args.length === 0 || args.includes(pkg))
 
+const compileESM = (packages) => {
+    if (packages.length === 0) {
+        return
+    }
+
+    const TSCONFIG_FILE = process.env.NODE_ENV === 'production'
+        ? 'tsconfig.prod.json'
+        : 'tsconfig.json'
+    const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`).join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
+    console.log(cmd)
+    const { code } = shell.exec(cmd)
+
+    if (code) {
+        throw new Error('Failed compiling TypeScript files!')
+    }
+}
+
+const compileCJS = (pkg) => {
+    if (packages.length === 0) {
+        return
+    }
+
+    const cmd = `npx rollup -c packages/${pkg}/rollup.config.js`
+    console.log(cmd)
+    const { code } = shell.exec(cmd)
+
+    if (code) {
+        throw new Error('Failed compiling CJS files!')
+    }
+}
+
 shell.cd(path.join(__dirname, '..'))
-const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`).join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
+compileESM(packages)
 
-console.log(cmd)
-const { code } = shell.exec(cmd)
-
-if (code) {
-    throw new Error('Failed compiling TypeScript files!')
+if (process.env.NODE_ENV === 'production') {
+    console.log('Bundling files for CJS')
+    packages.filter(pkg => ESM_COMPATIBLE_PACKAGES.includes(pkg)).forEach(compileCJS)
 }

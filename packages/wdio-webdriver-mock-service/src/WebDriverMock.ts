@@ -1,9 +1,9 @@
 import nock from 'nock'
-import { CommandEndpoint } from '@wdio/protocols'
+import type { CommandEndpoint } from '@wdio/protocols'
 
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
-    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol
+    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, Protocol
 } from '@wdio/protocols'
 
 const REGEXP_SESSION_ID = /\/[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/
@@ -22,7 +22,7 @@ export interface CommandMock {
 }
 
 for (const protocol of protocols) {
-    for (const [endpoint, methods] of Object.entries(protocol)) {
+    for (const [endpoint, methods] of Object.entries(protocol as any as Protocol)) {
         for (const [method, commandData] of Object.entries(methods)) {
             protocolFlattened.set(commandData.command, { method, endpoint, commandData })
         }

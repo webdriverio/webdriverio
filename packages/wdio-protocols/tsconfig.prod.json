@@ -4,6 +4,9 @@
     "baseUrl": ".",
     "outDir": "build",
     "rootDir": "src",
+    "module": "ESNext",
+    "target": "ES2017",
+    "moduleResolution": "Node",
     "removeComments": false
   },
   "include": [

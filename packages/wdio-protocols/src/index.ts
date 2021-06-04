@@ -1,19 +1,31 @@
-import { Protocol } from './types'
-import AppiumCommands from './commands/appium'
-import ChromiumCommands from './commands/chromium'
-import JSONWPCommands from './commands/jsonwp'
-import MJSONWPCommands from './commands/mjsonwp'
-import SauceLabsCommands from './commands/saucelabs'
-import SeleniumCommands from './commands/selenium'
-import WebDriverCommands from './commands/webdriver'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')
-const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')
-const JsonWProtocol: Protocol = require('../protocols/jsonwp.json')
-const AppiumProtocol: Protocol = require('../protocols/appium.json')
-const ChromiumProtocol: Protocol = require('../protocols/chromium.json')
-const SauceLabsProtocol: Protocol = require('../protocols/saucelabs.json')
-const SeleniumProtocol: Protocol = require('../protocols/selenium.json')
+import { Protocol } from './types.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+import AppiumCommands from './commands/appium'
+const AppiumProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/appium.json')).toString())
+
+import ChromiumCommands from './commands/chromium'
+const ChromiumProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/chromium.json')).toString())
+
+import JSONWPCommands from './commands/jsonwp'
+const JsonWProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/jsonwp.json')).toString())
+
+import MJSONWPCommands from './commands/mjsonwp'
+const MJsonWProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/mjsonwp.json')).toString())
+
+import SauceLabsCommands from './commands/saucelabs'
+const SauceLabsProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/saucelabs.json')).toString())
+
+import SeleniumCommands from './commands/selenium'
+const SeleniumProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/selenium.json')).toString())
+
+import WebDriverCommands from './commands/webdriver'
+const WebDriverProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/webdriver.json')).toString())
 
 type WebDriverCommandsAsync = {
     [K in keyof WebDriverCommands]:
@@ -47,7 +59,7 @@ type SeleniumCommandsAsync = {
 export interface ProtocolCommands extends WebDriverCommands, Omit<JSONWPCommands, keyof WebDriverCommands>, AppiumCommands, ChromiumCommands, Omit<MJSONWPCommands, keyof AppiumCommands | keyof ChromiumCommands>, SauceLabsCommands, SeleniumCommands {}
 export interface ProtocolCommandsAsync extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
 
-export * from './types'
+export * from './types.js'
 export {
     // protocols
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,

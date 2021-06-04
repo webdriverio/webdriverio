@@ -1,7 +1,7 @@
 import type { Capabilities, Services, Options } from '@wdio/types'
 import logger from '@wdio/logger'
 
-import initialisePlugin from './initialisePlugin'
+import initialisePlugin from './initialisePlugin.js'
 
 const log = logger('@wdio/utils:initialiseServices')
 

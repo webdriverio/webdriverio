@@ -3,7 +3,7 @@ import type { Clients } from '@wdio/types'
 import { EventEmitter } from 'events'
 import logger from '@wdio/logger'
 
-import { commandCallStructure, overwriteElementCommands } from './utils'
+import { commandCallStructure, overwriteElementCommands } from './utils.js'
 
 const SCOPE_TYPES: Record<string, Function> = {
     browser: /* istanbul ignore next */ function Browser () {},

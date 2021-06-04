@@ -6,8 +6,8 @@
  * NOTE: not used by cucumber test framework. `testFnWrapper` is called directly there
  */
 
-import { filterSpecArgs } from '../utils'
-import { testFnWrapper } from './testFnWrapper'
+import { filterSpecArgs } from '../utils.js'
+import { testFnWrapper } from './testFnWrapper.js'
 
 import type {
     HookFnArgs,

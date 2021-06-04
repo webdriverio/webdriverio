@@ -5,16 +5,15 @@ import type { Capabilities, Options, Services } from '@wdio/types'
 import {
     removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
     loadAutoCompilers, ModuleRequireService
-} from '../utils'
+} from '../utils.js'
 import {
+    DEFAULT_CONFIGS,
     SUPPORTED_HOOKS,
     SUPPORTED_FILE_EXTENSIONS
-} from '../constants'
-import {
-    DEFAULT_CONFIGS
-} from '../'
-import FileSystemPathService from './FileSystemPathService'
-import RequireLibrary from './RequireLibrary'
+} from '../constants.js'
+import FileSystemPathService from './FileSystemPathService.js'
+import RequireLibrary from './RequireLibrary.js'
+
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 

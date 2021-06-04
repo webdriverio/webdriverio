@@ -1,4 +1,4 @@
-import * as got from 'got'
+import { Options, Response } from 'got'
 import * as http from 'http'
 import * as https from 'https'
 import type { RegisterOptions } from 'ts-node'
@@ -148,11 +148,11 @@ export interface WebDriver extends Connection {
     /**
      * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
      */
-    transformRequest?: (requestOptions: got.Options) => got.Options
+    transformRequest?: (requestOptions: Options) => Options
     /**
      * Function intercepting HTTP response objects after a WebDriver response has arrived.
      */
-    transformResponse?: (response: got.Response, requestOptions: got.Options) => got.Response
+    transformResponse?: (response: Response, requestOptions: Options) => Response
 
     /**
      * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
