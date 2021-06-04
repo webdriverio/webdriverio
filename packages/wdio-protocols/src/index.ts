@@ -1,23 +1,31 @@
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+import { Protocol } from './types.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
 import AppiumCommands from './commands/appium'
-import AppiumProtocol from './protocols/appium.json'
+const AppiumProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/appium.json')).toString())
 
 import ChromiumCommands from './commands/chromium'
-import ChromiumProtocol from './protocols/chromium.json'
+const ChromiumProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/chromium.json')).toString())
 
 import JSONWPCommands from './commands/jsonwp'
-import JsonWProtocol from './protocols/jsonwp.json'
+const JsonWProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/jsonwp.json')).toString())
 
 import MJSONWPCommands from './commands/mjsonwp'
-import MJsonWProtocol from './protocols/mjsonwp.json'
+const MJsonWProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/mjsonwp.json')).toString())
 
 import SauceLabsCommands from './commands/saucelabs'
-import SauceLabsProtocol from './protocols/saucelabs.json'
+const SauceLabsProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/saucelabs.json')).toString())
 
 import SeleniumCommands from './commands/selenium'
-import SeleniumProtocol from './protocols/selenium.json'
+const SeleniumProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/selenium.json')).toString())
 
 import WebDriverCommands from './commands/webdriver'
-import WebDriverProtocol from './protocols/webdriver.json'
+const WebDriverProtocol: Protocol = JSON.parse((await fs.promises.readFile(__dirname + '/protocols/webdriver.json')).toString())
 
 type WebDriverCommandsAsync = {
     [K in keyof WebDriverCommands]:

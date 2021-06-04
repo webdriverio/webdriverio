@@ -4,6 +4,7 @@
     "baseUrl": ".",
     "outDir": "build",
     "rootDir": "src",
+    "module": "ESNext",
     "removeComments": false
   },
   "include": [

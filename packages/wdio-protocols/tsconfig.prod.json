@@ -7,8 +7,7 @@
     "module": "ESNext",
     "target": "ES2017",
     "moduleResolution": "Node",
-    "removeComments": false,
-    "resolveJsonModule": true
+    "removeComments": false
   },
   "include": [
     "src/**/*"
