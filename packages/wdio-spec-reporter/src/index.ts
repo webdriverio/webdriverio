@@ -333,7 +333,9 @@ export default class SpecReporter extends WDIOReporter {
 
                 )
                 for (const error of errors) {
-                    output.push(...error.message.split('\n'))
+                    !error?.stack?.includes('new AssertionError')
+                        ? output.push(chalk.red(error.message))
+                        : output.push(...error.message.split('\n'))
                     if (error.stack) {
                         output.push(...error.stack.split(/\n/g).map(value => chalk.gray(value)))
                     }
