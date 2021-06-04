@@ -5,7 +5,21 @@
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-logger",
   "license": "MIT",
-  "main": "./build/node",
+  "main": "./build/cjs.js",
+  "module": "./build/index.js",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": [
+      {
+        "import": "./build/index.js",
+        "require": "./build/cjs.js"
+      },
+      "./build/cjs.js"
+    ]
+  },
+  "types": "./build/node.d.ts",
+  "typeScriptVersion": "3.8.3",
+  "files": ["build"],
   "engines": {
     "node": ">=12.0.0"
   },
@@ -21,8 +35,6 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "types": "./build/node.d.ts",
-  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "chalk": "^4.0.0",
     "loglevel": "^1.6.0",

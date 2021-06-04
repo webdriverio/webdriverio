@@ -5,19 +5,20 @@
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols",
   "license": "MIT",
-  "main": "./build/index.cjs",
-  "module": "./build/index",
+  "main": "./build/cjs.js",
+  "module": "./build/index.js",
   "exports": {
     "./package.json": "./package.json",
     ".": [
       {
-        "import": "./index.mjs",
-        "require": "./index.cjs"
+        "import": "./build/index.js",
+        "require": "./build/cjs.js"
       },
-      "./index.cjs"
+      "./build/cjs.js"
     ]
   },
   "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "files": ["build"],
   "engines": {
     "node": ">=12"
@@ -28,6 +29,7 @@
   },
   "keywords": [
     "webdriver",
+    "protocol",
     "wdio"
   ],
   "bugs": {

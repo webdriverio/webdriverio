@@ -1,6 +1,10 @@
 /* istanbul ignore file */
 
 /**
+ * Note: make sure all changes in this file are adapted in ./cjs.js
+ */
+
+/**
  * environment check to allow to use this package in a web context
  */
 // By default, import the web code using a literal require, so that in webpack
@@ -11,8 +15,7 @@ let mode = require('./web').default
 // using a variable, so that it will _not_ be included in a bundle, either
 // during compilation or execution
 if (typeof process !== 'undefined' && typeof process.release !== 'undefined' && process.release.name === 'node') {
-    const nodeMode = './node'
-    mode = require(nodeMode).default
+    mode = await import('./node')
 }
 
 // The net result will be that in a Node context, we'll have required both
