@@ -8,7 +8,9 @@
     "target": "ES2017",
     "moduleResolution": "Node",
     "removeComments": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "src/**/*",

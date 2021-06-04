@@ -4,12 +4,12 @@ import {
     WebDriverProtocol, MJSONWProtocol, JSONWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol
 } from '@wdio/protocols'
-import Protocols from '@wdio/protocols'
+import { Protocol } from '@wdio/protocols'
 import { Options, Capabilities } from '@wdio/types'
 
-import WebDriverRequest, { WebDriverResponse } from './request'
-import command from './command'
-import { VALID_CAPS } from './constants'
+import WebDriverRequest, { WebDriverResponse } from './request.js'
+import command from './command.js'
+import { VALID_CAPS } from './constants.js'
 import type { JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')
@@ -164,7 +164,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
 export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     // @ts-ignore
-    const ProtocolCommands: Protocols.Protocol = merge(
+    const ProtocolCommands: Protocol = merge(
         /**
          * if mobile apply JSONWire and WebDriver protocol because
          * some legacy JSONWire commands are still used in Appium

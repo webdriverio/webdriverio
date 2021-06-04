@@ -6,6 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",
   "license": "MIT",
   "main": "./build/index.cjs",
+  "type": "module",
   "module": "./build/index.js",
   "exports": {
     "./package.json": "./package.json",

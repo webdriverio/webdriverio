@@ -1,7 +1,7 @@
 import path from 'path'
 import { Services } from '@wdio/types'
 
-import { safeRequire } from './utils'
+import { safeRequire } from './utils.js'
 
 /**
  * initialise WebdriverIO compliant plugins like reporter or services in the following way:
