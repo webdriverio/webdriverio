@@ -1,7 +1,7 @@
 import merge from 'lodash.merge'
 import logger from '@wdio/logger'
 import {
-    WebDriverProtocol, MJSONWProtocol, JSONWProtocol, AppiumProtocol, ChromiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol
 } from '@wdio/protocols'
 import { Protocol } from '@wdio/protocols'
@@ -171,12 +171,12 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
          * (e.g. set/get geolocation)
          */
         isMobile
-            ? merge({}, JSONWProtocol, WebDriverProtocol)
-            : isW3C ? WebDriverProtocol : JSONWProtocol,
+            ? merge({}, JsonWProtocol, WebDriverProtocol)
+            : isW3C ? WebDriverProtocol : JsonWProtocol,
         /**
          * only apply mobile protocol if session is actually for mobile
          */
-        isMobile ? merge({}, MJSONWProtocol, AppiumProtocol) : {},
+        isMobile ? merge({}, MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chrome commands if session is using Chrome
          */

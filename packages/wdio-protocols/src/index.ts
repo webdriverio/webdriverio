@@ -5,10 +5,10 @@ import ChromiumCommands from './commands/chromium'
 import ChromiumProtocol from './protocols/chromium.json'
 
 import JSONWPCommands from './commands/jsonwp'
-import JSONWProtocol from './protocols/jsonwp.json'
+import JsonWProtocol from './protocols/jsonwp.json'
 
 import MJSONWPCommands from './commands/mjsonwp'
-import MJSONWProtocol from './protocols/mjsonwp.json'
+import MJsonWProtocol from './protocols/mjsonwp.json'
 
 import SauceLabsCommands from './commands/saucelabs'
 import SauceLabsProtocol from './protocols/saucelabs.json'
@@ -54,7 +54,7 @@ export interface ProtocolCommandsAsync extends WebDriverCommandsAsync, Omit<JSON
 export * from './types.js'
 export {
     // protocols
-    WebDriverProtocol, MJSONWProtocol, JSONWProtocol, AppiumProtocol,
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol,
     // sync commands
     AppiumCommands, ChromiumCommands, JSONWPCommands, MJSONWPCommands,
