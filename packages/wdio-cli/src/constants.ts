@@ -23,6 +23,7 @@ Configuration file was created successfully!
 To run your tests, execute:
 $ npx wdio run wdio.conf.js
 `
+
 export const CONFIG_TS_HELPER_SUCCESS_MESSAGE = `
 Configuration file was created successfully!
 To run your tests, execute:

@@ -196,11 +196,9 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
         console.log(CONFIG_TS_HELPER_SUCCESS_MESSAGE)
-    }
-    else {
+    } else {
         console.log(CONFIG_JS_HELPER_SUCCESS_MESSAGE)
     }
-    
 
     /**
      * don't exit if running unit tests
