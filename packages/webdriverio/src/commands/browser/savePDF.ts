@@ -22,7 +22,7 @@ type PDFPrintOptions = {
  * <example>
     :savePDF.js
     it('should save a PDF screenshot of the browser view', function () {
-        browser.savePDF('./some/path/screenshot.pdf');
+        await browser.savePDF('./some/path/screenshot.pdf');
     });
  * </example>
  *

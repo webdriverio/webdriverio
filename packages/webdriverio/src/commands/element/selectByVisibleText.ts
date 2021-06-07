@@ -15,11 +15,11 @@ import { getElementFromResponse } from '../../utils'
         <option value="someValue5">seis</option>
     </select>
     :selectByVisibleText.js
-    it('demonstrate the selectByVisibleText command', () => {
-        const selectBox = $('#selectbox');
-        console.log(selectBox.getText('option:checked')); // returns "uno"
-        selectBox.selectByVisibleText('cuatro');
-        console.log(selectBox.getText('option:checked')); // returns "cuatro"
+    it('demonstrate the selectByVisibleText command', async () => {
+        const selectBox = await $('#selectbox');
+        console.log(await selectBox.getText('option:checked')); // returns "uno"
+        await selectBox.selectByVisibleText('cuatro');
+        console.log(await selectBox.getText('option:checked')); // returns "cuatro"
     })
  * </example>
  *
@@ -50,8 +50,8 @@ export default async function selectByVisibleText (
     const formatted = /"/.test(normalized)
         ? 'concat("' + normalized.split('"').join('", \'"\', "') + '")'
         : `"${normalized}"`
-    const dotFormat = `[. = ${formatted}]`
-    const spaceFormat = `[normalize-space(text()) = ${formatted}]`
+    const dotFormat = `[. = await ${formatted}]`
+    const spaceFormat = `[normalize-space(text()) = await ${formatted}]`
 
     const selections = [
         `./option${dotFormat}`,

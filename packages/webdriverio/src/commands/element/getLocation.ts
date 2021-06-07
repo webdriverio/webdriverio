@@ -14,16 +14,16 @@ function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<
  *
  * <example>
     :getLocation.js
-    it('should demonstrate the getLocation function', () => {
-        browser.url('http://github.com');
-        const logo = $('.octicon-mark-github')
-        const location = logo.getLocation();
+    it('should demonstrate the getLocation function', async () => {
+        await browser.url('http://github.com');
+        const logo = await $('.octicon-mark-github')
+        const location = await logo.getLocation();
         console.log(location); // outputs: { x: 150, y: 20 }
 
-        const xLocation = logo.getLocation('x')
+        const xLocation = await logo.getLocation('x')
         console.log(xLocation); // outputs: 150
 
-        const yLocation = logo.getLocation('.octicon-mark-github', 'y')
+        const yLocation = await logo.getLocation('y')
         console.log(yLocation); // outputs: 20
     });
  * </example>

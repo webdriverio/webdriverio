@@ -3,19 +3,24 @@
  * is treated like a synchronous function. It accepts promises and stops the execution until
  * the promise has resolved.
  *
+ * This command helps to run asynchronous code within a synchronous context. With
+ * WebdriverIO depcrecating synchronous usage (see [RFC](https://github.com/webdriverio/webdriverio/discussions/6702))
+ * this command is not very useful anymore.
+ *
  * <example>
     :call.js
-    it('some testing here', () => {
-        browser.url('http://google.com')
+    it('some testing here', async () => {
+        await browser.url('http://google.com')
         // make an asynchronous call using any 3rd party library supporting promises
         // e.g. call to backend or db to inject fixture data
-        browser.call(() => {
+        await browser.call(() => {
             return somePromiseLibrary.someMethod().then(() => {
                 // ...
             })
         })
+
         // example for async call to 3rd party library that doesn't support promises
-        browser.call(() => {
+        const result = await browser.call(() => {
             return new Promise((resolve, reject) => {
                 someOtherNodeLibrary.someMethod(param1, (err, res) => {
                     if (err) {
@@ -25,9 +30,6 @@
                 })
             })
         })
-        // continue synchronously
-        $('#elemA').click()
-        $('.firstname').setValue('webdriverbot')
     });
  * </example>
  *

@@ -13,9 +13,9 @@ const log = logger('webdriverio')
  *
  * <example>
     :reloadSync.js
-    it('should reload my session with current capabilities', () => {
+    it('should reload my session with current capabilities', async () => {
         console.log(browser.sessionId) // outputs: e042b3f3cd5a479da4e171825e96e655
-        browser.reloadSession()
+        await browser.reloadSession()
         console.log(browser.sessionId) // outputs: 9a0d9bf9d4864160aa982c50cf18a573
     })
  * </example>

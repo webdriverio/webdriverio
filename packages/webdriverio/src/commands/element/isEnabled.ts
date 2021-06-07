@@ -9,17 +9,17 @@
     <input type="text" name="inputField" class="input3" disabled="disabled">
 
     :isEnabled.js
-    it('should detect if an element is enabled', () => {
-        let elem = $('.input1')
-        let isEnabled = elem.isEnabled();
+    it('should detect if an element is enabled', async () => {
+        let elem = await $('.input1')
+        let isEnabled = await elem.isEnabled();
         console.log(isEnabled); // outputs: true
 
-        elem = $('.input2')
-        isEnabled = elem.isEnabled();
+        elem = await $('.input2')
+        isEnabled = await elem.isEnabled();
         console.log(isEnabled2); // outputs: false
 
-        elem = $('.input3')
-        isEnabled = elem.isEnabled();
+        elem = await $('.input3')
+        isEnabled = await elem.isEnabled();
         console.log(isEnabled3); // outputs: false
     });
  * </example>

@@ -9,15 +9,15 @@ import { ELEMENT_KEY } from '../../constants'
  *
  * <example>
     :example.js
-    it('should fetch the project title', () => {
-        browser.url('https://webdriver.io')
-        browser.addLocatorStrategy('myStrat', (selector) => {
+    it('should fetch the project title', async () => {
+        await browser.url('https://webdriver.io')
+        await browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
 
-        const projectTitle = browser.custom$('myStrat', '.projectTitle')
+        const projectTitle = await browser.custom$('myStrat', '.projectTitle')
 
-        console.log(projectTitle.getText()) // WEBDRIVER I/O
+        console.log(await projectTitle.getText()) // WEBDRIVER I/O
     })
  * </example>
  *
