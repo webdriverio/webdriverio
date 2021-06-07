@@ -18,16 +18,10 @@ WDIO Configuration Helper
 =========================
 `
 
-export const CONFIG_JS_HELPER_SUCCESS_MESSAGE = `
+export const CONFIG_HELPER_SUCCESS_MESSAGE = `
 Configuration file was created successfully!
 To run your tests, execute:
-$ npx wdio run wdio.conf.js
-`
-
-export const CONFIG_TS_HELPER_SUCCESS_MESSAGE = `
-Configuration file was created successfully!
-To run your tests, execute:
-$ npx wdio run wdio.conf.ts
+$ npx wdio run wdio.conf.%s
 `
 
 export const ANDROID_CONFIG = {

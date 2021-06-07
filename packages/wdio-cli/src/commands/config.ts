@@ -1,14 +1,13 @@
-import fs from 'fs'
-import path from 'path'
-import util from 'util'
-import inquirer from 'inquirer'
+import * as fs from 'fs'
+import * as path from 'path'
+import * as util from 'util'
+import * as inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
     TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
-    CONFIG_JS_HELPER_SUCCESS_MESSAGE,
-    CONFIG_TS_HELPER_SUCCESS_MESSAGE
+    CONFIG_HELPER_SUCCESS_MESSAGE,
 } from '../constants'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
@@ -16,7 +15,7 @@ import {
     hasPackage
 } from '../utils'
 import { ConfigCommandArguments, ParsedAnswers } from '../types'
-import yargs from 'yargs'
+import * as yargs from 'yargs'
 
 const pkg = require('../../package.json')
 
@@ -194,11 +193,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         console.log(util.format(TS_COMPILER_INSTRUCTIONS, tsPkgs))
     }
 
-    if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
-        console.log(CONFIG_TS_HELPER_SUCCESS_MESSAGE)
-    } else {
-        console.log(CONFIG_JS_HELPER_SUCCESS_MESSAGE)
-    }
+    console.log(util.format(CONFIG_HELPER_SUCCESS_MESSAGE, answers.isUsingCompiler === COMPILER_OPTIONS.ts ? 'ts' : 'js'))
 
     /**
      * don't exit if running unit tests
