@@ -79,7 +79,7 @@
     "lodash.isplainobject": "^4.0.6",
     "lodash.zip": "^4.2.0",
     "minimatch": "^3.0.4",
-    "puppeteer-core": "^9.1.0",
+    "puppeteer-core": "^10.0.0",
     "query-selector-shadow-dom": "^1.0.0",
     "resq": "^1.9.1",
     "rgb2hex": "0.2.5",

@@ -30,7 +30,7 @@
     "@wdio/utils": "7.7.3",
     "chrome-launcher": "^0.14.0",
     "edge-paths": "^2.1.0",
-    "puppeteer-core": "^9.1.0",
+    "puppeteer-core": "^10.0.0",
     "query-selector-shadow-dom": "^1.0.0",
     "ua-parser-js": "^0.7.21",
     "uuid": "^8.0.0"
