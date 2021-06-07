@@ -50,8 +50,8 @@ export default async function selectByVisibleText (
     const formatted = /"/.test(normalized)
         ? 'concat("' + normalized.split('"').join('", \'"\', "') + '")'
         : `"${normalized}"`
-    const dotFormat = `[. = await ${formatted}]`
-    const spaceFormat = `[normalize-space(text()) = await ${formatted}]`
+    const dotFormat = `[. = ${formatted}]`
+    const spaceFormat = `[normalize-space(text()) = ${formatted}]`
 
     const selections = [
         `./option${dotFormat}`,
