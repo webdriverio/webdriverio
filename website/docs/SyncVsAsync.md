@@ -25,6 +25,12 @@ The package will be automatically detected by the framework and the environment 
 
 If you're using [`@wdio/sync`](https://www.npmjs.com/package/@wdio/sync) then you can avoid awaiting for command calls. It is still required to deal with Promises from 3rd-party libraries, you should use [browser.call](api/browser/call) for this to wrap them and make them synchronous too.
 
+:::caution
+
+Running commands synchronously is depcrecated and will stop working with Node.js v16 and above.
+
+:::
+
 ```js
 // 3rd-party library example
 // https://www.npmjs.com/package/got#gotgeturl-options
