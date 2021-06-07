@@ -7,6 +7,10 @@ id: <?= method.command ?>
 title: <?= method.command ?>
 <? if (method.customEditUrl) { ?>custom_edit_url: <?= method.customEditUrl ?><? } ?>
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <? } else if (method.hasHeader) { ?>
 ## <?= method.command ?>
 <? } ?>
@@ -39,11 +43,37 @@ title: <?= method.command ?>
 
 <? if (method.examples.length) { ?>
 ##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
+<Tabs
+  defaultValue="async"
+  className="runtime"
+  values={[
+    {label: 'Asynchronous Mode', value: 'async'},
+    {label: 'Synchronous Mode', value: 'sync'}
+  ]
+}>
+<TabItem value="async">
 <? method.examples.forEach(function(example) { ?>
 ```<?= example.format ?><? if (example.file) { ?> title="<?= example.file ?>"<? } ?>
 <?- example.code ?>
 ```
 <? }); ?>
+</TabItem>
+<TabItem value="sync">
+<? method.examples.forEach(function(example) { ?>
+```<?= example.format ?><? if (example.file) { ?> title="<?= example.file ?>"<? } ?>
+<?- example.code.replace(/\sasync\s/g, ' ').replace(/await\s/g, '') ?>
+```
+<? }); ?>
+
+<span className="depcrecationWarning">
+    Synchronous Mode will depcrecated with Node.js v16. With an update to the
+    underlying Chromium version it became technically impossible to provide the
+    same synchronous behavior. We recommend to start transition to asynchronous
+    command execution. For more information, see our <a href="https://github.com/webdriverio/webdriverio/discussions/6702">RFC</a>.
+</span>
+</TabItem>
+</Tabs>
+
 <? } ?>
 
 <? if (method.returns) { ?>
