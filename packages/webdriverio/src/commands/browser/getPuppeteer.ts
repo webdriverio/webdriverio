@@ -59,7 +59,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     const cdpEndpoint = caps['se:cdp']
     if (cdpEndpoint) {
         this.puppeteer = await puppeteer.connect({
-            await browserWSEndpoint: cdpEndpoint,
+            browserWSEndpoint: cdpEndpoint,
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
@@ -72,7 +72,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     if (isAerokubeSession) {
         const { hostname, port } = this.options
         this.puppeteer = await puppeteer.connect({
-            await browserWSEndpoint: `ws://${hostname}:${port}/devtools/${this.sessionId}`,
+            browserWSEndpoint: `ws://${hostname}:${port}/devtools/${this.sessionId}`,
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
@@ -83,7 +83,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     const chromiumOptions = caps['goog:chromeOptions'] || caps['ms:edgeOptions']
     if (chromiumOptions && chromiumOptions.debuggerAddress) {
         this.puppeteer = await puppeteer.connect({
-            await browserURL: `http://${chromiumOptions.debuggerAddress}`,
+            browserURL: `http://${chromiumOptions.debuggerAddress}`,
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
@@ -112,7 +112,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
             }
 
             this.puppeteer = await puppeteer.connect({
-                await browserURL: `http://localhost:${rdPort}`,
+                browserURL: `http://localhost:${rdPort}`,
                 defaultViewport: null
             }) as any as PuppeteerBrowser
             return this.puppeteer as any as PuppeteerBrowser
