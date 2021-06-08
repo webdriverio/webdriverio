@@ -1,13 +1,13 @@
-import * as fs from 'fs'
-import * as path from 'path'
-import * as util from 'util'
-import * as inquirer from 'inquirer'
+import fs from 'fs'
+import path from 'path'
+import util from 'util'
+import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
     TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
-    CONFIG_HELPER_SUCCESS_MESSAGE,
+    CONFIG_HELPER_SUCCESS_MESSAGE
 } from '../constants'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
@@ -15,7 +15,7 @@ import {
     hasPackage
 } from '../utils'
 import { ConfigCommandArguments, ParsedAnswers } from '../types'
-import * as yargs from 'yargs'
+import yargs from 'yargs'
 
 const pkg = require('../../package.json')
 
