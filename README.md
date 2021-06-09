@@ -12,6 +12,9 @@
     <a href="https://github.com/webdriverio/webdriverio/actions/workflows/test.yml">
         <img alt="Build Status" src="https://github.com/webdriverio/webdriverio/actions/workflows/test.yml/badge.svg">
     </a>
+    <a href="https://snyk.io/advisor/npm-package/webdriverio">
+        <img alt="Package Health" src="https://snyk.io/advisor/npm-package/webdriverio/badge.svg">
+    </a>
     <a href="https://gitter.im/webdriverio/webdriverio">
         <img alt="Gitter" src="https://badges.gitter.im/webdriverio/webdriverio.svg">
     </a>
