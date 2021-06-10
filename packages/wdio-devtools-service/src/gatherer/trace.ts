@@ -3,6 +3,9 @@ import 'core-js/modules/web.url'
 import { EventEmitter } from 'events'
 import Driver from 'lighthouse/lighthouse-core/gather/driver'
 import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
+import NetworkMonitor from 'lighthouse/lighthouse-core/gather/driver/network-monitor'
+import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
+import { waitForFullyLoaded, waitForCPUIdle } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition'
 import logger from '@wdio/logger'
 
 import type Protocol from 'devtools-protocol'
@@ -10,10 +13,8 @@ import type { TraceEvent, TraceStreamJson, TraceEventArgs } from '@tracerbench/t
 import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRequest'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import { waitForFullyLoaded } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition'
 
 import registerPerformanceObserverInPage from '../scripts/registerPerformanceObserverInPage'
-import checkTimeSinceLastLongTask from '../scripts/checkTimeSinceLastLongTask'
 
 import {
     DEFAULT_TRACING_CATEGORIES, FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT,
@@ -134,8 +135,8 @@ export default class TraceGatherer extends EventEmitter {
          */
         await this._page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
-        this._waitForNetworkIdleEvent = this.waitForNetworkIdle(this._session)
-        this._waitForCPUIdleEvent = this.waitForCPUIdle()
+        this._waitForNetworkIdleEvent = waitForFullyLoaded(this._session)
+        this._waitForCPUIdleEvent = waitForCPUIdle()
     }
 
     /**
