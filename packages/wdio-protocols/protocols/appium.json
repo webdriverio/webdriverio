@@ -926,7 +926,6 @@
   },
   "/session/:sessionId/appium/app/reset": {
     "POST": {
-
       "command": "reset",
       "description": "Reset the currently running app for this session.",
       "ref": "http://appium.io/docs/en/commands/device/app/reset-app/",
