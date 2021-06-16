@@ -114,10 +114,6 @@ export default class Auditor {
         const result = await this._audit(Metrics) as MetricsResults
         const metrics = result.details.items[0] || {}
         return {
-            estimatedInputLatency: metrics.estimatedInputLatency,
-            /**
-             * keeping TTFB for backwards compatibility
-             */
             timeToFirstByte: Math.round(serverResponseTime.numericValue),
             serverResponseTime: Math.round(serverResponseTime.numericValue),
             domContentLoaded: metrics.observedDomContentLoaded,
@@ -127,11 +123,11 @@ export default class Auditor {
             firstMeaningfulPaint: metrics.firstMeaningfulPaint,
             largestContentfulPaint: metrics.largestContentfulPaint,
             lastVisualChange: metrics.observedLastVisualChange,
-            firstCPUIdle: metrics.firstCPUIdle,
-            firstInteractive: metrics.interactive,
+            interactive: metrics.interactive,
             load: metrics.observedLoad,
             speedIndex: metrics.speedIndex,
             totalBlockingTime: metrics.totalBlockingTime,
+            maxPotentialFID: metrics.maxPotentialFID,
             cumulativeLayoutShift: cumulativeLayoutShift.numericValue,
         }
     }

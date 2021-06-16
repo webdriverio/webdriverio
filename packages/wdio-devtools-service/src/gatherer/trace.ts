@@ -3,12 +3,9 @@ import 'core-js/modules/web.url'
 import { EventEmitter } from 'events'
 import Driver from 'lighthouse/lighthouse-core/gather/driver'
 import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
-// @ts-ignore
 import NetworkMonitor from 'lighthouse/lighthouse-core/gather/driver/network-monitor'
-// @ts-ignore
 import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
-// @ts-ignore
-import { waitForFullyLoaded, waitForCPUIdle } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition'
+import { waitForFullyLoaded } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition'
 import logger from '@wdio/logger'
 
 import type Protocol from 'devtools-protocol'
@@ -20,9 +17,8 @@ import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import registerPerformanceObserverInPage from '../scripts/registerPerformanceObserverInPage'
 
 import {
-    DEFAULT_TRACING_CATEGORIES, FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT,
-    MAX_TRACE_WAIT_TIME, CPU_IDLE_TRESHOLD, NETWORK_IDLE_TIMEOUT, CLICK_TRANSITION,
-    NETWORK_RECORDER_EVENTS
+    FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT, MAX_TRACE_WAIT_TIME,
+    CLICK_TRANSITION, NETWORK_RECORDER_EVENTS
 } from '../constants'
 import { isSupportedUrl } from '../utils'
 
@@ -57,11 +53,6 @@ export interface WaitPromise {
     cancel: Function
 }
 
-const NOOP_WAIT_EVENT = {
-    promise: Promise.resolve(),
-    cancel: () => {}
-}
-
 export default class TraceGatherer extends EventEmitter {
     private _failingFrameLoadIds: string[] = []
     private _pageLoadDetected = false
@@ -71,11 +62,12 @@ export default class TraceGatherer extends EventEmitter {
     private _loaderId?: string
     private _pageUrl?: string
     private _networkStatusMonitor: typeof NetworkRecorder
+    private _networkMonintor: typeof NetworkMonitor
+    private _protocolSession: typeof  ProtocolSession
     private _trace?: Trace
     private _traceStart?: number
     private _clickTraceTimeout?: NodeJS.Timeout
-    private _waitForNetworkIdleEvent: WaitPromise = NOOP_WAIT_EVENT
-    private _waitForCPUIdleEvent: WaitPromise = NOOP_WAIT_EVENT
+    private _waitConditionPromises: Promise<void>[] = []
     private _driver: typeof Driver
 
     constructor (private _session: CDPSession, private _page: Page) {
@@ -97,6 +89,9 @@ export default class TraceGatherer extends EventEmitter {
             'message',
             (message: { data: string }) => this._driver._handleProtocolEvent(JSON.parse(message.data))
         )
+
+        this._protocolSession = new ProtocolSession(_session)
+        this._networkMonintor = new NetworkMonitor(_session)
     }
 
     async startTracing (url: string) {
@@ -115,10 +110,7 @@ export default class TraceGatherer extends EventEmitter {
 
         this._traceStart = Date.now()
         log.info(`Start tracing frame with url ${url}`)
-        await this._page.tracing.start({
-            categories: DEFAULT_TRACING_CATEGORIES,
-            screenshots: true
-        })
+        await this._driver.beginTrace()
 
         /**
          * if this tracing was started from a click transition
@@ -128,7 +120,6 @@ export default class TraceGatherer extends EventEmitter {
             log.info('Start checking for page load for click')
             this._clickTraceTimeout = setTimeout(async () => {
                 log.info('No page load detected, canceling trace')
-                await this._page.tracing.stop()
                 return this.finishTracing()
             }, FRAME_LOAD_START_TIMEOUT)
         }
@@ -138,8 +129,9 @@ export default class TraceGatherer extends EventEmitter {
          */
         await this._page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
-        this._waitForNetworkIdleEvent = waitForFullyLoaded(this._session)
-        this._waitForCPUIdleEvent = waitForCPUIdle()
+        this._waitConditionPromises.push(
+            waitForFullyLoaded(this._protocolSession, this._networkMonintor, { timedOut: 1 })
+        )
     }
 
     /**
@@ -154,8 +146,7 @@ export default class TraceGatherer extends EventEmitter {
          */
         if (this._failingFrameLoadIds.includes(msgObj.frame.id)) {
             delete this._traceStart
-            this._waitForNetworkIdleEvent.cancel()
-            this._waitForCPUIdleEvent.cancel()
+            this._waitConditionPromises = []
             this._frameId = '"unsuccessful loaded frame"'
             this.finishTracing()
             this.emit('tracingError', new Error(`Page with url "${msgObj.frame.url}" failed to load`))
@@ -212,19 +203,8 @@ export default class TraceGatherer extends EventEmitter {
 
         /**
          * Ensure that page is fully loaded and all metrics can be calculated.
-         *
-         * This can only be ensured if the following conditions are met:
-         *  - Listener for onload. Resolves on first FCP event.
-         *  - Listener for onload. Resolves pauseAfterLoadMs ms after load.
-         *  - Network listener. Resolves when the network has been idle for networkQuietThresholdMs.
-         *  - CPU listener. Resolves when the CPU has been idle for cpuQuietThresholdMs after network idle.
-         *
-         * See https://github.com/GoogleChrome/lighthouse/issues/627 for more.
          */
-        const loadPromise = Promise.all([
-            this._waitForNetworkIdleEvent.promise,
-            this._waitForCPUIdleEvent.promise
-        ]).then(() => async () => {
+        const loadPromise = Promise.all(this._waitConditionPromises).then(() => async () => {
             /**
              * ensure that we trace at least for 5s to ensure that we can
              * calculate firstInteractive
@@ -243,8 +223,7 @@ export default class TraceGatherer extends EventEmitter {
             this.waitForMaxTimeout()
         ])
 
-        this._waitForNetworkIdleEvent.cancel()
-        this._waitForCPUIdleEvent.cancel()
+        this._waitConditionPromises = []
         return cleanupFn()
     }
 
@@ -272,8 +251,7 @@ export default class TraceGatherer extends EventEmitter {
          * in case it fails, continue without capturing any data
          */
         try {
-            const traceBuffer = await this._page.tracing.stop()
-            const traceEvents: TraceStreamJson = JSON.parse(traceBuffer.toString('utf8'))
+            const traceEvents: TraceStreamJson = await this._driver.endTrace()
 
             /**
              * modify pid of renderer frame to be the same as where tracing was started
@@ -333,8 +311,7 @@ export default class TraceGatherer extends EventEmitter {
         delete this._loaderId
         delete this._pageUrl
         this._failingFrameLoadIds = []
-        this._waitForNetworkIdleEvent.cancel()
-        this._waitForCPUIdleEvent.cancel()
+        this._waitConditionPromises = []
         this.emit('tracingFinished')
     }
 

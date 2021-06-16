@@ -118,6 +118,7 @@ export interface MetricsResults {
             observedLoad: number
             speedIndex: number
             totalBlockingTime: number
+            maxPotentialFID: number
         }[]
     }
 }
