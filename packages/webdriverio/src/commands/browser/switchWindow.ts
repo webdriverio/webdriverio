@@ -4,17 +4,18 @@
  *
  * <example>
     :switchWindow.js
-    it('should switch to another window', () => {
+    it('should switch to another window', async () => {
         // open url
-        browser.url('https://google.com')
+        await browser.url('https://google.com')
+
         // create new window
-        browser.newWindow('https://webdriver.io')
+        await browser.newWindow('https://webdriver.io')
 
         // switch back via url match
-        browser.switchWindow('google.com')
+        await browser.switchWindow('google.com')
 
         // switch back via title match
-        browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
+        await browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
     });
  * </example>
  *

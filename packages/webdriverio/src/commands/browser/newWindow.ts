@@ -10,21 +10,21 @@ import type { NewWindowOptions } from '../../types'
  *
  * <example>
     :newWindowSync.js
-    it('should open a new tab', () => {
-        browser.url('https://google.com')
-        console.log(browser.getTitle()) // outputs: "Google"
+    it('should open a new tab', async () => {
+        await browser.url('https://google.com')
+        console.log(await browser.getTitle()) // outputs: "Google"
 
-        browser.newWindow('https://webdriver.io', {
+        await browser.newWindow('https://webdriver.io', {
             windowName: 'WebdriverIO window',
             windowFeature: 'width=420,height=230,resizable,scrollbars=yes,status=1',
         })
-        console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
+        console.log(await browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
 
-        const handles = browser.getWindowHandles()
-        browser.switchToWindow(handles[1])
-        browser.closeWindow()
-        browser.switchToWindow(handles[0])
-        console.log(browser.getTitle()) // outputs: "Google"
+        const handles = await browser.getWindowHandles()
+        await browser.switchToWindow(handles[1])
+        await browser.closeWindow()
+        await browser.switchToWindow(handles[0])
+        console.log(await browser.getTitle()) // outputs: "Google"
     });
  * </example>
  *

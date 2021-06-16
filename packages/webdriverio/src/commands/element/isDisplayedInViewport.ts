@@ -14,20 +14,20 @@ import isElementInViewportScript from '../../scripts/isElementInViewport'
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isDisplayedInViewport.js
     :isDisplayed.js
-    it('should detect if an element is visible', () => {
-        let isDisplayedInViewport = $('#notDisplayed').isDisplayedInViewport();
+    it('should detect if an element is visible', async () => {
+        let isDisplayedInViewport = await $('#notDisplayed').isDisplayedInViewport();
         console.log(isDisplayedInViewport); // outputs: false
 
-        isDisplayedInViewport = $('#notVisible').isDisplayedInViewport();
+        isDisplayedInViewport = await $('#notVisible').isDisplayedInViewport();
         console.log(isDisplayedInViewport); // outputs: false
 
-        isDisplayedInViewport = $('#notExisting').isDisplayedInViewport();
+        isDisplayedInViewport = await $('#notExisting').isDisplayedInViewport();
         console.log(isDisplayedInViewport); // outputs: false
 
-        isDisplayedInViewport = $('#notInViewport').isDisplayedInViewport();
+        isDisplayedInViewport = await $('#notInViewport').isDisplayedInViewport();
         console.log(isDisplayedInViewport); // outputs: false
 
-        isDisplayedInViewport = $('#zeroOpacity').isDisplayedInViewport();
+        isDisplayedInViewport = await $('#zeroOpacity').isDisplayedInViewport();
         console.log(isDisplayedInViewport); // outputs: false
     });
  * </example>

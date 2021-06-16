@@ -10,16 +10,16 @@
  * <example>
     :execute.js
     // print milliseconds before pause and return its value.
-    browser.overwriteCommand('pause', function (origPauseFunction, ms) {
+    await browser.overwriteCommand('pause', function (origPauseFunction, ms) {
         console.log(`Sleeping for ${ms}`)
         origPauseFunction(ms)
         return ms
     })
 
     // usage
-    it('should use my overwrite command', () => {
-        browser.url('https://webdriver.io')
-        browser.pause(1000) // outputs "Sleeping for 1000"
+    it('should use my overwrite command', async () => {
+        await browser.url('https://webdriver.io')
+        await browser.pause(1000) // outputs "Sleeping for 1000"
     })
  * </example>
  * @alias browser.overwriteCommand

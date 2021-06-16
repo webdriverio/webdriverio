@@ -11,15 +11,15 @@
     <div id="someText">I am some text</div>
     <script>
       setTimeout(() => {
-        $('#someText').html('I am now different');
+        await $('#someText').html('I am now different');
       }, 1000);
     </script>
 
     :waitUntil.js
-    it('should wait until text has changed', () => {
-        const elem = $('#someText')
-        elem.waitUntil(function () {
-            return this.getText() === 'I am now different'
+    it('should wait until text has changed', async () => {
+        const elem = await $('#someText')
+        await elem.waitUntil(async () => {
+            return (await this.getText()) === 'I am now different'
         }, {
             timeout: 5000,
             timeoutMsg: 'expected text to be different after 5s'

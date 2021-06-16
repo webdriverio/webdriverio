@@ -3,8 +3,8 @@
  *
  * <example>
     :respond.js
-    it('should demonstrate response overwrite with static data', () => {
-        const mock = browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
+    it('should demonstrate response overwrite with static data', async () => {
+        const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
             method: 'get'
         })
 
@@ -21,15 +21,15 @@
             fetchResponse: true // default
         })
 
-        browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
+        await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
 
-        $('#todo-list li').waitForExist()
-        console.log($$('#todo-list li').map(el => el.getText()))
+        await $('#todo-list li').waitForExist()
+        console.log(await $$('#todo-list li').map(el => el.getText()))
         // outputs: "[ 'Injected (non) completed Todo', 'Injected completed Todo' ]"
     })
 
-    it('should demonstrate response overwrite with dynamic data', () => {
-        const mock = browser.mock('https://todo-backend-express-knex.herokuapp.com/')
+    it('should demonstrate response overwrite with dynamic data', async () => {
+        const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/')
 
         mock.respond((request) => {
             if (request.body.username === 'test') {

@@ -27,19 +27,19 @@ import type { Selector, ElementArray } from '../../types'
         <li><a href="/">Contribute</a></li>
     </ul>
     :$.js
-    it('should get text a menu link', () => {
-        const text = $$('#menu')[0];
-        console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
+    it('should get text a menu link', async () => {
+        const text = await $$('#menu')[0];
+        console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
 
-    it('should get text a menu link - JS Function', () => {
-        const text = $$(function() { // Arrow function is not allowed here.
+    it('should get text a menu link - JS Function', async () => {
+        const text = await $$(function() { // Arrow function is not allowed here.
             // this is Window https://developer.mozilla.org/en-US/docs/Web/API/Window
             // TypeScript users may do something like this
             // return (this as Window).document.querySelectorAll('#menu')
             return this.document.querySelectorAll('#menu'); // Element[]
         })[0];
-        console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
+        console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
  * </example>
  *

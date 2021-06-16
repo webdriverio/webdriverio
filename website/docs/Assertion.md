@@ -5,37 +5,19 @@ title: Assertion
 
 The [WDIO testrunner](https://webdriver.io/docs/clioptions) comes with a built in assertion library that allows you to make powerful assertions on various aspects of the browser or elements within your (web) application. It extends [Jests Matchers](https://jestjs.io/docs/en/using-matchers) functionality with additional, for e2e testing optimized, matchers, e.g.:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Sync Mode-->
-```js
-const $button = $('button')
-expect($button).toBeDisplayed()
-```
-<!--Async Mode-->
 ```js
 const $button = await $('button')
 await expect($button).toBeDisplayed()
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
 or
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Sync Mode-->
-```js
-const selectOptions = $$('form select>option')
-
-// make sure there is at least one option in select
-expect(selectOptions).toHaveChildren({ gte: 1 })
-```
-<!--Async Mode-->
 ```js
 const selectOptions = await $$('form select>option')
 
 // make sure there is at least one option in select
 await expect(selectOptions).toHaveChildren({ gte: 1 })
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
 
 For the full list, see the [expect API doc](/docs/api/expect-webdriverio).
 
@@ -54,9 +36,9 @@ Assume Chai was imported explicitly in a file, e.g.:
 const expectChai = require('chai').expect;
 
 describe('Homepage', () => {
-    it('should assert', () => {
-        browser.url('./');
-        expectChai(browser.getUrl()).to.include('/login');
+    it('should assert', async () => {
+        await browser.url('./');
+        expectChai(await browser.getUrl()).to.include('/login');
     });
 });
 ```
@@ -66,9 +48,9 @@ To migrate this code remove the Chai import and use the new expect-webdriverio a
 ```js
 // myfile.js - migrated code
 describe('Homepage', () => {
-    it('should assert', () => {
-        browser.url('./');
-        expect(browser).toHaveUrl('/login'); // new expect-webdriverio API method https://webdriver.io/docs/api/expect-webdriverio.html#tohaveurl
+    it('should assert', async () => {
+        await browser.url('./');
+        await expect(browser).toHaveUrl('/login'); // new expect-webdriverio API method https://webdriver.io/docs/api/expect-webdriverio.html#tohaveurl
     });
 });
 ```
@@ -80,15 +62,15 @@ If you wanted to use both Chai and expect-webdriverio in the same file you would
 const expectChai = require('chai').expect;
 
 describe('Element', () => {
-    it('should be displayed', () => {
-        const isDisplayed = browser.$("#element").isDisplayed()
+    it('should be displayed', async () => {
+        const isDisplayed = await $("#element").isDisplayed()
         expectChai(isDisplayed).to.equal(true); // Chai assertion
     });
 });
 
 describe('Other element', () => {
-    it('should not be displayed', () => {
-        expect(browser.$("#element")).not.toBeDisplayed(); // expect-webdriverio assertion
+    it('should not be displayed', async () => {
+        await expect($("#element")).not.toBeDisplayed(); // expect-webdriverio assertion
     });
 });
 ```
@@ -112,15 +94,15 @@ Now Chai and expect-webdriverio can be used alongside each other. In your code y
 ```js
 // myfile.js
 describe('Element', () => {
-    it('should be displayed', () => {
-        const isDisplayed = browser.$("#element").isDisplayed()
+    it('should be displayed', asybc () => {
+        const isDisplayed = await $("#element").isDisplayed()
         expect(isDisplayed).to.equal(true); // Chai assertion
     });
 });
 
 describe('Other element', () => {
     it('should not be displayed', () => {
-        expectWdio(browser.$("#element")).not.toBeDisplayed(); // expect-webdriverio assertion
+        await expectWdio($("#element")).not.toBeDisplayed(); // expect-webdriverio assertion
     });
 });
 ```

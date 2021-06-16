@@ -24,13 +24,13 @@ const log = logger('webdriverio')
  *
  * <example>
     :getPuppeteer.test.js
-    it('should allow me to use Puppeteer', () => {
+    it('should allow me to use Puppeteer', async () => {
         // WebDriver command
-        browser.url('https://webdriver.io')
+        await browser.url('https://webdriver.io')
 
-        const puppeteerBrowser = browser.getPuppeteer()
+        const puppeteerBrowser = await browser.getPuppeteer()
         // switch to Puppeteer
-        const metrics = browser.call(async () => {
+        const metrics = await browser.call(async () => {
             await pages = await puppeteerBrowser.pages()
             pages[0].setGeolocation({ latitude: 59.95, longitude: 30.31667 })
             return pages[0].metrics()

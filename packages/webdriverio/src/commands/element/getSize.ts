@@ -14,17 +14,17 @@ function getSize (this: WebdriverIO.Element, prop: keyof RectReturn): Promise<nu
  *
  * <example>
     :getSize.js
-    it('should demonstrate the getSize command', () => {
-        browser.url('http://github.com')
-        const logo = $('.octicon-mark-github')
+    it('should demonstrate the getSize command', async () => {
+        await browser.url('http://github.com')
+        const logo = await $('.octicon-mark-github')
 
-        const size = logo.getSize()
+        const size = await logo.getSize()
         console.log(size) // outputs: { width: 32, height: 32 }
 
-        const width = logo.getSize('width')
+        const width = await logo.getSize('width')
         console.log(width) // outputs: 32
 
-        const height = logo.getSize('height')
+        const height = await logo.getSize('height')
         console.log(height) // outputs: 32
     })
  * </example>

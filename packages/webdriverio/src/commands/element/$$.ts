@@ -18,14 +18,14 @@
         <li><a href="/">Contribute</a></li>
     </ul>
     :$.js
-    it('should get text a menu link', () => {
-        const text = $('#menu');
-        console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
+    it('should get text a menu link', async () => {
+        const text = await $('#menu');
+        console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
 
-    it('should get text a menu link - JS Function', () => {
-        const text = $('#menu');
-        console.log(text.$$(function() { // Arrow function is not allowed here.
+    it('should get text a menu link - JS Function', async () => {
+        const text = await $('#menu');
+        console.log(await text.$$(function() { // Arrow function is not allowed here.
             // this is Element https://developer.mozilla.org/en-US/docs/Web/API/Element
             // in this particular example it is HTMLUListElement
             // TypeScript users may do something like this

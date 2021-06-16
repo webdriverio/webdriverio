@@ -6,15 +6,15 @@
  *
  * <example>
     :getCookies.js
-    it('should return a cookie for me', () => {
-        browser.setCookies([
+    it('should return a cookie for me', async () => {
+        await browser.setCookies([
             {name: 'test', value: '123'},
             {name: 'test2', value: '456'}
         ])
-        const testCookie = browser.getCookies(['test'])
+        const testCookie = await browser.getCookies(['test'])
         console.log(testCookie); // outputs: [{ name: 'test', value: '123' }]
 
-        const allCookies = browser.getCookies()
+        const allCookies = await browser.getCookies()
         console.log(allCookies);
         // outputs:
         // [

@@ -31,13 +31,13 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
  *
  * <example>
     :mock.js
-    it('should mock network resources', () => {
+    it('should mock network resources', async () => {
         // via static string
-        const userListMock = browser.mock('**' + '/users/list')
+        const userListMock = await browser.mock('**' + '/users/list')
         // you can also specifying the mock even more by filtering resources
         // by request or response headers, status code, postData, e.g. mock only responses with specific
         // header set and statusCode
-        const strictMock = browser.mock('**', {
+        const strictMock = await browser.mock('**', {
             // mock all json responses
             statusCode: 200,
             headers: { 'Content-Type': 'application/json' },
@@ -46,7 +46,7 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
         })
 
         // comparator function
-        const apiV1Mock = browser.mock('**' + '/api/v1', {
+        const apiV1Mock = await browser.mock('**' + '/api/v1', {
             statusCode: (statusCode) => statusCode >= 200 && statusCode <= 203,
             headers: (headers) => headers['Authorization'] && headers['Authorization'].startsWith('Bearer '),
             responseHeaders: (headers) => headers['Impersonation'],
@@ -54,9 +54,9 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
         })
     })
 
-    it('should modify API responses', () => {
+    it('should modify API responses', async () => {
         // filter by method
-        const todoMock = browser.mock('**' + '/todos', {
+        const todoMock = await browser.mock('**' + '/todos', {
             method: 'get'
         })
 
@@ -82,19 +82,19 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
         })
     })
 
-    it('should modify text assets', () => {
-        const scriptMock = browser.mock('**' + '/script.min.js')
+    it('should modify text assets', async () => {
+        const scriptMock = await browser.mock('**' + '/script.min.js')
         scriptMock.respond('./tests/fixtures/script.js')
     })
 
-    it('should redirect web resources', () => {
-        const headerMock = browser.mock('**' + '/header.png')
+    it('should redirect web resources', async () => {
+        const headerMock = await browser.mock('**' + '/header.png')
         headerMock.respond('https://media.giphy.com/media/F9hQLAVhWnL56/giphy.gif')
 
-        const pageMock = browser.mock('https://google.com/')
+        const pageMock = await browser.mock('https://google.com/')
         pageMock.respond('https://webdriver.io')
-        browser.url('https://google.com')
-        console.log(browser.getTitle()) // returns "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
+        await browser.url('https://google.com')
+        console.log(await browser.getTitle()) // returns "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
     })
  * </example>
  *

@@ -121,10 +121,10 @@ Each command’s result will be an object with the browser names as the key, and
 
 ```js
 // wdio testrunner example
-browser.url('https://www.whatismybrowser.com')
+await browser.url('https://www.whatismybrowser.com')
 
-const elem = $('.string-major')
-const result = elem.getText()
+const elem = await $('.string-major')
+const result = await elem.getText()
 
 console.log(result[0]) // returns: 'Chrome 40 on Mac OS X (Yosemite)'
 console.log(result[1]) // returns: 'Firefox 35 on Mac OS X (Yosemite)'
@@ -144,7 +144,9 @@ myChromeBrowser.$('#send').click()
 $('.messages').waitForExist()
 // check if one of the messages contain the Chrome message
 assert.true(
-    $$('.messages').map((m) => m.getText()).includes('Hi, I am Chrome')
+    (
+        await $$('.messages').map((m) => m.getText())
+    ).includes('Hi, I am Chrome')
 )
 ```
 
@@ -178,8 +180,8 @@ Cucumber file:
 
 Step definition file:
 ```js
-When(/^User (.) types a message into the chat/, (userId) => {
-    browser[`user${userId}`].$('#message').setValue('Hi, I am Chrome')
-    browser[`user${userId}`].$('#send').click()
+When(/^User (.) types a message into the chat/, async (userId) => {
+    await browser[`user${userId}`].$('#message').setValue('Hi, I am Chrome')
+    await browser[`user${userId}`].$('#send').click()
 })
 ```

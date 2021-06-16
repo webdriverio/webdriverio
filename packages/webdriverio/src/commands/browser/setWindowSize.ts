@@ -9,8 +9,8 @@ const maxWindowSize = Number.MAX_SAFE_INTEGER
  *
  * <example>
  * :setWindowSize.js
-    it('should re-size browser outer window with 500 width and 600 height', function () {
-        browser.setWindowSize(500, 600);
+    it('should re-size browser outer window with 500 width and 600 height', async () => {
+        await browser.setWindowSize(500, 600);
     });
  * </example>
  *

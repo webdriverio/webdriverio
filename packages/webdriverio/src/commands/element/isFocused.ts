@@ -11,13 +11,13 @@ import isFocusedScript from '../../scripts/isFocused'
     :index.html
     <input name="login" autofocus="" />
     :hasFocus.js
-    it('should detect the focus of an element', () => {
-        browser.url('/');
-        const loginInput = $('[name="login"]');
-        console.log(loginInput.isFocused()); // outputs: false
+    it('should detect the focus of an element', async () => {
+        await browser.url('/');
+        const loginInput = await $('[name="login"]');
+        console.log(await loginInput.isFocused()); // outputs: false
 
-        loginInput.click();
-        console.log(loginInput.isFocused()); // outputs: true
+        await loginInput.click();
+        console.log(await loginInput.isFocused()); // outputs: true
     })
  * </example>
  *

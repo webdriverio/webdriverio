@@ -8,11 +8,11 @@ import type { Cookie } from '@wdio/protocols'
  *
  * <example>
     :setCookies.js
-    it('should set a cookie for the page', () => {
-        browser.url('/')
+    it('should set a cookie for the page', async () => {
+        await browser.url('/')
 
         // set a single cookie
-        browser.setCookies({
+        await browser.setCookies({
             name: 'test1',
             value: 'one'
             // The below options are optional
@@ -24,12 +24,12 @@ import type { Cookie } from '@wdio/protocols'
         })
 
         // set multiple cookies
-        browser.setCookies([
+        await browser.setCookies([
             {name: 'test2', value: 'two'},
             {name: 'test3', value: 'three'}
         ])
 
-        const cookies = browser.getCookies()
+        const cookies = await browser.getCookies()
         console.log(cookies);
         // outputs:
         // [

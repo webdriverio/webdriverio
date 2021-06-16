@@ -19,16 +19,16 @@
  *
  * <example>
     :throttle.js
-    it('should throttle the network', () => {
+    it('should throttle the network', async () => {
         // via static string preset
-        browser.throttle('Regular 3G')
+        await browser.throttle('Regular 3G')
 
         // via custom values
-        browser.throttle({
-            'offline': false,
-            'downloadThroughput': 200 * 1024 / 8,
-            'uploadThroughput': 200 * 1024 / 8,
-            'latency': 20
+        await browser.throttle({
+            offline: false,
+            downloadThroughput: 200 * 1024 / 8,
+            uploadThroughput: 200 * 1024 / 8,
+            latency: 20
         })
     });
  * </example>

@@ -6,10 +6,10 @@ import { ELEMENT_KEY } from '../../constants'
  *
  * <example>
     :scrollIntoView.js
-    it('should demonstrate the scrollIntoView command', () => {
-        const elem = $('#myElement');
+    it('should demonstrate the scrollIntoView command', async () => {
+        const elem = await $('#myElement');
         // scroll to specific element
-        elem.scrollIntoView();
+        await elem.scrollIntoView();
     });
  * </example>
  *

@@ -24,8 +24,8 @@ export default class Page {
         this.title = 'My Page'
     }
 
-    open(path) {
-        browser.url(path)
+    async open (path) {
+        await browser.url(path)
     }
 }
 ```
@@ -46,18 +46,18 @@ import Page from './page'
 
 class LoginPage extends Page {
 
-    get username() { return $('#username') }
-    get password() { return $('#password') }
-    get submitBtn() { return $('form button[type="submit"]') }
-    get flash() { return $('#flash') }
-    get headerLinks() { return $$('#header a') }
+    get username () { return $('#username') }
+    get password () { return $('#password') }
+    get submitBtn () { return $('form button[type="submit"]') }
+    get flash () { return $('#flash') }
+    get headerLinks () { return $$('#header a') }
 
-    open() {
-        super.open('login')
+    async open () {
+        await super.open('login')
     }
 
-    submit() {
-        this.submitBtn.click()
+    async submit () {
+        await this.submitBtn.click()
     }
 
 }
@@ -72,20 +72,20 @@ Defining selectors in getter functions might look a little weird, but it’s rea
 WebdriverIO internally remembers the last result of a command. If you chain an element command with an action command, it finds the element from the previous command and uses the result to execute the action. With that you can remove the selector (first parameter) and the command looks as simple as:
 
 ```js
-LoginPage.username.setValue('Max Mustermann')
+await LoginPage.username.setValue('Max Mustermann')
 ```
 
 Which is basically the same thing as:
 
 ```js
-let elem = $('#username')
-elem.setValue('Max Mustermann')
+let elem = await $('#username')
+await elem.setValue('Max Mustermann')
 ```
 
 or
 
 ```js
-$('#username').setValue('Max Mustermann')
+await $('#username').setValue('Max Mustermann')
 ```
 
 ## Using Page Objects In Your Tests
@@ -101,22 +101,22 @@ If you use an assertion framework, your tests can be even more expressive:
 import LoginPage from '../pageobjects/login.page'
 
 describe('login form', () => {
-    it('should deny access with wrong creds', () => {
-        LoginPage.open()
-        LoginPage.username.setValue('foo')
-        LoginPage.password.setValue('bar')
-        LoginPage.submit()
+    it('should deny access with wrong creds', async () => {
+        await LoginPage.open()
+        await LoginPage.username.setValue('foo')
+        await LoginPage.password.setValue('bar')
+        await LoginPage.submit()
 
-        expect(LoginPage.flash).toHaveText('Your username is invalid!')
+        await expect(LoginPage.flash).toHaveText('Your username is invalid!')
     })
 
-    it('should allow access with correct creds', () => {
-        LoginPage.open()
-        LoginPage.username.setValue('tomsmith')
-        LoginPage.password.setValue('SuperSecretPassword!')
-        LoginPage.submit()
+    it('should allow access with correct creds', async () => {
+        await LoginPage.open()
+        await LoginPage.username.setValue('tomsmith')
+        await LoginPage.password.setValue('SuperSecretPassword!')
+        await LoginPage.submit()
 
-        expect(LoginPage.flash).toHaveText('You logged into a secure area!')
+        await expect(LoginPage.flash).toHaveText('You logged into a secure area!')
     })
 })
 ```

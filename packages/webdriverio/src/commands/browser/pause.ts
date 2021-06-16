@@ -6,9 +6,9 @@
  *
  * <example>
     :pause.js
-    it('should pause the execution', () => {
+    it('should pause the execution', async () => {
         const starttime = new Date().getTime()
-        browser.pause(3000)
+        await browser.pause(3000)
         const endtime = new Date().getTime()
         console.log(endtime - starttime) // outputs: 3000
     });

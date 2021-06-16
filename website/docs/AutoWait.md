@@ -36,15 +36,15 @@ You can set a default value for WebdriverIOs automatic explicit waiting by setti
 WebdriverIO can only wait for elements when they are implicitly defined. This is always the case when using the [`$`](/docs/api/browser/$) to fetch an element. It however is not supported when fetching a set of elements like this:
 
 ```js
-const divs = $$('div')
-divs[2].click() // can throw "Cannot read property 'click' of undefined"
+const divs = await $$('div')
+await divs[2].click() // can throw "Cannot read property 'click' of undefined"
 ```
 
 It is an absolute legitimate action to fetch a set of elements and click on the nth element of that set. However WebdriverIO doesn't know how many elements you are expecting to show up. As [`$$`](/docs/api/browser/$$) returns an [array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) of WebdriverIO elements you have to manually check if the return value contains enough items. We recommend to use [`waitUntil`](/docs/api/browser/waitUntil) for this, e.g.:
 
 ```js
-const div = browser.waitUntil(() => {
-    const elems = $$('div')
+const div = await browser.waitUntil(async () => {
+    const elems = await $$('div')
     if (elems.length !== 2) {
         return false
     }
@@ -53,5 +53,5 @@ const div = browser.waitUntil(() => {
 }, {
     timeoutMsg: 'Never found enough div elements'
 })
-div.click()
+await div.click()
 ```

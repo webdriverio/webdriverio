@@ -20,9 +20,9 @@ import { parseCSS } from '../../utils'
     :example.html
     <label id="myLabel" for="input" style="color: #0088cc; font-family: helvetica, arial, freesans, clean, sans-serif, width: 100px">Some Label</label>
     :getCSSProperty.js
-    it('should demonstrate the getCSSProperty command', () => {
-        const elem = $('#myLabel')
-        const color = elem.getCSSProperty('color')
+    it('should demonstrate the getCSSProperty command', async () => {
+        const elem = await $('#myLabel')
+        const color = await elem.getCSSProperty('color')
         console.log(color)
         // outputs the following:
         // {
@@ -36,7 +36,7 @@ import { parseCSS } from '../../utils'
         //     }
         // }
 
-        const font = elem.getCSSProperty('font-family')
+        const font = await elem.getCSSProperty('font-family')
         console.log(font)
         // outputs the following:
         // {
@@ -49,7 +49,7 @@ import { parseCSS } from '../../utils'
         //      }
         // }
 
-        var width = elem.getCSSProperty('width')
+        var width = await elem.getCSSProperty('width')
         console.log(width)
         // outputs the following:
         // {

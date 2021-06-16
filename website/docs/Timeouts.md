@@ -14,8 +14,8 @@ Therefore, time is a crucial component in the whole testing process. When a cert
 A session has an associated session script timeout that specifies a time to wait for asynchronous scripts to run. Unless stated otherwise, it is 30 seconds. You can set this timeout like so:
 
 ```js
-browser.setTimeout({ 'script': 60000 })
-browser.executeAsync((done) => {
+await browser.setTimeout({ 'script': 60000 })
+await browser.executeAsync((done) => {
     console.log('this should not fail')
     setTimeout(done, 59000)
 })
@@ -28,7 +28,7 @@ A session has an associated session page load timeout that specifies a time to w
 You can set this timeout like so:
 
 ```js
-browser.setTimeout({ 'pageLoad': 10000 })
+await browser.setTimeout({ 'pageLoad': 10000 })
 ```
 
 > The `pageLoad` keyword is a part of the official WebDriver [specification](https://www.w3.org/TR/webdriver/#set-timeouts), but might not be [supported](https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/687) for your browser (the previous name is `page load`).
@@ -40,7 +40,7 @@ A session has an associated session implicit wait timeout. This specifies the ti
 You can set this timeout via:
 
 ```js
-browser.setTimeout({ 'implicit': 5000 })
+await browser.setTimeout({ 'implicit': 5000 })
 ```
 
 ## WebdriverIO related timeouts
@@ -61,11 +61,11 @@ exports.config = {
 In your tests, you now can do this:
 
 ```js
-const myElem = $('#myElem')
-myElem.waitForDisplayed()
+const myElem = await $('#myElem')
+await myElem.waitForDisplayed()
 
 // you can also overwrite the default timeout if needed
-myElem.waitForDisplayed({ timeout: 10000 })
+await myElem.waitForDisplayed({ timeout: 10000 })
 ```
 
 ## Framework related timeouts
@@ -78,17 +78,17 @@ A single test in Mocha looks like:
 
 ```js
 it('should login into the application', () => {
-    browser.url('/login')
+    await browser.url('/login')
 
-    const form = $('form')
-    const username = $('#username')
-    const password = $('#password')
+    const form = await $('form')
+    const username = await $('#username')
+    const password = await $('#password')
 
-    username.setValue('userXY')
-    password.setValue('******')
-    form.submit()
+    await username.setValue('userXY')
+    await password.setValue('******')
+    await form.submit()
 
-    expect(browser.getTitle()).to.be.equal('Admin Area')
+    expect(await browser.getTitle()).to.be.equal('Admin Area')
 })
 ```
 

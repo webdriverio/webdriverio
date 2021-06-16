@@ -16,8 +16,8 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  *
  * <example>
     :execute.js
-    it('should inject javascript on the page', () => {
-        const result = browser.execute((a, b, c, d) => {
+    it('should inject javascript on the page', async () => {
+        const result = await browser.execute((a, b, c, d) => {
             // browser context - you may not access client or console
             return a + b + c + d
         }, 1, 2, 3, 4)

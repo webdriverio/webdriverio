@@ -8,13 +8,13 @@ import type { Timeouts } from '@wdio/protocols'
  *
  * <example>
     :setTimeout.js
-    it('should change timeout duration for session with long code duration', () => {
-        browser.setTimeout({
+    it('should change timeout duration for session with long code duration', async () => {
+        await browser.setTimeout({
             'pageLoad': 10000,
             'script': 60000
         });
         // Execute code which takes a long time
-        browser.executeAsync((done) => {
+        await browser.executeAsync((done) => {
             console.log('Wake me up before you go!');
             setTimeout(done, 59000);
         });

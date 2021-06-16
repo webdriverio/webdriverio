@@ -79,30 +79,28 @@ exports.config = {
 ```
 ```js title="devtools.e2e.js"
 describe('my test', () => {
-    it('can use Puppeteer as automation fallback', () => {
+    it('can use Puppeteer as automation fallback', async () => {
         // WebDriver command
-        browser.url('https://webdriver.io')
+        await browser.url('https://webdriver.io')
 
         // get <Puppeteer.Browser> instance (https://pptr.dev/#?product=Puppeteer&version=v5.2.1&show=api-class-browser)
-        const puppeteer = browser.getPuppeteer()
+        const puppeteer = await browser.getPuppeteer()
 
-        // switch to Puppeteer to intercept requests
-        browser.call(async () => {
-            const page = (await puppeteer.pages())[0]
-            await page.setRequestInterception(true)
-            page.on('request', interceptedRequest => {
-                if (interceptedRequest.url().endsWith('webdriverio.png')) {
-                    return interceptedRequest.continue({
-                        url: 'https://webdriver.io/img/puppeteer.png'
-                    })
-                }
+        // use Puppeteer interfaces
+        const page = (await puppeteer.pages())[0]
+        await page.setRequestInterception(true)
+        page.on('request', interceptedRequest => {
+            if (interceptedRequest.url().endsWith('webdriverio.png')) {
+                return interceptedRequest.continue({
+                    url: 'https://webdriver.io/img/puppeteer.png'
+                })
+            }
 
-                interceptedRequest.continue()
-            })
+            interceptedRequest.continue()
         })
 
         // continue with WebDriver commands
-        browser.url('https://webdriver.io')
+        await browser.url('https://webdriver.io')
 
         /**
          * WebdriverIO logo is no replaced with the Puppeteer logo
@@ -123,7 +121,7 @@ const { remote } = require('webdriverio')
 
 (async () => {
     const browser = await remote({
-        devtoolsProtocol: 'devtools',
+        automationProtocol: 'devtools',
         capabilities: {
             browserName: 'chrome'
         }

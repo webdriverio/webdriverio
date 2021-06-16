@@ -22,13 +22,14 @@ const resqScript = fs.readFileSync(require.resolve('resq'))
  *
  * <example>
     :pause.js
-    it('should calculate 7 * 6', () => {
-        browser.url('https://ahfarmer.github.io/calculator/');
+    it('should calculate 7 * 6', async () => {
+        await browser.url('https://ahfarmer.github.io/calculator/');
 
-        const orangeButtons = browser.react$$('t', {
+        const orangeButtons = await browser.react$$('t', {
             props: { orange: true }
         })
-        console.log(orangeButtons.map((btn) => btn.getText())); // prints "[ '÷', 'x', '-', '+', '=' ]"
+        console.log(await orangeButtons.map((btn) => btn.getText()));
+        // prints "[ '÷', 'x', '-', '+', '=' ]"
     });
  * </example>
  *

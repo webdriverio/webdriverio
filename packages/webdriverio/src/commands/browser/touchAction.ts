@@ -17,18 +17,18 @@ import { TouchAction } from '../../types'
  *
  * <example>
     :touchAction.js
-    it('should do a touch gesture', function () {
-        const screen = $('//UITextbox');
+    it('should do a touch gesture', async () => {
+        const screen = await $('//UITextbox');
 
         // simple touch action on element
-        browser.touchAction({
+        await browser.touchAction({
             action: 'tap',
             element: screen
         });
 
         // simple touch action x y variables
         // tap location is 30px right and 20px down relative from the viewport
-        browser.touchAction({
+        await browser.touchAction({
             action: 'tap',
             x: 30,
             y:20
@@ -36,7 +36,7 @@ import { TouchAction } from '../../types'
 
         // simple touch action x y variables
         // tap location is 30px right and 20px down relative from the center of the element
-        browser.touchAction({
+        await browser.touchAction({
             action: 'tap',
             x: 30,
             y:20,
@@ -45,7 +45,7 @@ import { TouchAction } from '../../types'
 
         // multi action on an element
         // drag&drop from position 200x200 down 100px on the screen
-        browser.touchAction([
+        await browser.touchAction([
             { action: 'press', x: 200, y: 200 },
             { action: 'moveTo', x: 200, y: 300 },
             'release'
