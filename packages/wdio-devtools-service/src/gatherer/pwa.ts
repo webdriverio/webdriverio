@@ -13,6 +13,7 @@ import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
 import collectMetaElements from '../scripts/collectMetaElements'
 import { NETWORK_RECORDER_EVENTS } from '../constants'
+import { getLighthouseDriver } from '../utils'
 
 export default class PWAGatherer {
     private _driver: typeof Driver
@@ -36,15 +37,7 @@ export default class PWAGatherer {
         /**
          * setup LH driver
          */
-        const connection = this._session as any
-        connection.sendCommand = (method: any, sessionId: never, ...paramAgrs: any[]) =>
-            this._session.send(method as any, ...paramAgrs)
-        this._driver = new Driver(connection)
-        // @ts-ignore
-        this._session['_connection']._transport._ws.addEventListener(
-            'message',
-            (message: { data: string }) => this._driver._handleProtocolEvent(JSON.parse(message.data))
-        )
+        this._driver = getLighthouseDriver(_session)
 
         /**
          * clean up network records after every page load

@@ -1,3 +1,4 @@
+import type { TraceStreamJson } from '@tracerbench/trace-event'
 import type { ReportOptions } from 'istanbul-reports'
 import type { Totals, CoverageSummaryData } from 'istanbul-lib-coverage'
 import type { Viewport } from 'puppeteer-core/lib/cjs/puppeteer/common/PuppeteerViewport'
@@ -178,4 +179,12 @@ export interface PerformanceAuditOptions {
      * Enable or disable cache of resources. Defaults to true.
      */
     cacheEnabled?: boolean
+}
+
+export interface GathererDriver {
+    beginTrace (): Promise<void>
+    endTrace (): Promise<TraceStreamJson>
+    getServiceWorkerVersions (): Promise<void>
+    getServiceWorkerRegistrations (): Promise<void>
+    evaluate (script: Function, args: Object): Promise<any>
 }

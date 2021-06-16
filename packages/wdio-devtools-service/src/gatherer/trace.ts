@@ -1,7 +1,4 @@
-import 'core-js/modules/web.url'
-
 import { EventEmitter } from 'events'
-import Driver from 'lighthouse/lighthouse-core/gather/driver'
 import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
 import NetworkMonitor from 'lighthouse/lighthouse-core/gather/driver/network-monitor'
 import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
@@ -9,7 +6,7 @@ import { waitForFullyLoaded } from 'lighthouse/lighthouse-core/gather/driver/wai
 import logger from '@wdio/logger'
 
 import type Protocol from 'devtools-protocol'
-import type { TraceEvent, TraceStreamJson, TraceEventArgs } from '@tracerbench/trace-event'
+import type { TraceEvent, TraceEventArgs } from '@tracerbench/trace-event'
 import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRequest'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
@@ -20,7 +17,8 @@ import {
     FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT, MAX_TRACE_WAIT_TIME,
     CLICK_TRANSITION, NETWORK_RECORDER_EVENTS
 } from '../constants'
-import { isSupportedUrl } from '../utils'
+import { isSupportedUrl, getLighthouseDriver } from '../utils'
+import type { GathererDriver } from '../types'
 
 const log = logger('@wdio/devtools-service:TraceGatherer')
 
@@ -68,7 +66,7 @@ export default class TraceGatherer extends EventEmitter {
     private _traceStart?: number
     private _clickTraceTimeout?: NodeJS.Timeout
     private _waitConditionPromises: Promise<void>[] = []
-    private _driver: typeof Driver
+    private _driver: GathererDriver
 
     constructor (private _session: CDPSession, private _page: Page) {
         super()
@@ -77,19 +75,7 @@ export default class TraceGatherer extends EventEmitter {
             this._networkListeners[method] = (params) => this._networkStatusMonitor.dispatch({ method, params })
         })
 
-        /**
-         * setup LH driver
-         */
-        const connection = this._session as any
-        connection.sendCommand = (method: any, sessionId: never, ...paramAgrs: any[]) =>
-            this._session.send(method as any, ...paramAgrs)
-        this._driver = new Driver(connection)
-        // @ts-ignore
-        this._session['_connection']._transport._ws.addEventListener(
-            'message',
-            (message: { data: string }) => this._driver._handleProtocolEvent(JSON.parse(message.data))
-        )
-
+        this._driver = getLighthouseDriver(_session)
         this._protocolSession = new ProtocolSession(_session)
         this._networkMonintor = new NetworkMonitor(_session)
     }
@@ -251,7 +237,7 @@ export default class TraceGatherer extends EventEmitter {
          * in case it fails, continue without capturing any data
          */
         try {
-            const traceEvents: TraceStreamJson = await this._driver.endTrace()
+            const traceEvents = await this._driver.endTrace()
 
             /**
              * modify pid of renderer frame to be the same as where tracing was started
@@ -303,7 +289,7 @@ export default class TraceGatherer extends EventEmitter {
          * clean up the listeners
          */
         NETWORK_RECORDER_EVENTS.forEach(
-            (method) => this._session.removeListener(method, this._networkListeners[method]))
+            (method) => this._session.off(method, this._networkListeners[method]))
         delete this._networkStatusMonitor
 
         delete this._traceStart
