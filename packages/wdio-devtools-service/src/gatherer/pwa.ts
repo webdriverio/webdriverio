@@ -2,11 +2,13 @@ import Driver from 'lighthouse/lighthouse-core/gather/driver'
 import FRGatherer from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
 import pageFunctions from 'lighthouse/lighthouse-core/lib/page-functions'
 import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
+import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
 
 import InstallabilityErrors from 'lighthouse/lighthouse-core/gather/gatherers/installability-errors'
 import WebAppManifest from 'lighthouse/lighthouse-core/gather/gatherers/web-app-manifest'
 import LinkElements from 'lighthouse/lighthouse-core/gather/gatherers/link-elements'
 import ViewportDimensions from 'lighthouse/lighthouse-core/gather/gatherers/viewport-dimensions'
+import serviceWorkers from 'lighthouse/lighthouse-core/gather/driver/service-workers.js'
 
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
@@ -18,6 +20,7 @@ import { getLighthouseDriver } from '../utils'
 export default class PWAGatherer {
     private _driver: typeof Driver
     private _frGatherer: typeof FRGatherer
+    private _protocolSession: typeof ProtocolSession
     private _networkRecorder: any
     private _networkRecords: any[] = []
 
@@ -38,6 +41,7 @@ export default class PWAGatherer {
          * setup LH driver
          */
         this._driver = getLighthouseDriver(_session)
+        this._protocolSession = new ProtocolSession(_session)
 
         /**
          * clean up network records after every page load
@@ -61,8 +65,8 @@ export default class PWAGatherer {
 
         const linkElements = new LinkElements()
         const viewportDimensions = new ViewportDimensions()
-        const { versions } = await this._driver.getServiceWorkerVersions()
-        const { registrations } = await this._driver.getServiceWorkerRegistrations()
+        const { versions } = await serviceWorkers.getServiceWorkerVersions(this._protocolSession)
+        const { registrations } = await serviceWorkers.getServiceWorkerRegistrations(this._protocolSession)
         return {
             URL: { requestedUrl: pageUrl, finalUrl: pageUrl },
             WebAppManifest: await WebAppManifest.getWebAppManifest(this._frGatherer, pageUrl),

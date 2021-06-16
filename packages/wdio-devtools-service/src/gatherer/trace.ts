@@ -60,7 +60,7 @@ export default class TraceGatherer extends EventEmitter {
     private _loaderId?: string
     private _pageUrl?: string
     private _networkStatusMonitor: typeof NetworkRecorder
-    private _networkMonintor: typeof NetworkMonitor
+    private _networkMonitor: typeof NetworkMonitor
     private _protocolSession: typeof  ProtocolSession
     private _trace?: Trace
     private _traceStart?: number
@@ -77,7 +77,7 @@ export default class TraceGatherer extends EventEmitter {
 
         this._driver = getLighthouseDriver(_session)
         this._protocolSession = new ProtocolSession(_session)
-        this._networkMonintor = new NetworkMonitor(_session)
+        this._networkMonitor = new NetworkMonitor(_session)
     }
 
     async startTracing (url: string) {
@@ -116,7 +116,7 @@ export default class TraceGatherer extends EventEmitter {
         await this._page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
         this._waitConditionPromises.push(
-            waitForFullyLoaded(this._protocolSession, this._networkMonintor, { timedOut: 1 })
+            waitForFullyLoaded(this._protocolSession, this._networkMonitor, { timedOut: 1 })
         )
     }
 

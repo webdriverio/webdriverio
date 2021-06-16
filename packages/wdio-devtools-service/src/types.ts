@@ -182,7 +182,5 @@ export interface PerformanceAuditOptions {
 export interface GathererDriver {
     beginTrace (): Promise<void>
     endTrace (): Promise<TraceStreamJson>
-    getServiceWorkerVersions (): Promise<void>
-    getServiceWorkerRegistrations (): Promise<void>
     evaluate (script: Function, args: Object): Promise<any>
 }
