@@ -11,6 +11,7 @@ browser.disablePerformanceAudits()
 
 const metrics = browser.getMetrics()
 expectType<number>(metrics.estimatedInputLatency)
+expectType<number>(metrics.maxPotentialFID)
 
 const diagnostics = browser.getDiagnostics()
 const mainThreadWorkBreakdown = browser.getMainThreadWorkBreakdown()

@@ -193,7 +193,7 @@ export default class TraceGatherer extends EventEmitter {
         const loadPromise = Promise.all(this._waitConditionPromises).then(() => async () => {
             /**
              * ensure that we trace at least for 5s to ensure that we can
-             * calculate firstInteractive
+             * calculate "interactive"
              */
             const minTraceTime = TRACING_TIMEOUT - (Date.now() - (this._traceStart || 0))
             if (minTraceTime > 0) {

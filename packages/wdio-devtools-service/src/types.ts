@@ -106,7 +106,6 @@ export interface MetricsResult {
 export interface MetricsResults {
     details: {
         items: {
-            estimatedInputLatency: number
             observedDomContentLoaded: number
             observedFirstVisualChange: number
             observedFirstPaint: number
@@ -114,7 +113,6 @@ export interface MetricsResults {
             firstMeaningfulPaint: number
             largestContentfulPaint: number
             observedLastVisualChange: number
-            firstCPUIdle: number
             interactive: number
             observedLoad: number
             speedIndex: number

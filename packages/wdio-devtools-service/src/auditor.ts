@@ -133,7 +133,7 @@ export default class Auditor {
     }
 
     /**
-     * Returns the Lighthouse Performance Score which is a weighted mean of the following metrics: firstMeaningfulPaint, firstCPUIdle, firstInteractive, speedIndex, estimatedInputLatency
+     * Returns the Lighthouse Performance Score which is a weighted mean of the following metrics: firstMeaningfulPaint, interactive, speedIndex
      */
     async getPerformanceScore () {
         const auditResults: AuditResults = {
