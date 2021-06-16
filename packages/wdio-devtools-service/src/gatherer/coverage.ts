@@ -101,35 +101,43 @@ export default class CoverageGatherer extends EventEmitter {
         }
 
         await fs.promises.writeFile(fullPath, inputCode, 'utf-8')
-
-        const result = await babelTransform(inputCode, {
-            auxiliaryCommentBefore: ' istanbul ignore next ',
-            babelrc: false,
-            caller: {
-                name: '@wdio/devtools-service'
-            },
-            configFile: false,
-            filename: path.join(url.hostname, url.pathname),
-            plugins: [
-                [
-                    babelPluginIstanbul,
-                    {
-                        compact: false,
-                        exclude: [],
-                        extension: false,
-                        useInlineSourceMaps: false,
-                    },
+        try {
+            const result = await babelTransform(inputCode, {
+                auxiliaryCommentBefore: ' istanbul ignore next ',
+                babelrc: false,
+                caller: {
+                    name: '@wdio/devtools-service'
+                },
+                configFile: false,
+                filename: path.join(url.hostname, url.pathname),
+                plugins: [
+                    [
+                        babelPluginIstanbul,
+                        {
+                            compact: false,
+                            exclude: [],
+                            extension: false,
+                            useInlineSourceMaps: false,
+                        },
+                    ],
                 ],
-            ],
-            sourceMaps: false
-        })
+                sourceMaps: false
+            })
 
-        return this._client.send('Fetch.fulfillRequest', {
-            requestId,
-            responseCode: responseStatusCode,
-            /** do not mock body if it's undefined */
-            body: !result ? undefined : Buffer.from(result.code!, 'utf8').toString('base64')
-        })
+            return this._client.send('Fetch.fulfillRequest', {
+                requestId,
+                responseCode: responseStatusCode,
+                /** do not mock body if it's undefined */
+                body: !result ? undefined : Buffer.from(result.code!, 'utf8').toString('base64')
+            })
+        } catch (err) {
+            log.warn(`Couldn't instrument file due to: ${err.stack}`)
+            return this._client.send('Fetch.fulfillRequest', {
+                requestId,
+                responseCode: responseStatusCode,
+                body: inputCode
+            })
+        }
     }
 
     private _clearCaptureInterval () {

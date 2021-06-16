@@ -176,6 +176,26 @@ describe('CoverageGatherer', () => {
         )).toBe(true)
     })
 
+    it('should return untransformed file if transformation fails', async () => {
+        const params = {
+            requestId: '123',
+            request: {
+                url: 'http://json.org/foo.js'
+            },
+            responseStatusCode: 444
+        }
+        const gatherer = new CoverageGatherer(pageMock, {
+            logDir: '/foo/bar'
+        })
+
+        ;(babelTransform as jest.Mock).mockReturnValueOnce(Promise.reject(new Error('upps')))
+        await gatherer.init()
+        await gatherer['_handleRequests'](params)
+
+        expect(sessionMock.send.mock.calls.slice(1))
+            .toMatchSnapshot()
+    })
+
     it('_clearCaptureInterval', () => {
         const gatherer = new CoverageGatherer(pageMock, {})
         gatherer['_clearCaptureInterval']()
