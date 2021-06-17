@@ -1,11 +1,27 @@
 import DevTools from '../packages/devtools/src/index'
 import { ELEMENT_KEY } from '../packages/devtools/src/constants'
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+import type { Client } from '../packages/devtools/src/index'
 
-let browser
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+let browser: Client
 
 jest.retryTimes(0)
+
+async function waitForElement (browser: Client, selectorStrategy: string, selector: string, retries = 10): Promise<string> {
+    const elem = await browser.findElement(selectorStrategy, selector)
+    if (elem[ELEMENT_KEY]) {
+        return elem[ELEMENT_KEY]
+    }
+
+    if (retries < 0) {
+        throw new Error(`element with ${selectorStrategy} "${selector}" not found`)
+    }
+
+    await sleep(200)
+    return waitForElement(browser, selectorStrategy, selector, --retries)
+}
 
 beforeAll(async () => {
     browser = await DevTools.newSession({
@@ -79,7 +95,7 @@ describe('timeouts', () => {
 })
 
 describe('alerts', () => {
-    let jsAlertBtn, alertConfirmBtn, alertPromptBtn
+    let jsAlertBtn: string, alertConfirmBtn: string, alertPromptBtn: string
 
     beforeAll(async () => {
         await browser.navigateTo('https://the-internet.herokuapp.com/javascript_alerts')
@@ -358,8 +374,8 @@ describe('handles windows', () => {
         const handles = await browser.getWindowHandles()
         await browser.switchToWindow(handles[handles.length - 1])
 
-        const closeButton = await browser.findElement('css selector', '#closeButton')
-        await browser.elementClick(closeButton[ELEMENT_KEY])
+        const closeButton = await waitForElement(browser, 'css selector', '#closeButton')
+        await browser.elementClick(closeButton)
 
         expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
     })
