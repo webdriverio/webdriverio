@@ -78,14 +78,19 @@ describe('isBrowserSupported', () => {
         expect(isBrowserSupported(caps)).toEqual(true)
     })
 
-    test('should return false when the browser us supported', () => {
+    test('should return true when the browser and version are supported', () => {
+        const caps = { browserName: 'Firefox', version: 86 }
+        expect(isBrowserSupported(caps)).toEqual(true)
+    })
+
+    test('should return false when the version is not supported', () => {
         const capsFirefox = { browserName: 'firefox', version: 80 }
         expect(isBrowserSupported(capsFirefox)).toEqual(false)
     })
 
     test('should return false when the version is not supported', () => {
-        const capsFirefox = { browserName: 'chrome', version: 50 }
-        expect(isBrowserSupported(capsFirefox)).toEqual(false)
+        const capsChrome = { browserName: 'chrome', version: 50 }
+        expect(isBrowserSupported(capsChrome)).toEqual(false)
     })
 
     test('should return true when the browserName is not specified', () => {
@@ -95,6 +100,11 @@ describe('isBrowserSupported', () => {
     })
     test('should return true when the version number is not specified', () => {
         const capsEmpty = { browserName: 'chrome' }
+        expect(isBrowserSupported(capsEmpty)).toEqual(true)
+    })
+
+    test('should return true when the version number is not specified', () => {
+        const capsEmpty = { browserName: 'firefox' }
         expect(isBrowserSupported(capsEmpty)).toEqual(true)
     })
 })
