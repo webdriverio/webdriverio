@@ -245,7 +245,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         /**
          * enable domains for client
          */
-        await Promise.all(['Page', 'Network', 'Console'].map(
+        await Promise.all(['Page', 'Network', 'Runtime'].map(
             (domain) => Promise.all([
                 this._session?.send(`${domain}.enable` as any)
             ])

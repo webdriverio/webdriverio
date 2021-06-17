@@ -121,7 +121,7 @@ test('if supported by browser', async () => {
     service['_isSupported'] = true
     await service._setupHandler()
     expect(service['_session']?.send).toBeCalledWith('Network.enable')
-    expect(service['_session']?.send).toBeCalledWith('Console.enable')
+    expect(service['_session']?.send).toBeCalledWith('Runtime.enable')
     expect(service['_session']?.send).toBeCalledWith('Page.enable')
     expect(service['_browser']?.addCommand).toBeCalledWith(
         'enablePerformanceAudits', expect.any(Function))
