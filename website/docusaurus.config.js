@@ -54,7 +54,7 @@ module.exports = {
         announcementBar: {
             id: 'supportus',
             content:
-              '⭐️  &nbsp; OpenJS World is happening June 2. Register today: <a target="_blank" rel="noopener noreferrer" href="https://openjsf.org/openjs-world-2021/">openjsf.org/openjs-world-2021</a>! ⭐️',
+              '⭐️  &nbsp; If you like WebdriverIO, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/${organizationName}/${projectName}">GitHub</a>! ⭐️',
         },
         navbar: {
             // title: 'I/O',
