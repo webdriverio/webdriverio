@@ -9,7 +9,8 @@ const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
     'chrome': 63,
     'chromium' : 63,
     'googlechrome': 63,
-    'google chrome': 63
+    'google chrome': 63,
+    'firefox': 86
 }
 
 export function setUnsupportedCommand (browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
