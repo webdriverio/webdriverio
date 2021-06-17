@@ -1,4 +1,3 @@
-import Driver from 'lighthouse/lighthouse-core/gather/driver'
 import FRGatherer from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
 import pageFunctions from 'lighthouse/lighthouse-core/lib/page-functions'
 import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
@@ -16,9 +15,10 @@ import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import collectMetaElements from '../scripts/collectMetaElements'
 import { NETWORK_RECORDER_EVENTS } from '../constants'
 import { getLighthouseDriver } from '../utils'
+import type { GathererDriver } from '../types'
 
 export default class PWAGatherer {
-    private _driver: typeof Driver
+    private _driver: GathererDriver
     private _frGatherer: typeof FRGatherer
     private _protocolSession: typeof ProtocolSession
     private _networkRecorder: any
@@ -65,8 +65,8 @@ export default class PWAGatherer {
 
         const linkElements = new LinkElements()
         const viewportDimensions = new ViewportDimensions()
-        const { versions } = await serviceWorkers.getServiceWorkerVersions(this._protocolSession)
         const { registrations } = await serviceWorkers.getServiceWorkerRegistrations(this._protocolSession)
+        const { versions } = await serviceWorkers.getServiceWorkerVersions(this._protocolSession)
         return {
             URL: { requestedUrl: pageUrl, finalUrl: pageUrl },
             WebAppManifest: await WebAppManifest.getWebAppManifest(this._frGatherer, pageUrl),
