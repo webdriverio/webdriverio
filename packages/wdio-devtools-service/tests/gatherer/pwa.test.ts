@@ -33,8 +33,6 @@ describe('PWAGatherer', () => {
 
     it('gatherData', async () => {
         const pwaGatherer = new PWAGatherer(sessionMock, pageMock)
-        pwaGatherer['_driver'].getServiceWorkerVersions = jest.fn().mockResolvedValue({ versions: '1.2.1' })
-        pwaGatherer['_driver'].getServiceWorkerRegistrations = jest.fn().mockResolvedValue({ registrations: 42 })
         pwaGatherer['_driver'].evaluate = jest.fn().mockResolvedValue({ some: 'result' })
         expect(await pwaGatherer.gatherData()).toMatchSnapshot()
     })

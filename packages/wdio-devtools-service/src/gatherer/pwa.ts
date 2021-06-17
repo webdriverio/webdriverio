@@ -7,7 +7,7 @@ import InstallabilityErrors from 'lighthouse/lighthouse-core/gather/gatherers/in
 import WebAppManifest from 'lighthouse/lighthouse-core/gather/gatherers/web-app-manifest'
 import LinkElements from 'lighthouse/lighthouse-core/gather/gatherers/link-elements'
 import ViewportDimensions from 'lighthouse/lighthouse-core/gather/gatherers/viewport-dimensions'
-import serviceWorkers from 'lighthouse/lighthouse-core/gather/driver/service-workers.js'
+import serviceWorkers from 'lighthouse/lighthouse-core/gather/driver/service-workers'
 
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
