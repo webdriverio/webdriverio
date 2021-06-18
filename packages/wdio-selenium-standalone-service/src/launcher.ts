@@ -2,7 +2,6 @@ import logger from '@wdio/logger'
 import { isCloudCapability } from '@wdio/config'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
-import { promisify } from 'util'
 import fs from 'fs-extra'
 import * as SeleniumStandalone from 'selenium-standalone'
 
@@ -71,8 +70,7 @@ export default class SeleniumStandaloneLauncher {
         this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
-            const install: (opts: SeleniumStandalone.InstallOpts) => Promise<unknown> = promisify(SeleniumStandalone.install)
-            await install(this.installArgs)
+            await SeleniumStandalone.install(this.installArgs)
         }
 
         /**
@@ -120,8 +118,7 @@ export default class SeleniumStandaloneLauncher {
         /**
          * start Selenium Standalone server
          */
-        const start: (opts: SeleniumStandalone.StartOpts) => Promise<SeleniumStandalone.ChildProcess> = promisify(SeleniumStandalone.start)
-        this.process = await start(this.args)
+        this.process = await SeleniumStandalone.start(this.args)
 
         if (typeof this._config.outputDir === 'string') {
             this._redirectLogStream()
