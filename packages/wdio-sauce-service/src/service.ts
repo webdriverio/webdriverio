@@ -23,7 +23,7 @@ export default class SauceService implements Services.ServiceInstance {
 
     private _options: SauceServiceConfig
     private _api: SauceLabs
-    private _isRDC: boolean
+    private _isLegacyRDC: boolean
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _isUP?: boolean
     private _suiteTitle?: string
@@ -35,7 +35,7 @@ export default class SauceService implements Services.ServiceInstance {
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
-        this._isRDC = 'testobject_api_key' in this._capabilities
+        this._isLegacyRDC = 'testobject_api_key' in this._capabilities
         this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
     }
 
@@ -48,11 +48,11 @@ export default class SauceService implements Services.ServiceInstance {
          * provided set user and key with values so that the session request
          * will fail (not for RDC tho due to other auth mechansim)
          */
-        if (!this._isRDC && !this._config.user) {
+        if (!this._isLegacyRDC && !this._config.user) {
             this._isServiceEnabled = false
             this._config.user = 'unknown_user'
         }
-        if (!this._isRDC && !this._config.key) {
+        if (!this._isLegacyRDC && !this._config.key) {
             this._isServiceEnabled = false
             this._config.key = 'unknown_key'
         }
@@ -76,11 +76,7 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     beforeTest (test: Frameworks.Test) {
-        /**
-         * Date:    20200714
-         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
-         */
-        if (!this._isServiceEnabled || this._isRDC || this._isUP || !this._browser) {
+        if (!this._isServiceEnabled || this._isLegacyRDC || !this._browser) {
             return
         }
 
@@ -94,9 +90,17 @@ export default class SauceService implements Services.ServiceInstance {
             this._suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
         }
 
-        if (this._browser && !this._isUP && !this._isJobNameSet) {
+        if (this._browser && !this._isJobNameSet) {
             this._browser.execute('sauce:job-name=' + this._suiteTitle)
             this._isJobNameSet = true
+        }
+
+        /**
+         * Date:    20200714
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
+        if (this._isUP) {
+            return
         }
 
         const fullTitle = (
@@ -182,19 +186,23 @@ export default class SauceService implements Services.ServiceInstance {
      * For CucumberJS
      */
     beforeFeature (uri: unknown, feature: { name: string }) {
-        /**
-         * Date:    20200714
-         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
-         */
-        if (!this._isServiceEnabled || this._isRDC || this._isUP || !this._browser) {
+        if (!this._isServiceEnabled || this._isLegacyRDC || !this._browser) {
             return
         }
 
         this._suiteTitle = feature.name
 
-        if (this._browser && !this._isUP && !this._isJobNameSet) {
+        if (this._browser && !this._isJobNameSet) {
             this._browser.execute('sauce:job-name=' + this._suiteTitle)
             this._isJobNameSet = true
+        }
+
+        /**
+         * Date:    20200714
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
+        if (this._isUP) {
+            return
         }
 
         (this._browser as Browser<'async'>).execute('sauce:context=Feature: ' + this._suiteTitle)
@@ -205,7 +213,7 @@ export default class SauceService implements Services.ServiceInstance {
          * Date:    20200714
          * Remark:  Sauce Unified Platform doesn't support updating the context yet.
          */
-        if (!this._isServiceEnabled || this._isRDC || this._isUP || !this._browser) {
+        if (!this._isServiceEnabled || this._isLegacyRDC || this._isUP || !this._browser) {
             return
         }
 
@@ -233,7 +241,7 @@ export default class SauceService implements Services.ServiceInstance {
      * update Sauce Labs job
      */
     async after (result: number) {
-        if (!this._browser || (!this._isServiceEnabled && !this._isRDC)) {
+        if (!this._browser || (!this._isServiceEnabled && !this._isLegacyRDC)) {
             return
         }
 
@@ -283,7 +291,7 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     onReload (oldSessionId: string, newSessionId: string) {
-        if (!this._browser || (!this._isServiceEnabled && !this._isRDC)) {
+        if (!this._browser || (!this._isServiceEnabled && !this._isLegacyRDC)) {
             return
         }
 
@@ -302,7 +310,7 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     async updateJob (sessionId: string, failures: number, calledOnReload = false, browserName?: string) {
-        if (this._isRDC) {
+        if (this._isLegacyRDC) {
             await this._api.updateTest(sessionId, { passed: failures === 0 })
             this._failures = 0
             return

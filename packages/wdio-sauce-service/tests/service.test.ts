@@ -117,9 +117,8 @@ test('beforeTest should set context for mocha test', () => {
     expect(browser.execute).toBeCalledWith('sauce:context=foo - bar')
 })
 
-test('beforeTest should not set context for RDC test', () => {
-
-    // not for RDC since sauce:context is not available there
+test('beforeTest should not set context for LegacyRDC test', () => {
+    // not for LegacyRDC since sauce:context is not available there
     const rdcService = new SauceService({}, { testobject_api_key: 'foobar' }, {} as any)
     rdcService['_browser'] = browser
     rdcService.beforeSession()
@@ -127,6 +126,18 @@ test('beforeTest should not set context for RDC test', () => {
         fullTitle: 'my test can do something'
     } as any)
     expect(browser.execute).not.toBeCalled()
+})
+
+test('beforeTest should not set context for UP test', () => {
+    // not for UP since sauce:context is not available there
+    const upService = new SauceService({}, {}, {} as any)
+    upService['_browser'] = browser
+    upService['_isUP'] = true
+    upService.beforeTest({
+        title: 'update up job name'
+    } as any)
+    expect(browser.execute).toBeCalledTimes(1)
+    expect(browser.execute).not.toBeCalledWith('sauce:job-name==update up job name')
 })
 
 test('beforeTest should not set context if user does not use sauce', () => {
@@ -249,11 +260,20 @@ test('beforeFeature should set context', () => {
     expect(browser.execute).toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
-test('beforeFeature should not set context if RDC test', () => {
+test('beforeFeature should not set context if LegacyRDC test', () => {
     const rdcService = new SauceService({}, { testobject_api_key: 'foobar' }, {} as any)
     rdcService['_browser'] = browser
     rdcService.beforeSession()
     rdcService.beforeFeature(uri, featureObject)
+    expect(browser.execute).not.toBeCalledWith('sauce:context=Feature: Create a feature')
+})
+
+test('beforeFeature should not set context if UP test', () => {
+    const upService = new SauceService({}, {}, {} as any)
+    upService['_browser'] = browser
+    upService['_isUP'] = true
+    upService['_isServiceEnabled'] = true
+    upService.beforeFeature(uri, featureObject)
     expect(browser.execute).not.toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
@@ -293,7 +313,7 @@ test('beforeScenario should set context', () => {
     expect(browser.execute).toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
-test('beforeScenario should not set context if RDC test', () => {
+test('beforeScenario should not set context if LegacyRDC test', () => {
     const rdcService = new SauceService({}, { testobject_api_key: 'foobar' }, {} as any)
     rdcService['_browser'] = browser
     rdcService.beforeSession()
@@ -327,7 +347,7 @@ test('after', async () => {
     expect(service['_uploadLogs']).toBeCalledWith('foobar')
 })
 
-test('after for RDC', async () => {
+test('after for LegacyRDC', async () => {
     const service = new SauceService({}, { testobject_api_key: '1' }, {} as any)
     service['_browser'] = browser
     service.beforeSession()
@@ -497,7 +517,7 @@ test('onReload', () => {
     expect(service.updateJob).toBeCalledWith('oldbar', 5, true)
 })
 
-test('onReload with RDC', () => {
+test('onReload with LegacyRDC', () => {
     const service = new SauceService({}, { testobject_api_key: '1' }, {} as any)
     service['_browser'] = browser
     service.beforeSession()
@@ -564,7 +584,7 @@ test('updateJob for VMs', () => {
     expect(service['_failures']).toBe(0)
 })
 
-test('updateJob for RDC', () => {
+test('updateJob for LegacyRDC', () => {
     const service = new SauceService({}, { testobject_api_key: '1' }, {} as any)
     service['_browser'] = browser
     service.beforeSession()
@@ -764,7 +784,7 @@ test('updateUP should set job status to false', () => {
     expect(browser.execute).toBeCalledWith('sauce:job-result=false')
 })
 
-test('updateUP should set job status to false', () => {
+test('updateUP should set job status to true', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     service.updateUP(0)
