@@ -19,6 +19,36 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.7.4 (2021-06-20)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#7002](https://github.com/webdriverio/webdriverio/pull/7002) Issue #6977: Renamed 'reset' command in Appium to 'resetApp' ([@srikanthgurram](https://github.com/srikanthgurram))
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#7020](https://github.com/webdriverio/webdriverio/pull/7020) Wrap coverage transform into try/catch to avoid staleness ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-selenium-standalone-service`
+  * [#7031](https://github.com/webdriverio/webdriverio/pull/7031) Update selenium-standalone-service to use v7 ([@mgrybyk](https://github.com/mgrybyk))
+* `wdio-sauce-service`
+  * [#7028](https://github.com/webdriverio/webdriverio/pull/7028) Enable updating job name for UP tests for Sauce Labs ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-devtools-service`
+  * [#7027](https://github.com/webdriverio/webdriverio/pull/7027) Support Firefox 86+ in Devtools Service & Migrate from deprecated Console domain ([@dylanlive](https://github.com/dylanlive))
+
+#### :memo: Documentation
+* [#6996](https://github.com/webdriverio/webdriverio/pull/6996) Add in Learn WebdriverIO course link to homepage masthead ([@klamping](https://github.com/klamping))
+
+#### Committers: 6
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dylan Reichstadt ([@dylanlive](https://github.com/dylanlive))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Mykola Grybyk ([@mgrybyk](https://github.com/mgrybyk))
+- Srikanth ([@srikanthgurram](https://github.com/srikanthgurram))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+
+
 ## v7.7.3 (2021-06-04)
 
 #### :nail_care: Polish
