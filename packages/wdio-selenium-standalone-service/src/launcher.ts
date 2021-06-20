@@ -2,7 +2,6 @@ import logger from '@wdio/logger'
 import { isCloudCapability } from '@wdio/config'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
-import { promisify } from 'util'
 import fs from 'fs-extra'
 import * as SeleniumStandalone from 'selenium-standalone'
 
@@ -50,19 +49,19 @@ export default class SeleniumStandaloneLauncher {
     ) {
         this.skipSeleniumInstall = Boolean(this._options.skipSeleniumInstall)
 
+        this.args = this._options.args || {}
         // simplified mode
         if (this.isSimplifiedMode(this._options)) {
-            this.args = Object.entries(this._options.drivers as BrowserDrivers).reduce((acc, [browserDriver, version]) => {
+            this.args.drivers = {}
+            Object.entries(this._options.drivers as BrowserDrivers).forEach(([browserDriver, version]) => {
                 if (typeof version === 'string') {
-                    acc.drivers![browserDriver] = { version }
+                    this.args.drivers![browserDriver] = { version }
                 } else if (version === true) {
-                    acc.drivers![browserDriver] = {}
+                    this.args.drivers![browserDriver] = {}
                 }
-                return acc
-            }, { drivers: {} } as SeleniumStartArgs)
+            })
             this.installArgs = { ...this.args } as SeleniumInstallArgs
         } else {
-            this.args = this._options.args || {}
             this.installArgs = this._options.installArgs || {}
         }
     }
@@ -71,8 +70,7 @@ export default class SeleniumStandaloneLauncher {
         this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
-            const install: (opts: SeleniumStandalone.InstallOpts) => Promise<unknown> = promisify(SeleniumStandalone.install)
-            await install(this.installArgs)
+            await SeleniumStandalone.install(this.installArgs).catch(this.handleSeleniumError)
         }
 
         /**
@@ -120,8 +118,9 @@ export default class SeleniumStandaloneLauncher {
         /**
          * start Selenium Standalone server
          */
-        const start: (opts: SeleniumStandalone.StartOpts) => Promise<SeleniumStandalone.ChildProcess> = promisify(SeleniumStandalone.start)
-        this.process = await start(this.args)
+        const start = SeleniumStandalone.start(this.args)
+        start.catch(this.handleSeleniumError)
+        this.process = await start
 
         if (typeof this._config.outputDir === 'string') {
             this._redirectLogStream()
@@ -161,5 +160,10 @@ export default class SeleniumStandaloneLauncher {
 
     private isSimplifiedMode(options: Services.ServiceOption) {
         return options.drivers && Object.keys(options.drivers).length > 0
+    }
+
+    private handleSeleniumError(error: Error) {
+        log.error(error)
+        process.exit(1)
     }
 }

@@ -1,13 +1,9 @@
 export = {
-    install : jest.fn((seleniumInstallArgs, cb) => {
-        cb()
-    }),
+    install : jest.fn(() => new Promise<void>((resolve) => resolve())),
 
-    start : jest.fn((seleniumArgs, cb) => {
-        cb(null, {
-            kill : jest.fn(),
-            stdout : { pipe: jest.fn().mockReturnValue({ pipe : jest.fn() }) },
-            stderr : { pipe: jest.fn().mockReturnValue({ pipe : jest.fn() }) }
-        })
-    })
+    start : jest.fn(() => new Promise((resolve) => resolve({
+        kill : jest.fn(),
+        stdout : { pipe: jest.fn().mockReturnValue({ pipe : jest.fn() }) },
+        stderr : { pipe: jest.fn().mockReturnValue({ pipe : jest.fn() }) }
+    })))
 }
