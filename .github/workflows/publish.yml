@@ -47,7 +47,7 @@ jobs:
           git config --global user.email "christian+webdriverio-release@saucelabs.com"
           git config --global user.name "WebdriverIO Release Bot"
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
       - name: Release
         run: |
           npx run-s setup-full generate:typings
