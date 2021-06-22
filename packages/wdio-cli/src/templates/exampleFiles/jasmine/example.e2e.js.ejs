@@ -39,8 +39,8 @@ describe('My Login application', () => {
         await (await $('button[type="submit"]')).click();<%
         } %>
 
-        <%= _await %>expect($('#flash')).toBeExisting();
-        <%= _await %>expect($('#flash')).toHaveTextContaining(
+        <%= _await %>expectAsync($('#flash')).toBeExisting();
+        <%= _await %>expectAsync($('#flash')).toHaveTextContaining(
             'You logged into a secure area!');
     });
 });
