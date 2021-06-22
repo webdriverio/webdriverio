@@ -43,7 +43,7 @@ As more features keep being added to WebdriverIO, we are continually able to sim
     ```
 - The [Chrome Devtools Protocol](https://webdriver.io/docs/api/chromium) support that comes out of the box has also enabled us to automate some tests that were a manual chore. Being able to call `browser.throttle(“Good3G”)` after our initial page load has allowed us to more accurately verify how the video player behaves under more real world conditions for our mobile users.
 
-- Thanks to [WebdriverIO’s CDP mapping](https://webdriver.io/docs/devtools-service/#getmetrics), we have been able to create and maintain a suite of performance tests. Calling `browser.getMetrics()`after a page load and interacting with the player has enabled us to verify that once a player is set up and embedded onto a customer’s website, it will not cause any undue Cumulative Layout Shifts for the end user, which create a disruptive page loading experience.
+- Thanks to [WebdriverIO’s CDP mapping](https://webdriver.io/docs/devtools-service/#getmetrics), we have been able to create and maintain a suite of performance tests. Calling `browser.getMetrics()` after a page load and interacting with the player has enabled us to verify that once a player is set up and embedded onto a customer’s website, it will not cause any undue Cumulative Layout Shifts for the end user, which create a disruptive page loading experience.
 
 ###Summary
 
