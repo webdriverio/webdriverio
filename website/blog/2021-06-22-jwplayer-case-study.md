@@ -1,11 +1,11 @@
 ---
-title: Case Study: How WebdriverIO facilitated faster releases and better code quality for an online video company
+title: Case Study - How WebdriverIO facilitated faster releases and better code quality for an online video company
 author: Eric Saari
 authorURL: https://www.linkedin.com/in/esaari/
 authorImageURL: https://avatars.githubusercontent.com/u/5210550?s=400&u=a7918ea7b425d621b2252f6e963b8657acdd1b0c&v=4
 ---
 
-### Choosing WebdriverIO
+## Choosing WebdriverIO
 
 [JW Player](https://www.jwplayer.com) is an embeddable, online video player which generates over a billion unique views every day. In order to sustain and grow this scale, the player needs to be able to function on a multitude of different web and mobile platforms. This increases the importance of automated testing to improve confidence in our releases when deploying to so many different targets. After a lengthy project of converting our legacy test framework, which comprised over 6,000 tests, the Test Engineering team at JW Player has been able to deliver more timely releases with fewer regressions. We have experienced no major rollbacks, and increased the confidence we have in the quality of our own product, thanks to WebdriverIO.
 
@@ -17,7 +17,7 @@ What initially attracted us to WebdriverIO was its straightforward API and compl
 
 Out of the box, WebdriverIO had support for several of our existing and desired toolsets. Tools such as [Allure reporting](https://webdriver.io/docs/allure-reporter), which we use to quickly comb through product defects, as well as [Report Portal](https://webdriver.io/docs/wdio-reportportal-reporter), which we use to monitor test health and track trends over time, were easy for us to integrate. The granular [pre and post execution hooks](https://webdriver.io/docs/options/#hooks) gave the test engineers an unprecedented ability to shape how and where tests executed.
 
-### Webdriver.IO Practical Approach
+## Webdriver.IO Practical Approach
 
 As more features keep being added to WebdriverIO, we are continually able to simplify our codebase by removing open source dependencies and messy mixin code. We have even been able to decommission services that our old framework relied on altogether.
 
@@ -45,6 +45,6 @@ As more features keep being added to WebdriverIO, we are continually able to sim
 
 - Thanks to [WebdriverIO’s CDP mapping](https://webdriver.io/docs/devtools-service/#getmetrics), we have been able to create and maintain a suite of performance tests. Calling `browser.getMetrics()` after a page load and interacting with the player has enabled us to verify that once a player is set up and embedded onto a customer’s website, it will not cause any undue Cumulative Layout Shifts for the end user, which create a disruptive page loading experience.
 
-### Summary
+## Summary
 
 Overall, JW Player’s migration to WebdriverIO was nothing short of a huge success. Between the performance and “quality of life” improvements over our old framework, WebdriverIO’s feature set has allowed us to automate a couple of hundred manual test cases. We've been able to greatly cut down the length of our regression cycles from approximately 1 week to just a couple of days. Most importantly, however, these improvements have allowed us to find a record number of defects, leading to a better quality product and delivering more customer value.
