@@ -300,8 +300,8 @@ export async function generateTestFiles (answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
         : (answers.framework === 'mocha'
-           ? [path.join(TEMPLATE_ROOT_DIR, 'mocha')]
-           : [path.join(TEMPLATE_ROOT_DIR, 'jasmine')])
+            ? [path.join(TEMPLATE_ROOT_DIR, 'mocha')]
+            : [path.join(TEMPLATE_ROOT_DIR, 'jasmine')])
 
     if (answers.usePageObjects) {
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
