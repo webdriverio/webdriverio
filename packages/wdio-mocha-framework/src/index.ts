@@ -86,7 +86,7 @@ class MochaAdapter {
             /**
              * grep
              */
-            const mochaRunner = new Mocha.Runner(this._mocha!.suite, false)
+            const mochaRunner = new Mocha.Runner(this._mocha!.suite, {delay: false})
             if (mochaOpts.grep) {
                 mochaRunner.grep(this._mocha!.options.grep as RegExp, mochaOpts.invert!)
             }
