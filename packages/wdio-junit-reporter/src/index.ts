@@ -1,7 +1,7 @@
 import junit from 'junit-report-builder'
 import WDIOReporter, { SuiteStats, RunnerStats, TestStats } from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
-import { limit } from './utils'
+import { ansiRegex, limit } from './utils'
 import type { JUnitReporterOptions } from './types'
 
 /**
@@ -173,6 +173,10 @@ class JunitReporter extends WDIOReporter {
                 testCase.skipped()
             } else if (test.state === 'failed') {
                 if (test.error) {
+                    if (test.error.message){
+                        test.error.message = test.error.message.replace(ansiRegex(), '')
+                    }
+
                     if (this.options.errorOptions) {
                         const errorOptions = this.options.errorOptions
                         for (const key of Object.keys(errorOptions)) {
