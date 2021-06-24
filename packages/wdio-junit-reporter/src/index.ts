@@ -29,6 +29,7 @@ class JunitReporter extends WDIOReporter {
             ? this.options.suiteNameFormat
             : /[^a-zA-Z0-9@]+/ // Reason for ignoring @ is; reporters like wdio-report-portal will fetch the tags from testcase name given as @foo @bar
     }
+
     onRunnerEnd (runner: RunnerStats) {
         const xml = this._buildJunitXml(runner)
         this.write(xml)
