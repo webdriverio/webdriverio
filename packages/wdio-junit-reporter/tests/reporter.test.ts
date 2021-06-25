@@ -18,6 +18,7 @@ import suitesWithFailedBeforeEachHookLog from './__fixtures__/suites-with-failed
 import suitesWithFailedAfterEachHookLog from './__fixtures__/suites-with-failed-after-each-hook.json'
 import suitesHooksLog from './__fixtures__/suites-hooks.json'
 import suitesMultipleLog from './__fixtures__/suites-multiple.json'
+import suitesErrorLog from './__fixtures__/suites-error.json'
 
 describe('wdio-junit-reporter', () => {
     let reporter: WDIOJunitReporter
@@ -234,5 +235,10 @@ describe('wdio-junit-reporter', () => {
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output without ansi', () => {
+        reporter.suites = suitesErrorLog as any
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 })

@@ -4,6 +4,11 @@ import type { Capabilities } from '@wdio/types'
 import { limit } from './utils'
 import type { JUnitReporterOptions } from './types'
 
+const ansiRegex = new RegExp([
+    '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
+    '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))'
+].join('|'), 'g')
+
 /**
  * Reporter that converts test results from a single instance/runner into an XML JUnit report. This class
  * uses junit-report-builder (https://github.com/davidparsson/junit-report-builder) to build report.The report
@@ -173,6 +178,10 @@ class JunitReporter extends WDIOReporter {
                 testCase.skipped()
             } else if (test.state === 'failed') {
                 if (test.error) {
+                    if (test.error.message){
+                        test.error.message = test.error.message.replace(ansiRegex, '')
+                    }
+
                     if (this.options.errorOptions) {
                         const errorOptions = this.options.errorOptions
                         for (const key of Object.keys(errorOptions)) {
