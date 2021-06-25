@@ -43,6 +43,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     isSync: boolean
     _async: string
     _await: string
+    _expect: string
     destSpecRootPath: string
     destPageObjectRootPath: string
     relativePath: string

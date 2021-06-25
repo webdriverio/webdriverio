@@ -15,8 +15,8 @@ describe('My Login application', () => {
         <%= _await %>LoginPage.open();
 
         <%= _await %>LoginPage.login('tomsmith', 'SuperSecretPassword!');
-        <%= _await %>expect(SecurePage.flashAlert).toBeExisting();
-        <%= _await %>expect(SecurePage.flashAlert).toHaveTextContaining(
+        <%= _await %><%= _expect %>(SecurePage.flashAlert).toBeExisting();
+        <%= _await %><%= _expect %>(SecurePage.flashAlert).toHaveTextContaining(
             'You logged into a secure area!');
     });
 });
@@ -39,8 +39,8 @@ describe('My Login application', () => {
         await (await $('button[type="submit"]')).click();<%
         } %>
 
-        <%= _await %>expect($('#flash')).toBeExisting();
-        <%= _await %>expect($('#flash')).toHaveTextContaining(
+        <%= _await %><%= _expect %>($('#flash')).toBeExisting();
+        <%= _await %><%= _expect %>($('#flash')).toHaveTextContaining(
             'You logged into a secure area!');
     });
 });
