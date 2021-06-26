@@ -101,7 +101,7 @@ export const testFrameworkFnWrapper = async function (
 
     await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)
 
-    if (error) {
+    if (error.matcherName) {
         throw error
     }
     return result
