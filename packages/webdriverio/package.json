@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@types/aria-query": "^4.2.1",
-    "@types/node": "^14.14.31",
+    "@types/node": "^15.12.5",
     "@wdio/config": "7.7.3",
     "@wdio/logger": "7.7.0",
     "@wdio/protocols": "7.7.4",
@@ -70,7 +70,7 @@
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "devtools": "7.7.4",
-    "devtools-protocol": "^0.0.894172",
+    "devtools-protocol": "^0.0.896125",
     "fs-extra": "^10.0.0",
     "get-port": "^5.1.1",
     "grapheme-splitter": "^1.0.2",
