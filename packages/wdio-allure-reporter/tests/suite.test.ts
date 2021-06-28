@@ -203,8 +203,8 @@ describe('Failed tests', () => {
         const message = allureXml('message').text()
         const lines = message.split('\n')
         expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
-        expect(lines[1].trim()).toBe('ReferenceError: All is Dust')
-        expect(lines[3].trim()).toBe('InternalError: Abandon Hope')
+        expect(lines[2].trim()).toBe('ReferenceError: All is Dust')
+        expect(lines[5].trim()).toBe('InternalError: Abandon Hope')
     })
 
     it('should detect failed test case with Assertion failed from expect-webdriverIO', () => {
