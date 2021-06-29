@@ -679,6 +679,6 @@ export * from './types'
 
 declare global {
     namespace WebdriverIO {
-        interface ReporterOption extends AllureReporterOptions { }
+        interface ReporterOption extends AllureReporterOptions {}
     }
 }
