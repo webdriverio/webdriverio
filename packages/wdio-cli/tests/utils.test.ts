@@ -413,57 +413,7 @@ describe('generateTestFiles', () => {
         await generateTestFiles(answers as any)
 
         expect(readDir).toBeCalledTimes(2)
-        expect(readDir.mock.calls[0][0]).toContain('mocha')
-        expect(readDir.mock.calls[1][0]).toContain('pageobjects')
-
-        /**
-         * test readDir callback
-         */
-        const readDirCb = readDir.mock.calls[0][1][0]
-        const stats = { isDirectory: jest.fn().mockReturnValue(false) }
-        expect(readDirCb('/foo/bar.lala', stats)).toBe(true)
-        expect(readDirCb('/foo/bar.js.ejs', stats)).toBe(false)
-        expect(readDirCb('/foo/bar.feature', stats)).toBe(false)
-        stats.isDirectory.mockReturnValue(true)
-        expect(readDirCb('/foo/bar.lala', stats)).toBe(false)
-        expect(readDirCb('/foo/bar.js.ejs', stats)).toBe(false)
-        expect(readDirCb('/foo/bar.feature', stats)).toBe(false)
-
-        expect(ejs.renderFile).toBeCalledTimes(4)
-        expect(ejs.renderFile).toBeCalledWith(
-            '/foo/bar/loo/page.js.ejs',
-            answers,
-            expect.any(Function)
-        )
-        expect(ejs.renderFile).toBeCalledWith(
-            '/foo/bar/example.e2e.js',
-            answers,
-            expect.any(Function)
-        )
-        expect(fs.ensureDirSync).toBeCalledTimes(4)
-        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith('/page/objects/model/page.js'))
-            .toBe(true)
-        expect((fs.promises.writeFile as jest.Mock).mock.calls[1][0].endsWith('/example.e2e.js'))
-            .toBe(true)
-    })
-
-    it('jasmine with page objects', async () => {
-        readDir.mockReturnValue(Promise.resolve([
-            '/foo/bar/loo/page.js.ejs',
-            '/foo/bar/example.e2e.js'
-        ]))
-        const answers = {
-            framework: 'jasmine',
-            usePageObjects: true,
-            generateTestFiles: true,
-            destPageObjectRootPath: '/tests/page/objects/model',
-            destSpecRootPath: '/tests/specs'
-        }
-
-        await generateTestFiles(answers as any)
-
-        expect(readDir).toBeCalledTimes(2)
-        expect(readDir.mock.calls[0][0]).toContain('jasmine')
+        expect(readDir.mock.calls[0][0]).toContain('mochaJasmine')
         expect(readDir.mock.calls[1][0]).toContain('pageobjects')
 
         /**
