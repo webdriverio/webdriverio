@@ -14,6 +14,7 @@ import {
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
     AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
 } from './types'
+import stringify = require('csv-stringify')
 
 /**
  * Allure v1 has no proper TS support
@@ -126,6 +127,11 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestStart(test: TestStats | HookStats) {
+        let testObj:any =test
+        let dataTable = testObj.argument ? testObj.argument.rows.map((a:{cells:null}) => a.cells) : undefined
+        dataTable ? stringify(dataTable, function (err, records) {
+            records ? AllureReporter.addAttachment('Data Table', records, 'text/csv') : console.log(err)
+        }) : null
         const testTitle = test.currentTest ? test.currentTest : test.title
         if (this.isAnyTestRunning() && this._allure.getCurrentTest().name == testTitle) {
             // Test already in progress, most likely started by a before each hook
@@ -673,6 +679,6 @@ export * from './types'
 
 declare global {
     namespace WebdriverIO {
-        interface ReporterOption extends AllureReporterOptions {}
+        interface ReporterOption extends AllureReporterOptions { }
     }
 }
