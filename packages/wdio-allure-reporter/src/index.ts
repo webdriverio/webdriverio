@@ -135,11 +135,12 @@ class AllureReporter extends WDIOReporter {
         }
 
         if (this._options.useCucumberStepReporter) {
+            const step = this._allure.startStep(testTitle)
             const testObj = test as TestStats
             const argument = testObj?.argument as Argument
             const dataTable = argument?.rows?.map((a: { cells: Array<string> }) => a?.cells)
-            if (dataTable) this.addAttachment({ name: 'Data Table', content: stringify(dataTable), type: 'text/csv' })
-            return this._allure.startStep(testTitle)
+            if (dataTable) this._allure.addAttachment('Data Table', stringify(dataTable), 'text/csv')
+            return step
         }
 
         this._allure.startCase(testTitle)
