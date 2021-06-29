@@ -6,8 +6,8 @@ const suite = (type = 'feature') => ({
     _duration: 0,
     uid: type === 'feature' ? 'MyFeature1' : 'MyScenario2',
     cid: '0-0',
-    title: type === 'feature' ? 'MyFeature': 'MyScenario',
-    fullTitle: type === 'feature' ? undefined: 'MyFeature1: My Scenario',
+    title: type === 'feature' ? 'MyFeature' : 'MyScenario',
+    fullTitle: type === 'feature' ? undefined : 'MyFeature1: My Scenario',
     tags: [{
         type: 'Tag',
         location: { line: 5, column: 3 },
@@ -112,12 +112,29 @@ const test2 = () => ({
     state: 'pending'
 } as any)
 
+const test3 = () => ({
+    type: 'test',
+    start: '2019-07-22T12:21:36.251Z',
+    _duration: 0,
+    uid: 'I check something4',
+    cid: '0-0',
+    title: 'I check something',
+    fullTitle: 'MyFeature: MyScenario: I do something',
+    output: [],
+    argument: { rows: [{ cells: [] }] },
+    state: 'passed'
+} as any)
+
 export function testStart(): TestStats {
     return Object.assign(test())
 }
 
 export function test2start(): TestStats {
     return Object.assign(test2())
+}
+
+export function test3Start(): TestStats {
+    return Object.assign(test3())
 }
 
 export function testFail(): TestStats {

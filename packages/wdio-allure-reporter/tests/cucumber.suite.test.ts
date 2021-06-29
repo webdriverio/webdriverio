@@ -358,4 +358,43 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
     })
+
+    describe('Data Table', () => {
+        const outputDir = directory()
+        let allureXml: any
+
+        beforeAll(() => {
+            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onSuiteStart(cucumberHelper.scenarioStart())
+            reporter.onHookStart(cucumberHelper.hookStart())
+            reporter.onHookEnd(cucumberHelper.hookEnd())
+            reporter.onTestStart(cucumberHelper.test3Start())
+            reporter.onBeforeCommand(commandStart())
+            reporter.onAfterCommand(commandEnd())
+            reporter.onTestPass()
+            reporter.onHookStart(cucumberHelper.hookStart())
+            reporter.addAttachment(attachmentHelper.xmlAttachment())
+            reporter.onHookEnd(cucumberHelper.hookEnd())
+            const suiteResults: any = { tests: [cucumberHelper.testPass()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(2) // one for report, one for attachment
+            allureXml = results.find((xml: any) => xml('ns2\\:test-suite').length >= 1)
+        })
+
+        afterAll(() => {
+            clean(outputDir)
+        })
+
+        it('should add data table as attachment to test-case', () => {
+            expect(allureXml('test-case > attachments > attachment').length).toEqual(1)
+        })
+    })
+
 })
