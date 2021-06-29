@@ -36,7 +36,7 @@ const log = logger('webdriverio')
             return pages[0].metrics()
         })
 
-        console.log(metrics.LayoutCount) // returns 42
+        console.log(metrics.LayoutCount) // returns LayoutCount value
     })
  * </example>
  *
