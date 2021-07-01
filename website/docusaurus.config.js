@@ -14,8 +14,8 @@ module.exports = {
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'throw',
     favicon: 'img/favicon.png',
-    organizationName,
-    projectName,
+    organizationName: 'webdriverio',
+    projectName: 'webdriverio',
     customFields: {
         repoUrl
     },
