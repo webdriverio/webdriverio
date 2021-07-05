@@ -40,6 +40,7 @@
     "@wdio/logger": "7.7.0",
     "@wdio/types": "7.7.3",
     "@wdio/utils": "7.7.3",
+    "@types/node": "^15.12.5",
     "async-exit-hook": "^2.0.1",
     "chalk": "^4.0.0",
     "chokidar": "^3.0.0",

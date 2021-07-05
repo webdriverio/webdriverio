@@ -25,6 +25,7 @@
   "dependencies": {
     "@wdio/logger": "7.7.0",
     "@wdio/types": "7.7.3",
+    "@types/node": "^15.12.5",
     "browserstack-local": "^1.4.5",
     "got": "^11.0.2",
     "webdriverio": "7.7.4"
