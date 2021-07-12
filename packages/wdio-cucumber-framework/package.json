@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@cucumber/cucumber": "7.0.0",
-    "@cucumber/gherkin": "17.0.1",
+    "@cucumber/gherkin": "20.0.0",
     "@cucumber/messages": "15.0.0",
     "@types/is-glob": "^4.0.1",
     "@types/mockery": "^1.4.29",
