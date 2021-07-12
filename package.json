@@ -84,7 +84,7 @@
     "eslint": "^7.10.0",
     "husky": "^6.0.0",
     "inquirer": "^8.0.0",
-    "jest": "^26.0.1",
+    "jest": "^27.0.6",
     "jest-circus": "^27.0.3",
     "lerna": "^4.0.0",
     "lerna-changelog": "^1.0.0",
