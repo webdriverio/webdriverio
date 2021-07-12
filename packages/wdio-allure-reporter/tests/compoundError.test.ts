@@ -50,9 +50,9 @@ describe('CompoundError', () => {
 
         const e1split = e1.stack.split('\n')
         const e2split = e2.stack.split('\n')
-        const startOfFirstStack = 1
+        const startOfFirstStack = 2
         const endOfFirstStack = e1split.length + startOfFirstStack
-        const startOfSecondStack = endOfFirstStack + 1
+        const startOfSecondStack = endOfFirstStack + startOfFirstStack
         const endOfSecondStack = startOfSecondStack + e2split.length
         expect(lines.slice(startOfFirstStack, endOfFirstStack)).toEqual(e1split)
         expect(lines.slice(startOfSecondStack, endOfSecondStack)).toEqual(e2split)
@@ -79,9 +79,9 @@ describe('CompoundError', () => {
         const lines = error.message.split('\n')
 
         expect(lines[0]).toBe('CompoundError: One or more errors occurred. ---')
-        expect(lines[1]).toBe('   goodbye')
-        expect(lines[2]).toBe('--- End of error message ---')
-        expect(lines[3]).toBe('   hello')
-        expect(lines[4]).toBe('--- End of error message ---')
+        expect(lines[2]).toBe('   goodbye')
+        expect(lines[3]).toBe('--- End of error message ---')
+        expect(lines[5]).toBe('   hello')
+        expect(lines[6]).toBe('--- End of error message ---')
     })
 })
