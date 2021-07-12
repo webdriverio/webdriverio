@@ -27,7 +27,7 @@
     "@wdio/logger": "7.7.0",
     "@wdio/types": "7.7.3",
     "@wdio/utils": "7.7.3",
-    "saucelabs": "^5.0.3",
+    "saucelabs": "^6.0.0",
     "webdriverio": "7.7.4"
   },
   "peerDependencies": {
