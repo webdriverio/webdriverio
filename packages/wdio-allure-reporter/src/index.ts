@@ -1,6 +1,6 @@
 import WDIOReporter, {
     SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs
+    AfterCommandArgs, CommandArgs, Argument
 } from '@wdio/reporter'
 import { Capabilities, Options } from '@wdio/types'
 
@@ -14,6 +14,7 @@ import {
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
     AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
 } from './types'
+import stringify = require('csv-stringify/lib/sync')
 
 /**
  * Allure v1 has no proper TS support
@@ -134,7 +135,15 @@ class AllureReporter extends WDIOReporter {
         }
 
         if (this._options.useCucumberStepReporter) {
-            return this._allure.startStep(testTitle)
+            const step = this._allure.startStep(testTitle)
+            const testObj = test as TestStats
+            const argument = testObj?.argument as Argument
+            const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
+            if (dataTable) {
+                this._allure.addAttachment('Data Table', stringify(dataTable), 'text/csv')
+            }
+
+            return step
         }
 
         this._allure.startCase(testTitle)
@@ -673,6 +682,6 @@ export * from './types'
 
 declare global {
     namespace WebdriverIO {
-        interface ReporterOption extends AllureReporterOptions {}
+        interface ReporterOption extends AllureReporterOptions { }
     }
 }
