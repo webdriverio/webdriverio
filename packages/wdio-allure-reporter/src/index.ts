@@ -139,7 +139,6 @@ class AllureReporter extends WDIOReporter {
             const testObj = test as TestStats
             const argument = testObj?.argument as Argument
             const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
-            
             if (dataTable) {
                 this._allure.addAttachment('Data Table', stringify(dataTable), 'text/csv')
             }
