@@ -207,9 +207,9 @@ Default: `false`
 The following options (including the ones listed above) are defined only for running WebdriverIO with the WDIO testrunner:
 
 ### specs
-Define specs for test execution.
+Define specs for test execution. You can either specify a glob pattern to match multiple files at once or wrap a glob or set of paths into an array to run them within a single worker process.
 
-Type: `String[]`<br />
+Type: `(String | String[])[]`<br />
 Default: `[]`
 
 ### exclude
