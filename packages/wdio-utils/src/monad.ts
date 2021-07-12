@@ -43,7 +43,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
 
         /**
          * allow to wrap commands if necessary
-         * e.g. in wdio-cli to make them synchronous
+         * e.g. in wdio-cli to allow element chaining
          */
         if (typeof commandWrapper === 'function') {
             for (const [commandName, { value }] of Object.entries(propertiesObject)) {
@@ -51,7 +51,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
                     continue
                 }
 
-                propertiesObject[commandName].value = commandWrapper(commandName, value)
+                propertiesObject[commandName].value = commandWrapper(commandName, value, propertiesObject)
                 propertiesObject[commandName].configurable = true
             }
         }
@@ -165,8 +165,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
             const result = func.apply(this, origCommand ? [origCommand, ...args] : args)
 
             /**
-             * always transform result into promise as we don't know whether or not
-             * the user is running tests with wdio-sync or not
+             * always transform result into promise
              */
             Promise.resolve(result).then((res) => {
                 log.info('RESULT', res)

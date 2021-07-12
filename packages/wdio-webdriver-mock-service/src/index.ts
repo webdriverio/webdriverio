@@ -31,7 +31,8 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.getTitle().times(Infinity).reply(200, { value: 'Mock Page Title' })
         this._mock.command.getUrl().times(Infinity).reply(200, { value: 'https://mymockpage.com' })
         this._mock.command.getElementRect(ELEMENT_ID).times(2).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
-        this._mock.command.getElementRect(ELEMENT_ALT).times(2).reply(200, { value: { width: 10, height: 20, x: 30, y: 40 } })
+        this._mock.command.getElementRect(ELEMENT_ALT).times(3).reply(200, { value: { width: 10, height: 20, x: 30, y: 40 } })
+        this._mock.command.getElementRect(ELEMENT_REFETCHED).times(1).reply(200, { value: { width: 1, height: 2, x: 3, y: 4 } })
         this._mock.command.getLogTypes().reply(200, { value: [] })
     }
 
@@ -54,6 +55,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('cucumberScenario', this.cucumberScenario.bind(this))
         this._browser.addCommand('clickScenario', this.clickScenario.bind(this))
         this._browser.addCommand('isExistingScenario', this.isExistingScenario.bind(this))
+        this._browser.addCommand('multiremoteFetch', this.multiremoteFetch.bind(this))
     }
 
     clickScenario() {
@@ -134,6 +136,15 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.findElements().times(2).reply(200, { value: [] })
         //Always appears thereafter
         this._mock.command.findElements().times(4).reply(200, { value: [elem2Response] })
+    }
+
+    multiremoteFetch () {
+        const elemResponse = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_ID }
+        const elem2Response = { 'element-6066-11e4-a52e-4f735466cecf': ELEMENT_REFETCHED }
+
+        this._mock.command.findElement().twice().reply(200, { value: elemResponse })
+        this._mock.command.findElement().twice().reply(200, { value: elem2Response })
+        this._mock.command.elementClick(ELEMENT_REFETCHED).twice().reply(200, { value: null })
     }
 
     customCommandScenario(times = 1) {

@@ -129,7 +129,7 @@ class JasmineAdapter {
         }
 
         /**
-         * wrap commands with wdio-sync
+         * wrap commands
          */
         INTERFACES['bdd'].forEach((fnName) => {
             const isTest = TEST_INTERFACES.includes(fnName)

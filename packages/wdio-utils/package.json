@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "@wdio/logger": "7.7.0",
-    "@wdio/types": "7.7.3"
+    "@wdio/types": "7.7.3",
+    "p-iteration": "^1.1.8"
   },
   "publishConfig": {
     "access": "public"

@@ -9,6 +9,20 @@ describe('smoke test multiremote', () => {
         assert.equal(browser.browserA.getTitle(), 'Mock Page Title')
     })
 
+    it('should return async value', async () => {
+        assert.equal(
+            JSON.stringify(await browser.getTitle()),
+            JSON.stringify(['Mock Page Title', 'Mock Page Title']))
+        assert.equal(await browser.browserB.getTitle(), 'Mock Page Title')
+        assert.equal(await browser.browserA.getTitle(), 'Mock Page Title')
+    })
+
+    it('should allow to chain element calls', async () => {
+        await browser.multiremoteFetch()
+        const elem = await $('foo').$('bar')
+        await elem.click()
+    })
+
     describe('add customCommands', () => {
         it('should respect promises', () => {
             browser.addCommand('customFn', () => {
