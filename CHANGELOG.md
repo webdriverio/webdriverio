@@ -19,6 +19,37 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.7.5 (2021-07-12)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`, `wdio-utils`
+  * [#7059](https://github.com/webdriverio/webdriverio/pull/7059) Fix for Assertions are thrown twice (https://github.com/webdriverio/expect-webdriverio/issues/462) ([@praveendvd](https://github.com/praveendvd))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#7045](https://github.com/webdriverio/webdriverio/pull/7045) Fix sample test for jasmine framework ([@cek333](https://github.com/cek333))
+* `wdio-junit-reporter`
+  * [#7054](https://github.com/webdriverio/webdriverio/pull/7054) @wdio/junit-reporter - replace ansi chars in test.error.message ([@unickq](https://github.com/unickq))
+
+#### :memo: Documentation
+* `wdio-selenium-standalone-service`
+  * [#7093](https://github.com/webdriverio/webdriverio/pull/7093) (docs) Updating @wdio/selenium-standalone-service install version ([@harsha509](https://github.com/harsha509))
+* `webdriverio`
+  * [#7073](https://github.com/webdriverio/webdriverio/pull/7073) Docs: Example code correction ([@harsha509](https://github.com/harsha509))
+* Other
+  * [#7076](https://github.com/webdriverio/webdriverio/pull/7076) website - docusaurus organizationName & projectName, ([@unickq](https://github.com/unickq))
+  * [#7084](https://github.com/webdriverio/webdriverio/pull/7084) Typos, minor edits and grammatical corrections ([@rubencanlas](https://github.com/rubencanlas))
+  * [#7041](https://github.com/webdriverio/webdriverio/pull/7041) JW Player blog post ([@esaari](https://github.com/esaari))
+
+#### Committers: 6
+- Cecil ([@cek333](https://github.com/cek333))
+- Eric Saari ([@esaari](https://github.com/esaari))
+- Nick Chursin ([@unickq](https://github.com/unickq))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- [@rubencanlas](https://github.com/rubencanlas)
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.7.4 (2021-06-20)
 
 #### :eyeglasses: Spec Compliancy
