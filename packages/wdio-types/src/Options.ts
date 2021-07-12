@@ -187,7 +187,7 @@ export interface MultiRemoteBrowserOptions {
     capabilities: DesiredCapabilities
 }
 
-export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'eu-central-1' | 'apac-southeast-1'
+export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
 
 export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
     /**
