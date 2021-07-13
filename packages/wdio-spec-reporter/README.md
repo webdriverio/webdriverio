@@ -93,3 +93,18 @@ Default: `false`
   },
 ]
 ```
+
+### addConsoleLogs
+Set to true to show console logs from steps in final report
+
+Type: `boolean`
+Default: `false`
+
+```js
+[
+  "spec",
+  {
+    addConsoleLogs: true,
+  },
+]
+```

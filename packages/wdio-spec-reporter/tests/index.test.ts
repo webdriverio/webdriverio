@@ -8,6 +8,9 @@ import {
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS
 } from './__fixtures__/testdata'
+import { log } from 'console'
+import { runnerEnd, runnerStart } from '../../wdio-allure-reporter/tests/__fixtures__/runner'
+import { suiteEnd, suiteStart } from '../../wdio-allure-reporter/tests/__fixtures__/suite'
 
 const reporter = new SpecReporter({})
 
@@ -543,6 +546,26 @@ describe('SpecReporter', () => {
         it('should get the skipped symbol that is not set', () => {
             expect(tmpReporter.getSymbol('skipped')).toBe('-')
         })
+    })
+
+    describe('add console logs', () => {
+        const options = { addConsoleLogs: true }
+        beforeEach(() => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onRunnerStart(runnerStart())
+            tmpReporter.onSuiteStart(suiteStart())
+            tmpReporter.onTestStart()
+            log('Printing to console spec')
+
+        })
+
+        it('should get new passed symbol', () => {
+            tmpReporter.onTestPass()
+            tmpReporter.onSuiteStart(suiteEnd())
+            tmpReporter.onRunnerEnd(runnerEnd())
+            expect(tmpReporter.getResultDisplay()).toContain('Printing to console spec')
+        })
+
     })
 
     describe('onlyFailures', () => {

@@ -16,6 +16,11 @@ export default class SpecReporter extends WDIOReporter {
     private _indents = 0
     private _suiteIndents: Record<string, number> = {}
     private _orderedSuites: SuiteStats[] = []
+    private _consoleOutput = ''
+    private _consoleLogs: Array<string> = []
+    private _originalStdoutWrite: any = process.stdout.write.bind(process.stdout);
+
+    private _addConsoleLogs = false
 
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
@@ -45,6 +50,11 @@ export default class SpecReporter extends WDIOReporter {
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
+        let processObj: any = process
+        if (options.addConsoleLogs || this._addConsoleLogs) processObj.stdout.write = (chunk: any, encoding: any, callback: any) => {
+            if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) this._consoleOutput += chunk
+            return this._originalStdoutWrite(chunk, encoding, callback)
+        }
     }
 
     onSuiteStart (suite: SuiteStats) {
@@ -67,15 +77,22 @@ export default class SpecReporter extends WDIOReporter {
         }
     }
 
+    onTestStart () {
+        this._consoleOutput = ''
+    }
+
     onTestPass () {
+        this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.passed++
     }
 
     onTestFail () {
+        this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.failed++
     }
 
     onTestSkip () {
+        this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
     }
 
@@ -97,7 +114,7 @@ export default class SpecReporter extends WDIOReporter {
         const divider = '------------------------------------------------------------------'
 
         // Get the results
-        const results = this.getResultDisplay()
+        const results = this.getResultDisplay(preface)
 
         // If there are no test results then return nothing
         if (results.length === 0) {
@@ -218,7 +235,7 @@ export default class SpecReporter extends WDIOReporter {
      * @param  {Array} suites Runner suites
      * @return {Array}        Display output list
      */
-    getResultDisplay () {
+    getResultDisplay (preface?: string) {
         const output = []
         const suites = this.getOrderedSuites()
         const specFileReferences: string[] = []
@@ -264,6 +281,14 @@ export default class SpecReporter extends WDIOReporter {
                     const rawTable = printTable(data)
                     const table = getFormattedRows(rawTable, testIndent)
                     output.push(...table)
+                }
+
+                // print console output
+                const logItem = this._consoleLogs.shift()
+                if (logItem) {
+                    output.push('')
+                    output.push(testIndent.repeat(2) + '.........Console Logs.........')
+                    output.push(testIndent.repeat(3) + logItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
                 }
             }
 
