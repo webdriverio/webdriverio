@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.7.6 (2021-07-14)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#7081](https://github.com/webdriverio/webdriverio/pull/7081) Fix for Cucumber Data Table not showing in allure report #7078 ([@praveendvd](https://github.com/praveendvd))
+
+#### :house: Internal
+* `devtools`, `wdio-devtools-service`, `webdriverio`
+  * [#7135](https://github.com/webdriverio/webdriverio/pull/7135) chore: up puppeteer-core@10.1.0 ([@DudaGod](https://github.com/DudaGod))
+
+#### Committers: 2
+- Dmitriy Dudkevich ([@DudaGod](https://github.com/DudaGod))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.7.5 (2021-07-12)
 
 #### :bug: Bug Fix
