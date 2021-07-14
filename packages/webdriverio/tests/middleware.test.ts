@@ -72,6 +72,13 @@ describe('middleware', () => {
     })
 
     it('should successfully getAttribute of an element that falls stale after being re-found in Safari', async () => {
+        browser = await remote({
+            capabilities: {
+                browserName: 'safari',
+                // @ts-ignore mock feature
+                keepBrowserName: true
+            }
+        })
         const elem = await browser.$('#foo')
         elem.selector = '#nonexisting'
         // @ts-ignore mock feature

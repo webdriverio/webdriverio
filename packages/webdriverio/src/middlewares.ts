@@ -2,6 +2,8 @@
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
 import { ELEMENT_KEY } from './constants'
+import { getBrowserObject } from './utils'
+import type { Capabilities } from '@wdio/types'
 
 /**
  * This method is an command wrapper for elements that checks if a command is called
@@ -24,9 +26,13 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                  * as `stale element reference`
                  */
                 if (result && result.error === 'no such element') {
-                    const err = new Error()
-                    err.name = 'stale element reference'
-                    throw err
+                    const browser = getBrowserObject(element)
+                    const capabilities = browser?.capabilities as Capabilities.Capabilities
+                    if (capabilities?.browserName?.includes('safari')) {
+                        const err = new Error()
+                        err.name = 'stale element reference'
+                        throw err
+                    }
                 }
 
                 return result
