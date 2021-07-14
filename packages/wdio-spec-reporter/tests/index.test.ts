@@ -1,3 +1,4 @@
+import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner'
 import SpecReporter from '../src'
 import {
     RUNNER,
@@ -556,6 +557,32 @@ describe('SpecReporter', () => {
             tmpReporter['_consoleOutput']='Printing to console spec'
             tmpReporter.onTestPass()
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should add console logs to report for failing test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestFail()
+            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should add console logs to report for skipping test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestSkip()
+            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
         })
 
         it('should not add webdriver logs to report', () => {
@@ -564,27 +591,10 @@ describe('SpecReporter', () => {
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
             tmpReporter['_consoleOutput']='mwebdriver test log'
             expect(tmpReporter.getResultDisplay().toString()).not.toContain('mwebdriver test log')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
         })
 
-        it('should add webdriver logs to report for failing test', () => {
-            tmpReporter = new SpecReporter(options)
-            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-            tmpReporter.onTestStart()
-            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
-            tmpReporter.onTestFail()
-            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
-        })
-
-        it('should add webdriver logs to report for skipping test', () => {
-            tmpReporter = new SpecReporter(options)
-            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-            tmpReporter.onTestStart()
-            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
-            tmpReporter.onTestSkip()
-            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
-        })
     })
 
     describe('onlyFailures', () => {
