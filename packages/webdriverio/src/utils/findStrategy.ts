@@ -45,7 +45,10 @@ const defineStrategy = function (selector: SelectorStrategy) {
         return 'directly'
     }
     // Use appium image strategy if selector ends with certain text(.jpg,.gif..)
-    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path => stringSelector.toLowerCase().endsWith(path))) {
+    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path => {
+        const selector = stringSelector.toLowerCase()
+        return selector.endsWith(path) && selector !== path
+    })) {
         return '-image'
     }
     // Use xPath strategy if selector starts with //

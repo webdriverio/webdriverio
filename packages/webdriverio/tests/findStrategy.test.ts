@@ -402,6 +402,10 @@ describe('selector strategies helper', () => {
         element = findStrategy('//xpath[@img="/test.png"]')
         expect(element.using).toBe('xpath')
         expect(element.value).not.toBe('random string')
+
+        element = findStrategy('.png')
+        expect(element.using).toBe('css selector')
+        expect(element.value).not.toBe('random string')
     })
 
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of button in case of role selector', () => {
