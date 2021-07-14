@@ -52,7 +52,7 @@ export default class SpecReporter extends WDIOReporter {
             : this._sauceLabsSharableLinks
         let processObj:any = process
         if (options.addConsoleLogs || this._addConsoleLogs) {
-            processObj.stdout.write = (chunk: any, encoding: any, callback: any) => {
+            processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
                     this._consoleOutput += chunk
                 }
