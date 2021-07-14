@@ -548,14 +548,43 @@ describe('SpecReporter', () => {
     describe('add console logs', () => {
         const options = { addConsoleLogs: true }
 
-        it('should add console log to report', () => {
+        it('should add console log to report for passing test', () => {
             tmpReporter = new SpecReporter(options)
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleLogs'].push('Printing to console spec')
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestPass()
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
         })
 
+        it('should not add webdriver logs to report', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='mwebdriver test log'
+            expect(tmpReporter.getResultDisplay().toString()).not.toContain('mwebdriver test log')
+        })
+
+        it('should add webdriver logs to report for failing test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestFail()
+            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+        })
+
+        it('should add webdriver logs to report for skipping test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestSkip()
+            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+        })
     })
 
     describe('onlyFailures', () => {
