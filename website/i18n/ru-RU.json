@@ -1,0 +1,357 @@
+{
+  "_comment": "Этот файл создан автоматически путем используя write-translations.js",
+  "localized-strings": {
+    "next": "Следующий",
+    "previous": "Назад",
+    "tagline": "Next-gen WebDriver test фреймворк для Node.js",
+    "docs": {
+      "allure-reporter": {
+        "title": "Allure Reporter"
+      },
+      "applitools-service": {
+        "title": "Applitools Service"
+      },
+      "browserstack-service": {
+        "title": "Browserstack Service"
+      },
+      "concise-reporter": {
+        "title": "Concise Reporter"
+      },
+      "devtools-service": {
+        "title": "Devtools Service"
+      },
+      "dot-reporter": {
+        "title": "Dot Reporter"
+      },
+      "firefox-profile-service": {
+        "title": "Firefox Profile Service"
+      },
+      "junit-reporter": {
+        "title": "Junit Reporter"
+      },
+      "sauce-service": {
+        "title": "Sauce Service"
+      },
+      "selenium-standalone-service": {
+        "title": "Selenium Standalone Service"
+      },
+      "spec-reporter": {
+        "title": "Spec Reporter"
+      },
+      "sumologic-reporter": {
+        "title": "Sumologic Reporter"
+      },
+      "testingbot-service": {
+        "title": "Testingbot Service"
+      },
+      "api": {
+        "title": "Документация API"
+      },
+      "api/appium": {
+        "title": "Appium"
+      },
+      "api/browser/$": {
+        "title": "$"
+      },
+      "api/browser/$$": {
+        "title": "$$"
+      },
+      "api/browser/call": {
+        "title": "call"
+      },
+      "api/browser/debug": {
+        "title": "debug"
+      },
+      "api/browser/deleteCookies": {
+        "title": "deleteCookies"
+      },
+      "api/browser/execute": {
+        "title": "execute"
+      },
+      "api/browser/executeAsync": {
+        "title": "executeAsync"
+      },
+      "api/browser/getCookies": {
+        "title": "getCookies"
+      },
+      "api/browser/keys": {
+        "title": "keys"
+      },
+      "api/browser/newWindow": {
+        "title": "newWindow"
+      },
+      "api/browser/pause": {
+        "title": "pause"
+      },
+      "api/browser/reloadSession": {
+        "title": "reloadSession"
+      },
+      "api/browser/saveRecordingScreen": {
+        "title": "saveRecordingScreen"
+      },
+      "api/browser/saveScreenshot": {
+        "title": "saveScreenshot"
+      },
+      "api/browser/setCookies": {
+        "title": "setCookies"
+      },
+      "api/browser/setTimeout": {
+        "title": "setTimeout"
+      },
+      "api/browser/switchWindow": {
+        "title": "switchWindow"
+      },
+      "api/browser/touchAction": {
+        "title": "touchAction"
+      },
+      "api/browser/url": {
+        "title": "url"
+      },
+      "api/browser/waitUntil": {
+        "title": "waitUntil"
+      },
+      "api/chromium": {
+        "title": "Chromium"
+      },
+      "api/element/$": {
+        "title": "$"
+      },
+      "api/element/$$": {
+        "title": "$$"
+      },
+      "api/element/addValue": {
+        "title": "addValue"
+      },
+      "api/element/clearValue": {
+        "title": "clearValue"
+      },
+      "api/element/click": {
+        "title": "click"
+      },
+      "api/element/doubleClick": {
+        "title": "doubleClick"
+      },
+      "api/element/dragAndDrop": {
+        "title": "dragAndDrop"
+      },
+      "api/element/getAttribute": {
+        "title": "getAttribute"
+      },
+      "api/element/getCSSProperty": {
+        "title": "getCSSProperty"
+      },
+      "api/element/getHTML": {
+        "title": "getHTML"
+      },
+      "api/element/getLocation": {
+        "title": "getLocation"
+      },
+      "api/element/getProperty": {
+        "title": "getProperty"
+      },
+      "api/element/getSize": {
+        "title": "getSize"
+      },
+      "api/element/getTagName": {
+        "title": "getTagName"
+      },
+      "api/element/getText": {
+        "title": "getText"
+      },
+      "api/element/getValue": {
+        "title": "getValue"
+      },
+      "api/element/isDisplayed": {
+        "title": "isDisplayed"
+      },
+      "api/element/isDisplayedInViewport": {
+        "title": "isDisplayedInViewport"
+      },
+      "api/element/isEnabled": {
+        "title": "isEnabled"
+      },
+      "api/element/isExisting": {
+        "title": "isExisting"
+      },
+      "api/element/isFocused": {
+        "title": "isFocused"
+      },
+      "api/element/isSelected": {
+        "title": "isSelected"
+      },
+      "api/element/moveTo": {
+        "title": "moveTo"
+      },
+      "api/element/saveScreenshot": {
+        "title": "saveScreenshot"
+      },
+      "api/element/scrollIntoView": {
+        "title": "scrollIntoView"
+      },
+      "api/element/selectByAttribute": {
+        "title": "selectByAttribute"
+      },
+      "api/element/selectByIndex": {
+        "title": "selectByIndex"
+      },
+      "api/element/selectByVisibleText": {
+        "title": "selectByVisibleText"
+      },
+      "api/element/setValue": {
+        "title": "setValue"
+      },
+      "api/element/shadow$": {
+        "title": "shadow$"
+      },
+      "api/element/shadow$$": {
+        "title": "shadow$$"
+      },
+      "api/element/touchAction": {
+        "title": "touchAction"
+      },
+      "api/element/waitForDisplayed": {
+        "title": "waitForDisplayed"
+      },
+      "api/element/waitForEnabled": {
+        "title": "waitForEnabled"
+      },
+      "api/element/waitForExist": {
+        "title": "waitForExist"
+      },
+      "api/element/waitUntil": {
+        "title": "waitUntil"
+      },
+      "api/jsonwp": {
+        "title": "JSON Wire Protocol"
+      },
+      "api/mjsonwp": {
+        "title": "Mobile JSON Wire Protocol"
+      },
+      "api/saucelabs": {
+        "title": "Sauce Labs"
+      },
+      "api/webdriver": {
+        "title": "Webdriver Protocol"
+      },
+      "autocompletion": {
+        "title": "Автозаполнение"
+      },
+      "babel": {
+        "title": "Настройка Babel"
+      },
+      "boilerplate": {
+        "title": "Проекты Boilerplate"
+      },
+      "browserobject": {
+        "title": "The Browser Object"
+      },
+      "clioptions": {
+        "title": "WDIO CLI Options"
+      },
+      "cloudservices": {
+        "title": "Использование облачных сервисов"
+      },
+      "configurationfile": {
+        "title": "Конфигурация Testrunner"
+      },
+      "customcommands": {
+        "title": "Пользовательские команды"
+      },
+      "customreporter": {
+        "title": "Пользовательский репортер"
+      },
+      "customservices": {
+        "title": "Пользовательские службы"
+      },
+      "debugging": {
+        "title": "Отладка"
+      },
+      "frameworks": {
+        "title": "Фреймворки"
+      },
+      "gettingstarted": {
+        "title": "Приступая к работе"
+      },
+      "jenkins": {
+        "title": "Интеграция Jenkins"
+      },
+      "multiremote": {
+        "title": "Multiremote"
+      },
+      "options": {
+        "title": "Options"
+      },
+      "organizingsuites": {
+        "title": "Организация Test Suite"
+      },
+      "pageobjects": {
+        "title": "Page Object Pattern"
+      },
+      "proxy": {
+        "title": "Настройка Proxy"
+      },
+      "repl": {
+        "title": "Интерфейс REPL"
+      },
+      "retry": {
+        "title": "Повторение Flaky тестов"
+      },
+      "selectors": {
+        "title": "Селекторы"
+      },
+      "setuptypes": {
+        "title": "Как настроить WebdriverIO"
+      },
+      "timeouts": {
+        "title": "Timeouts"
+      },
+      "typescript": {
+        "title": "Настройка TypeScript"
+      },
+      "watcher": {
+        "title": "Watch Test Files"
+      }
+    },
+    "links": {
+      "Guide": "Руководство",
+      "API": "API",
+      "Help": "Справка",
+      "Blog": "Блог",
+      "GitHub": "GitHub"
+    },
+    "categories": {
+      "Introduction": "Введение",
+      "Configuration": "Конфигурация",
+      "Usage": "Использование",
+      "Testrunner": "Testrunner",
+      "Reporter": "Reporter",
+      "Services": "Сервисы",
+      "Protocols": "Протоколы",
+      "browser": "browser",
+      "element": "element"
+    }
+  },
+  "pages-strings": {
+    "Learn more using the [documentation on this site.](/test-site/docs/en/doc1.html)|no description given": "Узнайте больше об использовании [документации на этом сайте.](/test-site/docs/ru/doc1.html)",
+    "Browse Docs|no description given": "Просмотр документации",
+    "Ask questions about the documentation and project|no description given": "Задайте вопрос о документации и проекте",
+    "Join the community|no description given": "Вступайте в сообщество",
+    "Find out what's new with this project|no description given": "Узнайте, что нового в этом проекте",
+    "Stay up to date|no description given": "Будьте в курсе",
+    "Need help?|no description given": "Нужна помощь?",
+    "This project is maintained by a dedicated group of people.|statement made to reader": "Этот проект поддерживается специальной группой людей.",
+    "Watch Talks about WebdriverIO|no description given": "Смотреть презентации о WebdriverIO",
+    "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk from the latest Selenium Meetup in San Francisco about [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann). There is also a whole [YouTube Channel](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) about different topics around WebdriverIO created by [Kevin Lamping](https://twitter.com/klamping).|no description given": "Сообщество WebdriverIO активно выступает на разных митапах и конференциях по автоматизированному тестированию. Предлагаем посмотреть выступление с последнего Selenium Meetup в San Francisco о [WebdriverIO Cribs: A Tour Through the Newly Architected WebdriverIO Home](https://www.youtube.com/watch?v=1x8eUCBg_wk) by [@bromann](https://twitter.com/bromann) от [@bromann](https://twitter.com/bromann). Так же есть [YouTube канал](https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0) на разные темы по WebdriverIO созданный [Kevin Lamping](https://twitter.com/klamping).",
+    "Watch more videos|no description given": "Смотреть больше видео",
+    "Applitools Support|no description given": "Поддержка Applitools",
+    "Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and really __useful__|no description given": "Добавление вспомогательных функций, или более сложных наборов и сочетаний существующих команд это __просто__ и действительно __полезно__",
+    "Extendable|no description given": "Расширяемость",
+    "WebdriverIO has 1st class support for the __WebDriver specification__ as well as to __Appium__ and allows to run tests on desktop and mobile.|no description given": "WebdriverIO имеет первоклассную поддержку для __спецификаций Webdriver__ и __Appium__. Так же позволяет запускать тесты на desktop и mobile.",
+    "Compatible|no description given": "Совместимость",
+    "It implements all Webdriver protocol commands and provides useful integrations with other tools.|no description given": "Он реализует все команды Webdriver протокола и обеспечивает интеграции с другими инструментами.",
+    "Feature Rich|no description given": "Многофункциональность",
+    "Help Translate|recruit community translators for your project": "Помочь с переводом",
+    "Edit this Doc|recruitment message asking to edit the doc source": "Изменить",
+    "Translate this Doc|recruitment message asking to translate the docs": "Перевести"
+  }
+}
