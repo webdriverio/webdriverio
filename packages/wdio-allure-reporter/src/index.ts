@@ -31,7 +31,7 @@ class AllureReporter extends WDIOReporter {
     private _lastScreenshot?: string
     private _options: AllureReporterOptions
     private _consoleOutput: string
-    private _originalStdoutWrite: any
+    private _originalStdoutWrite: Function
     private _addConsoleLogs: boolean
 
     constructor(options: AllureReporterOptions = {}) {
@@ -52,10 +52,14 @@ class AllureReporter extends WDIOReporter {
 
         this._lastScreenshot = undefined
 
-        let processObj: any = process
-        if (options.addConsoleLogs || this._addConsoleLogs) processObj.stdout.write = (chunk: any, encoding: any, callback: any) => {
-            if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) this._consoleOutput += '\t' + chunk
-            return this._originalStdoutWrite(chunk, encoding, callback)
+        let processObj:any = process
+        if (options.addConsoleLogs || this._addConsoleLogs) {
+            processObj.stdout.write = (chunk: string, encoding: string, callback: Function) => {
+                if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+                    this._consoleOutput += '\t' + chunk
+                }
+                return this._originalStdoutWrite(chunk, encoding, callback)
+            }
         }
     }
 

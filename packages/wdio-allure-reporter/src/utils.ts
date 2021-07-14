@@ -114,7 +114,12 @@ export const getLinkByTemplate = (template: string | undefined, id: string) => {
  * @private
  */
 export const attachConsoleLogs = (logs: string | undefined, allure: AllureReporter['_allure']) => {
-    if (logs) allure?.addAttachment('Console Logs',
-        '<pre style="display: inline-block; background-color:#4d4d4d;color:white;padding:20px;text-shadow:1px 1px 0 #444; min-width:100%; height:auto; min-height: 100%;">'
-            .concat('.........Console Logs.........\n\n'+logs, '</pre>'), 'text/html')
+    if (logs) {
+        allure?.addAttachment(
+            'Console Logs',
+            '<pre style="display: inline-block; background-color: #4d4d4d; color: white; padding: 20px; text-shadow: 1px 1px 0 #444; min-width: 100%; height: auto; min-height: 100%;">'
+                + '.........Console Logs.........\n\n' + logs + '</pre>',
+            'text/html'
+        )
+    }
 }

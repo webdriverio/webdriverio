@@ -38,7 +38,8 @@ export interface AllureReporterOptions {
      */
     tmsLinkTemplate?: string
     /**
-    * optional parameter(`false` by default), in order to attach console logs from step to the reporter.
+    * set to true in order to attach console logs from step to the reporter.
+    * @default false
     */
     addConsoleLogs?: boolean
 }

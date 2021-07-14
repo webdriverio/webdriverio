@@ -18,7 +18,7 @@ export default class SpecReporter extends WDIOReporter {
     private _orderedSuites: SuiteStats[] = []
     private _consoleOutput = ''
     private _consoleLogs: Array<string> = []
-    private _originalStdoutWrite: any = process.stdout.write.bind(process.stdout);
+    private _originalStdoutWrite = process.stdout.write.bind(process.stdout);
 
     private _addConsoleLogs = false
 
@@ -50,11 +50,16 @@ export default class SpecReporter extends WDIOReporter {
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
-        let processObj: any = process
-        if (options.addConsoleLogs || this._addConsoleLogs) processObj.stdout.write = (chunk: any, encoding: any, callback: any) => {
-            if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) this._consoleOutput += chunk
-            return this._originalStdoutWrite(chunk, encoding, callback)
+        let processObj:any = process
+        if (options.addConsoleLogs || this._addConsoleLogs) {
+            processObj.stdout.write = (chunk: any, encoding: any, callback: any) => {
+                if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+                    this._consoleOutput += chunk
+                }
+                return this._originalStdoutWrite(chunk, encoding, callback)
+            }
         }
+
     }
 
     onSuiteStart (suite: SuiteStats) {
