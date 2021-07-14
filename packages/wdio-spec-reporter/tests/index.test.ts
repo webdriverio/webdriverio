@@ -8,9 +8,6 @@ import {
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS
 } from './__fixtures__/testdata'
-import { log } from 'console'
-import { runnerEnd, runnerStart } from '../../wdio-allure-reporter/tests/__fixtures__/runner'
-import { suiteEnd, suiteStart } from '../../wdio-allure-reporter/tests/__fixtures__/suite'
 
 const reporter = new SpecReporter({})
 
@@ -26,7 +23,7 @@ const getRunnerConfig = (config: any = {}) => {
 }
 
 describe('SpecReporter', () => {
-    let tmpReporter:SpecReporter
+    let tmpReporter: SpecReporter
 
     beforeEach(() => {
         tmpReporter = new SpecReporter({})
@@ -38,9 +35,9 @@ describe('SpecReporter', () => {
             expect(reporter['_indents']).toBe(0)
             expect(reporter['_suiteIndents']).toEqual({})
             expect(reporter['_stateCounts']).toEqual({
-                passed : 0,
-                skipped : 0,
-                failed : 0,
+                passed: 0,
+                skipped: 0,
+                failed: 0,
             })
         })
     })
@@ -73,15 +70,15 @@ describe('SpecReporter', () => {
     describe('getEventsToReport', () => {
         it('should return all tests and hook errors to report', () => {
             expect(tmpReporter.getEventsToReport({
-                tests: [{ type: 'test',  title: '1' }, { type: 'test',  title: '2' }],
+                tests: [{ type: 'test', title: '1' }, { type: 'test', title: '2' }],
                 hooks: [{}],
-                hooksAndTests: [{}, { type: 'test',  title: '11' }, {}, { type: 'test',  title: '22' }, {}]
-            })).toEqual([{ type: 'test',  title: '11' }, { type: 'test',  title: '22' }])
+                hooksAndTests: [{}, { type: 'test', title: '11' }, {}, { type: 'test', title: '22' }, {}]
+            })).toEqual([{ type: 'test', title: '11' }, { type: 'test', title: '22' }])
             expect(tmpReporter.getEventsToReport({
-                tests: [{ type: 'test',  title: '1' }, { type: 'test',  title: '2' }],
+                tests: [{ type: 'test', title: '1' }, { type: 'test', title: '2' }],
                 hooks: [{ error: 1 }, {}, { error: 2 }],
-                hooksAndTests: [{}, { error: 11 }, {}, { type: 'test',  title: '33' }, {}, { error: 22 }, {}]
-            })).toEqual([{ error: 11 }, { type: 'test',  title: '33' }, { error: 22 }])
+                hooksAndTests: [{}, { error: 11 }, {}, { type: 'test', title: '33' }, {}, { error: 22 }, {}]
+            })).toEqual([{ error: 11 }, { type: 'test', title: '33' }, { error: 22 }])
         })
     })
 
@@ -153,9 +150,9 @@ describe('SpecReporter', () => {
                 printReporter['_suiteUids'] = SUITE_UIDS
                 printReporter.suites = SUITES
                 printReporter['_stateCounts'] = {
-                    passed : 4,
-                    failed : 1,
-                    skipped : 1,
+                    passed: 4,
+                    failed: 1,
+                    skipped: 1,
                 }
             })
 
@@ -262,16 +259,16 @@ describe('SpecReporter', () => {
             })
         })
 
-        describe('with disabled sharable Sauce report links', ()=>{
+        describe('with disabled sharable Sauce report links', () => {
             const options = { sauceLabsSharableLinks: false }
             beforeEach(() => {
                 tmpReporter = new SpecReporter(options)
                 tmpReporter.suiteUids = SUITE_UIDS
                 tmpReporter.suites = SUITES
                 tmpReporter.stateCounts = {
-                    passed : 4,
-                    failed : 1,
-                    skipped : 1,
+                    passed: 4,
+                    failed: 1,
+                    skipped: 1,
                 }
                 tmpReporter.write = jest.fn()
             })
@@ -465,17 +462,17 @@ describe('SpecReporter', () => {
         it('should return the suites in order based on uids', () => {
             tmpReporter.foo = 'hellooo'
             tmpReporter['_suiteUids'] = new Set(['5', '3', '8'])
-            tmpReporter.suites = { '3': { uid : 3 }, '5': { uid : 5 } }
+            tmpReporter.suites = { '3': { uid: 3 }, '5': { uid: 5 } }
 
             const result = tmpReporter.getOrderedSuites()
 
             expect(result.length).toBe(2)
-            expect(result[0]).toEqual({ uid : 5 })
-            expect(result[1]).toEqual({ uid : 3 })
+            expect(result[0]).toEqual({ uid: 5 })
+            expect(result[1]).toEqual({ uid: 3 })
 
             expect(tmpReporter._orderedSuites.length).toBe(2)
-            expect(tmpReporter._orderedSuites[0]).toEqual({ uid : 5 })
-            expect(tmpReporter._orderedSuites[1]).toEqual({ uid : 3 })
+            expect(tmpReporter._orderedSuites[0]).toEqual({ uid: 5 })
+            expect(tmpReporter._orderedSuites[1]).toEqual({ uid: 3 })
         })
 
         it('should return the cached ordered suites', () => {
@@ -550,20 +547,13 @@ describe('SpecReporter', () => {
 
     describe('add console logs', () => {
         const options = { addConsoleLogs: true }
-        beforeEach(() => {
+
+        it('should add console log to report', () => {
             tmpReporter = new SpecReporter(options)
-            tmpReporter.onRunnerStart(runnerStart())
-            tmpReporter.onSuiteStart(suiteStart())
-            tmpReporter.onTestStart()
-            log('Printing to console spec')
-
-        })
-
-        it('should get new passed symbol', () => {
-            tmpReporter.onTestPass()
-            tmpReporter.onSuiteStart(suiteEnd())
-            tmpReporter.onRunnerEnd(runnerEnd())
-            expect(tmpReporter.getResultDisplay()).toContain('Printing to console spec')
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleLogs'].push('Printing to console spec')
+            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
         })
 
     })
