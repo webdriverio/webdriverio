@@ -6,7 +6,7 @@ import { Capabilities, Options } from '@wdio/types'
 
 import {
     getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate
+    isMochaAllHooks, getLinkByTemplate, attachConsoleLogs
 } from './utils'
 import { events, PASSED, PENDING, SKIPPED, stepStatuses } from './constants'
 import {
@@ -30,6 +30,9 @@ class AllureReporter extends WDIOReporter {
     private _config?: Options.Testrunner
     private _lastScreenshot?: string
     private _options: AllureReporterOptions
+    private _consoleOutput: string
+    private _originalStdoutWrite: Function
+    private _addConsoleLogs: boolean
 
     constructor(options: AllureReporterOptions = {}) {
         const outputDir = options.outputDir || 'allure-results'
@@ -37,6 +40,9 @@ class AllureReporter extends WDIOReporter {
             ...options,
             outputDir,
         })
+        this._addConsoleLogs = false
+        this._consoleOutput = ''
+        this._originalStdoutWrite = process.stdout.write.bind(process.stdout)
         this._allure = new Allure()
         this._capabilities = {}
         this._options = options
@@ -45,6 +51,16 @@ class AllureReporter extends WDIOReporter {
         this.registerListeners()
 
         this._lastScreenshot = undefined
+
+        let processObj:any = process
+        if (options.addConsoleLogs || this._addConsoleLogs) {
+            processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
+                if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+                    this._consoleOutput += chunk
+                }
+                return this._originalStdoutWrite(chunk, encoding, callback)
+            }
+        }
     }
 
     registerListeners() {
@@ -127,6 +143,7 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestStart(test: TestStats | HookStats) {
+        this._consoleOutput = ''
         const testTitle = test.currentTest ? test.currentTest : test.title
         if (this.isAnyTestRunning() && this._allure.getCurrentTest().name == testTitle) {
             // Test already in progress, most likely started by a before each hook
@@ -192,6 +209,7 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestPass() {
+        attachConsoleLogs(this._consoleOutput, this._allure)
         if (this._options.useCucumberStepReporter) {
             return this._allure.endStep('passed')
         }
@@ -216,7 +234,7 @@ class AllureReporter extends WDIOReporter {
 
             this._allure.getCurrentTest().name = test.title
         }
-
+        attachConsoleLogs(this._consoleOutput, this._allure)
         const status = getTestStatus(test, this._config)
         while (this._allure.getCurrentSuite().currentStep instanceof Step) {
             this._allure.endStep(status)
@@ -226,6 +244,7 @@ class AllureReporter extends WDIOReporter {
     }
 
     onTestSkip(test: TestStats) {
+        attachConsoleLogs(this._consoleOutput, this._allure)
         if (this._options.useCucumberStepReporter) {
             this._allure.endStep('canceled')
         } else if (!this._allure.getCurrentTest() || this._allure.getCurrentTest().name !== test.title) {

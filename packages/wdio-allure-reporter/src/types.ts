@@ -37,6 +37,11 @@ export interface AllureReporterOptions {
      * with value specified in `addTestId(value)` call parameter. Example `https://example.org/tms/{}`
      */
     tmsLinkTemplate?: string
+    /**
+    * set to true in order to attach console logs from step to the reporter.
+    * @default false
+    */
+    addConsoleLogs?: boolean
 }
 
 export interface AddLabelEventArgs {

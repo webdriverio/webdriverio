@@ -36,6 +36,12 @@ export interface SpecReporterOptions {
      * @default: false
      */
     onlyFailures?: boolean
+    /**
+     * Ability to show console logs from steps in report
+     *
+     * @default: false
+     */
+    addConsoleLogs?: boolean
 }
 
 export interface TestLink {

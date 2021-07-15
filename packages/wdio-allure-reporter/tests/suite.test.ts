@@ -13,11 +13,11 @@ import { suiteEnd, suiteStart } from './__fixtures__/suite'
 import {
     testFailed, testPending, testStart, testFailedWithMultipleErrors,
     hookStart, hookFailed, hookStartWithCurrentTest,
-    testFailedWithAssertionErrorFromExpectWebdriverIO
-} from './__fixtures__/testState'
+    testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState'
 import {
     commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot
 } from './__fixtures__/command'
+import { log } from 'console'
 
 let processOn: any
 beforeAll(() => {
@@ -595,5 +595,108 @@ for (const protocol of ['webdriver', 'devtools']) {
             const allureXml = results[0]
             expect(allureXml('test-case attachment[title="Screenshot"]')).toHaveLength(1)
         })
+
+        it('should attach console log for passing test', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableMochaHooks: true,
+                addConsoleLogs: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            //this shouldn't be logged
+            log('Printing to console 1')
+            reporter.onTestStart(testStart())
+            //this should be logged
+            log('Printing to console 2')
+            //this shouldn't be logged
+            log('Printing mwebdriver to console 2')
+            reporter.onTestPass()
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+            expect(allureXml('test-case attachment[title="Console Logs"]')).toHaveLength(1)
+        })
+
+        it('should attach console log for failing test', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableMochaHooks: true,
+                addConsoleLogs: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            //this shouldn't be logged
+            log('Printing to console 1')
+            reporter.onTestStart(testStart())
+            //this should be logged
+            log('Printing to console 2')
+            //this shouldn't be logged
+            log('Printing mwebdriver to console 2')
+            reporter.onTestFail(testFailed())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+            expect(allureXml('test-case attachment[title="Console Logs"]')).toHaveLength(1)
+        })
+
+        it('should attach console log for skipping test', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableMochaHooks: true,
+                addConsoleLogs: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            //this shouldn't be logged
+            log('Printing to console 1')
+            reporter.onTestStart(testStart())
+            //this should be logged
+            log('Printing to console 2')
+            //this shouldn't be logged
+            log('Printing mwebdriver to console 2')
+            reporter.onTestSkip(testFailed())
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+            expect(allureXml('test-case attachment[title="Console Logs"]')).toHaveLength(1)
+        })
+
+        it('should not attach webdriver logs', () => {
+            const allureOptions = {
+                stdout: true,
+                outputDir,
+                disableMochaHooks: true,
+                addConsoleLogs: true
+            }
+            const reporter = new AllureReporter(allureOptions)
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(suiteStart())
+            //this shouldn't be logged
+            log('Printing to console 1')
+            reporter.onTestStart(testStart())
+            //this shouldn't be logged
+            log('Printing mwebdriver to console 2')
+            reporter.onTestPass()
+            reporter.onSuiteEnd(suiteEnd())
+            reporter.onRunnerEnd(runnerEnd())
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(1)
+            const allureXml = results[0]
+            expect(allureXml('test-case attachment[title="Console Logs"]')).toHaveLength(0)
+        })
+
     })
 }
