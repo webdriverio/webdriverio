@@ -106,6 +106,12 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-performancetotal-service"
   },
   {
+    "packageName": "wdio-cleanuptotal-service",
+    "title": "CleanupTotal",
+    "githubUrl": "https://github.com/tzurp/cleanup-total",
+    "npmUrl": "https://www.npmjs.com/package/wdio-cleanuptotal-service"
+  },
+  {
     "packageName": "wdio-aws-device-farm-service",
     "title": "AWS Device Farm",
     "githubUrl": "https://github.com/awslabs/wdio-aws-device-farm-service",
