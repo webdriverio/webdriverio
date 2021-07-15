@@ -28,8 +28,8 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
 }
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
-    specs?: Spec
-    exclude?: Spec
+    specs?: Spec[]
+    exclude?: string[]
 }
 
 // Get current working directory
@@ -272,7 +272,7 @@ export default class ConfigParser {
      * cli argument
      * @return {String[]} List of files that should be included or excluded
      */
-    setFilePathToFilterOptions(cliArgFileList: string[], config: string[]) {
+    setFilePathToFilterOptions(cliArgFileList: string[], config: Spec[]) {
         const filesToFilter = new Set<string>()
         const fileList = ConfigParser.getFilePaths(config, undefined, this._pathService)
         cliArgFileList.forEach(filteredFile => {

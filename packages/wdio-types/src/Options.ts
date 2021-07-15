@@ -263,8 +263,6 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
     waitforInterval?: number
 }
 
-type SpecFile = string | string[]
-
 export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, WebdriverIO.HookFunctionExtension {
     /**
      * Defines a set of capabilities you want to run in your testrunner session. Check out the
@@ -320,8 +318,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * pattern to match multiple files at once or wrap a glob or set of
      * paths into an array to run them within a single worker process.
      */
-    // specs?: SpecFile[]
-    specs?: string[]
+    specs?: (string | string[])[]
     /**
      * Exclude specs from test execution.
      */
