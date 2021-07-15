@@ -594,7 +594,6 @@ describe('SpecReporter', () => {
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
-
     })
 
     describe('onlyFailures', () => {

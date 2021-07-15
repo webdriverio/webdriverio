@@ -28,7 +28,7 @@ module.exports = {
             branches: 91,
             functions: 97,
             lines: 98,
-            statements: 98
+            statements: 97
         }
     },
     testEnvironment: 'node',
