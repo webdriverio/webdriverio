@@ -95,6 +95,10 @@ export default class TestStats extends RunnableStats {
         this.complete()
         this.state = 'failed'
 
+        /**
+         * Iterates through all errors to check if they're a type of 'AssertionError',
+         * and formats it if so. Otherwise, just leaves error as is
+         */
         const formattedErrors = errors?.map((err: Error) => (
             (
                 err instanceof AssertionError ||
