@@ -9,7 +9,6 @@
       "@wdio/shared-store-service",
       "@wdio/allure-reporter",
       "@wdio/appium-service",
-      "@wdio/applitools-service",
       "@wdio/browserstack-service",
       "@wdio/jasmine-framework",
       "@wdio/selenium-standalone-service",

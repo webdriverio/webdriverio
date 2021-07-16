@@ -15,7 +15,7 @@ With that, the project offers not only the ability of automating user agents usi
 - automation of modern web browsers
 - automation of mobile devices (web as well as native applications)
 - testing applications from end-to-end at scale (including parallelisation and reporting)
-- integration into 3rd party services and vendors (e.g. [Sauce Labs](https://saucelabs.com/) or [Applitools](https://applitools.com/))
+- integration into 3rd party services and vendors (e.g. [Sauce Labs](https://saucelabs.com/) or [BrowserStack](https://browserstack.com/))
 - support of functional as well as non functional testing aspects (e.g. visual regression or frontend performance testing)
 - automated debugging in the browser (e.g. using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/))
 - scraping of websites

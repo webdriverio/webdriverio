@@ -7,7 +7,6 @@
       "webdriverio/async",
       "@wdio/allure-reporter",
       "@wdio/appium-service",
-      "@wdio/applitools-service",
       "@wdio/browserstack-service",
       "@wdio/devtools-service",
       "@wdio/jasmine-framework",
