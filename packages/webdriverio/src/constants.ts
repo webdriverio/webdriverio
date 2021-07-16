@@ -51,7 +51,9 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         }
     },
     /**
-     * define specs for test execution
+     * Define specs for test execution. You can either specify a glob
+     * pattern to match multiple files at once or wrap a glob or set of
+     * paths into an array to run them within a single worker process.
      */
     specs: {
         type: 'object',
