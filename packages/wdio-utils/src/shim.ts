@@ -155,8 +155,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                     /**
                      * if we call a query method on a resolve promise, e.g.:
                      * ```js
-                     * const elem = await $('foo')
-                     * await elem.$('bar')
+                     * await $('foo').$('bar')
                      * ```
                      */
                     if (ELEMENT_QUERY_COMMANDS.includes(prop)) {
@@ -172,7 +171,13 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                     if (commandName.endsWith('$$') && prop === 'get') {
                         return (index: number) => wrapElementFn(
                             target,
-                            function (this: any, index: number) {
+                            /**
+                             * `this` is an array of WebdriverIO elements
+                             *
+                             * Note(Christian): types for elements are defined in the
+                             * webdriverio package and not accessible here
+                             */
+                            function (this: object[], index: number) {
                                 return this[index]
                             },
                             [index],
@@ -199,7 +204,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                     }
 
                     /**
-                     * allow to grab the length of fetch element set, e.g.:
+                     * allow to grab the length or other properties of fetched element set, e.g.:
                      * ```js
                      * const elemAmount = await $$('foo').length
                      * ```
@@ -242,6 +247,10 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
         )
     }
 
+    function chainElementQuery(this: Promise<Clients.Browser>, ...args: any[]): any {
+        return wrapElementFn(this, wrapCommandFn, args)
+    }
+
     return function (this: Clients.Browser, ...args: any[]) {
         /**
          * use sync mode if:
@@ -254,9 +263,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
         const command = hasWdioSyncSupport && wdioSync && !runAsync
             ? wdioSync!.wrapCommand(commandName, fn)
             : ELEMENT_QUERY_COMMANDS.includes(commandName)
-                ? function chainElementQuery(this: Promise<Clients.Browser>, ...args: any[]): any {
-                    return wrapElementFn(this, wrapCommandFn, args)
-                }
+                ? chainElementQuery
                 : wrapCommandFn
 
         return command.apply(this, args)
@@ -342,13 +349,13 @@ export function switchSyncFlag (fn: Function) {
 
         if (typeof result === 'function') {
             return function (this: any, ...args: any[]) {
-                const switchFlag = runAsync
+                const switchFlagWithinFn = runAsync
                 const res = result.apply(this, args)
                 if (typeof result.finally === 'function') {
-                    return result.finally(() => (runAsync = switchFlag))
+                    return result.finally(() => (runAsync = switchFlagWithinFn))
                 }
 
-                runAsync = switchFlag
+                runAsync = switchFlagWithinFn
                 return res
             }
         }
