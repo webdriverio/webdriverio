@@ -9,7 +9,7 @@ async function bar() {
     browser.disablePerformanceAudits()
 
     const metrics = browser.getMetrics()
-    metrics.estimatedInputLatency.toFixed()
+    metrics.maxPotentialFID.toFixed()
 
     const diagnostics = await browser.getDiagnostics()
     const mainThreadWorkBreakdown = await browser.getMainThreadWorkBreakdown()

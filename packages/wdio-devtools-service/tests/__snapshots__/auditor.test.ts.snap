@@ -59,16 +59,15 @@ exports[`getMetrics 1`] = `
 Object {
   "cumulativeLayoutShift": 24347,
   "domContentLoaded": undefined,
-  "estimatedInputLatency": 16,
-  "firstCPUIdle": 23117,
   "firstContentfulPaint": 18090,
-  "firstInteractive": 24117,
   "firstMeaningfulPaint": 23117,
   "firstPaint": undefined,
   "firstVisualChange": undefined,
+  "interactive": 24117,
   "largestContentfulPaint": 23117,
   "lastVisualChange": undefined,
   "load": undefined,
+  "maxPotentialFID": 1234,
   "serverResponseTime": 105,
   "speedIndex": 20411,
   "timeToFirstByte": 105,
@@ -76,7 +75,7 @@ Object {
 }
 `;
 
-exports[`getPerformanceScore 1`] = `0.8`;
+exports[`getPerformanceScore 1`] = `0.77`;
 
 exports[`should allow to audit PWA results 1`] = `
 Object {

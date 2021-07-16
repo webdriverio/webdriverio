@@ -29,6 +29,5 @@ Array [
   "Network.loadingFinished",
   "Network.loadingFailed",
   "Network.resourceChangedPriority",
-  "protocolevent",
 ]
 `;

@@ -105,8 +105,7 @@ Get most common used performance metrics.
 ```js
 console.log(browser.getMetrics())
 /**
- * { estimatedInputLatency: 16,
- *   timeToFirstByte: 566,
+ * { timeToFirstByte: 566,
  *   serverResponseTime: 566,
  *   domContentLoaded: 3397,
  *   firstVisualChange: 2610,
@@ -115,11 +114,11 @@ console.log(browser.getMetrics())
  *   firstMeaningfulPaint: 2822,
  *   largestContentfulPaint: 2822,
  *   lastVisualChange: 15572,
- *   firstCPUIdle: 6135,
- *   firstInteractive: 6135,
+ *   interactive: 6135,
  *   load: 8429,
  *   speedIndex: 3259,
  *   totalBlockingTime: 31,
+ *   maxPotentialFID: 161,
  *   cumulativeLayoutShift: 2822 }
  */
 ```
@@ -169,7 +168,7 @@ console.log(browser.getMainThreadWorkBreakdown())
 
 #### getPerformanceScore
 
-Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstContentfulPaint`, `speedIndex`, `largestContentfulPaint`, `cumulativeLayoutShift`, `totalBlockingTime`, `firstInteractive`.
+Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstContentfulPaint`, `speedIndex`, `largestContentfulPaint`, `cumulativeLayoutShift`, `totalBlockingTime`, `interactive`, `maxPotentialFID` or `cumulativeLayoutShift`.
 
 ```js
 console.log(browser.getPerformanceScore())

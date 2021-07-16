@@ -41,7 +41,8 @@ jest.mock('../src/utils', () => {
             throw new Error('boom')
         }),
         isBrowserSupported,
-        setUnsupportedCommand: jest.fn()
+        setUnsupportedCommand: jest.fn(),
+        getLighthouseDriver: jest.fn()
     }
 })
 

@@ -2,7 +2,7 @@ import type { Browser } from 'webdriverio'
 
 import {
     sumByKey, isBrowserVersionLower, getBrowserMajorVersion,
-    isBrowserSupported, setUnsupportedCommand
+    isBrowserSupported, setUnsupportedCommand, getLighthouseDriver
 } from '../src/utils'
 import { RequestPayload } from '../src/handler/network'
 
@@ -106,5 +106,24 @@ describe('isBrowserSupported', () => {
     test('should return true when the version number is not specified', () => {
         const capsEmpty = { browserName: 'firefox' }
         expect(isBrowserSupported(capsEmpty)).toEqual(true)
+    })
+})
+
+describe('getLighthouseDriver', () => {
+    test('should return a driver', () => {
+        const session = {
+            send: jest.fn(),
+            _connection: {
+                _transport: {
+                    _ws: { addEventListener: jest.fn() }
+                }
+            }
+        }
+        const driver = getLighthouseDriver(session as any)
+        driver['_handleProtocolEvent'] = jest.fn()
+        expect(session._connection._transport._ws.addEventListener).toBeCalledTimes(1)
+        session._connection._transport._ws.addEventListener.mock.calls[0][1]({ data: '{"foo": "bar"}' })
+        expect(driver['_handleProtocolEvent']).toBeCalledTimes(1)
+        expect(driver['_handleProtocolEvent']).toBeCalledWith({ foo: 'bar' })
     })
 })
