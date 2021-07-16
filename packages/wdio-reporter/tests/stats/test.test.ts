@@ -1,3 +1,4 @@
+import { AssertionError } from 'assert'
 import TestStats from '../../src/stats/test'
 
 describe('TestStats', () => {
@@ -13,7 +14,7 @@ describe('TestStats', () => {
             cid: '0-0',
             specs: ['/path/to/test/specs/sync.spec.js'],
             uid: 'should can do something3',
-            argument: { rows: [{ location: { column: 1, line: 1 }, value: 'hallo' }] }
+            argument: { rows: [{ cells: ['hello'] }] }
         })
     })
 
@@ -31,7 +32,7 @@ describe('TestStats', () => {
 
         expect(stat.type).toBe('test')
         expect(stat.cid).toBe('0-0')
-        expect(stat.argument).toEqual({ rows: [{ location: { column: 1, line: 1 }, value: 'hallo' }] })
+        expect(stat.argument).toEqual({ rows: [{ cells: ['hello'] }] })
         expect(stat.uid).toBe('should can do something3')
         expect(stat.state).toBe('pending')
     })
@@ -78,5 +79,11 @@ describe('TestStats', () => {
         stat.fail(undefined)
 
         expect(stat.state).toBe('failed')
+    })
+
+    it('should show diff of error', () => {
+        stat.fail([new AssertionError({ message: 'foobar', actual: 'true', expected: 'false' })])
+        expect(stat.error?.message).toContain('actual')
+        expect(stat.error?.message).toContain('expected')
     })
 })
