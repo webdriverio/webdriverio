@@ -156,7 +156,6 @@ testingbot
 firefox-profile
 selenium-standalone
 devtools
-applitools
 browserstack
 appium
 chromedriver

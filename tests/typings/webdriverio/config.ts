@@ -35,20 +35,6 @@ const config: WebdriverIO.Config = {
                 port: true
             }
         }],
-        ['applitools', {
-            viewport: {
-                width: 123,
-                // @ts-expect-error test wrong parameter
-                height: 'wrong'
-            },
-            eyesProxy: {
-                url: 'some url',
-                // @ts-expect-error test wrong parameter
-                username: true,
-                password: 'pass',
-                isHttpOnly: false
-            }
-        }],
         ['browserstack', {
             browserstackLocal: true,
             // @ts-expect-error test wrong parameter
