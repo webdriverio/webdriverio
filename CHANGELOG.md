@@ -19,6 +19,36 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.7.7 (2021-07-16)
+
+#### :rocket: New Feature
+* `wdio-mocha-framework`, `wdio-reporter`, `wdio-spec-reporter`
+  * [#6943](https://github.com/webdriverio/webdriverio/pull/6943) Report error diff if error is assertion error ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-config`, `wdio-runner`, `wdio-types`, `webdriverio`
+  * [#7126](https://github.com/webdriverio/webdriverio/pull/7126) Improve documentation and type support for spec grouping ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#7141](https://github.com/webdriverio/webdriverio/pull/7141) Update constants.ts ([@tzurp](https://github.com/tzurp))
+* `wdio-allure-reporter`, `wdio-spec-reporter`
+  * [#7134](https://github.com/webdriverio/webdriverio/pull/7134) Added ability to add console log to allure and spec reporters (fix for #7001) ([@praveendvd](https://github.com/praveendvd))
+* `webdriverio`
+  * [#7136](https://github.com/webdriverio/webdriverio/pull/7136) Fix CSS selector misinterpretation (#7087) ([@L0tso](https://github.com/L0tso))
+
+#### :memo: Documentation
+* [#7142](https://github.com/webdriverio/webdriverio/pull/7142) Update services.json ([@tzurp](https://github.com/tzurp))
+
+#### :house: Internal
+* `wdio-applitools-service`, `wdio-cli`
+  * [#6884](https://github.com/webdriverio/webdriverio/pull/6884) Deprecate and remove `@wdio/applitools-service` ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Bohdan Belenok ([@L0tso](https://github.com/L0tso))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@tzurp](https://github.com/tzurp)
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.7.6 (2021-07-14)
 
 #### :bug: Bug Fix
