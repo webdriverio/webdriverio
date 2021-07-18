@@ -198,6 +198,12 @@ export function addKeywordToStep(steps:ReporterStep[], feature:messages.GherkinD
             // the second from the TableRow AST node.
             // See https://github.com/cucumber/cucumber/blob/master/messages/messages.md
             const astNodeId = step.astNodeIds[0]
+
+            const rules  = feature.children.filter((child)=> Object.keys(child)[0]=== 'rule')
+            feature.children = feature.children.filter((child)=> Object.keys(child)[0]!== 'rule')
+            const rulesChildrens:any = rules.map((child)=>child.rule?.children).flat()
+            feature.children.concat(rulesChildrens)
+
             feature.children.find((child) =>
                 // @ts-ignore
                 child[Object.keys(child)[0]].steps.find((featureScenarioStep:ReporterStep) => {
