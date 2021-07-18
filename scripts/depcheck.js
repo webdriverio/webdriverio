@@ -31,12 +31,11 @@ const IGNORE_PACKAGES = {
         if (IGNORE_PACKAGES[pkg]) {
             shellScript += ` --ignores="${IGNORE_PACKAGES[pkg].join(',')}"`
         }
-
         const shellResult = await new Promise((resolve, reject) => shell.exec(shellScript, EXEC_OPTIONS, (code, stdout, stderr) => {
             if (stderr) {
+                console.error('Error :', stderr)
                 return reject(stderr)
             }
-
             return resolve(stdout)
         }))
 
