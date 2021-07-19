@@ -19,6 +19,32 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.7.8 (2021-07-19)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#7157](https://github.com/webdriverio/webdriverio/pull/7157) #7104 wdio-junit-reporter - Mark test as skipped if on retry ([@lthurr](https://github.com/lthurr))
+* `webdriverio`
+  * [#7154](https://github.com/webdriverio/webdriverio/pull/7154) fix: detect lambdatest service ([@Joozty](https://github.com/Joozty))
+  * [#7155](https://github.com/webdriverio/webdriverio/pull/7155) Propagate requestedCapabilities when attaching to running session ([@christian-bromann](https://github.com/christian-bromann))
+  * [#7156](https://github.com/webdriverio/webdriverio/pull/7156) Improve typings for touchAction command ([@christian-bromann](https://github.com/christian-bromann))
+* `devtools`
+  * [#7149](https://github.com/webdriverio/webdriverio/pull/7149) Propagate chrome flags and user data dir to `chrome-launcher` ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#7158](https://github.com/webdriverio/webdriverio/pull/7158) Support regular expressions for mock urls ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* [#7152](https://github.com/webdriverio/webdriverio/pull/7152) DepCheck : Added console log for error ([@jayandran-Sampath](https://github.com/jayandran-Sampath))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jozef Harag ([@Joozty](https://github.com/Joozty))
+- Luis Thur ([@lthurr](https://github.com/lthurr))
+- [@jayandran-Sampath](https://github.com/jayandran-Sampath)
+
+
 ## v7.7.7 (2021-07-16)
 
 #### :rocket: New Feature
