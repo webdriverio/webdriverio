@@ -62,6 +62,17 @@ describe('detectBackend', () => {
         expect(caps.protocol).toBe('https')
     })
 
+    it('should detect lambdatest user', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: 'cYAjKrqGwyPjPQv41ICDF4C5OjlxzA9epZsnugVJJxqOReWRWU'
+        })
+        expect(caps.hostname).toBe('hub.lambdatest.com')
+        expect(caps.port).toBe(80)
+        expect(caps.path).toBe('/wd/hub')
+        expect(caps.protocol).toBe('http')
+    })
+
     it('should detect saucelabs user', () => {
         const caps = detectBackend({
             user: 'foobar',
@@ -240,6 +251,21 @@ describe('detectBackend', () => {
         const caps = detectBackend({
             user: 'foobar',
             key: 'ec337d7b677720a4dde7bd72be0bfc67',
+            hostname: 'foobar.com',
+            port: 1234,
+            protocol: 'ftp',
+            path: '/foo/bar'
+        })
+        expect(caps.hostname).toBe('foobar.com')
+        expect(caps.port).toBe(1234)
+        expect(caps.protocol).toBe('ftp')
+        expect(caps.path).toBe('/foo/bar')
+    })
+
+    it('should detect lambdatest user but keep custom properties if set', () => {
+        const caps = detectBackend({
+            user: 'foobar',
+            key: 'cYAjKrqGwyPjPQv41ICDF4C5OjlxzA9epZsnugVJJxqOReWRWU',
             hostname: 'foobar.com',
             port: 1234,
             protocol: 'ftp',

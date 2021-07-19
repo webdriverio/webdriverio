@@ -97,6 +97,19 @@ export default function detectBackend(options: BackendConfigurations = {}) {
         }
     }
 
+    /**
+     * Lambdatest
+     * e.g. cYAjKrqGwyPjPQv41ICDF4C5OjlxzA9epZsnugVJJxqOReWRWU
+     */
+    if (typeof user === 'string' && typeof key === 'string' && key.length === 50) {
+        return {
+            protocol: protocol || DEFAULT_PROTOCOL,
+            hostname: hostname || 'hub.lambdatest.com',
+            port: port || 80,
+            path: path || LEGACY_PATH
+        }
+    }
+
     if (
         /**
          * user and key are set in config
@@ -109,7 +122,7 @@ export default function detectBackend(options: BackendConfigurations = {}) {
     ) {
         throw new Error(
             'A "user" or "key" was provided but could not be connected to a ' +
-            'known cloud service (Sauce Labs, Browerstack or Testingbot). ' +
+            'known cloud service (Sauce Labs, Browerstack, Testingbot or Lambdatest). ' +
             'Please check if given user and key properties are correct!'
         )
     }
