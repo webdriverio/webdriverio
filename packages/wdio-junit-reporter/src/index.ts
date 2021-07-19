@@ -30,6 +30,10 @@ class JunitReporter extends WDIOReporter {
             : /[^a-zA-Z0-9@]+/ // Reason for ignoring @ is; reporters like wdio-report-portal will fetch the tags from testcase name given as @foo @bar
     }
 
+    onTestRetry (testStats: TestStats) {
+        testStats.skip('Retry')
+    }
+
     onRunnerEnd (runner: RunnerStats) {
         const xml = this._buildJunitXml(runner)
         this.write(xml)
@@ -176,6 +180,9 @@ class JunitReporter extends WDIOReporter {
 
             if (test.state === 'pending' || test.state === 'skipped') {
                 testCase.skipped()
+                if (test.error) {
+                    testCase.standardError(`\n${test.error.stack}\n`)
+                }
             } else if (test.state === 'failed') {
                 if (test.error) {
                     if (test.error.message){

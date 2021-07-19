@@ -1,4 +1,4 @@
-import { TestStats } from '@wdio/reporter'
+import TestStats from '@wdio/reporter/src/stats/test'
 
 import WDIOJunitReporter from '../src'
 
@@ -17,6 +17,7 @@ import unorderedFeatureAndScenarioWithError from './__fixtures__/cucumber-featur
 import suitesWithFailedBeforeEachHookLog from './__fixtures__/suites-with-failed-before-each-hook.json'
 import suitesWithFailedAfterEachHookLog from './__fixtures__/suites-with-failed-after-each-hook.json'
 import suitesHooksLog from './__fixtures__/suites-hooks.json'
+import suiteTestRetry from './__fixtures__/suite-test-retry.json'
 import suitesMultipleLog from './__fixtures__/suites-multiple.json'
 import suitesErrorLog from './__fixtures__/suites-error.json'
 
@@ -83,6 +84,22 @@ describe('wdio-junit-reporter', () => {
         } as any as TestStats
         expect(reporter['_getStandardOutput'](teststats)).toContain('COMMAND: POST /sessionId/click - {"elementId":"foobar"}')
         expect(reporter['_getStandardOutput'](teststats)).toContain('RESULT: {"value":"foobar"}')
+    })
+
+    it('test is marked as skipped when is retried', () => {
+        const testStats = new TestStats({
+            'type': 'test:start',
+            'uid': 'test-00-0',
+            'cid': '0-0',
+            'title': 'test',
+            'fullTitle': 'suite test',
+            'retries': 0,
+            'parent': 'suite',
+            'state': 'failed'
+        })
+        reporter['onTestRetry'](testStats)
+
+        expect(testStats.state).toContain('skipped')
     })
 
     it('generates xml output', () => {
@@ -164,6 +181,13 @@ describe('wdio-junit-reporter', () => {
 
     it('generates xml output for multiple describe blocks', () => {
         reporter.suites = suitesMultipleLog as any
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output when test is marked as skipped', () => {
+        reporter.suites = suiteTestRetry as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
