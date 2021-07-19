@@ -34,6 +34,8 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
     it('should mock network resources', () => {
         // via static string
         const userListMock = browser.mock('**' + '/users/list')
+        // or as regular expression
+        const userListMock = browser.mock(/https:\/\/(domainA|domainB)\.com\/.+/)
         // you can also specifying the mock even more by filtering resources
         // by request or response headers, status code, postData, e.g. mock only responses with specific
         // header set and statusCode
@@ -99,7 +101,7 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
  * </example>
  *
  * @alias browser.mock
- * @param {String}              url                             url to mock
+ * @param {String|RegExp}       url                             url to mock
  * @param {MockFilterOptions=}  filterOptions                   filter mock resource by additional options
  * @param {String|Function=}    filterOptions.method            filter resource by HTTP method
  * @param {Object|Function=}    filterOptions.headers           filter resource by specific request headers
@@ -112,7 +114,7 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
  */
 export default async function mock (
     this: WebdriverIO.Browser,
-    url: string,
+    url: string | RegExp,
     filterOptions?: MockFilterOptions
 ) {
     const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception

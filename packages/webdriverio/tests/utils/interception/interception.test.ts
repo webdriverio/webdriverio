@@ -53,3 +53,22 @@ test('allows custom error message', async () => {
     err = await mock.waitForResponse().catch((err: Error) => err)
     expect(err.message).toBe('waitForResponse failed with the following reason: bug')
 })
+
+test('isMatchingRequest', () => {
+    expect(
+        NetworkInterception.isMatchingRequest('**/foo.*.js', 'http://json.org/foo.bar.js')
+    ).toBe(true)
+    expect(
+        NetworkInterception.isMatchingRequest('**/foo.*.js', 'http://json.org/foo.js')
+    ).toBe(false)
+    expect(
+        NetworkInterception.isMatchingRequest(/foo\.(foo|bar)\.js/, 'http://json.org/foo.bar.js')
+    ).toBe(true)
+    expect(
+        NetworkInterception.isMatchingRequest(/foo\.(foo|bar)\.js/, 'http://json.org/foo.loo.js')
+    ).toBe(false)
+    expect(
+        // @ts-expect-error
+        () => NetworkInterception.isMatchingRequest(false, 'http://json.org')
+    ).toThrow()
+})
