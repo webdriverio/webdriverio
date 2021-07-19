@@ -12,6 +12,9 @@ export default class WebDriverInterception extends Interception {
     mockId?: string;
 
     async init () {
+        if (this.url instanceof RegExp) {
+            throw new Error('Regular Expressions as mock url are not supported')
+        }
         const { mockId } = await this.browser.mockRequest(this.url, this.filterOptions)
         this.mockId = mockId
     }
