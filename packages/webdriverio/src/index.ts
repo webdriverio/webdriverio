@@ -83,7 +83,8 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Bro
     const params = {
         ...attachOptions,
         options: { ...attachOptions.options },
-        ...detectBackend(attachOptions)
+        ...detectBackend(attachOptions),
+        requestedCapabilities: attachOptions.requestedCapabilities
     }
 
     const prototype = getPrototype('browser')
