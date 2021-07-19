@@ -229,6 +229,11 @@ const touchAction: TouchAction = {
 }
 ele.touchAction(touchAction)
 browser.touchAction(touchAction)
+browser.touchAction([
+    { action: 'press', x: 200, y: 200 },
+    { action: 'moveTo', x: 200, y: 300 },
+    'release'
+])
 
 // dragAndDrop
 ele.dragAndDrop(ele, { duration: 0 })

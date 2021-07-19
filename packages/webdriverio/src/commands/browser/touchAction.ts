@@ -1,5 +1,5 @@
 import { touchAction as touchActionCommand } from '../constant'
-import { TouchAction } from '../../types'
+import { TouchActions } from '../../types'
 
 /**
  *
@@ -61,7 +61,7 @@ import { TouchAction } from '../../types'
  */
 export default function touchAction (
     this: WebdriverIO.Browser,
-    ...args: TouchAction[]
+    actions: TouchActions
 ) {
-    return touchActionCommand.apply(this, args as any)
+    return touchActionCommand.call(this, actions)
 }

@@ -308,6 +308,11 @@ async function bar() {
     }
     await ele.touchAction(touchAction)
     await browser.touchAction(touchAction)
+    await browser.touchAction([
+        { action: 'press', x: 200, y: 200 },
+        { action: 'moveTo', x: 200, y: 300 },
+        'release'
+    ])
 
     // dragAndDrop
     await ele.dragAndDrop(ele, { duration: 0 })
