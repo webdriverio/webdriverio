@@ -301,8 +301,19 @@ describe('WebdriverIO module interface', () => {
 
     describe('attach', () => {
         it('attaches', async () => {
-            await attach({ sessionId: 'foobar', capabilities: {} })
-            expect(WebDriver.attachToSession).toBeCalled()
+            const browser = {
+                sessionId: 'foobar',
+                capabilities: {
+                    browserName: 'chrome',
+                    platformName: 'MacOS'
+                },
+                requestedCapabilities: {
+                    browserName: 'chrome'
+                }
+            }
+            await attach(browser)
+            expect(WebDriver.attachToSession).toBeCalledTimes(1)
+            expect(WebDriver.attachToSession.mock.calls[0][0]).toMatchSnapshot()
         })
     })
 

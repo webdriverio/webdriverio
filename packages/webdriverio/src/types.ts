@@ -408,5 +408,6 @@ export interface AttachOptions extends Omit<DevToolsAttachOptions, 'capabilities
     options?: {
         automationProtocol?: Options.SupportedProtocols,
     }
-    capabilities: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities']
+    capabilities: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
+    requestedCapabilities?: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
 }
