@@ -37,6 +37,9 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     const chromeOptions: Capabilities.ChromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
     const devtoolsOptions = capabilities['wdio:devtoolsOptions'] || {}
+    const chromeOptionsArgs = (chromeOptions.args || []).map((arg) => (
+        arg.startsWith('--') ? arg : `--${arg}`
+    ))
 
     /**
      * `ignoreDefaultArgs` and `headless` are currently expected to be part of the capabilities
@@ -62,6 +65,13 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         }
     }
 
+    let userDataDir: string | boolean = false
+    const userDataDirIndex = chromeOptionsArgs.findIndex((arg) => arg.includes('user-data-dir'))
+    if (userDataDirIndex > -1) {
+        userDataDir = chromeOptionsArgs[userDataDirIndex].split('=').pop() as string
+        chromeOptionsArgs.splice(userDataDirIndex, 1)
+    }
+
     const defaultFlags = Array.isArray(ignoreDefaultArgs) ? DEFAULT_FLAGS.filter(flag => !ignoreDefaultArgs.includes(flag)) : (!ignoreDefaultArgs) ? DEFAULT_FLAGS : []
     const deviceMetrics = mobileEmulation.deviceMetrics || {}
     const chromeFlags = [
@@ -74,7 +84,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
             '--headless',
             '--no-sandbox'
         ] : []),
-        ...(chromeOptions.args || [])
+        ...chromeOptionsArgs
     ]
 
     if (typeof deviceMetrics.pixelRatio === 'number') {
@@ -90,6 +100,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         chromePath: chromeOptions.binary,
         ignoreDefaultFlags: true,
         chromeFlags,
+        userDataDir,
         ...(devtoolsOptions.customPort ? { port: devtoolsOptions.customPort } : {})
     })
 
