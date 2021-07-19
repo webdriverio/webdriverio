@@ -1,7 +1,10 @@
+import minimatch from 'minimatch'
+
 import Timer from '../Timer'
 
 import { WaitForOptions } from '../../types'
 import { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } from './types'
+
 import type Protocol from 'devtools-protocol'
 
 export default abstract class Interception {
@@ -13,9 +16,6 @@ export default abstract class Interception {
     abstract abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean): void
     abstract abortOnce (errorReason: Protocol.Network.ErrorReason): void
 
-    url: string
-    filterOptions: MockFilterOptions
-    browser: WebdriverIO.Browser
     respondOverwrites: {
         overwrite?: MockOverwrite
         params?: MockResponseParams
@@ -24,10 +24,11 @@ export default abstract class Interception {
     }[] = []
     matches: Matches[] = []
 
-    constructor (url: string, filterOptions: MockFilterOptions = {}, browser: WebdriverIO.Browser) {
-        this.url = url
-        this.filterOptions = filterOptions
-        this.browser = browser
+    constructor (
+        public url: string | RegExp,
+        public filterOptions: MockFilterOptions = {},
+        public browser: WebdriverIO.Browser
+    ) {
     }
 
     waitForResponse ({
@@ -60,5 +61,16 @@ export default abstract class Interception {
 
             throw new Error(`waitForResponse failed with the following reason: ${(e && e.message) || e}`)
         }))
+    }
+
+    static isMatchingRequest (expectedUrl: string | RegExp, actualUrl: string) {
+        if (typeof expectedUrl === 'string') {
+            return minimatch(actualUrl, expectedUrl)
+        }
+        if (expectedUrl instanceof RegExp) {
+            return Boolean(actualUrl.match(expectedUrl))
+        }
+
+        throw new Error(`Unexpected type for mock url: ${expectedUrl}`)
     }
 }

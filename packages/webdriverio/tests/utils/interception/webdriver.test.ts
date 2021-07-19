@@ -23,6 +23,11 @@ test('init', async () => {
     expect(mock.mockId).toBe(123)
 })
 
+test('init does not support regexp urls', async () => {
+    const mock = new NetworkInterception(/foo/, { headers: { foo: 'bar' } }, browserMock)
+    await expect(() => mock.init()).rejects.toEqual(new Error('Regular Expressions as mock url are not supported'))
+})
+
 test('calls', async () => {
     const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
     await mock.init()

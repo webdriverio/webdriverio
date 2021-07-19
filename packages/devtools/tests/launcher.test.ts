@@ -122,6 +122,16 @@ test('overriding chrome default flags (backwards compat)', async () => {
     expect(pages[1].close).toBeCalledTimes(0)
 })
 
+test('launch chrome with custom user data dir', async () => {
+    await launch({
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+            args: ['enable-features=NetworkService', 'someOtherFlag', 'user-data-dir=/foo/bar', 'anotherFlag']
+        }
+    })
+    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+})
+
 test('launch chrome with chrome port', async () => {
     const browser = await launch({
         browserName: 'chrome',
