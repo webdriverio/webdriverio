@@ -178,6 +178,9 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                              * webdriverio package and not accessible here
                              */
                             function (this: object[], index: number) {
+                                if (!this[index]) {
+                                    throw new Error(`Can't access element with index ${index}, only found ${this.length} element(s)`)
+                                }
                                 return this[index]
                             },
                             [index],
