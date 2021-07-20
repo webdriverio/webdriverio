@@ -26,7 +26,7 @@ export default async function refetchElement (
     // Beginning with the browser object, rechain
     return selectors.reduce(async (elementPromise, { selector, index }, currentIndex) => {
         const resolvedElement = await elementPromise
-        let nextElement = index > 0 ? (await resolvedElement.$$(selector as string))[index] : null
+        let nextElement = index > 0 ? await resolvedElement.$$(selector as string).get(index) : null
         nextElement = nextElement || await resolvedElement.$(selector)
         /**
          *  For error purposes, changing command name to '$' if we aren't

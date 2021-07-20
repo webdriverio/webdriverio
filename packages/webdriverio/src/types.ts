@@ -11,9 +11,89 @@ import type DevtoolsInterception from './utils/interception/devtools'
 import type { Location } from './commands/element/getLocation'
 import type { Size } from './commands/element/getSize'
 
-export type BrowserCommandsType = typeof BrowserCommands
+type $BrowserCommands = typeof BrowserCommands
+type $ElementCommands = typeof ElementCommands
+
+type AsyncElementProto = {
+    [K in keyof Omit<$ElementCommands, keyof ChainablePrototype>]: OmitThisParameter<$ElementCommands[K]>
+} & ChainablePrototype
+
+interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T> {
+    /**
+     * foobar gets me every time
+     */
+    elementId: Promise<string>
+}
+interface ChainablePromiseArray<T> extends Promise<T> {
+    /**
+     * Amount of element fetched.
+     */
+    length: Promise<number>
+    elementId?: Promise<string>
+    /**
+     * Error message in case element fetch was not successful
+     */
+    error?: Promise<Error>
+    /**
+     * index of the element if fetched with `$$`
+     */
+    index: Promise<number>
+    /**
+     * selector used to fetch this element, can be
+     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
+     * - a string if `findElement` was used and a reference was found
+     * - or a functin if element was found via e.g. `$(() => document.body)`
+     */
+    selector: Promise<Selector>
+    /**
+     * parent of the element if fetched via `$(parent).$(child)`
+     */
+    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser>
+
+    /**
+     * Unwrap the nth element of the element list.
+     */
+    get: (i: number) => T
+
+    // forEach(callback, [thisArg])
+    // forEachSeries(callback, [thisArg])
+    // map(callback, [thisArg])
+    // mapSeries(callback, [thisArg])
+    // find(callback, [thisArg])
+    // findSeries(callback, [thisArg])
+    // findIndex(callback, [thisArg])
+    // findIndexSeries(callback, [thisArg])
+    // some(callback, [thisArg])
+    // someSeries(callback, [thisArg])
+    // every(callback, [thisArg])
+    // everySeries(callback, [thisArg])
+    // filter(callback, [thisArg])
+    // filterSeries(callback, [thisArg])
+    // reduce(callback, [initialValue])
+}
+
+type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
+type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
+type ChainablePrototype = {
+    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement<ReturnType<$ElementCommands[K]>>
+} & {
+    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray<WebdriverIO.Element>
+}
+//     $: (selector: Selector) => ChainablePromiseElement<WebdriverIO.Element>
+//     $$: (selector: Selector) => ChainablePromiseArray<ChainablePromiseElement<WebdriverIO.Element>>
+//     custom$: (strategyName: string, strategyArguments: string) => ChainablePromiseElement<WebdriverIO.Element>
+//     custom$$: (strategyName: string, strategyArguments: string) => ChainablePromiseArray<ChainablePromiseElement<WebdriverIO.Element>>
+//     shadow$: (selector: string) => ChainablePromiseElement<WebdriverIO.Element>
+//     shadow$$: (selector: string) => ChainablePromiseArray<ChainablePromiseElement<WebdriverIO.Element>>
+//     react$: (selector: string, args?: ReactSelectorOptions) => ChainablePromiseElement<WebdriverIO.Element>
+//     react$$: (selector: string, args?: ReactSelectorOptions) => ChainablePromiseArray<ChainablePromiseElement<WebdriverIO.Element>>
+// }
+
+export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
+export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
+
 export type BrowserCommandsTypeSync = {
-    [K in keyof Omit<BrowserCommandsType, 'execute' | 'call'>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<ReturnType<BrowserCommandsType[K]>>
+    [K in keyof Omit<$BrowserCommands, 'execute' | 'call'>]: (...args: Parameters<$BrowserCommands[K]>) => ThenArg<ReturnType<$BrowserCommands[K]>>
 } & {
     /**
      * we need to copy type definitions for execute and executeAsync as we can't copy over
@@ -25,7 +105,6 @@ export type BrowserCommandsTypeSync = {
         ...args: InnerArguments
     ) => ReturnValue,
 }
-export type ElementCommandsType = typeof ElementCommands
 export type ElementCommandsTypeSync = {
     [K in keyof Omit<ElementCommandsType, 'getLocation' | 'getSize'>]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
 } & {
