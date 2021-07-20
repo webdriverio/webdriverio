@@ -202,7 +202,7 @@ export function addKeywordToStep(steps:ReporterStep[], feature:messages.GherkinD
             const rules  = feature.children.filter((child)=> Object.keys(child)[0]=== 'rule')
             feature.children = feature.children.filter((child)=> Object.keys(child)[0]!== 'rule')
             const rulesChildrens:any = rules.map((child)=>child.rule?.children).flat()
-            feature.children.concat(rulesChildrens)
+            feature.children = feature.children.concat(rulesChildrens)
 
             feature.children.find((child) =>
                 // @ts-ignore
