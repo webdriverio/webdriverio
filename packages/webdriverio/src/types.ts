@@ -14,30 +14,27 @@ import type { Size } from './commands/element/getSize'
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
 
+type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
+type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
+type ChainablePrototype = {
+    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement<ReturnType<$ElementCommands[K]>>
+} & {
+    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray<WebdriverIO.Element>
+}
+
 type AsyncElementProto = {
     [K in keyof Omit<$ElementCommands, keyof ChainablePrototype>]: OmitThisParameter<$ElementCommands[K]>
 } & ChainablePrototype
 
 interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T> {
     /**
-     * foobar gets me every time
+     * WebDriver element reference
      */
     elementId: Promise<string>
-}
-interface ChainablePromiseArray<T> extends Promise<T> {
     /**
-     * Amount of element fetched.
+     * parent of the element if fetched via `$(parent).$(child)`
      */
-    length: Promise<number>
-    elementId?: Promise<string>
-    /**
-     * Error message in case element fetch was not successful
-     */
-    error?: Promise<Error>
-    /**
-     * index of the element if fetched with `$$`
-     */
-    index: Promise<number>
+    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser>
     /**
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
@@ -46,48 +43,40 @@ interface ChainablePromiseArray<T> extends Promise<T> {
      */
     selector: Promise<Selector>
     /**
-     * parent of the element if fetched via `$(parent).$(child)`
+     * Error message in case element fetch was not successful
      */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser>
+    error?: Promise<Error>
+    /**
+     * index of the element if fetched with `$$`
+     */
+    index?: Promise<number>
+}
+interface ChainablePromiseArray<T> extends Promise<T> {
+    /**
+     * Amount of element fetched.
+     */
+    length: Promise<number>
 
     /**
      * Unwrap the nth element of the element list.
      */
     get: (i: number) => T
-
-    // forEach(callback, [thisArg])
-    // forEachSeries(callback, [thisArg])
-    // map(callback, [thisArg])
-    // mapSeries(callback, [thisArg])
-    // find(callback, [thisArg])
-    // findSeries(callback, [thisArg])
-    // findIndex(callback, [thisArg])
-    // findIndexSeries(callback, [thisArg])
-    // some(callback, [thisArg])
-    // someSeries(callback, [thisArg])
-    // every(callback, [thisArg])
-    // everySeries(callback, [thisArg])
-    // filter(callback, [thisArg])
-    // filterSeries(callback, [thisArg])
-    // reduce(callback, [initialValue])
+    forEach: (iterator: (elem: T) => void) => ChainablePromiseArray<T>
+    forEachSeries: (iterator: (elem: T) => void) => ChainablePromiseArray<T>
+    map: (iterator: (elem: T) => any) => ChainablePromiseArray<T>
+    mapSeries: (iterator: (elem: T) => any) => ChainablePromiseArray<T>
+    find: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
+    findSeries: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
+    findIndex: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
+    findIndexSeries: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
+    some: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
+    someSeries: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
+    every: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
+    everySeries: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
+    filter: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
+    filterSeries: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
+    reduce: (iterator: (initialValue: any, elem: T) => any, initialValue: any) => any
 }
-
-type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
-type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
-type ChainablePrototype = {
-    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement<ReturnType<$ElementCommands[K]>>
-} & {
-    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray<WebdriverIO.Element>
-}
-//     $: (selector: Selector) => ChainablePromiseElement<WebdriverIO.Element>
-//     $$: (selector: Selector) => ChainablePromiseArray<ChainablePromiseElement<WebdriverIO.Element>>
-//     custom$: (strategyName: string, strategyArguments: string) => ChainablePromiseElement<WebdriverIO.Element>
-//     custom$$: (strategyName: string, strategyArguments: string) => ChainablePromiseArray<ChainablePromiseElement<WebdriverIO.Element>>
-//     shadow$: (selector: string) => ChainablePromiseElement<WebdriverIO.Element>
-//     shadow$$: (selector: string) => ChainablePromiseArray<ChainablePromiseElement<WebdriverIO.Element>>
-//     react$: (selector: string, args?: ReactSelectorOptions) => ChainablePromiseElement<WebdriverIO.Element>
-//     react$$: (selector: string, args?: ReactSelectorOptions) => ChainablePromiseArray<ChainablePromiseElement<WebdriverIO.Element>>
-// }
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
 export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
