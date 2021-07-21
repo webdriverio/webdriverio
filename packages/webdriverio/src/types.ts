@@ -19,14 +19,14 @@ type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
 type ChainablePrototype = {
     [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement<ReturnType<$ElementCommands[K]>>
 } & {
-    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray<WebdriverIO.Element>
+    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray<ThenArg<ReturnType<$ElementCommands[K]>>>
 }
 
 type AsyncElementProto = {
     [K in keyof Omit<$ElementCommands, keyof ChainablePrototype>]: OmitThisParameter<$ElementCommands[K]>
 } & ChainablePrototype
 
-interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T> {
+export interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T> {
     /**
      * WebDriver element reference
      */
@@ -51,7 +51,7 @@ interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T> {
      */
     index?: Promise<number>
 }
-interface ChainablePromiseArray<T> extends Promise<T> {
+export interface ChainablePromiseArray<T> extends Promise<T> {
     /**
      * Amount of element fetched.
      */
@@ -60,22 +60,26 @@ interface ChainablePromiseArray<T> extends Promise<T> {
     /**
      * Unwrap the nth element of the element list.
      */
-    get: (i: number) => T
-    forEach: (iterator: (elem: T) => void) => ChainablePromiseArray<T>
-    forEachSeries: (iterator: (elem: T) => void) => ChainablePromiseArray<T>
-    map: (iterator: (elem: T) => any) => ChainablePromiseArray<T>
-    mapSeries: (iterator: (elem: T) => any) => ChainablePromiseArray<T>
-    find: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
-    findSeries: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
-    findIndex: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
-    findIndexSeries: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
-    some: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
-    someSeries: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
-    every: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
-    everySeries: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
-    filter: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
-    filterSeries: (iterator: (elem: T) => boolean) => ChainablePromiseArray<T>
-    reduce: (iterator: (initialValue: any, elem: T) => any, initialValue: any) => any
+    forEach: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
+    forEachSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
+    map: <U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>
+    mapSeries: <T, U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>;
+    find: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
+    findSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
+    findIndex: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
+    findIndexSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
+    some: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    someSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    every: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    everySeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    filter: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T[]>;
+    filterSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T[]>;
+    reduce: <T, U>(callback: (accumulator: U, currentValue: WebdriverIO.Element, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
+
+    /**
+     * allow to access a specific index of the element set
+     */
+    [n: number]: WebdriverIO.Element | undefined
 }
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype

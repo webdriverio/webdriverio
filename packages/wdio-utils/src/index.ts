@@ -9,7 +9,7 @@ import {
 } from './utils'
 import {
     wrapCommand, runFnInFiberContext, executeHooksWithArgs,
-    hasWdioSyncSupport, executeSync, executeAsync,
+    hasWdioSyncSupport, executeSync, executeAsync
 } from './shim'
 import { testFnWrapper, runTestInFiberContext } from './test-framework'
 import {
