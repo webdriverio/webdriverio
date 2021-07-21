@@ -99,7 +99,7 @@ export type BrowserCommandsTypeSync = {
     ) => ReturnValue,
 }
 export type ElementCommandsTypeSync = {
-    [K in keyof Omit<ElementCommandsType, 'getLocation' | 'getSize'>]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
+    [K in keyof Omit<$ElementCommands, 'getLocation' | 'getSize'>]: (...args: Parameters<$ElementCommands[K]>) => ThenArg<ReturnType<$ElementCommands[K]>>
 } & {
     getLocation: ((
         this: WebdriverIO.Element,
