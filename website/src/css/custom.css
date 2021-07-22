@@ -279,26 +279,11 @@ div[role="tabpanel"] .margin-vert--md {
     margin-bottom: 0!important;
 }
 
-.tabs.runtime li:last-child:after,
-.depcrecationWarning::before {
-    content: "!";
-    font-size: .6em;
-    background: red;
-    border-radius: 5px;
-    color: var(--wdio-section-background-color);
+.tabs.runtime li:last-child:after {
+    content: "*";
+    color: red;
     padding: 0 3px;
     line-height: 15px;
     display: block;
     height: 15px;
-}
-
-.depcrecationWarning,
-.depcrecationWarning::before {
-    font-size: .8em;
-}
-
-.depcrecationWarning::before {
-    display: inline-block;
-    line-height: 15px;
-    margin-right: 5px;
 }

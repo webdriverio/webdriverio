@@ -78,12 +78,12 @@ And your `tsconfig.json` needs the following:
 }
 ```
 
-<span className="depcrecationWarning">
-    Synchronous Mode will depcrecated with Node.js v16. With an update to the
-    underlying Chromium version it became technically impossible to provide the
-    same synchronous behavior. We recommend to start transition to asynchronous
-    command execution. For more information, see our <a href="https://github.com/webdriverio/webdriverio/discussions/6702">RFC</a>.
-</span>
+:::caution
+Synchronous Mode will depcrecated with Node.js v16. With an update to the
+underlying Chromium version it became technically impossible to provide the
+same synchronous behavior. We recommend to start transition to asynchronous
+command execution. For more information, see our <a href="https://github.com/webdriverio/webdriverio/discussions/6702">RFC</a>.
+:::
 
 </TabItem>
 <TabItem value="async">
