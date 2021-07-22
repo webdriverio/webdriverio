@@ -38,7 +38,7 @@ jobs:
           cp -r node_modules node_modules_backup
           npm i tsd --no-save
           npx run-s test:eslint test:typings test:coverage test:smoke
-          rm -rf node_modules
+          npx rimraf node_modules
           mv node_modules_backup node_modules
   e2e-windows:
     runs-on: windows-latest
@@ -64,7 +64,7 @@ jobs:
           npm i tsd --no-save
 
           npm run test
-          rm -rf node_modules
+          npx rimraf node_modules
           mv node_modules_backup node_modules
       - name: E2E Protocol Tests
         run: npm run test:e2e
