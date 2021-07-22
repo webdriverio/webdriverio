@@ -1,5 +1,6 @@
+import { expectType } from 'tsd'
 import allure from '@wdio/allure-reporter'
-import type { MockOverwriteFunction, ClickOptions, TouchAction } from 'webdriverio'
+import type { MockOverwriteFunction, ClickOptions, TouchAction, Selector } from 'webdriverio'
 
 import { SevereServiceError } from 'webdriverio'
 
@@ -19,13 +20,13 @@ declare global {
 
 const nsBrowser: WebdriverIO.Browser = {} as any
 nsBrowser.clearMockCalls('')
-nsBrowser.ambientCommand('foo')
+expectType<{ foo: boolean }>(nsBrowser.ambientCommand('foo'))
 
 const nsElem: WebdriverIO.Element = {} as any
 nsElem.click()
 
 const nsElems: WebdriverIO.ElementArray = {} as any
-nsElems.foundWith.toUpperCase()
+expectType<string>(nsElems.foundWith)
 
 // browser
 browser.pause(1)
@@ -33,16 +34,18 @@ browser.newWindow('https://webdriver.io', {
     windowName: 'some name',
     windowFeatures: 'some features'
 })
-const waitUntil: true | void = browser.waitUntil(
-    () => true,
-    {
-        timeout: 1,
-        timeoutMsg: '',
-        interval: 1
-    }
+expectType<true | void>(
+    browser.waitUntil(
+        () => true,
+        {
+            timeout: 1,
+            timeoutMsg: '',
+            interval: 1
+        }
+    )
 )
 const c = browser.getCookies()
-c[0].name.toLowerCase()
+expectType<string>(c[0].name)
 browser.getCookies('foobar')
 browser.getCookies(['foobar'])
 browser.setCookies({
@@ -66,14 +69,11 @@ browser.execute('return 123')
 const executeResult = browser.execute(function (x: number) {
     return x
 }, 4)
-executeResult.toFixed(2)
+expectType<number>(executeResult)
 
-const callResult = <number>browser.call(() =>
-    new Promise(resolve => setTimeout(() => resolve(4), 1))
-)
-callResult.toFixed(2)
+expectType<number>(browser.call(async () => 4))
 browser.executeAsync((arg: number, cb: (arg: number) => void) => {
-    arg.toFixed()
+    expectType<number>(arg)
     cb(123)
 })
 
@@ -90,7 +90,7 @@ const buffer = browser.savePDF('./packages/bar.pdf', {
     shrinkToFit: true,
     pageRanges: [{}]
 })
-buffer.byteLength.toFixed(2)
+expectType<number>(buffer.byteLength)
 
 browser.savePDF('./packages/bar.pdf')
 
@@ -99,20 +99,21 @@ browser.getElementRect('elementId')
 
 // protocol command return mapped object value
 const { x, y, width, height } = browser.getWindowRect()
-x.toFixed(2)
-y.toFixed(2)
-width.toFixed(2)
-height.toFixed(2)
+expectType<number>(x)
+expectType<number>(y)
+expectType<number>(width)
+expectType<number>(height)
 
 // protocol command return unmapped object
 const snapshot = browser.takeHeapSnapshot()
+expectType<any>(snapshot.foo)
 
 // browser command return mapped object value
 const size = browser.getWindowSize()
-size.height.toFixed(2)
+expectType<number>(size.height)
 const { width: w, height: h } = browser.getWindowSize()
-w.toFixed(2)
-h.toFixed(2)
+expectType<number>(w)
+expectType<number>(h)
 
 // browser custom command
 browser.browserCustomCommand(5)
@@ -127,41 +128,49 @@ const el3 = el2.$('')
 el1.getCSSProperty('style')
 el2.click()
 el1.moveTo({ xOffset: 0, yOffset: 0 })
-const elementExists: true | void = el2.waitForExist({
-    timeout: 1,
-    timeoutMsg: '',
-    interval: 1,
-    reverse: true
-})
-const elementDisplayed: true | void = el2.waitForDisplayed({
-    timeout: 1,
-    timeoutMsg: '',
-    interval: 1,
-    reverse: true
-})
-const elementEnabled: true | void = el2.waitForEnabled({
-    timeout: 1,
-    timeoutMsg: '',
-    interval: 1,
-    reverse: true
-})
-const elementClickable: true | void = el2.waitForClickable({
-    timeout: 1,
-    timeoutMsg: '',
-    interval: 1,
-    reverse: true
-})
+expectType<true | void>(
+    el2.waitForExist({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
+)
+expectType<true | void>(
+    el2.waitForDisplayed({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
+)
+expectType<true | void>(
+    el2.waitForEnabled({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
+)
+expectType<true | void>(
+    el2.waitForClickable({
+        timeout: 1,
+        timeoutMsg: '',
+        interval: 1,
+        reverse: true
+    })
+)
 
-el1.getLocation('x').toFixed() // as number
-el1.getLocation().y // as Location
+expectType<number>(el1.getLocation('x'))
+expectType<number>(el1.getLocation().y) // as Location
 
-el1.getSize('y').toFixed() // as number
-el1.getSize('width').toFixed() // as number
-el1.getSize().height // as Size
+expectType<number>(el1.getSize('y'))
+expectType<number>(el1.getSize('width'))
+expectType<number>(el1.getSize().height) // as Size
 
 // element custom command
 const el2result = el3.elementCustomCommand(4)
-el2result.toFixed(2)
+expectType<number>(el2result)
 
 // $$
 const elems = $$('')
@@ -189,9 +198,8 @@ const elem1 = $('')
 elem1.setValue('Delete', { translateToUnicode: true })
 elem1.setValue('Delete')
 
-const selector$$ = elems.selector as string
-const selector2$$ = elems.selector as Function
-const parent$$: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser = elems.parent
+expectType<Selector>(elems.selector)
+expectType<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>(elems.parent)
 
 // shadow$ shadow$$
 const el6 = $('')
@@ -201,10 +209,12 @@ const shadowElems = el6.shadow$$('')
 shadowElems[0].click()
 // react$ react$$
 const reactWrapper = browser.react$('')
-const reactWrapperWithOptions = browser.react$('', {
-    props: {},
-    state: true
-})
+expectType<WebdriverIO.Element>(
+    browser.react$('', {
+        props: {},
+        state: true
+    })
+)
 const reactElement = reactWrapper.react$('')
 const reactElementWithOptions = reactWrapper.react$('', {
     props: {},
@@ -244,12 +254,12 @@ browser.sharedStore.get('foo')
 browser.sharedStore.set('foo', ['q', 1, true, null, {'w' : {}, 'e': [] }, [{}]])
 
 // test access to base client properties
-browser.sessionId
-;(browser.capabilities as WebDriver.Capabilities).browserName
-;(browser.requestedCapabilities as WebDriver.Capabilities).browserName
-browser.isMobile
-browser.isAndroid
-browser.isIOS
+expectType<string>(browser.sessionId)
+expectType<string>((browser.capabilities as WebDriver.Capabilities).browserName)
+expectType<string>((browser.requestedCapabilities as WebDriver.Capabilities).browserName)
+expectType<boolean>(browser.isMobile)
+expectType<boolean>(browser.isAndroid)
+expectType<boolean>(browser.isIOS)
 
 // allure-reporter
 allure.addFeature('')
@@ -349,13 +359,72 @@ function testSevereServiceError_stringParameter() {
  */
 const mBrowser: WebdriverIO.MultiRemoteBrowser = {} as any
 const rect = mBrowser.getWindowRect()
-rect[0].x.toFixed(2)
+expectType<number>(rect[0].x)
 
 const mElem = mBrowser.$('foobar')
 const location = mElem.getLocation('x')
-;(location[0] as number).toFixed()
+expectType<number>(location[0] as number)
 
 const url = multiremotebrowser.getUrl()
 url.pop()
+
+// async chain API
+expectType<WebdriverIO.Element>(
+    browser.$('foo').$('bar').$$('loo')[2].$('foo').$('bar'))
+expectType<Selector>(
+    browser.$('foo').$('bar').selector)
+expectType<Error>(
+    browser.$('foo').$('bar').error)
+expectType<string>(
+    browser.$('foo').$('bar').elementId)
+expectType<WebdriverIO.Browser | WebdriverIO.Element>(
+    browser.$('foo').$('bar').parent)
+expectType<number>(
+    browser.$('foo').$('bar').$$('loo').length)
+expectType<Selector>(
+    browser.$('foo').$('bar').$$('loo').selector)
+expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
+    browser.$('foo').$('bar').$$('loo').parent)
+
+expectType<void>(
+    browser.$$('foo').forEach(() => true)
+)
+expectType<string[]>(
+    browser.$('foo').$$('bar').map((el) => {
+        expectType<WebdriverIO.Element>(el)
+        return el.getText()
+    })
+)
+expectType<WebdriverIO.Element>(
+    browser.$$('foo').find(() => true)
+)
+expectType<WebdriverIO.Element>(
+    browser.$$('foo').find(async () => true)
+)
+expectType<number>(
+    browser.$$('foo').findIndex(() => true)
+)
+expectType<boolean>(
+    browser.$$('foo').some(async () => true)
+)
+expectType<boolean>(
+    browser.$$('foo').every(async () => true)
+)
+expectType<WebdriverIO.Element[]>(
+    browser.$$('foo').filter(async () => true)
+)
+type Random = {
+    foo: WebdriverIO.Element
+    bar: WebdriverIO.Browser
+}
+expect<Random>(
+    browser.$$('foo').reduce((acc, curr) => {
+        acc = {
+            foo: curr,
+            bar: browser
+        }
+        return acc
+    }, {} as Random)
+)
 
 export default {}

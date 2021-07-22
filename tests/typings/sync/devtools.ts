@@ -1,46 +1,47 @@
-async function bar() {
-    browser.enablePerformanceAudits()
-    browser.enablePerformanceAudits({
-        networkThrottling: 'online',
-        cpuThrottling: 0,
-        cacheEnabled: false,
-        formFactor: 'desktop'
-    })
-    browser.disablePerformanceAudits()
+import { expectType } from 'tsd'
 
-    const metrics = browser.getMetrics()
-    metrics.estimatedInputLatency.toFixed()
+browser.enablePerformanceAudits()
+browser.enablePerformanceAudits({
+    networkThrottling: 'online',
+    cpuThrottling: 0,
+    cacheEnabled: false,
+    formFactor: 'desktop'
+})
+browser.disablePerformanceAudits()
 
-    const diagnostics = await browser.getDiagnostics()
-    const mainThreadWorkBreakdown = await browser.getMainThreadWorkBreakdown()
-    mainThreadWorkBreakdown[0].duration.toFixed()
+const metrics = browser.getMetrics()
+expectType<number>(metrics.estimatedInputLatency)
 
-    const performanceScore: number = await browser.getPerformanceScore()
-    performanceScore.toFixed()
+const diagnostics = browser.getDiagnostics()
+const mainThreadWorkBreakdown = browser.getMainThreadWorkBreakdown()
+expectType<number>(mainThreadWorkBreakdown[0].duration)
 
-    const pwaCheck = await browser.checkPWA()
-    pwaCheck.passed
-    pwaCheck.details['foo'].score.toFixed()
+const performanceScore: number = browser.getPerformanceScore()
+expectType<number>(performanceScore)
 
-    const pwaFilterdCheck = await browser.checkPWA(['maskableIcon', 'isInstallable'])
+const pwaCheck = browser.checkPWA()
+pwaCheck.passed
+expectType<number>(pwaCheck.details['foo'].score)
 
-    browser.emulateDevice('iPad')
-    browser.emulateDevice({ viewport: { height: 10, width: 10 }, userAgent: 'test' })
+const pwaFilterdCheck = browser.checkPWA(['maskableIcon', 'isInstallable'])
+expectType<boolean>(pwaFilterdCheck.passed)
 
-    const cdpResponse = await browser.cdp('test', 'test')
-    const nodeId: number = await browser.getNodeId('selector')
-    const nodeIds: number[] = await browser.getNodeIds('selector')
+browser.emulateDevice('iPad')
+browser.emulateDevice({ viewport: { height: 10, width: 10 }, userAgent: 'test' })
 
-    browser.startTracing()
-    browser.startTracing({ path: '/foo' })
-    browser.endTracing()
+const cdpResponse = browser.cdp('test', 'test')
+expectType<number>(browser.getNodeId('selector'))
+expectType<number[]>(browser.getNodeIds('selector'))
 
-    const traceLogs = await browser.getTraceLogs()
-    traceLogs[0].cat.indexOf('foo')
+browser.startTracing()
+browser.startTracing({ path: '/foo' })
+browser.endTracing()
 
-    const pageWeight = await browser.getPageWeight()
-    pageWeight.requestCount.toFixed()
+const traceLogs = browser.getTraceLogs()
+expectType<string>(traceLogs[0].cat)
 
-    const coverage = await browser.getCoverageReport()
-    coverage.lines.total.toFixed(2)
-}
+const pageWeight = browser.getPageWeight()
+expectType<number>(pageWeight.requestCount)
+
+const coverage = browser.getCoverageReport()
+expectType<number>(coverage.lines.total)

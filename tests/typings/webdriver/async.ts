@@ -1,4 +1,5 @@
 import WebDriver from 'webdriver'
+import { expectType } from 'tsd'
 
 ;(async () => {
     const client = await WebDriver.newSession({
@@ -26,12 +27,12 @@ import WebDriver from 'webdriver'
     })
 
     const rect = await client.getWindowRect()
-    rect.height.toFixed()
+    expectType<number>(rect.height)
 
     const newClient = WebDriver.attachToSession({
         sessionId: client.sessionId
     })
 
     const sessionId = await WebDriver.reloadSession(newClient)
-    sessionId.toUpperCase()
+    expectType<string>(sessionId)
 })
