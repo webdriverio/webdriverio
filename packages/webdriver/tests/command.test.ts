@@ -45,7 +45,7 @@ const commandEndpoint: Protocols.CommandEndpoint = {
     }]
 }
 
-jest.mock('../src/request', () => jest.fn().mockImplementation(
+jest.mock('../src/request/node', () => jest.fn().mockImplementation(
     () => ({
         makeRequest: jest.fn().mockReturnValue({
             then: jest.fn().mockImplementation(
@@ -105,7 +105,7 @@ describe('command wrapper', () => {
 
     it('should do a proper request', () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        const requestMock = require('../src/request')
+        const requestMock = require('../src/request/node')
         const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', undefined) as unknown as mockResponse
         expect(requestMock.mock.calls).toHaveLength(1)
         expect(resultFunction({ value: 14 })).toBe(14)
@@ -120,7 +120,7 @@ describe('command wrapper', () => {
 
     it('should do a proper request with non required params', () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        const requestMock = require('../src/request')
+        const requestMock = require('../src/request/node')
         const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', 123) as unknown as mockResponse
         expect(requestMock.mock.calls).toHaveLength(1)
         expect(resultFunction({ value: 'foobarboo' })).toBe('foobarboo')
@@ -136,7 +136,7 @@ describe('command wrapper', () => {
 
     it('should encode uri parameters', () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        const requestMock = require('../src/request')
+        const requestMock = require('../src/request/node')
         commandFn.call(scope, '/path', 'css selector', '#body', 123)
 
         const [, endpoint] = requestMock.mock.calls[0]
@@ -146,7 +146,7 @@ describe('command wrapper', () => {
 
     it('should double encode uri parameters if using selenium', () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint, true)
-        const requestMock = require('../src/request')
+        const requestMock = require('../src/request/node')
         commandFn.call(scope, '/path', 'css selector', '#body', 123)
 
         const [, endpoint] = requestMock.mock.calls[0]
@@ -161,7 +161,7 @@ describe('command wrapper result log', () => {
 
     function getRequestCallback (method: string, path: string, endpoint: Protocols.CommandEndpoint) {
         const commandFn = commandWrapper(method, path, endpoint)
-        const requestMock = require('../src/request')
+        const requestMock = require('../src/request/node')
         const resultFunction = commandFn.call(scope)
         expect(requestMock.mock.calls).toHaveLength(1)
 
