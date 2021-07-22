@@ -19,6 +19,26 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.8.0 (2021-07-22)
+
+#### :bug: Bug Fix
+* `wdio-mocha-framework`
+  * [#7171](https://github.com/webdriverio/webdriverio/pull/7171) @wdio/mocha-framework - fix deprecation warning ([@unickq](https://github.com/unickq))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`
+  * [#7153](https://github.com/webdriverio/webdriverio/pull/7153) Fix for rule keyowrd not working 'Cannot use Rule keyword in Cucumber… ([@praveendvd](https://github.com/praveendvd))
+
+#### :house: Internal
+* `devtools`, `wdio-browserstack-service`, `wdio-crossbrowsertesting-service`, `wdio-sauce-service`, `wdio-testingbot-service`, `wdio-types`, `webdriver`
+  * [#7169](https://github.com/webdriverio/webdriverio/pull/7169) feat: allow use of the ky request library in browser contexts ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Nick Chursin ([@unickq](https://github.com/unickq))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.7.8 (2021-07-19)
 
 #### :bug: Bug Fix
