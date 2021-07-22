@@ -244,7 +244,7 @@ describe('wrapCommand', () => {
         expect(await commandA.call(scope).$('foo').getTagName()).toBe('Yayy')
     })
 
-    it('offers a "get" method to fetch an indexed element', async () => {
+    it('allows to access indexed element', async () => {
         const scope: (i: number) => Partial<BrowserObject> = (i) => ({
             options: {
                 beforeCommand: jest.fn(),
@@ -264,8 +264,8 @@ describe('wrapCommand', () => {
             getTagName: { value: jest.fn() }
         }
         const commandA = wrapCommand('$', rawCommand$, propertiesObject)
-        expect(await commandA.call(scope(0)).$('foo').$$('bar').get(2).getTagName()).toBe('Yayy2')
-        expect(await commandA.call(scope(0)).$('foo').$$('bar').get(2).$('barfoo').getTagName()).toBe('Yayy0')
+        expect(await commandA.call(scope(0)).$('foo').$$('bar')[2].getTagName()).toBe('Yayy2')
+        expect(await commandA.call(scope(0)).$('foo').$$('bar')[2].$('barfoo').getTagName()).toBe('Yayy0')
     })
 
     it('offers array methods on elements', async () => {
@@ -307,33 +307,5 @@ describe('wrapCommand', () => {
         }
         const commandA = wrapCommand('$', rawCommand, propertiesObject)
         expect(await commandA.call(scope).selector).toBe('foobar')
-    })
-
-    it('has custom error message if index is out of bounce', async () => {
-        expect.assertions(1)
-        const scope: (i: number) => Partial<BrowserObject> = (i) => ({
-            options: {
-                beforeCommand: jest.fn(),
-                afterCommand: jest.fn()
-            },
-            getTagName: jest.fn().mockResolvedValue('Yayy' + i)
-        })
-        const rawCommand$ = jest.fn().mockResolvedValue(scope(0))
-        const rawCommand$$ = jest.fn().mockReturnValue([
-            Promise.resolve(scope(0)),
-            Promise.resolve(scope(1)),
-            Promise.resolve(scope(2))
-        ])
-        const propertiesObject = {
-            '$': { value: rawCommand$ },
-            '$$': { value: rawCommand$$ },
-            getTagName: { value: jest.fn() }
-        }
-        const commandA = wrapCommand('$', rawCommand$, propertiesObject)
-        try {
-            await commandA.call(scope(0)).$('foo').$$('bar').get(12).catch((err) => err)
-        } catch (err) {
-            expect(err.message).toContain('Index out of bounds')
-        }
     })
 })
