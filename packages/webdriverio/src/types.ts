@@ -186,8 +186,8 @@ type AddCommandFnScoped<
 type AddCommandFn = (...args: any[]) => any
 
 type OverwriteCommandFnScoped<
-    ElementKey extends keyof ElementCommandsType,
-    BrowserKey extends keyof BrowserCommandsType,
+    ElementKey extends keyof $ElementCommands,
+    BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
@@ -196,8 +196,8 @@ type OverwriteCommandFnScoped<
 ) => Promise<any>
 
 type OverwriteCommandFn<
-    ElementKey extends keyof ElementCommandsType,
-    BrowserKey extends keyof BrowserCommandsType,
+    ElementKey extends keyof $ElementCommands,
+    BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
     origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
@@ -220,7 +220,7 @@ export interface CustomInstanceCommands<T> {
     /**
      * overwrite `browser` or `element` command
      */
-    overwriteCommand<ElementKey extends keyof ElementCommandsType, BrowserKey extends keyof BrowserCommandsType, IsElement extends boolean = false>(
+    overwriteCommand<ElementKey extends keyof $ElementCommands, BrowserKey extends keyof $BrowserCommands, IsElement extends boolean = false>(
         name: IsElement extends true ? ElementKey : BrowserKey,
         func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement> | OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
         attachToElement?: IsElement,
