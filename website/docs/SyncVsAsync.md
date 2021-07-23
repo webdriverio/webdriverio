@@ -27,7 +27,12 @@ If you're using [`@wdio/sync`](https://www.npmjs.com/package/@wdio/sync) then yo
 
 :::caution
 
-Running commands synchronously is depcrecated and will stop working with Node.js v16 and above.
+:::caution
+Synchronous Mode will depcrecated with Node.js v16. With an update to the
+underlying Chromium version it became technically impossible to provide the
+same synchronous behavior. We recommend to start transition to asynchronous
+command execution. For more information, see our <a href="https://github.com/webdriverio/webdriverio/discussions/6702">RFC</a>.
+:::
 
 :::
 
