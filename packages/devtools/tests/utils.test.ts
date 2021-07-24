@@ -404,5 +404,5 @@ test('patchDebug with debug not install in puppeteer', () => {
 test('sleep', async () => {
     const start = Date.now()
     await sleep(100)
-    expect(Date.now() - start).toBeGreaterThanOrEqual(100)
+    expect(Date.now() - start).toBeGreaterThanOrEqual(90)
 })

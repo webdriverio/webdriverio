@@ -205,6 +205,29 @@ describe('utils', () => {
                         id: '3'
                     }
                 },
+                {
+                    rule: {
+                        keyword: 'Rule',
+                        name: 'Rule',
+                        children: [
+                            {
+                                scenario: {
+                                    keyword: 'Scenario Outline',
+                                    name: 'rule outline',
+                                    steps: [
+                                        {
+                                            keyword: 'Given ',
+                                            text: 'I am on the login page',
+                                            id: '4'
+                                        }
+                                    ],
+                                    id: '5'
+                                }
+                            }
+                        ],
+                        id: '6'
+                    }
+                }
             ]
         }
 

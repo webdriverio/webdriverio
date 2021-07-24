@@ -1,8 +1,5 @@
 import type { Options } from '@wdio/types'
 
-declare type HTTPRequestOptions = import('got').Options;
-declare type HTTPResponse = import('got').Response;
-
 export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
     /**
      * protocol of automation driver
@@ -116,14 +113,14 @@ export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
      */
     transformRequest: {
         type: 'function',
-        default: (requestOptions: HTTPRequestOptions) => requestOptions
+        default: (requestOptions: Options.RequestLibOptions) => requestOptions
     },
     /**
      * Function transforming the response object after it is received
      */
     transformResponse: {
         type: 'function',
-        default: (response: HTTPResponse) => response
+        default: (response: Options.RequestLibResponse) => response
     },
     /**
      * Appium direct connect options server (https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)

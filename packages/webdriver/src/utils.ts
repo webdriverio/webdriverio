@@ -7,7 +7,8 @@ import {
 import Protocols from '@wdio/protocols'
 import { Options, Capabilities } from '@wdio/types'
 
-import WebDriverRequest, { WebDriverResponse } from './request'
+import RequestFactory from './request/factory'
+import { WebDriverResponse } from './request'
 import command from './command'
 import { VALID_CAPS } from './constants'
 import type { JSONWPCommandError, SessionFlags } from './types'
@@ -63,7 +64,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
-    const sessionRequest = new WebDriverRequest(
+    const sessionRequest = RequestFactory.getInstance(
         'POST',
         '/session',
         {
