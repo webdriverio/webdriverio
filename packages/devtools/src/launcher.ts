@@ -65,7 +65,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         }
     }
 
-    let userDataDir: string | boolean = false
+    let userDataDir: string | boolean;
     const userDataDirIndex = chromeOptionsArgs.findIndex((arg) => arg.includes('user-data-dir'))
     if (userDataDirIndex > -1) {
         userDataDir = chromeOptionsArgs[userDataDirIndex].split('=').pop() as string

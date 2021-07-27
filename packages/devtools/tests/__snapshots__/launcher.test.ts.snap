@@ -168,7 +168,7 @@ Array [
       ],
       "chromePath": "/foo/bar",
       "ignoreDefaultFlags": true,
-      "userDataDir": false,
+      "userDataDir": undefined,
     },
   ],
 ]
@@ -210,7 +210,7 @@ Array [
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
       "port": 8041,
-      "userDataDir": false,
+      "userDataDir": undefined,
     },
   ],
 ]
@@ -295,7 +295,7 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
-      "userDataDir": false,
+      "userDataDir": undefined,
     },
   ],
 ]
@@ -322,7 +322,7 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
-      "userDataDir": false,
+      "userDataDir": undefined,
     },
   ],
 ]
@@ -375,7 +375,7 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
-      "userDataDir": false,
+      "userDataDir": undefined,
     },
   ],
 ]
@@ -415,7 +415,7 @@ Array [
       ],
       "chromePath": undefined,
       "ignoreDefaultFlags": true,
-      "userDataDir": false,
+      "userDataDir": undefined,
     },
   ],
 ]
