@@ -4,7 +4,7 @@ import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject, hasElementId } from '../../utils'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed'
 
-const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome', 'safari technology preview']
+const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari technology preview']
 
 /**
  *
