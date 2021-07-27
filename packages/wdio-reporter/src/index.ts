@@ -273,5 +273,5 @@ export default class WDIOReporter extends EventEmitter {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, Argument
+    AfterCommandArgs, CommandArgs, Argument, Test
 }
