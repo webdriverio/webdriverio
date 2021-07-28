@@ -408,7 +408,8 @@ async function bar() {
     expectType<string[]>(
         await browser.$('foo').$$('bar').map((el) => {
             expectType<WebdriverIO.Element>(el)
-            return browser.call(() => true).then(() => el.getText())
+            expectType<boolean>(browser.call(() => true))
+            return browser.call(async () => true).then(() => el.getText())
         })
     )
     expectType<WebdriverIO.Element>(
@@ -439,7 +440,7 @@ async function bar() {
                 foo: curr,
                 bar: browser
             }
-            return browser.call(() => {}).then(() => acc)
+            return browser.call(async () => {}).then(() => acc)
         }, {} as Random)
     )
 }
