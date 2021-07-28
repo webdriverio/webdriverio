@@ -12,19 +12,19 @@ Since version 3 of Mocha, you can rerun whole test suites (everything inside an 
 Here is an example:
 
 ```js
-describe('retries', function() {
+describe('retries', function () {
     // Retry all tests in this suite up to 4 times
     this.retries(4)
 
-    beforeEach(() => {
-        browser.url('http://www.yahoo.com')
+    beforeEach(async () => {
+        await browser.url('http://www.yahoo.com')
     })
 
-    it('should succeed on the 3rd try', function () {
+    it('should succeed on the 3rd try', async function () {
         // Specify this test to only retry up to 2 times
         this.retries(2)
         console.log('run')
-        expect(browser.isVisible('.foo')).to.eventually.be.true
+        await expect($('.foo')).toBeDisplayed()
     })
 })
 ```

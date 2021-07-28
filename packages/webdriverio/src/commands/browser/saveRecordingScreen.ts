@@ -13,10 +13,10 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
  *
  * <example>
     :saveRecordingScreen.js
-    it('should save a video', () => {
-        browser.startRecordingScreen();
-        $('~BUTTON').click();
-        browser.saveRecordingScreen('./some/path/video.mp4');
+    it('should save a video', async () => {
+        await browser.startRecordingScreen();
+        await $('~BUTTON').click();
+        await browser.saveRecordingScreen('./some/path/video.mp4');
     });
  * </example>
  *

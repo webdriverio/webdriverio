@@ -3,10 +3,7 @@
     // ====================
     // Runner Configuration
     // ====================
-    //
-    // WebdriverIO allows it to run your tests in arbitrary locations (e.g. locally or
-    // on a remote machine).
-    runner: '<%= answers.runner %>',<%
+    //<%
 
     if(answers.expEnvAccessKey){ %>
     hostname: '<%= answers.expEnvHostname %>',
@@ -187,11 +184,7 @@
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
-        <% if(answers.isUsingBabel) {
-        %>// Babel setup
-        require: ['@babel/register'],
-        <% }
-        %>ui: 'bdd',
+        ui: 'bdd',
         timeout: 60000
     },<%
     }
@@ -199,11 +192,7 @@
     //
     // Options to be passed to Jasmine.
     jasmineOpts: {
-        <% if(answers.isUsingBabel) {
-        %>// Babel setup
-        helpers: [require.resolve('@babel/register')],
-        <% }
-        %>// Jasmine default timeout
+        // Jasmine default timeout
         defaultTimeoutInterval: 60000,
         //
         // The Jasmine framework allows interception of each assertion in order to log the state of the application
@@ -222,11 +211,8 @@
         // <boolean> show full backtrace for errors
         backtrace: false,
         // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        <% if(answers.isUsingBabel) {
-        %>requireModule: ['@babel/register'],
-        <% } else {
-        %>requireModule: [],
-        <% } %>// <boolean> invoke formatters without executing steps
+        requireModule: [],
+        // <boolean> invoke formatters without executing steps
         dryRun: false,
         // <boolean> abort the run on first failure
         failFast: false,

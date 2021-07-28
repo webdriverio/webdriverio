@@ -12,12 +12,12 @@
     </select>
 
     :isSelected.js
-    it('should detect if an element is selected', () => {
-        let element = $('[value="Layla Terry"]');
-        console.log(element.isSelected()); // outputs: true
+    it('should detect if an element is selected', async () => {
+        let element = await $('[value="Layla Terry"]');
+        console.log(await element.isSelected()); // outputs: true
 
-        element = $('[value="Bill Gilbert"]')
-        console.log(element.isSelected()); // outputs: false
+        element = await $('[value="Bill Gilbert"]')
+        console.log(await element.isSelected()); // outputs: false
     });
  * </example>
  *

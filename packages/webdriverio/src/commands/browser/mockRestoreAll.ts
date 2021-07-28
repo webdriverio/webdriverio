@@ -10,19 +10,19 @@ const log = logger('webdriverio:mockRestoreAll')
  *
  * <example>
     :mockRestoreAll.js
-    it('should restore all mocks', () => {
-        const googleMock = browser.mock('https://google.com/')
+    it('should restore all mocks', async () => {
+        const googleMock = await browser.mock('https://google.com/')
         googleMock.respond('https://webdriver.io')
-        const wdioMock = browser.mock('https://webdriver.io')
+        const wdioMock = await browser.mock('https://webdriver.io')
         wdioMock.respond('http://json.org')
 
-        browser.url('https://google.com/')
-        console.log(browser.getTitle()) // JSON
+        await browser.url('https://google.com/')
+        console.log(await browser.getTitle()) // JSON
 
-        browser.mockRestoreAll()
+        await browser.mockRestoreAll()
 
-        browser.url('https://google.com/')
-        console.log(browser.getTitle()) // Google
+        await browser.url('https://google.com/')
+        console.log(await browser.getTitle()) // Google
     })
  * </example>
  *
