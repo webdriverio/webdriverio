@@ -13,7 +13,7 @@ Last year the [author](https://github.com/laverdet) of the Fibers package [annou
 
 After the WebdriverIO team discovered this we immediately took action and evaluated our options. We opened an [RFC](https://github.com/webdriverio/webdriverio/discussions/6702) to discuss with the community in which direction the project should go. I would like to thank everyone who chimed in and provided their opinion. We experimented with some alternative options, e.g. using Babel to transpile synchronous code into asynchronous but they all failed due to various reasons. The ultimate decision was made to accept the fact that synchronous command execution won't be possible moving on and rather embrace asynchronicity.
 
-With the release of WebdriverIO v7.9 we are happy to announce that we improved our asynchronous API and matched it with the synchronous one. When chaining element command calls users had to write aweful code like this before:
+With the release of WebdriverIO `v7.9` we are happy to announce that we improved our asynchronous API and matched it with the synchronous one. When chaining element command calls users had to write aweful code like this before:
 
 ```js
 await (await (await $('#foo')).$$('.bar'))[42].click()
