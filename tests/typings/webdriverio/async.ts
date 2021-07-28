@@ -408,7 +408,6 @@ async function bar() {
     expectType<string[]>(
         await browser.$('foo').$$('bar').map((el) => {
             expectType<WebdriverIO.Element>(el)
-            expectType<boolean>(browser.call(() => true))
             return browser.call(async () => true).then(() => el.getText())
         })
     )
