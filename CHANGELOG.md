@@ -19,6 +19,31 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.9.0 (2021-07-28)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-jasmine-framework`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#6954](https://github.com/webdriverio/webdriverio/pull/6954) Implement new async API ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#7190](https://github.com/webdriverio/webdriverio/pull/7190) fix-isdisplayed-msedge ([@savkaoleg](https://github.com/savkaoleg))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#7183](https://github.com/webdriverio/webdriverio/pull/7183) Removed invalid strategy check as fix for #7174 ([@praveendvd](https://github.com/praveendvd))
+
+#### :house: Internal
+* `wdio-reporter`
+  * [#7184](https://github.com/webdriverio/webdriverio/pull/7184) export Test Element ([@yon-cuadrado](https://github.com/yon-cuadrado))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Savka Oleg ([@savkaoleg](https://github.com/savkaoleg))
+- [@yon-cuadrado](https://github.com/yon-cuadrado)
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.8.0 (2021-07-22)
 
 #### :bug: Bug Fix
