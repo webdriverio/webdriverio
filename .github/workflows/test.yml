@@ -27,19 +27,7 @@ jobs:
         if: ${{ matrix.node-version == '14.x' }}
         run: npm run test:depcheck
       - name: Lint / Typings / Unit / Smoke Tests
-        # For type tests we use the "tsd" package which has a dependency called
-        # "@tsd/typescript" which is essentially a copy of TypeScript with some
-        # modifications. Installing this package causes issues compiling the
-        # codebase which is why we need to install "tsd" extra for the testing
-        # step.
-        #
-        # see also https://github.com/SamVerschueren/tsd-typescript/issues/2
-        run: |
-          cp -r node_modules node_modules_backup
-          npm i tsd --no-save
-          npx run-s test:eslint test:typings test:coverage test:smoke
-          npx rimraf node_modules
-          mv node_modules_backup node_modules
+        run: npx run-s test:eslint test:typings test:coverage test:smoke
   e2e-windows:
     runs-on: windows-latest
     steps:
@@ -52,20 +40,7 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Lint / Dependencies / Unit / Smoke Tests
-        # For type tests we use the "tsd" package which has a dependency called
-        # "@tsd/typescript" which is essentially a copy of TypeScript with some
-        # modifications. Installing this package causes issues compiling the
-        # codebase which is why we need to install "tsd" extra for the testing
-        # step.
-        #
-        # see also https://github.com/SamVerschueren/tsd-typescript/issues/2
-        run: |
-          cp -r node_modules node_modules_backup
-          npm i tsd --no-save
-
-          npm run test
-          npx rimraf node_modules
-          mv node_modules_backup node_modules
+        run: npx run-s test:eslint test:typings test:coverage test:smoke
       - name: E2E Protocol Tests
         run: npm run test:e2e
       - name: E2E Edge Launch Tests
