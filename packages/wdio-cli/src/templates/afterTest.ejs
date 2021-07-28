@@ -2,9 +2,9 @@
      * Function to be executed after a test (in Mocha/Jasmine).
      */<%
 if (reporters.length && reporters.includes('allure')) {%>
-    afterTest: function(test, context, { error, result, duration, passed, retries }) {
+    async afterTest: function(test, context, { error, result, duration, passed, retries }) {
         if (!passed) {
-            browser.takeScreenshot();
+            await browser.takeScreenshot();
         }
     },
 <% } else { %>
