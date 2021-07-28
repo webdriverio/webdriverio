@@ -73,7 +73,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     beforeSuite (suite: Frameworks.Suite) {
         this._fullTitle = suite.title
-        return this._updateJob({ name: this._fullTitle })
     }
 
     beforeFeature(uri: unknown, feature: { name: string }) {
@@ -84,16 +83,18 @@ export default class BrowserstackService implements Services.ServiceInstance {
     afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         const { error, passed } = results
 
-        this._fullTitle = (
-            /**
-             * Jasmine
-             */
-            test.fullName ||
-            /**
-             * Mocha
-             */
-            `${test.parent} - ${test.title}`
-        )
+        // Jasmine
+        if (test.fullName) {
+            const testSuiteName = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
+            if (this._fullTitle === 'Jasmine__TopLevel__Suite') {
+                this._fullTitle = testSuiteName
+            } else if (this._fullTitle) {
+                this._fullTitle = this._parentSuiteName(this._fullTitle, testSuiteName)
+            }
+        } else {
+            // Mocha
+            this._fullTitle = `${test.parent} - ${test.title}`
+        }
 
         if (!passed) {
             this._failReasons.push((error && error.message) || 'Unknown Error')
@@ -234,5 +235,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const browserString = getBrowserDescription(capabilities)
             log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
         })
+    }
+
+    _parentSuiteName(testDescription: string, otherTestDescription: string): string {
+        const shortestLength = Math.min(testDescription.length, otherTestDescription.length)
+        let c = 0
+        while (c < shortestLength && testDescription[c] === otherTestDescription[c]) {
+            c++
+        }
+        return testDescription.substr(0, c).trim()
     }
 }
