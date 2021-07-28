@@ -38,7 +38,7 @@
  * @type utility
  *
  */
-export default async function call<T> (fn: () => T) {
+export default function call<T> (fn: () => T): T | Promise<T> {
     if (typeof fn === 'function') {
         return fn()
     }
