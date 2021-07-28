@@ -13,6 +13,9 @@ describe('switchWindow', () => {
                 browserName: 'foobar'
             }
         })
+        beforeEach(() => {
+            global.window.open = jest.fn()
+        })
     })
 
     it('should allow to switch to a window handle', async () => {
@@ -30,6 +33,10 @@ describe('switchWindow', () => {
         got.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
         const anotherTabId = await browser.switchWindow('world')
         expect(anotherTabId).toBe('window-handle-2')
+        await browser.newWindow('http://foobar.com', { windowName:'testName1' })
+        await browser.newWindow('http://foobar.com', { windowName:'testName2' })
+        const nameTabId = await browser.switchWindow('testName1')
+        expect(nameTabId).toBe('window-handle-4')
     })
 
     it('should fail if no window was found', async () => {
