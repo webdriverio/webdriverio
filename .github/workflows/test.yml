@@ -40,7 +40,7 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Lint / Dependencies / Unit / Smoke Tests
-        run: npx run-s test:eslint test:typings test:coverage test:smoke
+        run: npm run test
       - name: E2E Protocol Tests
         run: npm run test:e2e
       - name: E2E Edge Launch Tests
