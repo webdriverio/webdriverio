@@ -147,29 +147,20 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
         return commandResult
     }
 
-    function wrapElementFn (promise: Promise<Clients.Browser>, cmd: Function, args: any[], prevInnerArgs?: { prop: string, args: any[] }): any {
+    function wrapElementFn (promise: Promise<Clients.Browser>, cmd: Function, args: any[], prevInnerArgs?: { prop: string | number, args: any[] }): any {
         return new Proxy(
             Promise.resolve(promise).then((ctx: Clients.Browser) => cmd.call(ctx, ...args)),
             {
                 get: (target, prop: string) => {
                     /**
-                     * if we call a query method on a resolve promise, e.g.:
+                     * if we access an index on an element array promise, e.g.:
                      * ```js
-                     * await $('foo').$('bar')
+                     * const elems = await $$('foo')[2]
                      * ```
                      */
-                    if (ELEMENT_QUERY_COMMANDS.includes(prop)) {
-                        return wrapCommand(prop, propertiesObject[prop].value, propertiesObject)
-                    }
-
-                    /**
-                     * if we call "get" on an element array promise, e.g.:
-                     * ```js
-                     * const elems = await $$('foo').get(2)
-                     * ```
-                     */
-                    if (commandName.endsWith('$$') && prop === 'get') {
-                        return (index: number) => wrapElementFn(
+                    const numValue = parseInt(prop, 10)
+                    if (!isNaN(numValue)) {
+                        return wrapElementFn(
                             target,
                             /**
                              * `this` is an array of WebdriverIO elements
@@ -180,9 +171,19 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                             function (this: object[], index: number) {
                                 return this[index]
                             },
-                            [index],
+                            [prop],
                             { prop, args }
                         )
+                    }
+
+                    /**
+                     * if we call a query method on a resolve promise, e.g.:
+                     * ```js
+                     * await $('foo').$('bar')
+                     * ```
+                     */
+                    if (ELEMENT_QUERY_COMMANDS.includes(prop)) {
+                        return wrapCommand(prop, propertiesObject[prop].value, propertiesObject)
                     }
 
                     /**

@@ -7,8 +7,8 @@
  *
  * <example>
     :abort.js
-    it('should block Google Analytics from page', () => {
-        const mock = browser.mock('https://www.google-analytics.com/**')
+    it('should block Google Analytics from page', async () => {
+        const mock = await browser.mock('https://www.google-analytics.com/**')
         mock.abort('Failed')
     })
  * </example>

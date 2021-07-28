@@ -7,10 +7,10 @@
     <div id="elem">Lorem ipsum</div>
 
     :getTagName.js
-    it('should demonstrate the getTagName command', () => {
-        const elem = $('#elem');
+    it('should demonstrate the getTagName command', async () => {
+        const elem = await $('#elem');
 
-        const tagName = elem.getTagName();
+        const tagName = await elem.getTagName();
         console.log(tagName); // outputs: "div"
     })
  * </example>

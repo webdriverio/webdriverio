@@ -11,8 +11,8 @@ interface BrowserSize {
  *
  * <example>
     :getWindowSize.js
-    it('should return browser window size', function () {
-        const windowSize = browser.getWindowSize();
+    it('should return browser window size', async () => {
+        const windowSize = await browser.getWindowSize();
         console.log(windowSize);
         // outputs `{ width: 1280, height: 767 }`
     });

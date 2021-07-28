@@ -1,3 +1,5 @@
+import { expectType } from 'tsd'
+
 const config: WebdriverIO.Config = {
     capabilities: [{}],
 
@@ -11,11 +13,11 @@ const config: WebdriverIO.Config = {
 
     beforeTest () {
         const size = browser.getWindowSize()
-        size.height.toFixed(2)
+        expectType<number>(size.height)
     },
 
     async afterTest () {
         const size = await browser.getWindowSize()
-        size.height.toFixed(2)
+        expectType<number>(size.height)
     }
 }

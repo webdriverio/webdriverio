@@ -9,8 +9,8 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
  *
  * <example>
     :saveScreenshot.js
-    it('should save a screenshot of the browser view', function () {
-        browser.saveScreenshot('./some/path/screenshot.png');
+    it('should save a screenshot of the browser view', async () => {
+        await browser.saveScreenshot('./some/path/screenshot.png');
     });
  * </example>
  *

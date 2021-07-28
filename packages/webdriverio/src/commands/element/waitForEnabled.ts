@@ -15,13 +15,13 @@ import type { WaitForOptions } from '../../types'
         }, 2000);
     </script>
     :waitForEnabledExample.js
-    it('should detect when element is enabled', () => {
-        $('#username').waitForEnabled({ timeout: 3000 });
+    it('should detect when element is enabled', async () => {
+        await $('#username').waitForEnabled({ timeout: 3000 });
     });
 
-    it('should detect when element is disabled', () => {
-        elem = $('#username');
-        elem.waitForEnabled({ reverse: true })
+    it('should detect when element is disabled', async () => {
+        elem = await $('#username');
+        await elem.waitForEnabled({ reverse: true })
     });
  * </example>
  *

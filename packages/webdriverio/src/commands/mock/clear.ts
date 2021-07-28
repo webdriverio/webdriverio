@@ -3,9 +3,9 @@
  *
  * <example>
     :clear.js
-    it('should clear mock', () => {
-        const mock = browser.mock('https://google.com/')
-        browser.url('https://google.com')
+    it('should clear mock', async () => {
+        const mock = await browser.mock('https://google.com/')
+        await browser.url('https://google.com')
 
         console.log(mock.calls.length) // returns 1
         mock.clear()

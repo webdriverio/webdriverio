@@ -14,13 +14,13 @@ import type { WaitForOptions } from '../../types'
         }, 2000);
     </script>
     :waitForDisplayedExample.js
-    it('should detect when element is visible', () => {
-        const elem = $('#elem')
-        elem.waitForDisplayed({ timeout: 3000 });
+    it('should detect when element is visible', async () => {
+        const elem = await $('#elem')
+        await elem.waitForDisplayed({ timeout: 3000 });
     });
-    it('should detect when element is no longer visible', () => {
-        const elem = $('#elem')
-        elem.waitForDisplayed({ reverse: true });
+    it('should detect when element is no longer visible', async () => {
+        const elem = await $('#elem')
+        await elem.waitForDisplayed({ reverse: true });
     });
  * </example>
  *

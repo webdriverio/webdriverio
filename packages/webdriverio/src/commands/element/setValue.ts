@@ -12,11 +12,11 @@ import type { CommandOptions, Value } from './addValue'
  *
  * <example>
     :setValue.js
-    it('should set value for a certain element', () => {
-        const input = $('.input');
-        input.setValue('test123');
+    it('should set value for a certain element', async () => {
+        const input = await $('.input');
+        await input.setValue('test123');
 
-        console.log(input.getValue()); // outputs: 'test123'
+        console.log(await input.getValue()); // outputs: 'test123'
     });
  * </example>
  *

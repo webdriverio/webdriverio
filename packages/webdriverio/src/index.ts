@@ -16,7 +16,7 @@ import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
 } from './utils'
-import type { Browser, MultiRemoteBrowser, AttachOptions } from './types'
+import type { AttachOptions } from './types'
 
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 
@@ -27,7 +27,7 @@ export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capa
  * @param  {function} remoteModifier  Modifier function to change the monad object
  * @return {object}                   browser object with sessionId
  */
-export const remote = async function (params: RemoteOptions, remoteModifier?: Function): Promise<Browser<'async'>> {
+export const remote = async function (params: RemoteOptions, remoteModifier?: Function): Promise<WebdriverIO.Browser> {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
 
     const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
@@ -76,7 +76,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     return instance
 }
 
-export const attach = async function (attachOptions: AttachOptions): Promise<Browser<'async'>> {
+export const attach = async function (attachOptions: AttachOptions): Promise<WebdriverIO.Browser> {
     /**
      * copy instances properties into new object
      */
@@ -100,7 +100,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Bro
 export const multiremote = async function (
     params: Capabilities.MultiRemoteCapabilities,
     { automationProtocol }: { automationProtocol?: string } = {}
-): Promise<MultiRemoteBrowser<'async'>> {
+): Promise<WebdriverIO.MultiRemoteBrowser> {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
 

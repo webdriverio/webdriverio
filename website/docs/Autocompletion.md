@@ -31,7 +31,7 @@ Visual Studio Code usually has type support automatically integrated and there i
 If you use vanilla JavaScript and want to have proper type support for synchronous commands you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
 
 <Tabs
-  defaultValue="sync"
+  defaultValue="async"
   values={[
     {label: 'Synchronous Mode w/ Mocha Example', value: 'sync'},
     {label: 'Asynchronous Mode w/ Cucumber Example', value: 'async'}
