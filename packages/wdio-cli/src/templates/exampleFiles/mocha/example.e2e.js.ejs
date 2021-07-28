@@ -1,6 +1,6 @@
 <%
 /**
- * step definition without page objects
+ * test with page objects
  */
 if (usePageObjects) {
 %><%- isUsingTypeScript || isUsingBabel
@@ -11,12 +11,12 @@ if (usePageObjects) {
     : `const SecurePage = require('${relativePath}/secure.page');` %>
 
 describe('My Login application', () => {
-    it('should login with valid credentials', <%= _async %>() => {
-        <%= _await %>LoginPage.open();
+    it('should login with valid credentials', async () => {
+        await LoginPage.open();
 
-        <%= _await %>LoginPage.login('tomsmith', 'SuperSecretPassword!');
-        <%= _await %>expect(SecurePage.flashAlert).toBeExisting();
-        <%= _await %>expect(SecurePage.flashAlert).toHaveTextContaining(
+        await LoginPage.login('tomsmith', 'SuperSecretPassword!');
+        await expect(SecurePage.flashAlert).toBeExisting();
+        await expect(SecurePage.flashAlert).toHaveTextContaining(
             'You logged into a secure area!');
     });
 });
@@ -24,23 +24,18 @@ describe('My Login application', () => {
 <% } else {
 
 /**
- * step definition with page objects
+ * test without page objects
  */
 %>describe('My Login application', () => {
-    it('should login with valid credentials', <%= _async %>() => {
-        <%= _await %>browser.url(`https://the-internet.herokuapp.com/login`);
+    it('should login with valid credentials', async () => {
+        await browser.url(`https://the-internet.herokuapp.com/login`);
 
-        <% if (isSync) {
-        %>$('#username').setValue(username);
-        $('#password').setValue(password);
-        $('button[type="submit"]').click(); <% } else {
-        %>await (await $('#username')).setValue('tomsmith');
-        await (await $('#password')).setValue('SuperSecretPassword!');
-        await (await $('button[type="submit"]')).click();<%
-        } %>
+        await $('#username').setValue('tomsmith');
+        await $('#password').setValue('SuperSecretPassword!');
+        await $('button[type="submit"]').click();
 
-        <%= _await %>expect($('#flash')).toBeExisting();
-        <%= _await %>expect($('#flash')).toHaveTextContaining(
+        await expect($('#flash')).toBeExisting();
+        await expect($('#flash')).toHaveTextContaining(
             'You logged into a secure area!');
     });
 });
