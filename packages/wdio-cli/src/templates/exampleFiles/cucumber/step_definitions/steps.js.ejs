@@ -17,17 +17,17 @@ const pages = {
     login: LoginPage
 }
 
-Given(/^I am on the (\w+) page$/, <%= _async %>(page) => {
-    <%= _await %>pages[page].open()
+Given(/^I am on the (\w+) page$/, async (page) => {
+    await pages[page].open()
 });
 
-When(/^I login with (\w+) and (.+)$/, <%= _async %>(username, password) => {
-    <%= _await %>LoginPage.login(username, password)
+When(/^I login with (\w+) and (.+)$/, async (username, password) => {
+    await LoginPage.login(username, password)
 });
 
-Then(/^I should see a flash message saying (.*)$/, <%= _async %>(message) => {
-    <%= _await %>expect(SecurePage.flashAlert).toBeExisting();
-    <%= _await %>expect(SecurePage.flashAlert).toHaveTextContaining(message);
+Then(/^I should see a flash message saying (.*)$/, async (message) => {
+    await expect(SecurePage.flashAlert).toBeExisting();
+    await expect(SecurePage.flashAlert).toHaveTextContaining(message);
 });
 <% } else {
 
@@ -35,23 +35,18 @@ Then(/^I should see a flash message saying (.*)$/, <%= _async %>(message) => {
  * step definition with page objects
  */
 %>
-Given(/^I am on the (\w+) page$/, <%= _async %>(page) => {
-    <%= _await %>browser.url(`https://the-internet.herokuapp.com/${page}`);
+Given(/^I am on the (\w+) page$/, async (page) => {
+    await browser.url(`https://the-internet.herokuapp.com/${page}`);
 });
 
-When(/^I login with (\w+) and (.+)$/, <%= _async %>(username, password) => {
-    <% if (isSync) {
-    %>$('#username').setValue(username);
-    $('#password').setValue(password);
-    $('button[type="submit"]').click(); <% } else {
-    %>await (await $('#username')).setValue(username);
-    await (await $('#password')).setValue(password);
-    await (await $('button[type="submit"]')).click();<%
-    } %>
+When(/^I login with (\w+) and (.+)$/, async (username, password) => {
+    await $('#username').setValue(username);
+    await $('#password').setValue(password);
+    await $('button[type="submit"]').click();
 });
 
-Then(/^I should see a flash message saying (.*)$/, <%= _async %>(message) => {
-    <%= _await %>expect($('#flash')).toBeExisting();
-    <%= _await %>expect($('#flash')).toHaveTextContaining(message);
+Then(/^I should see a flash message saying (.*)$/, async (message) => {
+    await expect($('#flash')).toBeExisting();
+    await expect($('#flash')).toHaveTextContaining(message);
 });
 <% } %>
