@@ -8,9 +8,9 @@ import { shadowFnFactory } from '../../scripts/shadowFnFactory'
  *
  * <example>
     :shadow$$.js
-    it('should return an element inside a shadowRoot', () => {
-        const innerEl = $('.input').shadow$('#innerEl');
-        console.log(innerEl.getValue()); // outputs: 'test123'
+    it('should return an element inside a shadowRoot', async () => {
+        const innerEl = await $('.input').shadow$('#innerEl');
+        console.log(await innerEl.getValue()); // outputs: 'test123'
     });
  * </example>
  *

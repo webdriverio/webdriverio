@@ -12,13 +12,13 @@ import getHTMLScript from '../../scripts/getHTML'
         <span>Lorem ipsum dolor amet</span>
     </div>
     :getHTML.js
-    it('should get html for certain elements', () => {
-        var outerHTML = $('#test').getHTML();
+    it('should get html for certain elements', async () => {
+        var outerHTML = await $('#test').getHTML();
         console.log(outerHTML);
         // outputs:
         // "<div id="test"><span>Lorem ipsum dolor amet</span></div>"
 
-        var innerHTML = $('#test').getHTML(false);
+        var innerHTML = await $('#test').getHTML(false);
         console.log(innerHTML);
         // outputs:
         // "<span>Lorem ipsum dolor amet</span>"

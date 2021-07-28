@@ -244,13 +244,6 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     }
     }
 
-    /**
-     * ensure selector strategy is supported
-     */
-    if (!isMobile && isW3C && (using !== 'shadow') && !W3C_SELECTOR_STRATEGIES.includes(using)) {
-        throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
-    }
-
     return { using, value }
 }
 

@@ -9,25 +9,25 @@
     <div id="notInViewport" style="position:absolute; left: 9999999"></div>
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isExisting.js
-    it('should detect if elements are existing', () => {
-        let elem = $('#someRandomNonExistingElement')
-        let isExisting = elem.isExisting()
+    it('should detect if elements are existing', async () => {
+        let elem = await $('#someRandomNonExistingElement')
+        let isExisting = await elem.isExisting()
         console.log(isExisting); // outputs: false
 
-        elem = $('#notDisplayed')
-        isExisting = elem.isExisting()
+        elem = await $('#notDisplayed')
+        isExisting = await elem.isExisting()
         console.log(isExisting); // outputs: true
 
-        elem = $('#notVisible')
-        isExisting = elem.isExisting()
+        elem = await $('#notVisible')
+        isExisting = await elem.isExisting()
         console.log(isExisting); // outputs: true
 
-        elem = $('#notInViewport')
-        isExisting = elem.isExisting()
+        elem = await $('#notInViewport')
+        isExisting = await elem.isExisting()
         console.log(isExisting); // outputs: true
 
-        elem = $('#zeroOpacity')
-        isExisting = elem.isExisting()
+        elem = await $('#zeroOpacity')
+        isExisting = await elem.isExisting()
         console.log(isExisting); // outputs: true
     });
  * </example>
