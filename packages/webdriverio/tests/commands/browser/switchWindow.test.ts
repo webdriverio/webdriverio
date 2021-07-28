@@ -13,9 +13,7 @@ describe('switchWindow', () => {
                 browserName: 'foobar'
             }
         })
-        beforeEach(() => {
-            global.window.open = jest.fn()
-        })
+        global.window.open = jest.fn()
     })
 
     it('should allow to switch to a window handle', async () => {
