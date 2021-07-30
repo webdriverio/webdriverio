@@ -91,21 +91,23 @@ describe('utils', () => {
         expect(getErrorFromResponseBody('')).toEqual(emptyBodyError)
         expect(getErrorFromResponseBody(null)).toEqual(emptyBodyError)
 
-        const unknownError = new Error('unknown error')
+        const unknownError = new Error('WebDriver Error: unknown error')
         expect(getErrorFromResponseBody({})).toEqual(unknownError)
 
-        const expectedError = new Error('expected')
-        expect(getErrorFromResponseBody('expected')).toEqual(expectedError)
+        const nonWebDriverError = new Error('expected')
+        const expectedError = new Error('WebDriver Error: expected')
+        expect(getErrorFromResponseBody('expected')).toEqual(nonWebDriverError)
         expect(getErrorFromResponseBody({ value: { message: 'expected' } }))
             .toEqual(expectedError)
         expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
             .toEqual(expectedError)
 
-        const ieError = new Error('Command not found: POST /some/command')
+        const ieError = new Error('Protocol Error: Command not found: POST /some/command')
         ieError.name = 'unknown method'
         expect(getErrorFromResponseBody({
             message: 'Command not found: POST /some/command',
-            error: 'unknown method'
+            error: 'unknown method',
+            name: 'Protocol Error'
         })).toEqual(ieError)
     })
 
@@ -118,24 +120,28 @@ describe('utils', () => {
             }
         })
         expect(error.name).toBe('foo')
-        expect(error.message).toBe('bar')
+        expect(error.message).toBe('WebDriver Error: bar')
 
         //Chrome
         error = new CustomRequestError({ value: { message: 'stale element reference' } })
         expect(error.name).toBe('stale element reference')
-        expect(error.message).toBe('stale element reference')
+        expect(error.message).toBe('WebDriver Error: stale element reference')
 
         error = new CustomRequestError({ value: { message: 'message' } } )
-        expect(error.name).toBe('Error')
-        expect(error.message).toBe('message')
+        expect(error.name).toBe('WebDriver Error')
+        expect(error.message).toBe('WebDriver Error: message')
 
         error = new CustomRequestError({ value: { class: 'class' } } )
-        expect(error.name).toBe('Error')
-        expect(error.message).toBe('class')
+        expect(error.name).toBe('WebDriver Error')
+        expect(error.message).toBe('WebDriver Error: class')
+
+        error = new CustomRequestError({ value: { name: 'Protocol Error' } } )
+        expect(error.name).toBe('Protocol Error')
+        expect(error.message).toBe('Protocol Error: unknown error')
 
         error = new CustomRequestError({ value: { } } )
-        expect(error.name).toBe('Error')
-        expect(error.message).toBe('unknown error')
+        expect(error.name).toBe('WebDriver Error')
+        expect(error.message).toBe('WebDriver Error: unknown error')
     })
 
     describe('getSessionError', () => {

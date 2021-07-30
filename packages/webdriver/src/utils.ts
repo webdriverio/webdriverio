@@ -226,11 +226,14 @@ export function getErrorFromResponseBody (body: any) {
 export class CustomRequestError extends Error {
     constructor(body: WebDriverResponse) {
         const errorObj = body.value || body
-        super(errorObj.name + ': ' +(errorObj.message || errorObj.class || 'unknown error'))
+        const name = errorObj.name || 'WebDriver Error'
+        super(name + ': ' +(errorObj.message || errorObj.class || 'unknown error'))
         if (errorObj.error) {
             this.name = errorObj.error
         } else if (errorObj.message && errorObj.message.includes('stale element reference')) {
             this.name = 'stale element reference'
+        } else {
+            this.name = name
         }
 
         if (errorObj.stacktrace) {
