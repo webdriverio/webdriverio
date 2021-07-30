@@ -110,6 +110,7 @@ export function buildStepPayload(
     }
 ) {
     return {
+        ...params,
         uid: step.id,
         // @ts-ignore
         title: getTestStepTitle(step.keyword, step.text, params.type),
@@ -119,7 +120,6 @@ export function buildStepPayload(
         tags: scenario.tags,
         featureName: feature.name,
         scenarioName: scenario.name,
-        ...params
     }
 }
 
