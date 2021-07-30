@@ -54,7 +54,7 @@ module.exports = {
         announcementBar: {
             id: 'supportus',
             content:
-              '⭐️  &nbsp; If you like WebdriverIO, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/${organizationName}/${projectName}">GitHub</a>! ⭐️',
+              `⭐️  &nbsp; If you like WebdriverIO, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/${organizationName}/${projectName}">GitHub</a>! ⭐️`,
         },
         navbar: {
             // title: 'I/O',
