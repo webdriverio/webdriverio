@@ -211,7 +211,10 @@ class AllureReporter extends WDIOReporter {
     onTestPass() {
         attachConsoleLogs(this._consoleOutput, this._allure)
         if (this._options.useCucumberStepReporter) {
-            return this._allure.endStep('passed')
+            const suite = this._allure.getCurrentSuite()
+            if (suite && suite.currentStep instanceof Step) {
+                return this._allure.endStep('passed')
+            }
         }
 
         this._allure.endCase(PASSED)
@@ -222,7 +225,10 @@ class AllureReporter extends WDIOReporter {
             const testStatus = getTestStatus(test, this._config)
             const stepStatus: Status = Object.values(stepStatuses).indexOf(testStatus) >= 0 ?
                 testStatus : 'failed'
-            this._allure.endStep(stepStatus)
+            const suite = this._allure.getCurrentSuite()
+            if (suite && suite.currentStep instanceof Step) {
+                this._allure.endStep(stepStatus)
+            }
             this._allure.endCase(testStatus, getErrorFromFailedTest(test))
             return
         }
@@ -246,7 +252,10 @@ class AllureReporter extends WDIOReporter {
     onTestSkip(test: TestStats) {
         attachConsoleLogs(this._consoleOutput, this._allure)
         if (this._options.useCucumberStepReporter) {
-            this._allure.endStep('canceled')
+            const suite = this._allure.getCurrentSuite()
+            if (suite && suite.currentStep instanceof Step) {
+                this._allure.endStep('canceled')
+            }
         } else if (!this._allure.getCurrentTest() || this._allure.getCurrentTest().name !== test.title) {
             this._allure.pendingCase(test.title)
         } else {
