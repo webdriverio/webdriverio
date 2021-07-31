@@ -1,3 +1,5 @@
+import { expectType } from 'tsd'
+
 async function bar() {
     browser.enablePerformanceAudits()
     browser.enablePerformanceAudits({
@@ -9,38 +11,39 @@ async function bar() {
     browser.disablePerformanceAudits()
 
     const metrics = await browser.getMetrics()
-    metrics.estimatedInputLatency.toFixed()
+    expectType<number>(metrics.estimatedInputLatency)
 
     const diagnostics = await browser.getDiagnostics()
     const mainThreadWorkBreakdown = await browser.getMainThreadWorkBreakdown()
-    mainThreadWorkBreakdown[0].duration.toFixed()
+    expectType<number>(mainThreadWorkBreakdown[0].duration)
 
     const performanceScore: number = await browser.getPerformanceScore()
-    performanceScore.toFixed()
+    expectType<number>(performanceScore)
 
     const pwaCheck = await browser.checkPWA()
     pwaCheck.passed
-    pwaCheck.details['foo'].score.toFixed()
+    expectType<number>(pwaCheck.details['foo'].score)
 
     const pwaFilterdCheck = await browser.checkPWA(['maskableIcon', 'isInstallable'])
+    expectType<boolean>(pwaFilterdCheck.passed)
 
     browser.emulateDevice('iPad')
     browser.emulateDevice({ viewport: { height: 10, width: 10 }, userAgent: 'test' })
 
     const cdpResponse = await browser.cdp('test', 'test')
-    const nodeId: number = await browser.getNodeId('selector')
-    const nodeIds: number[] = await browser.getNodeIds('selector')
+    expectType<number>(await browser.getNodeId('selector'))
+    expectType<number[]>(await browser.getNodeIds('selector'))
 
     browser.startTracing()
     browser.startTracing({ path: '/foo' })
     browser.endTracing()
 
     const traceLogs = await browser.getTraceLogs()
-    traceLogs[0].cat.indexOf('foo')
+    expectType<string>(traceLogs[0].cat)
 
     const pageWeight = await browser.getPageWeight()
-    pageWeight.requestCount.toFixed()
+    expectType<number>(pageWeight.requestCount)
 
     const coverage = await browser.getCoverageReport()
-    coverage.lines.total.toFixed(2)
+    expectType<number>(coverage.lines.total)
 }

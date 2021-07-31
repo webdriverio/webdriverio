@@ -28,15 +28,15 @@ type ElementCoordinates = {
  *
  * <example>
     :example.test.js
-    it('should demonstrate the dragAndDrop command', () => {
-        const elem = $('#someElem')
-        const target = $('#someTarget')
+    it('should demonstrate the dragAndDrop command', async () => {
+        const elem = await $('#someElem')
+        const target = await $('#someTarget')
 
         // drag and drop to other element
-        elem.dragAndDrop(target)
+        await elem.dragAndDrop(target)
 
         // drag and drop relative from current position
-        elem.dragAndDrop({ x: 100, y: 200 })
+        await elem.dragAndDrop({ x: 100, y: 200 })
     })
  * </example>
  *

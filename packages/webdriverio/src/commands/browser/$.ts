@@ -30,39 +30,39 @@ import type { Selector } from '../../types'
         <li><a href="/">Contribute</a></li>
     </ul>
     :$.js
-    it('should get text a menu link', () => {
-        const text = $('#menu');
-        console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
+    it('should get text a menu link', async () => {
+        const text = await $('#menu');
+        console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
 
-    it('should get text a menu link - JS Function', () => {
-        const text = $(function() { // Arrow function is not allowed here.
+    it('should get text a menu link - JS Function', async () => {
+        const text = await $(function() { // Arrow function is not allowed here.
             // this is Window https://developer.mozilla.org/en-US/docs/Web/API/Window
             // TypeScript users may do something like this
             // return (this as Window).document.querySelector('#menu')
             return this.document.querySelector('#menu'); // Element
         });
-        console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
+        console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
 
-    it('should allow to convert protocol result of an element into a WebdriverIO element', () => {
-        const activeElement = browser.getActiveElement();
-        console.log($(activeElement).getTagName()); // outputs active element
+    it('should allow to convert protocol result of an element into a WebdriverIO element', async () => {
+        const activeElement = await browser.getActiveElement();
+        console.log(await $(activeElement).getTagName()); // outputs active element
     });
 
-    it('should use Androids DataMatcher or ViewMatcher selector', () => {
-        const menuItem = $({
+    it('should use Androids DataMatcher or ViewMatcher selector', async () => {
+        const menuItem = await $({
             "name": "hasEntry",
             "args": ["title", "ViewTitle"],
             "class": "androidx.test.espresso.matcher.ViewMatchers"
         });
-        menuItem.click();
+        await menuItem.click();
 
-        const menuItem = $({
+        const menuItem = await $({
             "name": "hasEntry",
             "args": ["title", "ViewTitle"]
         });
-        menuItem.click();
+        await menuItem.click();
     });
  * </example>
  *

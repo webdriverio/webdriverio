@@ -34,7 +34,7 @@ const IGNORE_PACKAGES = {
         const shellResult = await new Promise((resolve, reject) => shell.exec(shellScript, EXEC_OPTIONS, (code, stdout, stderr) => {
             if (stderr) {
                 console.error('Error :', stderr)
-                return reject(stderr)
+                return reject(new Error(stderr))
             }
             return resolve(stdout)
         }))
@@ -67,4 +67,3 @@ const IGNORE_PACKAGES = {
     console.error('Depcheck failed:', err.stack)
     process.exit(1)
 })
-

@@ -14,13 +14,13 @@ import { checkUnicode } from '../../utils'
  *
  * <example>
     :keys.js
-    it('copies text out of active element', () => {
+    it('copies text out of active element', async () => {
         // copies text from an input element
-        const input = $('#username')
-        input.setValue('anonymous')
+        const input = await $('#username')
+        await input.setValue('anonymous')
 
-        browser.keys(['Meta', 'a'])
-        browser.keys(['Meta', 'c'])
+        await browser.keys(['Meta', 'a'])
+        await browser.keys(['Meta', 'c'])
     });
  * </example>
  *

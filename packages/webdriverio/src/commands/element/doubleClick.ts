@@ -7,11 +7,11 @@
     <button id="myButton" ondblclick="document.getElementById('someText').innerHTML='I was dblclicked'">Click me</button>
     <div id="someText">I was not clicked</div>
     :doubleClick.js
-    it('should demonstrate the doubleClick command', () => {
-        const myButton = $('#myButton')
-        myButton.doubleClick()
+    it('should demonstrate the doubleClick command', async () => {
+        const myButton = await $('#myButton')
+        await myButton.doubleClick()
 
-        const value = myButton.getText()
+        const value = await myButton.getText()
         assert(value === 'I was dblclicked') // true
     })
  * </example>

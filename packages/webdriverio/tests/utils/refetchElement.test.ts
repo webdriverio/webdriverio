@@ -49,7 +49,7 @@ describe('refetchElement', () => {
     it('should not lose element index', async () => {
         const elem = await browser.$('#foo')
         const subElems = await elem.$$('#subfoo')
-        const subElem = subElems[1]
+        const subElem = subElems[0]
         const refetchedElement = await refetchElement(subElem, '$')
         expect(refetchedElement.elementId).toEqual(subElem.elementId)
     })

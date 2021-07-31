@@ -10,9 +10,10 @@
         <p>Sibling Three</p>
     </div>
     :previousElement.js
-    it('should get text from previous sibling element', () => {
-        const elem = $$('p');
-        console.log(elem[1].previousElement().getText()); // outputs: "Sibling One"
+    it('should get text from previous sibling element', async () => {
+        const elem = await $$('p');
+        const previousElem = await elem[1].previousElement()
+        console.log(await previousElem.getText()); // outputs: "Sibling One"
     });
  * </example>
  *

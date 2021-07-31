@@ -15,11 +15,11 @@ import { getElementFromResponse } from '../../utils'
         <option value="someValue5">seis</option>
     </select>
     :selectByVisibleText.js
-    it('demonstrate the selectByVisibleText command', () => {
-        const selectBox = $('#selectbox');
-        console.log(selectBox.getText('option:checked')); // returns "uno"
-        selectBox.selectByVisibleText('cuatro');
-        console.log(selectBox.getText('option:checked')); // returns "cuatro"
+    it('demonstrate the selectByVisibleText command', async () => {
+        const selectBox = await $('#selectbox');
+        console.log(await selectBox.getText('option:checked')); // returns "uno"
+        await selectBox.selectByVisibleText('cuatro');
+        console.log(await selectBox.getText('option:checked')); // returns "cuatro"
     })
  * </example>
  *

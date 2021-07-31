@@ -9,18 +9,18 @@
  *
  * <example>
     :execute.js
-    browser.addCommand('getUrlAndTitle', function (customParam) {
+    await browser.addCommand('getUrlAndTitle', async function (customParam) {
         // `this` refers to the `browser` scope
         return {
-            url: this.getUrl(),
-            title: this.getTitle(),
+            url: await this.getUrl(),
+            title: await this.getTitle(),
             customParam: customParam
         }
     })
     //usage
-    it('should use my add command', () => {
-        browser.url('https://webdriver.io')
-        const result = browser.getUrlAndTitle('foobar')
+    it('should use my add command', async () => {
+        await browser.url('https://webdriver.io')
+        const result = await browser.getUrlAndTitle('foobar')
 
         assert.strictEqual(result.url, 'https://webdriver.io')
         assert.strictEqual(result.title, 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO')

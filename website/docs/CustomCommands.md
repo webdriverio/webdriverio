@@ -12,11 +12,11 @@ You can write your command in a synchronous way (default), just as in your specs
 This example shows how to add a new command that returns the current URL and title as one result, using only synchronous commands:
 
 ```js
-browser.addCommand('getUrlAndTitle', function (customVar) {
+browser.addCommand('getUrlAndTitle', async function (customVar) {
     // `this` refers to the `browser` scope
     return {
-        url: this.getUrl(),
-        title: this.getTitle(),
+        url: await this.getUrl(),
+        title: await this.getTitle(),
         customVar: customVar
     }
 })
@@ -27,10 +27,10 @@ Additionally, you can extend the element instance with your own set of commands,
 By default, element is expected to exist in `waitforTimeout` milliseconds, or an exception will be thrown.
 
 ```js
-browser.addCommand("waitAndClick", function () {
+browser.addCommand("waitAndClick", async function () {
     // `this` is return value of $(selector)
-    this.waitForDisplayed()
-    this.click()
+    await this.waitForDisplayed()
+    await this.click()
 }, true)
 ```
 
@@ -39,9 +39,9 @@ Custom commands give you the opportunity to bundle a specific sequence of comman
 Once defined, you can use them as follows:
 
 ```js
-it('should use my custom command', () => {
-    browser.url('http://www.github.com')
-    const result = browser.getUrlAndTitle('foobar')
+it('should use my custom command', async () => {
+    await browser.url('http://www.github.com')
+    const result = await browser.getUrlAndTitle('foobar')
 
     assert.strictEqual(result.url, 'https://github.com/')
     assert.strictEqual(result.title, 'GitHub · Where software is built')
@@ -55,9 +55,9 @@ If you need to control element existence in a custom command, it is possible eit
 - add the command to `element` using name that starts with one of the following: `waitUntil`, `waitFor`, `isExisting`, `isDisplayed`.
 
 ```js
-browser.addCommand('isDisplayedWithin', function (timeout) {
+browser.addCommand('isDisplayedWithin', async function (timeout) {
     try {
-        this.waitForDisplayed(timeout)
+        await this.waitForDisplayed(timeout)
         return true
     } catch (err) {
         return false
@@ -68,18 +68,18 @@ browser.addCommand('isDisplayedWithin', function (timeout) {
 __Note:__ If you register a custom command to the `browser` scope, the command won't be accessible for elements. Likewise, if you register a command to the element scope, it won't be accessible in the `browser` scope:
 
 ```js
-browser.addCommand("myCustomBrowserCommand", function () { return 1 })
-const elem = $('body')
+browser.addCommand("myCustomBrowserCommand", () => { return 1 })
+const elem = await $('body')
 console.log(typeof browser.myCustomBrowserCommand) // outputs "function"
 console.log(typeof elem.myCustomBrowserCommand()) // outputs "undefined"
 
-browser.addCommand("myCustomElementCommand", function () { return 1 }, true)
-const elem2 = $('body')
+browser.addCommand("myCustomElementCommand", () => { return 1 }, true)
+const elem2 = await $('body')
 console.log(typeof browser.myCustomElementCommand) // outputs "undefined"
 console.log(elem2.myCustomElementCommand('foobar')) // outputs "function"
 
-const elem3 = $('body')
-elem3.addCommand("myCustomElementCommand2", function () { return 1 })
+const elem3 = await $('body')
+elem3.addCommand("myCustomElementCommand2", () => { return 1 })
 console.log(typeof browser.myCustomElementCommand2) // outputs "undefined"
 console.log(elem3.myCustomElementCommand2('foobar')) // outputs "function"
 ```
@@ -97,7 +97,7 @@ When returning the promise, WebdriverIO ensures that it doesn't continue with th
 ```js
 import request from 'request'
 
-browser.addCommand('makeRequest', function (url) {
+browser.addCommand('makeRequest', async (url) => {
     return request.get(url).then((response) => response.body)
 })
 ```
@@ -105,9 +105,9 @@ browser.addCommand('makeRequest', function (url) {
 Then, just use it in your WDIO test specs synchronously:
 
 ```js
-it('execute external library in a sync way', () => {
-    browser.url('...')
-    const body = browser.makeRequest('http://...')
+it('execute external library in a sync way', async () => {
+    await browser.url('...')
+    const body = await browser.makeRequest('http://...')
     console.log(body) // returns response body
 })
 ```
@@ -132,14 +132,14 @@ The overall approach is similar to `addCommand`, the only difference is that the
  */
 // 'pause'            - name of command to be overwritten
 // origPauseFunction  - original pause function
-browser.overwriteCommand('pause', function (origPauseFunction, ms) {
+browser.overwriteCommand('pause', async (origPauseFunction, ms) => {
     console.log(`sleeping for ${ms}`)
-    origPauseFunction(ms)
+    await origPauseFunction(ms)
     return ms
 })
 
 // then use it as before
-console.log(`was sleeping for ${browser.pause(1000)}`)
+console.log(`was sleeping for ${await browser.pause(1000)}`)
 ```
 
 #### Overwriting element commands
@@ -153,7 +153,7 @@ Overwriting commands on element level is almost the same. Simply pass `true` as 
  */
 // 'click'            - name of command to be overwritten
 // origClickFunction  - original click function
-browser.overwriteCommand('click', function (origClickFunction, { force = false } = {}) {
+browser.overwriteCommand('click', async function (origClickFunction, { force = false } = {}) {
     if (!force) {
         try {
             // attempt to click
@@ -164,7 +164,7 @@ browser.overwriteCommand('click', function (origClickFunction, { force = false }
                     'Scrolling to it before clicking again.')
 
                 // scroll to element and click again
-                this.scrollIntoView()
+                await this.scrollIntoView()
                 return origClickFunction()
             }
             throw err
@@ -173,17 +173,17 @@ browser.overwriteCommand('click', function (origClickFunction, { force = false }
 
     // clicking with js
     console.warn('WARN: Using force click for', this.selector)
-    browser.execute(function (el) {
+    await browser.execute((el) => {
         el.click()
     }, this)
 }, true) // don't forget to pass `true` as 3rd argument
 
 // then use it as before
-const elem = $('body')
-elem.click()
+const elem = await $('body')
+await elem.click()
 
 // or pass params
-elem.click({ force: true })
+await elem.click({ force: true })
 ```
 
 ## Add More WebDriver Commands
@@ -214,7 +214,7 @@ Calling this command with invalid parameters results in the same error handling 
 
 ```js
 // call command without required url parameter and payload
-browser.myNewCommand()
+await browser.myNewCommand()
 
 /**
  * results in the following error:

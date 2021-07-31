@@ -6,9 +6,9 @@ import getPropertyScript from '../../scripts/getProperty'
  *
  * <example>
     :getProperty.js
-    it('should demonstrate the getProperty command', () => {
-        var elem = $('body')
-        var tag = elem.getProperty('tagName')
+    it('should demonstrate the getProperty command', async () => {
+        var elem = await $('body')
+        var tag = await elem.getProperty('tagName')
         console.log(tag) // outputs: "BODY"
     })
  * </example>

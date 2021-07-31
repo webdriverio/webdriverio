@@ -11,14 +11,14 @@ import type { ElementArray } from '../../types'
  *
  * <example>
     :example.js
-    it('should get all the plugin wrapper buttons', () => {
-        browser.url('https://webdriver.io')
-        browser.addLocatorStrategy('myStrat', (selector) => {
+    it('should get all the plugin wrapper buttons', async () => {
+        await browser.url('https://webdriver.io')
+        await browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
 
-        const pluginRowBlock = browser.custom$('myStrat', '.pluginRowBlock')
-        const pluginWrapper = pluginRowBlock.custom$$('myStrat', '.pluginWrapper')
+        const pluginRowBlock = await browser.custom$('myStrat', '.pluginRowBlock')
+        const pluginWrapper = await pluginRowBlock.custom$$('myStrat', '.pluginWrapper')
 
         console.log(pluginWrapper.length) // 4
     })

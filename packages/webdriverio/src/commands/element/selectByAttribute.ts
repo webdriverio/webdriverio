@@ -15,16 +15,16 @@ import { getElementFromResponse } from '../../utils'
         <option name="someName5" value="someValue5">seis</option>
     </select>
     :selectByAttribute.js
-    it('Should demonstrate the selectByAttribute command', () => {
-        const selectBox = $('#selectbox');
-        const value = selectBox.getValue();
+    it('Should demonstrate the selectByAttribute command', async () => {
+        const selectBox = await $('#selectbox');
+        const value = await selectBox.getValue();
         console.log(value); // returns "someValue0"
 
-        selectBox.selectByAttribute('value', 'someValue3');
-        console.log(selectBox.getValue()); // returns "someValue3"
+        await selectBox.selectByAttribute('value', 'someValue3');
+        console.log(await selectBox.getValue()); // returns "someValue3"
 
-        selectBox.selectByAttribute('name', 'someName5');
-        console.log(selectBox.getValue()); // returns "someValue5"
+        await selectBox.selectByAttribute('name', 'someName5');
+        console.log(await selectBox.getValue()); // returns "someValue5"
     });
  * </example>
  *

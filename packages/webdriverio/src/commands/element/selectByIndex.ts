@@ -15,11 +15,11 @@ import { getElementFromResponse } from '../../utils'
         <option value="someValue5">seis</option>
     </select>
     :selectByIndex.js
-    it('Should demonstrate the selectByIndex command', () => {
-        const selectBox = $('#selectbox');
-        console.log(selectBox.getValue()); // returns "someValue0"
-        selectBox.selectByIndex(4);
-        console.log(selectBox.getValue()); // returns "someValue4"
+    it('Should demonstrate the selectByIndex command', async () => {
+        const selectBox = await $('#selectbox');
+        console.log(await selectBox.getValue()); // returns "someValue0"
+        await selectBox.selectByIndex(4);
+        console.log(await selectBox.getValue()); // returns "someValue4"
     });
  * </example>
  *

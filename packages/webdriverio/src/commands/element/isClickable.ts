@@ -22,13 +22,13 @@ import isElementClickableScript from '../../scripts/isElementClickable'
  *
  * <example>
     :isClickable.js
-    it('should detect if an element is clickable', () => {
-        const el = $('#el')
-        let clickable = el.isClickable();
+    it('should detect if an element is clickable', async () => {
+        const el = await $('#el')
+        let clickable = await el.isClickable();
         console.log(clickable); // outputs: true or false
 
         // wait for element to be clickable
-        browser.waitUntil(() => el.isClickable())
+        await browser.waitUntil(() => el.isClickable())
     });
  * </example>
  *

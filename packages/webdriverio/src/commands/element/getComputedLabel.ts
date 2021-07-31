@@ -4,10 +4,10 @@
  *
  * <example>
     :getComputedLabel.js
-    it('should demonstrate the getComputedLabel command', () => {
-        browser.url('https://www.google.com/ncr')
-        const elem = $('*[name="q"]');
-        console.log(elem.getComputedLabel()); // outputs: "Search"
+    it('should demonstrate the getComputedLabel command', async () => {
+        await browser.url('https://www.google.com/ncr')
+        const elem = await $('*[name="q"]');
+        console.log(await elem.getComputedLabel()); // outputs: "Search"
     })
  * </example>
  *
