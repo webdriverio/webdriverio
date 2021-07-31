@@ -1,503 +1,543 @@
 interface KeyboardCompositionAction {
-    type: "key"
-    id: string
-    actions: (KeyDownAction | KeyUpAction)[]
+    type: "key";
+    id: string;
+    actions: (PauseAction | KeyDownAction | KeyUpAction)[];
 }
 
-interface MouseCompositionAction {
-    type: "pointer"
-    id: string
-    parameters?: { pointerType: "mouse" | "pen" | "touch" }
+  interface MouseCompositionAction {
+    type: "pointer";
+    id: string;
+    parameters?: { pointerType: "mouse" | "pen" | "touch" };
     actions: (
-        | PauseAction
-        | PointerDownAction
-        | PointerUpAction
-        | PointerMoveAction
-    )[]
-}
+      | PauseAction
+      | PointerDownAction
+      | PointerUpAction
+      | PointerMoveAction
+    )[];
+  }
 
-interface PauseCompositionAction {
-    type: null
-    id: string
-    actions: PauseAction[]
-}
+  interface PauseCompositionAction {
+    type: "none" | "key" | "pointer";
+    id: string;
+    actions: PauseAction[];
+  }
 
-interface PauseAction {
-    type: "pause"
-    duration: number
-}
+  interface PauseAction {
+    type: "pause";
+    duration: number;
+  }
 
-interface PointerDownAction {
-    type: "pointerDown"
-    button: 0 | 1 | 2 // left, middle, right
-}
+  interface PointerDownAction {
+    type: "pointerDown";
+    button: 0 | 1 | 2; // left, middle, right
+  }
 
-interface PointerUpAction {
-    type: "pointerUp"
-    button: 0 | 1 | 2 // left, middle, right
-}
+  interface PointerUpAction {
+    type: "pointerUp";
+    button: 0 | 1 | 2; // left, middle, right
+  }
 
-interface PointerMoveAction {
-    type: "pointerMove"
+  interface PointerMoveAction {
+    type: "pointerMove";
     /**
      * integer in ms
      */
-    duration?: number
+    duration?: number;
     /**
      * either (a) string, one of 'viewport' or 'pointer', or (b) an object representing a web element. Defaults to viewport if origin is omitted.
      */
-    origin?: "viewport" | "pointer" | WebdriverIO.Element
+    origin?: "viewport" | "pointer" | WebdriverIO.Element;
     /**
      * x-value to move to, relative to either viewport, pointer, or element based on origin
      */
-    x: number
+    x: number;
     /**
      * y-value to move to, relative to either viewport, pointer, or element based on origin
      */
-    y: number
-}
+    y: number;
+  }
 
-interface KeyDownAction {
-    type: "keyDown"
+  interface KeyDownAction {
+    type: "keyDown";
     /**
      * integer in ms
      */
-    duration?: number
+    duration?: number;
     /**
      * a string containing a single Unicode code point (any value in the Unicode code space).
      * Basically, this is either a 'normal' character like 'A',
      * or a Unicode code point like '\uE007' (Enter),
      * which can include control characters.
      */
-    value: string
-    origin?: "viewport" | "pointer" | WebdriverIO.Element
-}
+    value: string;
+    origin?: "viewport" | "pointer" | WebdriverIO.Element;
+  }
 
-interface KeyUpAction {
-    type: "keyUp"
+  interface KeyUpAction {
+    type: "keyUp";
     /**
      * integer in ms
      */
-    duration?: number
+    duration?: number;
     /**
      * a string containing a single Unicode code point (any value in the Unicode code space).
      * Basically, this is either a 'normal' character like 'A',
      * or a Unicode code point like '\uE007' (Enter),
      * which can include control characters.
      */
-    value: string
-    origin?: "viewport" | "pointer" | WebdriverIO.Element
-}
+    value: string;
+    origin?: "viewport" | "pointer" | WebdriverIO.Element;
+  }
 
-class CompositeAction {
+  class ActionsBuilder {
+
+    constructor(private browser: WebdriverIO.Browser) {}
+
     public actions: (
+      | KeyboardCompositionAction
+      | MouseCompositionAction
+      | PauseCompositionAction
+    )[] = [];
+
+    private asInteraction(
+      action:
         | KeyboardCompositionAction
         | MouseCompositionAction
         | PauseCompositionAction
-    )[] = []
-
-    private asInteraction(
-        action:
-            | KeyboardCompositionAction
-            | MouseCompositionAction
-            | PauseCompositionAction
     ) {
-        if (action.type === null) return action as PauseCompositionAction
-        if (action.type === "key") return action as KeyboardCompositionAction
-        if (action.type === "pointer") return action as MouseCompositionAction
-        throw Error("Type not supported.")
+      if (action.type === "none") return action as PauseCompositionAction;
+      if (action.type === "key") return action as KeyboardCompositionAction;
+      if (action.type === "pointer") return action as MouseCompositionAction;
+      throw Error("Type not supported.");
     }
 
     addAction(
-        action:
-            | KeyboardCompositionAction
-            | MouseCompositionAction
-            | PauseCompositionAction
-    ) {
-        this.actions.push(this.asInteraction(action))
-    }
-
-    async perform(compositeActions?: (KeyboardCompositionAction | MouseCompositionAction | PauseCompositionAction)[]) {
-        const actions = compositeActions || this.actions
-
-        for (const actionSet of actions) {
-            await browser.performActions([actionSet])
-        }
-
-        await browser.releaseActions()
-
-        this.actions = []
-    }
-}
-
-/**
- * NOTE: only works for W3C compatible browsers
- * The user-facing API for emulating complex user gestures.
- * Use this class rather than using the Keyboard or Mouse directly.
- * Implements the builder pattern: Builds a CompositeAction containing all actions specified by the method calls.
- * Call perform() at the end of the method chain to actually perform the actions.
- */
-export class Actions {
-    private static compositeActions = new CompositeAction()
-    private static actions: (
+      action:
         | KeyboardCompositionAction
         | MouseCompositionAction
         | PauseCompositionAction
-    )[] = []
+    ) {
+      if (this.actions.length > 0) {
+        const lastAction = this.actions[this.actions.length - 1];
+        const lastOrigin = (
+          lastAction.actions[lastAction.actions.length - 1] as
+            | KeyDownAction
+            | KeyUpAction
+        ).origin;
+        const origin = (
+          action.actions[action.actions.length - 1] as KeyDownAction | KeyUpAction
+        ).origin;
+
+        if (lastAction.type === "key" && action.type === "key") {
+          const actions = lastAction.actions.concat(action.actions as any);
+          lastAction.actions = actions;
+          return;
+        }
+        if (lastAction.type === "pointer" && action.type === "pointer") {
+          const actions = lastAction.actions.concat(action.actions as any);
+          lastAction.actions = actions;
+          return;
+        }
+
+        if (lastAction.type === "key" && action.type === "none") {
+          action.type = lastAction.type;
+          const actions = lastAction.actions.concat(action.actions);
+          lastAction.actions = actions;
+          return;
+        }
+        if (lastAction.type === "pointer" && action.type === "none") {
+          action.type = lastAction.type;
+          const actions = lastAction.actions.concat(action.actions);
+          lastAction.actions = actions;
+          return;
+        }
+      }
+
+      const index = this.actions.length - 1;
+      action.id += index;
+      this.actions.push(this.asInteraction(action));
+    }
+
+    async perform(
+      compositeActions?: (
+        | KeyboardCompositionAction
+        | MouseCompositionAction
+        | PauseCompositionAction
+      )[]
+    ) {
+      const actions = compositeActions || this.actions;
+
+      for (const actionSet of actions) {
+        await this.browser.performActions([actionSet]);
+      }
+
+      await this.browser.releaseActions();
+
+      this.actions = [];
+    }
+
+    click(button: 0 | 1 | 2 = 0): MouseCompositionAction {
+      return {
+        type: "pointer",
+        id: "click",
+        parameters: { pointerType: "mouse" },
+        actions: [
+          { type: "pointerDown", button },
+          { type: "pointerUp", button },
+        ],
+      };
+    }
+
+    clickAndHold(): MouseCompositionAction {
+      return {
+        type: "pointer",
+        id: "clickAndHold",
+        parameters: { pointerType: "mouse" },
+        actions: [{ type: "pointerDown", button: 0 }],
+      };
+    }
+
+    keyAction({
+      origin,
+      type,
+      value,
+    }: {
+      origin?: WebdriverIO.Element;
+      type: "keyDown" | "keyUp";
+      value: string;
+    }): KeyboardCompositionAction {
+      return {
+        type: "key",
+        id: "keyAction",
+        actions: [{ origin, type, value }],
+      };
+    }
+
+    moveTo({
+      origin,
+      x,
+      y,
+    }: {
+      origin?: WebdriverIO.Element;
+      x: number;
+      y: number;
+    }): MouseCompositionAction {
+      return {
+        type: "pointer",
+        id: "moveTo",
+        parameters: { pointerType: "mouse" },
+        actions: [{ type: "pointerMove", origin, x, y }],
+      };
+    }
+
+    pause(duration: number = 0): PauseCompositionAction {
+      return {
+        type: "none",
+        id: "pause",
+        actions: [{ type: "pause", duration }],
+      };
+    }
+
+    release(button: 0 | 1 | 2 = 0): MouseCompositionAction {
+      return {
+        type: "pointer",
+        id: "release",
+        parameters: { pointerType: "mouse" },
+        actions: [{ type: "pointerUp", button }],
+      };
+    }
+  }
+
+  /**
+   * NOTE: only works for W3C compatible browsers
+   * The user-facing API for emulating complex user gestures.
+   * Use this class rather than using the Keyboard or Mouse directly.
+   * Implements the builder pattern: Builds a CompositeAction containing all actions specified by the method calls.
+   * Call perform() at the end of the method chain to actually perform the actions.
+   */
+  export class Actions {
+
+    constructor(private browser: WebdriverIO.Browser) {}
+
+    private compositeActions = new ActionsBuilder(this.browser);
+    private actions: (
+      | KeyboardCompositionAction
+      | MouseCompositionAction
+      | PauseCompositionAction
+    )[] = [];
 
     /**
      * Generates a composite action containing all actions so far, ready to be performed (and resets the internal builder state, so subsequent calls to this method will contain fresh sequences).
      */
-    public static build() {
-        Actions.actions = Actions.compositeActions.actions
-        Actions.compositeActions = new CompositeAction()
-        return Actions.actions
+    public build() {
+      this.actions = this.compositeActions.actions;
+      this.compositeActions = new ActionsBuilder();
+      return this.actions;
     }
 
     /**
      * Clicks at the current mouse location.
      */
-    public static click(): typeof Actions
+    public click(): this;
     /**
      * Clicks in the middle of the given element.
      */
-    public static click(target: WebdriverIO.Element): typeof Actions
-    public static click(target?: WebdriverIO.Element): typeof Actions {
-        if (typeof target !== "undefined") {
-            Actions.moveToElement(target)
-        }
+    public click(target: WebdriverIO.Element): this;
+    public click(target?: WebdriverIO.Element): this {
+      if (typeof target !== "undefined") {
+        this.moveToElement(target);
+      }
 
-        Actions.compositeActions.addAction({
-            type: "pointer",
-            id: "click",
-            parameters: { pointerType: "mouse" },
-            actions: [
-                { type: "pointerDown", button: 0 },
-                { type: "pointerUp", button: 0 },
-            ],
-        })
+      this.compositeActions.addAction(this.compositeActions.click());
 
-        return Actions
+      return this;
     }
 
     /**
      * Clicks (without releasing) at the current mouse location.
      */
-    public static clickAndHold(): typeof Actions
+    public clickAndHold(): this;
     /**
      * Clicks (without releasing) in the middle of the given element.
      */
-    public static clickAndHold(target: WebdriverIO.Element): typeof Actions
-    public static clickAndHold(target?: WebdriverIO.Element): typeof Actions {
-        if (typeof target !== "undefined") {
-            Actions.moveToElement(target)
-        }
+    public clickAndHold(target: WebdriverIO.Element): this;
+    public clickAndHold(target?: WebdriverIO.Element): this {
+      if (typeof target !== "undefined") {
+        this.moveToElement(target);
+      }
 
-        Actions.compositeActions.addAction({
-            type: "pointer",
-            id: "clickAndHold",
-            parameters: { pointerType: "mouse" },
-            actions: [{ type: "pointerDown", button: 0 }],
-        })
+      this.compositeActions.addAction(this.compositeActions.clickAndHold());
 
-        return Actions
+      return this;
     }
 
     /**
      * Performs a context-click at the current mouse location.
      */
-    public static contentClick(): typeof Actions
+    public contentClick(): this;
     /**
      * Performs a context-click at middle of the given element.
      */
-    public static contentClick(target: WebdriverIO.Element): typeof Actions
-    public static contentClick(target?: WebdriverIO.Element) {
-        if (typeof target !== "undefined") {
-            Actions.moveToElement(target)
-        }
+    public contentClick(target: WebdriverIO.Element): this;
+    public contentClick(target?: WebdriverIO.Element) {
+      if (typeof target !== "undefined") {
+        this.moveToElement(target);
+      }
 
-        Actions.compositeActions.addAction({
-            type: "pointer",
-            id: "contentClick",
-            parameters: { pointerType: "mouse" },
-            actions: [
-                { type: "pointerDown", button: 2 },
-                { type: "pointerUp", button: 2 },
-            ],
-        })
+      this.compositeActions.addAction(this.compositeActions.click(2));
 
-        return Actions
+      return this;
     }
 
     /**
      * Performs a double-click at the current mouse location.
      */
-    public static doubleClick(): typeof Actions
+    public doubleClick(): this;
     /**
      * Performs a double-click at middle of the given element.
      */
-    public static doubleClick(target: WebdriverIO.Element): typeof Actions
-    public static doubleClick(target?: WebdriverIO.Element) {
-        if (typeof target !== "undefined") {
-            Actions.moveToElement(target)
-        }
+    public doubleClick(target: WebdriverIO.Element): this;
+    public doubleClick(target?: WebdriverIO.Element) {
+      if (typeof target !== "undefined") {
+        this.moveToElement(target);
+      }
 
-        Actions.compositeActions.addAction({
-            type: "pointer",
-            id: "doubleClick",
-            parameters: { pointerType: "mouse" },
-            actions: [
-                { type: "pointerDown", button: 0 },
-                { type: "pointerUp", button: 0 },
-                { type: "pointerDown", button: 0 },
-                { type: "pointerUp", button: 0 },
-            ],
-        })
+      this.click().pause(10).click();
 
-        return Actions
+      return this;
     }
 
     /**
      * A convenience method that performs click-and-hold at the location of the source element, moves to the location of the target element, then releases the mouse.
      */
-    public static dragAndDrop(
-        source: WebdriverIO.Element,
-        target: WebdriverIO.Element
-    ): typeof Actions {
-        Actions.compositeActions.addAction({
-            type: "pointer",
-            id: "dragAndDrop",
-            parameters: { pointerType: "mouse" },
-            actions: [
-                {
-                    type: "pointerMove",
-                    duration: 0,
-                    origin: source,
-                    x: 0,
-                    y: 0,
-                },
-                { type: "pointerDown", button: 0 },
-                { type: "pointerMove", origin: target, x: 0, y: 0 },
-                { type: "pointerUp", button: 0 },
-            ],
-        })
+    public dragAndDrop(
+      source: WebdriverIO.Element,
+      target: WebdriverIO.Element
+    ): this {
+      this.clickAndHold(source)
+        .pause(10)
+        .moveToElement(target)
+        .release(target);
 
-        return Actions
+      return this;
     }
 
     /**
      * A convenience method that performs click-and-hold at the location of the source element, moves by a given offset, then releases the mouse.
      */
-    public static dragAndDropBy(
-        source: WebdriverIO.Element,
-        x: number,
-        y: number
-    ): typeof Actions {
-        Actions.compositeActions.addAction({
-            type: "pointer",
-            id: "dragAndDrop",
-            parameters: { pointerType: "mouse" },
-            actions: [
-                { type: "pointerMove", origin: source, x: 0, y: 0 },
-                { type: "pointerDown", button: 0 },
-                { type: "pointerMove", x, y },
-                { type: "pointerUp", button: 0 },
-            ],
-        })
+    public dragAndDropBy(
+      source: WebdriverIO.Element,
+      x: number,
+      y: number
+    ): this {
+      this.clickAndHold(source).pause(10).moveByOffset(x, y).release();
 
-        return Actions
+      return this;
     }
 
     /**
      * Performs a modifier key press.
      */
-    public static keyDown(keys: string): typeof Actions
+    public keyDown(keys: string): this;
     /**
      * Performs a modifier key press after focusing on an element.
      */
-    public static keyDown(
-        target: WebdriverIO.Element,
-        keys: string
-    ): typeof Actions
-    public static keyDown(target: unknown, key?: string): typeof Actions {
-        if (typeof key === "undefined") {
-            [key, target] = [target as string, key]
-        }
+    public keyDown(
+      target: WebdriverIO.Element,
+      keys: string
+    ): this;
+    public keyDown(target: unknown, key?: string): this {
+      if (typeof key === "undefined") {
+        [key, target] = [target as string, key];
+      }
 
-        if (typeof target !== "undefined") {
-            Actions.moveToElement(target as WebdriverIO.Element)
-        }
+      if (typeof target !== "undefined") {
+        this.moveToElement(target as WebdriverIO.Element);
+      }
 
-        Actions.compositeActions.addAction({
-            type: "key",
-            id: "keyDown",
-            actions: [{ type: "keyDown", value: key }],
-        })
+      this.compositeActions.addAction(
+        this.compositeActions.keyAction({ type: "keyDown", value: key })
+      );
 
-        return Actions
+      return this;
     }
 
     /**
      * Performs a modifier key press.
      */
-    public static keyUp(keys: string): typeof Actions
+    public keyUp(keys: string): this;
     /**
      * Performs a modifier key press after focusing on an element.
      */
-    public static keyUp(
-        target: WebdriverIO.Element,
-        keys: string
-    ): typeof Actions
-    public static keyUp(target: unknown, key?: string): typeof Actions {
-        if (typeof key === "undefined") {
-            [key, target] = [target as string, key]
-        }
+    public keyUp(
+      target: WebdriverIO.Element,
+      keys: string
+    ): this;
+    public keyUp(target: unknown, key?: string): this {
+      if (typeof key === "undefined") {
+        [key, target] = [target as string, key];
+      }
 
-        if (typeof target !== "undefined") {
-            Actions.moveToElement(target as WebdriverIO.Element)
-        }
+      if (typeof target !== "undefined") {
+        this.moveToElement(target as WebdriverIO.Element);
+      }
 
-        Actions.compositeActions.addAction({
-            type: "key",
-            id: "keyUp",
-            actions: [{ type: "keyUp", value: key }],
-        })
+      this.compositeActions.addAction(
+        this.compositeActions.keyAction({ type: "keyUp", value: key })
+      );
 
-        return Actions
+      return this;
     }
 
     /**
      * Moves the mouse from its current position (or 0,0) by the given offset.
      */
-    public static moveByOffset(x: number, y: number): typeof Actions {
-        Actions.compositeActions.addAction({
-            type: "pointer",
-            id: "moveByOffset",
-            parameters: { pointerType: "mouse" },
-            actions: [{ type: "pointerMove", x, y }],
-        })
-
-        return Actions
+    public moveByOffset(x: number = 0, y: number = 0): this {
+      this.compositeActions.addAction(
+        this.compositeActions.moveTo({ x, y })
+      );
+      return this;
     }
 
     /**
      * Moves the mouse to the middle of the element.
      */
-    public static moveToElement(target: WebdriverIO.Element): typeof Actions
+    public moveToElement(target: WebdriverIO.Element): this;
     /**
      * Moves the mouse to an offset from the element's in-view center point.
      */
-    public static moveToElement(
-        target: WebdriverIO.Element,
-        x: number,
-        y: number
-    ): typeof Actions
-    public static moveToElement(
-        target: WebdriverIO.Element,
-        x?: number,
-        y?: number
-    ): typeof Actions {
-        Actions.compositeActions.addAction({
-            type: "pointer",
-            id: "moveToElement",
-            parameters: { pointerType: "mouse" },
-            actions: [
-                { type: "pointerMove", origin: target, x: x || 0, y: y || 0 },
-            ],
-        })
-
-        return Actions
+    public moveToElement(
+      target: WebdriverIO.Element,
+      x: number,
+      y: number
+    ): this;
+    public moveToElement(
+      target: WebdriverIO.Element,
+      x: number = 0,
+      y: number = 0
+    ): this {
+      this.compositeActions.addAction(
+        this.compositeActions.moveTo({ origin: target, x, y })
+      );
+      return this;
     }
 
     /**
      * Performs a pause.
      */
-    public static pause(duration: number): typeof Actions {
-        Actions.compositeActions.addAction({
-            type: null,
-            id: "pause",
-            actions: [{ type: "pause", duration }],
-        })
-
-        return Actions
+    public pause(duration: number): this {
+      this.compositeActions.addAction(
+        this.compositeActions.pause(duration)
+      );
+      return this;
     }
 
     /**
      * A convenience method for performing the actions without calling build() first.
      */
-    public static async perform() {
-        if (Actions.actions.length > 0) {
-            await Actions.compositeActions.perform(Actions.build())
-            Actions.actions = []
-            return;
-        }
-        await Actions.compositeActions.perform()
+    public async perform() {
+      if (this.actions.length > 0) {
+        await this.compositeActions.perform(this.build());
+        this.actions = [];
+        return;
+      }
+      await this.compositeActions.perform();
     }
 
     /**
      * Releases the depressed left mouse button at the current mouse location.
      */
-    public static release(): typeof Actions
+    public release(): this;
     /**
      * Releases the depressed left mouse button, in the middle of the given element.
      */
-    public static release(target: WebdriverIO.Element): typeof Actions
-    public static release(target?: WebdriverIO.Element): typeof Actions {
-        if (typeof target !== "undefined") {
-            Actions.moveToElement(target)
-        }
+    public release(target: WebdriverIO.Element): this;
+    public release(target?: WebdriverIO.Element): this {
+      if (typeof target !== "undefined") {
+        this.moveToElement(target);
+      }
 
-        Actions.compositeActions.addAction({
-            type: "pointer",
-            id: "release",
-            parameters: { pointerType: "mouse" },
-            actions: [{ type: "pointerUp", button: 0 }],
-        })
-
-        return Actions
+      this.compositeActions.addAction(this.compositeActions.release());
+      return this;
     }
 
     /**
      * Sends keys to the active element.
      */
-    public static sendKeys(keys: string): typeof Actions
+    public sendKeys(keys: string): this;
     /**
-     * Equivalent to calling: Actions.click(element).sendKeys(keysToSend).
+     * Equivalent to calling: this.click(element).sendKeys(keysToSend).
      */
-    public static sendKeys(
-        target: WebdriverIO.Element,
-        keys: string
-    ): typeof Actions
-    public static sendKeys(target: unknown, keys?: string): typeof Actions {
-        if (typeof keys === "undefined") {
-            [keys, target] = [target as string, keys]
-        }
+    public sendKeys(
+      target: WebdriverIO.Element,
+      keys: string
+    ): this;
+    public sendKeys(target: unknown, keys?: string): this {
+      if (typeof keys === "undefined") {
+        [keys, target] = [target as string, keys];
+      }
 
-        const actions: (KeyDownAction | KeyUpAction)[] = []
+      if (typeof target !== "undefined") {
+        this.click(target as WebdriverIO.Element);
+      }
 
-        if (typeof target !== "undefined") {
-            Actions.moveToElement(target as WebdriverIO.Element).click()
-        }
+      keys.split('').forEach((key) => {
+        const keyDownAction = this.compositeActions.keyAction({
+          origin: target as WebdriverIO.Element,
+          type: "keyDown",
+          value: key
+        });
 
-        for (const key of keys) {
-            actions.push({
-                type: "keyDown",
-                value: key,
-                origin: target as WebdriverIO.Element,
-            })
-            actions.push({
-                type: "keyUp",
-                value: key,
-                origin: target as WebdriverIO.Element,
-            })
-        }
-
-        Actions.compositeActions.addAction({
-            type: "key",
-            id: "sendKeys",
-            actions,
+        const keyUpAction = this.compositeActions.keyAction({
+          origin: target as WebdriverIO.Element,
+          type: "keyUp",
+          value: key
         })
 
-        return Actions
+        this.compositeActions.addAction(keyDownAction);
+        this.compositeActions.addAction(keyUpAction);
+      })
+
+      return this;
     }
-}
+  }
