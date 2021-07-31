@@ -1,3 +1,4 @@
+import type { Capabilities } from '@wdio/types'
 
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
@@ -23,7 +24,10 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                  * assume Safari responses like { error: 'no such element', message: '', stacktrace: '' }
                  * as `stale element reference`
                  */
-                if (result && result.error === 'no such element') {
+                if (
+                    (this.capabilities as Capabilities.Capabilities).browserName === 'safari' &&
+                    result && result.error === 'no such element'
+                ) {
                     const err = new Error()
                     err.name = 'stale element reference'
                     throw err
