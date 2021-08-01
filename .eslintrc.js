@@ -33,7 +33,8 @@ module.exports = {
         'unicode-bom': ['error', 'never'],
         'object-curly-spacing': ['error', 'always'],
         'keyword-spacing':['error'],
-        'require-atomic-updates': 0
+        'require-atomic-updates': 0,
+        'linebreak-style': ['error', 'unix']
     },
     overrides: [{
         files: ['*.ts'],

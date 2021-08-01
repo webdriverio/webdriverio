@@ -1,6 +1,6 @@
 {
   "name": "@wdio/dot-reporter",
-  "version": "7.8.0",
+  "version": "7.9.0",
   "description": "A WebdriverIO plugin to report in dot style",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-dot-reporter",
@@ -22,7 +22,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/reporter": "7.8.0",
+    "@wdio/reporter": "7.9.0",
     "@wdio/types": "7.8.0",
     "chalk": "^4.0.0"
   },
