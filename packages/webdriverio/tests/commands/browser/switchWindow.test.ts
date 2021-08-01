@@ -1,6 +1,41 @@
+/**
+ * @jest-environment jsdom
+ */
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
+
+describe('switchwindow by name', () => {
+    beforeEach(() => {
+        global.window.open = jest.fn()
+    })
+
+    afterEach(() => {
+        got.mockClear()
+        ;(global.window.open as jest.Mock).mockRestore()
+    })
+
+    it('should allow to switch by window name', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        await browser.newWindow('https://webdriver.io', {
+            windowName: 'test1',
+            windowFeatures: 'some params'
+        })
+        await browser.newWindow('https://webdriver.io', {
+            windowName: 'test2',
+            windowFeatures: 'some params'
+        })
+        await browser.switchWindow('test1')
+        expect(got.mock.calls[3][1].json.handle)
+            .toBe('window-handle-4')
+    })
+})
 
 describe('switchWindow', () => {
     let browser: WebdriverIO.BrowserObject
@@ -13,7 +48,6 @@ describe('switchWindow', () => {
                 browserName: 'foobar'
             }
         })
-        global.window.open = jest.fn()
     })
 
     it('should allow to switch to a window handle', async () => {
@@ -31,10 +65,6 @@ describe('switchWindow', () => {
         got.setMockResponse([null, null, 'foo', 'bar', null, 'hello', 'world', null, 'some', 'url'])
         const anotherTabId = await browser.switchWindow('world')
         expect(anotherTabId).toBe('window-handle-2')
-        await browser.newWindow('http://foobar.com', { windowName:'testName1' })
-        await browser.newWindow('http://foobar.com', { windowName:'testName2' })
-        const nameTabId = await browser.switchWindow('testName1')
-        expect(nameTabId).toBe('window-handle-4')
     })
 
     it('should fail if no window was found', async () => {
