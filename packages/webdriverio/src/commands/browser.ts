@@ -1,5 +1,6 @@
 import $$ from './browser/$$'
 import $ from './browser/$'
+import actions from './browser/actions'
 import call from './browser/call'
 import custom$$ from './browser/custom$$'
 import custom$ from './browser/custom$'
@@ -33,7 +34,7 @@ import url from './browser/url'
 import waitUntil from './browser/waitUntil'
 
 export default {
-    $$, $, call, custom$$, custom$, debug, deleteCookies, execute, executeAsync, getCookies,
+    $$, $, actions, call, custom$$, custom$, debug, deleteCookies, execute, executeAsync, getCookies,
     getPuppeteer, getWindowSize, keys, mock, mockClearAll, mockRestoreAll, newWindow, pause,
     react$$, react$, reloadSession, savePDF, saveRecordingScreen, saveScreenshot, setCookies,
     setTimeout, setWindowSize, switchWindow, throttle, touchAction, uploadFile, url, waitUntil
