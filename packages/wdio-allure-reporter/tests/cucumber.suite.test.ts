@@ -109,9 +109,10 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     describe('Passing tests', () => {
         const outputDir = directory()
         let allureXml: any
+        let reporter: any
 
         beforeAll(() => {
-            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+            reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
 
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(cucumberHelper.featureStart())
@@ -137,6 +138,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
         afterAll(() => {
             clean(outputDir)
+            jest.resetAllMocks()
         })
 
         it('should report one suite', () => {
@@ -196,14 +198,25 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         it('should move attachments from successful hook to test-case', () => {
             expect(allureXml('test-case > attachments > attachment').length).toEqual(1)
         })
+
+        it('should not call endStep if currentStep is not `Step` instance', () => {
+            reporter._allure.getCurrentSuite = jest.fn()
+            reporter._allure.endStep = jest.fn()
+            reporter._allure.endCase = jest.fn()
+
+            reporter.onTestPass()
+            expect(reporter._allure.endStep).not.toHaveBeenCalled()
+            expect(reporter._allure.endCase).toHaveBeenCalled()
+        })
     })
 
     describe('Skipped test', () => {
         const outputDir = directory()
         let allureXml: any
+        let reporter: any
 
         beforeAll(() => {
-            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+            reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
 
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(cucumberHelper.featureStart())
@@ -222,6 +235,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
         afterAll(() => {
             clean(outputDir)
+            jest.resetAllMocks()
         })
 
         it('should report one suite', () => {
@@ -238,6 +252,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('step > title').eq(0).text()).toEqual('I do something')
             expect(allureXml('step').eq(0).attr('status')).toEqual('canceled')
             expect(allureXml('step').length).toEqual(1)
+        })
+
+        it('should not call endStep if currentStep is not `Step` instance', () => {
+            reporter._allure.getCurrentSuite = jest.fn()
+            reporter._allure.endStep = jest.fn()
+
+            reporter.onTestSkip(cucumberHelper.testSkipped())
+            expect(reporter._allure.endStep).not.toHaveBeenCalled()
         })
     })
 
@@ -294,6 +316,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     describe('Failed tests', () => {
         let outputDir: any
         let allureXml
+        let reporter: any
 
         beforeEach(() => {
             outputDir = directory()
@@ -301,10 +324,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
         afterEach(() => {
             clean(outputDir)
+            jest.resetAllMocks()
         })
 
         it('should handle failed test', () => {
-            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+            reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
 
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(cucumberHelper.featureStart())
@@ -357,6 +381,15 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
         })
 
+        it('should not call endStep if currentStep is not `Step` instance', () => {
+            reporter._allure.getCurrentSuite = jest.fn()
+            reporter._allure.endStep = jest.fn()
+            reporter._allure.endCase = jest.fn()
+
+            reporter.onTestFail(cucumberHelper.testSkipped())
+            expect(reporter._allure.endStep).not.toHaveBeenCalled()
+            expect(reporter._allure.endCase).toHaveBeenCalled()
+        })
     })
 
     describe('Data Table', () => {
