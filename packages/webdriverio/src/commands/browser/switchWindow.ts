@@ -66,12 +66,12 @@ export default async function switchWindow (
         }
 
         /**
-         * check if url matches
+         * check window name
          */
-         const windowName:string = await this.execute('return typeof(window) !== "undefined" && window.name')
-         if (Object.keys(windowName).length && matchesTarget(windowName)) {
-             return tab
-         }
+        const windowName:string = await this.execute('return typeof(window) !== "undefined" && window.name')
+        if (Object.keys(windowName).length && matchesTarget(windowName)) {
+            return tab
+        }
     }
 
     throw new Error(`No window found with title or url matching "${urlOrTitleToMatch}"`)
