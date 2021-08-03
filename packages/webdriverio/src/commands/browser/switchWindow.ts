@@ -19,7 +19,7 @@
     });
  * </example>
  *
- * @param {String|RegExp}  urlOrTitleToMatch  String or regular expression that matches the title or url of the page
+ * @param {String|RegExp}  matcher  String or regular expression that matches the title or url of the page
  *
  * @uses protocol/getWindowHandles, protocol/switchToWindow, protocol/getUrl, protocol/getTitle
  * @alias browser.switchTab
@@ -28,22 +28,22 @@
  */
 export default async function switchWindow (
     this: WebdriverIO.Browser,
-    urlOrTitleToMatch: string | RegExp
+    matcher: string | RegExp
 ) {
     /**
      * parameter check
      */
-    if (typeof urlOrTitleToMatch !== 'string' && !(urlOrTitleToMatch instanceof RegExp)) {
+    if (typeof matcher !== 'string' && !(matcher instanceof RegExp)) {
         throw new Error('Unsupported parameter for switchWindow, required is "string" or an RegExp')
     }
 
     const tabs = await this.getWindowHandles()
 
     const matchesTarget = (target: string): boolean => {
-        if (typeof urlOrTitleToMatch ==='string') {
-            return target.includes(urlOrTitleToMatch)
+        if (typeof matcher ==='string') {
+            return target.includes(matcher)
         }
-        return !!target.match(urlOrTitleToMatch)
+        return !!target.match(matcher)
     }
 
     for (const tab of tabs) {
@@ -68,11 +68,12 @@ export default async function switchWindow (
         /**
          * check window name
          */
-        const windowName:string = await this.execute('return typeof(window) !== "undefined" && window.name')
-        if (Object.keys(windowName).length && matchesTarget(windowName)) {
+        const getWindowName = ()=> typeof(window) !== "undefined" && window.name
+        const windowName: string|boolean = await this.execute(getWindowName)
+        if (Object.keys(windowName).length && matchesTarget(windowName.toString())) {
             return tab
         }
     }
 
-    throw new Error(`No window found with title or url matching "${urlOrTitleToMatch}"`)
+    throw new Error(`No window found with title or url matching "${matcher}"`)
 }
