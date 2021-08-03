@@ -68,7 +68,7 @@ export default async function switchWindow (
         /**
          * check window name
          */
-        const getWindowName = ()=> typeof(window) !== "undefined" && window.name
+        const getWindowName = ()=> typeof(window) !== 'undefined' && window.name
         const windowName: string|boolean = await this.execute(getWindowName)
         if (Object.keys(windowName).length && matchesTarget(windowName.toString())) {
             return tab
