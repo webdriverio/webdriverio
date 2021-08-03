@@ -12,7 +12,7 @@ describe('Mocha smoke test', () => {
     it('should allow to iterate over elements', async () => {
         const expectedResults = await browser.asyncIterationScenario()
         let i = 0
-        for await (let elem of $$('elems')) {
+        for await (let elem of browser.$$('elems')) {
             assert.equal(expectedResults[i++], elem.elementId)
         }
     })
