@@ -19,7 +19,7 @@
     });
  * </example>
  *
- * @param {String|RegExp}  matcher  String or regular expression that matches the title or url of the page
+ * @param {String|RegExp}  matcher  String or regular expression that matches the title and url of the page or window name
  *
  * @uses protocol/getWindowHandles, protocol/switchToWindow, protocol/getUrl, protocol/getTitle
  * @alias browser.switchTab
