@@ -24,8 +24,9 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                  * assume Safari responses like { error: 'no such element', message: '', stacktrace: '' }
                  * as `stale element reference`
                  */
+                const caps = this.capabilities as Capabilities.Capabilities
                 if (
-                    (this.capabilities as Capabilities.Capabilities).browserName === 'safari' &&
+                    caps && caps.browserName === 'safari' &&
                     result && result.error === 'no such element'
                 ) {
                     const err = new Error()
