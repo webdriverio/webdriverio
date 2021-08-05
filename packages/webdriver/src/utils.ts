@@ -215,8 +215,8 @@ export function getErrorFromResponseBody (body: any) {
         return new Error(body)
     }
 
-    if (typeof body !== 'object' || (!body.value && !body.error)) {
-        return new Error('unknown error')
+    if (typeof body !== 'object') {
+        return new Error('Unknown error')
     }
 
     return new CustomRequestError(body)
@@ -231,6 +231,12 @@ export class CustomRequestError extends Error {
             this.name = errorObj.error
         } else if (errorObj.message && errorObj.message.includes('stale element reference')) {
             this.name = 'stale element reference'
+        } else {
+            this.name = errorObj.name || 'WebDriver Error'
+        }
+
+        if (errorObj.stacktrace) {
+            this.stack = errorObj.stacktrace
         }
     }
 }
