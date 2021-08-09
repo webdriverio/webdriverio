@@ -46,3 +46,15 @@ export function getBrowserCapabilities(browser: Browser<'async'> | MultiRemoteBr
 export function isBrowserstackCapability(cap?: Capabilities.Capabilities) {
     return Boolean(cap && cap['bstack:options'])
 }
+
+export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): string {
+    const fullTitleWords = fullTitle.split(' ')
+    const testSuiteTitleWords = testSuiteTitle.split(' ')
+    const shortestLength = Math.min(fullTitleWords.length, testSuiteTitleWords.length)
+    let c = 0
+    let parentSuiteName = ''
+    while (c < shortestLength && fullTitleWords[c] === testSuiteTitleWords[c]) {
+        parentSuiteName += fullTitleWords[c++] + ' '
+    }
+    return parentSuiteName.trim()
+}

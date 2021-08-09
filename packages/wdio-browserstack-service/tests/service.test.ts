@@ -357,6 +357,23 @@ describe('afterTest', () => {
         service.afterTest({ title: 'bar', parent: 'foo' } as any, undefined as never, {} as any)
         expect(service['_fullTitle']).toBe('foo - bar')
     })
+
+    describe('Jasmine only', () => {
+        it('should set suite name of first test as title', () => {
+            service.before(service['_config'], [], browser)
+            service.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as any)
+            service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
+            expect(service['_fullTitle']).toBe('foo bar')
+        })
+
+        it('should set parent suite name as title', () => {
+            service.before(service['_config'], [], browser)
+            service.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as any)
+            service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
+            service.afterTest({ fullName: 'foo xyz', description: 'xyz' } as any, undefined as never, {} as any)
+            expect(service['_fullTitle']).toBe('foo')
+        })
+    })
 })
 
 describe('afterScenario', () => {
