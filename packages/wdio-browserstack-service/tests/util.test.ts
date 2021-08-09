@@ -1,6 +1,11 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability } from '../src/util'
+import {
+    getBrowserDescription,
+    getBrowserCapabilities,
+    isBrowserstackCapability,
+    getParentSuiteName
+} from '../src/util'
 
 describe('getBrowserCapabilities', () => {
     it('should get default browser capabilities', () => {
@@ -124,5 +129,23 @@ describe('isBrowserstackCapability', () => {
         // @ts-expect-error test invalid params
         expect(isBrowserstackCapability({ 'bstack:options': null })).toBe(false)
         expect(isBrowserstackCapability({ 'bstack:options': {} })).toBe(true)
+    })
+})
+
+describe('getParentSuiteName', () => {
+    it('should return the parent suite name', () => {
+        expect(getParentSuiteName('foo bar', 'foo')).toBe('foo')
+        expect(getParentSuiteName('foo', 'foo bar')).toBe('foo')
+        expect(getParentSuiteName('foo bar', 'foo baz')).toBe('foo')
+        expect(getParentSuiteName('foo bar', 'foo bar')).toBe('foo bar')
+    })
+
+    it('should return empty string if no common parent', () => {
+        expect(getParentSuiteName('foo bar', 'baz bar')).toBe('')
+    })
+
+    it('should handle empty values', () => {
+        expect(getParentSuiteName('', 'foo')).toBe('')
+        expect(getParentSuiteName('foo', '')).toBe('')
     })
 })

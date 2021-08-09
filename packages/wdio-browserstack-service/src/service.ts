@@ -3,7 +3,7 @@ import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability } from './util'
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName } from './util'
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 import { CUCUMBER_STATUS_MAP } from './constants'
 
@@ -89,7 +89,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             if (this._fullTitle === 'Jasmine__TopLevel__Suite') {
                 this._fullTitle = testSuiteName
             } else if (this._fullTitle) {
-                this._fullTitle = this._parentSuiteName(this._fullTitle, testSuiteName)
+                this._fullTitle = getParentSuiteName(this._fullTitle, testSuiteName)
             }
         } else {
             // Mocha
@@ -235,14 +235,5 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const browserString = getBrowserDescription(capabilities)
             log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
         })
-    }
-
-    _parentSuiteName(testDescription: string, otherTestDescription: string): string {
-        const shortestLength = Math.min(testDescription.length, otherTestDescription.length)
-        let c = 0
-        while (c < shortestLength && testDescription[c] === otherTestDescription[c]) {
-            c++
-        }
-        return testDescription.substr(0, c).trim()
     }
 }
