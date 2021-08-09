@@ -1,6 +1,6 @@
 {
   "name": "@wdio/jasmine-framework",
-  "version": "7.9.0",
+  "version": "7.9.1",
   "description": "A WebdriverIO plugin. Adapter for Jasmine testing framework.",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework",
@@ -29,7 +29,7 @@
     "@types/node": "^15.12.5",
     "@wdio/logger": "7.7.0",
     "@wdio/types": "7.8.0",
-    "@wdio/utils": "7.9.0",
+    "@wdio/utils": "7.9.1",
     "expect-webdriverio": "^3.0.0",
     "jasmine": "3.8.0"
   },

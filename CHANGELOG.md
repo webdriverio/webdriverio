@@ -19,6 +19,33 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.9.1 (2021-08-09)
+
+#### :bug: Bug Fix
+* `wdio-utils`, `wdio-webdriver-mock-service`
+  * [#7225](https://github.com/webdriverio/webdriverio/pull/7225) Add support for async iterators ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#7226](https://github.com/webdriverio/webdriverio/pull/7226) Fix typings for addLocatorStrategy ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#7208](https://github.com/webdriverio/webdriverio/pull/7208) Fix: check current step instance before calling end step ([@iamkenos](https://github.com/iamkenos))
+* `wdio-cucumber-framework`
+  * [#7209](https://github.com/webdriverio/webdriverio/pull/7209) fix: duplicate steps on allure report ([@iamkenos](https://github.com/iamkenos))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`, `webdriver`
+  * [#7206](https://github.com/webdriverio/webdriverio/pull/7206) Improve WebDriver error handling ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-repl`
+  * [#7205](https://github.com/webdriverio/webdriverio/pull/7205) fix gif link in wdio-repl docs ([@Meir017](https://github.com/Meir017))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Meir Blachman ([@Meir017](https://github.com/Meir017))
+- Raju ([@spnraju](https://github.com/spnraju))
+- iamkenos ([@iamkenos](https://github.com/iamkenos))
+
+
 ## v7.9.0 (2021-07-28)
 
 #### :rocket: New Feature
