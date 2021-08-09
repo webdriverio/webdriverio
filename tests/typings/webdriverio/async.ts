@@ -346,6 +346,12 @@ async function bar() {
     // addLocatorStrategy
     browser.addLocatorStrategy('myStrat', () => document.body)
     browser.addLocatorStrategy('myStrat', () => document.querySelectorAll('div'))
+    browser.addLocatorStrategy('myStrat', (selector, root) => {
+        expectType<String>(selector)
+        expectType<HTMLElement>(root)
+        const scope = root ? root : document
+        return scope.querySelectorAll(selector)
+    })
 
     // network mocking
     browser.throttle('Regular2G')
