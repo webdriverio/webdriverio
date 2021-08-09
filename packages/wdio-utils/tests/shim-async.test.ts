@@ -338,4 +338,31 @@ describe('wrapCommand', () => {
             expect(expectedResults[i++]).toBe(elem.selector)
         }
     })
+
+    it('throws an error if iterating through a non array', async () => {
+        expect.assertions(1)
+        const options = {
+            beforeCommand: jest.fn(),
+            afterCommand: jest.fn()
+        }
+        const scope: Partial<BrowserObject> = {
+            selector: 'foobarA',
+            options
+        }
+        scope.options = options
+        const rawCommand = jest.fn().mockReturnValue(Promise.resolve(scope))
+        const propertiesObject = {
+            '$': { value: rawCommand },
+            getTagName: { value: jest.fn() }
+        }
+        const commandA = wrapCommand('$', rawCommand, propertiesObject).bind(scope) as any as (sel: string) => Promise<any>[]
+
+        try {
+            for await (let elem of commandA('selector')) {
+                console.log(elem)
+            }
+        } catch (e) {
+            expect(e.message).toBe('Can not iterate over non array')
+        }
+    })
 })
