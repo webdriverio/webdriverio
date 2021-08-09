@@ -308,4 +308,61 @@ describe('wrapCommand', () => {
         const commandA = wrapCommand('$', rawCommand, propertiesObject)
         expect(await commandA.call(scope).selector).toBe('foobar')
     })
+
+    it('can iterate over elements asynchronously', async () => {
+        const options = {
+            beforeCommand: jest.fn(),
+            afterCommand: jest.fn()
+        }
+        const scope: Partial<BrowserObject> = [{
+            selector: 'foobarA',
+            options
+        }, {
+            selector: 'foobarB',
+            options
+        }, {
+            selector: 'foobarC',
+            options
+        }]
+        scope.options = options
+        const rawCommand = jest.fn().mockReturnValue(Promise.resolve(scope))
+        const propertiesObject = {
+            '$': { value: rawCommand },
+            getTagName: { value: jest.fn() }
+        }
+        const commandA = wrapCommand('$$', rawCommand, propertiesObject).bind(scope) as any as (sel: string) => Promise<any>[]
+
+        const expectedResults = ['foobarA', 'foobarB', 'foobarC']
+        let i = 0
+        for await (let elem of commandA('selector')) {
+            expect(expectedResults[i++]).toBe(elem.selector)
+        }
+    })
+
+    it('throws an error if iterating through a non array', async () => {
+        expect.assertions(1)
+        const options = {
+            beforeCommand: jest.fn(),
+            afterCommand: jest.fn()
+        }
+        const scope: Partial<BrowserObject> = {
+            selector: 'foobarA',
+            options
+        }
+        scope.options = options
+        const rawCommand = jest.fn().mockReturnValue(Promise.resolve(scope))
+        const propertiesObject = {
+            '$': { value: rawCommand },
+            getTagName: { value: jest.fn() }
+        }
+        const commandA = wrapCommand('$', rawCommand, propertiesObject).bind(scope) as any as (sel: string) => Promise<any>[]
+
+        try {
+            for await (let elem of commandA('selector')) {
+                console.log(elem)
+            }
+        } catch (e) {
+            expect(e.message).toBe('Can not iterate over non array')
+        }
+    })
 })

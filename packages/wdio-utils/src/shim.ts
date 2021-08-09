@@ -153,6 +153,28 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
             {
                 get: (target, prop: string) => {
                     /**
+                     * handle symbols, e.g. async iterators
+                     */
+                    if (typeof prop === 'symbol') {
+                        return () => ({
+                            i: 0,
+                            target,
+                            async next () {
+                                const elems = await this.target
+                                if (!Array.isArray(elems)) {
+                                    throw new Error('Can not iterate over non array')
+                                }
+
+                                if (this.i < elems.length) {
+                                    return { value: elems[this.i++], done: false }
+                                }
+
+                                return { done: true }
+                            }
+                        })
+                    }
+
+                    /**
                      * if we access an index on an element array promise, e.g.:
                      * ```js
                      * const elems = await $$('foo')[2]
