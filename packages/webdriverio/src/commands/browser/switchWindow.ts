@@ -68,12 +68,11 @@ export default async function switchWindow (
         /**
          * check window name
          */
-        const getWindowName = ()=> typeof(window) !== 'undefined' && window.name
-        const windowName: string|boolean = await this.execute(getWindowName)
-        if (Object.keys(windowName).length && matchesTarget(windowName.toString())) {
+        const windowName = await this.execute(() => window.name)
+        if (windowName && matchesTarget(windowName)) {
             return tab
         }
     }
 
-    throw new Error(`No window found with title or url matching "${matcher}"`)
+    throw new Error(`No window found with title, url or name matching "${matcher}"`)
 }
