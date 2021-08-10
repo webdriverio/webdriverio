@@ -68,7 +68,9 @@ export default async function switchWindow (
         /**
          * check window name
          */
-        const windowName = await this.execute(() => window.name)
+        const windowName = await this.execute(
+            /* istanbul ignore next */
+            () => window.name)
         if (windowName && matchesTarget(windowName)) {
             return tab
         }
