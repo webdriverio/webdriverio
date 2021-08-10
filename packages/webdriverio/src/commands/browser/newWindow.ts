@@ -42,7 +42,7 @@ import type { NewWindowOptions } from '../../types'
 export default async function newWindow (
     this: WebdriverIO.Browser,
     url: string,
-    { windowName = 'New Window', windowFeatures = '' }: NewWindowOptions = {}
+    { windowName = '', windowFeatures = '' }: NewWindowOptions = {}
 ) {
     /**
      * parameter check
