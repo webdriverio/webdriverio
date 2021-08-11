@@ -133,7 +133,7 @@ export default class SauceService implements Services.ServiceInstance {
          * This should not be done for UP because it's not supported yet and
          * should be removed when UP supports `sauce:context`
          */
-        if (results.error && !this._isUP){
+        if (results.error && results.error.stack && !this._isUP){
             this._reportErrorLog(results.error)
         }
 
@@ -162,7 +162,8 @@ export default class SauceService implements Services.ServiceInstance {
             return
         }
 
-        if (!results.passed) {
+        const isJasminePendingError = typeof results.error === 'string' && results.error.includes('marked Pending')
+        if (!results.passed && !isJasminePendingError) {
             ++this._failures
         }
     }
