@@ -100,13 +100,10 @@ export default class TestStats extends RunnableStats {
          * and formats it if so. Otherwise, just leaves error as is
          */
         const formattedErrors = errors?.map((err: Error) => (
-            (
-                err instanceof AssertionError ||
-                (
-                    typeof (err as AssertionError).expected !== 'undefined' &&
-                    typeof (err as AssertionError).actual !== 'undefined'
-                )
-            )
+            /**
+             * only format if error object has either an "expected" or "actual" property set
+             */
+            ((err as AssertionError).expected || (err as AssertionError).actual)
                 ? this._stringifyDiffObjs(err as AssertionError)
                 : err
         ))

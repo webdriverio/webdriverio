@@ -86,4 +86,10 @@ describe('TestStats', () => {
         expect(stat.error?.message).toContain('actual')
         expect(stat.error?.message).toContain('expected')
     })
+
+    it('should not diff if "actual" and "expected" are empty', () => {
+        stat.fail([new AssertionError({ message: 'foobar', actual: '', expected: '' })])
+        expect(stat.error?.message).not.toContain('actual')
+        expect(stat.error?.message).not.toContain('expected')
+    })
 })
