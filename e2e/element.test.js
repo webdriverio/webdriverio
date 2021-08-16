@@ -127,6 +127,14 @@ describe('elements', () => {
         expect(todoCount).toBe('3')
     })
 
+    it('elementSendKeys can send unicode backspace', async () => {
+        const textarea = await browser.findElement('css selector', 'textarea')
+        await browser.elementSendKeys(textarea[ELEMENT_KEY], 'foobar')
+        expect(await browser.getElementProperty(textarea[ELEMENT_KEY], 'value')).toBe('foobar')
+        await browser.elementSendKeys(textarea[ELEMENT_KEY], '\uE003')
+        expect(await browser.getElementProperty(textarea[ELEMENT_KEY], 'value')).toBe('fooba')
+    })
+
     it('elementClear', async () => {
         const textarea = await browser.findElement('css selector', 'textarea')
         await browser.elementClear(textarea[ELEMENT_KEY])
