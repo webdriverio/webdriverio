@@ -19,6 +19,41 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.10.0 (2021-08-17)
+
+#### :bug: Bug Fix
+* `wdio-utils`, `wdio-webdriver-mock-service`
+  * [#7291](https://github.com/webdriverio/webdriverio/pull/7291) Allow to call catch and finally on element calls ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-runner`
+  * [#7290](https://github.com/webdriverio/webdriverio/pull/7290) Run after hook even if session initiation fails ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#7289](https://github.com/webdriverio/webdriverio/pull/7289) Support for @wdio/sync alongside the new v7.9.x Async API ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#7198](https://github.com/webdriverio/webdriverio/pull/7198) Set most parent Jasmine describe as BrowserStack session name in wdio-browserstack-service ([@sbley](https://github.com/sbley))
+
+#### :nail_care: Polish
+* `wdio-reporter`
+  * [#7262](https://github.com/webdriverio/webdriverio/pull/7262) Don't show error diff if 'actual' and 'expected' are empty ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sauce-service`
+  * [#7263](https://github.com/webdriverio/webdriverio/pull/7263) Don't report pending in Jasmine as error in Sauce ([@christian-bromann](https://github.com/christian-bromann))
+  * [#7265](https://github.com/webdriverio/webdriverio/pull/7265) Allow to set custom job name in Sauce Labs service ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#7252](https://github.com/webdriverio/webdriverio/pull/7252) Fix for newWindow called twice opens only one window ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#7286](https://github.com/webdriverio/webdriverio/pull/7286) Fix wrapping  for caution ([@balukov](https://github.com/balukov))
+
+#### :house: Internal
+* `wdio-utils`
+  * [#7272](https://github.com/webdriverio/webdriverio/pull/7272) Order UNICODE_CHARACTERS map ([@pieceOpiland](https://github.com/pieceOpiland))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Ivan Balukov ([@balukov](https://github.com/balukov))
+- Stefan Bley ([@sbley](https://github.com/sbley))
+- [@pieceOpiland](https://github.com/pieceOpiland)
+
+
 ## v7.9.1 (2021-08-09)
 
 #### :bug: Bug Fix
