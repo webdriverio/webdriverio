@@ -91,7 +91,16 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         if (this._browser && !this._isJobNameSet) {
-            this._browser.execute('sauce:job-name=' + this._suiteTitle)
+            let jobName = this._suiteTitle
+            if (this._options.setJobName) {
+                jobName = this._options.setJobName(
+                    this._config,
+                    this._capabilities,
+                    this._suiteTitle!
+                )
+            }
+
+            this._browser.execute(`sauce:job-name=${jobName}`)
             this._isJobNameSet = true
         }
 
@@ -358,6 +367,14 @@ export default class SauceService implements Services.ServiceInstance {
             }
 
             body[prop] = caps[prop]
+        }
+
+        if (this._options.setJobName) {
+            body.name = this._options.setJobName(
+                this._config,
+                this._capabilities,
+                this._suiteTitle!
+            )
         }
 
         body.passed = failures === 0
