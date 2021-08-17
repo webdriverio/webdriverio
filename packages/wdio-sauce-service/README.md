@@ -162,6 +162,13 @@ If `true` this options uploads all WebdriverIO log files to the Sauce Labs platf
 Type: `Boolean`<br />
 Default: `true`
 
+### setJobName
+
+Allows users to dynamically set the job name based on worker parameters such as WebdriverIO configuration, used capabilities and the original suite title.
+
+Type: `Function`<br />
+Default: `(config, capabilities, suiteTitle) => suiteTitle`
+
 ----
 
 ## Overriding generated name metadata
