@@ -26,14 +26,10 @@ The package will be automatically detected by the framework and the environment 
 If you're using [`@wdio/sync`](https://www.npmjs.com/package/@wdio/sync) then you can avoid awaiting for command calls. It is still required to deal with Promises from 3rd-party libraries, you should use [browser.call](api/browser/call) for this to wrap them and make them synchronous too.
 
 :::caution
-
-:::caution
 Synchronous Mode will depcrecated with Node.js v16. With an update to the
 underlying Chromium version it became technically impossible to provide the
 same synchronous behavior. We recommend to start transition to asynchronous
 command execution. For more information, see our <a href="https://github.com/webdriverio/webdriverio/discussions/6702">RFC</a>.
-:::
-
 :::
 
 ```js
