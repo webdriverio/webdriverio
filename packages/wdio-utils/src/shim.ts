@@ -31,6 +31,7 @@ declare global {
 
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
 const ELEMENT_PROPS = ['elementId', 'error', 'selector', 'parent', 'index', 'isReactElement', 'length']
+const PROMISE_METHODS = ['then', 'catch', 'finally']
 
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
@@ -243,8 +244,8 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                      * console.log(elem.selector) // "bar"
                      * ```
                      */
-                    if (prop === 'then') {
-                        return target[prop].bind(target)
+                    if (PROMISE_METHODS.includes(prop)) {
+                        return target[prop as 'then' | 'catch' | 'finally'].bind(target)
                     }
 
                     /**

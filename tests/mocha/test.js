@@ -58,6 +58,24 @@ describe('Mocha smoke test', () => {
         assert.equal(await el.$('.selector-2').isExisting(), true)
     })
 
+    it('should allow to use then/catch/finally', async () => {
+        await browser.isExistingScenario()
+        const val = await browser.$('body').$('.selector-1').then(() => 123)
+        expect(val).toBe(123)
+
+        await browser.isExistingScenario()
+        let anotherVal
+        const elem = await browser.$('body').$('.selector-1').finally(() => {
+            anotherVal = 321
+        })
+        expect(elem.selector).toBe('.selector-1')
+        expect(anotherVal).toBe(321)
+
+        await browser.isNotExistingScenario()
+        const errorVal = await browser.$('body').$('.fooobar').catch(() => 42)
+        expect(errorVal).toBe(42)
+    })
+
     it('should allow to reload a session', () => {
         const sessionIdBefore = browser.sessionId
         browser.reloadSession()

@@ -57,6 +57,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('cucumberScenario', this.cucumberScenario.bind(this))
         this._browser.addCommand('clickScenario', this.clickScenario.bind(this))
         this._browser.addCommand('isExistingScenario', this.isExistingScenario.bind(this))
+        this._browser.addCommand('isNotExistingScenario', this.isNotExistingScenario.bind(this))
         this._browser.addCommand('multiremoteFetch', this.multiremoteFetch.bind(this))
         this._browser.addCommand('asyncIterationScenario', this.asyncIterationScenario.bind(this))
     }
@@ -76,6 +77,11 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.findElement().times(1).reply(200, { value: elemResponse })
         this._mock.command.findElementFromElement(ELEMENT_ID).times(2).reply(200, { value: elemResponse })
         this._mock.command.findElementsFromElement(ELEMENT_ID).times(2).reply(200, { value: [elemResponse] })
+    }
+
+    isNotExistingScenario() {
+        this.nockReset()
+        this._mock.command.findElement().reply(404, NO_SUCH_ELEMENT)
     }
 
     waitForElementScenario() {
