@@ -267,6 +267,20 @@ test('afterTest', () => {
         .forEach((line:string) => expect(browser.execute).toBeCalledWith(`sauce:context=${line}`))
 })
 
+test('afterTest should not mark test as fail if pending was called in Jasmine', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_reportErrorLog'] = jest.fn()
+    expect(service['_failures']).toBe(0)
+    service.afterTest({} as any, {}, {
+        retries: { attempts: 0, limit: 0 },
+        error: '=> marked Pendingfoobar',
+        result: undefined,
+        duration: 0,
+        passed: false,
+    } as any)
+    expect(service['_failures']).toBe(0)
+})
+
 test('beforeFeature should set job-name', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
