@@ -357,11 +357,11 @@ describe('executeScript', () => {
     })
 
     it('can handle various of script formats', async () => {
-        expect(await browser.executeScript('console.log("hello")')).toBe(undefined)
-        expect(await browser.executeScript(' return "string";')).toBe('string')
-        expect(await browser.executeScript('/* test */ console.log("test")')).toBe(undefined)
-        expect(await browser.executeScript('return { foo: "bar" }')).toEqual({ foo: 'bar' })
-        expect(await browser.executeScript('return ({ foo: "bar" })')).toEqual({ foo: 'bar' })
+        expect(await browser.executeScript('console.log("hello")', [])).toBe(undefined)
+        expect(await browser.executeScript(' return "string";', [])).toBe('string')
+        expect(await browser.executeScript('/* test */ console.log("test")', [])).toBe(undefined)
+        expect(await browser.executeScript('return { foo: "bar" }', [])).toEqual({ foo: 'bar' })
+        expect(await browser.executeScript('return ({ foo: "bar" })', [])).toEqual({ foo: 'bar' })
     })
 })
 
