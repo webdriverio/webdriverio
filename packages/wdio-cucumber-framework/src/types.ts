@@ -1,5 +1,5 @@
 import type { Capabilities, Frameworks } from '@wdio/types'
-import type { Pickle, PickleStep, Feature } from '@cucumber/messages'
+import type { Pickle, PickleStep, TestStep, Feature } from '@cucumber/messages'
 import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 
 export interface CucumberOptions {
@@ -124,7 +124,7 @@ export interface HookParams {
     uri?: string | null,
     feature?: Feature | null,
     scenario?: Pickle,
-    step?: PickleStep
+    step?: PickleStep | TestStep
 }
 
 export interface StepDefinitionOptions {

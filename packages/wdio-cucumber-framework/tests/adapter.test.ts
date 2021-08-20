@@ -17,8 +17,8 @@ jest.mock('../src/utils', () => ({
     setUserHookNames: jest.fn()
 }))
 
-jest.mock('@cucumber/gherkin/dist/src/stream/GherkinStreams', () => ({
-    fromPaths: jest.fn().mockReturnValue('GherkinStreams.fromPaths')
+jest.mock('@cucumber/gherkin-streams', () => ({
+    GherkinStreams: { fromPaths: jest.fn().mockReturnValue('GherkinStreams.fromPaths') }
 }))
 
 declare global {

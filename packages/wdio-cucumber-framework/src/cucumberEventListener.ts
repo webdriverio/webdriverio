@@ -1,6 +1,9 @@
 import { EventEmitter } from 'events'
 import { Status, PickleFilter } from '@cucumber/cucumber'
-import { Pickle, TestCase, Envelope, TestStepResult, TestCaseStarted, GherkinDocument, TestStepStarted, TestStepFinished, PickleStep } from '@cucumber/messages'
+import {
+    Pickle, TestCase, Envelope, TestStepResult, TestCaseStarted, GherkinDocument,
+    TestStep, TestStepStarted, TestStepFinished, PickleStep
+} from '@cucumber/messages'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
@@ -37,15 +40,16 @@ export default class CucumberEventListener extends EventEmitter {
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
             } else if (envelope.testStepFinished) {
+                results.push(envelope.testStepFinished.testStepResult)
+                this.onTestStepFinished(envelope.testStepFinished)
+            } else if (envelope.testCaseFinished) {
                 /**
                  * only store result if step isn't retried
                  */
-                if (!envelope.testCaseFinished?.willBeRetried) {
-                    results.push(envelope.testStepFinished.testStepResult!)
+                if (envelope.testCaseFinished.willBeRetried) {
+                    results.pop()
                 }
 
-                this.onTestStepFinished(envelope.testStepFinished)
-            } else if (envelope.testCaseFinished) {
                 this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
                 this.onTestRunFinished()
@@ -313,7 +317,7 @@ export default class CucumberEventListener extends EventEmitter {
             return
         }
 
-        this._currentPickle = { uri, feature, scenario }
+        this._currentPickle = { uri, feature, scenario, step }
         this.emit('before-step', uri, feature, scenario, step)
     }
 
