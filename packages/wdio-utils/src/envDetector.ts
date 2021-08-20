@@ -64,16 +64,21 @@ function isChrome (capabilities?: Capabilities.DesiredCapabilities) {
  * @param  {Object}  caps  capabilities
  * @return {Boolean}       true if platform is mobile device
  */
-function isMobile (capabilities?: Capabilities.Capabilities) {
-    if (!capabilities) {
-        return false
-    }
+function isMobile (capabilities: Capabilities.Capabilities, requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities) {
     const browserName = (capabilities.browserName || '').toLowerCase()
+    const reqCaps = (
+        (requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch ||
+        requestedCapabilities
+    )
 
     /**
      * we have mobile capabilities if
      */
     return Boolean(
+        /**
+         * there are any Appium vendor capabilties
+         */
+        Object.keys(reqCaps).find((cap) => cap.startsWith('appium:')) ||
         /**
          * capabilities contain mobile only specific capabilities
          */
@@ -175,11 +180,11 @@ export function capabilitiesEnvironmentDetector (capabilities: Capabilities.Capa
  * @param  {Object}  requestedCapabilities
  * @return {Object}                         object with environment flags
  */
-export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities?: Capabilities.DesiredCapabilities, requestedCapabilities?: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities }) {
+export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities: Capabilities.DesiredCapabilities, requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities }) {
     return {
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),
-        isMobile: isMobile(capabilities),
+        isMobile: isMobile(capabilities, requestedCapabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(requestedCapabilities),
@@ -214,7 +219,7 @@ export function devtoolsEnvironmentDetector ({ browserName }: Capabilities.Capab
 export function webdriverEnvironmentDetector (capabilities: Capabilities.Capabilities) {
     return {
         isChrome: isChrome(capabilities),
-        isMobile: isMobile(capabilities),
+        isMobile: isMobile(capabilities, {}),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(capabilities)
