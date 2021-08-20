@@ -2,7 +2,7 @@ import { EventEmitter } from 'events'
 import { Status, PickleFilter } from '@cucumber/cucumber'
 import {
     Pickle, TestCase, Envelope, TestStepResult, TestCaseStarted, GherkinDocument,
-    TestStep, TestStepStarted, TestStepFinished, PickleStep
+    TestStepStarted, TestStepFinished, PickleStep
 } from '@cucumber/messages'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
