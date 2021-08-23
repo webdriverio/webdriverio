@@ -19,7 +19,7 @@ describe('executeHooksWithArgs', () => {
 
 describe('runFnInFiberContext', () => {
     it('should match @wdio/sync', async () => {
-        expect(runFnInFiberContext.call({}, command)).toBe('runFnInFiberContext')
+        expect(typeof runFnInFiberContext.call({}, command)).toBe('function')
     })
 })
 
