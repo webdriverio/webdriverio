@@ -83,6 +83,13 @@ describe('Mocha smoke test', () => {
         expect(el.selector).toBe('div#foobar')
     })
 
+    it('should allow to chain custom commands', () => {
+        await browser.isExistingScenario()
+        browser.addCommand('foo', () => Promise.resolve('foo').then((r) => r + 'bar'), true)
+        expect(await browser.foo()).toBe('foobar')
+        expect(await browser.$('body').$('.selector-1').foo()).toBe('foobar')
+    })
+
     it('should allow to reload a session', () => {
         const sessionIdBefore = browser.sessionId
         browser.reloadSession()

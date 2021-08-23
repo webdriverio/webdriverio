@@ -396,7 +396,6 @@ export function switchSyncFlag (fn: Function) {
  */
 /* istanbul ignore if */
 if (!process.env.WDIO_NO_SYNC_SUPPORT && hasWdioSyncSupport && wdioSync) {
-    runFnInFiberContext = switchSyncFlag(wdioSync.runFnInFiberContext)
     executeHooksWithArgs = switchSyncFlag(wdioSync.executeHooksWithArgs)
     executeSync = switchSyncFlag(wdioSync.executeSync)
     runSync = switchSyncFlag(wdioSync.runSync)
