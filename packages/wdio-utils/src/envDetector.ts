@@ -3,7 +3,7 @@ import type { Capabilities } from '@wdio/types'
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
 const MOBILE_CAPABILITIES = [
     'appium-version', 'appiumVersion', 'device-type', 'deviceType',
-    'device-orientation', 'deviceOrientation', 'deviceName'
+    'device-orientation', 'deviceOrientation', 'deviceName', 'automationName'
 ]
 
 /**
@@ -64,12 +64,8 @@ function isChrome (capabilities?: Capabilities.DesiredCapabilities) {
  * @param  {Object}  caps  capabilities
  * @return {Boolean}       true if platform is mobile device
  */
-function isMobile (capabilities: Capabilities.Capabilities, requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities) {
+function isMobile (capabilities: Capabilities.Capabilities) {
     const browserName = (capabilities.browserName || '').toLowerCase()
-    const reqCaps = (
-        (requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch ||
-        requestedCapabilities
-    )
 
     /**
      * we have mobile capabilities if
@@ -78,7 +74,7 @@ function isMobile (capabilities: Capabilities.Capabilities, requestedCapabilitie
         /**
          * there are any Appium vendor capabilties
          */
-        Object.keys(reqCaps).find((cap) => cap.startsWith('appium:')) ||
+        Object.keys(capabilities).find((cap) => cap.startsWith('appium:')) ||
         /**
          * capabilities contain mobile only specific capabilities
          */
@@ -184,7 +180,7 @@ export function sessionEnvironmentDetector ({ capabilities, requestedCapabilitie
     return {
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),
-        isMobile: isMobile(capabilities, requestedCapabilities),
+        isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(requestedCapabilities),
@@ -219,7 +215,7 @@ export function devtoolsEnvironmentDetector ({ browserName }: Capabilities.Capab
 export function webdriverEnvironmentDetector (capabilities: Capabilities.Capabilities) {
     return {
         isChrome: isChrome(capabilities),
-        isMobile: isMobile(capabilities, {}),
+        isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(capabilities)
