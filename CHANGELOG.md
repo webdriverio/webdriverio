@@ -19,6 +19,20 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.10.1 (2021-08-23)
+
+#### :nail_care: Polish
+* `wdio-types`, `wdio-utils`
+  * [#7308](https://github.com/webdriverio/webdriverio/pull/7308) Better detect Appium sessions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#7296](https://github.com/webdriverio/webdriverio/pull/7296) website/docs: fix confusing adjective usage ([@p1100i](https://github.com/p1100i))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- peters ([@p1100i](https://github.com/p1100i))
+
+
 ## v7.10.0 (2021-08-17)
 
 #### :bug: Bug Fix
