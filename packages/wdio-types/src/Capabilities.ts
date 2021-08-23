@@ -371,6 +371,7 @@ export interface AppiumW3CCapabilities {
     'appium:enablePerformanceLogging'?: boolean;
     'appium:printPageSourceOnFindFailure'?: boolean;
     'appium:nativeWebTap'?: boolean;
+    'appium:options'?: AppiumCapabilities
 }
 
 export interface AppiumAndroidCapabilities {

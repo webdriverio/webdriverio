@@ -1,3 +1,4 @@
+import { Capabilities } from '@wdio/types'
 import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../src/envDetector'
 
 import appiumResponse from './__fixtures__/appium.response.json'
@@ -27,15 +28,19 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isMobile', () => {
         const requestedCapabilities = { browserName: '' }
-        expect(sessionEnvironmentDetector({}).isMobile).toBe(false)
+        const appiumReqCaps = { 'appium:options': {} }
+        const appiumW3CCaps = { alwaysMatch: { 'appium:options': {} }, firstMatch: [] }
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isMobile).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isMobile).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isMobile).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isMobile).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: appiumReqCaps }).isMobile).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: appiumW3CCaps }).isMobile).toBe(true)
     })
 
     it('isW3C', () => {
         const requestedCapabilities = { browserName: '' }
-        expect(sessionEnvironmentDetector({}).isW3C).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isW3C).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: experitestAppiumCaps, requestedCapabilities }).isW3C).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isW3C).toBe(true)
@@ -51,7 +56,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isChrome', () => {
         const requestedCapabilities = { browserName: '' }
-        expect(sessionEnvironmentDetector({}).isChrome).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isChrome).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isChrome).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isChrome).toBe(true)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isChrome).toBe(false)
@@ -62,7 +67,7 @@ describe('sessionEnvironmentDetector', () => {
         const capabilities = { browserName: 'chrome' }
         let requestedCapabilities: WebDriver.DesiredCapabilities = {}
 
-        expect(sessionEnvironmentDetector({}).isSauce).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isSauce).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
 
         requestedCapabilities.extendedDebugging = true
@@ -76,12 +81,12 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isSauce (w3c)', () => {
         const capabilities = { browserName: 'chrome' }
-        let requestedCapabilities: WebDriver.W3CCapabilities = {
+        let requestedCapabilities: Capabilities.W3CCapabilities = {
             alwaysMatch: {},
             firstMatch: []
         }
 
-        expect(sessionEnvironmentDetector({}).isSauce).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isSauce).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities, requestedCapabilities }).isSauce).toBe(false)
 
         requestedCapabilities.alwaysMatch = { 'sauce:options': { extendedDebugging: true } }
@@ -92,7 +97,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isSeleniumStandalone', () => {
         const requestedCapabilities = { browserName: '' }
-        expect(sessionEnvironmentDetector({}).isSeleniumStandalone).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
