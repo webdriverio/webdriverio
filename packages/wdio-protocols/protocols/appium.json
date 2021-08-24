@@ -382,13 +382,8 @@
       "parameters": [{
         "name": "appId",
         "type": "string",
-        "description": "REQUIRED for Android",
-        "required": false
-      }, {
-        "name": "bundleId",
-        "type": "string",
-        "description": "REQUIRED for iOS",
-        "required": false
+        "description": "App ID (package ID for Android, bundle ID for iOS)",
+        "required": true
       }],
       "support": {
         "ios": {
@@ -408,13 +403,8 @@
       "parameters": [{
         "name": "appId",
         "type": "string",
-        "description": "REQUIRED for Android",
-        "required": false
-      }, {
-        "name": "bundleId",
-        "type": "string",
-        "description": "REQUIRED for iOS",
-        "required": false
+        "description": "App ID (package ID for Android, bundle ID for iOS)",
+        "required": true
       }],
       "support": {
         "ios": {
@@ -435,13 +425,8 @@
       "parameters": [{
         "name": "appId",
         "type": "string",
-        "description": "REQUIRED for Android",
-        "required": false
-      }, {
-        "name": "bundleId",
-        "type": "string",
-        "description": "REQUIRED for iOS",
-        "required": false
+        "description": "App ID (package ID for Android, bundle ID for iOS)",
+        "required": true
       }],
       "support": {
         "ios": {
@@ -461,13 +446,8 @@
       "parameters": [{
         "name": "appId",
         "type": "string",
-        "description": "REQUIRED for Android",
-        "required": false
-      }, {
-        "name": "bundleId",
-        "type": "string",
-        "description": "REQUIRED for iOS",
-        "required": false
+        "description": "App ID (package ID for Android, bundle ID for iOS)",
+        "required": true
       }],
       "returns": {
         "type": "boolean",
@@ -493,13 +473,8 @@
       "parameters": [{
         "name": "appId",
         "type": "string",
-        "description": "REQUIRED for Android",
-        "required": false
-      }, {
-        "name": "bundleId",
-        "type": "string",
-        "description": "REQUIRED for iOS",
-        "required": false
+        "description": "App ID (package ID for Android, bundle ID for iOS)",
+        "required": true
       }],
       "returns": {
         "type": "number",
