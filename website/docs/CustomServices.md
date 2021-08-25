@@ -80,6 +80,24 @@ export default CustomWorkerService
 export const launcher = CustomLauncherService
 ```
 
+If you are using TypeScript and want to make sure that hook methods parameter are type safe, you can define your service class as follows:
+
+```ts
+import { Capabilities, Options, Services } from '@wdio/types'
+
+export default class CustomWorkerService implements Services.ServiceInstance {
+    constructor (
+        private _options: MyServiceOptions,
+        private _capabilities: Capabilities.RemoteCapability,
+        private _config: Omit<Options.Testrunner, 'capabilities'>
+    ) {
+        // ...
+    }
+
+    // ...
+}
+```
+
 ## Service Error Handling
 
 An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner.
