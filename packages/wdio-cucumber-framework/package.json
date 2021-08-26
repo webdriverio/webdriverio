@@ -26,6 +26,9 @@
     "@cucumber/gherkin": "20.0.1",
     "@cucumber/gherkin-streams": "^3.0.0",
     "@cucumber/messages": "17.0.1",
+    "@types/is-glob": "^4.0.1",
+    "@types/long": "^4.0.1",
+    "@types/mockery": "^1.4.29",
     "@wdio/logger": "7.7.0",
     "@wdio/types": "7.10.1",
     "@wdio/utils": "7.10.1",
@@ -34,11 +37,6 @@
     "is-glob": "^4.0.0",
     "long": "^4.0.0",
     "mockery": "^2.1.0"
-  },
-  "devDependencies": {
-    "@types/is-glob": "^4.0.1",
-    "@types/long": "^4.0.1",
-    "@types/mockery": "^1.4.29"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"
