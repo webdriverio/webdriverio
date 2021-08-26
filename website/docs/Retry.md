@@ -33,6 +33,15 @@ describe('retries', function () {
 
 To rerun a certain test block you can just apply the number of reruns as last parameter after the test block function:
 
+<Tabs
+  defaultValue="mocha"
+  values={[
+    {label: 'Mocha', value: 'mocha'},
+    {label: 'Jasmine', value: 'jasmine'},
+  ]
+}>
+<TabItem value="mocha">
+
 ```js
 describe('my flaky app', () => {
     /**
@@ -60,9 +69,42 @@ describe('my flaky app', () => {
 })
 ```
 
-If you are using Jasmine, it also means that second parameter of both *test functions* (e.g., `it`) and *hooks* (e.g., `beforeEach`) , which is a `timeout` in Jasmine, is treated as retry count.
+</TabItem>
+<TabItem value="jasmine">
 
-It is __not__ possible to rerun whole suites with Jasmine&mdash;only hooks or test blocks.
+```js
+describe('my flaky app', () => {
+    /**
+     * spec that runs max 4 times (1 actual run + 3 reruns)
+     */
+    it('should rerun a test at least 3 times', function () {
+        console.log(this.wdioRetries) // returns number of retries
+        // ...
+    }, jasmine.DEFAULT_TIMEOUT_INTERVAL, 3)
+})
+```
+
+The same works for hooks too:
+
+```js
+describe('my flaky app', () => {
+    /**
+     * hook that runs max 2 times (1 actual run + 1 rerun)
+     */
+    beforeEach(() => {
+        // ...
+    }, jasmine.DEFAULT_TIMEOUT_INTERVAL, 1)
+
+    // ...
+})
+```
+
+If you are using Jasmine, the second parameter is reserved for timeout. To apply a retry parameter you need to set the timeout to its default value `jasmine.DEFAULT_TIMEOUT_INTERVAL` and then apply your retry count.
+
+</TabItem>
+</Tabs>
+
+This retry mechanism only allows to retry single hooks or test blocks. If your test is accompanied with a hook to set up your application, this hook is not being run. [Mocha offers](https://mochajs.org/#retry-tests) native test retries that provide this behavior while Jasmine doesn't.
 
 ## Rerunning in Cucumber
 
