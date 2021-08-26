@@ -19,6 +19,30 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.11.0 (2021-08-26)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#7329](https://github.com/webdriverio/webdriverio/pull/7329) fix: correct appium protocol use of app/bundle ID ([@jlipps](https://github.com/jlipps))
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#7339](https://github.com/webdriverio/webdriverio/pull/7339) Be compliant with Jasmine timeout parameter for specs and hooks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#7328](https://github.com/webdriverio/webdriverio/pull/7328) Serenity/JS + WebdriverIO blog post and boilerplates ([@jan-molak](https://github.com/jan-molak))
+* [#7287](https://github.com/webdriverio/webdriverio/pull/7287) Document WebdriverIO TypeScript definitions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-cucumber-framework`
+  * [#7309](https://github.com/webdriverio/webdriverio/pull/7309) Update Cucumber packages ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+
+
 ## v7.10.1 (2021-08-23)
 
 #### :nail_care: Polish
