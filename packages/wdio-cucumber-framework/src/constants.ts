@@ -1,5 +1,5 @@
 import { CucumberOptions } from './types'
-import { messages } from '@cucumber/messages'
+import { PickleStep } from '@cucumber/messages'
 
 export const DEFAULT_TIMEOUT = 60000
 
@@ -37,6 +37,6 @@ export const CUCUMBER_HOOK_DEFINITION_TYPES = [
  * The pickle step needs to have a keyword for the reporters, otherwise reporters like
  * the allure or spec reporter won't show the `Given|When|Then` words
  */
-export interface ReporterStep extends messages.Pickle.IPickleStep {
+export interface ReporterStep extends PickleStep {
     keyword?: string
 }
