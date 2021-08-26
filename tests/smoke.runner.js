@@ -112,6 +112,21 @@ const jasmineReporter = async () => {
 }
 
 /**
+ * Jasmine timeout test
+ */
+const jasmineTimeout = async () => {
+    const err = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [],
+            reporters: [['spec', { outputDir: __dirname }]],
+            framework: 'jasmine'
+        }
+    ).catch(err => err)
+    assert.strictEqual(err.message, 'Smoke test failed')
+}
+
+/**
  * Cucumber wdio testrunner tests
  */
 const cucumberTestrunner = async () => {
@@ -387,6 +402,7 @@ const standaloneTest = async () => {
         mochaTestrunner,
         jasmineTestrunner,
         jasmineReporter,
+        jasmineTimeout,
         cucumberTestrunner,
         cucumberFailAmbiguousDefinitions,
         cucumberReporter,
