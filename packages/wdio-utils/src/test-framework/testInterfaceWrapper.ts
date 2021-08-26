@@ -173,7 +173,7 @@ export const wrapTestFunction = function (
          * Jasmine uses a timeout value as last parameter, in this case the arguments
          * should be [title, fn, timeout, retryCnt]
          */
-        let timeout = global.jasmine.DEFAULT_TIMEOUT_INTERVAL
+        let timeout = global.jasmine?.DEFAULT_TIMEOUT_INTERVAL
         if (global.jasmine) {
             // if we have [title, fn, timeout, retryCnt]
             if (typeof specArguments[specArguments.length - 1] === 'number') {
