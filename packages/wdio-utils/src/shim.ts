@@ -32,6 +32,7 @@ declare global {
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
 const ELEMENT_PROPS = ['elementId', 'error', 'selector', 'parent', 'index', 'isReactElement', 'length']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
+const INNER_FN_COMMANDS = ['call', 'waitUntil']
 
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
@@ -277,6 +278,25 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
 
     return function (this: Clients.Browser, ...args: any[]) {
         /**
+         * if we are in sync mode but run a call command with an asynchronous function
+         * we need to make sure to switzch the `runAsync` flag to allow the async API
+         * to kick in.
+         */
+        if (hasWdioSyncSupport && INNER_FN_COMMANDS.includes(commandName) && args[0] && args[0][Symbol.toStringTag] === 'AsyncFunction') {
+            const shouldRunAsync = runAsync
+            const callFn = args[0]
+            args = [(...callArgs: any[]) => {
+                runAsync = true
+                console.log('CALL IT ASYNC', commandName)
+                return callFn.apply(this, callArgs).finally(() => {
+                    runAsync = shouldRunAsync
+                    console.log('CHANGE BACK TO', runAsync)
+
+                })
+            }, ...args.slice(1)]
+        }
+
+        /**
          * use sync mode if:
          * - @wdio/sync package is installed and can be resolved
          * - we are in a fiber context (flag is set when outer function is wrapped into fibers context)
@@ -284,6 +304,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
          * also if we run command asynchronous and the command suppose to return an element, we
          * apply `chainElementQuery` to allow chaining of these promises.
          */
+         console.log('CHECK', commandName, hasWdioSyncSupport, Boolean(wdioSync), !exports.runAsync)
         const command = hasWdioSyncSupport && wdioSync && !runAsync
             ? wdioSync!.wrapCommand(commandName, fn)
             : ELEMENT_QUERY_COMMANDS.includes(commandName)
@@ -365,6 +386,8 @@ export function switchSyncFlag (fn: Function) {
     return function (this: unknown, ...args: any[]) {
         const switchFlag = runAsync
         runAsync = false
+        console.log('SWITCH BACK HERE')
+
         const result = fn.apply(this, args)
 
         if (typeof result.finally === 'function') {

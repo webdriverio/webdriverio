@@ -50,9 +50,9 @@ const mochaTestrunner = async () => {
         {
             specs: [
                 path.resolve(__dirname, 'mocha', 'test.js'),
-                path.resolve(__dirname, 'mocha', 'test-middleware.js'),
-                path.resolve(__dirname, 'mocha', 'test-waitForElement.js'),
-                path.resolve(__dirname, 'mocha', 'test-skipped.js')
+                // path.resolve(__dirname, 'mocha', 'test-middleware.js'),
+                // path.resolve(__dirname, 'mocha', 'test-waitForElement.js'),
+                // path.resolve(__dirname, 'mocha', 'test-skipped.js')
             ]
         })
     assert.strictEqual(skippedSpecs, 1)

@@ -36,7 +36,7 @@ class Timer {
          *  - we run with the wdio testrunner
          */
         if (hasWdioSyncSupport && !_fn.name.includes('async') && Boolean(global.browser)) {
-            this._fn = () => runFnInFiberContext(_fn)()
+            // this._fn = () => runFnInFiberContext(_fn)()
         }
 
         const retPromise = new Promise<boolean>((resolve, reject) => {
@@ -105,6 +105,8 @@ class Timer {
     }
 
     private _checkCondition (err?: Error, res?: any) {
+        console.log('CONDITION', err?.message)
+
         ++this._conditionExecutedCnt
         this._lastError = err
 
