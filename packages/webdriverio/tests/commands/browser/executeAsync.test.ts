@@ -46,4 +46,18 @@ describe('isEnabled test', () => {
         // @ts-ignore test invalid parameter
         expect(() => browser.executeAsync(1234)).toThrow()
     })
+
+    it('should allow empty done call', async () => {
+        const browser: WebdriverIO.BrowserObject = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const result: undefined = await browser.executeAsync((done) => {
+            done()
+        })
+        expect(result).toBeUndefined()
+    })
 })

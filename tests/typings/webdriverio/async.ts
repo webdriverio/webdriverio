@@ -158,7 +158,13 @@ async function bar() {
         }, 456)
     )
 
-    const callResult = <number>await browser.call(() =>
+    expectType<undefined>(
+        await browser.executeAsync((done) => {
+            done()
+        })
+    )
+
+    const callResult = <number> await browser.call(() =>
         new Promise(resolve => setTimeout(() => resolve(4), 1))
     )
     expectType<number>(callResult)
@@ -239,7 +245,7 @@ async function bar() {
         timeoutMsg: '',
         interval: 1,
         reverse: true
-    });
+    })
     expectType<true | void>(elementClickable)
 
     expectType<number>(await el1.getLocation('x')) // as number
@@ -325,7 +331,7 @@ async function bar() {
     // touchAction
     const ele = await $('')
     const touchAction: TouchAction = {
-        action: "longPress",
+        action: 'longPress',
         element: await $(''),
         ms: 0,
         x: 0,
@@ -456,11 +462,11 @@ async function bar() {
 }
 
 function testSevereServiceError_noParameters() {
-    throw new SevereServiceError();
+    throw new SevereServiceError()
 }
 
 function testSevereServiceError_stringParameter() {
-    throw new SevereServiceError("Something happened.");
+    throw new SevereServiceError('Something happened.')
 }
 
 // allure-reporter

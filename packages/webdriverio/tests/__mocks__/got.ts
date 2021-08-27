@@ -218,7 +218,7 @@ const requestMock: any = jest.fn().mockImplementation((uri, params) => {
         const script = Function(params.json.script)
         let result
         script.call(this, ...params.json.args, (_result: any) => result = _result)
-        value = result ?? {}
+        value = result
         break
     } case `${path}/${sessionId}/element/${genericElementId}/elements`:
         value = [
