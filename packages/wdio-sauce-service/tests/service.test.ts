@@ -69,20 +69,43 @@ test('beforeSession should set to unknown creds if no sauce user and key are fou
 })
 
 test('beforeTest should set job-name', () => {
-    const service = new SauceService({}, {}, { user: 'foobar', key: '123' })
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
     expect(service['_isJobNameSet']).toBe(false)
     service.beforeTest({
         fullName: 'my test can do something',
         description: 'foobar'
-    })
+    } as any)
     expect(service['_isJobNameSet']).toBe(true)
     expect(browser.execute).toBeCalledWith('sauce:job-name=Suite Title')
 })
 
+test('beforeTest should set job-name via custom setJobName method', () => {
+    const service = new SauceService({
+        setJobName: (config, caps, title) => {
+            return `${config.region}-${(caps as any).browserName}-${title}`
+        }
+    }, {
+        browserName: 'foobar'
+    }, {
+        user: 'foobar',
+        key: '123',
+        region: 'barfoo' as any
+    } as any)
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'Suite Title'
+    expect(service['_isJobNameSet']).toBe(false)
+    service.beforeTest({
+        fullName: 'my test can do something',
+        description: 'foobar'
+    } as any)
+    expect(service['_isJobNameSet']).toBe(true)
+    expect(browser.execute).toBeCalledWith('sauce:job-name=barfoo-foobar-Suite Title')
+})
+
 test('beforeTest not should set job-name when it has already been set', () => {
-    const service = new SauceService({}, {}, { user: 'foobar', key: '123' })
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
     service['_isJobNameSet'] = true
@@ -90,7 +113,7 @@ test('beforeTest not should set job-name when it has already been set', () => {
     service.beforeTest({
         fullName: 'my test can do something',
         description: 'foobar'
-    })
+    } as any)
     expect(service['_isJobNameSet']).toBe(true)
     expect(browser.execute).not.toBeCalledWith('sauce:job-name=Suite Title')
 })
@@ -200,7 +223,7 @@ test('afterTest', () => {
         '    at UserContext.executeSync (/Users/node_modules/@wdio/sync/build/index.js:25:22)\n' +
         '    at /Users/node_modules/@wdio/sync/build/index.js:46:68'
     service['_isUP'] = true
-    service.afterTest({}, {}, {
+    service.afterTest({} as any, {}, {
         error: {
             matcherName: 'toEqual',
             message: 'Expected true to equal false.',
@@ -209,11 +232,11 @@ test('afterTest', () => {
             expected: [false, 'LoginPage page was not shown'],
             actual: true
         }
-    })
+    } as any)
     expect(browser.execute).toBeCalledTimes(0)
-    browser.execute.mockClear()
+    ;(browser.execute as jest.Mock).mockClear()
     service['_isUP'] = false
-    service.afterTest({}, {}, {
+    service.afterTest({} as any, {}, {
         error: {
             matcherName: 'toEqual',
             message: 'Expected true to equal false.',
@@ -222,13 +245,13 @@ test('afterTest', () => {
             expected: [false, 'LoginPage page was not shown'],
             actual: true
         }
-    })
+    } as any)
     expect(browser.execute).toBeCalledTimes(5)
     stack.split(/\r?\n/).forEach((line:string) => expect(browser.execute).toBeCalledWith(`sauce:context=${line}`))
-    browser.execute.mockClear()
+    ;(browser.execute as jest.Mock).mockClear()
     const maxErrorStackLength = 3
     service['_maxErrorStackLength'] = maxErrorStackLength
-    service.afterTest({}, {}, {
+    service.afterTest({} as any, {}, {
         error: {
             matcherName: 'toEqual',
             message: 'Expected true to equal false.',
@@ -237,11 +260,25 @@ test('afterTest', () => {
             expected: [false, 'LoginPage page was not shown'],
             actual: true
         }
-    })
+    } as any)
     expect(browser.execute).toBeCalledTimes(maxErrorStackLength)
     stack.split(/\r?\n/)
         .slice(0, maxErrorStackLength)
         .forEach((line:string) => expect(browser.execute).toBeCalledWith(`sauce:context=${line}`))
+})
+
+test('afterTest should not mark test as fail if pending was called in Jasmine', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_reportErrorLog'] = jest.fn()
+    expect(service['_failures']).toBe(0)
+    service.afterTest({} as any, {}, {
+        retries: { attempts: 0, limit: 0 },
+        error: '=> marked Pendingfoobar',
+        result: undefined,
+        duration: 0,
+        passed: false,
+    } as any)
+    expect(service['_failures']).toBe(0)
 })
 
 test('beforeFeature should set job-name', () => {
@@ -753,6 +790,24 @@ test('getBody with name Capability (W3C)', () => {
     })
 })
 
+test('getBody with custom setJobName method', () => {
+    const service = new SauceService({
+        setJobName: () => 'foobarloo'
+    }, {
+        'sauce:options': {
+            name: 'bizarre'
+        }
+    }, {} as any)
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'jojo'
+    service.beforeSession()
+
+    expect(service.getBody(1)).toEqual({
+        name: 'foobarloo',
+        passed: false
+    })
+})
+
 test('getBody without multiremote', () => {
     const service = new SauceService({}, {
         tags: ['jobTag'],
@@ -816,10 +871,11 @@ test('strip ansi from _reportErrorLog', () => {
     service['_browser'] = { execute: jest.fn() } as any
     const error = new Error('Received: [31m""[39m')
     service['_reportErrorLog'](error)
-    expect(service['_browser'].execute).toBeCalledWith('sauce:context=Error: Received: ""')
+    expect(service['_browser']!.execute).toBeCalledWith('sauce:context=Error: Received: ""')
 })
 
 afterEach(() => {
+    // @ts-ignore
     browser = undefined
     ;(got.put as jest.Mock).mockClear()
 })

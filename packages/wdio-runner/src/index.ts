@@ -157,6 +157,11 @@ export default class Runner extends EventEmitter {
          * return if session initialisation failed
          */
         if (!browser) {
+            await executeHooksWithArgs(
+                'after',
+                this._config.after as Function,
+                [1, this._caps, this._specs]
+            )
             return this._shutdown(1, retries)
         }
 

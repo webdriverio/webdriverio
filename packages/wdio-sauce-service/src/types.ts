@@ -1,4 +1,5 @@
 import type { SauceConnectOptions } from 'saucelabs'
+import type { Capabilities, Options } from '@wdio/types'
 
 export interface SauceServiceConfig {
     /**
@@ -44,4 +45,13 @@ export interface SauceServiceConfig {
      * @deprecated
      */
     scRelay?: boolean
+
+    /**
+     * Dynamically control the name of the job
+     */
+    setJobName?: (
+        config: Options.Testrunner,
+        capabilities: Capabilities.RemoteCapability,
+        suiteTitle: string
+    ) => string
 }

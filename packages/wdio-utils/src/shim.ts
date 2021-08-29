@@ -31,6 +31,7 @@ declare global {
 
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
 const ELEMENT_PROPS = ['elementId', 'error', 'selector', 'parent', 'index', 'isReactElement', 'length']
+const PROMISE_METHODS = ['then', 'catch', 'finally']
 
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
@@ -153,6 +154,28 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
             {
                 get: (target, prop: string) => {
                     /**
+                     * handle symbols, e.g. async iterators
+                     */
+                    if (typeof prop === 'symbol') {
+                        return () => ({
+                            i: 0,
+                            target,
+                            async next () {
+                                const elems = await this.target
+                                if (!Array.isArray(elems)) {
+                                    throw new Error('Can not iterate over non array')
+                                }
+
+                                if (this.i < elems.length) {
+                                    return { value: elems[this.i++], done: false }
+                                }
+
+                                return { done: true }
+                            }
+                        })
+                    }
+
+                    /**
                      * if we access an index on an element array promise, e.g.:
                      * ```js
                      * const elems = await $$('foo')[2]
@@ -221,8 +244,8 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                      * console.log(elem.selector) // "bar"
                      * ```
                      */
-                    if (prop === 'then') {
-                        return target[prop].bind(target)
+                    if (PROMISE_METHODS.includes(prop)) {
+                        return target[prop as 'then' | 'catch' | 'finally'].bind(target)
                     }
 
                     /**
@@ -345,7 +368,8 @@ export function switchSyncFlag (fn: Function) {
         const result = fn.apply(this, args)
 
         if (typeof result.finally === 'function') {
-            return result.finally(() => (runAsync = switchFlag))
+            runAsync = switchFlag
+            return result
         }
 
         if (typeof result === 'function') {

@@ -43,7 +43,10 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
         if (extensionCaps.length && invalidWebDriverCaps.length) {
             throw new Error(
                 `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join('", "')}"). ` +
-                'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).'
+                'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).' +
+                'If you run your tests on a remote vendor, like Sauce Labs or BrowserStack, make sure that you put them ' +
+                'into vendor specific capabilities, e.g. "sauce:options" or "browserstack:options". Please reach out to ' +
+                'to your vendor support team if you have further questions.'
             )
         }
     }

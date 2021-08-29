@@ -3,7 +3,7 @@ import type { Capabilities } from '@wdio/types'
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
 const MOBILE_CAPABILITIES = [
     'appium-version', 'appiumVersion', 'device-type', 'deviceType',
-    'device-orientation', 'deviceOrientation', 'deviceName'
+    'device-orientation', 'deviceOrientation', 'deviceName', 'automationName'
 ]
 
 /**
@@ -64,16 +64,17 @@ function isChrome (capabilities?: Capabilities.DesiredCapabilities) {
  * @param  {Object}  caps  capabilities
  * @return {Boolean}       true if platform is mobile device
  */
-function isMobile (capabilities?: Capabilities.Capabilities) {
-    if (!capabilities) {
-        return false
-    }
+function isMobile (capabilities: Capabilities.Capabilities) {
     const browserName = (capabilities.browserName || '').toLowerCase()
 
     /**
      * we have mobile capabilities if
      */
     return Boolean(
+        /**
+         * there are any Appium vendor capabilties
+         */
+        Object.keys(capabilities).find((cap) => cap.startsWith('appium:')) ||
         /**
          * capabilities contain mobile only specific capabilities
          */
@@ -175,7 +176,7 @@ export function capabilitiesEnvironmentDetector (capabilities: Capabilities.Capa
  * @param  {Object}  requestedCapabilities
  * @return {Object}                         object with environment flags
  */
-export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities?: Capabilities.DesiredCapabilities, requestedCapabilities?: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities }) {
+export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities: Capabilities.DesiredCapabilities, requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities }) {
     return {
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),

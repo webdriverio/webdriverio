@@ -7,9 +7,14 @@ import type { Selector } from '../../types'
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver#findelement) command in order
  * to fetch a single element on the page. It returns an object that with an extended prototype to call
  * action commands without passing in a selector. However if you still pass in a selector it will look
- * for that element first and call the action on that element. You can also pass in an object as selector
- * where the object contains a property `element-6066-11e4-a52e-4f735466cecf` with the value of a reference
- * to an element. The command will then transform the reference to an extended WebdriverIO element.
+ * for that element first and call the action on that element.
+ *
+ * You can also pass in an object as selector where the object contains a property
+ * `element-6066-11e4-a52e-4f735466cecf` with the value of a reference to an element.
+ * The command will then transform the reference to an extended WebdriverIO element.
+ * __Note:__ only use these element objects if you are certain they still exist on the
+ * page, e.g. using the `isExisting` command. WebdriverIO is unable to refetch them given
+ * that there are no selector information available.
  *
  * Using the wdio testrunner this command is a global variable else it will be located on the browser object instead.
  *

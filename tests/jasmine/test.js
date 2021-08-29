@@ -14,5 +14,5 @@ describe('Jasmine smoke test', () => {
         }
 
         expect(this.wdioRetries).toBe(1)
-    }, 1)
+    }, jasmine.DEFAULT_TIMEOUT_INTERVAL, 1)
 })

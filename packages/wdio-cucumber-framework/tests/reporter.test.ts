@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { messages } from '@cucumber/messages'
+import { TestStepFinished, TestStepResultStatus, TestStepStarted } from '@cucumber/messages'
 
 import CucumberReporter from '../src/reporter'
 import {
@@ -109,17 +109,17 @@ describe('cucumber reporter', () => {
             })
 
             it('passed step', () => {
-                const passingStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+                const passingStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
                 eventBroadcaster.emit('envelope', { testStepFinished: passingStep })
                 delete wdioReporter.emit.mock.calls[0][1].duration
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
 
             it('failed step', () => {
-                const failedStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+                const failedStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
                 failedStep.testStepResult = {
                     ...failedStep.testStepResult,
-                    status: 6
+                    status: TestStepResultStatus.FAILED
                 }
                 eventBroadcaster.emit('envelope', { testStepFinished: failedStep })
                 delete wdioReporter.emit.mock.calls[0][1].duration
@@ -128,7 +128,7 @@ describe('cucumber reporter', () => {
         })
 
         it('should send proper data on onTestRunFinished', () => {
-            const passingStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const passingStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
 
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
@@ -144,9 +144,9 @@ describe('cucumber reporter', () => {
         })
 
         it('should proper data when executing a hook', () => {
-            const hookStarted: messages.ITestStepStarted = JSON.parse(JSON.stringify(testStepStarted))
+            const hookStarted: TestStepStarted = JSON.parse(JSON.stringify(testStepStarted))
             hookStarted.testStepId = '24'
-            const hookFinished: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const hookFinished: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
             hookFinished.testStepId = '24'
 
             loadGherkin(eventBroadcaster)
@@ -212,7 +212,9 @@ describe('cucumber reporter', () => {
         })
 
         it('should send proper data on `test-case-finished` event', () => {
-            const passingStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const passingStep: TestStepFinished = JSON.parse(
+                JSON.stringify(testStepFinished)
+            )
 
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
@@ -228,7 +230,7 @@ describe('cucumber reporter', () => {
         })
 
         it('should send proper data on onTestRunFinished', () => {
-            const passingStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const passingStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
 
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
@@ -259,30 +261,36 @@ describe('cucumber reporter', () => {
         })
 
         it('should increment failed counter on `failed` status', () => {
-            const failedStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const failedStep: TestStepFinished = JSON.parse(
+                JSON.stringify(testStepFinished)
+            )
             failedStep.testStepResult = {
                 ...failedStep.testStepResult,
-                status: 6
+                status: TestStepResultStatus.FAILED
             }
             eventBroadcaster.emit('envelope', { testStepFinished: failedStep })
             expect(reporter.failedCount).toBe(1)
         })
 
         it('should increment failed counter on `ambiguous` status', () => {
-            const ambiguousStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const ambiguousStep: TestStepFinished = JSON.parse(
+                JSON.stringify(testStepFinished)
+            )
             ambiguousStep.testStepResult = {
                 ...ambiguousStep.testStepResult,
-                status: 5
+                status: TestStepResultStatus.AMBIGUOUS
             }
             eventBroadcaster.emit('envelope', { testStepFinished: ambiguousStep })
             expect(reporter.failedCount).toBe(1)
         })
 
         it('should increment failed counter on `undefined` status', () => {
-            const undefinedStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const undefinedStep: TestStepFinished = JSON.parse(
+                JSON.stringify(testStepFinished)
+            )
             undefinedStep.testStepResult = {
                 ...undefinedStep.testStepResult,
-                status: 4
+                status: TestStepResultStatus.UNDEFINED
             }
             eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
             expect(reporter.failedCount).toBe(1)
@@ -290,10 +298,12 @@ describe('cucumber reporter', () => {
 
         it('should not increment failed counter on `undefined` status if ignoreUndefinedDefinitions set to true', () => {
             reporter['_options'].ignoreUndefinedDefinitions = true
-            const undefinedStep: messages.ITestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const undefinedStep: TestStepFinished = JSON.parse(
+                JSON.stringify(testStepFinished)
+            )
             undefinedStep.testStepResult = {
                 ...undefinedStep.testStepResult,
-                status: 4
+                status: TestStepResultStatus.UNDEFINED
             }
             eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
             expect(reporter.failedCount).toBe(0)
