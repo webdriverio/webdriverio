@@ -1,0 +1,363 @@
+{
+  "suite-0-0": {
+    "type": "suite:start",
+    "start": "2021-08-29T18:23:27.540Z",
+    "_duration": 10,
+    "tests": [],
+    "hooks": [],
+    "suites": [
+      {
+        "type": "suite:start",
+        "start": "2021-08-29T18:23:27.541Z",
+        "_duration": 6,
+        "tests": [],
+        "hooks": [],
+        "suites": [
+          {
+            "type": "suite:start",
+            "start": "2021-08-29T18:23:27.541Z",
+            "_duration": 5,
+            "tests": [
+              {
+                "type": "test",
+                "start": "2021-08-29T18:23:27.541Z",
+                "_duration": 4,
+                "uid": "test-20-0",
+                "cid": "0-0",
+                "title": "test 1",
+                "fullTitle": "Parent.Child 1.Sub child 1.test 1",
+                "output": [],
+                "retries": 0,
+                "parent": "Sub child 1",
+                "state": "passed",
+                "end": "2021-08-29T18:23:27.545Z"
+              }
+            ],
+            "hooks": [],
+            "suites": [],
+            "hooksAndTests": [
+              {
+                "type": "test",
+                "start": "2021-08-29T18:23:27.541Z",
+                "_duration": 4,
+                "uid": "test-20-0",
+                "cid": "0-0",
+                "title": "test 1",
+                "fullTitle": "Parent.Child 1.Sub child 1.test 1",
+                "output": [],
+                "retries": 0,
+                "parent": "Sub child 1",
+                "state": "passed",
+                "end": "2021-08-29T18:23:27.545Z"
+              }
+            ],
+            "uid": "suite-2-0",
+            "cid": "0-0",
+            "file": "/examples/wdio/mocha/mocha.test.js",
+            "title": "Sub child 1",
+            "fullTitle": "Parent.Child 1.Sub child 1",
+            "parent": "Child 1",
+            "end": "2021-08-29T18:23:27.546Z"
+          }
+        ],
+        "hooksAndTests": [],
+        "uid": "suite-1-0",
+        "cid": "0-0",
+        "file": "/examples/wdio/mocha/mocha.test.js",
+        "title": "Child 1",
+        "fullTitle": "Parent.Child 1",
+        "parent": "Parent",
+        "end": "2021-08-29T18:23:27.547Z"
+      },
+      {
+        "type": "suite:start",
+        "start": "2021-08-29T18:23:27.547Z",
+        "_duration": 3,
+        "tests": [
+          {
+            "type": "test",
+            "start": "2021-08-29T18:23:27.547Z",
+            "_duration": 2,
+            "uid": "test-11-0",
+            "cid": "0-0",
+            "title": "test 2",
+            "fullTitle": "Parent.Child 2.test 2",
+            "output": [
+              {
+                "command": "deleteSession",
+                "params": {},
+                "retries": 0,
+                "sessionId": "da66bd67-51e6-4059-819e-bbc72c3595d0",
+                "cid": "0-0",
+                "type": "command"
+              },
+              {
+                "command": "deleteSession",
+                "params": {},
+                "retries": 0,
+                "result": {
+                  "value": null
+                },
+                "sessionId": "da66bd67-51e6-4059-819e-bbc72c3595d0",
+                "cid": "0-0",
+                "type": "result"
+              }
+            ],
+            "retries": 0,
+            "parent": "Child 2",
+            "state": "passed",
+            "end": "2021-08-29T18:23:27.549Z"
+          }
+        ],
+        "hooks": [],
+        "suites": [],
+        "hooksAndTests": [
+          {
+            "type": "test",
+            "start": "2021-08-29T18:23:27.547Z",
+            "_duration": 2,
+            "uid": "test-11-0",
+            "cid": "0-0",
+            "title": "test 2",
+            "fullTitle": "Parent.Child 2.test 2",
+            "output": [
+              {
+                "command": "deleteSession",
+                "params": {},
+                "retries": 0,
+                "sessionId": "da66bd67-51e6-4059-819e-bbc72c3595d0",
+                "cid": "0-0",
+                "type": "command"
+              },
+              {
+                "command": "deleteSession",
+                "params": {},
+                "retries": 0,
+                "result": {
+                  "value": null
+                },
+                "sessionId": "da66bd67-51e6-4059-819e-bbc72c3595d0",
+                "cid": "0-0",
+                "type": "result"
+              }
+            ],
+            "retries": 0,
+            "parent": "Child 2",
+            "state": "passed",
+            "end": "2021-08-29T18:23:27.549Z"
+          }
+        ],
+        "uid": "suite-1-1",
+        "cid": "0-0",
+        "file": "/examples/wdio/mocha/mocha.test.js",
+        "title": "Child 2",
+        "fullTitle": "Parent.Child 2",
+        "parent": "Parent",
+        "end": "2021-08-29T18:23:27.550Z"
+      }
+    ],
+    "hooksAndTests": [],
+    "uid": "suite-0-0",
+    "cid": "0-0",
+    "file": "/examples/wdio/mocha/mocha.test.js",
+    "title": "Parent",
+    "fullTitle": "Parent",
+    "parent": "",
+    "end": "2021-08-29T18:23:27.550Z"
+  },
+  "suite-1-0": {
+    "type": "suite:start",
+    "start": "2021-08-29T18:23:27.541Z",
+    "_duration": 6,
+    "tests": [],
+    "hooks": [],
+    "suites": [
+      {
+        "type": "suite:start",
+        "start": "2021-08-29T18:23:27.541Z",
+        "_duration": 5,
+        "tests": [
+          {
+            "type": "test",
+            "start": "2021-08-29T18:23:27.541Z",
+            "_duration": 4,
+            "uid": "test-20-0",
+            "cid": "0-0",
+            "title": "test 1",
+            "fullTitle": "Parent.Child 1.Sub child 1.test 1",
+            "output": [],
+            "retries": 0,
+            "parent": "Sub child 1",
+            "state": "passed",
+            "end": "2021-08-29T18:23:27.545Z"
+          }
+        ],
+        "hooks": [],
+        "suites": [],
+        "hooksAndTests": [
+          {
+            "type": "test",
+            "start": "2021-08-29T18:23:27.541Z",
+            "_duration": 4,
+            "uid": "test-20-0",
+            "cid": "0-0",
+            "title": "test 1",
+            "fullTitle": "Parent.Child 1.Sub child 1.test 1",
+            "output": [],
+            "retries": 0,
+            "parent": "Sub child 1",
+            "state": "passed",
+            "end": "2021-08-29T18:23:27.545Z"
+          }
+        ],
+        "uid": "suite-2-0",
+        "cid": "0-0",
+        "file": "/examples/wdio/mocha/mocha.test.js",
+        "title": "Sub child 1",
+        "fullTitle": "Parent.Child 1.Sub child 1",
+        "parent": "Child 1",
+        "end": "2021-08-29T18:23:27.546Z"
+      }
+    ],
+    "hooksAndTests": [],
+    "uid": "suite-1-0",
+    "cid": "0-0",
+    "file": "/examples/wdio/mocha/mocha.test.js",
+    "title": "Child 1",
+    "fullTitle": "Parent.Child 1",
+    "parent": "Parent",
+    "end": "2021-08-29T18:23:27.547Z"
+  },
+  "suite-2-0": {
+    "type": "suite:start",
+    "start": "2021-08-29T18:23:27.541Z",
+    "_duration": 5,
+    "tests": [
+      {
+        "type": "test",
+        "start": "2021-08-29T18:23:27.541Z",
+        "_duration": 4,
+        "uid": "test-20-0",
+        "cid": "0-0",
+        "title": "test 1",
+        "fullTitle": "Parent.Child 1.Sub child 1.test 1",
+        "output": [],
+        "retries": 0,
+        "parent": "Sub child 1",
+        "state": "passed",
+        "end": "2021-08-29T18:23:27.545Z"
+      }
+    ],
+    "hooks": [],
+    "suites": [],
+    "hooksAndTests": [
+      {
+        "type": "test",
+        "start": "2021-08-29T18:23:27.541Z",
+        "_duration": 4,
+        "uid": "test-20-0",
+        "cid": "0-0",
+        "title": "test 1",
+        "fullTitle": "Parent.Child 1.Sub child 1.test 1",
+        "output": [],
+        "retries": 0,
+        "parent": "Sub child 1",
+        "state": "passed",
+        "end": "2021-08-29T18:23:27.545Z"
+      }
+    ],
+    "uid": "suite-2-0",
+    "cid": "0-0",
+    "file": "/examples/wdio/mocha/mocha.test.js",
+    "title": "Sub child 1",
+    "fullTitle": "Parent.Child 1.Sub child 1",
+    "parent": "Child 1",
+    "end": "2021-08-29T18:23:27.546Z"
+  },
+  "suite-1-1": {
+    "type": "suite:start",
+    "start": "2021-08-29T18:23:27.547Z",
+    "_duration": 3,
+    "tests": [
+      {
+        "type": "test",
+        "start": "2021-08-29T18:23:27.547Z",
+        "_duration": 2,
+        "uid": "test-11-0",
+        "cid": "0-0",
+        "title": "test 2",
+        "fullTitle": "Parent.Child 2.test 2",
+        "output": [
+          {
+            "command": "deleteSession",
+            "params": {},
+            "retries": 0,
+            "sessionId": "da66bd67-51e6-4059-819e-bbc72c3595d0",
+            "cid": "0-0",
+            "type": "command"
+          },
+          {
+            "command": "deleteSession",
+            "params": {},
+            "retries": 0,
+            "result": {
+              "value": null
+            },
+            "sessionId": "da66bd67-51e6-4059-819e-bbc72c3595d0",
+            "cid": "0-0",
+            "type": "result"
+          }
+        ],
+        "retries": 0,
+        "parent": "Child 2",
+        "state": "passed",
+        "end": "2021-08-29T18:23:27.549Z"
+      }
+    ],
+    "hooks": [],
+    "suites": [],
+    "hooksAndTests": [
+      {
+        "type": "test",
+        "start": "2021-08-29T18:23:27.547Z",
+        "_duration": 2,
+        "uid": "test-11-0",
+        "cid": "0-0",
+        "title": "test 2",
+        "fullTitle": "Parent.Child 2.test 2",
+        "output": [
+          {
+            "command": "deleteSession",
+            "params": {},
+            "retries": 0,
+            "sessionId": "da66bd67-51e6-4059-819e-bbc72c3595d0",
+            "cid": "0-0",
+            "type": "command"
+          },
+          {
+            "command": "deleteSession",
+            "params": {},
+            "retries": 0,
+            "result": {
+              "value": null
+            },
+            "sessionId": "da66bd67-51e6-4059-819e-bbc72c3595d0",
+            "cid": "0-0",
+            "type": "result"
+          }
+        ],
+        "retries": 0,
+        "parent": "Child 2",
+        "state": "passed",
+        "end": "2021-08-29T18:23:27.549Z"
+      }
+    ],
+    "uid": "suite-1-1",
+    "cid": "0-0",
+    "file": "/examples/wdio/mocha/mocha.test.js",
+    "title": "Child 2",
+    "fullTitle": "Parent.Child 2",
+    "parent": "Parent",
+    "end": "2021-08-29T18:23:27.550Z"
+  }
+}

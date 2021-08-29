@@ -13,6 +13,7 @@ import featuresLog from './__fixtures__/cucumber-features.json'
 import featuresWithFailingThenSkipStepLog from './__fixtures__/cucumber-features-with-failed-then-skipped-steps.json'
 import featuresWithPendingStepLog from './__fixtures__/cucumber-features-with-pending-step.json'
 import featuresWithErrorStepAndNoErrorObjectLog from './__fixtures__/cucumber-features-with-error-step-and-no-error-object.json'
+import nestedSuites from './__fixtures__/nested-suites.json'
 import unorderedFeatureAndScenarioWithError from './__fixtures__/cucumber-features-with-error-step-and-no-error-object-unordered.json'
 import suitesWithFailedBeforeEachHookLog from './__fixtures__/suites-with-failed-before-each-hook.json'
 import suitesWithFailedAfterEachHookLog from './__fixtures__/suites-with-failed-after-each-hook.json'
@@ -263,6 +264,11 @@ describe('wdio-junit-reporter', () => {
 
     it('generates xml output without ansi', () => {
         reporter.suites = suitesErrorLog as any
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output correctly when having nested suites', () => {
+        reporter.suites = nestedSuites as any
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 })

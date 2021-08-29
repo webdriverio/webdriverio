@@ -170,7 +170,7 @@ class JunitReporter extends WDIOReporter {
             const test = suite.tests[testKey as any]
             const testName = this._prepareName(test.title)
             const testCase = testSuite.testCase()
-                .className(`${this._packageName}.${suiteName}`)
+                .className(`${this._packageName}.${suite.fullTitle.replace(/\s/g, '_')}`)
                 .name(testName)
                 .time(test._duration / 1000)
 
