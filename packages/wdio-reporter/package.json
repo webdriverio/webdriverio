@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@types/diff": "^5.0.0",
-    "@types/node": "^15.12.5",
+    "@types/node": "^16.7.6",
     "@types/object-inspect": "^1.8.0",
     "@types/supports-color": "^8.1.0",
     "@wdio/types": "7.10.1",

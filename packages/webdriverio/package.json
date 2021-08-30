@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@types/aria-query": "^4.2.1",
-    "@types/node": "^15.12.5",
+    "@types/node": "^16.7.6",
     "@wdio/config": "7.10.1",
     "@wdio/logger": "7.7.0",
     "@wdio/protocols": "7.11.0",
