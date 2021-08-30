@@ -304,7 +304,7 @@ describe('frames', () => {
         expect(await browser.getTitle()).toBe('The Internet')
     })
 
-    it('allows to switch to parent frame even if there isn\'t any', async () => {
+    it.skip('allows to switch to parent frame even if there isn\'t any', async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io/two.html')
         expect(await browser.getTitle()).toBe('two')
         const iframe = await browser.findElement('css selector', 'iframe')
