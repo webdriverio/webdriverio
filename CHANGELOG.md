@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.11.1 (2021-08-30)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-mocha-framework`
+  * [#7357](https://github.com/webdriverio/webdriverio/pull/7357) (junit-reporter) Include all parent suites in suite.fullTitle ([@lthurr](https://github.com/lthurr))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#7348](https://github.com/webdriverio/webdriverio/pull/7348) Allow `isExisting` to work with an composed element ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Luis Thur ([@lthurr](https://github.com/lthurr))
+
+
 ## v7.11.0 (2021-08-26)
 
 #### :eyeglasses: Spec Compliancy
