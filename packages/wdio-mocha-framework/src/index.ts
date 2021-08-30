@@ -251,7 +251,16 @@ class MochaAdapter {
             message.title = params.payload.title
             message.parent = params.payload.parent ? params.payload.parent.title : null
 
-            message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
+            let fullTitle = message.title
+            if (params.payload.parent) {
+                let parent = params.payload.parent
+                while (parent && parent.title) {
+                    fullTitle = parent.title + '.' + fullTitle
+                    parent = parent.parent
+                }
+            }
+
+            message.fullTitle = fullTitle
             message.pending = params.payload.pending || false
             message.file = params.payload.file
             message.duration = params.payload.duration
