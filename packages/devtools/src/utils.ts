@@ -190,7 +190,7 @@ export function sanitizeError (err: Error) {
  */
 export async function transformExecuteArgs (this: DevToolsDriver, args: any[] = []): Promise<ElementHandle | any> {
     return Promise.all(args.map(async (arg) => {
-        if (arg[ELEMENT_KEY]) {
+        if (arg && arg[ELEMENT_KEY]) {
             const elementHandle = await this.elementStore.get(arg[ELEMENT_KEY])
 
             if (!elementHandle) {
