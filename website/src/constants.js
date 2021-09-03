@@ -111,7 +111,16 @@ export const logos = [{
     img: 'rabobank.png',
     alt: 'Rabobank',
     url: 'https://www.rabobank.com/'
-}]
+},
+/**
+ * Page 4
+ */
+{
+    img: 'bedrock.jpg',
+    alt: 'Bedrock Streaming',
+    url: 'https://www.bedrockstreaming.com/'
+},
+]
 
 export const LHIntregrationExample = `
 await browser.emulateDevice('iPhone X')
