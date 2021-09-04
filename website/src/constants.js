@@ -119,8 +119,7 @@ export const logos = [{
     img: 'bedrock.jpg',
     alt: 'Bedrock Streaming',
     url: 'https://www.bedrockstreaming.com/'
-},
-]
+}]
 
 export const LHIntregrationExample = `
 await browser.emulateDevice('iPhone X')
