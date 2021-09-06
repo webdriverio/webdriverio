@@ -24,7 +24,9 @@ function buildPreface(id, title, titleSuffix, editUrl) {
         `id: ${id}`,
         `title: ${title} ${titleSuffix}`,
         `custom_edit_url: ${editUrl}`,
-        '---\n'
+        '---\n',
+        'import Tabs from \'@theme/Tabs\';',
+        'import TabItem from \'@theme/TabItem\';\n'
     ]
 }
 
