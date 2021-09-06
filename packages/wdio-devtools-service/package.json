@@ -33,7 +33,7 @@
     "@wdio/types": "7.10.1",
     "atob": "^2.1.2",
     "babel-plugin-istanbul": "^6.0.0",
-    "core-js": "~3.16.1",
+    "core-js": "~3.17.2",
     "devtools-protocol": "^0.0.915197",
     "istanbul-lib-coverage": "^3.0.0",
     "istanbul-lib-report": "^3.0.0",
