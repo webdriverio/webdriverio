@@ -60,6 +60,15 @@ describe('utils', () => {
         expect(typeof chromiumPrototype.elementSendKeys.value).toBe('function')
         expect(typeof chromiumPrototype.lock).toBe('undefined')
 
+        const geckoPrototype = getPrototype({
+            isW3C: true, isChrome: false, isFirefox: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
+        })
+        expect(geckoPrototype instanceof Object).toBe(true)
+        expect(typeof geckoPrototype.setMozContext.value).toBe('function')
+        expect(typeof geckoPrototype.installAddOn.value).toBe('function')
+        expect(typeof geckoPrototype.elementSendKeys.value).toBe('function')
+        expect(typeof geckoPrototype.lock).toBe('undefined')
+
         const mobilePrototype = getPrototype({
             isW3C: true, isChrome: false, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })

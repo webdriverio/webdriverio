@@ -3,6 +3,7 @@ const PROTOCOLS = {
     appium: require('../packages/wdio-protocols/protocols/appium.json'),
     mjsonwp: require('../packages/wdio-protocols/protocols/mjsonwp.json'),
     chromium: require('../packages/wdio-protocols/protocols/chromium.json'),
+    gecko: require('../packages/wdio-protocols/protocols/gecko.json'),
     saucelabs: require('../packages/wdio-protocols/protocols/saucelabs.json'),
     selenium: require('../packages/wdio-protocols/protocols/selenium.json'),
     jsonwp: require('../packages/wdio-protocols/protocols/jsonwp.json')
