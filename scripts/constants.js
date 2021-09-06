@@ -14,6 +14,7 @@ const PROTOCOL_NAMES = {
     mjsonwp: 'Mobile JSON Wire Protocol',
     webdriver: 'WebDriver Protocol',
     chromium: 'Chromium',
+    gecko: 'Firefox',
     saucelabs: 'Sauce Labs',
     selenium: 'Selenium Standalone'
 }
