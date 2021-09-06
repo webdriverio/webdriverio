@@ -19,6 +19,35 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.12.0 (2021-09-06)
+
+#### :rocket: New Feature
+* `wdio-protocols`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#7384](https://github.com/webdriverio/webdriverio/pull/7384) Add Geckodriver specific protocol commands ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#7379](https://github.com/webdriverio/webdriverio/pull/7379) Fixes afterTest template for allure reporter ([@gpt14](https://github.com/gpt14))
+* `devtools`
+  * [#7358](https://github.com/webdriverio/webdriverio/pull/7358) Allow undefined as executeAsync parameter ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-jasmine-framework`
+  * [#7371](https://github.com/webdriverio/webdriverio/pull/7371) Overwrite jasmine types to allow retries ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#7382](https://github.com/webdriverio/webdriverio/pull/7382) docs(website): add new company in carousel ([@Slashgear](https://github.com/Slashgear))
+* [#7372](https://github.com/webdriverio/webdriverio/pull/7372) docs: typos, grammar ([@saintmalik](https://github.com/saintmalik))
+* [#7370](https://github.com/webdriverio/webdriverio/pull/7370) removed duplicate reporter entry ([@babusekaran](https://github.com/babusekaran))
+
+#### Committers: 5
+- Antoine Caron ([@Slashgear](https://github.com/Slashgear))
+- Babu Sekaran ([@babusekaran](https://github.com/babusekaran))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- GPT14 ([@gpt14](https://github.com/gpt14))
+- SaintMalik ([@saintmalik](https://github.com/saintmalik))
+
+
 ## v7.11.1 (2021-08-30)
 
 #### :bug: Bug Fix
