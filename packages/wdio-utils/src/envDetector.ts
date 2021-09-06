@@ -59,6 +59,21 @@ function isChrome (capabilities?: Capabilities.DesiredCapabilities) {
 }
 
 /**
+ * check if session is run by Chromedriver
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run by Chromedriver
+ */
+function isFirefox (capabilities?: Capabilities.DesiredCapabilities) {
+    if (!capabilities) {
+        return false
+    }
+    return (
+        capabilities.browserName === 'firefox' ||
+        Boolean(Object.keys(capabilities).find((cap) => cap.startsWith('moz:')))
+    )
+}
+
+/**
  * check if current platform is mobile device
  *
  * @param  {Object}  caps  capabilities
@@ -180,6 +195,7 @@ export function sessionEnvironmentDetector ({ capabilities, requestedCapabilitie
     return {
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),
+        isFirefox: isFirefox(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
@@ -200,6 +216,7 @@ export function devtoolsEnvironmentDetector ({ browserName }: Capabilities.Capab
         isMobile: false,
         isIOS: false,
         isAndroid: false,
+        isFirefox: false,
         isChrome: browserName === 'chrome',
         isSauce: false,
         isSeleniumStandalone: false,
@@ -215,6 +232,7 @@ export function devtoolsEnvironmentDetector ({ browserName }: Capabilities.Capab
 export function webdriverEnvironmentDetector (capabilities: Capabilities.Capabilities) {
     return {
         isChrome: isChrome(capabilities),
+        isFirefox: isFirefox(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),

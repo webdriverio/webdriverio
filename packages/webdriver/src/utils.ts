@@ -2,7 +2,7 @@ import merge from 'lodash.merge'
 import logger from '@wdio/logger'
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
-    SauceLabsProtocol, SeleniumProtocol
+    SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
 } from '@wdio/protocols'
 import Protocols from '@wdio/protocols'
 import { Options, Capabilities } from '@wdio/types'
@@ -165,7 +165,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     const ProtocolCommands: Protocols.Protocol = merge(
         /**
@@ -184,6 +184,10 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
          * only apply special Chrome commands if session is using Chrome
          */
         isChrome ? ChromiumProtocol : {},
+        /**
+         * only apply special Firefox commands if session is using Firefox
+         */
+        isFirefox ? GeckoProtocol : {},
         /**
          * only Sauce Labs specific vendor commands
          */
@@ -250,12 +254,13 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
         isIOS: { value: isIOS },
         isAndroid: { value: isAndroid },
+        isFirefox: { value: isFirefox },
         isChrome: { value: isChrome },
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone }

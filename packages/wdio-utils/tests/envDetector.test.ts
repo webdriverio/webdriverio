@@ -66,6 +66,15 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isChrome).toBe(false)
     })
 
+    it('isFirefox', () => {
+        const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isFirefox).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isFirefox).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isFirefox).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isFirefox).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: phantomCaps, requestedCapabilities }).isFirefox).toBe(false)
+    })
+
     it('isSauce', () => {
         const capabilities = { browserName: 'chrome' }
         let requestedCapabilities: WebDriver.DesiredCapabilities = {}
