@@ -6,7 +6,7 @@
       "ref": "https://github.com/SeleniumHQ/selenium/blob/586affe0cf675b1d5c8abc756defa4a46d95391b/javascript/node/selenium-webdriver/firefox.js#L615-L622",
       "examples": [
         [
-          "console.log(await browser.getContext()); // outputs: 'CHROME'"
+          "console.log(await browser.getMozContext()); // outputs: 'CHROME'"
         ]
       ],
       "parameters": [],
@@ -22,9 +22,9 @@
       "ref": "https://github.com/SeleniumHQ/selenium/blob/586affe0cf675b1d5c8abc756defa4a46d95391b/javascript/node/selenium-webdriver/firefox.js#L615-L645",
       "examples": [
         [
-          "console.log(await browser.getContext()); // outputs: 'CHROME'",
-          "browser.setContext('CONTENT');",
-          "console.log(await browser.getContext()); // outputs: 'CONTENT'"
+          "console.log(await browser.getMozContext()); // outputs: 'CHROME'",
+          "browser.setMozContext('CONTENT');",
+          "console.log(await browser.getMozContext()); // outputs: 'CONTENT'"
         ]
       ],
       "parameters": [{
