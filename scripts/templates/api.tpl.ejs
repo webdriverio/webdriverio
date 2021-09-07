@@ -8,6 +8,9 @@ title: <?= method.command ?>
 <? if (method.customEditUrl) { ?>custom_edit_url: <?= method.customEditUrl ?><? } ?>
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <? } else if (method.hasHeader) { ?>
 ## <?= method.command ?>
 <? } ?>
