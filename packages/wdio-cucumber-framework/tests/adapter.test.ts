@@ -5,6 +5,7 @@ import mockery from 'mockery'
 
 import CucumberAdapter from '../src'
 import { setUserHookNames } from '../src/utils'
+import * as packageExports from '../src'
 
 jest.mock('../src/reporter', () => class CucumberReporter {
     eventListener = {
@@ -43,6 +44,19 @@ describe('CucumberAdapter', () => {
         ;(Cucumber.After as jest.Mock).mockClear()
         ;(Cucumber.BeforeStep as jest.Mock).mockClear()
         ;(Cucumber.AfterStep as jest.Mock).mockClear()
+    })
+
+    it('exports Cucumber exports', () => {
+        expect(Object.keys(packageExports))
+            .toContain('Given')
+        expect(Object.keys(packageExports))
+            .toContain('When')
+        expect(Object.keys(packageExports))
+            .toContain('Then')
+        expect(Object.keys(packageExports))
+            .toContain('Before')
+        expect(Object.keys(packageExports))
+            .toContain('After')
     })
 
     it('can be initiated with tests', async () => {

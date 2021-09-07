@@ -1,6 +1,6 @@
 import assert from 'assert'
 
-import { Then } from '@cucumber/cucumber'
+import { Then } from '../../../packages/wdio-cucumber-framework'
 
 Then(/^the title of the page should be:$/, (expectedTitle) => {
     const actualTitle = browser.getTitle()

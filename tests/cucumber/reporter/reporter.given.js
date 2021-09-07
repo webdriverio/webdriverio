@@ -1,4 +1,4 @@
-import { Given, BeforeAll, Before, After, AfterAll } from '@cucumber/cucumber'
+import { Given, BeforeAll, Before, After, AfterAll } from '@wdio/cucumber-framework'
 
 BeforeAll(() => {})
 Before(function () {})

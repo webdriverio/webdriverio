@@ -6,6 +6,22 @@ import isGlob from 'is-glob'
 import glob from 'glob'
 
 import * as Cucumber from '@cucumber/cucumber'
+import {
+    After,
+    AfterAll,
+    AfterStep,
+    Before,
+    BeforeAll,
+    BeforeStep,
+    defineParameterType,
+    defineStep,
+    Given,
+    setDefaultTimeout,
+    setDefinitionFunctionWrapper,
+    setWorldConstructor,
+    Then,
+    When
+} from '@cucumber/cucumber'
 import { GherkinStreams } from '@cucumber/gherkin-streams'
 import EventDataCollector from '@cucumber/cucumber/lib/formatter/helpers/event_data_collector'
 import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
@@ -374,7 +390,24 @@ adapterFactory.init = async function (...args: any[]) {
 }
 
 export default adapterFactory
-export { CucumberAdapter, adapterFactory }
+export {
+    CucumberAdapter,
+    adapterFactory,
+    After,
+    AfterAll,
+    AfterStep,
+    Before,
+    BeforeAll,
+    BeforeStep,
+    defineParameterType,
+    defineStep,
+    Given,
+    setDefaultTimeout,
+    setDefinitionFunctionWrapper,
+    setWorldConstructor,
+    Then,
+    When
+}
 
 declare global {
     namespace WebdriverIO {
