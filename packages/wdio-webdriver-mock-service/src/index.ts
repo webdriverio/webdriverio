@@ -160,7 +160,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         const elem2Response = { [ELEM_PROP]: ELEMENT_REFETCHED }
 
         this._mock.command.findElement().twice().reply(200, { value: elemResponse })
-        this._mock.command.findElement().twice().reply(200, { value: elem2Response })
+        this._mock.command.findElementFromElement(ELEMENT_ID).twice().reply(200, { value: elem2Response })
         this._mock.command.elementClick(ELEMENT_REFETCHED).twice().reply(200, { value: null })
     }
 
