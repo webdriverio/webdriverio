@@ -47,7 +47,7 @@ export default function executeAsync<ReturnValue, InnerArguments extends any[]>(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     script:
         string |
-        ((...args: [...innerArgs: InnerArguments, callback: (result: ReturnValue) => void]) => void),
+        ((...args: [...innerArgs: InnerArguments, callback: (result?: ReturnValue) => void]) => void),
     ...args: InnerArguments
 ): Promise<ReturnValue> {
     /**
