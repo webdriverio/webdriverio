@@ -10,10 +10,6 @@ import type { BrowserCommandsType } from './types'
 
 type EventEmitter = (args: any) => void
 
-interface PropertiesObject {
-    [key: string]: PropertyDescriptor
-}
-
 /**
  * Multiremote class
  */
@@ -40,7 +36,7 @@ export default class MultiRemote {
 
         for (const commandName of wrapperClient.commandList) {
             propertiesObject[commandName] = {
-                value: this.commandWrapper(commandName, propertiesObject),
+                value: this.commandWrapper(commandName),
                 configurable: true
             }
         }
@@ -104,7 +100,7 @@ export default class MultiRemote {
     /**
      * handle commands for multiremote instances
      */
-    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType), propertiesObject: PropertiesObject) {
+    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType)) {
         const instances = this.instances
         return wrapCommand(commandName, async function (this: WebdriverIO.Browser, ...args: any[]) {
             const result = await Promise.all(
@@ -123,7 +119,7 @@ export default class MultiRemote {
             }
 
             return result
-        }, propertiesObject)
+        })
     }
 }
 

@@ -53,6 +53,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._browser.addCommand('isEventuallyDisplayedScenario', this.isEventuallyDisplayedScenario.bind(this))
         this._browser.addCommand('staleElementRefetchScenario', this.staleElementRefetchScenario.bind(this))
         this._browser.addCommand('customCommandScenario', this.customCommandScenario.bind(this))
+        this._browser.addCommand('customSelectorScenario', this.customSelectorScenario.bind(this))
         this._browser.addCommand('waitForDisplayedScenario', this.waitForDisplayedScenario.bind(this))
         this._browser.addCommand('cucumberScenario', this.cucumberScenario.bind(this))
         this._browser.addCommand('clickScenario', this.clickScenario.bind(this))
@@ -174,6 +175,16 @@ export default class WebdriverMockService implements Services.ServiceInstance {
 
         // overwrite
         this._mock.command.deleteAllCookies().times(times).reply(200, { value: 'deleteAllCookies' })
+    }
+
+    customSelectorScenario() {
+        this.nockReset()
+
+        const elemResponse = { [ELEM_PROP]: ELEMENT_ID }
+        const elemAltResponse = { [ELEM_PROP]: ELEMENT_ALT }
+        this._mock.command.findElement().reply(200, { value: elemResponse })
+        this._mock.command.executeScript().reply(200, { value: elemAltResponse })
+        this._mock.command.findElementFromElement(ELEMENT_ALT).reply(200, { value: elemResponse })
     }
 
     waitForDisplayedScenario() {
