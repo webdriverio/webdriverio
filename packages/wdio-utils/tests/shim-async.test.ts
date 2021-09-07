@@ -228,56 +228,63 @@ describe('wrapCommand', () => {
     })
 
     it('allows to chain element promises', async () => {
+        const rawCommand = jest.fn()
         const scope: Partial<BrowserObject> = {
             options: {
                 beforeCommand: jest.fn(),
                 afterCommand: jest.fn()
             },
-            getTagName: jest.fn().mockResolvedValue('Yayy')
+            getTagName: jest.fn().mockResolvedValue('Yayy'),
+            $: rawCommand
         }
-        const rawCommand = jest.fn().mockReturnValue(Promise.resolve(scope))
-        const propertiesObject = {
-            '$': { value: rawCommand },
-            getTagName: { value: jest.fn() }
-        }
-        const commandA = wrapCommand('$', rawCommand, propertiesObject)
-        expect(await commandA.call(scope).$('foo').getTagName()).toBe('Yayy')
+        rawCommand.mockReturnValue(Promise.resolve(scope))
+        const commandA = wrapCommand('$', rawCommand)
+        expect(await commandA.call(scope, 'bar').$('foo').getTagName()).toBe('Yayy')
+        expect(scope.$).toBeCalledTimes(2)
+        expect(scope.$).toBeCalledWith('bar')
+        expect(scope.$).toBeCalledWith('foo')
+        expect(scope.getTagName).toBeCalledTimes(1)
     })
 
     it('allows to access indexed element', async () => {
+        const rawCommand$ = jest.fn()
+        const rawCommand$$ = jest.fn()
         const scope: (i: number) => Partial<BrowserObject> = (i) => ({
             options: {
                 beforeCommand: jest.fn(),
                 afterCommand: jest.fn()
             },
-            getTagName: jest.fn().mockResolvedValue('Yayy' + i)
+            getTagName: jest.fn().mockResolvedValue('Yayy' + i),
+            $: rawCommand$,
+            $$: rawCommand$$
         })
-        const rawCommand$ = jest.fn().mockResolvedValue(scope(0))
-        const rawCommand$$ = jest.fn().mockReturnValue([
+        rawCommand$.mockResolvedValue(scope(0))
+        rawCommand$$.mockReturnValue([
             Promise.resolve(scope(0)),
             Promise.resolve(scope(1)),
             Promise.resolve(scope(2))
         ])
-        const propertiesObject = {
-            '$': { value: rawCommand$ },
-            '$$': { value: rawCommand$$ },
-            getTagName: { value: jest.fn() }
-        }
-        const commandA = wrapCommand('$', rawCommand$, propertiesObject)
+        const commandA = wrapCommand('$', rawCommand$)
         expect(await commandA.call(scope(0)).$('foo').$$('bar')[2].getTagName()).toBe('Yayy2')
         expect(await commandA.call(scope(0)).$('foo').$$('bar')[2].$('barfoo').getTagName()).toBe('Yayy0')
+        expect(rawCommand$$).toBeCalledTimes(2)
+        expect(rawCommand$$).toBeCalledWith('bar')
     })
 
     it('offers array methods on elements', async () => {
+        const rawCommand$ = jest.fn()
+        const rawCommand$$ = jest.fn()
         const scope: (i: number) => Partial<BrowserObject> = (i) => ({
             options: {
                 beforeCommand: jest.fn(),
                 afterCommand: jest.fn()
             },
-            getTagName: jest.fn().mockResolvedValue('Yayy' + i)
+            getTagName: jest.fn().mockResolvedValue('Yayy' + i),
+            $: rawCommand$,
+            $$: rawCommand$$
         })
-        const rawCommand$ = jest.fn().mockResolvedValue(scope(0))
-        const rawCommand$$ = jest.fn().mockReturnValue([
+        rawCommand$.mockResolvedValue(scope(0))
+        rawCommand$$.mockReturnValue([
             Promise.resolve(scope(0)),
             Promise.resolve(scope(1)),
             Promise.resolve(scope(2))
