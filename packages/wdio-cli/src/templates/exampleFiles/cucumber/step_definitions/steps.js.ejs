@@ -1,6 +1,6 @@
 <%- isUsingTypeScript || isUsingBabel
-    ? "import { Given, When, Then } from '@cucumber/cucumber';"
-    : "const { Given, When, Then } = require('@cucumber/cucumber');" %>
+    ? "import { Given, When, Then } from '@wdio/cucumber-framework';"
+    : "const { Given, When, Then } = require('@wdio/cucumber-framework');" %>
 <%
 /**
  * step definition without page objects
