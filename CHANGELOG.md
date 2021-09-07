@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.12.1 (2021-09-07)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#7398](https://github.com/webdriverio/webdriverio/pull/7398) Export Cucumber functions through `@wdio/cucumber-framework` package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#7352](https://github.com/webdriverio/webdriverio/pull/7352) chore: make return value optional in executeAsync function ([@Joozty](https://github.com/Joozty))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jozef Harag ([@Joozty](https://github.com/Joozty))
+
+
 ## v7.12.0 (2021-09-06)
 
 #### :rocket: New Feature
