@@ -6,9 +6,18 @@ import type { ProtocolCommands } from '@wdio/protocols'
 
 import { multiremoteHandler } from './middlewares'
 import { getPrototype } from './utils'
-import type { BrowserCommandsType } from './types'
+import type { BrowserCommandsType, MultiRemoteBrowser } from './types'
 
 type EventEmitter = (args: any) => void
+
+type MultiRemoteElement = {
+    selector: string
+    instances: string[]
+    isMultiremote: boolean
+    __propertiesObject__: Record<string, PropertyDescriptor>
+} & {
+    [instanceName: string]: WebdriverIO.Element
+}
 
 /**
  * Multiremote class
@@ -76,8 +85,9 @@ export default class MultiRemote {
     static elementWrapper (
         instances: Record<string, WebdriverIO.Browser>,
         result: any,
-        propertiesObject: Record<string, PropertyDescriptor>
-    ) {
+        propertiesObject: Record<string, PropertyDescriptor>,
+        scope: MultiRemote
+    ): MultiRemoteElement {
         const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
 
         const element = webdriverMonad({}, (client: WebdriverIO.MultiRemoteBrowser) => {
@@ -89,12 +99,14 @@ export default class MultiRemote {
             }
 
             client.instances = Object.keys(instances)
+            client.isMultiremote = true
+            client.selector = result[0] ? result[0].selector : null
             delete client.sessionId
             return client
         }, prototype)
 
         // @ts-ignore
-        return element(this.sessionId, multiremoteHandler(wrapCommand))
+        return element(this.sessionId, multiremoteHandler(scope.commandWrapper.bind(scope)))
     }
 
     /**
@@ -102,20 +114,31 @@ export default class MultiRemote {
      */
     commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType)) {
         const instances = this.instances
-        return wrapCommand(commandName, async function (this: WebdriverIO.Browser, ...args: any[]) {
+        const self = this
+        return wrapCommand(commandName, async function (this: MultiRemoteBrowser<'async'> | MultiRemoteElement, ...args: any[]) {
+            const mElem = this as MultiRemoteElement
+            const scope = this.selector
+                ? Object.entries(mElem.instances.reduce((ins, instanceName) => (
+                    { ...ins, [instanceName]: mElem[instanceName] }
+                ), {} as Record<string, WebdriverIO.Element[]>))
+                : Object.entries(instances)
+
             const result = await Promise.all(
-                // @ts-ignore
-                Object.entries(instances).map(([, instance]) => instance[commandName](...args))
+                scope.map(
+                    // @ts-expect-error
+                    ([, instance]) => instance[commandName](...args)
+                )
             )
 
             /**
              * return element object to call commands directly
              */
             if (commandName === '$') {
-                return MultiRemote.elementWrapper(instances, result, this.__propertiesObject__)
+                const elem = MultiRemote.elementWrapper(instances, result, this.__propertiesObject__, self)
+                return elem
             } else if (commandName === '$$') {
                 const zippedResult = zip(...result)
-                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(instances, singleResult, this.__propertiesObject__))
+                return zippedResult.map((singleResult) => MultiRemote.elementWrapper(instances, singleResult, this.__propertiesObject__, self))
             }
 
             return result
