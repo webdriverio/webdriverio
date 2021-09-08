@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.12.2 (2021-09-08)
+
+#### :bug: Bug Fix
+* `wdio-utils`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#7397](https://github.com/webdriverio/webdriverio/pull/7397) Fix chaining of custom$ and custom$ ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v7.12.1 (2021-09-07)
 
 #### :rocket: New Feature
