@@ -76,6 +76,13 @@ describe('Mocha smoke test', () => {
         expect(errorVal).toBe(42)
     })
 
+    it('should allow chaining of custom$', async () => {
+        browser.addLocatorStrategy('someSelector', () => global.document.body)
+        await browser.customSelectorScenario()
+        const el = await browser.$('body').custom$('someSelector', 'foo').$('div#foobar')
+        expect(el.selector).toBe('div#foobar')
+    })
+
     it('should allow to reload a session', () => {
         const sessionIdBefore = browser.sessionId
         browser.reloadSession()

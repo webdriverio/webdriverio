@@ -21,10 +21,6 @@ interface WDIOSync {
     runSync: any
 }
 
-interface PropertiesObject {
-    [key: string]: PropertyDescriptor
-}
-
 declare global {
     var _HAS_FIBER_CONTEXT: boolean
 }
@@ -117,7 +113,7 @@ let runFnInFiberContext = function (fn: Function) {
  * @param commandName name of the command (e.g. getTitle)
  * @param fn          command function
  */
-let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, propertiesObject: PropertiesObject): (...args: any) => Promise<T> {
+let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
     async function wrapCommandFn(this: any, ...args: any[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
@@ -206,7 +202,10 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                      * ```
                      */
                     if (ELEMENT_QUERY_COMMANDS.includes(prop)) {
-                        return wrapCommand(prop, propertiesObject[prop].value, propertiesObject)
+                        // this: WebdriverIO.Element
+                        return wrapCommand(prop, function (this: any, ...args: any) {
+                            return this[prop].apply(this, args)
+                        })
                     }
 
                     /**
