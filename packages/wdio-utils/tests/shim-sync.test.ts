@@ -3,7 +3,6 @@ import { wrapCommand as wrapCommandSync } from '@wdio/sync'
 
 jest.mock('@wdio/sync', () => ({
     executeHooksWithArgs: jest.fn().mockReturnValue('executeHooksWithArgs'),
-    runFnInFiberContext: jest.fn().mockReturnValue('runFnInFiberContext'),
     wrapCommand: jest.fn().mockReturnValue(jest.fn()),
     executeSync: jest.fn().mockReturnValue('executeSync'),
     runSync: jest.fn().mockReturnValue('runSync')
@@ -26,8 +25,14 @@ describe('runFnInFiberContext', () => {
 describe('wrapCommand', () => {
     it('should match @wdio/sync', async () => {
         global._HAS_FIBER_CONTEXT = true
+
         expect(wrapCommandSync).toBeCalledTimes(0)
-        wrapCommand('foo', jest.fn(), {})('foo')
+        wrapCommand('foo', jest.fn()).call({ options: {} }, 'foo')
+        expect(wrapCommandSync).toBeCalledTimes(0)
+
+        // @ts-ignore
+        global.browser = {}
+        wrapCommand('foo', jest.fn()).call({ options: {} }, 'foo')
         expect(wrapCommandSync).toBeCalledTimes(1)
     })
 })
