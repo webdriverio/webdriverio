@@ -8,6 +8,14 @@ let inCommandHook = false
 let hasWdioSyncSupport = false
 let runSync: (this: unknown, fn: Function, repeatTest: any, args: unknown[]) => (resolve: Function, reject: Function) => unknown
 
+declare global {
+    namespace NodeJS {
+        interface Global {
+            browser?: any
+        }
+    }
+}
+
 interface Retries {
     limit: number
     attempts: number
@@ -278,12 +286,13 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
         /**
          * use sync mode if:
          * - @wdio/sync package is installed and can be resolved
+         * - if a global.browser is define so we run with wdio testrunner
          * - we are in a fiber context (flag is set when outer function is wrapped into fibers context)
          *
          * also if we run command asynchronous and the command suppose to return an element, we
          * apply `chainElementQuery` to allow chaining of these promises.
          */
-        const command = hasWdioSyncSupport && wdioSync && !runAsync
+        const command = hasWdioSyncSupport && wdioSync && Boolean(global.browser) && !runAsync
             ? wdioSync!.wrapCommand(commandName, fn)
             : ELEMENT_QUERY_COMMANDS.includes(commandName)
                 ? chainElementQuery

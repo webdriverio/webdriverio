@@ -85,9 +85,15 @@ describe('Mocha smoke test', () => {
 
     it('should allow to chain custom commands', async () => {
         await browser.isExistingScenario()
-        browser.addCommand('foo', () => Promise.resolve('foo').then((r) => r + 'bar'), true)
-        expect(await browser.foo()).toBe('foobar')
-        expect(await browser.$('body').$('.selector-1').foo()).toBe('foobar')
+        browser.addCommand(
+            'foo',
+            function () {
+                return Promise.resolve('foo').then((r) => `${r}_${this.selector}_bar`)
+            },
+            true
+        )
+        expect(typeof browser.foo).toBe('undefined')
+        expect(await browser.$('body').$('.selector-1').foo()).toBe('foo_.selector-1_bar')
     })
 
     it('should allow to reload a session', () => {
