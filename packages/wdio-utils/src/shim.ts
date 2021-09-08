@@ -8,14 +8,6 @@ let inCommandHook = false
 let hasWdioSyncSupport = false
 let runSync: (this: unknown, fn: Function, repeatTest: any, args: unknown[]) => (resolve: Function, reject: Function) => unknown
 
-declare global {
-    namespace NodeJS {
-        interface Global {
-            browser?: any
-        }
-    }
-}
-
 interface Retries {
     limit: number
     attempts: number
@@ -31,6 +23,7 @@ interface WDIOSync {
 
 declare global {
     var _HAS_FIBER_CONTEXT: boolean
+    var browser: any
 }
 
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
