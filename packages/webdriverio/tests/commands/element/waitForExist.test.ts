@@ -6,7 +6,7 @@ const got = gotMock as any as jest.Mock
 
 describe('waitForExists', () => {
     const timeout = 1000
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
         got.mockClear()

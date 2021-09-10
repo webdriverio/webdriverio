@@ -1,7 +1,7 @@
 import { remote } from '../../../src'
 
 describe('call command', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
         browser = await remote({

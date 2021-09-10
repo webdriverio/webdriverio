@@ -3,7 +3,7 @@ import got from 'got'
 import { remote } from '../../../src'
 
 describe('touchAction test', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
 
     beforeAll(async () => {
