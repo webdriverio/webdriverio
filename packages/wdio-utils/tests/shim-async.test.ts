@@ -126,7 +126,7 @@ describe('executeSync', () => {
 
 describe('executeAsync', () => {
     it('should pass with default values and fn returning synchronous value', async () => {
-        const result = await executeAsync.call({}, () => 'foo', { limit: 0, attempts: 0 })
+        const result = await executeAsync.call({}, async () => 'foo', { limit: 0, attempts: 0 })
         expect(result).toEqual('foo')
     })
 
@@ -155,7 +155,7 @@ describe('executeAsync', () => {
                 counter--
                 throw new Error('foo')
             }
-            return true
+            return Promise.resolve(true)
         }, repeatTest)
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
@@ -172,7 +172,7 @@ describe('executeAsync', () => {
                 counter--
                 return Promise.reject('foo')
             }
-            return true
+            return Promise.resolve(true)
         }, repeatTest)
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
