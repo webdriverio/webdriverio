@@ -65,6 +65,7 @@ tests/typings/**/dist
 
 **/build
 /*.js
+/*.ts
 devtools.d.ts
 !.eslintrc.js
 !jest.config.js
