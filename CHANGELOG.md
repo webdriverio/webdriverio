@@ -19,6 +19,18 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.12.3 (2021-09-10)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#7313](https://github.com/webdriverio/webdriverio/pull/7313) Enable custom chain-able commands with async API ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-runner`, `wdio-shared-store-service`, `webdriverio`
+  * [#7215](https://github.com/webdriverio/webdriverio/pull/7215) Only run stale element work around for safari browser ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v7.12.2 (2021-09-08)
 
 #### :bug: Bug Fix
