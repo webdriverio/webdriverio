@@ -23,6 +23,7 @@ interface WDIOSync {
 
 declare global {
     var _HAS_FIBER_CONTEXT: boolean
+    var browser: any
 }
 
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
@@ -34,6 +35,7 @@ const PROMISE_METHODS = ['then', 'catch', 'finally']
  */
 let wdioSync: WDIOSync | undefined
 export let runAsync = false
+export let asyncSpec = false
 try {
     const packageName = '@wdio/sync'
     wdioSync = require(packageName)
@@ -50,6 +52,7 @@ try {
     }
 } catch (err) {
     runAsync = true
+    asyncSpec = true
 }
 
 let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
@@ -278,12 +281,13 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
         /**
          * use sync mode if:
          * - @wdio/sync package is installed and can be resolved
+         * - if a global.browser is define so we run with wdio testrunner
          * - we are in a fiber context (flag is set when outer function is wrapped into fibers context)
          *
          * also if we run command asynchronous and the command suppose to return an element, we
          * apply `chainElementQuery` to allow chaining of these promises.
          */
-        const command = hasWdioSyncSupport && wdioSync && !runAsync
+        const command = hasWdioSyncSupport && wdioSync && Boolean(global.browser) && !runAsync && !asyncSpec
             ? wdioSync!.wrapCommand(commandName, fn)
             : ELEMENT_QUERY_COMMANDS.includes(commandName)
                 ? chainElementQuery
@@ -336,11 +340,13 @@ async function executeSyncFn (this: any, fn: Function, retries: Retries, args: a
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
+    const asyncSpecBefore = asyncSpec
     this.wdioRetries = retries.attempts
 
     try {
         runAsync = true
-        return await fn.apply(this, args)
+        asyncSpec = true
+        return await fn.apply(this, args).finally(() => (asyncSpec = asyncSpecBefore))
     } catch (e) {
         if (retries.limit > retries.attempts) {
             retries.attempts++

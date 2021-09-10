@@ -83,6 +83,19 @@ describe('Mocha smoke test', () => {
         expect(el.selector).toBe('div#foobar')
     })
 
+    it('should allow to chain custom commands', async () => {
+        await browser.isExistingScenario()
+        browser.addCommand(
+            'foo',
+            function () {
+                return Promise.resolve('foo').then((r) => `${r}_${this.selector}_bar`)
+            },
+            true
+        )
+        expect(typeof browser.foo).toBe('undefined')
+        expect(await browser.$('body').$('.selector-1').foo()).toBe('foo_.selector-1_bar')
+    })
+
     it('should allow to reload a session', () => {
         const sessionIdBefore = browser.sessionId
         browser.reloadSession()
@@ -325,7 +338,7 @@ describe('Mocha smoke test', () => {
             browser.customCommandScenario()
             browser.overwriteCommand('deleteCookies', (origCommand, fail) => {
                 const result = origCommand()
-                return fail ? Promise.reject(result) : result
+                return fail ? Promise.reject(new Error(result)) : result
             })
 
             let err = null
@@ -342,7 +355,7 @@ describe('Mocha smoke test', () => {
             await browser.customCommandScenario()
             browser.overwriteCommand('deleteCookies', async (origCommand, fail) => {
                 const result = await origCommand()
-                return fail ? Promise.reject(result) : result
+                return fail ? Promise.reject(new Error(result)) : result
             })
 
             let err = null
