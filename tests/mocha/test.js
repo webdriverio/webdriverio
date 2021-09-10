@@ -338,7 +338,7 @@ describe('Mocha smoke test', () => {
             browser.customCommandScenario()
             browser.overwriteCommand('deleteCookies', (origCommand, fail) => {
                 const result = origCommand()
-                return fail ? Promise.reject(result) : result
+                return fail ? Promise.reject(new Error(result)) : result
             })
 
             let err = null
@@ -355,7 +355,7 @@ describe('Mocha smoke test', () => {
             await browser.customCommandScenario()
             browser.overwriteCommand('deleteCookies', async (origCommand, fail) => {
                 const result = await origCommand()
-                return fail ? Promise.reject(result) : result
+                return fail ? Promise.reject(new Error(result)) : result
             })
 
             let err = null
