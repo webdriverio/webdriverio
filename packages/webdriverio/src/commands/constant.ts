@@ -111,7 +111,7 @@ export const touchAction = function (
     const formattedAction = formatArgs(this, actions)
     const protocolCommand = Array.isArray(actions[0])
         // cast old JSONWP
-        ? this.multiTouchPerform.bind(this) as unknown as (actions: object[]) => void
+        ? this.multiTouchPerform.bind(this) as unknown as (actions: object[]) => Promise<void>
         : this.touchPerform.bind(this)
     formattedAction.forEach((params) => validateParameters(params))
     return protocolCommand(formattedAction)
