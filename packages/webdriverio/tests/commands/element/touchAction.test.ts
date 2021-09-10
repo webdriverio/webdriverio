@@ -5,7 +5,7 @@ import { remote } from '../../../src'
 const got = gotMock as any as jest.Mock
 
 describe('touchAction element test', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
     let subElem: WebdriverIO.Element
     let subSubElem: WebdriverIO.Element

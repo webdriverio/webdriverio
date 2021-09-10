@@ -10,7 +10,7 @@ jest.mock('../../../src/scripts/isElementDisplayed', () => ({
 }))
 
 describe('isDisplayed test', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
 
     beforeEach(async () => {

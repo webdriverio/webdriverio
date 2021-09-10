@@ -5,7 +5,7 @@ import { remote } from '../../../src'
 jest.useFakeTimers()
 
 describe('pause test', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     beforeEach(async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',

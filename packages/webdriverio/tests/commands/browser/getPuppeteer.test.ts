@@ -5,7 +5,7 @@ import { remote } from '../../../src'
 const puppeteerConnect = puppeteer.connect as jest.Mock
 
 describe('attach Puppeteer', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
 
     beforeEach(() => {
         puppeteerConnect.mockClear()

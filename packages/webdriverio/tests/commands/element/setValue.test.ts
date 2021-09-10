@@ -5,7 +5,7 @@ import { remote } from '../../../src'
 const got = gotMock as any as jest.Mock
 
 describe('setValue', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
         browser = await remote({

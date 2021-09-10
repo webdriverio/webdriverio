@@ -6,7 +6,7 @@ const browserMock = {
     clearMockCalls: jest.fn().mockReturnValue({}),
     respondMock: jest.fn().mockReturnValue({}),
     call: jest.fn((cb) => cb())
-} as any as WebdriverIO.BrowserObject
+} as any as WebdriverIO.Browser
 
 beforeEach(() => {
     (browserMock.mockRequest as jest.Mock).mockClear()

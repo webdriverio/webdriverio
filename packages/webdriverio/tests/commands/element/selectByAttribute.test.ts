@@ -8,7 +8,7 @@ const got = gotMock as any as jest.Mock
 
 describe('selectByAttribute test', () => {
     const getElementFromResponseSpy = jest.spyOn(utils, 'getElementFromResponse')
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
 
     beforeEach(async () => {

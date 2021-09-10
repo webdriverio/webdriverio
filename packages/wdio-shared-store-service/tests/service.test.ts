@@ -26,7 +26,7 @@ describe('SharedStoreService', () => {
     })
 
     it('beforeSession', () => {
-        const browser = { call: (fn: Function) => fn() } as WebdriverIO.BrowserObject
+        const browser = { call: (fn: Function) => fn() } as WebdriverIO.Browser
         storeService.before({}, [], browser)
         storeService['_browser']?.sharedStore.get('foobar')
         storeService['_browser']?.sharedStore.set('foo', 'bar')
