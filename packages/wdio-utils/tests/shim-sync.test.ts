@@ -5,14 +5,15 @@ jest.mock('@wdio/sync', () => ({
     executeHooksWithArgs: jest.fn().mockReturnValue('executeHooksWithArgs'),
     wrapCommand: jest.fn().mockReturnValue(jest.fn()),
     executeSync: jest.fn().mockReturnValue('executeSync'),
-    runSync: jest.fn().mockReturnValue('runSync')
+    runSync: jest.fn().mockReturnValue('runSync'),
+    runFnInFiberContext: jest.fn().mockReturnValue(() => {})
 }))
 
 const command = jest.fn().mockReturnValue({})
 
 describe('executeHooksWithArgs', () => {
     it('should match @wdio/sync', async () => {
-        expect(executeHooksWithArgs.call({}, command)).toBe('executeHooksWithArgs')
+        expect(executeHooksWithArgs.call({}, 'before', command)).toBe('executeHooksWithArgs')
     })
 })
 
