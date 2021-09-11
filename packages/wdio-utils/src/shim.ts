@@ -346,7 +346,15 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
     try {
         runAsync = true
         asyncSpec = true
-        return await fn.apply(this, args).finally(() => (asyncSpec = asyncSpecBefore))
+        const result = fn.apply(this, args)
+
+        if (result && typeof result.finally === 'function') {
+            result.finally(() => (asyncSpec = asyncSpecBefore))
+        } else {
+            asyncSpec = asyncSpecBefore
+        }
+
+        return result
     } catch (e) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
