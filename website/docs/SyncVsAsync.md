@@ -16,7 +16,7 @@ WebdriverIO runs a set of asynchronous commands to interact with the browser or 
 To enable sync mode you only need to add the [`@wdio/sync`](https://www.npmjs.com/package/@wdio/sync) package to your dev dependencies:
 
 ```bash npm2yarn
-npm install --save-dev @wdio/cli
+npm install --save-dev @wdio/sync
 ```
 
 The package will be automatically detected by the framework and the environment properly set up to run synchronous.
