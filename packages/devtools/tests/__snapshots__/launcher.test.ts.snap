@@ -318,6 +318,52 @@ Array [
 ]
 `;
 
+exports[`launch chrome with defaultViewport in wdio:devtoolsOptions 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-hang-monitor",
+        "--disable-prompt-on-repost",
+        "--disable-client-side-phishing-detection",
+        "--password-store=basic",
+        "--use-mock-keychain",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-breakpad",
+        "--disable-dev-shm-usage",
+        "--disable-ipc-flooding-protection",
+        "--disable-renderer-backgrounding",
+        "--force-fieldtrials=*BackgroundTracing/default/",
+        "--enable-features=NetworkService,NetworkServiceInProcess",
+        "--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees",
+        "--window-position=0,0",
+        "--window-size=222,333",
+        "--device-scale-factor=1.42",
+        "--enable-touch-drag-drop",
+        "--touch-events",
+        "--enable-viewport",
+      ],
+      "chromePath": undefined,
+      "envVars": undefined,
+      "ignoreDefaultFlags": true,
+      "userDataDir": undefined,
+    },
+  ],
+]
+`;
+
 exports[`launch chrome without default flags and without puppeteer default args 1`] = `
 Array [
   Array [

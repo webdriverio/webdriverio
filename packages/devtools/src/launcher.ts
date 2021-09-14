@@ -100,7 +100,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         chromeFlags.push(`--user-agent=${mobileEmulation.userAgent}`)
     }
 
-    if (mobileEmulation.deviceMetrics?.touch) {
+    if (deviceMetrics?.touch) {
         chromeFlags.push(
             '--enable-touch-drag-drop',
             '--touch-events',
