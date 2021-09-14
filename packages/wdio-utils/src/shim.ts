@@ -354,7 +354,7 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
             asyncSpec = asyncSpecBefore
         }
 
-        return result
+        return await result
     } catch (e) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
