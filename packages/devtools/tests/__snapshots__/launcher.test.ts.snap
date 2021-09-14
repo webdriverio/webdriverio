@@ -159,7 +159,7 @@ Array [
         "--enable-features=NetworkService,NetworkServiceInProcess",
         "--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees",
         "--window-position=0,0",
-        "--window-size=1200,900",
+        "--window-size=412,732",
         "--headless",
         "--no-sandbox",
         "--window-size=222,333",
@@ -167,6 +167,9 @@ Array [
         "--user-agent=Mozilla/5.0 (Linux; Android 8.0.0; Nexus 6P Build/OPP3.170518.006) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",
       ],
       "chromePath": "/foo/bar",
+      "envVars": Object {
+        "foo": "bar",
+      },
       "ignoreDefaultFlags": true,
       "userDataDir": undefined,
     },
@@ -208,6 +211,7 @@ Array [
         "--window-size=1200,900",
       ],
       "chromePath": undefined,
+      "envVars": undefined,
       "ignoreDefaultFlags": true,
       "port": 8041,
       "userDataDir": undefined,
@@ -253,6 +257,7 @@ Array [
         "--anotherFlag",
       ],
       "chromePath": undefined,
+      "envVars": undefined,
       "ignoreDefaultFlags": true,
       "userDataDir": "/foo/bar",
     },
@@ -294,6 +299,7 @@ Array [
         "--window-size=1200,900",
       ],
       "chromePath": undefined,
+      "envVars": undefined,
       "ignoreDefaultFlags": true,
       "userDataDir": undefined,
     },
@@ -312,6 +318,52 @@ Array [
 ]
 `;
 
+exports[`launch chrome with defaultViewport in wdio:devtoolsOptions 1`] = `
+Array [
+  Array [
+    Object {
+      "chromeFlags": Array [
+        "--enable-automation",
+        "--disable-popup-blocking",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-hang-monitor",
+        "--disable-prompt-on-repost",
+        "--disable-client-side-phishing-detection",
+        "--password-store=basic",
+        "--use-mock-keychain",
+        "--disable-component-extensions-with-background-pages",
+        "--disable-breakpad",
+        "--disable-dev-shm-usage",
+        "--disable-ipc-flooding-protection",
+        "--disable-renderer-backgrounding",
+        "--force-fieldtrials=*BackgroundTracing/default/",
+        "--enable-features=NetworkService,NetworkServiceInProcess",
+        "--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees",
+        "--window-position=0,0",
+        "--window-size=222,333",
+        "--device-scale-factor=1.42",
+        "--enable-touch-drag-drop",
+        "--touch-events",
+        "--enable-viewport",
+      ],
+      "chromePath": undefined,
+      "envVars": undefined,
+      "ignoreDefaultFlags": true,
+      "userDataDir": undefined,
+    },
+  ],
+]
+`;
+
 exports[`launch chrome without default flags and without puppeteer default args 1`] = `
 Array [
   Array [
@@ -321,6 +373,7 @@ Array [
         "--window-size=1200,900",
       ],
       "chromePath": undefined,
+      "envVars": undefined,
       "ignoreDefaultFlags": true,
       "userDataDir": undefined,
     },
@@ -334,6 +387,7 @@ Array [
     Object {
       "browserURL": "http://localhost:1234",
       "defaultViewport": null,
+      "ignoreDefaultArgs": true,
     },
   ],
 ]
@@ -374,6 +428,7 @@ Array [
         "--enable-features=NetworkService",
       ],
       "chromePath": undefined,
+      "envVars": undefined,
       "ignoreDefaultFlags": true,
       "userDataDir": undefined,
     },
@@ -414,6 +469,7 @@ Array [
         "--enable-features=NetworkService",
       ],
       "chromePath": undefined,
+      "envVars": undefined,
       "ignoreDefaultFlags": true,
       "userDataDir": undefined,
     },
