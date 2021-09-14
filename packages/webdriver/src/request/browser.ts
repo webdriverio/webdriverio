@@ -38,7 +38,7 @@ export default class BrowserRequest extends WebDriverRequest {
         }
 
         if (options.username && options.password) {
-            const encodedAuth = atob(`${options.username}:${options.password}`)
+            const encodedAuth = btoa(`${options.username}:${options.password}`)
             kyOptions.headers = {
                 ...kyOptions.headers,
                 Authorization: `Basic ${encodedAuth}`
