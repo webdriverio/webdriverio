@@ -60,6 +60,15 @@ describe('utils', () => {
         expect(typeof chromiumPrototype.elementSendKeys.value).toBe('function')
         expect(typeof chromiumPrototype.lock).toBe('undefined')
 
+        const geckoPrototype = getPrototype({
+            isW3C: true, isChrome: false, isFirefox: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
+        })
+        expect(geckoPrototype instanceof Object).toBe(true)
+        expect(typeof geckoPrototype.setMozContext.value).toBe('function')
+        expect(typeof geckoPrototype.installAddOn.value).toBe('function')
+        expect(typeof geckoPrototype.elementSendKeys.value).toBe('function')
+        expect(typeof geckoPrototype.lock).toBe('undefined')
+
         const mobilePrototype = getPrototype({
             isW3C: true, isChrome: false, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
@@ -94,8 +103,9 @@ describe('utils', () => {
         const unknownError = new Error('unknown error')
         expect(getErrorFromResponseBody({})).toEqual(unknownError)
 
+        const nonWebDriverError = new Error('expected')
         const expectedError = new Error('expected')
-        expect(getErrorFromResponseBody('expected')).toEqual(expectedError)
+        expect(getErrorFromResponseBody('expected')).toEqual(nonWebDriverError)
         expect(getErrorFromResponseBody({ value: { message: 'expected' } }))
             .toEqual(expectedError)
         expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
@@ -105,7 +115,8 @@ describe('utils', () => {
         ieError.name = 'unknown method'
         expect(getErrorFromResponseBody({
             message: 'Command not found: POST /some/command',
-            error: 'unknown method'
+            error: 'unknown method',
+            name: 'Protocol Error'
         })).toEqual(ieError)
     })
 
@@ -126,15 +137,19 @@ describe('utils', () => {
         expect(error.message).toBe('stale element reference')
 
         error = new CustomRequestError({ value: { message: 'message' } } )
-        expect(error.name).toBe('Error')
+        expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('message')
 
         error = new CustomRequestError({ value: { class: 'class' } } )
-        expect(error.name).toBe('Error')
+        expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('class')
 
+        error = new CustomRequestError({ value: { name: 'Protocol Error' } } )
+        expect(error.name).toBe('Protocol Error')
+        expect(error.message).toBe('unknown error')
+
         error = new CustomRequestError({ value: { } } )
-        expect(error.name).toBe('Error')
+        expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('unknown error')
     })
 

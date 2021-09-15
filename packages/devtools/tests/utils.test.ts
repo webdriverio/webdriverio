@@ -315,6 +315,11 @@ test('transformExecuteArgs throws stale element if element is not in store', asy
     ])).rejects.toThrow()
 })
 
+test('transformExecuteArgs should allow undefined params', async () => {
+    const scope = { elementStore: new Map() }
+    expect(await transformExecuteArgs.call(scope as any, undefined)).toEqual([])
+})
+
 describe('transformExecuteResult', () => {
     test('multiple results', async () => {
         const scope = {

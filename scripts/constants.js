@@ -3,6 +3,7 @@ const PROTOCOLS = {
     appium: require('../packages/wdio-protocols/protocols/appium.json'),
     mjsonwp: require('../packages/wdio-protocols/protocols/mjsonwp.json'),
     chromium: require('../packages/wdio-protocols/protocols/chromium.json'),
+    gecko: require('../packages/wdio-protocols/protocols/gecko.json'),
     saucelabs: require('../packages/wdio-protocols/protocols/saucelabs.json'),
     selenium: require('../packages/wdio-protocols/protocols/selenium.json'),
     jsonwp: require('../packages/wdio-protocols/protocols/jsonwp.json')
@@ -13,6 +14,7 @@ const PROTOCOL_NAMES = {
     mjsonwp: 'Mobile JSON Wire Protocol',
     webdriver: 'WebDriver Protocol',
     chromium: 'Chromium',
+    gecko: 'Firefox',
     saucelabs: 'Sauce Labs',
     selenium: 'Selenium Standalone'
 }

@@ -7,7 +7,7 @@ import * as utils from '../../../src/utils'
 jest.mock('fs')
 
 describe('saveRecordingScreen', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     let getAbsoluteFilepathSpy: jest.SpyInstance
     let assertDirectoryExistsSpy: jest.SpyInstance
     let writeFileSyncSpy: jest.SpyInstance

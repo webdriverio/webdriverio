@@ -1,6 +1,6 @@
 import WDIORunner from '../src'
 import BaseReporter from '../src/reporter'
-import type { SingleConfigOption, Capability } from '@wdio/config'
+import type { Options, Capabilities } from '@wdio/types'
 
 jest.mock('../src/utils', () => ({
     __esModule: true,
@@ -19,8 +19,8 @@ jest.mock('../src/utils', () => ({
     }
 }))
 
-const config = {} as any as SingleConfigOption
-const capability: Capability = { browserName: 'foo' }
+const config: Options.WebdriverIO = { capabilities: {} }
+const capability: Capabilities.Capabilities = { browserName: 'foo' }
 
 describe('wdio-runner', () => {
     describe('_initSession', () => {
@@ -34,7 +34,7 @@ describe('wdio-runner', () => {
         })
 
         it('command event', async () => {
-            const browser = await runner._initSession(config, capability)
+            const browser = await runner['_initSession'](config, capability)
 
             const command = { foo: 'bar' }
             // @ts-ignore mock feature
@@ -44,7 +44,7 @@ describe('wdio-runner', () => {
         })
 
         it('result event', async () => {
-            const browser = await runner._initSession(config, capability)
+            const browser = await runner['_initSession'](config, capability)
 
             const result = { bar: 'foo' }
             // @ts-ignore mock feature
@@ -55,7 +55,7 @@ describe('wdio-runner', () => {
 
         it('should add user flags to browser but not overwrite', async () => {
             // @ts-ignore test scenario
-            const browser = await runner._initSession(undefined, undefined, { isFoo: true, $: true, $$: false, isBar: true })
+            const browser = await runner['_initSession'](undefined, undefined, { isFoo: true, $: true, $$: false, isBar: true })
 
             expect(typeof browser!.$).toBe('function')
             expect(typeof browser!.$$).toBe('function')

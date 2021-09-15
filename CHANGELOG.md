@@ -19,6 +19,202 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.12.5 (2021-09-14)
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-types`
+  * [#7422](https://github.com/webdriverio/webdriverio/pull/7422) Improve mobile emulation capabilities ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-reporter`
+  * [#7421](https://github.com/webdriverio/webdriverio/pull/7421) Fix error diffing in Jasmine ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#7401](https://github.com/webdriverio/webdriverio/pull/7401) fix(webdriver): browser request should use btoa for basic auth, not atob ([@jlipps](https://github.com/jlipps))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+
+
+## v7.12.3 (2021-09-10)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#7313](https://github.com/webdriverio/webdriverio/pull/7313) Enable custom chain-able commands with async API ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-runner`, `wdio-shared-store-service`, `webdriverio`
+  * [#7215](https://github.com/webdriverio/webdriverio/pull/7215) Only run stale element work around for safari browser ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v7.12.2 (2021-09-08)
+
+#### :bug: Bug Fix
+* `wdio-utils`, `wdio-webdriver-mock-service`, `webdriverio`
+  * [#7397](https://github.com/webdriverio/webdriverio/pull/7397) Fix chaining of custom$ and custom$ ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v7.12.1 (2021-09-07)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#7398](https://github.com/webdriverio/webdriverio/pull/7398) Export Cucumber functions through `@wdio/cucumber-framework` package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#7352](https://github.com/webdriverio/webdriverio/pull/7352) chore: make return value optional in executeAsync function ([@Joozty](https://github.com/Joozty))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jozef Harag ([@Joozty](https://github.com/Joozty))
+
+
+## v7.12.0 (2021-09-06)
+
+#### :rocket: New Feature
+* `wdio-protocols`, `wdio-utils`, `webdriver`, `webdriverio`
+  * [#7384](https://github.com/webdriverio/webdriverio/pull/7384) Add Geckodriver specific protocol commands ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#7379](https://github.com/webdriverio/webdriverio/pull/7379) Fixes afterTest template for allure reporter ([@gpt14](https://github.com/gpt14))
+* `devtools`
+  * [#7358](https://github.com/webdriverio/webdriverio/pull/7358) Allow undefined as executeAsync parameter ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-jasmine-framework`
+  * [#7371](https://github.com/webdriverio/webdriverio/pull/7371) Overwrite jasmine types to allow retries ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#7382](https://github.com/webdriverio/webdriverio/pull/7382) docs(website): add new company in carousel ([@Slashgear](https://github.com/Slashgear))
+* [#7372](https://github.com/webdriverio/webdriverio/pull/7372) docs: typos, grammar ([@saintmalik](https://github.com/saintmalik))
+* [#7370](https://github.com/webdriverio/webdriverio/pull/7370) removed duplicate reporter entry ([@babusekaran](https://github.com/babusekaran))
+
+#### Committers: 5
+- Antoine Caron ([@Slashgear](https://github.com/Slashgear))
+- Babu Sekaran ([@babusekaran](https://github.com/babusekaran))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- GPT14 ([@gpt14](https://github.com/gpt14))
+- SaintMalik ([@saintmalik](https://github.com/saintmalik))
+
+
+## v7.11.1 (2021-08-30)
+
+#### :bug: Bug Fix
+* `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-mocha-framework`
+  * [#7357](https://github.com/webdriverio/webdriverio/pull/7357) (junit-reporter) Include all parent suites in suite.fullTitle ([@lthurr](https://github.com/lthurr))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#7348](https://github.com/webdriverio/webdriverio/pull/7348) Allow `isExisting` to work with an composed element ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Luis Thur ([@lthurr](https://github.com/lthurr))
+
+
+## v7.11.0 (2021-08-26)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#7329](https://github.com/webdriverio/webdriverio/pull/7329) fix: correct appium protocol use of app/bundle ID ([@jlipps](https://github.com/jlipps))
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#7339](https://github.com/webdriverio/webdriverio/pull/7339) Be compliant with Jasmine timeout parameter for specs and hooks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#7328](https://github.com/webdriverio/webdriverio/pull/7328) Serenity/JS + WebdriverIO blog post and boilerplates ([@jan-molak](https://github.com/jan-molak))
+* [#7287](https://github.com/webdriverio/webdriverio/pull/7287) Document WebdriverIO TypeScript definitions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-cucumber-framework`
+  * [#7309](https://github.com/webdriverio/webdriverio/pull/7309) Update Cucumber packages ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+
+
+## v7.10.1 (2021-08-23)
+
+#### :nail_care: Polish
+* `wdio-types`, `wdio-utils`
+  * [#7308](https://github.com/webdriverio/webdriverio/pull/7308) Better detect Appium sessions ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#7296](https://github.com/webdriverio/webdriverio/pull/7296) website/docs: fix confusing adjective usage ([@p1100i](https://github.com/p1100i))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- peters ([@p1100i](https://github.com/p1100i))
+
+
+## v7.10.0 (2021-08-17)
+
+#### :bug: Bug Fix
+* `wdio-utils`, `wdio-webdriver-mock-service`
+  * [#7291](https://github.com/webdriverio/webdriverio/pull/7291) Allow to call catch and finally on element calls ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-runner`
+  * [#7290](https://github.com/webdriverio/webdriverio/pull/7290) Run after hook even if session initiation fails ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#7289](https://github.com/webdriverio/webdriverio/pull/7289) Support for @wdio/sync alongside the new v7.9.x Async API ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#7198](https://github.com/webdriverio/webdriverio/pull/7198) Set most parent Jasmine describe as BrowserStack session name in wdio-browserstack-service ([@sbley](https://github.com/sbley))
+
+#### :nail_care: Polish
+* `wdio-reporter`
+  * [#7262](https://github.com/webdriverio/webdriverio/pull/7262) Don't show error diff if 'actual' and 'expected' are empty ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-sauce-service`
+  * [#7263](https://github.com/webdriverio/webdriverio/pull/7263) Don't report pending in Jasmine as error in Sauce ([@christian-bromann](https://github.com/christian-bromann))
+  * [#7265](https://github.com/webdriverio/webdriverio/pull/7265) Allow to set custom job name in Sauce Labs service ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#7252](https://github.com/webdriverio/webdriverio/pull/7252) Fix for newWindow called twice opens only one window ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#7286](https://github.com/webdriverio/webdriverio/pull/7286) Fix wrapping  for caution ([@balukov](https://github.com/balukov))
+
+#### :house: Internal
+* `wdio-utils`
+  * [#7272](https://github.com/webdriverio/webdriverio/pull/7272) Order UNICODE_CHARACTERS map ([@pieceOpiland](https://github.com/pieceOpiland))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Ivan Balukov ([@balukov](https://github.com/balukov))
+- Stefan Bley ([@sbley](https://github.com/sbley))
+- [@pieceOpiland](https://github.com/pieceOpiland)
+
+
+## v7.9.1 (2021-08-09)
+
+#### :bug: Bug Fix
+* `wdio-utils`, `wdio-webdriver-mock-service`
+  * [#7225](https://github.com/webdriverio/webdriverio/pull/7225) Add support for async iterators ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#7226](https://github.com/webdriverio/webdriverio/pull/7226) Fix typings for addLocatorStrategy ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#7208](https://github.com/webdriverio/webdriverio/pull/7208) Fix: check current step instance before calling end step ([@iamkenos](https://github.com/iamkenos))
+* `wdio-cucumber-framework`
+  * [#7209](https://github.com/webdriverio/webdriverio/pull/7209) fix: duplicate steps on allure report ([@iamkenos](https://github.com/iamkenos))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`, `webdriver`
+  * [#7206](https://github.com/webdriverio/webdriverio/pull/7206) Improve WebDriver error handling ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-repl`
+  * [#7205](https://github.com/webdriverio/webdriverio/pull/7205) fix gif link in wdio-repl docs ([@Meir017](https://github.com/Meir017))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Meir Blachman ([@Meir017](https://github.com/Meir017))
+- Raju ([@spnraju](https://github.com/spnraju))
+- iamkenos ([@iamkenos](https://github.com/iamkenos))
+
+
 ## v7.9.0 (2021-07-28)
 
 #### :rocket: New Feature

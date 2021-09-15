@@ -38,7 +38,22 @@
  * @type state
  *
  */
-export default function isExisting (this: WebdriverIO.Element) {
+export default async function isExisting (this: WebdriverIO.Element) {
+    /**
+     * if an element was composed via `const elem = $({ 'element-6066-11e4-a52e-4f735466cecf': <elementId> })`
+     * we don't have any selector information. Therefor we can only check existance
+     * by calling a command with the element id to check if it is successful or not.
+     * Using `getElementTagName` to validate the element existance works as it is
+     * a command that should be available for desktop and mobile and fails with a
+     * stale element exeception if element is not existing.
+     */
+    if (!this.selector) {
+        return this.getElementTagName(this.elementId).then(
+            () => true,
+            () => false
+        )
+    }
+
     const command = this.isReactElement ? this.parent.react$$.bind(this.parent) : this.parent.$$.bind(this.parent)
     return command(this.selector as string).then((res) => res.length > 0)
 }

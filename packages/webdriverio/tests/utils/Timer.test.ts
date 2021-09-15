@@ -60,7 +60,7 @@ describe('timer', () => {
         })
 
         it('should wrap fn into fibers', async () => {
-            global.browser = {} as any as WebdriverIO.BrowserObject
+            global.browser = {} as any as WebdriverIO.Browser
             setWdioSyncSupport(true)
             ;(runFnInFiberContext as jest.Mock).mockReturnValueOnce(() => 'called')
             let timer = new Timer(20, 30, () => 'foobar')

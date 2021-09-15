@@ -5,7 +5,7 @@ import { remote } from '../../../src'
 const got = gotMock as jest.Mock
 
 describe('isEnabled test', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
 
     beforeAll(async () => {

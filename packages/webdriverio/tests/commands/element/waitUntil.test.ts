@@ -7,7 +7,7 @@ const got = gotMock as any as jest.Mock
 jest.setTimeout(10 * 1000)
 
 describe('waitUntil', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
         browser = await remote({

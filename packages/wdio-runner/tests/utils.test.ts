@@ -187,7 +187,7 @@ describe('utils', () => {
         })
 
         it('isMultiremote = false', () => {
-            expect(getInstancesData({} as WebdriverIO.BrowserObject, false))
+            expect(getInstancesData({} as WebdriverIO.Browser, false))
                 .toEqual(undefined)
         })
     })

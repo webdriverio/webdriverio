@@ -36,6 +36,13 @@ export default class JasmineReporter {
         }
 
         this.startedSuite = newSuite
+
+        let fullName = suite.description
+        for (const parent of this._parent.reverse()) {
+            fullName = parent.description + '.' + fullName
+        }
+        newSuite.fullName = fullName
+
         this.emit('suite:start', newSuite)
         this._parent.push({
             description: suite.description,

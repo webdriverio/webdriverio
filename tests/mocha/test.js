@@ -58,6 +58,44 @@ describe('Mocha smoke test', () => {
         assert.equal(await el.$('.selector-2').isExisting(), true)
     })
 
+    it('should allow to use then/catch/finally', async () => {
+        await browser.isExistingScenario()
+        const val = await browser.$('body').$('.selector-1').then(() => 123)
+        expect(val).toBe(123)
+
+        await browser.isExistingScenario()
+        let anotherVal
+        const elem = await browser.$('body').$('.selector-1').finally(() => {
+            anotherVal = 321
+        })
+        expect(elem.selector).toBe('.selector-1')
+        expect(anotherVal).toBe(321)
+
+        await browser.isNotExistingScenario()
+        const errorVal = await browser.$('body').$('.fooobar').catch(() => 42)
+        expect(errorVal).toBe(42)
+    })
+
+    it('should allow chaining of custom$', async () => {
+        browser.addLocatorStrategy('someSelector', () => global.document.body)
+        await browser.customSelectorScenario()
+        const el = await browser.$('body').custom$('someSelector', 'foo').$('div#foobar')
+        expect(el.selector).toBe('div#foobar')
+    })
+
+    it('should allow to chain custom commands', async () => {
+        await browser.isExistingScenario()
+        browser.addCommand(
+            'foo',
+            function () {
+                return Promise.resolve('foo').then((r) => `${r}_${this.selector}_bar`)
+            },
+            true
+        )
+        expect(typeof browser.foo).toBe('undefined')
+        expect(await browser.$('body').$('.selector-1').foo()).toBe('foo_.selector-1_bar')
+    })
+
     it('should allow to reload a session', () => {
         const sessionIdBefore = browser.sessionId
         browser.reloadSession()
@@ -300,7 +338,7 @@ describe('Mocha smoke test', () => {
             browser.customCommandScenario()
             browser.overwriteCommand('deleteCookies', (origCommand, fail) => {
                 const result = origCommand()
-                return fail ? Promise.reject(result) : result
+                return fail ? Promise.reject(new Error(result)) : result
             })
 
             let err = null
@@ -317,7 +355,7 @@ describe('Mocha smoke test', () => {
             await browser.customCommandScenario()
             browser.overwriteCommand('deleteCookies', async (origCommand, fail) => {
                 const result = await origCommand()
-                return fail ? Promise.reject(result) : result
+                return fail ? Promise.reject(new Error(result)) : result
             })
 
             let err = null

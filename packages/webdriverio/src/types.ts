@@ -231,11 +231,9 @@ export interface CustomInstanceCommands<T> {
     /**
      * create custom selector
      */
-    addLocatorStrategy<IsElement extends boolean = false>(
+    addLocatorStrategy(
         name: string,
-        func: IsElement extends true
-            ? (selector: string, root: HTMLElement) => CustomLocatorReturnValue
-            : (selector: string) => CustomLocatorReturnValue
+        func: ((selector: string, root: HTMLElement) => CustomLocatorReturnValue) | ((selector: string) => CustomLocatorReturnValue)
     ): void
 }
 

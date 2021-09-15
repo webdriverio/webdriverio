@@ -81,7 +81,7 @@ becomes
       <property name="capabilities" value="chrome"/>
       <property name="file" value=".\test\specs\asuite.spec.js"/>
     </properties>
-    <testcase classname="chrome.a_test_case" name="a_nested_test_suite_a_test_case" time="11.706"/>
+    <testcase classname="chrome.a_test_case" name="a nested test suite a test case" time="11.706"/>
   </testsuite>
 </testsuites>
 ```
@@ -110,7 +110,7 @@ becomes
       <property name="suiteName" value="a test suite"/>
       <property name="capabilities" value="chrome"/>
       <property name="file" value=".\test\specs\asuite.spec.js"/>
-      <testcase classname="chrome.a_test_case" name="a_nested_test_suite_a_test_case" time="11.706"/>
+      <testcase classname="chrome.a_test_case" name="a nested test suite a test case" time="11.706"/>
     </properties>
   </testsuite>
   <testsuite name="a second test suite" timestamp="2019-04-18T13:45:21" time="11.735" tests="0" failures="0" errors="0" skipped="0">

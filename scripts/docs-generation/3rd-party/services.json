@@ -50,12 +50,6 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-slack-service"
   },
   {
-    "packageName": "wdio-intercept-service",
-    "title": "Intercept",
-    "githubUrl": "https://github.com/chmanie/wdio-intercept-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-intercept-service"
-  },
-  {
     "packageName": "wdio-lambdatest-service",
     "title": "LambdaTest",
     "githubUrl": "https://github.com/LambdaTest/wdio-lambdatest-service",

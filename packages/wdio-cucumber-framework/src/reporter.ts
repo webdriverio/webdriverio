@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import { Status, PickleFilter } from '@cucumber/cucumber'
-import { messages } from '@cucumber/messages'
+import { Feature, Pickle, PickleStep, TestStep, TestStepResult, TestCaseFinished, PickleTag, Tag } from '@cucumber/messages'
 
 import CucumberEventListener from './cucumberEventListener'
 import { getFeatureId, formatMessage, getStepType, buildStepPayload } from './utils'
@@ -40,7 +40,7 @@ class CucumberReporter {
         }
     }
 
-    handleBeforeFeature (uri: string, feature: messages.GherkinDocument.IFeature) {
+    handleBeforeFeature (uri: string, feature: Feature) {
         this._featureStart = new Date()
 
         this.emit('suite:start', {
@@ -56,8 +56,8 @@ class CucumberReporter {
 
     handleBeforeScenario (
         uri: string,
-        feature: messages.GherkinDocument.IFeature,
-        scenario: messages.IPickle
+        feature: Feature,
+        scenario: Pickle
     ) {
         this._scenarioStart = new Date()
         this._testStart = new Date()
@@ -74,37 +74,37 @@ class CucumberReporter {
 
     handleBeforeStep (
         uri: string,
-        feature: messages.GherkinDocument.IFeature,
-        scenario: messages.IPickle,
-        step: messages.Pickle.IPickleStep | messages.TestCase.ITestStep
+        feature: Feature,
+        scenario: Pickle,
+        step: PickleStep | TestStep
     ) {
         this._testStart = new Date()
         const type = getStepType(step)
-        const payload = buildStepPayload(uri, feature, scenario, step, { type })
+        const payload = buildStepPayload(uri, feature, scenario, step as PickleStep, { type })
 
         this.emit(`${type}:start`, payload)
     }
 
     handleAfterStep (
         uri: string,
-        feature: messages.GherkinDocument.IFeature,
-        scenario: messages.IPickle,
-        step: messages.Pickle.IPickleStep | messages.TestCase.ITestStep,
-        result: messages.TestStepFinished.ITestStepResult
+        feature: Feature,
+        scenario: Pickle,
+        step: PickleStep | TestStep,
+        result: TestStepResult
     ) {
         const type = getStepType(step)
         if (type === 'hook') {
             return this.afterHook(uri, feature, scenario, step, result)
         }
-        return this.afterTest(uri, feature, scenario, step, result)
+        return this.afterTest(uri, feature, scenario, step as PickleStep, result)
     }
 
     afterHook (
         uri: string,
-        feature: messages.GherkinDocument.IFeature,
-        scenario: messages.IPickle,
-        step: messages.TestCase.ITestStep,
-        result: messages.TestStepFinished.ITestStepResult,
+        feature: Feature,
+        scenario: Pickle,
+        step: TestStep,
+        result: TestStepResult,
     ) {
         let error
         if (result.message) {
@@ -112,7 +112,7 @@ class CucumberReporter {
             error.stack = result.message
         }
 
-        const payload = buildStepPayload(uri, feature, scenario, step, {
+        const payload = buildStepPayload(uri, feature, scenario, step as PickleStep, {
             type: 'hook',
             state: result.status,
             error,
@@ -124,10 +124,10 @@ class CucumberReporter {
 
     afterTest (
         uri: string,
-        feature: messages.GherkinDocument.IFeature,
-        scenario: messages.IPickle,
-        step: messages.Pickle.IPickleStep,
-        result: messages.TestStepFinished.ITestStepResult
+        feature: Feature,
+        scenario: Pickle,
+        step: PickleStep,
+        result: TestStepResult
     ) {
         let state = 'undefined'
         switch (result.status) {
@@ -179,7 +179,7 @@ class CucumberReporter {
 
                 error = err
             }
-        } else if (result.status === Status.FAILED && !result.willBeRetried) {
+        } else if (result.status === Status.FAILED && !(result as any as TestCaseFinished).willBeRetried) {
             error = new Error(result.message?.split('\n')[0])
             error.stack = result.message as string
             this.failedCount++
@@ -188,7 +188,7 @@ class CucumberReporter {
             this.failedCount++
             error = new Error(result.message?.split('\n')[0])
             error.stack = result.message as string
-        } else if (result.willBeRetried) {
+        } else if ((result as any as TestCaseFinished).willBeRetried) {
             state = 'retry'
         }
 
@@ -218,12 +218,12 @@ class CucumberReporter {
 
     handleAfterScenario (
         uri: string,
-        feature: messages.GherkinDocument.IFeature,
-        scenario: messages.IPickle,
-        result: messages.TestStepFinished.ITestStepResult
+        feature: Feature,
+        scenario: Pickle,
+        result: TestStepResult
     ) {
         if (this._scenarioLevelReport) {
-            return this.afterTest(uri, feature, scenario, { id: scenario.id }, result)
+            return this.afterTest(uri, feature, scenario, { id: scenario.id } as PickleStep, result)
         }
 
         this.emit('suite:end', {
@@ -237,7 +237,7 @@ class CucumberReporter {
         })
     }
 
-    handleAfterFeature (uri: string, feature: messages.GherkinDocument.IFeature) {
+    handleAfterFeature (uri: string, feature: Feature) {
         this.emit('suite:end', {
             uid: getFeatureId(uri, feature),
             title: this.getTitle(feature),
@@ -258,11 +258,11 @@ class CucumberReporter {
         this._reporter.emit(event, message)
     }
 
-    getTitle (featureOrScenario: messages.GherkinDocument.IFeature | messages.IPickle) {
+    getTitle (featureOrScenario: Feature | Pickle) {
         const name = featureOrScenario.name
         const tags = featureOrScenario.tags
         if (!this._tagsInTitle || !tags || !tags.length) return name
-        return `${(tags as messages.IPickle[]).map(tag => tag.name).join(', ')}: ${name}`
+        return `${tags.map((tag: PickleTag | Tag) => tag.name).join(', ')}: ${name}`
     }
 }
 

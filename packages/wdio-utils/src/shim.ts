@@ -21,22 +21,21 @@ interface WDIOSync {
     runSync: any
 }
 
-interface PropertiesObject {
-    [key: string]: PropertyDescriptor
-}
-
 declare global {
     var _HAS_FIBER_CONTEXT: boolean
+    var browser: any
 }
 
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
 const ELEMENT_PROPS = ['elementId', 'error', 'selector', 'parent', 'index', 'isReactElement', 'length']
+const PROMISE_METHODS = ['then', 'catch', 'finally']
 
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
  */
 let wdioSync: WDIOSync | undefined
 export let runAsync = false
+export let asyncSpec = false
 try {
     const packageName = '@wdio/sync'
     wdioSync = require(packageName)
@@ -53,6 +52,7 @@ try {
     }
 } catch (err) {
     runAsync = true
+    asyncSpec = true
 }
 
 let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
@@ -116,7 +116,7 @@ let runFnInFiberContext = function (fn: Function) {
  * @param commandName name of the command (e.g. getTitle)
  * @param fn          command function
  */
-let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, propertiesObject: PropertiesObject): (...args: any) => Promise<T> {
+let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
     async function wrapCommandFn(this: any, ...args: any[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
@@ -153,6 +153,28 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
             {
                 get: (target, prop: string) => {
                     /**
+                     * handle symbols, e.g. async iterators
+                     */
+                    if (typeof prop === 'symbol') {
+                        return () => ({
+                            i: 0,
+                            target,
+                            async next () {
+                                const elems = await this.target
+                                if (!Array.isArray(elems)) {
+                                    throw new Error('Can not iterate over non array')
+                                }
+
+                                if (this.i < elems.length) {
+                                    return { value: elems[this.i++], done: false }
+                                }
+
+                                return { done: true }
+                            }
+                        })
+                    }
+
+                    /**
                      * if we access an index on an element array promise, e.g.:
                      * ```js
                      * const elems = await $$('foo')[2]
@@ -183,7 +205,10 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                      * ```
                      */
                     if (ELEMENT_QUERY_COMMANDS.includes(prop)) {
-                        return wrapCommand(prop, propertiesObject[prop].value, propertiesObject)
+                        // this: WebdriverIO.Element
+                        return wrapCommand(prop, function (this: any, ...args: any) {
+                            return this[prop].apply(this, args)
+                        })
                     }
 
                     /**
@@ -221,8 +246,8 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
                      * console.log(elem.selector) // "bar"
                      * ```
                      */
-                    if (prop === 'then') {
-                        return target[prop].bind(target)
+                    if (PROMISE_METHODS.includes(prop)) {
+                        return target[prop as 'then' | 'catch' | 'finally'].bind(target)
                     }
 
                     /**
@@ -256,12 +281,13 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function, pro
         /**
          * use sync mode if:
          * - @wdio/sync package is installed and can be resolved
+         * - if a global.browser is define so we run with wdio testrunner
          * - we are in a fiber context (flag is set when outer function is wrapped into fibers context)
          *
          * also if we run command asynchronous and the command suppose to return an element, we
          * apply `chainElementQuery` to allow chaining of these promises.
          */
-        const command = hasWdioSyncSupport && wdioSync && !runAsync
+        const command = hasWdioSyncSupport && wdioSync && Boolean(global.browser) && !runAsync && !asyncSpec
             ? wdioSync!.wrapCommand(commandName, fn)
             : ELEMENT_QUERY_COMMANDS.includes(commandName)
                 ? chainElementQuery
@@ -314,11 +340,21 @@ async function executeSyncFn (this: any, fn: Function, retries: Retries, args: a
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
+    const asyncSpecBefore = asyncSpec
     this.wdioRetries = retries.attempts
 
     try {
         runAsync = true
-        return await fn.apply(this, args)
+        asyncSpec = true
+        const result = fn.apply(this, args)
+
+        if (result && typeof result.finally === 'function') {
+            result.finally(() => (asyncSpec = asyncSpecBefore))
+        } else {
+            asyncSpec = asyncSpecBefore
+        }
+
+        return await result
     } catch (e) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
@@ -345,7 +381,8 @@ export function switchSyncFlag (fn: Function) {
         const result = fn.apply(this, args)
 
         if (typeof result.finally === 'function') {
-            return result.finally(() => (runAsync = switchFlag))
+            runAsync = switchFlag
+            return result
         }
 
         if (typeof result === 'function') {

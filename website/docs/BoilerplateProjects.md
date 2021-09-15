@@ -304,7 +304,43 @@ Boilerplate test suite to run E2E Tests using WebdriverIO v7 and Cucumber v7 wit
     - Integrated Visual Regression testing
     - CircleCI Integration
     - Integrated Email functionality
-    - Embeded video on failure from lambdatest/browserstack in reports
+    - Embedded video on failure from lambdatest/browserstack in reports
     - Integrated Accessibility testing
     - Integrated API testing
     - Integrated s3 bucket for test reports storage and retrieval
+
+## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
+
+[Serenity/JS](https://serenity-js.org) template project to help you get started with acceptance testing your Web applications using the latest WebdriverIO, Mocha, and Serenity/JS
+
+- Frameworks
+    - WebdriverIO
+    - Mocha
+    - Serenity/JS
+    - Serenity BDD reporting
+
+- Features
+  - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern.html)
+  - Automatic screenshots on test failure, embedded in reports
+  - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
+  - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
+  - TypeScript
+  - ESLint
+
+## [serenity-js/serenity-js-cucumber-webdriverio-template/](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/)
+
+[Serenity/JS](https://serenity-js.org) template project to help you get started with acceptance testing your Web applications using the latest WebdriverIO, Cucumber, and Serenity/JS
+
+- Frameworks
+    - WebdriverIO
+    - Cucumber
+    - Serenity/JS
+    - Serenity BDD reporting
+
+- Features
+    - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern.html)
+    - Automatic screenshots on test failure, embedded in reports
+    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
+    - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
+    - TypeScript
+    - ESLint

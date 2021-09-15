@@ -102,7 +102,7 @@ command execution. For more information, see our <a href="https://github.com/web
 Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
 `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services, plugins or the `devtools` automation package, please also add them to the `types` list as many provide additional typings.
 
-## Framework types
+## Framework Types
 
 Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property, as well as install its type definitions. This is especially important if you want to have type support for the built-in assertion library [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio).
 
@@ -170,7 +170,23 @@ If you use services that add commands to the browser scope you also need to incl
 
 Adding services and reporters to your TypeScript config also strengthen the type safety of your WebdriverIO config file.
 
-## Adding custom commands
+## Type Definitions
+
+When running WebdriverIO commands all properties are usually typed so that you don't have to deal with importing additional types. However there are cases where you want to define variables upfront. To ensure that these are type safe you can use all types defined in the [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) package. For example if you like to define the remote option for `webdriverio` you can do:
+
+```ts
+import type { Capabilities } from '@wdio/types'
+
+const config: Capabilities.WebdriverIO = {
+    hostname: 'http://localhost',
+    port: '4444' // Error: Type 'string' is not assignable to type 'number'.ts(2322)
+    capabilities: {
+        browserName: 'chrome'
+    }
+}
+```
+
+## Adding Custom Commands
 
 With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [custom commands](CustomCommands.md) like this:
 
@@ -209,6 +225,7 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 
 </TabItem>
 </Tabs>
+
 3. Add definitions for your commands according to your execution mode.
 
 <Tabs

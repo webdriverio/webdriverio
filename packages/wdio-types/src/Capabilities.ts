@@ -218,7 +218,14 @@ export interface ChromeOptions {
      * “userAgent.” Refer to Mobile Emulation for more information.
      */
     mobileEmulation?: {
-        [name: string]: any;
+        userAgent?: string
+        deviceName?: string
+        deviceMetrics?: {
+            width?: number
+            height?: number
+            pixelRatio?: number
+            touch?: boolean
+        }
     };
     /**
      * An optional dictionary that specifies performance logging preferences. See
@@ -371,6 +378,7 @@ export interface AppiumW3CCapabilities {
     'appium:enablePerformanceLogging'?: boolean;
     'appium:printPageSourceOnFindFailure'?: boolean;
     'appium:nativeWebTap'?: boolean;
+    'appium:options'?: AppiumCapabilities
 }
 
 export interface AppiumAndroidCapabilities {

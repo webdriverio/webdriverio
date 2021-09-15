@@ -237,7 +237,7 @@ Array [
 exports[`cucumber reporter emits messages for certain cucumber events step finished events passed step 1`] = `
 Array [
   Array [
-    "test:undefined",
+    "test:pass",
     Object {
       "argument": Object {
         "rows": Array [
@@ -267,12 +267,12 @@ Array [
       "file": "/some/path/to/features/my-feature.feature",
       "fullTitle": "0: Then should the element '.header-logged-out a' be 32px wide and 35px high",
       "parent": "0",
-      "passed": false,
+      "passed": true,
       "scenarioName": "Get size of an element",
       "specs": Array [
         "/foobar.js",
       ],
-      "state": "undefined",
+      "state": "pass",
       "tags": Array [
         Object {
           "astNodeId": "9",
@@ -414,7 +414,7 @@ Array [
 exports[`cucumber reporter emits messages for certain cucumber events when executed in scenarioLeverReporter should send proper data on \`test-case-finished\` event 1`] = `
 Array [
   Array [
-    "test:undefined",
+    "test:pass",
     Object {
       "argument": undefined,
       "cid": "0-1",
@@ -423,12 +423,12 @@ Array [
       "file": "/some/path/to/features/my-feature.feature",
       "fullTitle": "0: Undefined Step",
       "parent": "0",
-      "passed": false,
+      "passed": true,
       "scenarioName": "Get size of an element",
       "specs": Array [
         "/foobar.js",
       ],
-      "state": "undefined",
+      "state": "pass",
       "tags": Array [
         Object {
           "astNodeId": "9",

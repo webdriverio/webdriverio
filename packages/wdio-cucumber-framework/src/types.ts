@@ -1,5 +1,5 @@
 import type { Capabilities, Frameworks } from '@wdio/types'
-import type { messages } from '@cucumber/messages'
+import type { Pickle, PickleStep, TestStep, Feature } from '@cucumber/messages'
 import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 
 export interface CucumberOptions {
@@ -122,9 +122,9 @@ export interface TestHookDefinitionConfig {
 
 export interface HookParams {
     uri?: string | null,
-    feature?: messages.GherkinDocument.IFeature | null,
-    scenario?: messages.IPickle,
-    step?: messages.Pickle.IPickleStep
+    feature?: Feature | null,
+    scenario?: Pickle,
+    step?: PickleStep | TestStep
 }
 
 export interface StepDefinitionOptions {
@@ -138,7 +138,7 @@ export interface HookFunctionExtension {
      * @param uri      path to feature file
      * @param feature  Cucumber feature object
      */
-    beforeFeature?(uri: string, feature: messages.GherkinDocument.IFeature): void;
+    beforeFeature?(uri: string, feature: Feature): void;
 
     /**
      *
@@ -153,7 +153,7 @@ export interface HookFunctionExtension {
      * @param step     step data
      * @param scenario scenario data
      */
-    beforeStep?(step: messages.Pickle.IPickleStep, scenario: messages.IPickle): void;
+    beforeStep?(step: PickleStep, scenario: Pickle): void;
 
     /**
      *
@@ -165,7 +165,7 @@ export interface HookFunctionExtension {
      * @param result.error    error stack if scenario failed
      * @param result.duration duration of scenario in milliseconds
      */
-    afterStep?(step: messages.Pickle.IPickleStep, scenario: messages.IPickle, result: Frameworks.PickleResult): void;
+    afterStep?(step: PickleStep, scenario: Pickle, result: Frameworks.PickleResult): void;
 
     /**
      *
@@ -184,5 +184,5 @@ export interface HookFunctionExtension {
      * @param uri      path to feature file
      * @param feature  Cucumber feature object
      */
-    afterFeature?(uri: string, feature: messages.GherkinDocument.IFeature): void;
+    afterFeature?(uri: string, feature: Feature): void;
 }

@@ -1,6 +1,9 @@
 import { EventEmitter } from 'events'
 import { Status, PickleFilter } from '@cucumber/cucumber'
-import { messages } from '@cucumber/messages'
+import {
+    Pickle, TestCase, Envelope, TestStepResult, TestCaseStarted, GherkinDocument,
+    TestStepStarted, TestStepFinished, PickleStep
+} from '@cucumber/messages'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
@@ -10,19 +13,19 @@ import { addKeywordToStep, filterPickles } from './utils'
 const log = logger('CucumberEventListener')
 
 export default class CucumberEventListener extends EventEmitter {
-    private _gherkinDocEvents: messages.IGherkinDocument[] = []
-    private _scenarios: messages.IPickle[] = []
-    private _testCases: messages.ITestCase[] = []
-    private _currentTestCase?: messages.ITestCaseStarted
+    private _gherkinDocEvents: GherkinDocument[] = []
+    private _scenarios: Pickle[] = []
+    private _testCases: TestCase[] = []
+    private _currentTestCase?: TestCaseStarted
     private _currentPickle?: HookParams = {}
     private _suiteMap: Map<string, string> = new Map()
-    private _currentDoc: messages.IGherkinDocument = {}
+    private _currentDoc: GherkinDocument = { comments: [] }
     private _startedFeatures: string[] = []
 
     constructor (eventBroadcaster: EventEmitter, private _pickleFilter: PickleFilter) {
         super()
-        let results: messages.TestStepFinished.ITestStepResult[] = []
-        eventBroadcaster.on('envelope', (envelope: messages.Envelope) => {
+        let results: TestStepResult[] = []
+        eventBroadcaster.on('envelope', (envelope: Envelope) => {
             if (envelope.gherkinDocument) {
                 this.onGherkinDocument(envelope.gherkinDocument)
             } else if (envelope.testRunStarted) {
@@ -40,6 +43,7 @@ export default class CucumberEventListener extends EventEmitter {
                 /**
                  * only store result if step isn't retried
                  */
+                // @ts-expect-error https://github.com/cucumber/messages-javascript/issues/2
                 if (!envelope.testStepFinished.testStepResult?.willBeRetried) {
                     results.push(envelope.testStepFinished.testStepResult!)
                 }
@@ -114,7 +118,7 @@ export default class CucumberEventListener extends EventEmitter {
     //         }
     //     }
     // }
-    onGherkinDocument (gherkinDocEvent: messages.IGherkinDocument) {
+    onGherkinDocument (gherkinDocEvent: GherkinDocument) {
         this._currentPickle = { uri: gherkinDocEvent.uri, feature: gherkinDocEvent.feature }
         this._gherkinDocEvents.push(gherkinDocEvent)
     }
@@ -146,7 +150,7 @@ export default class CucumberEventListener extends EventEmitter {
     //         ]
     //     }
     // }
-    onPickleAccepted (pickleEvent: messages.IPickle) {
+    onPickleAccepted (pickleEvent: Pickle) {
         const id = this._suiteMap.size.toString()
         this._suiteMap.set(pickleEvent.id as string, id)
         const scenario = { ...pickleEvent, id }
@@ -237,7 +241,7 @@ export default class CucumberEventListener extends EventEmitter {
     //         ]
     //     }
     // }
-    onTestCasePrepared (testCase: messages.ITestCase) {
+    onTestCasePrepared (testCase: TestCase) {
         this._testCases.push(testCase)
     }
 
@@ -252,7 +256,7 @@ export default class CucumberEventListener extends EventEmitter {
     //         "id": "20"
     //     }
     // }
-    onTestCaseStarted (testcase: messages.ITestCaseStarted) {
+    onTestCaseStarted (testcase: TestCaseStarted) {
         this._currentTestCase = testcase
 
         const tc = this._testCases.find(tc => tc.id === testcase.testCaseId)
@@ -281,7 +285,7 @@ export default class CucumberEventListener extends EventEmitter {
          * This will aad them
          */
         if (scenario.steps && feature) {
-            scenario.steps = addKeywordToStep(scenario.steps, feature)
+            scenario.steps = addKeywordToStep(scenario.steps as PickleStep[], feature)
         }
 
         this._currentPickle = { uri, feature, scenario }
@@ -298,7 +302,7 @@ export default class CucumberEventListener extends EventEmitter {
     //         "testCaseStartedId": "20"
     //     }
     // }
-    onTestStepStarted (testStepStartedEvent: messages.ITestStepStarted) {
+    onTestStepStarted (testStepStartedEvent: TestStepStarted) {
         const testcase = this._testCases.find((testcase) => this._currentTestCase && testcase.id === this._currentTestCase.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(testcase?.pickleId as string))
         const teststep = testcase?.testSteps?.find((step) => step.id === testStepStartedEvent.testStepId)
@@ -334,7 +338,7 @@ export default class CucumberEventListener extends EventEmitter {
     //         "testCaseStartedId": "20"
     //     }
     // }
-    onTestStepFinished (testStepFinishedEvent: messages.ITestStepFinished) {
+    onTestStepFinished (testStepFinishedEvent: TestStepFinished) {
         const testcase = this._testCases.find((testcase) => testcase.id === this._currentTestCase?.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(testcase?.pickleId as string))
         const teststep = testcase?.testSteps?.find((step) => step.id === testStepFinishedEvent.testStepId)
@@ -364,7 +368,7 @@ export default class CucumberEventListener extends EventEmitter {
     //     }
     // }
     onTestCaseFinished (
-        results: messages.TestStepFinished.ITestStepResult[]
+        results: TestStepResult[]
     ) {
         const tc = this._testCases.find(tc => tc.id === this._currentTestCase?.testCaseId)
         const scenario = this._scenarios.find(sc => sc.id === this._suiteMap.get(tc?.pickleId as string))
@@ -430,7 +434,7 @@ export default class CucumberEventListener extends EventEmitter {
              */
             .filter(([, fakeId]) => this._pickleFilter.matches({
                 gherkinDocument,
-                pickle: this._scenarios.find(s => s.id === fakeId) as messages.IPickle
+                pickle: this._scenarios.find(s => s.id === fakeId) as Pickle
             }))
             .map(([id]) => id)
     }

@@ -1,6 +1,6 @@
 // eslint-disable-next-line
 import assert from 'assert'
-import { Given, BeforeAll, Before, After, AfterAll } from '@cucumber/cucumber'
+import { Given, BeforeAll, Before, After, AfterAll } from '../../../packages/wdio-cucumber-framework'
 
 browser.addCommand('rootLevel', () => {
     return true
