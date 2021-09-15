@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cli",
-  "version": "7.12.5",
+  "version": "7.12.6",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cli",
