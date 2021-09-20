@@ -12,6 +12,7 @@ import safaridriverdockerNbVResponse from './__fixtures__/safaridriverdockerNbV.
 import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
 import edgedriverResponse from './__fixtures__/edgedriver.response.json'
 import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json'
+import seleniumstandalone4Response from './__fixtures__/standaloneserver4.response.json'
 
 describe('sessionEnvironmentDetector', () => {
     const chromeCaps = chromedriverResponse.value as WebDriver.Capabilities
@@ -25,6 +26,7 @@ describe('sessionEnvironmentDetector', () => {
     const safariDockerNbVCaps = safaridriverdockerNbVResponse.value.capabilities as WebDriver.Capabilities // absent capability.browserVersion
     const safariLegacyCaps = safaridriverLegacyResponse.value as WebDriver.Capabilities
     const standaloneCaps = seleniumstandaloneResponse.value as WebDriver.DesiredCapabilities
+    const standalonev4Caps = seleniumstandalone4Response.value as WebDriver.DesiredCapabilities
 
     it('isMobile', () => {
         const requestedCapabilities = { browserName: '' }
@@ -114,6 +116,7 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isSeleniumStandalone).toBe(false)
         expect(sessionEnvironmentDetector({ capabilities: standaloneCaps, requestedCapabilities }).isSeleniumStandalone).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: standalonev4Caps, requestedCapabilities }).isSeleniumStandalone).toBe(true)
     })
 
     it('should not detect mobile app for browserName===undefined', function () {
