@@ -1,0 +1,27 @@
+{
+  "value": {
+    "acceptInsecureCerts": true,
+    "browserName": "firefox",
+    "browserVersion": "92.0",
+    "moz:accessibilityChecks": false,
+    "moz:buildID": "20210824191834",
+    "moz:debuggerAddress": "localhost:51196",
+    "moz:geckodriverVersion": "0.26.0",
+    "moz:headless": false,
+    "moz:processID": 80066,
+    "moz:profile": "/var/folders/ns/8mj2mh0x27b_gsdddy1knnsm0000gn/T/rust_mozprofiler3tibd",
+    "moz:shutdownTimeout": 60000,
+    "moz:useNonSpecCompliantPointerOrigin": false,
+    "moz:webdriverClick": true,
+    "pageLoadStrategy": "normal",
+    "platformName": "mac",
+    "platformVersion": "19.6.0",
+    "proxy": {},
+    "se:cdp": "ws://192.168.0.143:4444/session/3a5fc041-c29f-3d49-b317-72f712a52bb8/se/cdp",
+    "se:cdpVersion": "85",
+    "setWindowRect": true,
+    "strictFileInteractability": false,
+    "timeouts": { "implicit": 0, "pageLoad": 300000, "script": 30000 },
+    "unhandledPromptBehavior": "dismiss and notify"
+  }
+}

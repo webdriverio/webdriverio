@@ -170,7 +170,16 @@ function isSeleniumStandalone (capabilities?: Capabilities.DesiredCapabilities) 
     if (!capabilities) {
         return false
     }
-    return Boolean(capabilities['webdriver.remote.sessionid'])
+    return (
+        /**
+         * Selenium v3 and below
+         */
+        Boolean(capabilities['webdriver.remote.sessionid']) ||
+        /**
+         * Selenium v4 and up
+         */
+        Boolean(capabilities['se:cdp'])
+    )
 }
 
 /**
