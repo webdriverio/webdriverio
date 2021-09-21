@@ -1,5 +1,5 @@
 ---
-id: protractor-migration
+id: async-migration
 title: From Sync to Async
 ---
 
