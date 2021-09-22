@@ -277,7 +277,7 @@ describe('wdio-runner', () => {
             expect(runner['_shutdown']).toBeCalledWith(123, 2)
             expect(executeHooksWithArgs).toBeCalledWith('beforeSession', [beforeSession], [config, {
                 browserName: '123'
-            }, ['foobar']])
+            }, ['foobar'], '0-0'])
             expect(executeHooksWithArgs).toBeCalledWith('before', config.before, [caps, specs, stubBrowser])
 
             // session capabilities should be passed to reporter
