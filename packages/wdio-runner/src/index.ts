@@ -6,8 +6,7 @@ import { EventEmitter } from 'events'
 import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
-import type { Options, Capabilities } from '@wdio/types'
-import type { HookFunctions } from '@wdio/types/build/Services'
+import type { Options, Capabilities, Services } from '@wdio/types'
 import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import BaseReporter from './reporter'
@@ -15,10 +14,10 @@ import { initialiseInstance, filterLogTypes, getInstancesData } from './utils'
 
 const log = logger('@wdio/runner')
 
-type BeforeArgs = Parameters<Required<HookFunctions>['before']>
-type AfterArgs = Parameters<Required<HookFunctions>['after']>
-type BeforeSessionArgs = Parameters<Required<HookFunctions>['beforeSession']>
-type AfterSessionArgs = Parameters<Required<HookFunctions>['afterSession']>
+type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
+type AfterArgs = Parameters<Required<Services.HookFunctions>['after']>
+type BeforeSessionArgs = Parameters<Required<Services.HookFunctions>['beforeSession']>
+type AfterSessionArgs = Parameters<Required<Services.HookFunctions>['afterSession']>
 
 /**
  * user types for globals are set in webdriverio
