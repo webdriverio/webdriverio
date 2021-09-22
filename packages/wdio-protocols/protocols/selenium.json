@@ -80,5 +80,43 @@
         "description": "Command to call on Selenium Hub. The only implemented action is to 'shutdown' the hub."
       }]
     }
+  },
+  "/graphql": {
+    "POST": {
+      "isHubCommand": true,
+      "command": "queryGrid",
+      "description": "Send GraphQL queries to the Selenium (hub or node) server to fetch data. (Only supported with Selenium v4 Server)",
+      "ref": "https://www.selenium.dev/documentation/grid/advanced_features/graphql_support/",
+      "parameters": [{
+        "name": "query",
+        "type": "string",
+        "description": "A GraphQL query to be send to the server.",
+        "required": true
+      }],
+      "examples": [
+        [
+          "const result = await browser.queryGrid('{ nodesInfo { nodes { status, uri } } }');",
+          "console.log(JSON.stringify(result, null, 4))",
+          "/**",
+          " * outputs:",
+          " * {",
+          " *   \"data\": {",
+          " *     \"nodesInfo\": {",
+          " *       \"nodes\": [{",
+          " *         \"status\": \"UP\",",
+          " *         \"uri\": \"http://192.168.0.39:4444\"",
+          " *       }]",
+          " *     }",
+          " *   }",
+          " * }",
+          " */"
+        ]
+      ],
+      "returns": {
+        "type": "Object",
+        "name": "data",
+        "description": "Result of the GraphQL query."
+      }
+    }
   }
 }
