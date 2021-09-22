@@ -87,7 +87,7 @@ export interface HookFunctions {
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
      * for that worker as well as modify runtime environments in an async fashion.
-     * @param cid       capability id (e.g 0-0)
+     * @param cid: string       capability id (e.g 0-0)
      * @param caps      object containing capabilities for session that will be spawn in the worker
      * @param specs     specs to be run in the worker process
      * @param args      object that will be merged with the main configuration once worker is initialised
@@ -165,11 +165,13 @@ export interface HookFunctions {
      * @param config        wdio configuration object
      * @param capabilities  list of capabilities details
      * @param specs         list of spec file paths that are to be run
+     * @param cid           worker id (e.g. 0-0)
      */
     beforeSession?(
         config: Omit<TestrunnerOptions, 'capabilities'>,
         capabilities: RemoteCapability,
-        specs: string[]
+        specs: string[],
+        cid: string
     ): void;
 
     /**

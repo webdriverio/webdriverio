@@ -17,9 +17,13 @@ jest.createMockFromModule('fs')
 fs.createReadStream = jest.fn()
 fs.promises.stat = jest.fn().mockReturnValue(Promise.resolve({ size: 123 }))
 fs.promises.readdir = jest.fn().mockReturnValue(Promise.resolve([
-    'fileA.log',
-    'fileB.log',
-    'fileC.log'
+    'wdio-0-0-browser.log',
+    'wdio-0-0-driver.log',
+    'wdio-0-0.log',
+    'wdio-1-0-browser.log',
+    'wdio-1-0-driver.log',
+    'wdio-1-0.log',
+    'wdio.log'
 ]))
 
 jest.mock('form-data', () => jest.fn().mockReturnValue({
@@ -464,12 +468,15 @@ test('_uploadLogs should upload', async () => {
         {},
         { outputDir: '/foo/bar' } as any
     )
+    const api = { uploadJobAssets: jest.fn().mockResolvedValue({}) }
+    service['_api'] = api as any
+    await service.beforeSession(null as never, null as never, null as never, '1-0')
     await service['_uploadLogs']('123')
-    expect((got as any as jest.Mock).mock.calls).toHaveLength(1)
-    expect((got as any as jest.Mock)).toHaveBeenCalledWith(
-        'https://api.us-west-1.saucelabs.com/v1/testcomposer/jobs/123/assets',
-        expect.any(Object)
-    )
+    expect(api.uploadJobAssets).toBeCalledTimes(1)
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toHaveLength(3)
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain('/foo/bar/wdio-1-0-browser.log')
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain('/foo/bar/wdio-1-0-driver.log')
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain('/foo/bar/wdio-1-0.log')
 })
 
 test('_uploadLogs should not fail in case of a platform error', async () => {

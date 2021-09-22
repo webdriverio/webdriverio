@@ -7,12 +7,18 @@ import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
+import type { HookFunctions } from '@wdio/types/build/Services'
 import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import BaseReporter from './reporter'
 import { initialiseInstance, filterLogTypes, getInstancesData } from './utils'
 
 const log = logger('@wdio/runner')
+
+type BeforeArgs = Parameters<Required<HookFunctions>['before']>
+type AfterArgs = Parameters<Required<HookFunctions>['after']>
+type BeforeSessionArgs = Parameters<Required<HookFunctions>['beforeSession']>
+type AfterSessionArgs = Parameters<Required<HookFunctions>['afterSession']>
 
 /**
  * user types for globals are set in webdriverio
@@ -138,7 +144,9 @@ export default class Runner extends EventEmitter {
             caps as Capabilities.Capabilities,
             args.ignoredWorkerServices
         ).map(this._configParser.addService.bind(this._configParser))
-        await executeHooksWithArgs('beforeSession', this._config.beforeSession, [this._config, this._caps, this._specs])
+
+        const beforeSessionParams: BeforeSessionArgs = [this._config, this._caps, this._specs, this._cid]
+        await executeHooksWithArgs('beforeSession', this._config.beforeSession, beforeSessionParams)
 
         this._reporter = new BaseReporter(this._config, this._cid, { ...caps })
         /**
@@ -157,17 +165,15 @@ export default class Runner extends EventEmitter {
          * return if session initialisation failed
          */
         if (!browser) {
-            await executeHooksWithArgs(
-                'after',
-                this._config.after as Function,
-                [1, this._caps, this._specs]
-            )
+            const afterArgs: AfterArgs = [1, this._caps, this._specs]
+            await executeHooksWithArgs('after', this._config.after as Function, afterArgs)
             return this._shutdown(1, retries)
         }
 
         this._reporter.caps = browser.capabilities as Capabilities.RemoteCapability
 
-        await executeHooksWithArgs('before', this._config.before, [this._caps, this._specs, browser])
+        const beforeArgs: BeforeArgs = [this._caps, this._specs, browser]
+        await executeHooksWithArgs('before', this._config.before, beforeArgs)
 
         /**
          * kill session of SIGINT signal showed up while trying to
@@ -375,7 +381,7 @@ export default class Runner extends EventEmitter {
 
             try {
                 logs = await global.browser.getLogs(logType)
-            } catch (e) {
+            } catch (e: any) {
                 return log.warn(`Couldn't fetch logs for ${logType}: ${e.message}`)
             }
 
@@ -468,10 +474,7 @@ export default class Runner extends EventEmitter {
             delete global.browser.sessionId
         }
 
-        await executeHooksWithArgs(
-            'afterSession',
-            global.browser.config.afterSession as Function,
-            [this._config, capabilities, this._specs as string[]]
-        )
+        const afterSessionArgs: AfterSessionArgs = [this._config!, capabilities, this._specs as string[]]
+        await executeHooksWithArgs('afterSession', global.browser.config.afterSession!, afterSessionArgs)
     }
 }
