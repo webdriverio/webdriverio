@@ -24,7 +24,15 @@ interface WDIOSync {
 declare global {
     var _HAS_FIBER_CONTEXT: boolean
     var browser: any
-    var expectAsync: any
+}
+
+declare global {
+    namespace NodeJS {
+        interface Global {
+            expect: any
+            expectAsync: any
+        }
+    }
 }
 
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
@@ -341,13 +349,13 @@ async function executeSyncFn (this: any, fn: Function, retries: Retries, args: a
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
+    const isJasmine = global.jasmine && global.expectAsync
     const asyncSpecBefore = asyncSpec
-    const expectSync = expect
     this.wdioRetries = retries.attempts
 
-    if (global.jasmine && global.expectAsync) {
-        // @ts-ignore
-        global.expect = expectAsync
+    const expectSync = global.expect
+    if (isJasmine) {
+        global.expect = global.expectAsync
     }
 
     try {
@@ -370,8 +378,7 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
 
         throw e
     } finally {
-        if (global.jasmine) {
-            // @ts-ignore
+        if (isJasmine) {
             global.expect = expectSync
         }
     }
