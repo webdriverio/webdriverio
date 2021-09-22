@@ -1,4 +1,6 @@
 import fs from 'fs'
+import path from 'path'
+
 import got from 'got'
 import logger from '@wdio/logger'
 import type { MultiRemoteBrowser } from 'webdriverio'
@@ -474,9 +476,9 @@ test('_uploadLogs should upload', async () => {
     await service['_uploadLogs']('123')
     expect(api.uploadJobAssets).toBeCalledTimes(1)
     expect(api.uploadJobAssets.mock.calls[0][1].files).toHaveLength(3)
-    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain('/foo/bar/wdio-1-0-browser.log')
-    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain('/foo/bar/wdio-1-0-driver.log')
-    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain('/foo/bar/wdio-1-0.log')
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0-browser.log'))
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0-driver.log'))
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0.log'))
 })
 
 test('_uploadLogs should not fail in case of a platform error', async () => {
