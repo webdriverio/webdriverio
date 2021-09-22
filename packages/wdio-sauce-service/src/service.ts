@@ -27,6 +27,7 @@ export default class SauceService implements Services.ServiceInstance {
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _isUP?: boolean
     private _suiteTitle?: string
+    private _cid = ''
 
     constructor (
         options: SauceServiceConfig,
@@ -42,7 +43,9 @@ export default class SauceService implements Services.ServiceInstance {
     /**
      * gather information about runner
      */
-    beforeSession () {
+    beforeSession (_: never, __: never, ___: never, cid: string) {
+        this._cid = cid
+
         /**
          * if no user and key is specified even though a sauce service was
          * provided set user and key with values so that the session request
@@ -291,7 +294,7 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         const files = (await fs.promises.readdir(this._config.outputDir))
-            .filter((file) => file.endsWith('.log'))
+            .filter((file) => file.startsWith(`wdio-${this._cid}`) && file.endsWith('.log'))
         log.info(`Uploading WebdriverIO logs (${files.join(', ')}) to Sauce Labs`)
 
         return this._api.uploadJobAssets(
