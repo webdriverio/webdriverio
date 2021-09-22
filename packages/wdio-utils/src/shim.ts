@@ -26,6 +26,15 @@ declare global {
     var browser: any
 }
 
+declare global {
+    namespace NodeJS {
+        interface Global {
+            expect: any
+            expectAsync: any
+        }
+    }
+}
+
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
 const ELEMENT_PROPS = ['elementId', 'error', 'selector', 'parent', 'index', 'isReactElement', 'length']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
@@ -77,7 +86,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName:
 
         try {
             result = hook.apply(null, args)
-        } catch (e) {
+        } catch (e: any) {
             log.error(e.stack)
             return resolve(e)
         }
@@ -340,8 +349,14 @@ async function executeSyncFn (this: any, fn: Function, retries: Retries, args: a
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
+    const isJasmine = global.jasmine && global.expectAsync
     const asyncSpecBefore = asyncSpec
     this.wdioRetries = retries.attempts
+
+    const expectSync = global.expect
+    if (isJasmine) {
+        global.expect = global.expectAsync
+    }
 
     try {
         runAsync = true
@@ -362,6 +377,10 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
         }
 
         throw e
+    } finally {
+        if (isJasmine) {
+            global.expect = expectSync
+        }
     }
 }
 
