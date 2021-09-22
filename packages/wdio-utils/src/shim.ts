@@ -24,6 +24,7 @@ interface WDIOSync {
 declare global {
     var _HAS_FIBER_CONTEXT: boolean
     var browser: any
+    var expectAsync: any
 }
 
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
@@ -77,7 +78,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName:
 
         try {
             result = hook.apply(null, args)
-        } catch (e) {
+        } catch (e: any) {
             log.error(e.stack)
             return resolve(e)
         }
@@ -341,7 +342,13 @@ async function executeSyncFn (this: any, fn: Function, retries: Retries, args: a
  */
 async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
     const asyncSpecBefore = asyncSpec
+    const expectSync = expect
     this.wdioRetries = retries.attempts
+
+    if (global.jasmine && global.expectAsync) {
+        // @ts-ignore
+        global.expect = expectAsync
+    }
 
     try {
         runAsync = true
@@ -362,6 +369,11 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
         }
 
         throw e
+    } finally {
+        if (global.jasmine) {
+            // @ts-ignore
+            global.expect = expectSync
+        }
     }
 }
 
