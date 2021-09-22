@@ -15,8 +15,8 @@ describe('My Login application', () => {
         await LoginPage.open();
 
         await LoginPage.login('tomsmith', 'SuperSecretPassword!');
-        await expectAsync(SecurePage.flashAlert).toBeExisting();
-        await expectAsync(SecurePage.flashAlert).toHaveTextContaining(
+        await expect(SecurePage.flashAlert).toBeExisting();
+        await expect(SecurePage.flashAlert).toHaveTextContaining(
             'You logged into a secure area!');
     });
 });
@@ -34,8 +34,8 @@ describe('My Login application', () => {
         await $('#password').setValue('SuperSecretPassword!');
         await $('button[type="submit"]').click();
 
-        await expectAsync($('#flash')).toBeExisting();
-        await expectAsync($('#flash')).toHaveTextContaining(
+        await expect($('#flash')).toBeExisting();
+        await expect($('#flash')).toHaveTextContaining(
             'You logged into a secure area!');
     });
 });
