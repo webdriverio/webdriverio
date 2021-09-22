@@ -86,6 +86,30 @@ needs to be transformed to:
 await expect($('input')).toHaveAttributeContaining('class', 'form')
 ```
 
+### Sync PageObject Methods and Async Tests
+
+If you have been writing PageObjects in your test suite in a synchronous way, you won't be able to use them in asynchronous tests anymore. If you need to use a PageObject method in both sync and async tests we recommend to duplicate the method and offer them for both environments, e.g.:
+
+```js
+class MyPageObject extends Page {
+    /**
+     * define elements
+     */
+    get btnStart () { return $('button=Start') }
+    get loadedPage () { return $('#finish') }
+
+    someMethod () {
+        // sync code
+    }
+
+    someMethodAsync () {
+        // async version of MyPageObject.someMethod()
+    }
+}
+```
+
+Once you've finished the migration you can remove the synchronous PageObject methods and clean up the naming.
+
 ## Conclusion
 
 As you can see in the [resulting rewrite PR](https://github.com/webdriverio/cucumber-boilerplate/pull/481/files) the complexity of this rewrite is fairly easy. Remember you can rewrite one step definition at the time. WebdriverIO is perfectly able to handle sync and async execution in a single framework.
