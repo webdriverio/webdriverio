@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.13.1 (2021-09-23)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#7467](https://github.com/webdriverio/webdriverio/pull/7467) Allow sync assertions in async context ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v7.13.0 (2021-09-22)
 
 #### :rocket: New Feature
