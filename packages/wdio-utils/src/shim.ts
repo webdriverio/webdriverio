@@ -35,6 +35,37 @@ declare global {
     }
 }
 
+/**
+ * Jasmine differentiates between sync and async matchers.
+ * In order to offer a consistent experience WebdriverIO is
+ * replacing `expect` with `expectAsync` in every spec file
+ * that is async. Now to also allow assertions of literal values
+ * like string, numbers etc. in an async function we overwrite expect
+ * with this shim to check the input value. If we assert a promise,
+ * a browser or element object we use `expectAsync` otherwise the
+ * normal sync `expect`.
+ *
+ * Note: `syncMatcher` as parameter is only for testing purposes
+ */
+let expectSync: Function
+export function expectAsyncShim (actual?: any, syncMatcher = expectSync) {
+    const expectAsync = global.expectAsync
+    const useSync = (
+        !actual ||
+        (
+            typeof actual.then !== 'function' &&
+            !actual.sessionId &&
+            !actual.elementId
+        )
+    )
+
+    if (useSync) {
+        return syncMatcher(actual)
+    }
+
+    return expectAsync(actual)
+}
+
 const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
 const ELEMENT_PROPS = ['elementId', 'error', 'selector', 'parent', 'index', 'isReactElement', 'length']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
@@ -353,9 +384,9 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
     const asyncSpecBefore = asyncSpec
     this.wdioRetries = retries.attempts
 
-    const expectSync = global.expect
+    expectSync = global.expect
     if (isJasmine) {
-        global.expect = global.expectAsync
+        global.expect = expectAsyncShim
     }
 
     try {

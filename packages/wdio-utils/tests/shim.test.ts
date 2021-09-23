@@ -1,4 +1,4 @@
-import { wrapCommand, switchSyncFlag, runAsync } from '../src/shim'
+import { wrapCommand, switchSyncFlag, runAsync, expectAsyncShim } from '../src/shim'
 
 describe('wrapCommand', () => {
     it('should run command with before and after hook', async () => {
@@ -93,4 +93,24 @@ describe('switchSyncFlag', () => {
         await fn()
         expect(runAsync).toBe(true)
     })
+})
+
+test('expectAsyncShim', () => {
+    global.expectAsync = jest.fn()
+    const expectSync = jest.fn()
+    expectAsyncShim(undefined, expectSync)
+    expect(expectSync).toBeCalledTimes(1)
+    expect(global.expectAsync).toBeCalledTimes(0)
+    expectAsyncShim(42, expectSync)
+    expect(expectSync).toBeCalledTimes(2)
+    expect(global.expectAsync).toBeCalledTimes(0)
+    expectAsyncShim(Promise.resolve({}), expectSync)
+    expect(expectSync).toBeCalledTimes(2)
+    expect(global.expectAsync).toBeCalledTimes(1)
+    expectAsyncShim({ elementId: 42 }, expectSync)
+    expect(expectSync).toBeCalledTimes(2)
+    expect(global.expectAsync).toBeCalledTimes(2)
+    expectAsyncShim({ sessionId: '42' }, expectSync)
+    expect(expectSync).toBeCalledTimes(2)
+    expect(global.expectAsync).toBeCalledTimes(3)
 })

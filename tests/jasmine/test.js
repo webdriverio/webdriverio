@@ -7,10 +7,24 @@ describe('Jasmine smoke test', () => {
         expect($('foo')).toBeDisplayed()
     })
 
+    it('should allow sync matchers', () => {
+        const test = 123
+        expect(test).toBe(123)
+    })
+
     it('should return async value', async () => {
         browser.isEventuallyDisplayedScenario()
         await expect(browser).toHaveTitle('Mock Page Title')
         await expect($('foo')).toBeDisplayed()
+
+        browser.isEventuallyDisplayedScenario()
+        const elem = $('foo')
+        await expect(elem).toBeDisplayed()
+    })
+
+    it('should allow sync assertion in async context', async () => {
+        const test = 123
+        expect(test).toBe(123)
     })
 
     let hasRun = false
