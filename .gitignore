@@ -70,6 +70,8 @@ devtools.d.ts
 !.eslintrc.js
 !jest.config.js
 packages/**/package-lock.json
+packages/**/cjs
+!packages/wdio-shim/cjs
 .DS_Store
 
 website/translated_docs
