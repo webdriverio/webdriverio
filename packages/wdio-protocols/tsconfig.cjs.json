@@ -2,11 +2,10 @@
   "extends": "../../tsconfig",
   "compilerOptions": {
     "baseUrl": ".",
-    "outDir": "build",
+    "outDir": "cjs",
     "rootDir": "src",
-    "module": "ESNext",
-    "target": "esnext",
-    "moduleResolution": "node",
+    "module": "CommonJS",
+    "target": "ES2018",
     "removeComments": false
   },
   "include": [

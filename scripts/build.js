@@ -5,20 +5,22 @@ const shell = require('shelljs')
 
 const { getSubPackages } = require('./utils/helpers')
 
-const IGNORE_COMPILING_FOR_PACKAGES = ['eslint-plugin-wdio', 'wdio-protocols']
+const IGNORE_COMPILING_FOR_PACKAGES = ['eslint-plugin-wdio', 'wdio-shim', 'wdio-protocols']
 const args = process.argv.slice(2)
-const HAS_WATCH_FLAG = args[0] === '--watch'
-const TSCONFIG_FILE = process.env.NODE_ENV === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'
-
-if (HAS_WATCH_FLAG) {
-    args.shift()
-}
+const HAS_WATCH_FLAG = args.includes('--watch')
+const COMPILE_ESM = args.includes('--esm')
+const TSCONFIG_FILE = process.env.NODE_ENV === 'production'
+    ? 'tsconfig.prod.json'
+    : COMPILE_ESM
+        ? 'tsconfig.json'
+        : 'tsconfig.cjs.json'
 
 // Order of packages:
 // 1. root packages
 // 2. core packages (e.g. wdio-cli)
 // 3. plugins (e.g. wdio-allure-reporter)
 const ROOT_PACKAGES = [
+    'wdio-shim',
     'wdio-types',
     'wdio-protocols',
     'wdio-logger',
@@ -28,6 +30,10 @@ const ROOT_PACKAGES = [
     'webdriver',
     'devtools',
     'webdriverio',
+]
+
+const ESM_PACKAGES = [
+    'wdio-protocols'
 ]
 
 const packages = getSubPackages()
@@ -59,7 +65,12 @@ const packages = getSubPackages()
     /**
      * Only build packages that are passed in as params
      */
-    .filter((pkg) => args.length === 0 || args.includes(pkg))
+    .filter((pkg) => args.filter((arg) => !arg.startsWith('--')).length === 0 || args.includes(pkg))
+
+    /**
+     * filter by type
+     */
+    .filter((pkg) => COMPILE_ESM ? ESM_PACKAGES.includes(pkg) : true)
 
 shell.cd(path.join(__dirname, '..'))
 const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`).join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`

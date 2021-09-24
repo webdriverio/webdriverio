@@ -1,21 +1,24 @@
-import { Protocol } from './types'
-import AppiumCommands from './commands/appium'
-import ChromiumCommands from './commands/chromium'
-import GeckoCommands from './commands/gecko'
-import JSONWPCommands from './commands/jsonwp'
-import MJSONWPCommands from './commands/mjsonwp'
-import SauceLabsCommands from './commands/saucelabs'
-import SeleniumCommands from './commands/selenium'
-import WebDriverCommands from './commands/webdriver'
+import { dirname } from '@wdio/shim'
+import { readFileSync } from 'fs'
 
-const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')
-const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')
-const JsonWProtocol: Protocol = require('../protocols/jsonwp.json')
-const AppiumProtocol: Protocol = require('../protocols/appium.json')
-const ChromiumProtocol: Protocol = require('../protocols/chromium.json')
-const GeckoProtocol: Protocol = require('../protocols/gecko.json')
-const SauceLabsProtocol: Protocol = require('../protocols/saucelabs.json')
-const SeleniumProtocol: Protocol = require('../protocols/selenium.json')
+import { Protocol } from './types'
+import type AppiumCommands from './commands/appium'
+import type ChromiumCommands from './commands/chromium'
+import type GeckoCommands from './commands/gecko'
+import type JSONWPCommands from './commands/jsonwp'
+import type MJSONWPCommands from './commands/mjsonwp'
+import type SauceLabsCommands from './commands/saucelabs'
+import type SeleniumCommands from './commands/selenium'
+import type WebDriverCommands from './commands/webdriver'
+
+const WebDriverProtocol: Protocol = JSON.parse((readFileSync(dirname + '/../protocols/webdriver.json')).toString())
+const MJsonWProtocol: Protocol = JSON.parse((readFileSync(dirname + '/../protocols/mjsonwp.json')).toString())
+const JsonWProtocol: Protocol = JSON.parse((readFileSync(dirname + '/../protocols/jsonwp.json')).toString())
+const AppiumProtocol: Protocol = JSON.parse((readFileSync(dirname + '/../protocols/appium.json')).toString())
+const ChromiumProtocol: Protocol = JSON.parse((readFileSync(dirname + '/../protocols/chromium.json')).toString())
+const GeckoProtocol: Protocol = JSON.parse((readFileSync(dirname + '/../protocols/gecko.json')).toString())
+const SauceLabsProtocol: Protocol = JSON.parse((readFileSync(dirname + '/../protocols/saucelabs.json')).toString())
+const SeleniumProtocol: Protocol = JSON.parse((readFileSync(dirname + '/../protocols/selenium.json')).toString())
 
 type WebDriverCommandsAsync = {
     [K in keyof WebDriverCommands]:
@@ -53,7 +56,7 @@ type SeleniumCommandsAsync = {
 export interface ProtocolCommands extends WebDriverCommands, Omit<JSONWPCommands, keyof WebDriverCommands>, AppiumCommands, ChromiumCommands, Omit<MJSONWPCommands, keyof AppiumCommands | keyof ChromiumCommands>, SauceLabsCommands, SeleniumCommands {}
 export interface ProtocolCommandsAsync extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
 
-export * from './types'
+export * from './types.js'
 export {
     // protocols
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
