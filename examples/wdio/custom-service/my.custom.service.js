@@ -14,7 +14,7 @@ module.exports = class CustomService {
         console.log('execute onWorkerStart(cid, caps, specs, args, execArgv)')
     }
     beforeSession () {
-        console.log('execute beforeSession(config, capabilities, specs)')
+        console.log('execute beforeSession(config, capabilities, specs, cid)')
     }
     before () {
         console.log('execute before(capabilities, specs)')

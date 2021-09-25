@@ -18,7 +18,7 @@
     :waitUntil.js
     it('should wait until text has changed', async () => {
         const elem = await $('#someText')
-        await elem.waitUntil(async () => {
+        await elem.waitUntil(async function () {
             return (await this.getText()) === 'I am now different'
         }, {
             timeout: 5000,

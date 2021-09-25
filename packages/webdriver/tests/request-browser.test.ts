@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import logger from '@wdio/logger'
 import _ky from 'ky'
 
@@ -447,6 +451,21 @@ describe('webdriver request', () => {
                 (e) => e
             )
             expect(result.message).toBe('ups')
+        })
+
+        it('should correctly handle username and password options', async () => {
+            const expectedResponse = { value: { 'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123' } }
+            const req = new BrowserRequest('POST', path, {})
+
+            const opts = Object.assign(
+                req.defaultOptions,
+                { url: { pathname: '/session/foobar-123/element' } },
+                { username: 'foo', password: 'bar' },
+            )
+            const res = await req['_request'](opts)
+
+            expect(res).toEqual(expectedResponse)
+            expect(ky.mock.calls[0][1].headers.Authorization).toEqual('Basic Zm9vOmJhcg==')
         })
     })
 
