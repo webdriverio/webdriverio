@@ -19,6 +19,54 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.13.1 (2021-09-23)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#7467](https://github.com/webdriverio/webdriverio/pull/7467) Allow sync assertions in async context ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v7.13.0 (2021-09-22)
+
+#### :rocket: New Feature
+* `wdio-protocols`
+  * [#7451](https://github.com/webdriverio/webdriverio/pull/7451) Allow to access Selenium v4 GraphQL data ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-runner`, `wdio-sauce-service`, `wdio-types`
+  * [#7461](https://github.com/webdriverio/webdriverio/pull/7461) only upload log files with the same cid ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#7437](https://github.com/webdriverio/webdriverio/pull/7437) Detect Selenium v4 Server ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#7425](https://github.com/webdriverio/webdriverio/pull/7425) Write migration guide from sync to async tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* `wdio-cli`, `wdio-utils`
+  * [#7458](https://github.com/webdriverio/webdriverio/pull/7458) Bump expect-webdriverio to improve async jasmine execution ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v7.12.5 (2021-09-14)
+
+#### :bug: Bug Fix
+* `devtools`, `wdio-types`
+  * [#7422](https://github.com/webdriverio/webdriverio/pull/7422) Improve mobile emulation capabilities ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-reporter`
+  * [#7421](https://github.com/webdriverio/webdriverio/pull/7421) Fix error diffing in Jasmine ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriver`
+  * [#7401](https://github.com/webdriverio/webdriverio/pull/7401) fix(webdriver): browser request should use btoa for basic auth, not atob ([@jlipps](https://github.com/jlipps))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jonathan Lipps ([@jlipps](https://github.com/jlipps))
+
+
 ## v7.12.3 (2021-09-10)
 
 #### :bug: Bug Fix

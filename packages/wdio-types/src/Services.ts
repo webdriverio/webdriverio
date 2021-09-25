@@ -165,11 +165,13 @@ export interface HookFunctions {
      * @param config        wdio configuration object
      * @param capabilities  list of capabilities details
      * @param specs         list of spec file paths that are to be run
+     * @param cid           worker id (e.g. 0-0)
      */
     beforeSession?(
         config: Omit<TestrunnerOptions, 'capabilities'>,
         capabilities: RemoteCapability,
-        specs: string[]
+        specs: string[],
+        cid: string
     ): void;
 
     /**

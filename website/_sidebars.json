@@ -43,7 +43,8 @@
     "Migrate": [
       "v6-migration",
       "v7-migration",
-      "protractor-migration"
+      "protractor-migration",
+      "async-migration"
     ],
     "Integration": [
       "cloudservices",

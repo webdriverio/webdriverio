@@ -242,8 +242,9 @@ exports.config = {
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {String} cid worker id (e.g. 0-0)
      */
-    beforeSession: function (config, capabilities, specs) {
+    beforeSession: function (config, capabilities, specs, cid) {
     },
     /**
      * Gets executed before test execution begins. At this point you can access to all global

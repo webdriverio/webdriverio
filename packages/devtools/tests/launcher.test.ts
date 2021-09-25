@@ -44,10 +44,11 @@ test('launch chrome with default values', async () => {
 })
 
 test('launch chrome with chrome arguments', async () => {
-    const browser = await launch({
+    await launch({
         browserName: 'chrome',
         'wdio:devtoolsOptions': {
-            headless: true
+            headless: true,
+            env: { foo: 'bar' }
         },
         'goog:chromeOptions': {
             binary: '/foo/bar',
@@ -59,13 +60,22 @@ test('launch chrome with chrome arguments', async () => {
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
     expect(puppeteer.launch).toBeCalledTimes(0)
+})
 
-    const pages = await browser.pages()
-    expect(pages[0].setViewport).toBeCalledWith({
-        height: 732,
-        pixelRatio: 3.5,
-        width: 412
+test('launch chrome with defaultViewport in wdio:devtoolsOptions', async () => {
+    await launch({
+        browserName: 'chrome',
+        'wdio:devtoolsOptions': {
+            defaultViewport: {
+                width: 222,
+                height: 333,
+                deviceScaleFactor: 1.42,
+                isMobile: true
+            }
+        }
     })
+    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(puppeteer.launch).toBeCalledTimes(0)
 })
 
 test('launch chrome without default flags and without puppeteer default args', async () => {
