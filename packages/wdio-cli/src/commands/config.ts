@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs, { writeFileSync } from 'fs'
 import path from 'path'
 import util from 'util'
 import inquirer from 'inquirer'
@@ -64,6 +64,16 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
         if (!hasPackage('ts-node')) {
             packagesToInstall.push('ts-node', 'typescript')
+        }
+        if (!hasFile("tsconfig.json")){
+            const config = {
+                "compilerOptions": {
+                    "types": ["node", "webdriverio/async",frameworkPackage.package],
+                    "target": "ES6"
+                }
+                
+            }
+            writeFileSync("tsconfig.json",JSON.stringify(config,null,2))
         }
     }
 
