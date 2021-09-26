@@ -374,8 +374,16 @@
   "/session/:sessionId/element": {
     "POST": {
       "command": "findElement",
-      "description": "The Find Element command is used to find an element in the current browsing context that can be used for future commands.",
+      "description": "The Find Element command is used to find an element in the current browsing context that can be used for future commands.This command returns JSON representation of the element that can be passed to $ command to transform the reference to an extended WebdriverIO element.",
       "ref": "https://w3c.github.io/webdriver/#dfn-find-element",
+      "examples": [
+        [
+          "// get element",
+          "const elementRef = await browser.findElement('xpath', '//div')",
+          "const element = await $(elementRef)",
+          "await element.click()"
+        ]
+      ],
       "parameters": [{
         "name": "using",
         "type": "string",
@@ -397,7 +405,7 @@
   "/session/:sessionId/elements": {
     "POST": {
       "command": "findElements",
-      "description": "The Find Elements command is used to find elements in the current browsing context that can be used for future commands.",
+      "description": "The Find Elements command is used to find elements in the current browsing context that can be used for future commands.This command returns array of JSON representation of the elements that can be passed to $ command to transform the reference to an extended WebdriverIO element.",
       "ref": "https://w3c.github.io/webdriver/#dfn-find-elements",
       "parameters": [{
         "name": "using",
@@ -474,7 +482,7 @@
   "/session/:sessionId/element/active": {
     "GET": {
       "command": "getActiveElement",
-      "description": "Get Active Element returns the active element of the current browsing context’s document element.",
+      "description": "Get Active Element returns the active element of the current browsing context’s document element.This command returns JSON representation of the element that can be passed to $ command to transform the reference to an extended WebdriverIO element.",
       "ref": "https://w3c.github.io/webdriver/#dfn-get-active-element",
       "parameters": [],
       "returns": {
