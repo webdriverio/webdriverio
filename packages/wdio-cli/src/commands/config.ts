@@ -1,4 +1,4 @@
-import fs, { writeFileSync } from 'fs'
+import fs from 'fs'
 import path from 'path'
 import util from 'util'
 import inquirer from 'inquirer'
@@ -72,7 +72,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                     'target': 'ES6'
                 }
             }
-            writeFileSync('tsconfig.json', JSON.stringify(config, null, 2))
+            await fs.promises.writeFile('tsconfig.json', JSON.stringify(config, null, 2))
         }
     }
 
