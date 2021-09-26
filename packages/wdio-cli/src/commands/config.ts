@@ -72,7 +72,8 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                     'target': 'ES6'
                 }
             }
-            await fs.promises.writeFile('tsconfig.json', JSON.stringify(config, null, 2))
+
+            await fs.promises.writeFile(path.join(process.cwd(), 'tsconfig.json'), 'tsconfig.json', JSON.stringify(config, null, 2))
         }
     }
 
