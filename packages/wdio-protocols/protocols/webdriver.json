@@ -405,7 +405,7 @@
   "/session/:sessionId/elements": {
     "POST": {
       "command": "findElements",
-      "description": "The Find Elements command is used to find elements in the current browsing context that can be used for future commands.This command returns array of JSON representation of the elements that can be passed to $ command to transform the reference to an extended WebdriverIO element.",
+      "description": "The Find Elements command is used to find elements in the current browsing context that can be used for future commands.This command returns array of JSON representation of the elements that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
       "ref": "https://w3c.github.io/webdriver/#dfn-find-elements",
       "parameters": [{
         "name": "using",
@@ -428,7 +428,7 @@
   "/session/:sessionId/element/:elementId/element": {
     "POST": {
       "command": "findElementFromElement",
-      "description": "The Find Element From Element command is used to find an element from a web element in the current browsing context that can be used for future commands.",
+      "description": "The Find Element From Element command is used to find an element from a web element in the current browsing context that can be used for future commands.This command returns JSON representation of the element that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
       "ref": "https://w3c.github.io/webdriver/#dfn-find-element-from-element",
       "variables": [{
         "name": "elementId",
@@ -455,7 +455,7 @@
   "/session/:sessionId/element/:elementId/elements": {
     "POST": {
       "command": "findElementsFromElement",
-      "description": "The Find Elements From Element command is used to find elements from a web element in the current browsing context that can be used for future commands.",
+      "description": "The Find Elements From Element command is used to find elements from a web element in the current browsing context that can be used for future commands.This command returns array of JSON representation of the elements that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
       "ref": "https://w3c.github.io/webdriver/#dfn-find-elements-from-element",
       "variables": [{
         "name": "elementId",
@@ -482,7 +482,7 @@
   "/session/:sessionId/element/active": {
     "GET": {
       "command": "getActiveElement",
-      "description": "Get Active Element returns the active element of the current browsing context’s document element.This command returns JSON representation of the element that can be passed to $ command to transform the reference to an extended WebdriverIO element.",
+      "description": "Get Active Element returns the active element of the current browsing context’s document element.This command returns JSON representation of the element that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
       "ref": "https://w3c.github.io/webdriver/#dfn-get-active-element",
       "parameters": [],
       "returns": {
