@@ -68,15 +68,14 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         }
         if (!hasFile('tsconfig.json')){
             const config = {
-                'compilerOptions': {
-                    'types': [
+                compilerOptions: {
+                    types: [
                         'node',
                         'webdriverio/async',
                         frameworkPackage.package,
                         'expect-webdriverio'
                     ],
-                    'target': 'ES5',
-
+                    target: 'ES5',
                 }
             }
 
