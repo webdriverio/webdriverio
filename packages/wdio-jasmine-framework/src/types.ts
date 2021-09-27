@@ -83,6 +83,7 @@ export interface JasmineOpts {
      * Whether to stop execution of the suite after the first spec failure.
      * @default false
      * @since v3.3.0
+     * @deprecated Use the `stopOnSpecFailure` config property instead.
      */
     failFast?: boolean
     /**
