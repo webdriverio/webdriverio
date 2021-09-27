@@ -389,9 +389,7 @@ Hook that gets executed _before_ a hook within the suite starts (e.g. runs befor
 
 Parameters:
 - `test` (`object`): test details
-- `context` (`object`): test context
-- `stepData` (`object`): step data (Cucumber only)
-- `world` (`object`): world context (Cucumber only)
+- `context` (`object`): test context (represents World object in Cucumber)
 
 ### afterHook
 
@@ -399,10 +397,8 @@ Hook that gets executed _after_ a hook within the suite ends (e.g. runs after ca
 
 Parameters:
 - `test` (`object`): test details
-- `context` (`object`): test context
+- `context` (`object`): test context (represents World object in Cucumber)
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
-- `stepData` (`object`): step data (Cucumber only)
-- `world` (`object`): world context (Cucumber only)
 
 ### beforeTest
 
