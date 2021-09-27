@@ -7,8 +7,7 @@ import yarnInstall from 'yarn-install'
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
     TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
-    CONFIG_HELPER_SUCCESS_MESSAGE,
-    CONFIG_HELPER_SUCCESS_MESSAGE_TS
+    CONFIG_HELPER_SUCCESS_MESSAGE
 } from '../constants'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
@@ -212,9 +211,9 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         console.log(util.format(TS_COMPILER_INSTRUCTIONS, tsPkgs))
     }
 
-    (answers.isUsingCompiler === COMPILER_OPTIONS.ts) ?
-        console.log(CONFIG_HELPER_SUCCESS_MESSAGE_TS) :
-        console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
+    util.format(CONFIG_HELPER_SUCCESS_MESSAGE,
+        (answers.isUsingCompiler === COMPILER_OPTIONS.ts) ? 'ts' : 'js'
+    )
 
     /**
      * don't exit if running unit tests
