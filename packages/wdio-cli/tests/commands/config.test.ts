@@ -6,6 +6,7 @@ import pkg from '../../package.json'
 
 import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
+import path from 'path'
 
 jest.mock('../../src/utils', () => ({
     addServiceDeps: jest.fn(),
@@ -178,6 +179,23 @@ test('prints TypeScript setup message with ts-node installed', async () => {
         generateTestFiles: false,
         isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
     }))
+
+    const config = {
+        compilerOptions: {
+            types: [
+                'node',
+                'webdriverio/async',
+                '@wdio/mocha-framework',
+                'expect-webdriverio'
+            ],
+            target: 'ES5',
+        }
+    }
+
+    expect(fs.promises.writeFile).toBeCalledWith(
+        path.join(process.cwd(), 'tsconfig.json'),
+        JSON.stringify(config, null, 4))
+
     // @ts-expect-error
     fs.promises = { writeFile: jest.fn()
         .mockReturnValue(Promise.resolve('')) }
