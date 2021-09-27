@@ -455,7 +455,7 @@
   "/session/:sessionId/element/:elementId/elements": {
     "POST": {
       "command": "findElementsFromElement",
-      "description": "The Find Elements From Element command is used to find elements from a web element in the current browsing context that can be used for future commands.This command returns array of JSON representation of the elements that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
+      "description": "The Find Elements From Element command is used to find elements from a web element in the current browsing context that can be used for future commands. This command returns array of JSON representation of the elements that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
       "ref": "https://w3c.github.io/webdriver/#dfn-find-elements-from-element",
       "variables": [{
         "name": "elementId",
