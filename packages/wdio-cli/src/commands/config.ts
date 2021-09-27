@@ -7,7 +7,8 @@ import yarnInstall from 'yarn-install'
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
     TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
-    CONFIG_HELPER_SUCCESS_MESSAGE
+    CONFIG_HELPER_SUCCESS_MESSAGE,
+    CONFIG_HELPER_SUCCESS_MESSAGE_TS
 } from '../constants'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
@@ -68,12 +69,21 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         if (!hasFile('tsconfig.json')){
             const config = {
                 'compilerOptions': {
-                    'types': ['node', 'webdriverio/async', frameworkPackage.package],
-                    'target': 'ES6'
+                    'types': [
+                        'node',
+                        'webdriverio/async',
+                        frameworkPackage.package,
+                        'expect-webdriverio'
+                    ],
+                    'target': 'ES5',
+
                 }
             }
 
-            await fs.promises.writeFile(path.join(process.cwd(), 'tsconfig.json'), JSON.stringify(config, null, 2))
+            await fs.promises.writeFile(
+                path.join(process.cwd(), 'tsconfig.json'),
+                JSON.stringify(config, null, 4)
+            )
         }
     }
 
@@ -203,7 +213,9 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         console.log(util.format(TS_COMPILER_INSTRUCTIONS, tsPkgs))
     }
 
-    console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
+    (answers.isUsingCompiler === COMPILER_OPTIONS.ts) ?
+        console.log(CONFIG_HELPER_SUCCESS_MESSAGE_TS) :
+        console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
 
     /**
      * don't exit if running unit tests

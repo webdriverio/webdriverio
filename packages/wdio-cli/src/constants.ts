@@ -24,6 +24,12 @@ To run your tests, execute:
 $ npx wdio run wdio.conf.js
 `
 
+export const CONFIG_HELPER_SUCCESS_MESSAGE_TS = `
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.ts
+`
+
 export const ANDROID_CONFIG = {
     platformName: 'Android',
     automationName: 'UiAutomator2',

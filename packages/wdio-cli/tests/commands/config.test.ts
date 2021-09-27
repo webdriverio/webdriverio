@@ -162,6 +162,9 @@ test('prints TypeScript setup message with ts-node installed', async () => {
         generateTestFiles: false,
         isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
     }))
+    // @ts-expect-error
+    fs.promises = { writeFile: jest.fn()
+        .mockReturnValue(Promise.resolve('')) }
     await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
