@@ -152,8 +152,8 @@ export interface HookFunctions {
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha). `stepData` and `world` are Cucumber framework specific properties.
-     * @param test      details to current running test (or step in Cucumber)
-     * @param context   context to current running test (or World object in Cucumber)
+     * @param test      details to current running test (represents step in Cucumber)
+     * @param context   context to current running test (represents World object in Cucumber)
      */
     beforeHook?(test: any, context: any): void;
 
@@ -180,15 +180,15 @@ export interface HookFunctions {
 
     /**
      * Function to be executed before a test (in Mocha/Jasmine) starts.
-     * @param test      details to current running test (or step in Cucumber)
-     * @param context   context to current running test
+     * @param test      details to current running test (represents step in Cucumber)
+     * @param context   context to current running test (represents World object in Cucumber)
      */
     beforeTest?(test: Test, context: any): void;
 
     /**
      * Function to be executed after a test (in Mocha/Jasmine) ends.
-     * @param test      details to current running test (or step in Cucumber)
-     * @param context   context to current running test
+     * @param test      details to current running test (represents step in Cucumber)
+     * @param context   context to current running test (represents World object in Cucumber)
      * @param result    test result
      */
     afterTest?(test: Test, context: any, result: TestResult): void;
@@ -202,8 +202,8 @@ export interface HookFunctions {
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
      * afterEach in Mocha). `stepData` and `world` are Cucumber framework specific.
-     * @param test      details to current running test (or step in Cucumber)
-     * @param context   context to current running test (or World object in Cucumber)
+     * @param test      details to current running test (represents step in Cucumber)
+     * @param context   context to current running test (represents World object in Cucumber)
      * @param result    test result
      */
     afterHook?(test: Test, context: any, result: TestResult): void;
