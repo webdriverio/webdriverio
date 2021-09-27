@@ -344,3 +344,43 @@ Boilerplate test suite to run E2E Tests using WebdriverIO v7 and Cucumber v7 wit
     - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
     - TypeScript
     - ESLint
+
+## [praveendvd/webdriverIODockerBoilerplate/](https://github.com/praveendvd/webdriverIODockerBoilerplate)
+  
+
+This a template project to help you show how you can run webdriverio test from Web applications using the latest WebdriverIO, and Cucumber framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
+
+This project includes:
+
+- DockerFile
+- cucumber Project
+
+Read more at: [Medium Blog](https://praveendavidmathew.medium.com/running-webdriverio-in-wsl2-windows-91d3a0dc7746) 
+
+## [praveendvd/WebdriverIO_electronAppAutomation_boilerplate/](https://github.com/praveendvd/WebdriverIO_electronAppAutomation_boilerplate)
+  
+This a template project to help you show how you can run electronJS tests using WebdriverIO. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO electronJS tests.
+
+This project include:
+
+- Sample electronjs app
+- Sample cucumber testscripts 
+
+Read more at: [Medium Blog](https://praveendavidmathew.medium.com/first-step-into-automation-of-electronjs-applications-ef89b7423ddd) 
+
+## [praveendvd/webdriverIO_winappdriver_boilerplate/](https://github.com/praveendvd/webdriverIO_winappdriver_boilerplate)
+  
+
+This a template project to help you show how you can automate windows application using winappdriver and  WebdriverIO . This project intends to act as a baseline image that you can use to understand how to run windappdriver and WebdriverIO tests.
+
+Read more at: [Medium Blog](https://praveendavidmathew.medium.com/winappdriver-first-step-into-windows-app-test-automation-using-webdriverio-and-winappdriver-46320d89570b) 
+
+## [praveendvd/appium-chromedriver-multiremote-wdio-boilerplate/](https://github.com/praveendvd/appium-chromedriver-multiremote-wdio-boilerplate)
+  
+
+This a template project to help you show how you can run webdriverio multiremote capability with latest WebdriverIO, and Jasmine framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
+
+This project uses: 
+     - chromedriver
+     - jasmine
+     - appium
