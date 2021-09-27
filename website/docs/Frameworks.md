@@ -219,12 +219,6 @@ Seed to use as the basis of randomization. Null causes the seed to be determined
 Type: `Function`<br />
 Default: `null`
 
-#### failFast
-Whether to stop execution of the suite after the first spec failure.
-
-Type: `boolean`<br />
-Default: `false`
-
 #### failSpecWithNoExpectations
 Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure.
 
