@@ -482,7 +482,7 @@
   "/session/:sessionId/element/active": {
     "GET": {
       "command": "getActiveElement",
-      "description": "Get Active Element returns the active element of the current browsing context’s document element.This command returns JSON representation of the element that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
+      "description": "Get Active Element returns the active element of the current browsing context’s document element. This command returns JSON representation of the element that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
       "ref": "https://w3c.github.io/webdriver/#dfn-get-active-element",
       "parameters": [],
       "returns": {
