@@ -405,7 +405,7 @@
   "/session/:sessionId/elements": {
     "POST": {
       "command": "findElements",
-      "description": "The Find Elements command is used to find elements in the current browsing context that can be used for future commands.This command returns array of JSON representation of the elements that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
+      "description": "The Find Elements command is used to find elements in the current browsing context that can be used for future commands. This command returns array of JSON representation of the elements that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
       "ref": "https://w3c.github.io/webdriver/#dfn-find-elements",
       "parameters": [{
         "name": "using",
