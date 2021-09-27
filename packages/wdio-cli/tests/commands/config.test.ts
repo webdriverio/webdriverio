@@ -6,6 +6,7 @@ import pkg from '../../package.json'
 
 import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
+import path from 'path'
 
 jest.mock('../../src/utils', () => ({
     addServiceDeps: jest.fn(),
@@ -104,28 +105,44 @@ describe('install compliant NPM tag packages', () => {
     test('it should install tagged version if cli is tagged with beta', async () => {
         setFetchSpec('beta');
         (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(args))
+        // @ts-expect-error
+        fs.promises = { writeFile: jest.fn()
+            .mockReturnValue(Promise.resolve('')) }
         await handler({} as any)
+
         expect(consoleLogSpy.mock.calls).toMatchSnapshot()
     })
 
     test('it should install tagged version if cli is tagged with next', async () => {
         setFetchSpec('next');
         (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(args))
+        // @ts-expect-error
+        fs.promises = { writeFile: jest.fn()
+            .mockReturnValue(Promise.resolve('')) }
         await handler({} as any)
+
         expect(consoleLogSpy.mock.calls).toMatchSnapshot()
     })
 
     test('it should install tagged version if cli is tagged with latest', async () => {
         setFetchSpec('latest');
         (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(args))
+        // @ts-expect-error
+        fs.promises = { writeFile: jest.fn()
+            .mockReturnValue(Promise.resolve('')) }
         await handler({} as any)
+
         expect(consoleLogSpy.mock.calls).toMatchSnapshot()
     })
 
     test('it should not install tagged version if cli is tagged with a specific version', async () => {
         setFetchSpec('7.0.8');
         (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(args))
+        // @ts-expect-error
+        fs.promises = { writeFile: jest.fn()
+            .mockReturnValue(Promise.resolve('')) }
         await handler({} as any)
+
         expect(consoleLogSpy.mock.calls).toMatchSnapshot()
     })
 
@@ -162,6 +179,26 @@ test('prints TypeScript setup message with ts-node installed', async () => {
         generateTestFiles: false,
         isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
     }))
+
+    const config = {
+        compilerOptions: {
+            types: [
+                'node',
+                'webdriverio/async',
+                '@wdio/mocha-framework',
+                'expect-webdriverio'
+            ],
+            target: 'ES5',
+        }
+    }
+
+    expect(fs.promises.writeFile).toBeCalledWith(
+        path.join(process.cwd(), 'tsconfig.json'),
+        JSON.stringify(config, null, 4))
+
+    // @ts-expect-error
+    fs.promises = { writeFile: jest.fn()
+        .mockReturnValue(Promise.resolve('')) }
     await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
