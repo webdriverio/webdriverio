@@ -112,15 +112,13 @@ exports.config = {
     // },
     //
     // Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
-    // beforeEach in Mocha)
-    // stepData and world are Cucumber framework specific
-    // beforeHook: function (test, context, stepData, world) {
+    // beforeEach in Mocha). In Cucumber `context` is the World object.
+    // beforeHook: function (test, context) {
     // },
     //
     // Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
-    // afterEach in Mocha)
-    // stepData and world are Cucumber framework specific
-    // afterHook: function (test, context, { error, result, duration, passed, retries }, stepData, world) {
+    // afterEach in Mocha). In Cucumber `context` is the World object.
+    // afterHook: function (test, context, { error, result, duration, passed, retries }) {
     // },
     //
     // Function to be executed before a test (in Mocha/Jasmine) starts.

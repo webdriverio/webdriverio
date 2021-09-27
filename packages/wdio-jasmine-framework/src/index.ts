@@ -351,7 +351,7 @@ class JasmineAdapter {
         return function (this: jasmine.Spec, passed: boolean, data: ResultHandlerPayload) {
             try {
                 expectationResultHandler!.call(this, passed, data)
-            } catch (e) {
+            } catch (e: any) {
                 /**
                  * propagate expectationResultHandler error if actual assertion passed
                  * but the custom handler decides to throw

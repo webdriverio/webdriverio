@@ -19,6 +19,25 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.13.2 (2021-09-27)
+
+#### :memo: Documentation
+* `wdio-jasmine-framework`, `wdio-types`, `wdio-utils`
+  * [#7475](https://github.com/webdriverio/webdriverio/pull/7475) Fix before/afterHook parameters for Cucumber ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-protocols`
+  * [#7472](https://github.com/webdriverio/webdriverio/pull/7472) Documentation update for webdriver protocol ([@praveendvd](https://github.com/praveendvd))
+* `wdio-allure-reporter`
+  * [#7420](https://github.com/webdriverio/webdriverio/pull/7420) updated documentation for accepted values for allure reporter > severity ([@saranyaeaswaran](https://github.com/saranyaeaswaran))
+
+#### :house: Internal
+* [#7359](https://github.com/webdriverio/webdriverio/pull/7359) Fix broken iFrame e2e test ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Saranya Easwaran ([@saranyaeaswaran](https://github.com/saranyaeaswaran))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.13.1 (2021-09-23)
 
 #### :bug: Bug Fix
