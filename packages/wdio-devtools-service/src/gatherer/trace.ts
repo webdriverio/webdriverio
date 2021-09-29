@@ -17,7 +17,7 @@ import {
     FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT, MAX_TRACE_WAIT_TIME,
     CLICK_TRANSITION, NETWORK_RECORDER_EVENTS
 } from '../constants'
-import { isSupportedUrl, getLighthouseDriver } from '../utils'
+import { isSupportedUrl } from '../utils'
 import type { GathererDriver } from '../types'
 
 const log = logger('@wdio/devtools-service:TraceGatherer')
@@ -66,16 +66,14 @@ export default class TraceGatherer extends EventEmitter {
     private _traceStart?: number
     private _clickTraceTimeout?: NodeJS.Timeout
     private _waitConditionPromises: Promise<void>[] = []
-    private _driver: GathererDriver
 
-    constructor (private _session: CDPSession, private _page: Page) {
+    constructor (private _session: CDPSession, private _page: Page, private _driver: GathererDriver) {
         super()
 
         NETWORK_RECORDER_EVENTS.forEach((method) => {
             this._networkListeners[method] = (params) => this._networkStatusMonitor.dispatch({ method, params })
         })
 
-        this._driver = getLighthouseDriver(_session)
         this._protocolSession = new ProtocolSession(_session)
         this._networkMonitor = new NetworkMonitor(_session)
     }
@@ -271,7 +269,7 @@ export default class TraceGatherer extends EventEmitter {
             }
             this.emit('tracingComplete', this._trace)
             this.finishTracing()
-        } catch (err) {
+        } catch (err: any) {
             log.error(`Error capturing tracing logs: ${err.stack}`)
             this.emit('tracingError', err)
             return this.finishTracing()

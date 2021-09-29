@@ -1,5 +1,6 @@
 declare module 'lighthouse';
 declare module 'lighthouse/lighthouse-core/gather/driver'
+declare module 'lighthouse/lighthouse-core/gather/connections/cri'
 declare module 'lighthouse/lighthouse-core/gather/gather-runner'
 declare module 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
 declare module 'lighthouse/lighthouse-core/gather/connections/raw'

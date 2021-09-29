@@ -1,5 +1,6 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
+import ChromeProtocol from 'lighthouse/lighthouse-core/gather/connections/cri'
 import Driver from 'lighthouse/lighthouse-core/gather/driver'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 
@@ -87,22 +88,11 @@ export function isBrowserSupported(caps: Capabilities.Capabilities) {
     return true
 }
 
-export function getLighthouseDriver (session: CDPSession): GathererDriver {
-    /**
-     * setup LH driver
-     */
-    const connection = session as any
-    connection.sendCommand = (
-        method: any,
-        sessionId: never,
-        ...paramAgrs: any[]
-    ) => session.send(method as any, ...paramAgrs)
-
-    const driver = new Driver(connection)
-    ;(session['_connection']._transport as any)._ws.addEventListener(
-        'message',
-        (message: { data: string }) => driver._handleProtocolEvent(JSON.parse(message.data))
-    )
-
-    return driver
+export async function getLighthouseDriver (session: CDPSession): Promise<GathererDriver> {
+    const c = session.connection().url()
+    const cUrl = new URL(c)
+    const connection = new ChromeProtocol(cUrl.port, cUrl.hostname)
+    const list = await connection._runJsonCommand('list')
+    await connection._connectToSocket(list[0])
+    return new Driver(connection)
 }

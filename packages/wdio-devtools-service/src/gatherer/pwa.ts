@@ -14,11 +14,9 @@ import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
 import collectMetaElements from '../scripts/collectMetaElements'
 import { NETWORK_RECORDER_EVENTS } from '../constants'
-import { getLighthouseDriver } from '../utils'
 import type { GathererDriver } from '../types'
 
 export default class PWAGatherer {
-    private _driver: GathererDriver
     private _frGatherer: typeof FRGatherer
     private _protocolSession: typeof ProtocolSession
     private _networkRecorder: any
@@ -26,9 +24,12 @@ export default class PWAGatherer {
 
     constructor (
         private _session: CDPSession,
-        private _page: Page
+        private _page: Page,
+        private _driver: GathererDriver
     ) {
         this._frGatherer = new FRGatherer(this._session)
+        this._protocolSession = new ProtocolSession(_session)
+
         /**
          * setup network recorder
          */
@@ -36,12 +37,6 @@ export default class PWAGatherer {
         NETWORK_RECORDER_EVENTS.forEach((method) => {
             this._session.on(method, (params) => this._networkRecorder.dispatch({ method, params }))
         })
-
-        /**
-         * setup LH driver
-         */
-        this._driver = getLighthouseDriver(_session)
-        this._protocolSession = new ProtocolSession(_session)
 
         /**
          * clean up network records after every page load

@@ -14,9 +14,12 @@ import PWAGatherer from './gatherer/pwa'
 import TraceGatherer from './gatherer/trace'
 import CoverageGatherer from './gatherer/coverage'
 import DevtoolsGatherer, { CDPSessionOnMessageObject } from './gatherer/devtools'
-import { isBrowserSupported, setUnsupportedCommand } from './utils'
+import { isBrowserSupported, setUnsupportedCommand, getLighthouseDriver } from './utils'
 import { NETWORK_STATES, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION, DEFAULT_THROTTLE_STATE } from './constants'
-import { DevtoolsConfig, FormFactor, EnablePerformanceAuditsOptions, DeviceDescription, Device, PWAAudits } from './types'
+import {
+    DevtoolsConfig, FormFactor, EnablePerformanceAuditsOptions,
+    DeviceDescription, Device, PWAAudits, GathererDriver
+} from './types'
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
@@ -29,6 +32,7 @@ export default class DevToolsService implements Services.ServiceInstance {
     private _target?: Target
     private _page: Page | null = null
     private _session?: CDPSession
+    private _driver?: GathererDriver
 
     private _cacheEnabled?: boolean
     private _cpuThrottling?: number
@@ -69,6 +73,7 @@ export default class DevToolsService implements Services.ServiceInstance {
     }
 
     async beforeCommand (commandName: string, params: any[]) {
+        const isCommandNavigation = ['url', 'navigateTo'].some(cmdName => cmdName === commandName)
         if (!this._shouldRunPerformanceAudits || !this._traceGatherer || this._traceGatherer.isTracing || !TRACE_COMMANDS.includes(commandName)) {
             return
         }
@@ -78,7 +83,7 @@ export default class DevToolsService implements Services.ServiceInstance {
          */
         this._setThrottlingProfile(this._networkThrottling, this._cpuThrottling, this._cacheEnabled)
 
-        const url = ['url', 'navigateTo'].some(cmdName => cmdName === commandName)
+        const url = isCommandNavigation
             ? params[0]
             : CLICK_TRANSITION
         return this._traceGatherer.startTracing(url)
@@ -233,9 +238,10 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         this._session = await this._target.createCDPSession()
+        this._driver = await getLighthouseDriver(this._session)
 
         new CommandHandler(this._session, this._page, this._browser)
-        this._traceGatherer = new TraceGatherer(this._session, this._page)
+        this._traceGatherer = new TraceGatherer(this._session, this._page, this._driver)
 
         this._session.on('Page.loadEventFired', this._traceGatherer.onLoadEventFired.bind(this._traceGatherer))
         this._session.on('Page.frameNavigated', this._traceGatherer.onFrameNavigated.bind(this._traceGatherer))
@@ -276,7 +282,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
         this._browser.addCommand('emulateDevice', this._emulateDevice.bind(this))
 
-        this._pwaGatherer = new PWAGatherer(this._session, this._page)
+        this._pwaGatherer = new PWAGatherer(this._session, this._page, this._driver)
         this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
     }
 }
