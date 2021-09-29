@@ -11,7 +11,7 @@ async function bar() {
     browser.disablePerformanceAudits()
 
     const metrics = await browser.getMetrics()
-    expectType<number>(metrics.estimatedInputLatency)
+    expectType<number>(metrics.totalBlockingTime)
     expectType<number>(metrics.maxPotentialFID)
 
     const diagnostics = await browser.getDiagnostics()

@@ -10,7 +10,7 @@ browser.enablePerformanceAudits({
 browser.disablePerformanceAudits()
 
 const metrics = browser.getMetrics()
-expectType<number>(metrics.estimatedInputLatency)
+expectType<number>(metrics.totalBlockingTime)
 expectType<number>(metrics.maxPotentialFID)
 
 const diagnostics = browser.getDiagnostics()
