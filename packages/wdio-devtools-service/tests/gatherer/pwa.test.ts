@@ -2,6 +2,7 @@ import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connect
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
 import PWAGatherer from '../../src/gatherer/pwa'
+import type { GathererDriver } from '../../src/types'
 
 const pageMock = {
     on: jest.fn(),
@@ -13,6 +14,10 @@ const sessionMock = {
     _connection: { _transport: { _ws: { addEventListener: jest.fn() } } }
 } as unknown as CDPSession
 
+const driver = {
+    evaluate: jest.fn()
+} as any as GathererDriver
+
 describe('PWAGatherer', () => {
     beforeEach(() => {
         (sessionMock.on as jest.Mock).mockClear()
@@ -20,7 +25,7 @@ describe('PWAGatherer', () => {
     })
 
     it('initiates properly', () => {
-        const pwaGatherer = new PWAGatherer(sessionMock, pageMock)
+        const pwaGatherer = new PWAGatherer(sessionMock, pageMock, driver)
         expect((sessionMock.on as jest.Mock).mock.calls.map((c) => c[0]))
             .toMatchSnapshot()
         pwaGatherer['_networkRecorder'].dispatch({ method: 'Network.requestWillBeSent', params: 'bar' })
@@ -32,7 +37,7 @@ describe('PWAGatherer', () => {
     })
 
     it('gatherData', async () => {
-        const pwaGatherer = new PWAGatherer(sessionMock, pageMock)
+        const pwaGatherer = new PWAGatherer(sessionMock, pageMock, driver)
         pwaGatherer['_driver'].evaluate = jest.fn().mockResolvedValue({ some: 'result' })
         expect(await pwaGatherer.gatherData()).toMatchSnapshot()
     })

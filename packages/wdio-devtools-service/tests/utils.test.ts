@@ -25,7 +25,7 @@ test('sumByKey', () => {
 
 test('setUnsupportedCommand', () => {
     const browser = { addCommand: jest.fn() }
-    setUnsupportedCommand(browser as unknown as Browser)
+    setUnsupportedCommand(browser as unknown as Browser<'async'>)
     expect(browser.addCommand).toHaveBeenCalledWith('cdp', expect.any(Function))
     const fn = browser.addCommand.mock.calls[0][1]
     expect(fn).toThrow()
@@ -110,20 +110,14 @@ describe('isBrowserSupported', () => {
 })
 
 describe('getLighthouseDriver', () => {
-    test('should return a driver', () => {
+    test('should return a driver', async () => {
+        const urlMock = jest.fn().mockReturnValue('ws://127.0.0.1:56513/devtools/browser/9aae0e34-86a9-4b0e-856b-d0d37009ddbb')
         const session = {
-            send: jest.fn(),
-            _connection: {
-                _transport: {
-                    _ws: { addEventListener: jest.fn() }
-                }
-            }
+            connection: jest.fn().mockReturnValue({ url: urlMock })
         }
-        const driver = getLighthouseDriver(session as any)
-        driver['_handleProtocolEvent'] = jest.fn()
-        expect(session._connection._transport._ws.addEventListener).toBeCalledTimes(1)
-        session._connection._transport._ws.addEventListener.mock.calls[0][1]({ data: '{"foo": "bar"}' })
-        expect(driver['_handleProtocolEvent']).toBeCalledTimes(1)
-        expect(driver['_handleProtocolEvent']).toBeCalledWith({ foo: 'bar' })
+        const driver = await getLighthouseDriver(session as any)
+        expect(session.connection).toBeCalledTimes(1)
+        expect(urlMock).toBeCalledTimes(1)
+        expect(driver.constructor.name).toBe('Driver')
     })
 })

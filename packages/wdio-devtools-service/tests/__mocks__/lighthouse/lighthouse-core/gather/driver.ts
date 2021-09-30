@@ -7,7 +7,7 @@ export default class Driver {
     beginTrace: jest.Mock
     endTrace: jest.Mock
 
-    constructor () {
+    constructor (public connection: any) {
         this.beginTrace = beginTrace
         this.endTrace = endTrace
     }

@@ -5,6 +5,7 @@ import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRe
 
 import TraceGatherer from '../../src/gatherer/trace'
 import { FRAME_LOAD_START_TIMEOUT, CLICK_TRANSITION } from '../../src/constants'
+import type { GathererDriver } from '../../src/types'
 
 import TRACELOG from '../__fixtures__/tracelog.json'
 
@@ -12,10 +13,6 @@ let traceGatherer: TraceGatherer
 
 const pageMock = {
     on: jest.fn(),
-    tracing: {
-        start: jest.fn(),
-        stop: jest.fn().mockReturnValue(Promise.resolve(Buffer.from(JSON.stringify(TRACELOG))))
-    },
     evaluateOnNewDocument: jest.fn()
 }
 
@@ -37,20 +34,26 @@ const frame = {
     url: 'http://foobar.com'
 }
 
+const driver = {
+    beginTrace: jest.fn(),
+    endTrace: jest.fn().mockReturnValue(Promise.resolve(TRACELOG))
+} as any as GathererDriver
+
 jest.useFakeTimers()
 
 beforeEach(() => {
     pageMock.on.mockClear()
-    pageMock.tracing.start.mockClear()
-    pageMock.tracing.stop.mockClear()
     pageMock.evaluateOnNewDocument.mockClear()
     sessionMock.on.mockClear()
     traceGatherer = new TraceGatherer(
         sessionMock as unknown as CDPSession,
-        pageMock as unknown as Page
+        pageMock as unknown as Page,
+        driver
     )
     traceGatherer.emit = jest.fn()
     ;(traceGatherer['_driver'] as any).beginTrace.mockClear()
+    ;(driver.beginTrace as jest.Mock).mockClear()
+    ;(driver.endTrace as jest.Mock).mockClear()
 })
 
 test('should register eventlisteners for network monitor', () => {
