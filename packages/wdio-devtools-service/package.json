@@ -1,6 +1,6 @@
 {
   "name": "@wdio/devtools-service",
-  "version": "7.13.2",
+  "version": "7.14.0",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service",

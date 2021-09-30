@@ -19,6 +19,24 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.14.0 (2021-09-30)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#7019](https://github.com/webdriverio/webdriverio/pull/7019) Upgrade lighthouse dependencies and fix performance tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#7471](https://github.com/webdriverio/webdriverio/pull/7471) Check for tsconfig file and create if it doesn't exists for type script project ([@praveendvd](https://github.com/praveendvd))
+
+#### :memo: Documentation
+* [#7487](https://github.com/webdriverio/webdriverio/pull/7487) Added boiler plate code for webdriverIO electronjs , winappdriver , mutiremote setups ([@praveendvd](https://github.com/praveendvd))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.13.2 (2021-09-27)
 
 #### :memo: Documentation
