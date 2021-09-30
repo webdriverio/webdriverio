@@ -151,6 +151,7 @@ getLogger.clearLogger = () => {
     if (logFile) {
         logFile.end()
     }
+    logFile = null
 }
 getLogger.setLogLevelsConfig = (logLevels: Record<string, log.LogLevelDesc> = {}, wdioLogLevel: log.LogLevelDesc = DEFAULT_LEVEL) => {
     /**
