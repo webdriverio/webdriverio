@@ -45,6 +45,11 @@ export const DEFAULT_TRACING_CATEGORIES = [
     // This doesn't add its own events, but adds a `stackTrace` property to devtools.timeline events
     'disabled-by-default-devtools.timeline.stack',
 
+    // Additional categories used by devtools. Not used by Lighthouse, but included to facilitate
+    // loading traces from Lighthouse into the Performance panel.
+    'disabled-by-default-devtools.timeline.frame',
+    'latencyInfo',
+
     // CPU sampling profiler data only enabled for debugging purposes
     // 'disabled-by-default-v8.cpu_profiler',
     // 'disabled-by-default-v8.cpu_profiler.hires',

@@ -58,9 +58,10 @@ export default class Auditor {
                 traces: { defaultPass: this._traceLogs },
                 devtoolsLogs: { defaultPass: this._devtoolsLogs },
                 TestedAsMobileDevice: true,
+                GatherContext: { gatherMode: 'navigation' },
                 ...params
             }, auditContext)
-        } catch (error) {
+        } catch (error: any) {
             log.error(error)
             return {
                 score: 0,
