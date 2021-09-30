@@ -1,5 +1,6 @@
 declare module 'lighthouse';
 declare module 'lighthouse/lighthouse-core/gather/driver'
+declare module 'lighthouse/lighthouse-core/gather/connections/cri'
 declare module 'lighthouse/lighthouse-core/gather/gather-runner'
 declare module 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
 declare module 'lighthouse/lighthouse-core/gather/connections/raw'
@@ -30,3 +31,6 @@ declare module 'lighthouse/lighthouse-core/audits/maskable-icon'
 declare module 'lighthouse/lighthouse-core/scoring'
 declare module 'lighthouse/lighthouse-core/config/default-config'
 declare module 'lighthouse/lighthouse-core/config/constants'
+declare module 'lighthouse/lighthouse-core/gather/driver/wait-for-condition'
+declare module 'lighthouse/lighthouse-core/gather/driver/network-monitor'
+declare module 'lighthouse/lighthouse-core/gather/driver/service-workers'

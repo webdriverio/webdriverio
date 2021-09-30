@@ -1,24 +1,24 @@
-import 'core-js/modules/web.url'
-
 import { EventEmitter } from 'events'
 import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
+import NetworkMonitor from 'lighthouse/lighthouse-core/gather/driver/network-monitor'
+import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
+import { waitForFullyLoaded } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition'
 import logger from '@wdio/logger'
 
 import type Protocol from 'devtools-protocol'
-import type { TraceEvent, TraceStreamJson, TraceEventArgs } from '@tracerbench/trace-event'
+import type { TraceEvent, TraceEventArgs } from '@tracerbench/trace-event'
 import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRequest'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
 import registerPerformanceObserverInPage from '../scripts/registerPerformanceObserverInPage'
-import checkTimeSinceLastLongTask from '../scripts/checkTimeSinceLastLongTask'
 
 import {
-    DEFAULT_TRACING_CATEGORIES, FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT,
-    MAX_TRACE_WAIT_TIME, CPU_IDLE_TRESHOLD, NETWORK_IDLE_TIMEOUT, CLICK_TRANSITION,
-    NETWORK_RECORDER_EVENTS
+    FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT, MAX_TRACE_WAIT_TIME,
+    CLICK_TRANSITION, NETWORK_RECORDER_EVENTS
 } from '../constants'
 import { isSupportedUrl } from '../utils'
+import type { GathererDriver } from '../types'
 
 const log = logger('@wdio/devtools-service:TraceGatherer')
 
@@ -51,11 +51,6 @@ export interface WaitPromise {
     cancel: Function
 }
 
-const NOOP_WAIT_EVENT = {
-    promise: Promise.resolve(),
-    cancel: () => {}
-}
-
 export default class TraceGatherer extends EventEmitter {
     private _failingFrameLoadIds: string[] = []
     private _pageLoadDetected = false
@@ -65,18 +60,22 @@ export default class TraceGatherer extends EventEmitter {
     private _loaderId?: string
     private _pageUrl?: string
     private _networkStatusMonitor: typeof NetworkRecorder
+    private _networkMonitor: typeof NetworkMonitor
+    private _protocolSession: typeof  ProtocolSession
     private _trace?: Trace
     private _traceStart?: number
     private _clickTraceTimeout?: NodeJS.Timeout
-    private _waitForNetworkIdleEvent: WaitPromise = NOOP_WAIT_EVENT
-    private _waitForCPUIdleEvent: WaitPromise = NOOP_WAIT_EVENT
+    private _waitConditionPromises: Promise<void>[] = []
 
-    constructor (private _session: CDPSession, private _page: Page) {
+    constructor (private _session: CDPSession, private _page: Page, private _driver: GathererDriver) {
         super()
 
         NETWORK_RECORDER_EVENTS.forEach((method) => {
             this._networkListeners[method] = (params) => this._networkStatusMonitor.dispatch({ method, params })
         })
+
+        this._protocolSession = new ProtocolSession(_session)
+        this._networkMonitor = new NetworkMonitor(_session)
     }
 
     async startTracing (url: string) {
@@ -95,10 +94,7 @@ export default class TraceGatherer extends EventEmitter {
 
         this._traceStart = Date.now()
         log.info(`Start tracing frame with url ${url}`)
-        await this._page.tracing.start({
-            categories: DEFAULT_TRACING_CATEGORIES,
-            screenshots: true
-        })
+        await this._driver.beginTrace()
 
         /**
          * if this tracing was started from a click transition
@@ -108,7 +104,6 @@ export default class TraceGatherer extends EventEmitter {
             log.info('Start checking for page load for click')
             this._clickTraceTimeout = setTimeout(async () => {
                 log.info('No page load detected, canceling trace')
-                await this._page.tracing.stop()
                 return this.finishTracing()
             }, FRAME_LOAD_START_TIMEOUT)
         }
@@ -118,8 +113,9 @@ export default class TraceGatherer extends EventEmitter {
          */
         await this._page.evaluateOnNewDocument(registerPerformanceObserverInPage)
 
-        this._waitForNetworkIdleEvent = this.waitForNetworkIdle(this._session)
-        this._waitForCPUIdleEvent = this.waitForCPUIdle()
+        this._waitConditionPromises.push(
+            waitForFullyLoaded(this._protocolSession, this._networkMonitor, { timedOut: 1 })
+        )
     }
 
     /**
@@ -134,8 +130,7 @@ export default class TraceGatherer extends EventEmitter {
          */
         if (this._failingFrameLoadIds.includes(msgObj.frame.id)) {
             delete this._traceStart
-            this._waitForNetworkIdleEvent.cancel()
-            this._waitForCPUIdleEvent.cancel()
+            this._waitConditionPromises = []
             this._frameId = '"unsuccessful loaded frame"'
             this.finishTracing()
             this.emit('tracingError', new Error(`Page with url "${msgObj.frame.url}" failed to load`))
@@ -192,22 +187,11 @@ export default class TraceGatherer extends EventEmitter {
 
         /**
          * Ensure that page is fully loaded and all metrics can be calculated.
-         *
-         * This can only be ensured if the following conditions are met:
-         *  - Listener for onload. Resolves on first FCP event.
-         *  - Listener for onload. Resolves pauseAfterLoadMs ms after load.
-         *  - Network listener. Resolves when the network has been idle for networkQuietThresholdMs.
-         *  - CPU listener. Resolves when the CPU has been idle for cpuQuietThresholdMs after network idle.
-         *
-         * See https://github.com/GoogleChrome/lighthouse/issues/627 for more.
          */
-        const loadPromise = Promise.all([
-            this._waitForNetworkIdleEvent.promise,
-            this._waitForCPUIdleEvent.promise
-        ]).then(() => async () => {
+        const loadPromise = Promise.all(this._waitConditionPromises).then(() => async () => {
             /**
              * ensure that we trace at least for 5s to ensure that we can
-             * calculate firstInteractive
+             * calculate "interactive"
              */
             const minTraceTime = TRACING_TIMEOUT - (Date.now() - (this._traceStart || 0))
             if (minTraceTime > 0) {
@@ -223,8 +207,7 @@ export default class TraceGatherer extends EventEmitter {
             this.waitForMaxTimeout()
         ])
 
-        this._waitForNetworkIdleEvent.cancel()
-        this._waitForCPUIdleEvent.cancel()
+        this._waitConditionPromises = []
         return cleanupFn()
     }
 
@@ -252,8 +235,7 @@ export default class TraceGatherer extends EventEmitter {
          * in case it fails, continue without capturing any data
          */
         try {
-            const traceBuffer = await this._page.tracing.stop()
-            const traceEvents: TraceStreamJson = JSON.parse(traceBuffer.toString('utf8'))
+            const traceEvents = await this._driver.endTrace()
 
             /**
              * modify pid of renderer frame to be the same as where tracing was started
@@ -287,7 +269,7 @@ export default class TraceGatherer extends EventEmitter {
             }
             this.emit('tracingComplete', this._trace)
             this.finishTracing()
-        } catch (err) {
+        } catch (err: any) {
             log.error(`Error capturing tracing logs: ${err.stack}`)
             this.emit('tracingError', err)
             return this.finishTracing()
@@ -305,7 +287,7 @@ export default class TraceGatherer extends EventEmitter {
          * clean up the listeners
          */
         NETWORK_RECORDER_EVENTS.forEach(
-            (method) => this._session.removeListener(method, this._networkListeners[method]))
+            (method) => this._session.off(method, this._networkListeners[method]))
         delete this._networkStatusMonitor
 
         delete this._traceStart
@@ -313,164 +295,8 @@ export default class TraceGatherer extends EventEmitter {
         delete this._loaderId
         delete this._pageUrl
         this._failingFrameLoadIds = []
-        this._waitForNetworkIdleEvent.cancel()
-        this._waitForCPUIdleEvent.cancel()
+        this._waitConditionPromises = []
         this.emit('tracingFinished')
-    }
-
-    /**
-     * Returns a promise that resolves when the network has been idle (after DCL) for
-     * `networkQuietThresholdMs` ms and a method to cancel internal network listeners/timeout.
-     * (code from lighthouse source)
-     * @param {number} networkQuietThresholdMs
-     * @return {{promise: Promise<void>, cancel: function(): void}}
-     * @private
-     */
-    /* istanbul ignore next */
-    waitForNetworkIdle (session: CDPSession, networkQuietThresholdMs = NETWORK_IDLE_TIMEOUT) {
-        let hasDCLFired = false
-        let idleTimeout: NodeJS.Timeout
-        let cancel: Function = () => {
-            throw new Error('_waitForNetworkIdle.cancel() called before it was defined')
-        }
-
-        // Check here for networkStatusMonitor to satisfy type checker. Any further race condition
-        // will be caught at runtime on calls to it.
-        if (!this._networkStatusMonitor) {
-            throw new Error('TraceGatherer.waitForNetworkIdle called with no networkStatusMonitor')
-        }
-        const networkStatusMonitor = this._networkStatusMonitor
-
-        const promise = new Promise<void>((resolve) => {
-            const onIdle = () => {
-                // eslint-disable-next-line no-use-before-define
-                networkStatusMonitor.once('network-2-busy', onBusy)
-                idleTimeout = setTimeout(() => {
-                    log.info('Network became finally idle')
-                    cancel()
-                    resolve()
-                }, networkQuietThresholdMs)
-            }
-
-            const onBusy = () => {
-                networkStatusMonitor.once('network-2-idle', onIdle)
-                idleTimeout && clearTimeout(idleTimeout)
-            }
-
-            const domContentLoadedListener = () => {
-                hasDCLFired = true
-                networkStatusMonitor.is2Idle()
-                    ? onIdle()
-                    : onBusy()
-            }
-
-            // We frequently need to debug why LH is still waiting for the page.
-            // This listener is added to all network events to verbosely log what URLs we're waiting on.
-            const logStatus = () => {
-                if (!hasDCLFired) {
-                    return log.info('Waiting on DomContentLoaded')
-                }
-
-                const inflightRecords = networkStatusMonitor.getInflightRecords()
-                log.info(`Found ${inflightRecords.length} inflight network records`)
-                // If there are more than 20 inflight requests, load is still in full swing.
-                // Wait until it calms down a bit to be a little less spammy.
-                if (inflightRecords.length < 10) {
-                    for (const record of inflightRecords) {
-                        log.info(`Waiting on ${record.url.slice(0, 120)} to finish`)
-                    }
-                }
-            }
-
-            networkStatusMonitor.on('requeststarted', logStatus)
-            networkStatusMonitor.on('requestloaded', logStatus)
-            networkStatusMonitor.on('network-2-busy', logStatus)
-
-            session.once('Page.domContentEventFired', domContentLoadedListener)
-
-            let canceled = false
-            cancel = () => {
-                if (canceled) return
-                canceled = true
-                log.info('Wait for network idle canceled')
-                idleTimeout && clearTimeout(idleTimeout)
-
-                session.removeListener('Page.domContentEventFired', domContentLoadedListener)
-
-                networkStatusMonitor.removeListener('network-2-busy', onBusy)
-                networkStatusMonitor.removeListener('network-2-idle', onIdle)
-                networkStatusMonitor.removeListener('requeststarted', logStatus)
-                networkStatusMonitor.removeListener('requestloaded', logStatus)
-                networkStatusMonitor.removeListener('network-2-busy', logStatus)
-            }
-        })
-
-        return { promise, cancel }
-    }
-
-    /**
-     * Resolves when there have been no long tasks for at least waitForCPUIdle ms.
-     * (code from lighthouse source)
-     * @param {number} waitForCPUIdle
-     * @return {{promise: Promise<void>, cancel: function(): void}}
-     */
-    /* istanbul ignore next */
-    waitForCPUIdle (waitForCPUIdle = CPU_IDLE_TRESHOLD) {
-        if (!waitForCPUIdle) {
-            return {
-                promise: Promise.resolve(),
-                cancel: () => undefined
-            }
-        }
-
-        /** @type {NodeJS.Timer|undefined} */
-        let lastTimeout: NodeJS.Timeout
-        let canceled = false
-
-        const checkForQuietExpression = `(${checkTimeSinceLastLongTask.toString()})()`
-        async function checkForQuiet (this: TraceGatherer, resolve: Function, reject: Function): Promise<void> {
-            if (canceled) return
-            let timeSinceLongTask
-            try {
-                timeSinceLongTask = (await this._page.evaluate(checkForQuietExpression)) || 0
-            } catch (e) {
-                log.warn(`Page evaluate rejected while evaluating checkForQuietExpression: ${e.stack}`)
-                setTimeout(() => checkForQuiet.call(this, resolve, reject), 100)
-                return
-            }
-
-            if (canceled) return
-
-            if (typeof timeSinceLongTask !== 'number') {
-                log.warn(`unexpected value for timeSinceLongTask: ${timeSinceLongTask}`)
-                return reject(new Error('timeSinceLongTask is not a number'))
-            }
-
-            log.info('Driver', `CPU has been idle for ${timeSinceLongTask} ms`)
-
-            if (timeSinceLongTask >= waitForCPUIdle) {
-                return resolve()
-            }
-
-            const timeToWait = waitForCPUIdle - timeSinceLongTask
-            lastTimeout = setTimeout(() => checkForQuiet.call(this, resolve, reject), timeToWait)
-        }
-
-        let cancel: Function = () => {
-            throw new Error('_waitForCPUIdle.cancel() called before it was defined')
-        }
-        const promise = new Promise((resolve, reject) => {
-            log.info('Waiting for CPU to become idle')
-            checkForQuiet.call(this, resolve, reject)
-            cancel = () => {
-                if (canceled) return
-                canceled = true
-                if (lastTimeout) clearTimeout(lastTimeout)
-                resolve(new Error('Wait for CPU idle canceled'))
-            }
-        })
-
-        return { promise, cancel }
     }
 
     waitForMaxTimeout (maxWaitForLoadedMs = MAX_TRACE_WAIT_TIME) {

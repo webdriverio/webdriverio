@@ -19,6 +19,9 @@ export const DEFAULT_TRACING_CATEGORIES = [
     // Used instead of 'toplevel' in Chrome 71+
     'disabled-by-default-lighthouse',
 
+    // Used for Cumulative Layout Shift metric
+    'loading',
+
     // All compile/execute events are captured by parent events in devtools.timeline..
     // But the v8 category provides some nice context for only <0.5% of the trace size
     'v8',
@@ -32,7 +35,7 @@ export const DEFAULT_TRACING_CATEGORIES = [
     // Not mandatory but not used much
     'blink.console',
 
-    // Most the events we need come in on these two
+    // Most of the events we need are from these two categories
     'devtools.timeline',
     'disabled-by-default-devtools.timeline',
 
@@ -42,8 +45,14 @@ export const DEFAULT_TRACING_CATEGORIES = [
     // This doesn't add its own events, but adds a `stackTrace` property to devtools.timeline events
     'disabled-by-default-devtools.timeline.stack',
 
-    // Include screenshots for frame viewer
-    'disabled-by-default-devtools.screenshot'
+    // Additional categories used by devtools. Not used by Lighthouse, but included to facilitate
+    // loading traces from Lighthouse into the Performance panel.
+    'disabled-by-default-devtools.timeline.frame',
+    'latencyInfo',
+
+    // CPU sampling profiler data only enabled for debugging purposes
+    // 'disabled-by-default-v8.cpu_profiler',
+    // 'disabled-by-default-v8.cpu_profiler.hires',
 ]
 
 /**
@@ -57,9 +66,7 @@ export const IGNORED_URLS = [
 
 export const FRAME_LOAD_START_TIMEOUT = 2000
 export const TRACING_TIMEOUT = 15000
-export const CPU_IDLE_TRESHOLD = 15000
 export const MAX_TRACE_WAIT_TIME = 45000
-export const NETWORK_IDLE_TIMEOUT = 5000
 export const DEFAULT_NETWORK_THROTTLING_STATE = 'online' as const
 export const DEFAULT_FORM_FACTOR = 'desktop' as const
 export const UNSUPPORTED_ERROR_MESSAGE = 'The @wdio/devtools-service currently only supports Chrome version 63 and up, Firefox 86 and up, and Chromium as the browserName!'
