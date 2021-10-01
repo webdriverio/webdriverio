@@ -9,22 +9,21 @@ Welcome to the WebdriverIO documentation. It will help you to get started fast. 
 These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
 :::
 
-## Installation
+## Installation considerations
 
-Use npm or Yarn to install the WebdriverIO test runner in your Node.js project. See [system requirements](#system-requirements).
+There are two ways of using WebdriverIO - you can either add it to the application you plan to test, or you can create a brand new NodeJS project. 
 
-```bash npm2yarn
-npm install @wdio/cli
-```
+If you want to do an experiment, then it makes sense to create your own new project, but if you want to use it to test an existing NodeJS app, then it makes sense to add WebdriverIO to this project. 
 
-This single command downloads the WebdriverIO CLI tool that helps you set up WebdriverIO in your project.
+The installation is the same no matter what. 
 
 ## Set Up
 
-Once you've installed the CLI you can bootstrap a _Hello World_ test suite into your project by running:
+In order to use wdio, you need to specify a folder, either the current folder with `npx wdio .` or a specific folder with a package.json file. 
+If the folder does not exists, wdio will create the folder and make it into a nodejs project. 
 
 ```bash
-npx wdio config
+npx wdio /path/to/project
 ```
 
 ![Set Up](../static/img/setup.gif)
