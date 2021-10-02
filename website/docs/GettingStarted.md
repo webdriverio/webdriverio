@@ -53,7 +53,7 @@ npx wdio run ./wdio.conf.js --suite exampleSuiteName
 
 ## Run in a script
 
-If you like to use WebdriverIO as an automation engine in a Node.JS script you can also directly install WebdriverIO and use it as package, e.g. to generate a screenshot of a website:
+If you like to use WebdriverIO as an automation engine in a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
 
 ```js
 const { remote } = require('webdriverio');
