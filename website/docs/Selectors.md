@@ -3,7 +3,7 @@ id: selectors
 title: Selectors
 ---
 
-The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle). The following selector types are supported:
+The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle). We typically invoke `$` and `$$` by `browser.$` and `browser.$$`, where `browser is the Browser object. `$` returns a single element, while `$$` returns an array of all matched elements. The following selector types are supported:
 
 ## CSS Query Selector
 
