@@ -23,7 +23,7 @@ Both waiting mechanisms are incompatible which each other and can cause longer w
 
 :::info Recommendation
 
-We recommend __not__ to use implicit waits at all and have WebdriverIO handle element wait actions.
+We recommend __not__ using implicit waits at all and have WebdriverIO handle element wait actions.
 
 :::
 
@@ -40,7 +40,7 @@ const divs = await $$('div')
 await divs[2].click() // can throw "Cannot read property 'click' of undefined"
 ```
 
-It is an absolute legitimate action to fetch a set of elements and click on the nth element of that set. However WebdriverIO doesn't know how many elements you are expecting to show up. As [`$$`](/docs/api/browser/$$) returns an [array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) of WebdriverIO elements you have to manually check if the return value contains enough items. We recommend to use [`waitUntil`](/docs/api/browser/waitUntil) for this, e.g.:
+It is an absolute legitimate action to fetch a set of elements and click on the nth element of that set. However WebdriverIO doesn't know how many elements you are expecting to show up. As [`$$`](/docs/api/browser/$$) returns an [array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) of WebdriverIO elements you have to manually check if the return value contains enough items. We recommend using [`waitUntil`](/docs/api/browser/waitUntil) for this, e.g.:
 
 ```js
 const div = await browser.waitUntil(async () => {
