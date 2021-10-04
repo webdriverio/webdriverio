@@ -48,8 +48,13 @@ export interface World {
         name?: string
     }
     result?: {
-        status?: number
+        duration: {
+            seconds: number
+            nanos: number
+        }
+        status: 'UNKNOWN' | 'PASSED' | 'SKIPPED' | 'PENDING' | 'UNDEFINED' | 'AMBIGUOUS' | 'FAILED'
         message?: string
+        willBeRetried: boolean
     }
 }
 

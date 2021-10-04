@@ -5,7 +5,6 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName } from './util'
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
-import { CUCUMBER_STATUS_MAP } from './constants'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -121,12 +120,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * For CucumberJS
      */
     afterScenario (world: Frameworks.World) {
-        const status = CUCUMBER_STATUS_MAP[world.result?.status || 0].toLowerCase()
+        const status = world.result?.status.toLowerCase()
         if (status === 'skipped') {
             this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
         }
 
-        if (this._failureStatuses.includes(status)) {
+        if (status && this._failureStatuses.includes(status)) {
             const exception = (
                 (world.result && world.result.message) ||
                 (status === 'pending'

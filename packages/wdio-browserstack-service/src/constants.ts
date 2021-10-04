@@ -8,5 +8,3 @@ export const BROWSER_DESCRIPTION = [
     'browserVersion',
     'browser_version'
 ] as const
-
-export const CUCUMBER_STATUS_MAP = ['UNKNOWN', 'PASSED', 'SKIPPED', 'PENDING', 'UNDEFINED', 'AMBIGUOUS', 'FAILED']
