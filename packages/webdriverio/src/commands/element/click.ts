@@ -1,4 +1,8 @@
+import logger from '@wdio/logger'
+
 import { ClickOptions } from '../../types'
+
+const log = logger('webdriverio/click')
 
 /**
  *
@@ -129,8 +133,15 @@ export default async function click (
                 button
             }]
         }])
+        const err = await this.releaseActions().then(
+            () => null,
+            (err) => err)
 
-        return this.releaseActions()
+        if (err) {
+            log.warn(`Failed to call "releaseAction" command due to: ${err.message}, ignoring!`)
+        }
+
+        return
     }
 
     const { width, height } = await this.getElementSize(this.elementId)
