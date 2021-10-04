@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@cucumber/cucumber": "7.3.1",
-    "@cucumber/gherkin": "21.0.0",
+    "@cucumber/gherkin": "22.0.0",
     "@cucumber/gherkin-streams": "^3.0.0",
     "@cucumber/messages": "17.1.1",
     "@types/is-glob": "^4.0.1",
