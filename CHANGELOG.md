@@ -19,6 +19,18 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.14.1 (2021-10-04)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`, `wdio-types`
+  * [#7507](https://github.com/webdriverio/webdriverio/pull/7507) fix status type in afterScenario hook of BS service ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#7508](https://github.com/webdriverio/webdriverio/pull/7508) Ignore errors in releaseActions click command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v7.14.0 (2021-09-30)
 
 #### :bug: Bug Fix
