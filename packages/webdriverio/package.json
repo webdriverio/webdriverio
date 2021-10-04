@@ -65,7 +65,7 @@
     "@wdio/types": "7.13.2",
     "@wdio/utils": "7.13.2",
     "archiver": "^5.0.0",
-    "aria-query": "^4.2.2",
+    "aria-query": "^5.0.0",
     "atob": "^2.1.2",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
