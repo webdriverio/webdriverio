@@ -333,6 +333,24 @@ describe('click test', () => {
         expect(elem.click({ button: 'not-suppported' })).rejects.toThrow('Button type not supported.')
     })
 
+    it('should ignore errors in releaseAction', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('#foo')
+
+        await elem.click.call({
+            isW3C: true,
+            selector: 'foobar',
+            elementId: 'barfoo',
+            releaseActions: jest.fn().mockRejectedValue(new Error('some modal disturbs here')),
+            performActions: jest.fn().mockResolvedValue({})
+        }, {})
+    })
+
     afterEach(() => {
         got.mockClear()
     })
