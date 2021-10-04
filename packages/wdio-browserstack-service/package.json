@@ -23,7 +23,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/node": "^15.12.5",
+    "@types/node": "^16.10.2",
     "@wdio/logger": "7.7.0",
     "@wdio/types": "7.13.2",
     "browserstack-local": "^1.4.5",
