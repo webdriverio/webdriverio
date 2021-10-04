@@ -337,7 +337,7 @@ The WDIO testrunner allows you to set hooks to be triggered at specific times of
 
 Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
 
-__Note:__ Some hooks (`onPrepare`, `onWorkerStart` and `onComplete`) are executed in a different process and therefor can not share any global data with the other hooks that live in the worker process.
+__Note:__ Some hooks (`onPrepare`, `onWorkerStart` and `onComplete`) are executed in a different process and therefore can not share any global data with the other hooks that live in the worker process.
 
 ### onPrepare
 

@@ -191,7 +191,7 @@ However some drivers (e.g. [Appium You.i Engine Driver](https://github.com/YOU-i
 
 ## JS Function
 
-You can also use Javascript functions to fetch elements using web native APIs. Of course, you can only do this inside a web context (e.g., `browser`, or web context in mobile).
+You can also use JavaScript functions to fetch elements using web native APIs. Of course, you can only do this inside a web context (e.g., `browser`, or web context in mobile).
 
 Given the following HTML structure:
 

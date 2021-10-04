@@ -59,7 +59,7 @@ export default function executeAsync<ReturnValue, InnerArguments extends any[]>(
 
     /**
      * instances started as multibrowserinstance can't getting called with
-     * a function parameter, therefor we need to check if it starts with "function () {"
+     * a function parameter, therefore we need to check if it starts with "function () {"
      */
     if (typeof script === 'function') {
         script = `return (${script}).apply(null, arguments)`

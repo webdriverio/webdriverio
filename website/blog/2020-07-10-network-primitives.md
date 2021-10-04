@@ -53,7 +53,7 @@ This can open up interesting use case where you want to ensure that your progres
 
 ## Support
 
-This feature uses Chrome DevTools capabilities to enable such behavior. Therefor it can only be supported where such an interface is available which is __Chrome__, __Firefox Nightly__ and __Chromium Edge__ right now. The Firefox team at Mozilla is working hard to ship this into the stable build of Firefox, therefor support for it can be expected soon.
+This feature uses Chrome DevTools capabilities to enable such behavior. Therefore it can only be supported where such an interface is available which is __Chrome__, __Firefox Nightly__ and __Chromium Edge__ right now. The Firefox team at Mozilla is working hard to ship this into the stable build of Firefox, therefore support for it can be expected soon.
 
 On top of that the folks at [Sauce Labs](https://saucelabs.com/) working on various of WebDriver extensions that even allow this functionality to be support in the cloud. More updates on this will follow soon.
 

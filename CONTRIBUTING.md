@@ -202,7 +202,7 @@ When a PR gets submitted, WebdriverIO runs the following checks:
 
 ### Unit Tests
 
-The project tries to keep a high test coverage to ensure that changes to code are intentional and well thought through. Therefor "normally" there is a unit test file for every code file, located in a test directory. For example the unit tests for:
+The project tries to keep a high test coverage to ensure that changes to code are intentional and well thought through. Therefore "normally" there is a unit test file for every code file, located in a test directory. For example the unit tests for:
 
 ```
 packages/webdriverio/src/commands/element/getCSSProperty.ts

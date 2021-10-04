@@ -77,7 +77,7 @@ export default async function getCSSProperty (
     /**
      * Getting the css value of a shorthand property results in different results
      * given that the behavior of `getComputedStyle` is not defined in this case.
-     * Therefor if we don't deal with a shorthand property run `getElementCSSValue`
+     * Therefore if we don't deal with a shorthand property run `getElementCSSValue`
      * otherwise expand it and run the command for each longhand property.
      */
     if (!cssShorthandProps.isShorthand(cssProperty)) {

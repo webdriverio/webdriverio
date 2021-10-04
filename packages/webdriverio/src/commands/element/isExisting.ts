@@ -41,7 +41,7 @@
 export default async function isExisting (this: WebdriverIO.Element) {
     /**
      * if an element was composed via `const elem = $({ 'element-6066-11e4-a52e-4f735466cecf': <elementId> })`
-     * we don't have any selector information. Therefor we can only check existance
+     * we don't have any selector information. Therefore we can only check existance
      * by calling a command with the element id to check if it is successful or not.
      * Using `getElementTagName` to validate the element existance works as it is
      * a command that should be available for desktop and mobile and fails with a

@@ -232,7 +232,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
         if (this.isHubCommand) {
             /**
              * if body contains HTML the command was called on a node
-             * directly without using a hub, therefor throw
+             * directly without using a hub, therefore throw
              */
             if (typeof response.body === 'string' && response.body.startsWith('<!DOCTYPE html>')) {
                 return Promise.reject(new Error('Command can only be called to a Selenium Hub'))
