@@ -3,6 +3,7 @@ import type { JsonPrimitive, JsonCompatible } from '@wdio/types'
 import SharedStoreLauncher from './launcher'
 import SharedStoreService from './service'
 
+export { getValue, setValue } from './client'
 export default SharedStoreService
 export const launcher = SharedStoreLauncher
 
