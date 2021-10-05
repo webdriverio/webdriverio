@@ -31,14 +31,14 @@ Get/set a value (plain object) to/from the store by key (string).
 
 `browser.sharedStore.get('key')` get value from store (returns `'value'`)
 
-You could also directly access to `setValue` and `getValue` handlers.
+You could also directly access to `setValue` and `getValue` async handlers.
 
 ```js
 import { setValue } from '@wdio/shared-store-service'
 
 // ...
-onPrepare: [function (config, capabilities) {
-    setValue('foo', 'bar')
+onPrepare: [async function (config, capabilities) {
+    await setValue('foo', 'bar')
 }],
 ```
 
