@@ -1,4 +1,20 @@
 import { Reporters } from '@wdio/types'
+import { SuiteStats } from '@wdio/reporter'
+
+interface classNameFormatOptions {
+    /**
+     * Configured package name
+     */
+    packageName?: string
+    /**
+     * Name of the current cucumber feature
+     */
+    activeFeatureName?: any
+    /**
+     * Context of the current suite
+     */
+    suite?: SuiteStats,
+}
 
 export interface JUnitReporterOptions extends Reporters.Options {
     /**
@@ -24,6 +40,15 @@ export interface JUnitReporterOptions extends Reporters.Options {
      * @default /[^a-z0-9]+/
      */
     suiteNameFormat?: RegExp
+    /**
+     * Give the ability to override the generated classname of a test case.
+     *
+     * @default
+     * classNameFormat: function (options) {
+     *     return ``${options._packageName}.${options.suite.fullTitle.replace(/\s/g, '_')}``
+     * }
+     */
+    classNameFormat?: (options: classNameFormatOptions) => string
     /**
      * Adds a file attribute to each testcase. This config is primarily for CircleCI. This setting
      * provides richer details but may break on other CI platforms.

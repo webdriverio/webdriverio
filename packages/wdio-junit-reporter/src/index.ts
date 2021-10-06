@@ -87,8 +87,9 @@ class JunitReporter extends WDIOReporter {
             let scenario = suite
             const testName = this._prepareName(suite.title)
 
+            const classNameFormat = this.options.classNameFormat ? this.options.classNameFormat({ packageName: this._packageName, activeFeatureName: this._activeFeatureName }): `${this._packageName}.${this._activeFeatureName}`
             const testCase = this._activeFeature.testCase()
-                .className(`${this._packageName}.${this._activeFeatureName}`)
+                .className(classNameFormat)
                 .name(`${testName}`)
                 .time(scenario._duration / 1000)
 
@@ -169,8 +170,9 @@ class JunitReporter extends WDIOReporter {
 
             const test = suite.tests[testKey as any]
             const testName = this._prepareName(test.title)
+            const classNameFormat = this.options.classNameFormat ? this.options.classNameFormat({ packageName: this._packageName, suite }) : `${this._packageName}.${suite.fullTitle.replace(/\s/g, '_')}`
             const testCase = testSuite.testCase()
-                .className(`${this._packageName}.${suite.fullTitle.replace(/\s/g, '_')}`)
+                .className(classNameFormat)
                 .name(testName)
                 .time(test._duration / 1000)
 
