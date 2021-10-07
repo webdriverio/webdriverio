@@ -271,4 +271,17 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = nestedSuites as any
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
+
+    it( 'generates xml output correctly when having classNameFormat override with mocha',  () => {
+        reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, suite }) => `foo-${packageName}-${suite.fullTitle}` })
+        reporter.suites = suitesErrorLog as any
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output correctly when having classNameFormat override with cucumber', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, activeFeatureName }) => `foo-${packageName}-${activeFeatureName}` })
+        reporter.suites = featuresLog as any
+
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
 })
