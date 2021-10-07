@@ -1,7 +1,7 @@
 import { Reporters } from '@wdio/types'
 import { SuiteStats } from '@wdio/reporter'
 
-interface classNameFormatOptions {
+interface ClassNameFormatOptions {
     /**
      * Configured package name
      */
@@ -48,7 +48,7 @@ export interface JUnitReporterOptions extends Reporters.Options {
      *     return ``${options._packageName}.${options.suite.fullTitle.replace(/\s/g, '_')}``
      * }
      */
-    classNameFormat?: (options: classNameFormatOptions) => string
+    classNameFormat?: (options: ClassNameFormatOptions) => string
     /**
      * Adds a file attribute to each testcase. This config is primarily for CircleCI. This setting
      * provides richer details but may break on other CI platforms.
