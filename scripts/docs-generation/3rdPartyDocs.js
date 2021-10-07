@@ -38,7 +38,7 @@ exports.generate3rdPartyDocs = async (sidebars) => {
             const readme = await downloadFromGitHub(githubUrl, branch, location)
             const id = `${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
-            const doc = normalizeDoc(readme, githubUrl,
+            const doc = normalizeDoc(readme, githubUrl, branch,
                 buildPreface(id, title, nameSingular, `${githubUrl}/edit/${branch}/${location}`),
                 suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl))
             await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, { encoding: 'utf-8' })
@@ -64,11 +64,13 @@ exports.generate3rdPartyDocs = async (sidebars) => {
 /**
  * Removes header from README.md
  * @param {string}  readme      readme content
+ * @param {string}  githubUrl     repo url
+ * @param {string}  branch     repo branch
  * @param {string}  preface     docusaurus header
  * @param {string}  repoInfo    repoInfo
  * @return {string}             readme content without header
  */
-function normalizeDoc(readme, githubUrl, preface, repoInfo) {
+function normalizeDoc(readme, githubUrl, branch, preface, repoInfo) {
     /**
      * remove badges
      */
@@ -106,9 +108,9 @@ function normalizeDoc(readme, githubUrl, preface, repoInfo) {
         for (const mdLink of mdLinks) {
             const urlMatcher = mdLink.match(/\[([^[]+)\]\((.*)\)/)
             const stringInParentheses = urlMatcher[2]
-            const url = stringInParentheses.startsWith('http')
+            const url = ( stringInParentheses.startsWith('http') || stringInParentheses.startsWith('#') )
                 ? stringInParentheses
-                : urljoin(githubUrl, 'blob', 'master', stringInParentheses)
+                : urljoin(githubUrl, 'blob', branch, stringInParentheses)
             readmeArr[idx] = readmeArr[idx].replace(`](${stringInParentheses})`, `](${url})`)
         }
     })
