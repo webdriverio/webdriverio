@@ -19,6 +19,22 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.15.0 (2021-10-08)
+
+#### :rocket: New Feature
+* `wdio-junit-reporter`
+  * [#7525](https://github.com/webdriverio/webdriverio/pull/7525) feat(wdio-junit-reporter): allow to override className format ([@Slashgear](https://github.com/Slashgear))
+* `wdio-shared-store-service`
+  * [#7519](https://github.com/webdriverio/webdriverio/pull/7519) feat(shared-store-service): export set and get value globally ([@Slashgear](https://github.com/Slashgear))
+
+#### :memo: Documentation
+* [#7529](https://github.com/webdriverio/webdriverio/pull/7529) 7324 - added support for fragment identifiers (#) in 3rd party doc  ([@babusekaran](https://github.com/babusekaran))
+
+#### Committers: 2
+- Antoine Caron ([@Slashgear](https://github.com/Slashgear))
+- Babu Sekaran ([@babusekaran](https://github.com/babusekaran))
+
+
 ## v7.14.1 (2021-10-04)
 
 #### :bug: Bug Fix
