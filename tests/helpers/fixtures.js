@@ -15,6 +15,7 @@ afterSession called
 export const LAUNCHER_LOGS = `onPrepare called
 onWorkerStart called
 onComplete called
+onWorkerEnd called
 `
 
 export const REPORTER_LOGS = `onRunnerStart

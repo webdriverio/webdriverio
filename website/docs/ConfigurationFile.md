@@ -315,6 +315,16 @@ exports.config = {
     onWorkerStart: function (cid, caps, specs, args, execArgv) {
     },
     /**
+     * Gets executed just after a worker process has exited.
+     * @param  {String} cid      capability id (e.g 0-0)
+     * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
+     * @param  {[type]} specs    specs to be run in the worker process
+     * @param  {[type]} args     object that will be merged with the main configuration once worker is initialized
+     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     */
+    onWorkerEnd: function (cid, caps, specs, args, execArgv) {
+    },
+    /**
      * Gets executed just before initializing the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.
      * @param {Object} config wdio configuration object

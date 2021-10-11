@@ -101,6 +101,9 @@ exports.config = {
     // for that worker as well as modify runtime environments in an async fashion.
     // onWorkerStart: function (cid, caps, specs, args, execArgv) {
     // },
+    // Gets executed just after a worker process has exited.
+    // onWorkerEnd: function (cid, caps, specs, args, execArgv) {
+    // },
     //
     // Gets executed before test execution begins. At this point you can access to all global
     // variables like `browser`. It is the perfect place to define custom commands.

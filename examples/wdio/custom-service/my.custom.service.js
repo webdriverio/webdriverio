@@ -13,6 +13,9 @@ module.exports = class CustomService {
     onWorkerStart () {
         console.log('execute onWorkerStart(cid, caps, specs, args, execArgv)')
     }
+    onWorkerEnd () {
+        console.log('execute onWorkerEnd(cid, caps, specs, args, execArgv)')
+    }
     beforeSession () {
         console.log('execute beforeSession(config, capabilities, specs, cid)')
     }

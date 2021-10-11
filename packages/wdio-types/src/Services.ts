@@ -102,6 +102,22 @@ export interface HookFunctions {
     ): void;
 
     /**
+     * Gets executed just after a worker process has exited.
+     * @param  {String} cid      capability id (e.g 0-0)
+     * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
+     * @param  {[type]} specs    specs to be run in the worker process
+     * @param  {[type]} args     object that will be merged with the main configuration once worker is initialized
+     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     */
+    onWorkerEnd?(
+        cid: string,
+        caps: DesiredCapabilities,
+        specs: string[],
+        args: TestrunnerOptions,
+        execArgv: string[]
+    ): void;
+
+    /**
      * Gets executed after all workers got shut down and the process is about to exit. An error
      * thrown in the onComplete hook will result in the test run failing.
      * @param exitCode      runner exit code

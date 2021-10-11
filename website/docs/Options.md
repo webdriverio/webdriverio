@@ -350,7 +350,7 @@ The WDIO testrunner allows you to set hooks to be triggered at specific times of
 
 Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
 
-__Note:__ Some hooks (`onPrepare`, `onWorkerStart` and `onComplete`) are executed in a different process and therefore can not share any global data with the other hooks that live in the worker process.
+__Note:__ Some hooks (`onPrepare`, `onWorkerStart`, `onWorkerEnd` and `onComplete`) are executed in a different process and therefore can not share any global data with the other hooks that live in the worker process.
 
 ### onPrepare
 
@@ -363,6 +363,17 @@ Parameters:
 ### onWorkerStart
 
 Gets executed before a worker process is spawned and can be used to initialize specific service for that worker as well as modify runtime environments in an async fashion.
+
+Parameters:
+- `cid` (`string`): capability id (e.g 0-0)
+- `caps` (`object`): containing capabilities for session that will be spawn in the worker
+- `specs` (`string[]`): specs to be run in the worker process
+- `args` (`object`): object that will be merged with the main configuration once worker is initialized
+- `execArgv` (`string[]`): list of string arguments passed to the worker process
+
+### onWorkerEnd
+
+Gets executed just after a worker process has exited.
 
 Parameters:
 - `cid` (`string`): capability id (e.g 0-0)
