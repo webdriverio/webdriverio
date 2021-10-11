@@ -72,7 +72,7 @@
     "devtools": "7.14.1",
     "devtools-protocol": "^0.0.927104",
     "fs-extra": "^10.0.0",
-    "get-port": "^5.1.1",
+    "get-port": "^6.0.0",
     "grapheme-splitter": "^1.0.2",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isobject": "^3.0.2",
