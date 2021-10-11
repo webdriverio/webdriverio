@@ -22,7 +22,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/easy-table": "^0.0.33",
+    "@types/easy-table": "^1.2.0",
     "@wdio/reporter": "7.14.1",
     "@wdio/types": "7.14.1",
     "chalk": "^4.0.0",
