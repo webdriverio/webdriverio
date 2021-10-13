@@ -1,4 +1,17 @@
 {
+  "/session/:sessionId/moz/screenshot/full": {
+    "GET": {
+      "command": "fullPageScreenshot",
+      "description": "Captures a screenshot of the entire page.",
+      "ref": "https://phabricator.services.mozilla.com/source/mozilla-central/browse/default/testing/geckodriver/src/command.rs$43-46",
+      "parameters": [],
+      "returns": {
+        "type": "String",
+        "name": "screenshot",
+        "description": "The base64-encoded PNG image data comprising the screenshot of the full page."
+      }
+    }
+  },
   "/session/:sessionId/moz/context": {
     "GET": {
       "command": "getMozContext",
