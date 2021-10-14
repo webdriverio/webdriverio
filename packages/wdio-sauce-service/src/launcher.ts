@@ -116,7 +116,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
             }
             log.debug(`Failed to start Sauce Connect Proxy due to ${err.stack}`)
             log.debug(`Retrying ${retryCount}/${MAX_SC_START_TRIALS}`)
-            return this.startTunnel(sauceConnectOpts, retryCount)
+            return await this.startTunnel(sauceConnectOpts, retryCount)
         }
     }
 
