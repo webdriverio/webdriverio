@@ -181,6 +181,11 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
             .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
 }
 
+/**
+ * The reporters need to have the rule.
+ * They are NOT available on the scenario, they ARE on the feature.
+ * This will add them to it
+ */
 export function getRule(feature: Feature, scenarioId: string){
     const rules = feature.children?.filter((child) => Object.keys(child)[0] === 'rule')
     const rule = rules.find((rule) => {
