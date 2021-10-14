@@ -8,7 +8,8 @@ import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
 import { HookParams } from './types'
-import { addKeywordToStep, filterPickles } from './utils'
+import { addKeywordToStep, filterPickles, getRule } from './utils'
+import { ReporterScenario } from './constants'
 
 const log = logger('CucumberEventListener')
 
@@ -19,6 +20,7 @@ export default class CucumberEventListener extends EventEmitter {
     private _currentTestCase?: TestCaseStarted
     private _currentPickle?: HookParams = {}
     private _suiteMap: Map<string, string> = new Map()
+    private _pickleMap: Map<string, string> = new Map()
     private _currentDoc: GherkinDocument = { comments: [] }
     private _startedFeatures: string[] = []
 
@@ -153,6 +155,7 @@ export default class CucumberEventListener extends EventEmitter {
     onPickleAccepted (pickleEvent: Pickle) {
         const id = this._suiteMap.size.toString()
         this._suiteMap.set(pickleEvent.id as string, id)
+        this._pickleMap.set(id, pickleEvent.astNodeIds[0] as string)
         const scenario = { ...pickleEvent, id }
         this._scenarios.push(scenario)
     }
@@ -289,7 +292,11 @@ export default class CucumberEventListener extends EventEmitter {
         }
 
         this._currentPickle = { uri, feature, scenario }
-        this.emit('before-scenario', scenario.uri, doc?.feature, scenario)
+
+        let reporterScenario: ReporterScenario = scenario
+        reporterScenario.rule = getRule(doc?.feature!, this._pickleMap.get(scenario.id)!)
+
+        this.emit('before-scenario', scenario.uri, doc?.feature, reporterScenario)
     }
 
     // {

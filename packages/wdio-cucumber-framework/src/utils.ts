@@ -181,6 +181,17 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
             .every((key: keyof Capabilities.Capabilities) => match((capabilities as any)[key], filter[key] as RegExp))))
 }
 
+export function getRule(feature: Feature, scenarioId: string){
+    const rules = feature.children?.filter((child) => Object.keys(child)[0] === 'rule')
+    const rule = rules.find((rule) => {
+        let scenarioRule = rule.rule?.children?.find((child) => child.scenario?.id === scenarioId)
+        if (scenarioRule) {
+            return rule
+        }
+    })
+    return rule?.rule?.name
+}
+
 /**
  * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
  * on the scenario, they ARE on the feature.
@@ -197,11 +208,11 @@ export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
             const astNodeId = step.astNodeIds[0]
 
             const rules  = feature.children.filter((child)=> Object.keys(child)[0]=== 'rule')
-            feature.children = feature.children.filter((child)=> Object.keys(child)[0]!== 'rule')
+            let featureChildren = feature.children.filter((child)=> Object.keys(child)[0]!== 'rule')
             const rulesChildrens:any = rules.map((child)=>child.rule?.children).flat()
-            feature.children = feature.children.concat(rulesChildrens)
+            featureChildren = featureChildren.concat(rulesChildrens)
 
-            feature.children.find((child) =>
+            featureChildren.find((child) =>
                 // @ts-ignore
                 child[Object.keys(child)[0]].steps.find((featureScenarioStep:ReporterStep) => {
                     if (featureScenarioStep.id === astNodeId.toString()) {
