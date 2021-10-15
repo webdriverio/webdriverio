@@ -10,9 +10,9 @@ import { TestingbotOptions, TestingbotTunnel, TunnelLauncherOptions } from './ty
 const log = logger('@wdio/testingbot-service')
 
 export default class TestingBotLauncher implements Services.ServiceInstance {
-    options: TestingbotOptions;
-    tbTunnelOpts!: TunnelLauncherOptions;
-    tunnel?: TestingbotTunnel;
+    options: TestingbotOptions
+    tbTunnelOpts!: TunnelLauncherOptions
+    tunnel?: TestingbotTunnel
     constructor (options: TestingbotOptions) {
         this.options = options
     }

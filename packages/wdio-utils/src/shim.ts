@@ -24,6 +24,7 @@ interface WDIOSync {
 declare global {
     var _HAS_FIBER_CONTEXT: boolean
     var browser: any
+    var expectAsync: any
 }
 
 declare global {
@@ -384,8 +385,10 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
     const asyncSpecBefore = asyncSpec
     this.wdioRetries = retries.attempts
 
+    // @ts-ignore
     expectSync = global.expect
     if (isJasmine) {
+        // @ts-ignore
         global.expect = expectAsyncShim
     }
 
@@ -410,6 +413,7 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
         throw e
     } finally {
         if (isJasmine) {
+            // @ts-ignore
             global.expect = expectSync
         }
     }

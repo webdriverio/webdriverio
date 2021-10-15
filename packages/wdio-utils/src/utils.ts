@@ -187,7 +187,7 @@ export function safeRequire (name: string): Services.ServicePlugin | null {
 
     try {
         return require(requirePath)
-    } catch (e) {
+    } catch (e: any) {
         throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
     }
 }

@@ -11,6 +11,7 @@ export default function getLogger (component: string) {
         // eslint-disable-next-line no-console
         if (console[prop]) {
             // eslint-disable-next-line no-console
+            // @ts-ignore
             acc[prop] = console[prop].bind(console, `${component}:`)
         }
         return acc

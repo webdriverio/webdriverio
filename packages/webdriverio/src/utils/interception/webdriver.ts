@@ -9,7 +9,7 @@ import type { Matches, MockResponseParams, MockOverwrite } from './types'
  * compliant backend.
  */
 export default class WebDriverInterception extends Interception {
-    mockId?: string;
+    mockId?: string
 
     async init () {
         if (this.url instanceof RegExp) {

@@ -19,7 +19,7 @@ export default class SauceService implements Services.ServiceInstance {
     private _maxErrorStackLength = 5
     private _failures = 0 // counts failures between reloads
     private _isServiceEnabled = true
-    private _isJobNameSet = false;
+    private _isJobNameSet = false
 
     private _options: SauceServiceConfig
     private _api: SauceLabs

@@ -43,9 +43,9 @@ export default class WDIOCLInterface extends EventEmitter {
         reporter: Record<string, string[]>
         debugger: Record<string, string[]>
     } = {
-        reporter: {},
-        debugger: {}
-    }
+            reporter: {},
+            debugger: {}
+        }
 
     constructor(
         private _config: Options.Testrunner,

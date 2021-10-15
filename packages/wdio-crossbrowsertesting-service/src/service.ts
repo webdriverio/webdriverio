@@ -8,12 +8,12 @@ const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class CrossBrowserTestingService implements Services.ServiceInstance {
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
-    private _testCnt = 0;
-    private _failures = 0;
-    private _isServiceEnabled: boolean;
-    private _suiteTitle?: string;
-    private _cbtUsername: string;
-    private _cbtAuthkey: string;
+    private _testCnt = 0
+    private _failures = 0
+    private _isServiceEnabled: boolean
+    private _suiteTitle?: string
+    private _cbtUsername: string
+    private _cbtAuthkey: string
 
     constructor(
         private _config: Options.Testrunner,
@@ -150,7 +150,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
         }
 
         const browserName = this._browser.instances.filter(
-            (browserName) => (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
+            (browserName: string) => (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this._failures, true, browserName)
     }
