@@ -371,7 +371,7 @@
       "ref": "https://chromium.googlesource.com/chromium/src/+/refs/tags/73.0.3683.121/chrome/test/chromedriver/server/http_handler.cc#748",
       "parameters": [],
       "returns": {
-        "type": "Array",
+        "type": "string[]",
         "name": "sinks",
         "description": "List of available sinks."
       }
