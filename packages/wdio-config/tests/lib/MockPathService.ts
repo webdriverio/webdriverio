@@ -14,8 +14,8 @@ export type FilePathsAndContents = FilePathAndContent[]
  * list used as a pseudo directory structure.
  */
 export default class MockPathService implements PathService {
-    private cwd : MockSystemFolderPath;
-    private files : FilePathsAndContents;
+    private cwd : MockSystemFolderPath
+    private files : FilePathsAndContents
 
     getcwdMock: jest.SpyInstance
     loadFileMock: jest.SpyInstance

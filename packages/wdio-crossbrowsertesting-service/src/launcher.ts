@@ -10,8 +10,8 @@ import { CrossBrowserTestingConfig } from './types'
 const log = logger('@wdio/crossbrowsertesting-service')
 
 export default class CrossBrowserTestingLauncher implements Services.ServiceInstance {
-    private _isUsingTunnel: boolean = false;
-    private _cbtTunnelOpts: CBTConfigInterface;
+    private _isUsingTunnel: boolean = false
+    private _cbtTunnelOpts: CBTConfigInterface
 
     constructor (
         private _options: CrossBrowserTestingConfig,

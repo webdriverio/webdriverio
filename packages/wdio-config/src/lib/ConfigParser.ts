@@ -60,9 +60,9 @@ export interface PathService extends CurrentPathFinder, LoadConfigFile, IsFileDe
 
 export default class ConfigParser {
     private _config: TestrunnerOptionsWithParameters = DEFAULT_CONFIGS()
-    private _capabilities: Capabilities.RemoteCapabilities = [];
-    private _pathService: PathService;
-    private _moduleRequireService: ModuleRequireService;
+    private _capabilities: Capabilities.RemoteCapabilities = []
+    private _pathService: PathService
+    private _moduleRequireService: ModuleRequireService
 
     constructor(pathService: PathService = new FileSystemPathService(), moduleRequireService: ModuleRequireService = new RequireLibrary()) {
         this._pathService = pathService

@@ -18,7 +18,7 @@ export default class SpecReporter extends WDIOReporter {
     private _orderedSuites: SuiteStats[] = []
     private _consoleOutput = ''
     private _consoleLogs: string[] = []
-    private _originalStdoutWrite = process.stdout.write.bind(process.stdout);
+    private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
     private _addConsoleLogs = false
 
