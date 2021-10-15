@@ -22,7 +22,7 @@ There are many online forums which are a great place for discussion about Webdri
 
 - [GitHub Discussions](https://github.com/webdriverio/webdriverio/discussions)
 - [Community Channel](https://gitter.im/webdriverio/webdriverio)
-- [#webdriverio Channel on SeleniumHQ Slack](https://seleniumhq.slack.com/join/shared_invite/zt-f7jwg1n7-RVw4v4sMA7Zjufira_~EVw#/)
+- [#webdriverio Channel on SeleniumHQ Slack](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
 
 ## News
 
