@@ -1,0 +1,7 @@
+##################
+### Attention! ###
+##################
+
+The WebdriverIO team is aware of the following reported vulnerabilities.
+These do not impact packages used by users.
+Please help us to resolve the issue, see https://github.com/webdriverio/webdriverio/issues/6640
