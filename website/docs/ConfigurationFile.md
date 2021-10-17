@@ -320,9 +320,10 @@ exports.config = {
      * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
      * @param  {[type]} specs    specs to be run in the worker process
      * @param  {[type]} args     object that will be merged with the main configuration once worker is initialized
-     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     * @param  {Number} exitCode 0 - success, 1 - fail
+     * @param  {Number} retries  number of retries used
      */
-    onWorkerEnd: function (cid, caps, specs, args, execArgv) {
+    onWorkerEnd: function (cid, caps, specs, args, exitCode, retries) {
     },
     /**
      * Gets executed just before initializing the webdriver session and test framework. It allows you

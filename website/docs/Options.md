@@ -380,7 +380,8 @@ Parameters:
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
 - `specs` (`string[]`): specs to be run in the worker process
 - `args` (`object`): object that will be merged with the main configuration once worker is initialized
-- `execArgv` (`string[]`): list of string arguments passed to the worker process
+- `exitCode` (`number`): 0 - success, 1 - fail
+- `retries` (`number`): number of retries used
 
 ### beforeSession
 

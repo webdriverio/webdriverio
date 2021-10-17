@@ -443,10 +443,12 @@ class Launcher {
      * @param  {Number} cid       Capabilities ID
      * @param  {Number} exitCode  exit code of child process
      * @param  {Array} specs      Specs that were run
-     * @param  {Number} retries   Number or retries remaining
+     * @param  {Number} retries   Number of retries remaining
      */
-    endHandler({ cid: rid, exitCode, specs, retries }: EndMessage) {
+    async endHandler({ cid: rid, exitCode, specs, retries }: EndMessage) {
         const passed = this._isWatchModeHalted() || exitCode === 0
+        let config = this.configParser.getConfig()
+        const caps = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
 
         if (!passed && retries > 0) {
             // Default is true, so test for false explicitly
@@ -463,6 +465,10 @@ class Launcher {
         if (!this._isWatchModeHalted()) {
             this.interface.emit('job:end', { cid: rid, passed, retries })
         }
+
+        log.info('Run onWorkerEnd hook')
+        await runLauncherHook(config.onWorkerEnd, rid, caps, specs, this._args, exitCode, retries)
+        await runServiceHook(this._launcher!, 'onWorkerEnd', rid, caps, specs, this._args, exitCode, retries)
 
         /**
          * Update schedule now this process has ended

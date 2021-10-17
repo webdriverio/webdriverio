@@ -107,14 +107,16 @@ export interface HookFunctions {
      * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
      * @param  {[type]} specs    specs to be run in the worker process
      * @param  {[type]} args     object that will be merged with the main configuration once worker is initialized
-     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     * @param  {Number} exitCode 0 - success, 1 - fail
+     * @param  {Number} retries  number of retries used
      */
     onWorkerEnd?(
         cid: string,
         caps: DesiredCapabilities,
         specs: string[],
         args: TestrunnerOptions,
-        execArgv: string[]
+        exitCode: number,
+        retries: number,
     ): void;
 
     /**
