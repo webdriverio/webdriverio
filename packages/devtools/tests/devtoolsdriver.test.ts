@@ -271,7 +271,7 @@ test('should throw if execution context can not be established', async () => {
     try {
         const emit = jest.fn()
         await command.call({ emit } as any, '123', 'some text', ['some value'])
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toBe('ups')
     }
 })

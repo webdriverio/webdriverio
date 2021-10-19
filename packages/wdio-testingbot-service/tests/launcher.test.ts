@@ -44,6 +44,7 @@ describe('wdio-testingbot-service', () => {
 
         await tbLauncher.onPrepare(config, caps)
         expect(tbLauncher.tbTunnelOpts).toMatchObject({ apiKey: 'user', apiSecret: 'key', tunnelIdentifier: 'some options' })
+        await new Promise((resolve) => setTimeout(resolve, 0))
         expect((log.info as jest.Mock).mock.calls[0][0]).toContain('TestingBot tunnel successfully started after')
     })
 

@@ -74,8 +74,8 @@ describe('selectByAttribute test', () => {
         try {
             // @ts-ignore mock feature
             await mockElem.selectByAttribute('value', 'non-existing-value')
-        } catch (e) {
-            expect(e.toString()).toBe('Error: Option with attribute "value=non-existing-value" not found.')
+        } catch (err: any) {
+            expect(err.toString()).toBe('Error: Option with attribute "value=non-existing-value" not found.')
         }
     })
 })

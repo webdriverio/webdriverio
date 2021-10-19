@@ -41,7 +41,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
 
             try {
                 require.resolve(param)
-            } catch (e) {
+            } catch (err: any) {
                 /* istanbul ignore next */
                 throw new Error(
                     'Automation protocol package is not installed!\n' +

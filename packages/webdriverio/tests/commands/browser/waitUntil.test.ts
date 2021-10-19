@@ -28,8 +28,8 @@ describe('waitUntil', () => {
                 timeoutMsg: 'Timed Out',
                 interval: 200
             })
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error.message).toContain('Condition is not a function')
             expect(val).toBeUndefined()
@@ -54,8 +54,8 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error.message).toContain('Timed Out')
             expect(val).toBeUndefined()
@@ -80,8 +80,8 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error.message).toContain('waitUntil condition failed with the following reason: foobar')
             expect(val).toBeUndefined()
@@ -103,8 +103,8 @@ describe('waitUntil', () => {
                     timeout: 500
                 }
             )
-        } catch (e) {
-            expect(e.message).toContain('waitUntil condition failed with the following reason: Error')
+        } catch (err: any) {
+            expect(err.message).toContain('waitUntil condition failed with the following reason: Error')
             expect(val).toBeUndefined()
         }
     })
@@ -127,8 +127,8 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error.message).toMatch(/waitUntil condition timed out after \d+ms/)
             expect(val).toBeUndefined()
@@ -154,8 +154,8 @@ describe('waitUntil', () => {
                     interval: 'blah'
                 }
             )
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error.message).toContain('Timed Out')
             expect(val).toBeUndefined()
@@ -180,8 +180,8 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error).toBeUndefined()
             expect(val).toBe(n)

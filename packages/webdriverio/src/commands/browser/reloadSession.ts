@@ -32,7 +32,7 @@ export default async function reloadSession (this: WebdriverIO.Browser) {
      */
     try {
         await this.deleteSession()
-    } catch (err) {
+    } catch (err: any) {
         /**
          * ignoring all exceptions that could be caused by browser.deleteSession()
          * there maybe times where session is ended remotely, browser.deleteSession() will fail in this case)

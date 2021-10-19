@@ -86,7 +86,7 @@ export default class WDIORepl {
         try {
             const result = vm.runInContext(cmd, context)
             return this._handleResult(result, callback)
-        } catch (e) {
+        } catch (e: any) {
             this._isCommandRunning = false
             return callback(e, undefined)
         }

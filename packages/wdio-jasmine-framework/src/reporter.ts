@@ -78,10 +78,10 @@ export default class JasmineReporter {
 
     specDone (test: jasmine.CustomReporterResult) {
         const newTest: TestEvent = {
+            ...test,
             start: this._testStart,
             type: 'test',
-            duration: Date.now() - this._testStart.getTime(),
-            ...test
+            duration: Date.now() - this._testStart.getTime()
         }
 
         /**
@@ -112,10 +112,10 @@ export default class JasmineReporter {
     suiteDone (suite: jasmine.CustomReporterResult) {
         const parentSuite = this._parent[this._parent.length - 1]
         const newSuite: TestEvent = {
+            ...suite,
             type: 'suite',
             start: this._suiteStart,
-            duration: Date.now() - this._suiteStart.getTime(),
-            ...suite
+            duration: Date.now() - this._suiteStart.getTime()
         }
 
         /**

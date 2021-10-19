@@ -163,7 +163,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     private static _getAppiumCommand (moduleName = 'appium') {
         try {
             return require.resolve(moduleName)
-        } catch (err) {
+        } catch (err: any) {
             log.error(
                 'Appium is not installed locally.\n' +
                 'If you use globally installed appium please add\n' +

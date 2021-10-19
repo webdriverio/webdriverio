@@ -97,8 +97,8 @@ describe('waitForEnabled', () => {
 
         try {
             await elem.waitForEnabled({ timeout })
-        } catch (e) {
-            expect(e.message).toBe(`element ("#foo") still not enabled after ${timeout}ms`)
+        } catch (err: any) {
+            expect(err.message).toBe(`element ("#foo") still not enabled after ${timeout}ms`)
         }
     })
 
@@ -137,8 +137,8 @@ describe('waitForEnabled', () => {
                 reverse: false,
                 timeoutMsg: 'Element foo never enabled'
             })
-        } catch (e) {
-            expect(e.message).toBe('Element foo never enabled')
+        } catch (err: any) {
+            expect(err.message).toBe('Element foo never enabled')
         }
     })
 })

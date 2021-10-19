@@ -117,7 +117,7 @@ export async function findElement (
         element = using === 'xpath'
             ? (await context.$x(value))[0]
             : await context.$(value)
-    } catch (err) {
+    } catch (err: any) {
         /**
          * throw if method failed for other reasons
          */
@@ -309,7 +309,7 @@ export function findByWhich (executables: string[], priorities: Priorities[]) {
             if (canAccess(browserPath)) {
                 installations.push(browserPath)
             }
-        } catch (e) {
+        } catch (err: any) {
             // Not installed.
         }
     })

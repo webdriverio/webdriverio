@@ -701,7 +701,7 @@ describe('launcher', () => {
             let error
             try {
                 await launcher.run()
-            } catch (err) {
+            } catch (err: any) {
                 error = err
             }
             expect(launcher.runner.shutdown).toBeCalled()

@@ -2,7 +2,7 @@
 import { setWdioSyncSupport, runFnInFiberContext } from '@wdio/utils'
 import Timer from '../../src/utils/Timer'
 
-jest.useFakeTimers()
+jest.useFakeTimers('legacy')
 
 /**
  * to enfored time advancements after an initial timeout callback
@@ -118,7 +118,7 @@ describe('timer', () => {
                 ))
                 await triggerDelay(6, 100)
                 await timer
-            } catch (err) {
+            } catch (err: any) {
                 // ignored
             }
             expect(processEmitSpy).toBeCalledWith('WDIO_TIMER', { id: expect.any(Number), start: true })

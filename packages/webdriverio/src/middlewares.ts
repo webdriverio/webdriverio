@@ -37,15 +37,15 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                 }
 
                 return result
-            } catch (error) {
-                if (error.name === 'stale element reference') {
+            } catch (err: any) {
+                if (err.name === 'stale element reference') {
                     const element = await refetchElement(this, commandName)
                     this.elementId = element.elementId
                     this.parent = element.parent
 
                     return await fn(commandName, commandFn).apply(this, args)
                 }
-                throw error
+                throw err
             }
         }).apply(this)
 

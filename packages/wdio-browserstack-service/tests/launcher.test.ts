@@ -8,6 +8,7 @@ const expect = global.expect as unknown as jest.Expect
 
 const log = logger('test')
 const error = new Error('I\'m an error!')
+const sleep = (ms: number = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 beforeEach(() => {
     jest.clearAllMocks()
@@ -92,13 +93,15 @@ describe('onPrepare', () => {
             .then(() => expect(service.browserstackLocal?.start).toHaveBeenCalled())
     })
 
-    it('should successfully resolve if local.start is successful', async () => {
+    it.only('should successfully resolve if local.start is successful', async () => {
         const logInfoMock = jest.spyOn(log, 'info')
         const service = new BrowserstackLauncher(options, caps, config)
 
         await service.onPrepare(config, caps)
         expect(service.browserstackLocal?.start).toHaveBeenCalled()
-        expect(logInfoMock.mock.calls[0][0]).toContain('Browserstack Local successfully started after')
+        await sleep(0)
+        expect(logInfoMock.mock.calls[0][0])
+            .toContain('Browserstack Local successfully started after')
     })
 
     it('should correctly set up this-binding for local.start', async () => {

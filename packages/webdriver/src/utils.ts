@@ -79,7 +79,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
     let response
     try {
         response = await sessionRequest.makeRequest(params)
-    } catch (err) {
+    } catch (err: any) {
         log.error(err)
         const message = getSessionError(err, params)
         throw new Error('Failed to create session.\n' + message)

@@ -487,7 +487,7 @@ describe('ConfigParser', () => {
         it('should overwrite specs if piped into cli command', () => {
             const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ specs: INDEX_PATH })
+            configParser.merge({ specs: [INDEX_PATH] })
 
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
@@ -578,7 +578,7 @@ describe('ConfigParser', () => {
         it('should handle an array in the config_specs', () => {
             const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF_ARRAY)
-            configParser.merge({ spec : ['Library'] }, configParser._config.specs)
+            configParser.merge({ spec : ['Library'] })
 
             const specs = configParser.getSpecs()
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
@@ -1001,7 +1001,7 @@ describe('ConfigParser', () => {
             const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF_ARRAY)
 
-            const filePaths = ConfigParser.getFilePaths(configParser._config.specs!, undefined, configParser._pathService)
+            const filePaths = ConfigParser.getFilePaths(configParser['_config'].specs!, undefined, configParser['_pathService'])
             expect(Array.isArray(filePaths[0])).toBe(true)
             expect(filePaths[0].length).toBe(4)
             expect(filePaths[0][0]).not.toContain('*')

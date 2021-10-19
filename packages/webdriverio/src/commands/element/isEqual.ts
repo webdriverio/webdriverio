@@ -49,7 +49,7 @@ export default async function isEqual (
             /* istanbul ignore next */
             (el1: WebdriverIO.Element, el2: WebdriverIO.Element) => el1 === el2,
             getWebElement(this), getWebElement(el))
-    } catch (err) {
+    } catch (err: any) {
         result = false
     }
 

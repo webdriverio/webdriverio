@@ -1,4 +1,4 @@
-import { ModuleRequireService } from '../utils'
+import { ModuleRequireService } from '../types'
 
 export default class RequireLibrary implements ModuleRequireService {
     require<T>(module: string): T {

@@ -147,7 +147,7 @@ class Launcher {
             await logger.waitForBuffer()
 
             this.interface.finalise()
-        } catch (err) {
+        } catch (err: any) {
             error = err
         } finally {
             if (!this._hasTriggeredExitRoutine) {

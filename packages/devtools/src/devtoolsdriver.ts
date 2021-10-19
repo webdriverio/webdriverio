@@ -137,7 +137,7 @@ export default class DevToolsDriver {
             try {
                 this.emit('command', { command, params, retries })
                 result = await self.commands[command].call(self, params)
-            } catch (err) {
+            } catch (err: any) {
                 /**
                  * if though we check for an execution context before executing a command we
                  * can technically still run into the situation (especially if the command
@@ -272,7 +272,7 @@ export default class DevToolsDriver {
             if (readyState === 'complete' || pageloadTimeoutReached) {
                 return
             }
-        } catch (err) {
+        } catch (err: any) {
             /**
              * throw original error if a context could not be established
              */

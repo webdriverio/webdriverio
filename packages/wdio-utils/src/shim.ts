@@ -91,7 +91,7 @@ try {
             'Read more on https://github.com/webdriverio/webdriverio/discussions/6702'
         )
     }
-} catch (err) {
+} catch (err: any) {
     runAsync = true
     asyncSpec = true
 }
@@ -170,7 +170,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
         let commandError
         try {
             commandResult = await fn.apply(this, args)
-        } catch (err) {
+        } catch (err: any) {
             commandError = err
         }
 
@@ -362,13 +362,13 @@ async function executeSyncFn (this: any, fn: Function, retries: Retries, args: a
         }
 
         return res
-    } catch (e) {
+    } catch (err: any) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
             return await executeSyncFn.call(this, fn, retries, args)
         }
 
-        return Promise.reject(e)
+        return Promise.reject(err)
     }
 }
 
@@ -404,13 +404,13 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
         }
 
         return await result
-    } catch (e) {
+    } catch (err: any) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
             return await executeAsync.call(this, fn, retries, args)
         }
 
-        throw e
+        throw err
     } finally {
         if (isJasmine) {
             // @ts-ignore

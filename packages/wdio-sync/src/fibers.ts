@@ -22,7 +22,7 @@ try {
      */
     Fiber = require('fibers')
     Future = require('fibers/future')
-} catch (e) {
+} catch (err: any) {
     log.debug('Couldn\'t load fibers package for Node v12 and above')
 }
 

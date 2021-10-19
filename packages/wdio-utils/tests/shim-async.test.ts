@@ -115,7 +115,7 @@ describe('executeSync', () => {
                 }
                 return true
             }, repeatTest)
-        } catch (err) {
+        } catch (err: any) {
             error = err
         }
         expect(error.message).toEqual('foobar')
@@ -140,7 +140,7 @@ describe('executeAsync', () => {
         const fn = () => { throw new Error('foo') }
         try {
             await executeAsync.call({}, fn, { limit: 0, attempts: 0 })
-        } catch (e) {
+        } catch (err: any) {
             error = e
         }
         expect(error.message).toEqual('foo')
@@ -368,7 +368,7 @@ describe('wrapCommand', () => {
             for await (let elem of commandA('selector')) {
                 console.log(elem)
             }
-        } catch (e) {
+        } catch (err: any) {
             expect(e.message).toBe('Can not iterate over non array')
         }
     })

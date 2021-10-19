@@ -35,7 +35,7 @@ class Timer {
          *  - function name is not async
          *  - we run with the wdio testrunner
          */
-        if (hasWdioSyncSupport && !_fn.name.includes('async') && Boolean(global.browser)) {
+        if (hasWdioSyncSupport && !_fn.name.includes('async') && Boolean((global as any).browser)) {
             this._fn = () => runFnInFiberContext(_fn)()
         }
 

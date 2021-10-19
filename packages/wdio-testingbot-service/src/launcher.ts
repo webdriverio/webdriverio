@@ -49,7 +49,7 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
             const entry = list.getEntries()[0]
             log.info(`TestingBot tunnel successfully started after ${entry.duration}ms`)
         })
-        obs.observe({ entryTypes: ['measure'], buffered: false })
+        obs.observe({ entryTypes: ['measure'] })
 
         performance.mark('tbTunnelStart')
         this.tunnel = await promisify(testingbotTunnel)(this.tbTunnelOpts)

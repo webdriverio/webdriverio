@@ -1,9 +1,8 @@
-
-// Main implementation (tests contain other implementations)
 import fs from 'fs'
-import { PathService } from './ConfigParser'
 import path from 'path'
 import glob from 'glob'
+
+import { PathService } from '../types'
 
 export default class FileSystemPathService implements PathService {
     getcwd(): string {

@@ -1,4 +1,4 @@
-import { directory } from 'tempy'
+import tempy from 'tempy'
 
 /**
  * this is not a real package and only used to utilize helper
@@ -27,7 +27,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
     describe('reporter option "disableWebdriverStepsReporting" set to true', () => {
         describe('Passing tests', () => {
-            const outputDir = directory()
+            const outputDir = tempy.directory()
             let allureXml: any
 
             beforeAll(() => {
@@ -107,7 +107,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Passing tests', () => {
-        const outputDir = directory()
+        const outputDir = tempy.directory()
         let allureXml: any
         let reporter: any
 
@@ -211,7 +211,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Skipped test', () => {
-        const outputDir = directory()
+        const outputDir = tempy.directory()
         let allureXml: any
         let reporter: any
 
@@ -264,7 +264,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Skipped test after several steps passed', () => {
-        const outputDir = directory()
+        const outputDir = tempy.directory()
         let allureXml: any
 
         beforeAll(() => {
@@ -319,7 +319,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         let reporter: any
 
         beforeEach(() => {
-            outputDir = directory()
+            outputDir = tempy.directory()
         })
 
         afterEach(() => {
@@ -393,7 +393,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Data Table', () => {
-        const outputDir = directory()
+        const outputDir = tempy.directory()
         let allureXml: any
 
         beforeAll(() => {

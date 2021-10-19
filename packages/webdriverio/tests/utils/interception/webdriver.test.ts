@@ -124,7 +124,7 @@ test('abort fails if invalid error reason was provided', async () => {
 
     try {
         await mock.abort('foo')
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toContain('Invalid value for errorReason')
     }
 })

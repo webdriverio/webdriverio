@@ -2,7 +2,7 @@
 import got from 'got'
 import { remote } from '../../../src'
 
-jest.useFakeTimers()
+jest.useFakeTimers('legacy')
 
 describe('pause test', () => {
     let browser: WebdriverIO.Browser

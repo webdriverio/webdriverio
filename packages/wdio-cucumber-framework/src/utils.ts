@@ -166,7 +166,7 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
             if (pos > 0) {
                 try {
                     acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
-                } catch (e) {
+                } catch (err: any) {
                     log.error(`Couldn't use tag "${splitItem}" for filtering because it is malformed`)
                 }
             }
