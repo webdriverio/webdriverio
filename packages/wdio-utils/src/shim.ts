@@ -398,7 +398,9 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
         const result = fn.apply(this, args)
 
         if (result && typeof result.finally === 'function') {
-            result.finally(() => (asyncSpec = asyncSpecBefore))
+            result
+                .finally(() => (asyncSpec = asyncSpecBefore))
+                .catch((err: any) => err)
         } else {
             asyncSpec = asyncSpecBefore
         }
