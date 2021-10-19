@@ -82,7 +82,7 @@ describe('timeouts', () => {
         try {
             await asyncCommand()
         } catch (err: any) {
-            expect(e.message).toBe('Evaluation failed: script timeout')
+            expect(err.message).toBe('Evaluation failed: script timeout')
         }
 
         await browser.setTimeouts(0, 1000, 300)
@@ -122,7 +122,7 @@ describe('alerts', () => {
         try {
             await browser.getAlertText()
         } catch (err: any) {
-            expect(e.message).toBe('no such alert')
+            expect(err.message).toBe('no such alert')
         }
     })
 
@@ -138,7 +138,7 @@ describe('alerts', () => {
         try {
             await browser.getAlertText()
         } catch (err: any) {
-            expect(e.message).toBe('no such alert')
+            expect(err.message).toBe('no such alert')
         }
     })
 
