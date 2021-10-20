@@ -14,6 +14,19 @@ const errors: Error[] = []
 console.error = /* istanbul ignore next */ (...args: Error[]) => errors.push(...args)
 
 /**
+ * only load @wdio/sync with Node.js v15 and below
+ */
+const [major] = process.versions.node.split('.')
+/* istanbul ignore if */
+if (parseInt(major) >= 16) {
+    throw new Error(
+        '@wdio/sync is not support with NodeJS v16 and above. Please migrate your code base ' +
+        'using async/await for command execution. Read more about this in our migration ' +
+        'guide: https://webdriver.io/docs/async-migration.\n'
+    )
+}
+
+/**
  * Helper method to retrieve a version of `fibers` for your Node version.
  */
 try {
