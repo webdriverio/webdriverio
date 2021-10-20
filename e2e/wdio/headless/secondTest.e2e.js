@@ -1,7 +1,7 @@
 describe('main suite 1', () => {
-    it('foobar test', () => {
+    it('foobar test', async () => {
         const browserName = browser.capabilities.browserName.replace('Headless', '').trim()
-        browser.url('http://guinea-pig.webdriver.io/')
-        expect($('#useragent')).toHaveTextContaining(browserName)
+        await browser.url('http://guinea-pig.webdriver.io/')
+        await expect($('#useragent')).toHaveTextContaining(browserName)
     })
 })
