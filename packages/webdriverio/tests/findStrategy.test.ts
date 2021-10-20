@@ -446,4 +446,10 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('shadow')
         expect(element.value).toBe('.foobar')
     })
+
+    it('should find an element using "id" method for mobile device', () => {
+        const element = findStrategy('#purplebox', undefined, true)
+        expect(element.using).toBe('id')
+        expect(element.value).toBe('purplebox')
+    })
 })
