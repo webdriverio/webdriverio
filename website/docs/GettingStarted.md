@@ -9,27 +9,22 @@ Welcome to the WebdriverIO documentation. It will help you to get started fast. 
 These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
 :::
 
-## Installation
+## Initiate a WebdriverIO Setup
 
-Use npm or Yarn to install the WebdriverIO test runner in your Node.js project. See [system requirements](#system-requirements).
+To add a full WebdriverIO setup to an existing or new project, run:
 
 ```bash npm2yarn
-npm install @wdio/cli
+# if you in the root directory of an existing project
+$ npx wdio .
+# or if you want to create a new project
+$ npx wdio ./path/to/new/project
 ```
 
-This single command downloads the WebdriverIO CLI tool that helps you set up WebdriverIO in your project.
-
-## Set Up
-
-Once you've installed the CLI you can bootstrap a _Hello World_ test suite into your project by running:
-
-```bash
-npx wdio config
-```
+This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
 
 ![Set Up](../static/img/setup.gif)
 
-This will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
+The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
 
 ## Run Test
 
