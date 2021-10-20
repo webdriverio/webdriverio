@@ -49,139 +49,154 @@ export const gherkinDocument: GherkinDocument = {
         description: '  As a user of WebdriverIO\n  I should be able to use different commands\n  to get informations about elements on the page',
         children: [
             {
-                scenario: {
-                    description: 'foobar',
-                    examples: [],
+                rule: {
+                    keyword: '',
                     location: {
-                        line: 12,
-                        column: 3
+                        line: 2,
+                        column: 1
                     },
-                    tags: [
+                    tags: [],
+                    id: '1',
+                    name: 'rule name',
+                    description: '',
+                    children: [
                         {
-                            location: {
-                                line: 9,
-                                column: 3
-                            },
-                            name: '@skip(browserName=\'chrome\';platformName=\'windows\')',
-                            id: '5'
-                        },
-                        {
-                            location: {
-                                line: 10,
-                                column: 3
-                            },
-                            name: '@scenario-tag1',
-                            id: '6'
-                        },
-                        {
-                            location: {
-                                line: 11,
-                                column: 3
-                            },
-                            name: '@scenario-tag2',
-                            id: '7'
-                        }
-                    ],
-                    keyword: 'Scenario',
-                    name: 'Get size of an element',
-                    steps: [
-                        {
-                            location: {
-                                line: 13,
-                                column: 5
-                            },
-                            keyword: 'Given ',
-                            text: 'I go on the website \'https://github.com/\'',
-                            id: '0'
-                        },
-                        {
-                            location: {
-                                line: 14,
-                                column: 5
-                            },
-                            keyword: 'Then ',
-                            text: 'should the element \'.header-logged-out a\' be 32px wide and 35px high',
-                            dataTable: {
+                            scenario: {
+                                description: 'foobar',
+                                examples: [],
                                 location: {
-                                    line: 15,
-                                    column: 9
+                                    line: 12,
+                                    column: 3
                                 },
-                                rows: [
+                                tags: [
                                     {
                                         location: {
-                                            line: 15,
-                                            column: 9
+                                            line: 9,
+                                            column: 3
                                         },
-                                        cells: [
-                                            {
-                                                location: {
-                                                    line: 15,
-                                                    column: 11
-                                                },
-                                                value: 'Item'
-                                            },
-                                            {
-                                                location: {
-                                                    line: 15,
-                                                    column: 24
-                                                },
-                                                value: 'Amount'
-                                            }
-                                        ],
-                                        id: '1'
+                                        name: '@skip(browserName=\'chrome\';platformName=\'windows\')',
+                                        id: '5'
                                     },
                                     {
                                         location: {
-                                            line: 16,
-                                            column: 9
+                                            line: 10,
+                                            column: 3
                                         },
-                                        cells: [
-                                            {
-                                                location: {
-                                                    line: 16,
-                                                    column: 11
-                                                },
-                                                value: 'Milk'
-                                            },
-                                            {
-                                                location: {
-                                                    line: 16,
-                                                    column: 24
-                                                },
-                                                value: '2'
-                                            }
-                                        ],
-                                        id: '2'
+                                        name: '@scenario-tag1',
+                                        id: '6'
                                     },
                                     {
                                         location: {
-                                            line: 17,
-                                            column: 9
+                                            line: 11,
+                                            column: 3
                                         },
-                                        cells: [
-                                            {
-                                                location: {
-                                                    line: 17,
-                                                    column: 11
-                                                },
-                                                value: 'Butter'
-                                            },
-                                            {
-                                                location: {
-                                                    line: 17,
-                                                    column: 24
-                                                },
-                                                value: '1'
-                                            }
-                                        ],
-                                        id: '3'
+                                        name: '@scenario-tag2',
+                                        id: '7'
                                     }
-                                ]
-                            },
-                            id: '4'
+                                ],
+                                keyword: 'Scenario',
+                                name: 'Get size of an element',
+                                steps: [
+                                    {
+                                        location: {
+                                            line: 13,
+                                            column: 5
+                                        },
+                                        keyword: 'Given ',
+                                        text: 'I go on the website \'https://github.com/\'',
+                                        id: '0'
+                                    },
+                                    {
+                                        location: {
+                                            line: 14,
+                                            column: 5
+                                        },
+                                        keyword: 'Then ',
+                                        text: 'should the element \'.header-logged-out a\' be 32px wide and 35px high',
+                                        dataTable: {
+                                            location: {
+                                                line: 15,
+                                                column: 9
+                                            },
+                                            rows: [
+                                                {
+                                                    location: {
+                                                        line: 15,
+                                                        column: 9
+                                                    },
+                                                    cells: [
+                                                        {
+                                                            location: {
+                                                                line: 15,
+                                                                column: 11
+                                                            },
+                                                            value: 'Item'
+                                                        },
+                                                        {
+                                                            location: {
+                                                                line: 15,
+                                                                column: 24
+                                                            },
+                                                            value: 'Amount'
+                                                        }
+                                                    ],
+                                                    id: '1'
+                                                },
+                                                {
+                                                    location: {
+                                                        line: 16,
+                                                        column: 9
+                                                    },
+                                                    cells: [
+                                                        {
+                                                            location: {
+                                                                line: 16,
+                                                                column: 11
+                                                            },
+                                                            value: 'Milk'
+                                                        },
+                                                        {
+                                                            location: {
+                                                                line: 16,
+                                                                column: 24
+                                                            },
+                                                            value: '2'
+                                                        }
+                                                    ],
+                                                    id: '2'
+                                                },
+                                                {
+                                                    location: {
+                                                        line: 17,
+                                                        column: 9
+                                                    },
+                                                    cells: [
+                                                        {
+                                                            location: {
+                                                                line: 17,
+                                                                column: 11
+                                                            },
+                                                            value: 'Butter'
+                                                        },
+                                                        {
+                                                            location: {
+                                                                line: 17,
+                                                                column: 24
+                                                            },
+                                                            value: '1'
+                                                        }
+                                                    ],
+                                                    id: '3'
+                                                }
+                                            ]
+                                        },
+                                        id: '4'
+                                    }
+                                ],
+                                id: '8'
+                            }
                         }
-                    ],
-                    id: '8'
+                    ]
                 }
             }
         ]
