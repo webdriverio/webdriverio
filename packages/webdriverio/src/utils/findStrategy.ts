@@ -28,7 +28,7 @@ const IMAGEPATH_MOBILE_SELECTORS_ENDSWITH = [
 
 type SelectorStrategy = string | { name: string, args: string }
 
-const defineStrategy = function (selector: SelectorStrategy, isMobile?: boolean) {
+const defineStrategy = function (selector: SelectorStrategy) {
     // Condition with checking isPlainObject(selector) should be first because
     // in case of "selector" argument is a plain object then .match() will cause
     // an error like "selector.match is not a function"
@@ -64,7 +64,7 @@ const defineStrategy = function (selector: SelectorStrategy, isMobile?: boolean)
         return 'partial link text'
     }
     // Use id strategy if the selector starts with id=
-    if (stringSelector.startsWith('id=') || (isMobile && stringSelector.startsWith('#'))) {
+    if (stringSelector.startsWith('id=')) {
         return 'id'
     }
     // use shadow dom selector
@@ -118,7 +118,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     let using: string = DEFAULT_STRATEGY
     let value = selector as string
 
-    switch (defineStrategy(selector, isMobile)) {
+    switch (defineStrategy(selector)) {
     // user has specified locator strategy directly
     case 'directly': {
         const match = stringSelector.match(DIRECT_SELECTOR_REGEXP)
@@ -135,8 +135,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     }
     case 'id': {
         using = 'id'
-        value = stringSelector.startsWith('#') ?
-            stringSelector.slice(1) : stringSelector.slice(3)
+        value = stringSelector.slice(3)
         break
     }
     case 'link text': {
