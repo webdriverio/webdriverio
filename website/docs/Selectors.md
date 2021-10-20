@@ -189,7 +189,7 @@ Locator strategy "id" is not supported in WebDriver protocol, one should use eit
 
 However some drivers (e.g. [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) might still [support](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) this selector.
 
-current supported selector syntaxes for ID are :
+Current supported selector syntaxes for ID are:
 
 ```js
 //css locator
