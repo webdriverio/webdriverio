@@ -11,7 +11,6 @@ import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import BaseReporter from './reporter'
 import { initialiseInstance, filterLogTypes, getInstancesData } from './utils'
-import { DesiredCapabilities } from '../node_modules/@wdio/types/src/Capabilities'
 
 const log = logger('@wdio/runner')
 
@@ -154,7 +153,7 @@ export default class Runner extends EventEmitter {
          */
         this._framework = initialisePlugin(this._config.framework as string, 'framework').default as unknown as TestFramework
         this._framework = await this._framework.init(cid, this._config, specs, caps, this._reporter)
-        caps = caps as DesiredCapabilities
+        caps = caps as Capabilities.Capabilities
         caps.browserName   = caps.browserName ? caps.browserName :  `${caps['appium:platformName']} ${caps['appium:platformVersion']}`
         process.send!({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this._framework.hasTests() } })
         if (!this._framework.hasTests()) {
