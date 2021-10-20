@@ -24,20 +24,20 @@ describe('dragAndDrop', () => {
         expect.assertions(3)
         try {
             await elem.dragAndDrop()
-        } catch (e) {
-            expect(e.message).toContain('requires an WebdriverIO Element')
+        } catch (err: any) {
+            expect(err.message).toContain('requires an WebdriverIO Element')
         }
 
         try {
             await elem.dragAndDrop('#myId')
-        } catch (e) {
-            expect(e.message).toContain('requires an WebdriverIO Element')
+        } catch (err: any) {
+            expect(err.message).toContain('requires an WebdriverIO Element')
         }
 
         try {
             await elem.dragAndDrop({ x: 1 })
-        } catch (e) {
-            expect(e.message).toContain('requires an WebdriverIO Element')
+        } catch (err: any) {
+            expect(err.message).toContain('requires an WebdriverIO Element')
         }
     })
 

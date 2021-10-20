@@ -68,7 +68,7 @@ export default function debug(
     })
 
     let commandResolve = /* istanbul ignore next */ () => { }
-    process.on('message', (m) => {
+    process.on('message', (m: any) => {
         if (m.origin !== 'debugger') {
             return
         }

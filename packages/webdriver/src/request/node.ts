@@ -20,7 +20,7 @@ export default class NodeJSRequest extends WebDriverRequest {
     protected async _libRequest (url: URL, opts: Options.RequestLibOptions) {
         try {
             return (await got.default(url, opts as got.Options)) as Options.RequestLibResponse
-        } catch (err) {
+        } catch (err: any) {
             if (!(err instanceof Error)) {
                 throw new RequestLibError(err.message || err)
             }

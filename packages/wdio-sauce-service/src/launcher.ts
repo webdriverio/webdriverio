@@ -84,7 +84,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
             const entry = list.getEntries()[0]
             log.info(`Sauce Connect successfully started after ${entry.duration}ms`)
         })
-        obs.observe({ entryTypes: ['measure'], buffered: false })
+        obs.observe({ entryTypes: ['measure'] })
 
         performance.mark('sauceConnectStart')
         this._sauceConnectProcess = await this.startTunnel(sauceConnectOpts)
@@ -96,7 +96,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
         try {
             const scProcess = await this._api.startSauceConnect(sauceConnectOpts)
             return scProcess
-        } catch (err) {
+        } catch (err: any) {
             ++retryCount
             /**
              * fail starting Sauce Connect eventually

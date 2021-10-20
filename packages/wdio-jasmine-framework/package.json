@@ -26,12 +26,12 @@
   },
   "dependencies": {
     "@types/jasmine": "3.6.9",
-    "@types/node": "^15.12.5",
+    "@types/node": "^16.11.1",
     "@wdio/logger": "7.7.0",
     "@wdio/types": "7.14.1",
     "@wdio/utils": "7.14.1",
     "expect-webdriverio": "^3.0.0",
-    "jasmine": "3.9.0"
+    "jasmine": "3.10.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"

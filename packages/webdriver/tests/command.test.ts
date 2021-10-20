@@ -98,7 +98,7 @@ describe('command wrapper', () => {
 
         try {
             commandFn.call(scope, '123', '123', '123', 234, () => {})
-        } catch (err) {
+        } catch (err: any) {
             expect(err.message).toContain('Actual: (function)[]')
         }
     })

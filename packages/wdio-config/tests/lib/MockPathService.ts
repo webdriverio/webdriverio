@@ -77,7 +77,7 @@ export default class MockPathService implements PathService {
                 // JS's require on JS files auto-parses so let's emulate
                 // so that test file values don't matter if they are stringed json or objects
                 return JSON.parse(found[1])
-            } catch (e) {
+            } catch (err: any) {
                 return found[1]
             }
         }

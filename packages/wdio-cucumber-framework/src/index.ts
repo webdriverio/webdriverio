@@ -185,8 +185,8 @@ class CucumberAdapter {
             if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
                 result = this._cucumberReporter.failedCount
             }
-        } catch (e) {
-            runtimeError = e
+        } catch (err: any) {
+            runtimeError = err
             result = 1
         }
 

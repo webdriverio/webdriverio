@@ -63,24 +63,6 @@ const packages = getSubPackages()
 
 shell.cd(path.join(__dirname, '..'))
 
-/**
- * It seems that GitHub actions can't run the build step without running out
- * of heap memory therefor run build step serially here.
- */
-if (process.env.CI) {
-    for (const pkg of packages) {
-        const cmd = `npx tsc -b packages/${pkg}/${TSCONFIG_FILE}`
-        console.log(cmd)
-        const { code } = shell.exec(cmd)
-
-        if (code) {
-            throw new Error('Failed compiling TypeScript files!')
-        }
-    }
-
-    process.exit(0)
-}
-
 const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`).join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
 
 console.log(cmd)

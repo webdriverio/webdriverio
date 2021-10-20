@@ -37,7 +37,7 @@ export default class CrossBrowserTestingLauncher implements Services.ServiceInst
             const entry = list.getEntries()[0]
             log.info(`CrossBrowserTesting tunnel successfully started after ${entry.duration}ms`)
         })
-        obs.observe({ entryTypes: ['measure'], buffered: false })
+        obs.observe({ entryTypes: ['measure'] })
 
         performance.mark('tbTunnelStart')
         await promisify(cbt.start)(this._cbtTunnelOpts)

@@ -188,8 +188,8 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
             console.log('\nConfig file installed successfully, creating test files...')
             await generateTestFiles(parsedAnswers)
         }
-    } catch (e) {
-        throw new Error(`Couldn't write config file: ${e.stack}`)
+    } catch (err: any) {
+        throw new Error(`Couldn't write config file: ${err.stack}`)
     }
 
     /**

@@ -181,7 +181,7 @@ export function safeRequire (name: string): Services.ServicePlugin | null {
         } else {
             requirePath = require.resolve(name)
         }
-    } catch (e) {
+    } catch (err: any) {
         return null
     }
 
@@ -242,7 +242,7 @@ export const canAccess = (file: string) => {
     try {
         fs.accessSync(file)
         return true
-    } catch (e) {
+    } catch (err: any) {
         return false
     }
 }

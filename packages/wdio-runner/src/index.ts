@@ -111,7 +111,7 @@ export default class Runner extends EventEmitter {
          */
         try {
             this._configParser.addConfigFile(configFile)
-        } catch (e) {
+        } catch (err: any) {
             return this._shutdown(1, retries)
         }
 
@@ -231,9 +231,9 @@ export default class Runner extends EventEmitter {
         try {
             failures = await this._framework.run()
             await this._fetchDriverLogs(this._config, (caps as Required<Capabilities.DesiredCapabilities>).excludeDriverLogs)
-        } catch (e) {
-            log.error(e)
-            this.emit('error', e)
+        } catch (err: any) {
+            log.error(err)
+            this.emit('error', err)
             failures = 1
         }
 
@@ -277,7 +277,9 @@ export default class Runner extends EventEmitter {
         /**
          * register global helper method to fetch elements
          */
+        // @ts-ignore
         global.$ = (selector: Selector) => browser.$(selector)
+        // @ts-ignore
         global.$$ = (selector: Selector) => browser.$$(selector)
 
         /**
@@ -312,16 +314,18 @@ export default class Runner extends EventEmitter {
         let browser: Browser<'async'> | MultiRemoteBrowser<'async'>
 
         try {
+            // @ts-ignore
             browser = global.browser = global.driver = await initialiseInstance(config, caps, this._isMultiremote)
 
             /**
              * attach browser to `multiremotebrowser` so user have better typing support
              */
             if (this._isMultiremote) {
+                // @ts-ignore
                 global.multiremotebrowser = browser
             }
-        } catch (e) {
-            log.error(e)
+        } catch (err: any) {
+            log.error(err)
             return
         }
 
@@ -414,8 +418,8 @@ export default class Runner extends EventEmitter {
         } as Options.RunnerEnd)
         try {
             await this._reporter!.waitForSync()
-        } catch (e) {
-            log.error(e)
+        } catch (err: any) {
+            log.error(err)
         }
         this.emit('exit', failures === 0 ? 0 : 1)
         return failures

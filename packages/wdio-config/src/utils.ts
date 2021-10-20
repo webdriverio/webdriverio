@@ -1,6 +1,8 @@
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
-import type { RegisterOptions } from 'ts-node'
+// import type { RegisterOptions } from 'ts-node'
+
+import type { ModuleRequireService } from './types'
 
 const log = logger('@wdio/config:utils')
 
@@ -65,7 +67,7 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
             if (typeof expectedOption.validate === 'function') {
                 try {
                     expectedOption.validate(optValue)
-                } catch (e) {
+                } catch (e: any) {
                     throw new Error(`Type check for option "${name}" failed: ${e.message}`)
                 }
             }
@@ -90,11 +92,6 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
     return params
 }
 
-export interface ModuleRequireService {
-    resolve(request: string, options?: { paths?: string[]; }): string
-    require<T>(module: string): T;
-}
-
 export function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleRequireService) {
     return (
         autoCompileConfig.autoCompile &&
@@ -114,7 +111,7 @@ export function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, 
 }
 
 export function loadTypeScriptCompiler (
-    tsNodeOpts: RegisterOptions = {},
+    tsNodeOpts: any = {},
     tsConfigPathsOpts: Options.TSConfigPathsOptions | undefined,
     requireService: ModuleRequireService
 ) {
@@ -130,7 +127,7 @@ export function loadTypeScriptCompiler (
         }
 
         return true
-    } catch (e) {
+    } catch (err: any) {
         return false
     }
 }
@@ -149,7 +146,7 @@ export function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireS
         (requireService.require('@babel/register') as any)(babelOpts)
         log.debug('Found \'@babel/register\' package, auto-compiling files with Babel')
         return true
-    } catch (e) {
+    } catch (err: any) {
         return false
     }
 }

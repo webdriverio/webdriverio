@@ -39,7 +39,7 @@ const driver = {
     endTrace: jest.fn().mockReturnValue(Promise.resolve(TRACELOG))
 } as any as GathererDriver
 
-jest.useFakeTimers()
+jest.useFakeTimers('legacy')
 
 beforeEach(() => {
     pageMock.on.mockClear()

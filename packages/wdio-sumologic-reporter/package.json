@@ -27,7 +27,7 @@
     "@wdio/logger": "7.7.0",
     "@wdio/reporter": "7.14.1",
     "@wdio/types": "7.14.1",
-    "dateformat": "^4.0.0",
+    "dateformat": "4.5.1",
     "got": "^11.0.2",
     "json-stringify-safe": "^5.0.1"
   },

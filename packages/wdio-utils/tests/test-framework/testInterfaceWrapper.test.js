@@ -8,6 +8,11 @@ jest.mock('../../src/test-framework/testFnWrapper', () => ({
     testFnWrapper: jest.fn()
 }))
 
+beforeEach(() => {
+    testFnWrapper.mockClear()
+    global.jasmine = {}
+})
+
 describe('runHook', () => {
     it('should call testFnWrapper with proper args', () => {
         const beforeFnArgs = (context) => [context.foo]
@@ -129,5 +134,6 @@ describe('runTestInFiberContext', () => {
 
 afterEach(() => {
     delete global.foobar
+    delete global.jasmine
     testFnWrapper.mockClear()
 })

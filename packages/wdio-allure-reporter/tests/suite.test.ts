@@ -1,4 +1,4 @@
-import { directory } from 'tempy'
+import tempy from 'tempy'
 
 /**
  * this is not a real package and only used to utilize helper
@@ -30,7 +30,7 @@ afterAll(() => {
 })
 
 describe('Passing tests', () => {
-    const outputDir = directory()
+    const outputDir = tempy.directory()
     let allureXml: any
 
     beforeAll(() => {
@@ -130,7 +130,7 @@ describe('Failed tests', () => {
     let allureXml
 
     beforeEach(() => {
-        outputDir = directory()
+        outputDir = tempy.directory()
     })
 
     afterEach(() => {
@@ -244,7 +244,7 @@ describe('Pending tests', () => {
     })
 
     it('should detect started pending test case', () => {
-        outputDir = directory()
+        outputDir = tempy.directory()
         const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
@@ -263,7 +263,7 @@ describe('Pending tests', () => {
     })
 
     it('should detect not started pending test case', () => {
-        outputDir = directory()
+        outputDir = tempy.directory()
         const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
@@ -281,7 +281,7 @@ describe('Pending tests', () => {
     })
 
     it('should detect not started pending test case after completed test', () => {
-        outputDir = directory()
+        outputDir = tempy.directory()
         const reporter = new AllureReporter({ outputDir })
         let passed = testStart()
         passed = {
@@ -318,7 +318,7 @@ describe('Hook start', () => {
     let allureXml
 
     beforeEach(() => {
-        outputDir = directory()
+        outputDir = tempy.directory()
     })
 
     afterEach(() => {
@@ -377,7 +377,7 @@ for (const protocol of ['webdriver', 'devtools']) {
         let outputDir: any
 
         beforeEach(() => {
-            outputDir = directory()
+            outputDir = tempy.directory()
         })
 
         afterEach(() => {

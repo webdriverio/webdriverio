@@ -130,7 +130,7 @@ export default class CoverageGatherer extends EventEmitter {
                 /** do not mock body if it's undefined */
                 body: !result ? undefined : Buffer.from(result.code!, 'utf8').toString('base64')
             })
-        } catch (err) {
+        } catch (err: any) {
             log.warn(`Couldn't instrument file due to: ${err.stack}`)
             return this._client.send('Fetch.fulfillRequest', {
                 requestId,
@@ -164,8 +164,8 @@ export default class CoverageGatherer extends EventEmitter {
 
                 this._coverageMap = libCoverage.createCoverageMap(globalCoverageVar)
                 log.info(`Captured coverage data of ${this._coverageMap.files().length} files`)
-            } catch (e) {
-                log.warn(`Couldn't capture data: ${e.message}`)
+            } catch (err: any) {
+                log.warn(`Couldn't capture data: ${err.message}`)
                 this._clearCaptureInterval()
             }
         }, CAPTURE_INTERVAL)

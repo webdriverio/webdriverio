@@ -15,7 +15,7 @@ export default class MockedModules implements ModuleRequireService {
         this.requireMock = jest.fn((m:string) => {
             try {
                 return this.getModule(m)
-            } catch (e) {
+            } catch (err: any) {
                 if ( callThroughNotMockedModules ) {
                     return require(m)
                 }
@@ -26,7 +26,7 @@ export default class MockedModules implements ModuleRequireService {
         this.resolveMock = jest.fn((m:string) => {
             try {
                 return this.hasModule(m)
-            } catch (e) {
+            } catch (err: any) {
                 if ( callThroughNotMockedModules ) {
                     return require.resolve(m)
                 }

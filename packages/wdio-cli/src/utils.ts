@@ -31,10 +31,10 @@ export async function runServiceHook(
             if (typeof service[hookName] === 'function') {
                 await (service[hookName] as Function)(...args)
             }
-        } catch (e) {
-            const message = `A service failed in the '${hookName}' hook\n${e.stack}\n\n`
+        } catch (err: any) {
+            const message = `A service failed in the '${hookName}' hook\n${err.stack}\n\n`
 
-            if (e instanceof SevereServiceError) {
+            if (err instanceof SevereServiceError) {
                 return { status: 'rejected', reason: message }
             }
 
@@ -68,8 +68,8 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
     return Promise.all(hook.map((hook) => {
         try {
             return hook(...args)
-        } catch (e) {
-            return catchFn(e)
+        } catch (err: any) {
+            return catchFn(err)
         }
     })).catch(catchFn)
 }
@@ -97,8 +97,8 @@ export async function runOnCompleteHook(
         try {
             await hook(exitCode, config, capabilities, results)
             return 0
-        } catch (e) {
-            log.error(`Error in onCompleteHook: ${e.stack}`)
+        } catch (err: any) {
+            log.error(`Error in onCompleteHook: ${err.stack}`)
             return 1
         }
     }))
@@ -288,7 +288,7 @@ export function hasPackage (pkg: string) {
         }
         require.resolve(pkg)
         return true
-    } catch (e) {
+    } catch (err: any) {
         return false
     }
 }

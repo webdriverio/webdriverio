@@ -20,12 +20,12 @@ describe('RequireLibrary', () => {
 
         it('should try to resolve', function () {
             const svc = new RequireLibrary()
-            expect(svc.resolve('ts-node')).toEqual(path.resolve(__dirname, '../../../node_modules/ts-node/dist/index.js'))
+            expect(svc.resolve('ts-node', {})).toEqual(path.resolve(__dirname, '../../../node_modules/ts-node/dist/index.js'))
         })
 
         it('should try to resolve', function () {
             const svc = new RequireLibrary()
-            expect(() => svc.resolve('abcdef xyz')).toThrowError("Cannot find module 'abcdef xyz' from 'packages/wdio-config/src/lib/RequireLibrary.ts'")
+            expect(() => svc.resolve('abcdef xyz', {})).toThrowError("Cannot find module 'abcdef xyz' from 'packages/wdio-config/src/lib/RequireLibrary.ts'")
         })
 
     })

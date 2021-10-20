@@ -48,7 +48,7 @@ async function executeSync (this: Browser<'async'>, fn: Function, retries = defa
         }
 
         return res
-    } catch (e) {
+    } catch (err: any) {
         if (retries.limit > retries.attempts) {
             retries.attempts++
             return await executeSync.call(this, fn, retries, args)
@@ -57,12 +57,12 @@ async function executeSync (this: Browser<'async'>, fn: Function, retries = defa
         /**
          * no need to modify stack if no stack available
          */
-        if (!e.stack) {
-            return Promise.reject(e)
+        if (!err.stack) {
+            return Promise.reject(err)
         }
 
-        e.stack = e.stack.split('\n').filter(stackTraceFilter).join('\n')
-        return Promise.reject(e)
+        err.stack = err.stack.split('\n').filter(stackTraceFilter).join('\n')
+        return Promise.reject(err)
     }
 }
 
@@ -70,7 +70,7 @@ async function executeSync (this: Browser<'async'>, fn: Function, retries = defa
  * run hook or spec via executeSync
  */
 function runSync (this: any, fn: Function, repeatTest?: typeof defaultRetries, args: any[] = []) {
-    return (resolve: (value: any) => void, reject: (error: Error) => void) =>
+    return (resolve: (value: any) => void, reject: (err: Error) => void) =>
         Fiber(() => executeSync.call(this, fn, repeatTest, args).then(resolve, reject)).run()
 }
 

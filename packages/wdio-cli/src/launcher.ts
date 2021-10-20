@@ -147,7 +147,7 @@ class Launcher {
             await logger.waitForBuffer()
 
             this.interface.finalise()
-        } catch (err) {
+        } catch (err: any) {
             error = err
         } finally {
             if (!this._hasTriggeredExitRoutine) {
@@ -395,6 +395,12 @@ class Launcher {
 
         // If an arg appears multiple times the last occurrence is used
         let execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
+
+        // set '--no-wasm-code-gc' deliberatively as it causes problems with
+        // @wdio/sync and recent TypeScript compiles
+        if (!execArgv.includes('--no-wasm-code-gc')) {
+            execArgv.push('--no-wasm-code-gc')
+        }
 
         // bump up worker count
         this._runnerStarted++

@@ -4,7 +4,7 @@ import nodeLogger2 from '../build/node'
 
 import type log from 'loglevel'
 
-jest.useFakeTimers()
+jest.useFakeTimers('legacy')
 
 describe('wdio-logger node', () => {
     describe('log level', () => {

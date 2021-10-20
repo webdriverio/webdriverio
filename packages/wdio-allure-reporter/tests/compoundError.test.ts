@@ -7,13 +7,13 @@ describe('CompoundError', () => {
     beforeEach(() => {
         try {
             throw new Error('Everything is awful')
-        } catch (e) {
-            e1 = e
+        } catch (err: any) {
+            e1 = err
         }
         try {
             throw new Error('I am so sad')
-        } catch (e) {
-            e2 = e
+        } catch (err: any) {
+            e2 = err
         }
     })
 

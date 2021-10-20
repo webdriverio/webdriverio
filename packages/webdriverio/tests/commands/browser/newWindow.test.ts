@@ -62,8 +62,8 @@ describe('newWindow', () => {
 
         try {
             await browser.newWindow({})
-        } catch (e) {
-            expect(e.message).toContain('number or type')
+        } catch (err: any) {
+            expect(err.message).toContain('number or type')
         }
     })
 

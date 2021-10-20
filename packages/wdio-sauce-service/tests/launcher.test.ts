@@ -70,6 +70,7 @@ test('onPrepare w/o identifier', async () => {
     expect(SauceLabs.instances).toHaveLength(1)
     // @ts-ignore mock feature
     expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
+    await new Promise((resolve) => setTimeout(resolve, 100))
     expect((log.info as jest.Mock).mock.calls[0][0]).toContain('Sauce Connect successfully started after')
 })
 

@@ -9,7 +9,7 @@ export default function isElementClickable (elem: HTMLElement) {
     }
 
     // Edge before switching to Chromium
-    const isOldEdge = !!window.StyleMedia
+    const isOldEdge = !!(window as any).StyleMedia
     // returns true for Chrome and Firefox and false for Safari, Edge and IE
     const scrollIntoViewFullSupport = !((window as any).safari || isOldEdge)
 
@@ -78,7 +78,7 @@ export default function isElementClickable (elem: HTMLElement) {
         // @ts-ignore
         let elemsWithShadowRoot = [].concat(elementsFromPoint)
         elemsWithShadowRoot = elemsWithShadowRoot.filter(function (x: HTMLElement) {
-            return x && x.shadowRoot && x.shadowRoot.elementFromPoint
+            return x && x.shadowRoot && (x.shadowRoot as any).elementFromPoint
         })
 
         // getOverlappingElements of every element with shadowRoot

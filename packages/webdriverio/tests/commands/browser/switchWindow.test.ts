@@ -52,8 +52,8 @@ describe('switchWindow', () => {
 
         try {
             await browser.switchWindow('foobar')
-        } catch (e) {
-            expect(e.message).toContain('No window found')
+        } catch (err: any) {
+            expect(err.message).toContain('No window found')
         }
     })
 
@@ -64,8 +64,8 @@ describe('switchWindow', () => {
         try {
             // @ts-ignore test invalid parameter
             await browser.switchWindow(true)
-        } catch (e) {
-            expect(e.message).toContain('Unsupported parameter')
+        } catch (err: any) {
+            expect(err.message).toContain('Unsupported parameter')
         }
     })
 

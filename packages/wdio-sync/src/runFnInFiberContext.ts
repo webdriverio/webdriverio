@@ -17,7 +17,7 @@ export default function runFnInFiberContext (fn: Function) {
                 const result = fn.apply(this, args)
                 global._HAS_FIBER_CONTEXT = false
                 return resolve(result)
-            } catch (err) {
+            } catch (err: any) {
                 return reject(err)
             }
         }).run())

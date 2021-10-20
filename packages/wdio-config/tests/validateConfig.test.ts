@@ -74,6 +74,7 @@ describe('validateConfig', () => {
     })
 
     it('should keep certain keys if desired', () => {
+        // @ts-expect-error
         expect(validateConfig({
             logLevel: {
                 type: 'string',

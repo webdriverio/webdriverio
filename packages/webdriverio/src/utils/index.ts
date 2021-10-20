@@ -121,7 +121,7 @@ export function transformToCharString (value: any, translateToUnicode = true) {
         } else if (val && typeof val === 'object') {
             try {
                 ret.push(...JSON.stringify(val).split(''))
-            } catch (e) { /* ignore */ }
+            } catch (err: any) { /* ignore */ }
         } else if (typeof val === 'boolean') {
             const entry = val ? 'true'.split('') : 'false'.split('')
             ret.push(...entry)
@@ -189,7 +189,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
             if (parsedValue.parsed.type && parsedValue.parsed.type === 'number' && parsedValue.parsed.unit === '') {
                 parsedValue.value = parsedValue.parsed.value
             }
-        } catch (e) {
+        } catch (err: any) {
             // TODO improve css-parse lib to handle properties like
             // `-webkit-animation-timing-function :  cubic-bezier(0.25, 0.1, 0.25, 1)
         }
@@ -412,7 +412,7 @@ export function validateUrl (url: string, origError?: Error): string {
     try {
         const urlObject = new URL(url)
         return urlObject.href
-    } catch (e) {
+    } catch (err: any) {
         /**
          * if even adding http:// doesn't help, fail with original error
          */
@@ -420,7 +420,7 @@ export function validateUrl (url: string, origError?: Error): string {
             throw origError
         }
 
-        return validateUrl(`http://${url}`, e)
+        return validateUrl(`http://${url}`, new Error(`Invalid URL: ${url}`))
     }
 }
 

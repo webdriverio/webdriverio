@@ -174,7 +174,7 @@ test('launch Firefox with default values', async () => {
 
     try {
         await launch({ browserName: 'firefox' })
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toContain('Only Nightly release channel is supported')
     }
 })
@@ -197,7 +197,7 @@ test('launch Firefox with custom arguments', async () => {
                 }
             }
         })
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toContain('Only Nightly release channel is supported')
     }
 })
@@ -249,8 +249,8 @@ test('throws if browser is unknown', async () => {
 
     try {
         await launch({ browserName: 'foobar' })
-    } catch (e) {
-        expect(e.message).toContain('Couldn\'t identify browserName')
+    } catch (err: any) {
+        expect(err.message).toContain('Couldn\'t identify browserName')
     }
 })
 
@@ -296,7 +296,7 @@ test('launch Firefox without Puppeteer default args', async () => {
                 ignoreDefaultArgs: true
             }
         })
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toContain('Only Nightly release channel is supported')
     }
 })
@@ -319,7 +319,7 @@ test('launch Firefox without Puppeteer default args (backwards compat)', async (
             // @ts-ignore
             ignoreDefaultArgs: true
         })
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toContain('Only Nightly release channel is supported')
     }
 })

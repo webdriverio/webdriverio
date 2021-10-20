@@ -104,7 +104,7 @@ export default class CommandHandler {
             const traceBuffer = await this._page.tracing.stop()
             this._traceEvents = JSON.parse(traceBuffer.toString('utf8'))
             this._isTracing = false
-        } catch (err) {
+        } catch (err: any) {
             throw new Error(`Couldn't parse trace events: ${err.message}`)
         }
 

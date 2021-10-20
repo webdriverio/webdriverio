@@ -45,6 +45,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         await cbtLauncher.onPrepare()
         expect(cbtTunnels.start).toHaveBeenCalledWith({ username: 'test', authkey: 'testy', nokill: true, options: 'some options' }, expect.any(Function))
         expect(cbtLauncher['_cbtTunnelOpts']).toEqual({ username: 'test', authkey: 'testy', nokill: true, options: 'some options' })
+        await new Promise((resolve) => setTimeout(resolve, 100))
         expect((logger('').info as jest.Mock).mock.calls[0][0]).toContain('CrossBrowserTesting tunnel successfully started after')
 
     })
