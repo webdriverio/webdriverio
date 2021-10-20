@@ -17,12 +17,12 @@ describe('Jasmine reporter', () => {
     // not shown in reporter
     afterEach(() => {})
 
-    it('should return sync value', () => {
-        expect(browser.getTitle()).toBe('Mock Page Title')
+    it('should return sync value', async () => {
+        expect(await browser.getTitle()).toBe('Mock Page Title')
     })
 
-    it('should fail', () => {
-        expect(browser.getTitle()).toBe('Oh, no!')
+    it('should fail', async () => {
+        expect(await browser.getTitle()).toBe('Oh, no!')
     })
 
     describe('Jasmine nested suite', () => {
