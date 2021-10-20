@@ -183,11 +183,23 @@ const button = await $('[role=button]')
 console.log(await button.click())
 ```
 
-## id
+## ID Attribute
 
-Finding element by id has no specific syntax in WebDriver and one should use either CSS selectors (`#<my element ID>`) or xPath (`//*[@id="<my element ID>"]`).
+Locator strategy "id" is not supported in webdriver protocol, one should use either css or xpath selector strategies instead to find elements using ID.
 
 However some drivers (e.g. [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) might still [support](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) this selector.
+
+current supported selector syntaxes for ID are :
+
+```js
+//css locator
+const button = await $('#someid')
+//xpath locator
+const button = await $('//*[@id="someid"'])
+//id strategy 
+// Note: works only in Appium or similar frameworks which supports locator strategy "ID"
+const button = await $('id=someid')
+```
 
 ## JS Function
 
