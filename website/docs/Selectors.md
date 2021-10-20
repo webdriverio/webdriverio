@@ -185,7 +185,7 @@ console.log(await button.click())
 
 ## ID Attribute
 
-Locator strategy "id" is not supported in webdriver protocol, one should use either css or xpath selector strategies instead to find elements using ID.
+Locator strategy "id" is not supported in WebDriver protocol, one should use either CSS or xPath selector strategies instead to find elements using ID.
 
 However some drivers (e.g. [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) might still [support](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) this selector.
 
