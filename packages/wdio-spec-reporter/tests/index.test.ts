@@ -828,4 +828,86 @@ describe('SpecReporter', () => {
             }, false)).toBe('chrome 50 (unknown)')
         })
     })
+
+    describe('add real time report', () => {
+        const options = { realTimeReporting: true }
+
+        it('should call printCurrentStats for passing test', () => {
+            tmpReporter = new SpecReporter(options)
+            jest.spyOn(tmpReporter, 'printCurrentStats')
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestPass({
+                title:'test1',
+                state:'passed'
+            })
+            expect(tmpReporter.printCurrentStats).toBeCalledWith({
+                title:'test1',
+                state:'passed'
+            })
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should call printCurrentStats for falling test', () => {
+            tmpReporter = new SpecReporter(options)
+            jest.spyOn(tmpReporter, 'printCurrentStats')
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestPass({
+                title:'test1',
+                state:'failed'
+            })
+            expect(tmpReporter.printCurrentStats).toBeCalledWith({
+                title:'test1',
+                state:'failed'
+            })
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should call printCurrentStats skipped test', () => {
+            tmpReporter = new SpecReporter(options)
+            jest.spyOn(tmpReporter, 'printCurrentStats')
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestPass({
+                title:'test1',
+                state:'skipped'
+            })
+            expect(tmpReporter.printCurrentStats).toBeCalledWith({
+                title:'test1',
+                state:'skipped'
+            })
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should not call printCurrentStats for passing test', () => {
+            options.realTimeReporting = false
+            tmpReporter = new SpecReporter(options)
+            jest.spyOn(tmpReporter, 'printCurrentStats')
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestPass({
+                title:'test1',
+                state:'passed'
+            })
+            expect(tmpReporter.printCurrentStats).not.toBeCalledWith({
+                title:'test1',
+                state:'passed'
+            })
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+    })
+
 })
