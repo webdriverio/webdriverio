@@ -26,8 +26,8 @@ jobs:
       - name: Dependency Check
         if: ${{ matrix.node-version == '16.x' }}
         run: npm run test:depcheck
-      - name: Lint / Typings / Unit
-        run: npx run-s test:eslint test:typings test:coverage test:smoke
+      - name: Lint / Typings / Unit / Smoke Tests
+        run: ./node_modules/.bin/run-s test:eslint test:typings test:coverage test:smoke
   e2e-windows:
     runs-on: windows-latest
     steps:
