@@ -82,11 +82,13 @@ try {
      * only load @wdio/sync with Node.js v15 and below
      */
     const [major] = process.versions.node.split('.')
-    if (parseInt(major) < 16) {
-        const packageName = '@wdio/sync'
-        wdioSync = require(packageName)
-        hasWdioSyncSupport = true
+    if (parseInt(major) >= 16) {
+        throw new Error('@wdio/sync is not support with NodeJS v16 and above')
     }
+
+    const packageName = '@wdio/sync'
+    wdioSync = require(packageName)
+    hasWdioSyncSupport = true
 
     /**
      * only print within worker process
