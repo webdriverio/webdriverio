@@ -23,6 +23,7 @@ export default class SpecReporter extends WDIOReporter {
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
     private _addConsoleLogs = false
+    private _realTimeReporting = false
 
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
@@ -49,6 +50,7 @@ export default class SpecReporter extends WDIOReporter {
 
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
+        this._realTimeReporting = options.realTimeReporting || false
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
@@ -69,13 +71,14 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onSuiteStart (suite: SuiteStats) {
-        this._suiteIndent = this.indent(suite.uid)
-        const testTitle = suite.title
-        const divider = '------------------------------------------------------------------'
-        console.log(divider)
-        console.log('Suite started : ')
-        console.log(`${this._preface} ${testTitle}`)
-
+        if (this._realTimeReporting){
+            this._suiteIndent = this.indent(suite.uid)
+            const testTitle = suite.title
+            const divider = '------------------------------------------------------------------'
+            console.log(divider)
+            console.log('Suite started : ')
+            console.log(`${this._preface} ${testTitle}`)
+        }
         this._suiteUids.add(suite.uid)
         if (suite.type === 'feature') {
             this._indents = 0
@@ -100,19 +103,19 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onTestPass (testStat:TestStats) {
-        this.printCurrentStats(testStat)
+        if (this._realTimeReporting) this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.passed++
     }
 
     onTestFail (testStat:TestStats) {
-        this.printCurrentStats(testStat)
+        if (this._realTimeReporting) this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.failed++
     }
 
     onTestSkip (testStat:TestStats) {
-        this.printCurrentStats(testStat)
+        if (this._realTimeReporting) this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
     }
@@ -125,7 +128,7 @@ export default class SpecReporter extends WDIOReporter {
         const testTitle = testStat.title
         const state = testStat.state
         const testIndent = `${DEFAULT_INDENT}${this._suiteIndent}`
-        // Output for a single test
+        // Print status of single test to screen
         console.log(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
     }
 
