@@ -78,9 +78,15 @@ let wdioSync: WDIOSync | undefined
 export let runAsync = false
 export let asyncSpec = false
 try {
-    const packageName = '@wdio/sync'
-    wdioSync = require(packageName)
-    hasWdioSyncSupport = true
+    /**
+     * only load @wdio/sync with Node.js v15 and below
+     */
+    const [major] = process.versions.node.split('.')
+    if (parseInt(major) < 16) {
+        const packageName = '@wdio/sync'
+        wdioSync = require(packageName)
+        hasWdioSyncSupport = true
+    }
 
     /**
      * only print within worker process

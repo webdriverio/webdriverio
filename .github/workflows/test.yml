@@ -27,10 +27,7 @@ jobs:
         if: ${{ matrix.node-version == '16.x' }}
         run: npm run test:depcheck
       - name: Lint / Typings / Unit
-        run: npx run-s test:eslint test:typings test:coverage
-      - name: Smoke Tests
-        if: ${{ matrix.node-version == '16.x' }}
-        run: npx run-s test:smoke
+        run: npx run-s test:eslint test:typings test:coverage test:smoke
   e2e-windows:
     runs-on: windows-latest
     steps:
