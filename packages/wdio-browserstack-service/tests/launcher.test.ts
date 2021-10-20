@@ -99,7 +99,7 @@ describe('onPrepare', () => {
 
         await service.onPrepare(config, caps)
         expect(service.browserstackLocal?.start).toHaveBeenCalled()
-        await sleep(0)
+        await sleep(100)
         expect(logInfoMock.mock.calls[0][0])
             .toContain('Browserstack Local successfully started after')
     })
