@@ -85,7 +85,10 @@ describe('SpecReporter', () => {
 
     describe('onTestPass', () => {
         beforeAll(() => {
-            reporter.onTestPass()
+            reporter.onTestPass({
+                title:'test1',
+                state:'passed'
+            })
         })
 
         it('should increase stateCounts.passed by 1', () => {
@@ -95,7 +98,10 @@ describe('SpecReporter', () => {
 
     describe('onTestFail', () => {
         beforeAll(() => {
-            reporter.onTestFail()
+            reporter.onTestFail({
+                title:'test1',
+                state:'failed'
+            })
         })
 
         it('should increase stateCounts.failed by 1', () => {
@@ -105,7 +111,10 @@ describe('SpecReporter', () => {
 
     describe('onTestSkip', () => {
         beforeAll(() => {
-            reporter.onTestSkip()
+            reporter.onTestSkip({
+                title:'test1',
+                state:'skipped'
+            })
         })
 
         it('should increase stateCounts.skipped by 1', () => {
@@ -555,7 +564,10 @@ describe('SpecReporter', () => {
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
             tmpReporter['_consoleOutput']='Printing to console spec'
-            tmpReporter.onTestPass()
+            tmpReporter.onTestPass({
+                title:'test1',
+                state:'passed'
+            })
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -567,7 +579,10 @@ describe('SpecReporter', () => {
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
             tmpReporter['_consoleOutput']='Printing to console spec'
-            tmpReporter.onTestFail()
+            tmpReporter.onTestFail({
+                title:'test1',
+                state:'failed'
+            })
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -579,7 +594,10 @@ describe('SpecReporter', () => {
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
             tmpReporter['_consoleOutput']='Printing to console spec'
-            tmpReporter.onTestSkip()
+            tmpReporter.onTestSkip({
+                title:'test1',
+                state:'skipped'
+            })
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
