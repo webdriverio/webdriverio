@@ -6,14 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time and for sharing your great idea with us.
-        Like many WebdriverIO is an open source project and lives from these
-        great ideas.
+        Thanks for taking the time and for sharing your great idea with us. Like many WebdriverIO is an open source project and lives from these great ideas.
   - type: textarea
     id: problem
     attributes:
       label: Is your feature request related to a problem?
-      description: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+      description: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...].
       render: markdown
     validations:
       required: true

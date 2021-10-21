@@ -6,14 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time and for sharing your great idea with us.
-        Like many WebdriverIO is an open source project and lives from these
-        great ideas.
+        Please let us know where we are not doing well with out documentation.
   - type: checkboxes
     id: awareness
     attributes:
       label: Pre-check
-      description: I'm aware that I can [edit the docs](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md) and submit a pull request
+      description: I'm aware that I can [edit the docs](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md) and submit a pull request.
       options:
         - label: I know I can edit the docs but prefer to file this issue
           required: true

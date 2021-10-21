@@ -6,13 +6,11 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
-        First, let's get some information about the environment
-        you are using:
+        Thanks for taking the time to fill out this bug report! First, let's get some information about the environment you are using:
   - type: input
     id: wdio-version
     attributes:
-      label: Version
+      label: WebdriverIO Version
       description: What version of WebdriverIO are you running?
       placeholder: latest
     validations:
@@ -20,7 +18,7 @@ body:
   - type: input
     id: node-version
     attributes:
-      label: Version
+      label: Node.js Version
       description: What version of Node.js are you using?
       placeholder: latest
     validations:
@@ -30,7 +28,7 @@ body:
     attributes:
       label: Mode
       description: |
-        [Standalone mode](https://webdriver.io/docs/setuptypes#standalone-mode) or [WDIO Testrunner](https://webdriver.io/docs/setuptypes#the-wdio-testrunner)
+        [Standalone mode](https://webdriver.io/docs/setuptypes#standalone-mode) or [WDIO Testrunner](https://webdriver.io/docs/setuptypes#the-wdio-testrunner)?
       options:
         - Standalone Mode
         - WDIO Testrunner
@@ -40,7 +38,7 @@ body:
     id: capabilities
     attributes:
       label: Which capabilities are you using?
-      description: If you the bug is related to the capabilities your are using, please share them with us here.
+      description: If you think the bug is related to the capabilities you are using, please share them with us here.
       placeholder: |
         {
           browserName: 'chrome',
@@ -88,7 +86,7 @@ body:
         ```sh
         $ node reproducibleExample.js
         ````
-      render: shell
+      render: markdown
     validations:
       required: true
   - type: textarea
@@ -96,9 +94,8 @@ body:
     attributes:
       label: Relevant log output
       description: |
-        Please copy and paste any relevant log output. Either paste the terminal output
-        or set [`outputDir`](https://webdriver.io/docs/options#outputdir) in your WDIO
-        config and copy the files content in here.
+        Please copy and paste any relevant log output. Either paste the terminal
+        output or set [`outputDir`](https://webdriver.io/docs/options#outputdir) in your WDIO config and copy the files content in here.
       render: shell
     validations:
       required: true
