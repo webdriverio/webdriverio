@@ -70,19 +70,17 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onRunnerStart(runner:RunnerStats) {
-        log.setLevel('INFO')
+        this._realTimeReporting ? log.setLevel('INFO') : log.setLevel('SILENT')
         this._preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]`
     }
 
     onSuiteStart (suite: SuiteStats) {
-        if (this._realTimeReporting){
-            this._suiteIndent = this.indent(suite.uid)
-            const testTitle = suite.title
-            const divider = '------------------------------------------------------------------'
-            log.info(divider)
-            log.info('Suite started : ')
-            log.info(`${this._preface} ${testTitle}`)
-        }
+        this._suiteIndent = this.indent(suite.uid)
+        const testTitle = suite.title
+        const divider = '------------------------------------------------------------------'
+        log.info(divider)
+        log.info('Suite started : ')
+        log.info(`${this._preface} ${testTitle}`)
         this._suiteUids.add(suite.uid)
         if (suite.type === 'feature') {
             this._indents = 0
@@ -97,6 +95,7 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onHookEnd (hook: HookStats) {
+        this.printCurrentStats(hook)
         if (hook.error) {
             this._stateCounts.failed++
         }
@@ -107,19 +106,19 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onTestPass (testStat:TestStats) {
-        if (this._realTimeReporting) this.printCurrentStats(testStat)
+        this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.passed++
     }
 
     onTestFail (testStat:TestStats) {
-        if (this._realTimeReporting) this.printCurrentStats(testStat)
+        this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.failed++
     }
 
     onTestSkip (testStat:TestStats) {
-        if (this._realTimeReporting) this.printCurrentStats(testStat)
+        this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
     }
@@ -128,7 +127,7 @@ export default class SpecReporter extends WDIOReporter {
         this.printReport(runner)
     }
 
-    printCurrentStats(testStat:TestStats){
+    printCurrentStats(testStat:TestStats|HookStats){
         const testTitle = testStat.title
         const state = testStat.state
         const testIndent = `${DEFAULT_INDENT}${this._suiteIndent}`
