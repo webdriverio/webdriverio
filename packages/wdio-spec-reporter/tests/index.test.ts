@@ -888,26 +888,6 @@ describe('SpecReporter', () => {
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
-
-        it('should not call printCurrentStats for passing test', () => {
-            options.realTimeReporting = false
-            tmpReporter = new SpecReporter(options)
-            jest.spyOn(tmpReporter, 'printCurrentStats')
-            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
-            tmpReporter.onTestStart()
-            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
-            tmpReporter.onTestPass({
-                title:'test1',
-                state:'passed'
-            })
-            expect(tmpReporter.printCurrentStats).not.toBeCalledWith({
-                title:'test1',
-                state:'passed'
-            })
-            tmpReporter.onSuiteEnd()
-            tmpReporter.onRunnerEnd(runnerEnd())
-        })
     })
 
 })
