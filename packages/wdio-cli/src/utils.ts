@@ -114,6 +114,7 @@ export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
         caps.appWaitActivity ||
         caps.app ||
         caps.platformName ||
+        caps['appium:platformName'] ||
         caps['appium:appPackage'] ||
         caps['appium:appWaitActivity'] ||
         caps['appium:appWaitActivity'] ||
