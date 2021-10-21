@@ -108,12 +108,11 @@ export async function runOnCompleteHook(
  * get runner identification by caps
  */
 export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
-    let runner =
-        caps.browserName ||
-        caps.appPackage ||
-        caps.appWaitActivity ||
-        caps.app ||
-        caps.platformName
+    const capsArray =  Object.keys(caps)
+    //search for property without vendor prefix
+    const prop = capsArray.find(element => /browserName|appPackage|appWaitActivity|app|platformName/g.test(element))
+    // @ts-ignore:
+    let runner = caps[prop]
 
     // MultiRemote
     if (!runner) {
