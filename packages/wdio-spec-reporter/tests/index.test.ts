@@ -891,7 +891,7 @@ describe('SpecReporter', () => {
     })
 
     it('should call printCurrentStats on Hook complete', () => {
-        tmpReporter = new SpecReporter(options)
+        tmpReporter = new SpecReporter({ realTimeReporting : false })
         jest.spyOn(tmpReporter, 'printCurrentStats')
         tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
         tmpReporter.onTestStart()
