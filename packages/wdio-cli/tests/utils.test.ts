@@ -191,6 +191,8 @@ test('runOnCompleteHook with failure returns 1', async () => {
 })
 
 test('getRunnerName', () => {
+    expect(getRunnerName({ 'appium:platformName': 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ 'platformName': 'foobar' })).toBe('foobar')
     expect(getRunnerName({ browserName: 'foobar' })).toBe('foobar')
     expect(getRunnerName({ appPackage: 'foobar' })).toBe('foobar')
     expect(getRunnerName({ appWaitActivity: 'foobar' })).toBe('foobar')
