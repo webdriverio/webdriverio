@@ -344,7 +344,6 @@ export interface ChromeCapabilities {
 // Appium General Capabilities
 export interface AppiumCapabilities {
     automationName?: string;
-//    platformName?: string;
     platformVersion?: string;
     deviceName?: string;
     app?: string;
