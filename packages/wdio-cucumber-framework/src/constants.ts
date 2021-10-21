@@ -1,5 +1,5 @@
 import { CucumberOptions } from './types'
-import { PickleStep } from '@cucumber/messages'
+import { Pickle, PickleStep } from '@cucumber/messages'
 
 export const DEFAULT_TIMEOUT = 60000
 
@@ -39,4 +39,12 @@ export const CUCUMBER_HOOK_DEFINITION_TYPES = [
  */
 export interface ReporterStep extends PickleStep {
     keyword?: string
+}
+
+/**
+ * The pickle scenario needs to have a rule for the reporters, otherwise reporters like
+ * the allure or spec reporter won't show the rule
+ */
+export interface ReporterScenario extends Pickle {
+    rule?: string
 }

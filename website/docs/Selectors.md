@@ -198,8 +198,7 @@ const button = await $('#someid')
 const button = await $('//*[@id="someid"'])
 //id strategy 
 // Note: works only in Appium or similar frameworks which supports locator strategy "ID"
-const button = await $('id=resource-id')
-const button = await $('#resource-id')
+const button = await $('id=resource-id/iosname')
 ```
 
 ## JS Function

@@ -55,6 +55,7 @@ Array [
       "file": "/some/path/to/features/my-feature.feature",
       "fullTitle": "my-feature.feature:undefined:1: Get size of an element",
       "parent": "my-feature.feature:undefined:1",
+      "rule": "rule name",
       "specs": Array [
         "/foobar.js",
       ],
@@ -378,6 +379,7 @@ Array [
       "file": "/some/path/to/features/my-feature.feature",
       "fullTitle": "my-feature.feature:undefined:1: Get size of an element",
       "parent": "my-feature.feature:undefined:1",
+      "rule": "rule name",
       "specs": Array [
         "/foobar.js",
       ],

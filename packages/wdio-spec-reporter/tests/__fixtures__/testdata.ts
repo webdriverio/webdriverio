@@ -85,6 +85,7 @@ export const SUITES_WITH_DATA_TABLE = {
     [suiteIds[0]]: {
         uid: suiteIds[0],
         title: suiteIds[0].slice(0, -1),
+        rule: '\tVery important business rule',
         description: '\tSome important\ndescription to read!',
         file: '/foo/bar/loo.e2e.js',
         hooks: [],

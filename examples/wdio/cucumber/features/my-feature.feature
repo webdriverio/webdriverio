@@ -7,16 +7,18 @@ Feature: Example feature
     Given I go on the website "https://github.com/"
     Then  should the element ".header-logged-out a" be 32px wide and 35px high
 
-  Scenario: Get title of website
-    Given I go on the website "https://github.com/"
-    Then  should the title of the page be "GitHub: Where the world builds software · GitHub"
+  Rule: Business rule 1
+    Scenario: Get title of website
+      Given I go on the website "https://github.com/"
+      Then  should the title of the page be "GitHub: Where the world builds software · GitHub"
 
-  Scenario: Data Tables
-    Given I go on the website "http://todomvc.com/examples/react/#/"
-    When  I add the following groceries
-        | Item       | Amount |
-        | Milk       | 2      |
-        | Butter     | 1      |
-        | Noodles    | 1      |
-        | Schocolate | 3      |
-    Then  I should have a list of 4 items
+  Rule: Business rule 2
+    Scenario: Data Tables
+      Given I go on the website "http://todomvc.com/examples/react/#/"
+      When  I add the following groceries
+          | Item       | Amount |
+          | Milk       | 2      |
+          | Butter     | 1      |
+          | Noodles    | 1      |
+          | Schocolate | 3      |
+      Then  I should have a list of 4 items

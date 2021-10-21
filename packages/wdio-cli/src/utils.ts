@@ -113,7 +113,11 @@ export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
         caps.appPackage ||
         caps.appWaitActivity ||
         caps.app ||
-        caps.platformName
+        caps.platformName ||
+        caps['appium:platformName'] ||
+        caps['appium:appPackage'] ||
+        caps['appium:appWaitActivity'] ||
+        caps['appium:app']
 
     // MultiRemote
     if (!runner) {

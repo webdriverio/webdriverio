@@ -363,9 +363,12 @@ export interface AppiumCapabilities {
 // Appium General W3C Capabilities
 export interface AppiumW3CCapabilities {
     'appium:automationName'?: string;
+    'appium:platformName'?: string;
     'appium:platformVersion'?: string;
     'appium:deviceName'?: string;
     'appium:app'?: string;
+    'appium:appPackage'?: string;
+    'appium:appWaitActivity'?: string;
     'appium:newCommandTimeout'?: number;
     'appium:language'?: string;
     'appium:locale'?: string;
