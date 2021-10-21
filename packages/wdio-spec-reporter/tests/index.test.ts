@@ -909,5 +909,3 @@ describe('SpecReporter', () => {
         tmpReporter.onRunnerEnd(runnerEnd())
     })
 })
-
-})
