@@ -890,4 +890,24 @@ describe('SpecReporter', () => {
         })
     })
 
+    it('should call printCurrentStats on Hook complete', () => {
+        tmpReporter = new SpecReporter(options)
+        jest.spyOn(tmpReporter, 'printCurrentStats')
+        tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+        tmpReporter.onTestStart()
+        tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+        tmpReporter['_consoleOutput']='Printing to console spec'
+        tmpReporter.onHookEnd({
+            title:'test1',
+            state:'failed'
+        })
+        expect(tmpReporter.printCurrentStats).toBeCalledWith({
+            title:'test1',
+            state:'failed'
+        })
+        tmpReporter.onSuiteEnd()
+        tmpReporter.onRunnerEnd(runnerEnd())
+    })
+})
+
 })
