@@ -4,6 +4,9 @@ import chalk, { Chalk } from 'chalk'
 import prettyMs from 'pretty-ms'
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils'
 import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types'
+import logger from '@wdio/logger'
+
+const log = logger('@wdio/wdio-spec-reporter')
 
 const DEFAULT_INDENT = '   '
 
@@ -67,6 +70,7 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onRunnerStart(runner:RunnerStats) {
+        log.setLevel('INFO')
         this._preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]`
     }
 
@@ -75,9 +79,9 @@ export default class SpecReporter extends WDIOReporter {
             this._suiteIndent = this.indent(suite.uid)
             const testTitle = suite.title
             const divider = '------------------------------------------------------------------'
-            console.log(divider)
-            console.log('Suite started : ')
-            console.log(`${this._preface} ${testTitle}`)
+            log.info(divider)
+            log.info('Suite started : ')
+            log.info(`${this._preface} ${testTitle}`)
         }
         this._suiteUids.add(suite.uid)
         if (suite.type === 'feature') {
@@ -129,7 +133,7 @@ export default class SpecReporter extends WDIOReporter {
         const state = testStat.state
         const testIndent = `${DEFAULT_INDENT}${this._suiteIndent}`
         // Print status of single test to screen
-        console.log(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
+        log.info(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
     }
 
     /**
