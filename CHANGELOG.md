@@ -19,6 +19,24 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.1 (2021-10-22)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-types`
+  * [#7578](https://github.com/webdriverio/webdriverio/pull/7578) Fix for device Name not showing up ([@praveendvd](https://github.com/praveendvd))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`, `wdio-reporter`, `wdio-spec-reporter`
+  * [#7554](https://github.com/webdriverio/webdriverio/pull/7554) #7439 Propagating rule keyboard to wdio-spec-reporter ([@lthurr](https://github.com/lthurr))
+
+#### :memo: Documentation
+* [#7575](https://github.com/webdriverio/webdriverio/pull/7575) updated documentation ([@praveendvd](https://github.com/praveendvd))
+
+#### Committers: 2
+- Luis Thur ([@lthurr](https://github.com/lthurr))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.15.0 (2021-10-08)
 
 #### :rocket: New Feature

@@ -74,7 +74,7 @@ export interface AddEnvironmentEventArgs {
     value: string
 }
 
-enum TYPE {
+export enum TYPE {
     TEXT = 'text',
     HTML = 'html',
     MARKDOWN = 'markdown'

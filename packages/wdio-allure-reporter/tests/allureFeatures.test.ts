@@ -1,6 +1,7 @@
 import { CommandArgs, SuiteStats, TestStats } from '@wdio/reporter'
 import AllureReporter from '../src'
 import { linkPlaceholder } from '../src/constants'
+import { TYPE } from '../src/types'
 
 let processOn: any
 beforeAll(() => {
@@ -168,9 +169,12 @@ describe('reporter runtime implementation', () => {
             getCurrentTest: mock,
         } as any
 
-        reporter.addDescription({ description: 'foo', descriptionType: 'bar' })
+        reporter.addDescription({
+            description: 'foo',
+            descriptionType: TYPE.MARKDOWN
+        })
         expect(setDescription).toHaveBeenCalledTimes(1)
-        expect(setDescription).toHaveBeenCalledWith('foo', 'bar')
+        expect(setDescription).toHaveBeenCalledWith('foo', TYPE.MARKDOWN)
     })
 
     it('should correct add attachment', () => {
@@ -293,15 +297,24 @@ describe('reporter runtime implementation', () => {
 
     it('should do nothing if no tests run', () => {
         const reporter = new AllureReporter()
-        expect(reporter.addLabel({})).toEqual(false)
-        expect(reporter.addStory({})).toEqual(false)
-        expect(reporter.addFeature({})).toEqual(false)
-        expect(reporter.addSeverity({})).toEqual(false)
-        expect(reporter.addIssue({})).toEqual(false)
-        expect(reporter.addTestId({})).toEqual(false)
-        expect(reporter.addEnvironment({})).toEqual(false)
-        expect(reporter.addDescription({})).toEqual(false)
-        expect(reporter.addAttachment({})).toEqual(false)
+        expect(reporter.addLabel({ name: 'foo', value: 'bar' }))
+            .toEqual(false)
+        expect(reporter.addStory({ storyName: 'foobar' }))
+            .toEqual(false)
+        expect(reporter.addFeature({ featureName: 'foobar' }))
+            .toEqual(false)
+        expect(reporter.addSeverity({ severity: 'foobar' }))
+            .toEqual(false)
+        expect(reporter.addIssue({ issue: 'foobar' }))
+            .toEqual(false)
+        expect(reporter.addTestId({ testId: '123' }))
+            .toEqual(false)
+        expect(reporter.addEnvironment({ name: 'foo', value: 'bar' }))
+            .toEqual(false)
+        expect(reporter.addDescription({ description: 'foobar' }))
+            .toEqual(false)
+        expect(reporter.addAttachment({ name: '', content: '', type: '' }))
+            .toEqual(false)
         expect(reporter.startStep('test')).toEqual(false)
         expect(reporter.endStep('passed')).toEqual(false)
         expect(reporter.addStep({})).toEqual(false)
