@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 
 import { writeFile, deleteFile, getPidPath } from './utils'
+import { setPort } from './client'
 
 const log = logger('@wdio/shared-store-service')
 
@@ -16,6 +17,7 @@ export default class SharedStoreLauncher {
     async onPrepare () {
         server = require('./server').default
         const result = await server.startServer()
+        setPort(result.port)
 
         log.info(`Started shared server on port ${result.port}`)
         await writeFile(this.pidFile, result.port.toString())
