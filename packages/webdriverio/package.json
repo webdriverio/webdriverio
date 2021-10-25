@@ -56,7 +56,7 @@
     "@types/lodash.zip": "^4.2.6"
   },
   "dependencies": {
-    "@types/aria-query": "^4.2.1",
+    "@types/aria-query": "^5.0.0",
     "@types/node": "^16.11.1",
     "@wdio/config": "7.16.1",
     "@wdio/logger": "7.16.0",
