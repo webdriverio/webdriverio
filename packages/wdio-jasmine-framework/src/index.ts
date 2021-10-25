@@ -36,8 +36,8 @@ class JasmineAdapter {
     private _totalTests = 0
     private _hookIds = 0
     private _hasTests = true
-    private _lastTest?: jasmine.NestedResults
-    private _lastSpec?: jasmine.NestedResults
+    private _lastTest?: any
+    private _lastSpec?: any
 
     private _jrunner?: Jasmine
 
@@ -122,6 +122,11 @@ class JasmineAdapter {
                 fullName: title,
                 duration: null,
                 properties: {},
+                passedExpectations: [],
+                pendingReason: '',
+                failedExpectations: [],
+                deprecationWarnings: [],
+                status: '',
                 ...(error ? { error } : {})
             }
 
@@ -229,8 +234,8 @@ class JasmineAdapter {
     _grep (suite: jasmine.Suite) {
         // @ts-ignore outdated types
         suite.children.forEach((child) => {
-            if (Array.isArray(child.children)) {
-                return this._grep(child)
+            if (Array.isArray((child as jasmine.Suite).children)) {
+                return this._grep(child as jasmine.Suite)
             }
             if (this.customSpecFilter(child)) {
                 this._totalTests++
@@ -248,7 +253,11 @@ class JasmineAdapter {
                 return reject(new Error('Jasmine not initiate yet'))
             }
 
+            // @ts-expect-error
+            console.log(this._jrunner.env.beforeAll)
+            // @ts-expect-error
             this._jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
+            // @ts-expect-error
             this._jrunner.env.afterAll(this.wrapHook('afterSuite'))
 
             this._jrunner.onComplete(() => resolve(this._reporter.getFailedCount()))

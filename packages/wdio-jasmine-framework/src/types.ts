@@ -10,8 +10,16 @@ export interface ParentSuite {
     tests: number
 }
 
-export interface TestEvent extends jasmine.CustomReporterResult {
-    type: 'suite' | 'test' | 'hook'
+export interface SuiteEvent extends jasmine.SuiteResult {
+    type: 'suite'
+    start: Date,
+    duration: number | null,
+    errors?: jasmine.FailedExpectation[],
+    error?: jasmine.FailedExpectation
+}
+
+export interface TestEvent extends jasmine.SpecResult {
+    type: 'test' | 'hook'
     start: Date,
     duration: number | null,
     errors?: jasmine.FailedExpectation[],
