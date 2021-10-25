@@ -34,7 +34,7 @@
     "atob": "^2.1.2",
     "babel-plugin-istanbul": "^6.0.0",
     "core-js": "~3.19.0",
-    "devtools-protocol": "^0.0.928170",
+    "devtools-protocol": "^0.0.933220",
     "istanbul-lib-coverage": "^3.0.0",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.0.2",
