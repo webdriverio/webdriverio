@@ -254,8 +254,6 @@ class JasmineAdapter {
             }
 
             // @ts-expect-error
-            console.log(this._jrunner.env.beforeAll)
-            // @ts-expect-error
             this._jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
             // @ts-expect-error
             this._jrunner.env.afterAll(this.wrapHook('afterSuite'))
