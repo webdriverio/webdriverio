@@ -93,13 +93,13 @@ describe('onPrepare', () => {
             .then(() => expect(service.browserstackLocal?.start).toHaveBeenCalled())
     })
 
-    it.only('should successfully resolve if local.start is successful', async () => {
+    it('should successfully resolve if local.start is successful', async () => {
         const logInfoMock = jest.spyOn(log, 'info')
         const service = new BrowserstackLauncher(options, caps, config)
 
         await service.onPrepare(config, caps)
         expect(service.browserstackLocal?.start).toHaveBeenCalled()
-        await sleep(0)
+        await sleep(100)
         expect(logInfoMock.mock.calls[0][0])
             .toContain('Browserstack Local successfully started after')
     })

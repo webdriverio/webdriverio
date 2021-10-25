@@ -5,6 +5,7 @@ import { Feature, Pickle, PickleStep, TestStep, TestStepResult, TestCaseFinished
 import CucumberEventListener from './cucumberEventListener'
 import { getFeatureId, formatMessage, getStepType, buildStepPayload } from './utils'
 import type { ReporterOptions } from './types'
+import { ReporterScenario } from './constants'
 
 class CucumberReporter {
     public eventListener: CucumberEventListener
@@ -57,7 +58,7 @@ class CucumberReporter {
     handleBeforeScenario (
         uri: string,
         feature: Feature,
-        scenario: Pickle
+        scenario: ReporterScenario
     ) {
         this._scenarioStart = new Date()
         this._testStart = new Date()
@@ -68,7 +69,8 @@ class CucumberReporter {
             parent: getFeatureId(uri, feature),
             type: 'scenario',
             file: uri,
-            tags: scenario.tags
+            tags: scenario.tags,
+            rule: scenario.rule
         })
     }
 

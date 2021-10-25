@@ -270,6 +270,12 @@ export default class SpecReporter extends WDIOReporter {
                 output.push('') // empty line
             }
 
+            // display suite rule (Cucumber only)
+            if (suite.rule) {
+                output.push(...suite.rule.trim().split('\n')
+                    .map((l) => `${suiteIndent}${chalk.grey(l.trim())}`))
+            }
+
             const eventsToReport = this.getEventsToReport(suite)
             for (const test of eventsToReport) {
                 const testTitle = test.title

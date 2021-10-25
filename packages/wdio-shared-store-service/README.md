@@ -32,6 +32,7 @@ Get/set a value (plain object) to/from the store by key (string).
 `browser.sharedStore.get('key')` get value from store (returns `'value'`)
 
 You could also directly access to `setValue` and `getValue` async handlers.
+Make sure you properly call them with the `await` keyword.
 
 ```js
 import { setValue } from '@wdio/shared-store-service'

@@ -8,7 +8,9 @@ import {
     filterPickles,
     getTestStepTitle,
     addKeywordToStep,
+    getRule,
 } from '../src/utils'
+import { featureWithRules } from './fixtures/features'
 
 describe('utils', () => {
     describe('createStepArgument', () => {
@@ -232,5 +234,14 @@ describe('utils', () => {
         }
 
         expect(addKeywordToStep(steps, feature)).toMatchSnapshot()
+    })
+
+    it('getRule should get the rule for an specific scenrio id', ()=>{
+        const feature = featureWithRules
+
+        expect(getRule(feature, '1')).toBe(undefined)
+        expect(getRule(feature, '2')).toBe('Rule for scenario 2')
+        expect(getRule(feature, '3')).toBe('Rule for scenario 3 and 4')
+        expect(getRule(feature, '4')).toBe('Rule for scenario 3 and 4')
     })
 })

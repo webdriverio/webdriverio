@@ -564,7 +564,7 @@ describe('launcher', () => {
                 caps,
                 ['/foo.test.js'],
                 { hostname: '127.0.0.2' },
-                []
+                ['--no-wasm-code-gc']
             )
         })
 
@@ -596,7 +596,7 @@ describe('launcher', () => {
                 caps,
                 ['/foo.test.js'],
                 { hostname: '127.0.0.3' },
-                []
+                ['--no-wasm-code-gc']
             )
         })
 
@@ -627,7 +627,7 @@ describe('launcher', () => {
                 caps,
                 ['/foo.test.js'],
                 { hostname: '127.0.0.4' },
-                []
+                ['--no-wasm-code-gc']
             )
         })
     })
