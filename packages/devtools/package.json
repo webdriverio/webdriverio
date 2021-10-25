@@ -32,7 +32,7 @@
     "edge-paths": "^2.1.0",
     "puppeteer-core": "^10.1.0",
     "query-selector-shadow-dom": "^1.0.0",
-    "ua-parser-js": "0.7.28",
+    "ua-parser-js": "^1.0.1",
     "uuid": "^8.0.0"
   },
   "devDependencies": {
