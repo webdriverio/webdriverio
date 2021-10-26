@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@types/node": "^16.11.1",
+    "@types/ua-parser-js": "^0.7.33",
     "@wdio/config": "7.16.1",
     "@wdio/logger": "7.16.0",
     "@wdio/protocols": "7.16.1",
@@ -36,7 +37,6 @@
     "uuid": "^8.0.0"
   },
   "devDependencies": {
-    "@types/ua-parser-js": "^0.7.33",
     "@types/uuid": "^8.3.0"
   }
 }
