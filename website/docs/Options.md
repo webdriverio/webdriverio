@@ -413,11 +413,11 @@ Parameters:
 
 ### beforeTest
 
-Function to be executed before a test (in Mocha/Jasmine) starts.
+Function to be executed before a test (in Mocha/Jasmine only).
 
 Parameters:
 - `test` (`object`): test details
-- `context` (`object`): test context
+- `context` (`object`): scope object the test was executed with
 
 ### beforeCommand
 
@@ -443,7 +443,12 @@ Function to be executed after a test (in Mocha/Jasmine) ends.
 
 Parameters:
 - `test` (`object`): test details
-- `context` (`object`): test context
+- `context` (`object`): scope object the test was executed with
+- `result.error` (`Error`): error object in case the test fails, otherwise `undefined`
+- `result.result` (`Any`): return object of test function
+- `result.duration` (`Number`): duration of test
+- `result.passed` (`Boolean`): true if test has passed, otherwise false
+- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite

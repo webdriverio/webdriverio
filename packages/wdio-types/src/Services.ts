@@ -179,17 +179,21 @@ export interface HookFunctions {
     beforeSuite?(suite: Suite): void;
 
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) starts.
-     * @param test      details to current running test (represents step in Cucumber)
-     * @param context   context to current running test (represents World object in Cucumber)
+     * Function to be executed before a test (in Mocha/Jasmine only)
+     * @param {Object} test    test object
+     * @param {Object} context scope object the test was executed with
      */
     beforeTest?(test: Test, context: any): void;
 
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) ends.
-     * @param test      details to current running test (represents step in Cucumber)
-     * @param context   context to current running test (represents World object in Cucumber)
-     * @param result    test result
+     * Function to be executed after a test (in Mocha/Jasmine only)
+     * @param {Object}  test             test object
+     * @param {Object}  context          scope object the test was executed with
+     * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`
+     * @param {Any}     result.result    return object of test function
+     * @param {Number}  result.duration  duration of test
+     * @param {Boolean} result.passed    true if test has passed, otherwise false
+     * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
     afterTest?(test: Test, context: any, result: TestResult): void;
 
