@@ -19,6 +19,25 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.3 (2021-10-26)
+
+#### :bug: Bug Fix
+* `wdio-shared-store-service`
+  * [#7593](https://github.com/webdriverio/webdriverio/pull/7593) Fix running setValue in onPrepare hook ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`, `wdio-jasmine-framework`, `wdio-mocha-framework`
+  * [#7604](https://github.com/webdriverio/webdriverio/pull/7604) Automatically export expect-webdriverio types ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#7602](https://github.com/webdriverio/webdriverio/pull/7602) update links to test-configuration-options ([@walkerlj0](https://github.com/walkerlj0))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Lindsay Walker ([@walkerlj0](https://github.com/walkerlj0))
+
+
 ## v7.16.1 (2021-10-22)
 
 #### :bug: Bug Fix
