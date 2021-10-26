@@ -10,6 +10,7 @@ import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
 import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
 import type { EventEmitter } from 'events'
+import type ExpectWebdriverIO from 'expect-webdriverio'
 
 const log = logger('@wdio/mocha-framework')
 
@@ -394,5 +395,10 @@ export { MochaAdapter, adapterFactory }
 declare global {
     namespace WebdriverIO {
         interface MochaOpts extends MochaOptsImport {}
+    }
+    namespace NodeJS {
+        interface Global {
+            expect: ExpectWebdriverIO.Expect
+        }
     }
 }

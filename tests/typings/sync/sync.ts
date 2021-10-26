@@ -426,7 +426,7 @@ type Random = {
     foo: WebdriverIO.Element
     bar: WebdriverIO.Browser
 }
-expect<Random>(
+expectType<Random>(
     browser.$$('foo').reduce((acc, curr) => {
         acc = {
             foo: curr,

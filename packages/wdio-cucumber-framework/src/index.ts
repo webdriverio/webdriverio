@@ -31,6 +31,7 @@ import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
+import type ExpectWebdriverIO from 'expect-webdriverio'
 
 import CucumberReporter from './reporter'
 import { DEFAULT_OPTS } from './constants'
@@ -413,5 +414,10 @@ declare global {
     namespace WebdriverIO {
         interface CucumberOpts extends CucumberOptions {}
         interface HookFunctionExtension extends HookFunctionExtensionImport {}
+    }
+    namespace NodeJS {
+        interface Global {
+            expect: ExpectWebdriverIO.Expect
+        }
     }
 }
