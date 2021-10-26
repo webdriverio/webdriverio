@@ -1,9 +1,10 @@
+/// <reference types="expect-webdriverio/jasmine" />
+
 import Jasmine from 'jasmine'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
 import { EventEmitter } from 'events'
 import type { Options, Services, Capabilities } from '@wdio/types'
-import type ExpectWebdriverIO from 'expect-webdriverio'
 
 import JasmineReporter from './reporter'
 import type { JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
@@ -27,13 +28,12 @@ interface WebdriverIOJasmineConfig extends Omit<Options.Testrunner, keyof HooksA
 }
 
 /**
- * Jasmine 2.x runner
+ * Jasmine runner
  */
 class JasmineAdapter {
     private _jasmineOpts: jasmineNodeOpts
     private _reporter: JasmineReporter
     private _totalTests = 0
-    private _hookIds = 0
     private _hasTests = true
     private _lastTest?: any
     private _lastSpec?: any
@@ -389,6 +389,7 @@ export default adapterFactory
 export { JasmineAdapter, adapterFactory }
 export * from './types'
 
+type jasmine = typeof Jasmine
 declare global {
     /**
      * Define a single spec. A spec should contain one or more expectations that test the state of the code.
