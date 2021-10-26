@@ -1,10 +1,9 @@
-/// <reference types="jasmine" />
-
 import Jasmine from 'jasmine'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
 import { EventEmitter } from 'events'
 import type { Options, Services, Capabilities } from '@wdio/types'
+import type ExpectWebdriverIO from 'expect-webdriverio'
 
 import JasmineReporter from './reporter'
 import type { JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
@@ -455,5 +454,11 @@ declare global {
 
     namespace WebdriverIO {
         interface JasmineOpts extends jasmineNodeOpts {}
+    }
+
+    namespace jasmine {
+        interface Matchers<T> extends ExpectWebdriverIO.Matchers<any, T> {}
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        interface AsyncMatchers<T, U> extends ExpectWebdriverIO.Matchers<Promise<void>, T> {}
     }
 }
