@@ -245,7 +245,7 @@ Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
 Maximum number of total parallel running workers. 
 
 Note that it may be a number as high as `100`, when the tests are being
-performed on some external vendoors such as Sauce Labs's machines. There, the
+performed on some external vendors such as Sauce Labs's machines. There, the
 tests are not tested on a single machine, but rather, on multiple VMs.  If the
 tests are to be run on a local development machine, use a number that is more
 reasonable, such as `3`, `4`, or `5`. Essentially, this is the number of
