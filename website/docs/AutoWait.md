@@ -19,7 +19,7 @@ A different approach is to use explicit waiting which is built into the Webdrive
 
 ## Built-in Waiting
 
-Both waiting mechanisms are incompatible which each other and can cause longer wait times. As implicit waits are a global setting it is applied to all elements which is sometimes not the desired behavior. Therefore WebdriverIO provides a built-in wait mechanism that automatically explicitly waits on the element before interacting with it.
+Both waiting mechanisms are incompatible with each other and can cause longer wait times. As implicit waits are a global setting it is applied to all elements which is sometimes not the desired behavior. Therefore WebdriverIO provides a built-in wait mechanism that automatically explicitly waits on the element before interacting with it.
 
 :::info Recommendation
 
