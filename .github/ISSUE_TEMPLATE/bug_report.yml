@@ -72,9 +72,10 @@ body:
     attributes:
       label: How to reproduce the bug.
       description: |
-        Please understand that it is essential for us to be able to reproduce
-        the bug on our own machines. Please either create a [new repository](https://github.com/new),
-        a [gist](https://gist.github.com/) or copy and paste all necessary files in here.
+        It is essential for us to be able to reproduce the bug on our own machines.
+        Please either create a [minimal reproducible example](https://stackoverflow.com/help/minimal-reproducible-example)
+        in a [new repository](https://github.com/new), a [gist](https://gist.github.com/)
+        or copy and paste all necessary files in here.
       placeholder: |
         To reproduce the bug, create a file with the following code:
         ```js
