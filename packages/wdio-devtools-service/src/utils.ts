@@ -98,7 +98,11 @@ export async function getLighthouseDriver (session: CDPSession, target: Target):
     const cUrl = new URL(c)
     const connection = new ChromeProtocol(cUrl.port, cUrl.hostname)
 
-    if (cUrl.protocol === 'ws:') {
+    /**
+     * only create a new DevTools session if our WebSocket url doesn't already indicate
+     * that we are using one
+     */
+    if (!cUrl.pathname.startsWith('/devtools/browser')) {
         await connection._connectToSocket({
             webSocketDebuggerUrl: c,
             id: target._targetId
