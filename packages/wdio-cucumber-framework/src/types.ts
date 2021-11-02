@@ -86,6 +86,16 @@ export interface CucumberOptions {
      */
     timeout?: number
     /**
+     * Specify the number of times to retry failing test cases.
+     * @default 0
+     */
+    retry: number
+    /**
+     * Only retries the features or scenarios with tags matching the expression (repeatable).
+     * This option requires 'retry' to be specified.
+     */
+    retryTagFilter?: RegExp | string
+    /**
      * Enable this to make webdriver.io behave as if scenarios
      * and not steps were the tests.
      * @default false
