@@ -238,7 +238,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         this._session = await this._target.createCDPSession()
-        this._driver = await getLighthouseDriver(this._session)
+        this._driver = await getLighthouseDriver(this._session, this._target)
 
         new CommandHandler(this._session, this._page, this._browser)
         this._traceGatherer = new TraceGatherer(this._session, this._page, this._driver)

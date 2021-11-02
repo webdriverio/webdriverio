@@ -13,6 +13,17 @@ jest.mock('fs', () => ({
     existsSync: jest.fn()
 }))
 
+jest.mock('lighthouse/lighthouse-core/gather/connections/cri', () => class ChromeProtocol {
+    public _runJsonCommand = jest.fn().mockReturnValue(['foobar'])
+    public _connectToSocket = jest.fn()
+    public _sendCommandMock = jest.fn()
+
+    sendCommand (...args) {
+        this._sendCommandMock(...args)
+        return { sessionId: 'session 321' }
+    }
+})
+
 test('sumByKey', () => {
     expect(sumByKey([{
         size: 1
@@ -110,14 +121,28 @@ describe('isBrowserSupported', () => {
 })
 
 describe('getLighthouseDriver', () => {
-    test('should return a driver', async () => {
+    test('should return a driver w/o creating new session', async () => {
         const urlMock = jest.fn().mockReturnValue('ws://127.0.0.1:56513/devtools/browser/9aae0e34-86a9-4b0e-856b-d0d37009ddbb')
         const session = {
             connection: jest.fn().mockReturnValue({ url: urlMock })
         }
-        const driver = await getLighthouseDriver(session as any)
+        const target = { _targetId: 'foobar321' }
+        const driver = await getLighthouseDriver(session as any, target as any)
         expect(session.connection).toBeCalledTimes(1)
         expect(urlMock).toBeCalledTimes(1)
         expect(driver.constructor.name).toBe('Driver')
+    })
+
+    test('should create a new session', async () => {
+        const urlMock = jest.fn().mockReturnValue('ws://127.0.0.1:56513/session/9aae0e34-86a9-4b0e-856b-d0d37009ddbb/se/cdp')
+        const session = {
+            connection: jest.fn().mockReturnValue({ url: urlMock })
+        }
+        const target = { _targetId: 'foobar321' }
+        const driver = await getLighthouseDriver(session as any, target as any)
+        // @ts-expect-error
+        driver.connection.sendCommand('foobar')
+        // @ts-expect-error
+        expect(driver.connection._sendCommandMock.mock.calls).toMatchSnapshot()
     })
 })
