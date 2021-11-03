@@ -3,10 +3,12 @@ description: Suggest improvements or report missing/unclear documentation.
 title: "[📖 Docs]: <title>"
 labels: [Docs 📖, Needs Triaging ⏳]
 body:
+
   - type: markdown
     attributes:
       value: |
         Please let us know where we are not doing well with out documentation.
+
   - type: checkboxes
     id: awareness
     attributes:
@@ -15,6 +17,7 @@ body:
       options:
         - label: I know I can edit the docs but prefer to file this issue
           required: true
+
   - type: dropdown
     id: type
     attributes:
@@ -27,6 +30,7 @@ body:
         - Other
     validations:
       required: true
+
   - type: textarea
     id: report
     attributes:
@@ -34,6 +38,7 @@ body:
       description: A clear and concise description.
     validations:
       required: true
+
   - type: checkboxes
     id: terms
     attributes:
