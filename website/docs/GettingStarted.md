@@ -11,13 +11,13 @@ These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are
 
 ## Initiate a WebdriverIO Setup
 
-To add a full WebdriverIO setup to an existing or new project, run:
+To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
 
 ```bash npm2yarn
 # if you in the root directory of an existing project
-$ npx wdio .
+$ npm init wdio .
 # or if you want to create a new project
-$ npx wdio ./path/to/new/project
+$ npm init wdio ./path/to/new/project
 ```
 
 This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
