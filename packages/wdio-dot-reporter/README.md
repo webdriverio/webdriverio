@@ -7,17 +7,7 @@ WebdriverIO Dot Reporter
 
 ## Installation
 
-The easiest way is to keep `@wdio/dot-reporter` as a devDependency in your `package.json`.
-
-```json
-{
-  "devDependencies": {
-    "@wdio/dot-reporter": "^6.3.6"
-  }
-}
-```
-
-You can simple do it by:
+The easiest way is to keep `@wdio/dot-reporter` as a devDependency in your `package.json`, via:
 
 ```bash
 npm install @wdio/dot-reporter --save-dev

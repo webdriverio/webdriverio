@@ -5,17 +5,7 @@ WDIO Cucumber Framework Adapter
 
 ## Installation
 
-The easiest way is to keep `@wdio/cucumber-framework` as a devDependency in your `package.json`.
-
-```json
-{
-  "devDependencies": {
-    "@wdio/cucumber-framework": "^6.3.6"
-  }
-}
-```
-
-You can simple do it by:
+The easiest way is to keep `@wdio/cucumber-framework` as a devDependency in your `package.json`, via:
 
 ```bash
 npm install @wdio/cucumber-framework --save-dev

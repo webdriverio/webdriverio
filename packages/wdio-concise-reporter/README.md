@@ -5,17 +5,7 @@ WDIO Concise Reporter
 
 ## Installation
 
-The easiest way is to keep `@wdio/concise-reporter` as a devDependency in your `package.json`.
-
-```json
-{
-  "devDependencies": {
-    "@wdio/concise-reporter": "^6.3.6"
-  }
-}
-```
-
-You can simple do it by:
+The easiest way is to keep `@wdio/concise-reporter` as a devDependency in your `package.json`, via:
 
 ```sh
 npm install @wdio/concise-reporter --save-dev
