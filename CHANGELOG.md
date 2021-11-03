@@ -19,6 +19,27 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.4 (2021-11-03)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#7618](https://github.com/webdriverio/webdriverio/pull/7618) Connect to target manually if going through remote server ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#7615](https://github.com/webdriverio/webdriverio/pull/7615) add comments for maxInstances default value ([@KennethKinLum](https://github.com/KennethKinLum))
+  * [#7611](https://github.com/webdriverio/webdriverio/pull/7611) Fix typo in Auto-waiting doc ([@lojzatran](https://github.com/lojzatran))
+* `wdio-cli`
+  * [#7610](https://github.com/webdriverio/webdriverio/pull/7610) fix typo in login.page.js.ejs ([@hgsgtk](https://github.com/hgsgtk))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kazuki Higashiguchi ([@hgsgtk](https://github.com/hgsgtk))
+- Kenneth Lum ([@KennethKinLum](https://github.com/KennethKinLum))
+- Lam Tran ([@lojzatran](https://github.com/lojzatran))
+- Mikita Lisavets ([@MikitaLisavets](https://github.com/MikitaLisavets))
+
+
 ## v7.16.3 (2021-10-26)
 
 #### :bug: Bug Fix
