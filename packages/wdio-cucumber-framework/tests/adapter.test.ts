@@ -191,9 +191,9 @@ describe('CucumberAdapter', () => {
 
     it('addWdioHooks', async () => {
         class CustomWorld {
-            public foo = 'bar';
+            public foo = 'bar'
         }
-        const cukeWorld = new CustomWorld();
+        const cukeWorld = new CustomWorld()
 
         const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
         adapter.addWdioHooks({
