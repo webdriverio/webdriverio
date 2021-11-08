@@ -190,6 +190,11 @@ describe('CucumberAdapter', () => {
     })
 
     it('addWdioHooks', async () => {
+        class CustomWorld {
+            public foo = 'bar';
+        }
+        const cukeWorld = new CustomWorld();
+
         const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
         adapter.addWdioHooks({
             beforeFeature: 'beforeFeature',
@@ -207,24 +212,24 @@ describe('CucumberAdapter', () => {
         expect(Cucumber.AfterStep).toBeCalledTimes(1)
         expect(executeHooksWithArgs).toBeCalledTimes(0)
 
-        ;(Cucumber.AfterStep as jest.Mock).mock.calls[0][0]('world')
+        ;(Cucumber.AfterStep as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
-            .toBeCalledWith('afterStep', 'afterStep', ['step', 'scenario', { 'duration': NaN, 'error': undefined, 'passed': false }])
-        ;(Cucumber.BeforeStep as jest.Mock).mock.calls[0][0]()
+            .toBeCalledWith('afterStep', 'afterStep', ['step', 'scenario', { 'duration': NaN, 'error': undefined, 'passed': false }, cukeWorld])
+        ;(Cucumber.BeforeStep as jest.Mock).mock.calls[0][0].bind(cukeWorld)()
         expect(executeHooksWithArgs)
-            .toBeCalledWith('beforeStep', 'beforeStep', ['step', 'scenario'])
+            .toBeCalledWith('beforeStep', 'beforeStep', ['step', 'scenario', cukeWorld])
         ;(Cucumber.BeforeAll as jest.Mock).mock.calls[0][0]()
         expect(executeHooksWithArgs)
             .toBeCalledWith('beforeFeature', 'beforeFeature', ['uri', 'feature'])
         ;(Cucumber.AfterAll as jest.Mock).mock.calls[0][0]()
         expect(executeHooksWithArgs)
             .toBeCalledWith('afterFeature', 'afterFeature', ['uri', 'feature'])
-        ;(Cucumber.Before as jest.Mock).mock.calls[0][0]('world')
+        ;(Cucumber.Before as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
-            .toBeCalledWith('beforeScenario', 'beforeScenario', ['world'])
-        ;(Cucumber.After as jest.Mock).mock.calls[0][0]('world')
+            .toBeCalledWith('beforeScenario', 'beforeScenario', ['world', cukeWorld])
+        ;(Cucumber.After as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
-            .toBeCalledWith('afterScenario', 'afterScenario', ['world', { 'duration': NaN, 'error': undefined, 'passed': false }])
+            .toBeCalledWith('afterScenario', 'afterScenario', ['world', { 'duration': NaN, 'error': undefined, 'passed': false }, cukeWorld])
     })
 
     it('wrapSteps', async () => {
