@@ -361,17 +361,19 @@ exports.config = {
     /**
      *
      * Runs before a Cucumber Scenario.
-     * @param {ITestCaseHookParameter} world world object containing information on pickle and test step
+     * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
+     * @param {Object}                 context  Cucumber World object
      */
-    beforeScenario: function (world) {
+    beforeScenario: function (world, context) {
     },
     /**
      *
      * Runs before a Cucumber Step.
      * @param {Pickle.IPickleStep} step     step data
      * @param {IPickle}            scenario scenario pickle
+     * @param {Object}             context  Cucumber World object
      */
-    beforeStep: function (step, scenario) {
+    beforeStep: function (step, scenario, context) {
     },
     /**
      *
@@ -382,19 +384,21 @@ exports.config = {
      * @param {boolean}            result.passed   true if scenario has passed
      * @param {string}             result.error    error stack if scenario failed
      * @param {number}             result.duration duration of scenario in milliseconds
+     * @param {Object}             context Cucumber World object
      */
-    afterStep: function (step, scenario, result) {
+    afterStep: function (step, scenario, result, context) {
     },
     /**
      *
-     * Runs before a Cucumber Scenario.
+     * Runs after a Cucumber Scenario.
      * @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
      * @param {Object}                 result results object containing scenario results
      * @param {boolean}                result.passed   true if scenario has passed
      * @param {string}                 result.error    error stack if scenario failed
      * @param {number}                 result.duration duration of scenario in milliseconds
+     * @param {Object}                 context Cucumber World object
      */
-    afterScenario: function (world, result) {
+    afterScenario: function (world, result, context) {
     },
     /**
      *
