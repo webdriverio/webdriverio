@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.5 (2021-11-09)
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#7662](https://github.com/webdriverio/webdriverio/pull/7662) Issue 7651: add Cucumber World object back to step/scenario hooks ([@jvisco](https://github.com/jvisco))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#7663](https://github.com/webdriverio/webdriverio/pull/7663) Better clarify which commands wait on elements to exist ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@jvisco](https://github.com/jvisco)
+
+
 ## v7.16.4 (2021-11-03)
 
 #### :bug: Bug Fix
